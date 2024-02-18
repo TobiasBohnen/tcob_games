@@ -1,0 +1,304 @@
+-- Copyright (c) 2024 Tobias Bohnen
+--
+-- This software is released under the MIT License.
+-- https://opensource.org/licenses/MIT
+
+local layout = require 'base/layout'
+local ops    = require 'base/ops'
+local piles  = require 'base/piles'
+require 'base/common'
+
+local fan                  = {
+    Info       = {
+        Name          = "Fan",
+        Type          = "OpenPacker",
+        Family        = "Fan",
+        DeckCount     = 1,
+        CardDealCount = 0,
+        Redeals       = 0
+    },
+    Foundation = {
+        Size   = 4,
+        create = piles.ace_upsuit_top
+    },
+    Tableau    = {
+        Size   = 18,
+        create = function(i)
+            return {
+                Initial = piles.initial.face_up(i < 17 and 3 or 1),
+                Layout = "Row",
+                Rule = { Build = "DownInSuit", Move = "Top", Empty = "King" }
+            }
+        end
+    },
+    layout     = function(game) layout.fan(game, 5) end
+}
+
+------
+
+local bear_river           = Copy(fan)
+bear_river.Info.Name       = "Bear River"
+bear_river.Foundation      = {
+    Size   = 4,
+    create = function(i)
+        return {
+            Initial = i == 0 and piles.initial.face_up(1) or {},
+            Rule = { Build = "UpInSuit", Wrap = true, Move = "None", Empty = "FirstFoundation" }
+        }
+    end
+}
+bear_river.Tableau         = {
+    Size   = 18,
+    create = function(i)
+        local lastInRow = i % 6 == 5
+        return {
+            Initial = piles.initial.face_up(lastInRow and 2 or 3),
+            Layout = "Row",
+            Rule = { Build = "UpOrDownInSuit", Wrap = true, Move = "Top", Empty = lastInRow and "Any" or "None", Limit = 3 }
+        }
+    end
+}
+bear_river.layout          = function(game) layout.fan(game, 6) end
+
+------
+
+local box_fan              = Copy(fan)
+box_fan.Info.Name          = "Box Fan"
+box_fan.Tableau            = {
+    Size   = 16,
+    create = function()
+        return {
+            Initial = piles.initial.face_up(3),
+            Layout = "Row",
+            Rule = { Build = "DownAlternateColors", Move = "Top", Empty = "King" }
+        }
+    end
+}
+box_fan.before_shuffle     = ops.shuffle.ace_to_foundation
+box_fan.layout             = function(game) layout.fan(game, 4) end
+
+------
+
+local ceiling_fan          = Copy(fan)
+ceiling_fan.Info.Name      = "Ceiling Fan"
+ceiling_fan.Tableau        = {
+    Size   = 18,
+    create = function(i)
+        return {
+            Initial = piles.initial.face_up(i < 17 and 3 or 1),
+            Layout = "Row",
+            Rule = { Build = "DownAlternateColors", Move = "Top", Empty = "King" }
+        }
+    end
+}
+
+------
+
+local clover_leaf          = {
+    Info           = {
+        Name          = "Clover Leaf",
+        Type          = "OpenPacker",
+        Family        = "Fan",
+        DeckCount     = 1,
+        CardDealCount = 0,
+        Redeals       = 0
+    },
+    Foundation     = {
+        Size   = 4,
+        create = function(i)
+            if i < 2 then
+                return {
+                    Rule = { Build = "UpInSuit", Move = "Top", Empty = { Type = "Card", Color = "Black", Rank = "Ace" } }
+                }
+            else
+                return {
+                    Rule = { Build = "DownInSuit", Move = "Top", Empty = { Type = "Card", Color = "Red", Rank = "King" } }
+                }
+            end
+        end
+    },
+    Tableau        = {
+        Size   = 16,
+        create = function()
+            return {
+                Initial = piles.initial.face_up(3),
+                Layout = "Row",
+                Rule = { Build = "UpOrDownInSuit", Move = "Top", Empty = { Type = "Ranks", Ranks = { "Ace", "King" } } }
+            }
+        end
+    },
+    before_shuffle = function(game, card)
+        if card.Rank == "Ace" and card.Color == "Black" then
+            return game.put_card(card, game.Foundation, 0, 2)
+        end
+        if card.Rank == "King" and card.Color == "Red" then
+            return game.put_card(card, game.Foundation, 2, 2)
+        end
+
+        return false
+    end,
+    layout         = function(game) layout.fan(game, 4) end
+}
+
+------
+
+local quads                = Copy(fan)
+quads.Info.Name            = "Quads"
+quads.Tableau              = {
+    Size   = 13,
+    create = function()
+        return {
+            Initial = piles.initial.face_up(4),
+            Layout = "Row",
+            Rule = { Build = "InRank", Move = "Top", Empty = "Any", Limit = 4 }
+        }
+    end
+}
+quads.shuffle              = function(game, card, pileType)
+    if pileType == "Tableau" and card.Rank == "Ace" then
+        return game.put_card(card, game.Foundation);
+    end
+
+    return false
+end
+
+------
+
+local quads_plus           = Copy(fan)
+quads_plus.Info.Name       = "Quads+"
+quads_plus.Tableau         = {
+    Size   = 13,
+    create = function(i)
+        return {
+            Initial = piles.initial.face_up(i < 12 and 4 or 0),
+            Layout = "Row",
+            Rule = { Build = "InRank", Move = "Top", Empty = "Any", Limit = 4 }
+        }
+    end
+}
+quads_plus.before_shuffle  = ops.shuffle.ace_to_foundation
+
+------
+
+local lucky_piles_pos      = {
+    { 0, 1 }, { 2, 1 }, { 4, 1 }, { 6, 1 }, { 8, 1 },
+    { 2, 2 }, { 4, 2 }, { 6, 2 },
+    { 0, 3 }, { 2, 3 }, { 4, 3 }, { 6, 3 }, { 8, 3 } }
+
+local lucky_piles          = {
+    Info       = {
+        Name          = "Lucky Piles",
+        Type          = "OpenPacker",
+        Family        = "Fan",
+        DeckCount     = 1,
+        CardDealCount = 0,
+        Redeals       = 0
+    },
+    Foundation = {
+        Size   = 4,
+        create = function(i)
+            return {
+                Position = { x = (i + 0.5) * 2, y = 0 },
+                Rule = { Build = "UpInSuit", Move = "Top", Empty = "Ace" }
+            }
+        end
+    },
+    Tableau    = {
+        Size   = 13,
+        create = function(i)
+            return {
+                Position = { x = lucky_piles_pos[i + 1][1], y = lucky_piles_pos[i + 1][2] },
+                Initial = piles.initial.face_up(4),
+                Layout = "Row",
+                Rule = { Build = "UpOrDownInSuit", Move = "Top", Empty = "King" }
+            }
+        end
+    }
+}
+
+------
+
+local scotch_patience      = Copy(fan)
+scotch_patience.Info.Name  = "Scotch Patience"
+scotch_patience.Foundation = {
+    Size   = 4,
+    create = function() return { Rule = { Build = "UpAlternateColors", Move = "Top", Empty = "Ace" } } end
+}
+scotch_patience.Tableau    = {
+    Size   = 18,
+    create = function(i)
+        return {
+            Initial = piles.initial.face_up(i < 17 and 3 or 1),
+            Layout = "Row",
+            Rule = { Build = "DownByRank", Move = "Top", Empty = "None" }
+        }
+    end
+}
+
+------
+
+local shamrocks            = Copy(fan)
+shamrocks.Info.Name        = "Shamrocks"
+shamrocks.Tableau          = {
+    Size   = 18,
+    create = function(i)
+        return {
+            Initial = piles.initial.face_up(i < 17 and 3 or 1),
+            Layout = "Row",
+            Rule = { Build = "UpOrDownByRank", Move = "Top", Empty = "None", Limit = 3 }
+        }
+    end
+}
+
+------
+
+local shamrocks_2          = Copy(fan)
+shamrocks_2.Info.Name      = "Shamrocks II"
+shamrocks_2.Tableau        = {
+    Size   = 18,
+    create = function(i)
+        return {
+            Initial = piles.initial.face_up(i < 17 and 3 or 1),
+            Layout = "Row",
+            Rule = { Build = "UpOrDownByRank", Move = "Top", Empty = "None", Limit = 3 }
+        }
+    end
+}
+shamrocks_2.after_shuffle  = ops.shuffle.kings_to_bottom
+
+------
+
+local troika               = Copy(fan)
+troika.Info.Name           = "Troika"
+troika.Tableau             = {
+    Size   = 18,
+    create = function(i)
+        return {
+            Initial = piles.initial.face_up(i < 17 and 3 or 1),
+            Layout = "Row",
+            Rule = { Build = "InRank", Move = "Top", Empty = "None", Limit = 3 }
+        }
+    end
+}
+troika.shuffle             = function(game, card, pileType)
+    if pileType == "Tableau" and card.Rank == "Ace" then
+        return game.put_card(card, game.Foundation);
+    end
+
+    return false
+end
+
+------------------------
+
+register_game(fan)
+register_game(bear_river)
+register_game(box_fan)
+register_game(ceiling_fan)
+register_game(clover_leaf)
+register_game(quads)
+register_game(quads_plus)
+register_game(lucky_piles)
+register_game(scotch_patience)
+register_game(shamrocks)
+register_game(shamrocks_2)
+register_game(troika)
