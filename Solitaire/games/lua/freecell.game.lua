@@ -461,10 +461,7 @@ local flipper                        = {
 
 local footling                       = Copy(free_cell)
 footling.Info.Name                   = "Footling"
-footling.Foundation                  = {
-    Size = 1,
-    create = function() return { Rule = { Build = "RankPack", Move = "Top", Empty = "Ace" } } end
-}
+footling.Foundation                  = { Rule = { Build = "RankPack", Move = "Top", Empty = "Ace" } }
 footling.Tableau                     = {
     Size = 8,
     create = function(i)

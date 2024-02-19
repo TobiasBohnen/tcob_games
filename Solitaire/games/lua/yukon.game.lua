@@ -256,14 +256,9 @@ local hawaiian                           = {
         Redeals       = 0
     },
     Reserve    = {
-        Size   = 1,
-        create = function()
-            return {
-                Position = { x = 0, y = 0 },
-                Initial  = piles.initial.face_up(54),
-                Layout   = "Squared"
-            }
-        end
+        Position = { x = 0, y = 0 },
+        Initial  = piles.initial.face_up(54),
+        Layout   = "Squared"
     },
     Foundation = {
         Size   = 8,

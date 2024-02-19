@@ -17,18 +17,11 @@ local canfield                   = {
         CardDealCount = 3,
         Redeals       = -1
     },
-    Stock         = {
-        Initial = piles.initial.face_down(34)
-    },
+    Stock         = { Initial = piles.initial.face_down(34) },
     Waste         = {},
     Reserve       = {
-        Size   = 1,
-        create = function()
-            return {
-                Initial = piles.initial.top_face_up(13),
-                Layout = "Column"
-            }
-        end
+        Initial = piles.initial.top_face_up(13),
+        Layout = "Column"
     },
     Foundation    = {
         Size   = 4,
@@ -49,9 +42,7 @@ local canfield                   = {
             }
         end
     },
-    before_layout = function(game)
-        game.Reserve[1]:fill_group(game.Tableau)
-    end,
+    before_layout = function(game) game.Reserve[1]:fill_group(game.Tableau) end,
     redeal        = ops.redeal.waste_to_stock,
     deal          = ops.deal.stock_to_waste,
     layout        = layout.canfield
@@ -98,12 +89,10 @@ american_toad.Info.DeckCount     = 2
 american_toad.Info.CardDealCount = 1
 american_toad.Info.Redeals       = 1
 american_toad.Stock.Initial      = piles.initial.face_down(75)
-american_toad.Reserve.create     = function()
-    return {
-        Initial = piles.initial.face_up(20),
-        Layout = "Column"
-    }
-end
+american_toad.Reserve            = {
+    Initial = piles.initial.face_up(20),
+    Layout = "Column"
+}
 american_toad.Foundation.Size    = 8
 american_toad.Tableau            = {
     Size   = 8,
@@ -213,9 +202,7 @@ local duke                       = {
         Position = { x = 0, y = 0 },
         Initial = piles.initial.face_down(36)
     },
-    Waste      = {
-        Position = { x = 1, y = 0 }
-    },
+    Waste      = { Position = { x = 1, y = 0 } },
     Reserve    = {
         Size   = 4,
         create = function(i)

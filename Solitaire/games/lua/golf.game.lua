@@ -21,14 +21,9 @@ local golf                 = {
         Initial = piles.initial.face_down(16)
     },
     Foundation  = {
-        Size   = 1,
-        create = function()
-            return {
-                Initial = piles.initial.face_up(1),
-                Layout  = "Squared",
-                Rule    = { Build = "UpOrDownByRank", Move = "None" }
-            }
-        end
+        Initial = piles.initial.face_up(1),
+        Layout  = "Squared",
+        Rule    = { Build = "UpOrDownByRank", Move = "None" }
     },
     Tableau     = {
         Size   = 7,
@@ -71,14 +66,9 @@ double_golf.Tableau        = {
 local putt_putt            = Copy(golf)
 putt_putt.Info.Name        = "Putt Putt"
 putt_putt.Foundation       = {
-    Size   = 1,
-    create = function()
-        return {
-            Initial = piles.initial.face_up(1),
-            Layout  = "Squared",
-            Rule    = { Build = "UpOrDownByRank", Wrap = true, Move = "None" }
-        }
-    end
+    Initial = piles.initial.face_up(1),
+    Layout  = "Squared",
+    Rule    = { Build = "UpOrDownByRank", Wrap = true, Move = "None" }
 }
 
 ------
@@ -107,13 +97,8 @@ local black_hole           = {
         Redeals       = 0
     },
     Foundation     = {
-        Size   = 1,
-        create = function()
-            return {
-                Position = { x = 4, y = 1.5 },
-                Rule     = { Build = "UpOrDownByRank", Wrap = true, Move = "None" }
-            }
-        end
+        Position = { x = 4, y = 1.5 },
+        Rule     = { Build = "UpOrDownByRank", Wrap = true, Move = "None" }
     },
     Tableau        = {
         Size   = 17,

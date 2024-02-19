@@ -31,7 +31,7 @@ local beleaguered_castle    = {
             }
         end
     },
-    before_shuffle = ops.shuffle.aces_to_foundation,
+    before_shuffle = ops.shuffle.ace_to_foundation,
     layout         = layout.beleaguered_castle
 }
 
@@ -141,10 +141,7 @@ local fastness                   = {
 
 local siegecraft                 = Copy(fastness)
 siegecraft.Info.Name             = "Siegecraft"
-siegecraft.FreeCell              = {
-    Size   = 1,
-    create = function() return { Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" } } end
-}
+siegecraft.FreeCell              = { Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" } }
 siegecraft.Tableau.create        = function()
     return {
         Initial = piles.initial.face_up(6),
@@ -152,13 +149,13 @@ siegecraft.Tableau.create        = function()
         Rule = { Build = "DownByRank", Move = "Top", Empty = "Any" }
     }
 end
-siegecraft.before_shuffle        = ops.shuffle.aces_to_foundation
+siegecraft.before_shuffle        = ops.shuffle.ace_to_foundation
 
 ------
 
 local stronghold                 = Copy(fastness)
 stronghold.Info.Name             = "Stronghold"
-stronghold.FreeCell              = Copy(siegecraft.FreeCell)
+stronghold.FreeCell              = { Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" } }
 
 ------
 
@@ -222,10 +219,7 @@ end
 
 local ten_by_one                 = Copy(bastion)
 ten_by_one.Info.Name             = "Ten by One"
-ten_by_one.FreeCell              = {
-    Size   = 1,
-    create = function() return { Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" } } end
-}
+ten_by_one.FreeCell              = { Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" } }
 ten_by_one.Tableau.create        = function(i)
     return {
         Initial = piles.initial.face_up(i < 2 and 6 or 5),
@@ -523,14 +517,9 @@ local chequers                   = {
         Redeals       = 0
     },
     Reserve       = {
-        Size   = 1,
-        create = function()
-            return {
-                Position = { x = 0, y = 0 },
-                Initial = piles.initial.face_down(4),
-                Rule = { Build = "NoBuilding", Move = "None", Empty = "None" }
-            }
-        end
+        Position = { x = 0, y = 0 },
+        Initial = piles.initial.face_down(4),
+        Rule = { Build = "NoBuilding", Move = "None", Empty = "None" }
     },
     Foundation    = {
         Size   = 8,
@@ -639,14 +628,9 @@ local zerline                    = {
         Position = { x = 4, y = 0 }
     },
     FreeCell   = {
-        Size = 1,
-        create = function()
-            return {
-                Position = { x = 5, y = 0 },
-                Layout = "Row",
-                Rule = { Build = "Any", Move = "Top", Empty = "Any", Limit = 4 }
-            }
-        end
+        Position = { x = 5, y = 0 },
+        Layout = "Row",
+        Rule = { Build = "Any", Move = "Top", Empty = "Any", Limit = 4 }
     },
     Foundation = {
         Size   = 8,
@@ -697,13 +681,11 @@ local zerline_3_decks            = Copy(zerline)
 zerline_3_decks.Info.Name        = "Zerline (3 Decks)"
 zerline_3_decks.Info.DeckCount   = 3
 zerline_3_decks.Stock.Initial    = piles.initial.face_down(116)
-zerline_3_decks.FreeCell.create  = function()
-    return {
-        Position = { x = 5, y = 0 },
-        Layout = "Row",
-        Rule = { Build = "Any", Move = "Top", Empty = "Any", Limit = 6 }
-    }
-end
+zerline_3_decks.FreeCell         = {
+    Position = { x = 5, y = 0 },
+    Layout = "Row",
+    Rule = { Build = "Any", Move = "Top", Empty = "Any", Limit = 6 }
+}
 zerline_3_decks.Foundation       = {
     Size   = 12,
     create = function(i)
