@@ -19,17 +19,15 @@ local beleaguered_castle    = {
     },
     Foundation     = {
         Size   = 4,
-        create = function() return { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } } end
+        create = { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } }
     },
     Tableau        = {
         Size   = 8,
-        create = function()
-            return {
-                Initial = piles.initial.face_up(6),
-                Layout = "Row",
-                Rule = { Build = "DownByRank", Move = "Top", Empty = "Any" }
-            }
-        end
+        create = {
+            Initial = piles.initial.face_up(6),
+            Layout = "Row",
+            Rule = { Build = "DownByRank", Move = "Top", Empty = "Any" }
+        }
     },
     before_shuffle = ops.shuffle.ace_to_foundation,
     layout         = layout.beleaguered_castle
@@ -42,17 +40,15 @@ castle_mount.Info.Name      = "Castle Mount"
 castle_mount.Info.DeckCount = 3
 castle_mount.Foundation     = {
     Size   = 12,
-    create = function() return { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } } end
+    create = { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } }
 }
 castle_mount.Tableau        = {
     Size   = 12,
-    create = function()
-        return {
-            Initial = piles.initial.face_up(12),
-            Layout = "Column",
-            Rule = { Build = "DownByRank", Move = "InSequenceInSuit", Empty = "King" }
-        }
-    end
+    create = {
+        Initial = piles.initial.face_up(12),
+        Layout = "Column",
+        Rule = { Build = "DownByRank", Move = "InSequenceInSuit", Empty = "King" }
+    }
 }
 castle_mount.layout         = layout.canister
 
@@ -76,13 +72,11 @@ end
 
 local exiled_kings               = Copy(citadel)
 exiled_kings.Info.Name           = "Exiled Kings"
-exiled_kings.Tableau.create      = function()
-    return {
-        Initial = piles.initial.face_up(6),
-        Layout = "Row",
-        Rule = { Build = "DownByRank", Move = "Top", Empty = "King" }
-    }
-end
+exiled_kings.Tableau.create      = {
+    Initial = piles.initial.face_up(6),
+    Layout = "Row",
+    Rule = { Build = "DownByRank", Move = "Top", Empty = "King" }
+}
 
 ------
 
@@ -91,17 +85,15 @@ lightweight.Info.Name            = "Lightweight"
 lightweight.Info.DeckCount       = 2
 lightweight.Foundation           = {
     Size   = 8,
-    create = function() return { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } } end
+    create = { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } }
 }
 lightweight.Tableau              = {
     Size   = 12,
-    create = function()
-        return {
-            Initial = piles.initial.face_up(8),
-            Layout = "Column",
-            Rule = { Build = "DownByRank", Move = "InSequence", Empty = "King" }
-        }
-    end
+    create = {
+        Initial = piles.initial.face_up(8),
+        Layout = "Column",
+        Rule = { Build = "DownByRank", Move = "InSequence", Empty = "King" }
+    }
 }
 lightweight.layout               = layout.canister
 
@@ -118,11 +110,11 @@ local fastness                   = {
     },
     FreeCell   = {
         Size   = 2,
-        create = function() return { Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" } } end
+        create = { Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" } }
     },
     Foundation = {
         Size   = 4,
-        create = function() return { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } } end
+        create = { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } }
     },
     Tableau    = {
         Size   = 8,
@@ -142,13 +134,11 @@ local fastness                   = {
 local siegecraft                 = Copy(fastness)
 siegecraft.Info.Name             = "Siegecraft"
 siegecraft.FreeCell              = { Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" } }
-siegecraft.Tableau.create        = function()
-    return {
-        Initial = piles.initial.face_up(6),
-        Layout = "Row",
-        Rule = { Build = "DownByRank", Move = "Top", Empty = "Any" }
-    }
-end
+siegecraft.Tableau.create        = {
+    Initial = piles.initial.face_up(6),
+    Layout = "Row",
+    Rule = { Build = "DownByRank", Move = "Top", Empty = "Any" }
+}
 siegecraft.before_shuffle        = ops.shuffle.ace_to_foundation
 
 ------
@@ -170,12 +160,10 @@ local bastion                    = {
     },
     FreeCell   = {
         Size   = 2,
-        create = function()
-            return {
-                Initial = piles.initial.face_up(1),
-                Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" }
-            }
-        end
+        create = {
+            Initial = piles.initial.face_up(1),
+            Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" }
+        }
     },
     Foundation = {
         Size   = 4,
@@ -183,13 +171,11 @@ local bastion                    = {
     },
     Tableau    = {
         Size   = 10,
-        create = function()
-            return {
-                Initial = piles.initial.face_up(5),
-                Layout = "Column",
-                Rule = { Build = "UpOrDownInSuit", Move = "Top", Empty = "Any" }
-            }
-        end
+        create = {
+            Initial = piles.initial.face_up(5),
+            Layout = "Column",
+            Rule = { Build = "UpOrDownInSuit", Move = "Top", Empty = "Any" }
+        }
     },
     layout     = layout.free_cell
 }
@@ -198,14 +184,12 @@ local bastion                    = {
 
 local castles_end                = Copy(bastion)
 castles_end.Info.Name            = "Castles End"
-castles_end.Foundation.create    = function() return { Rule = { Build = "UpInSuit", Wrap = true, Move = "Top", Empty = "FirstFoundation" } } end
-castles_end.Tableau.create       = function()
-    return {
-        Initial = piles.initial.face_up(5),
-        Layout = "Column",
-        Rule = { Build = "UpOrDownAlternateColors", Move = "Top", Empty = "Any" }
-    }
-end
+castles_end.Foundation.create    = { Rule = { Build = "UpInSuit", Wrap = true, Move = "Top", Empty = "FirstFoundation" } }
+castles_end.Tableau.create       = {
+    Initial = piles.initial.face_up(5),
+    Layout = "Column",
+    Rule = { Build = "UpOrDownAlternateColors", Move = "Top", Empty = "Any" }
+}
 castles_end.can_drop             = function(game, targetPile, targetIndex, drop, numCards)
     local foundation1 = game.Foundation[1]
     if foundation1.Empty then -- block card drops if foundation is empty
@@ -241,7 +225,7 @@ local canister                   = {
     },
     Foundation = {
         Size   = 4,
-        create = function() return { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } } end
+        create = { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } }
     },
     Tableau    = {
         Size   = 8,
@@ -293,7 +277,7 @@ local chessboard                 = {
     },
     Foundation = {
         Size   = 4,
-        create = function() return { Rule = { Build = "UpInSuit", Wrap = true, Move = "None", Empty = "FirstFoundation" } } end
+        create = { Rule = { Build = "UpInSuit", Wrap = true, Move = "None", Empty = "FirstFoundation" } }
     },
     Tableau    = {
         Size   = 10,
@@ -320,7 +304,7 @@ local chessboard                 = {
 
 local lasker                     = Copy(chessboard)
 lasker.Info.Name                 = "Lasker"
-lasker.Foundation.create         = function() return { Rule = { Build = "UpInSuit", Wrap = true, Move = "Top", Empty = "FirstFoundation" } } end
+lasker.Foundation.create         = { Rule = { Build = "UpInSuit", Wrap = true, Move = "Top", Empty = "FirstFoundation" } }
 lasker.Tableau.create            = function(i)
     return {
         Initial = piles.initial.face_up(i < 2 and 6 or 5),
@@ -398,7 +382,7 @@ local penelopes_web              = {
     },
     Foundation = {
         Size   = 4,
-        create = function() return { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } } end
+        create = { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } }
     },
     Tableau    = {
         Size   = 8,
@@ -426,7 +410,7 @@ local selective_castle           = {
     },
     Foundation = {
         Size   = 4,
-        create = function() return { Rule = { Build = "UpInSuit", Wrap = true, Move = "None", Empty = "FirstFoundation" } } end
+        create = { Rule = { Build = "UpInSuit", Wrap = true, Move = "None", Empty = "FirstFoundation" } }
     },
     Tableau    = {
         Size   = 8,
@@ -490,7 +474,7 @@ local streets_and_alleys         = {
     },
     Foundation = {
         Size   = 4,
-        create = function() return { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } } end
+        create = { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } }
     },
     Tableau    = {
         Size   = 8,

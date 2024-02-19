@@ -59,11 +59,7 @@ local yukon                              = {
     },
     Foundation = {
         Size   = 4,
-        create = function()
-            return {
-                Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" }
-            }
-        end
+        create = { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } }
     },
     Tableau    = {
         Size   = 7,
@@ -298,11 +294,7 @@ local chinese_discipline                 = {
     },
     Foundation = {
         Size   = 4,
-        create = function()
-            return {
-                Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" }
-            }
-        end
+        create = { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } }
     },
     Tableau    = {
         Size   = 7,
@@ -347,11 +339,7 @@ local rushdike                           = {
     },
     Foundation = {
         Size   = 4,
-        create = function()
-            return {
-                Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" }
-            }
-        end
+        create = { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } }
     },
     Tableau    = {
         Size   = 7,

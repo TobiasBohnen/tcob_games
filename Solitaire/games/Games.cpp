@@ -525,7 +525,7 @@ script_game::script_game(field& f, game_info info, scripting::lua::table tab)
     : base_game {f, std::move(info)}
     , _table {std::move(tab)}
 {
-    auto const createPile {[this](pile& pile, table& pileTab) {
+    auto const createPile {[this](pile& pile, table const& pileTab) {
         pile.Position  = pileTab["Position"].get<point_f>().value_or(point_f::Zero);
         pile.Initial   = pileTab["Initial"].get<std::vector<bool>>().value_or(std::vector<bool> {});
         pile.Layout    = pileTab["Layout"].get<layout_type>().value_or(layout_type::Squared);
@@ -593,11 +593,14 @@ script_game::script_game(field& f, game_info info, scripting::lua::table tab)
                 create_piles(piles, 1, [&](auto& pile, i32) {
                     createPile(pile, pileTypeTable);
                 });
+            } else if (table createTable; pileTypeTable.try_get(createTable, "create")) { // use 'create' table
+                create_piles(piles, size, [&](auto& pile, i32) {
+                    createPile(pile, createTable);
+                });
             } else { // call 'create' function
                 function<table> create {pileTypeTable["create"].as<function<table>>()};
                 create_piles(piles, size, [&](auto& pile, i32 i) {
-                    auto tabDef {create(i)};
-                    createPile(pile, tabDef);
+                    createPile(pile, create(i));
                 });
             }
         }

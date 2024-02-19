@@ -42,7 +42,7 @@ bear_river.Foundation      = {
     Size   = 4,
     create = function(i)
         return {
-            Initial = i == 0 and piles.initial.face_up(1) or {},
+            Initial = piles.initial.face_up(i == 0 and 1 or 0),
             Rule = { Build = "UpInSuit", Wrap = true, Move = "None", Empty = "FirstFoundation" }
         }
     end
@@ -66,13 +66,11 @@ local box_fan              = Copy(fan)
 box_fan.Info.Name          = "Box Fan"
 box_fan.Tableau            = {
     Size   = 16,
-    create = function()
-        return {
-            Initial = piles.initial.face_up(3),
-            Layout = "Row",
-            Rule = { Build = "DownAlternateColors", Move = "Top", Empty = "King" }
-        }
-    end
+    create = {
+        Initial = piles.initial.face_up(3),
+        Layout = "Row",
+        Rule = { Build = "DownAlternateColors", Move = "Top", Empty = "King" }
+    }
 }
 box_fan.before_shuffle     = ops.shuffle.ace_to_foundation
 box_fan.layout             = function(game) layout.fan(game, 4) end
@@ -107,25 +105,19 @@ local clover_leaf          = {
         Size   = 4,
         create = function(i)
             if i < 2 then
-                return {
-                    Rule = { Build = "UpInSuit", Move = "Top", Empty = { Type = "Card", Color = "Black", Rank = "Ace" } }
-                }
+                return { Rule = { Build = "UpInSuit", Move = "Top", Empty = { Type = "Card", Color = "Black", Rank = "Ace" } } }
             else
-                return {
-                    Rule = { Build = "DownInSuit", Move = "Top", Empty = { Type = "Card", Color = "Red", Rank = "King" } }
-                }
+                return { Rule = { Build = "DownInSuit", Move = "Top", Empty = { Type = "Card", Color = "Red", Rank = "King" } } }
             end
         end
     },
     Tableau        = {
         Size   = 16,
-        create = function()
-            return {
-                Initial = piles.initial.face_up(3),
-                Layout = "Row",
-                Rule = { Build = "UpOrDownInSuit", Move = "Top", Empty = { Type = "Ranks", Ranks = { "Ace", "King" } } }
-            }
-        end
+        create = {
+            Initial = piles.initial.face_up(3),
+            Layout = "Row",
+            Rule = { Build = "UpOrDownInSuit", Move = "Top", Empty = { Type = "Ranks", Ranks = { "Ace", "King" } } }
+        }
     },
     before_shuffle = function(game, card)
         if card.Rank == "Ace" and card.Color == "Black" then
@@ -146,13 +138,11 @@ local quads                = Copy(fan)
 quads.Info.Name            = "Quads"
 quads.Tableau              = {
     Size   = 13,
-    create = function()
-        return {
-            Initial = piles.initial.face_up(4),
-            Layout = "Row",
-            Rule = { Build = "InRank", Move = "Top", Empty = "Any", Limit = 4 }
-        }
-    end
+    create = {
+        Initial = piles.initial.face_up(4),
+        Layout = "Row",
+        Rule = { Build = "InRank", Move = "Top", Empty = "Any", Limit = 4 }
+    }
 }
 quads.shuffle              = function(game, card, pileType)
     if pileType == "Tableau" and card.Rank == "Ace" then
@@ -222,7 +212,7 @@ local scotch_patience      = Copy(fan)
 scotch_patience.Info.Name  = "Scotch Patience"
 scotch_patience.Foundation = {
     Size   = 4,
-    create = function() return { Rule = { Build = "UpAlternateColors", Move = "Top", Empty = "Ace" } } end
+    create = { Rule = { Build = "UpAlternateColors", Move = "Top", Empty = "Ace" } }
 }
 scotch_patience.Tableau    = {
     Size   = 18,

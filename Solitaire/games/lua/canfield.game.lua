@@ -34,13 +34,11 @@ local canfield                   = {
     },
     Tableau       = {
         Size   = 4,
-        create = function()
-            return {
-                Initial = piles.initial.face_up(1),
-                Layout = "Column",
-                Rule = { Build = "DownAlternateColors", Wrap = true, Move = "TopOrPile", Empty = "Any" }
-            }
-        end
+        create = {
+            Initial = piles.initial.face_up(1),
+            Layout = "Column",
+            Rule = { Build = "DownAlternateColors", Wrap = true, Move = "TopOrPile", Empty = "Any" }
+        }
     },
     before_layout = function(game) game.Reserve[1]:fill_group(game.Tableau) end,
     redeal        = ops.redeal.waste_to_stock,
@@ -71,14 +69,12 @@ acme.Info.Name                   = "Acme"
 acme.Info.CardDealCount          = 1
 acme.Info.Redeals                = 1
 acme.Stock.Initial               = piles.initial.face_down(31)
-acme.Foundation.create           = function() return { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } } end
-acme.Tableau.create              = function()
-    return {
-        Initial = piles.initial.face_up(1),
-        Layout = "Column",
-        Rule = { Build = "DownInSuit", Move = "Top", Empty = "Any" }
-    }
-end
+acme.Foundation.create           = { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } }
+acme.Tableau.create              = {
+    Initial = piles.initial.face_up(1),
+    Layout = "Column",
+    Rule = { Build = "DownInSuit", Move = "Top", Empty = "Any" }
+}
 acme.before_shuffle              = ops.shuffle.ace_to_foundation
 
 ------
@@ -96,13 +92,11 @@ american_toad.Reserve            = {
 american_toad.Foundation.Size    = 8
 american_toad.Tableau            = {
     Size   = 8,
-    create = function()
-        return {
-            Initial = piles.initial.face_up(1),
-            Layout = "Column",
-            Rule = { Build = "DownInSuit", Wrap = true, Move = "TopOrPile", Empty = "Any" }
-        }
-    end
+    create = {
+        Initial = piles.initial.face_up(1),
+        Layout = "Column",
+        Rule = { Build = "DownInSuit", Wrap = true, Move = "TopOrPile", Empty = "Any" }
+    }
 }
 
 ------
@@ -113,21 +107,17 @@ chameleon.Info.DeckCount         = 1
 chameleon.Info.CardDealCount     = 1
 chameleon.Info.Redeals           = 0
 chameleon.Stock.Initial          = piles.initial.face_down(36)
-chameleon.Reserve.create         = function()
-    return {
-        Initial = piles.initial.top_face_up(12),
-        Layout = "Column"
-    }
-end
+chameleon.Reserve.create         = {
+    Initial = piles.initial.top_face_up(12),
+    Layout = "Column"
+}
 chameleon.Tableau                = {
     Size   = 3,
-    create = function()
-        return {
-            Initial = piles.initial.face_up(1),
-            Layout = "Column",
-            Rule = { Build = "DownByRank", Wrap = true, Move = "TopOrPile", Empty = "Any" }
-        }
-    end
+    create = {
+        Initial = piles.initial.face_up(1),
+        Layout = "Column",
+        Rule = { Build = "DownByRank", Wrap = true, Move = "TopOrPile", Empty = "Any" }
+    }
 }
 
 ------
@@ -136,22 +126,18 @@ local demon                      = Copy(canfield)
 demon.Info.Name                  = "Demon"
 demon.Info.DeckCount             = 2
 demon.Stock.Initial              = piles.initial.face_down(55)
-demon.Reserve.create             = function()
-    return {
-        Initial = piles.initial.top_face_up(40),
-        Layout = "Column"
-    }
-end
+demon.Reserve.create             = {
+    Initial = piles.initial.top_face_up(40),
+    Layout = "Column"
+}
 demon.Foundation.Size            = 8
 demon.Tableau                    = {
     Size   = 8,
-    create = function()
-        return {
-            Initial = piles.initial.face_up(1),
-            Layout = "Column",
-            Rule = { Build = "DownAlternateColors", Wrap = true, Move = "InSequence", Empty = "Any" }
-        }
-    end
+    create = {
+        Initial = piles.initial.face_up(1),
+        Layout = "Column",
+        Rule = { Build = "DownAlternateColors", Wrap = true, Move = "InSequence", Empty = "Any" }
+    }
 }
 
 ------
@@ -161,22 +147,18 @@ minerva.Info.Name                = "Minerva"
 minerva.Info.CardDealCount       = 1
 minerva.Info.Redeals             = 1
 minerva.Stock.Initial            = piles.initial.face_down(13)
-minerva.Reserve.create           = function()
-    return {
-        Initial = piles.initial.top_face_up(11),
-        Layout = "Column"
-    }
-end
-minerva.Foundation.create        = function() return { Rule = { Build = "UpInSuit", Wrap = true, Move = "None", Empty = "Ace" } } end
+minerva.Reserve.create           = {
+    Initial = piles.initial.top_face_up(11),
+    Layout = "Column"
+}
+minerva.Foundation.create        = { Rule = { Build = "UpInSuit", Wrap = true, Move = "None", Empty = "Ace" } }
 minerva.Tableau                  = {
     Size   = 7,
-    create = function()
-        return {
-            Initial = piles.initial.alternate(4, false),
-            Layout = "Column",
-            Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "King" }
-        }
-    end
+    create = {
+        Initial = piles.initial.alternate(4, false),
+        Layout = "Column",
+        Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "King" }
+    }
 }
 minerva.before_layout            = nil
 

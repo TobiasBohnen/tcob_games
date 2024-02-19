@@ -19,7 +19,7 @@ local free_cell                      = {
     },
     FreeCell   = {
         Size   = 4,
-        create = function() return { Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" } } end
+        create = { Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" } }
     },
     Foundation = {
         Size   = 4,
@@ -63,11 +63,11 @@ local double_free_cell               = {
     },
     FreeCell   = {
         Size   = 8,
-        create = function() return { Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" } } end
+        create = { Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" } }
     },
     Foundation = {
         Size   = 8,
-        create = function() return { Rule = { Build = "UpInSuit", Move = "Top", Empty = "Ace" } } end
+        create = { Rule = { Build = "UpInSuit", Move = "Top", Empty = "Ace" } }
     },
     Tableau    = {
         Size   = 10,
@@ -88,16 +88,14 @@ local double_free_cell_2             = Copy(free_cell)
 double_free_cell_2.Info.Name         = "Double FreeCell II"
 double_free_cell_2.Info.DeckCount    = 2
 double_free_cell_2.FreeCell.Size     = 6
-double_free_cell_2.Foundation.create = function() return { Rule = { Build = "UpInSuit", Wrap = true, Move = "Top", Empty = "Ace" } } end
+double_free_cell_2.Foundation.create = { Rule = { Build = "UpInSuit", Wrap = true, Move = "Top", Empty = "Ace" } }
 double_free_cell_2.Tableau           = {
     Size   = 10,
-    create = function()
-        return {
-            Initial = piles.initial.face_up(10),
-            Layout = "Column",
-            Rule = { Build = "DownAlternateColors", Move = "SuperMove", Empty = "Any" }
-        }
-    end
+    create = {
+        Initial = piles.initial.face_up(10),
+        Layout = "Column",
+        Rule = { Build = "DownAlternateColors", Move = "SuperMove", Empty = "Any" }
+    }
 }
 double_free_cell_2.before_shuffle    = ops.shuffle.ace_to_foundation
 
@@ -114,21 +112,19 @@ local triple_free_cell               = {
     },
     FreeCell   = {
         Size   = 10,
-        create = function() return { Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" } } end
+        create = { Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" } }
     },
     Foundation = {
         Size   = 12,
-        create = function() return { Rule = { Build = "UpInSuit", Move = "Top", Empty = "Ace" } } end
+        create = { Rule = { Build = "UpInSuit", Move = "Top", Empty = "Ace" } }
     },
     Tableau    = {
         Size   = 13,
-        create = function()
-            return {
-                Initial = piles.initial.face_up(12),
-                Layout = "Column",
-                Rule = { Build = "DownAlternateColors", Move = "SuperMove", Empty = "Any" }
-            }
-        end
+        create = {
+            Initial = piles.initial.face_up(12),
+            Layout = "Column",
+            Rule = { Build = "DownAlternateColors", Move = "SuperMove", Empty = "Any" }
+        }
     },
     layout     = layout.double_free_cell
 }
@@ -186,21 +182,19 @@ local big_cell                       = {
     },
     FreeCell   = {
         Size   = 4,
-        create = function() return { Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" } } end
+        create = { Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" } }
     },
     Foundation = {
         Size   = 12,
-        create = function() return { Rule = { Build = "UpInSuit", Move = "Top", Empty = "Ace" } } end
+        create = { Rule = { Build = "UpInSuit", Move = "Top", Empty = "Ace" } }
     },
     Tableau    = {
         Size   = 13,
-        create = function()
-            return {
-                Initial = piles.initial.face_up(12),
-                Layout = "Column",
-                Rule = { Build = "DownAlternateColors", Move = "SuperMove", Empty = "Any" }
-            }
-        end
+        create = {
+            Initial = piles.initial.face_up(12),
+            Layout = "Column",
+            Rule = { Build = "DownAlternateColors", Move = "SuperMove", Empty = "Any" }
+        }
     },
     layout     = layout.double_free_cell
 }
@@ -227,7 +221,7 @@ local cell_11                        = {
     },
     Foundation = {
         Size   = 12,
-        create = function() return { Rule = { Build = "UpInSuit", Move = "Top", Empty = "Ace" } } end
+        create = { Rule = { Build = "UpInSuit", Move = "Top", Empty = "Ace" } }
     },
     Tableau    = {
         Size   = 13,
@@ -288,26 +282,22 @@ local clink                          = Copy(free_cell)
 clink.Info.Name                      = "Clink"
 clink.FreeCell                       = {
     Size = 2,
-    create = function()
-        return {
-            Initial = piles.initial.face_up(1),
-            Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" }
-        }
-    end
+    create = {
+        Initial = piles.initial.face_up(1),
+        Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" }
+    }
 }
 clink.Foundation                     = {
     Size = 2,
-    create = function() return { Rule = { Build = "UpInSuit", Wrap = true, Move = "Top", Empty = "Ace" } } end
+    create = { Rule = { Build = "UpInSuit", Wrap = true, Move = "Top", Empty = "Ace" } }
 }
 clink.Tableau                        = {
     Size = 8,
-    create = function()
-        return {
-            Initial = piles.initial.face_up(6),
-            Layout  = "Column",
-            Rule    = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
-        }
-    end
+    create = {
+        Initial = piles.initial.face_up(6),
+        Layout  = "Column",
+        Rule    = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
+    }
 }
 clink.before_shuffle                 = function(game, card)
     if card.Rank == "Ace" and (card.Suit == "Clubs" or card.Suit == "Hearts") then
@@ -477,21 +467,17 @@ footling.Tableau                     = {
 
 local fore_cell                      = Copy(free_cell)
 fore_cell.Info.Name                  = "ForeCell"
-fore_cell.FreeCell.create            = function()
-    return {
-        Initial = piles.initial.face_up(1),
-        Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" }
-    }
-end
+fore_cell.FreeCell.create            = {
+    Initial = piles.initial.face_up(1),
+    Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" }
+}
 fore_cell.Tableau                    = {
     Size = 8,
-    create = function()
-        return {
-            Initial = piles.initial.face_up(6),
-            Layout = "Column",
-            Rule = { Build = "DownAlternateColors", Move = "SuperMove", Empty = "King" }
-        }
-    end
+    create = {
+        Initial = piles.initial.face_up(6),
+        Layout = "Column",
+        Rule = { Build = "DownAlternateColors", Move = "SuperMove", Empty = "King" }
+    }
 }
 
 ------

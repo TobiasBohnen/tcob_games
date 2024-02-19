@@ -23,13 +23,11 @@ local bakers_dozen                     = {
     },
     Tableau       = {
         Size   = 13,
-        create = function()
-            return {
-                Initial = piles.initial.face_up(4),
-                Layout = "Column",
-                Rule = { Build = "DownByRank", Move = "Top", Empty = "None" }
-            }
-        end
+        create = {
+            Initial = piles.initial.face_up(4),
+            Layout = "Column",
+            Rule = { Build = "DownByRank", Move = "Top", Empty = "None" }
+        }
     },
     after_shuffle = ops.shuffle.kings_to_bottom,
     layout        = layout.bakers_dozen
@@ -49,13 +47,11 @@ local good_measure                     = Copy(bakers_dozen)
 good_measure.Info.Name                 = "Good Measure"
 good_measure.Tableau                   = {
     Size   = 10,
-    create = function()
-        return {
-            Initial = piles.initial.face_up(5),
-            Layout = "Column",
-            Rule = { Build = "DownByRank", Move = "Top", Empty = "None" }
-        }
-    end
+    create = {
+        Initial = piles.initial.face_up(5),
+        Layout = "Column",
+        Rule = { Build = "DownByRank", Move = "Top", Empty = "None" }
+    }
 }
 good_measure.before_shuffle            = function(game, card)
     if card.Rank == "Ace" then
@@ -89,13 +85,11 @@ local capricieuse                      = {
     },
     Tableau        = {
         Size   = 12,
-        create = function()
-            return {
-                Initial = piles.initial.face_up(8),
-                Layout = "Column",
-                Rule = { Build = "UpOrDownInSuit", Move = "Top", Empty = "Any" }
-            }
-        end
+        create = {
+            Initial = piles.initial.face_up(8),
+            Layout = "Column",
+            Rule = { Build = "UpOrDownInSuit", Move = "Top", Empty = "Any" }
+        }
     },
     redeal         = function(game) return game:reshuffle_tableau() end,
     before_shuffle = function(game, card)
@@ -118,13 +112,11 @@ strata.Info.Name                       = "Strata"
 strata.Foundation.create               = piles.ace_upsuit_top
 strata.Tableau                         = {
     Size   = 8,
-    create = function()
-        return {
-            Initial = piles.initial.face_up(8),
-            Layout = "Column",
-            Rule = { Build = "DownAlternateColors", Move = "Top", Empty = "Any" }
-        }
-    end
+    create = {
+        Initial = piles.initial.face_up(8),
+        Layout = "Column",
+        Rule = { Build = "DownAlternateColors", Move = "Top", Empty = "Any" }
+    }
 }
 strata.before_shuffle                  = function(game, card)
     local rank = card.Rank
@@ -143,13 +135,11 @@ cruel.Foundation                       = {
 }
 cruel.Tableau                          = {
     Size   = 12,
-    create = function()
-        return {
-            Initial = piles.initial.face_up(4),
-            Layout = "Column",
-            Rule = { Build = "DownInSuit", Move = "Top", Empty = "None" }
-        }
-    end
+    create = {
+        Initial = piles.initial.face_up(4),
+        Layout = "Column",
+        Rule = { Build = "DownInSuit", Move = "Top", Empty = "None" }
+    }
 }
 cruel.before_shuffle                   = ops.shuffle.ace_to_foundation
 cruel.redeal                           = function(game) return game:redeal_tableau() end
@@ -160,40 +150,34 @@ cruel.layout                           = layout.bakers_dozen
 local indefatigable                    = Copy(cruel)
 indefatigable.Info.Name                = "Indefatigable"
 indefatigable.Info.Redeals             = 2
-indefatigable.Tableau.create           = function()
-    return {
-        Initial = piles.initial.face_up(4),
-        Layout = "Column",
-        Rule = { Build = "UpOrDownInSuit", Move = "Top", Empty = "Any" }
-    }
-end
+indefatigable.Tableau.create           = {
+    Initial = piles.initial.face_up(4),
+    Layout = "Column",
+    Rule = { Build = "UpOrDownInSuit", Move = "Top", Empty = "Any" }
+}
 
 ------
 
 local perseverance                     = Copy(cruel)
 perseverance.Info.Name                 = "Perseverance"
 perseverance.Info.Redeals              = 2
-perseverance.Tableau.create            = function()
-    return {
-        Initial = piles.initial.face_up(4),
-        Layout = "Column",
-        Rule = { Build = "DownInSuit", Move = "InSequence", Empty = "None" }
-    }
-end
+perseverance.Tableau.create            = {
+    Initial = piles.initial.face_up(4),
+    Layout = "Column",
+    Rule = { Build = "DownInSuit", Move = "InSequence", Empty = "None" }
+}
 
 ------
 
 local royal_family                     = Copy(cruel)
 royal_family.Info.Name                 = "Royal Family"
 royal_family.Info.Redeals              = 1
-royal_family.Foundation.create         = function() return { Rule = { Build = "DownInSuit", Move = "Top", Empty = "King" } } end
-royal_family.Tableau.create            = function()
-    return {
-        Initial = piles.initial.face_up(4),
-        Layout = "Column",
-        Rule = { Build = "UpOrDownAlternateColors", Move = "Top", Empty = "Any" }
-    }
-end
+royal_family.Foundation.create         = { Rule = { Build = "DownInSuit", Move = "Top", Empty = "King" } }
+royal_family.Tableau.create            = {
+    Initial = piles.initial.face_up(4),
+    Layout = "Column",
+    Rule = { Build = "UpOrDownAlternateColors", Move = "Top", Empty = "Any" }
+}
 royal_family.before_shuffle            = ops.shuffle.king_to_foundation
 
 ------
@@ -262,13 +246,11 @@ local nationale                        = {
     },
     Tableau        = {
         Size   = 12,
-        create = function()
-            return {
-                Initial = piles.initial.face_up(8),
-                Layout = "Column",
-                Rule = { Build = "UpOrDownInSuit", Move = "Top", Empty = "Any" }
-            }
-        end
+        create = {
+            Initial = piles.initial.face_up(8),
+            Layout = "Column",
+            Rule = { Build = "UpOrDownInSuit", Move = "Top", Empty = "Any" }
+        }
     },
     before_shuffle = function(game, card)
         if card.Rank == "Ace" then
@@ -300,13 +282,11 @@ local castles_in_spain                 = {
     },
     Tableau    = {
         Size   = 13,
-        create = function()
-            return {
-                Initial = piles.initial.top_face_up(4),
-                Layout = "Column",
-                Rule = { Build = "DownAlternateColors", Move = "Top", Empty = "Any" }
-            }
-        end
+        create = {
+            Initial = piles.initial.top_face_up(4),
+            Layout = "Column",
+            Rule = { Build = "DownAlternateColors", Move = "Top", Empty = "Any" }
+        }
     },
     layout     = layout.bakers_dozen
 }
@@ -317,13 +297,11 @@ local martha                           = Copy(castles_in_spain)
 martha.Info.Name                       = "Martha"
 martha.Tableau                         = {
     Size   = 12,
-    create = function()
-        return {
-            Initial = piles.initial.alternate(4, false),
-            Layout = "Column",
-            Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "AnySingle" }
-        }
-    end
+    create = {
+        Initial = piles.initial.alternate(4, false),
+        Layout = "Column",
+        Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "AnySingle" }
+    }
 }
 martha.before_shuffle                  = ops.shuffle.ace_to_foundation
 
@@ -332,40 +310,34 @@ martha.before_shuffle                  = ops.shuffle.ace_to_foundation
 local portuguese_solitaire             = Copy(castles_in_spain)
 portuguese_solitaire.Info.Name         = "Portuguese Solitaire"
 portuguese_solitaire.Info.Type         = "OpenPacker"
-portuguese_solitaire.Tableau.create    = function()
-    return {
-        Initial = piles.initial.face_up(4),
-        Layout = "Column",
-        Rule = { Build = "DownByRank", Move = "Top", Empty = "King" }
-    }
-end
+portuguese_solitaire.Tableau.create    = {
+    Initial = piles.initial.face_up(4),
+    Layout = "Column",
+    Rule = { Build = "DownByRank", Move = "Top", Empty = "King" }
+}
 
 ------
 
 local spanish_patience                 = Copy(castles_in_spain)
 spanish_patience.Info.Name             = "Spanish Patience"
 spanish_patience.Info.Type             = "OpenPacker"
-spanish_patience.Foundation.create     = function() return { Rule = { Build = "UpAlternateColors", Move = "Top", Empty = "Ace" } } end
-spanish_patience.Tableau.create        = function(i)
-    return {
-        Initial = piles.initial.face_up(4),
-        Layout = "Column",
-        Rule = { Build = "DownByRank", Move = "Top", Empty = "None" }
-    }
-end
+spanish_patience.Foundation.create     = { Rule = { Build = "UpAlternateColors", Move = "Top", Empty = "Ace" } }
+spanish_patience.Tableau.create        = {
+    Initial = piles.initial.face_up(4),
+    Layout = "Column",
+    Rule = { Build = "DownByRank", Move = "Top", Empty = "None" }
+}
 
 ------
 
 local spanish_patience_2               = Copy(castles_in_spain)
 spanish_patience_2.Info.Name           = "Spanish Patience II"
 spanish_patience_2.Info.Type           = "OpenPacker"
-spanish_patience_2.Tableau.create      = function()
-    return {
-        Initial = piles.initial.face_up(4),
-        Layout = "Column",
-        Rule = { Build = "DownByRank", Move = "Top", Empty = "Any" }
-    }
-end
+spanish_patience_2.Tableau.create      = {
+    Initial = piles.initial.face_up(4),
+    Layout = "Column",
+    Rule = { Build = "DownByRank", Move = "Top", Empty = "Any" }
+}
 
 ------
 

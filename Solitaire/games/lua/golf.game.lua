@@ -27,13 +27,11 @@ local golf                 = {
     },
     Tableau     = {
         Size   = 7,
-        create = function()
-            return {
-                Initial = piles.initial.top_face_up(5),
-                Layout = "Column",
-                Rule = { Build = "NoBuilding", Move = "Top" }
-            }
-        end
+        create = {
+            Initial = piles.initial.top_face_up(5),
+            Layout = "Column",
+            Rule = { Build = "NoBuilding", Move = "Top" }
+        }
     },
     deal        = function(game)
         return game.Stock[1]:deal(game.Foundation[1], game.CardDealCount)
@@ -52,13 +50,11 @@ double_golf.Info.DeckCount = 2
 double_golf.Stock.Initial  = piles.initial.face_down(40)
 double_golf.Tableau        = {
     Size   = 9,
-    create = function()
-        return {
-            Initial = piles.initial.top_face_up(7),
-            Layout = "Column",
-            Rule = { Build = "NoBuilding", Move = "Top" }
-        }
-    end
+    create = {
+        Initial = piles.initial.top_face_up(7),
+        Layout = "Column",
+        Rule = { Build = "NoBuilding", Move = "Top" }
+    }
 }
 
 ------

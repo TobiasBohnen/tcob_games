@@ -19,17 +19,15 @@ local raglan = {
     },
     Reserve        = {
         Size   = 6,
-        create = function(i)
-            return {
-                Initial = piles.initial.face_up(1),
-                Layout = "Squared",
-                Rule = { Build = "NoBuilding", Move = "Top", Empty = "None" }
-            }
-        end
+        create = {
+            Initial = piles.initial.face_up(1),
+            Layout = "Squared",
+            Rule = { Build = "NoBuilding", Move = "Top", Empty = "None" }
+        }
     },
     Foundation     = {
         Size   = 4,
-        create = function() return { Rule = { Build = "UpInSuit", Move = "Top", Empty = "Ace" } } end
+        create = { Rule = { Build = "UpInSuit", Move = "Top", Empty = "Ace" } }
     },
     Tableau        = {
         Size   = 9,

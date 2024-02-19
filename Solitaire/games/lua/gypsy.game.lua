@@ -26,13 +26,11 @@ local gypsy                    = {
     },
     Tableau    = {
         Size   = 8,
-        create = function()
-            return {
-                Initial = piles.initial.top_face_up(3),
-                Layout = "Column",
-                Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
-            }
-        end
+        create = {
+            Initial = piles.initial.top_face_up(3),
+            Layout = "Column",
+            Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
+        }
     },
     layout     = layout.gypsy,
     deal       = function(game) return game.Stock[1]:deal_to_group(game.Tableau) end
@@ -74,13 +72,11 @@ blockade.Info.CardDealCount    = 12
 blockade.Stock.Initial         = piles.initial.face_down(92)
 blockade.Tableau               = {
     Size   = 12,
-    create = function()
-        return {
-            Initial = piles.initial.face_up(1),
-            Layout = "Column",
-            Rule = { Build = "DownInSuit", Move = "InSequence", Empty = "Any" }
-        }
-    end
+    create = {
+        Initial = piles.initial.face_up(1),
+        Layout = "Column",
+        Rule = { Build = "DownInSuit", Move = "InSequence", Empty = "Any" }
+    }
 }
 blockade.layout                = layout.klondike
 blockade.before_layout         = function(game)
@@ -95,7 +91,7 @@ lexington_harp.Info.Name       = "Lexington Harp"
 lexington_harp.Stock.Initial   = piles.initial.face_down(68)
 lexington_harp.Foundation      = {
     Size   = 8,
-    create = function() return { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } } end
+    create = { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } }
 }
 lexington_harp.Tableau         = {
     Size   = 8,
