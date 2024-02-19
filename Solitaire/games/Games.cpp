@@ -588,8 +588,7 @@ script_game::script_game(field& f, game_info info, scripting::lua::table tab)
     auto const createPiles {[&](auto&& piles, std::string const& name) {
         if (table pileTypeTable; _table.try_get(pileTypeTable, name)) {
             isize const size {pileTypeTable["Size"].get<isize>().value_or(1)};
-            // table is definition
-            if (size == 1 && !pileTypeTable.has("create")) {
+            if (size == 1 && !pileTypeTable.has("create")) { // table is definition
                 create_piles(piles, 1, [&](auto& pile, i32) {
                     createPile(pile, pileTypeTable);
                 });
@@ -618,53 +617,48 @@ script_game::script_game(field& f, game_info info, scripting::lua::table tab)
 
 auto script_game::can_drop(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool
 {
-    if (_table.has("can_drop")) {
-        return _table.get<function<bool>>("can_drop").value()(this, &targetPile, targetIndex, drop, numCards);
+    if (function<bool> func; _table.try_get(func, "can_drop")) {
+        return func(this, &targetPile, targetIndex, drop, numCards);
     }
-
     return base_game::can_drop(targetPile, targetIndex, drop, numCards);
 }
 
 auto script_game::do_redeal() -> bool
 {
-    if (_table.has("redeal")) {
-        return _table["redeal"].as<function<bool>>()(this);
+    if (function<bool> func; _table.try_get(func, "redeal")) {
+        return func(this);
     }
-
     return base_game::do_redeal();
 }
 
 auto script_game::do_deal() -> bool
 {
-    if (_table.has("deal")) {
-        return _table["deal"].as<function<bool>>()(this);
+    if (function<bool> func; _table.try_get(func, "deal")) {
+        return func(this);
     }
-
     return base_game::do_deal();
 }
 
 auto script_game::before_shuffle(card& card) -> bool
 {
-    if (_table.has("before_shuffle")) {
-        return _table.get<function<bool>>("before_shuffle").value()(this, card);
+    if (function<bool> func; _table.try_get(func, "before_shuffle")) {
+        return func(this, card);
     }
-
     return base_game::before_shuffle(card);
 }
 
 auto script_game::shuffle(card& card, pile_type pileType) -> bool
 {
-    if (_table.has("shuffle")) {
-        return _table.get<function<bool>>("shuffle").value()(this, card, pileType);
+    if (function<bool> func; _table.try_get(func, "shuffle")) {
+        return func(this, card, pileType);
     }
-
     return base_game::shuffle(card, pileType);
 }
 
 void script_game::after_shuffle()
 {
-    if (_table.has("after_shuffle")) {
-        _table["after_shuffle"].as<function<void>>()(this);
+    if (function<void> func; _table.try_get(func, "after_shuffle")) {
+        func(this);
     } else {
         base_game::after_shuffle();
     }
@@ -672,8 +666,8 @@ void script_game::after_shuffle()
 
 void script_game::before_layout()
 {
-    if (_table.has("before_layout")) {
-        _table["before_layout"].as<function<void>>()(this);
+    if (function<void> func; _table.try_get(func, "before_layout")) {
+        func(this);
     } else {
         base_game::before_layout();
     }
@@ -681,19 +675,17 @@ void script_game::before_layout()
 
 auto script_game::check_state() const -> game_state
 {
-    if (_table.has("check_state")) {
-        return _table.get<function<game_state>>("check_state").value()(this);
+    if (function<game_state> func; _table.try_get(func, "check_state")) {
+        return func(this);
     }
-
     return base_game::check_state();
 }
 
 auto script_game::stack_index(pile const& targetPile, point_i pos) const -> isize
 {
-    if (_table.has("stack_index")) {
-        return _table.get<function<bool>>("stack_index").value()(this, &targetPile, pos);
+    if (function<bool> func; _table.try_get(func, "stack_index")) {
+        return func(this, &targetPile, pos);
     }
-
     return base_game::stack_index(targetPile, pos);
 }
 
