@@ -796,7 +796,7 @@ void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, 
             return false;
         },
         [=](card& card, std::vector<pile*>& to, i32 offset, usize size, bool ifEmpty) {
-            auto const target = std::span<pile*>(to.data() + offset, size);
+            auto const target = std::span<pile*>(to.data() + offset - 1, size);
             for (auto& pile : target) {
                 if (placeCard(card, *pile, ifEmpty, false)) { return true; }
             }
@@ -813,7 +813,7 @@ void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, 
             return false;
         },
         [=](card& card, std::vector<pile*>& to, i32 offset, usize size, bool ifEmpty) {
-            auto const target = std::span<pile*>(to.data() + offset, size);
+            auto const target = std::span<pile*>(to.data() + offset - 1, size);
             for (auto& pile : target) {
                 if (placeCard(card, *pile, ifEmpty, true)) { return true; }
             }

@@ -252,10 +252,10 @@ challenge_free_cell.Tableau          = {
 }
 challenge_free_cell.before_shuffle   = function(game, card)
     if card.Rank == "Two" then
-        return game.PutBack(card, game.Tableau, 0, 4, true)
+        return game.PutBack(card, game.Tableau, 1, 4, true)
     end
     if card.Rank == "Ace" then
-        return game.PutBack(card, game.Tableau, 4, 4, true)
+        return game.PutBack(card, game.Tableau, 5, 4, true)
     end
 
     return false

@@ -121,10 +121,10 @@ local clover_leaf          = {
     },
     before_shuffle = function(game, card)
         if card.Rank == "Ace" and card.Color == "Black" then
-            return game.PutBack(card, game.Foundation, 0, 2, true)
+            return game.PutBack(card, game.Foundation, 1, 2, true)
         end
         if card.Rank == "King" and card.Color == "Red" then
-            return game.PutBack(card, game.Foundation, 2, 2, true)
+            return game.PutBack(card, game.Foundation, 3, 2, true)
         end
 
         return false

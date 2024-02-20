@@ -163,10 +163,10 @@ local blue_moon = {
     end,
     shuffle     = function(game, card, _)
         if card.Rank == "Ace" then
-            return game.PutBack(card, game.Tableau, 0, 1, true)
-                or game.PutBack(card, game.Tableau, 14, 1, true)
-                or game.PutBack(card, game.Tableau, 28, 1, true)
-                or game.PutBack(card, game.Tableau, 42, 1, true)
+            return game.PutBack(card, game.Tableau, 1, 1, true)
+                or game.PutBack(card, game.Tableau, 15, 1, true)
+                or game.PutBack(card, game.Tableau, 29, 1, true)
+                or game.PutBack(card, game.Tableau, 43, 1, true)
         end
 
         return false
