@@ -94,6 +94,8 @@ local function montana_check_state(game, ranks, columns)
     return "Success"
 end
 
+------
+
 local montana = {
     Info        = {
         Name          = "Montana",
@@ -128,10 +130,59 @@ local montana = {
     check_state = function(game)
         local ranks = { "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
         return montana_check_state(game, ranks, 13)
-    end,
-
+    end
 }
+
+------
+
+local blue_moon = {
+    Info        = {
+        Name          = "Blue Moon",
+        Type          = "OpenNonBuilder",
+        Family        = "Montana",
+        DeckCount     = 1,
+        CardDealCount = 0,
+        Redeals       = 2
+    },
+    Stock       = { Position = { x = 6, y = 5 } },
+    Tableau     = {
+        Size   = 56,
+        create = function(i)
+            local init = 1
+            if i % 14 == 0 then init = 0 end
+            return {
+                Position = { x = i % 14, y = i // 14 },
+                Initial = piles.initial.face_up(init),
+                Layout = "Squared",
+                Rule = { Build = "NoBuilding", Move = "Top", Empty = "None" }
+            }
+        end
+    },
+    can_drop    = function(game, targetPile, _, drop, _)
+        return montana_can_drop(game, targetPile, drop, 14)
+    end,
+    shuffle     = function(game, card, _)
+        if card.Rank == "Ace" then
+            return game.PutBack(card, game.Tableau, 0, 1, true)
+                or game.PutBack(card, game.Tableau, 14, 1, true)
+                or game.PutBack(card, game.Tableau, 28, 1, true)
+                or game.PutBack(card, game.Tableau, 42, 1, true)
+        end
+
+        return false
+    end,
+    redeal      = function(game)
+        local ranks = { "Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
+        return montana_redeal(game, ranks, 14)
+    end,
+    check_state = function(game)
+        local ranks = { "Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
+        return montana_check_state(game, ranks, 14)
+    end
+}
+
 
 ------------------------
 
 register_game(montana)
+register_game(blue_moon)
