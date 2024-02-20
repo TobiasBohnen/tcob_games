@@ -2,10 +2,11 @@
 
 namespace solitaire {
 
-card::card(suit suit, rank rank, u8 deck)
+card::card(suit suit, rank rank, u8 deck, bool faceDown)
     : _suit {suit}
     , _rank {rank}
     , _deck {deck}
+    , _faceDown {faceDown}
 {
 }
 
@@ -36,29 +37,13 @@ auto card::is_face_down() const -> bool
 
 auto card::get_name() const -> std::string
 {
-    std::string retValue;
+    std::string retValue {std::format("{:02}", static_cast<u8>(_rank))};
 
     switch (_suit) {
-    case suit::Hearts: retValue += "hearts_"; break;
-    case suit::Diamonds: retValue += "diamonds_"; break;
-    case suit::Clubs: retValue += "clubs_"; break;
-    case suit::Spades: retValue += "spades_"; break;
-    }
-
-    switch (_rank) {
-    case rank::Ace: retValue += "A"; break;
-    case rank::Two: retValue += "02"; break;
-    case rank::Three: retValue += "03"; break;
-    case rank::Four: retValue += "04"; break;
-    case rank::Five: retValue += "05"; break;
-    case rank::Six: retValue += "06"; break;
-    case rank::Seven: retValue += "07"; break;
-    case rank::Eight: retValue += "08"; break;
-    case rank::Nine: retValue += "09"; break;
-    case rank::Ten: retValue += "10"; break;
-    case rank::Jack: retValue += "J"; break;
-    case rank::Queen: retValue += "Q"; break;
-    case rank::King: retValue += "K"; break;
+    case suit::Hearts: retValue += "h"; break;
+    case suit::Diamonds: retValue += "d"; break;
+    case suit::Clubs: retValue += "c"; break;
+    case suit::Spades: retValue += "s"; break;
     }
 
     return retValue;
@@ -81,14 +66,12 @@ auto card::to_value() const -> u16
 
 auto card::FromValue(u16 value) -> card
 {
-    suit s {static_cast<suit>((value >> 12) & 0b0001111)};
-    rank r {static_cast<rank>((value >> 8) & 0b00001111)};
-    u8   deck {static_cast<u8>((value >> 1) & 0b01111111)};
+    suit const s {static_cast<suit>((value >> 12) & 0b0001111)};
+    rank const r {static_cast<rank>((value >> 8) & 0b00001111)};
+    u8 const   deck {static_cast<u8>((value >> 1) & 0b01111111)};
+    bool const faceDown {(value & 1) != 0};
 
-    card retValue {s, r, deck};
-    retValue._faceDown = (value & 1) != 0;
-
-    return retValue;
+    return {s, r, deck, faceDown};
 }
 
 ////////////////////////////////////////////////////////////

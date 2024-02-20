@@ -364,87 +364,24 @@ local eight_off                      = {
         Size   = 8,
         create = function(i)
             return {
-                Position = { x = i, y = 4 },
-                Initial  = i % 2 == 0 and piles.initial.face_up(1) or {},
-                Rule     = { Build = "NoBuilding", Move = "Top", Empty = "Any" }
+                Initial = i % 2 == 0 and piles.initial.face_up(1) or {},
+                Rule    = { Build = "NoBuilding", Move = "Top", Empty = "Any" }
             }
         end
     },
     Foundation = {
         Size   = 4,
-        create = function(i)
-            return {
-                Position = { x = i + 2, y = 0 },
-                Rule = { Build = "UpInSuit", Move = "Top", Empty = "Ace" }
-            }
-        end
+        create = { Rule = { Build = "UpInSuit", Move = "Top", Empty = "Ace" } }
     },
     Tableau    = {
         Size   = 8,
-        create = function(i)
-            return {
-                Position = { x = i, y = 1 },
-                Initial = piles.initial.face_up(6),
-                Layout = "Column",
-                Rule = { Build = "DownInSuit", Move = "SuperMove", Empty = "King" }
-            }
-        end
-    }
-}
-
-------
-
-local flipper                        = {
-    Info          = {
-        Name          = "Flipper",
-        Type          = "OpenPacker",
-        Family        = "FreeCell",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
+        create = {
+            Initial = piles.initial.face_up(6),
+            Layout = "Column",
+            Rule = { Build = "DownInSuit", Move = "SuperMove", Empty = "King" }
+        }
     },
-    FreeCell      = {
-        Size   = 7,
-        create = function(i)
-            return {
-                Position = { x = i, y = 3 },
-                Rule     = { Build = "NoBuilding", Move = "Top", Empty = "Any" }
-            }
-        end
-    },
-    Foundation    = {
-        Size   = 4,
-        create = function(i)
-            return {
-                Position = { x = 7, y = i },
-                Rule = { Build = "UpInSuit", Move = "Top", Empty = "Ace" }
-            }
-        end
-    },
-    Tableau       = {
-        Size   = 7,
-        create = function(i)
-            return {
-                Position = { x = i, y = 0 },
-                Initial = piles.initial.face_up(i % 3 == 0 and 8 or 7),
-                Layout = "Column",
-                Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
-            }
-        end
-    },
-    before_layout = function(game)
-        local tableau = game.Tableau
-        local freeCell = game.FreeCell
-        for k, v in pairs(tableau) do
-            if not v.Empty then
-                if freeCell[k].Empty then
-                    v:flip_up_top_card()
-                else
-                    v:flip_down_top_card()
-                end
-            end
-        end
-    end
+    layout     = layout.double_free_cell
 }
 
 ------
@@ -527,6 +464,51 @@ king_cell.Tableau                    = {
 
 ------
 
+local flipper                        = {
+    Info          = {
+        Name          = "Flipper",
+        Type          = "OpenPacker",
+        Family        = "FreeCell",
+        DeckCount     = 1,
+        CardDealCount = 0,
+        Redeals       = 0
+    },
+    FreeCell      = {
+        Size   = 7,
+        create = { Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" } }
+    },
+    Foundation    = {
+        Size   = 4,
+        create = { Rule = { Build = "UpInSuit", Move = "Top", Empty = "Ace" } }
+    },
+    Tableau       = {
+        Size   = 7,
+        create = function(i)
+            return {
+                Initial = piles.initial.face_up(i % 3 == 0 and 8 or 7),
+                Layout = "Column",
+                Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
+            }
+        end
+    },
+    before_layout = function(game)
+        local tableau = game.Tableau
+        local freeCell = game.FreeCell
+        for k, v in pairs(tableau) do
+            if not v.Empty then
+                if freeCell[k].Empty then
+                    v:flip_up_top_card()
+                else
+                    v:flip_down_top_card()
+                end
+            end
+        end
+    end,
+    layout        = layout.flipper
+}
+
+------
+
 local penguin                        = {
     Info           = {
         Name          = "Penguin",
@@ -538,27 +520,16 @@ local penguin                        = {
     },
     FreeCell       = {
         Size   = 7,
-        create = function(i)
-            return {
-                Position = { x = i, y = 3 },
-                Rule     = { Build = "NoBuilding", Move = "Top", Empty = "Any" }
-            }
-        end
+        create = { Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" } }
     },
     Foundation     = {
         Size   = 4,
-        create = function(i)
-            return {
-                Position = { x = 7, y = i },
-                Rule = { Build = "UpInSuit", Wrap = true, Move = "None", Empty = "FirstFoundation" }
-            }
-        end
+        create = { Rule = { Build = "UpInSuit", Wrap = true, Move = "None", Empty = "FirstFoundation" } }
     },
     Tableau        = {
         Size   = 7,
         create = function(i)
             return {
-                Position = { x = i, y = 0 },
                 Initial = piles.initial.face_up(i > 0 and 7 or 6),
                 Layout = "Column",
                 Rule = { Build = "DownInSuit", Wrap = true, Move = "InSequence", Empty = { Type = "FirstFoundation", Interval = -1 } }
@@ -575,7 +546,8 @@ local penguin                        = {
             end
         end
         return false
-    end
+    end,
+    layout         = layout.flipper
 }
 
 ------

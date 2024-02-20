@@ -204,6 +204,26 @@ return {
             end
         end
     end,
+    -- FreeCells        -> bottom
+    -- Foundation       -> right
+    -- Tableau          -> top
+    flipper = function(game)
+        local fcSize = #game.FreeCell
+        local tabSize = #game.Tableau
+        local fouSize = #game.Foundation
+
+        for i = 0, fcSize - 1 do
+            game.FreeCell[i + 1].Position = { x = i, y = 3 }
+        end
+
+        for i = 0, fouSize - 1 do
+            game.Foundation[i + 1].Position = { x = fcSize, y = i }
+        end
+
+        for i = 0, tabSize - 1 do
+            game.Tableau[i + 1].Position = { x = i, y = 0 }
+        end
+    end,
     -- Stock and Waste  -> bottom right
     -- Foundation       -> top
     -- Tableau          -> second row

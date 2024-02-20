@@ -17,9 +17,7 @@ local klondike                           = {
         CardDealCount = 1,
         Redeals       = -1
     },
-    Stock      = {
-        Initial = piles.initial.face_down(24)
-    },
+    Stock      = { Initial = piles.initial.face_down(24) },
     Waste      = {},
     Foundation = {
         Size   = 4,
@@ -103,9 +101,7 @@ local big_deal                           = {
         Position = { x = 0, y = 7 },
         Initial = piles.initial.face_down(130)
     },
-    Waste      = {
-        Position = { x = 1, y = 7 }
-    },
+    Waste      = { Position = { x = 1, y = 7 } },
     Foundation = {
         Size = 16,
         create = function(i)
@@ -217,9 +213,7 @@ local eight_by_eight                     = {
         CardDealCount = 1,
         Redeals = -1
     },
-    Stock      = {
-        Initial = piles.initial.face_down(40)
-    },
+    Stock      = { Initial = piles.initial.face_down(40) },
     Waste      = {},
     Foundation = {
         Size = 8,
@@ -418,9 +412,7 @@ local guardian                           = {
         Position = { x = 0, y = 0 },
         Initial = piles.initial.face_down(40)
     },
-    Waste         = {
-        Position = { x = 1, y = 0 }
-    },
+    Waste         = { Position = { x = 1, y = 0 } },
     Foundation    = {
         Size = 4,
         create = function(i)

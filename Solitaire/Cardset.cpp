@@ -66,8 +66,7 @@ cardset::cardset(std::string const& matName, assets::group& resGrp)
     for (u8 cs {static_cast<u8>(suit::Hearts)}; cs <= static_cast<i32>(suit::Spades); ++cs) {
         for (u8 cr {static_cast<u8>(rank::Ace)}; cr <= static_cast<i32>(rank::King); ++cr) {
             rect_f const rect {nextRect()};
-            card         c {static_cast<suit>(cs), static_cast<rank>(cr), 0};
-            c.flip_face_up();
+            card const   c {static_cast<suit>(cs), static_cast<rank>(cr), 0, false};
             draw_card(c.get_suit(), c.get_rank(), rect);
             addRegion(c.get_texture_name(), rect);
         }

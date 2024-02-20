@@ -46,11 +46,10 @@ enum class rank : u8 {
 class card {
 public:
     card() = default;
-    card(suit suit, rank rank, u8 deck);
+    card(suit suit, rank rank, u8 deck, bool faceDown = true);
 
     rect_f Bounds;
     color  Color {colors::White};
-    auto   get_texture_name() const -> std::string;
 
     auto get_suit() const -> suit;
     auto get_rank() const -> rank;
@@ -60,6 +59,7 @@ public:
     auto is_face_down() const -> bool;
 
     auto get_name() const -> std::string;
+    auto get_texture_name() const -> std::string;
 
     auto to_value() const -> u16;
     auto static FromValue(u16 value) -> card;
