@@ -7,14 +7,14 @@ local shuffle = {
     -- before shuffle
     ace_to_foundation = function(game, card)
         if card.Rank == "Ace" then
-            return game.put_card(card, game.Foundation)
+            return game.PutBack(card, game.Foundation, true)
         end
 
         return false
     end,
     king_to_foundation = function(game, card)
         if card.Rank == "King" then
-            return game.put_card(card, game.Foundation)
+            return game.PutBack(card, game.Foundation, true)
         end
 
         return false

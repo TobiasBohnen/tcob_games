@@ -43,16 +43,15 @@
 - RedealsLeft
 - CardDealCount
 - Stock / Waste / Reserve / FreeCell / Tableau / Foundation
-- put_card
 - check_state
 - find_pile
-  
 - can_drop
 - stack_index
-  
-- reshuffle_tableau
-- redeal_tableau
-  
+- shuffle_cards
+- PutBack
+- PutFront
+- GetRank
+
 # *pile* members:
 - Type
 - CardCount

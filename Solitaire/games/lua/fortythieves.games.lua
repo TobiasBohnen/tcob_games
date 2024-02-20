@@ -55,7 +55,7 @@ alternation.Tableau        = {
 
 local interchange          = Copy(alternation)
 interchange.Info.Name      = "Interchange"
-interchange.Tableau.create = n {
+interchange.Tableau.create = {
     Initial = piles.initial.alternate(7, true),
     Layout = "Column",
     Rule = { Build = "DownInSuit", Move = "InSequence", Empty = "King" }

@@ -41,6 +41,8 @@ enum class rank : u8 {
     King  = 13
 };
 
+auto get_next_rank(rank r, i32 interval, bool wrap) -> std::optional<rank>;
+
 ////////////////////////////////////////////////////////////
 
 class card {

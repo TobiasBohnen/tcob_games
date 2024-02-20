@@ -246,7 +246,7 @@ dutchess.can_drop                = function(game, targetPile, targetIndex, drop,
     end
     if targetPile.Type == "Tableau" and targetPile.Empty then
         local reserveEmpty = true
-        for k, v in pairs(game.Reserve) do
+        for _, v in pairs(game.Reserve) do
             if v.Empty then
                 reserveEmpty = false
                 break

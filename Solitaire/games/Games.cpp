@@ -715,50 +715,6 @@ auto script_game::CheckState(script_game* game, std::string const& name) -> game
     return game->check_state();
 }
 
-auto script_game::reshuffle_tableau() -> bool
-{
-    std::vector<card> cards;
-    for (auto& tab : Tableau) {
-        cards.insert(cards.end(), tab.Cards.begin(), tab.Cards.end());
-        tab.Cards.clear();
-    }
-
-    if (!cards.empty()) {
-        rand().shuffle<card>(cards);
-        isize tabIdx {0};
-        while (!cards.empty()) {
-            Tableau[tabIdx++].Cards.emplace_back(cards.back());
-            cards.pop_back();
-            if (tabIdx == std::ssize(Tableau)) { tabIdx = 0; }
-        }
-        return true;
-    }
-
-    return false;
-}
-
-auto script_game::redeal_tableau() -> bool
-{
-    std::deque<card> cards;
-    for (auto& tab : Tableau) {
-        cards.insert(cards.end(), tab.Cards.rbegin(), tab.Cards.rend());
-        tab.Cards.clear();
-    }
-
-    if (!cards.empty()) {
-        for (isize tabIdx {0}; tabIdx < std::ssize(Tableau) && !cards.empty(); ++tabIdx) {
-            for (i32 i {0}; i < 4 && !cards.empty(); ++i) {
-                Tableau[tabIdx].Cards.emplace_front(cards.front());
-                cards.pop_front();
-            }
-        }
-
-        return true;
-    }
-
-    return false;
-}
-
 void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs)
 {
     script.open_libraries();
@@ -783,6 +739,7 @@ void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, 
         scene->register_game(info, func);
     });
 
+    // game
     auto& gameWrapper {*script.create_wrapper<script_game>("script_game")};
     gameWrapper["RedealsLeft"]   = getter {[](script_game* game) { return game->redeals_left(); }};
     gameWrapper["CardDealCount"] = getter {[](script_game* game) { return game->info().CardDealCount; }};
@@ -792,6 +749,8 @@ void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, 
         if (piles.contains(type)) { return game->piles().at(type); }
         return std::vector<pile*> {};
     }};
+
+    // properties
     gameWrapper["Stock"]      = getter {[returnPile](script_game* game) { return returnPile(game, pile_type::Stock); }};
     gameWrapper["Waste"]      = getter {[returnPile](script_game* game) { return returnPile(game, pile_type::Waste); }};
     gameWrapper["Foundation"] = getter {[returnPile](script_game* game) { return returnPile(game, pile_type::Foundation); }};
@@ -799,47 +758,94 @@ void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, 
     gameWrapper["Reserve"]    = getter {[returnPile](script_game* game) { return returnPile(game, pile_type::Reserve); }};
     gameWrapper["FreeCell"]   = getter {[returnPile](script_game* game) { return returnPile(game, pile_type::FreeCell); }};
 
-    gameWrapper["put_card"] = [](card& card, std::vector<pile*> to, std::optional<i32> offset, std::optional<usize> size) {
-        std::span<pile*> target {offset && size ? std::span {to.data() + *offset, *size} : to};
-        for (auto& pile : target) {
-            if (pile->empty()) {
-                card.flip_face_up();
-                pile->Cards.emplace_back(card);
-                return true;
+    // methods
+    gameWrapper["find_pile"]     = [](script_game* game, card& card) { return game->find_pile(card); };
+    gameWrapper["can_drop"]      = [](script_game* game, pile* targetPile, isize targetIndex, card const& drop, isize numCards) { return game->base_game::can_drop(*targetPile, targetIndex, drop, numCards); };
+    gameWrapper["stack_index"]   = [](script_game* game, pile* targetPile, point_i pos) { return game->base_game::stack_index(*targetPile, pos); };
+    gameWrapper["shuffle_cards"] = [](script_game* game, std::vector<card> const& cards) {
+        std::vector<card> shuffled {cards};
+        game->rand().shuffle<card>(shuffled);
+        return shuffled;
+    };
+    gameWrapper["check_state"] = [](script_game* game, std::string const& name) { return CheckState(game, name); }; // TODO: implement in lua
+
+    // static methods
+    gameWrapper["GetRank"] = [](rank r, i32 interval, bool wrap) -> std::variant<std::string, rank> {
+        auto retValue {get_next_rank(r, interval, wrap)};
+        return retValue ? std::variant<std::string, rank> {*retValue} : std::variant<std::string, rank> {""};
+    };
+
+    auto placeCard {[](card& card, pile& to, bool ifEmpty, bool front) {
+        bool const canPlace {ifEmpty ? to.Cards.empty() : true};
+        if (canPlace) {
+            card.flip_face_up();
+            if (front) {
+                to.Cards.emplace_front(card);
+            } else {
+                to.Cards.emplace_back(card);
             }
+            return true;
         }
         return false;
-    };
-    gameWrapper["find_pile"] = [](script_game* game, card& card) { return game->find_pile(card); };
-    gameWrapper["can_drop"]  = [](script_game* game, pile* targetPile, isize targetIndex, card const& drop, isize numCards) {
-        return game->base_game::can_drop(*targetPile, targetIndex, drop, numCards);
-    };
-    gameWrapper["stack_index"]       = [](script_game* game, pile* targetPile, point_i pos) { return game->base_game::stack_index(*targetPile, pos); };
-    gameWrapper["check_state"]       = [](script_game* game, std::string const& name) { return CheckState(game, name); }; // TODO: add to api
-    gameWrapper["reshuffle_tableau"] = [](script_game* game) { return game->reshuffle_tableau(); };
-    gameWrapper["redeal_tableau"]    = [](script_game* game) { return game->redeal_tableau(); };
+    }};
+    gameWrapper["PutBack"] = overload(
+        [=](card& card, std::vector<pile*>& to, bool ifEmpty) {
+            for (auto& pile : to) {
+                if (placeCard(card, *pile, ifEmpty, false)) { return true; }
+            }
+            return false;
+        },
+        [=](card& card, std::vector<pile*>& to, i32 offset, usize size, bool ifEmpty) {
+            auto const target = std::span<pile*>(to.data() + offset, size);
+            for (auto& pile : target) {
+                if (placeCard(card, *pile, ifEmpty, false)) { return true; }
+            }
+            return false;
+        },
+        [=](card& card, pile* to, bool ifEmpty) {
+            return placeCard(card, *to, ifEmpty, false);
+        });
+    gameWrapper["PutFront"] = overload(
+        [=](card& card, std::vector<pile*>& to, bool ifEmpty) {
+            for (auto& pile : to) {
+                if (placeCard(card, *pile, ifEmpty, true)) { return true; }
+            }
+            return false;
+        },
+        [=](card& card, std::vector<pile*>& to, i32 offset, usize size, bool ifEmpty) {
+            auto const target = std::span<pile*>(to.data() + offset, size);
+            for (auto& pile : target) {
+                if (placeCard(card, *pile, ifEmpty, true)) { return true; }
+            }
+            return false;
+        },
+        [=](card& card, pile* to, bool ifEmpty) {
+            return placeCard(card, *to, ifEmpty, true);
+        });
 
+    // pile
     auto& pileWrapper {*script.create_wrapper<pile>("pile")};
-    pileWrapper["Type"]                = getter {[](pile* p) { return p->Type; }};
-    pileWrapper["CardCount"]           = getter {[](pile* p) { return p->Cards.size(); }};
-    pileWrapper["Empty"]               = getter {[](pile* p) { return p->empty(); }};
-    pileWrapper["Cards"]               = getter {[](pile* p) { return p->Cards; }};
-    pileWrapper["Position"]            = property {[](pile* p) { return p->Position; }, [](pile* p, point_f pos) { p->Position = pos; }};
+
+    // properties
+    pileWrapper["Type"]      = getter {[](pile* p) { return p->Type; }};
+    pileWrapper["CardCount"] = getter {[](pile* p) { return p->Cards.size(); }};
+    pileWrapper["Empty"]     = getter {[](pile* p) { return p->empty(); }};
+    pileWrapper["Cards"]     = getter {[](pile* p) { return p->Cards; }};
+    pileWrapper["Position"]  = property {[](pile* p) { return p->Position; }, [](pile* p, point_f pos) { p->Position = pos; }};
+
+    // methods
     pileWrapper["flip_up_cards"]       = [](pile* p) { p->flip_up_cards(); };
     pileWrapper["flip_up_top_card"]    = [](pile* p) { p->flip_up_top_card(); };
     pileWrapper["flip_down_cards"]     = [](pile* p) { p->flip_down_cards(); };
     pileWrapper["flip_down_top_card"]  = [](pile* p) { p->flip_down_top_card(); };
-    pileWrapper["move_rank_to_bottom"] = [](pile* p, rank r) {
-        std::ranges::stable_partition(p->Cards, [r](card const& c) { return c.get_rank() == r; });
-    };
-    pileWrapper["move_cards"] = [](pile* p, pile* to, isize srcOffset, isize numCards, bool toFront) {
-        p->move_cards(*to, srcOffset - 1, numCards, toFront);
-    };
-    pileWrapper["redeal"]        = [](pile* p, pile* to) { return p->redeal(*to); };
-    pileWrapper["deal"]          = [](pile* p, pile* to, i32 cardDealCount) { return p->deal(*to, cardDealCount); };
-    pileWrapper["deal_to_group"] = [](pile* p, std::vector<pile*> const& to) { return p->deal_group(to, false); };
-    pileWrapper["fill_group"]    = [](pile* p, std::vector<pile*> const& to) { return p->deal_group(to, true); };
-    pileWrapper["drop"]          = [](pile* p, script_game* game, card& card) { return p->drop(*game, card); };
+    pileWrapper["move_rank_to_bottom"] = [](pile* p, rank r) { std::ranges::stable_partition(p->Cards, [r](card const& c) { return c.get_rank() == r; }); };
+    pileWrapper["move_cards"]          = [](pile* p, pile* to, isize srcOffset, isize numCards, bool toFront) { p->move_cards(*to, srcOffset - 1, numCards, toFront); };
+    pileWrapper["redeal"]              = [](pile* p, pile* to) { return p->redeal(*to); };
+    pileWrapper["deal"]                = [](pile* p, pile* to, i32 cardDealCount) { return p->deal(*to, cardDealCount); };
+    pileWrapper["deal_to_group"]       = [](pile* p, std::vector<pile*> const& to) { return p->deal_group(to, false); };
+    pileWrapper["fill_group"]          = [](pile* p, std::vector<pile*> const& to) { return p->deal_group(to, true); };
+    pileWrapper["drop"]                = [](pile* p, script_game* game, card& card) { return p->drop(*game, card); };
+    pileWrapper["clear"]               = [](pile* p) { p->Cards.clear(); };
 }
 
 } // namespace solitaire

@@ -252,10 +252,10 @@ challenge_free_cell.Tableau          = {
 }
 challenge_free_cell.before_shuffle   = function(game, card)
     if card.Rank == "Two" then
-        return game.put_card(card, game.Tableau, 0, 4)
+        return game.PutBack(card, game.Tableau, 0, 4, true)
     end
     if card.Rank == "Ace" then
-        return game.put_card(card, game.Tableau, 4, 4)
+        return game.PutBack(card, game.Tableau, 4, 4, true)
     end
 
     return false
@@ -301,7 +301,7 @@ clink.Tableau                        = {
 }
 clink.before_shuffle                 = function(game, card)
     if card.Rank == "Ace" and (card.Suit == "Clubs" or card.Suit == "Hearts") then
-        return game.put_card(card, game.Foundation)
+        return game.PutBack(card, game.Foundation, true)
     end
 
     return false
@@ -539,10 +539,10 @@ local penguin                        = {
     before_shuffle = function(game, card)
         local tableau1 = game.Tableau[1]
         if tableau1.Empty then
-            return game.put_card(card, game.Tableau)
+            return game.PutBack(card, game.Tableau, true)
         else
             if card.Rank == tableau1.Cards[1].Rank then
-                return game.put_card(card, game.Foundation)
+                return game.PutBack(card, game.Foundation, true)
             end
         end
         return false
@@ -607,6 +607,7 @@ local snake                          = {
     },
     before_shuffle = ops.shuffle.ace_to_foundation,
     after_shuffle  = function(game)
+        -- kings start new pile
         local tableau = game.Tableau
         local tabIdx = 2;
         local tableau1 = tableau[1]

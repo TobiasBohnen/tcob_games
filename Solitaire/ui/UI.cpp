@@ -90,6 +90,7 @@ game_list::game_list(gfx::window* window, rect_f bounds, std::vector<games::game
         createTab(games::family::Golf, "Golf");
         createTab(games::family::Gypsy, "Gypsy");
         createTab(games::family::Klondike, "Klondike");
+        createTab(games::family::Montana, "Montana");
         createTab(games::family::Spider, "Spider");
         createTab(games::family::Yukon, "Yukon");
         createTab(games::family::Other, "Other");

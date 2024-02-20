@@ -121,10 +121,10 @@ local clover_leaf          = {
     },
     before_shuffle = function(game, card)
         if card.Rank == "Ace" and card.Color == "Black" then
-            return game.put_card(card, game.Foundation, 0, 2)
+            return game.PutBack(card, game.Foundation, 0, 2, true)
         end
         if card.Rank == "King" and card.Color == "Red" then
-            return game.put_card(card, game.Foundation, 2, 2)
+            return game.PutBack(card, game.Foundation, 2, 2, true)
         end
 
         return false
@@ -146,7 +146,7 @@ quads.Tableau              = {
 }
 quads.shuffle              = function(game, card, pileType)
     if pileType == "Tableau" and card.Rank == "Ace" then
-        return game.put_card(card, game.Foundation);
+        return game.PutBack(card, game.Foundation, true);
     end
 
     return false
@@ -272,7 +272,7 @@ troika.Tableau             = {
 }
 troika.shuffle             = function(game, card, pileType)
     if pileType == "Tableau" and card.Rank == "Ace" then
-        return game.put_card(card, game.Foundation);
+        return game.PutBack(card, game.Foundation, true);
     end
 
     return false

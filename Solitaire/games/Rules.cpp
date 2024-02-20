@@ -7,6 +7,7 @@
 
 #include <utility>
 
+#include "Cards.hpp"
 #include "Games.hpp"
 #include "Piles.hpp"
 
@@ -15,20 +16,6 @@ namespace solitaire {
 auto static is_same_color(suit a, suit b) -> bool
 {
     return get_suit_color(a) == get_suit_color(b);
-}
-
-auto static get_next_rank(rank r, i32 interval, bool wrap) -> std::optional<rank>
-{
-    i32 target {static_cast<i32>(r) + interval};
-    if (wrap) {
-        target = ((target - 1) % 13 + 13) % 13 + 1;
-    }
-
-    if (target == 0 || target > 13) {
-        return std::nullopt;
-    }
-
-    return static_cast<rank>(target);
 }
 
 ////////////////////////////////////////////////////////////

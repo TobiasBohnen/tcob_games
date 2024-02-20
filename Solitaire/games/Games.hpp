@@ -28,7 +28,6 @@ enum class type {
     OpenBuilder,
     OpenPacker,
     OpenNonBuilder
-
 };
 
 enum class family {
@@ -42,6 +41,7 @@ enum class family {
     Golf,
     Gypsy,
     Klondike,
+    Montana,
     Raglan,
     Spider,
     Yukon
@@ -185,8 +185,6 @@ protected:
 
 private:
     auto static CheckState(script_game* game, std::string const& name) -> game_state;
-    auto reshuffle_tableau() -> bool;
-    auto redeal_tableau() -> bool;
 
     scripting::lua::table _table;
 };

@@ -148,7 +148,7 @@ void start_scene::on_key_down(input::keyboard::event& ev)
         get_game().pop_current_scene();
         break;
     case input::scan_code::R: {
-        auto files {io::enumerate("/", "*.game.lua", true)};
+        auto files {io::enumerate("/", "*.games.lua", true)};
         for (auto const& file : files) {
             [[maybe_unused]] auto _ {_script.run_file(file)};
         }
@@ -189,7 +189,7 @@ void start_scene::load_scripts()
 
     games::script_game::CreateAPI(this, _script, _functions);
 
-    auto files {io::enumerate("/", "*.game.lua", true)};
+    auto files {io::enumerate("/", "*.games.lua", true)};
     for (auto const& file : files) {
         [[maybe_unused]] auto _ {_script.run_file(file)};
     }
