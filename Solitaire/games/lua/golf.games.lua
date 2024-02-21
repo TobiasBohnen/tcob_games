@@ -8,6 +8,31 @@ local ops    = require 'base/ops'
 local piles  = require 'base/piles'
 require 'base/common'
 
+local function golf_check_state(game)
+    if game.Foundation[1].Empty then return "Running" end
+
+    local dead    = true -- detect dead game
+    local success = true -- detect win state
+    for _, tableau in pairs(game.Tableau) do
+        if not tableau.Empty then
+            success = false;
+            if game:can_drop(game.Foundation[1], #game.Foundation[1].Cards - 1, tableau.Cards[#tableau.Cards], 1) then
+                dead = false;
+                break;
+            end
+        end
+    end
+
+
+    if success then return "Success" end
+    if not game.Stock[1].Empty then return "Running" end
+    if dead then return "Failure" end
+
+    return "Running"
+end
+
+------
+
 local golf                 = {
     Info        = {
         Name          = "Golf",
@@ -36,9 +61,7 @@ local golf                 = {
     deal        = function(game)
         return game.Stock[1]:deal(game.Foundation[1], game.CardDealCount)
     end,
-    check_state = function(game)
-        return game:check_state("Golf")
-    end,
+    check_state = golf_check_state,
     layout      = layout.golf
 }
 
@@ -114,15 +137,13 @@ local black_hole           = {
 
         return false
     end,
-    check_state    = function(game)
-        return game:check_state("Golf")
-    end
+    check_state    = golf_check_state
 }
 
 ------------------------
 
-register_game(golf)
-register_game(double_golf)
-register_game(putt_putt)
-register_game(double_putt)
-register_game(black_hole)
+RegisterGame(golf)
+RegisterGame(double_golf)
+RegisterGame(putt_putt)
+RegisterGame(double_putt)
+RegisterGame(black_hole)

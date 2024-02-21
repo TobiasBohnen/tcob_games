@@ -79,7 +79,6 @@ public:
     auto deal(pile& to, i32 dealCount) -> bool;
     auto deal_group(auto&& to, bool emptyTarget) -> bool;
     auto deal_group(std::vector<pile*> const& to, bool emptyTarget) -> bool;
-    auto drop(games::base_game& game, card& card) -> bool;
 
     auto operator==(pile const& other) const -> bool
     {

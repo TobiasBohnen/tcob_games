@@ -89,7 +89,7 @@ corona.Tableau             = {
     }
 }
 corona.before_layout       = function(game)
-    return game.Waste[1]:fill_group(game.Tableau) or game.Stock[1]:fill_group(game.Tableau)
+    return game.Waste[1]:deal_to_group(game.Tableau, true) or game.Stock[1]:deal_to_group(game.Tableau, true)
 end
 
 ------
@@ -109,9 +109,9 @@ courtyard.before_layout    = corona.before_layout
 
 ------------------------
 
-register_game(forty_thieves)
-register_game(alternation)
-register_game(busy_aces)
-register_game(corona)
-register_game(courtyard)
-register_game(interchange)
+RegisterGame(forty_thieves)
+RegisterGame(alternation)
+RegisterGame(busy_aces)
+RegisterGame(corona)
+RegisterGame(courtyard)
+RegisterGame(interchange)

@@ -40,7 +40,7 @@ local canfield                   = {
             Rule = { Build = "DownAlternateColors", Wrap = true, Move = "TopOrPile", Empty = "Any" }
         }
     },
-    before_layout = function(game) game.Reserve[1]:fill_group(game.Tableau) end,
+    before_layout = function(game) game.Reserve[1]:deal_to_group(game.Tableau, true) end,
     redeal        = ops.redeal.waste_to_stock,
     deal          = ops.deal.stock_to_waste,
     layout        = layout.canfield
@@ -267,14 +267,14 @@ end
 
 ------------------------
 
-register_game(canfield)
-register_game(double_canfield)
-register_game(canfield_rush)
-register_game(acme)
-register_game(american_toad)
-register_game(chameleon)
-register_game(demon)
-register_game(duke)
-register_game(dutchess)
-register_game(minerva)
-register_game(rainfall)
+RegisterGame(canfield)
+RegisterGame(double_canfield)
+RegisterGame(canfield_rush)
+RegisterGame(acme)
+RegisterGame(american_toad)
+RegisterGame(chameleon)
+RegisterGame(demon)
+RegisterGame(duke)
+RegisterGame(dutchess)
+RegisterGame(minerva)
+RegisterGame(rainfall)

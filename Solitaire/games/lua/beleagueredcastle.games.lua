@@ -58,8 +58,8 @@ local citadel               = Copy(beleaguered_castle)
 citadel.Info.Name           = "Citadel"
 citadel.shuffle             = function(game, card)
     local foundation = game.Foundation
-    for k, v in pairs(foundation) do
-        if v:drop(game, card) then
+    for _, v in pairs(foundation) do
+        if game:drop(v, card) then
             return true
         end
     end
@@ -534,7 +534,7 @@ local chequers                   = {
     },
     before_layout = function(game)
         local reserve1 = game.Reserve[1]
-        reserve1:fill_group(game.Tableau)
+        reserve1:deal_to_group(game.Tableau, true)
         if not reserve1.Empty then
             reserve1:flip_down_top_card()
         end
@@ -702,29 +702,29 @@ zerline_3_decks.Tableau          = {
 
 ------------
 
-register_game(beleaguered_castle)
-register_game(american_canister)
-register_game(bastion)
-register_game(british_canister)
-register_game(canister)
-register_game(castle_mount)
-register_game(castle_of_indolence)
-register_game(castles_end)
-register_game(chequers)
-register_game(chessboard)
-register_game(citadel)
-register_game(exiled_kings)
-register_game(fastness)
-register_game(fortress)
-register_game(lasker)
-register_game(lightweight)
-register_game(morehead)
-register_game(penelopes_web)
-register_game(selective_castle)
-register_game(siegecraft)
-register_game(somerset)
-register_game(streets_and_alleys)
-register_game(stronghold)
-register_game(ten_by_one)
-register_game(zerline)
-register_game(zerline_3_decks)
+RegisterGame(beleaguered_castle)
+RegisterGame(american_canister)
+RegisterGame(bastion)
+RegisterGame(british_canister)
+RegisterGame(canister)
+RegisterGame(castle_mount)
+RegisterGame(castle_of_indolence)
+RegisterGame(castles_end)
+RegisterGame(chequers)
+RegisterGame(chessboard)
+RegisterGame(citadel)
+RegisterGame(exiled_kings)
+RegisterGame(fastness)
+RegisterGame(fortress)
+RegisterGame(lasker)
+RegisterGame(lightweight)
+RegisterGame(morehead)
+RegisterGame(penelopes_web)
+RegisterGame(selective_castle)
+RegisterGame(siegecraft)
+RegisterGame(somerset)
+RegisterGame(streets_and_alleys)
+RegisterGame(stronghold)
+RegisterGame(ten_by_one)
+RegisterGame(zerline)
+RegisterGame(zerline_3_decks)

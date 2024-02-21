@@ -306,7 +306,7 @@ local chinese_discipline                 = {
             }
         end
     },
-    deal       = function(game) return game.Stock[1]:deal_to_group(game.Tableau) end,
+    deal       = function(game) return game.Stock[1]:deal_to_group(game.Tableau, false) end,
     layout     = layout.klondike
 }
 
@@ -351,7 +351,7 @@ local rushdike                           = {
             }
         end
     },
-    deal       = function(game) return game.Stock[1]:deal_to_group(game.Tableau) end,
+    deal       = function(game) return game.Stock[1]:deal_to_group(game.Tableau, false) end,
     layout     = layout.klondike
 }
 
@@ -359,19 +359,19 @@ local rushdike                           = {
 
 ------------------------
 
-register_game(yukon)
-register_game(double_yukon)
-register_game(triple_yukon)
-register_game(alaska)
-register_game(brisbane)
-register_game(chinese_discipline)
-register_game(chinese_solitaire)
-register_game(geoffrey)
-register_game(hawaiian)
-register_game(moosehide)
-register_game(queensland)
-register_game(roslin)
-register_game(russian_solitaire)
-register_game(double_russian_solitaire)
-register_game(triple_russian_solitaire)
-register_game(rushdike)
+RegisterGame(yukon)
+RegisterGame(double_yukon)
+RegisterGame(triple_yukon)
+RegisterGame(alaska)
+RegisterGame(brisbane)
+RegisterGame(chinese_discipline)
+RegisterGame(chinese_solitaire)
+RegisterGame(geoffrey)
+RegisterGame(hawaiian)
+RegisterGame(moosehide)
+RegisterGame(queensland)
+RegisterGame(roslin)
+RegisterGame(russian_solitaire)
+RegisterGame(double_russian_solitaire)
+RegisterGame(triple_russian_solitaire)
+RegisterGame(rushdike)

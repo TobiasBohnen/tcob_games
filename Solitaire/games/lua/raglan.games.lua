@@ -45,4 +45,4 @@ local raglan = {
 
 ------------------------
 
-register_game(raglan)
+RegisterGame(raglan)

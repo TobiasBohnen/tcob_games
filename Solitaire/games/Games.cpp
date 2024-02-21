@@ -94,6 +94,9 @@ void base_game::new_game()
 
     after_shuffle();
     assert(cards.empty());
+
+    // deal cards if game contains Waste pile
+    if (_piles.contains(pile_type::Waste)) { deal_cards(); }
 }
 
 auto base_game::load(std::optional<data::config::object> const& loadObj) -> bool
@@ -296,6 +299,17 @@ void base_game::key_down(input::keyboard::event& ev)
             ev.Handled = true;
         }
     }
+}
+
+auto base_game::drop(pile& to, card& card) const -> bool
+{
+    if (can_drop(to, std::ssize(to.Cards) - 1, card, 1)) {
+        card.flip_face_up();
+        to.Cards.emplace_back(card);
+        return true;
+    }
+
+    return false;
 }
 
 void base_game::click(pile* srcPile, u8 clicks)
@@ -617,6 +631,7 @@ script_game::script_game(field& f, game_info info, scripting::lua::table tab)
 
 auto script_game::can_drop(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool
 {
+    // TODO: targetIndex ia zero-indexed
     if (function<bool> func; _table.try_get(func, "can_drop")) {
         return func(this, &targetPile, targetIndex, drop, numCards);
     }
@@ -689,32 +704,6 @@ auto script_game::stack_index(pile const& targetPile, point_i pos) const -> isiz
     return base_game::stack_index(targetPile, pos);
 }
 
-auto script_game::CheckState(script_game* game, std::string const& name) -> game_state
-{
-    if (name == "Golf") {
-        if (game->Foundation[0].empty()) { return game_state::Running; }
-
-        bool dead {true};    // detect dead game
-        bool success {true}; // detect win state
-        for (auto const& tableau : game->Tableau) {
-            if (tableau.empty()) { continue; }
-            success = false;
-            if (game->can_drop(game->Foundation[0], std::ssize(game->Foundation[0].Cards) - 1, tableau.Cards.back(), 1)) {
-                dead = false;
-                break;
-            }
-        }
-
-        if (success) { return game_state::Success; }
-        if (!game->Stock.empty()) { return game_state::Running; }
-        if (dead) { return game_state::Failure; }
-
-        return game_state::Running;
-    }
-
-    return game->check_state();
-}
-
 void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs)
 {
     script.open_libraries();
@@ -726,7 +715,7 @@ void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, 
     }};
 
     auto global {script.get_global_table()};
-    global["register_game"] = make_func([scene](table& tab) {
+    global["RegisterGame"] = make_func([scene](table& tab) {
         games::game_info info;
         info.Name          = tab["Info"]["Name"].as<std::string>();
         info.Type          = tab["Info"]["Type"];
@@ -761,13 +750,13 @@ void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, 
     // methods
     gameWrapper["find_pile"]     = [](script_game* game, card& card) { return game->find_pile(card); };
     gameWrapper["can_drop"]      = [](script_game* game, pile* targetPile, isize targetIndex, card const& drop, isize numCards) { return game->base_game::can_drop(*targetPile, targetIndex, drop, numCards); };
+    gameWrapper["drop"]          = [](script_game* game, pile* to, card& card) { return game->drop(*to, card); };
     gameWrapper["stack_index"]   = [](script_game* game, pile* targetPile, point_i pos) { return game->base_game::stack_index(*targetPile, pos); };
     gameWrapper["shuffle_cards"] = [](script_game* game, std::vector<card> const& cards) {
         std::vector<card> shuffled {cards};
         game->rand().shuffle<card>(shuffled);
         return shuffled;
     };
-    gameWrapper["check_state"] = [](script_game* game, std::string const& name) { return CheckState(game, name); }; // TODO: implement in lua
 
     // static methods
     gameWrapper["GetRank"] = [](rank r, i32 interval, bool wrap) -> std::variant<std::string, rank> {
@@ -834,18 +823,17 @@ void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, 
     pileWrapper["Position"]  = property {[](pile* p) { return p->Position; }, [](pile* p, point_f pos) { p->Position = pos; }};
 
     // methods
-    pileWrapper["flip_up_cards"]       = [](pile* p) { p->flip_up_cards(); };
-    pileWrapper["flip_up_top_card"]    = [](pile* p) { p->flip_up_top_card(); };
-    pileWrapper["flip_down_cards"]     = [](pile* p) { p->flip_down_cards(); };
-    pileWrapper["flip_down_top_card"]  = [](pile* p) { p->flip_down_top_card(); };
+    pileWrapper["flip_up_cards"]      = [](pile* p) { p->flip_up_cards(); };
+    pileWrapper["flip_up_top_card"]   = [](pile* p) { p->flip_up_top_card(); };
+    pileWrapper["flip_down_cards"]    = [](pile* p) { p->flip_down_cards(); };
+    pileWrapper["flip_down_top_card"] = [](pile* p) { p->flip_down_top_card(); };
+    pileWrapper["clear"]              = [](pile* p) { p->Cards.clear(); };
+
     pileWrapper["move_rank_to_bottom"] = [](pile* p, rank r) { std::ranges::stable_partition(p->Cards, [r](card const& c) { return c.get_rank() == r; }); };
     pileWrapper["move_cards"]          = [](pile* p, pile* to, isize srcOffset, isize numCards, bool toFront) { p->move_cards(*to, srcOffset - 1, numCards, toFront); };
     pileWrapper["redeal"]              = [](pile* p, pile* to) { return p->redeal(*to); };
     pileWrapper["deal"]                = [](pile* p, pile* to, i32 cardDealCount) { return p->deal(*to, cardDealCount); };
-    pileWrapper["deal_to_group"]       = [](pile* p, std::vector<pile*> const& to) { return p->deal_group(to, false); };
-    pileWrapper["fill_group"]          = [](pile* p, std::vector<pile*> const& to) { return p->deal_group(to, true); };
-    pileWrapper["drop"]                = [](pile* p, script_game* game, card& card) { return p->drop(*game, card); };
-    pileWrapper["clear"]               = [](pile* p) { p->Cards.clear(); };
+    pileWrapper["deal_to_group"]       = [](pile* p, std::vector<pile*> const& to, bool ifEmpty) { return p->deal_group(to, ifEmpty); };
 }
 
 } // namespace solitaire

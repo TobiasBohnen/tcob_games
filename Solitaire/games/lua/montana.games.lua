@@ -184,5 +184,5 @@ local blue_moon = {
 
 ------------------------
 
-register_game(montana)
-register_game(blue_moon)
+RegisterGame(montana)
+RegisterGame(blue_moon)

@@ -5,8 +5,6 @@
 
 #include "Piles.hpp"
 
-#include "Games.hpp"
-
 namespace solitaire {
 
 auto initial::top_face_up(usize size) -> std::vector<bool>
@@ -306,17 +304,6 @@ auto pile::deal_group(std::vector<pile*> const& to, bool emptyTarget) -> bool
     }
 
     return true;
-}
-
-auto pile::drop(games::base_game& game, card& card) -> bool
-{
-    if (game.can_drop(*this, std::ssize(Cards) - 1, card, 1)) {
-        card.flip_face_up();
-        Cards.emplace_back(card);
-        return true;
-    }
-
-    return false;
 }
 
 ////////////////////////////////////////////////////////////

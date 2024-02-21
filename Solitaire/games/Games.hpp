@@ -98,6 +98,8 @@ public:
     void key_down(input::keyboard::event& ev);
 
 protected:
+    auto drop(pile& to, card& card) const -> bool;
+
     auto virtual do_redeal() -> bool;
     auto virtual do_deal() -> bool;
 
@@ -184,8 +186,6 @@ protected:
     auto stack_index(pile const& targetPile, point_i pos) const -> isize override;
 
 private:
-    auto static CheckState(script_game* game, std::string const& name) -> game_state;
-
     scripting::lua::table _table;
 };
 

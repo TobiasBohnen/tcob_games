@@ -33,7 +33,7 @@ local gypsy                    = {
         }
     },
     layout     = layout.gypsy,
-    deal       = function(game) return game.Stock[1]:deal_to_group(game.Tableau) end
+    deal       = function(game) return game.Stock[1]:deal_to_group(game.Tableau, false) end
 }
 
 ------
@@ -79,9 +79,7 @@ blockade.Tableau               = {
     }
 }
 blockade.layout                = layout.klondike
-blockade.before_layout         = function(game)
-    game.Stock[1]:fill_group(game.Tableau)
-end
+blockade.before_layout         = function(game) game.Stock[1]:deal_to_group(game.Tableau, true) end
 
 ------
 
@@ -199,20 +197,20 @@ local cone                     = {
         end
         --deal last 4 cards to reserve
         if game.Stock[1].CardCount == 4 then
-            return game.Stock[1]:deal_to_group(game.Reserve)
+            return game.Stock[1]:deal_to_group(game.Reserve, false)
         end
 
-        return game.Stock[1]:deal_to_group(game.Tableau)
+        return game.Stock[1]:deal_to_group(game.Tableau, false)
     end
 }
 
 ------------------------
 
-register_game(gypsy)
-register_game(agnes_sorel)
-register_game(blockade)
-register_game(brunswick)
-register_game(cone)
-register_game(lexington_harp)
-register_game(milligan_harp)
-register_game(mississippi)
+RegisterGame(gypsy)
+RegisterGame(agnes_sorel)
+RegisterGame(blockade)
+RegisterGame(brunswick)
+RegisterGame(cone)
+RegisterGame(lexington_harp)
+RegisterGame(milligan_harp)
+RegisterGame(mississippi)

@@ -36,16 +36,16 @@
 
 
 # Global functions:
-- register_game
+- RegisterGame
 - Copy
 
 # *game* members:
 - RedealsLeft
 - CardDealCount
 - Stock / Waste / Reserve / FreeCell / Tableau / Foundation
-- check_state
 - find_pile
 - can_drop
+- drop
 - stack_index
 - shuffle_cards
 - PutBack
@@ -65,9 +65,9 @@
 - redeal
 - deal
 - deal_to_group
-- fill_group
 
 # *card* members:
 - Suit
 - Rank
 - Deck
+- Color
