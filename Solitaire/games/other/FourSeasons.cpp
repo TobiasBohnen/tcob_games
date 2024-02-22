@@ -48,7 +48,14 @@ four_seasons::four_seasons(field& f)
 
 auto four_seasons::do_deal() -> bool
 {
-    return Stock.deal(Waste, info().CardDealCount);
+    if (Stock.empty()) { return false; }
+
+    for (i32 i {0}; i < info().CardDealCount; ++i) {
+        Stock.move_cards(Waste, std::ssize(Stock.Cards) - 1, 1, false);
+    }
+    Waste.flip_up_cards();
+
+    return true;
 }
 
 }

@@ -549,7 +549,7 @@ thirty_six.Tableau                       = {
 }
 thirty_six.shuffle                       = function(game, card, pileType)
     if pileType == "Tableau" and card.Rank == "Ace" then
-        return game.PutBack(card, game.Foundation, true);
+        return game.PlaceTop(card, game.Foundation, true);
     end
 
     return false

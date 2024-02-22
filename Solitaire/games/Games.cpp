@@ -772,7 +772,7 @@ void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, 
         }
         return false;
     }};
-    gameWrapper["PutBack"] = overload(
+    gameWrapper["PlaceTop"] = overload(
         [=](card& card, std::vector<pile*>& to, bool ifEmpty) {
             for (auto& pile : to) {
                 if (placeCard(card, *pile, ifEmpty, false)) { return true; }
@@ -780,7 +780,7 @@ void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, 
             return false;
         },
         [=](card& card, std::vector<pile*>& to, i32 offset, usize size, bool ifEmpty) {
-            auto const target = std::span<pile*>(to.data() + offset - 1, size);
+            auto const target {std::span<pile*>(to.data() + offset - 1, size)};
             for (auto& pile : target) {
                 if (placeCard(card, *pile, ifEmpty, false)) { return true; }
             }
@@ -789,7 +789,7 @@ void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, 
         [=](card& card, pile* to, bool ifEmpty) {
             return placeCard(card, *to, ifEmpty, false);
         });
-    gameWrapper["PutFront"] = overload(
+    gameWrapper["PlaceBottom"] = overload(
         [=](card& card, std::vector<pile*>& to, bool ifEmpty) {
             for (auto& pile : to) {
                 if (placeCard(card, *pile, ifEmpty, true)) { return true; }
@@ -797,7 +797,7 @@ void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, 
             return false;
         },
         [=](card& card, std::vector<pile*>& to, i32 offset, usize size, bool ifEmpty) {
-            auto const target = std::span<pile*>(to.data() + offset - 1, size);
+            auto const target {std::span<pile*>(to.data() + offset - 1, size)};
             for (auto& pile : target) {
                 if (placeCard(card, *pile, ifEmpty, true)) { return true; }
             }
@@ -812,8 +812,8 @@ void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, 
 
     // properties
     pileWrapper["Type"]      = getter {[](pile* p) { return p->Type; }};
-    pileWrapper["CardCount"] = getter {[](pile* p) { return p->Cards.size(); }};
     pileWrapper["Empty"]     = getter {[](pile* p) { return p->empty(); }};
+    pileWrapper["CardCount"] = getter {[](pile* p) { return p->Cards.size(); }};
     pileWrapper["Cards"]     = getter {[](pile* p) { return p->Cards; }};
     pileWrapper["Position"]  = property {[](pile* p) { return p->Position; }, [](pile* p, point_f pos) { p->Position = pos; }};
 
@@ -825,10 +825,42 @@ void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, 
     pileWrapper["clear"]              = [](pile* p) { p->Cards.clear(); };
 
     pileWrapper["move_rank_to_bottom"] = [](pile* p, rank r) { std::ranges::stable_partition(p->Cards, [r](card const& c) { return c.get_rank() == r; }); };
-    pileWrapper["move_cards"]          = [](pile* p, pile* to, isize srcOffset, isize numCards, bool toFront) { p->move_cards(*to, srcOffset - 1, numCards, toFront); };
-    pileWrapper["redeal"]              = [](pile* p, pile* to) { return p->redeal(*to); };
-    pileWrapper["deal"]                = [](pile* p, pile* to, i32 cardDealCount) { return p->deal(*to, cardDealCount); };
-    pileWrapper["deal_to_group"]       = [](pile* p, std::vector<pile*> const& to, bool ifEmpty) { return p->deal_group(to, ifEmpty); };
+    pileWrapper["move_cards"]          = [](pile* p, pile* to, isize startIndex, isize numCards, bool reverse) { p->move_cards(*to, startIndex - 1, numCards, reverse); };
+    pileWrapper["redeal"]              = [](pile* p, pile* to) {
+        if (to->empty() && !p->empty()) {
+            p->move_cards(*to, 0, std::ssize(p->Cards), true);
+            to->flip_down_cards();
+            return true;
+        }
+
+        return false;
+    };
+    pileWrapper["deal"] = [](pile* p, pile* to, i32 cardDealCount) {
+        if (p->empty()) { return false; }
+
+        for (i32 i {0}; i < cardDealCount; ++i) {
+            p->move_cards(*to, std::ssize(p->Cards) - 1, 1, false);
+        }
+        to->flip_up_cards();
+
+        return true;
+    };
+    pileWrapper["deal_to_group"] = [](pile* p, std::vector<pile*> const& to, bool ifEmpty) {
+        if (p->Cards.empty()) { return false; }
+
+        for (auto* toPile : to) {
+            if (ifEmpty && !toPile->Cards.empty()) { continue; }
+
+            if (!p->Cards.empty()) {
+                p->move_cards(*toPile, std::ssize(p->Cards) - 1, 1, false);
+            } else {
+                break;
+            }
+            toPile->flip_up_top_card();
+        }
+
+        return true;
+    };
 }
 
 } // namespace solitaire

@@ -55,7 +55,7 @@ good_measure.Tableau                   = {
 }
 good_measure.before_shuffle            = function(game, card)
     if card.Rank == "Ace" then
-        return game.PutBack(card, game.Foundation, 1, 2, true)
+        return game.PlaceTop(card, game.Foundation, 1, 2, true)
     end
 
     return false;
@@ -80,7 +80,7 @@ local function capricieuse_redeal(game)
     while #cards > 0 do
         local tab = tableau[tabIdx]
         tabIdx = tabIdx + 1
-        game.PutBack(table.remove(cards), tab, false)
+        game.PlaceTop(table.remove(cards), tab, false)
         if tabIdx > #tableau then tabIdx = 1 end
     end
 
@@ -118,10 +118,10 @@ local capricieuse        = {
     redeal         = capricieuse_redeal,
     before_shuffle = function(game, card)
         if card.Rank == "Ace" then
-            return game.PutBack(card, game.Foundation, 1, 4, true)
+            return game.PlaceTop(card, game.Foundation, 1, 4, true)
         end
         if card.Rank == "King" then
-            return game.PutBack(card, game.Foundation, 5, 4, true)
+            return game.PlaceTop(card, game.Foundation, 5, 4, true)
         end
 
         return false;
@@ -164,7 +164,7 @@ local function cruel_redeal(game)
 
     for _, tab in pairs(tableau) do
         for _ = 1, 4 do
-            game.PutFront(table.remove(cards, 1), tab, false)
+            game.PlaceBottom(table.remove(cards, 1), tab, false)
         end
         if #cards == 0 then break end
     end
@@ -301,10 +301,10 @@ local nationale                     = {
     },
     before_shuffle = function(game, card)
         if card.Rank == "Ace" then
-            return game.PutBack(card, game.Foundation, 1, 4, true)
+            return game.PlaceTop(card, game.Foundation, 1, 4, true)
         end
         if card.Rank == "King" then
-            return game.PutBack(card, game.Foundation, 5, 4, true)
+            return game.PlaceTop(card, game.Foundation, 5, 4, true)
         end
 
         return false;

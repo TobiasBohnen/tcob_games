@@ -24,19 +24,6 @@ auto initial::face_down(usize size) -> std::vector<bool>
     return std::vector<bool>(size, false);
 }
 
-auto initial::alternate(usize size, bool first) -> std::vector<bool>
-{
-    std::vector<bool> retValue;
-    retValue.reserve(size);
-
-    for (usize i {0}; i < size; ++i) {
-        retValue.push_back(first);
-        first = !first;
-    }
-
-    return retValue;
-}
-
 ////////////////////////////////////////////////////////////
 
 void pile::set_hovering(bool b, isize idx)
@@ -244,7 +231,7 @@ auto pile::get_marker_texture_name() const -> std::string
     return "card_empty";
 }
 
-void pile::move_cards(pile& to, isize srcOffset, isize numCards, bool toFront)
+void pile::move_cards(pile& to, isize srcOffset, isize numCards, bool reverse)
 {
     if (srcOffset < 0) {
         numCards += srcOffset;
@@ -253,7 +240,7 @@ void pile::move_cards(pile& to, isize srcOffset, isize numCards, bool toFront)
 
     for (isize i {0}; i < numCards; ++i) {
         auto& card {Cards[i + srcOffset]};
-        if (toFront) {
+        if (reverse) {
             to.Cards.emplace_front(card);
         } else {
             to.Cards.emplace_back(card);
@@ -263,47 +250,6 @@ void pile::move_cards(pile& to, isize srcOffset, isize numCards, bool toFront)
     Cards.erase(Cards.begin() + srcOffset, Cards.begin() + srcOffset + numCards);
 
     if (Type != pile_type::Stock) { flip_up_top_card(); }
-}
-
-auto pile::redeal(pile& to) -> bool
-{
-    if (to.empty() && !empty()) {
-        move_cards(to, 0, std::ssize(Cards), true);
-        to.flip_down_cards();
-        return true;
-    }
-
-    return false;
-}
-
-auto pile::deal(pile& to, i32 dealCount) -> bool
-{
-    if (empty()) { return false; }
-
-    for (i32 i {0}; i < dealCount; ++i) {
-        move_cards(to, std::ssize(Cards) - 1, 1, false);
-    }
-    to.flip_up_cards();
-
-    return true;
-}
-
-auto pile::deal_group(std::vector<pile*> const& to, bool emptyTarget) -> bool
-{
-    if (Cards.empty()) { return false; }
-
-    for (auto* toPile : to) {
-        if (emptyTarget && !toPile->Cards.empty()) { continue; }
-
-        if (!Cards.empty()) {
-            move_cards(*toPile, std::ssize(Cards) - 1, 1, false);
-        } else {
-            break;
-        }
-        toPile->flip_up_top_card();
-    }
-
-    return true;
 }
 
 ////////////////////////////////////////////////////////////
@@ -337,31 +283,6 @@ reserve::reserve()
 freecell::freecell()
 {
     Type = pile_type::FreeCell;
-}
-
-////////////////////////////////////////////////////////////
-
-void move_rank(std::span<tableau> from, std::span<foundation> to, rank r)
-{
-    std::vector<card> cards;
-    for (auto& tableau : from) {
-        for (auto it {tableau.Cards.begin()}; it != tableau.Cards.end();) {
-            if (it->get_rank() == r) {
-                cards.emplace_back(*it);
-                it = tableau.Cards.erase(it);
-            } else {
-                ++it;
-            }
-        }
-    }
-    for (auto& foundation : to) {
-        if (cards.empty()) { break; }
-
-        auto& card {cards.back()};
-        card.flip_face_up();
-        foundation.Cards.emplace_back(card);
-        cards.pop_back();
-    }
 }
 
 }

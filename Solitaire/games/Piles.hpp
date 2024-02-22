@@ -38,7 +38,6 @@ namespace initial {
     auto top_face_up(usize size) -> std::vector<bool>;
     auto face_up(usize size) -> std::vector<bool>;
     auto face_down(usize size) -> std::vector<bool>;
-    auto alternate(usize size, bool first) -> std::vector<bool>;
 };
 
 ////////////////////////////////////////////////////////////
@@ -74,11 +73,7 @@ public:
     auto get_description() const -> std::string;
     auto get_marker_texture_name() const -> std::string;
 
-    void move_cards(pile& to, isize srcOffset, isize numCards, bool toFront);
-    auto redeal(pile& to) -> bool;
-    auto deal(pile& to, i32 dealCount) -> bool;
-    auto deal_group(auto&& to, bool emptyTarget) -> bool;
-    auto deal_group(std::vector<pile*> const& to, bool emptyTarget) -> bool;
+    void move_cards(pile& to, isize srcOffset, isize numCards, bool reverse);
 
     auto operator==(pile const& other) const -> bool
     {
@@ -124,28 +119,6 @@ struct reserve : public pile {
 struct freecell : public pile {
     freecell();
 };
-
-////////////////////////////////////////////////////////////
-
-void move_rank(std::span<tableau> from, std::span<foundation> to, rank r);
-
-inline auto pile::deal_group(auto&& to, bool emptyTarget) -> bool
-{
-    if (Cards.empty()) { return false; }
-
-    for (auto& toPile : to) {
-        if (emptyTarget && !toPile.Cards.empty()) { continue; }
-
-        if (!Cards.empty()) {
-            move_cards(toPile, std::ssize(Cards) - 1, 1, false);
-        } else {
-            break;
-        }
-        toPile.flip_up_top_card();
-    }
-
-    return true;
-}
 
 ////////////////////////////////////////////////////////////
 

@@ -132,7 +132,7 @@ local black_hole           = {
     },
     before_shuffle = function(game, card)
         if card.Rank == "Ace" and card.Suit == "Spades" then
-            return game.PutBack(card, game.Foundation, true)
+            return game.PlaceTop(card, game.Foundation, true)
         end
 
         return false

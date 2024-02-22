@@ -78,6 +78,18 @@ auto aces_up::check_state() const -> game_state
 
 auto aces_up::do_deal() -> bool
 {
-    return Stock.deal_group(Tableau, false);
+    if (Stock.Cards.empty()) { return false; }
+
+    for (auto& toPile : Tableau) {
+
+        if (!Stock.Cards.empty()) {
+            Stock.move_cards(toPile, std::ssize(Stock.Cards) - 1, 1, false);
+        } else {
+            break;
+        }
+        toPile.flip_up_top_card();
+    }
+
+    return true;
 }
 }

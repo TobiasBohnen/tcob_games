@@ -40,7 +40,7 @@ local function montana_redeal(game, ranks, columns)
             local tab = tableau[x + (y - 1) * columns]
             if tab.Empty then
                 if wasEmpty then
-                    game.PutBack(table.remove(cards), tab, true)
+                    game.PlaceTop(table.remove(cards), tab, true)
                 else
                     wasEmpty = true
                 end
@@ -161,10 +161,10 @@ local blue_moon = {
     end,
     shuffle     = function(game, card, _)
         if card.Rank == "Ace" then
-            return game.PutBack(card, game.Tableau, 1, 1, true)
-                or game.PutBack(card, game.Tableau, 15, 1, true)
-                or game.PutBack(card, game.Tableau, 29, 1, true)
-                or game.PutBack(card, game.Tableau, 43, 1, true)
+            return game.PlaceTop(card, game.Tableau, 1, 1, true)
+                or game.PlaceTop(card, game.Tableau, 15, 1, true)
+                or game.PlaceTop(card, game.Tableau, 29, 1, true)
+                or game.PlaceTop(card, game.Tableau, 43, 1, true)
         end
 
         return false

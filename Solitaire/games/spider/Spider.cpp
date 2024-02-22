@@ -73,7 +73,19 @@ void spider::before_layout()
 auto spider::do_deal() -> bool
 {
     if (!std::ranges::any_of(Tableau, [](auto const& tableau) { return tableau.empty(); })) {
-        return Stock.deal_group(Tableau, false);
+        if (Stock.Cards.empty()) { return false; }
+
+        for (auto& toPile : Tableau) {
+
+            if (!Stock.Cards.empty()) {
+                Stock.move_cards(toPile, std::ssize(Stock.Cards) - 1, 1, false);
+            } else {
+                break;
+            }
+            toPile.flip_up_top_card();
+        }
+
+        return true;
     }
 
     return false;

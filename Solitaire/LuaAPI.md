@@ -49,8 +49,8 @@
 - drop
 - stack_index
 - shuffle_cards
-- PutBack
-- PutFront
+- PlaceTop
+- PlaceBottom
 - GetRank
 
 # *pile* members:
