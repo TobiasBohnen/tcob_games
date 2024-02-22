@@ -436,11 +436,11 @@ local guardian                           = {
                 tab.Initial = piles.initial.face_up(1)
             end
             if i < 3 then
-                tab.Position = { x = i + 2, y = 1 };
+                tab.Position = { x = i + 2, y = 1 }
             elseif (i < 7) then
-                tab.Position = { x = i - 1.5, y = 1.5 };
+                tab.Position = { x = i - 1.5, y = 1.5 }
             else
-                tab.Position = { x = i - 6, y = 2 };
+                tab.Position = { x = i - 6, y = 2 }
             end
 
             return tab
@@ -489,7 +489,7 @@ end
 local double_kingsley                    = Copy(kingsley)
 double_kingsley.Info.Name                = "Double Kingsley"
 double_kingsley.Info.DeckCount           = 2
-double_kingsley.Stock.Initial            = piles.initial.face_down(59);
+double_kingsley.Stock.Initial            = piles.initial.face_down(59)
 double_kingsley.Foundation.Size          = 8
 double_kingsley.Tableau.Size             = 9
 double_kingsley.layout                   = layout.big_harp
@@ -534,7 +534,7 @@ end
 local thirty_six                         = Copy(klondike)
 thirty_six.Info.Name                     = "Thirty Six"
 thirty_six.Info.Redeals                  = 0
-thirty_six.Stock.Initial                 = piles.initial.face_down(16);
+thirty_six.Stock.Initial                 = piles.initial.face_down(16)
 thirty_six.Foundation                    = {
     Size = 4,
     create = { Rule = { Build = "UpInColor", Move = "Top", Empty = "Ace" } }
@@ -549,7 +549,7 @@ thirty_six.Tableau                       = {
 }
 thirty_six.shuffle                       = function(game, card, pileType)
     if pileType == "Tableau" and card.Rank == "Ace" then
-        return game.PlaceTop(card, game.Foundation, true);
+        return game.PlaceTop(card, game.Foundation, true)
     end
 
     return false
@@ -572,7 +572,7 @@ end
 local double_trigon                      = Copy(trigon)
 double_trigon.Info.Name                  = "Double Trigon"
 double_trigon.Info.DeckCount             = 2
-double_trigon.Stock.Initial              = piles.initial.face_down(59);
+double_trigon.Stock.Initial              = piles.initial.face_down(59)
 double_trigon.Foundation.Size            = 8
 double_trigon.Tableau.Size               = 9
 double_trigon.layout                     = layout.big_harp
@@ -583,7 +583,7 @@ local whitehorse                         = Copy(klondike)
 whitehorse.Info.Name                     = "Whitehorse"
 whitehorse.Info.CardDealCount            = 3
 whitehorse.Info.Redeals                  = 0
-whitehorse.Stock.Initial                 = piles.initial.face_down(45);
+whitehorse.Stock.Initial                 = piles.initial.face_down(45)
 whitehorse.Waste.Layout                  = "Fan"
 whitehorse.Foundation                    = {
     Size = 4,
@@ -607,7 +607,7 @@ local australian_patience                = Copy(klondike)
 australian_patience.Info.Name            = "Australian Patience"
 --australian_patience.Info.Family = "Klondike/Yukon"
 australian_patience.Info.Redeals         = 0
-australian_patience.Stock.Initial        = piles.initial.face_down(24);
+australian_patience.Stock.Initial        = piles.initial.face_down(24)
 australian_patience.Tableau              = {
     Size = 7,
     create = {
@@ -623,7 +623,7 @@ local bim_bom                            = Copy(klondike)
 bim_bom.Info.Name                        = "Bim Bom"
 bim_bom.Info.DeckCount                   = 2
 bim_bom.Info.Redeals                     = 0
-bim_bom.Stock.Initial                    = piles.initial.face_down(64);
+bim_bom.Stock.Initial                    = piles.initial.face_down(64)
 bim_bom.Foundation.Size                  = 8
 bim_bom.Tableau                          = {
     Size = 8,

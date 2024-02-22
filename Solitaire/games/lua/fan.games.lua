@@ -146,7 +146,7 @@ quads.Tableau              = {
 }
 quads.shuffle              = function(game, card, pileType)
     if pileType == "Tableau" and card.Rank == "Ace" then
-        return game.PlaceTop(card, game.Foundation, true);
+        return game.PlaceTop(card, game.Foundation, true)
     end
 
     return false
@@ -272,7 +272,7 @@ troika.Tableau             = {
 }
 troika.shuffle             = function(game, card, pileType)
     if pileType == "Tableau" and card.Rank == "Ace" then
-        return game.PlaceTop(card, game.Foundation, true);
+        return game.PlaceTop(card, game.Foundation, true)
     end
 
     return false

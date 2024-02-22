@@ -631,9 +631,8 @@ script_game::script_game(field& f, game_info info, scripting::lua::table tab)
 
 auto script_game::can_drop(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool
 {
-    // TODO: targetIndex ia zero-indexed
     if (function<bool> func; _table.try_get(func, "can_drop")) {
-        return func(this, &targetPile, targetIndex, drop, numCards);
+        return func(this, &targetPile, targetIndex + 1, drop, numCards);
     }
     return base_game::can_drop(targetPile, targetIndex, drop, numCards);
 }
@@ -698,8 +697,9 @@ auto script_game::check_state() const -> game_state
 
 auto script_game::stack_index(pile const& targetPile, point_i pos) const -> isize
 {
-    if (function<bool> func; _table.try_get(func, "stack_index")) {
-        return func(this, &targetPile, pos);
+    if (function<isize> func; _table.try_get(func, "stack_index")) {
+        auto const retvalue {func(this, &targetPile, pos)};
+        return retvalue == -2 ? retvalue : retvalue - 1;
     }
     return base_game::stack_index(targetPile, pos);
 }
@@ -749,13 +749,17 @@ void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, 
 
     // methods
     gameWrapper["find_pile"]     = [](script_game* game, card& card) { return game->find_pile(card); };
-    gameWrapper["can_drop"]      = [](script_game* game, pile* targetPile, isize targetIndex, card const& drop, isize numCards) { return game->base_game::can_drop(*targetPile, targetIndex, drop, numCards); };
     gameWrapper["drop"]          = [](script_game* game, pile* to, card& card) { return game->drop(*to, card); };
-    gameWrapper["stack_index"]   = [](script_game* game, pile* targetPile, point_i pos) { return game->base_game::stack_index(*targetPile, pos); };
     gameWrapper["shuffle_cards"] = [](script_game* game, std::vector<card> const& cards) {
         std::vector<card> shuffled {cards};
         game->rand().shuffle<card>(shuffled);
         return shuffled;
+    };
+    gameWrapper["can_drop"] = [](script_game* game, pile* targetPile, isize targetIndex, card const& drop, isize numCards) {
+        return game->base_game::can_drop(*targetPile, targetIndex - 1, drop, numCards);
+    };
+    gameWrapper["stack_index"] = [](script_game* game, pile* targetPile, point_i pos) {
+        return game->base_game::stack_index(*targetPile, pos) + 1;
     };
 
     // static methods
@@ -861,6 +865,7 @@ void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, 
 
         return true;
     };
+    pileWrapper["check_bounds"] = [](pile* p, isize i, point_i pos) { return p->Cards[i - 1].Bounds.contains(pos); };
 }
 
 } // namespace solitaire

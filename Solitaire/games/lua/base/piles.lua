@@ -10,21 +10,21 @@ local initial = {
             retValue[i] = false
         end
         retValue[size] = true
-        return retValue;
+        return retValue
     end,
     face_up = function(size)
         local retValue = {}
         for i = 1, size do
             retValue[i] = true
         end
-        return retValue;
+        return retValue
     end,
     face_down = function(size)
         local retValue = {}
         for i = 1, size do
             retValue[i] = false
         end
-        return retValue;
+        return retValue
     end,
     alternate = function(size, first)
         local retValue = {}
@@ -32,7 +32,7 @@ local initial = {
             retValue[i] = first
             first = not first
         end
-        return retValue;
+        return retValue
     end
 }
 

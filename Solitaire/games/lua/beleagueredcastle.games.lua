@@ -652,7 +652,7 @@ local zerline                    = {
             if srcPile.Type == "Tableau" then
                 return game:can_drop(targetPile, targetIndex, drop, numCards)
             end
-            return false;
+            return false
         end
 
         return game:can_drop(targetPile, targetIndex, drop, numCards)

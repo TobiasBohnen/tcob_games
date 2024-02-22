@@ -11,8 +11,6 @@
     #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #endif
 
-#include "games/spider/Spider.hpp"
-
 class my_game : public tcob::game {
 public:
     my_game(char const* argv)
@@ -22,22 +20,10 @@ public:
         start();
     }
 
-    template <typename... Ts>
-    void register_games(solitaire::start_scene& scene)
-    {
-        (scene.register_game(Ts::Info, [](auto& field) { return std::make_shared<Ts>(field); }), ...);
-    }
-
     void on_start() override
     {
         using namespace solitaire::games;
-        auto scene {std::make_shared<solitaire::start_scene>(*this)};
-        register_games<
-            // Spider
-            spider, arachnida>
-
-            (*scene);
-        push_scene(scene);
+        push_scene<solitaire::start_scene>();
     }
 };
 

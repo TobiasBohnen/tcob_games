@@ -68,14 +68,18 @@ public:
 
     void static Serialize(card const& v, auto&& s)
     {
-        s["Deck"]  = v._deck;
-        s["Suit"]  = v._suit;
+        s["Deck"]     = v._deck;
+        s["Suit"]     = v._suit;
+        s["Rank"]     = v._rank;
+        s["FaceDown"] = v._faceDown;
+
         s["Color"] = get_suit_color(v._suit);
-        s["Rank"]  = v._rank;
     }
+
     auto static Deserialize(card& v, auto&& s) -> bool
     {
-        return s.try_get(v._deck, "Deck") && s.try_get(v._suit, "Suit") && s.try_get(v._rank, "Rank");
+        return s.try_get(v._deck, "Deck") && s.try_get(v._suit, "Suit")
+            && s.try_get(v._rank, "Rank") && s.try_get(v._faceDown, "FaceDown");
     }
 
     auto operator==(card const& other) const -> bool

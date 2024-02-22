@@ -609,12 +609,12 @@ local snake                          = {
     after_shuffle  = function(game)
         -- kings start new pile
         local tableau = game.Tableau
-        local tabIdx = 2;
+        local tabIdx = 2
         local tableau1 = tableau[1]
         for cardIdx = tableau1.CardCount, 2, -1 do
             local card = tableau1.Cards[cardIdx]
             if card.Rank == "King" then
-                tableau1:move_cards(tableau[tabIdx], cardIdx, tableau1.CardCount - cardIdx + 1, false);
+                tableau1:move_cards(tableau[tabIdx], cardIdx, tableau1.CardCount - cardIdx + 1, false)
                 tabIdx = tabIdx + 1
             end
         end

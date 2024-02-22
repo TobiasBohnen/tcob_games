@@ -11,7 +11,6 @@ target_sources(Solitaire PRIVATE
     ./games/Games.cpp
     ./games/Piles.cpp
     ./games/Rules.cpp
-    ./games/spider/Spider.cpp
 )
 
 set_target_properties(Solitaire PROPERTIES

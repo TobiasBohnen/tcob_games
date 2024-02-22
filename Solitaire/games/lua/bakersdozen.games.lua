@@ -58,7 +58,7 @@ good_measure.before_shuffle            = function(game, card)
         return game.PlaceTop(card, game.Foundation, 1, 2, true)
     end
 
-    return false;
+    return false
 end
 
 ------
@@ -84,7 +84,7 @@ local function capricieuse_redeal(game)
         if tabIdx > #tableau then tabIdx = 1 end
     end
 
-    return true;
+    return true
 end
 
 local capricieuse        = {
@@ -124,7 +124,7 @@ local capricieuse        = {
             return game.PlaceTop(card, game.Foundation, 5, 4, true)
         end
 
-        return false;
+        return false
     end,
     layout         = layout.capricieuse
 }
@@ -144,7 +144,7 @@ strata.Tableau           = {
 }
 strata.before_shuffle    = function(game, card)
     local rank = card.Rank
-    return rank == "Two" or rank == "Three" or rank == "Four" or rank == "Five" or rank == "Six";
+    return rank == "Two" or rank == "Three" or rank == "Four" or rank == "Five" or rank == "Six"
 end
 
 ------
@@ -169,7 +169,7 @@ local function cruel_redeal(game)
         if #cards == 0 then break end
     end
 
-    return true;
+    return true
 end
 
 local cruel                         = Copy(capricieuse)
@@ -307,7 +307,7 @@ local nationale                     = {
             return game.PlaceTop(card, game.Foundation, 5, 4, true)
         end
 
-        return false;
+        return false
     end,
     layout         = layout.canister
 }
