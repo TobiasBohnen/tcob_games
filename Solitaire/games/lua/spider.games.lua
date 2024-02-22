@@ -93,6 +93,7 @@ arachnida.Tableau.create = function(i)
     }
 end
 arachnida.stack_index    = function(game, targetPile, pos)
+    -- in sequence or same rank
     if targetPile.Type ~= "Tableau" then
         return game:stack_index(targetPile, pos)
     end
@@ -111,7 +112,7 @@ arachnida.stack_index    = function(game, targetPile, pos)
         if i < top then
             if card0.FaceDown
                 or (card0.Suit ~= targetSuit and card0.Rank ~= targetRank)
-                or not game:can_drop(targetPile, i - 1, cards[i + 1], 1)
+                or not game:can_drop(targetPile, i, cards[i + 1], 1)
             then
                 break
             end

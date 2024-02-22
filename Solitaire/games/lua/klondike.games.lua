@@ -84,7 +84,7 @@ half_klondike.Info.Name                  = "Half Klondike"
 half_klondike.Stock.Initial              = piles.initial.face_down(16)
 half_klondike.Foundation.Size            = 2
 half_klondike.Tableau.Size               = 4
-half_klondike.before_shuffle             = function(game, card) return card.Suit == "Clubs" or card.Suit == "Diamonds" end
+half_klondike.before_shuffle             = function(_, card) return card.Suit == "Clubs" or card.Suit == "Diamonds" end
 
 ------
 

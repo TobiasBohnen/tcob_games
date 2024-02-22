@@ -142,7 +142,7 @@ strata.Tableau           = {
         Rule = { Build = "DownAlternateColors", Move = "Top", Empty = "Any" }
     }
 }
-strata.before_shuffle    = function(game, card)
+strata.before_shuffle    = function(_, card)
     local rank = card.Rank
     return rank == "Two" or rank == "Three" or rank == "Four" or rank == "Five" or rank == "Six"
 end
