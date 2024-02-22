@@ -63,7 +63,7 @@ local function montana_can_drop(game, targetPile, drop, columns)
                 if not leftTab.Empty then --check if left card is one rank higher
                     local leftCard = leftTab.Cards[1]
                     if leftCard.Suit == drop.Suit then
-                        return game.GetRank(leftCard.Rank, 1, false) == drop.Rank
+                        return GetRank(leftCard.Rank, 1, false) == drop.Rank
                     end
                 end
 
@@ -124,12 +124,10 @@ local montana = {
         return card.Rank == "Ace"
     end,
     redeal      = function(game)
-        local ranks = { "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
-        return montana_redeal(game, ranks, 13)
+        return montana_redeal(game, { table.unpack(Ranks, 2, 13) }, 13)
     end,
     check_state = function(game)
-        local ranks = { "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
-        return montana_check_state(game, ranks, 13)
+        return montana_check_state(game, { table.unpack(Ranks, 2, 13) }, 13)
     end
 }
 
@@ -172,12 +170,10 @@ local blue_moon = {
         return false
     end,
     redeal      = function(game)
-        local ranks = { "Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
-        return montana_redeal(game, ranks, 14)
+        return montana_redeal(game, Ranks, 14)
     end,
     check_state = function(game)
-        local ranks = { "Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
-        return montana_check_state(game, ranks, 14)
+        return montana_check_state(game, Ranks, 14)
     end
 }
 

@@ -38,6 +38,7 @@
 # Global functions:
 - RegisterGame
 - Copy
+- GetRank
 
 # *game* members:
 - RedealsLeft

@@ -759,11 +759,6 @@ void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, 
     };
 
     // static methods
-    gameWrapper["GetRank"] = [](rank r, i32 interval, bool wrap) -> std::variant<std::string, rank> {
-        auto retValue {get_next_rank(r, interval, wrap)};
-        return retValue ? std::variant<std::string, rank> {*retValue} : std::variant<std::string, rank> {""};
-    };
-
     auto placeCard {[](card& card, pile& to, bool ifEmpty, bool front) {
         bool const canPlace {ifEmpty ? to.Cards.empty() : true};
         if (canPlace) {
