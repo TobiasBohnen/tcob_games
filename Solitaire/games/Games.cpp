@@ -96,7 +96,7 @@ void base_game::new_game()
     assert(cards.empty());
 
     // deal cards if game contains Waste pile
-    if (_piles.contains(pile_type::Waste)) { deal_cards(); }
+    if (_piles.contains(pile_type::Waste)) { do_deal(); }
 }
 
 auto base_game::load(std::optional<data::config::object> const& loadObj) -> bool

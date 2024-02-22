@@ -11,8 +11,6 @@
     #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #endif
 
-#include "games/other/AcesUp.hpp"
-#include "games/other/FourSeasons.hpp"
 #include "games/spider/Spider.hpp"
 
 class my_game : public tcob::game {
@@ -36,11 +34,7 @@ public:
         auto scene {std::make_shared<solitaire::start_scene>(*this)};
         register_games<
             // Spider
-            spider, arachnida,
-            // Other
-            aces_up,
-            four_seasons //
-            >
+            spider, arachnida>
 
             (*scene);
         push_scene(scene);

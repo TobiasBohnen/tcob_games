@@ -11,8 +11,6 @@ target_sources(Solitaire PRIVATE
     ./games/Games.cpp
     ./games/Piles.cpp
     ./games/Rules.cpp
-    ./games/other/AcesUp.cpp
-    ./games/other/FourSeasons.cpp
     ./games/spider/Spider.cpp
 )
 
