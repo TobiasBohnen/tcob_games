@@ -829,8 +829,10 @@ void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, 
     pileWrapper["clear"]              = [](pile* p) { p->Cards.clear(); };
 
     pileWrapper["move_rank_to_bottom"] = [](pile* p, rank r) { std::ranges::stable_partition(p->Cards, [r](card const& c) { return c.get_rank() == r; }); };
-    pileWrapper["move_cards"]          = [](pile* p, pile* to, isize startIndex, isize numCards, bool reverse) { p->move_cards(*to, startIndex - 1, numCards, reverse); };
-    pileWrapper["redeal"]              = [](pile* p, pile* to) {
+    pileWrapper["move_cards"]          = [](pile* p, pile* to, isize startIndex, isize numCards, bool reverse) {
+        p->move_cards(*to, startIndex - 1, numCards, reverse);
+    };
+    pileWrapper["redeal"] = [](pile* p, pile* to) {
         if (to->empty() && !p->empty()) {
             p->move_cards(*to, 0, std::ssize(p->Cards), true);
             to->flip_down_cards();

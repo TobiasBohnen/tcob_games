@@ -494,12 +494,12 @@ local flipper                        = {
     before_layout = function(game)
         local tableau = game.Tableau
         local freeCell = game.FreeCell
-        for k, v in pairs(tableau) do
-            if not v.Empty then
-                if freeCell[k].Empty then
-                    v:flip_up_top_card()
+        for i, tab in ipairs(tableau) do
+            if not tab.Empty then
+                if freeCell[i].Empty then
+                    tab:flip_up_top_card()
                 else
-                    v:flip_down_top_card()
+                    tab:flip_down_top_card()
                 end
             end
         end

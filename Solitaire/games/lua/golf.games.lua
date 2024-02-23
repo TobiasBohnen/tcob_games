@@ -13,7 +13,7 @@ local function golf_check_state(game)
 
     local dead    = true -- detect dead game
     local success = true -- detect win state
-    for _, tableau in pairs(game.Tableau) do
+    for _, tableau in ipairs(game.Tableau) do
         if not tableau.Empty then
             success = false
             if game:can_drop(game.Foundation[1], #game.Foundation[1].Cards - 1, tableau.Cards[#tableau.Cards], 1) then

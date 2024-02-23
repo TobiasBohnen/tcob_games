@@ -66,7 +66,7 @@ local function capricieuse_redeal(game)
     local cards = {}
 
     local tableau = game.Tableau
-    for _, tab in pairs(tableau) do
+    for _, tab in ipairs(tableau) do
         for j = 1, #tab.Cards do
             cards[#cards + 1] = tab.Cards[j]
         end
@@ -151,9 +151,9 @@ end
 
 local function cruel_redeal(game)
     local cards = {}
-    local tableau = game.Tableau
 
-    for _, tab in pairs(tableau) do
+    local tableau = game.Tableau
+    for _, tab in ipairs(tableau) do
         for j = #tab.Cards, 1, -1 do
             cards[#cards + 1] = tab.Cards[j]
         end
@@ -162,7 +162,7 @@ local function cruel_redeal(game)
 
     if #cards == 0 then return false end
 
-    for _, tab in pairs(tableau) do
+    for _, tab in ipairs(tableau) do
         for _ = 1, 4 do
             game.PlaceBottom(table.remove(cards, 1), tab, false)
         end

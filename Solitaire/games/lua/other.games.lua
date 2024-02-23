@@ -42,7 +42,7 @@ local aces_up = {
         if targetPile.Type == "Foundation" then
             if drop.Rank == "Ace" then return false end
             local dropRank = RankValues[drop.Rank]
-            for _, tab in pairs(game.Tableau) do
+            for _, tab in ipairs(game.Tableau) do
                 if not tab.Empty then
                     local tabCard = tab.Cards[tab.CardCount]
                     if tabCard.Suit == drop.Suit and (tabCard.Rank == "Ace" or RankValues[tabCard.Rank] > dropRank) then
@@ -61,7 +61,7 @@ local aces_up = {
 
         if game.Stock[1].Empty then
             local suits = {}
-            for _, tab in pairs(game.Tableau) do
+            for _, tab in ipairs(game.Tableau) do
                 if tab.Empty or suits[tab.Cards[tab.CardCount].Suit] ~= nil then return "Running" end
                 suits[tab.Cards[tab.CardCount].Suit] = true
             end
@@ -122,7 +122,7 @@ local four_seasons = {
         if targetPile.Type == "Foundation" then
             if drop.Rank == "Ace" then return false end
             local dropRank = RankValues[drop.Rank]
-            for _, tab in pairs(game.Tableau) do
+            for _, tab in ipairs(game.Tableau) do
                 if not tab.Empty then
                     local tabCard = tab.Cards[tab.CardCount]
                     if tabCard.Suit == drop.Suit and (tabCard.Rank == "Ace" or RankValues[tabCard.Rank] > dropRank) then

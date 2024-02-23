@@ -58,7 +58,7 @@ local citadel               = Copy(beleaguered_castle)
 citadel.Info.Name           = "Citadel"
 citadel.shuffle             = function(game, card)
     local foundation = game.Foundation
-    for _, v in pairs(foundation) do
+    for _, v in ipairs(foundation) do
         if game:drop(v, card) then
             return true
         end

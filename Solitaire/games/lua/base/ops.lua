@@ -21,8 +21,7 @@ local shuffle = {
     end,
     -- after shuffle
     kings_to_bottom = function(game)
-        local tableau = game.Tableau
-        for _, v in pairs(tableau) do
+        for _, v in ipairs(game.Tableau) do
             v:move_rank_to_bottom("King")
         end
     end

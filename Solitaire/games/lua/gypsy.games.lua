@@ -192,8 +192,8 @@ local cone                     = {
     deal       = function(game)
         --check if tableau is empty
         local tableau = game.Tableau
-        for k, v in pairs(tableau) do
-            if v.Empty then return false end
+        for _, tab in ipairs(tableau) do
+            if tab.Empty then return false end
         end
         --deal last 4 cards to reserve
         if game.Stock[1].CardCount == 4 then

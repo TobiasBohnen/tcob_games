@@ -344,6 +344,19 @@ return {
             game.Tableau[i + 1].Position = { x = i + tabOffsetX, y = 1 }
         end
     end,
+    -- Stock            -> bottom center
+    -- Tableau          -> in columns
+    montana = function(game, columns)
+        local tabSize = #game.Tableau
+
+        if #game.Stock > 0 then
+            game.Stock[1].Position = { x = (columns - 1) / 2, y = tabSize // columns }
+        end
+
+        for i = 0, tabSize - 1 do
+            game.Tableau[i + 1].Position = { x = i % columns, y = i // columns }
+        end
+    end,
     -- Reserve          -> right
     -- Foundation       -> top
     -- Tableau          -> second row

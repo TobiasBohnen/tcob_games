@@ -8,7 +8,7 @@ local ops    = require 'base/ops'
 local piles  = require 'base/piles'
 require 'base/common'
 
-local montana_base = {
+local montana_base    = {
     redeal = function(game, ranks)
         local columns = #ranks + 1
         local tableau = game.Tableau
@@ -53,25 +53,50 @@ local montana_base = {
         return true
     end,
 
-    can_drop = function(game, targetPile, drop, ranks)
+    can_drop = function(game, targetPile, drop, ranks, mode)
+        local tableau = game.Tableau
+
+        local check_left = function(leftTab)
+            --check if left card is one rank higher
+            if leftTab.Empty then return false end
+            local leftCard = leftTab.Cards[1]
+            if leftCard.Suit == drop.Suit then
+                for k, v in ipairs(ranks) do
+                    if k == #ranks then return false end --don't wrap
+                    if v == leftCard.Rank then return ranks[k + 1] == drop.Rank end
+                end
+            end
+        end
+        local check_right = function(rightTab)
+            --check if right card is one rank lower
+            if rightTab.Empty then return false end
+            local rightCard = rightTab.Cards[1]
+            if rightCard.Suit == drop.Suit then
+                for k, v in ipairs(ranks) do
+                    if k == #ranks then return false end --don't wrap
+                    if v == rightCard.Rank then return ranks[k - 1] == drop.Rank end
+                end
+            end
+        end
+
         local columns = #ranks + 1
         if not targetPile.Empty then return false end
 
-        local tableau = game.Tableau
-        for i = 1, #tableau do
-            if tableau[i] == targetPile then
-                if (i - 1) % columns == 0 then return drop.Rank == ranks[1] end --leftmost column
+        for i, tab in ipairs(tableau) do
+            if tab == targetPile then
+                if i % columns == 1 then return drop.Rank == ranks[1] end --leftmost column
 
-                --check if left card is one rank higher
-                local leftTab = tableau[i - 1]
-                if leftTab.Empty then return false end
-                local leftCard = leftTab.Cards[1]
-                if leftCard.Suit == drop.Suit then
-                    for k, v in ipairs(ranks) do
-                        if k == #ranks then return false end --don't wrap
-                        if v == leftCard.Rank then return ranks[k + 1] == drop.Rank end
-                    end
+                local result = false
+
+                if string.find(mode, "l") then
+                    result = check_left(tableau[i - 1])
                 end
+                if result then return true end
+
+                if string.find(mode, "r") and i % columns ~= 0 then
+                    result = check_right(tableau[i + 1])
+                end
+                if result then return true end
             end
         end
 
@@ -100,9 +125,9 @@ local montana_base = {
 }
 
 ------
-local montana_ranks = { table.unpack(Ranks, 2, 13) }
+local montana_ranks   = { table.unpack(Ranks, 2, 13) }
 
-local montana = {
+local montana         = {
     Info        = {
         Name          = "Montana",
         Type          = "OpenNonBuilder",
@@ -111,36 +136,43 @@ local montana = {
         CardDealCount = 0,
         Redeals       = 2
     },
-    Stock       = { Position = { x = 6, y = 5 } },
+    Stock       = {},
     Tableau     = {
         Size   = 52,
-        create = function(i)
-            return {
-                Position = { x = i % 13, y = i // 13 },
-                Initial = piles.initial.face_up(1),
-                Layout = "Squared",
-                Rule = { Build = "NoBuilding", Move = "Top", Empty = "None" }
-            }
-        end
+        create = {
+            Position = {},
+            Initial = piles.initial.face_up(1),
+            Layout = "Squared",
+            Rule = { Build = "NoBuilding", Move = "Top", Empty = "None" }
+        }
     },
     shuffle     = function(_, card, _)
         return card.Rank == "Ace"
     end,
     can_drop    = function(game, targetPile, _, drop, _)
-        return montana_base.can_drop(game, targetPile, drop, montana_ranks)
+        return montana_base.can_drop(game, targetPile, drop, montana_ranks, "l")
     end,
     redeal      = function(game)
         return montana_base.redeal(game, montana_ranks)
     end,
     check_state = function(game)
         return montana_base.check_state(game, montana_ranks)
-    end
+    end,
+    layout      = function(game) layout.montana(game, 13) end
 }
+
+------
+
+local moonlight       = Copy(montana)
+moonlight.Info.Name   = "Moonlight"
+moonlight.can_drop    = function(game, targetPile, _, drop, _)
+    return montana_base.can_drop(game, targetPile, drop, montana_ranks, "rl")
+end
 
 ------
 local blue_moon_ranks = Ranks
 
-local blue_moon = {
+local blue_moon       = {
     Info        = {
         Name          = "Blue Moon",
         Type          = "OpenNonBuilder",
@@ -149,15 +181,12 @@ local blue_moon = {
         CardDealCount = 0,
         Redeals       = 2
     },
-    Stock       = { Position = { x = 6, y = 5 } },
+    Stock       = {},
     Tableau     = {
         Size   = 56,
         create = function(i)
-            local init = 1
-            if i % 14 == 0 then init = 0 end
             return {
-                Position = { x = i % 14, y = i // 14 },
-                Initial = piles.initial.face_up(init),
+                Initial = piles.initial.face_up(i % 14 == 0 and 0 or 1),
                 Layout = "Squared",
                 Rule = { Build = "NoBuilding", Move = "Top", Empty = "None" }
             }
@@ -174,20 +203,40 @@ local blue_moon = {
         return false
     end,
     can_drop    = function(game, targetPile, _, drop, _)
-        return montana_base.can_drop(game, targetPile, drop, blue_moon_ranks)
+        return montana_base.can_drop(game, targetPile, drop, blue_moon_ranks, "l")
     end,
     redeal      = function(game)
         return montana_base.redeal(game, blue_moon_ranks)
     end,
     check_state = function(game)
         return montana_base.check_state(game, blue_moon_ranks)
-    end
+    end,
+    layout      = function(game) layout.montana(game, 14) end
 }
 
 ------
-local paganini_ranks = { "Ace", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
 
-local paganini = {
+local galary          = Copy(blue_moon)
+galary.Info.Name      = "Galary"
+galary.Tableau.create = function(i)
+    return {
+        Initial = piles.initial.face_up((i % 14 == 0 or i % 14 == 1) and 0 or 1),
+        Layout = "Squared",
+        Rule = { Build = "NoBuilding", Move = "Top", Empty = "None" }
+    }
+end
+galary.before_shuffle = function(game, card)
+    return blue_moon.shuffle(game, card)
+end
+galary.shuffle        = nil
+galary.can_drop       = function(game, targetPile, _, drop, _)
+    return montana_base.can_drop(game, targetPile, drop, blue_moon_ranks, "rl")
+end
+
+------
+local paganini_ranks  = { "Ace", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
+
+local paganini        = {
     Info           = {
         Name          = "Paganini",
         Type          = "OpenNonBuilder",
@@ -196,15 +245,12 @@ local paganini = {
         CardDealCount = 0,
         Redeals       = 1
     },
-    Stock          = { Position = { x = 4.5, y = 5 } },
+    Stock          = {},
     Tableau        = {
         Size   = 40,
         create = function(i)
-            local init = 1
-            if i % 10 == 0 then init = 0 end
             return {
-                Position = { x = i % 10, y = i // 10 },
-                Initial = piles.initial.face_up(init),
+                Initial = piles.initial.face_up(i % 10 == 0 and 0 or 1),
                 Layout = "Squared",
                 Rule = { Build = "NoBuilding", Move = "Top", Empty = "None" }
             }
@@ -225,13 +271,108 @@ local paganini = {
         return false
     end,
     can_drop       = function(game, targetPile, _, drop, _)
-        return montana_base.can_drop(game, targetPile, drop, paganini_ranks)
+        return montana_base.can_drop(game, targetPile, drop, paganini_ranks, "l")
     end,
     redeal         = function(game)
         return montana_base.redeal(game, paganini_ranks)
     end,
     check_state    = function(game)
         return montana_base.check_state(game, paganini_ranks)
+    end,
+    layout         = function(game) layout.montana(game, 10) end
+}
+
+------
+
+local spoilt          = {
+    Info           = {
+        Name          = "Spoilt",
+        Type          = "OpenNonBuilder",
+        Family        = "Montana",
+        DeckCount     = 1,
+        CardDealCount = 1,
+        Redeals       = 0
+    },
+    Stock          = {
+        Position = { x = 0, y = 1 },
+        Initial = piles.initial.face_down(3)
+    },
+    Waste          = {
+        Position = { x = 0, y = 2 },
+        Initial = piles.initial.face_up(1)
+    },
+    Tableau        = {
+        Size   = 32,
+        create = function(i)
+            return {
+                Position = { x = i % 8 + 1, y = i // 8 },
+                Initial = piles.initial.face_down(i % 8 == 0 and 0 or 1),
+                Layout = "Squared",
+                Rule = { Build = "NoBuilding", Move = "None", Empty = "None" }
+            }
+        end
+    },
+    before_shuffle = function(_, card)
+        local rank = card.Rank
+        return rank == "Two" or rank == "Three" or rank == "Four" or rank == "Five" or rank == "Six"
+    end,
+    before_layout  = function(game)
+        local sevenCount = 0
+        for i, tableau in ipairs(game.Tableau) do
+            if tableau.CardCount == 2 then
+                tableau:move_cards(game.Waste[1], 1, 1, false)
+                game.Waste[1]:flip_up_top_card()
+                return
+            elseif (i - 1) % 8 == 0 and not tableau.Empty then
+                sevenCount = sevenCount + 1
+            end
+        end
+
+        if sevenCount == 4 then
+            for _, tableau in ipairs(game.Tableau) do
+                tableau:flip_up_top_card()
+            end
+        else
+            local stock = game.Stock[1]
+            if not stock.Empty and sevenCount > 0 then
+                if stock.CardCount > 3 - sevenCount then
+                    ops.deal.stock_to_waste(game)
+                    return
+                end
+            end
+        end
+    end,
+    can_drop       = function(game, targetPile, _, drop, _)
+        local ranks = { "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace" }
+        local tableau = game.Tableau
+
+        --get suits per row
+        local rowEmpty = { true, true, true, true }
+        local suitRows = {}
+        for y = 1, 4 do
+            for x = 1, 8 do
+                local tab = tableau[x + (y - 1) * 8]
+                if not tab.Empty and not tab.Cards[1].FaceDown then
+                    rowEmpty[y] = false
+                    suitRows[tab.Cards[1].Suit] = y
+                    break
+                end
+            end
+        end
+
+        --check rank and suit
+        for i, tab in ipairs(tableau) do
+            if tab == targetPile then
+                local x = (i - 1) % 8 + 1
+                if drop.Rank == ranks[x] then                                 --rank fits
+                    local y = (i - 1) // 8 + 1
+                    if suitRows[drop.Suit] == y then return true end          --suit fits row
+                    return suitRows[drop.Suit] == nil and rowEmpty[y] == true --suit not used elsewhere, and row is empty
+                end
+            end
+        end
+
+        return false
     end
 }
 
@@ -239,4 +380,7 @@ local paganini = {
 
 RegisterGame(montana)
 RegisterGame(blue_moon)
+RegisterGame(galary)
 RegisterGame(paganini)
+RegisterGame(moonlight)
+RegisterGame(spoilt)

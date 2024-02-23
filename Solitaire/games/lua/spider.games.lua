@@ -42,7 +42,7 @@ local spider             = {
         end
     },
     before_layout = function(game)
-        for _, tableau in pairs(game.Tableau) do
+        for _, tableau in ipairs(game.Tableau) do
             if tableau.CardCount >= 13 then
                 -- look for completed stack
                 local targetSuit = tableau.Cards[tableau.CardCount].Suit
@@ -57,7 +57,7 @@ local spider             = {
 
                 -- move to foundation
                 if found then
-                    for _, foundation in pairs(game.Foundation) do
+                    for _, foundation in ipairs(game.Foundation) do
                         if foundation.Empty then
                             tableau:move_cards(foundation, tableau.CardCount - 12, 13, false)
                             tableau:flip_up_top_card()
@@ -69,7 +69,7 @@ local spider             = {
         end
     end,
     deal          = function(game)
-        for _, tableau in pairs(game.Tableau) do
+        for _, tableau in ipairs(game.Tableau) do
             if tableau.Empty then return false end
         end
 
