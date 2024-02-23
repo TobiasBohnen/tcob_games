@@ -83,6 +83,58 @@ blockade.before_layout         = function(game) game.Stock[1]:deal_to_group(game
 
 ------
 
+local elba                     = Copy(gypsy)
+elba.Info.Name                 = "Elba"
+elba.Info.CardDealCount        = 10
+elba.Stock.Initial             = piles.initial.face_down(54)
+elba.Tableau                   = {
+    Size   = 10,
+    create = {
+        Initial = piles.initial.top_face_up(5),
+        Layout = "Column",
+        Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "King" }
+    }
+}
+elba.layout                    = layout.klondike
+
+------
+
+local hypotenuse               = Copy(gypsy)
+hypotenuse.Info.Name           = "Hypotenuse"
+hypotenuse.Info.CardDealCount  = 10
+hypotenuse.Stock.Initial       = piles.initial.face_down(49)
+hypotenuse.Tableau             = {
+    Size   = 10,
+    create = function(i)
+        return {
+            Initial = piles.initial.top_face_up(10 - i),
+            Layout = "Column",
+            Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "King" }
+        }
+    end
+}
+hypotenuse.layout              = layout.klondike
+
+------
+
+local irmgard                  = Copy(gypsy)
+irmgard.Info.Name              = "Irmgard"
+irmgard.Info.CardDealCount     = 9
+irmgard.Stock.Initial          = piles.initial.face_down(79)
+irmgard.Tableau                = {
+    Size   = 9,
+    create = function(i)
+        return {
+            Initial = piles.initial.top_face_up(i < 5 and i + 1 or 9 - i),
+            Layout = "Column",
+            Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "King" }
+        }
+    end
+}
+irmgard.layout                 = layout.klondike
+
+------
+
 local lexington_harp           = Copy(gypsy)
 lexington_harp.Info.Name       = "Lexington Harp"
 --lexington_harp.Info.Family = "Gypsy/Yukon"
@@ -211,6 +263,9 @@ RegisterGame(agnes_sorel)
 RegisterGame(blockade)
 RegisterGame(brunswick)
 RegisterGame(cone)
+RegisterGame(elba)
+RegisterGame(hypotenuse)
+RegisterGame(irmgard)
 RegisterGame(lexington_harp)
 RegisterGame(milligan_harp)
 RegisterGame(mississippi)

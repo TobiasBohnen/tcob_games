@@ -239,7 +239,7 @@ void base_game::layout_piles()
 auto base_game::get_pile_at(point_i pos, bool isDragging) -> hit_test_result
 {
     auto const checkPile {[&](pile const& p) -> isize {
-        if (isDragging && p.is_hovering()) { return INDEX_INVALID; }
+        if (isDragging && p.is_active()) { return INDEX_INVALID; }
         return stack_index(p, pos);
     }};
 

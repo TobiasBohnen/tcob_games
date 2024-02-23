@@ -26,14 +26,19 @@ auto initial::face_down(usize size) -> std::vector<bool>
 
 ////////////////////////////////////////////////////////////
 
-void pile::set_hovering(bool b, isize idx)
+void pile::set_active(bool b, isize idx)
 {
-    _isHovering = b;
+    _isActive = b;
     if (!b) {
         remove_color();
     } else {
         color_cards(COLOR_HOVER, idx);
     }
+}
+
+auto pile::is_active() const -> bool
+{
+    return _isActive;
 }
 
 auto pile::is_playable() const -> bool
@@ -70,11 +75,6 @@ void pile::color_cards(color color, isize idx)
             Cards[idx].Color = color;
         }
     }
-}
-
-auto pile::is_hovering() const -> bool
-{
-    return _isHovering;
 }
 
 void pile::flip_up_cards()

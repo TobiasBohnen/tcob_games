@@ -149,7 +149,7 @@ void field::draw_cards(gfx::render_target& target)
             auto quadIt {_cardQuads.begin()};
             for (auto const& [_, piles] : _currentGame->piles()) {
                 for (auto const* pile : piles) {
-                    if (_isDragging && pile->is_hovering()) {
+                    if (_isDragging && pile->is_active()) {
                         dragPile = pile;
                     } else {
                         get_pile_quads(quadIt, pile);
@@ -306,11 +306,11 @@ void field::check_hover_pile(point_i pos)
 
     if (_hovered.Pile != oldPile.Pile || _hovered.Index != oldPile.Index) {
         if (oldPile.Pile) {
-            oldPile.Pile->set_hovering(false, oldPile.Index);
+            oldPile.Pile->set_active(false, oldPile.Index);
             mark_dirty();
         }
         if (_hovered.Pile) {
-            _hovered.Pile->set_hovering(true, _hovered.Index);
+            _hovered.Pile->set_active(true, _hovered.Index);
             mark_dirty();
         }
     }

@@ -435,34 +435,6 @@ local selective_castle           = {
 
 ------
 
-local somerset                   = {
-    Info       = {
-        Name          = "Somerset",
-        Type          = "OpenPacker",
-        Family        = "BeleagueredCastle",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
-    },
-    Foundation = {
-        Size   = 4,
-        create = piles.ace_upsuit_top
-    },
-    Tableau    = {
-        Size   = 10,
-        create = function(i)
-            return {
-                Initial = piles.initial.face_up(i < 7 and i + 1 or 8),
-                Layout = "Column",
-                Rule = { Build = "DownAlternateColors", Move = "Top", Empty = "Any" }
-            }
-        end
-    },
-    layout     = layout.canister
-}
-
-------
-
 local streets_and_alleys         = {
     Info       = {
         Name          = "Streets and Alleys",
@@ -722,7 +694,6 @@ RegisterGame(morehead)
 RegisterGame(penelopes_web)
 RegisterGame(selective_castle)
 RegisterGame(siegecraft)
-RegisterGame(somerset)
 RegisterGame(streets_and_alleys)
 RegisterGame(stronghold)
 RegisterGame(ten_by_one)

@@ -63,24 +63,14 @@ end
 
 ------
 local function capricieuse_redeal(game)
-    local cards = {}
-
-    local tableau = game.Tableau
-    for _, tab in ipairs(tableau) do
-        for j = 1, #tab.Cards do
-            cards[#cards + 1] = tab.Cards[j]
-        end
-        tab:clear()
-    end
-
+    local cards = ShuffleTableau(game)
     if #cards == 0 then return false end
 
-    cards = game:shuffle_cards(cards)
+    local tableau = game.Tableau
     local tabIdx = 1
     while #cards > 0 do
-        local tab = tableau[tabIdx]
+        game.PlaceTop(table.remove(cards), tableau[tabIdx], false)
         tabIdx = tabIdx + 1
-        game.PlaceTop(table.remove(cards), tab, false)
         if tabIdx > #tableau then tabIdx = 1 end
     end
 

@@ -634,6 +634,84 @@ bim_bom.Tableau                          = {
     }
 }
 
+------
+
+local somerset                           = {
+    Info       = {
+        Name          = "Somerset",
+        Type          = "OpenPacker",
+        Family        = "Klondike",
+        DeckCount     = 1,
+        CardDealCount = 0,
+        Redeals       = 0
+    },
+    Foundation = {
+        Size   = 4,
+        create = piles.ace_upsuit_top
+    },
+    Tableau    = {
+        Size   = 10,
+        create = function(i)
+            return {
+                Initial = piles.initial.face_up(i < 7 and i + 1 or 8),
+                Layout = "Column",
+                Rule = { Build = "DownAlternateColors", Move = "Top", Empty = "Any" }
+            }
+        end
+    },
+    layout     = layout.canister
+}
+
+------
+local function usk_redeal(game)
+    local cards = ShuffleTableau(game)
+    if #cards == 0 then return false end
+
+    local tableau = game.Tableau
+    local tabIdx = 1
+    while #cards > 0 do
+        local targetCount = tabIdx < 8 and tabIdx or 8
+
+        local tab = tableau[tabIdx]
+        if targetCount > tab.CardCount then
+            game.PlaceTop(table.remove(cards), tab, false)
+        end
+
+        tabIdx = tabIdx + 1
+        if tabIdx > #tableau then tabIdx = 1 end
+    end
+
+    return true
+end
+
+local usk = {
+    Info       = {
+        Name          = "Usk",
+        Type          = "OpenPacker",
+        Family        = "Klondike",
+        DeckCount     = 1,
+        CardDealCount = 0,
+        Redeals       = 1
+    },
+    Stock      = {},
+    Foundation = {
+        Size   = 4,
+        create = piles.ace_upsuit_top
+    },
+    Tableau    = {
+        Size   = 10,
+        create = function(i)
+            return {
+                Initial = piles.initial.face_up(i < 7 and i + 1 or 8),
+                Layout = "Column",
+                Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "King" }
+            }
+        end
+    },
+    redeal     = usk_redeal,
+    layout     = layout.canister
+}
+
 ------------------------
 
 RegisterGame(klondike)
@@ -669,7 +747,9 @@ RegisterGame(kingsley)
 RegisterGame(double_kingsley)
 RegisterGame(qc)
 RegisterGame(saratoga)
+RegisterGame(somerset)
 RegisterGame(thirty_six)
 RegisterGame(trigon)
 RegisterGame(double_trigon)
+RegisterGame(usk)
 RegisterGame(whitehorse)

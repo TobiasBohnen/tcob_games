@@ -45,3 +45,17 @@ function GetRank(r, interval, wrap)
 
     return Ranks[target]
 end
+
+function ShuffleTableau(game)
+    local cards = {}
+
+    local tableau = game.Tableau
+    for _, tab in ipairs(tableau) do
+        for j = 1, #tab.Cards do
+            cards[#cards + 1] = tab.Cards[j]
+        end
+        tab:clear()
+    end
+
+    return game:shuffle_cards(cards)
+end
