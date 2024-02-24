@@ -220,161 +220,80 @@ namespace rules {
     }
 
     namespace stack {
-        auto top(pile const& target, point_i pos) -> isize
+        auto top(pile const& target, isize idx) -> bool
         {
-            if (!target.empty()) {
-                if (target.Cards.back().Bounds.contains(pos)) {
-                    return std::ssize(target.Cards) - 1;
+            return idx == std::ssize(target.Cards) - 1;
+        }
+
+        auto top_or_pile(pile const& target, isize idx) -> bool
+        {
+            return idx == std::ssize(target.Cards) - 1 || idx == 0;
+        }
+
+        auto face_up(pile const& target, isize idx) -> bool
+        {
+            return !target.Cards[idx].is_face_down();
+        }
+
+        auto in_seq(games::base_game const* game, pile const& target, isize idx) -> bool
+        {
+            if (target.Cards[idx].is_face_down()) { return false; }
+
+            for (isize i {idx}; i < std::ssize(target.Cards) - 1; ++i) {
+                if (!game->can_drop(target, i, target.Cards[i + 1], 1)) {
+                    return false;
                 }
             }
 
-            return INDEX_INVALID;
+            return true;
         }
 
-        auto top_or_pile(pile const& target, point_i pos) -> isize
+        auto in_seq_in_suit(games::base_game const* game, pile const& target, isize idx) -> bool
         {
-            if (!target.empty()) {
-                isize const cardCount {std::ssize(target.Cards)};
+            if (target.Cards[idx].is_face_down()) { return false; }
 
-                // hover top
-                isize const top {cardCount - 1};
-                if (target.Cards[top].Bounds.contains(pos)) { return top; }
-                if (cardCount == 1) { return INDEX_INVALID; }
+            auto const targetSuit {target.Cards[idx].get_suit()};
 
-                //  or whole pile
-                if (target.Cards[0].Bounds.contains(pos)) { return 0; }
-            }
-
-            return INDEX_INVALID;
-        }
-
-        auto face_up(pile const& target, point_i pos) -> isize
-        {
-            if (!target.empty()) {
-                isize const cardCount {std::ssize(target.Cards)};
-
-                isize const top {cardCount - 1};
-                for (isize i {top}; i >= 0; --i) {
-                    if (i < top && target.Cards[i].is_face_down()) {
-                        break;
-                    }
-
-                    if (target.Cards[i].Bounds.contains(pos)) {
-                        return i;
-                    }
+            for (isize i {idx}; i < std::ssize(target.Cards) - 1; ++i) {
+                if (target.Cards[i + 1].get_suit() != targetSuit
+                    || !game->can_drop(target, i, target.Cards[i + 1], 1)) {
+                    return false;
                 }
             }
 
-            return INDEX_INVALID;
+            return true;
         }
 
-        auto in_seq(games::base_game const* game, pile const& target, point_i pos) -> isize
+        auto in_seq_in_suit_same_rank(games::base_game const* game, pile const& target, isize idx) -> bool
         {
-            if (!target.empty()) {
-                isize const cardCount {std::ssize(target.Cards)};
+            if (target.Cards[idx].is_face_down()) { return false; }
 
-                isize const top {cardCount - 1};
-                for (isize i {top}; i >= 0; --i) {
-                    auto const& card0 {target.Cards[i]};
+            if (in_seq_in_suit(game, target, idx)) { return true; }
 
-                    if (i < top
-                        && (card0.is_face_down() || !game->can_drop(target, i, target.Cards[i + 1], 1))) {
-                        break;
-                    }
-
-                    if (card0.Bounds.contains(pos)) {
-                        return i;
-                    }
+            auto const targetRank {target.Cards.back().get_rank()};
+            for (isize i {idx}; i < std::ssize(target.Cards) - 1; ++i) {
+                if (target.Cards[i + 1].get_rank() != targetRank) {
+                    return false;
                 }
             }
 
-            return INDEX_INVALID;
+            return true;
         }
 
-        auto in_seq_in_suit(games::base_game const* game, pile const& target, point_i pos) -> isize
+        auto super_move(games::base_game const* game, pile const& target, isize idx) -> bool
         {
-            if (!target.empty()) {
-                isize const cardCount {std::ssize(target.Cards)};
+            if (target.Cards[idx].is_face_down()) { return false; }
 
-                isize const top {cardCount - 1};
-                for (isize i {top}; i >= 0; --i) {
-                    auto const& card0 {target.Cards[i]};
-
-                    if (i < top) {
-                        auto const& card1 {target.Cards[i + 1]};
-                        if (card0.get_suit() != card1.get_suit()
-                            || card0.is_face_down()
-                            || !game->can_drop(target, i, card1, 1)) {
-                            break;
-                        }
-                    }
-
-                    if (card0.Bounds.contains(pos)) {
-                        return i;
-                    }
-                }
-            }
-
-            return INDEX_INVALID;
-        }
-
-        auto in_seq_in_suit_same_rank(games::base_game const* game, pile const& target, point_i pos) -> isize
-        {
-            if (!target.empty()) {
-                if (auto const idx {in_seq_in_suit(game, target, pos)}; idx != INDEX_INVALID) { return idx; }
-
-                isize const top {std::ssize(target.Cards) - 1};
-                auto const  targetRank {target.Cards.back().get_rank()};
-                for (isize i {top}; i >= 0; --i) {
-                    auto const& card0 {target.Cards[i]};
-
-                    if (i < top) {
-                        if ((card0.get_rank() != targetRank) || card0.is_face_down()) {
-                            break;
-                        }
-                    }
-
-                    if (card0.Bounds.contains(pos)) {
-                        return i;
-                    }
-                }
-            }
-
-            return INDEX_INVALID;
-        }
-
-        auto super_move(games::base_game const* game, pile const& target, point_i pos) -> isize
-        {
             if (!game->piles().contains(pile_type::FreeCell)) {
-                return top(target, pos);
+                return top(target, idx);
             }
 
-            if (!target.empty()) {
-                isize const cardCount {std::ssize(target.Cards)};
-                auto const& freeCells {game->piles().at(pile_type::FreeCell)};
+            auto const& freeCells {game->piles().at(pile_type::FreeCell)};
+            isize       movableCards {std::ranges::count_if(freeCells, [](auto const* fc) { return fc->empty(); }) + 1};
 
-                isize movableCards {std::ranges::count_if(freeCells, [](auto const* fc) { return fc->empty(); }) + 1};
-                if (movableCards == 1 && target.Cards.back().Bounds.contains(pos)) {
-                    return cardCount - 1;
-                }
+            if (idx + movableCards < std::ssize(target.Cards)) { return false; }
 
-                isize idx {0};
-                for (isize i {cardCount - 2}; i >= 0; --i) {
-                    --movableCards;
-                    if (movableCards == 0 || !game->can_drop(target, i, target.Cards[i + 1], 1)) {
-                        idx = i + 1;
-                        break;
-                    }
-                }
-
-                for (isize i {cardCount - 1}; i >= idx; --i) {
-                    if (target.Cards[i].Bounds.contains(pos)) {
-                        return i;
-                    }
-                }
-            }
-
-            return INDEX_INVALID;
+            return in_seq(game, target, idx);
         }
     }
 }

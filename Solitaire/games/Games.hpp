@@ -111,7 +111,7 @@ protected:
 
     auto virtual check_state() const -> game_state;
 
-    auto virtual stack_index(pile const& targetPile, point_i pos) const -> isize;
+    auto virtual is_movable(pile const& targetPile, isize idx) const -> bool;
 
     void add_pile(pile* p);
     void create_piles(auto&& piles, isize size, std::function<void(pile&, i32)> const& func);
@@ -130,7 +130,7 @@ private:
 
     void init();
     void clear_pile_cards();
-    auto get_pile_at(point_i pos, bool isDragging) -> hit_test_result;
+    auto get_pile_at(point_i pos, bool ignoreActivePile) -> hit_test_result;
 
     auto deal_cards() -> bool;
     void auto_deal(pile& from);

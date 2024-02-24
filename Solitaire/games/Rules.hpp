@@ -104,13 +104,13 @@ namespace rules {
     auto limit_size(pile const& pile, isize numCards) -> bool;
 
     namespace stack {
-        auto top(pile const& target, point_i pos) -> isize;
-        auto top_or_pile(pile const& target, point_i pos) -> isize;
-        auto face_up(pile const& target, point_i pos) -> isize;
-        auto in_seq(games::base_game const* game, pile const& target, point_i pos) -> isize;
-        auto in_seq_in_suit(games::base_game const* game, pile const& target, point_i pos) -> isize;
-        auto in_seq_in_suit_same_rank(games::base_game const* game, pile const& target, point_i pos) -> isize;
-        auto super_move(games::base_game const* game, pile const& target, point_i pos) -> isize;
+        auto top(pile const& target, isize idx) -> bool;
+        auto top_or_pile(pile const& target, isize idx) -> bool;
+        auto face_up(pile const& target, isize idx) -> bool;
+        auto in_seq(games::base_game const* game, pile const& target, isize idx) -> bool;
+        auto in_seq_in_suit(games::base_game const* game, pile const& target, isize idx) -> bool;
+        auto in_seq_in_suit_same_rank(games::base_game const* game, pile const& target, isize idx) -> bool;
+        auto super_move(games::base_game const* game, pile const& target, isize idx) -> bool;
     }
 }
 

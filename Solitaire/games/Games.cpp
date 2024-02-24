@@ -196,7 +196,7 @@ void base_game::layout_piles()
                     card.Bounds = {pos, _cardSize};
                 }
             } break;
-            case layout_type::Column: {
+            case layout_type::Column: { // TODO: break large columns
                 for (auto& card : pile->Cards) {
                     card.Bounds = {pos, _cardSize};
                     if (card.is_face_down()) {
@@ -236,11 +236,17 @@ void base_game::layout_piles()
     _state = check_state();
 }
 
-auto base_game::get_pile_at(point_i pos, bool isDragging) -> hit_test_result
+auto base_game::get_pile_at(point_i pos, bool ignoreActivePile) -> hit_test_result
 {
     auto const checkPile {[&](pile const& p) -> isize {
-        if (isDragging && p.is_active()) { return INDEX_INVALID; }
-        return stack_index(p, pos);
+        if (ignoreActivePile && p.is_active()) { return INDEX_INVALID; }
+        if (p.empty() && p.Marker && p.Marker->Bounds->contains(pos)) { return INDEX_MARKER; }
+
+        for (isize i {std::ssize(p.Cards) - 1}; i >= 0; --i) {
+            if (p.Cards[i].Bounds.contains(pos) && is_movable(p, i)) { return i; }
+        }
+
+        return INDEX_INVALID;
     }};
 
     for (auto const& entry : _piles) {
@@ -260,7 +266,9 @@ auto base_game::drop_target_at(rect_f const& rect, card const& move, isize numCa
     std::vector<hit_test_result> candidates;
     for (auto const& point : points) {
         if (auto target {get_pile_at(point, true)};
-            target.Pile && std::ssize(target.Pile->Cards) - 1 == target.Index && can_drop(*target.Pile, target.Index, move, numCards)) {
+            target.Pile
+            && target.Index == std::ssize(target.Pile->Cards) - 1
+            && can_drop(*target.Pile, target.Index, move, numCards)) {
             candidates.push_back(target);
         }
     }
@@ -394,38 +402,34 @@ auto base_game::can_drop(pile const& targetPile, isize targetIndex, card const& 
     return rules::build(targetPile, targetIndex, drop, numCards);
 }
 
-auto base_game::stack_index(pile const& targetPile, point_i pos) const -> isize
+auto base_game::is_movable(pile const& targetPile, isize idx) const -> bool
 {
     switch (targetPile.Rule.Move) {
     case move_type::None:
     case move_type::Top: {
-        if (isize idx {rules::stack::top(targetPile, pos)}; idx != INDEX_INVALID) { return idx; }
+        if (rules::stack::top(targetPile, idx)) { return true; }
     } break;
     case move_type::TopOrPile: {
-        if (isize idx {rules::stack::top_or_pile(targetPile, pos)}; idx != INDEX_INVALID) { return idx; }
+        if (rules::stack::top_or_pile(targetPile, idx)) { return true; }
     } break;
     case move_type::FaceUp: {
-        if (isize idx {rules::stack::face_up(targetPile, pos)}; idx != INDEX_INVALID) { return idx; }
+        if (rules::stack::face_up(targetPile, idx)) { return true; }
     } break;
     case move_type::InSequence: {
-        if (isize idx {rules::stack::in_seq(this, targetPile, pos)}; idx != INDEX_INVALID) { return idx; }
+        if (rules::stack::in_seq(this, targetPile, idx)) { return true; }
     } break;
     case move_type::InSequenceInSuit: {
-        if (isize idx {rules::stack::in_seq_in_suit(this, targetPile, pos)}; idx != INDEX_INVALID) { return idx; }
+        if (rules::stack::in_seq_in_suit(this, targetPile, idx)) { return true; }
     } break;
     case move_type::InSequenceInSuitOrSameRank: {
-        if (isize idx {rules::stack::in_seq_in_suit_same_rank(this, targetPile, pos)}; idx != INDEX_INVALID) { return idx; }
+        if (rules::stack::in_seq_in_suit_same_rank(this, targetPile, idx)) { return true; }
     } break;
     case move_type::SuperMove: {
-        if (isize idx {rules::stack::super_move(this, targetPile, pos)}; idx != INDEX_INVALID) { return idx; }
+        if (rules::stack::super_move(this, targetPile, idx)) { return true; }
     } break;
     }
 
-    if (targetPile.empty() && targetPile.Marker && targetPile.Marker->Bounds->contains(pos)) {
-        return INDEX_MARKER;
-    }
-
-    return INDEX_INVALID;
+    return false;
 }
 
 auto base_game::deal_cards() -> bool
