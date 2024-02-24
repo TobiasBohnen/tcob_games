@@ -68,8 +68,8 @@ public:
     base_game(field& f, game_info info);
     virtual ~base_game() = default;
 
-    stock                   Stock;
-    waste                   Waste;
+    std::vector<stock>      Stock;
+    std::vector<waste>      Waste;
     std::vector<reserve>    Reserve;
     std::vector<freecell>   FreeCell;
     std::vector<tableau>    Tableau;

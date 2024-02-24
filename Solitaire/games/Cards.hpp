@@ -73,7 +73,8 @@ public:
         s["Rank"]     = v._rank;
         s["FaceDown"] = v._faceDown;
 
-        s["Color"] = get_suit_color(v._suit);
+        s["Color"]  = get_suit_color(v._suit);
+        s["FaceUp"] = !v._faceDown;
     }
 
     auto static Deserialize(card& v, auto&& s) -> bool

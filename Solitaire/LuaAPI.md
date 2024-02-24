@@ -6,8 +6,7 @@
   - DeckCount
   - CardDealCount
   - Redeals
-- Stock / Waste
-- Reserve / FreeCell / Tableau / Foundation
+- Stock / Waste / Reserve / FreeCell / Tableau / Foundation
   - Size
   - create
 - Layout

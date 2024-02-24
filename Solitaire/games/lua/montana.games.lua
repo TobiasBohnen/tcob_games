@@ -352,7 +352,7 @@ local spoilt          = {
         for y = 1, 4 do
             for x = 1, 8 do
                 local tab = tableau[x + (y - 1) * 8]
-                if not tab.Empty and not tab.Cards[1].FaceDown then
+                if not tab.Empty and tab.Cards[1].FaceUp then
                     rowEmpty[y] = false
                     suitRows[tab.Cards[1].Suit] = y
                     break

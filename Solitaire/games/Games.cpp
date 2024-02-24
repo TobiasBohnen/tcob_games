@@ -316,7 +316,7 @@ void base_game::click(pile* srcPile, u8 clicks)
 {
     if (!srcPile || srcPile->Type == pile_type::Foundation) { return; }
 
-    if (srcPile == &Stock) {
+    if (srcPile->Type == pile_type::Stock) {
         // deal card
         srcPile->remove_color();
         deal_cards();
@@ -347,7 +347,7 @@ void base_game::auto_move_to_foundation(pile& srcPile)
 
 void base_game::auto_deal(pile& from)
 {
-    if (&from == &Waste && from.empty()) {
+    if (from.Type == pile_type::Waste && from.empty()) {
         deal_cards();
     }
 }
@@ -589,16 +589,6 @@ script_game::script_game(field& f, game_info info, scripting::lua::table tab)
         }
     }};
 
-    if (table stockTab; _table.try_get(stockTab, "Stock")) {
-        createPile(Stock, stockTab);
-        add_pile(&Stock);
-    }
-
-    if (table wasteTab; _table.try_get(wasteTab, "Waste")) {
-        createPile(Waste, wasteTab);
-        add_pile(&Waste);
-    }
-
     auto const createPiles {[&](auto&& piles, std::string const& name) {
         if (table pileTypeTable; _table.try_get(pileTypeTable, name)) {
             isize const size {pileTypeTable["Size"].get<isize>().value_or(1)};
@@ -619,6 +609,8 @@ script_game::script_game(field& f, game_info info, scripting::lua::table tab)
         }
     }};
 
+    createPiles(Stock, "Stock");
+    createPiles(Waste, "Waste");
     createPiles(Reserve, "Reserve");
     createPiles(FreeCell, "FreeCell");
     createPiles(Foundation, "Foundation");
@@ -748,14 +740,14 @@ void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, 
     gameWrapper["FreeCell"]   = getter {[returnPile](script_game* game) { return returnPile(game, pile_type::FreeCell); }};
 
     // methods
-    gameWrapper["find_pile"]     = [](script_game* game, card& card) { return game->find_pile(card); };
-    gameWrapper["drop"]          = [](script_game* game, pile* to, card& card) { return game->drop(*to, card); };
     gameWrapper["shuffle_cards"] = [](script_game* game, std::vector<card> const& cards) {
         std::vector<card> shuffled {cards};
         game->rand().shuffle<card>(shuffled);
         return shuffled;
     };
-    gameWrapper["can_drop"] = [](script_game* game, pile* targetPile, isize targetIndex, card const& drop, isize numCards) {
+    gameWrapper["find_pile"] = [](script_game* game, card& card) { return game->find_pile(card); };
+    gameWrapper["drop"]      = [](script_game* game, pile* to, card& card) { return game->drop(*to, card); };
+    gameWrapper["can_drop"]  = [](script_game* game, pile* targetPile, isize targetIndex, card const& drop, isize numCards) {
         return game->base_game::can_drop(*targetPile, targetIndex - 1, drop, numCards);
     };
     gameWrapper["stack_index"] = [](script_game* game, pile* targetPile, point_i pos) {
