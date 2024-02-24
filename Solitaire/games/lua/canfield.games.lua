@@ -9,7 +9,7 @@ local piles  = require 'base/piles'
 require 'base/common'
 
 local canfield                   = {
-    Info          = {
+    Info       = {
         Name          = "Canfield",
         Type          = "ReservedPacker",
         Family        = "Canfield",
@@ -17,13 +17,13 @@ local canfield                   = {
         CardDealCount = 3,
         Redeals       = -1
     },
-    Stock         = { Initial = piles.initial.face_down(34) },
-    Waste         = {},
-    Reserve       = {
+    Stock      = { Initial = piles.initial.face_down(34) },
+    Waste      = {},
+    Reserve    = {
         Initial = piles.initial.top_face_up(13),
         Layout = "Column"
     },
-    Foundation    = {
+    Foundation = {
         Size   = 4,
         create = function(i)
             return {
@@ -32,7 +32,7 @@ local canfield                   = {
             }
         end
     },
-    Tableau       = {
+    Tableau    = {
         Size   = 4,
         create = {
             Initial = piles.initial.face_up(1),
@@ -40,10 +40,10 @@ local canfield                   = {
             Rule = { Build = "DownAlternateColors", Wrap = true, Move = "TopOrPile", Empty = "Any" }
         }
     },
-    before_layout = function(game) game.Reserve[1]:deal_to_group(game.Tableau, true) end,
-    redeal        = ops.redeal.waste_to_stock,
-    deal          = ops.deal.stock_to_waste,
-    layout        = layout.canfield
+    on_change  = function(game) game.Reserve[1]:deal_to_group(game.Tableau, true) end,
+    on_redeal  = ops.redeal.waste_to_stock,
+    on_deal    = ops.deal.stock_to_waste,
+    on_created = layout.canfield
 }
 
 ------
@@ -51,7 +51,7 @@ local canfield                   = {
 local canfield_rush              = Copy(canfield)
 canfield_rush.Info.Name          = "Canfield Rush"
 canfield_rush.Info.Redeals       = 2
-canfield_rush.deal               = ops.deal.stock_to_waste_by_redeals_left
+canfield_rush.on_deal            = ops.deal.stock_to_waste_by_redeals_left
 
 ------
 
@@ -75,7 +75,7 @@ acme.Tableau.create              = {
     Layout = "Column",
     Rule = { Build = "DownInSuit", Move = "Top", Empty = "Any" }
 }
-acme.before_shuffle              = ops.shuffle.ace_to_foundation
+acme.on_before_shuffle              = ops.shuffle.ace_to_foundation
 
 ------
 
@@ -160,7 +160,7 @@ minerva.Tableau                  = {
         Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "King" }
     }
 }
-minerva.before_layout            = nil
+minerva.on_change                = nil
 
 ------
 
@@ -216,8 +216,8 @@ local duke                       = {
             }
         end
     },
-    redeal     = ops.redeal.waste_to_stock,
-    deal       = ops.deal.stock_to_waste
+    on_redeal  = ops.redeal.waste_to_stock,
+    on_deal    = ops.deal.stock_to_waste
 }
 
 ------
@@ -239,15 +239,15 @@ dutchess.Tableau.create          = function(i)
         Rule = { Build = "DownAlternateColors", Wrap = true, Move = "InSequence", Empty = "Any" }
     }
 end
-dutchess.can_drop                = function(game, targetPile, targetIndex, drop, numCards)
+dutchess.check_drop              = function(game, targetPile, targetIndex, drop, numCards)
     local srcPile = game:find_pile(drop)
-    if game.Foundation[1].Empty then
+    if game.Foundation[1].IsEmpty then
         return srcPile.Type == "Reserve" and targetPile == game.Foundation[1]
     end
-    if targetPile.Type == "Tableau" and targetPile.Empty then
+    if targetPile.Type == "Tableau" and targetPile.IsEmpty then
         local reserveEmpty = true
         for _, v in ipairs(game.Reserve) do
-            if v.Empty then
+            if v.IsEmpty then
                 reserveEmpty = false
                 break
             end
@@ -260,8 +260,8 @@ dutchess.can_drop                = function(game, targetPile, targetIndex, drop,
 
     return game:can_drop(targetPile, targetIndex, drop, numCards)
 end
-dutchess.deal                    = function(game)
-    if game.Foundation[1].Empty then return false end
+dutchess.on_deal                 = function(game)
+    if game.Foundation[1].IsEmpty then return false end
     return ops.deal.stock_to_waste(game)
 end
 

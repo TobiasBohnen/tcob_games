@@ -8,7 +8,7 @@ local ops    = require 'base/ops'
 local piles  = require 'base/piles'
 require 'base/common'
 
-local free_cell                      = {
+local free_cell                       = {
     Info       = {
         Name          = "FreeCell",
         Type          = "OpenPacker",
@@ -35,24 +35,24 @@ local free_cell                      = {
             }
         end
     },
-    layout     = layout.free_cell
+    on_created = layout.free_cell
 }
 
 ------
 
-local free_cell_0                    = Copy(free_cell)
-free_cell_0.Info.Name                = "FreeCell (0 cells)"
-free_cell_0.FreeCell                 = nil
+local free_cell_0                     = Copy(free_cell)
+free_cell_0.Info.Name                 = "FreeCell (0 cells)"
+free_cell_0.FreeCell                  = nil
 
 ------
 
-local free_cell_2                    = Copy(free_cell)
-free_cell_2.Info.Name                = "FreeCell (2 cells)"
-free_cell_2.FreeCell.Size            = 2
+local free_cell_2                     = Copy(free_cell)
+free_cell_2.Info.Name                 = "FreeCell (2 cells)"
+free_cell_2.FreeCell.Size             = 2
 
 ------
 
-local double_free_cell               = {
+local double_free_cell                = {
     Info       = {
         Name          = "Double FreeCell",
         Type          = "OpenPacker",
@@ -79,17 +79,17 @@ local double_free_cell               = {
             }
         end
     },
-    layout     = layout.double_free_cell
+    on_created = layout.double_free_cell
 }
 
 ------
 
-local double_free_cell_2             = Copy(free_cell)
-double_free_cell_2.Info.Name         = "Double FreeCell II"
-double_free_cell_2.Info.DeckCount    = 2
-double_free_cell_2.FreeCell.Size     = 6
-double_free_cell_2.Foundation.create = { Rule = { Build = "UpInSuit", Wrap = true, Move = "Top", Empty = "Ace" } }
-double_free_cell_2.Tableau           = {
+local double_free_cell_2              = Copy(free_cell)
+double_free_cell_2.Info.Name          = "Double FreeCell II"
+double_free_cell_2.Info.DeckCount     = 2
+double_free_cell_2.FreeCell.Size      = 6
+double_free_cell_2.Foundation.create  = { Rule = { Build = "UpInSuit", Wrap = true, Move = "Top", Empty = "Ace" } }
+double_free_cell_2.Tableau            = {
     Size   = 10,
     create = {
         Initial = piles.initial.face_up(10),
@@ -97,11 +97,11 @@ double_free_cell_2.Tableau           = {
         Rule = { Build = "DownAlternateColors", Move = "SuperMove", Empty = "Any" }
     }
 }
-double_free_cell_2.before_shuffle    = ops.shuffle.ace_to_foundation
+double_free_cell_2.on_before_shuffle  = ops.shuffle.ace_to_foundation
 
 ------
 
-local triple_free_cell               = {
+local triple_free_cell                = {
     Info       = {
         Name          = "Triple FreeCell",
         Type          = "OpenPacker",
@@ -126,14 +126,14 @@ local triple_free_cell               = {
             Rule = { Build = "DownAlternateColors", Move = "SuperMove", Empty = "Any" }
         }
     },
-    layout     = layout.double_free_cell
+    on_created = layout.double_free_cell
 }
 
 ------
 
-local bakers_game                    = Copy(free_cell)
-bakers_game.Info.Name                = "Baker's Game"
-bakers_game.Tableau.create           = function(i)
+local bakers_game                     = Copy(free_cell)
+bakers_game.Info.Name                 = "Baker's Game"
+bakers_game.Tableau.create            = function(i)
     return {
         Initial = piles.initial.face_up(i < 4 and 7 or 6),
         Layout = "Column",
@@ -143,9 +143,9 @@ end
 
 ------
 
-local bakers_game_ko                 = Copy(free_cell)
-bakers_game_ko.Info.Name             = "King Only Baker's Game"
-bakers_game_ko.Tableau.create        = function(i)
+local bakers_game_ko                  = Copy(free_cell)
+bakers_game_ko.Info.Name              = "King Only Baker's Game"
+bakers_game_ko.Tableau.create         = function(i)
     return {
         Initial = piles.initial.face_up(i < 4 and 7 or 6),
         Layout = "Column",
@@ -155,10 +155,10 @@ end
 
 ------
 
-local bath                           = Copy(free_cell)
-bath.Info.Name                       = "Bath"
-bath.FreeCell.Size                   = 2
-bath.Tableau                         = {
+local bath                            = Copy(free_cell)
+bath.Info.Name                        = "Bath"
+bath.FreeCell.Size                    = 2
+bath.Tableau                          = {
     Size = 10,
     create = function(i)
         return {
@@ -171,7 +171,7 @@ bath.Tableau                         = {
 
 ------
 
-local big_cell                       = {
+local big_cell                        = {
     Info       = {
         Name          = "Big Cell",
         Type          = "OpenPacker",
@@ -196,12 +196,12 @@ local big_cell                       = {
             Rule = { Build = "DownAlternateColors", Move = "SuperMove", Empty = "Any" }
         }
     },
-    layout     = layout.double_free_cell
+    on_created = layout.double_free_cell
 }
 
 ------
 
-local cell_11                        = {
+local cell_11                         = {
     Info       = {
         Name          = "Cell 11",
         Type          = "OpenPacker",
@@ -233,14 +233,14 @@ local cell_11                        = {
             }
         end
     },
-    layout     = layout.double_free_cell
+    on_created = layout.double_free_cell
 }
 
 ------
 
-local challenge_free_cell            = Copy(free_cell)
-challenge_free_cell.Info.Name        = "Challenge FreeCell"
-challenge_free_cell.Tableau          = {
+local challenge_free_cell             = Copy(free_cell)
+challenge_free_cell.Info.Name         = "Challenge FreeCell"
+challenge_free_cell.Tableau           = {
     Size = 8,
     create = function(i)
         return {
@@ -250,7 +250,7 @@ challenge_free_cell.Tableau          = {
         }
     end
 }
-challenge_free_cell.before_shuffle   = function(game, card)
+challenge_free_cell.on_before_shuffle = function(game, card)
     if card.Rank == "Two" then
         return game.PlaceTop(card, game.Tableau, 1, 4, true)
     end
@@ -263,9 +263,9 @@ end
 
 ------
 
-local super_challenge_free_cell      = Copy(challenge_free_cell)
-super_challenge_free_cell.Info.Name  = "Super Challenge FreeCell"
-super_challenge_free_cell.Tableau    = {
+local super_challenge_free_cell       = Copy(challenge_free_cell)
+super_challenge_free_cell.Info.Name   = "Super Challenge FreeCell"
+super_challenge_free_cell.Tableau     = {
     Size = 8,
     create = function(i)
         return {
@@ -278,20 +278,20 @@ super_challenge_free_cell.Tableau    = {
 
 ------
 
-local clink                          = Copy(free_cell)
-clink.Info.Name                      = "Clink"
-clink.FreeCell                       = {
+local clink                           = Copy(free_cell)
+clink.Info.Name                       = "Clink"
+clink.FreeCell                        = {
     Size = 2,
     create = {
         Initial = piles.initial.face_up(1),
         Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" }
     }
 }
-clink.Foundation                     = {
+clink.Foundation                      = {
     Size = 2,
     create = { Rule = { Build = "UpInSuit", Wrap = true, Move = "Top", Empty = "Ace" } }
 }
-clink.Tableau                        = {
+clink.Tableau                         = {
     Size = 8,
     create = {
         Initial = piles.initial.face_up(6),
@@ -299,7 +299,7 @@ clink.Tableau                        = {
         Rule    = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
     }
 }
-clink.before_shuffle                 = function(game, card)
+clink.on_before_shuffle               = function(game, card)
     if card.Rank == "Ace" and (card.Suit == "Clubs" or card.Suit == "Hearts") then
         return game.PlaceTop(card, game.Foundation, true)
     end
@@ -309,7 +309,7 @@ end
 
 ------
 
-local deep                           = {
+local deep                            = {
     Info       = {
         Name          = "Deep",
         Type          = "OpenPacker",
@@ -351,7 +351,7 @@ local deep                           = {
 
 ------
 
-local eight_off                      = {
+local eight_off                       = {
     Info       = {
         Name          = "Eight Off",
         Type          = "OpenPacker",
@@ -381,15 +381,15 @@ local eight_off                      = {
             Rule = { Build = "DownInSuit", Move = "SuperMove", Empty = "King" }
         }
     },
-    layout     = layout.double_free_cell
+    on_created = layout.double_free_cell
 }
 
 ------
 
-local footling                       = Copy(free_cell)
-footling.Info.Name                   = "Footling"
-footling.Foundation                  = { Rule = { Build = "RankPack", Move = "Top", Empty = "Ace" } }
-footling.Tableau                     = {
+local footling                        = Copy(free_cell)
+footling.Info.Name                    = "Footling"
+footling.Foundation                   = { Rule = { Build = "RankPack", Move = "Top", Empty = "Ace" } }
+footling.Tableau                      = {
     Size = 8,
     create = function(i)
         return {
@@ -402,13 +402,13 @@ footling.Tableau                     = {
 
 ------
 
-local fore_cell                      = Copy(free_cell)
-fore_cell.Info.Name                  = "ForeCell"
-fore_cell.FreeCell.create            = {
+local fore_cell                       = Copy(free_cell)
+fore_cell.Info.Name                   = "ForeCell"
+fore_cell.FreeCell.create             = {
     Initial = piles.initial.face_up(1),
     Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" }
 }
-fore_cell.Tableau                    = {
+fore_cell.Tableau                     = {
     Size = 8,
     create = {
         Initial = piles.initial.face_up(6),
@@ -419,9 +419,9 @@ fore_cell.Tableau                    = {
 
 ------
 
-local four_colours                   = Copy(free_cell)
-four_colours.Info.Name               = "Four Colours"
-four_colours.Tableau                 = {
+local four_colours                    = Copy(free_cell)
+four_colours.Info.Name                = "Four Colours"
+four_colours.Tableau                  = {
     Size = 7,
     create = function(i)
         return {
@@ -433,11 +433,11 @@ four_colours.Tableau                 = {
 }
 
 ------
-local german_free_cell_empty         = { "Clubs", "Spades", "Hearts", "Diamonds" }
+local german_free_cell_empty          = { "Clubs", "Spades", "Hearts", "Diamonds" }
 
-local german_free_cell               = Copy(free_cell)
-german_free_cell.Info.Name           = "German FreeCell"
-german_free_cell.FreeCell            = {
+local german_free_cell                = Copy(free_cell)
+german_free_cell.Info.Name            = "German FreeCell"
+german_free_cell.FreeCell             = {
     Size = 4,
     create = function(i)
         return {
@@ -449,9 +449,9 @@ german_free_cell.FreeCell            = {
 
 ------
 
-local king_cell                      = Copy(free_cell)
-king_cell.Info.Name                  = "KingCell"
-king_cell.Tableau                    = {
+local king_cell                       = Copy(free_cell)
+king_cell.Info.Name                   = "KingCell"
+king_cell.Tableau                     = {
     Size = 8,
     create = function(i)
         return {
@@ -464,8 +464,8 @@ king_cell.Tableau                    = {
 
 ------
 
-local flipper                        = {
-    Info          = {
+local flipper                         = {
+    Info       = {
         Name          = "Flipper",
         Type          = "OpenPacker",
         Family        = "FreeCell",
@@ -473,15 +473,15 @@ local flipper                        = {
         CardDealCount = 0,
         Redeals       = 0
     },
-    FreeCell      = {
+    FreeCell   = {
         Size   = 7,
         create = { Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" } }
     },
-    Foundation    = {
+    Foundation = {
         Size   = 4,
         create = { Rule = { Build = "UpInSuit", Move = "Top", Empty = "Ace" } }
     },
-    Tableau       = {
+    Tableau    = {
         Size   = 7,
         create = function(i)
             return {
@@ -491,12 +491,12 @@ local flipper                        = {
             }
         end
     },
-    before_layout = function(game)
+    on_change  = function(game)
         local tableau = game.Tableau
         local freeCell = game.FreeCell
         for i, tab in ipairs(tableau) do
-            if not tab.Empty then
-                if freeCell[i].Empty then
+            if not tab.IsEmpty then
+                if freeCell[i].IsEmpty then
                     tab:flip_up_top_card()
                 else
                     tab:flip_down_top_card()
@@ -504,13 +504,13 @@ local flipper                        = {
             end
         end
     end,
-    layout        = layout.flipper
+    on_created = layout.flipper
 }
 
 ------
 
-local penguin                        = {
-    Info           = {
+local penguin                         = {
+    Info              = {
         Name          = "Penguin",
         Type          = "OpenPacker",
         Family        = "FreeCell",
@@ -518,15 +518,15 @@ local penguin                        = {
         CardDealCount = 0,
         Redeals       = 0
     },
-    FreeCell       = {
+    FreeCell          = {
         Size   = 7,
         create = { Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" } }
     },
-    Foundation     = {
+    Foundation        = {
         Size   = 4,
         create = { Rule = { Build = "UpInSuit", Wrap = true, Move = "None", Empty = "FirstFoundation" } }
     },
-    Tableau        = {
+    Tableau           = {
         Size   = 7,
         create = function(i)
             return {
@@ -536,9 +536,9 @@ local penguin                        = {
             }
         end
     },
-    before_shuffle = function(game, card)
+    on_before_shuffle = function(game, card)
         local tableau1 = game.Tableau[1]
-        if tableau1.Empty then
+        if tableau1.IsEmpty then
             return game.PlaceTop(card, game.Tableau, true)
         else
             if card.Rank == tableau1.Cards[1].Rank then
@@ -547,14 +547,14 @@ local penguin                        = {
         end
         return false
     end,
-    layout         = layout.flipper
+    on_created        = layout.flipper
 }
 
 ------
 
-local relaxed_free_cell              = Copy(free_cell)
-relaxed_free_cell.Info.Name          = "Relaxed FreeCell"
-relaxed_free_cell.Tableau            = {
+local relaxed_free_cell               = Copy(free_cell)
+relaxed_free_cell.Info.Name           = "Relaxed FreeCell"
+relaxed_free_cell.Tableau             = {
     Size = 8,
     create = function(i)
         return {
@@ -567,8 +567,8 @@ relaxed_free_cell.Tableau            = {
 
 ------
 
-local snake                          = {
-    Info           = {
+local snake                           = {
+    Info              = {
         Name          = "Snake",
         Type          = "OpenPacker",
         Family        = "FreeCell",
@@ -576,7 +576,7 @@ local snake                          = {
         CardDealCount = 0,
         Redeals       = 0
     },
-    FreeCell       = {
+    FreeCell          = {
         Size   = 7,
         create = function(i)
             return {
@@ -585,7 +585,7 @@ local snake                          = {
             }
         end
     },
-    Foundation     = {
+    Foundation        = {
         Size   = 8,
         create = function(i)
             return {
@@ -594,7 +594,7 @@ local snake                          = {
             }
         end
     },
-    Tableau        = {
+    Tableau           = {
         Size   = 9,
         create = function(i)
             return {
@@ -605,8 +605,8 @@ local snake                          = {
             }
         end
     },
-    before_shuffle = ops.shuffle.ace_to_foundation,
-    after_shuffle  = function(game)
+    on_before_shuffle = ops.shuffle.ace_to_foundation,
+    on_after_shuffle  = function(game)
         -- kings start new pile
         local tableau = game.Tableau
         local tabIdx = 2
@@ -623,9 +623,9 @@ local snake                          = {
 
 ------
 
-local cats_tail                      = Copy(snake)
-cats_tail.Info.Name                  = "Cat's Tail"
-cats_tail.Tableau.create             = function(i)
+local cats_tail                       = Copy(snake)
+cats_tail.Info.Name                   = "Cat's Tail"
+cats_tail.Tableau.create              = function(i)
     return {
         Position = { x = i, y = 1 },
         Initial = piles.initial.face_up(i == 0 and 104 or 0),
@@ -633,7 +633,7 @@ cats_tail.Tableau.create             = function(i)
         Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "None" }
     }
 end
-cats_tail.before_shuffle             = nil
+cats_tail.on_before_shuffle           = nil
 
 ------------------------
 

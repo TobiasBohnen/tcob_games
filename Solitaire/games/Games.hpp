@@ -107,11 +107,11 @@ protected:
     auto virtual shuffle(card& card, pile_type pileType) -> bool;
     void virtual after_shuffle();
 
-    void virtual before_layout();
+    void virtual on_change();
 
     auto virtual check_state() const -> game_state;
 
-    auto virtual is_movable(pile const& targetPile, isize idx) const -> bool;
+    auto virtual check_movable(pile const& targetPile, isize idx) const -> bool;
 
     void add_pile(pile* p);
     void create_piles(auto&& piles, isize size, std::function<void(pile&, i32)> const& func);
@@ -179,11 +179,11 @@ protected:
     auto shuffle(card& card, pile_type pileType) -> bool override;
     void after_shuffle() override;
 
-    void before_layout() override;
+    void on_change() override;
 
     auto check_state() const -> game_state override;
 
-    auto is_movable(pile const& targetPile, isize idx) const -> bool override;
+    auto check_movable(pile const& targetPile, isize idx) const -> bool override;
 
 private:
     scripting::lua::table _table;

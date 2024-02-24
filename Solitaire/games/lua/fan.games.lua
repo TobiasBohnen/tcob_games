@@ -8,7 +8,7 @@ local ops    = require 'base/ops'
 local piles  = require 'base/piles'
 require 'base/common'
 
-local fan                  = {
+local fan                    = {
     Info       = {
         Name          = "Fan",
         Type          = "OpenPacker",
@@ -31,14 +31,14 @@ local fan                  = {
             }
         end
     },
-    layout     = function(game) layout.fan(game, 5) end
+    on_created = function(game) layout.fan(game, 5) end
 }
 
 ------
 
-local bear_river           = Copy(fan)
-bear_river.Info.Name       = "Bear River"
-bear_river.Foundation      = {
+local bear_river             = Copy(fan)
+bear_river.Info.Name         = "Bear River"
+bear_river.Foundation        = {
     Size   = 4,
     create = function(i)
         return {
@@ -47,7 +47,7 @@ bear_river.Foundation      = {
         }
     end
 }
-bear_river.Tableau         = {
+bear_river.Tableau           = {
     Size   = 18,
     create = function(i)
         local lastInRow = i % 6 == 5
@@ -58,13 +58,13 @@ bear_river.Tableau         = {
         }
     end
 }
-bear_river.layout          = function(game) layout.fan(game, 6) end
+bear_river.on_created        = function(game) layout.fan(game, 6) end
 
 ------
 
-local box_fan              = Copy(fan)
-box_fan.Info.Name          = "Box Fan"
-box_fan.Tableau            = {
+local box_fan                = Copy(fan)
+box_fan.Info.Name            = "Box Fan"
+box_fan.Tableau              = {
     Size   = 16,
     create = {
         Initial = piles.initial.face_up(3),
@@ -72,14 +72,14 @@ box_fan.Tableau            = {
         Rule = { Build = "DownAlternateColors", Move = "Top", Empty = "King" }
     }
 }
-box_fan.before_shuffle     = ops.shuffle.ace_to_foundation
-box_fan.layout             = function(game) layout.fan(game, 4) end
+box_fan.on_before_shuffle    = ops.shuffle.ace_to_foundation
+box_fan.on_created           = function(game) layout.fan(game, 4) end
 
 ------
 
-local ceiling_fan          = Copy(fan)
-ceiling_fan.Info.Name      = "Ceiling Fan"
-ceiling_fan.Tableau        = {
+local ceiling_fan            = Copy(fan)
+ceiling_fan.Info.Name        = "Ceiling Fan"
+ceiling_fan.Tableau          = {
     Size   = 18,
     create = function(i)
         return {
@@ -92,8 +92,8 @@ ceiling_fan.Tableau        = {
 
 ------
 
-local clover_leaf          = {
-    Info           = {
+local clover_leaf            = {
+    Info              = {
         Name          = "Clover Leaf",
         Type          = "OpenPacker",
         Family        = "Fan",
@@ -101,7 +101,7 @@ local clover_leaf          = {
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation     = {
+    Foundation        = {
         Size   = 4,
         create = function(i)
             if i < 2 then
@@ -111,7 +111,7 @@ local clover_leaf          = {
             end
         end
     },
-    Tableau        = {
+    Tableau           = {
         Size   = 16,
         create = {
             Initial = piles.initial.face_up(3),
@@ -119,7 +119,7 @@ local clover_leaf          = {
             Rule = { Build = "UpOrDownInSuit", Move = "Top", Empty = { Type = "Ranks", Ranks = { "Ace", "King" } } }
         }
     },
-    before_shuffle = function(game, card)
+    on_before_shuffle = function(game, card)
         if card.Rank == "Ace" and card.Color == "Black" then
             return game.PlaceTop(card, game.Foundation, 1, 2, true)
         end
@@ -129,14 +129,14 @@ local clover_leaf          = {
 
         return false
     end,
-    layout         = function(game) layout.fan(game, 4) end
+    on_created        = function(game) layout.fan(game, 4) end
 }
 
 ------
 
-local quads                = Copy(fan)
-quads.Info.Name            = "Quads"
-quads.Tableau              = {
+local quads                  = Copy(fan)
+quads.Info.Name              = "Quads"
+quads.Tableau                = {
     Size   = 13,
     create = {
         Initial = piles.initial.face_up(4),
@@ -144,7 +144,7 @@ quads.Tableau              = {
         Rule = { Build = "InRank", Move = "Top", Empty = "Any", Limit = 4 }
     }
 }
-quads.shuffle              = function(game, card, pileType)
+quads.on_shuffle             = function(game, card, pileType)
     if pileType == "Tableau" and card.Rank == "Ace" then
         return game.PlaceTop(card, game.Foundation, true)
     end
@@ -154,9 +154,9 @@ end
 
 ------
 
-local quads_plus           = Copy(fan)
-quads_plus.Info.Name       = "Quads+"
-quads_plus.Tableau         = {
+local quads_plus             = Copy(fan)
+quads_plus.Info.Name         = "Quads+"
+quads_plus.Tableau           = {
     Size   = 13,
     create = function(i)
         return {
@@ -166,16 +166,16 @@ quads_plus.Tableau         = {
         }
     end
 }
-quads_plus.before_shuffle  = ops.shuffle.ace_to_foundation
+quads_plus.on_before_shuffle = ops.shuffle.ace_to_foundation
 
 ------
 
-local lucky_piles_pos      = {
+local lucky_piles_pos        = {
     { 0, 1 }, { 2, 1 }, { 4, 1 }, { 6, 1 }, { 8, 1 },
     { 2, 2 }, { 4, 2 }, { 6, 2 },
     { 0, 3 }, { 2, 3 }, { 4, 3 }, { 6, 3 }, { 8, 3 } }
 
-local lucky_piles          = {
+local lucky_piles            = {
     Info       = {
         Name          = "Lucky Piles",
         Type          = "OpenPacker",
@@ -208,13 +208,13 @@ local lucky_piles          = {
 
 ------
 
-local scotch_patience      = Copy(fan)
-scotch_patience.Info.Name  = "Scotch Patience"
-scotch_patience.Foundation = {
+local scotch_patience        = Copy(fan)
+scotch_patience.Info.Name    = "Scotch Patience"
+scotch_patience.Foundation   = {
     Size   = 4,
     create = { Rule = { Build = "UpAlternateColors", Move = "Top", Empty = "Ace" } }
 }
-scotch_patience.Tableau    = {
+scotch_patience.Tableau      = {
     Size   = 18,
     create = function(i)
         return {
@@ -227,9 +227,9 @@ scotch_patience.Tableau    = {
 
 ------
 
-local shamrocks            = Copy(fan)
-shamrocks.Info.Name        = "Shamrocks"
-shamrocks.Tableau          = {
+local shamrocks              = Copy(fan)
+shamrocks.Info.Name          = "Shamrocks"
+shamrocks.Tableau            = {
     Size   = 18,
     create = function(i)
         return {
@@ -242,9 +242,9 @@ shamrocks.Tableau          = {
 
 ------
 
-local shamrocks_2          = Copy(fan)
-shamrocks_2.Info.Name      = "Shamrocks II"
-shamrocks_2.Tableau        = {
+local shamrocks_2            = Copy(fan)
+shamrocks_2.Info.Name        = "Shamrocks II"
+shamrocks_2.Tableau          = {
     Size   = 18,
     create = function(i)
         return {
@@ -254,13 +254,13 @@ shamrocks_2.Tableau        = {
         }
     end
 }
-shamrocks_2.after_shuffle  = ops.shuffle.kings_to_bottom
+shamrocks_2.on_after_shuffle = ops.shuffle.kings_to_bottom
 
 ------
 
-local troika               = Copy(fan)
-troika.Info.Name           = "Troika"
-troika.Tableau             = {
+local troika                 = Copy(fan)
+troika.Info.Name             = "Troika"
+troika.Tableau               = {
     Size   = 18,
     create = function(i)
         return {
@@ -270,7 +270,7 @@ troika.Tableau             = {
         }
     end
 }
-troika.shuffle             = function(game, card, pileType)
+troika.on_shuffle            = function(game, card, pileType)
     if pileType == "Tableau" and card.Rank == "Ace" then
         return game.PlaceTop(card, game.Foundation, true)
     end

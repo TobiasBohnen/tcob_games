@@ -184,7 +184,7 @@ auto base_game::can_undo() const -> bool
 
 void base_game::layout_piles()
 {
-    before_layout();
+    on_change();
 
     for (auto& [_, piles] : _piles) {
         for (auto* pile : piles) {
@@ -243,7 +243,7 @@ auto base_game::get_pile_at(point_i pos, bool ignoreActivePile) -> hit_test_resu
         if (p.empty() && p.Marker && p.Marker->Bounds->contains(pos)) { return INDEX_MARKER; }
 
         for (isize i {std::ssize(p.Cards) - 1}; i >= 0; --i) {
-            if (p.Cards[i].Bounds.contains(pos) && is_movable(p, i)) { return i; }
+            if (p.Cards[i].Bounds.contains(pos) && check_movable(p, i)) { return i; }
         }
 
         return INDEX_INVALID;
@@ -402,7 +402,7 @@ auto base_game::can_drop(pile const& targetPile, isize targetIndex, card const& 
     return rules::build(targetPile, targetIndex, drop, numCards);
 }
 
-auto base_game::is_movable(pile const& targetPile, isize idx) const -> bool
+auto base_game::check_movable(pile const& targetPile, isize idx) const -> bool
 {
     switch (targetPile.Rule.Move) {
     case move_type::None:
@@ -463,7 +463,7 @@ auto base_game::do_deal() -> bool
     return false;
 }
 
-void base_game::before_layout()
+void base_game::on_change()
 {
 }
 
@@ -545,6 +545,8 @@ script_game::script_game(field& f, game_info info, scripting::lua::table tab)
     : base_game {f, std::move(info)}
     , _table {std::move(tab)}
 {
+    // TODO: check table for unknown members
+
     auto const createPile {[this](pile& pile, table const& pileTab) {
         pile.Position  = pileTab["Position"].get<point_f>().value_or(point_f::Zero);
         pile.Initial   = pileTab["Initial"].get<std::vector<bool>>().value_or(std::vector<bool> {});
@@ -622,14 +624,14 @@ script_game::script_game(field& f, game_info info, scripting::lua::table tab)
     createPiles(Foundation, "Foundation");
     createPiles(Tableau, "Tableau");
 
-    if (function<void> layoutFunc; _table.try_get(layoutFunc, "layout")) {
-        layoutFunc(this);
+    if (function<void> func; _table.try_get(func, "on_created")) {
+        func(this);
     }
 }
 
 auto script_game::can_drop(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool
 {
-    if (function<bool> func; _table.try_get(func, "can_drop")) {
+    if (function<bool> func; _table.try_get(func, "check_drop")) {
         return func(this, &targetPile, targetIndex + 1, drop, numCards);
     }
     return base_game::can_drop(targetPile, targetIndex, drop, numCards);
@@ -637,7 +639,7 @@ auto script_game::can_drop(pile const& targetPile, isize targetIndex, card const
 
 auto script_game::do_redeal() -> bool
 {
-    if (function<bool> func; _table.try_get(func, "redeal")) {
+    if (function<bool> func; _table.try_get(func, "on_redeal")) {
         return func(this);
     }
     return base_game::do_redeal();
@@ -645,7 +647,7 @@ auto script_game::do_redeal() -> bool
 
 auto script_game::do_deal() -> bool
 {
-    if (function<bool> func; _table.try_get(func, "deal")) {
+    if (function<bool> func; _table.try_get(func, "on_deal")) {
         return func(this);
     }
     return base_game::do_deal();
@@ -653,7 +655,7 @@ auto script_game::do_deal() -> bool
 
 auto script_game::before_shuffle(card& card) -> bool
 {
-    if (function<bool> func; _table.try_get(func, "before_shuffle")) {
+    if (function<bool> func; _table.try_get(func, "on_before_shuffle")) {
         return func(this, card);
     }
     return base_game::before_shuffle(card);
@@ -661,7 +663,7 @@ auto script_game::before_shuffle(card& card) -> bool
 
 auto script_game::shuffle(card& card, pile_type pileType) -> bool
 {
-    if (function<bool> func; _table.try_get(func, "shuffle")) {
+    if (function<bool> func; _table.try_get(func, "on_shuffle")) {
         return func(this, card, pileType);
     }
     return base_game::shuffle(card, pileType);
@@ -669,19 +671,19 @@ auto script_game::shuffle(card& card, pile_type pileType) -> bool
 
 void script_game::after_shuffle()
 {
-    if (function<void> func; _table.try_get(func, "after_shuffle")) {
+    if (function<void> func; _table.try_get(func, "on_after_shuffle")) {
         func(this);
     } else {
         base_game::after_shuffle();
     }
 }
 
-void script_game::before_layout()
+void script_game::on_change()
 {
-    if (function<void> func; _table.try_get(func, "before_layout")) {
+    if (function<void> func; _table.try_get(func, "on_change")) {
         func(this);
     } else {
-        base_game::before_layout();
+        base_game::on_change();
     }
 }
 
@@ -693,12 +695,12 @@ auto script_game::check_state() const -> game_state
     return base_game::check_state();
 }
 
-auto script_game::is_movable(pile const& targetPile, isize idx) const -> bool
+auto script_game::check_movable(pile const& targetPile, isize idx) const -> bool
 {
-    if (function<bool> func; _table.try_get(func, "is_movable")) {
+    if (function<bool> func; _table.try_get(func, "check_movable")) {
         return func(this, &targetPile, idx + 1);
     }
-    return base_game::is_movable(targetPile, idx);
+    return base_game::check_movable(targetPile, idx);
 }
 
 void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs)
@@ -810,7 +812,7 @@ void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, 
 
     // properties
     pileWrapper["Type"]      = getter {[](pile* p) { return p->Type; }};
-    pileWrapper["Empty"]     = getter {[](pile* p) { return p->empty(); }};
+    pileWrapper["IsEmpty"]   = getter {[](pile* p) { return p->empty(); }};
     pileWrapper["CardCount"] = getter {[](pile* p) { return p->Cards.size(); }};
     pileWrapper["Cards"]     = getter {[](pile* p) { return p->Cards; }};
     pileWrapper["Position"]  = property {[](pile* p) { return p->Position; }, [](pile* p, point_f pos) { p->Position = pos; }};

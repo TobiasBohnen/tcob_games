@@ -36,14 +36,14 @@ local aces_up = {
             }
         end
     },
-    can_drop    = function(game, targetPile, _, drop, numCards)
+    check_drop  = function(game, targetPile, _, drop, numCards)
         if numCards ~= 1 then return false end
 
         if targetPile.Type == "Foundation" then
             if drop.Rank == "Ace" then return false end
             local dropRank = RankValues[drop.Rank]
             for _, tab in ipairs(game.Tableau) do
-                if not tab.Empty then
+                if not tab.IsEmpty then
                     local tabCard = tab.Cards[tab.CardCount]
                     if tabCard.Suit == drop.Suit and (tabCard.Rank == "Ace" or RankValues[tabCard.Rank] > dropRank) then
                         return true
@@ -51,7 +51,7 @@ local aces_up = {
                 end
             end
         elseif targetPile.Type == "Tableau" then
-            return targetPile.Empty
+            return targetPile.IsEmpty
         end
 
         return false
@@ -59,10 +59,10 @@ local aces_up = {
     check_state = function(game)
         if game.Foundation[1].CardCount == 48 then return "Success" end
 
-        if game.Stock[1].Empty then
+        if game.Stock[1].IsEmpty then
             local suits = {}
             for _, tab in ipairs(game.Tableau) do
-                if tab.Empty or suits[tab.Cards[tab.CardCount].Suit] ~= nil then return "Running" end
+                if tab.IsEmpty or suits[tab.Cards[tab.CardCount].Suit] ~= nil then return "Running" end
                 suits[tab.Cards[tab.CardCount].Suit] = true
             end
             return "Failure"
@@ -70,7 +70,7 @@ local aces_up = {
 
         return "Running"
     end,
-    deal        = function(game) return game.Stock[1]:deal_to_group(game.Tableau, false) end
+    on_deal     = function(game) return game.Stock[1]:deal_to_group(game.Tableau, false) end
 }
 
 ------
@@ -116,14 +116,14 @@ local four_seasons = {
             }
         end
     },
-    can_drop   = function(game, targetPile, _, drop, numCards)
+    check_drop = function(game, targetPile, _, drop, numCards)
         if numCards ~= 1 then return false end
 
         if targetPile.Type == "Foundation" then
             if drop.Rank == "Ace" then return false end
             local dropRank = RankValues[drop.Rank]
             for _, tab in ipairs(game.Tableau) do
-                if not tab.Empty then
+                if not tab.IsEmpty then
                     local tabCard = tab.Cards[tab.CardCount]
                     if tabCard.Suit == drop.Suit and (tabCard.Rank == "Ace" or RankValues[tabCard.Rank] > dropRank) then
                         return true
@@ -131,12 +131,12 @@ local four_seasons = {
                 end
             end
         elseif targetPile.Type == "Tableau" then
-            return targetPile.Empty
+            return targetPile.IsEmpty
         end
 
         return false
     end,
-    deal       = ops.deal.stock_to_waste
+    on_deal    = ops.deal.stock_to_waste
 }
 
 ------------------------

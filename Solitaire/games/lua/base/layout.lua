@@ -55,7 +55,7 @@ return {
 
         local middle = piles.TableauSize / 2
         for i = 0, piles.FoundationSize - 1 do
-            piles.piles.Foundation[i + 1].Position = { x = middle, y = i }
+            piles.Foundation[i + 1].Position = { x = middle, y = i }
         end
 
         for i = 0, piles.TableauSize - 1 do

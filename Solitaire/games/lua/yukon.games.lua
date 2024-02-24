@@ -71,7 +71,7 @@ local yukon                              = {
             }
         end
     },
-    layout     = layout.yukon
+    on_created = layout.yukon
 }
 
 ------
@@ -156,7 +156,7 @@ geoffrey.Tableau                         = {
         }
     end
 }
-geoffrey.layout                          = layout.forty_thieves
+geoffrey.on_created                      = layout.forty_thieves
 
 ------
 
@@ -306,8 +306,8 @@ local chinese_discipline                 = {
             }
         end
     },
-    deal       = function(game) return game.Stock[1]:deal_to_group(game.Tableau, false) end,
-    layout     = layout.klondike
+    on_deal    = function(game) return game.Stock[1]:deal_to_group(game.Tableau, false) end,
+    on_created = layout.klondike
 }
 
 ------
@@ -351,8 +351,8 @@ local rushdike                           = {
             }
         end
     },
-    deal       = function(game) return game.Stock[1]:deal_to_group(game.Tableau, false) end,
-    layout     = layout.klondike
+    on_deal    = function(game) return game.Stock[1]:deal_to_group(game.Tableau, false) end,
+    on_created = layout.klondike
 }
 
 ------

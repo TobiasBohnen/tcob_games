@@ -39,8 +39,8 @@ local raglan = {
             }
         end
     },
-    before_shuffle = ops.shuffle.ace_to_foundation,
-    layout         = layout.raglan
+    on_before_shuffle = ops.shuffle.ace_to_foundation,
+    on_created     = layout.raglan
 }
 
 ------------------------

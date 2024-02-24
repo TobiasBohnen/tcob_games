@@ -9,7 +9,7 @@ local piles  = require 'base/piles'
 require 'base/common'
 
 local spider             = {
-    Info          = {
+    Info       = {
         Name          = "Spider",
         Type          = "Spider",
         Family        = "Spider",
@@ -17,11 +17,11 @@ local spider             = {
         CardDealCount = 10,
         Redeals       = 0
     },
-    Stock         = {
+    Stock      = {
         Position = { x = 0, y = 0 },
         Initial = piles.initial.face_down(50)
     },
-    Foundation    = {
+    Foundation = {
         Size   = 4,
         create = function(i)
             return {
@@ -30,7 +30,7 @@ local spider             = {
             }
         end
     },
-    Tableau       = {
+    Tableau    = {
         Size   = 10,
         create = function(i)
             return {
@@ -41,7 +41,7 @@ local spider             = {
             }
         end
     },
-    before_layout = function(game)
+    on_change  = function(game)
         for _, tableau in ipairs(game.Tableau) do
             if tableau.CardCount >= 13 then
                 -- look for completed stack
@@ -49,7 +49,7 @@ local spider             = {
                 local found = true
                 for i = 0, 12 do
                     local card = tableau.Cards[tableau.CardCount - i]
-                    if card.FaceDown or card.Suit ~= targetSuit or card.Rank ~= Ranks[i + 1] then
+                    if card.IsFaceDown or card.Suit ~= targetSuit or card.Rank ~= Ranks[i + 1] then
                         found = false
                         break
                     end
@@ -58,7 +58,7 @@ local spider             = {
                 -- move to foundation
                 if found then
                     for _, foundation in ipairs(game.Foundation) do
-                        if foundation.Empty then
+                        if foundation.IsEmpty then
                             tableau:move_cards(foundation, tableau.CardCount - 12, 13, false)
                             tableau:flip_up_top_card()
                             break
@@ -68,9 +68,9 @@ local spider             = {
             end
         end
     end,
-    deal          = function(game)
+    on_deal    = function(game)
         for _, tableau in ipairs(game.Tableau) do
-            if tableau.Empty then return false end
+            if tableau.IsEmpty then return false end
         end
 
         return game.Stock[1]:deal_to_group(game.Tableau, false)

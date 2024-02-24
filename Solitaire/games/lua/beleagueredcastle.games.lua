@@ -29,8 +29,8 @@ local beleaguered_castle    = {
             Rule = { Build = "DownByRank", Move = "Top", Empty = "Any" }
         }
     },
-    before_shuffle = ops.shuffle.ace_to_foundation,
-    layout         = layout.beleaguered_castle
+    on_before_shuffle = ops.shuffle.ace_to_foundation,
+    on_created     = layout.beleaguered_castle
 }
 
 ------
@@ -50,13 +50,13 @@ castle_mount.Tableau        = {
         Rule = { Build = "DownByRank", Move = "InSequenceInSuit", Empty = "King" }
     }
 }
-castle_mount.layout         = layout.canister
+castle_mount.on_created     = layout.canister
 
 ------
 
 local citadel               = Copy(beleaguered_castle)
 citadel.Info.Name           = "Citadel"
-citadel.shuffle             = function(game, card)
+citadel.on_shuffle          = function(game, card)
     local foundation = game.Foundation
     for _, v in ipairs(foundation) do
         if game:drop(v, card) then
@@ -95,7 +95,7 @@ lightweight.Tableau              = {
         Rule = { Build = "DownByRank", Move = "InSequence", Empty = "King" }
     }
 }
-lightweight.layout               = layout.canister
+lightweight.on_created           = layout.canister
 
 ------
 
@@ -126,7 +126,7 @@ local fastness                   = {
             }
         end
     },
-    layout     = layout.fastness
+    on_created = layout.fastness
 }
 
 ------
@@ -139,7 +139,7 @@ siegecraft.Tableau.create        = {
     Layout = "Row",
     Rule = { Build = "DownByRank", Move = "Top", Empty = "Any" }
 }
-siegecraft.before_shuffle        = ops.shuffle.ace_to_foundation
+siegecraft.on_before_shuffle        = ops.shuffle.ace_to_foundation
 
 ------
 
@@ -177,7 +177,7 @@ local bastion                    = {
             Rule = { Build = "UpOrDownInSuit", Move = "Top", Empty = "Any" }
         }
     },
-    layout     = layout.free_cell
+    on_created = layout.free_cell
 }
 
 ------
@@ -190,9 +190,9 @@ castles_end.Tableau.create       = {
     Layout = "Column",
     Rule = { Build = "UpOrDownAlternateColors", Move = "Top", Empty = "Any" }
 }
-castles_end.can_drop             = function(game, targetPile, targetIndex, drop, numCards)
+castles_end.check_drop           = function(game, targetPile, targetIndex, drop, numCards)
     local foundation1 = game.Foundation[1]
-    if foundation1.Empty then -- block card drops if foundation is empty
+    if foundation1.IsEmpty then -- block card drops if foundation is empty
         return targetPile == foundation1
     end
 
@@ -237,7 +237,7 @@ local canister                   = {
             }
         end
     },
-    layout     = layout.canister
+    on_created = layout.canister
 }
 
 ------
@@ -289,15 +289,15 @@ local chessboard                 = {
             }
         end
     },
-    can_drop   = function(game, targetPile, targetIndex, drop, numCards)
+    check_drop = function(game, targetPile, targetIndex, drop, numCards)
         local foundation1 = game.Foundation[1]
-        if foundation1.Empty and targetPile == foundation1 then -- allow any card on first foundation
+        if foundation1.IsEmpty and targetPile == foundation1 then -- allow any card on first foundation
             return true
         end
 
         return game:can_drop(targetPile, targetIndex, drop, numCards)
     end,
-    layout     = layout.canister
+    on_created = layout.canister
 }
 
 ------
@@ -338,7 +338,7 @@ local fortress                   = {
             }
         end
     },
-    layout     = layout.canister
+    on_created = layout.canister
 }
 
 ------
@@ -366,7 +366,7 @@ local morehead                   = {
             }
         end
     },
-    layout = layout.canister
+    on_created = layout.canister
 }
 
 ------
@@ -394,7 +394,7 @@ local penelopes_web              = {
             }
         end
     },
-    layout     = layout.beleaguered_castle
+    on_created = layout.beleaguered_castle
 }
 
 ------
@@ -422,15 +422,15 @@ local selective_castle           = {
             }
         end
     },
-    can_drop   = function(game, targetPile, targetIndex, drop, numCards)
+    check_drop = function(game, targetPile, targetIndex, drop, numCards)
         local foundation1 = game.Foundation[1]
-        if foundation1.Empty and targetPile == foundation1 then -- allow any card on first foundation
+        if foundation1.IsEmpty and targetPile == foundation1 then -- allow any card on first foundation
             return true
         end
 
         return game:can_drop(targetPile, targetIndex, drop, numCards)
     end,
-    layout     = layout.beleaguered_castle
+    on_created = layout.beleaguered_castle
 }
 
 ------
@@ -458,13 +458,13 @@ local streets_and_alleys         = {
             }
         end
     },
-    layout     = layout.beleaguered_castle
+    on_created = layout.beleaguered_castle
 }
 
 ------
 
 local chequers                   = {
-    Info          = {
+    Info       = {
         Name          = "Chequers",
         Type          = "OpenPacker",
         Family        = "BeleagueredCastle",
@@ -472,12 +472,12 @@ local chequers                   = {
         CardDealCount = 0,
         Redeals       = 0
     },
-    Reserve       = {
+    Reserve    = {
         Position = { x = 0, y = 0 },
         Initial = piles.initial.face_down(4),
         Rule = { Build = "NoBuilding", Move = "None", Empty = "None" }
     },
-    Foundation    = {
+    Foundation = {
         Size   = 8,
         create = function(i)
             if i < 4 then
@@ -493,7 +493,7 @@ local chequers                   = {
             end
         end
     },
-    Tableau       = {
+    Tableau    = {
         Size   = 25,
         create = function(i)
             return {
@@ -504,10 +504,10 @@ local chequers                   = {
             }
         end
     },
-    before_layout = function(game)
+    on_change  = function(game)
         local reserve1 = game.Reserve[1]
         reserve1:deal_to_group(game.Tableau, true)
-        if not reserve1.Empty then
+        if not reserve1.IsEmpty then
             reserve1:flip_down_top_card()
         end
     end
@@ -617,8 +617,8 @@ local zerline                    = {
             end
         end
     },
-    deal       = ops.deal.stock_to_waste,
-    can_drop   = function(game, targetPile, targetIndex, drop, numCards)
+    on_deal    = ops.deal.stock_to_waste,
+    check_drop = function(game, targetPile, targetIndex, drop, numCards)
         if targetPile.Type == "FreeCell" then
             local srcPile = game:find_pile(drop)
             if srcPile.Type == "Tableau" then

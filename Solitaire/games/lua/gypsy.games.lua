@@ -32,8 +32,8 @@ local gypsy                    = {
             Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
         }
     },
-    layout     = layout.gypsy,
-    deal       = function(game) return game.Stock[1]:deal_to_group(game.Tableau, false) end
+    on_created = layout.gypsy,
+    on_deal    = function(game) return game.Stock[1]:deal_to_group(game.Tableau, false) end
 }
 
 ------
@@ -62,7 +62,7 @@ agnes_sorel.Tableau            = {
         }
     end
 }
-agnes_sorel.layout             = layout.klondike
+agnes_sorel.on_created         = layout.klondike
 
 ------
 
@@ -78,8 +78,8 @@ blockade.Tableau               = {
         Rule = { Build = "DownInSuit", Move = "InSequence", Empty = "Any" }
     }
 }
-blockade.layout                = layout.klondike
-blockade.before_layout         = function(game) game.Stock[1]:deal_to_group(game.Tableau, true) end
+blockade.on_created            = layout.klondike
+blockade.on_change             = function(game) game.Stock[1]:deal_to_group(game.Tableau, true) end
 
 ------
 
@@ -95,7 +95,7 @@ elba.Tableau                   = {
         Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "King" }
     }
 }
-elba.layout                    = layout.klondike
+elba.on_created                = layout.klondike
 
 ------
 
@@ -113,7 +113,7 @@ hypotenuse.Tableau             = {
         }
     end
 }
-hypotenuse.layout              = layout.klondike
+hypotenuse.on_created          = layout.klondike
 
 ------
 
@@ -131,7 +131,7 @@ irmgard.Tableau                = {
         }
     end
 }
-irmgard.layout                 = layout.klondike
+irmgard.on_created             = layout.klondike
 
 ------
 
@@ -241,11 +241,11 @@ local cone                     = {
             }
         end
     },
-    deal       = function(game)
+    on_deal    = function(game)
         --check if tableau is empty
         local tableau = game.Tableau
         for _, tab in ipairs(tableau) do
-            if tab.Empty then return false end
+            if tab.IsEmpty then return false end
         end
         --deal last 4 cards to reserve
         if game.Stock[1].CardCount == 4 then

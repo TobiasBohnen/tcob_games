@@ -9,7 +9,7 @@ local piles  = require 'base/piles'
 require 'base/common'
 
 local bakers_dozen                     = {
-    Info          = {
+    Info             = {
         Name          = "Baker's Dozen",
         Type          = "OpenPacker",
         Family        = "BakersDozen",
@@ -17,11 +17,11 @@ local bakers_dozen                     = {
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation    = {
+    Foundation       = {
         Size   = 4,
         create = piles.ace_upsuit_top
     },
-    Tableau       = {
+    Tableau          = {
         Size   = 13,
         create = {
             Initial = piles.initial.face_up(4),
@@ -29,8 +29,8 @@ local bakers_dozen                     = {
             Rule = { Build = "DownByRank", Move = "Top", Empty = "None" }
         }
     },
-    after_shuffle = ops.shuffle.kings_to_bottom,
-    layout        = layout.bakers_dozen
+    on_after_shuffle = ops.shuffle.kings_to_bottom,
+    on_created       = layout.bakers_dozen
 }
 
 ------
@@ -53,7 +53,7 @@ good_measure.Tableau                   = {
         Rule = { Build = "DownByRank", Move = "Top", Empty = "None" }
     }
 }
-good_measure.before_shuffle            = function(game, card)
+good_measure.on_before_shuffle         = function(game, card)
     if card.Rank == "Ace" then
         return game.PlaceTop(card, game.Foundation, 1, 2, true)
     end
@@ -78,7 +78,7 @@ local function capricieuse_redeal(game)
 end
 
 local capricieuse        = {
-    Info           = {
+    Info              = {
         Name          = "Capricieuse",
         Type          = "OpenPacker",
         Family        = "BakersDozen",
@@ -86,8 +86,8 @@ local capricieuse        = {
         CardDealCount = 0,
         Redeals       = 2
     },
-    Stock          = {},
-    Foundation     = {
+    Stock             = {},
+    Foundation        = {
         Size   = 8,
         create = function(i)
             if i < 4 then
@@ -97,7 +97,7 @@ local capricieuse        = {
             end
         end
     },
-    Tableau        = {
+    Tableau           = {
         Size   = 12,
         create = {
             Initial = piles.initial.face_up(8),
@@ -105,8 +105,8 @@ local capricieuse        = {
             Rule = { Build = "UpOrDownInSuit", Move = "Top", Empty = "Any" }
         }
     },
-    redeal         = capricieuse_redeal,
-    before_shuffle = function(game, card)
+    on_redeal         = capricieuse_redeal,
+    on_before_shuffle = function(game, card)
         if card.Rank == "Ace" then
             return game.PlaceTop(card, game.Foundation, 1, 4, true)
         end
@@ -116,7 +116,7 @@ local capricieuse        = {
 
         return false
     end,
-    layout         = layout.capricieuse
+    on_created        = layout.capricieuse
 }
 
 ------
@@ -132,7 +132,7 @@ strata.Tableau           = {
         Rule = { Build = "DownAlternateColors", Move = "Top", Empty = "Any" }
     }
 }
-strata.before_shuffle    = function(_, card)
+strata.on_before_shuffle = function(_, card)
     local rank = card.Rank
     return rank == "Two" or rank == "Three" or rank == "Four" or rank == "Five" or rank == "Six"
 end
@@ -178,9 +178,9 @@ cruel.Tableau                       = {
         Rule = { Build = "DownInSuit", Move = "Top", Empty = "None" }
     }
 }
-cruel.before_shuffle                = ops.shuffle.ace_to_foundation
-cruel.redeal                        = cruel_redeal
-cruel.layout                        = layout.bakers_dozen
+cruel.on_before_shuffle             = ops.shuffle.ace_to_foundation
+cruel.on_redeal                     = cruel_redeal
+cruel.on_created                    = layout.bakers_dozen
 
 ------
 
@@ -215,14 +215,14 @@ royal_family.Tableau.create         = {
     Layout = "Column",
     Rule = { Build = "UpOrDownAlternateColors", Move = "Top", Empty = "Any" }
 }
-royal_family.before_shuffle         = ops.shuffle.king_to_foundation
+royal_family.on_before_shuffle      = ops.shuffle.king_to_foundation
 
 ------
 
 local ripple_fan                    = Copy(cruel)
 ripple_fan.Info.Name                = "Ripple Fan"
 ripple_fan.Tableau.Size             = 13
-ripple_fan.before_shuffle           = nil
+ripple_fan.on_before_shuffle        = nil
 
 ------
 
@@ -257,13 +257,13 @@ local fifteen                       = {
             }
         end
     },
-    layout     = layout.canister
+    on_created = layout.canister
 }
 
 ------
 
 local nationale                     = {
-    Info           = {
+    Info              = {
         Name          = "Nationale",
         Type          = "OpenPacker",
         Family        = "BakersDozen",
@@ -271,7 +271,7 @@ local nationale                     = {
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation     = {
+    Foundation        = {
         Size   = 8,
         create = function(i)
             if i < 4 then
@@ -281,7 +281,7 @@ local nationale                     = {
             end
         end
     },
-    Tableau        = {
+    Tableau           = {
         Size   = 12,
         create = {
             Initial = piles.initial.face_up(8),
@@ -289,7 +289,7 @@ local nationale                     = {
             Rule = { Build = "UpOrDownInSuit", Move = "Top", Empty = "Any" }
         }
     },
-    before_shuffle = function(game, card)
+    on_before_shuffle = function(game, card)
         if card.Rank == "Ace" then
             return game.PlaceTop(card, game.Foundation, 1, 4, true)
         end
@@ -299,7 +299,7 @@ local nationale                     = {
 
         return false
     end,
-    layout         = layout.canister
+    on_created        = layout.canister
 }
 
 ------
@@ -325,7 +325,7 @@ local castles_in_spain              = {
             Rule = { Build = "DownAlternateColors", Move = "Top", Empty = "Any" }
         }
     },
-    layout     = layout.bakers_dozen
+    on_created = layout.bakers_dozen
 }
 
 ------
@@ -340,7 +340,7 @@ martha.Tableau                      = {
         Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "AnySingle" }
     }
 }
-martha.before_shuffle               = ops.shuffle.ace_to_foundation
+martha.on_before_shuffle            = ops.shuffle.ace_to_foundation
 
 ------
 

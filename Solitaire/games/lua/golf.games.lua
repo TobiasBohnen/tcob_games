@@ -10,12 +10,12 @@ require 'base/common'
 
 local function golf_check_state(game)
     local foundation = game.Foundation
-    if foundation[1].Empty then return "Running" end
+    if foundation[1].IsEmpty then return "Running" end
 
     local dead    = true -- detect dead game
     local success = true -- detect win state
     for _, tableau in ipairs(game.Tableau) do
-        if not tableau.Empty then
+        if not tableau.IsEmpty then
             success = false
             if game:can_drop(foundation[1], #foundation[1].Cards - 1, tableau.Cards[#tableau.Cards], 1) then
                 dead = false
@@ -26,7 +26,7 @@ local function golf_check_state(game)
 
 
     if success then return "Success" end
-    if game.Stock[1].Empty then return "Running" end
+    if not game.Stock[1].IsEmpty then return "Running" end
     if dead then return "Failure" end
 
     return "Running"
@@ -59,11 +59,11 @@ local golf                 = {
             Rule = { Build = "NoBuilding", Move = "Top" }
         }
     },
-    deal        = function(game)
+    on_deal     = function(game)
         return game.Stock[1]:deal(game.Foundation[1], game.CardDealCount)
     end,
     check_state = golf_check_state,
-    layout      = layout.golf
+    on_created  = layout.golf
 }
 
 ------
@@ -131,7 +131,7 @@ local black_hole           = {
             }
         end
     },
-    before_shuffle = function(game, card)
+    on_before_shuffle = function(game, card)
         if card.Rank == "Ace" and card.Suit == "Spades" then
             return game.PlaceTop(card, game.Foundation, true)
         end

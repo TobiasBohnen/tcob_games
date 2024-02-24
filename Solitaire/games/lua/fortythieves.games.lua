@@ -33,8 +33,8 @@ local forty_thieves        = {
             Rule = { Build = "DownInSuit", Move = "Top", Empty = "Any" }
         }
     },
-    deal       = ops.deal.stock_to_waste,
-    layout     = layout.forty_thieves
+    on_deal    = ops.deal.stock_to_waste,
+    on_created = layout.forty_thieves
 }
 
 ------
@@ -88,7 +88,7 @@ corona.Tableau             = {
         Rule = { Build = "DownInSuit", Move = "Top", Empty = "Any" }
     }
 }
-corona.before_layout       = function(game)
+corona.on_change           = function(game)
     return game.Waste[1]:deal_to_group(game.Tableau, true) or game.Stock[1]:deal_to_group(game.Tableau, true)
 end
 
@@ -105,7 +105,7 @@ courtyard.Tableau          = {
         Rule = { Build = "DownInSuit", Move = "InSequence", Empty = "Any" }
     }
 }
-courtyard.before_layout    = corona.before_layout
+courtyard.on_change        = corona.on_change
 
 ------------------------
 

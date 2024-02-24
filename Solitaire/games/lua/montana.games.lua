@@ -19,7 +19,7 @@ local montana_base    = {
             local suit
             for x = 1, columns do
                 local tab = tableau[x + (y - 1) * columns]
-                if not tab.Empty then
+                if not tab.IsEmpty then
                     if x == 1 then
                         suit = tab.Cards[1].Suit
                     elseif inOrder then
@@ -40,7 +40,7 @@ local montana_base    = {
             local wasEmpty = false
             for x = 1, columns do
                 local tab = tableau[x + (y - 1) * columns]
-                if tab.Empty then
+                if tab.IsEmpty then
                     if wasEmpty then
                         game.PlaceTop(table.remove(cards), tab, true)
                     else
@@ -53,12 +53,12 @@ local montana_base    = {
         return true
     end,
 
-    can_drop = function(game, targetPile, drop, ranks, mode)
+    check_drop = function(game, targetPile, drop, ranks, mode)
         local tableau = game.Tableau
 
         local check_left = function(leftTab)
             --check if left card is one rank higher
-            if leftTab.Empty then return false end
+            if leftTab.IsEmpty then return false end
             local leftCard = leftTab.Cards[1]
             if leftCard.Suit == drop.Suit then
                 for k, v in ipairs(ranks) do
@@ -69,7 +69,7 @@ local montana_base    = {
         end
         local check_right = function(rightTab)
             --check if right card is one rank lower
-            if rightTab.Empty then return false end
+            if rightTab.IsEmpty then return false end
             local rightCard = rightTab.Cards[1]
             if rightCard.Suit == drop.Suit then
                 for k, v in ipairs(ranks) do
@@ -80,7 +80,7 @@ local montana_base    = {
         end
 
         local columns = #ranks + 1
-        if not targetPile.Empty then return false end
+        if not targetPile.IsEmpty then return false end
 
         for i, tab in ipairs(tableau) do
             if tab == targetPile then
@@ -109,12 +109,12 @@ local montana_base    = {
 
         for y = 1, 4 do
             local firstTab = tableau[1 + (y - 1) * columns]
-            if firstTab.Empty or firstTab.Cards[1].Rank ~= ranks[1] then return "Running" end
+            if firstTab.IsEmpty or firstTab.Cards[1].Rank ~= ranks[1] then return "Running" end
             local suit = firstTab.Cards[1].Suit
 
             for x = 2, #ranks do
                 local tab = tableau[x + (y - 1) * columns]
-                if tab.Empty then return "Running" end
+                if tab.IsEmpty then return "Running" end
                 local card = tab.Cards[1]
                 if card.Rank ~= ranks[x] or card.Suit ~= suit then return "Running" end
             end
@@ -146,27 +146,27 @@ local montana         = {
             Rule = { Build = "NoBuilding", Move = "Top", Empty = "None" }
         }
     },
-    shuffle     = function(_, card, _)
+    on_shuffle  = function(_, card, _)
         return card.Rank == "Ace"
     end,
-    can_drop    = function(game, targetPile, _, drop, _)
-        return montana_base.can_drop(game, targetPile, drop, montana_ranks, "l")
-    end,
-    redeal      = function(game)
+    on_created  = function(game) layout.montana(game, 13) end,
+    on_redeal   = function(game)
         return montana_base.redeal(game, montana_ranks)
     end,
     check_state = function(game)
         return montana_base.check_state(game, montana_ranks)
     end,
-    layout      = function(game) layout.montana(game, 13) end
+    check_drop  = function(game, targetPile, _, drop, _)
+        return montana_base.check_drop(game, targetPile, drop, montana_ranks, "l")
+    end
 }
 
 ------
 
 local moonlight       = Copy(montana)
 moonlight.Info.Name   = "Moonlight"
-moonlight.can_drop    = function(game, targetPile, _, drop, _)
-    return montana_base.can_drop(game, targetPile, drop, montana_ranks, "rl")
+moonlight.check_drop  = function(game, targetPile, _, drop, _)
+    return montana_base.check_drop(game, targetPile, drop, montana_ranks, "rl")
 end
 
 ------
@@ -192,7 +192,7 @@ local blue_moon       = {
             }
         end
     },
-    shuffle     = function(game, card, _)
+    on_shuffle  = function(game, card, _)
         if card.Rank == "Ace" then
             return game.PlaceTop(card, game.Tableau, 1, 1, true)
                 or game.PlaceTop(card, game.Tableau, 15, 1, true)
@@ -202,16 +202,16 @@ local blue_moon       = {
 
         return false
     end,
-    can_drop    = function(game, targetPile, _, drop, _)
-        return montana_base.can_drop(game, targetPile, drop, blue_moon_ranks, "l")
+    check_drop  = function(game, targetPile, _, drop, _)
+        return montana_base.check_drop(game, targetPile, drop, blue_moon_ranks, "l")
     end,
-    redeal      = function(game)
+    on_redeal   = function(game)
         return montana_base.redeal(game, blue_moon_ranks)
     end,
     check_state = function(game)
         return montana_base.check_state(game, blue_moon_ranks)
     end,
-    layout      = function(game) layout.montana(game, 14) end
+    on_created  = function(game) layout.montana(game, 14) end
 }
 
 ------
@@ -225,12 +225,12 @@ galary.Tableau.create = function(i)
         Rule = { Build = "NoBuilding", Move = "Top", Empty = "None" }
     }
 end
-galary.before_shuffle = function(game, card)
-    return blue_moon.shuffle(game, card)
+galary.on_before_shuffle = function(game, card)
+    return blue_moon.on_shuffle(game, card)
 end
-galary.shuffle        = nil
-galary.can_drop       = function(game, targetPile, _, drop, _)
-    return montana_base.can_drop(game, targetPile, drop, blue_moon_ranks, "rl")
+galary.on_shuffle     = nil
+galary.check_drop     = function(game, targetPile, _, drop, _)
+    return montana_base.check_drop(game, targetPile, drop, blue_moon_ranks, "rl")
 end
 
 ------
@@ -256,11 +256,11 @@ local paganini        = {
             }
         end
     },
-    before_shuffle = function(_, card)
+    on_before_shuffle = function(_, card)
         local rank = card.Rank
         return rank == "Two" or rank == "Three" or rank == "Four" or rank == "Five"
     end,
-    shuffle        = function(game, card, _)
+    on_shuffle     = function(game, card, _)
         if card.Rank == "Ace" then
             return game.PlaceTop(card, game.Tableau, 1, 1, true)
                 or game.PlaceTop(card, game.Tableau, 11, 1, true)
@@ -270,16 +270,16 @@ local paganini        = {
 
         return false
     end,
-    can_drop       = function(game, targetPile, _, drop, _)
-        return montana_base.can_drop(game, targetPile, drop, paganini_ranks, "l")
+    check_drop     = function(game, targetPile, _, drop, _)
+        return montana_base.check_drop(game, targetPile, drop, paganini_ranks, "l")
     end,
-    redeal         = function(game)
+    on_redeal      = function(game)
         return montana_base.redeal(game, paganini_ranks)
     end,
     check_state    = function(game)
         return montana_base.check_state(game, paganini_ranks)
     end,
-    layout         = function(game) layout.montana(game, 10) end
+    on_created     = function(game) layout.montana(game, 10) end
 }
 
 ------
@@ -312,18 +312,18 @@ local spoilt          = {
             }
         end
     },
-    before_shuffle = function(_, card)
+    on_before_shuffle = function(_, card)
         local rank = card.Rank
         return rank == "Two" or rank == "Three" or rank == "Four" or rank == "Five" or rank == "Six"
     end,
-    before_layout  = function(game)
+    on_change      = function(game)
         local sevenCount = 0
         for i, tableau in ipairs(game.Tableau) do
             if tableau.CardCount == 2 then
                 tableau:move_cards(game.Waste[1], 1, 1, false)
                 game.Waste[1]:flip_up_top_card()
                 return
-            elseif (i - 1) % 8 == 0 and not tableau.Empty then
+            elseif (i - 1) % 8 == 0 and not tableau.IsEmpty then
                 sevenCount = sevenCount + 1
             end
         end
@@ -334,7 +334,7 @@ local spoilt          = {
             end
         else
             local stock = game.Stock[1]
-            if not stock.Empty and sevenCount > 0 then
+            if not stock.IsEmpty and sevenCount > 0 then
                 if stock.CardCount > 3 - sevenCount then
                     ops.deal.stock_to_waste(game)
                     return
@@ -342,7 +342,7 @@ local spoilt          = {
             end
         end
     end,
-    can_drop       = function(game, targetPile, _, drop, _)
+    check_drop     = function(game, targetPile, _, drop, _)
         local ranks = { "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace" }
         local tableau = game.Tableau
 
@@ -352,7 +352,7 @@ local spoilt          = {
         for y = 1, 4 do
             for x = 1, 8 do
                 local tab = tableau[x + (y - 1) * 8]
-                if not tab.Empty and tab.Cards[1].FaceUp then
+                if not tab.IsEmpty and tab.Cards[1].IsFaceUp then
                     rowEmpty[y] = false
                     suitRows[tab.Cards[1].Suit] = y
                     break

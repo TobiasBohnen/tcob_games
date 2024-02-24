@@ -33,9 +33,9 @@ local klondike                           = {
             }
         end
     },
-    redeal     = ops.redeal.waste_to_stock,
-    deal       = ops.deal.stock_to_waste,
-    layout     = layout.klondike
+    on_redeal  = ops.redeal.waste_to_stock,
+    on_deal    = ops.deal.stock_to_waste,
+    on_created = layout.klondike
 }
 
 ------
@@ -53,7 +53,7 @@ double_klondike.Info.DeckCount           = 2
 double_klondike.Stock.Initial            = piles.initial.face_down(59)
 double_klondike.Foundation.Size          = 8
 double_klondike.Tableau.Size             = 9
-double_klondike.layout                   = layout.big_harp
+double_klondike.on_created               = layout.big_harp
 
 ------
 
@@ -69,7 +69,7 @@ triple_klondike.Info.DeckCount           = 3
 triple_klondike.Stock.Initial            = piles.initial.face_down(65)
 triple_klondike.Foundation.Size          = 12
 triple_klondike.Tableau.Size             = 13
-triple_klondike.layout                   = layout.big_harp
+triple_klondike.on_created               = layout.big_harp
 
 ------
 
@@ -84,7 +84,7 @@ half_klondike.Info.Name                  = "Half Klondike"
 half_klondike.Stock.Initial              = piles.initial.face_down(16)
 half_klondike.Foundation.Size            = 2
 half_klondike.Tableau.Size               = 4
-half_klondike.before_shuffle             = function(_, card) return card.Suit == "Clubs" or card.Suit == "Diamonds" end
+half_klondike.on_before_shuffle             = function(_, card) return card.Suit == "Clubs" or card.Suit == "Diamonds" end
 
 ------
 
@@ -122,8 +122,8 @@ local big_deal                           = {
             }
         end
     },
-    redeal     = ops.redeal.waste_to_stock,
-    deal       = ops.deal.stock_to_waste,
+    on_redeal  = ops.redeal.waste_to_stock,
+    on_deal    = ops.deal.stock_to_waste,
 }
 
 ------
@@ -157,7 +157,7 @@ big_harp.Tableau                         = {
         }
     end
 }
-big_harp.layout                          = layout.big_harp
+big_harp.on_created                      = layout.big_harp
 
 ------
 
@@ -172,7 +172,7 @@ ali_baba.Tableau                         = {
         Rule = { Build = "DownInSuit", Move = "InSequence", Empty = "Any" }
     }
 }
-ali_baba.before_shuffle                  = ops.shuffle.ace_to_foundation
+ali_baba.on_before_shuffle                  = ops.shuffle.ace_to_foundation
 
 ------
 
@@ -188,7 +188,7 @@ blind_alleys.Tableau                     = {
         Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
     }
 }
-blind_alleys.before_shuffle              = ops.shuffle.ace_to_foundation
+blind_alleys.on_before_shuffle              = ops.shuffle.ace_to_foundation
 
 ------
 
@@ -200,7 +200,7 @@ cassim.Tableau.create                    = {
     Layout = "Column",
     Rule = { Build = "DownInSuit", Move = "InSequence", Empty = "Any" }
 }
-cassim.before_shuffle                    = ops.shuffle.ace_to_foundation
+cassim.on_before_shuffle                    = ops.shuffle.ace_to_foundation
 
 ------
 
@@ -229,9 +229,9 @@ local eight_by_eight                     = {
             }
         end
     },
-    redeal     = ops.redeal.waste_to_stock,
-    deal       = ops.deal.stock_to_waste,
-    layout     = layout.big_harp
+    on_redeal  = ops.redeal.waste_to_stock,
+    on_deal    = ops.deal.stock_to_waste,
+    on_created = layout.big_harp
 }
 
 ------
@@ -253,7 +253,7 @@ eight_by_eight2.Tableau                  = {
         }
     end
 }
-eight_by_eight2.deal                     = ops.deal.stock_to_waste_by_redeals_left
+eight_by_eight2.on_deal                  = ops.deal.stock_to_waste_by_redeals_left
 
 ------
 
@@ -283,7 +283,7 @@ arabella.Tableau                         = {
         }
     end
 }
-arabella.layout                          = layout.big_harp
+arabella.on_created                      = layout.big_harp
 
 ------
 
@@ -346,8 +346,8 @@ chinese_klondike.Info.DeckCount          = 3
 chinese_klondike.Stock.Initial           = piles.initial.face_down(39)
 chinese_klondike.Foundation.Size         = 9
 chinese_klondike.Tableau.Size            = 12
-chinese_klondike.before_shuffle          = function(game, card) return card.Suit == "Diamonds" end
-chinese_klondike.layout                  = layout.big_harp
+chinese_klondike.on_before_shuffle          = function(game, card) return card.Suit == "Diamonds" end
+chinese_klondike.on_created              = layout.big_harp
 
 ------
 
@@ -380,7 +380,7 @@ eight_sages.Tableau                      = {
         Rule = { Build = "DownAlternateColors", Move = "Top", Empty = "Any" }
     }
 }
-eight_sages.can_drop                     = function(game, targetPile, targetIndex, drop, numCards)
+eight_sages.check_drop                   = function(game, targetPile, targetIndex, drop, numCards)
     if targetPile.Type == "Tableau" then
         local srcPile = game:find_pile(drop)
         if srcPile.Type ~= "Waste" then
@@ -400,7 +400,7 @@ gargantua.Info.Redeals                   = 1
 ------
 
 local guardian                           = {
-    Info          = {
+    Info       = {
         Name = "Guardian",
         Type = "SimplePacker",
         Family = "Klondike",
@@ -408,12 +408,12 @@ local guardian                           = {
         CardDealCount = 3,
         Redeals = -1
     },
-    Stock         = {
+    Stock      = {
         Position = { x = 0, y = 0 },
         Initial = piles.initial.face_down(40)
     },
-    Waste         = { Position = { x = 1, y = 0 } },
-    Foundation    = {
+    Waste      = { Position = { x = 1, y = 0 } },
+    Foundation = {
         Size = 4,
         create = function(i)
             return {
@@ -422,7 +422,7 @@ local guardian                           = {
             }
         end
     },
-    Tableau       = {
+    Tableau    = {
         Size = 12,
         create = function(i)
             local tab = {
@@ -446,15 +446,15 @@ local guardian                           = {
             return tab
         end
     },
-    redeal        = ops.redeal.waste_to_stock,
-    deal          = ops.deal.stock_to_waste,
-    before_layout = function(game)
+    on_redeal  = ops.redeal.waste_to_stock,
+    on_deal    = ops.deal.stock_to_waste,
+    on_change  = function(game)
         for tabIdx = 1, 7 do
             local pile = game.Tableau[tabIdx]
-            if not pile.Empty then
+            if not pile.IsEmpty then
                 local pileL = game.Tableau[tabIdx + 4]
                 local pileR = game.Tableau[tabIdx + 5]
-                if pileL.Empty and pileR.Empty then
+                if pileL.IsEmpty and pileR.IsEmpty then
                     pile:flip_up_top_card()
                 end
             end
@@ -468,7 +468,7 @@ local gold_rush                          = Copy(klondike)
 gold_rush.Info.Name                      = "Gold Rush"
 gold_rush.Info.CardDealCount             = 3
 gold_rush.Info.Redeals                   = 2
-gold_rush.deal                           = ops.deal.stock_to_waste_by_redeals_left
+gold_rush.on_deal                        = ops.deal.stock_to_waste_by_redeals_left
 
 ------
 
@@ -492,7 +492,7 @@ double_kingsley.Info.DeckCount           = 2
 double_kingsley.Stock.Initial            = piles.initial.face_down(59)
 double_kingsley.Foundation.Size          = 8
 double_kingsley.Tableau.Size             = 9
-double_kingsley.layout                   = layout.big_harp
+double_kingsley.on_created               = layout.big_harp
 
 ------
 
@@ -513,7 +513,7 @@ qc.Tableau                               = {
         Rule    = { Build = "DownInSuit", Move = "Top", Empty = "Any" }
     }
 }
-qc.before_layout                         = function(game)
+qc.on_change                             = function(game)
     return game.Waste[1]:deal_to_group(game.Tableau, true) or game.Stock[1]:deal_to_group(game.Tableau, true)
 end
 
@@ -547,7 +547,7 @@ thirty_six.Tableau                       = {
         Rule    = { Build = "DownByRank", Move = "InSequence", Empty = "Any" }
     }
 }
-thirty_six.shuffle                       = function(game, card, pileType)
+thirty_six.on_shuffle                    = function(game, card, pileType)
     if pileType == "Tableau" and card.Rank == "Ace" then
         return game.PlaceTop(card, game.Foundation, true)
     end
@@ -575,7 +575,7 @@ double_trigon.Info.DeckCount             = 2
 double_trigon.Stock.Initial              = piles.initial.face_down(59)
 double_trigon.Foundation.Size            = 8
 double_trigon.Tableau.Size               = 9
-double_trigon.layout                     = layout.big_harp
+double_trigon.on_created                 = layout.big_harp
 
 ------
 
@@ -597,7 +597,7 @@ whitehorse.Tableau                       = {
         Rule    = { Build = "DownAlternateColors", Move = "InSequence", Empty = "King" }
     }
 }
-whitehorse.before_layout                 = function(game)
+whitehorse.on_change                     = function(game)
     return game.Waste[1]:deal_to_group(game.Tableau, true) or game.Stock[1]:deal_to_group(game.Tableau, true)
 end
 
@@ -659,7 +659,7 @@ local somerset                           = {
             }
         end
     },
-    layout     = layout.canister
+    on_created = layout.canister
 }
 
 ------
@@ -708,8 +708,8 @@ local usk = {
             }
         end
     },
-    redeal     = usk_redeal,
-    layout     = layout.canister
+    on_redeal  = usk_redeal,
+    on_created = layout.canister
 }
 
 ------------------------
