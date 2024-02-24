@@ -9,14 +9,15 @@ local piles  = require 'base/piles'
 require 'base/common'
 
 local function golf_check_state(game)
-    if game.Foundation[1].Empty then return "Running" end
+    local foundation = game.Foundation
+    if foundation[1].Empty then return "Running" end
 
     local dead    = true -- detect dead game
     local success = true -- detect win state
     for _, tableau in ipairs(game.Tableau) do
         if not tableau.Empty then
             success = false
-            if game:can_drop(game.Foundation[1], #game.Foundation[1].Cards - 1, tableau.Cards[#tableau.Cards], 1) then
+            if game:can_drop(foundation[1], #foundation[1].Cards - 1, tableau.Cards[#tableau.Cards], 1) then
                 dead = false
                 break
             end
@@ -25,7 +26,7 @@ local function golf_check_state(game)
 
 
     if success then return "Success" end
-    if not game.Stock[1].Empty then return "Running" end
+    if game.Stock[1].Empty then return "Running" end
     if dead then return "Failure" end
 
     return "Running"
@@ -112,7 +113,7 @@ local black_hole           = {
         Type          = "OpenBuilder",
         Family        = "Golf",
         DeckCount     = 1,
-        CardDealCount = 1,
+        CardDealCount = 0,
         Redeals       = 0
     },
     Foundation     = {
@@ -136,8 +137,7 @@ local black_hole           = {
         end
 
         return false
-    end,
-    check_state    = golf_check_state
+    end
 }
 
 ------------------------
