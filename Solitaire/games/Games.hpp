@@ -183,8 +183,6 @@ protected:
 
     auto check_state() const -> game_state override;
 
-    auto stack_index(pile const& targetPile, point_i pos) const -> isize override;
-
 private:
     scripting::lua::table _table;
 };

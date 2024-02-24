@@ -18,7 +18,6 @@
 - after_shuffle
 - before_layout
 - check_state
-- stack_index
 
 ## Pile definition:
 - Position

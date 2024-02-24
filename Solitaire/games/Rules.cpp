@@ -318,6 +318,31 @@ namespace rules {
             return INDEX_INVALID;
         }
 
+        auto in_seq_in_suit_same_rank(games::base_game const* game, pile const& target, point_i pos) -> isize
+        {
+            if (!target.empty()) {
+                if (auto const idx {in_seq_in_suit(game, target, pos)}; idx != INDEX_INVALID) { return idx; }
+
+                isize const top {std::ssize(target.Cards) - 1};
+                auto const  targetRank {target.Cards.back().get_rank()};
+                for (isize i {top}; i >= 0; --i) {
+                    auto const& card0 {target.Cards[i]};
+
+                    if (i < top) {
+                        if ((card0.get_rank() != targetRank) || card0.is_face_down()) {
+                            break;
+                        }
+                    }
+
+                    if (card0.Bounds.contains(pos)) {
+                        return i;
+                    }
+                }
+            }
+
+            return INDEX_INVALID;
+        }
+
         auto super_move(games::base_game const* game, pile const& target, point_i pos) -> isize
         {
             if (!game->piles().contains(pile_type::FreeCell)) {

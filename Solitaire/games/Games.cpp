@@ -413,10 +413,12 @@ auto base_game::stack_index(pile const& targetPile, point_i pos) const -> isize
     case move_type::InSequenceInSuit: {
         if (isize idx {rules::stack::in_seq_in_suit(this, targetPile, pos)}; idx != INDEX_INVALID) { return idx; }
     } break;
+    case move_type::InSequenceInSuitOrSameRank: {
+        if (isize idx {rules::stack::in_seq_in_suit_same_rank(this, targetPile, pos)}; idx != INDEX_INVALID) { return idx; }
+    } break;
     case move_type::SuperMove: {
         if (isize idx {rules::stack::super_move(this, targetPile, pos)}; idx != INDEX_INVALID) { return idx; }
     } break;
-    case move_type::Other: break;
     }
 
     if (targetPile.empty() && targetPile.Marker && targetPile.Marker->Bounds->contains(pos)) {
@@ -685,15 +687,6 @@ auto script_game::check_state() const -> game_state
         return func(this);
     }
     return base_game::check_state();
-}
-
-auto script_game::stack_index(pile const& targetPile, point_i pos) const -> isize
-{
-    if (function<isize> func; _table.try_get(func, "stack_index")) {
-        auto const retvalue {func(this, &targetPile, pos)};
-        return retvalue == -2 ? retvalue : retvalue - 1;
-    }
-    return base_game::stack_index(targetPile, pos);
 }
 
 void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs)

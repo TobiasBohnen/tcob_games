@@ -48,8 +48,8 @@ enum class move_type {
     FaceUp,
     InSequence,
     InSequenceInSuit,
-    SuperMove,
-    Other
+    InSequenceInSuitOrSameRank,
+    SuperMove
 };
 
 class empty {
@@ -109,6 +109,7 @@ namespace rules {
         auto face_up(pile const& target, point_i pos) -> isize;
         auto in_seq(games::base_game const* game, pile const& target, point_i pos) -> isize;
         auto in_seq_in_suit(games::base_game const* game, pile const& target, point_i pos) -> isize;
+        auto in_seq_in_suit_same_rank(games::base_game const* game, pile const& target, point_i pos) -> isize;
         auto super_move(games::base_game const* game, pile const& target, point_i pos) -> isize;
     }
 }

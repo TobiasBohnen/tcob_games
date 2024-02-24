@@ -89,43 +89,9 @@ arachnida.Tableau.create = function(i)
         Position = { x = i + 1, y = 0 },
         Initial  = piles.initial.top_face_up(i < 4 and 6 or 5),
         Layout   = "Column",
-        Rule     = { Build = "InRankOrDownByRank", Move = "Other", Empty = "Any" }
+        Rule     = { Build = "InRankOrDownByRank", Move = "InSequenceInSuitOrSameRank", Empty = "Any" }
     }
 end
-arachnida.stack_index    = function(game, targetPile, pos)
-    -- in sequence or same rank
-    if targetPile.Type ~= "Tableau" then
-        return game:stack_index(targetPile, pos)
-    end
-    if targetPile.Empty then
-        return -2 --INDEX_INVALID
-    end
-
-    local cards = targetPile.Cards
-    local top = targetPile.CardCount
-    local topCard = cards[top]
-    local targetSuit = topCard.Suit
-    local targetRank = topCard.Rank
-
-    for i = top, 1, -1 do
-        local card0 = cards[i]
-        if i < top then
-            if card0.FaceDown
-                or (card0.Suit ~= targetSuit and card0.Rank ~= targetRank)
-                or not game:can_drop(targetPile, i, cards[i + 1], 1)
-            then
-                break
-            end
-        end
-
-        if targetPile:check_bounds(i, pos) then
-            return i
-        end
-    end
-
-    return -2 --INDEX_INVALID
-end
-
 
 ------------------------
 
