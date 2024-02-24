@@ -6,6 +6,7 @@
 #pragma once
 
 #include "Common.hpp" // IWYU pragma: keep
+#include "Field.hpp"
 #include "Piles.hpp"
 
 namespace solitaire::games {
@@ -76,7 +77,7 @@ public:
     std::vector<foundation> Foundation;
 
     auto get_name() const -> std::string;
-    auto get_description(pile const* pile) const -> std::string;
+    auto get_description(pile const* pile) const -> hover_info;
 
     auto info() const -> game_info;
     auto state() const -> game_state;

@@ -84,7 +84,7 @@ half_klondike.Info.Name                  = "Half Klondike"
 half_klondike.Stock.Initial              = piles.initial.face_down(16)
 half_klondike.Foundation.Size            = 2
 half_klondike.Tableau.Size               = 4
-half_klondike.on_before_shuffle             = function(_, card) return card.Suit == "Clubs" or card.Suit == "Diamonds" end
+half_klondike.on_before_shuffle          = function(_, card) return card.Suit == "Clubs" or card.Suit == "Diamonds" end
 
 ------
 
@@ -172,7 +172,7 @@ ali_baba.Tableau                         = {
         Rule = { Build = "DownInSuit", Move = "InSequence", Empty = "Any" }
     }
 }
-ali_baba.on_before_shuffle                  = ops.shuffle.ace_to_foundation
+ali_baba.on_before_shuffle               = ops.shuffle.ace_to_foundation
 
 ------
 
@@ -188,7 +188,7 @@ blind_alleys.Tableau                     = {
         Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
     }
 }
-blind_alleys.on_before_shuffle              = ops.shuffle.ace_to_foundation
+blind_alleys.on_before_shuffle           = ops.shuffle.ace_to_foundation
 
 ------
 
@@ -200,7 +200,7 @@ cassim.Tableau.create                    = {
     Layout = "Column",
     Rule = { Build = "DownInSuit", Move = "InSequence", Empty = "Any" }
 }
-cassim.on_before_shuffle                    = ops.shuffle.ace_to_foundation
+cassim.on_before_shuffle                 = ops.shuffle.ace_to_foundation
 
 ------
 
@@ -346,7 +346,7 @@ chinese_klondike.Info.DeckCount          = 3
 chinese_klondike.Stock.Initial           = piles.initial.face_down(39)
 chinese_klondike.Foundation.Size         = 9
 chinese_klondike.Tableau.Size            = 12
-chinese_klondike.on_before_shuffle          = function(game, card) return card.Suit == "Diamonds" end
+chinese_klondike.on_before_shuffle       = function(game, card) return card.Suit == "Diamonds" end
 chinese_klondike.on_created              = layout.big_harp
 
 ------
@@ -412,7 +412,10 @@ local guardian                           = {
         Position = { x = 0, y = 0 },
         Initial = piles.initial.face_down(40)
     },
-    Waste      = { Position = { x = 1, y = 0 } },
+    Waste      = {
+        Position = { x = 1, y = 0 },
+        Layout = "Fan"
+    },
     Foundation = {
         Size = 4,
         create = function(i)

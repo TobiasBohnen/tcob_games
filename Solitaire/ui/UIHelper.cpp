@@ -291,10 +291,11 @@ void create_styles(assets::group& resGrp, style_collection& styles)
         style->Text.Style     = {false, gfx::font::weight::Normal};
         style->Text.Font      = resGrp.get<gfx::font_family>("Poppins");
         style->Text.Size      = 16_px;
-        style->Text.Alignment = {gfx::horizontal_alignment::Left, gfx::vertical_alignment::Middle};
+        style->Text.Alignment = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
         style->Text.AutoSize  = element::text::auto_size_mode::OnlyShrink;
         normal.apply(style);
         style->Text.Color = colors::White;
+        style->Margin     = {5_px};
     }
     {
         auto style {styles.create<list_box>("list_box", {})};

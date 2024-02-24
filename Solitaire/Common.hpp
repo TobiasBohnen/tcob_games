@@ -19,6 +19,12 @@ enum class game_state {
     Success
 };
 
+struct hover_info {
+    std::string Pile;
+    std::string Rule;
+    std::string CardCount;
+};
+
 constexpr color COLOR_HOVER {colors::LightBlue};
 constexpr color COLOR_DROP {colors::LightGreen};
 constexpr isize INDEX_MARKER {-1};

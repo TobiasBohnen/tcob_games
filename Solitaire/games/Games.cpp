@@ -3,7 +3,6 @@
 #include "Field.hpp"
 #include "StartScene.hpp"
 
-#include <format>
 #include <ranges>
 #include <utility>
 
@@ -23,20 +22,11 @@ auto base_game::get_name() const -> std::string
     return _gameInfo.Name;
 }
 
-auto base_game::get_description(pile const* pile) const -> std::string
+auto base_game::get_description(pile const* pile) const -> hover_info
 {
-    if (!pile) { return ""; }
+    if (!pile) { return {}; }
 
-    auto const cardCount {pile->Cards.size()};
-
-    switch (pile->Type) {
-    case pile_type::Stock: {
-        std::string redeals {_remainingRedeals < 0 ? "unlimited" : std::to_string(_remainingRedeals)};
-        return std::format("Stock\nRedeals: {}\nCards: {}", redeals, cardCount);
-    }
-    default:
-        return pile->get_description();
-    }
+    return pile->get_description(_remainingRedeals);
 }
 
 void base_game::start(size_f cardSize, std::optional<data::config::object> const& loadObj)
@@ -326,9 +316,9 @@ void base_game::click(pile* srcPile, u8 clicks)
 
     if (srcPile->Type == pile_type::Stock) {
         // deal card
-        srcPile->remove_color();
+        srcPile->remove_tint();
         deal_cards();
-        srcPile->color_cards(COLOR_HOVER, std::ssize(srcPile->Cards) - 1);
+        srcPile->tint_cards(COLOR_HOVER, std::ssize(srcPile->Cards) - 1);
     } else if (clicks > 1) {
         // try move to foundation
         auto_move_to_foundation(*srcPile);
@@ -346,8 +336,8 @@ void base_game::auto_move_to_foundation(pile& srcPile)
             srcPile.move_cards(fou, std::ssize(srcPile.Cards) - 1, 1, false);
             end_turn();
             auto_deal(srcPile);
-            srcPile.remove_color();
-            fou.remove_color();
+            srcPile.remove_tint();
+            fou.remove_tint();
             return;
         }
     }
@@ -362,8 +352,8 @@ void base_game::auto_deal(pile& from)
 
 void base_game::drop_cards(hit_test_result const& hovered, hit_test_result const& dropTarget)
 {
-    if (hovered.Pile) { hovered.Pile->remove_color(); }
-    if (dropTarget.Pile) { dropTarget.Pile->remove_color(); }
+    if (hovered.Pile) { hovered.Pile->remove_tint(); }
+    if (dropTarget.Pile) { dropTarget.Pile->remove_tint(); }
 
     if (dropTarget.Pile && hovered.Pile) {
         hovered.Pile->move_cards(*dropTarget.Pile, hovered.Index, std::ssize(hovered.Pile->Cards) - hovered.Index, false);

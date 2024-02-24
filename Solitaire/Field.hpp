@@ -16,7 +16,7 @@ class field : public gfx::entity {
 public:
     field(gfx::window* parent, size_i size, assets::group& resGrp);
 
-    signal<std::string const> HoverChange;
+    signal<hover_info const> HoverChange;
 
     void start(std::shared_ptr<games::base_game> const& game, bool cont);
     void undo();

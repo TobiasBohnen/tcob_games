@@ -30,17 +30,19 @@ void start_scene::on_start()
     auto  windowSize {window.Size()};
 
     // field
-    f32 const width {windowSize.Width / 6.f * 5.f};
-    _playField = std::make_shared<field>(&get_window(), size_i {static_cast<i32>(width), windowSize.Height}, resGrp);
+    f32 const height {windowSize.Height / 10.f * 9.f};
+    _playField = std::make_shared<field>(&get_window(), size_i {windowSize.Width, static_cast<i32>(height)}, resGrp);
 
-    _playField->HoverChange.connect([&](std::string const& str) {
-        _mainForm->LblInfo->Label = str;
+    _playField->HoverChange.connect([&](hover_info const& str) {
+        _mainForm->LblPile->Label      = str.Pile;
+        _mainForm->LblRule->Label      = str.Rule;
+        _mainForm->LblCardCount->Label = str.CardCount;
     });
 
     load_scripts();
 
     // ui
-    rect_i const menuBounds {static_cast<i32>(width), 0, windowSize.Width - static_cast<i32>(width), windowSize.Height};
+    rect_i const menuBounds {0, static_cast<i32>(height), windowSize.Width, windowSize.Height - static_cast<i32>(height)};
     _mainForm = std::make_shared<main_menu>(&window, rect_f {menuBounds});
 
 #if defined(TCOB_DEBUG)
@@ -78,16 +80,6 @@ void start_scene::connect_ui_events()
         }
     });
 
-    _mainForm->LbxGames->SelectedItemIndex.Changed.connect([&](auto val) {
-        if (val == -1) { return; }
-
-        _gameForm->SelectedGame = _mainForm->LbxGames->get_selected_item();
-    });
-
-    for (auto const& kvp : _games) {
-        _mainForm->LbxGames->add_item(kvp.first);
-    }
-
     _mainForm->BtnGames->Click.connect([&](auto const&) {
         _gameForm->show();
     });
@@ -102,8 +94,6 @@ void start_scene::connect_ui_events()
     });
 
     _gameForm->SelectedGame.Changed.connect([&](auto const& game) {
-        _mainForm->LbxGames->select_item(game);
-
         auto& camera {*get_window().Camera};
         camera.set_position(point_f::Zero);
         camera.set_zoom(size_f::One);

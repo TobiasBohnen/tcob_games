@@ -62,15 +62,15 @@ public:
     auto is_playable() const -> bool;
     auto empty() const -> bool;
 
-    void remove_color();
-    void color_cards(color color, isize idx);
+    void remove_tint();
+    void tint_cards(color color, isize idx);
 
     void flip_up_cards();
     void flip_up_top_card();
     void flip_down_cards();
     void flip_down_top_card();
 
-    auto get_description() const -> std::string;
+    auto get_description(i32 remainingRedeals) const -> hover_info;
     auto get_marker_texture_name() const -> std::string;
 
     void move_cards(pile& to, isize srcOffset, isize numCards, bool reverse);

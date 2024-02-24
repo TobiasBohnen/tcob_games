@@ -30,9 +30,9 @@ void pile::set_active(bool b, isize idx)
 {
     _isActive = b;
     if (!b) {
-        remove_color();
+        remove_tint();
     } else {
-        color_cards(COLOR_HOVER, idx);
+        tint_cards(COLOR_HOVER, idx);
     }
 }
 
@@ -53,7 +53,7 @@ auto pile::empty() const -> bool
     return Cards.empty();
 }
 
-void pile::remove_color()
+void pile::remove_tint()
 {
     constexpr color COLOR_DEFAULT {colors::White};
 
@@ -65,7 +65,7 @@ void pile::remove_color()
     }
 }
 
-void pile::color_cards(color color, isize idx)
+void pile::tint_cards(color color, isize idx)
 {
     if (idx == INDEX_MARKER) {
         Marker->Color = color;
@@ -97,6 +97,21 @@ void pile::flip_down_top_card()
     if (!empty()) { Cards.back().flip_face_down(); }
 }
 
+auto static get_valid_cards(empty::func const& f) -> std::multimap<rank, suit>
+{
+    std::multimap<rank, suit> retValue;
+
+    for (i32 i {0}; i < 52; ++i) {
+        suit s {static_cast<suit>(i / 13)};
+        rank r {static_cast<rank>(i % 13 + 1)};
+        if (f({s, r, 0})) {
+            retValue.emplace(r, s);
+        }
+    }
+
+    return retValue;
+}
+
 auto static get_rank_name(empty::func const& s) -> std::string
 {
     std::array<bool, 26>                     ranks {};
@@ -120,20 +135,6 @@ auto static get_rank_name(empty::func const& s) -> std::string
             retValue += "Red " + rankNames[i];
         }
     }
-    return retValue;
-}
-auto static get_valid_cards(empty::func const& f) -> std::multimap<rank, suit>
-{
-    std::multimap<rank, suit> retValue;
-
-    for (i32 i {0}; i < 52; ++i) {
-        suit s {static_cast<suit>(i / 13)};
-        rank r {static_cast<rank>(i % 13 + 1)};
-        if (f({s, r, 0})) {
-            retValue.emplace(r, s);
-        }
-    }
-
     return retValue;
 }
 
@@ -185,27 +186,34 @@ auto static get_building_hint_text(build_type h) -> std::string
     return "";
 }
 
-auto pile::get_description() const -> std::string
+auto pile::get_description(i32 remainingRedeals) const -> hover_info
 {
     auto const cardCount {Cards.size()};
+
+    hover_info retValue;
+    retValue.Pile      = get_pile_type_name(Type);
+    retValue.CardCount = std::to_string(cardCount);
 
     switch (Type) {
     case pile_type::Waste:
     case pile_type::Reserve:
     case pile_type::FreeCell:
-        return std::format("{}\nCards: {}", get_pile_type_name(Type), cardCount);
+        break;
+    case pile_type::Stock: {
+        std::string redeals {remainingRedeals < 0 ? "unlimited" : std::to_string(remainingRedeals)};
+        retValue.Rule = "Redeals: " + redeals;
+    } break;
     case pile_type::Foundation:
     case pile_type::Tableau: {
-        return std::format("{}\n{}\nFirst: {}\nCards: {}",
-                           get_pile_type_name(Type),
-                           get_building_hint_text(Rule.Build),
-                           get_rank_name(Rule.Empty.Accept),
-                           cardCount);
+        retValue.Pile      = get_pile_type_name(Type);
+        retValue.Rule      = get_building_hint_text(Rule.Build) + "\nFirst: " + get_rank_name(Rule.Empty.Accept);
+        retValue.CardCount = std::to_string(cardCount);
+        break;
     }
-    case pile_type::Stock: break; // TODO
     }
 
-    return "";
+    // TODO: translate
+    return retValue;
 }
 
 auto pile::get_marker_texture_name() const -> std::string

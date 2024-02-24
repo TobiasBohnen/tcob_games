@@ -18,21 +18,26 @@ main_menu::main_menu(gfx::window* window, rect_f bounds)
 
     auto mainPanel {create_container<panel>(dock_style::Fill, "main")};
 
-    auto mainPanelLayout {mainPanel->create_layout<grid_layout>(size_i {5, 20})};
+    auto mainPanelLayout {mainPanel->create_layout<grid_layout>(size_i {20, 6})};
 
-    LbxGames        = mainPanelLayout->create_widget<list_box>({0, 1, 5, 8}, "lbxGames");
-    BtnGames        = mainPanelLayout->create_widget<button>({1, 9, 3, 2}, "btnGames");
+    BtnGames        = mainPanelLayout->create_widget<button>({0, 0, 3, 6}, "btnGames");
     BtnGames->Label = "Games";
 
-    LblInfo        = mainPanelLayout->create_widget<label>({0, 12, 5, 3}, "lblInfo");
-    LblInfo->Class = "label-small";
+    LblPile             = mainPanelLayout->create_widget<label>({4, 0, 2, 6}, "lblInfo0");
+    LblPile->Class      = "label-small";
+    LblRule             = mainPanelLayout->create_widget<label>({6, 0, 4, 6}, "lblInfo1");
+    LblRule->Class      = "label-small";
+    LblCardCount        = mainPanelLayout->create_widget<label>({10, 0, 1, 6}, "lblInfo2");
+    LblCardCount->Class = "label-small";
 
-    BtnStart        = mainPanelLayout->create_widget<button>({3, 15, 2, 1}, "btnPlay");
+    BtnUndo        = mainPanelLayout->create_widget<button>({12, 0, 2, 6}, "btnUndo");
+    BtnUndo->Label = "Undo";
+
+    BtnStart        = mainPanelLayout->create_widget<button>({14, 0, 2, 6}, "btnPlay");
     BtnStart->Label = "Restart";
-    BtnUndo         = mainPanelLayout->create_widget<button>({0, 15, 2, 1}, "btnUndo");
-    BtnUndo->Label  = "Undo";
-    BtnQuit         = mainPanelLayout->create_widget<button>({1, 18, 3, 2}, "btnQuit");
-    BtnQuit->Label  = "Quit";
+
+    BtnQuit        = mainPanelLayout->create_widget<button>({18, 0, 2, 6}, "btnQuit");
+    BtnQuit->Label = "Quit";
 }
 
 ////////////////////////////////////////////////////////////

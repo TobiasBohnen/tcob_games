@@ -289,11 +289,11 @@ void field::check_drop_pile()
 
     if (_dropTarget.Pile != oldPile.Pile || _dropTarget.Index != oldPile.Index) {
         if (oldPile.Pile) {
-            oldPile.Pile->remove_color();
+            oldPile.Pile->remove_tint();
             mark_dirty();
         }
         if (_dropTarget.Pile) {
-            _dropTarget.Pile->color_cards(COLOR_DROP, _dropTarget.Index);
+            _dropTarget.Pile->tint_cards(COLOR_DROP, _dropTarget.Index);
             mark_dirty();
         }
     }
@@ -304,15 +304,13 @@ void field::check_hover_pile(point_i pos)
     auto oldPile {_hovered};
     _hovered = _currentGame->hover_at(point_i {(*_parentWindow->Camera).convert_screen_to_world(pos)});
 
-    if (_hovered.Pile != oldPile.Pile || _hovered.Index != oldPile.Index) {
-        if (oldPile.Pile) {
-            oldPile.Pile->set_active(false, oldPile.Index);
-            mark_dirty();
-        }
-        if (_hovered.Pile) {
-            _hovered.Pile->set_active(true, _hovered.Index);
-            mark_dirty();
-        }
+    if (oldPile.Pile) {
+        oldPile.Pile->set_active(false, oldPile.Index);
+        mark_dirty();
+    }
+    if (_hovered.Pile) {
+        _hovered.Pile->set_active(true, _hovered.Index);
+        mark_dirty();
     }
 }
 

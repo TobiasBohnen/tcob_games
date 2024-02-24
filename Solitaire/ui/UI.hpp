@@ -15,12 +15,13 @@ class main_menu : public form {
 public:
     main_menu(gfx::window* window, rect_f bounds);
 
-    std::shared_ptr<button>   BtnStart;
-    std::shared_ptr<list_box> LbxGames;
-    std::shared_ptr<button>   BtnGames;
-    std::shared_ptr<label>    LblInfo;
-    std::shared_ptr<button>   BtnUndo;
-    std::shared_ptr<button>   BtnQuit;
+    std::shared_ptr<button> BtnStart;
+    std::shared_ptr<button> BtnGames;
+    std::shared_ptr<label>  LblPile;
+    std::shared_ptr<label>  LblRule;
+    std::shared_ptr<label>  LblCardCount;
+    std::shared_ptr<button> BtnUndo;
+    std::shared_ptr<button> BtnQuit;
 };
 
 ////////////////////////////////////////////////////////////
