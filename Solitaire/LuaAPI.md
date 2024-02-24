@@ -45,7 +45,6 @@
 - find_pile
 - can_drop
 - drop
-- stack_index
 - shuffle_cards
 - PlaceTop
 - PlaceBottom

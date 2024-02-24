@@ -743,9 +743,6 @@ void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, 
     gameWrapper["can_drop"]  = [](script_game* game, pile* targetPile, isize targetIndex, card const& drop, isize numCards) {
         return game->base_game::can_drop(*targetPile, targetIndex - 1, drop, numCards);
     };
-    gameWrapper["stack_index"] = [](script_game* game, pile* targetPile, point_i pos) {
-        return game->base_game::stack_index(*targetPile, pos) + 1;
-    };
 
     // static methods
     auto placeCard {[](card& card, pile& to, bool ifEmpty, bool front) {
