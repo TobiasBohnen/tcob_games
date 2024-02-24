@@ -183,6 +183,8 @@ protected:
 
     auto check_state() const -> game_state override;
 
+    auto is_movable(pile const& targetPile, isize idx) const -> bool override;
+
 private:
     scripting::lua::table _table;
 };

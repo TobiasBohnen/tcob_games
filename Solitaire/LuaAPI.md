@@ -9,7 +9,7 @@
 - Stock / Waste / Reserve / FreeCell / Tableau / Foundation
   - Size
   - create
-- Layout
+- layout
 - can_drop
 - redeal
 - deal
@@ -18,6 +18,7 @@
 - after_shuffle
 - before_layout
 - check_state
+- is_movable
 
 ## Pile definition:
 - Position

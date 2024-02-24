@@ -693,6 +693,14 @@ auto script_game::check_state() const -> game_state
     return base_game::check_state();
 }
 
+auto script_game::is_movable(pile const& targetPile, isize idx) const -> bool
+{
+    if (function<bool> func; _table.try_get(func, "is_movable")) {
+        return func(this, &targetPile, idx + 1);
+    }
+    return base_game::is_movable(targetPile, idx);
+}
+
 void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs)
 {
     script.open_libraries();
