@@ -5,23 +5,17 @@
 
 #include "UI.hpp"
 
-#include "UIHelper.hpp"
-
 namespace solitaire {
 
-main_menu::main_menu(gfx::window* window, rect_f bounds)
+form_controls::form_controls(gfx::window* window, rect_f bounds)
     : form {"MainMenu", window, bounds}
 {
-    auto& resMgr {locate_service<assets::library>()};
-    auto& resGrp {resMgr.create_or_get_group("solitaire")};
-    create_styles(resGrp, *Styles);
-
     auto mainPanel {create_container<panel>(dock_style::Fill, "main")};
 
     auto mainPanelLayout {mainPanel->create_layout<grid_layout>(size_i {20, 6})};
 
-    BtnGames        = mainPanelLayout->create_widget<button>({0, 0, 3, 6}, "btnGames");
-    BtnGames->Label = "Games";
+    BtnMenu        = mainPanelLayout->create_widget<button>({0, 0, 3, 6}, "btnGames");
+    BtnMenu->Label = "Menu";
 
     LblPile             = mainPanelLayout->create_widget<label>({4, 0, 2, 6}, "lblInfo0");
     LblPile->Class      = "label-small";
@@ -42,17 +36,15 @@ main_menu::main_menu(gfx::window* window, rect_f bounds)
 
 ////////////////////////////////////////////////////////////
 
-game_list::game_list(gfx::window* window, rect_f bounds, std::vector<games::game_info> const& games)
+form_menu::form_menu(gfx::window* window, rect_f bounds,
+                     std::vector<games::game_info> const& games, std::vector<std::string> const& colorThemes)
     : form {"Games", window, bounds}
 {
     using namespace tcob::literals;
 
-    auto& resMgr {locate_service<assets::library>()};
-    auto& resGrp {resMgr.create_or_get_group("solitaire")};
-    create_styles(resGrp, *Styles);
-
-    auto tabs {create_container<tab_container>(dock_style::Left, "tabs")};
-    tabs->Flex = {85_pct, 100_pct};
+    // Games
+    auto tabGames {create_container<tab_container>(dock_style::Left, "tabGames")};
+    tabGames->Flex = {85_pct, 100_pct};
 
     auto createListBox {[&](std::shared_ptr<dock_layout>& tabPanelLayout, std::string const& name, auto&& pred) {
         auto listBox {tabPanelLayout->create_widget<list_box>(dock_style::Fill, "lbxGames" + name)};
@@ -73,13 +65,13 @@ game_list::game_list(gfx::window* window, rect_f bounds, std::vector<games::game
 
     // By Name
     {
-        auto tabPanel {tabs->create_tab<panel>("byName", "By Name")};
+        auto tabPanel {tabGames->create_tab<panel>("byName", "By Name")};
         auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
         createListBox(tabPanelLayout, "0", [](auto const&) { return true; });
     }
     // By Family
     {
-        auto tabContainer {tabs->create_tab<tab_container>("byFamily", "By Family")};
+        auto tabContainer {tabGames->create_tab<tab_container>("byFamily", "By Family")};
 
         auto createTab {[&](games::family family, std::string const& name) {
             auto tabPanel {tabContainer->create_tab<panel>(name)};
@@ -102,7 +94,7 @@ game_list::game_list(gfx::window* window, rect_f bounds, std::vector<games::game
     }
     // By Type
     {
-        auto tabContainer {tabs->create_tab<tab_container>("byType", "By Type")};
+        auto tabContainer {tabGames->create_tab<tab_container>("byType", "By Type")};
         auto createTab {[&](std::shared_ptr<tab_container>& parent, games::type type, std::string const& name) {
             auto tabPanel {parent->create_tab<panel>(name)};
             auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
@@ -136,7 +128,7 @@ game_list::game_list(gfx::window* window, rect_f bounds, std::vector<games::game
     }
     // By Deck Count
     {
-        auto tabContainer {tabs->create_tab<tab_container>("byDeckCount", "By Deck Count")};
+        auto tabContainer {tabGames->create_tab<tab_container>("byDeckCount", "By Deck Count")};
 
         auto createTab {[&](isize count, std::string const& name) {
             auto tabPanel {tabContainer->create_tab<panel>(name)};
@@ -154,13 +146,43 @@ game_list::game_list(gfx::window* window, rect_f bounds, std::vector<games::game
         }
     }
 
+    // Themes
+    auto panelThemes {create_container<panel>(dock_style::Left, "panelThemes")};
+    panelThemes->Flex = {0_pct, 0_pct};
+    {
+        auto panelLayout {panelThemes->create_layout<dock_layout>()};
+        auto listBox {panelLayout->create_widget<list_box>(dock_style::Fill, "lbxThemes")};
+        listBox->Class = "list_box_games";
+        for (auto const& colorTheme : colorThemes) {
+            listBox->add_item(colorTheme);
+        }
+        listBox->SelectedItemIndex.Changed.connect([&, lb = listBox.get()](auto val) {
+            if (val != -1) { SelectedTheme = lb->get_selected_item(); }
+        });
+        listBox->DoubleClick.connect([&] { hide(); });
+    }
+
     // menu
     auto menu {create_container<panel>(dock_style::Fill, "menu")};
     auto menuLayout {menu->create_layout<grid_layout>(size_i {5, 20})};
 
-    auto back {menuLayout->create_widget<button>({1, 18, 3, 2}, "btnBack")};
-    back->Label = "Back";
-    back->Click.connect([&](auto&) { hide(); });
+    auto btnGames {menuLayout->create_widget<button>({1, 1, 3, 2}, "btnGames")};
+    btnGames->Label = "Games";
+    btnGames->Click.connect([tabT = panelThemes.get(), tabG = tabGames.get()](auto&) {
+        tabT->Flex = {0_pct, 0_pct};
+        tabG->Flex = {85_pct, 100_pct};
+    });
+
+    auto btnThemes {menuLayout->create_widget<button>({1, 4, 3, 2}, "btnThemes")};
+    btnThemes->Label = "Themes";
+    btnThemes->Click.connect([tabT = panelThemes.get(), tabG = tabGames.get()](auto&) {
+        tabG->Flex = {0_pct, 0_pct};
+        tabT->Flex = {85_pct, 100_pct};
+    });
+
+    auto btnBack {menuLayout->create_widget<button>({1, 18, 3, 2}, "btnBack")};
+    btnBack->Label = "Back";
+    btnBack->Click.connect([&](auto&) { hide(); });
 }
 
 }

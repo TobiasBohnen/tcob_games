@@ -48,7 +48,9 @@ endif()
 
 configure_file(solitaire.zip ${CMAKE_BINARY_DIR}/../../x64/solitaire.zip COPYONLY)
 
-add_custom_target(copyLua ALL
+add_custom_target(Solitaire_copyFiles ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/games/lua/ ${CMAKE_BINARY_DIR}/../../x64/
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/theme.ini ${CMAKE_BINARY_DIR}/../../x64/
 )
-add_dependencies(copyLua Solitaire)
+
+add_dependencies(Solitaire_copyFiles Solitaire)

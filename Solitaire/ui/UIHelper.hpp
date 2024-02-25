@@ -7,9 +7,9 @@
 
 #include "Common.hpp" // IWYU pragma: keep
 
-namespace solitaire {
+#include <map>
 
-void create_styles(assets::group& resGrp, style_collection& styles);
+namespace solitaire {
 
 struct color_theme {
     color Background {colors::Transparent};
@@ -52,5 +52,15 @@ struct color_theme {
     void apply(std::shared_ptr<item_style> const& style) const;
     void apply(std::shared_ptr<nav_arrows_style> const& style) const;
 };
+
+struct color_themes {
+    color_theme normal;
+    color_theme hover;
+    color_theme active;
+};
+
+void create_styles(color_themes const& theme, assets::group& resGrp, style_collection& styles);
+
+auto load_themes() -> std::map<std::string, color_themes>;
 
 }

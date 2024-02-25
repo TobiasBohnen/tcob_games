@@ -167,66 +167,11 @@ void color_theme::apply(std::shared_ptr<nav_arrows_style> const& style) const
     style->NavArrow.Border.Background = Border;
 }
 
-void create_styles(assets::group& resGrp, style_collection& styles)
+void create_styles(color_themes const& theme, assets::group& resGrp, style_collection& styles)
 {
     using namespace tcob::literals;
     using namespace std::chrono_literals;
     namespace element = element;
-
-    color_theme normal;
-    normal.Background      = colors::ForestGreen;
-    normal.Border          = colors::MidnightBlue;
-    normal.DropShadow      = color {0, 0, 0, 128};
-    normal.Text            = colors::Black;
-    normal.BarLower        = colors::Blue;
-    normal.BarHigher       = colors::Red;
-    normal.Caret           = colors::DarkGray;
-    normal.Item            = colors::LightGray;
-    normal.LabelBackground = colors::Gray;
-    normal.NavArrowInc     = colors::White;
-    normal.NavArrowDec     = colors::White;
-    normal.NavArrow        = colors::Blue;
-    //  normal.TextShadow      = colors::Black;
-    normal.TextDecoration  = colors::Red;
-    normal.Thumb           = colors::LightGreen;
-    normal.Tick            = colors::Red;
-    normal.Container       = colors::DarkSlateGray;
-
-    color_theme hover;
-    hover.Background     = normal.Background;
-    hover.Border         = colors::IndianRed;
-    hover.DropShadow     = color {0, 0, 0, 128};
-    hover.Text           = colors::IndianRed;
-    hover.BarLower       = colors::Blue;
-    hover.BarHigher      = colors::Red;
-    hover.Caret          = colors::DarkGray;
-    hover.Item           = colors::LightBlue;
-    hover.NavArrowInc    = colors::White;
-    hover.NavArrowDec    = colors::White;
-    hover.NavArrow       = colors::Blue;
-    // hover.TextShadow     = colors::Black;
-    hover.TextDecoration = colors::Red;
-    hover.Thumb          = colors::LightGreen;
-    hover.Tick           = colors::Red;
-    hover.Container      = normal.Container;
-
-    color_theme active;
-    active.Background     = hover.Border;
-    active.Border         = hover.Background;
-    active.DropShadow     = color {0, 0, 0, 128};
-    active.Text           = colors::White;
-    active.BarLower       = colors::Blue;
-    active.BarHigher      = colors::Red;
-    active.Caret          = colors::DarkGray;
-    active.Item           = colors::Indigo;
-    active.NavArrowInc    = colors::White;
-    active.NavArrowDec    = colors::White;
-    active.NavArrow       = colors::Blue;
-    // active.TextShadow     = colors::White;
-    active.TextDecoration = colors::Red;
-    active.Thumb          = colors::LightGreen;
-    active.Tick           = colors::Red;
-    active.Container      = normal.Container;
 
     {
         auto style {styles.create<panel>("panel", {})};
@@ -236,7 +181,7 @@ void create_styles(assets::group& resGrp, style_collection& styles)
         style->Padding          = {5_px};
         style->DropShadow.Color = color {0, 0, 0, 128};
 
-        normal.apply(style);
+        theme.normal.apply(style);
     }
     {
         auto style {styles.create<button>("button", {})};
@@ -258,9 +203,9 @@ void create_styles(assets::group& resGrp, style_collection& styles)
         auto activeStyle {styles.create<button>("button", {.Active = true})};
         *activeStyle = *style;
 
-        normal.apply(style);
-        hover.apply(hoverStyle);
-        active.apply(activeStyle);
+        theme.normal.apply(style);
+        theme.hover.apply(hoverStyle);
+        theme.active.apply(activeStyle);
     }
 
     {
@@ -274,7 +219,8 @@ void create_styles(assets::group& resGrp, style_collection& styles)
         style->Bar.Border.Size   = 3_px;
         style->Bar.Border.Radius = 5_px;
 
-        normal.apply(style);
+        theme.normal.apply(style);
+        theme.hover.apply(style);
     }
     {
         auto style {styles.create<label>("label", {})};
@@ -284,7 +230,7 @@ void create_styles(assets::group& resGrp, style_collection& styles)
         style->Text.Alignment = {gfx::horizontal_alignment::Left, gfx::vertical_alignment::Middle};
         style->Text.AutoSize  = element::text::auto_size_mode::OnlyShrink;
 
-        normal.apply(style);
+        theme.normal.apply(style);
     }
     {
         auto style {styles.create<label>("label-small", {})};
@@ -292,8 +238,8 @@ void create_styles(assets::group& resGrp, style_collection& styles)
         style->Text.Font      = resGrp.get<gfx::font_family>("Poppins");
         style->Text.Size      = 16_px;
         style->Text.Alignment = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
-        style->Text.AutoSize  = element::text::auto_size_mode::OnlyShrink;
-        normal.apply(style);
+        style->Text.AutoSize  = element::text::auto_size_mode::Always;
+        theme.normal.apply(style);
         style->Text.Color = colors::White;
         style->Margin     = {5_px};
     }
@@ -315,8 +261,8 @@ void create_styles(assets::group& resGrp, style_collection& styles)
         auto hoverStyle {styles.create<list_box>("list_box", {.Hover = true})};
         *hoverStyle = *style;
 
-        normal.apply(style);
-        hover.apply(hoverStyle);
+        theme.normal.apply(style);
+        theme.hover.apply(hoverStyle);
     }
     {
         auto style {styles.create<list_box>("list_box_games", {})};
@@ -333,11 +279,11 @@ void create_styles(assets::group& resGrp, style_collection& styles)
         style->VScrollBar.Bar.Border.Size = 3_px;
         style->VScrollBar.Bar.Delay       = 250ms;
 
-        auto hoverStyle {styles.create<list_box>("list_box1", {.Hover = true})};
+        auto hoverStyle {styles.create<list_box>("list_box_games", {.Hover = true})};
         *hoverStyle = *style;
 
-        normal.apply(style);
-        hover.apply(hoverStyle);
+        theme.normal.apply(style);
+        theme.hover.apply(hoverStyle);
     }
     {
         auto style {styles.create<tab_container>("tab_container", {})};
@@ -349,7 +295,7 @@ void create_styles(assets::group& resGrp, style_collection& styles)
         style->TabBarHeight     = 10_pct;
         style->TabItemClass     = "tab_items";
         style->MaxTabs          = 8;
-        normal.apply(style);
+        theme.normal.apply(style);
     }
 
     {
@@ -366,9 +312,9 @@ void create_styles(assets::group& resGrp, style_collection& styles)
         auto activeStyle {styles.create<thumb_style>("slider_thumb", {.Active = true})};
         activeStyle->Thumb = style->Thumb;
 
-        normal.apply(style);
-        hover.apply(hoverStyle);
-        active.apply(activeStyle);
+        theme.normal.apply(style);
+        theme.hover.apply(hoverStyle);
+        theme.active.apply(activeStyle);
     }
     {
         auto style {styles.create<thumb_style>("scrollbar_thumb", {}, {})};
@@ -383,9 +329,9 @@ void create_styles(assets::group& resGrp, style_collection& styles)
         auto activeStyle {styles.create<thumb_style>("scrollbar_thumb", {.Active = true})};
         activeStyle->Thumb = style->Thumb;
 
-        normal.apply(style);
-        hover.apply(hoverStyle);
-        active.apply(activeStyle);
+        theme.normal.apply(style);
+        theme.hover.apply(hoverStyle);
+        theme.active.apply(activeStyle);
     }
     {
         auto style {styles.create<item_style>("list_items", {}, {})};
@@ -402,9 +348,9 @@ void create_styles(assets::group& resGrp, style_collection& styles)
         auto activeStyle {styles.create<item_style>("list_items", {.Active = true})};
         activeStyle->Item = style->Item;
 
-        normal.apply(style);
-        hover.apply(hoverStyle);
-        active.apply(activeStyle);
+        theme.normal.apply(style);
+        theme.hover.apply(hoverStyle);
+        theme.active.apply(activeStyle);
     }
     {
         auto style {styles.create<item_style>("tab_items", {}, {})};
@@ -422,10 +368,109 @@ void create_styles(assets::group& resGrp, style_collection& styles)
         auto activeStyle {styles.create<item_style>("tab_items", {.Active = true})};
         activeStyle->Item = style->Item;
 
-        normal.apply(style);
-        hover.apply(hoverStyle);
-        active.apply(activeStyle);
+        theme.normal.apply(style);
+        theme.hover.apply(hoverStyle);
+        theme.active.apply(activeStyle);
     }
+}
+
+auto load_themes() -> std::map<std::string, color_themes>
+{
+    std::map<std::string, color_themes> retValue;
+
+    if (io::is_file("theme.ini")) {
+        data::config::object themes {};
+        themes.load("theme.ini");
+
+        for (auto const& [k, v] : themes) {
+            color_theme normal;
+            normal.Background      = colors::LightSkyBlue;
+            normal.Border          = colors::MidnightBlue;
+            normal.DropShadow      = color {0, 0, 0, 128};
+            normal.Text            = colors::Black;
+            normal.BarLower        = colors::SlateGray;
+            normal.BarHigher       = normal.BarHigher;
+            normal.Caret           = colors::DarkGray;
+            normal.Item            = colors::LightGray;
+            normal.Thumb           = colors::DodgerBlue;
+            normal.Container       = colors::LavenderBlush;
+            normal.LabelBackground = colors::DimGray;
+
+            color_theme hover;
+            hover.Background = normal.Background;
+            hover.Border     = colors::IndianRed;
+            hover.DropShadow = color {0, 0, 0, 128};
+            hover.Text       = hover.Border;
+            hover.BarLower   = normal.BarLower;
+            hover.BarHigher  = normal.BarHigher;
+            hover.Caret      = normal.Caret;
+            hover.Item       = colors::LightBlue;
+            hover.Thumb      = normal.Thumb;
+            hover.Container  = normal.Container;
+
+            color_theme active;
+            active.Background = hover.Border;
+            active.Border     = colors::ForestGreen;
+            active.DropShadow = color {0, 0, 0, 128};
+            active.Text       = colors::White;
+            active.BarLower   = normal.BarLower;
+            active.BarHigher  = normal.BarHigher;
+            active.Caret      = normal.Caret;
+            active.Item       = normal.Background;
+            active.Thumb      = normal.Thumb;
+            active.Container  = normal.Container;
+
+            data::config::object theme {v.as<data::config::object>()};
+
+            auto getColor {[&](color& target, std::string const& group, std::string const& name) {
+                if (!theme.has(group, name)) { return; }
+
+                if (theme[group][name].is<std::string>()) {
+                    target = color::FromString(theme[group][name].as<std::string>());
+                } else {
+                    target = theme[group][name];
+                }
+            }};
+
+            getColor(normal.Background, "normal", "Background");
+            getColor(normal.Border, "normal", "Border");
+            getColor(normal.DropShadow, "normal", "DropShadow");
+            getColor(normal.Text, "normal", "Text");
+            getColor(normal.BarLower, "normal", "BarLower");
+            getColor(normal.BarHigher, "normal", "BarHigher");
+            getColor(normal.Caret, "normal", "Caret");
+            getColor(normal.Item, "normal", "Item");
+            getColor(normal.Thumb, "normal", "Thumb");
+            getColor(normal.Container, "normal", "Container");
+            getColor(normal.LabelBackground, "normal", "LabelBackground");
+
+            getColor(hover.Background, "hover", "Background");
+            getColor(hover.Border, "hover", "Border");
+            getColor(hover.DropShadow, "hover", "DropShadow");
+            getColor(hover.Text, "hover", "Text");
+            getColor(hover.BarLower, "hover", "BarLower");
+            getColor(hover.BarHigher, "hover", "BarHigher");
+            getColor(hover.Caret, "hover", "Caret");
+            getColor(hover.Item, "hover", "Item");
+            getColor(hover.Thumb, "hover", "Thumb");
+            getColor(hover.Container, "hover", "Container");
+
+            getColor(active.Background, "active", "Background");
+            getColor(active.Border, "active", "Border");
+            getColor(active.DropShadow, "active", "DropShadow");
+            getColor(active.Text, "active", "Text");
+            getColor(active.BarLower, "active", "BarLower");
+            getColor(active.BarHigher, "active", "BarHigher");
+            getColor(active.Caret, "active", "Caret");
+            getColor(active.Item, "active", "Item");
+            getColor(active.Thumb, "active", "Thumb");
+            getColor(active.Container, "active", "Container");
+
+            retValue[k] = {.normal = normal, .hover = hover, .active = active};
+        }
+    }
+
+    return retValue;
 }
 
 }

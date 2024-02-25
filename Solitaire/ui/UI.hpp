@@ -11,12 +11,12 @@
 namespace solitaire {
 ////////////////////////////////////////////////////////////
 
-class main_menu : public form {
+class form_controls : public form {
 public:
-    main_menu(gfx::window* window, rect_f bounds);
+    form_controls(gfx::window* window, rect_f bounds);
 
     std::shared_ptr<button> BtnStart;
-    std::shared_ptr<button> BtnGames;
+    std::shared_ptr<button> BtnMenu;
     std::shared_ptr<label>  LblPile;
     std::shared_ptr<label>  LblRule;
     std::shared_ptr<label>  LblCardCount;
@@ -26,11 +26,13 @@ public:
 
 ////////////////////////////////////////////////////////////
 
-class game_list : public form {
+class form_menu : public form {
 public:
-    game_list(gfx::window* window, rect_f bounds, std::vector<games::game_info> const& games);
+    form_menu(gfx::window* window, rect_f bounds,
+              std::vector<games::game_info> const& games, std::vector<std::string> const& colorThemes);
 
     prop<std::string> SelectedGame;
+    prop<std::string> SelectedTheme;
 };
 
 }
