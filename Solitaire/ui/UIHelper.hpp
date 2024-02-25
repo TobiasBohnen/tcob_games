@@ -54,9 +54,9 @@ struct color_theme {
 };
 
 struct color_themes {
-    color_theme normal;
-    color_theme hover;
-    color_theme active;
+    color_theme Normal;
+    color_theme Hover;
+    color_theme Active;
 };
 
 void create_styles(color_themes const& theme, assets::group& resGrp, style_collection& styles);

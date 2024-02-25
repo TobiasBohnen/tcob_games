@@ -28,6 +28,7 @@ void start_scene::on_start()
 
     auto& window {get_game().get_window()};
     auto  windowSize {window.Size()};
+    auto& configFile {locate_service<data::config_file>()};
 
     // field
     f32 const height {windowSize.Height / 10.f * 9.f};
@@ -69,15 +70,19 @@ void start_scene::on_start()
     _formMenu->hide();
     connect_ui_events();
 
-    create_styles(_themes["default"], resGrp, *_formMenu->Styles);
-    create_styles(_themes["default"], resGrp, *_formControls->Styles);
-
     // render queues
     get_root_node()->create_child()->attach_entity(_playField);
     get_root_node()->create_child()->attach_entity(_formControls);
     get_root_node()->create_child()->attach_entity(_formMenu);
 
     locate_service<stats>().reset();
+
+    // load config
+    if (configFile.has("sol", "game")) {
+        _formMenu->SelectedGame = configFile["sol"]["game"].as<std::string>();
+    }
+
+    _formMenu->SelectedTheme = configFile.get<std::string>("sol", "theme").value_or("default");
 }
 
 void start_scene::connect_ui_events()
@@ -110,15 +115,23 @@ void start_scene::connect_ui_events()
 
         _playField->start(_games[game].second(*_playField), true);
         locate_service<stats>().reset();
+        locate_service<data::config_file>()["sol"]["game"] = game;
     });
 
     _formMenu->SelectedTheme.Changed.connect([&](auto const& theme) {
         auto& resMgr {locate_service<assets::library>()};
         auto& resGrp {resMgr.create_or_get_group("solitaire")};
-        create_styles(_themes[theme], resGrp, *_formMenu->Styles);
+
+        auto newTheme {theme};
+        if (!_themes.contains(theme)) { newTheme = "default"; }
+
+        create_styles(_themes[newTheme], resGrp, *_formMenu->Styles);
+        create_styles(_themes[newTheme], resGrp, *_formControls->Styles);
+
         _formMenu->force_redraw("");
-        create_styles(_themes[theme], resGrp, *_formControls->Styles);
         _formControls->force_redraw("");
+
+        locate_service<data::config_file>()["sol"]["theme"] = newTheme;
     });
 
     _formMenu->VisibilityChanged.connect([&](bool val) {
