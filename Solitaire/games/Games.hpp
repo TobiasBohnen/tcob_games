@@ -6,6 +6,7 @@
 #pragma once
 
 #include "Common.hpp" // IWYU pragma: keep
+
 #include "Field.hpp"
 #include "Piles.hpp"
 
@@ -125,6 +126,13 @@ protected:
 
     void end_turn();
 
+    template <typename T>
+    void static CreateWrapper(auto&& script, i32 indexOffset);
+    template <typename T, typename Table, template <typename> typename Function>
+    void static CreatePiles(T* game, auto&& gameTable);
+    template <typename T, typename Table>
+    void static CreateGlobals(auto&& scene, auto&& globalTable, auto&& makeFunc);
+
 private:
     void new_game();
     auto load(std::optional<data::config::object> const& loadObj) -> bool;
@@ -152,21 +160,11 @@ private:
     rng _rand {}; // TODO: custom state
 };
 
-inline void base_game::create_piles(auto&& piles, isize size, std::function<void(pile&, i32)> const& func)
-{
-    piles.reserve(size);
-    for (i32 i {0}; i < size; ++i) {
-        auto& pile {piles.emplace_back()};
-        func(pile, i);
-        add_pile(&pile);
-    }
-}
-
 ////////////////////////////////////////////////////////////
 
-class script_game : public base_game {
+class lua_script_game : public base_game {
 public:
-    script_game(field& f, game_info info, scripting::lua::table tab);
+    lua_script_game(field& f, game_info info, scripting::lua::table tab);
 
     void static CreateAPI(start_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs);
 
@@ -190,4 +188,34 @@ private:
     scripting::lua::table _table;
 };
 
+////////////////////////////////////////////////////////////
+
+class squirrel_script_game : public base_game {
+public:
+    squirrel_script_game(field& f, game_info info, scripting::squirrel::table tab);
+
+    void static CreateAPI(start_scene* scene, scripting::squirrel::script& script, std::vector<scripting::squirrel::native_closure_shared_ptr>& funcs);
+
+    auto can_drop(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool override;
+
+protected:
+    auto do_redeal() -> bool override;
+    auto do_deal() -> bool override;
+
+    auto before_shuffle(card& card) -> bool override;
+    auto shuffle(card& card, pile_type pileType) -> bool override;
+    void after_shuffle() override;
+
+    void on_change() override;
+
+    auto check_state() const -> game_state override;
+
+    auto check_movable(pile const& targetPile, isize idx) const -> bool override;
+
+private:
+    scripting::squirrel::table _table;
+};
+
 }
+
+#include "Games.inl"

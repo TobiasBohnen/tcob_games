@@ -113,9 +113,11 @@ void start_scene::connect_ui_events()
         camera.set_position(point_f::Zero);
         camera.set_zoom(size_f::One);
 
-        _playField->start(_games[game].second(*_playField), true);
-        locate_service<stats>().reset();
-        locate_service<data::config_file>()["sol"]["game"] = game;
+        if (_games.contains(game)) {
+            _playField->start(_games[game].second(*_playField), true);
+            locate_service<stats>().reset();
+            locate_service<data::config_file>()["sol"]["game"] = game;
+        }
     });
 
     _formMenu->SelectedTheme.Changed.connect([&](auto const& theme) {
@@ -172,7 +174,7 @@ void start_scene::on_key_down(input::keyboard::event& ev)
     case input::scan_code::R: {
         auto files {io::enumerate("/", "*.games.lua", true)};
         for (auto const& file : files) {
-            [[maybe_unused]] auto _ {_script.run_file(file)};
+            [[maybe_unused]] auto _ {_luaScript.run_file(file)};
         }
         ev.Handled = true;
     } break;
@@ -207,13 +209,20 @@ void start_scene::on_mouse_wheel(input::mouse::wheel_event& ev)
 
 void start_scene::load_scripts()
 {
-    using namespace scripting::lua;
+    {
+        games::lua_script_game::CreateAPI(this, _luaScript, _luaFunctions);
+        auto files {io::enumerate("/", "*.games.lua", true)};
+        for (auto const& file : files) {
+            [[maybe_unused]] auto _ {_luaScript.run_file(file)};
+        }
+    }
 
-    games::script_game::CreateAPI(this, _script, _functions);
-
-    auto files {io::enumerate("/", "*.games.lua", true)};
-    for (auto const& file : files) {
-        [[maybe_unused]] auto _ {_script.run_file(file)};
+    {
+        games::squirrel_script_game::CreateAPI(this, _sqScript, _sqFunctions);
+        auto files {io::enumerate("/", "*.games.nut", true)};
+        for (auto const& file : files) {
+            [[maybe_unused]] auto _ {_sqScript.run_file(file)};
+        }
     }
 }
 

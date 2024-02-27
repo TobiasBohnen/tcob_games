@@ -50,6 +50,7 @@ configure_file(solitaire.zip ${CMAKE_BINARY_DIR}/../../x64/solitaire.zip COPYONL
 
 add_custom_target(Solitaire_copyFiles ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/games/lua/ ${CMAKE_BINARY_DIR}/../../x64/
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/games/sq/ ${CMAKE_BINARY_DIR}/../../x64/
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/theme.ini ${CMAKE_BINARY_DIR}/../../x64/
 )
 

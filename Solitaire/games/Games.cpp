@@ -24,9 +24,7 @@ auto base_game::get_name() const -> std::string
 
 auto base_game::get_description(pile const* pile) const -> hover_info
 {
-    if (!pile) { return {}; }
-
-    return pile->get_description(_remainingRedeals);
+    return pile ? pile->get_description(_remainingRedeals) : hover_info {};
 }
 
 void base_game::start(size_f cardSize, std::optional<data::config::object> const& loadObj)
@@ -529,138 +527,63 @@ auto base_game::redeals_left() const -> i32
 ////////////////////////////////////////////////////////////
 
 using namespace scripting;
-using namespace scripting::lua;
 
-script_game::script_game(field& f, game_info info, scripting::lua::table tab)
+lua_script_game::lua_script_game(field& f, game_info info, lua::table tab)
     : base_game {f, std::move(info)}
     , _table {std::move(tab)}
 {
-    // TODO: check table for unknown members
-
-    auto const createPile {[this](pile& pile, table const& pileTab) {
-        pile.Position  = pileTab["Position"].get<point_f>().value_or(point_f::Zero);
-        pile.Initial   = pileTab["Initial"].get<std::vector<bool>>().value_or(std::vector<bool> {});
-        pile.Layout    = pileTab["Layout"].get<layout_type>().value_or(layout_type::Squared);
-        pile.HasMarker = pileTab["HasMarker"].get<bool>().value_or(true);
-
-        if (table ruleTable; pileTab.try_get(ruleTable, "Rule")) {
-            pile.Rule.Build    = ruleTable["Build"].get<build_type>().value_or(build_type::NoBuilding);
-            pile.Rule.Interval = ruleTable["Interval"].get<i32>().value_or(1);
-            pile.Rule.Wrap     = ruleTable["Wrap"].get<bool>().value_or(false);
-            pile.Rule.Move     = ruleTable["Move"].get<move_type>().value_or(move_type::Top);
-            pile.Rule.Limit    = ruleTable["Limit"].get<i32>().value_or(-1);
-
-            if (function<bool> emptyFunc; ruleTable.try_get(emptyFunc, "Empty")) {
-                pile.Rule.Empty = empty::func {[this, emptyFunc](card const& card) { return emptyFunc(this, card); }};
-            } else if (std::string empty; ruleTable.try_get(empty, "Empty")) {
-                if (empty == "Ace") {
-                    pile.Rule.Empty = empty::Ace();
-                } else if (empty == "King") {
-                    pile.Rule.Empty = empty::King();
-                } else if (empty == "None") {
-                    pile.Rule.Empty = empty::None();
-                } else if (empty == "Any") {
-                    pile.Rule.Empty = empty::Any();
-                } else if (empty == "AnySingle") {
-                    pile.Rule.Empty = {empty::Any(), true};
-                } else if (empty == "FirstFoundation") {
-                    pile.Rule.Empty = empty::First(Foundation[0]);
-                }
-            } else if (table emptyTable; ruleTable.try_get(emptyTable, "Empty")) {
-                if (std::string type; emptyTable.try_get(type, "Type")) {
-                    if (type == "FirstFoundation") {
-                        i32 const interval {emptyTable["Interval"].get<i32>().value_or(0)};
-                        pile.Rule.Empty = {empty::First(Foundation[0], interval)};
-                    } else if (type == "Card") {
-                        rank const       r {emptyTable["Rank"]};
-                        suit_color const sc {emptyTable["Color"]};
-                        pile.Rule.Empty = empty::Card(sc, r);
-                    } else if (type == "Ranks") {
-                        std::set<rank> const r {emptyTable["Ranks"].as<std::set<rank>>()};
-                        pile.Rule.Empty = empty::Ranks(r);
-                    } else if (type == "Suits") {
-                        std::set<suit> const s {emptyTable["Suits"].as<std::set<suit>>()};
-                        pile.Rule.Empty = empty::Suits(s);
-                    }
-                }
-            }
-        }
-    }};
-
-    auto const createPiles {[&](auto&& piles, std::string const& name) {
-        if (table pileTypeTable; _table.try_get(pileTypeTable, name)) {
-            isize const size {pileTypeTable["Size"].get<isize>().value_or(1)};
-            if (size == 1 && !pileTypeTable.has("create")) { // table is definition
-                create_piles(piles, 1, [&](auto& pile, i32) {
-                    createPile(pile, pileTypeTable);
-                });
-            } else if (table createTable; pileTypeTable.try_get(createTable, "create")) { // use 'create' table
-                create_piles(piles, size, [&](auto& pile, i32) {
-                    createPile(pile, createTable);
-                });
-            } else { // call 'create' function
-                function<table> create {pileTypeTable["create"].as<function<table>>()};
-                create_piles(piles, size, [&](auto& pile, i32 i) {
-                    createPile(pile, create(i));
-                });
-            }
-        }
-    }};
-
-    createPiles(Stock, "Stock");
-    createPiles(Waste, "Waste");
-    createPiles(Reserve, "Reserve");
-    createPiles(FreeCell, "FreeCell");
-    createPiles(Foundation, "Foundation");
-    createPiles(Tableau, "Tableau");
-
-    if (function<void> func; _table.try_get(func, "on_created")) {
-        func(this);
-    }
+    using namespace scripting::lua;
+    CreatePiles<lua_script_game, table, function>(this, _table);
 }
 
-auto script_game::can_drop(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool
+auto lua_script_game::can_drop(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool
 {
+    using namespace scripting::lua;
     if (function<bool> func; _table.try_get(func, "check_drop")) {
         return func(this, &targetPile, targetIndex + 1, drop, numCards);
     }
     return base_game::can_drop(targetPile, targetIndex, drop, numCards);
 }
 
-auto script_game::do_redeal() -> bool
+auto lua_script_game::do_redeal() -> bool
 {
+    using namespace scripting::lua;
     if (function<bool> func; _table.try_get(func, "on_redeal")) {
         return func(this);
     }
     return base_game::do_redeal();
 }
 
-auto script_game::do_deal() -> bool
+auto lua_script_game::do_deal() -> bool
 {
+    using namespace scripting::lua;
     if (function<bool> func; _table.try_get(func, "on_deal")) {
         return func(this);
     }
     return base_game::do_deal();
 }
 
-auto script_game::before_shuffle(card& card) -> bool
+auto lua_script_game::before_shuffle(card& card) -> bool
 {
+    using namespace scripting::lua;
     if (function<bool> func; _table.try_get(func, "on_before_shuffle")) {
         return func(this, card);
     }
     return base_game::before_shuffle(card);
 }
 
-auto script_game::shuffle(card& card, pile_type pileType) -> bool
+auto lua_script_game::shuffle(card& card, pile_type pileType) -> bool
 {
+    using namespace scripting::lua;
     if (function<bool> func; _table.try_get(func, "on_shuffle")) {
         return func(this, card, pileType);
     }
     return base_game::shuffle(card, pileType);
 }
 
-void script_game::after_shuffle()
+void lua_script_game::after_shuffle()
 {
+    using namespace scripting::lua;
     if (function<void> func; _table.try_get(func, "on_after_shuffle")) {
         func(this);
     } else {
@@ -668,8 +591,9 @@ void script_game::after_shuffle()
     }
 }
 
-void script_game::on_change()
+void lua_script_game::on_change()
 {
+    using namespace scripting::lua;
     if (function<void> func; _table.try_get(func, "on_change")) {
         func(this);
     } else {
@@ -677,24 +601,27 @@ void script_game::on_change()
     }
 }
 
-auto script_game::check_state() const -> game_state
+auto lua_script_game::check_state() const -> game_state
 {
+    using namespace scripting::lua;
     if (function<game_state> func; _table.try_get(func, "check_state")) {
         return func(this);
     }
     return base_game::check_state();
 }
 
-auto script_game::check_movable(pile const& targetPile, isize idx) const -> bool
+auto lua_script_game::check_movable(pile const& targetPile, isize idx) const -> bool
 {
+    using namespace scripting::lua;
     if (function<bool> func; _table.try_get(func, "check_movable")) {
         return func(this, &targetPile, idx + 1);
     }
     return base_game::check_movable(targetPile, idx);
 }
 
-void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs)
+void lua_script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs)
 {
+    using namespace scripting::lua;
     script.open_libraries();
 
     auto make_func {[&](auto&& func) {
@@ -703,157 +630,117 @@ void script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, 
         return ptr.get();
     }};
 
-    auto global {script.get_global_table()};
-    global["RegisterGame"] = make_func([scene](table& tab) {
-        games::game_info info;
-        info.Name          = tab["Info"]["Name"].as<std::string>();
-        info.Type          = tab["Info"]["Type"];
-        info.Family        = tab["Info"]["Family"];
-        info.DeckCount     = tab["Info"]["DeckCount"];
-        info.CardDealCount = tab["Info"]["CardDealCount"];
-        info.Redeals       = tab["Info"]["Redeals"];
+    CreateGlobals<lua_script_game, table>(scene, script.get_global_table(), make_func);
+    CreateWrapper<lua_script_game>(script, -1);
+}
 
-        auto func {[tab, info](auto& field) { return std::make_shared<games::script_game>(field, info, tab); }};
-        scene->register_game(info, func);
-    });
+////////////////////////////////////////////////////////////
 
-    // game
-    auto& gameWrapper {*script.create_wrapper<script_game>("script_game")};
-    gameWrapper["RedealsLeft"]   = getter {[](script_game* game) { return game->redeals_left(); }};
-    gameWrapper["CardDealCount"] = getter {[](script_game* game) { return game->info().CardDealCount; }};
+squirrel_script_game::squirrel_script_game(field& f, game_info info, scripting::squirrel::table tab)
+    : base_game {f, std::move(info)}
+    , _table {std::move(tab)}
+{
+    using namespace scripting::squirrel;
+    CreatePiles<squirrel_script_game, table, function>(this, _table);
+}
 
-    auto const returnPile {[](script_game* game, pile_type type) {
-        auto const& piles {game->piles()};
-        if (piles.contains(type)) { return game->piles().at(type); }
-        return std::vector<pile*> {};
+auto squirrel_script_game::can_drop(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool
+{
+    using namespace scripting::squirrel;
+    if (function<bool> func; _table.try_get(func, "check_drop")) {
+        return func(this, &targetPile, targetIndex, drop, numCards);
+    }
+    return base_game::can_drop(targetPile, targetIndex, drop, numCards);
+}
+
+auto squirrel_script_game::do_redeal() -> bool
+{
+    using namespace scripting::squirrel;
+    if (function<bool> func; _table.try_get(func, "on_redeal")) {
+        return func(this);
+    }
+    return base_game::do_redeal();
+}
+
+auto squirrel_script_game::do_deal() -> bool
+{
+    using namespace scripting::squirrel;
+    if (function<bool> func; _table.try_get(func, "on_deal")) {
+        return func(this);
+    }
+    return base_game::do_deal();
+}
+
+auto squirrel_script_game::before_shuffle(card& card) -> bool
+{
+    using namespace scripting::squirrel;
+    if (function<bool> func; _table.try_get(func, "on_before_shuffle")) {
+        return func(this, card);
+    }
+    return base_game::before_shuffle(card);
+}
+
+auto squirrel_script_game::shuffle(card& card, pile_type pileType) -> bool
+{
+    using namespace scripting::squirrel;
+    if (function<bool> func; _table.try_get(func, "on_shuffle")) {
+        return func(this, card, pileType);
+    }
+    return base_game::shuffle(card, pileType);
+}
+
+void squirrel_script_game::after_shuffle()
+{
+    using namespace scripting::squirrel;
+    if (function<void> func; _table.try_get(func, "on_after_shuffle")) {
+        func(this);
+    } else {
+        base_game::after_shuffle();
+    }
+}
+
+void squirrel_script_game::on_change()
+{
+    using namespace scripting::squirrel;
+    if (function<void> func; _table.try_get(func, "on_change")) {
+        func(this);
+    } else {
+        base_game::on_change();
+    }
+}
+
+auto squirrel_script_game::check_state() const -> game_state
+{
+    using namespace scripting::squirrel;
+    if (function<game_state> func; _table.try_get(func, "check_state")) {
+        return func(this);
+    }
+    return base_game::check_state();
+}
+
+auto squirrel_script_game::check_movable(pile const& targetPile, isize idx) const -> bool
+{
+    using namespace scripting::squirrel;
+    if (function<bool> func; _table.try_get(func, "check_movable")) {
+        return func(this, &targetPile, idx);
+    }
+    return base_game::check_movable(targetPile, idx);
+}
+
+void squirrel_script_game::CreateAPI(start_scene* scene, scripting::squirrel::script& script, std::vector<scripting::squirrel::native_closure_shared_ptr>& funcs)
+{
+    using namespace scripting::squirrel;
+
+    script.open_libraries();
+
+    auto make_func {[&](auto&& func) {
+        auto ptr {make_shared_closure(std::function {func})};
+        funcs.push_back(ptr);
+        return ptr.get();
     }};
 
-    // properties
-    gameWrapper["Stock"]      = getter {[returnPile](script_game* game) { return returnPile(game, pile_type::Stock); }};
-    gameWrapper["Waste"]      = getter {[returnPile](script_game* game) { return returnPile(game, pile_type::Waste); }};
-    gameWrapper["Foundation"] = getter {[returnPile](script_game* game) { return returnPile(game, pile_type::Foundation); }};
-    gameWrapper["Tableau"]    = getter {[returnPile](script_game* game) { return returnPile(game, pile_type::Tableau); }};
-    gameWrapper["Reserve"]    = getter {[returnPile](script_game* game) { return returnPile(game, pile_type::Reserve); }};
-    gameWrapper["FreeCell"]   = getter {[returnPile](script_game* game) { return returnPile(game, pile_type::FreeCell); }};
-
-    // methods
-    gameWrapper["shuffle_cards"] = [](script_game* game, std::vector<card> const& cards) {
-        std::vector<card> shuffled {cards};
-        game->rand().shuffle<card>(shuffled);
-        return shuffled;
-    };
-    gameWrapper["find_pile"] = [](script_game* game, card& card) { return game->find_pile(card); };
-    gameWrapper["drop"]      = [](script_game* game, pile* to, card& card) { return game->drop(*to, card); };
-    gameWrapper["can_drop"]  = [](script_game* game, pile* targetPile, isize targetIndex, card const& drop, isize numCards) {
-        return game->base_game::can_drop(*targetPile, targetIndex - 1, drop, numCards);
-    };
-
-    // static methods
-    auto placeCard {[](card& card, pile& to, bool ifEmpty, bool front) {
-        bool const canPlace {ifEmpty ? to.Cards.empty() : true};
-        if (canPlace) {
-            card.flip_face_up();
-            if (front) {
-                to.Cards.emplace_front(card);
-            } else {
-                to.Cards.emplace_back(card);
-            }
-            return true;
-        }
-        return false;
-    }};
-    gameWrapper["PlaceTop"] = overload(
-        [=](card& card, std::vector<pile*>& to, bool ifEmpty) {
-            for (auto& pile : to) {
-                if (placeCard(card, *pile, ifEmpty, false)) { return true; }
-            }
-            return false;
-        },
-        [=](card& card, std::vector<pile*>& to, i32 offset, usize size, bool ifEmpty) {
-            auto const target {std::span<pile*>(to.data() + offset - 1, size)};
-            for (auto& pile : target) {
-                if (placeCard(card, *pile, ifEmpty, false)) { return true; }
-            }
-            return false;
-        },
-        [=](card& card, pile* to, bool ifEmpty) {
-            return placeCard(card, *to, ifEmpty, false);
-        });
-    gameWrapper["PlaceBottom"] = overload(
-        [=](card& card, std::vector<pile*>& to, bool ifEmpty) {
-            for (auto& pile : to) {
-                if (placeCard(card, *pile, ifEmpty, true)) { return true; }
-            }
-            return false;
-        },
-        [=](card& card, std::vector<pile*>& to, i32 offset, usize size, bool ifEmpty) {
-            auto const target {std::span<pile*>(to.data() + offset - 1, size)};
-            for (auto& pile : target) {
-                if (placeCard(card, *pile, ifEmpty, true)) { return true; }
-            }
-            return false;
-        },
-        [=](card& card, pile* to, bool ifEmpty) {
-            return placeCard(card, *to, ifEmpty, true);
-        });
-
-    // pile
-    auto& pileWrapper {*script.create_wrapper<pile>("pile")};
-
-    // properties
-    pileWrapper["Type"]      = getter {[](pile* p) { return p->Type; }};
-    pileWrapper["IsEmpty"]   = getter {[](pile* p) { return p->empty(); }};
-    pileWrapper["CardCount"] = getter {[](pile* p) { return p->Cards.size(); }};
-    pileWrapper["Cards"]     = getter {[](pile* p) { return p->Cards; }};
-    pileWrapper["Position"]  = property {[](pile* p) { return p->Position; }, [](pile* p, point_f pos) { p->Position = pos; }};
-
-    // methods
-    pileWrapper["flip_up_cards"]      = [](pile* p) { p->flip_up_cards(); };
-    pileWrapper["flip_up_top_card"]   = [](pile* p) { p->flip_up_top_card(); };
-    pileWrapper["flip_down_cards"]    = [](pile* p) { p->flip_down_cards(); };
-    pileWrapper["flip_down_top_card"] = [](pile* p) { p->flip_down_top_card(); };
-    pileWrapper["clear"]              = [](pile* p) { p->Cards.clear(); };
-
-    pileWrapper["move_rank_to_bottom"] = [](pile* p, rank r) { std::ranges::stable_partition(p->Cards, [r](card const& c) { return c.get_rank() == r; }); };
-    pileWrapper["move_cards"]          = [](pile* p, pile* to, isize startIndex, isize numCards, bool reverse) {
-        p->move_cards(*to, startIndex - 1, numCards, reverse);
-    };
-    pileWrapper["redeal"] = [](pile* p, pile* to) {
-        if (to->empty() && !p->empty()) {
-            p->move_cards(*to, 0, std::ssize(p->Cards), true);
-            to->flip_down_cards();
-            return true;
-        }
-
-        return false;
-    };
-    pileWrapper["deal"] = [](pile* p, pile* to, i32 cardDealCount) {
-        if (p->empty()) { return false; }
-
-        for (i32 i {0}; i < cardDealCount; ++i) {
-            p->move_cards(*to, std::ssize(p->Cards) - 1, 1, false);
-        }
-        to->flip_up_cards();
-
-        return true;
-    };
-    pileWrapper["deal_to_group"] = [](pile* p, std::vector<pile*> const& to, bool ifEmpty) {
-        if (p->Cards.empty()) { return false; }
-
-        for (auto* toPile : to) {
-            if (ifEmpty && !toPile->Cards.empty()) { continue; }
-
-            if (!p->Cards.empty()) {
-                p->move_cards(*toPile, std::ssize(p->Cards) - 1, 1, false);
-            } else {
-                break;
-            }
-            toPile->flip_up_top_card();
-        }
-
-        return true;
-    };
-    pileWrapper["check_bounds"] = [](pile* p, isize i, point_i pos) { return p->Cards[i - 1].Bounds.contains(pos); };
+    CreateGlobals<squirrel_script_game, table>(scene, script.get_root_table(), make_func);
+    CreateWrapper<squirrel_script_game>(script, 0);
 }
 
 } // namespace solitaire

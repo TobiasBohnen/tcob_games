@@ -6,6 +6,7 @@
 #pragma once
 
 #include "Common.hpp" // IWYU pragma: keep
+
 #include "Field.hpp"
 #include "Games.hpp"
 #include "ui/UI.hpp"
@@ -42,8 +43,10 @@ private:
 
     void connect_ui_events();
 
-    scripting::lua::script                                 _script;
-    std::vector<scripting::lua::native_closure_shared_ptr> _functions;
+    scripting::lua::script                                      _luaScript;
+    std::vector<scripting::lua::native_closure_shared_ptr>      _luaFunctions;
+    scripting::squirrel::script                                 _sqScript;
+    std::vector<scripting::squirrel::native_closure_shared_ptr> _sqFunctions;
 
     input::mouse::button           _buttonDown {input::mouse::button::None};
     std::shared_ptr<field>         _playField {};
