@@ -744,10 +744,42 @@ void squirrel_script_game::CreateAPI(start_scene* scene, scripting::squirrel::sc
     CreateGlobals<squirrel_script_game, table>(scene, script.get_root_table(), make_func);
     CreateWrapper(script, 0);
 
-    script.get_root_table()["CallLua"] = make_func([scene /*, view = script.get_view()*/](std::vector<std::string> const& func, base_game* game) {
-        //  auto types = view.get_stack_types();
+    script.get_root_table()["CallLua"] = make_func([scene, view = script.get_view()](std::string const& func) {
+        auto const types {view.get_stack_types()};
+        lua_params args {};
 
-        scene->call_lua(func, game);
+        for (isize i {3}; i < std::ssize(types);) {
+            switch (types[i - 1]) {
+            case tcob::scripting::squirrel::type::Userdata: {
+                base_game* val {};
+                if (view.pull_convert(i, val)) { args.Items.emplace_back(val); }
+            } break;
+
+            case tcob::scripting::squirrel::type::Integer: {
+                i64 val {};
+                if (view.pull_convert(i, val)) { args.Items.emplace_back(val); }
+            } break;
+
+            case tcob::scripting::squirrel::type::Float: {
+                f64 val {};
+                if (view.pull_convert(i, val)) { args.Items.emplace_back(val); }
+            } break;
+
+            case tcob::scripting::squirrel::type::Boolean: {
+                bool val {};
+                if (view.pull_convert(i, val)) { args.Items.emplace_back(val); }
+            } break;
+
+            case tcob::scripting::squirrel::type::String: {
+                std::string val {};
+                if (view.pull_convert(i, val)) { args.Items.emplace_back(val); }
+            } break;
+
+            default: break;
+            }
+        }
+
+        scene->call_lua(func, args);
     });
 }
 

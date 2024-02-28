@@ -44,6 +44,8 @@ namespace games {
     class base_game;
 }
 
+using lua_params = scripting::parameter_pack<std::variant<games::base_game*, i64, f64, bool, std::string>>;
+
 ////////////////////////////////////////////////////////////
 
 auto inline multiply(point_f pos, size_f size) -> point_f

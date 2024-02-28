@@ -19,13 +19,16 @@ void start_scene::register_game(games::game_info const& info, func&& game)
     _games[info.Name] = {info, std::move(game)};
 }
 
-void start_scene::call_lua(std::vector<std::string> const& func, games::base_game* game)
+void start_scene::call_lua(std::string const& func, lua_params const& args)
 {
-    scripting::lua::table tab {_luaScript.get_global_table()};
-    for (isize i {0}; i < std::ssize(func) - 1; ++i) {
-        tab = tab[func[i]];
+    using namespace scripting::lua;
+    auto const funcs {helper::split(func, '.')};
+    table      tab {_luaScript.get_global_table()};
+    for (isize i {0}; i < std::ssize(funcs) - 1; ++i) {
+        tab = tab[funcs[i]];
     }
-    tab[func.back()].as<scripting::lua::function<void>>()(game);
+
+    tab[funcs.back()].as<function<void>>()(args);
 }
 
 void start_scene::on_start()
