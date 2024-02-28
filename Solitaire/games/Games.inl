@@ -19,14 +19,12 @@ inline void base_game::create_piles(auto&& piles, isize size, std::function<void
     }
 }
 
-template <typename T>
 inline void base_game::CreateWrapper(auto&& script, i32 indexOffset)
 {
     using namespace scripting;
 
     // game
-    auto& gameWrapper {*script.template create_wrapper<T>("script_game")};
-    gameWrapper.template register_base<base_game>();
+    auto& gameWrapper {*script.template create_wrapper<base_game>("script_game")};
     gameWrapper["RedealsLeft"]   = getter {[](base_game* game) { return game->redeals_left(); }};
     gameWrapper["CardDealCount"] = getter {[](base_game* game) { return game->info().CardDealCount; }};
 
@@ -161,8 +159,8 @@ inline void base_game::CreateWrapper(auto&& script, i32 indexOffset)
     pileWrapper["check_bounds"] = [](pile* p, isize i, point_i pos) { return p->Cards[i - 1].Bounds.contains(pos); };
 }
 
-template <typename T, typename Table, template <typename> typename Function>
-inline void base_game::CreatePiles(T* game, auto&& gameRef)
+template <typename Table, template <typename> typename Function>
+inline void base_game::CreatePiles(auto&& game, auto&& gameRef)
 {
     auto const createPile {[game](pile& pile, Table const& pileTab) {
         pile.Position  = pileTab["Position"].template get<point_f>().value_or(point_f::Zero);
@@ -242,7 +240,7 @@ inline void base_game::CreatePiles(T* game, auto&& gameRef)
     createPiles(game->Tableau, "Tableau");
 
     if (Function<void> func; gameRef.try_get(func, "on_created")) {
-        func(game);
+        func(static_cast<base_game*>(game));
     }
 }
 

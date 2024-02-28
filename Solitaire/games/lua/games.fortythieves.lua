@@ -3,10 +3,9 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local layout = require 'base/layout'
-local ops    = require 'base/ops'
-local piles  = require 'base/piles'
-require 'base/common'
+local ops   = require 'base/ops'
+local piles = require 'base/piles'
+
 
 local forty_thieves        = {
     Info       = {
@@ -34,7 +33,7 @@ local forty_thieves        = {
         }
     },
     on_deal    = ops.deal.stock_to_waste,
-    on_created = layout.forty_thieves
+    on_created = Layout.forty_thieves
 }
 
 ------

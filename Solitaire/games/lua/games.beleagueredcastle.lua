@@ -3,13 +3,12 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local layout = require 'base/layout'
-local ops    = require 'base/ops'
-local piles  = require 'base/piles'
-require 'base/common'
+local ops   = require 'base/ops'
+local piles = require 'base/piles'
+
 
 local beleaguered_castle    = {
-    Info           = {
+    Info              = {
         Name          = "Beleaguered Castle",
         Type          = "OpenPacker",
         Family        = "BeleagueredCastle",
@@ -17,11 +16,11 @@ local beleaguered_castle    = {
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation     = {
+    Foundation        = {
         Size   = 4,
         create = { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } }
     },
-    Tableau        = {
+    Tableau           = {
         Size   = 8,
         create = {
             Initial = piles.initial.face_up(6),
@@ -30,7 +29,7 @@ local beleaguered_castle    = {
         }
     },
     on_before_shuffle = ops.shuffle.ace_to_foundation,
-    on_created     = layout.beleaguered_castle
+    on_created        = Layout.beleaguered_castle
 }
 
 ------
@@ -50,7 +49,7 @@ castle_mount.Tableau        = {
         Rule = { Build = "DownByRank", Move = "InSequenceInSuit", Empty = "King" }
     }
 }
-castle_mount.on_created     = layout.canister
+castle_mount.on_created     = Layout.canister
 
 ------
 
@@ -95,7 +94,7 @@ lightweight.Tableau              = {
         Rule = { Build = "DownByRank", Move = "InSequence", Empty = "King" }
     }
 }
-lightweight.on_created           = layout.canister
+lightweight.on_created           = Layout.canister
 
 ------
 
@@ -126,7 +125,7 @@ local fastness                   = {
             }
         end
     },
-    on_created = layout.fastness
+    on_created = Layout.fastness
 }
 
 ------
@@ -139,7 +138,7 @@ siegecraft.Tableau.create        = {
     Layout = "Row",
     Rule = { Build = "DownByRank", Move = "Top", Empty = "Any" }
 }
-siegecraft.on_before_shuffle        = ops.shuffle.ace_to_foundation
+siegecraft.on_before_shuffle     = ops.shuffle.ace_to_foundation
 
 ------
 
@@ -177,7 +176,7 @@ local bastion                    = {
             Rule = { Build = "UpOrDownInSuit", Move = "Top", Empty = "Any" }
         }
     },
-    on_created = layout.free_cell
+    on_created = Layout.free_cell
 }
 
 ------
@@ -237,7 +236,7 @@ local canister                   = {
             }
         end
     },
-    on_created = layout.canister
+    on_created = Layout.canister
 }
 
 ------
@@ -297,7 +296,7 @@ local chessboard                 = {
 
         return game:can_drop(targetPile, targetIndex, drop, numCards)
     end,
-    on_created = layout.canister
+    on_created = Layout.canister
 }
 
 ------
@@ -338,7 +337,7 @@ local fortress                   = {
             }
         end
     },
-    on_created = layout.canister
+    on_created = Layout.canister
 }
 
 ------
@@ -366,7 +365,7 @@ local morehead                   = {
             }
         end
     },
-    on_created = layout.canister
+    on_created = Layout.canister
 }
 
 ------
@@ -394,7 +393,7 @@ local penelopes_web              = {
             }
         end
     },
-    on_created = layout.beleaguered_castle
+    on_created = Layout.beleaguered_castle
 }
 
 ------
@@ -430,7 +429,7 @@ local selective_castle           = {
 
         return game:can_drop(targetPile, targetIndex, drop, numCards)
     end,
-    on_created = layout.beleaguered_castle
+    on_created = Layout.beleaguered_castle
 }
 
 ------
@@ -458,7 +457,7 @@ local streets_and_alleys         = {
             }
         end
     },
-    on_created = layout.beleaguered_castle
+    on_created = Layout.beleaguered_castle
 }
 
 ------

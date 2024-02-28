@@ -3,10 +3,9 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local layout = require 'base/layout'
-local ops    = require 'base/ops'
-local piles  = require 'base/piles'
-require 'base/common'
+local ops   = require 'base/ops'
+local piles = require 'base/piles'
+
 
 local function golf_check_state(game)
     local foundation = game.Foundation
@@ -63,7 +62,7 @@ local golf                 = {
         return game.Stock[1]:deal(game.Foundation[1], game.CardDealCount)
     end,
     check_state = golf_check_state,
-    on_created  = layout.golf
+    on_created  = Layout.golf
 }
 
 ------
@@ -108,7 +107,7 @@ local black_hole_pos       = {
 }
 
 local black_hole           = {
-    Info           = {
+    Info              = {
         Name          = "Black Hole",
         Type          = "OpenBuilder",
         Family        = "Golf",
@@ -116,11 +115,11 @@ local black_hole           = {
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation     = {
+    Foundation        = {
         Position = { x = 4, y = 1.5 },
         Rule     = { Build = "UpOrDownByRank", Wrap = true, Move = "None" }
     },
-    Tableau        = {
+    Tableau           = {
         Size   = 17,
         create = function(i)
             return {

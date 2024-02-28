@@ -1,7 +1,7 @@
 -- Copyright (c) 2024 Tobias Bohnen
 --
 -- This software is released under the MIT License.
--- https:--opensource.org/licenses/MIT
+-- https://opensource.org/licenses/MIT
 
 local function get_piles(game)
     local tableau    = game.Tableau

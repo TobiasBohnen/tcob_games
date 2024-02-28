@@ -3,10 +3,9 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local layout = require 'base/layout'
-local ops    = require 'base/ops'
-local piles  = require 'base/piles'
-require 'base/common'
+local ops   = require 'base/ops'
+local piles = require 'base/piles'
+
 
 local klondike                           = {
     Info       = {
@@ -35,7 +34,7 @@ local klondike                           = {
     },
     on_redeal  = ops.redeal.waste_to_stock,
     on_deal    = ops.deal.stock_to_waste,
-    on_created = layout.klondike
+    on_created = Layout.klondike
 }
 
 ------
@@ -53,7 +52,7 @@ double_klondike.Info.DeckCount           = 2
 double_klondike.Stock.Initial            = piles.initial.face_down(59)
 double_klondike.Foundation.Size          = 8
 double_klondike.Tableau.Size             = 9
-double_klondike.on_created               = layout.big_harp
+double_klondike.on_created               = Layout.big_harp
 
 ------
 
@@ -69,7 +68,7 @@ triple_klondike.Info.DeckCount           = 3
 triple_klondike.Stock.Initial            = piles.initial.face_down(65)
 triple_klondike.Foundation.Size          = 12
 triple_klondike.Tableau.Size             = 13
-triple_klondike.on_created               = layout.big_harp
+triple_klondike.on_created               = Layout.big_harp
 
 ------
 
@@ -157,7 +156,7 @@ big_harp.Tableau                         = {
         }
     end
 }
-big_harp.on_created                      = layout.big_harp
+big_harp.on_created                      = Layout.big_harp
 
 ------
 
@@ -231,7 +230,7 @@ local eight_by_eight                     = {
     },
     on_redeal  = ops.redeal.waste_to_stock,
     on_deal    = ops.deal.stock_to_waste,
-    on_created = layout.big_harp
+    on_created = Layout.big_harp
 }
 
 ------
@@ -283,7 +282,7 @@ arabella.Tableau                         = {
         }
     end
 }
-arabella.on_created                      = layout.big_harp
+arabella.on_created                      = Layout.big_harp
 
 ------
 
@@ -347,7 +346,7 @@ chinese_klondike.Stock.Initial           = piles.initial.face_down(39)
 chinese_klondike.Foundation.Size         = 9
 chinese_klondike.Tableau.Size            = 12
 chinese_klondike.on_before_shuffle       = function(game, card) return card.Suit == "Diamonds" end
-chinese_klondike.on_created              = layout.big_harp
+chinese_klondike.on_created              = Layout.big_harp
 
 ------
 
@@ -495,7 +494,7 @@ double_kingsley.Info.DeckCount           = 2
 double_kingsley.Stock.Initial            = piles.initial.face_down(59)
 double_kingsley.Foundation.Size          = 8
 double_kingsley.Tableau.Size             = 9
-double_kingsley.on_created               = layout.big_harp
+double_kingsley.on_created               = Layout.big_harp
 
 ------
 
@@ -578,7 +577,7 @@ double_trigon.Info.DeckCount             = 2
 double_trigon.Stock.Initial              = piles.initial.face_down(59)
 double_trigon.Foundation.Size            = 8
 double_trigon.Tableau.Size               = 9
-double_trigon.on_created                 = layout.big_harp
+double_trigon.on_created                 = Layout.big_harp
 
 ------
 
@@ -662,7 +661,7 @@ local somerset                           = {
             }
         end
     },
-    on_created = layout.canister
+    on_created = Layout.canister
 }
 
 ------
@@ -712,7 +711,7 @@ local usk = {
         end
     },
     on_redeal  = usk_redeal,
-    on_created = layout.canister
+    on_created = Layout.canister
 }
 
 ------------------------

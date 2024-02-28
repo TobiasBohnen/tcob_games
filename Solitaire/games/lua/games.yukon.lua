@@ -3,10 +3,9 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local layout = require 'base/layout'
-local ops    = require 'base/ops'
-local piles  = require 'base/piles'
-require 'base/common'
+local ops   = require 'base/ops'
+local piles = require 'base/piles'
+
 
 piles.initial.yukon                      = function(i)
     if i == 0 then
@@ -71,7 +70,7 @@ local yukon                              = {
             }
         end
     },
-    on_created = layout.yukon
+    on_created = Layout.yukon
 }
 
 ------
@@ -156,7 +155,7 @@ geoffrey.Tableau                         = {
         }
     end
 }
-geoffrey.on_created                      = layout.forty_thieves
+geoffrey.on_created                      = Layout.forty_thieves
 
 ------
 
@@ -307,7 +306,7 @@ local chinese_discipline                 = {
         end
     },
     on_deal    = function(game) return game.Stock[1]:deal_to_group(game.Tableau, false) end,
-    on_created = layout.klondike
+    on_created = Layout.klondike
 }
 
 ------
@@ -352,7 +351,7 @@ local rushdike                           = {
         end
     },
     on_deal    = function(game) return game.Stock[1]:deal_to_group(game.Tableau, false) end,
-    on_created = layout.klondike
+    on_created = Layout.klondike
 }
 
 ------

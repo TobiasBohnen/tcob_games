@@ -3,10 +3,9 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local layout = require 'base/layout'
-local ops    = require 'base/ops'
-local piles  = require 'base/piles'
-require 'base/common'
+local ops   = require 'base/ops'
+local piles = require 'base/piles'
+
 
 local gypsy                    = {
     Info       = {
@@ -32,7 +31,7 @@ local gypsy                    = {
             Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
         }
     },
-    on_created = layout.gypsy,
+    on_created = Layout.gypsy,
     on_deal    = function(game) return game.Stock[1]:deal_to_group(game.Tableau, false) end
 }
 
@@ -62,7 +61,7 @@ agnes_sorel.Tableau            = {
         }
     end
 }
-agnes_sorel.on_created         = layout.klondike
+agnes_sorel.on_created         = Layout.klondike
 
 ------
 
@@ -78,7 +77,7 @@ blockade.Tableau               = {
         Rule = { Build = "DownInSuit", Move = "InSequence", Empty = "Any" }
     }
 }
-blockade.on_created            = layout.klondike
+blockade.on_created            = Layout.klondike
 blockade.on_change             = function(game) game.Stock[1]:deal_to_group(game.Tableau, true) end
 
 ------
@@ -95,7 +94,7 @@ elba.Tableau                   = {
         Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "King" }
     }
 }
-elba.on_created                = layout.klondike
+elba.on_created                = Layout.klondike
 
 ------
 
@@ -113,7 +112,7 @@ hypotenuse.Tableau             = {
         }
     end
 }
-hypotenuse.on_created          = layout.klondike
+hypotenuse.on_created          = Layout.klondike
 
 ------
 
@@ -131,7 +130,7 @@ irmgard.Tableau                = {
         }
     end
 }
-irmgard.on_created             = layout.klondike
+irmgard.on_created             = Layout.klondike
 
 ------
 

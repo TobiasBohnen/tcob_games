@@ -126,10 +126,9 @@ protected:
 
     void end_turn();
 
-    template <typename T>
     void static CreateWrapper(auto&& script, i32 indexOffset);
-    template <typename T, typename Table, template <typename> typename Function>
-    void static CreatePiles(T* game, auto&& gameRef);
+    template <typename Table, template <typename> typename Function>
+    void static CreatePiles(auto&& game, auto&& gameRef);
     template <typename T, typename GameRef>
     void static CreateGlobals(auto&& scene, auto&& globalTable, auto&& makeFunc);
 

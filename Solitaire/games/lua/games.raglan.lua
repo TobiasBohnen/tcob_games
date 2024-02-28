@@ -3,13 +3,12 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local layout = require 'base/layout'
-local ops    = require 'base/ops'
-local piles  = require 'base/piles'
-require 'base/common'
+local ops   = require 'base/ops'
+local piles = require 'base/piles'
+
 
 local raglan = {
-    Info           = {
+    Info              = {
         Name          = "Raglan",
         Type          = "OpenPacker",
         Family        = "Raglan",
@@ -17,7 +16,7 @@ local raglan = {
         CardDealCount = 0,
         Redeals       = 0
     },
-    Reserve        = {
+    Reserve           = {
         Size   = 6,
         create = {
             Initial = piles.initial.face_up(1),
@@ -25,11 +24,11 @@ local raglan = {
             Rule = { Build = "NoBuilding", Move = "Top", Empty = "None" }
         }
     },
-    Foundation     = {
+    Foundation        = {
         Size   = 4,
         create = { Rule = { Build = "UpInSuit", Move = "Top", Empty = "Ace" } }
     },
-    Tableau        = {
+    Tableau           = {
         Size   = 9,
         create = function(i)
             return {
@@ -40,7 +39,7 @@ local raglan = {
         end
     },
     on_before_shuffle = ops.shuffle.ace_to_foundation,
-    on_created     = layout.raglan
+    on_created        = Layout.raglan
 }
 
 ------------------------

@@ -3,10 +3,9 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local layout = require 'base/layout'
-local ops    = require 'base/ops'
-local piles  = require 'base/piles'
-require 'base/common'
+local ops   = require 'base/ops'
+local piles = require 'base/piles'
+
 
 local bakers_dozen                     = {
     Info             = {
@@ -30,7 +29,7 @@ local bakers_dozen                     = {
         }
     },
     on_after_shuffle = ops.shuffle.kings_to_bottom,
-    on_created       = layout.bakers_dozen
+    on_created       = Layout.bakers_dozen
 }
 
 ------
@@ -116,7 +115,7 @@ local capricieuse        = {
 
         return false
     end,
-    on_created        = layout.capricieuse
+    on_created        = Layout.capricieuse
 }
 
 ------
@@ -180,7 +179,7 @@ cruel.Tableau                       = {
 }
 cruel.on_before_shuffle             = ops.shuffle.ace_to_foundation
 cruel.on_redeal                     = cruel_redeal
-cruel.on_created                    = layout.bakers_dozen
+cruel.on_created                    = Layout.bakers_dozen
 
 ------
 
@@ -257,7 +256,7 @@ local fifteen                       = {
             }
         end
     },
-    on_created = layout.canister
+    on_created = Layout.canister
 }
 
 ------
@@ -299,7 +298,7 @@ local nationale                     = {
 
         return false
     end,
-    on_created        = layout.canister
+    on_created        = Layout.canister
 }
 
 ------
@@ -325,7 +324,7 @@ local castles_in_spain              = {
             Rule = { Build = "DownAlternateColors", Move = "Top", Empty = "Any" }
         }
     },
-    on_created = layout.bakers_dozen
+    on_created = Layout.bakers_dozen
 }
 
 ------

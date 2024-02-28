@@ -3,10 +3,9 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local layout = require 'base/layout'
-local ops    = require 'base/ops'
-local piles  = require 'base/piles'
-require 'base/common'
+local ops   = require 'base/ops'
+local piles = require 'base/piles'
+
 
 local canfield                   = {
     Info       = {
@@ -43,7 +42,7 @@ local canfield                   = {
     on_change  = function(game) game.Reserve[1]:deal_to_group(game.Tableau, true) end,
     on_redeal  = ops.redeal.waste_to_stock,
     on_deal    = ops.deal.stock_to_waste,
-    on_created = layout.canfield
+    on_created = Layout.canfield
 }
 
 ------
@@ -75,7 +74,7 @@ acme.Tableau.create              = {
     Layout = "Column",
     Rule = { Build = "DownInSuit", Move = "Top", Empty = "Any" }
 }
-acme.on_before_shuffle              = ops.shuffle.ace_to_foundation
+acme.on_before_shuffle           = ops.shuffle.ace_to_foundation
 
 ------
 

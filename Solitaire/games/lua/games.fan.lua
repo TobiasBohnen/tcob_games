@@ -3,10 +3,9 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local layout = require 'base/layout'
-local ops    = require 'base/ops'
-local piles  = require 'base/piles'
-require 'base/common'
+local ops   = require 'base/ops'
+local piles = require 'base/piles'
+
 
 local fan                    = {
     Info       = {
@@ -31,7 +30,7 @@ local fan                    = {
             }
         end
     },
-    on_created = function(game) layout.fan(game, 5) end
+    on_created = function(game) Layout.fan(game, 5) end
 }
 
 ------
@@ -58,7 +57,7 @@ bear_river.Tableau           = {
         }
     end
 }
-bear_river.on_created        = function(game) layout.fan(game, 6) end
+bear_river.on_created        = function(game) Layout.fan(game, 6) end
 
 ------
 
@@ -73,7 +72,7 @@ box_fan.Tableau              = {
     }
 }
 box_fan.on_before_shuffle    = ops.shuffle.ace_to_foundation
-box_fan.on_created           = function(game) layout.fan(game, 4) end
+box_fan.on_created           = function(game) Layout.fan(game, 4) end
 
 ------
 
@@ -129,7 +128,7 @@ local clover_leaf            = {
 
         return false
     end,
-    on_created        = function(game) layout.fan(game, 4) end
+    on_created        = function(game) Layout.fan(game, 4) end
 }
 
 ------

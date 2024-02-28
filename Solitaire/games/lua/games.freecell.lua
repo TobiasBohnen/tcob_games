@@ -3,10 +3,9 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local layout = require 'base/layout'
-local ops    = require 'base/ops'
-local piles  = require 'base/piles'
-require 'base/common'
+local ops   = require 'base/ops'
+local piles = require 'base/piles'
+
 
 local free_cell                       = {
     Info       = {
@@ -35,7 +34,7 @@ local free_cell                       = {
             }
         end
     },
-    on_created = layout.free_cell
+    on_created = Layout.free_cell
 }
 
 ------
@@ -79,7 +78,7 @@ local double_free_cell                = {
             }
         end
     },
-    on_created = layout.double_free_cell
+    on_created = Layout.double_free_cell
 }
 
 ------
@@ -126,7 +125,7 @@ local triple_free_cell                = {
             Rule = { Build = "DownAlternateColors", Move = "SuperMove", Empty = "Any" }
         }
     },
-    on_created = layout.double_free_cell
+    on_created = Layout.double_free_cell
 }
 
 ------
@@ -196,7 +195,7 @@ local big_cell                        = {
             Rule = { Build = "DownAlternateColors", Move = "SuperMove", Empty = "Any" }
         }
     },
-    on_created = layout.double_free_cell
+    on_created = Layout.double_free_cell
 }
 
 ------
@@ -233,7 +232,7 @@ local cell_11                         = {
             }
         end
     },
-    on_created = layout.double_free_cell
+    on_created = Layout.double_free_cell
 }
 
 ------
@@ -381,7 +380,7 @@ local eight_off                       = {
             Rule = { Build = "DownInSuit", Move = "SuperMove", Empty = "King" }
         }
     },
-    on_created = layout.double_free_cell
+    on_created = Layout.double_free_cell
 }
 
 ------
@@ -504,7 +503,7 @@ local flipper                         = {
             end
         end
     end,
-    on_created = layout.flipper
+    on_created = Layout.flipper
 }
 
 ------
@@ -547,7 +546,7 @@ local penguin                         = {
         end
         return false
     end,
-    on_created        = layout.flipper
+    on_created        = Layout.flipper
 }
 
 ------

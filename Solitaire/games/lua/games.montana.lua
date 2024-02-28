@@ -3,12 +3,11 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local layout = require 'base/layout'
-local ops    = require 'base/ops'
-local piles  = require 'base/piles'
-require 'base/common'
+local ops   = require 'base/ops'
+local piles = require 'base/piles'
 
-local montana_base    = {
+
+local montana_base       = {
     redeal = function(game, ranks)
         local columns = #ranks + 1
         local tableau = game.Tableau
@@ -125,9 +124,9 @@ local montana_base    = {
 }
 
 ------
-local montana_ranks   = { table.unpack(Ranks, 2, 13) }
+local montana_ranks      = { table.unpack(Ranks, 2, 13) }
 
-local montana         = {
+local montana            = {
     Info        = {
         Name          = "Montana",
         Type          = "OpenNonBuilder",
@@ -149,7 +148,7 @@ local montana         = {
     on_shuffle  = function(_, card, _)
         return card.Rank == "Ace"
     end,
-    on_created  = function(game) layout.montana(game, 13) end,
+    on_created  = function(game) Layout.montana(game, 13) end,
     on_redeal   = function(game)
         return montana_base.redeal(game, montana_ranks)
     end,
@@ -163,16 +162,16 @@ local montana         = {
 
 ------
 
-local moonlight       = Copy(montana)
-moonlight.Info.Name   = "Moonlight"
-moonlight.check_drop  = function(game, targetPile, _, drop, _)
+local moonlight          = Copy(montana)
+moonlight.Info.Name      = "Moonlight"
+moonlight.check_drop     = function(game, targetPile, _, drop, _)
     return montana_base.check_drop(game, targetPile, drop, montana_ranks, "rl")
 end
 
 ------
-local blue_moon_ranks = Ranks
+local blue_moon_ranks    = Ranks
 
-local blue_moon       = {
+local blue_moon          = {
     Info        = {
         Name          = "Blue Moon",
         Type          = "OpenNonBuilder",
@@ -211,14 +210,14 @@ local blue_moon       = {
     check_state = function(game)
         return montana_base.check_state(game, blue_moon_ranks)
     end,
-    on_created  = function(game) layout.montana(game, 14) end
+    on_created  = function(game) Layout.montana(game, 14) end
 }
 
 ------
 
-local galary          = Copy(blue_moon)
-galary.Info.Name      = "Galary"
-galary.Tableau.create = function(i)
+local galary             = Copy(blue_moon)
+galary.Info.Name         = "Galary"
+galary.Tableau.create    = function(i)
     return {
         Initial = piles.initial.face_up((i % 14 == 0 or i % 14 == 1) and 0 or 1),
         Layout = "Squared",
@@ -228,16 +227,16 @@ end
 galary.on_before_shuffle = function(game, card)
     return blue_moon.on_shuffle(game, card)
 end
-galary.on_shuffle     = nil
-galary.check_drop     = function(game, targetPile, _, drop, _)
+galary.on_shuffle        = nil
+galary.check_drop        = function(game, targetPile, _, drop, _)
     return montana_base.check_drop(game, targetPile, drop, blue_moon_ranks, "rl")
 end
 
 ------
-local paganini_ranks  = { "Ace", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
+local paganini_ranks     = { "Ace", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
 
-local paganini        = {
-    Info           = {
+local paganini           = {
+    Info              = {
         Name          = "Paganini",
         Type          = "OpenNonBuilder",
         Family        = "Montana",
@@ -245,8 +244,8 @@ local paganini        = {
         CardDealCount = 0,
         Redeals       = 1
     },
-    Stock          = {},
-    Tableau        = {
+    Stock             = {},
+    Tableau           = {
         Size   = 40,
         create = function(i)
             return {
@@ -260,7 +259,7 @@ local paganini        = {
         local rank = card.Rank
         return rank == "Two" or rank == "Three" or rank == "Four" or rank == "Five"
     end,
-    on_shuffle     = function(game, card, _)
+    on_shuffle        = function(game, card, _)
         if card.Rank == "Ace" then
             return game.PlaceTop(card, game.Tableau, 1, 1, true)
                 or game.PlaceTop(card, game.Tableau, 11, 1, true)
@@ -270,22 +269,22 @@ local paganini        = {
 
         return false
     end,
-    check_drop     = function(game, targetPile, _, drop, _)
+    check_drop        = function(game, targetPile, _, drop, _)
         return montana_base.check_drop(game, targetPile, drop, paganini_ranks, "l")
     end,
-    on_redeal      = function(game)
+    on_redeal         = function(game)
         return montana_base.redeal(game, paganini_ranks)
     end,
-    check_state    = function(game)
+    check_state       = function(game)
         return montana_base.check_state(game, paganini_ranks)
     end,
-    on_created     = function(game) layout.montana(game, 10) end
+    on_created        = function(game) Layout.montana(game, 10) end
 }
 
 ------
 
-local spoilt          = {
-    Info           = {
+local spoilt             = {
+    Info              = {
         Name          = "Spoilt",
         Type          = "OpenNonBuilder",
         Family        = "Montana",
@@ -293,15 +292,15 @@ local spoilt          = {
         CardDealCount = 1,
         Redeals       = 0
     },
-    Stock          = {
+    Stock             = {
         Position = { x = 0, y = 1 },
         Initial = piles.initial.face_down(3)
     },
-    Waste          = {
+    Waste             = {
         Position = { x = 0, y = 2 },
         Initial = piles.initial.face_up(1)
     },
-    Tableau        = {
+    Tableau           = {
         Size   = 32,
         create = function(i)
             return {
@@ -316,7 +315,7 @@ local spoilt          = {
         local rank = card.Rank
         return rank == "Two" or rank == "Three" or rank == "Four" or rank == "Five" or rank == "Six"
     end,
-    on_change      = function(game)
+    on_change         = function(game)
         local sevenCount = 0
         for i, tableau in ipairs(game.Tableau) do
             if tableau.CardCount == 2 then
@@ -342,7 +341,7 @@ local spoilt          = {
             end
         end
     end,
-    check_drop     = function(game, targetPile, _, drop, _)
+    check_drop        = function(game, targetPile, _, drop, _)
         local ranks = { "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace" }
         local tableau = game.Tableau
 

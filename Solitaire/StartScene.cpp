@@ -19,6 +19,15 @@ void start_scene::register_game(games::game_info const& info, func&& game)
     _games[info.Name] = {info, std::move(game)};
 }
 
+void start_scene::call_lua(std::vector<std::string> const& func, games::base_game* game)
+{
+    scripting::lua::table tab {_luaScript.get_global_table()};
+    for (isize i {0}; i < std::ssize(func) - 1; ++i) {
+        tab = tab[func[i]];
+    }
+    tab[func.back()].as<scripting::lua::function<void>>()(game);
+}
+
 void start_scene::on_start()
 {
     auto& resMgr {locate_service<assets::library>()};
@@ -204,17 +213,20 @@ void start_scene::load_scripts()
 {
     {
         games::lua_script_game::CreateAPI(this, _luaScript, _luaFunctions);
-        auto files {io::enumerate("/", "games.*.lua", true)};
+        (void)_luaScript.run_file("main.lua");
+        _luaScript.get_global_table()["Layout"] = _luaScript.run_file<scripting::lua::table>("layout.lua");
+        auto const files {io::enumerate("/", "games.*.lua", true)};
         for (auto const& file : files) {
-            [[maybe_unused]] auto _ {_luaScript.run_file(file)};
+            (void)_luaScript.run_file(file);
         }
     }
 
     {
         games::squirrel_script_game::CreateAPI(this, _sqScript, _sqFunctions);
-        auto files {io::enumerate("/", "games.*.nut", true)};
+        (void)_sqScript.run_file("main.nut");
+        auto const files {io::enumerate("/", "games.*.nut", true)};
         for (auto const& file : files) {
-            [[maybe_unused]] auto _ {_sqScript.run_file(file)};
+            (void)_sqScript.run_file(file);
         }
     }
 }

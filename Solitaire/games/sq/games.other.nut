@@ -5,7 +5,6 @@
 
 local ops = dofile("./base/ops.nut", true)
 local piles = dofile("./base/piles.nut", true)
-dofile("./base/common.nut", true)
 
 local aces_up = {
     Info = {
@@ -17,17 +16,9 @@ local aces_up = {
         Redeals = 0
     },
     Stock = {
-        Position = {
-            x = 0,
-            y = 0
-        },
         Initial = piles.initial.face_down(48)
     },
     Foundation = {
-        Position = {
-            x = 1,
-            y = 0
-        },
         Rule = {
             Move = "None"
         }
@@ -35,11 +26,7 @@ local aces_up = {
     Tableau = {
         Size = 4,
         create = @(i) {
-            Position = {
-                    x = i,
-                    y = 1
-                },
-                Initial = piles.initial.face_up(1),
+            Initial = piles.initial.face_up(1),
                 Layout = "Column",
                 Rule = {
                     Build = "NoBuilding",
@@ -90,7 +77,8 @@ local aces_up = {
 
         return "Running"
     },
-    on_deal = @(game) game.Stock[0].deal_to_group(game.Tableau, false)
+    on_deal = @(game) game.Stock[0].deal_to_group(game.Tableau, false),
+    on_created = @(game) CallLua(["Layout", "klondike"], game)
 }
 
 # # # # # # # #
