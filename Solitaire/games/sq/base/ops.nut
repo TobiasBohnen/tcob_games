@@ -1,3 +1,8 @@
+// Copyright (c) 2024 Tobias Bohnen
+//
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
+
 local shuffle_tab = {
     // before shuffle
     ace_to_foundation = function(game, card) {

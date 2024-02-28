@@ -78,11 +78,11 @@ form_menu::form_menu(gfx::window* window, rect_f bounds,
             auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
             createListBox(tabPanelLayout, name, [family](auto const& game) { return game.Family == family; });
         }};
-        createTab(games::family::BakersDozen, "Baker's\nDozen");
-        createTab(games::family::BeleagueredCastle, "Beleaguered\nCastle");
+        createTab(games::family::BakersDozen, "Baker's nDozen");
+        createTab(games::family::BeleagueredCastle, "Beleaguered Castle");
         createTab(games::family::Canfield, "Canfield");
         createTab(games::family::Fan, "Fan");
-        createTab(games::family::FortyThieves, "Forty\nThieves");
+        createTab(games::family::FortyThieves, "Forty Thieves");
         createTab(games::family::FreeCell, "FreeCell");
         createTab(games::family::Golf, "Golf");
         createTab(games::family::Gypsy, "Gypsy");

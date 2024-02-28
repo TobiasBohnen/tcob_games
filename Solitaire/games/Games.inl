@@ -26,32 +26,33 @@ inline void base_game::CreateWrapper(auto&& script, i32 indexOffset)
 
     // game
     auto& gameWrapper {*script.template create_wrapper<T>("script_game")};
-    gameWrapper["RedealsLeft"]   = getter {[](T* game) { return game->redeals_left(); }};
-    gameWrapper["CardDealCount"] = getter {[](T* game) { return game->info().CardDealCount; }};
+    gameWrapper.template register_base<base_game>();
+    gameWrapper["RedealsLeft"]   = getter {[](base_game* game) { return game->redeals_left(); }};
+    gameWrapper["CardDealCount"] = getter {[](base_game* game) { return game->info().CardDealCount; }};
 
-    auto const returnPile {[](T* game, pile_type type) {
+    auto const returnPile {[](base_game* game, pile_type type) {
         auto const& piles {game->piles()};
         if (piles.contains(type)) { return game->piles().at(type); }
         return std::vector<pile*> {};
     }};
 
     // properties
-    gameWrapper["Stock"]      = getter {[returnPile](T* game) { return returnPile(game, pile_type::Stock); }};
-    gameWrapper["Waste"]      = getter {[returnPile](T* game) { return returnPile(game, pile_type::Waste); }};
-    gameWrapper["Foundation"] = getter {[returnPile](T* game) { return returnPile(game, pile_type::Foundation); }};
-    gameWrapper["Tableau"]    = getter {[returnPile](T* game) { return returnPile(game, pile_type::Tableau); }};
-    gameWrapper["Reserve"]    = getter {[returnPile](T* game) { return returnPile(game, pile_type::Reserve); }};
-    gameWrapper["FreeCell"]   = getter {[returnPile](T* game) { return returnPile(game, pile_type::FreeCell); }};
+    gameWrapper["Stock"]      = getter {[returnPile](base_game* game) { return returnPile(game, pile_type::Stock); }};
+    gameWrapper["Waste"]      = getter {[returnPile](base_game* game) { return returnPile(game, pile_type::Waste); }};
+    gameWrapper["Foundation"] = getter {[returnPile](base_game* game) { return returnPile(game, pile_type::Foundation); }};
+    gameWrapper["Tableau"]    = getter {[returnPile](base_game* game) { return returnPile(game, pile_type::Tableau); }};
+    gameWrapper["Reserve"]    = getter {[returnPile](base_game* game) { return returnPile(game, pile_type::Reserve); }};
+    gameWrapper["FreeCell"]   = getter {[returnPile](base_game* game) { return returnPile(game, pile_type::FreeCell); }};
 
     // methods
-    gameWrapper["shuffle_cards"] = [](T* game, std::vector<card> const& cards) {
+    gameWrapper["shuffle_cards"] = [](base_game* game, std::vector<card> const& cards) {
         std::vector<card> shuffled {cards};
         game->rand().template shuffle<card>(shuffled);
         return shuffled;
     };
-    gameWrapper["find_pile"] = [](T* game, card& card) { return game->find_pile(card); };
-    gameWrapper["drop"]      = [](T* game, pile* to, card& card) { return game->drop(*to, card); };
-    gameWrapper["can_drop"]  = [indexOffset](T* game, pile* targetPile, isize targetIndex, card const& drop, isize numCards) {
+    gameWrapper["find_pile"] = [](base_game* game, card& card) { return game->find_pile(card); };
+    gameWrapper["drop"]      = [](base_game* game, pile* to, card& card) { return game->drop(*to, card); };
+    gameWrapper["can_drop"]  = [indexOffset](base_game* game, pile* targetPile, isize targetIndex, card const& drop, isize numCards) {
         return game->base_game::can_drop(*targetPile, targetIndex + indexOffset, drop, numCards);
     };
 
@@ -149,12 +150,9 @@ inline void base_game::CreateWrapper(auto&& script, i32 indexOffset)
 
         for (auto* toPile : to) {
             if (ifEmpty && !toPile->Cards.empty()) { continue; }
+            if (p->Cards.empty()) { break; }
 
-            if (!p->Cards.empty()) {
-                p->move_cards(*toPile, std::ssize(p->Cards) - 1, 1, false);
-            } else {
-                break;
-            }
+            p->move_cards(*toPile, std::ssize(p->Cards) - 1, 1, false);
             toPile->flip_up_top_card();
         }
 
@@ -164,7 +162,7 @@ inline void base_game::CreateWrapper(auto&& script, i32 indexOffset)
 }
 
 template <typename T, typename Table, template <typename> typename Function>
-inline void base_game::CreatePiles(T* game, auto&& gameTable)
+inline void base_game::CreatePiles(T* game, auto&& gameRef)
 {
     auto const createPile {[game](pile& pile, Table const& pileTab) {
         pile.Position  = pileTab["Position"].template get<point_f>().value_or(point_f::Zero);
@@ -217,7 +215,7 @@ inline void base_game::CreatePiles(T* game, auto&& gameTable)
     }};
 
     auto const createPiles {[&](auto&& piles, std::string const& name) {
-        if (Table pileTypeTable; gameTable.try_get(pileTypeTable, name)) {
+        if (Table pileTypeTable; gameRef.try_get(pileTypeTable, name)) {
             isize const size {pileTypeTable["Size"].template get<isize>().value_or(1)};
             if (size == 1 && !pileTypeTable.has("create")) { // table is definition
                 game->create_piles(piles, 1, [&](auto& pile, i32) {
@@ -243,15 +241,15 @@ inline void base_game::CreatePiles(T* game, auto&& gameTable)
     createPiles(game->Foundation, "Foundation");
     createPiles(game->Tableau, "Tableau");
 
-    if (Function<void> func; gameTable.try_get(func, "on_created")) {
+    if (Function<void> func; gameRef.try_get(func, "on_created")) {
         func(game);
     }
 }
 
-template <typename T, typename Table>
+template <typename T, typename GameRef>
 inline void base_game::CreateGlobals(auto&& scene, auto&& globalTable, auto&& makeFunc)
 {
-    globalTable["RegisterGame"] = makeFunc([scene](Table& tab) {
+    globalTable["RegisterGame"] = makeFunc([scene](GameRef& tab) {
         games::game_info info;
         info.Name          = tab["Info"]["Name"].template as<std::string>();
         info.Type          = tab["Info"]["Type"];

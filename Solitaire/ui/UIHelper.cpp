@@ -294,7 +294,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->Margin           = {5_px};
         style->Padding          = {5_px};
         style->DropShadow.Color = color {0, 0, 0, 128};
-        style->TabBarHeight     = 10_pct;
+        style->TabBarHeight     = 5_pct;
         style->TabItemClass     = "tab_items";
         style->MaxTabs          = 8;
         theme.Normal.apply(style);
@@ -361,7 +361,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->Item.Text.Font      = resGrp.get<gfx::font_family>("Poppins");
         style->Item.Text.Size      = 25_pct;
         style->Item.Text.Alignment = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
-        style->Item.Text.AutoSize  = element::text::auto_size_mode::OnlyShrink;
+        style->Item.Text.AutoSize  = element::text::auto_size_mode::Always;
         style->Item.Border.Size    = 3_px;
 
         auto hoverStyle {styles.create<item_style>("tab_items", {.Hover = true})};

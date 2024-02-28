@@ -129,8 +129,8 @@ protected:
     template <typename T>
     void static CreateWrapper(auto&& script, i32 indexOffset);
     template <typename T, typename Table, template <typename> typename Function>
-    void static CreatePiles(T* game, auto&& gameTable);
-    template <typename T, typename Table>
+    void static CreatePiles(T* game, auto&& gameRef);
+    template <typename T, typename GameRef>
     void static CreateGlobals(auto&& scene, auto&& globalTable, auto&& makeFunc);
 
 private:

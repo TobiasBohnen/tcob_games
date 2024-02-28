@@ -1,3 +1,8 @@
+// Copyright (c) 2024 Tobias Bohnen
+//
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
+
 local ops = dofile("./base/ops.nut", true)
 local piles = dofile("./base/piles.nut", true)
 dofile("./base/common.nut", true)
