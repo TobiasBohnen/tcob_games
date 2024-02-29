@@ -138,6 +138,7 @@ big_forty.Tableau                        = {
         Rule = { Build = "DownInSuit", Move = "InSequence", Empty = "Any" }
     }
 }
+
 ------
 
 local big_harp                           = Copy(klondike)
@@ -665,6 +666,26 @@ local somerset                           = {
 }
 
 ------
+
+local steps                              = Copy(klondike)
+steps.Info.Name                          = "Steps"
+steps.Info.DeckCount                     = 2
+steps.Info.Redeals                       = 1
+steps.Stock.Initial                      = piles.initial.face_down(76)
+steps.Foundation.Size                    = 8
+steps.Tableau                            = {
+    Size   = 7,
+    create = function(i)
+        return {
+            Initial = piles.initial.top_face_up(i + 1),
+            Layout = "Column",
+            Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
+        }
+    end
+}
+steps.on_created                         = Layout.klondike
+
+------
 local function usk_redeal(game)
     local cards = ShuffleTableau(game)
     if #cards == 0 then return false end
@@ -686,7 +707,7 @@ local function usk_redeal(game)
     return true
 end
 
-local usk = {
+local usk                   = {
     Info       = {
         Name          = "Usk",
         Type          = "OpenPacker",
@@ -712,6 +733,22 @@ local usk = {
     },
     on_redeal  = usk_redeal,
     on_created = Layout.canister
+}
+
+------
+
+local westcliff             = Copy(klondike)
+westcliff.Info.Name         = "Westcliff"
+westcliff.Info.Redeals      = 0
+westcliff.Stock.Initial     = piles.initial.face_down(22)
+westcliff.Foundation.create = { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } }
+westcliff.Tableau           = {
+    Size = 10,
+    create = {
+        Initial = piles.initial.top_face_up(3),
+        Layout  = "Column",
+        Rule    = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
+    }
 }
 
 ------------------------
@@ -750,8 +787,10 @@ RegisterGame(double_kingsley)
 RegisterGame(qc)
 RegisterGame(saratoga)
 RegisterGame(somerset)
+RegisterGame(steps)
 RegisterGame(thirty_six)
 RegisterGame(trigon)
 RegisterGame(double_trigon)
 RegisterGame(usk)
 RegisterGame(whitehorse)
+RegisterGame(westcliff)

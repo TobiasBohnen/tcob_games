@@ -175,7 +175,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
 
     {
         auto style {styles.create<panel>("panel", {})};
-        style->Border.Size      = 3_px;
+        style->Border.Size      = 2_px;
         style->Border.Radius    = 5_px;
         style->Margin           = {5_px};
         style->Padding          = {5_px};
@@ -186,8 +186,8 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
     {
         auto style {styles.create<button>("button", {})};
         style->Border.Type          = element::border::type::Solid;
-        style->Border.Size          = 3_px;
-        style->Border.Radius        = 5_px;
+        style->Border.Size          = 2_px;
+        style->Border.Radius        = 2_px;
         style->Text.Style           = {false, gfx::font::weight::Normal};
         style->Text.Font            = resGrp.get<gfx::font_family>("Poppins");
         style->Text.Size            = 10_px;
@@ -216,7 +216,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->Bar.Type          = element::bar::type::Continuous;
         style->Bar.Size          = 25_pct;
         style->Bar.Delay         = 100ms;
-        style->Bar.Border.Size   = 3_px;
+        style->Bar.Border.Size   = 2_px;
         style->Bar.Border.Radius = 5_px;
 
         theme.Normal.apply(style);
@@ -247,7 +247,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
     }
     {
         auto style {styles.create<list_box>("list_box", {})};
-        style->Border.Size                = 3_px;
+        style->Border.Size                = 2_px;
         style->Border.Radius              = 5_px;
         style->Margin                     = {5_px};
         style->Padding                    = {5_px};
@@ -257,7 +257,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->VScrollBar.ThumbClass      = "scrollbar_thumb";
         style->VScrollBar.Bar.Type        = element::bar::type::Continuous;
         style->VScrollBar.Bar.Size        = 15_pct;
-        style->VScrollBar.Bar.Border.Size = 3_px;
+        style->VScrollBar.Bar.Border.Size = 2_px;
         style->VScrollBar.Bar.Delay       = 250ms;
 
         auto hoverStyle {styles.create<list_box>("list_box", {.Hover = true})};
@@ -268,7 +268,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
     }
     {
         auto style {styles.create<list_box>("list_box_games", {})};
-        style->Border.Size                = 3_px;
+        style->Border.Size                = 2_px;
         style->Border.Radius              = 5_px;
         style->Margin                     = {5_px};
         style->Padding                    = {5_px};
@@ -278,7 +278,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->VScrollBar.ThumbClass      = "scrollbar_thumb";
         style->VScrollBar.Bar.Type        = element::bar::type::Continuous;
         style->VScrollBar.Bar.Size        = 3_pct;
-        style->VScrollBar.Bar.Border.Size = 3_px;
+        style->VScrollBar.Bar.Border.Size = 2_px;
         style->VScrollBar.Bar.Delay       = 250ms;
 
         auto hoverStyle {styles.create<list_box>("list_box_games", {.Hover = true})};
@@ -289,7 +289,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
     }
     {
         auto style {styles.create<tab_container>("tab_container", {})};
-        style->Border.Size      = 3_px;
+        style->Border.Size      = 2_px;
         style->Border.Radius    = 5_px;
         style->Margin           = {5_px};
         style->Padding          = {5_px};
@@ -323,7 +323,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->Thumb.Type        = element::thumb::type::Rectangle;
         style->Thumb.LongSide    = 25_pct;
         style->Thumb.ShortSide   = 80_pct;
-        style->Thumb.Border.Size = 3_px;
+        style->Thumb.Border.Size = 2_px;
 
         auto hoverStyle {styles.create<thumb_style>("scrollbar_thumb", {.Hover = true})};
         hoverStyle->Thumb = style->Thumb;
@@ -342,7 +342,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->Item.Text.Font      = resGrp.get<gfx::font_family>("Poppins");
         style->Item.Text.Size      = 50_pct;
         style->Item.Text.Alignment = {gfx::horizontal_alignment::Left, gfx::vertical_alignment::Middle};
-        style->Item.Border.Size    = 3_px;
+        style->Item.Border.Size    = 2_px;
 
         auto hoverStyle {styles.create<item_style>("list_items", {.Hover = true})};
         hoverStyle->Item = style->Item;
@@ -362,7 +362,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->Item.Text.Size      = 25_pct;
         style->Item.Text.Alignment = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
         style->Item.Text.AutoSize  = element::text::auto_size_mode::Always;
-        style->Item.Border.Size    = 3_px;
+        style->Item.Border.Size    = 2_px;
 
         auto hoverStyle {styles.create<item_style>("tab_items", {.Hover = true})};
         hoverStyle->Item = style->Item;
