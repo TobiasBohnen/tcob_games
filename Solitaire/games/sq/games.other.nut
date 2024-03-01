@@ -83,6 +83,13 @@ local aces_up = {
 
 # # # # # # # #
 
+local aces_up_5 = Copy(aces_up)
+aces_up_5.Info.Name = "Aces Up 5"
+aces_up_5.Stock.Initial = piles.initial.face_down(47)
+aces_up_5.Tableau.Size = 5
+
+# # # # # # # #
+
 local four_seasons_fou_pos = [
     [0, 1],
     [0, 3],
@@ -159,4 +166,5 @@ local four_seasons = {
 
 # # # # # # # # # # # # # # # #
 RegisterGame(aces_up)
+RegisterGame(aces_up_5)
 RegisterGame(four_seasons)

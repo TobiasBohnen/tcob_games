@@ -3,6 +3,20 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
+function Copy(obj) {
+    switch (typeof(obj)) {
+        case "table":
+            local retValue = clone obj
+            foreach(k, v in obj) {
+                result[k] = Copy(v)
+            }
+            return retValue
+        case "array":
+            return obj.map(Copy)
+        default:
+            return obj
+    }
+}
 
 RankValues <- {
     Ace = 1,
