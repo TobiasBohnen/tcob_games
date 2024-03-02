@@ -8,7 +8,7 @@ function Copy(obj) {
         case "table":
             local retValue = clone obj
             foreach(k, v in obj) {
-                result[k] = Copy(v)
+                retValue[k] = Copy(v)
             }
             return retValue
         case "array":
