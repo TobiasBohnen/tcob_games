@@ -741,38 +741,53 @@ void squirrel_script_game::CreateAPI(start_scene* scene, scripting::squirrel::sc
         return ptr.get();
     }};
 
-    CreateGlobals<squirrel_script_game, table>(scene, script.get_root_table(), make_func);
+    auto root {script.get_root_table()};
+    auto view {script.get_view()};
+
+    CreateGlobals<squirrel_script_game, table>(scene, root, make_func);
     CreateWrapper(script, 0);
 
-    script.get_root_table()["CallLua"] = make_func([scene, view = script.get_view()](std::string const& func) {
+    // Lua interop
+    auto lua {table::CreateNew(script.get_view())};
+
+    auto meta {table::CreateNew(script.get_view())};
+    meta["_get"]  = make_func([](stack_base& base, std::string const& func2) {
+        auto const func {base["_funcSig"].as<std::string>()};
+        base["_funcSig"] = func.empty() ? func2 : func + "." + func2;
+        return base;
+    });
+    meta["_call"] = make_func([scene, view](stack_base const&, table& tab) {
+        auto const func {tab["_funcSig"].as<std::string>()};
+
         auto const types {view.get_stack_types()};
         lua_params args {};
 
-        for (isize i {3}; i < std::ssize(types);) {
+        using type = scripting::squirrel::type;
+        for (isize i {3}; i < std::ssize(types); ++i) {
             switch (types[i - 1]) {
-            case tcob::scripting::squirrel::type::Userdata: {
+            case type::Userdata: {
                 base_game* val {};
-                if (view.pull_convert(i, val)) { args.Items.emplace_back(val); }
+                if (view.pull_convert_idx(i, val)) { args.Items.emplace_back(val); }
             } break;
 
-            case tcob::scripting::squirrel::type::Integer: {
+            case type::Integer: {
                 i64 val {};
-                if (view.pull_convert(i, val)) { args.Items.emplace_back(val); }
+                if (view.pull_convert_idx(i, val)) { args.Items.emplace_back(val); }
             } break;
 
-            case tcob::scripting::squirrel::type::Float: {
+            case type::Float: {
                 f64 val {};
-                if (view.pull_convert(i, val)) { args.Items.emplace_back(val); }
+                if (view.pull_convert_idx(i, val)) { args.Items.emplace_back(val); }
             } break;
 
-            case tcob::scripting::squirrel::type::Boolean: {
+            case type::Boolean: {
                 bool val {};
-                if (view.pull_convert(i, val)) { args.Items.emplace_back(val); }
+                if (view.pull_convert_idx(i, val)) { args.Items.emplace_back(val); }
             } break;
 
-            case tcob::scripting::squirrel::type::String: {
+            case type::String: {
                 std::string val {};
-                if (view.pull_convert(i, val)) { args.Items.emplace_back(val); }
+                if (view.pull_convert_idx(i, val)) { args.Items.emplace_back(val); }
             } break;
 
             default: break;
@@ -781,6 +796,17 @@ void squirrel_script_game::CreateAPI(start_scene* scene, scripting::squirrel::sc
 
         scene->call_lua(func, args);
     });
+
+    auto luaMeta {table::CreateNew(script.get_view())};
+    luaMeta["_get"] = make_func([meta, view](std::string const& func) {
+        auto tab {table::CreateNew(view)};
+        tab.set_delegate(meta);
+        tab["_funcSig"] = func;
+        return tab;
+    });
+    lua.set_delegate(luaMeta);
+
+    root["Lua"] = lua;
 }
 
 } // namespace solitaire

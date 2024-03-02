@@ -78,7 +78,7 @@ local aces_up = {
         return "Running"
     },
     on_deal = @(game) game.Stock[0].deal_to_group(game.Tableau, false),
-    on_created = @(game) CallLua("Layout.klondike", game)
+    on_created = @(game) Lua.Layout.klondike(game)
 }
 
 # # # # # # # #
