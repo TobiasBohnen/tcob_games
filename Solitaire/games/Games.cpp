@@ -585,9 +585,9 @@ void squirrel_script_game::CreateAPI(start_scene* scene, scripting::squirrel::sc
     CreateWrapper(script);
 
     // Lua interop
-    auto lua {table::CreateNew(script.get_view())};
+    table lua {view};
 
-    auto meta {table::CreateNew(script.get_view())};
+    table meta {view};
     meta["_get"]  = make_func([](stack_base& base, std::string const& func) {
         auto funcSig {base["_funcSig"].as<std::vector<std::string>>()};
         funcSig.push_back(func);
@@ -614,9 +614,9 @@ void squirrel_script_game::CreateAPI(start_scene* scene, scripting::squirrel::sc
         return scene->call_lua(funcSig, args);
     });
 
-    auto luaMeta {table::CreateNew(script.get_view())};
+    table luaMeta {view};
     luaMeta["_get"] = make_func([meta, view](std::string const& func) {
-        auto tab {table::CreateNew(view)};
+        table tab {view};
         tab.set_delegate(meta);
         tab["_funcSig"] = std::vector<std::string> {func};
         return tab;
