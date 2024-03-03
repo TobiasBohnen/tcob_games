@@ -751,14 +751,13 @@ void squirrel_script_game::CreateAPI(start_scene* scene, scripting::squirrel::sc
     auto lua {table::CreateNew(script.get_view())};
 
     auto meta {table::CreateNew(script.get_view())};
-    meta["_get"]  = make_func([](stack_base& base, std::string const& func2) {
-        auto const func {base["_funcSig"].as<std::string>()};
-        base["_funcSig"] = func.empty() ? func2 : func + "." + func2;
+    meta["_get"]  = make_func([](stack_base& base, std::string const& func) {
+        auto funcSig {base["_funcSig"].as<std::vector<std::string>>()};
+        funcSig.push_back(func);
+        base["_funcSig"] = funcSig;
         return base;
     });
     meta["_call"] = make_func([scene, view](stack_base const&, table& tab) {
-        auto const func {tab["_funcSig"].as<std::string>()};
-
         auto const types {view.get_stack_types()};
         lua_params args {};
 
@@ -770,38 +769,24 @@ void squirrel_script_game::CreateAPI(start_scene* scene, scripting::squirrel::sc
                 if (view.pull_convert_idx(i, val)) { args.Items.emplace_back(val); }
             } break;
 
-            case type::Integer: {
-                i64 val {};
-                if (view.pull_convert_idx(i, val)) { args.Items.emplace_back(val); }
+            default: {
+                lua_value val {};
+                if (view.pull_convert_idx(i, val)) {
+                    std::visit([&args](auto&& item) { args.Items.emplace_back(item); }, val);
+                }
             } break;
-
-            case type::Float: {
-                f64 val {};
-                if (view.pull_convert_idx(i, val)) { args.Items.emplace_back(val); }
-            } break;
-
-            case type::Boolean: {
-                bool val {};
-                if (view.pull_convert_idx(i, val)) { args.Items.emplace_back(val); }
-            } break;
-
-            case type::String: {
-                std::string val {};
-                if (view.pull_convert_idx(i, val)) { args.Items.emplace_back(val); }
-            } break;
-
-            default: break;
             }
         }
 
-        scene->call_lua(func, args);
+        auto const funcSig {tab["_funcSig"].as<std::vector<std::string>>()};
+        return scene->call_lua(funcSig, args);
     });
 
     auto luaMeta {table::CreateNew(script.get_view())};
     luaMeta["_get"] = make_func([meta, view](std::string const& func) {
         auto tab {table::CreateNew(view)};
         tab.set_delegate(meta);
-        tab["_funcSig"] = func;
+        tab["_funcSig"] = std::vector<std::string> {func};
         return tab;
     });
     lua.set_delegate(luaMeta);

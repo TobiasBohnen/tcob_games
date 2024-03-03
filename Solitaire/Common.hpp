@@ -44,6 +44,8 @@ namespace games {
     class base_game;
 }
 
+using lua_value  = std::variant<i64, f64, bool, std::string>;
+using lua_return = std::optional<lua_value>;
 using lua_params = scripting::parameter_pack<std::variant<games::base_game*, i64, f64, bool, std::string>>;
 
 ////////////////////////////////////////////////////////////

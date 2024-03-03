@@ -24,7 +24,7 @@ public:
     ~start_scene() override;
 
     void register_game(games::game_info const& info, func&& game);
-    void call_lua(std::string const& func, lua_params const& args);
+    auto call_lua(std::vector<std::string> const& funcs, lua_params const& args) -> lua_return;
 
 protected:
     void on_start() override;
