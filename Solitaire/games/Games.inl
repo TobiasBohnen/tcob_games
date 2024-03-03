@@ -19,7 +19,8 @@ inline void base_game::create_piles(auto&& piles, isize size, std::function<void
     }
 }
 
-inline void base_game::CreateWrapper(auto&& script, i32 indexOffset)
+template <typename Table, template <typename> typename Function, isize IndexOffset>
+inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& script)
 {
     using namespace scripting;
 
@@ -50,8 +51,8 @@ inline void base_game::CreateWrapper(auto&& script, i32 indexOffset)
     };
     gameWrapper["find_pile"] = [](base_game* game, card& card) { return game->find_pile(card); };
     gameWrapper["drop"]      = [](base_game* game, pile* to, card& card) { return game->drop(*to, card); };
-    gameWrapper["can_drop"]  = [indexOffset](base_game* game, pile* targetPile, isize targetIndex, card const& drop, isize numCards) {
-        return game->base_game::can_drop(*targetPile, targetIndex + indexOffset, drop, numCards);
+    gameWrapper["can_drop"]  = [](base_game* game, pile* targetPile, isize targetIndex, card const& drop, isize numCards) {
+        return game->base_game::can_drop(*targetPile, targetIndex + IndexOffset, drop, numCards);
     };
 
     // static methods
@@ -76,7 +77,7 @@ inline void base_game::CreateWrapper(auto&& script, i32 indexOffset)
             return false;
         },
         [=](card& card, std::vector<pile*>& to, i32 offset, usize size, bool ifEmpty) {
-            auto const target {std::span<pile*>(to.data() + offset + indexOffset, size)};
+            auto const target {std::span<pile*>(to.data() + offset + IndexOffset, size)};
             for (auto& pile : target) {
                 if (placeCard(card, *pile, ifEmpty, false)) { return true; }
             }
@@ -93,7 +94,7 @@ inline void base_game::CreateWrapper(auto&& script, i32 indexOffset)
             return false;
         },
         [=](card& card, std::vector<pile*>& to, i32 offset, usize size, bool ifEmpty) {
-            auto const target {std::span<pile*>(to.data() + offset + indexOffset, size)};
+            auto const target {std::span<pile*>(to.data() + offset + IndexOffset, size)};
             for (auto& pile : target) {
                 if (placeCard(card, *pile, ifEmpty, true)) { return true; }
             }
@@ -121,8 +122,8 @@ inline void base_game::CreateWrapper(auto&& script, i32 indexOffset)
     pileWrapper["clear"]              = [](pile* p) { p->Cards.clear(); };
 
     pileWrapper["move_rank_to_bottom"] = [](pile* p, rank r) { std::ranges::stable_partition(p->Cards, [r](card const& c) { return c.get_rank() == r; }); };
-    pileWrapper["move_cards"]          = [indexOffset](pile* p, pile* to, isize startIndex, isize numCards, bool reverse) {
-        p->move_cards(*to, startIndex + indexOffset, numCards, reverse);
+    pileWrapper["move_cards"]          = [](pile* p, pile* to, isize startIndex, isize numCards, bool reverse) {
+        p->move_cards(*to, startIndex + IndexOffset, numCards, reverse);
     };
     pileWrapper["redeal"] = [](pile* p, pile* to) {
         if (to->empty() && !p->empty()) {
@@ -159,10 +160,128 @@ inline void base_game::CreateWrapper(auto&& script, i32 indexOffset)
     pileWrapper["check_bounds"] = [](pile* p, isize i, point_i pos) { return p->Cards[i - 1].Bounds.contains(pos); };
 }
 
-template <typename Table, template <typename> typename Function>
-inline void base_game::CreatePiles(auto&& game, auto&& gameRef)
+template <typename Table, template <typename> typename Function, isize IndexOffset>
+template <typename T>
+inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& scene, auto&& globalTable, auto&& makeFunc)
 {
-    auto const createPile {[game](pile& pile, Table const& pileTab) {
+    globalTable["RegisterGame"] = makeFunc([scene](Table& tab) {
+        games::game_info info;
+        info.Name          = tab["Info"]["Name"].template as<std::string>();
+        info.Type          = tab["Info"]["Type"];
+        info.Family        = tab["Info"]["Family"];
+        info.DeckCount     = tab["Info"]["DeckCount"];
+        info.CardDealCount = tab["Info"]["CardDealCount"];
+        info.Redeals       = tab["Info"]["Redeals"];
+
+        auto func {[tab, info](auto& field) { return std::make_shared<T>(field, info, tab); }};
+        scene->register_game(info, func);
+    });
+}
+
+template <typename Table, template <typename> typename Function, isize IndexOffset>
+inline script_game<Table, Function, IndexOffset>::script_game(field& f, game_info info, Table table)
+    : base_game {f, info}
+    , _table {std::move(table)}
+{
+    make_piles(_table);
+    _table.try_get(_callbacks.CheckDrop, "check_drop");
+    _table.try_get(_callbacks.OnRedeal, "on_redeal");
+    _table.try_get(_callbacks.OnDeal, "on_deal");
+    _table.try_get(_callbacks.OnBeforeShuffle, "on_before_shuffle");
+    _table.try_get(_callbacks.OnShuffle, "on_shuffle");
+    _table.try_get(_callbacks.OnAfterShuffle, "on_after_shuffle");
+    _table.try_get(_callbacks.OnChange, "on_change");
+    _table.try_get(_callbacks.CheckState, "check_state");
+    _table.try_get(_callbacks.CheckMovable, "check_movable");
+}
+
+template <typename Table, template <typename> typename Function, isize IndexOffset>
+inline auto script_game<Table, Function, IndexOffset>::can_drop(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool
+{
+    if (_callbacks.CheckDrop) {
+        return (*_callbacks.CheckDrop)(static_cast<base_game const*>(this), &targetPile, targetIndex + IndexOffset, drop, numCards);
+    }
+    return base_game::can_drop(targetPile, targetIndex, drop, numCards);
+}
+
+template <typename Table, template <typename> typename Function, isize IndexOffset>
+inline auto script_game<Table, Function, IndexOffset>::do_redeal() -> bool
+{
+    if (_callbacks.OnRedeal) {
+        return (*_callbacks.OnRedeal)(static_cast<base_game const*>(this));
+    }
+    return base_game::do_redeal();
+}
+
+template <typename Table, template <typename> typename Function, isize IndexOffset>
+inline auto script_game<Table, Function, IndexOffset>::do_deal() -> bool
+{
+    if (_callbacks.OnDeal) {
+        return (*_callbacks.OnDeal)(static_cast<base_game const*>(this));
+    }
+    return base_game::do_deal();
+}
+
+template <typename Table, template <typename> typename Function, isize IndexOffset>
+inline auto script_game<Table, Function, IndexOffset>::before_shuffle(card& card) -> bool
+{
+    if (_callbacks.OnBeforeShuffle) {
+        return (*_callbacks.OnBeforeShuffle)(static_cast<base_game const*>(this), card);
+    }
+    return base_game::before_shuffle(card);
+}
+
+template <typename Table, template <typename> typename Function, isize IndexOffset>
+inline auto script_game<Table, Function, IndexOffset>::shuffle(card& card, pile_type pileType) -> bool
+{
+    if (_callbacks.OnShuffle) {
+        return (*_callbacks.OnShuffle)(static_cast<base_game const*>(this), card, pileType);
+    }
+    return base_game::shuffle(card, pileType);
+}
+
+template <typename Table, template <typename> typename Function, isize IndexOffset>
+inline void script_game<Table, Function, IndexOffset>::after_shuffle()
+{
+    if (_callbacks.OnAfterShuffle) {
+        (*_callbacks.OnAfterShuffle)(static_cast<base_game const*>(this));
+    } else {
+        base_game::after_shuffle();
+    }
+}
+
+template <typename Table, template <typename> typename Function, isize IndexOffset>
+inline void script_game<Table, Function, IndexOffset>::on_change()
+{
+    if (_callbacks.OnChange) {
+        (*_callbacks.OnChange)(static_cast<base_game const*>(this));
+    } else {
+        base_game::on_change();
+    }
+}
+
+template <typename Table, template <typename> typename Function, isize IndexOffset>
+inline auto script_game<Table, Function, IndexOffset>::check_state() const -> game_state
+{
+    if (_callbacks.CheckState) {
+        return (*_callbacks.CheckState)(static_cast<base_game const*>(this));
+    }
+    return base_game::check_state();
+}
+
+template <typename Table, template <typename> typename Function, isize IndexOffset>
+inline auto script_game<Table, Function, IndexOffset>::check_movable(pile const& targetPile, isize idx) -> bool
+{
+    if (_callbacks.CheckMovable) {
+        return (*_callbacks.CheckMovable)(static_cast<base_game const*>(this), &targetPile, idx + IndexOffset);
+    }
+    return base_game::check_movable(targetPile, idx);
+}
+
+template <typename Table, template <typename> typename Function, isize IndexOffset>
+inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef)
+{
+    auto const createPile {[this](pile& pile, Table const& pileTab) {
         pile.Position  = pileTab["Position"].template get<point_f>().value_or(point_f::Zero);
         pile.Initial   = pileTab["Initial"].template get<std::vector<bool>>().value_or(std::vector<bool> {});
         pile.Layout    = pileTab["Layout"].template get<layout_type>().value_or(layout_type::Squared);
@@ -176,7 +295,7 @@ inline void base_game::CreatePiles(auto&& game, auto&& gameRef)
             pile.Rule.Limit    = ruleTable["Limit"].template get<i32>().value_or(-1);
 
             if (Function<bool> emptyFunc; ruleTable.try_get(emptyFunc, "Empty")) {
-                pile.Rule.Empty = empty::func {[game, emptyFunc](card const& card) { return emptyFunc(game, card); }};
+                pile.Rule.Empty = empty::func {[this, emptyFunc](card const& card) { return emptyFunc(this, card); }};
             } else if (std::string empty; ruleTable.try_get(empty, "Empty")) {
                 if (empty == "Ace") {
                     pile.Rule.Empty = empty::Ace();
@@ -189,13 +308,13 @@ inline void base_game::CreatePiles(auto&& game, auto&& gameRef)
                 } else if (empty == "AnySingle") {
                     pile.Rule.Empty = {empty::Any(), true};
                 } else if (empty == "FirstFoundation") {
-                    pile.Rule.Empty = empty::First(game->Foundation[0]);
+                    pile.Rule.Empty = empty::First(Foundation[0]);
                 }
             } else if (Table emptyTable; ruleTable.try_get(emptyTable, "Empty")) {
                 if (std::string type; emptyTable.try_get(type, "Type")) {
                     if (type == "FirstFoundation") {
                         i32 const interval {emptyTable["Interval"].template get<i32>().value_or(0)};
-                        pile.Rule.Empty = {empty::First(game->Foundation[0], interval)};
+                        pile.Rule.Empty = {empty::First(Foundation[0], interval)};
                     } else if (type == "Card") {
                         rank const       r {emptyTable["Rank"]};
                         suit_color const sc {emptyTable["Color"]};
@@ -216,49 +335,32 @@ inline void base_game::CreatePiles(auto&& game, auto&& gameRef)
         if (Table pileTypeTable; gameRef.try_get(pileTypeTable, name)) {
             isize const size {pileTypeTable["Size"].template get<isize>().value_or(1)};
             if (size == 1 && !pileTypeTable.has("create")) { // table is definition
-                game->create_piles(piles, 1, [&](auto& pile, i32) {
+                create_piles(piles, 1, [&](auto& pile, i32) {
                     createPile(pile, pileTypeTable);
                 });
             } else if (Table createTable; pileTypeTable.try_get(createTable, "create")) { // use 'create' table
-                game->create_piles(piles, size, [&](auto& pile, i32) {
+                create_piles(piles, size, [&](auto& pile, i32) {
                     createPile(pile, createTable);
                 });
             } else { // call 'create' function
                 Function<Table> create {pileTypeTable["create"].template as<Function<Table>>()};
-                game->create_piles(piles, size, [&](auto& pile, i32 i) {
+                create_piles(piles, size, [&](auto& pile, i32 i) {
                     createPile(pile, create(i));
                 });
             }
         }
     }};
 
-    createPiles(game->Stock, "Stock");
-    createPiles(game->Waste, "Waste");
-    createPiles(game->Reserve, "Reserve");
-    createPiles(game->FreeCell, "FreeCell");
-    createPiles(game->Foundation, "Foundation");
-    createPiles(game->Tableau, "Tableau");
+    createPiles(Stock, "Stock");
+    createPiles(Waste, "Waste");
+    createPiles(Reserve, "Reserve");
+    createPiles(FreeCell, "FreeCell");
+    createPiles(Foundation, "Foundation");
+    createPiles(Tableau, "Tableau");
 
     if (Function<void> func; gameRef.try_get(func, "on_created")) {
-        func(static_cast<base_game*>(game));
+        func(static_cast<base_game*>(this));
     }
-}
-
-template <typename T, typename GameRef>
-inline void base_game::CreateGlobals(auto&& scene, auto&& globalTable, auto&& makeFunc)
-{
-    globalTable["RegisterGame"] = makeFunc([scene](GameRef& tab) {
-        games::game_info info;
-        info.Name          = tab["Info"]["Name"].template as<std::string>();
-        info.Type          = tab["Info"]["Type"];
-        info.Family        = tab["Info"]["Family"];
-        info.DeckCount     = tab["Info"]["DeckCount"];
-        info.CardDealCount = tab["Info"]["CardDealCount"];
-        info.Redeals       = tab["Info"]["Redeals"];
-
-        auto func {[tab, info](auto& field) { return std::make_shared<T>(field, info, tab); }};
-        scene->register_game(info, func);
-    });
 }
 
 }

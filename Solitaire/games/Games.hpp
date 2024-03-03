@@ -83,6 +83,8 @@ public:
     auto info() const -> game_info;
     auto state() const -> game_state;
     auto piles() const -> std::unordered_map<pile_type, std::vector<pile*>> const&;
+    auto redeals_left() const -> i32;
+    auto rand() -> rng&;
 
     void start(size_f cardSize, std::optional<data::config::object> const& loadObj);
     void restart();
@@ -93,6 +95,8 @@ public:
     auto hover_at(point_i pos) -> hit_test_result;
     auto drop_target_at(rect_f const& rect, card const& move, isize numCards) -> hit_test_result;
     void drop_cards(hit_test_result const& hovered, hit_test_result const& dropTarget);
+    auto drop(pile& to, card& card) const -> bool;
+    auto find_pile(card const& card) const -> pile*;
 
     auto virtual can_drop(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool;
 
@@ -100,8 +104,6 @@ public:
     void key_down(input::keyboard::event& ev);
 
 protected:
-    auto drop(pile& to, card& card) const -> bool;
-
     auto virtual do_redeal() -> bool;
     auto virtual do_deal() -> bool;
 
@@ -113,24 +115,14 @@ protected:
 
     auto virtual check_state() const -> game_state;
 
-    auto virtual check_movable(pile const& targetPile, isize idx) const -> bool;
+    auto virtual check_movable(pile const& targetPile, isize idx) -> bool;
 
     void add_pile(pile* p);
     void create_piles(auto&& piles, isize size, std::function<void(pile&, i32)> const& func);
-    auto find_pile(card const& card) const -> pile*;
 
     void layout_piles();
 
-    auto rand() -> rng&;
-    auto redeals_left() const -> i32;
-
     void end_turn();
-
-    void static CreateWrapper(auto&& script, i32 indexOffset);
-    template <typename Table, template <typename> typename Function>
-    void static CreatePiles(auto&& game, auto&& gameRef);
-    template <typename T, typename GameRef>
-    void static CreateGlobals(auto&& scene, auto&& globalTable, auto&& makeFunc);
 
 private:
     void new_game();
@@ -145,6 +137,7 @@ private:
     void auto_move_to_foundation(pile& srcPile);
 
     std::unordered_map<pile_type, std::vector<pile*>> _piles;
+    flat_map<std::pair<pile const*, isize>, bool>     _movableCache;
 
     game_state _state {game_state::Initial};
     game_info  _gameInfo;
@@ -161,13 +154,16 @@ private:
 
 ////////////////////////////////////////////////////////////
 
-class lua_script_game : public base_game {
+template <typename Table, template <typename> typename Function, isize IndexOffset>
+class script_game : public base_game {
 public:
-    lua_script_game(field& f, game_info info, scripting::lua::table tab);
-
-    void static CreateAPI(start_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs);
+    script_game(field& f, game_info info, Table table);
 
     auto can_drop(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool override;
+
+    void static CreateWrapper(auto&& script);
+    template <typename T>
+    void static CreateGlobals(auto&& scene, auto&& globalTable, auto&& makeFunc);
 
 protected:
     auto do_redeal() -> bool override;
@@ -181,38 +177,43 @@ protected:
 
     auto check_state() const -> game_state override;
 
-    auto check_movable(pile const& targetPile, isize idx) const -> bool override;
+    auto check_movable(pile const& targetPile, isize idx) -> bool override;
 
 private:
-    scripting::lua::table _table;
+    void make_piles(auto&& gameRef);
+
+    struct callbacks {
+        std::optional<Function<bool>>       CheckDrop;
+        std::optional<Function<bool>>       OnRedeal;
+        std::optional<Function<bool>>       OnDeal;
+        std::optional<Function<bool>>       OnBeforeShuffle;
+        std::optional<Function<bool>>       OnShuffle;
+        std::optional<Function<void>>       OnAfterShuffle;
+        std::optional<Function<void>>       OnChange;
+        std::optional<Function<game_state>> CheckState;
+        std::optional<Function<bool>>       CheckMovable;
+    };
+
+    callbacks _callbacks;
+    Table     _table;
 };
 
 ////////////////////////////////////////////////////////////
 
-class squirrel_script_game : public base_game {
+class lua_script_game : public script_game<scripting::lua::table, scripting::lua::function, -1> {
+public:
+    lua_script_game(field& f, game_info info, scripting::lua::table tab);
+
+    void static CreateAPI(start_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs);
+};
+
+////////////////////////////////////////////////////////////
+
+class squirrel_script_game : public script_game<scripting::squirrel::table, scripting::squirrel::function, 0> {
 public:
     squirrel_script_game(field& f, game_info info, scripting::squirrel::table tab);
 
     void static CreateAPI(start_scene* scene, scripting::squirrel::script& script, std::vector<scripting::squirrel::native_closure_shared_ptr>& funcs);
-
-    auto can_drop(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool override;
-
-protected:
-    auto do_redeal() -> bool override;
-    auto do_deal() -> bool override;
-
-    auto before_shuffle(card& card) -> bool override;
-    auto shuffle(card& card, pile_type pileType) -> bool override;
-    void after_shuffle() override;
-
-    void on_change() override;
-
-    auto check_state() const -> game_state override;
-
-    auto check_movable(pile const& targetPile, isize idx) const -> bool override;
-
-private:
-    scripting::squirrel::table _table;
 };
 
 }

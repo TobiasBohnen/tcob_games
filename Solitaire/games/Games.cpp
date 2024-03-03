@@ -174,6 +174,7 @@ auto base_game::can_undo() const -> bool
 
 void base_game::layout_piles()
 {
+    _movableCache.clear();
     on_change();
 
     for (auto& [_, piles] : _piles) {
@@ -392,8 +393,15 @@ auto base_game::can_drop(pile const& targetPile, isize targetIndex, card const& 
     return rules::build(targetPile, targetIndex, drop, numCards);
 }
 
-auto base_game::check_movable(pile const& targetPile, isize idx) const -> bool
+auto base_game::check_movable(pile const& targetPile, isize idx) -> bool
 {
+    std::pair<pile const*, isize> const key {&targetPile, idx};
+
+    if (auto it {_movableCache.find(key)}; it != _movableCache.end()) {
+        return it->second;
+    }
+
+    _movableCache[key] = true;
     switch (targetPile.Rule.Move) {
     case move_type::None:
     case move_type::Top: {
@@ -419,6 +427,7 @@ auto base_game::check_movable(pile const& targetPile, isize idx) const -> bool
     } break;
     }
 
+    _movableCache[key] = false;
     return false;
 }
 
@@ -531,94 +540,8 @@ auto base_game::redeals_left() const -> i32
 using namespace scripting;
 
 lua_script_game::lua_script_game(field& f, game_info info, lua::table tab)
-    : base_game {f, std::move(info)}
-    , _table {std::move(tab)}
+    : script_game {f, std::move(info), std::move(tab)}
 {
-    using namespace scripting::lua;
-    CreatePiles<table, function>(this, _table);
-}
-
-auto lua_script_game::can_drop(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool
-{
-    using namespace scripting::lua;
-    if (function<bool> func; _table.try_get(func, "check_drop")) {
-        return func(static_cast<base_game const*>(this), &targetPile, targetIndex + 1, drop, numCards);
-    }
-    return base_game::can_drop(targetPile, targetIndex, drop, numCards);
-}
-
-auto lua_script_game::do_redeal() -> bool
-{
-    using namespace scripting::lua;
-    if (function<bool> func; _table.try_get(func, "on_redeal")) {
-        return func(static_cast<base_game const*>(this));
-    }
-    return base_game::do_redeal();
-}
-
-auto lua_script_game::do_deal() -> bool
-{
-    using namespace scripting::lua;
-    if (function<bool> func; _table.try_get(func, "on_deal")) {
-        return func(static_cast<base_game const*>(this));
-    }
-    return base_game::do_deal();
-}
-
-auto lua_script_game::before_shuffle(card& card) -> bool
-{
-    using namespace scripting::lua;
-    if (function<bool> func; _table.try_get(func, "on_before_shuffle")) {
-        return func(static_cast<base_game const*>(this), card);
-    }
-    return base_game::before_shuffle(card);
-}
-
-auto lua_script_game::shuffle(card& card, pile_type pileType) -> bool
-{
-    using namespace scripting::lua;
-    if (function<bool> func; _table.try_get(func, "on_shuffle")) {
-        return func(static_cast<base_game const*>(this), card, pileType);
-    }
-    return base_game::shuffle(card, pileType);
-}
-
-void lua_script_game::after_shuffle()
-{
-    using namespace scripting::lua;
-    if (function<void> func; _table.try_get(func, "on_after_shuffle")) {
-        func(static_cast<base_game const*>(this));
-    } else {
-        base_game::after_shuffle();
-    }
-}
-
-void lua_script_game::on_change()
-{
-    using namespace scripting::lua;
-    if (function<void> func; _table.try_get(func, "on_change")) {
-        func(static_cast<base_game const*>(this));
-    } else {
-        base_game::on_change();
-    }
-}
-
-auto lua_script_game::check_state() const -> game_state
-{
-    using namespace scripting::lua;
-    if (function<game_state> func; _table.try_get(func, "check_state")) {
-        return func(static_cast<base_game const*>(this));
-    }
-    return base_game::check_state();
-}
-
-auto lua_script_game::check_movable(pile const& targetPile, isize idx) const -> bool
-{
-    using namespace scripting::lua;
-    if (function<bool> func; _table.try_get(func, "check_movable")) {
-        return func(static_cast<base_game const*>(this), &targetPile, idx + 1);
-    }
-    return base_game::check_movable(targetPile, idx);
 }
 
 void lua_script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs)
@@ -632,101 +555,15 @@ void lua_script_game::CreateAPI(start_scene* scene, scripting::lua::script& scri
         return ptr.get();
     }};
 
-    CreateGlobals<lua_script_game, table>(scene, script.get_global_table(), make_func);
-    CreateWrapper(script, -1);
+    CreateGlobals<lua_script_game>(scene, script.get_global_table(), make_func);
+    CreateWrapper(script);
 }
 
 ////////////////////////////////////////////////////////////
 
 squirrel_script_game::squirrel_script_game(field& f, game_info info, scripting::squirrel::table tab)
-    : base_game {f, std::move(info)}
-    , _table {std::move(tab)}
+    : script_game {f, std::move(info), std::move(tab)}
 {
-    using namespace scripting::squirrel;
-    CreatePiles<table, function>(this, _table);
-}
-
-auto squirrel_script_game::can_drop(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool
-{
-    using namespace scripting::squirrel;
-    if (function<bool> func; _table.try_get(func, "check_drop")) {
-        return func(static_cast<base_game const*>(this), &targetPile, targetIndex, drop, numCards);
-    }
-    return base_game::can_drop(targetPile, targetIndex, drop, numCards);
-}
-
-auto squirrel_script_game::do_redeal() -> bool
-{
-    using namespace scripting::squirrel;
-    if (function<bool> func; _table.try_get(func, "on_redeal")) {
-        return func(static_cast<base_game const*>(this));
-    }
-    return base_game::do_redeal();
-}
-
-auto squirrel_script_game::do_deal() -> bool
-{
-    using namespace scripting::squirrel;
-    if (function<bool> func; _table.try_get(func, "on_deal")) {
-        return func(static_cast<base_game const*>(this));
-    }
-    return base_game::do_deal();
-}
-
-auto squirrel_script_game::before_shuffle(card& card) -> bool
-{
-    using namespace scripting::squirrel;
-    if (function<bool> func; _table.try_get(func, "on_before_shuffle")) {
-        return func(static_cast<base_game const*>(this), card);
-    }
-    return base_game::before_shuffle(card);
-}
-
-auto squirrel_script_game::shuffle(card& card, pile_type pileType) -> bool
-{
-    using namespace scripting::squirrel;
-    if (function<bool> func; _table.try_get(func, "on_shuffle")) {
-        return func(static_cast<base_game const*>(this), card, pileType);
-    }
-    return base_game::shuffle(card, pileType);
-}
-
-void squirrel_script_game::after_shuffle()
-{
-    using namespace scripting::squirrel;
-    if (function<void> func; _table.try_get(func, "on_after_shuffle")) {
-        func(static_cast<base_game const*>(this));
-    } else {
-        base_game::after_shuffle();
-    }
-}
-
-void squirrel_script_game::on_change()
-{
-    using namespace scripting::squirrel;
-    if (function<void> func; _table.try_get(func, "on_change")) {
-        func(static_cast<base_game const*>(this));
-    } else {
-        base_game::on_change();
-    }
-}
-
-auto squirrel_script_game::check_state() const -> game_state
-{
-    using namespace scripting::squirrel;
-    if (function<game_state> func; _table.try_get(func, "check_state")) {
-        return func(static_cast<base_game const*>(this));
-    }
-    return base_game::check_state();
-}
-
-auto squirrel_script_game::check_movable(pile const& targetPile, isize idx) const -> bool
-{
-    using namespace scripting::squirrel;
-    if (function<bool> func; _table.try_get(func, "check_movable")) {
-        return func(static_cast<base_game const*>(this), &targetPile, idx);
-    }
-    return base_game::check_movable(targetPile, idx);
 }
 
 void squirrel_script_game::CreateAPI(start_scene* scene, scripting::squirrel::script& script, std::vector<scripting::squirrel::native_closure_shared_ptr>& funcs)
@@ -744,8 +581,8 @@ void squirrel_script_game::CreateAPI(start_scene* scene, scripting::squirrel::sc
     auto root {script.get_root_table()};
     auto view {script.get_view()};
 
-    CreateGlobals<squirrel_script_game, table>(scene, root, make_func);
-    CreateWrapper(script, 0);
+    CreateGlobals<squirrel_script_game>(scene, root, make_func);
+    CreateWrapper(script);
 
     // Lua interop
     auto lua {table::CreateNew(script.get_view())};
@@ -761,20 +598,15 @@ void squirrel_script_game::CreateAPI(start_scene* scene, scripting::squirrel::sc
         auto const types {view.get_stack_types()};
         lua_params args {};
 
-        using type = scripting::squirrel::type;
         for (isize i {3}; i < std::ssize(types); ++i) {
-            switch (types[i - 1]) {
-            case type::Userdata: {
+            if (types[i - 1] == scripting::squirrel::type::Userdata) {
                 base_game* val {};
                 if (view.pull_convert_idx(i, val)) { args.Items.emplace_back(val); }
-            } break;
-
-            default: {
+            } else {
                 lua_value val {};
                 if (view.pull_convert_idx(i, val)) {
                     std::visit([&args](auto&& item) { args.Items.emplace_back(item); }, val);
                 }
-            } break;
             }
         }
 
