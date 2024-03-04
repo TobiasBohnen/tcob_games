@@ -165,13 +165,15 @@ template <typename T>
 inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& scene, auto&& globalTable, auto&& makeFunc)
 {
     globalTable["RegisterGame"] = makeFunc([scene](Table& tab) {
+        auto             infoTab {tab["Info"].template as<Table>()};
         games::game_info info;
-        info.Name          = tab["Info"]["Name"].template as<std::string>();
-        info.Type          = tab["Info"]["Type"].template as<type>();
-        info.Family        = tab["Info"]["Family"].template as<family>();
-        info.DeckCount     = tab["Info"]["DeckCount"].template as<i32>();
-        info.CardDealCount = tab["Info"]["CardDealCount"].template as<i32>();
-        info.Redeals       = tab["Info"]["Redeals"].template as<i32>();
+
+        infoTab.try_get(info.Name, "Name");
+        infoTab.try_get(info.Type, "Type");
+        infoTab.try_get(info.Family, "Family");
+        infoTab.try_get(info.DeckCount, "DeckCount");
+        infoTab.try_get(info.CardDealCount, "CardDealCount");
+        infoTab.try_get(info.Redeals, "Redeals");
 
         auto func {[tab, info](auto& field) { return std::make_shared<T>(field, info, tab); }};
         scene->register_game(info, func);
@@ -282,17 +284,17 @@ template <typename Table, template <typename> typename Function, isize IndexOffs
 inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef)
 {
     auto const createPile {[this](pile& pile, Table const& pileTab) {
-        pile.Position  = pileTab["Position"].template get<point_f>().value_or(point_f::Zero);
-        pile.Initial   = pileTab["Initial"].template get<std::vector<bool>>().value_or(std::vector<bool> {});
-        pile.Layout    = pileTab["Layout"].template get<layout_type>().value_or(layout_type::Squared);
-        pile.HasMarker = pileTab["HasMarker"].template get<bool>().value_or(true);
+        pileTab.try_get(pile.Position, "Position");
+        pileTab.try_get(pile.Initial, "Initial");
+        pileTab.try_get(pile.Layout, "Layout");
+        pileTab.try_get(pile.HasMarker, "HasMarker");
 
         if (Table ruleTable; pileTab.try_get(ruleTable, "Rule")) {
-            pile.Rule.Build    = ruleTable["Build"].template get<build_type>().value_or(build_type::NoBuilding);
-            pile.Rule.Interval = ruleTable["Interval"].template get<i32>().value_or(1);
-            pile.Rule.Wrap     = ruleTable["Wrap"].template get<bool>().value_or(false);
-            pile.Rule.Move     = ruleTable["Move"].template get<move_type>().value_or(move_type::Top);
-            pile.Rule.Limit    = ruleTable["Limit"].template get<i32>().value_or(-1);
+            ruleTable.try_get(pile.Rule.Build, "Build");
+            ruleTable.try_get(pile.Rule.Interval, "Interval");
+            ruleTable.try_get(pile.Rule.Wrap, "Wrap");
+            ruleTable.try_get(pile.Rule.Move, "Move");
+            ruleTable.try_get(pile.Rule.Limit, "Limit");
 
             if (Function<bool> emptyFunc; ruleTable.try_get(emptyFunc, "Empty")) {
                 pile.Rule.Empty = empty::func {[this, emptyFunc](card const& card) { return emptyFunc(this, card); }};
@@ -313,7 +315,8 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
             } else if (Table emptyTable; ruleTable.try_get(emptyTable, "Empty")) {
                 if (std::string type; emptyTable.try_get(type, "Type")) {
                     if (type == "FirstFoundation") {
-                        i32 const interval {emptyTable["Interval"].template get<i32>().value_or(0)};
+                        i32 interval {0};
+                        emptyTable.try_get(interval, "Interval");
                         pile.Rule.Empty = {empty::First(Foundation[0], interval)};
                     } else if (type == "Card") {
                         rank const       r {emptyTable["Rank"].template as<rank>()};
@@ -333,7 +336,8 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
 
     auto const createPiles {[&](auto&& piles, std::string const& name) {
         if (Table pileTypeTable; gameRef.try_get(pileTypeTable, name)) {
-            isize const size {pileTypeTable["Size"].template get<isize>().value_or(1)};
+            isize size {1};
+            pileTypeTable.try_get(size, "Size");
             if (size == 1 && !pileTypeTable.has("create")) { // table is definition
                 create_piles(piles, 1, [&](auto& pile, i32) {
                     createPile(pile, pileTypeTable);
