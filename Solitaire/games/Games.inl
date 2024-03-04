@@ -167,11 +167,11 @@ inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& scen
     globalTable["RegisterGame"] = makeFunc([scene](Table& tab) {
         games::game_info info;
         info.Name          = tab["Info"]["Name"].template as<std::string>();
-        info.Type          = tab["Info"]["Type"];
-        info.Family        = tab["Info"]["Family"];
-        info.DeckCount     = tab["Info"]["DeckCount"];
-        info.CardDealCount = tab["Info"]["CardDealCount"];
-        info.Redeals       = tab["Info"]["Redeals"];
+        info.Type          = tab["Info"]["Type"].template as<type>();
+        info.Family        = tab["Info"]["Family"].template as<family>();
+        info.DeckCount     = tab["Info"]["DeckCount"].template as<i32>();
+        info.CardDealCount = tab["Info"]["CardDealCount"].template as<i32>();
+        info.Redeals       = tab["Info"]["Redeals"].template as<i32>();
 
         auto func {[tab, info](auto& field) { return std::make_shared<T>(field, info, tab); }};
         scene->register_game(info, func);
@@ -316,8 +316,8 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
                         i32 const interval {emptyTable["Interval"].template get<i32>().value_or(0)};
                         pile.Rule.Empty = {empty::First(Foundation[0], interval)};
                     } else if (type == "Card") {
-                        rank const       r {emptyTable["Rank"]};
-                        suit_color const sc {emptyTable["Color"]};
+                        rank const       r {emptyTable["Rank"].template as<rank>()};
+                        suit_color const sc {emptyTable["Color"].template as<suit_color>()};
                         pile.Rule.Empty = empty::Card(sc, r);
                     } else if (type == "Ranks") {
                         std::set<rank> const r {emptyTable["Ranks"].template as<std::set<rank>>()};

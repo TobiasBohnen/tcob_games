@@ -24,7 +24,7 @@ auto start_scene::call_lua(std::vector<std::string> const& funcs, lua_params con
     using namespace scripting::lua;
     table tab {_luaScript.get_global_table()};
     for (isize i {0}; i < std::ssize(funcs) - 1; ++i) {
-        tab = tab[funcs[i]];
+        tab = tab[funcs[i]].as<table>();
     }
 
     return tab[funcs.back()].as<function<lua_return>>()(args);

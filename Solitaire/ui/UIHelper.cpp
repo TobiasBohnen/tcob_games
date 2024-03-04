@@ -430,7 +430,7 @@ auto load_themes() -> std::map<std::string, color_themes>
                 if (theme[group][name].is<std::string>()) {
                     target = color::FromString(theme[group][name].as<std::string>());
                 } else {
-                    target = theme[group][name];
+                    target = theme[group][name].as<color>();
                 }
             }};
 

@@ -97,22 +97,22 @@ auto base_game::load(std::optional<data::config::object> const& loadObj) -> bool
 
     object const obj {loadObj->get<object>(_gameInfo.Name).value()};
     if (!obj.has("Redeals") || !obj.has("Turn")) { return false; }
-    _remainingRedeals = obj["Redeals"];
-    _turn             = obj["Turn"];
+    _remainingRedeals = obj["Redeals"].as<i32>();
+    _turn             = obj["Turn"].as<i32>();
 
     auto const createCard {[&](entry const& entry) { return card::FromValue(entry.as<u16>()); }};
     for (auto& [type, piles] : _piles) {
         auto const pileType {get_pile_type_name(type)};
         if (!obj.has(pileType)) { return false; }
 
-        array const typeArray {obj[pileType]};
+        array const typeArray {obj[pileType].as<array>()};
         auto const  pileCount {std::ssize(piles)};
 
         if (typeArray.get_size() != pileCount) { return false; }
 
         for (isize i {0}; i < pileCount; ++i) {
             pile*       pile {piles[i]};
-            array const pileArray {typeArray[i]};
+            array const pileArray {typeArray[i].as<array>()};
             for (auto const& cardEntry : pileArray) {
                 auto card {createCard(cardEntry)};
                 pile->Cards.emplace_back(card);
