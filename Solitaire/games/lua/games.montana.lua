@@ -5,6 +5,7 @@
 
 local ops   = require 'base/ops'
 local piles = require 'base/piles'
+local rules = require 'base/rules'
 
 
 local montana_base                = {
@@ -142,7 +143,7 @@ local montana                     = {
             Position = {},
             Initial = piles.Initial.face_up(1),
             Layout = "Squared",
-            Rule = { Build = "NoBuilding", Move = "Top", Empty = "None" }
+            Rule = { Build = "NoBuilding", Move = "Top", Empty = rules.Empty.none }
         }
     },
     on_shuffle  = function(_, card, _)
@@ -206,7 +207,7 @@ local blue_moon                   = {
             return {
                 Initial = piles.Initial.face_up(i % 14 == 0 and 0 or 1),
                 Layout = "Squared",
-                Rule = { Build = "NoBuilding", Move = "Top", Empty = "None" }
+                Rule = { Build = "NoBuilding", Move = "Top", Empty = rules.Empty.none }
             }
         end
     },
@@ -243,7 +244,7 @@ red_moon.Tableau.create           = function(i)
     return {
         Initial = piles.Initial.face_up((i % 14 < 2) and 0 or 1),
         Layout = "Squared",
-        Rule = { Build = "NoBuilding", Move = "Top", Empty = "None" }
+        Rule = { Build = "NoBuilding", Move = "Top", Empty = rules.Empty.none }
     }
 end
 red_moon.on_before_shuffle        = blue_moon.on_shuffle
@@ -267,7 +268,7 @@ galary.Tableau.create             = function(i)
     return {
         Initial = piles.Initial.face_up((i % 14 == 0 or i % 14 == 1) and 0 or 1),
         Layout = "Squared",
-        Rule = { Build = "NoBuilding", Move = "Top", Empty = "None" }
+        Rule = { Build = "NoBuilding", Move = "Top", Empty = rules.Empty.none }
     }
 end
 galary.on_before_shuffle          = function(game, card)
@@ -297,7 +298,7 @@ local paganini                    = {
             return {
                 Initial = piles.Initial.face_up(i % 10 == 0 and 0 or 1),
                 Layout = "Squared",
-                Rule = { Build = "NoBuilding", Move = "Top", Empty = "None" }
+                Rule = { Build = "NoBuilding", Move = "Top", Empty = rules.Empty.none }
             }
         end
     },
@@ -353,7 +354,7 @@ local spoilt                      = {
                 Position = { x = i % 8 + 1, y = i // 8 },
                 Initial = piles.Initial.face_down(i % 8 == 0 and 0 or 1),
                 Layout = "Squared",
-                Rule = { Build = "NoBuilding", Move = "None", Empty = "None" }
+                Rule = { Build = "NoBuilding", Move = "None", Empty = rules.Empty.none }
             }
         end
     },

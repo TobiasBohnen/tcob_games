@@ -5,6 +5,7 @@
 
 local ops   = require 'base/ops'
 local piles = require 'base/piles'
+local rules = require 'base/rules'
 
 
 local spider             = {
@@ -36,7 +37,7 @@ local spider             = {
                 Position = { x = i, y = 1 },
                 Initial  = piles.Initial.top_face_up(i < 4 and 6 or 5),
                 Layout   = "Column",
-                Rule     = { Build = "DownByRank", Move = "InSequenceInSuit", Empty = "Any" }
+                Rule     = { Build = "DownByRank", Move = "InSequenceInSuit", Empty = rules.Empty.any }
             }
         end
     },
@@ -88,7 +89,7 @@ arachnida.Tableau.create = function(i)
         Position = { x = i + 1, y = 0 },
         Initial  = piles.Initial.top_face_up(i < 4 and 6 or 5),
         Layout   = "Column",
-        Rule     = { Build = "InRankOrDownByRank", Move = "InSequenceInSuitOrSameRank", Empty = "Any" }
+        Rule     = { Build = "InRankOrDownByRank", Move = "InSequenceInSuitOrSameRank", Empty = rules.Empty.any }
     }
 end
 

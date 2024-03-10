@@ -5,6 +5,7 @@
 
 local ops = dofile("./base/ops.nut", true)
 local piles = dofile("./base/piles.nut", true)
+local rules = dofile("./base/rules.nut", true)
 
 local aces_up = {
     Info = {
@@ -31,7 +32,7 @@ local aces_up = {
                 Rule = {
                     Build = "NoBuilding",
                     Move = "Top",
-                    Empty = "Any"
+                    Empty = rules.Empty.any
                 }
         }
     },
@@ -127,7 +128,7 @@ local aces_square = {
                 Rule = {
                     Build = "NoBuilding",
                     Move = "Top",
-                    Empty = "Any"
+                    Empty = rules.Empty.none
                 }
         }
     },
@@ -234,7 +235,7 @@ local four_seasons = {
                     Build = "UpInSuit",
                     Wrap = true,
                     Move = "None",
-                    Empty = "FirstFoundation"
+                    Empty = @(game) rules.Empty.first_foundation(game, 0)
                 }
         }
     },
@@ -251,7 +252,7 @@ local four_seasons = {
                     Build = "DownByRank",
                     Wrap = true,
                     Move = "Top",
-                    Empty = "Any"
+                    Empty = rules.Empty.any
                 }
 
         }

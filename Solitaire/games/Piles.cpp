@@ -97,14 +97,14 @@ void pile::flip_down_top_card()
     if (!empty()) { Cards.back().flip_face_down(); }
 }
 
-auto static get_valid_cards(empty::func const& f) -> std::multimap<rank, suit>
+auto static get_valid_cards(empty_func const& func) -> std::multimap<rank, suit>
 {
     std::multimap<rank, suit> retValue;
 
     for (i32 i {0}; i < 52; ++i) {
         suit s {static_cast<suit>(i / 13)};
         rank r {static_cast<rank>(i % 13 + 1)};
-        if (f({s, r, 0})) {
+        if (func({s, r, 0}, 1)) {
             retValue.emplace(r, s);
         }
     }
@@ -112,13 +112,13 @@ auto static get_valid_cards(empty::func const& f) -> std::multimap<rank, suit>
     return retValue;
 }
 
-auto static get_rank_name(empty::func const& s) -> std::string
+auto static get_empty_ranks(empty_func const& func) -> std::string
 {
     std::array<bool, 26>                     ranks {};
     static std::array<std::string, 13> const rankNames = {"Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King"};
 
     for (i32 i {0}; i < 26; ++i) {
-        ranks[i] = s({i < 13 ? suit::Clubs : suit::Diamonds, static_cast<rank>(i % 13 + 1), 0});
+        ranks[i] = func({i < 13 ? suit::Clubs : suit::Diamonds, static_cast<rank>(i % 13 + 1), 0}, 1);
     }
 
     isize const countTrue {std::ranges::count(ranks, true)};
@@ -206,7 +206,7 @@ auto pile::get_description(i32 remainingRedeals) const -> hover_info
     case pile_type::Foundation:
     case pile_type::Tableau: {
         retValue.Pile      = get_pile_type_name(Type);
-        retValue.Rule      = get_building_hint_text(Rule.Build) + "\nFirst: " + get_rank_name(Rule.Empty.Accept);
+        retValue.Rule      = get_building_hint_text(Rule.Build) + "\nFirst: " + get_empty_ranks(Rule.Empty);
         retValue.CardCount = std::to_string(cardCount);
         break;
     }
@@ -223,7 +223,7 @@ auto pile::get_marker_texture_name() const -> std::string
     // redeal for Stock
     // rank for Foundation/Tableau
     if (Type == pile_type::Foundation || Type == pile_type::Tableau) {
-        auto const valid {get_valid_cards(Rule.Empty.Accept)};
+        auto const valid {get_valid_cards(Rule.Empty)};
         if (valid.size() == 52) {
             return "card_base_gen"; // Any
         }

@@ -30,6 +30,7 @@ Sol.RankValues = {
 }
 
 Sol.Ranks = { "Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
+Sol.SuitColors = { Hearts = "Red", Diamonds = "Red", Spades = "Black", Clubs = "Black" }
 
 function Sol.get_rank(r, interval, wrap)
     local rank = Sol.RankValues[r]

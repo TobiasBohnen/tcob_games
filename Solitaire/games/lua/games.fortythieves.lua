@@ -5,6 +5,7 @@
 
 local ops   = require 'base/ops'
 local piles = require 'base/piles'
+local rules = require 'base/rules'
 
 
 local forty_thieves        = {
@@ -29,7 +30,7 @@ local forty_thieves        = {
         create = {
             Initial = piles.Initial.face_up(4),
             Layout = "Column",
-            Rule = { Build = "DownInSuit", Move = "Top", Empty = "Any" }
+            Rule = { Build = "DownInSuit", Move = "Top", Empty = rules.Empty.any }
         }
     },
     on_deal    = ops.Deal.stock_to_waste,
@@ -46,7 +47,7 @@ alternation.Tableau        = {
     create = {
         Initial = piles.Initial.alternate(7, true),
         Layout = "Column",
-        Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "King" }
+        Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.king }
     }
 }
 
@@ -57,7 +58,7 @@ interchange.Info.Name      = "Interchange"
 interchange.Tableau.create = {
     Initial = piles.Initial.alternate(7, true),
     Layout = "Column",
-    Rule = { Build = "DownInSuit", Move = "InSequence", Empty = "King" }
+    Rule = { Build = "DownInSuit", Move = "InSequence", Empty = rules.Empty.king }
 }
 
 ------
@@ -70,7 +71,7 @@ busy_aces.Tableau          = {
     create = {
         Initial = piles.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Build = "DownInSuit", Move = "Top", Empty = "Any" }
+        Rule = { Build = "DownInSuit", Move = "Top", Empty = rules.Empty.any }
     }
 }
 
@@ -84,7 +85,7 @@ corona.Tableau             = {
     create = {
         Initial = piles.Initial.face_up(3),
         Layout = "Column",
-        Rule = { Build = "DownInSuit", Move = "Top", Empty = "Any" }
+        Rule = { Build = "DownInSuit", Move = "Top", Empty = rules.Empty.any }
     }
 }
 corona.on_change           = function(game)
@@ -101,7 +102,7 @@ courtyard.Tableau          = {
     create = {
         Initial = piles.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Build = "DownInSuit", Move = "InSequence", Empty = "Any" }
+        Rule = { Build = "DownInSuit", Move = "InSequence", Empty = rules.Empty.any }
     }
 }
 courtyard.on_change        = corona.on_change

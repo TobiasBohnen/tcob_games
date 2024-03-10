@@ -5,6 +5,7 @@
 
 local ops   = require 'base/ops'
 local piles = require 'base/piles'
+local rules = require 'base/rules'
 
 
 local klondike                           = {
@@ -28,7 +29,7 @@ local klondike                           = {
             return {
                 Initial = piles.Initial.top_face_up(i + 1),
                 Layout = "Column",
-                Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "King" }
+                Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.king }
             }
         end
     },
@@ -106,7 +107,7 @@ local big_deal                           = {
         create = function(i)
             return {
                 Position = { x = i % 2 + 12, y = i // 2 },
-                Rule = { Build = "UpInSuit", Move = "Top", Empty = "Ace" }
+                Rule = { Build = "UpInSuit", Move = "Top", Empty = rules.Empty.ace }
             }
         end
     },
@@ -117,7 +118,7 @@ local big_deal                           = {
                 Position = { x = i, y = 0 },
                 Initial  = piles.Initial.top_face_up(i + 1),
                 Layout   = "Column",
-                Rule     = { Build = "DownAlternateColors", Move = "InSequence", Empty = "King" }
+                Rule     = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.king }
             }
         end
     },
@@ -135,7 +136,7 @@ big_forty.Tableau                        = {
     create = {
         Initial = piles.Initial.top_face_up(4),
         Layout = "Column",
-        Rule = { Build = "DownInSuit", Move = "InSequence", Empty = "Any" }
+        Rule = { Build = "DownInSuit", Move = "InSequence", Empty = rules.Empty.any }
     }
 }
 
@@ -153,7 +154,7 @@ big_harp.Tableau                         = {
         return {
             Initial = piles.Initial.top_face_up(10 - i),
             Layout = "Column",
-            Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
+            Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.any }
         }
     end
 }
@@ -169,7 +170,7 @@ ali_baba.Tableau                         = {
     create = {
         Initial = piles.Initial.top_face_up(4),
         Layout = "Column",
-        Rule = { Build = "DownInSuit", Move = "InSequence", Empty = "Any" }
+        Rule = { Build = "DownInSuit", Move = "InSequence", Empty = rules.Empty.any }
     }
 }
 ali_baba.on_before_shuffle               = ops.Shuffle.ace_to_foundation
@@ -185,7 +186,7 @@ blind_alleys.Tableau                     = {
     create = {
         Initial = piles.Initial.top_face_up(3),
         Layout = "Column",
-        Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
+        Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.any }
     }
 }
 blind_alleys.on_before_shuffle           = ops.Shuffle.ace_to_foundation
@@ -198,7 +199,7 @@ cassim.Stock.Initial                     = piles.Initial.face_down(20)
 cassim.Tableau.create                    = {
     Initial = piles.Initial.top_face_up(4),
     Layout = "Column",
-    Rule = { Build = "DownInSuit", Move = "InSequence", Empty = "Any" }
+    Rule = { Build = "DownInSuit", Move = "InSequence", Empty = rules.Empty.any }
 }
 cassim.on_before_shuffle                 = ops.Shuffle.ace_to_foundation
 
@@ -225,7 +226,7 @@ local eight_by_eight                     = {
             return {
                 Initial = piles.Initial.face_up(8),
                 Layout  = "Column",
-                Rule    = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
+                Rule    = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.any }
             }
         end
     },
@@ -249,7 +250,7 @@ eight_by_eight2.Tableau                  = {
         return {
             Initial = piles.Initial.face_up(8),
             Layout = "Column",
-            Rule = { Build = "DownByRank", Move = "InSequence", Empty = "AnySingle" }
+            Rule = { Build = "DownByRank", Move = "InSequence", Empty = rules.Empty.any_single }
         }
     end
 }
@@ -263,7 +264,7 @@ eight_by_eight3.Info.Redeals             = 2
 eight_by_eight3.Tableau.create           = {
     Initial = piles.Initial.face_up(8),
     Layout = "Column",
-    Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
+    Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.any }
 }
 
 ------
@@ -279,7 +280,7 @@ arabella.Tableau                         = {
         return {
             Initial = piles.Initial.top_face_up(i + 1),
             Layout = "Column",
-            Rule = { Build = "DownByRank", Move = "InSequenceInSuit", Empty = "King" }
+            Rule = { Build = "DownByRank", Move = "InSequenceInSuit", Empty = rules.Empty.king }
         }
     end
 }
@@ -292,7 +293,7 @@ athena.Info.Name                         = "Athena"
 athena.Tableau.create                    = {
     Initial = piles.Initial.alternate(4, false),
     Layout = "Column",
-    Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
+    Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.any }
 }
 
 ------
@@ -307,7 +308,7 @@ aunt_mary.Tableau                        = {
         return {
             Initial = { i < 1, i < 2, i < 3, i < 4, i < 5, i < 6 },
             Layout = "Column",
-            Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
+            Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.any }
         }
     end
 }
@@ -333,7 +334,7 @@ chinaman.Tableau                         = {
         return {
             Initial = piles.Initial.top_face_up(i + 1),
             Layout = "Column",
-            Rule = { Build = "DownAnyButOwnSuit", Move = "InSequence", Empty = "King" }
+            Rule = { Build = "DownAnyButOwnSuit", Move = "InSequence", Empty = rules.Empty.king }
         }
     end
 }
@@ -360,7 +361,7 @@ eastcliff.Tableau                        = {
     create = {
         Initial = piles.Initial.top_face_up(3),
         Layout = "Column",
-        Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
+        Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.any }
     }
 }
 
@@ -377,7 +378,7 @@ eight_sages.Tableau                      = {
     create = {
         Initial = piles.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Build = "DownAlternateColors", Move = "Top", Empty = "Any" }
+        Rule = { Build = "DownAlternateColors", Move = "Top", Empty = rules.Empty.any }
     }
 }
 eight_sages.check_drop                   = function(game, targetPile, targetIndex, drop, numCards)
@@ -421,7 +422,7 @@ local guardian                           = {
         create = function(i)
             return {
                 Position = { x = i + 3, y = 0 },
-                Rule = { Build = "UpInSuit", Move = "Top", Empty = "Ace" }
+                Rule = { Build = "UpInSuit", Move = "Top", Empty = rules.Empty.ace }
             }
         end
     },
@@ -431,7 +432,7 @@ local guardian                           = {
             local tab = {
                 HasMarker = i < 3,
                 Layout    = "Column",
-                Rule      = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
+                Rule      = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.any }
             }
             if i < 7 then
                 tab.Initial = piles.Initial.face_down(1)
@@ -478,12 +479,12 @@ gold_rush.on_deal                        = ops.Deal.stock_to_waste_by_redeals_le
 local kingsley                           = Sol.copy(klondike)
 kingsley.Info.Name                       = "Kingsley"
 kingsley.Info.Redeals                    = 0
-kingsley.Foundation.create               = { Rule = { Build = "DownInSuit", Move = "Top", Empty = "King" } }
+kingsley.Foundation.create               = { Rule = { Build = "DownInSuit", Move = "Top", Empty = rules.Empty.king } }
 kingsley.Tableau.create                  = function(i)
     return {
         Initial = piles.Initial.top_face_up(i + 1),
         Layout = "Column",
-        Rule = { Build = "UpAlternateColors", Move = "InSequence", Empty = "Ace" }
+        Rule = { Build = "UpAlternateColors", Move = "InSequence", Empty = rules.Empty.ace }
     }
 end
 
@@ -506,14 +507,14 @@ qc.Info.Redeals                          = 1
 qc.Stock.Initial                         = piles.Initial.face_down(80)
 qc.Foundation                            = {
     Size   = 8,
-    create = { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } }
+    create = { Rule = { Build = "UpInSuit", Move = "None", Empty = rules.Empty.ace } }
 }
 qc.Tableau                               = {
     Size   = 6,
     create = {
         Initial = piles.Initial.top_face_up(4),
         Layout  = "Column",
-        Rule    = { Build = "DownInSuit", Move = "Top", Empty = "Any" }
+        Rule    = { Build = "DownInSuit", Move = "Top", Empty = rules.Empty.any }
     }
 }
 qc.on_change                             = function(game)
@@ -528,7 +529,7 @@ saratoga.Tableau.create                  = function(i)
     return {
         Initial = piles.Initial.face_up(i + 1),
         Layout = "Column",
-        Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "King" }
+        Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.king }
     }
 end
 
@@ -540,14 +541,14 @@ thirty_six.Info.Redeals                  = 0
 thirty_six.Stock.Initial                 = piles.Initial.face_down(16)
 thirty_six.Foundation                    = {
     Size = 4,
-    create = { Rule = { Build = "UpInColor", Move = "Top", Empty = "Ace" } }
+    create = { Rule = { Build = "UpInColor", Move = "Top", Empty = rules.Empty.ace } }
 }
 thirty_six.Tableau                       = {
     Size = 6,
     create = {
         Initial = piles.Initial.face_up(6),
         Layout  = "Column",
-        Rule    = { Build = "DownByRank", Move = "InSequence", Empty = "Any" }
+        Rule    = { Build = "DownByRank", Move = "InSequence", Empty = rules.Empty.any }
     }
 }
 thirty_six.on_shuffle                    = function(game, card, pileType)
@@ -566,7 +567,7 @@ trigon.Tableau.create                    = function(i)
     return {
         Initial = piles.Initial.top_face_up(i + 1),
         Layout = "Column",
-        Rule = { Build = "DownInSuit", Move = "InSequence", Empty = "King" }
+        Rule = { Build = "DownInSuit", Move = "InSequence", Empty = rules.Empty.king }
     }
 end
 
@@ -590,14 +591,14 @@ whitehorse.Stock.Initial                 = piles.Initial.face_down(45)
 whitehorse.Waste.Layout                  = "Fan"
 whitehorse.Foundation                    = {
     Size = 4,
-    create = { Rule = { Build = "UpInColor", Move = "Top", Empty = "Ace" } }
+    create = { Rule = { Build = "UpInColor", Move = "Top", Empty = rules.Empty.ace } }
 }
 whitehorse.Tableau                       = {
     Size = 7,
     create = {
         Initial = piles.Initial.face_up(1),
         Layout  = "Column",
-        Rule    = { Build = "DownAlternateColors", Move = "InSequence", Empty = "King" }
+        Rule    = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.king }
     }
 }
 whitehorse.on_change                     = function(game)
@@ -616,7 +617,7 @@ australian_patience.Tableau              = {
     create = {
         Initial = piles.Initial.face_up(4),
         Layout  = "Column",
-        Rule    = { Build = "DownInSuit", Move = "FaceUp", Empty = "King" }
+        Rule    = { Build = "DownInSuit", Move = "FaceUp", Empty = rules.Empty.king }
     }
 }
 
@@ -633,7 +634,7 @@ bim_bom.Tableau                          = {
     create = {
         Initial = piles.Initial.face_up(5),
         Layout  = "Column",
-        Rule    = { Build = "DownInSuit", Move = "FaceUp", Empty = "Any" }
+        Rule    = { Build = "DownInSuit", Move = "FaceUp", Empty = rules.Empty.any }
     }
 }
 
@@ -658,7 +659,7 @@ local somerset                           = {
             return {
                 Initial = piles.Initial.face_up(i < 7 and i + 1 or 8),
                 Layout = "Column",
-                Rule = { Build = "DownAlternateColors", Move = "Top", Empty = "Any" }
+                Rule = { Build = "DownAlternateColors", Move = "Top", Empty = rules.Empty.any }
             }
         end
     },
@@ -679,7 +680,7 @@ steps.Tableau                            = {
         return {
             Initial = piles.Initial.top_face_up(i + 1),
             Layout = "Column",
-            Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
+            Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.any }
         }
     end
 }
@@ -727,7 +728,7 @@ local usk                   = {
             return {
                 Initial = piles.Initial.face_up(i < 7 and i + 1 or 8),
                 Layout = "Column",
-                Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "King" }
+                Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.king }
             }
         end
     },
@@ -741,13 +742,13 @@ local westcliff             = Sol.copy(klondike)
 westcliff.Info.Name         = "Westcliff"
 westcliff.Info.Redeals      = 0
 westcliff.Stock.Initial     = piles.Initial.face_down(22)
-westcliff.Foundation.create = { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } }
+westcliff.Foundation.create = { Rule = { Build = "UpInSuit", Move = "None", Empty = rules.Empty.ace } }
 westcliff.Tableau           = {
     Size = 10,
     create = {
         Initial = piles.Initial.top_face_up(3),
         Layout  = "Column",
-        Rule    = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
+        Rule    = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.any }
     }
 }
 
@@ -760,7 +761,7 @@ whitehead.Tableau.create    = function(i)
     return {
         Initial = piles.Initial.face_up(i + 1),
         Layout = "Column",
-        Rule = { Build = "DownInColor", Move = "InSequenceInSuit", Empty = "Any" }
+        Rule = { Build = "DownInColor", Move = "InSequenceInSuit", Empty = rules.Empty.any }
     }
 end
 

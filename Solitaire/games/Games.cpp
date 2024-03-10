@@ -22,6 +22,7 @@ auto base_game::get_name() const -> std::string
 
 auto base_game::get_description(pile const* pile) const -> hover_info
 {
+    // TODO: cache description; clear cache on change
     return pile ? pile->get_description(_remainingRedeals) : hover_info {};
 }
 
@@ -405,25 +406,25 @@ auto base_game::check_movable(pile const& targetPile, isize idx) -> bool
     switch (targetPile.Rule.Move) {
     case move_type::None:
     case move_type::Top: {
-        if (rules::stack::top(targetPile, idx)) { return true; }
+        if (stack::top(targetPile, idx)) { return true; }
     } break;
     case move_type::TopOrPile: {
-        if (rules::stack::top_or_pile(targetPile, idx)) { return true; }
+        if (stack::top_or_pile(targetPile, idx)) { return true; }
     } break;
     case move_type::FaceUp: {
-        if (rules::stack::face_up(targetPile, idx)) { return true; }
+        if (stack::face_up(targetPile, idx)) { return true; }
     } break;
     case move_type::InSequence: {
-        if (rules::stack::in_seq(this, targetPile, idx)) { return true; }
+        if (stack::in_seq(this, targetPile, idx)) { return true; }
     } break;
     case move_type::InSequenceInSuit: {
-        if (rules::stack::in_seq_in_suit(this, targetPile, idx)) { return true; }
+        if (stack::in_seq_in_suit(this, targetPile, idx)) { return true; }
     } break;
     case move_type::InSequenceInSuitOrSameRank: {
-        if (rules::stack::in_seq_in_suit_same_rank(this, targetPile, idx)) { return true; }
+        if (stack::in_seq_in_suit_same_rank(this, targetPile, idx)) { return true; }
     } break;
     case move_type::SuperMove: {
-        if (rules::stack::super_move(this, targetPile, idx)) { return true; }
+        if (stack::super_move(this, targetPile, idx)) { return true; }
     } break;
     }
 

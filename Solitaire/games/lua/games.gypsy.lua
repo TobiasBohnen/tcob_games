@@ -5,6 +5,7 @@
 
 local ops   = require 'base/ops'
 local piles = require 'base/piles'
+local rules = require 'base/rules'
 
 
 local gypsy                           = {
@@ -28,7 +29,7 @@ local gypsy                           = {
         create = {
             Initial = piles.Initial.top_face_up(3),
             Layout = "Column",
-            Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
+            Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.any }
         }
     },
     on_created = Sol.Layout.gypsy,
@@ -47,7 +48,7 @@ agnes_sorel.Foundation                = {
     create = function(i)
         return {
             Initial = i == 0 and piles.Initial.face_up(1) or {},
-            Rule = { Build = "UpInSuit", Wrap = true, Move = "None", Empty = "FirstFoundation" }
+            Rule = { Build = "UpInSuit", Wrap = true, Move = "None", Empty = function(game) return rules.Empty.first_foundation(game) end }
         }
     end
 }
@@ -57,7 +58,7 @@ agnes_sorel.Tableau                   = {
         return {
             Initial = piles.Initial.face_up(i + 1),
             Layout = "Column",
-            Rule = { Build = "DownInColor", Move = "InSequence", Empty = "None" }
+            Rule = { Build = "DownInColor", Move = "InSequence", Empty = rules.Empty.none }
         }
     end
 }
@@ -74,7 +75,7 @@ blockade.Tableau                      = {
     create = {
         Initial = piles.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Build = "DownInSuit", Move = "InSequence", Empty = "Any" }
+        Rule = { Build = "DownInSuit", Move = "InSequence", Empty = rules.Empty.any }
     }
 }
 blockade.on_created                   = Sol.Layout.klondike
@@ -87,9 +88,9 @@ die_koenigsbergerin.Info.Name         = "Die Königsbergerin"
 die_koenigsbergerin.Tableau.create    = {
     Initial = piles.Initial.face_up(3),
     Layout = "Column",
-    Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
+    Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.any }
 }
-die_koenigsbergerin.Foundation.create = { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } }
+die_koenigsbergerin.Foundation.create = { Rule = { Build = "UpInSuit", Move = "None", Empty = rules.Empty.ace } }
 die_koenigsbergerin.on_shuffle        = function(game, card, pileType)
     if pileType == "Tableau" and card.Rank == "Ace" then
         return game.PlaceTop(card, game.Foundation, true)
@@ -129,7 +130,7 @@ elba.Tableau                          = {
     create = {
         Initial = piles.Initial.top_face_up(5),
         Layout = "Column",
-        Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "King" }
+        Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.king }
     }
 }
 elba.on_created                       = Sol.Layout.klondike
@@ -146,7 +147,7 @@ hypotenuse.Tableau                    = {
         return {
             Initial = piles.Initial.top_face_up(10 - i),
             Layout = "Column",
-            Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "King" }
+            Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.king }
         }
     end
 }
@@ -164,7 +165,7 @@ irmgard.Tableau                       = {
         return {
             Initial = piles.Initial.top_face_up(i < 5 and i + 1 or 9 - i),
             Layout = "Column",
-            Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "King" }
+            Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.king }
         }
     end
 }
@@ -178,7 +179,7 @@ lexington_harp.Info.Name              = "Lexington Harp"
 lexington_harp.Stock.Initial          = piles.Initial.face_down(68)
 lexington_harp.Foundation             = {
     Size   = 8,
-    create = { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } }
+    create = { Rule = { Build = "UpInSuit", Move = "None", Empty = rules.Empty.ace } }
 }
 lexington_harp.Tableau                = {
     Size   = 8,
@@ -186,7 +187,7 @@ lexington_harp.Tableau                = {
         return {
             Initial = piles.Initial.top_face_up(i + 1),
             Layout = "Column",
-            Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = "Any" }
+            Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = rules.Empty.any }
         }
     end
 }
@@ -200,7 +201,7 @@ brunswick.Tableau.create              = function(i)
     return {
         Initial = piles.Initial.face_up(i + 1),
         Layout = "Column",
-        Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = "Any" }
+        Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = rules.Empty.any }
     }
 end
 
@@ -213,7 +214,7 @@ milligan_harp.Tableau.create          = function(i)
     return {
         Initial = piles.Initial.top_face_up(i + 1),
         Layout = "Column",
-        Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
+        Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.any }
     }
 end
 
@@ -225,7 +226,7 @@ carlton.Tableau.create                = function(i)
     return {
         Initial = piles.Initial.face_up(i + 1),
         Layout = "Column",
-        Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
+        Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.any }
     }
 end
 
@@ -241,7 +242,7 @@ mississippi.Tableau                   = {
         return {
             Initial = piles.Initial.top_face_up(i + 1),
             Layout = "Column",
-            Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = "Any" }
+            Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = rules.Empty.any }
         }
     end
 }
@@ -266,7 +267,7 @@ local cone                            = {
         create = function(i)
             return {
                 Position = { x = 0, y = i + 1 },
-                Rule = { Build = "NoBuilding", Move = "Top", Empty = "None" }
+                Rule = { Build = "NoBuilding", Move = "Top", Empty = rules.Empty.none }
             }
         end
     },
@@ -275,7 +276,7 @@ local cone                            = {
         create = function(i)
             return {
                 Position = { x = 8, y = i + 1 },
-                Rule = { Build = "UpInSuit", Wrap = true, Move = "Top", Empty = "Ace" }
+                Rule = { Build = "UpInSuit", Wrap = true, Move = "Top", Empty = rules.Empty.ace }
             }
         end
     },
@@ -286,7 +287,7 @@ local cone                            = {
                 Position = { x = i + 1, y = 0 },
                 Initial = piles.Initial.top_face_up(i < 4 and i + 1 or 7 - i),
                 Layout = "Column",
-                Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
+                Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.any }
             }
         end
     },
@@ -328,7 +329,7 @@ local easthaven                       = {
         create = {
             Initial = piles.Initial.top_face_up(3),
             Layout = "Column",
-            Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
+            Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.any }
         }
     },
     on_created = Sol.Layout.klondike,

@@ -5,6 +5,7 @@
 
 local ops   = require 'base/ops'
 local piles = require 'base/piles'
+local rules = require 'base/rules'
 
 
 local fan                    = {
@@ -26,7 +27,7 @@ local fan                    = {
             return {
                 Initial = piles.Initial.face_up(i < 17 and 3 or 1),
                 Layout = "Row",
-                Rule = { Build = "DownInSuit", Move = "Top", Empty = "King" }
+                Rule = { Build = "DownInSuit", Move = "Top", Empty = rules.Empty.king }
             }
         end
     },
@@ -42,7 +43,7 @@ bear_river.Foundation        = {
     create = function(i)
         return {
             Initial = piles.Initial.face_up(i == 0 and 1 or 0),
-            Rule = { Build = "UpInSuit", Wrap = true, Move = "None", Empty = "FirstFoundation" }
+            Rule = { Build = "UpInSuit", Wrap = true, Move = "None", Empty = function(game) return rules.Empty.first_foundation(game) end }
         }
     end
 }
@@ -68,7 +69,7 @@ box_fan.Tableau              = {
     create = {
         Initial = piles.Initial.face_up(3),
         Layout = "Row",
-        Rule = { Build = "DownAlternateColors", Move = "Top", Empty = "King" }
+        Rule = { Build = "DownAlternateColors", Move = "Top", Empty = rules.Empty.king }
     }
 }
 box_fan.on_before_shuffle    = ops.Shuffle.ace_to_foundation
@@ -84,7 +85,7 @@ ceiling_fan.Tableau          = {
         return {
             Initial = piles.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
-            Rule = { Build = "DownAlternateColors", Move = "Top", Empty = "King" }
+            Rule = { Build = "DownAlternateColors", Move = "Top", Empty = rules.Empty.king }
         }
     end
 }
@@ -104,9 +105,9 @@ local clover_leaf            = {
         Size   = 4,
         create = function(i)
             if i < 2 then
-                return { Rule = { Build = "UpInSuit", Move = "Top", Empty = { Type = "Card", Color = "Black", Rank = "Ace" } } }
+                return { Rule = { Build = "UpInSuit", Move = "Top", Empty = function() return rules.Empty.card_color("Black", "Ace") end } }
             else
-                return { Rule = { Build = "DownInSuit", Move = "Top", Empty = { Type = "Card", Color = "Red", Rank = "King" } } }
+                return { Rule = { Build = "DownInSuit", Move = "Top", Empty = function() return rules.Empty.card_color("Red", "King") end } }
             end
         end
     },
@@ -115,7 +116,7 @@ local clover_leaf            = {
         create = {
             Initial = piles.Initial.face_up(3),
             Layout = "Row",
-            Rule = { Build = "UpOrDownInSuit", Move = "Top", Empty = { Type = "Ranks", Ranks = { "Ace", "King" } } }
+            Rule = { Build = "UpOrDownInSuit", Move = "Top", Empty = function() return rules.Empty.ranks({ "Ace", "King" }) end }
         }
     },
     on_before_shuffle = function(game, card)
@@ -140,7 +141,7 @@ quads.Tableau                = {
     create = {
         Initial = piles.Initial.face_up(4),
         Layout = "Row",
-        Rule = { Build = "InRank", Move = "Top", Empty = "Any", Limit = 4 }
+        Rule = { Build = "InRank", Move = "Top", Empty = rules.Empty.any, Limit = 4 }
     }
 }
 quads.on_shuffle             = function(game, card, pileType)
@@ -161,7 +162,7 @@ quads_plus.Tableau           = {
         return {
             Initial = piles.Initial.face_up(i < 12 and 4 or 0),
             Layout = "Row",
-            Rule = { Build = "InRank", Move = "Top", Empty = "Any", Limit = 4 }
+            Rule = { Build = "InRank", Move = "Top", Empty = rules.Empty.any, Limit = 4 }
         }
     end
 }
@@ -188,7 +189,7 @@ local lucky_piles            = {
         create = function(i)
             return {
                 Position = { x = (i + 0.5) * 2, y = 0 },
-                Rule = { Build = "UpInSuit", Move = "Top", Empty = "Ace" }
+                Rule = { Build = "UpInSuit", Move = "Top", Empty = rules.Empty.ace }
             }
         end
     },
@@ -199,7 +200,7 @@ local lucky_piles            = {
                 Position = { x = lucky_piles_pos[i + 1][1], y = lucky_piles_pos[i + 1][2] },
                 Initial = piles.Initial.face_up(4),
                 Layout = "Row",
-                Rule = { Build = "UpOrDownInSuit", Move = "Top", Empty = "King" }
+                Rule = { Build = "UpOrDownInSuit", Move = "Top", Empty = rules.Empty.king }
             }
         end
     }
@@ -211,7 +212,7 @@ local scotch_patience        = Sol.copy(fan)
 scotch_patience.Info.Name    = "Scotch Patience"
 scotch_patience.Foundation   = {
     Size   = 4,
-    create = { Rule = { Build = "UpAlternateColors", Move = "Top", Empty = "Ace" } }
+    create = { Rule = { Build = "UpAlternateColors", Move = "Top", Empty = rules.Empty.ace } }
 }
 scotch_patience.Tableau      = {
     Size   = 18,
@@ -219,7 +220,7 @@ scotch_patience.Tableau      = {
         return {
             Initial = piles.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
-            Rule = { Build = "DownByRank", Move = "Top", Empty = "None" }
+            Rule = { Build = "DownByRank", Move = "Top", Empty = rules.Empty.none }
         }
     end
 }
@@ -234,7 +235,7 @@ shamrocks.Tableau            = {
         return {
             Initial = piles.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
-            Rule = { Build = "UpOrDownByRank", Move = "Top", Empty = "None", Limit = 3 }
+            Rule = { Build = "UpOrDownByRank", Move = "Top", Empty = rules.Empty.none, Limit = 3 }
         }
     end
 }
@@ -249,7 +250,7 @@ shamrocks_2.Tableau          = {
         return {
             Initial = piles.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
-            Rule = { Build = "UpOrDownByRank", Move = "Top", Empty = "None", Limit = 3 }
+            Rule = { Build = "UpOrDownByRank", Move = "Top", Empty = rules.Empty.none, Limit = 3 }
         }
     end
 }
@@ -265,7 +266,7 @@ troika.Tableau               = {
         return {
             Initial = piles.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
-            Rule = { Build = "InRank", Move = "Top", Empty = "None", Limit = 3 }
+            Rule = { Build = "InRank", Move = "Top", Empty = rules.Empty.none, Limit = 3 }
         }
     end
 }

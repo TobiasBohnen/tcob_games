@@ -78,7 +78,7 @@ form_menu::form_menu(gfx::window* window, rect_f bounds,
             auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
             createListBox(tabPanelLayout, name, [family](auto const& game) { return game.Family == family; });
         }};
-        createTab(games::family::BakersDozen, "Baker's nDozen");
+        createTab(games::family::BakersDozen, "Baker's Dozen");
         createTab(games::family::BeleagueredCastle, "Beleaguered Castle");
         createTab(games::family::Canfield, "Canfield");
         createTab(games::family::Fan, "Fan");

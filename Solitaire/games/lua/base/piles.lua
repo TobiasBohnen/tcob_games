@@ -3,6 +3,8 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
+local rules = require 'base/rules'
+
 local initial = {
     top_face_up = function(size)
         local retValue = {}
@@ -37,6 +39,6 @@ local initial = {
 }
 
 return {
-    ace_upsuit_top = function() return { Rule = { Build = "UpInSuit", Move = "Top", Empty = "Ace" } } end,
+    ace_upsuit_top = function() return { Rule = { Build = "UpInSuit", Move = "Top", Empty = rules.Empty.ace } } end,
     Initial = initial
 }

@@ -296,40 +296,11 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
             ruleTable.try_get(pile.Rule.Move, "Move");
             ruleTable.try_get(pile.Rule.Limit, "Limit");
 
-            if (Function<bool> emptyFunc; ruleTable.try_get(emptyFunc, "Empty")) {
-                pile.Rule.Empty = empty::func {[this, emptyFunc](card const& card) { return emptyFunc(this, card); }};
-            } else if (std::string empty; ruleTable.try_get(empty, "Empty")) {
-                if (empty == "Ace") {
-                    pile.Rule.Empty = empty::Ace();
-                } else if (empty == "King") {
-                    pile.Rule.Empty = empty::King();
-                } else if (empty == "None") {
-                    pile.Rule.Empty = empty::None();
-                } else if (empty == "Any") {
-                    pile.Rule.Empty = empty::Any();
-                } else if (empty == "AnySingle") {
-                    pile.Rule.Empty = {empty::Any(), true};
-                } else if (empty == "FirstFoundation") {
-                    pile.Rule.Empty = empty::First(Foundation[0]);
-                }
-            } else if (Table emptyTable; ruleTable.try_get(emptyTable, "Empty")) {
-                if (std::string type; emptyTable.try_get(type, "Type")) {
-                    if (type == "FirstFoundation") {
-                        i32 interval {0};
-                        emptyTable.try_get(interval, "Interval");
-                        pile.Rule.Empty = {empty::First(Foundation[0], interval)};
-                    } else if (type == "Card") {
-                        rank const       r {emptyTable["Rank"].template as<rank>()};
-                        suit_color const sc {emptyTable["Color"].template as<suit_color>()};
-                        pile.Rule.Empty = empty::Card(sc, r);
-                    } else if (type == "Ranks") {
-                        std::set<rank> const r {emptyTable["Ranks"].template as<std::set<rank>>()};
-                        pile.Rule.Empty = empty::Ranks(r);
-                    } else if (type == "Suits") {
-                        std::set<suit> const s {emptyTable["Suits"].template as<std::set<suit>>()};
-                        pile.Rule.Empty = empty::Suits(s);
-                    }
-                }
+            if (Function<Function<bool>> emptyFunc; ruleTable.try_get(emptyFunc, "Empty")) {
+                auto func {emptyFunc(static_cast<base_game*>(this))};
+                pile.Rule.Empty = {[func](card const& card, isize numCards) {
+                    return func(card, numCards);
+                }};
             }
         }
     }};

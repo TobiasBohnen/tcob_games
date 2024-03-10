@@ -5,6 +5,7 @@
 
 local ops   = require 'base/ops'
 local piles = require 'base/piles'
+local rules = require 'base/rules'
 
 
 piles.Initial.yukon                      = function(i)
@@ -58,7 +59,7 @@ local yukon                              = {
     },
     Foundation = {
         Size   = 4,
-        create = { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } }
+        create = { Rule = { Build = "UpInSuit", Move = "None", Empty = rules.Empty.ace } }
     },
     Tableau    = {
         Size   = 7,
@@ -66,7 +67,7 @@ local yukon                              = {
             return {
                 Initial = piles.Initial.yukon(i),
                 Layout = "Column",
-                Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = "King" }
+                Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = rules.Empty.king }
             }
         end
     },
@@ -85,7 +86,7 @@ double_yukon.Tableau                     = {
         return {
             Initial = piles.Initial.double_yukon(i),
             Layout = "Column",
-            Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = "King" }
+            Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = rules.Empty.king }
         }
     end
 }
@@ -102,7 +103,7 @@ triple_yukon.Tableau                     = {
         return {
             Initial = piles.Initial.triple_yukon(i),
             Layout = "Column",
-            Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = "King" }
+            Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = rules.Empty.king }
         }
     end
 }
@@ -115,7 +116,7 @@ alaska.Tableau.create                    = function(i)
     return {
         Initial = piles.Initial.yukon(i),
         Layout = "Column",
-        Rule = { Build = "UpOrDownInSuit", Move = "FaceUp", Empty = "King" }
+        Rule = { Build = "UpOrDownInSuit", Move = "FaceUp", Empty = rules.Empty.king }
     }
 end
 
@@ -137,7 +138,7 @@ brisbane.Tableau.create                  = function(i)
     return {
         Initial = brisbane_initial[i + 1],
         Layout = "Column",
-        Rule = { Build = "DownByRank", Move = "FaceUp", Empty = "King" }
+        Rule = { Build = "DownByRank", Move = "FaceUp", Empty = rules.Empty.king }
     }
 end
 
@@ -151,7 +152,7 @@ geoffrey.Tableau                         = {
         return {
             Initial = i < 4 and piles.Initial.face_up(7) or { false, false, false, false, true, true },
             Layout = "Column",
-            Rule = { Build = "DownInSuit", Move = "FaceUp", Empty = "King" }
+            Rule = { Build = "DownInSuit", Move = "FaceUp", Empty = rules.Empty.king }
         }
     end
 }
@@ -165,7 +166,7 @@ queensland.Tableau.create                = function(i)
     return {
         Initial = brisbane_initial[i + 1],
         Layout = "Column",
-        Rule = { Build = "DownInSuit", Move = "FaceUp", Empty = "Any" }
+        Rule = { Build = "DownInSuit", Move = "FaceUp", Empty = rules.Empty.any }
     }
 end
 
@@ -177,7 +178,7 @@ roslin.Tableau.create                    = function(i)
     return {
         Initial = piles.Initial.yukon(i),
         Layout = "Column",
-        Rule = { Build = "UpOrDownAlternateColors", Move = "FaceUp", Empty = "King" }
+        Rule = { Build = "UpOrDownAlternateColors", Move = "FaceUp", Empty = rules.Empty.king }
     }
 end
 
@@ -189,7 +190,7 @@ moosehide.Tableau.create                 = function(i)
     return {
         Initial = piles.Initial.yukon(i),
         Layout = "Column",
-        Rule = { Build = "DownAnyButOwnSuit", Move = "FaceUp", Empty = "King" }
+        Rule = { Build = "DownAnyButOwnSuit", Move = "FaceUp", Empty = rules.Empty.king }
     }
 end
 
@@ -201,7 +202,7 @@ russian_solitaire.Tableau.create         = function(i)
     return {
         Initial = piles.Initial.yukon(i),
         Layout = "Column",
-        Rule = { Build = "DownInSuit", Move = "FaceUp", Empty = "King" }
+        Rule = { Build = "DownInSuit", Move = "FaceUp", Empty = rules.Empty.king }
     }
 end
 
@@ -217,7 +218,7 @@ double_russian_solitaire.Tableau         = {
         return {
             Initial = piles.Initial.double_yukon(i),
             Layout = "Column",
-            Rule = { Build = "DownInSuit", Move = "FaceUp", Empty = "King" }
+            Rule = { Build = "DownInSuit", Move = "FaceUp", Empty = rules.Empty.king }
         }
     end
 }
@@ -234,7 +235,7 @@ triple_russian_solitaire.Tableau         = {
         return {
             Initial = piles.Initial.triple_yukon(i),
             Layout = "Column",
-            Rule = { Build = "DownInSuit", Move = "FaceUp", Empty = "King" }
+            Rule = { Build = "DownInSuit", Move = "FaceUp", Empty = rules.Empty.king }
         }
     end
 }
@@ -260,7 +261,7 @@ local hawaiian                           = {
         create = function(i)
             return {
                 Position = { x = i + 2, y = 0 },
-                Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" }
+                Rule = { Build = "UpInSuit", Move = "None", Empty = rules.Empty.ace }
             }
         end
     },
@@ -271,7 +272,7 @@ local hawaiian                           = {
                 Position = { x = i, y = 1 },
                 Initial = piles.Initial.face_up(5),
                 Layout = "Column",
-                Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = "Any" }
+                Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = rules.Empty.any }
             }
         end
     }
@@ -293,7 +294,7 @@ local chinese_discipline                 = {
     },
     Foundation = {
         Size   = 4,
-        create = { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } }
+        create = { Rule = { Build = "UpInSuit", Move = "None", Empty = rules.Empty.ace } }
     },
     Tableau    = {
         Size   = 7,
@@ -301,7 +302,7 @@ local chinese_discipline                 = {
             return {
                 Initial = piles.Initial.chinese_discipline(i),
                 Layout = "Column",
-                Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = "King" }
+                Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = rules.Empty.king }
             }
         end
     },
@@ -317,7 +318,7 @@ chinese_solitaire.Tableau.create         = function(i)
     return {
         Initial = piles.Initial.chinese_discipline(i),
         Layout = "Column",
-        Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = "Any" }
+        Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = rules.Empty.any }
     }
 end
 
@@ -338,7 +339,7 @@ local rushdike                           = {
     },
     Foundation = {
         Size   = 4,
-        create = { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } }
+        create = { Rule = { Build = "UpInSuit", Move = "None", Empty = rules.Empty.ace } }
     },
     Tableau    = {
         Size   = 7,
@@ -346,7 +347,7 @@ local rushdike                           = {
             return {
                 Initial = piles.Initial.top_face_up(i + 1),
                 Layout = "Column",
-                Rule = { Build = "DownInSuit", Move = "FaceUp", Empty = "King" }
+                Rule = { Build = "DownInSuit", Move = "FaceUp", Empty = rules.Empty.king }
             }
         end
     },
@@ -371,7 +372,7 @@ local queenie                            = {
     },
     Foundation = {
         Size   = 4,
-        create = { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } }
+        create = { Rule = { Build = "UpInSuit", Move = "None", Empty = rules.Empty.ace } }
     },
     Tableau    = {
         Size   = 7,
@@ -379,7 +380,7 @@ local queenie                            = {
             return {
                 Initial = piles.Initial.face_up(i + 1),
                 Layout = "Column",
-                Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = "King" }
+                Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = rules.Empty.king }
             }
         end
     },

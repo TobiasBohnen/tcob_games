@@ -5,6 +5,7 @@
 
 local ops   = require 'base/ops'
 local piles = require 'base/piles'
+local rules = require 'base/rules'
 
 
 local raglan = {
@@ -21,12 +22,12 @@ local raglan = {
         create = {
             Initial = piles.Initial.face_up(1),
             Layout = "Squared",
-            Rule = { Build = "NoBuilding", Move = "Top", Empty = "None" }
+            Rule = { Build = "NoBuilding", Move = "Top", Empty = rules.Empty.none }
         }
     },
     Foundation        = {
         Size   = 4,
-        create = { Rule = { Build = "UpInSuit", Move = "Top", Empty = "Ace" } }
+        create = { Rule = { Build = "UpInSuit", Move = "Top", Empty = rules.Empty.ace } }
     },
     Tableau           = {
         Size   = 9,
@@ -34,7 +35,7 @@ local raglan = {
             return {
                 Initial = piles.Initial.face_up(i < 7 and i + 1 or 7),
                 Layout = "Column",
-                Rule = { Build = "DownAlternateColors", Move = "Top", Empty = "Any" }
+                Rule = { Build = "DownAlternateColors", Move = "Top", Empty = rules.Empty.any }
             }
         end
     },

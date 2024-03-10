@@ -190,7 +190,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->Border.Radius        = 2_px;
         style->Text.Style           = {false, gfx::font::weight::Normal};
         style->Text.Font            = resGrp.get<gfx::font_family>("Poppins");
-        style->Text.Size            = 10_px;
+        style->Text.Size            = 32_px;
         style->Text.Alignment       = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
         style->Text.Decoration.Size = {3_px};
         style->Text.AutoSize        = element::text::auto_size_mode::Always;
@@ -226,7 +226,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         auto style {styles.create<label>("label", {})};
         style->Text.Style     = {false, gfx::font::weight::Normal};
         style->Text.Font      = resGrp.get<gfx::font_family>("Poppins");
-        style->Text.Size      = 50_pct;
+        style->Text.Size      = 32_px;
         style->Text.Alignment = {gfx::horizontal_alignment::Left, gfx::vertical_alignment::Middle};
         style->Text.AutoSize  = element::text::auto_size_mode::OnlyShrink;
 
@@ -237,7 +237,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         auto style {styles.create<label>("label-small", {})};
         style->Text.Style     = {false, gfx::font::weight::Normal};
         style->Text.Font      = resGrp.get<gfx::font_family>("Poppins");
-        style->Text.Size      = 16_px;
+        style->Text.Size      = 32_px;
         style->Text.Alignment = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
         style->Text.AutoSize  = element::text::auto_size_mode::Always;
         theme.Normal.apply(style);
@@ -340,7 +340,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->Item.Padding        = {2_px};
         style->Item.Text.Style     = {false, gfx::font::weight::Normal};
         style->Item.Text.Font      = resGrp.get<gfx::font_family>("Poppins");
-        style->Item.Text.Size      = 50_pct;
+        style->Item.Text.Size      = 32_px;
         style->Item.Text.Alignment = {gfx::horizontal_alignment::Left, gfx::vertical_alignment::Middle};
         style->Item.Border.Size    = 2_px;
 
@@ -359,7 +359,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->Item.Padding        = {5_px};
         style->Item.Text.Style     = {false, gfx::font::weight::Normal};
         style->Item.Text.Font      = resGrp.get<gfx::font_family>("Poppins");
-        style->Item.Text.Size      = 25_pct;
+        style->Item.Text.Size      = 32_px;
         style->Item.Text.Alignment = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
         style->Item.Text.AutoSize  = element::text::auto_size_mode::Always;
         style->Item.Border.Size    = 2_px;
