@@ -356,6 +356,39 @@ local rushdike                           = {
 
 ------
 
+local queenie                            = {
+    Info       = {
+        Name          = "Queenie",
+        Type          = "Packer",
+        Family        = "Yukon",
+        --queenie.Info.Family = "Yukon/Gypsy"
+        DeckCount     = 1,
+        CardDealCount = 7,
+        Redeals       = 0
+    },
+    Stock      = {
+        Initial = piles.initial.face_down(24)
+    },
+    Foundation = {
+        Size   = 4,
+        create = { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } }
+    },
+    Tableau    = {
+        Size   = 7,
+        create = function(i)
+            return {
+                Initial = piles.initial.face_up(i + 1),
+                Layout = "Column",
+                Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = "King" }
+            }
+        end
+    },
+    on_deal    = function(game) return game.Stock[1]:deal_to_group(game.Tableau, false) end,
+    on_created = Layout.klondike
+}
+
+------
+
 ------------------------
 
 RegisterGame(yukon)
@@ -368,6 +401,7 @@ RegisterGame(chinese_solitaire)
 RegisterGame(geoffrey)
 RegisterGame(hawaiian)
 RegisterGame(moosehide)
+RegisterGame(queenie)
 RegisterGame(queensland)
 RegisterGame(roslin)
 RegisterGame(russian_solitaire)

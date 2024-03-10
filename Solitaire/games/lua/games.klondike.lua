@@ -751,6 +751,19 @@ westcliff.Tableau           = {
     }
 }
 
+------
+
+local whitehead             = Copy(klondike)
+whitehead.Info.Name         = "Whitehead"
+whitehead.Info.Redeals      = 0
+whitehead.Tableau.create    = function(i)
+    return {
+        Initial = piles.initial.face_up(i + 1),
+        Layout = "Column",
+        Rule = { Build = "DownInColor", Move = "InSequenceInSuit", Empty = "Any" }
+    }
+end
+
 ------------------------
 
 RegisterGame(klondike)
@@ -792,5 +805,6 @@ RegisterGame(thirty_six)
 RegisterGame(trigon)
 RegisterGame(double_trigon)
 RegisterGame(usk)
-RegisterGame(whitehorse)
 RegisterGame(westcliff)
+RegisterGame(whitehead)
+RegisterGame(whitehorse)

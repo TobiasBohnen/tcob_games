@@ -7,7 +7,7 @@ local ops   = require 'base/ops'
 local piles = require 'base/piles'
 
 
-local montana_base       = {
+local montana_base                = {
     redeal = function(game, ranks)
         local columns = #ranks + 1
         local tableau = game.Tableau
@@ -124,9 +124,9 @@ local montana_base       = {
 }
 
 ------
-local montana_ranks      = { table.unpack(Ranks, 2, 13) }
+local montana_ranks               = { table.unpack(Ranks, 2, 13) }
 
-local montana            = {
+local montana                     = {
     Info        = {
         Name          = "Montana",
         Type          = "OpenNonBuilder",
@@ -162,16 +162,35 @@ local montana            = {
 
 ------
 
-local moonlight          = Copy(montana)
-moonlight.Info.Name      = "Moonlight"
-moonlight.check_drop     = function(game, targetPile, _, drop, _)
+local double_montana              = Copy(montana)
+double_montana.Info.Name          = "Double Montana"
+double_montana.Info.DeckCount     = 2
+double_montana.Tableau.Size       = 104
+
+------
+
+local moonlight                   = Copy(montana)
+moonlight.Info.Name               = "Moonlight"
+moonlight.check_drop              = function(game, targetPile, _, drop, _)
     return montana_base.check_drop(game, targetPile, drop, montana_ranks, "rl")
 end
 
 ------
-local blue_moon_ranks    = Ranks
+local blue_moon_ranks             = Ranks
 
-local blue_moon          = {
+local blue_moon_shuffle           = function(game, card, rows)
+    if card.Rank == "Ace" then
+        for i = 0, rows - 1 do
+            if game.PlaceTop(card, game.Tableau, 1 + i * 14, 1, true) then
+                return true
+            end
+        end
+    end
+
+    return false
+end
+
+local blue_moon                   = {
     Info        = {
         Name          = "Blue Moon",
         Type          = "OpenNonBuilder",
@@ -192,14 +211,7 @@ local blue_moon          = {
         end
     },
     on_shuffle  = function(game, card, _)
-        if card.Rank == "Ace" then
-            return game.PlaceTop(card, game.Tableau, 1, 1, true)
-                or game.PlaceTop(card, game.Tableau, 15, 1, true)
-                or game.PlaceTop(card, game.Tableau, 29, 1, true)
-                or game.PlaceTop(card, game.Tableau, 43, 1, true)
-        end
-
-        return false
+        return blue_moon_shuffle(game, card, 4)
     end,
     check_drop  = function(game, targetPile, _, drop, _)
         return montana_base.check_drop(game, targetPile, drop, blue_moon_ranks, "l")
@@ -215,27 +227,61 @@ local blue_moon          = {
 
 ------
 
-local galary             = Copy(blue_moon)
-galary.Info.Name         = "Galary"
-galary.Tableau.create    = function(i)
+local double_blue_moon            = Copy(blue_moon)
+double_blue_moon.Info.Name        = "Double Blue Moon"
+double_blue_moon.Info.DeckCount   = 2
+double_blue_moon.Tableau.Size     = 112
+double_blue_moon.on_shuffle       = function(game, card, _)
+    return blue_moon_shuffle(game, card, 8)
+end
+
+------
+
+local red_moon                    = Copy(blue_moon)
+red_moon.Info.Name                = "Red Moon"
+red_moon.Tableau.create           = function(i)
+    return {
+        Initial = piles.initial.face_up((i % 14 < 2) and 0 or 1),
+        Layout = "Squared",
+        Rule = { Build = "NoBuilding", Move = "Top", Empty = "None" }
+    }
+end
+red_moon.on_before_shuffle        = blue_moon.on_shuffle
+red_moon.on_shuffle               = nil
+
+------
+
+local double_red_moon             = Copy(red_moon)
+double_red_moon.Info.Name         = "Double Red Moon"
+double_red_moon.Info.DeckCount    = 2
+double_red_moon.Tableau.Size      = 112
+double_red_moon.on_before_shuffle = function(game, card, _)
+    return blue_moon_shuffle(game, card, 8)
+end
+
+------
+
+local galary                      = Copy(blue_moon)
+galary.Info.Name                  = "Galary"
+galary.Tableau.create             = function(i)
     return {
         Initial = piles.initial.face_up((i % 14 == 0 or i % 14 == 1) and 0 or 1),
         Layout = "Squared",
         Rule = { Build = "NoBuilding", Move = "Top", Empty = "None" }
     }
 end
-galary.on_before_shuffle = function(game, card)
+galary.on_before_shuffle          = function(game, card)
     return blue_moon.on_shuffle(game, card)
 end
-galary.on_shuffle        = nil
-galary.check_drop        = function(game, targetPile, _, drop, _)
+galary.on_shuffle                 = nil
+galary.check_drop                 = function(game, targetPile, _, drop, _)
     return montana_base.check_drop(game, targetPile, drop, blue_moon_ranks, "rl")
 end
 
 ------
-local paganini_ranks     = { "Ace", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
+local paganini_ranks              = { "Ace", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
 
-local paganini           = {
+local paganini                    = {
     Info              = {
         Name          = "Paganini",
         Type          = "OpenNonBuilder",
@@ -283,7 +329,7 @@ local paganini           = {
 
 ------
 
-local spoilt             = {
+local spoilt                      = {
     Info              = {
         Name          = "Spoilt",
         Type          = "OpenNonBuilder",
@@ -378,8 +424,12 @@ local spoilt             = {
 ------------------------
 
 RegisterGame(montana)
+RegisterGame(double_montana)
 RegisterGame(blue_moon)
+RegisterGame(double_blue_moon)
 RegisterGame(galary)
 RegisterGame(paganini)
 RegisterGame(moonlight)
+RegisterGame(red_moon)
+RegisterGame(double_red_moon)
 RegisterGame(spoilt)

@@ -7,7 +7,7 @@ local ops   = require 'base/ops'
 local piles = require 'base/piles'
 
 
-local gypsy                    = {
+local gypsy                           = {
     Info       = {
         Name          = "Gypsy",
         Type          = "Packer",
@@ -37,12 +37,12 @@ local gypsy                    = {
 
 ------
 
-local agnes_sorel              = Copy(gypsy)
-agnes_sorel.Info.Name          = "Agnes Sorel"
-agnes_sorel.Info.DeckCount     = 1
-agnes_sorel.Info.CardDealCount = 7
-agnes_sorel.Stock.Initial      = piles.initial.face_down(23)
-agnes_sorel.Foundation         = {
+local agnes_sorel                     = Copy(gypsy)
+agnes_sorel.Info.Name                 = "Agnes Sorel"
+agnes_sorel.Info.DeckCount            = 1
+agnes_sorel.Info.CardDealCount        = 7
+agnes_sorel.Stock.Initial             = piles.initial.face_down(23)
+agnes_sorel.Foundation                = {
     Size   = 4,
     create = function(i)
         return {
@@ -51,7 +51,7 @@ agnes_sorel.Foundation         = {
         }
     end
 }
-agnes_sorel.Tableau            = {
+agnes_sorel.Tableau                   = {
     Size   = 7,
     create = function(i)
         return {
@@ -61,15 +61,15 @@ agnes_sorel.Tableau            = {
         }
     end
 }
-agnes_sorel.on_created         = Layout.klondike
+agnes_sorel.on_created                = Layout.klondike
 
 ------
 
-local blockade                 = Copy(gypsy)
-blockade.Info.Name             = "Blockade"
-blockade.Info.CardDealCount    = 12
-blockade.Stock.Initial         = piles.initial.face_down(92)
-blockade.Tableau               = {
+local blockade                        = Copy(gypsy)
+blockade.Info.Name                    = "Blockade"
+blockade.Info.CardDealCount           = 12
+blockade.Stock.Initial                = piles.initial.face_down(92)
+blockade.Tableau                      = {
     Size   = 12,
     create = {
         Initial = piles.initial.face_up(1),
@@ -77,16 +77,54 @@ blockade.Tableau               = {
         Rule = { Build = "DownInSuit", Move = "InSequence", Empty = "Any" }
     }
 }
-blockade.on_created            = Layout.klondike
-blockade.on_change             = function(game) game.Stock[1]:deal_to_group(game.Tableau, true) end
+blockade.on_created                   = Layout.klondike
+blockade.on_change                    = function(game) game.Stock[1]:deal_to_group(game.Tableau, true) end
 
 ------
 
-local elba                     = Copy(gypsy)
-elba.Info.Name                 = "Elba"
-elba.Info.CardDealCount        = 10
-elba.Stock.Initial             = piles.initial.face_down(54)
-elba.Tableau                   = {
+local die_koenigsbergerin             = Copy(gypsy)
+die_koenigsbergerin.Info.Name         = "Die Königsbergerin"
+die_koenigsbergerin.Tableau.create    = {
+    Initial = piles.initial.face_up(3),
+    Layout = "Column",
+    Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
+}
+die_koenigsbergerin.Foundation.create = { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } }
+die_koenigsbergerin.on_shuffle        = function(game, card, pileType)
+    if pileType == "Tableau" and card.Rank == "Ace" then
+        return game.PlaceTop(card, game.Foundation, true)
+    end
+
+    return false
+end
+die_koenigsbergerin.on_after_shuffle  = function(game)
+    -- refill Tableau from Stock back to three cards
+    local tableau = game.Tableau
+    local stock = game.Stock[1]
+    local stockCards = stock.Cards
+    local idx = #stockCards
+    for _, tab in ipairs(tableau) do
+        while tab.CardCount < 3 do
+            while stockCards[idx].Rank == "Ace" do --skip aces
+                idx = idx - 1
+            end
+
+            stock:move_cards(tab, idx, 1, false)
+            idx = idx - 1
+        end
+        tab:flip_up_cards()
+    end
+
+    return false
+end
+
+------
+
+local elba                            = Copy(gypsy)
+elba.Info.Name                        = "Elba"
+elba.Info.CardDealCount               = 10
+elba.Stock.Initial                    = piles.initial.face_down(54)
+elba.Tableau                          = {
     Size   = 10,
     create = {
         Initial = piles.initial.top_face_up(5),
@@ -94,15 +132,15 @@ elba.Tableau                   = {
         Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "King" }
     }
 }
-elba.on_created                = Layout.klondike
+elba.on_created                       = Layout.klondike
 
 ------
 
-local hypotenuse               = Copy(gypsy)
-hypotenuse.Info.Name           = "Hypotenuse"
-hypotenuse.Info.CardDealCount  = 10
-hypotenuse.Stock.Initial       = piles.initial.face_down(49)
-hypotenuse.Tableau             = {
+local hypotenuse                      = Copy(gypsy)
+hypotenuse.Info.Name                  = "Hypotenuse"
+hypotenuse.Info.CardDealCount         = 10
+hypotenuse.Stock.Initial              = piles.initial.face_down(49)
+hypotenuse.Tableau                    = {
     Size   = 10,
     create = function(i)
         return {
@@ -112,15 +150,15 @@ hypotenuse.Tableau             = {
         }
     end
 }
-hypotenuse.on_created          = Layout.klondike
+hypotenuse.on_created                 = Layout.klondike
 
 ------
 
-local irmgard                  = Copy(gypsy)
-irmgard.Info.Name              = "Irmgard"
-irmgard.Info.CardDealCount     = 9
-irmgard.Stock.Initial          = piles.initial.face_down(79)
-irmgard.Tableau                = {
+local irmgard                         = Copy(gypsy)
+irmgard.Info.Name                     = "Irmgard"
+irmgard.Info.CardDealCount            = 9
+irmgard.Stock.Initial                 = piles.initial.face_down(79)
+irmgard.Tableau                       = {
     Size   = 9,
     create = function(i)
         return {
@@ -130,19 +168,19 @@ irmgard.Tableau                = {
         }
     end
 }
-irmgard.on_created             = Layout.klondike
+irmgard.on_created                    = Layout.klondike
 
 ------
 
-local lexington_harp           = Copy(gypsy)
-lexington_harp.Info.Name       = "Lexington Harp"
+local lexington_harp                  = Copy(gypsy)
+lexington_harp.Info.Name              = "Lexington Harp"
 --lexington_harp.Info.Family = "Gypsy/Yukon"
-lexington_harp.Stock.Initial   = piles.initial.face_down(68)
-lexington_harp.Foundation      = {
+lexington_harp.Stock.Initial          = piles.initial.face_down(68)
+lexington_harp.Foundation             = {
     Size   = 8,
     create = { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } }
 }
-lexington_harp.Tableau         = {
+lexington_harp.Tableau                = {
     Size   = 8,
     create = function(i)
         return {
@@ -155,10 +193,10 @@ lexington_harp.Tableau         = {
 
 ------
 
-local brunswick                = Copy(lexington_harp)
-brunswick.Info.Name            = "Brunswick"
+local brunswick                       = Copy(lexington_harp)
+brunswick.Info.Name                   = "Brunswick"
 --brunswick.Info.Family = "Gypsy/Yukon"
-brunswick.Tableau.create       = function(i)
+brunswick.Tableau.create              = function(i)
     return {
         Initial = piles.initial.face_up(i + 1),
         Layout = "Column",
@@ -168,10 +206,10 @@ end
 
 ------
 
-local milligan_harp            = Copy(lexington_harp)
-milligan_harp.Info.Name        = "Milligan Harp"
+local milligan_harp                   = Copy(lexington_harp)
+milligan_harp.Info.Name               = "Milligan Harp"
 --milligan_harp.Info.Family = "Gypsy/Yukon"
-milligan_harp.Tableau.create   = function(i)
+milligan_harp.Tableau.create          = function(i)
     return {
         Initial = piles.initial.top_face_up(i + 1),
         Layout = "Column",
@@ -181,11 +219,23 @@ end
 
 ------
 
-local mississippi              = Copy(lexington_harp)
-mississippi.Info.Name          = "Mississippi"
+local carlton                         = Copy(lexington_harp)
+carlton.Info.Name                     = "Carlton"
+carlton.Tableau.create                = function(i)
+    return {
+        Initial = piles.initial.face_up(i + 1),
+        Layout = "Column",
+        Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
+    }
+end
+
+------
+
+local mississippi                     = Copy(lexington_harp)
+mississippi.Info.Name                 = "Mississippi"
 --milligan_harp.Info.Family = "Gypsy/Yukon"
-mississippi.Stock.Initial      = piles.initial.face_down(76)
-mississippi.Tableau            = {
+mississippi.Stock.Initial             = piles.initial.face_down(76)
+mississippi.Tableau                   = {
     Size   = 7,
     create = function(i)
         return {
@@ -198,7 +248,7 @@ mississippi.Tableau            = {
 
 ------
 
-local cone                     = {
+local cone                            = {
     Info       = {
         Name          = "Cone",
         Type          = "Packer",
@@ -255,13 +305,58 @@ local cone                     = {
     end
 }
 
+------
+
+local easthaven                       = {
+    Info       = {
+        Name          = "Easthaven",
+        Type          = "Packer",
+        Family        = "Gypsy",
+        DeckCount     = 1,
+        CardDealCount = 7,
+        Redeals       = 0
+    },
+    Stock      = {
+        Initial = piles.initial.face_down(31)
+    },
+    Foundation = {
+        Size   = 4,
+        create = piles.ace_upsuit_top
+    },
+    Tableau    = {
+        Size   = 7,
+        create = {
+            Initial = piles.initial.top_face_up(3),
+            Layout = "Column",
+            Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
+        }
+    },
+    on_created = Layout.klondike,
+    on_deal    = function(game) return game.Stock[1]:deal_to_group(game.Tableau, false) end
+}
+
+------
+
+local double_easthaven                = Copy(easthaven)
+double_easthaven.Info.Name            = "Double Easthaven"
+double_easthaven.Info.DeckCount       = 2
+double_easthaven.Info.CardDealCount   = 8
+double_easthaven.Stock.Initial        = piles.initial.face_down(80)
+double_easthaven.Tableau.Size         = 8
+
+------
+
 ------------------------
 
 RegisterGame(gypsy)
 RegisterGame(agnes_sorel)
 RegisterGame(blockade)
 RegisterGame(brunswick)
+RegisterGame(carlton)
 RegisterGame(cone)
+RegisterGame(die_koenigsbergerin)
+RegisterGame(easthaven)
+RegisterGame(double_easthaven)
 RegisterGame(elba)
 RegisterGame(hypotenuse)
 RegisterGame(irmgard)
