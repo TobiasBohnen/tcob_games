@@ -79,10 +79,6 @@ public:
     {
         return this == &other;
     }
-    auto operator<=>(pile const& other) const
-    {
-        return this <=> &other;
-    }
 
 private:
     bool _isActive {false};
