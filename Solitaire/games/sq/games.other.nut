@@ -90,6 +90,102 @@ aces_up_5.Tableau.Size = 5
 
 # # # # # # # #
 
+local aces_square = {
+    Info = {
+        Name = "Aces Square",
+        Type = "ClosedNonBuilder",
+        Family = "Other",
+        DeckCount = 1,
+        CardDealCount = 2,
+        Redeals = 0
+    },
+    Stock = {
+        Position = {
+            x = 4.5,
+            y = 2
+        },
+        Initial = piles.initial.face_down(36)
+    },
+    Foundation = {
+        Position = {
+            x = 4.5,
+            y = 0
+        },
+        Rule = {
+            Move = "None"
+        }
+    },
+    Tableau = {
+        Size = 16,
+        create = @(i) {
+            Position = {
+                    x = i % 4,
+                    y = i / 4
+                },
+                Initial = piles.initial.face_up(1),
+                Layout = "Column",
+                Rule = {
+                    Build = "NoBuilding",
+                    Move = "Top",
+                    Empty = "Any"
+                }
+        }
+    },
+    check_drop = function(game, targetPile, _, drop, numCards) {
+        if (drop.Rank == "Ace" || targetPile.IsEmpty || numCards > 1) {
+            return false
+        }
+
+        if (targetPile.Type == "Tableau") {
+            local targetCard = targetPile.Cards[0]
+            if (targetCard.Rank == "Ace" || targetCard.Suit != drop.Suit) {
+                return false
+            }
+            local tableau = game.Tableau
+            local tabSize = tableau.len()
+
+            local srcPile = game.find_pile(drop)
+            local dstPileIndex = -1
+            local srcPileIndex = -1
+            for (local i = 0; i < tabSize; i++) {
+                if ((tableau[i] <=> targetPile) == 0) {
+                    dstPileIndex = i;
+                }
+                if ((tableau[i] <=> srcPile) == 0) {
+                    srcPileIndex = i;
+                }
+            }
+
+            if (dstPileIndex == -1 || srcPileIndex == -1) {
+                return false
+            }
+
+            return (dstPileIndex / 4 == srcPileIndex / 4) || (dstPileIndex % 4 == srcPileIndex % 4)
+        }
+
+        return false
+    },
+    check_state = function(game) {
+        if (game.Foundation[0].CardCount == 48) {
+            return "Success"
+        }
+        return "Running"
+    },
+    on_change = function(game) {
+        local foundation = game.Foundation[0]
+        foreach(tab in game.Tableau) {
+            print(tab.CardCount)
+            if (tab.CardCount > 1) {
+                tab.move_cards(foundation, 0, tab.CardCount, false)
+            }
+        }
+
+        game.Stock[0].deal_to_group(game.Tableau, true)
+    },
+}
+
+# # # # # # # #
+
 local four_seasons_fou_pos = [
     [0, 1],
     [0, 3],
@@ -167,4 +263,5 @@ local four_seasons = {
 # # # # # # # # # # # # # # # #
 RegisterGame(aces_up)
 RegisterGame(aces_up_5)
+RegisterGame(aces_square)
 RegisterGame(four_seasons)

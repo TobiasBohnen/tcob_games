@@ -145,11 +145,11 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
         return true;
     };
     pileWrapper["deal_to_group"] = [](pile* p, std::vector<pile*> const& to, bool ifEmpty) {
-        if (p->Cards.empty()) { return false; }
+        if (p->empty()) { return false; }
 
         for (auto* toPile : to) {
-            if (ifEmpty && !toPile->Cards.empty()) { continue; }
-            if (p->Cards.empty()) { break; }
+            if (ifEmpty && !toPile->empty()) { continue; }
+            if (p->empty()) { break; }
 
             p->move_cards(*toPile, std::ssize(p->Cards) - 1, 1, false);
             toPile->flip_up_top_card();
