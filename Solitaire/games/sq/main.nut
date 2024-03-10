@@ -3,22 +3,22 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-function Copy(obj) {
+function Sol::copy(obj) {
     switch (typeof(obj)) {
         case "table":
             local retValue = clone obj
             foreach(k, v in obj) {
-                retValue[k] = Copy(v)
+                retValue[k] = Sol.copy(v)
             }
             return retValue
         case "array":
-            return obj.map(Copy)
+            return obj.map(Sol.copy)
         default:
             return obj
     }
 }
 
-RankValues <- {
+Sol.RankValues <- {
     Ace = 1,
     Two = 2,
     Three = 3,
@@ -34,10 +34,10 @@ RankValues <- {
     King = 13
 }
 
-Ranks <- ["Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King"]
+Sol.Ranks <- ["Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King"]
 
-function GetRank(r, interval, wrap) {
-    local rank = RankValues[r] - 1
+function Sol::get_rank(r, interval, wrap) {
+    local rank = Sol.RankValues[r] - 1
     local target = rank + interval
 
     if (wrap) {
@@ -48,11 +48,11 @@ function GetRank(r, interval, wrap) {
         return ""
     }
 
-    return Ranks[target]
+    return Sol.Ranks[target]
 }
 
 
-function ShuffleTableau(game) {
+function Sol::shuffle_tableau(game) {
     local cards = []
 
     local tableau = game.Tableau

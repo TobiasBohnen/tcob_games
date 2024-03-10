@@ -24,24 +24,24 @@ local fan                    = {
         Size   = 18,
         create = function(i)
             return {
-                Initial = piles.initial.face_up(i < 17 and 3 or 1),
+                Initial = piles.Initial.face_up(i < 17 and 3 or 1),
                 Layout = "Row",
                 Rule = { Build = "DownInSuit", Move = "Top", Empty = "King" }
             }
         end
     },
-    on_created = function(game) Layout.fan(game, 5) end
+    on_created = function(game) Sol.Layout.fan(game, 5) end
 }
 
 ------
 
-local bear_river             = Copy(fan)
+local bear_river             = Sol.copy(fan)
 bear_river.Info.Name         = "Bear River"
 bear_river.Foundation        = {
     Size   = 4,
     create = function(i)
         return {
-            Initial = piles.initial.face_up(i == 0 and 1 or 0),
+            Initial = piles.Initial.face_up(i == 0 and 1 or 0),
             Rule = { Build = "UpInSuit", Wrap = true, Move = "None", Empty = "FirstFoundation" }
         }
     end
@@ -51,38 +51,38 @@ bear_river.Tableau           = {
     create = function(i)
         local lastInRow = i % 6 == 5
         return {
-            Initial = piles.initial.face_up(lastInRow and 2 or 3),
+            Initial = piles.Initial.face_up(lastInRow and 2 or 3),
             Layout = "Row",
             Rule = { Build = "UpOrDownInSuit", Wrap = true, Move = "Top", Empty = lastInRow and "Any" or "None", Limit = 3 }
         }
     end
 }
-bear_river.on_created        = function(game) Layout.fan(game, 6) end
+bear_river.on_created        = function(game) Sol.Layout.fan(game, 6) end
 
 ------
 
-local box_fan                = Copy(fan)
+local box_fan                = Sol.copy(fan)
 box_fan.Info.Name            = "Box Fan"
 box_fan.Tableau              = {
     Size   = 16,
     create = {
-        Initial = piles.initial.face_up(3),
+        Initial = piles.Initial.face_up(3),
         Layout = "Row",
         Rule = { Build = "DownAlternateColors", Move = "Top", Empty = "King" }
     }
 }
-box_fan.on_before_shuffle    = ops.shuffle.ace_to_foundation
-box_fan.on_created           = function(game) Layout.fan(game, 4) end
+box_fan.on_before_shuffle    = ops.Shuffle.ace_to_foundation
+box_fan.on_created           = function(game) Sol.Layout.fan(game, 4) end
 
 ------
 
-local ceiling_fan            = Copy(fan)
+local ceiling_fan            = Sol.copy(fan)
 ceiling_fan.Info.Name        = "Ceiling Fan"
 ceiling_fan.Tableau          = {
     Size   = 18,
     create = function(i)
         return {
-            Initial = piles.initial.face_up(i < 17 and 3 or 1),
+            Initial = piles.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
             Rule = { Build = "DownAlternateColors", Move = "Top", Empty = "King" }
         }
@@ -113,7 +113,7 @@ local clover_leaf            = {
     Tableau           = {
         Size   = 16,
         create = {
-            Initial = piles.initial.face_up(3),
+            Initial = piles.Initial.face_up(3),
             Layout = "Row",
             Rule = { Build = "UpOrDownInSuit", Move = "Top", Empty = { Type = "Ranks", Ranks = { "Ace", "King" } } }
         }
@@ -128,17 +128,17 @@ local clover_leaf            = {
 
         return false
     end,
-    on_created        = function(game) Layout.fan(game, 4) end
+    on_created        = function(game) Sol.Layout.fan(game, 4) end
 }
 
 ------
 
-local quads                  = Copy(fan)
+local quads                  = Sol.copy(fan)
 quads.Info.Name              = "Quads"
 quads.Tableau                = {
     Size   = 13,
     create = {
-        Initial = piles.initial.face_up(4),
+        Initial = piles.Initial.face_up(4),
         Layout = "Row",
         Rule = { Build = "InRank", Move = "Top", Empty = "Any", Limit = 4 }
     }
@@ -153,19 +153,19 @@ end
 
 ------
 
-local quads_plus             = Copy(fan)
+local quads_plus             = Sol.copy(fan)
 quads_plus.Info.Name         = "Quads+"
 quads_plus.Tableau           = {
     Size   = 13,
     create = function(i)
         return {
-            Initial = piles.initial.face_up(i < 12 and 4 or 0),
+            Initial = piles.Initial.face_up(i < 12 and 4 or 0),
             Layout = "Row",
             Rule = { Build = "InRank", Move = "Top", Empty = "Any", Limit = 4 }
         }
     end
 }
-quads_plus.on_before_shuffle = ops.shuffle.ace_to_foundation
+quads_plus.on_before_shuffle = ops.Shuffle.ace_to_foundation
 
 ------
 
@@ -197,7 +197,7 @@ local lucky_piles            = {
         create = function(i)
             return {
                 Position = { x = lucky_piles_pos[i + 1][1], y = lucky_piles_pos[i + 1][2] },
-                Initial = piles.initial.face_up(4),
+                Initial = piles.Initial.face_up(4),
                 Layout = "Row",
                 Rule = { Build = "UpOrDownInSuit", Move = "Top", Empty = "King" }
             }
@@ -207,7 +207,7 @@ local lucky_piles            = {
 
 ------
 
-local scotch_patience        = Copy(fan)
+local scotch_patience        = Sol.copy(fan)
 scotch_patience.Info.Name    = "Scotch Patience"
 scotch_patience.Foundation   = {
     Size   = 4,
@@ -217,7 +217,7 @@ scotch_patience.Tableau      = {
     Size   = 18,
     create = function(i)
         return {
-            Initial = piles.initial.face_up(i < 17 and 3 or 1),
+            Initial = piles.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
             Rule = { Build = "DownByRank", Move = "Top", Empty = "None" }
         }
@@ -226,13 +226,13 @@ scotch_patience.Tableau      = {
 
 ------
 
-local shamrocks              = Copy(fan)
+local shamrocks              = Sol.copy(fan)
 shamrocks.Info.Name          = "Shamrocks"
 shamrocks.Tableau            = {
     Size   = 18,
     create = function(i)
         return {
-            Initial = piles.initial.face_up(i < 17 and 3 or 1),
+            Initial = piles.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
             Rule = { Build = "UpOrDownByRank", Move = "Top", Empty = "None", Limit = 3 }
         }
@@ -241,29 +241,29 @@ shamrocks.Tableau            = {
 
 ------
 
-local shamrocks_2            = Copy(fan)
+local shamrocks_2            = Sol.copy(fan)
 shamrocks_2.Info.Name        = "Shamrocks II"
 shamrocks_2.Tableau          = {
     Size   = 18,
     create = function(i)
         return {
-            Initial = piles.initial.face_up(i < 17 and 3 or 1),
+            Initial = piles.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
             Rule = { Build = "UpOrDownByRank", Move = "Top", Empty = "None", Limit = 3 }
         }
     end
 }
-shamrocks_2.on_after_shuffle = ops.shuffle.kings_to_bottom
+shamrocks_2.on_after_shuffle = ops.Shuffle.kings_to_bottom
 
 ------
 
-local troika                 = Copy(fan)
+local troika                 = Sol.copy(fan)
 troika.Info.Name             = "Troika"
 troika.Tableau               = {
     Size   = 18,
     create = function(i)
         return {
-            Initial = piles.initial.face_up(i < 17 and 3 or 1),
+            Initial = piles.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
             Rule = { Build = "InRank", Move = "Top", Empty = "None", Limit = 3 }
         }
@@ -279,15 +279,15 @@ end
 
 ------------------------
 
-RegisterGame(fan)
-RegisterGame(bear_river)
-RegisterGame(box_fan)
-RegisterGame(ceiling_fan)
-RegisterGame(clover_leaf)
-RegisterGame(quads)
-RegisterGame(quads_plus)
-RegisterGame(lucky_piles)
-RegisterGame(scotch_patience)
-RegisterGame(shamrocks)
-RegisterGame(shamrocks_2)
-RegisterGame(troika)
+Sol.register_game(fan)
+Sol.register_game(bear_river)
+Sol.register_game(box_fan)
+Sol.register_game(ceiling_fan)
+Sol.register_game(clover_leaf)
+Sol.register_game(quads)
+Sol.register_game(quads_plus)
+Sol.register_game(lucky_piles)
+Sol.register_game(scotch_patience)
+Sol.register_game(shamrocks)
+Sol.register_game(shamrocks_2)
+Sol.register_game(troika)

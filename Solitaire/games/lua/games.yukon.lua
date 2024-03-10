@@ -7,7 +7,7 @@ local ops   = require 'base/ops'
 local piles = require 'base/piles'
 
 
-piles.initial.yukon                      = function(i)
+piles.Initial.yukon                      = function(i)
     if i == 0 then
         return { true }
     else
@@ -18,7 +18,7 @@ piles.initial.yukon                      = function(i)
         return t
     end
 end
-piles.initial.double_yukon               = function(i)
+piles.Initial.double_yukon               = function(i)
     local t = {}
     local ii = math.min(i, 8)
     for j = 1, ii + 6 do
@@ -26,18 +26,18 @@ piles.initial.double_yukon               = function(i)
     end
     return t
 end
-piles.initial.triple_yukon               = function(i)
-    local t = piles.initial.face_down(i + 6)
+piles.Initial.triple_yukon               = function(i)
+    local t = piles.Initial.face_down(i + 6)
     for j = #t - 5, #t do
         t[j] = true
     end
     return t
 end
-piles.initial.chinese_discipline         = function(i)
+piles.Initial.chinese_discipline         = function(i)
     if i < 3 then
-        return piles.initial.face_up(7)
+        return piles.Initial.face_up(7)
     else
-        local t = piles.initial.face_down(7)
+        local t = piles.Initial.face_down(7)
         for j = i, 7 do
             t[j] = true
         end
@@ -64,18 +64,18 @@ local yukon                              = {
         Size   = 7,
         create = function(i)
             return {
-                Initial = piles.initial.yukon(i),
+                Initial = piles.Initial.yukon(i),
                 Layout = "Column",
                 Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = "King" }
             }
         end
     },
-    on_created = Layout.yukon
+    on_created = Sol.Layout.yukon
 }
 
 ------
 
-local double_yukon                       = Copy(yukon)
+local double_yukon                       = Sol.copy(yukon)
 double_yukon.Info.Name                   = "Double Yukon"
 double_yukon.Info.DeckCount              = 2
 double_yukon.Foundation.Size             = 8
@@ -83,7 +83,7 @@ double_yukon.Tableau                     = {
     Size   = 10,
     create = function(i)
         return {
-            Initial = piles.initial.double_yukon(i),
+            Initial = piles.Initial.double_yukon(i),
             Layout = "Column",
             Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = "King" }
         }
@@ -92,7 +92,7 @@ double_yukon.Tableau                     = {
 
 ------
 
-local triple_yukon                       = Copy(yukon)
+local triple_yukon                       = Sol.copy(yukon)
 triple_yukon.Info.Name                   = "Triple Yukon"
 triple_yukon.Info.DeckCount              = 3
 triple_yukon.Foundation.Size             = 12
@@ -100,7 +100,7 @@ triple_yukon.Tableau                     = {
     Size   = 13,
     create = function(i)
         return {
-            Initial = piles.initial.triple_yukon(i),
+            Initial = piles.Initial.triple_yukon(i),
             Layout = "Column",
             Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = "King" }
         }
@@ -109,11 +109,11 @@ triple_yukon.Tableau                     = {
 
 ------
 
-local alaska                             = Copy(yukon)
+local alaska                             = Sol.copy(yukon)
 alaska.Info.Name                         = "Alaska"
 alaska.Tableau.create                    = function(i)
     return {
-        Initial = piles.initial.yukon(i),
+        Initial = piles.Initial.yukon(i),
         Layout = "Column",
         Rule = { Build = "UpOrDownInSuit", Move = "FaceUp", Empty = "King" }
     }
@@ -131,7 +131,7 @@ local brisbane_initial                   = {
     { false, false, false, false, false, false, true, true, true, true }
 }
 
-local brisbane                           = Copy(yukon)
+local brisbane                           = Sol.copy(yukon)
 brisbane.Info.Name                       = "Brisbane"
 brisbane.Tableau.create                  = function(i)
     return {
@@ -143,23 +143,23 @@ end
 
 ------
 
-local geoffrey                           = Copy(yukon)
+local geoffrey                           = Sol.copy(yukon)
 geoffrey.Info.Name                       = "Geoffrey"
 geoffrey.Tableau                         = {
     Size   = 8,
     create = function(i)
         return {
-            Initial = i < 4 and piles.initial.face_up(7) or { false, false, false, false, true, true },
+            Initial = i < 4 and piles.Initial.face_up(7) or { false, false, false, false, true, true },
             Layout = "Column",
             Rule = { Build = "DownInSuit", Move = "FaceUp", Empty = "King" }
         }
     end
 }
-geoffrey.on_created                      = Layout.forty_thieves
+geoffrey.on_created                      = Sol.Layout.forty_thieves
 
 ------
 
-local queensland                         = Copy(yukon)
+local queensland                         = Sol.copy(yukon)
 queensland.Info.Name                     = "Queensland"
 queensland.Tableau.create                = function(i)
     return {
@@ -171,11 +171,11 @@ end
 
 ------
 
-local roslin                             = Copy(yukon)
+local roslin                             = Sol.copy(yukon)
 roslin.Info.Name                         = "Roslin"
 roslin.Tableau.create                    = function(i)
     return {
-        Initial = piles.initial.yukon(i),
+        Initial = piles.Initial.yukon(i),
         Layout = "Column",
         Rule = { Build = "UpOrDownAlternateColors", Move = "FaceUp", Empty = "King" }
     }
@@ -183,11 +183,11 @@ end
 
 ------
 
-local moosehide                          = Copy(yukon)
+local moosehide                          = Sol.copy(yukon)
 moosehide.Info.Name                      = "Moosehide"
 moosehide.Tableau.create                 = function(i)
     return {
-        Initial = piles.initial.yukon(i),
+        Initial = piles.Initial.yukon(i),
         Layout = "Column",
         Rule = { Build = "DownAnyButOwnSuit", Move = "FaceUp", Empty = "King" }
     }
@@ -195,11 +195,11 @@ end
 
 ------
 
-local russian_solitaire                  = Copy(yukon)
+local russian_solitaire                  = Sol.copy(yukon)
 russian_solitaire.Info.Name              = "Russian Solitaire"
 russian_solitaire.Tableau.create         = function(i)
     return {
-        Initial = piles.initial.yukon(i),
+        Initial = piles.Initial.yukon(i),
         Layout = "Column",
         Rule = { Build = "DownInSuit", Move = "FaceUp", Empty = "King" }
     }
@@ -207,7 +207,7 @@ end
 
 ------
 
-local double_russian_solitaire           = Copy(russian_solitaire)
+local double_russian_solitaire           = Sol.copy(russian_solitaire)
 double_russian_solitaire.Info.Name       = "Double Russian Solitaire"
 double_russian_solitaire.Info.DeckCount  = 2
 double_russian_solitaire.Foundation.Size = 8
@@ -215,7 +215,7 @@ double_russian_solitaire.Tableau         = {
     Size   = 10,
     create = function(i)
         return {
-            Initial = piles.initial.double_yukon(i),
+            Initial = piles.Initial.double_yukon(i),
             Layout = "Column",
             Rule = { Build = "DownInSuit", Move = "FaceUp", Empty = "King" }
         }
@@ -224,7 +224,7 @@ double_russian_solitaire.Tableau         = {
 
 ------
 
-local triple_russian_solitaire           = Copy(russian_solitaire)
+local triple_russian_solitaire           = Sol.copy(russian_solitaire)
 triple_russian_solitaire.Info.Name       = "Triple Russian Solitaire"
 triple_russian_solitaire.Info.DeckCount  = 3
 triple_russian_solitaire.Foundation.Size = 12
@@ -232,7 +232,7 @@ triple_russian_solitaire.Tableau         = {
     Size   = 13,
     create = function(i)
         return {
-            Initial = piles.initial.triple_yukon(i),
+            Initial = piles.Initial.triple_yukon(i),
             Layout = "Column",
             Rule = { Build = "DownInSuit", Move = "FaceUp", Empty = "King" }
         }
@@ -252,7 +252,7 @@ local hawaiian                           = {
     },
     Reserve    = {
         Position = { x = 0, y = 0 },
-        Initial  = piles.initial.face_up(54),
+        Initial  = piles.Initial.face_up(54),
         Layout   = "Squared"
     },
     Foundation = {
@@ -269,7 +269,7 @@ local hawaiian                           = {
         create = function(i)
             return {
                 Position = { x = i, y = 1 },
-                Initial = piles.initial.face_up(5),
+                Initial = piles.Initial.face_up(5),
                 Layout = "Column",
                 Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = "Any" }
             }
@@ -289,7 +289,7 @@ local chinese_discipline                 = {
         Redeals       = 0
     },
     Stock      = {
-        Initial = piles.initial.face_down(3)
+        Initial = piles.Initial.face_down(3)
     },
     Foundation = {
         Size   = 4,
@@ -299,23 +299,23 @@ local chinese_discipline                 = {
         Size   = 7,
         create = function(i)
             return {
-                Initial = piles.initial.chinese_discipline(i),
+                Initial = piles.Initial.chinese_discipline(i),
                 Layout = "Column",
                 Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = "King" }
             }
         end
     },
     on_deal    = function(game) return game.Stock[1]:deal_to_group(game.Tableau, false) end,
-    on_created = Layout.klondike
+    on_created = Sol.Layout.klondike
 }
 
 ------
 
-local chinese_solitaire                  = Copy(chinese_discipline)
+local chinese_solitaire                  = Sol.copy(chinese_discipline)
 chinese_solitaire.Info.Name              = "Chinese Solitaire"
 chinese_solitaire.Tableau.create         = function(i)
     return {
-        Initial = piles.initial.chinese_discipline(i),
+        Initial = piles.Initial.chinese_discipline(i),
         Layout = "Column",
         Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = "Any" }
     }
@@ -334,7 +334,7 @@ local rushdike                           = {
         Redeals       = 0
     },
     Stock      = {
-        Initial = piles.initial.face_down(24)
+        Initial = piles.Initial.face_down(24)
     },
     Foundation = {
         Size   = 4,
@@ -344,14 +344,14 @@ local rushdike                           = {
         Size   = 7,
         create = function(i)
             return {
-                Initial = piles.initial.top_face_up(i + 1),
+                Initial = piles.Initial.top_face_up(i + 1),
                 Layout = "Column",
                 Rule = { Build = "DownInSuit", Move = "FaceUp", Empty = "King" }
             }
         end
     },
     on_deal    = function(game) return game.Stock[1]:deal_to_group(game.Tableau, false) end,
-    on_created = Layout.klondike
+    on_created = Sol.Layout.klondike
 }
 
 ------
@@ -367,7 +367,7 @@ local queenie                            = {
         Redeals       = 0
     },
     Stock      = {
-        Initial = piles.initial.face_down(24)
+        Initial = piles.Initial.face_down(24)
     },
     Foundation = {
         Size   = 4,
@@ -377,34 +377,34 @@ local queenie                            = {
         Size   = 7,
         create = function(i)
             return {
-                Initial = piles.initial.face_up(i + 1),
+                Initial = piles.Initial.face_up(i + 1),
                 Layout = "Column",
                 Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = "King" }
             }
         end
     },
     on_deal    = function(game) return game.Stock[1]:deal_to_group(game.Tableau, false) end,
-    on_created = Layout.klondike
+    on_created = Sol.Layout.klondike
 }
 
 ------
 
 ------------------------
 
-RegisterGame(yukon)
-RegisterGame(double_yukon)
-RegisterGame(triple_yukon)
-RegisterGame(alaska)
-RegisterGame(brisbane)
-RegisterGame(chinese_discipline)
-RegisterGame(chinese_solitaire)
-RegisterGame(geoffrey)
-RegisterGame(hawaiian)
-RegisterGame(moosehide)
-RegisterGame(queenie)
-RegisterGame(queensland)
-RegisterGame(roslin)
-RegisterGame(russian_solitaire)
-RegisterGame(double_russian_solitaire)
-RegisterGame(triple_russian_solitaire)
-RegisterGame(rushdike)
+Sol.register_game(yukon)
+Sol.register_game(double_yukon)
+Sol.register_game(triple_yukon)
+Sol.register_game(alaska)
+Sol.register_game(brisbane)
+Sol.register_game(chinese_discipline)
+Sol.register_game(chinese_solitaire)
+Sol.register_game(geoffrey)
+Sol.register_game(hawaiian)
+Sol.register_game(moosehide)
+Sol.register_game(queenie)
+Sol.register_game(queensland)
+Sol.register_game(roslin)
+Sol.register_game(russian_solitaire)
+Sol.register_game(double_russian_solitaire)
+Sol.register_game(triple_russian_solitaire)
+Sol.register_game(rushdike)

@@ -3,17 +3,17 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-function Copy(obj, seen)
+function Sol.copy(obj, seen)
     if type(obj) ~= 'table' then return obj end
     if seen and seen[obj] then return seen[obj] end
     local s = seen or {}
     local res = setmetatable({}, getmetatable(obj))
     s[obj] = res
-    for k, v in pairs(obj) do res[Copy(k, s)] = Copy(v, s) end
+    for k, v in pairs(obj) do res[Sol.copy(k, s)] = Sol.copy(v, s) end
     return res
 end
 
-RankValues = {
+Sol.RankValues = {
     Ace = 1,
     Two = 2,
     Three = 3,
@@ -29,10 +29,10 @@ RankValues = {
     King = 13
 }
 
-Ranks = { "Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
+Sol.Ranks = { "Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
 
-function GetRank(r, interval, wrap)
-    local rank = RankValues[r]
+function Sol.get_rank(r, interval, wrap)
+    local rank = Sol.RankValues[r]
     local target = rank + interval
 
     if wrap then
@@ -43,10 +43,10 @@ function GetRank(r, interval, wrap)
         return nil
     end
 
-    return Ranks[target]
+    return Sol.Ranks[target]
 end
 
-function ShuffleTableau(game)
+function Sol.shuffle_tableau(game)
     local cards = {}
 
     local tableau = game.Tableau

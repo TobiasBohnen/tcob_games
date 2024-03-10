@@ -18,7 +18,7 @@ local spider             = {
     },
     Stock      = {
         Position = { x = 0, y = 0 },
-        Initial = piles.initial.face_down(50)
+        Initial = piles.Initial.face_down(50)
     },
     Foundation = {
         Size   = 4,
@@ -34,7 +34,7 @@ local spider             = {
         create = function(i)
             return {
                 Position = { x = i, y = 1 },
-                Initial  = piles.initial.top_face_up(i < 4 and 6 or 5),
+                Initial  = piles.Initial.top_face_up(i < 4 and 6 or 5),
                 Layout   = "Column",
                 Rule     = { Build = "DownByRank", Move = "InSequenceInSuit", Empty = "Any" }
             }
@@ -48,7 +48,7 @@ local spider             = {
                 local found = true
                 for i = 0, 12 do
                     local card = tableau.Cards[tableau.CardCount - i]
-                    if card.IsFaceDown or card.Suit ~= targetSuit or card.Rank ~= Ranks[i + 1] then
+                    if card.IsFaceDown or card.Suit ~= targetSuit or card.Rank ~= Sol.Ranks[i + 1] then
                         found = false
                         break
                     end
@@ -77,7 +77,7 @@ local spider             = {
 }
 
 ------
-local arachnida          = Copy(spider)
+local arachnida          = Sol.copy(spider)
 arachnida.Info.Name      = "Arachnida"
 arachnida.Foundation     = {
     Position = { x = 11, y = 0 },
@@ -86,7 +86,7 @@ arachnida.Foundation     = {
 arachnida.Tableau.create = function(i)
     return {
         Position = { x = i + 1, y = 0 },
-        Initial  = piles.initial.top_face_up(i < 4 and 6 or 5),
+        Initial  = piles.Initial.top_face_up(i < 4 and 6 or 5),
         Layout   = "Column",
         Rule     = { Build = "InRankOrDownByRank", Move = "InSequenceInSuitOrSameRank", Empty = "Any" }
     }
@@ -94,5 +94,5 @@ end
 
 ------------------------
 
-RegisterGame(spider)
-RegisterGame(arachnida)
+Sol.register_game(spider)
+Sol.register_game(arachnida)

@@ -164,7 +164,7 @@ template <typename Table, template <typename> typename Function, isize IndexOffs
 template <typename T>
 inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& scene, auto&& globalTable, auto&& makeFunc)
 {
-    globalTable["RegisterGame"] = makeFunc([scene](Table& tab) {
+    globalTable["Sol"]["register_game"] = makeFunc([scene](Table& tab) {
         auto             infoTab {tab["Info"].template as<Table>()};
         games::game_info info;
 

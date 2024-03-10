@@ -557,6 +557,9 @@ void lua_script_game::CreateAPI(start_scene* scene, scripting::lua::script& scri
 
     CreateGlobals<lua_script_game>(scene, script.get_global_table(), make_func);
     CreateWrapper(script);
+
+    (void)script.run_file("main.lua");
+    script.get_global_table()["Sol"]["Layout"] = script.run_file<scripting::lua::table>("layout.lua");
 }
 
 ////////////////////////////////////////////////////////////
@@ -578,8 +581,8 @@ void squirrel_script_game::CreateAPI(start_scene* scene, scripting::squirrel::sc
         return ptr.get();
     }};
 
-    auto root {script.get_root_table()};
-    auto view {script.get_view()};
+    auto& root {script.get_root_table()};
+    auto  view {script.get_view()};
 
     CreateGlobals<squirrel_script_game>(scene, root, make_func);
     CreateWrapper(script);
@@ -624,6 +627,8 @@ void squirrel_script_game::CreateAPI(start_scene* scene, scripting::squirrel::sc
     lua.set_delegate(luaMeta);
 
     root["Lua"] = lua;
+
+    (void)script.run_file("main.nut");
 }
 
 } // namespace solitaire

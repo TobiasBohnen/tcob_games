@@ -43,17 +43,17 @@ local golf                 = {
         Redeals       = 0
     },
     Stock       = {
-        Initial = piles.initial.face_down(16)
+        Initial = piles.Initial.face_down(16)
     },
     Foundation  = {
-        Initial = piles.initial.face_up(1),
+        Initial = piles.Initial.face_up(1),
         Layout  = "Squared",
         Rule    = { Build = "UpOrDownByRank", Move = "None" }
     },
     Tableau     = {
         Size   = 7,
         create = {
-            Initial = piles.initial.top_face_up(5),
+            Initial = piles.Initial.top_face_up(5),
             Layout = "Column",
             Rule = { Build = "NoBuilding", Move = "Top" }
         }
@@ -62,19 +62,19 @@ local golf                 = {
         return game.Stock[1]:deal(game.Foundation[1], game.CardDealCount)
     end,
     check_state = golf_check_state,
-    on_created  = Layout.golf
+    on_created  = Sol.Layout.golf
 }
 
 ------
 
-local double_golf          = Copy(golf)
+local double_golf          = Sol.copy(golf)
 double_golf.Info.Name      = "Double Golf"
 double_golf.Info.DeckCount = 2
-double_golf.Stock.Initial  = piles.initial.face_down(40)
+double_golf.Stock.Initial  = piles.Initial.face_down(40)
 double_golf.Tableau        = {
     Size   = 9,
     create = {
-        Initial = piles.initial.top_face_up(7),
+        Initial = piles.Initial.top_face_up(7),
         Layout = "Column",
         Rule = { Build = "NoBuilding", Move = "Top" }
     }
@@ -82,21 +82,21 @@ double_golf.Tableau        = {
 
 ------
 
-local putt_putt            = Copy(golf)
+local putt_putt            = Sol.copy(golf)
 putt_putt.Info.Name        = "Putt Putt"
 putt_putt.Foundation       = {
-    Initial = piles.initial.face_up(1),
+    Initial = piles.Initial.face_up(1),
     Layout  = "Squared",
     Rule    = { Build = "UpOrDownByRank", Wrap = true, Move = "None" }
 }
 
 ------
 
-local double_putt          = Copy(putt_putt)
+local double_putt          = Sol.copy(putt_putt)
 double_putt.Info.Name      = "Double Putt"
 double_putt.Info.DeckCount = 2
-double_putt.Stock.Initial  = piles.initial.face_down(40)
-double_putt.Tableau        = Copy(double_golf.Tableau)
+double_putt.Stock.Initial  = piles.Initial.face_down(40)
+double_putt.Tableau        = Sol.copy(double_golf.Tableau)
 
 ------
 local black_hole_pos       = {
@@ -124,7 +124,7 @@ local black_hole           = {
         create = function(i)
             return {
                 Position = { x = black_hole_pos[i + 1][1], y = black_hole_pos[i + 1][2] },
-                Initial = piles.initial.face_up(3),
+                Initial = piles.Initial.face_up(3),
                 Layout = "Row",
                 Rule = { Build = "NoBuilding" }
             }
@@ -141,8 +141,8 @@ local black_hole           = {
 
 ------------------------
 
-RegisterGame(golf)
-RegisterGame(double_golf)
-RegisterGame(putt_putt)
-RegisterGame(double_putt)
-RegisterGame(black_hole)
+Sol.register_game(golf)
+Sol.register_game(double_golf)
+Sol.register_game(putt_putt)
+Sol.register_game(double_putt)
+Sol.register_game(black_hole)

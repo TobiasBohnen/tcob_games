@@ -124,7 +124,7 @@ local montana_base                = {
 }
 
 ------
-local montana_ranks               = { table.unpack(Ranks, 2, 13) }
+local montana_ranks               = { table.unpack(Sol.Ranks, 2, 13) }
 
 local montana                     = {
     Info        = {
@@ -140,7 +140,7 @@ local montana                     = {
         Size   = 52,
         create = {
             Position = {},
-            Initial = piles.initial.face_up(1),
+            Initial = piles.Initial.face_up(1),
             Layout = "Squared",
             Rule = { Build = "NoBuilding", Move = "Top", Empty = "None" }
         }
@@ -148,7 +148,7 @@ local montana                     = {
     on_shuffle  = function(_, card, _)
         return card.Rank == "Ace"
     end,
-    on_created  = function(game) Layout.montana(game, 13) end,
+    on_created  = function(game) Sol.Layout.montana(game, 13) end,
     on_redeal   = function(game)
         return montana_base.redeal(game, montana_ranks)
     end,
@@ -162,21 +162,21 @@ local montana                     = {
 
 ------
 
-local double_montana              = Copy(montana)
+local double_montana              = Sol.copy(montana)
 double_montana.Info.Name          = "Double Montana"
 double_montana.Info.DeckCount     = 2
 double_montana.Tableau.Size       = 104
 
 ------
 
-local moonlight                   = Copy(montana)
+local moonlight                   = Sol.copy(montana)
 moonlight.Info.Name               = "Moonlight"
 moonlight.check_drop              = function(game, targetPile, _, drop, _)
     return montana_base.check_drop(game, targetPile, drop, montana_ranks, "rl")
 end
 
 ------
-local blue_moon_ranks             = Ranks
+local blue_moon_ranks             = Sol.Ranks
 
 local blue_moon_shuffle           = function(game, card, rows)
     if card.Rank == "Ace" then
@@ -204,7 +204,7 @@ local blue_moon                   = {
         Size   = 56,
         create = function(i)
             return {
-                Initial = piles.initial.face_up(i % 14 == 0 and 0 or 1),
+                Initial = piles.Initial.face_up(i % 14 == 0 and 0 or 1),
                 Layout = "Squared",
                 Rule = { Build = "NoBuilding", Move = "Top", Empty = "None" }
             }
@@ -222,12 +222,12 @@ local blue_moon                   = {
     check_state = function(game)
         return montana_base.check_state(game, blue_moon_ranks)
     end,
-    on_created  = function(game) Layout.montana(game, 14) end
+    on_created  = function(game) Sol.Layout.montana(game, 14) end
 }
 
 ------
 
-local double_blue_moon            = Copy(blue_moon)
+local double_blue_moon            = Sol.copy(blue_moon)
 double_blue_moon.Info.Name        = "Double Blue Moon"
 double_blue_moon.Info.DeckCount   = 2
 double_blue_moon.Tableau.Size     = 112
@@ -237,11 +237,11 @@ end
 
 ------
 
-local red_moon                    = Copy(blue_moon)
+local red_moon                    = Sol.copy(blue_moon)
 red_moon.Info.Name                = "Red Moon"
 red_moon.Tableau.create           = function(i)
     return {
-        Initial = piles.initial.face_up((i % 14 < 2) and 0 or 1),
+        Initial = piles.Initial.face_up((i % 14 < 2) and 0 or 1),
         Layout = "Squared",
         Rule = { Build = "NoBuilding", Move = "Top", Empty = "None" }
     }
@@ -251,7 +251,7 @@ red_moon.on_shuffle               = nil
 
 ------
 
-local double_red_moon             = Copy(red_moon)
+local double_red_moon             = Sol.copy(red_moon)
 double_red_moon.Info.Name         = "Double Red Moon"
 double_red_moon.Info.DeckCount    = 2
 double_red_moon.Tableau.Size      = 112
@@ -261,11 +261,11 @@ end
 
 ------
 
-local galary                      = Copy(blue_moon)
+local galary                      = Sol.copy(blue_moon)
 galary.Info.Name                  = "Galary"
 galary.Tableau.create             = function(i)
     return {
-        Initial = piles.initial.face_up((i % 14 == 0 or i % 14 == 1) and 0 or 1),
+        Initial = piles.Initial.face_up((i % 14 == 0 or i % 14 == 1) and 0 or 1),
         Layout = "Squared",
         Rule = { Build = "NoBuilding", Move = "Top", Empty = "None" }
     }
@@ -295,7 +295,7 @@ local paganini                    = {
         Size   = 40,
         create = function(i)
             return {
-                Initial = piles.initial.face_up(i % 10 == 0 and 0 or 1),
+                Initial = piles.Initial.face_up(i % 10 == 0 and 0 or 1),
                 Layout = "Squared",
                 Rule = { Build = "NoBuilding", Move = "Top", Empty = "None" }
             }
@@ -324,7 +324,7 @@ local paganini                    = {
     check_state       = function(game)
         return montana_base.check_state(game, paganini_ranks)
     end,
-    on_created        = function(game) Layout.montana(game, 10) end
+    on_created        = function(game) Sol.Layout.montana(game, 10) end
 }
 
 ------
@@ -340,18 +340,18 @@ local spoilt                      = {
     },
     Stock             = {
         Position = { x = 0, y = 1 },
-        Initial = piles.initial.face_down(3)
+        Initial = piles.Initial.face_down(3)
     },
     Waste             = {
         Position = { x = 0, y = 2 },
-        Initial = piles.initial.face_up(1)
+        Initial = piles.Initial.face_up(1)
     },
     Tableau           = {
         Size   = 32,
         create = function(i)
             return {
                 Position = { x = i % 8 + 1, y = i // 8 },
-                Initial = piles.initial.face_down(i % 8 == 0 and 0 or 1),
+                Initial = piles.Initial.face_down(i % 8 == 0 and 0 or 1),
                 Layout = "Squared",
                 Rule = { Build = "NoBuilding", Move = "None", Empty = "None" }
             }
@@ -381,7 +381,7 @@ local spoilt                      = {
             local stock = game.Stock[1]
             if not stock.IsEmpty and sevenCount > 0 then
                 if stock.CardCount > 3 - sevenCount then
-                    ops.deal.stock_to_waste(game)
+                    ops.Deal.stock_to_waste(game)
                     return
                 end
             end
@@ -423,13 +423,13 @@ local spoilt                      = {
 
 ------------------------
 
-RegisterGame(montana)
-RegisterGame(double_montana)
-RegisterGame(blue_moon)
-RegisterGame(double_blue_moon)
-RegisterGame(galary)
-RegisterGame(paganini)
-RegisterGame(moonlight)
-RegisterGame(red_moon)
-RegisterGame(double_red_moon)
-RegisterGame(spoilt)
+Sol.register_game(montana)
+Sol.register_game(double_montana)
+Sol.register_game(blue_moon)
+Sol.register_game(double_blue_moon)
+Sol.register_game(galary)
+Sol.register_game(paganini)
+Sol.register_game(moonlight)
+Sol.register_game(red_moon)
+Sol.register_game(double_red_moon)
+Sol.register_game(spoilt)

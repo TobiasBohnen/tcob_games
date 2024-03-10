@@ -44,5 +44,5 @@ return {
             Empty = "Ace"
         }
     },
-    initial = initial_tab
+    Initial = initial_tab
 }

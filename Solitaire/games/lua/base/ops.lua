@@ -37,7 +37,7 @@ local deal = {
 }
 
 return {
-    shuffle = shuffle,
-    redeal = redeal,
-    deal = deal
+    Shuffle = shuffle,
+    Redeal = redeal,
+    Deal = deal
 }

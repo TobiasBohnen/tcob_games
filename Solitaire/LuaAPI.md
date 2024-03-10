@@ -159,11 +159,11 @@ There are three ways to define a pile:
 
 ## Global functions
 
-### RegisterGame
+### register_game
 
-### Copy
+### copy
 
-### GetRank
+### get_rank
 
 ## *game* members
 

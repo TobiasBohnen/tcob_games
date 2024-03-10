@@ -16,7 +16,7 @@ local aces_up = {
         Redeals = 0
     },
     Stock = {
-        Initial = piles.initial.face_down(48)
+        Initial = piles.Initial.face_down(48)
     },
     Foundation = {
         Rule = {
@@ -26,7 +26,7 @@ local aces_up = {
     Tableau = {
         Size = 4,
         create = @(i) {
-            Initial = piles.initial.face_up(1),
+            Initial = piles.Initial.face_up(1),
                 Layout = "Column",
                 Rule = {
                     Build = "NoBuilding",
@@ -44,11 +44,11 @@ local aces_up = {
             if (drop.Rank == "Ace") {
                 return false
             }
-            local dropRank = RankValues[drop.Rank]
+            local dropRank = Sol.RankValues[drop.Rank]
             foreach(tab in game.Tableau) {
                 if (!tab.IsEmpty) {
                     local tabCard = tab.Cards[tab.CardCount - 1]
-                    if (tabCard.Suit == drop.Suit && (tabCard.Rank == "Ace" || RankValues[tabCard.Rank] > dropRank)) {
+                    if (tabCard.Suit == drop.Suit && (tabCard.Rank == "Ace" || Sol.RankValues[tabCard.Rank] > dropRank)) {
                         return true
                     }
                 }
@@ -78,14 +78,14 @@ local aces_up = {
         return "Running"
     },
     on_deal = @(game) game.Stock[0].deal_to_group(game.Tableau, false),
-    on_created = @(game) Lua.Layout.klondike(game)
+    on_created = @(game) Lua.Sol.Layout.klondike(game)
 }
 
 # # # # # # # #
 
-local aces_up_5 = Copy(aces_up)
+local aces_up_5 = Sol.copy(aces_up)
 aces_up_5.Info.Name = "Aces Up 5"
-aces_up_5.Stock.Initial = piles.initial.face_down(47)
+aces_up_5.Stock.Initial = piles.Initial.face_down(47)
 aces_up_5.Tableau.Size = 5
 
 # # # # # # # #
@@ -104,7 +104,7 @@ local aces_square = {
             x = 4.5,
             y = 2
         },
-        Initial = piles.initial.face_down(36)
+        Initial = piles.Initial.face_down(36)
     },
     Foundation = {
         Position = {
@@ -122,7 +122,7 @@ local aces_square = {
                     x = i % 4,
                     y = i / 4
                 },
-                Initial = piles.initial.face_up(1),
+                Initial = piles.Initial.face_up(1),
                 Layout = "Column",
                 Rule = {
                     Build = "NoBuilding",
@@ -174,7 +174,6 @@ local aces_square = {
     on_change = function(game) {
         local foundation = game.Foundation[0]
         foreach(tab in game.Tableau) {
-            print(tab.CardCount)
             if (tab.CardCount > 1) {
                 tab.move_cards(foundation, 0, tab.CardCount, false)
             }
@@ -215,7 +214,7 @@ local four_seasons = {
             x = 1.5,
             y = 0
         },
-        Initial = piles.initial.face_down(46)
+        Initial = piles.Initial.face_down(46)
     },
     Waste = {
         Position = {
@@ -230,7 +229,7 @@ local four_seasons = {
                     x = four_seasons_fou_pos[i][0],
                     y = four_seasons_fou_pos[i][1]
                 },
-                Initial = piles.initial.face_up(i == 0 ? 1 : 0),
+                Initial = piles.Initial.face_up(i == 0 ? 1 : 0),
                 Rule = {
                     Build = "UpInSuit",
                     Wrap = true,
@@ -246,7 +245,7 @@ local four_seasons = {
                     x = four_seasons_tab_pos[i][0],
                     y = four_seasons_tab_pos[i][1]
                 },
-                Initial = piles.initial.face_up(1),
+                Initial = piles.Initial.face_up(1),
                 Layout = "Squared",
                 Rule = {
                     Build = "DownByRank",
@@ -257,11 +256,11 @@ local four_seasons = {
 
         }
     },
-    on_deal = ops.deal.stock_to_waste
+    on_deal = ops.Deal.stock_to_waste
 }
 
 # # # # # # # # # # # # # # # #
-RegisterGame(aces_up)
-RegisterGame(aces_up_5)
-RegisterGame(aces_square)
-RegisterGame(four_seasons)
+Sol.register_game(aces_up)
+Sol.register_game(aces_up_5)
+Sol.register_game(aces_square)
+Sol.register_game(four_seasons)

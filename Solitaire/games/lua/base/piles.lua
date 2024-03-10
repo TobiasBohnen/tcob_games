@@ -38,5 +38,5 @@ local initial = {
 
 return {
     ace_upsuit_top = function() return { Rule = { Build = "UpInSuit", Move = "Top", Empty = "Ace" } } end,
-    initial = initial
+    Initial = initial
 }

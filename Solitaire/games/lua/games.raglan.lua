@@ -19,7 +19,7 @@ local raglan = {
     Reserve           = {
         Size   = 6,
         create = {
-            Initial = piles.initial.face_up(1),
+            Initial = piles.Initial.face_up(1),
             Layout = "Squared",
             Rule = { Build = "NoBuilding", Move = "Top", Empty = "None" }
         }
@@ -32,16 +32,16 @@ local raglan = {
         Size   = 9,
         create = function(i)
             return {
-                Initial = piles.initial.face_up(i < 7 and i + 1 or 7),
+                Initial = piles.Initial.face_up(i < 7 and i + 1 or 7),
                 Layout = "Column",
                 Rule = { Build = "DownAlternateColors", Move = "Top", Empty = "Any" }
             }
         end
     },
-    on_before_shuffle = ops.shuffle.ace_to_foundation,
-    on_created        = Layout.raglan
+    on_before_shuffle = ops.Shuffle.ace_to_foundation,
+    on_created        = Sol.Layout.raglan
 }
 
 ------------------------
 
-RegisterGame(raglan)
+Sol.register_game(raglan)

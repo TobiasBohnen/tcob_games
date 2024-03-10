@@ -17,7 +17,7 @@ local gypsy                           = {
         Redeals       = 0
     },
     Stock      = {
-        Initial = piles.initial.face_down(80)
+        Initial = piles.Initial.face_down(80)
     },
     Foundation = {
         Size   = 8,
@@ -26,27 +26,27 @@ local gypsy                           = {
     Tableau    = {
         Size   = 8,
         create = {
-            Initial = piles.initial.top_face_up(3),
+            Initial = piles.Initial.top_face_up(3),
             Layout = "Column",
             Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
         }
     },
-    on_created = Layout.gypsy,
+    on_created = Sol.Layout.gypsy,
     on_deal    = function(game) return game.Stock[1]:deal_to_group(game.Tableau, false) end
 }
 
 ------
 
-local agnes_sorel                     = Copy(gypsy)
+local agnes_sorel                     = Sol.copy(gypsy)
 agnes_sorel.Info.Name                 = "Agnes Sorel"
 agnes_sorel.Info.DeckCount            = 1
 agnes_sorel.Info.CardDealCount        = 7
-agnes_sorel.Stock.Initial             = piles.initial.face_down(23)
+agnes_sorel.Stock.Initial             = piles.Initial.face_down(23)
 agnes_sorel.Foundation                = {
     Size   = 4,
     create = function(i)
         return {
-            Initial = i == 0 and piles.initial.face_up(1) or {},
+            Initial = i == 0 and piles.Initial.face_up(1) or {},
             Rule = { Build = "UpInSuit", Wrap = true, Move = "None", Empty = "FirstFoundation" }
         }
     end
@@ -55,37 +55,37 @@ agnes_sorel.Tableau                   = {
     Size   = 7,
     create = function(i)
         return {
-            Initial = piles.initial.face_up(i + 1),
+            Initial = piles.Initial.face_up(i + 1),
             Layout = "Column",
             Rule = { Build = "DownInColor", Move = "InSequence", Empty = "None" }
         }
     end
 }
-agnes_sorel.on_created                = Layout.klondike
+agnes_sorel.on_created                = Sol.Layout.klondike
 
 ------
 
-local blockade                        = Copy(gypsy)
+local blockade                        = Sol.copy(gypsy)
 blockade.Info.Name                    = "Blockade"
 blockade.Info.CardDealCount           = 12
-blockade.Stock.Initial                = piles.initial.face_down(92)
+blockade.Stock.Initial                = piles.Initial.face_down(92)
 blockade.Tableau                      = {
     Size   = 12,
     create = {
-        Initial = piles.initial.face_up(1),
+        Initial = piles.Initial.face_up(1),
         Layout = "Column",
         Rule = { Build = "DownInSuit", Move = "InSequence", Empty = "Any" }
     }
 }
-blockade.on_created                   = Layout.klondike
+blockade.on_created                   = Sol.Layout.klondike
 blockade.on_change                    = function(game) game.Stock[1]:deal_to_group(game.Tableau, true) end
 
 ------
 
-local die_koenigsbergerin             = Copy(gypsy)
+local die_koenigsbergerin             = Sol.copy(gypsy)
 die_koenigsbergerin.Info.Name         = "Die Königsbergerin"
 die_koenigsbergerin.Tableau.create    = {
-    Initial = piles.initial.face_up(3),
+    Initial = piles.Initial.face_up(3),
     Layout = "Column",
     Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
 }
@@ -120,62 +120,62 @@ end
 
 ------
 
-local elba                            = Copy(gypsy)
+local elba                            = Sol.copy(gypsy)
 elba.Info.Name                        = "Elba"
 elba.Info.CardDealCount               = 10
-elba.Stock.Initial                    = piles.initial.face_down(54)
+elba.Stock.Initial                    = piles.Initial.face_down(54)
 elba.Tableau                          = {
     Size   = 10,
     create = {
-        Initial = piles.initial.top_face_up(5),
+        Initial = piles.Initial.top_face_up(5),
         Layout = "Column",
         Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "King" }
     }
 }
-elba.on_created                       = Layout.klondike
+elba.on_created                       = Sol.Layout.klondike
 
 ------
 
-local hypotenuse                      = Copy(gypsy)
+local hypotenuse                      = Sol.copy(gypsy)
 hypotenuse.Info.Name                  = "Hypotenuse"
 hypotenuse.Info.CardDealCount         = 10
-hypotenuse.Stock.Initial              = piles.initial.face_down(49)
+hypotenuse.Stock.Initial              = piles.Initial.face_down(49)
 hypotenuse.Tableau                    = {
     Size   = 10,
     create = function(i)
         return {
-            Initial = piles.initial.top_face_up(10 - i),
+            Initial = piles.Initial.top_face_up(10 - i),
             Layout = "Column",
             Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "King" }
         }
     end
 }
-hypotenuse.on_created                 = Layout.klondike
+hypotenuse.on_created                 = Sol.Layout.klondike
 
 ------
 
-local irmgard                         = Copy(gypsy)
+local irmgard                         = Sol.copy(gypsy)
 irmgard.Info.Name                     = "Irmgard"
 irmgard.Info.CardDealCount            = 9
-irmgard.Stock.Initial                 = piles.initial.face_down(79)
+irmgard.Stock.Initial                 = piles.Initial.face_down(79)
 irmgard.Tableau                       = {
     Size   = 9,
     create = function(i)
         return {
-            Initial = piles.initial.top_face_up(i < 5 and i + 1 or 9 - i),
+            Initial = piles.Initial.top_face_up(i < 5 and i + 1 or 9 - i),
             Layout = "Column",
             Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "King" }
         }
     end
 }
-irmgard.on_created                    = Layout.klondike
+irmgard.on_created                    = Sol.Layout.klondike
 
 ------
 
-local lexington_harp                  = Copy(gypsy)
+local lexington_harp                  = Sol.copy(gypsy)
 lexington_harp.Info.Name              = "Lexington Harp"
 --lexington_harp.Info.Family = "Gypsy/Yukon"
-lexington_harp.Stock.Initial          = piles.initial.face_down(68)
+lexington_harp.Stock.Initial          = piles.Initial.face_down(68)
 lexington_harp.Foundation             = {
     Size   = 8,
     create = { Rule = { Build = "UpInSuit", Move = "None", Empty = "Ace" } }
@@ -184,7 +184,7 @@ lexington_harp.Tableau                = {
     Size   = 8,
     create = function(i)
         return {
-            Initial = piles.initial.top_face_up(i + 1),
+            Initial = piles.Initial.top_face_up(i + 1),
             Layout = "Column",
             Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = "Any" }
         }
@@ -193,12 +193,12 @@ lexington_harp.Tableau                = {
 
 ------
 
-local brunswick                       = Copy(lexington_harp)
+local brunswick                       = Sol.copy(lexington_harp)
 brunswick.Info.Name                   = "Brunswick"
 --brunswick.Info.Family = "Gypsy/Yukon"
 brunswick.Tableau.create              = function(i)
     return {
-        Initial = piles.initial.face_up(i + 1),
+        Initial = piles.Initial.face_up(i + 1),
         Layout = "Column",
         Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = "Any" }
     }
@@ -206,12 +206,12 @@ end
 
 ------
 
-local milligan_harp                   = Copy(lexington_harp)
+local milligan_harp                   = Sol.copy(lexington_harp)
 milligan_harp.Info.Name               = "Milligan Harp"
 --milligan_harp.Info.Family = "Gypsy/Yukon"
 milligan_harp.Tableau.create          = function(i)
     return {
-        Initial = piles.initial.top_face_up(i + 1),
+        Initial = piles.Initial.top_face_up(i + 1),
         Layout = "Column",
         Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
     }
@@ -219,11 +219,11 @@ end
 
 ------
 
-local carlton                         = Copy(lexington_harp)
+local carlton                         = Sol.copy(lexington_harp)
 carlton.Info.Name                     = "Carlton"
 carlton.Tableau.create                = function(i)
     return {
-        Initial = piles.initial.face_up(i + 1),
+        Initial = piles.Initial.face_up(i + 1),
         Layout = "Column",
         Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
     }
@@ -231,15 +231,15 @@ end
 
 ------
 
-local mississippi                     = Copy(lexington_harp)
+local mississippi                     = Sol.copy(lexington_harp)
 mississippi.Info.Name                 = "Mississippi"
 --milligan_harp.Info.Family = "Gypsy/Yukon"
-mississippi.Stock.Initial             = piles.initial.face_down(76)
+mississippi.Stock.Initial             = piles.Initial.face_down(76)
 mississippi.Tableau                   = {
     Size   = 7,
     create = function(i)
         return {
-            Initial = piles.initial.top_face_up(i + 1),
+            Initial = piles.Initial.top_face_up(i + 1),
             Layout = "Column",
             Rule = { Build = "DownAlternateColors", Move = "FaceUp", Empty = "Any" }
         }
@@ -259,7 +259,7 @@ local cone                            = {
     },
     Stock      = {
         Position = { x = 0, y = 0 },
-        Initial = piles.initial.face_down(88)
+        Initial = piles.Initial.face_down(88)
     },
     Reserve    = {
         Size   = 4,
@@ -284,7 +284,7 @@ local cone                            = {
         create = function(i)
             return {
                 Position = { x = i + 1, y = 0 },
-                Initial = piles.initial.top_face_up(i < 4 and i + 1 or 7 - i),
+                Initial = piles.Initial.top_face_up(i < 4 and i + 1 or 7 - i),
                 Layout = "Column",
                 Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
             }
@@ -317,7 +317,7 @@ local easthaven                       = {
         Redeals       = 0
     },
     Stock      = {
-        Initial = piles.initial.face_down(31)
+        Initial = piles.Initial.face_down(31)
     },
     Foundation = {
         Size   = 4,
@@ -326,40 +326,40 @@ local easthaven                       = {
     Tableau    = {
         Size   = 7,
         create = {
-            Initial = piles.initial.top_face_up(3),
+            Initial = piles.Initial.top_face_up(3),
             Layout = "Column",
             Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
         }
     },
-    on_created = Layout.klondike,
+    on_created = Sol.Layout.klondike,
     on_deal    = function(game) return game.Stock[1]:deal_to_group(game.Tableau, false) end
 }
 
 ------
 
-local double_easthaven                = Copy(easthaven)
+local double_easthaven                = Sol.copy(easthaven)
 double_easthaven.Info.Name            = "Double Easthaven"
 double_easthaven.Info.DeckCount       = 2
 double_easthaven.Info.CardDealCount   = 8
-double_easthaven.Stock.Initial        = piles.initial.face_down(80)
+double_easthaven.Stock.Initial        = piles.Initial.face_down(80)
 double_easthaven.Tableau.Size         = 8
 
 ------
 
 ------------------------
 
-RegisterGame(gypsy)
-RegisterGame(agnes_sorel)
-RegisterGame(blockade)
-RegisterGame(brunswick)
-RegisterGame(carlton)
-RegisterGame(cone)
-RegisterGame(die_koenigsbergerin)
-RegisterGame(easthaven)
-RegisterGame(double_easthaven)
-RegisterGame(elba)
-RegisterGame(hypotenuse)
-RegisterGame(irmgard)
-RegisterGame(lexington_harp)
-RegisterGame(milligan_harp)
-RegisterGame(mississippi)
+Sol.register_game(gypsy)
+Sol.register_game(agnes_sorel)
+Sol.register_game(blockade)
+Sol.register_game(brunswick)
+Sol.register_game(carlton)
+Sol.register_game(cone)
+Sol.register_game(die_koenigsbergerin)
+Sol.register_game(easthaven)
+Sol.register_game(double_easthaven)
+Sol.register_game(elba)
+Sol.register_game(hypotenuse)
+Sol.register_game(irmgard)
+Sol.register_game(lexington_harp)
+Sol.register_game(milligan_harp)
+Sol.register_game(mississippi)

@@ -28,24 +28,24 @@ local free_cell                       = {
         Size   = 8,
         create = function(i)
             return {
-                Initial = piles.initial.face_up(i < 4 and 7 or 6),
+                Initial = piles.Initial.face_up(i < 4 and 7 or 6),
                 Layout = "Column",
                 Rule = { Build = "DownAlternateColors", Move = "SuperMove", Empty = "Any" }
             }
         end
     },
-    on_created = Layout.free_cell
+    on_created = Sol.Layout.free_cell
 }
 
 ------
 
-local free_cell_0                     = Copy(free_cell)
+local free_cell_0                     = Sol.copy(free_cell)
 free_cell_0.Info.Name                 = "FreeCell (0 cells)"
 free_cell_0.FreeCell                  = nil
 
 ------
 
-local free_cell_2                     = Copy(free_cell)
+local free_cell_2                     = Sol.copy(free_cell)
 free_cell_2.Info.Name                 = "FreeCell (2 cells)"
 free_cell_2.FreeCell.Size             = 2
 
@@ -72,18 +72,18 @@ local double_free_cell                = {
         Size   = 10,
         create = function(i)
             return {
-                Initial = piles.initial.face_up(i < 4 and 11 or 10),
+                Initial = piles.Initial.face_up(i < 4 and 11 or 10),
                 Layout = "Column",
                 Rule = { Build = "DownAlternateColors", Move = "SuperMove", Empty = "Any" }
             }
         end
     },
-    on_created = Layout.double_free_cell
+    on_created = Sol.Layout.double_free_cell
 }
 
 ------
 
-local double_free_cell_2              = Copy(free_cell)
+local double_free_cell_2              = Sol.copy(free_cell)
 double_free_cell_2.Info.Name          = "Double FreeCell II"
 double_free_cell_2.Info.DeckCount     = 2
 double_free_cell_2.FreeCell.Size      = 6
@@ -91,12 +91,12 @@ double_free_cell_2.Foundation.create  = { Rule = { Build = "UpInSuit", Wrap = tr
 double_free_cell_2.Tableau            = {
     Size   = 10,
     create = {
-        Initial = piles.initial.face_up(10),
+        Initial = piles.Initial.face_up(10),
         Layout = "Column",
         Rule = { Build = "DownAlternateColors", Move = "SuperMove", Empty = "Any" }
     }
 }
-double_free_cell_2.on_before_shuffle  = ops.shuffle.ace_to_foundation
+double_free_cell_2.on_before_shuffle  = ops.Shuffle.ace_to_foundation
 
 ------
 
@@ -120,21 +120,21 @@ local triple_free_cell                = {
     Tableau    = {
         Size   = 13,
         create = {
-            Initial = piles.initial.face_up(12),
+            Initial = piles.Initial.face_up(12),
             Layout = "Column",
             Rule = { Build = "DownAlternateColors", Move = "SuperMove", Empty = "Any" }
         }
     },
-    on_created = Layout.double_free_cell
+    on_created = Sol.Layout.double_free_cell
 }
 
 ------
 
-local bakers_game                     = Copy(free_cell)
+local bakers_game                     = Sol.copy(free_cell)
 bakers_game.Info.Name                 = "Baker's Game"
 bakers_game.Tableau.create            = function(i)
     return {
-        Initial = piles.initial.face_up(i < 4 and 7 or 6),
+        Initial = piles.Initial.face_up(i < 4 and 7 or 6),
         Layout = "Column",
         Rule = { Build = "DownInSuit", Move = "SuperMove", Empty = "Any" }
     }
@@ -142,11 +142,11 @@ end
 
 ------
 
-local bakers_game_ko                  = Copy(free_cell)
+local bakers_game_ko                  = Sol.copy(free_cell)
 bakers_game_ko.Info.Name              = "King Only Baker's Game"
 bakers_game_ko.Tableau.create         = function(i)
     return {
-        Initial = piles.initial.face_up(i < 4 and 7 or 6),
+        Initial = piles.Initial.face_up(i < 4 and 7 or 6),
         Layout = "Column",
         Rule = { Build = "DownInSuit", Move = "SuperMove", Empty = "King" }
     }
@@ -154,14 +154,14 @@ end
 
 ------
 
-local bath                            = Copy(free_cell)
+local bath                            = Sol.copy(free_cell)
 bath.Info.Name                        = "Bath"
 bath.FreeCell.Size                    = 2
 bath.Tableau                          = {
     Size = 10,
     create = function(i)
         return {
-            Initial = piles.initial.face_up(math.min(i + 1, 8)),
+            Initial = piles.Initial.face_up(math.min(i + 1, 8)),
             Layout = "Column",
             Rule = { Build = "DownAlternateColors", Move = "SuperMove", Empty = "Any" }
         }
@@ -190,12 +190,12 @@ local big_cell                        = {
     Tableau    = {
         Size   = 13,
         create = {
-            Initial = piles.initial.face_up(12),
+            Initial = piles.Initial.face_up(12),
             Layout = "Column",
             Rule = { Build = "DownAlternateColors", Move = "SuperMove", Empty = "Any" }
         }
     },
-    on_created = Layout.double_free_cell
+    on_created = Sol.Layout.double_free_cell
 }
 
 ------
@@ -213,7 +213,7 @@ local cell_11                         = {
         Size   = 11,
         create = function(i)
             return {
-                Initial = piles.initial.face_up((i == 0 or i == 10) and 1 or 0),
+                Initial = piles.Initial.face_up((i == 0 or i == 10) and 1 or 0),
                 Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" }
             }
         end
@@ -226,24 +226,24 @@ local cell_11                         = {
         Size   = 13,
         create = function(i)
             return {
-                Initial = piles.initial.face_up((i == 0 or i == 12) and 11 or 12),
+                Initial = piles.Initial.face_up((i == 0 or i == 12) and 11 or 12),
                 Layout = "Column",
                 Rule = { Build = "DownAlternateColors", Move = "SuperMove", Empty = "Any" }
             }
         end
     },
-    on_created = Layout.double_free_cell
+    on_created = Sol.Layout.double_free_cell
 }
 
 ------
 
-local challenge_free_cell             = Copy(free_cell)
+local challenge_free_cell             = Sol.copy(free_cell)
 challenge_free_cell.Info.Name         = "Challenge FreeCell"
 challenge_free_cell.Tableau           = {
     Size = 8,
     create = function(i)
         return {
-            Initial = piles.initial.face_up(i < 4 and 6 or 5),
+            Initial = piles.Initial.face_up(i < 4 and 6 or 5),
             Layout = "Column",
             Rule = { Build = "DownAlternateColors", Move = "SuperMove", Empty = "Any" }
         }
@@ -262,13 +262,13 @@ end
 
 ------
 
-local super_challenge_free_cell       = Copy(challenge_free_cell)
+local super_challenge_free_cell       = Sol.copy(challenge_free_cell)
 super_challenge_free_cell.Info.Name   = "Super Challenge FreeCell"
 super_challenge_free_cell.Tableau     = {
     Size = 8,
     create = function(i)
         return {
-            Initial = piles.initial.face_up(i < 4 and 6 or 5),
+            Initial = piles.Initial.face_up(i < 4 and 6 or 5),
             Layout = "Column",
             Rule = { Build = "DownAlternateColors", Move = "SuperMove", Empty = "King" }
         }
@@ -277,12 +277,12 @@ super_challenge_free_cell.Tableau     = {
 
 ------
 
-local clink                           = Copy(free_cell)
+local clink                           = Sol.copy(free_cell)
 clink.Info.Name                       = "Clink"
 clink.FreeCell                        = {
     Size = 2,
     create = {
-        Initial = piles.initial.face_up(1),
+        Initial = piles.Initial.face_up(1),
         Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" }
     }
 }
@@ -293,7 +293,7 @@ clink.Foundation                      = {
 clink.Tableau                         = {
     Size = 8,
     create = {
-        Initial = piles.initial.face_up(6),
+        Initial = piles.Initial.face_up(6),
         Layout  = "Column",
         Rule    = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
     }
@@ -340,7 +340,7 @@ local deep                            = {
         create = function(i)
             return {
                 Position = { x = i, y = 1 },
-                Initial = piles.initial.face_up(13),
+                Initial = piles.Initial.face_up(13),
                 Layout = "Column",
                 Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
             }
@@ -363,7 +363,7 @@ local eight_off                       = {
         Size   = 8,
         create = function(i)
             return {
-                Initial = i % 2 == 0 and piles.initial.face_up(1) or {},
+                Initial = i % 2 == 0 and piles.Initial.face_up(1) or {},
                 Rule    = { Build = "NoBuilding", Move = "Top", Empty = "Any" }
             }
         end
@@ -375,24 +375,24 @@ local eight_off                       = {
     Tableau    = {
         Size   = 8,
         create = {
-            Initial = piles.initial.face_up(6),
+            Initial = piles.Initial.face_up(6),
             Layout = "Column",
             Rule = { Build = "DownInSuit", Move = "SuperMove", Empty = "King" }
         }
     },
-    on_created = Layout.double_free_cell
+    on_created = Sol.Layout.double_free_cell
 }
 
 ------
 
-local footling                        = Copy(free_cell)
+local footling                        = Sol.copy(free_cell)
 footling.Info.Name                    = "Footling"
 footling.Foundation                   = { Rule = { Build = "RankPack", Move = "Top", Empty = "Ace" } }
 footling.Tableau                      = {
     Size = 8,
     create = function(i)
         return {
-            Initial = piles.initial.face_up(i < 4 and 7 or 6),
+            Initial = piles.Initial.face_up(i < 4 and 7 or 6),
             Layout = "Column",
             Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
         }
@@ -401,16 +401,16 @@ footling.Tableau                      = {
 
 ------
 
-local fore_cell                       = Copy(free_cell)
+local fore_cell                       = Sol.copy(free_cell)
 fore_cell.Info.Name                   = "ForeCell"
 fore_cell.FreeCell.create             = {
-    Initial = piles.initial.face_up(1),
+    Initial = piles.Initial.face_up(1),
     Rule = { Build = "NoBuilding", Move = "Top", Empty = "Any" }
 }
 fore_cell.Tableau                     = {
     Size = 8,
     create = {
-        Initial = piles.initial.face_up(6),
+        Initial = piles.Initial.face_up(6),
         Layout = "Column",
         Rule = { Build = "DownAlternateColors", Move = "SuperMove", Empty = "King" }
     }
@@ -418,13 +418,13 @@ fore_cell.Tableau                     = {
 
 ------
 
-local four_colours                    = Copy(free_cell)
+local four_colours                    = Sol.copy(free_cell)
 four_colours.Info.Name                = "Four Colours"
 four_colours.Tableau                  = {
     Size = 7,
     create = function(i)
         return {
-            Initial = i < 4 and piles.initial.face_up(13) or {},
+            Initial = i < 4 and piles.Initial.face_up(13) or {},
             Layout = "Column",
             Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
         }
@@ -434,7 +434,7 @@ four_colours.Tableau                  = {
 ------
 local german_free_cell_empty          = { "Clubs", "Spades", "Hearts", "Diamonds" }
 
-local german_free_cell                = Copy(free_cell)
+local german_free_cell                = Sol.copy(free_cell)
 german_free_cell.Info.Name            = "German FreeCell"
 german_free_cell.FreeCell             = {
     Size = 4,
@@ -448,13 +448,13 @@ german_free_cell.FreeCell             = {
 
 ------
 
-local king_cell                       = Copy(free_cell)
+local king_cell                       = Sol.copy(free_cell)
 king_cell.Info.Name                   = "KingCell"
 king_cell.Tableau                     = {
     Size = 8,
     create = function(i)
         return {
-            Initial = piles.initial.face_up(i < 4 and 7 or 6),
+            Initial = piles.Initial.face_up(i < 4 and 7 or 6),
             Layout = "Column",
             Rule = { Build = "DownAlternateColors", Move = "SuperMove", Empty = "King" }
         }
@@ -484,7 +484,7 @@ local flipper                         = {
         Size   = 7,
         create = function(i)
             return {
-                Initial = piles.initial.face_up(i % 3 == 0 and 8 or 7),
+                Initial = piles.Initial.face_up(i % 3 == 0 and 8 or 7),
                 Layout = "Column",
                 Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
             }
@@ -503,7 +503,7 @@ local flipper                         = {
             end
         end
     end,
-    on_created = Layout.flipper
+    on_created = Sol.Layout.flipper
 }
 
 ------
@@ -529,7 +529,7 @@ local penguin                         = {
         Size   = 7,
         create = function(i)
             return {
-                Initial = piles.initial.face_up(i > 0 and 7 or 6),
+                Initial = piles.Initial.face_up(i > 0 and 7 or 6),
                 Layout = "Column",
                 Rule = { Build = "DownInSuit", Wrap = true, Move = "InSequence", Empty = { Type = "FirstFoundation", Interval = -1 } }
             }
@@ -546,18 +546,18 @@ local penguin                         = {
         end
         return false
     end,
-    on_created        = Layout.flipper
+    on_created        = Sol.Layout.flipper
 }
 
 ------
 
-local relaxed_free_cell               = Copy(free_cell)
+local relaxed_free_cell               = Sol.copy(free_cell)
 relaxed_free_cell.Info.Name           = "Relaxed FreeCell"
 relaxed_free_cell.Tableau             = {
     Size = 8,
     create = function(i)
         return {
-            Initial = piles.initial.face_up(i < 4 and 7 or 6),
+            Initial = piles.Initial.face_up(i < 4 and 7 or 6),
             Layout = "Column",
             Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "Any" }
         }
@@ -598,13 +598,13 @@ local snake                           = {
         create = function(i)
             return {
                 Position = { x = i, y = 1 },
-                Initial = piles.initial.face_up(i == 0 and 96 or 0),
+                Initial = piles.Initial.face_up(i == 0 and 96 or 0),
                 Layout = "Column",
                 Rule = { Build = "DownAlternateColors", Move = "SuperMove", Empty = "None" }
             }
         end
     },
-    on_before_shuffle = ops.shuffle.ace_to_foundation,
+    on_before_shuffle = ops.Shuffle.ace_to_foundation,
     on_after_shuffle  = function(game)
         -- kings start new pile
         local tableau = game.Tableau
@@ -622,12 +622,12 @@ local snake                           = {
 
 ------
 
-local cats_tail                       = Copy(snake)
+local cats_tail                       = Sol.copy(snake)
 cats_tail.Info.Name                   = "Cat's Tail"
 cats_tail.Tableau.create              = function(i)
     return {
         Position = { x = i, y = 1 },
-        Initial = piles.initial.face_up(i == 0 and 104 or 0),
+        Initial = piles.Initial.face_up(i == 0 and 104 or 0),
         Layout = "Column",
         Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = "None" }
     }
@@ -636,29 +636,29 @@ cats_tail.on_before_shuffle           = nil
 
 ------------------------
 
-RegisterGame(free_cell)
-RegisterGame(free_cell_0)
-RegisterGame(free_cell_2)
-RegisterGame(double_free_cell)
-RegisterGame(double_free_cell_2)
-RegisterGame(triple_free_cell)
-RegisterGame(relaxed_free_cell)
-RegisterGame(challenge_free_cell)
-RegisterGame(super_challenge_free_cell)
-RegisterGame(bakers_game)
-RegisterGame(bakers_game_ko)
-RegisterGame(bath)
-RegisterGame(big_cell)
-RegisterGame(cell_11)
-RegisterGame(cats_tail)
-RegisterGame(clink)
-RegisterGame(deep)
-RegisterGame(eight_off)
-RegisterGame(flipper)
-RegisterGame(footling)
-RegisterGame(fore_cell)
-RegisterGame(four_colours)
-RegisterGame(german_free_cell)
-RegisterGame(king_cell)
-RegisterGame(penguin)
-RegisterGame(snake)
+Sol.register_game(free_cell)
+Sol.register_game(free_cell_0)
+Sol.register_game(free_cell_2)
+Sol.register_game(double_free_cell)
+Sol.register_game(double_free_cell_2)
+Sol.register_game(triple_free_cell)
+Sol.register_game(relaxed_free_cell)
+Sol.register_game(challenge_free_cell)
+Sol.register_game(super_challenge_free_cell)
+Sol.register_game(bakers_game)
+Sol.register_game(bakers_game_ko)
+Sol.register_game(bath)
+Sol.register_game(big_cell)
+Sol.register_game(cell_11)
+Sol.register_game(cats_tail)
+Sol.register_game(clink)
+Sol.register_game(deep)
+Sol.register_game(eight_off)
+Sol.register_game(flipper)
+Sol.register_game(footling)
+Sol.register_game(fore_cell)
+Sol.register_game(four_colours)
+Sol.register_game(german_free_cell)
+Sol.register_game(king_cell)
+Sol.register_game(penguin)
+Sol.register_game(snake)
