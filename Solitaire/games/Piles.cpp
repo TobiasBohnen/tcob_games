@@ -43,7 +43,7 @@ auto pile::is_active() const -> bool
 
 auto pile::is_playable() const -> bool
 {
-    return Rule.Move != move_type::None
+    return Rule.IsPlayable
         && !empty()
         && !Cards.back().is_face_down();
 }
@@ -264,8 +264,8 @@ void pile::move_cards(pile& to, isize srcOffset, isize numCards, bool reverse)
 
 stock::stock()
 {
-    Type      = pile_type::Stock;
-    Rule.Move = move_type::None;
+    Type            = pile_type::Stock;
+    Rule.IsPlayable = false;
 }
 
 waste::waste()

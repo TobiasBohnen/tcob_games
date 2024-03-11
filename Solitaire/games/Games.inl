@@ -293,8 +293,18 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
             ruleTable.try_get(pile.Rule.Build, "Build");
             ruleTable.try_get(pile.Rule.Interval, "Interval");
             ruleTable.try_get(pile.Rule.Wrap, "Wrap");
-            ruleTable.try_get(pile.Rule.Move, "Move");
             ruleTable.try_get(pile.Rule.Limit, "Limit");
+
+            if (Table moveTable; ruleTable.try_get(moveTable, "Move")) {
+                moveTable.try_get(pile.Rule.IsPlayable, "IsPlayable");
+                moveTable.try_get(pile.Rule.IsSequence, "IsSequence");
+
+                Function<bool> func;
+                moveTable.try_get(func, "move");
+                pile.Rule.Move = {[func](base_game const* game, class pile const* target, isize idx) {
+                    return func(game, target, idx - IndexOffset);
+                }};
+            }
 
             if (Function<Function<bool>> emptyFunc; ruleTable.try_get(emptyFunc, "Empty")) {
                 auto func {emptyFunc(static_cast<base_game*>(this))};

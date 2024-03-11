@@ -21,7 +21,7 @@ local aces_up = {
     },
     Foundation = {
         Rule = {
-            Move = "None"
+            Move = rules.Move.None
         }
     },
     Tableau = {
@@ -31,8 +31,8 @@ local aces_up = {
                 Layout = "Column",
                 Rule = {
                     Build = "NoBuilding",
-                    Move = "Top",
-                    Empty = rules.Empty.any
+                    Move = rules.Move.Top,
+                    Empty = rules.Empty.Any
                 }
         }
     },
@@ -113,7 +113,7 @@ local aces_square = {
             y = 0
         },
         Rule = {
-            Move = "None"
+            Move = rules.Move.None
         }
     },
     Tableau = {
@@ -127,8 +127,8 @@ local aces_square = {
                 Layout = "Column",
                 Rule = {
                     Build = "NoBuilding",
-                    Move = "Top",
-                    Empty = rules.Empty.none
+                    Move = rules.Move.Top,
+                    Empty = rules.Empty.None
                 }
         }
     },
@@ -234,8 +234,8 @@ local four_seasons = {
                 Rule = {
                     Build = "UpInSuit",
                     Wrap = true,
-                    Move = "None",
-                    Empty = @(game) rules.Empty.first_foundation(game, 0)
+                    Move = rules.Move.None,
+                    Empty = @(game) rules.Empty.FirstFoundation(game, 0)
                 }
         }
     },
@@ -251,8 +251,8 @@ local four_seasons = {
                 Rule = {
                     Build = "DownByRank",
                     Wrap = true,
-                    Move = "Top",
-                    Empty = rules.Empty.any
+                    Move = rules.Move.Top,
+                    Empty = rules.Empty.Any
                 }
 
         }

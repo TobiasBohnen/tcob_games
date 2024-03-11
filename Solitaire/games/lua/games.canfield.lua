@@ -28,7 +28,7 @@ local canfield                      = {
         create = function(i)
             return {
                 Initial = piles.Initial.face_up(i == 0 and 1 or 0),
-                Rule = { Build = "UpInSuit", Wrap = true, Move = "None", Empty = function(game) return rules.Empty.first_foundation(game) end }
+                Rule = { Build = "UpInSuit", Wrap = true, Move = rules.Move.None, Empty = function(game) return rules.Empty.FirstFoundation(game) end }
             }
         end
     },
@@ -37,7 +37,7 @@ local canfield                      = {
         create = {
             Initial = piles.Initial.face_up(1),
             Layout = "Column",
-            Rule = { Build = "DownAlternateColors", Wrap = true, Move = "TopOrPile", Empty = rules.Empty.any }
+            Rule = { Build = "DownAlternateColors", Wrap = true, Move = rules.Move.TopOrPile, Empty = rules.Empty.Any }
         }
     },
     on_change  = function(game) game.Reserve[1]:deal_to_group(game.Tableau, true) end,
@@ -93,11 +93,11 @@ acme.Info.Name                      = "Acme"
 acme.Info.CardDealCount             = 1
 acme.Info.Redeals                   = 1
 acme.Stock.Initial                  = piles.Initial.face_down(31)
-acme.Foundation.create              = { Rule = { Build = "UpInSuit", Move = "None", Empty = rules.Empty.ace } }
+acme.Foundation.create              = { Rule = { Build = "UpInSuit", Move = rules.Move.None, Empty = rules.Empty.Ace } }
 acme.Tableau.create                 = {
     Initial = piles.Initial.face_up(1),
     Layout = "Column",
-    Rule = { Build = "DownInSuit", Move = "Top", Empty = rules.Empty.any }
+    Rule = { Build = "DownInSuit", Move = rules.Move.Top, Empty = rules.Empty.Any }
 }
 acme.on_before_shuffle              = ops.Shuffle.ace_to_foundation
 
@@ -119,7 +119,7 @@ american_toad.Tableau               = {
     create = {
         Initial = piles.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Build = "DownInSuit", Wrap = true, Move = "TopOrPile", Empty = rules.Empty.any }
+        Rule = { Build = "DownInSuit", Wrap = true, Move = rules.Move.TopOrPile, Empty = rules.Empty.Any }
     }
 }
 
@@ -140,7 +140,7 @@ chameleon.Tableau                   = {
     create = {
         Initial = piles.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Build = "DownByRank", Wrap = true, Move = "TopOrPile", Empty = rules.Empty.any }
+        Rule = { Build = "DownByRank", Wrap = true, Move = rules.Move.TopOrPile, Empty = rules.Empty.Any }
     }
 }
 
@@ -160,7 +160,7 @@ demon.Tableau                       = {
     create = {
         Initial = piles.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Build = "DownAlternateColors", Wrap = true, Move = "InSequence", Empty = rules.Empty.any }
+        Rule = { Build = "DownAlternateColors", Wrap = true, Move = rules.Move.InSeq, Empty = rules.Empty.Any }
     }
 }
 
@@ -195,7 +195,7 @@ local eagle_wing                    = {
             return {
                 Position = { x = i + 3, y = 0 },
                 Initial = piles.Initial.face_up(i == 0 and 1 or 0),
-                Rule = { Build = "UpInSuit", Wrap = true, Move = "None", Empty = function(game) return rules.Empty.first_foundation(game) end }
+                Rule = { Build = "UpInSuit", Wrap = true, Move = rules.Move.None, Empty = function(game) return rules.Empty.FirstFoundation(game) end }
             }
         end
     },
@@ -206,7 +206,7 @@ local eagle_wing                    = {
                 Position = { x = eagle_wing_pos[i + 1][1], y = eagle_wing_pos[i + 1][2] },
                 Initial = piles.Initial.face_up(1),
                 Layout = "Column",
-                Rule = { Build = "DownInSuit", Wrap = true, Move = "Top", Empty = rules.Empty.none, Limit = 3 }
+                Rule = { Build = "DownInSuit", Wrap = true, Move = rules.Move.Top, Empty = rules.Empty.None, Limit = 3 }
             }
         end
     },
@@ -229,13 +229,13 @@ minerva.Reserve.create              = {
     Initial = piles.Initial.top_face_up(11),
     Layout = "Column"
 }
-minerva.Foundation.create           = { Rule = { Build = "UpInSuit", Wrap = true, Move = "None", Empty = rules.Empty.ace } }
+minerva.Foundation.create           = { Rule = { Build = "UpInSuit", Wrap = true, Move = rules.Move.None, Empty = rules.Empty.Ace } }
 minerva.Tableau                     = {
     Size   = 7,
     create = {
         Initial = piles.Initial.alternate(4, false),
         Layout = "Column",
-        Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.king }
+        Rule = { Build = "DownAlternateColors", Move = rules.Move.InSeq, Empty = rules.Empty.King }
     }
 }
 minerva.on_change                   = nil
@@ -270,7 +270,7 @@ local duke                          = {
                 Position = { x = i % 2 * 2, y = i // 2 + 1 },
                 Initial  = piles.Initial.face_up(3),
                 Layout   = "Row",
-                Rule     = { Build = "NoBuilding", Move = "Top", Empty = rules.Empty.none },
+                Rule     = { Build = "NoBuilding", Move = rules.Move.Top, Empty = rules.Empty.None },
             }
         end
     },
@@ -279,7 +279,7 @@ local duke                          = {
         create = function(i)
             return {
                 Position = { x = i + 3, y = 0 },
-                Rule = { Build = "UpInSuit", Move = "Top", Empty = rules.Empty.ace }
+                Rule = { Build = "UpInSuit", Move = rules.Move.Top, Empty = rules.Empty.Ace }
             }
         end
     },
@@ -290,7 +290,7 @@ local duke                          = {
                 Position = { x = i + 4, y = 1 },
                 Initial = piles.Initial.face_up(1),
                 Layout = "Column",
-                Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.any }
+                Rule = { Build = "DownAlternateColors", Move = rules.Move.InSeq, Empty = rules.Empty.Any }
             }
         end
     },
@@ -306,7 +306,7 @@ dutchess.Info.Redeals               = 1
 dutchess.Foundation.create          = function(i)
     return {
         Position = { x = i + 3, y = 0 },
-        Rule = { Build = "UpInSuit", Wrap = true, Move = "None", Empty = function(game) return rules.Empty.first_foundation(game) end }
+        Rule = { Build = "UpInSuit", Wrap = true, Move = rules.Move.None, Empty = function(game) return rules.Empty.FirstFoundation(game) end }
     }
 end
 dutchess.Tableau.create             = function(i)
@@ -314,7 +314,7 @@ dutchess.Tableau.create             = function(i)
         Position = { x = i + 4, y = 1 },
         Initial = piles.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Build = "DownAlternateColors", Wrap = true, Move = "InSequence", Empty = rules.Empty.any }
+        Rule = { Build = "DownAlternateColors", Wrap = true, Move = rules.Move.InSeq, Empty = rules.Empty.Any }
     }
 end
 dutchess.check_drop                 = function(game, targetPile, targetIndex, drop, numCards)

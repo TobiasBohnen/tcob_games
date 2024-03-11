@@ -30,7 +30,7 @@ local forty_thieves        = {
         create = {
             Initial = piles.Initial.face_up(4),
             Layout = "Column",
-            Rule = { Build = "DownInSuit", Move = "Top", Empty = rules.Empty.any }
+            Rule = { Build = "DownInSuit", Move = rules.Move.Top, Empty = rules.Empty.Any }
         }
     },
     on_deal    = ops.Deal.stock_to_waste,
@@ -47,7 +47,7 @@ alternation.Tableau        = {
     create = {
         Initial = piles.Initial.alternate(7, true),
         Layout = "Column",
-        Rule = { Build = "DownAlternateColors", Move = "InSequence", Empty = rules.Empty.king }
+        Rule = { Build = "DownAlternateColors", Move = rules.Move.InSeq, Empty = rules.Empty.King }
     }
 }
 
@@ -58,7 +58,7 @@ interchange.Info.Name      = "Interchange"
 interchange.Tableau.create = {
     Initial = piles.Initial.alternate(7, true),
     Layout = "Column",
-    Rule = { Build = "DownInSuit", Move = "InSequence", Empty = rules.Empty.king }
+    Rule = { Build = "DownInSuit", Move = rules.Move.InSeq, Empty = rules.Empty.King }
 }
 
 ------
@@ -71,7 +71,7 @@ busy_aces.Tableau          = {
     create = {
         Initial = piles.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Build = "DownInSuit", Move = "Top", Empty = rules.Empty.any }
+        Rule = { Build = "DownInSuit", Move = rules.Move.Top, Empty = rules.Empty.Any }
     }
 }
 
@@ -85,7 +85,7 @@ corona.Tableau             = {
     create = {
         Initial = piles.Initial.face_up(3),
         Layout = "Column",
-        Rule = { Build = "DownInSuit", Move = "Top", Empty = rules.Empty.any }
+        Rule = { Build = "DownInSuit", Move = rules.Move.Top, Empty = rules.Empty.Any }
     }
 }
 corona.on_change           = function(game)
@@ -102,7 +102,7 @@ courtyard.Tableau          = {
     create = {
         Initial = piles.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Build = "DownInSuit", Move = "InSequence", Empty = rules.Empty.any }
+        Rule = { Build = "DownInSuit", Move = rules.Move.InSeq, Empty = rules.Empty.Any }
     }
 }
 courtyard.on_change        = corona.on_change

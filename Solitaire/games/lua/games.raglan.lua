@@ -22,12 +22,12 @@ local raglan = {
         create = {
             Initial = piles.Initial.face_up(1),
             Layout = "Squared",
-            Rule = { Build = "NoBuilding", Move = "Top", Empty = rules.Empty.none }
+            Rule = { Build = "NoBuilding", Move = rules.Move.Top, Empty = rules.Empty.None }
         }
     },
     Foundation        = {
         Size   = 4,
-        create = { Rule = { Build = "UpInSuit", Move = "Top", Empty = rules.Empty.ace } }
+        create = { Rule = { Build = "UpInSuit", Move = rules.Move.Top, Empty = rules.Empty.Ace } }
     },
     Tableau           = {
         Size   = 9,
@@ -35,7 +35,7 @@ local raglan = {
             return {
                 Initial = piles.Initial.face_up(i < 7 and i + 1 or 7),
                 Layout = "Column",
-                Rule = { Build = "DownAlternateColors", Move = "Top", Empty = rules.Empty.any }
+                Rule = { Build = "DownAlternateColors", Move = rules.Move.Top, Empty = rules.Empty.Any }
             }
         end
     },

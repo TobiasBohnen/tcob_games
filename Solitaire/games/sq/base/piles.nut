@@ -40,7 +40,7 @@ return {
     ace_upsuit_top = @() {
         Rule = {
             Build = "UpInSuit",
-            Move = "Top",
+            Move = rules.Move.Top,
             Empty = "Ace"
         }
     },

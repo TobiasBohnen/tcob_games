@@ -41,24 +41,20 @@ enum class build_type {
     Any
 };
 
-enum class move_type {
-    None, // non-playable
-    Top,
-    TopOrPile,
-    FaceUp,
-    InSequence,
-    InSequenceInSuit,
-    InSequenceInSuitOrSameRank,
-    SuperMove
-};
-
+using move_func  = std::function<bool(games::base_game const* game, pile const* target, isize idx)>;
 using empty_func = std::function<bool(card const&, isize)>;
+
+namespace move {
+    auto top(games::base_game const*, pile const* target, isize idx) -> bool;
+}
 
 struct rule {
     build_type Build {build_type::NoBuilding};
     i32        Interval {1};
     bool       Wrap {false};
-    move_type  Move {move_type::Top};
+    bool       IsPlayable {true};
+    bool       IsSequence {false};
+    move_func  Move {move::top};
     empty_func Empty {[](auto, auto) { return false; }};
     i32        Limit {-1};
 };
@@ -67,16 +63,6 @@ struct rule {
 
 namespace rules {
     auto build(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) -> bool;
-}
-
-namespace stack {
-    auto top(pile const& target, isize idx) -> bool;
-    auto top_or_pile(pile const& target, isize idx) -> bool;
-    auto face_up(pile const& target, isize idx) -> bool;
-    auto in_seq(games::base_game const* game, pile const& target, isize idx) -> bool;
-    auto in_seq_in_suit(games::base_game const* game, pile const& target, isize idx) -> bool;
-    auto in_seq_in_suit_same_rank(games::base_game const* game, pile const& target, isize idx) -> bool;
-    auto super_move(games::base_game const* game, pile const& target, isize idx) -> bool;
 }
 
 }

@@ -70,7 +70,7 @@ namespace rules {
 
     auto build(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) -> bool
     {
-        if ((targetPile.Rule.Move == move_type::None || targetPile.Rule.Move == move_type::Top) && numCards > 1) { return false; }
+        if ((!targetPile.Rule.IsSequence) && numCards > 1) { return false; }
 
         if (!limit_size(targetPile, numCards)) { return false; }
 
@@ -140,82 +140,9 @@ namespace rules {
     }
 }
 
-namespace stack {
-    auto top(pile const& target, isize idx) -> bool
-    {
-        return idx == std::ssize(target.Cards) - 1;
-    }
-
-    auto top_or_pile(pile const& target, isize idx) -> bool
-    {
-        return idx == std::ssize(target.Cards) - 1 || idx == 0;
-    }
-
-    auto face_up(pile const& target, isize idx) -> bool
-    {
-        return !target.Cards[idx].is_face_down();
-    }
-
-    auto in_seq(games::base_game const* game, pile const& target, isize idx) -> bool
-    {
-        if (target.Cards[idx].is_face_down()) { return false; }
-
-        for (isize i {idx}; i < std::ssize(target.Cards) - 1; ++i) {
-            if (!game->can_drop(target, i, target.Cards[i + 1], 1)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    auto in_seq_in_suit(games::base_game const* game, pile const& target, isize idx) -> bool
-    {
-        if (target.Cards[idx].is_face_down()) { return false; }
-
-        auto const targetSuit {target.Cards[idx].get_suit()};
-
-        for (isize i {idx}; i < std::ssize(target.Cards) - 1; ++i) {
-            if (target.Cards[i + 1].get_suit() != targetSuit
-                || !game->can_drop(target, i, target.Cards[i + 1], 1)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    auto in_seq_in_suit_same_rank(games::base_game const* game, pile const& target, isize idx) -> bool
-    {
-        if (target.Cards[idx].is_face_down()) { return false; }
-
-        if (in_seq_in_suit(game, target, idx)) { return true; }
-
-        auto const targetRank {target.Cards.back().get_rank()};
-        for (isize i {idx}; i < std::ssize(target.Cards) - 1; ++i) {
-            if (target.Cards[i + 1].get_rank() != targetRank) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    auto super_move(games::base_game const* game, pile const& target, isize idx) -> bool
-    {
-        if (target.Cards[idx].is_face_down()) { return false; }
-
-        if (!game->piles().contains(pile_type::FreeCell)) {
-            return top(target, idx);
-        }
-
-        auto const& freeCells {game->piles().at(pile_type::FreeCell)};
-        isize       movableCards {std::ranges::count_if(freeCells, [](auto const* fc) { return fc->empty(); }) + 1};
-
-        if (idx + movableCards < std::ssize(target.Cards)) { return false; }
-
-        return in_seq(game, target, idx);
-    }
+auto move::top(games::base_game const*, pile const* target, isize idx) -> bool
+{
+    return idx == std::ssize(target->Cards) - 1;
 }
 
 }
