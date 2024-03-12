@@ -48,14 +48,14 @@ local golf                 = {
     Foundation  = {
         Initial = ops.Initial.face_up(1),
         Layout  = "Squared",
-        Rule    = { Build = rules.Build.UpOrDownByRank, Move = rules.Move.None }
+        Rule    = { Empty = rules.Empty.None, Build = rules.Build.UpOrDownByRank, Move = rules.Move.None }
     },
     Tableau     = {
         Size   = 7,
         Create = {
             Initial = ops.Initial.top_face_up(5),
             Layout = "Column",
-            Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.Top }
+            Rule = { Empty = rules.Empty.None, Build = rules.Build.None, Move = rules.Move.Top }
         }
     },
     on_deal     = function(game)
@@ -76,7 +76,7 @@ double_golf.Tableau        = {
     Create = {
         Initial = ops.Initial.top_face_up(7),
         Layout = "Column",
-        Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.Top }
+        Rule = { Build = rules.Build.None, Move = rules.Move.Top }
     }
 }
 
@@ -126,7 +126,7 @@ local black_hole           = {
                 Position = { x = black_hole_pos[i + 1][1], y = black_hole_pos[i + 1][2] },
                 Initial = ops.Initial.face_up(3),
                 Layout = "Row",
-                Rule = { Build = rules.Build.NoBuilding }
+                Rule = { Build = rules.Build.None }
             }
         end
     },

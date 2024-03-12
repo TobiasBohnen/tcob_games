@@ -29,7 +29,7 @@ local forty_thieves        = {
         Create = {
             Initial = ops.Initial.face_up(4),
             Layout = "Column",
-            Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.Top, Empty = rules.Empty.Any }
+            Rule = rules.any_downsuit_top
         }
     },
     on_deal    = ops.Deal.stock_to_waste,
@@ -46,7 +46,7 @@ alternation.Tableau        = {
     Create = {
         Initial = ops.Initial.alternate(7, true),
         Layout = "Column",
-        Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.InSeq, Empty = rules.Empty.King }
+        Rule = rules.king_downac_inseq
     }
 }
 
@@ -57,7 +57,7 @@ interchange.Info.Name      = "Interchange"
 interchange.Tableau.Create = {
     Initial = ops.Initial.alternate(7, true),
     Layout = "Column",
-    Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.InSeq, Empty = rules.Empty.King }
+    Rule = rules.king_downsuit_inseq
 }
 
 ------
@@ -70,7 +70,7 @@ busy_aces.Tableau          = {
     Create = {
         Initial = ops.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.Top, Empty = rules.Empty.Any }
+        Rule = rules.any_downsuit_top
     }
 }
 
@@ -84,7 +84,7 @@ corona.Tableau             = {
     Create = {
         Initial = ops.Initial.face_up(3),
         Layout = "Column",
-        Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.Top, Empty = rules.Empty.Any }
+        Rule = rules.any_downsuit_top
     }
 }
 corona.on_change           = function(game)
@@ -101,7 +101,7 @@ courtyard.Tableau          = {
     Create = {
         Initial = ops.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.InSeq, Empty = rules.Empty.Any }
+        Rule = rules.any_downsuit_inseq
     }
 }
 courtyard.on_change        = corona.on_change

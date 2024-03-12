@@ -58,7 +58,7 @@ local yukon                              = {
     },
     Foundation = {
         Size   = 4,
-        Create = { Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.None, Empty = rules.Empty.Ace } }
+        Create = { Rule = rules.ace_upsuit_none }
     },
     Tableau    = {
         Size   = 7,
@@ -66,7 +66,7 @@ local yukon                              = {
             return {
                 Initial = ops.Initial.yukon(i),
                 Layout = "Column",
-                Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
+                Rule = rules.king_downac_faceup
             }
         end
     },
@@ -85,7 +85,7 @@ double_yukon.Tableau                     = {
         return {
             Initial = ops.Initial.double_yukon(i),
             Layout = "Column",
-            Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
+            Rule = rules.king_downac_faceup
         }
     end
 }
@@ -102,7 +102,7 @@ triple_yukon.Tableau                     = {
         return {
             Initial = ops.Initial.triple_yukon(i),
             Layout = "Column",
-            Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
+            Rule = rules.king_downac_faceup
         }
     end
 }
@@ -115,7 +115,7 @@ alaska.Tableau.Create                    = function(i)
     return {
         Initial = ops.Initial.yukon(i),
         Layout = "Column",
-        Rule = { Build = rules.Build.UpOrDownInSuit, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
+        Rule = { Empty = rules.Empty.King, Build = rules.Build.UpOrDownInSuit, Move = rules.Move.FaceUp }
     }
 end
 
@@ -137,7 +137,7 @@ brisbane.Tableau.Create                  = function(i)
     return {
         Initial = brisbane_initial[i + 1],
         Layout = "Column",
-        Rule = { Build = rules.Build.DownByRank, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
+        Rule = { Empty = rules.Empty.King, Build = rules.Build.DownByRank, Move = rules.Move.FaceUp }
     }
 end
 
@@ -151,7 +151,7 @@ geoffrey.Tableau                         = {
         return {
             Initial = i < 4 and ops.Initial.face_up(7) or { false, false, false, false, true, true },
             Layout = "Column",
-            Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
+            Rule = { Empty = rules.Empty.King, Build = rules.Build.DownInSuit, Move = rules.Move.FaceUp }
         }
     end
 }
@@ -165,7 +165,7 @@ queensland.Tableau.Create                = function(i)
     return {
         Initial = brisbane_initial[i + 1],
         Layout = "Column",
-        Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.FaceUp, Empty = rules.Empty.Any }
+        Rule = { Empty = rules.Empty.Any, Build = rules.Build.DownInSuit, Move = rules.Move.FaceUp }
     }
 end
 
@@ -177,7 +177,7 @@ roslin.Tableau.Create                    = function(i)
     return {
         Initial = ops.Initial.yukon(i),
         Layout = "Column",
-        Rule = { Build = rules.Build.UpOrDownAlternateColors, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
+        Rule = { Empty = rules.Empty.King, Build = rules.Build.UpOrDownAlternateColors, Move = rules.Move.FaceUp }
     }
 end
 
@@ -189,7 +189,7 @@ moosehide.Tableau.Create                 = function(i)
     return {
         Initial = ops.Initial.yukon(i),
         Layout = "Column",
-        Rule = { Build = rules.Build.DownAnyButOwnSuit, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
+        Rule = { Empty = rules.Empty.King, Build = rules.Build.DownAnyButOwnSuit, Move = rules.Move.FaceUp }
     }
 end
 
@@ -201,7 +201,7 @@ russian_solitaire.Tableau.Create         = function(i)
     return {
         Initial = ops.Initial.yukon(i),
         Layout = "Column",
-        Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
+        Rule = { Empty = rules.Empty.King, Build = rules.Build.DownInSuit, Move = rules.Move.FaceUp }
     }
 end
 
@@ -217,7 +217,7 @@ double_russian_solitaire.Tableau         = {
         return {
             Initial = ops.Initial.double_yukon(i),
             Layout = "Column",
-            Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
+            Rule = rules.king_downsuit_faceup
         }
     end
 }
@@ -234,7 +234,7 @@ triple_russian_solitaire.Tableau         = {
         return {
             Initial = ops.Initial.triple_yukon(i),
             Layout = "Column",
-            Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
+            Rule = rules.king_downsuit_faceup
         }
     end
 }
@@ -260,7 +260,7 @@ local hawaiian                           = {
         Create = function(i)
             return {
                 Position = { x = i + 2, y = 0 },
-                Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.None, Empty = rules.Empty.Ace }
+                Rule = rules.ace_upsuit_none
             }
         end
     },
@@ -271,7 +271,7 @@ local hawaiian                           = {
                 Position = { x = i, y = 1 },
                 Initial = ops.Initial.face_up(5),
                 Layout = "Column",
-                Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.FaceUp, Empty = rules.Empty.Any }
+                Rule = rules.any_downac_faceup
             }
         end
     }
@@ -293,7 +293,7 @@ local chinese_discipline                 = {
     },
     Foundation = {
         Size   = 4,
-        Create = { Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.None, Empty = rules.Empty.Ace } }
+        Create = { Rule = rules.ace_upsuit_none }
     },
     Tableau    = {
         Size   = 7,
@@ -301,7 +301,7 @@ local chinese_discipline                 = {
             return {
                 Initial = ops.Initial.chinese_discipline(i),
                 Layout = "Column",
-                Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
+                Rule = rules.king_downac_faceup
             }
         end
     },
@@ -317,7 +317,7 @@ chinese_solitaire.Tableau.Create         = function(i)
     return {
         Initial = ops.Initial.chinese_discipline(i),
         Layout = "Column",
-        Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.FaceUp, Empty = rules.Empty.Any }
+        Rule = rules.any_downac_faceup
     }
 end
 
@@ -338,7 +338,7 @@ local rushdike                           = {
     },
     Foundation = {
         Size   = 4,
-        Create = { Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.None, Empty = rules.Empty.Ace } }
+        Create = { Rule = rules.ace_upsuit_none }
     },
     Tableau    = {
         Size   = 7,
@@ -346,7 +346,7 @@ local rushdike                           = {
             return {
                 Initial = ops.Initial.top_face_up(i + 1),
                 Layout = "Column",
-                Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
+                Rule = rules.king_downsuit_faceup
             }
         end
     },
@@ -371,7 +371,7 @@ local queenie                            = {
     },
     Foundation = {
         Size   = 4,
-        Create = { Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.None, Empty = rules.Empty.Ace } }
+        Create = { Rule = rules.ace_upsuit_none }
     },
     Tableau    = {
         Size   = 7,
@@ -379,7 +379,7 @@ local queenie                            = {
             return {
                 Initial = ops.Initial.face_up(i + 1),
                 Layout = "Column",
-                Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
+                Rule = rules.king_downac_faceup
             }
         end
     },

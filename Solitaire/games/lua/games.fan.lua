@@ -26,7 +26,7 @@ local fan                    = {
             return {
                 Initial = ops.Initial.face_up(i < 17 and 3 or 1),
                 Layout = "Row",
-                Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.Top, Empty = rules.Empty.King }
+                Rule = rules.king_downsuit_top
             }
         end
     },
@@ -42,7 +42,7 @@ bear_river.Foundation        = {
     Create = function(i)
         return {
             Initial = ops.Initial.face_up(i == 0 and 1 or 0),
-            Rule = { Build = rules.Build.UpInSuit, Wrap = true, Move = rules.Move.None, Empty = function(game) return rules.Empty.FirstFoundation(game) end }
+            Rule = rules.ff_upsuit_none
         }
     end
 }
@@ -188,7 +188,7 @@ local lucky_piles            = {
         Create = function(i)
             return {
                 Position = { x = (i + 0.5) * 2, y = 0 },
-                Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.Top, Empty = rules.Empty.Ace }
+                Rule = rules.ace_upsuit_top
             }
         end
     },
@@ -219,7 +219,7 @@ scotch_patience.Tableau      = {
         return {
             Initial = ops.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
-            Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = rules.Empty.None }
+            Rule = rules.none_downrank_top
         }
     end
 }

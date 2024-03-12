@@ -295,7 +295,7 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
             ruleTable.try_get(pile.Rule.Limit, "Limit");
 
             if (Table buildTable; ruleTable.try_get(buildTable, "Build")) {
-                buildTable.try_get(pile.Rule.BuildHint, "BuildHint");
+                buildTable.try_get(pile.Rule.BuildHint, "Hint");
 
                 Function<bool> func;
                 buildTable.try_get(func, "Build");
@@ -312,11 +312,11 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
                     pile.Rule.IsSequence = true;
                 }
 
-                Function<bool> func;
-                moveTable.try_get(func, "Move");
-                pile.Rule.Move = {[func](base_game const* game, class pile const* target, isize idx) {
-                    return func(game, target, idx - IndexOffset);
-                }};
+                if (Function<bool> func; moveTable.try_get(func, "Move")) {
+                    pile.Rule.Move = {[func](base_game const* game, class pile const* target, isize idx) {
+                        return func(game, target, idx - IndexOffset);
+                    }};
+                }
             }
 
             if (Function<Function<bool>> emptyFunc; ruleTable.try_get(emptyFunc, "Empty")) {

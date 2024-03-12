@@ -25,7 +25,7 @@ local spider             = {
         Create = function(i)
             return {
                 Position = { x = i + 2, y = 0 },
-                Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.None }
+                Rule = rules.none_none_none
             }
         end
     },
@@ -77,11 +77,12 @@ local spider             = {
 }
 
 ------
+
 local arachnida          = Sol.copy(spider)
 arachnida.Info.Name      = "Arachnida"
 arachnida.Foundation     = {
     Position = { x = 11, y = 0 },
-    Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.None }
+    Rule = rules.none_none_none
 }
 arachnida.Tableau.Create = function(i)
     return {

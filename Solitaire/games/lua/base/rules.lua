@@ -28,35 +28,35 @@ local rules = {
 }
 
 local build = {
-    NoBuilding         = {
-        BuildHint = "No building.",
+    None               = {
+        Hint = "No building.",
         Build = function(target, drop, interval, wrap)
             return false
         end
     },
     Any                = {
-        BuildHint = "Any card.",
+        Hint = "Any card.",
         Build = function(target, drop, interval, wrap)
             return true
         end
     },
 
     InRank             = {
-        BuildHint = "Build by same rank.",
+        Hint = "Build by same rank.",
         Build = function(target, drop, interval, wrap)
             return rules.in_rank(target, drop)
         end
     },
 
     InRankOrDownByRank = {
-        BuildHint = "Build down by rank or by same rank.",
+        Hint = "Build down by rank or by same rank.",
         Build = function(target, drop, interval, wrap)
             return rules.in_rank(target, drop) or rules.build_down(target, drop, interval, wrap)
         end
     },
 
     RankPack           = {
-        BuildHint = "Build by same rank, then build up by rank.",
+        Hint = "Build by same rank, then build up by rank.",
         Build = function(target, drop, interval, wrap)
             if target.CardCount % 4 == 0 then
                 return rules.build_up(target, drop, interval, wrap)
@@ -66,19 +66,19 @@ local build = {
     },
 
     UpOrDownByRank     = {
-        BuildHint = "Build up or down by rank.",
+        Hint = "Build up or down by rank.",
         Build = function(target, drop, interval, wrap)
             return rules.build_up(target, drop, interval, wrap) or rules.build_down(target, drop, interval, wrap)
         end
     },
     DownByRank         = {
-        BuildHint = "Build down by rank.",
+        Hint = "Build down by rank.",
         Build = function(target, drop, interval, wrap)
             return rules.build_down(target, drop, interval, wrap)
         end
     },
     UpByRank           = {
-        BuildHint = "Build up by rank.",
+        Hint = "Build up by rank.",
         Build = function(target, drop, interval, wrap)
             return rules.build_up(target, drop, interval, wrap)
         end
@@ -86,76 +86,76 @@ local build = {
 
 
     UpOrDownAnyButOwnSuit = {
-        BuildHint = "Build up or down by any suit but own.",
+        Hint = "Build up or down by any suit but own.",
         Build = function(target, drop, interval, wrap)
             return not rules.in_suit(target, drop) and (rules.build_up(target, drop, interval, wrap) or rules.build_down(target, drop, interval, wrap))
         end
     },
     DownAnyButOwnSuit = {
-        BuildHint = "Build down by any suit but own.",
+        Hint = "Build down by any suit but own.",
         Build = function(target, drop, interval, wrap)
             return not rules.in_suit(target, drop) and rules.build_down(target, drop, interval, wrap)
         end
     },
     UpAnyButOwnSuit = {
-        BuildHint = "Build up by any suit but own.",
+        Hint = "Build up by any suit but own.",
         Build = function(target, drop, interval, wrap)
             return not rules.in_suit(target, drop) and rules.build_up(target, drop, interval, wrap)
         end
     },
 
     UpOrDownInSuit = {
-        BuildHint = "Build up or down by suit.",
+        Hint = "Build up or down by suit.",
         Build = function(target, drop, interval, wrap)
             return rules.in_suit(target, drop) and (rules.build_up(target, drop, interval, wrap) or rules.build_down(target, drop, interval, wrap))
         end
     },
     DownInSuit = {
-        BuildHint = "Build down by suit.",
+        Hint = "Build down by suit.",
         Build = function(target, drop, interval, wrap)
             return rules.in_suit(target, drop) and rules.build_down(target, drop, interval, wrap)
         end
     },
     UpInSuit = {
-        BuildHint = "Build up by suit.",
+        Hint = "Build up by suit.",
         Build = function(target, drop, interval, wrap)
             return rules.in_suit(target, drop) and rules.build_up(target, drop, interval, wrap)
         end
     },
 
     UpOrDownInColor = {
-        BuildHint = "Build up or down by color.",
+        Hint = "Build up or down by color.",
         Build = function(target, drop, interval, wrap)
             return rules.in_color(target, drop) and (rules.build_up(target, drop, interval, wrap) or rules.build_down(target, drop, interval, wrap))
         end
     },
     DownInColor = {
-        BuildHint = "Build down by color.",
+        Hint = "Build down by color.",
         Build = function(target, drop, interval, wrap)
             return rules.in_color(target, drop) and rules.build_down(target, drop, interval, wrap)
         end
     },
     UpInColor = {
-        BuildHint = "Build up by color.",
+        Hint = "Build up by color.",
         Build = function(target, drop, interval, wrap)
             return rules.in_color(target, drop) and rules.build_up(target, drop, interval, wrap)
         end
     },
 
     UpOrDownAlternateColors = {
-        BuildHint = "Build up or down by alternate color.",
+        Hint = "Build up or down by alternate color.",
         Build = function(target, drop, interval, wrap)
             return rules.alternate_color(target, drop) and (rules.build_up(target, drop, interval, wrap) or rules.build_down(target, drop, interval, wrap))
         end
     },
     DownAlternateColors = {
-        BuildHint = "Build down by alternate color.",
+        Hint = "Build down by alternate color.",
         Build = function(target, drop, interval, wrap)
             return rules.alternate_color(target, drop) and rules.build_down(target, drop, interval, wrap)
         end
     },
     UpAlternateColors = {
-        BuildHint = "Build up by alternate color.",
+        Hint = "Build up by alternate color.",
         Build = function(target, drop, interval, wrap)
             return rules.alternate_color(target, drop) and rules.build_up(target, drop, interval, wrap)
         end
@@ -165,8 +165,7 @@ local build = {
 local move = {
     None = {
         IsPlayable = false,
-        IsSequence = false,
-        Move = function(_, _, _) return false end
+        IsSequence = false
     },
     Top = {
         IsSequence = false,
@@ -334,5 +333,25 @@ return {
     Move = move,
     Empty = empty,
 
-    ace_upsuit_top = { Build = build.UpInSuit, Move = move.Top, Empty = empty.Ace },
+    any_downac_top = { Empty = empty.Any, Build = build.DownAlternateColors, Move = move.Top },
+    any_downac_inseq = { Empty = empty.Any, Build = build.DownAlternateColors, Move = move.InSeq },
+    any_downac_faceup = { Empty = empty.Any, Build = build.DownAlternateColors, Move = move.FaceUp },
+    any_downrank_top = { Empty = empty.Any, Build = build.DownByRank, Move = move.Top },
+    any_downsuit_top = { Empty = empty.Any, Build = build.DownInSuit, Move = move.Top },
+    any_downsuit_inseq = { Empty = empty.Any, Build = build.DownInSuit, Move = move.InSeq },
+    any_updownsuit_top = { Empty = empty.Any, Build = build.UpOrDownInSuit, Move = move.Top },
+    any_updownac_top = { Empty = empty.Any, Build = build.UpOrDownAlternateColors, Move = move.Top },
+    any_none_top = { Empty = empty.Any, Build = build.None, Move = move.Top },
+    ace_upsuit_top = { Empty = empty.Ace, Build = build.UpInSuit, Move = move.Top },
+    ace_upsuit_none = { Empty = empty.Ace, Build = build.UpInSuit, Move = move.None },
+    king_downac_faceup = { Empty = empty.King, Build = build.DownAlternateColors, Move = move.FaceUp },
+    king_downac_inseq = { Empty = empty.King, Build = build.DownAlternateColors, Move = move.InSeq },
+    king_downrank_top = { Empty = empty.King, Build = build.DownByRank, Move = move.Top },
+    king_downsuit_top = { Empty = empty.King, Build = build.DownInSuit, Move = move.Top },
+    king_downsuit_inseq = { Empty = empty.King, Build = build.DownInSuit, Move = move.InSeq },
+    king_downsuit_faceup = { Empty = empty.King, Build = build.DownInSuit, Move = move.FaceUp },
+    none_downrank_top = { Empty = empty.None, Build = build.DownByRank, Move = move.Top },
+    none_none_none = { Empty = empty.None, Build = build.None, Move = move.None },
+    ff_upsuit_top = { Empty = function(game) return empty.FirstFoundation(game) end, Build = build.UpInSuit, Move = move.Top, Wrap = true },
+    ff_upsuit_none = { Empty = function(game) return empty.FirstFoundation(game) end, Build = build.UpInSuit, Move = move.None, Wrap = true }
 }

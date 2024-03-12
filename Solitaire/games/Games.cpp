@@ -407,6 +407,10 @@ auto base_game::check_movable(pile const& targetPile, isize idx) -> bool
         return it->second;
     }
 
+    if (!targetPile.is_playable()) { // non-playable -> hover top
+        return move_top(nullptr, &targetPile, idx);
+    }
+
     bool const retValue {targetPile.Rule.Move(this, &targetPile, idx)};
     _movableCache[key] = retValue;
     return retValue;

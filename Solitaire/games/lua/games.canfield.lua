@@ -27,7 +27,7 @@ local canfield                      = {
         Create = function(i)
             return {
                 Initial = ops.Initial.face_up(i == 0 and 1 or 0),
-                Rule = { Build = rules.Build.UpInSuit, Wrap = true, Move = rules.Move.None, Empty = function(game) return rules.Empty.FirstFoundation(game) end }
+                Rule = rules.ff_upsuit_none
             }
         end
     },
@@ -92,11 +92,11 @@ acme.Info.Name                      = "Acme"
 acme.Info.CardDealCount             = 1
 acme.Info.Redeals                   = 1
 acme.Stock.Initial                  = ops.Initial.face_down(31)
-acme.Foundation.Create              = { Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.None, Empty = rules.Empty.Ace } }
+acme.Foundation.Create              = { Rule = rules.ace_upsuit_none }
 acme.Tableau.Create                 = {
     Initial = ops.Initial.face_up(1),
     Layout = "Column",
-    Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.Top, Empty = rules.Empty.Any }
+    Rule = rules.any_downsuit_top
 }
 acme.on_before_shuffle              = ops.Shuffle.ace_to_foundation
 
@@ -194,7 +194,7 @@ local eagle_wing                    = {
             return {
                 Position = { x = i + 3, y = 0 },
                 Initial = ops.Initial.face_up(i == 0 and 1 or 0),
-                Rule = { Build = rules.Build.UpInSuit, Wrap = true, Move = rules.Move.None, Empty = function(game) return rules.Empty.FirstFoundation(game) end }
+                Rule = rules.ff_upsuit_none
             }
         end
     },
@@ -234,7 +234,7 @@ minerva.Tableau                     = {
     Create = {
         Initial = ops.Initial.alternate(4, false),
         Layout = "Column",
-        Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.InSeq, Empty = rules.Empty.King }
+        Rule = rules.king_downac_inseq
     }
 }
 minerva.on_change                   = nil
@@ -269,7 +269,7 @@ local duke                          = {
                 Position = { x = i % 2 * 2, y = i // 2 + 1 },
                 Initial  = ops.Initial.face_up(3),
                 Layout   = "Row",
-                Rule     = { Build = rules.Build.NoBuilding, Move = rules.Move.Top, Empty = rules.Empty.None },
+                Rule     = { Build = rules.Build.None, Move = rules.Move.Top, Empty = rules.Empty.None },
             }
         end
     },
@@ -278,7 +278,7 @@ local duke                          = {
         Create = function(i)
             return {
                 Position = { x = i + 3, y = 0 },
-                Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.Top, Empty = rules.Empty.Ace }
+                Rule = rules.ace_upsuit_top
             }
         end
     },
@@ -289,7 +289,7 @@ local duke                          = {
                 Position = { x = i + 4, y = 1 },
                 Initial = ops.Initial.face_up(1),
                 Layout = "Column",
-                Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.InSeq, Empty = rules.Empty.Any }
+                Rule = rules.any_downac_inseq
             }
         end
     },
@@ -305,7 +305,7 @@ dutchess.Info.Redeals               = 1
 dutchess.Foundation.Create          = function(i)
     return {
         Position = { x = i + 3, y = 0 },
-        Rule = { Build = rules.Build.UpInSuit, Wrap = true, Move = rules.Move.None, Empty = function(game) return rules.Empty.FirstFoundation(game) end }
+        Rule = rules.ff_upsuit_none
     }
 end
 dutchess.Tableau.Create             = function(i)

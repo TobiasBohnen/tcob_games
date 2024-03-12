@@ -30,36 +30,36 @@ local rules = {
 };
 
 local build = {
-    NoBuilding = {
-        BuildHint = "No building.",
+    None = {
+        Hint = "No building.",
         Build = function(target, drop, interval, wrap) {
             return false;
         }
     },
 
     Any = {
-        BuildHint = "Any card.",
+        Hint = "Any card.",
         Build = function(target, drop, interval, wrap) {
             return true;
         }
     },
 
     InRank = {
-        BuildHint = "Build by same rank.",
+        Hint = "Build by same rank.",
         Build = function(target, drop, interval, wrap) {
             return rules.in_rank(target, drop);
         }
     },
 
     InRankOrDownByRank = {
-        BuildHint = "Build down by rank or by same rank.",
+        Hint = "Build down by rank or by same rank.",
         Build = function(target, drop, interval, wrap) {
             return rules.in_rank(target, drop) || rules.build_down(target, drop, interval, wrap);
         }
     },
 
     RankPack = {
-        BuildHint = "Build by same rank, then build up by rank.",
+        Hint = "Build by same rank, then build up by rank.",
         Build = function(target, drop, interval, wrap) {
             if (target.CardCount % 4 == 0) {
                 return rules.build_up(target, drop, interval, wrap);
@@ -69,105 +69,105 @@ local build = {
     },
 
     UpOrDownByRank = {
-        BuildHint = "Build up or down by rank.",
+        Hint = "Build up or down by rank.",
         Build = function(target, drop, interval, wrap) {
             return rules.build_up(target, drop, interval, wrap) || rules.build_down(target, drop, interval, wrap);
         }
     },
 
     DownByRank = {
-        BuildHint = "Build down by rank.",
+        Hint = "Build down by rank.",
         Build = function(target, drop, interval, wrap) {
             return rules.build_down(target, drop, interval, wrap);
         }
     },
 
     UpByRank = {
-        BuildHint = "Build up by rank.",
+        Hint = "Build up by rank.",
         Build = function(target, drop, interval, wrap) {
             return rules.build_up(target, drop, interval, wrap);
         }
     },
 
     UpOrDownAnyButOwnSuit = {
-        BuildHint = "Build up or down by any suit but own.",
+        Hint = "Build up or down by any suit but own.",
         Build = function(target, drop, interval, wrap) {
             return !rules.in_suit(target, drop) && (rules.build_up(target, drop, interval, wrap) || rules.build_down(target, drop, interval, wrap));
         }
     },
 
     DownAnyButOwnSuit = {
-        BuildHint = "Build down by any suit but own.",
+        Hint = "Build down by any suit but own.",
         Build = function(target, drop, interval, wrap) {
             return !rules.in_suit(target, drop) && rules.build_down(target, drop, interval, wrap);
         }
     },
 
     UpAnyButOwnSuit = {
-        BuildHint = "Build up by any suit but own.",
+        Hint = "Build up by any suit but own.",
         Build = function(target, drop, interval, wrap) {
             return !rules.in_suit(target, drop) && rules.build_up(target, drop, interval, wrap);
         }
     },
 
     UpOrDownInSuit = {
-        BuildHint = "Build up or down by suit.",
+        Hint = "Build up or down by suit.",
         Build = function(target, drop, interval, wrap) {
             return rules.in_suit(target, drop) && (rules.build_up(target, drop, interval, wrap) || rules.build_down(target, drop, interval, wrap));
         }
     },
 
     DownInSuit = {
-        BuildHint = "Build down by suit.",
+        Hint = "Build down by suit.",
         Build = function(target, drop, interval, wrap) {
             return rules.in_suit(target, drop) && rules.build_down(target, drop, interval, wrap);
         }
     },
 
     UpInSuit = {
-        BuildHint = "Build up by suit.",
+        Hint = "Build up by suit.",
         Build = function(target, drop, interval, wrap) {
             return rules.in_suit(target, drop) && rules.build_up(target, drop, interval, wrap);
         }
     },
 
     UpOrDownInColor = {
-        BuildHint = "Build up or down by color.",
+        Hint = "Build up or down by color.",
         Build = function(target, drop, interval, wrap) {
             return rules.in_color(target, drop) && (rules.build_up(target, drop, interval, wrap) || rules.build_down(target, drop, interval, wrap));
         }
     },
 
     DownInColor = {
-        BuildHint = "Build down by color.",
+        Hint = "Build down by color.",
         Build = function(target, drop, interval, wrap) {
             return rules.in_color(target, drop) && rules.build_down(target, drop, interval, wrap);
         }
     },
 
     UpInColor = {
-        BuildHint = "Build up by color.",
+        Hint = "Build up by color.",
         Build = function(target, drop, interval, wrap) {
             return rules.in_color(target, drop) && rules.build_up(target, drop, interval, wrap);
         }
     },
 
     UpOrDownAlternateColors = {
-        BuildHint = "Build up or down by alternate color.",
+        Hint = "Build up or down by alternate color.",
         Build = function(target, drop, interval, wrap) {
             return rules.alternate_color(target, drop) && (rules.build_up(target, drop, interval, wrap) || rules.build_down(target, drop, interval, wrap));
         }
     },
 
     DownAlternateColors = {
-        BuildHint = "Build down by alternate color.",
+        Hint = "Build down by alternate color.",
         Build = function(target, drop, interval, wrap) {
             return rules.alternate_color(target, drop) && rules.build_down(target, drop, interval, wrap);
         }
     },
 
     UpAlternateColors = {
-        BuildHint = "Build up by alternate color.",
+        Hint = "Build up by alternate color.",
         Build = function(target, drop, interval, wrap) {
             return rules.alternate_color(target, drop) && rules.build_up(target, drop, interval, wrap);
         }
@@ -178,8 +178,7 @@ local build = {
 local move = {
     None = {
         IsPlayable = false,
-        IsSequence = false,
-        Move = @(_, _, _) false
+        IsSequence = false
     },
     Top = {
         IsSequence = false,

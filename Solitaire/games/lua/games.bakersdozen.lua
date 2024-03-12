@@ -18,14 +18,14 @@ local bakers_dozen                     = {
     },
     Foundation       = {
         Size   = 4,
-        Create = { Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.Top, Empty = rules.Empty.Ace } }
+        Create = { Rule = rules.ace_upsuit_top }
     },
     Tableau          = {
         Size   = 13,
         Create = {
             Initial = ops.Initial.face_up(4),
             Layout = "Column",
-            Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = rules.Empty.None }
+            Rule = rules.none_downrank_top
         }
     },
     on_after_shuffle = ops.Shuffle.kings_to_bottom,
@@ -49,7 +49,7 @@ good_measure.Tableau                   = {
     Create = {
         Initial = ops.Initial.face_up(5),
         Layout = "Column",
-        Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = rules.Empty.None }
+        Rule = rules.none_downrank_top
     }
 }
 good_measure.on_before_shuffle         = function(game, card)
@@ -76,9 +76,9 @@ local capricieuse                      = {
         Size   = 8,
         Create = function(i)
             if i < 4 then
-                return { Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.Top, Empty = rules.Empty.Ace } }
+                return { Rule = rules.ace_upsuit_top }
             else
-                return { Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.Top, Empty = rules.Empty.King } }
+                return { Rule = rules.king_downsuit_top }
             end
         end
     },
@@ -87,7 +87,7 @@ local capricieuse                      = {
         Create = {
             Initial = ops.Initial.face_up(8),
             Layout = "Column",
-            Rule = { Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top, Empty = rules.Empty.Any }
+            Rule = rules.any_updownsuit_top
         }
     },
     on_redeal         = function(game)
@@ -127,7 +127,7 @@ strata.Tableau                         = {
     Create = {
         Initial = ops.Initial.face_up(8),
         Layout = "Column",
-        Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.Top, Empty = rules.Empty.Any }
+        Rule = rules.any_downac_top
     }
 }
 strata.on_before_shuffle               = function(_, card)
@@ -150,7 +150,7 @@ cruel.Tableau                          = {
     Create = {
         Initial = ops.Initial.face_up(4),
         Layout = "Column",
-        Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.Top, Empty = rules.Empty.None }
+        Rule = { Empty = rules.Empty.None, Build = rules.Build.DownInSuit, Move = rules.Move.Top }
     }
 }
 cruel.on_before_shuffle                = ops.Shuffle.ace_to_foundation
@@ -186,7 +186,7 @@ indefatigable.Info.Redeals             = 2
 indefatigable.Tableau.Create           = {
     Initial = ops.Initial.face_up(4),
     Layout = "Column",
-    Rule = { Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top, Empty = rules.Empty.Any }
+    Rule = rules.any_updownsuit_top
 }
 
 ------
@@ -197,7 +197,7 @@ perseverance.Info.Redeals              = 2
 perseverance.Tableau.Create            = {
     Initial = ops.Initial.face_up(4),
     Layout = "Column",
-    Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.InSeq, Empty = rules.Empty.None }
+    Rule = { Empty = rules.Empty.None, Build = rules.Build.DownInSuit, Move = rules.Move.InSeq }
 }
 
 ------
@@ -205,11 +205,11 @@ perseverance.Tableau.Create            = {
 local royal_family                     = Sol.copy(cruel)
 royal_family.Info.Name                 = "Royal Family"
 royal_family.Info.Redeals              = 1
-royal_family.Foundation.Create         = { Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.Top, Empty = rules.Empty.King } }
+royal_family.Foundation.Create         = { Rule = rules.king_downsuit_top }
 royal_family.Tableau.Create            = {
     Initial = ops.Initial.face_up(4),
     Layout = "Column",
-    Rule = { Build = rules.Build.UpOrDownAlternateColors, Move = rules.Move.Top, Empty = rules.Empty.Any }
+    Rule = rules.any_updownac_top
 }
 royal_family.on_before_shuffle         = ops.Shuffle.king_to_foundation
 
@@ -249,7 +249,7 @@ local fifteen                          = {
             return {
                 Initial = ops.Initial.face_up(i ~= 14 and 7 or 6),
                 Layout = "Column",
-                Rule = { Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top, Empty = rules.Empty.Any }
+                Rule = rules.any_updownsuit_top
             }
         end
     },
@@ -271,9 +271,9 @@ local nationale                        = {
         Size   = 8,
         Create = function(i)
             if i < 4 then
-                return { Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.Top, Empty = rules.Empty.Ace } }
+                return { Rule = rules.ace_upsuit_top }
             else
-                return { Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.Top, Empty = rules.Empty.King } }
+                return { Rule = rules.king_downsuit_top }
             end
         end
     },
@@ -282,7 +282,7 @@ local nationale                        = {
         Create = {
             Initial = ops.Initial.face_up(8),
             Layout = "Column",
-            Rule = { Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top, Empty = rules.Empty.Any }
+            Rule = rules.any_updownsuit_top
         }
     },
     on_before_shuffle = function(game, card)
@@ -318,7 +318,7 @@ local castles_in_spain                 = {
         Create = {
             Initial = ops.Initial.top_face_up(4),
             Layout = "Column",
-            Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.Top, Empty = rules.Empty.Any }
+            Rule = rules.any_downac_top
         }
     },
     on_created = Sol.Layout.bakers_dozen
@@ -333,7 +333,7 @@ martha.Tableau                         = {
     Create = {
         Initial = ops.Initial.alternate(4, false),
         Layout = "Column",
-        Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.InSeq, Empty = rules.Empty.AnySingle }
+        Rule = { Empty = rules.Empty.AnySingle, Build = rules.Build.DownAlternateColors, Move = rules.Move.InSeq }
     }
 }
 martha.on_before_shuffle               = ops.Shuffle.ace_to_foundation
@@ -346,7 +346,7 @@ portuguese_solitaire.Info.Type         = "OpenPacker"
 portuguese_solitaire.Tableau.Create    = {
     Initial = ops.Initial.face_up(4),
     Layout = "Column",
-    Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = rules.Empty.King }
+    Rule = rules.king_downrank_top
 }
 
 ------
@@ -358,7 +358,7 @@ spanish_patience.Foundation.Create     = { Rule = { Build = rules.Build.UpAltern
 spanish_patience.Tableau.Create        = {
     Initial = ops.Initial.face_up(4),
     Layout = "Column",
-    Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = rules.Empty.None }
+    Rule = rules.none_downrank_top
 }
 
 ------
@@ -369,7 +369,7 @@ spanish_patience_2.Info.Type           = "OpenPacker"
 spanish_patience_2.Tableau.Create      = {
     Initial = ops.Initial.face_up(4),
     Layout = "Column",
-    Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = rules.Empty.Any }
+    Rule = rules.any_downrank_top
 }
 
 ------
@@ -383,7 +383,7 @@ vineyard.Tableau                       = {
         return {
             Initial = ops.Initial.face_up(i < 2 and 6 or 5),
             Layout = "Column",
-            Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.Top, Empty = rules.Empty.Any }
+            Rule = rules.any_downac_top
         }
     end
 }

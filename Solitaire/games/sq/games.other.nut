@@ -29,7 +29,7 @@ local aces_up = {
             Initial = ops.Initial.face_up(1),
                 Layout = "Column",
                 Rule = {
-                    Build = rules.Build.NoBuilding,
+                    Build = rules.Build.None,
                     Move = rules.Move.Top,
                     Empty = rules.Empty.Any
                 }
@@ -125,7 +125,7 @@ local aces_square = {
                 Initial = ops.Initial.face_up(1),
                 Layout = "Column",
                 Rule = {
-                    Build = rules.Build.NoBuilding,
+                    Build = rules.Build.None,
                     Move = rules.Move.Top,
                     Empty = rules.Empty.None
                 }

@@ -21,12 +21,12 @@ local raglan = {
         Create = {
             Initial = ops.Initial.face_up(1),
             Layout = "Squared",
-            Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.Top, Empty = rules.Empty.None }
+            Rule = { Build = rules.Build.None, Move = rules.Move.Top, Empty = rules.Empty.None }
         }
     },
     Foundation        = {
         Size   = 4,
-        Create = { Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.Top, Empty = rules.Empty.Ace } }
+        Create = { Rule = rules.ace_upsuit_top }
     },
     Tableau           = {
         Size   = 9,
@@ -34,7 +34,7 @@ local raglan = {
             return {
                 Initial = ops.Initial.face_up(i < 7 and i + 1 or 7),
                 Layout = "Column",
-                Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.Top, Empty = rules.Empty.Any }
+                Rule = rules.any_downac_top
             }
         end
     },
