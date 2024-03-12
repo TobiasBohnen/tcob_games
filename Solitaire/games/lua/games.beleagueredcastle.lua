@@ -4,7 +4,6 @@
 -- https://opensource.org/licenses/MIT
 
 local ops   = require 'base/ops'
-local piles = require 'base/piles'
 local rules = require 'base/rules'
 
 
@@ -19,12 +18,12 @@ local beleaguered_castle    = {
     },
     Foundation        = {
         Size   = 4,
-        create = { Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.None, Empty = rules.Empty.Ace } }
+        Create = { Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.None, Empty = rules.Empty.Ace } }
     },
     Tableau           = {
         Size   = 8,
-        create = {
-            Initial = piles.Initial.face_up(6),
+        Create = {
+            Initial = ops.Initial.face_up(6),
             Layout = "Row",
             Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = rules.Empty.Any }
         }
@@ -40,12 +39,12 @@ castle_mount.Info.Name      = "Castle Mount"
 castle_mount.Info.DeckCount = 3
 castle_mount.Foundation     = {
     Size   = 12,
-    create = { Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.None, Empty = rules.Empty.Ace } }
+    Create = { Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.None, Empty = rules.Empty.Ace } }
 }
 castle_mount.Tableau        = {
     Size   = 12,
-    create = {
-        Initial = piles.Initial.face_up(12),
+    Create = {
+        Initial = ops.Initial.face_up(12),
         Layout = "Column",
         Rule = { Build = rules.Build.DownByRank, Move = rules.Move.InSeqInSuit, Empty = rules.Empty.King }
     }
@@ -72,8 +71,8 @@ end
 
 local exiled_kings               = Sol.copy(citadel)
 exiled_kings.Info.Name           = "Exiled Kings"
-exiled_kings.Tableau.create      = {
-    Initial = piles.Initial.face_up(6),
+exiled_kings.Tableau.Create      = {
+    Initial = ops.Initial.face_up(6),
     Layout = "Row",
     Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = rules.Empty.King }
 }
@@ -85,12 +84,12 @@ lightweight.Info.Name            = "Lightweight"
 lightweight.Info.DeckCount       = 2
 lightweight.Foundation           = {
     Size   = 8,
-    create = { Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.None, Empty = rules.Empty.Ace } }
+    Create = { Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.None, Empty = rules.Empty.Ace } }
 }
 lightweight.Tableau              = {
     Size   = 12,
-    create = {
-        Initial = piles.Initial.face_up(8),
+    Create = {
+        Initial = ops.Initial.face_up(8),
         Layout = "Column",
         Rule = { Build = rules.Build.DownByRank, Move = rules.Move.InSeq, Empty = rules.Empty.King }
     }
@@ -110,17 +109,17 @@ local fastness                   = {
     },
     FreeCell   = {
         Size   = 2,
-        create = { Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.Top, Empty = rules.Empty.Any } }
+        Create = { Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.Top, Empty = rules.Empty.Any } }
     },
     Foundation = {
         Size   = 4,
-        create = { Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.None, Empty = rules.Empty.Ace } }
+        Create = { Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.None, Empty = rules.Empty.Ace } }
     },
     Tableau    = {
         Size   = 8,
-        create = function(i)
+        Create = function(i)
             return {
-                Initial = piles.Initial.face_up(i < 4 and 7 or 6),
+                Initial = ops.Initial.face_up(i < 4 and 7 or 6),
                 Layout = "Row",
                 Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = rules.Empty.Any }
             }
@@ -134,8 +133,8 @@ local fastness                   = {
 local siegecraft                 = Sol.copy(fastness)
 siegecraft.Info.Name             = "Siegecraft"
 siegecraft.FreeCell              = { Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.Top, Empty = rules.Empty.Any } }
-siegecraft.Tableau.create        = {
-    Initial = piles.Initial.face_up(6),
+siegecraft.Tableau.Create        = {
+    Initial = ops.Initial.face_up(6),
     Layout = "Row",
     Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = rules.Empty.Any }
 }
@@ -160,19 +159,19 @@ local bastion                    = {
     },
     FreeCell   = {
         Size   = 2,
-        create = {
-            Initial = piles.Initial.face_up(1),
+        Create = {
+            Initial = ops.Initial.face_up(1),
             Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.Top, Empty = rules.Empty.Any }
         }
     },
     Foundation = {
         Size   = 4,
-        create = piles.ace_upsuit_top
+        Create = { Rule = rules.ace_upsuit_top }
     },
     Tableau    = {
         Size   = 10,
-        create = {
-            Initial = piles.Initial.face_up(5),
+        Create = {
+            Initial = ops.Initial.face_up(5),
             Layout = "Column",
             Rule = { Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top, Empty = rules.Empty.Any }
         }
@@ -184,9 +183,9 @@ local bastion                    = {
 
 local castles_end                = Sol.copy(bastion)
 castles_end.Info.Name            = "Castles End"
-castles_end.Foundation.create    = { Rule = { Build = rules.Build.UpInSuit, Wrap = true, Move = rules.Move.Top, Empty = function(game) return rules.Empty.FirstFoundation(game) end } }
-castles_end.Tableau.create       = {
-    Initial = piles.Initial.face_up(5),
+castles_end.Foundation.Create    = { Rule = { Build = rules.Build.UpInSuit, Wrap = true, Move = rules.Move.Top, Empty = function(game) return rules.Empty.FirstFoundation(game) end } }
+castles_end.Tableau.Create       = {
+    Initial = ops.Initial.face_up(5),
     Layout = "Column",
     Rule = { Build = rules.Build.UpOrDownAlternateColors, Move = rules.Move.Top, Empty = rules.Empty.Any }
 }
@@ -204,9 +203,9 @@ end
 local ten_by_one                 = Sol.copy(bastion)
 ten_by_one.Info.Name             = "Ten by One"
 ten_by_one.FreeCell              = { Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.Top, Empty = rules.Empty.Any } }
-ten_by_one.Tableau.create        = function(i)
+ten_by_one.Tableau.Create        = function(i)
     return {
-        Initial = piles.Initial.face_up(i < 2 and 6 or 5),
+        Initial = ops.Initial.face_up(i < 2 and 6 or 5),
         Layout = "Column",
         Rule = { Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top, Empty = rules.Empty.Any }
     }
@@ -225,13 +224,13 @@ local canister                   = {
     },
     Foundation = {
         Size   = 4,
-        create = { Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.None, Empty = rules.Empty.Ace } }
+        Create = { Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.None, Empty = rules.Empty.Ace } }
     },
     Tableau    = {
         Size   = 8,
-        create = function(i)
+        Create = function(i)
             return {
-                Initial = piles.Initial.face_up((i < 2 or i >= 6) and 6 or 7),
+                Initial = ops.Initial.face_up((i < 2 or i >= 6) and 6 or 7),
                 Layout = "Column",
                 Rule = { Build = rules.Build.DownByRank, Move = rules.Move.InSeq, Empty = rules.Empty.Any }
             }
@@ -244,9 +243,9 @@ local canister                   = {
 
 local american_canister          = Sol.copy(canister)
 american_canister.Info.Name      = "American Canister"
-american_canister.Tableau.create = function(i)
+american_canister.Tableau.Create = function(i)
     return {
-        Initial = piles.Initial.face_up((i < 2 or i >= 6) and 6 or 7),
+        Initial = ops.Initial.face_up((i < 2 or i >= 6) and 6 or 7),
         Layout = "Column",
         Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.InSeq, Empty = rules.Empty.Any }
     }
@@ -256,9 +255,9 @@ end
 
 local british_canister           = Sol.copy(canister)
 british_canister.Info.Name       = "British Canister"
-british_canister.Tableau.create  = function(i)
+british_canister.Tableau.Create  = function(i)
     return {
-        Initial = piles.Initial.face_up((i < 2 or i >= 6) and 6 or 7),
+        Initial = ops.Initial.face_up((i < 2 or i >= 6) and 6 or 7),
         Layout = "Column",
         Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.Top, Empty = rules.Empty.King }
     }
@@ -277,13 +276,13 @@ local chessboard                 = {
     },
     Foundation = {
         Size   = 4,
-        create = { Rule = { Build = rules.Build.UpInSuit, Wrap = true, Move = rules.Move.None, Empty = function(game) return rules.Empty.FirstFoundation(game) end } }
+        Create = { Rule = { Build = rules.Build.UpInSuit, Wrap = true, Move = rules.Move.None, Empty = function(game) return rules.Empty.FirstFoundation(game) end } }
     },
     Tableau    = {
         Size   = 10,
-        create = function(i)
+        Create = function(i)
             return {
-                Initial = piles.Initial.face_up(i < 2 and 6 or 5),
+                Initial = ops.Initial.face_up(i < 2 and 6 or 5),
                 Layout = "Column",
                 Rule = { Build = rules.Build.UpOrDownInSuit, Wrap = true, Move = rules.Move.Top, Empty = rules.Empty.Any }
             }
@@ -304,10 +303,10 @@ local chessboard                 = {
 
 local lasker                     = Sol.copy(chessboard)
 lasker.Info.Name                 = "Lasker"
-lasker.Foundation.create         = { Rule = { Build = rules.Build.UpInSuit, Wrap = true, Move = rules.Move.Top, Empty = function(game) return rules.Empty.FirstFoundation(game) end } }
-lasker.Tableau.create            = function(i)
+lasker.Foundation.Create         = { Rule = { Build = rules.Build.UpInSuit, Wrap = true, Move = rules.Move.Top, Empty = function(game) return rules.Empty.FirstFoundation(game) end } }
+lasker.Tableau.Create            = function(i)
     return {
-        Initial = piles.Initial.face_up(i < 2 and 6 or 5),
+        Initial = ops.Initial.face_up(i < 2 and 6 or 5),
         Layout = "Column",
         Rule = { Build = rules.Build.UpOrDownInSuit, Wrap = true, Move = rules.Move.InSeq, Empty = rules.Empty.Any }
     }
@@ -326,13 +325,13 @@ local fortress                   = {
     },
     Foundation = {
         Size   = 4,
-        create = piles.ace_upsuit_top
+        Create = { Rule = rules.ace_upsuit_top }
     },
     Tableau    = {
         Size   = 10,
-        create = function(i)
+        Create = function(i)
             return {
-                Initial = piles.Initial.face_up(i < 2 and 6 or 5),
+                Initial = ops.Initial.face_up(i < 2 and 6 or 5),
                 Layout = "Column",
                 Rule = { Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top, Empty = rules.Empty.Any }
             }
@@ -354,13 +353,13 @@ local morehead                   = {
     },
     Foundation = {
         Size   = 4,
-        create = piles.ace_upsuit_top
+        Create = { Rule = rules.ace_upsuit_top }
     },
     Tableau = {
         Size   = 10,
-        create = function(i)
+        Create = function(i)
             return {
-                Initial = piles.Initial.face_up(i < 7 and i + 1 or 8),
+                Initial = ops.Initial.face_up(i < 7 and i + 1 or 8),
                 Layout = "Column",
                 Rule = { Build = rules.Build.DownAnyButOwnSuit, Move = rules.Move.Top, Empty = rules.Empty.Any }
             }
@@ -382,13 +381,13 @@ local penelopes_web              = {
     },
     Foundation = {
         Size   = 4,
-        create = { Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.None, Empty = rules.Empty.Ace } }
+        Create = { Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.None, Empty = rules.Empty.Ace } }
     },
     Tableau    = {
         Size   = 8,
-        create = function(i)
+        Create = function(i)
             return {
-                Initial = piles.Initial.face_up(i < 4 and 7 or 6),
+                Initial = ops.Initial.face_up(i < 4 and 7 or 6),
                 Layout = "Row",
                 Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = rules.Empty.King }
             }
@@ -410,13 +409,13 @@ local selective_castle           = {
     },
     Foundation = {
         Size   = 4,
-        create = { Rule = { Build = rules.Build.UpInSuit, Wrap = true, Move = rules.Move.None, Empty = function(game) return rules.Empty.FirstFoundation(game) end } }
+        Create = { Rule = { Build = rules.Build.UpInSuit, Wrap = true, Move = rules.Move.None, Empty = function(game) return rules.Empty.FirstFoundation(game) end } }
     },
     Tableau    = {
         Size   = 8,
-        create = function(i)
+        Create = function(i)
             return {
-                Initial = piles.Initial.face_up(i < 4 and 7 or 6),
+                Initial = ops.Initial.face_up(i < 4 and 7 or 6),
                 Layout = "Row",
                 Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = rules.Empty.Any }
             }
@@ -446,13 +445,13 @@ local streets_and_alleys         = {
     },
     Foundation = {
         Size   = 4,
-        create = { Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.None, Empty = rules.Empty.Ace } }
+        Create = { Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.None, Empty = rules.Empty.Ace } }
     },
     Tableau    = {
         Size   = 8,
-        create = function(i)
+        Create = function(i)
             return {
-                Initial = piles.Initial.face_up(i < 4 and 7 or 6),
+                Initial = ops.Initial.face_up(i < 4 and 7 or 6),
                 Layout = "Row",
                 Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = rules.Empty.Any }
             }
@@ -474,12 +473,12 @@ local chequers                   = {
     },
     Reserve    = {
         Position = { x = 0, y = 0 },
-        Initial = piles.Initial.face_down(4),
+        Initial = ops.Initial.face_down(4),
         Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.None, Empty = rules.Empty.None }
     },
     Foundation = {
         Size   = 8,
-        create = function(i)
+        Create = function(i)
             if i < 4 then
                 return {
                     Position = { x = i + 2, y = 0 },
@@ -495,10 +494,10 @@ local chequers                   = {
     },
     Tableau    = {
         Size   = 25,
-        create = function(i)
+        Create = function(i)
             return {
                 Position = { x = i % 5 * 2.5, y = i // 5 + 1 },
-                Initial = piles.Initial.face_up(4),
+                Initial = ops.Initial.face_up(4),
                 Layout = "Row",
                 Rule = { Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top, Empty = rules.Empty.Any }
             }
@@ -526,17 +525,17 @@ local castle_of_indolence        = {
     },
     Reserve    = {
         Size   = 4,
-        create = function(i)
+        Create = function(i)
             return {
                 Position = { x = i + 2, y = 4 },
-                Initial = piles.Initial.face_up(13),
+                Initial = ops.Initial.face_up(13),
                 Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.None, Empty = rules.Empty.None }
             }
         end
     },
     Foundation = {
         Size   = 8,
-        create = function(i)
+        Create = function(i)
             return {
                 Position = { x = i % 2 + 3, y = i // 2 },
                 Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.Top, Empty = rules.Empty.Ace }
@@ -545,18 +544,18 @@ local castle_of_indolence        = {
     },
     Tableau    = {
         Size   = 8,
-        create = function(i)
+        Create = function(i)
             if i < 4 then
                 return {
                     Position = { x = 0, y = i },
-                    Initial = piles.Initial.face_up(7),
+                    Initial = ops.Initial.face_up(7),
                     Layout = "Row",
                     Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = rules.Empty.Any }
                 }
             else
                 return {
                     Position = { x = 5, y = i - 4 },
-                    Initial = piles.Initial.face_up(6),
+                    Initial = ops.Initial.face_up(6),
                     Layout = "Row",
                     Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = rules.Empty.Any }
                 }
@@ -578,7 +577,7 @@ local zerline                    = {
     },
     Stock      = {
         Position = { x = 3, y = 0 },
-        Initial = piles.Initial.face_down(64)
+        Initial = ops.Initial.face_down(64)
     },
     Waste      = {
         Position = { x = 4, y = 0 }
@@ -590,7 +589,7 @@ local zerline                    = {
     },
     Foundation = {
         Size   = 8,
-        create = function(i)
+        Create = function(i)
             return {
                 Position = { x = i % 2 + 3.5, y = i // 2 + 1 },
                 Rule = { Build = rules.Build.UpInSuit, Wrap = true, Move = rules.Move.Top, Empty = rules.Empty.King }
@@ -599,18 +598,18 @@ local zerline                    = {
     },
     Tableau    = {
         Size   = 8,
-        create = function(i)
+        Create = function(i)
             if i < 4 then
                 return {
                     Position = { x = 0, y = i + 1 },
-                    Initial = piles.Initial.face_up(5),
+                    Initial = ops.Initial.face_up(5),
                     Layout = "Row",
                     Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = function() return rules.Empty.Ranks({ "Queen" }) end }
                 }
             else
                 return {
                     Position = { x = 6, y = i - 3 },
-                    Initial = piles.Initial.face_up(5),
+                    Initial = ops.Initial.face_up(5),
                     Layout = "Row",
                     Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = function() return rules.Empty.Ranks({ "Queen" }) end }
                 }
@@ -636,7 +635,7 @@ local zerline                    = {
 local zerline_3_decks            = Sol.copy(zerline)
 zerline_3_decks.Info.Name        = "Zerline (3 Decks)"
 zerline_3_decks.Info.DeckCount   = 3
-zerline_3_decks.Stock.Initial    = piles.Initial.face_down(116)
+zerline_3_decks.Stock.Initial    = ops.Initial.face_down(116)
 zerline_3_decks.FreeCell         = {
     Position = { x = 5, y = 0 },
     Layout = "Row",
@@ -644,7 +643,7 @@ zerline_3_decks.FreeCell         = {
 }
 zerline_3_decks.Foundation       = {
     Size   = 12,
-    create = function(i)
+    Create = function(i)
         return {
             Position = { x = i % 3 + 3, y = i // 3 + 1 },
             Rule = { Build = rules.Build.UpInSuit, Wrap = true, Move = rules.Move.Top, Empty = rules.Empty.King }
@@ -653,18 +652,18 @@ zerline_3_decks.Foundation       = {
 }
 zerline_3_decks.Tableau          = {
     Size   = 8,
-    create = function(i)
+    Create = function(i)
         if i < 4 then
             return {
                 Position = { x = 0, y = i + 1 },
-                Initial = piles.Initial.face_up(5),
+                Initial = ops.Initial.face_up(5),
                 Layout = "Row",
                 Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = function() return rules.Empty.Ranks({ "Queen" }) end }
             }
         else
             return {
                 Position = { x = 7, y = i - 3 },
-                Initial = piles.Initial.face_up(5),
+                Initial = ops.Initial.face_up(5),
                 Layout = "Row",
                 Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, function() return rules.Empty.Ranks({ "Queen" }) end }
             }

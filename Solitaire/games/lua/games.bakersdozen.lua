@@ -4,7 +4,6 @@
 -- https://opensource.org/licenses/MIT
 
 local ops   = require 'base/ops'
-local piles = require 'base/piles'
 local rules = require 'base/rules'
 
 
@@ -24,7 +23,7 @@ local bakers_dozen                     = {
     Tableau          = {
         Size   = 13,
         Create = {
-            Initial = piles.Initial.face_up(4),
+            Initial = ops.Initial.face_up(4),
             Layout = "Column",
             Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = rules.Empty.None }
         }
@@ -48,7 +47,7 @@ good_measure.Info.Name                 = "Good Measure"
 good_measure.Tableau                   = {
     Size   = 10,
     Create = {
-        Initial = piles.Initial.face_up(5),
+        Initial = ops.Initial.face_up(5),
         Layout = "Column",
         Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = rules.Empty.None }
     }
@@ -86,7 +85,7 @@ local capricieuse                      = {
     Tableau           = {
         Size   = 12,
         Create = {
-            Initial = piles.Initial.face_up(8),
+            Initial = ops.Initial.face_up(8),
             Layout = "Column",
             Rule = { Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top, Empty = rules.Empty.Any }
         }
@@ -122,11 +121,11 @@ local capricieuse                      = {
 
 local strata                           = Sol.copy(capricieuse)
 strata.Info.Name                       = "Strata"
-strata.Foundation.create               = piles.ace_upsuit_top
+strata.Foundation.Create               = { Rule = rules.ace_upsuit_top }
 strata.Tableau                         = {
     Size   = 8,
     Create = {
-        Initial = piles.Initial.face_up(8),
+        Initial = ops.Initial.face_up(8),
         Layout = "Column",
         Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.Top, Empty = rules.Empty.Any }
     }
@@ -144,12 +143,12 @@ cruel.Info.DeckCount                   = 1
 cruel.Info.Redeals                     = -1
 cruel.Foundation                       = {
     Size   = 4,
-    Create = piles.ace_upsuit_top
+    Create = { Rule = rules.ace_upsuit_top }
 }
 cruel.Tableau                          = {
     Size   = 12,
     Create = {
-        Initial = piles.Initial.face_up(4),
+        Initial = ops.Initial.face_up(4),
         Layout = "Column",
         Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.Top, Empty = rules.Empty.None }
     }
@@ -184,8 +183,8 @@ cruel.on_created                       = Sol.Layout.bakers_dozen
 local indefatigable                    = Sol.copy(cruel)
 indefatigable.Info.Name                = "Indefatigable"
 indefatigable.Info.Redeals             = 2
-indefatigable.Tableau.create           = {
-    Initial = piles.Initial.face_up(4),
+indefatigable.Tableau.Create           = {
+    Initial = ops.Initial.face_up(4),
     Layout = "Column",
     Rule = { Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top, Empty = rules.Empty.Any }
 }
@@ -195,8 +194,8 @@ indefatigable.Tableau.create           = {
 local perseverance                     = Sol.copy(cruel)
 perseverance.Info.Name                 = "Perseverance"
 perseverance.Info.Redeals              = 2
-perseverance.Tableau.create            = {
-    Initial = piles.Initial.face_up(4),
+perseverance.Tableau.Create            = {
+    Initial = ops.Initial.face_up(4),
     Layout = "Column",
     Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.InSeq, Empty = rules.Empty.None }
 }
@@ -206,9 +205,9 @@ perseverance.Tableau.create            = {
 local royal_family                     = Sol.copy(cruel)
 royal_family.Info.Name                 = "Royal Family"
 royal_family.Info.Redeals              = 1
-royal_family.Foundation.create         = { Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.Top, Empty = rules.Empty.King } }
-royal_family.Tableau.create            = {
-    Initial = piles.Initial.face_up(4),
+royal_family.Foundation.Create         = { Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.Top, Empty = rules.Empty.King } }
+royal_family.Tableau.Create            = {
+    Initial = ops.Initial.face_up(4),
     Layout = "Column",
     Rule = { Build = rules.Build.UpOrDownAlternateColors, Move = rules.Move.Top, Empty = rules.Empty.Any }
 }
@@ -242,13 +241,13 @@ local fifteen                          = {
     },
     Foundation = {
         Size   = 8,
-        Create = piles.ace_upsuit_top
+        Create = { Rule = rules.ace_upsuit_top }
     },
     Tableau    = {
         Size   = 15,
         Create = function(i)
             return {
-                Initial = piles.Initial.face_up(i ~= 14 and 7 or 6),
+                Initial = ops.Initial.face_up(i ~= 14 and 7 or 6),
                 Layout = "Column",
                 Rule = { Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top, Empty = rules.Empty.Any }
             }
@@ -281,7 +280,7 @@ local nationale                        = {
     Tableau           = {
         Size   = 12,
         Create = {
-            Initial = piles.Initial.face_up(8),
+            Initial = ops.Initial.face_up(8),
             Layout = "Column",
             Rule = { Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top, Empty = rules.Empty.Any }
         }
@@ -312,12 +311,12 @@ local castles_in_spain                 = {
     },
     Foundation = {
         Size   = 4,
-        Create = piles.ace_upsuit_top
+        Create = { Rule = rules.ace_upsuit_top }
     },
     Tableau    = {
         Size   = 13,
         Create = {
-            Initial = piles.Initial.top_face_up(4),
+            Initial = ops.Initial.top_face_up(4),
             Layout = "Column",
             Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.Top, Empty = rules.Empty.Any }
         }
@@ -332,7 +331,7 @@ martha.Info.Name                       = "Martha"
 martha.Tableau                         = {
     Size   = 12,
     Create = {
-        Initial = piles.Initial.alternate(4, false),
+        Initial = ops.Initial.alternate(4, false),
         Layout = "Column",
         Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.InSeq, Empty = rules.Empty.AnySingle }
     }
@@ -344,8 +343,8 @@ martha.on_before_shuffle               = ops.Shuffle.ace_to_foundation
 local portuguese_solitaire             = Sol.copy(castles_in_spain)
 portuguese_solitaire.Info.Name         = "Portuguese Solitaire"
 portuguese_solitaire.Info.Type         = "OpenPacker"
-portuguese_solitaire.Tableau.create    = {
-    Initial = piles.Initial.face_up(4),
+portuguese_solitaire.Tableau.Create    = {
+    Initial = ops.Initial.face_up(4),
     Layout = "Column",
     Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = rules.Empty.King }
 }
@@ -355,9 +354,9 @@ portuguese_solitaire.Tableau.create    = {
 local spanish_patience                 = Sol.copy(castles_in_spain)
 spanish_patience.Info.Name             = "Spanish Patience"
 spanish_patience.Info.Type             = "OpenPacker"
-spanish_patience.Foundation.create     = { Rule = { Build = rules.Build.UpAlternateColors, Move = rules.Move.Top, Empty = rules.Empty.Ace } }
-spanish_patience.Tableau.create        = {
-    Initial = piles.Initial.face_up(4),
+spanish_patience.Foundation.Create     = { Rule = { Build = rules.Build.UpAlternateColors, Move = rules.Move.Top, Empty = rules.Empty.Ace } }
+spanish_patience.Tableau.Create        = {
+    Initial = ops.Initial.face_up(4),
     Layout = "Column",
     Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = rules.Empty.None }
 }
@@ -367,8 +366,8 @@ spanish_patience.Tableau.create        = {
 local spanish_patience_2               = Sol.copy(castles_in_spain)
 spanish_patience_2.Info.Name           = "Spanish Patience II"
 spanish_patience_2.Info.Type           = "OpenPacker"
-spanish_patience_2.Tableau.create      = {
-    Initial = piles.Initial.face_up(4),
+spanish_patience_2.Tableau.Create      = {
+    Initial = ops.Initial.face_up(4),
     Layout = "Column",
     Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = rules.Empty.Any }
 }
@@ -382,7 +381,7 @@ vineyard.Tableau                       = {
     Size   = 10,
     Create = function(i)
         return {
-            Initial = piles.Initial.face_up(i < 2 and 6 or 5),
+            Initial = ops.Initial.face_up(i < 2 and 6 or 5),
             Layout = "Column",
             Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.Top, Empty = rules.Empty.Any }
         }

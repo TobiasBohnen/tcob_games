@@ -4,7 +4,6 @@
 -- https://opensource.org/licenses/MIT
 
 local ops   = require 'base/ops'
-local piles = require 'base/piles'
 local rules = require 'base/rules'
 
 
@@ -44,17 +43,17 @@ local golf                 = {
         Redeals       = 0
     },
     Stock       = {
-        Initial = piles.Initial.face_down(16)
+        Initial = ops.Initial.face_down(16)
     },
     Foundation  = {
-        Initial = piles.Initial.face_up(1),
+        Initial = ops.Initial.face_up(1),
         Layout  = "Squared",
         Rule    = { Build = rules.Build.UpOrDownByRank, Move = rules.Move.None }
     },
     Tableau     = {
         Size   = 7,
         Create = {
-            Initial = piles.Initial.top_face_up(5),
+            Initial = ops.Initial.top_face_up(5),
             Layout = "Column",
             Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.Top }
         }
@@ -71,11 +70,11 @@ local golf                 = {
 local double_golf          = Sol.copy(golf)
 double_golf.Info.Name      = "Double Golf"
 double_golf.Info.DeckCount = 2
-double_golf.Stock.Initial  = piles.Initial.face_down(40)
+double_golf.Stock.Initial  = ops.Initial.face_down(40)
 double_golf.Tableau        = {
     Size   = 9,
     Create = {
-        Initial = piles.Initial.top_face_up(7),
+        Initial = ops.Initial.top_face_up(7),
         Layout = "Column",
         Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.Top }
     }
@@ -86,7 +85,7 @@ double_golf.Tableau        = {
 local putt_putt            = Sol.copy(golf)
 putt_putt.Info.Name        = "Putt Putt"
 putt_putt.Foundation       = {
-    Initial = piles.Initial.face_up(1),
+    Initial = ops.Initial.face_up(1),
     Layout  = "Squared",
     Rule    = { Build = rules.Build.UpOrDownByRank, Wrap = true, Move = rules.Move.None }
 }
@@ -96,7 +95,7 @@ putt_putt.Foundation       = {
 local double_putt          = Sol.copy(putt_putt)
 double_putt.Info.Name      = "Double Putt"
 double_putt.Info.DeckCount = 2
-double_putt.Stock.Initial  = piles.Initial.face_down(40)
+double_putt.Stock.Initial  = ops.Initial.face_down(40)
 double_putt.Tableau        = Sol.copy(double_golf.Tableau)
 
 ------
@@ -125,7 +124,7 @@ local black_hole           = {
         Create = function(i)
             return {
                 Position = { x = black_hole_pos[i + 1][1], y = black_hole_pos[i + 1][2] },
-                Initial = piles.Initial.face_up(3),
+                Initial = ops.Initial.face_up(3),
                 Layout = "Row",
                 Rule = { Build = rules.Build.NoBuilding }
             }

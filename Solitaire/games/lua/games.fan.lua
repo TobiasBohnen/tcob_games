@@ -4,7 +4,6 @@
 -- https://opensource.org/licenses/MIT
 
 local ops   = require 'base/ops'
-local piles = require 'base/piles'
 local rules = require 'base/rules'
 
 
@@ -19,13 +18,13 @@ local fan                    = {
     },
     Foundation = {
         Size   = 4,
-        Create = piles.ace_upsuit_top
+        Create = { Rule = rules.ace_upsuit_top }
     },
     Tableau    = {
         Size   = 18,
         Create = function(i)
             return {
-                Initial = piles.Initial.face_up(i < 17 and 3 or 1),
+                Initial = ops.Initial.face_up(i < 17 and 3 or 1),
                 Layout = "Row",
                 Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.Top, Empty = rules.Empty.King }
             }
@@ -42,7 +41,7 @@ bear_river.Foundation        = {
     Size   = 4,
     Create = function(i)
         return {
-            Initial = piles.Initial.face_up(i == 0 and 1 or 0),
+            Initial = ops.Initial.face_up(i == 0 and 1 or 0),
             Rule = { Build = rules.Build.UpInSuit, Wrap = true, Move = rules.Move.None, Empty = function(game) return rules.Empty.FirstFoundation(game) end }
         }
     end
@@ -52,7 +51,7 @@ bear_river.Tableau           = {
     Create = function(i)
         local lastInRow = i % 6 == 5
         return {
-            Initial = piles.Initial.face_up(lastInRow and 2 or 3),
+            Initial = ops.Initial.face_up(lastInRow and 2 or 3),
             Layout = "Row",
             Rule = { Build = rules.Build.UpOrDownInSuit, Wrap = true, Move = rules.Move.Top, Empty = lastInRow and "Any" or "None", Limit = 3 }
         }
@@ -67,7 +66,7 @@ box_fan.Info.Name            = "Box Fan"
 box_fan.Tableau              = {
     Size   = 16,
     Create = {
-        Initial = piles.Initial.face_up(3),
+        Initial = ops.Initial.face_up(3),
         Layout = "Row",
         Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.Top, Empty = rules.Empty.King }
     }
@@ -83,7 +82,7 @@ ceiling_fan.Tableau          = {
     Size   = 18,
     Create = function(i)
         return {
-            Initial = piles.Initial.face_up(i < 17 and 3 or 1),
+            Initial = ops.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
             Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.Top, Empty = rules.Empty.King }
         }
@@ -114,7 +113,7 @@ local clover_leaf            = {
     Tableau           = {
         Size   = 16,
         Create = {
-            Initial = piles.Initial.face_up(3),
+            Initial = ops.Initial.face_up(3),
             Layout = "Row",
             Rule = { Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top, Empty = function() return rules.Empty.Ranks({ "Ace", "King" }) end }
         }
@@ -139,7 +138,7 @@ quads.Info.Name              = "Quads"
 quads.Tableau                = {
     Size   = 13,
     Create = {
-        Initial = piles.Initial.face_up(4),
+        Initial = ops.Initial.face_up(4),
         Layout = "Row",
         Rule = { Build = rules.Build.InRank, Move = rules.Move.Top, Empty = rules.Empty.Any, Limit = 4 }
     }
@@ -160,7 +159,7 @@ quads_plus.Tableau           = {
     Size   = 13,
     Create = function(i)
         return {
-            Initial = piles.Initial.face_up(i < 12 and 4 or 0),
+            Initial = ops.Initial.face_up(i < 12 and 4 or 0),
             Layout = "Row",
             Rule = { Build = rules.Build.InRank, Move = rules.Move.Top, Empty = rules.Empty.Any, Limit = 4 }
         }
@@ -198,7 +197,7 @@ local lucky_piles            = {
         Create = function(i)
             return {
                 Position = { x = lucky_piles_pos[i + 1][1], y = lucky_piles_pos[i + 1][2] },
-                Initial = piles.Initial.face_up(4),
+                Initial = ops.Initial.face_up(4),
                 Layout = "Row",
                 Rule = { Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top, Empty = rules.Empty.King }
             }
@@ -218,7 +217,7 @@ scotch_patience.Tableau      = {
     Size   = 18,
     Create = function(i)
         return {
-            Initial = piles.Initial.face_up(i < 17 and 3 or 1),
+            Initial = ops.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
             Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = rules.Empty.None }
         }
@@ -233,7 +232,7 @@ shamrocks.Tableau            = {
     Size   = 18,
     Create = function(i)
         return {
-            Initial = piles.Initial.face_up(i < 17 and 3 or 1),
+            Initial = ops.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
             Rule = { Build = rules.Build.UpOrDownByRank, Move = rules.Move.Top, Empty = rules.Empty.None, Limit = 3 }
         }
@@ -248,7 +247,7 @@ shamrocks_2.Tableau          = {
     Size   = 18,
     Create = function(i)
         return {
-            Initial = piles.Initial.face_up(i < 17 and 3 or 1),
+            Initial = ops.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
             Rule = { Build = rules.Build.UpOrDownByRank, Move = rules.Move.Top, Empty = rules.Empty.None, Limit = 3 }
         }
@@ -264,7 +263,7 @@ troika.Tableau               = {
     Size   = 18,
     Create = function(i)
         return {
-            Initial = piles.Initial.face_up(i < 17 and 3 or 1),
+            Initial = ops.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
             Rule = { Build = rules.Build.InRank, Move = rules.Move.Top, Empty = rules.Empty.None, Limit = 3 }
         }

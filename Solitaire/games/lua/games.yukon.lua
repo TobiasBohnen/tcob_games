@@ -4,11 +4,10 @@
 -- https://opensource.org/licenses/MIT
 
 local ops   = require 'base/ops'
-local piles = require 'base/piles'
 local rules = require 'base/rules'
 
 
-piles.Initial.yukon                      = function(i)
+ops.Initial.yukon                        = function(i)
     if i == 0 then
         return { true }
     else
@@ -19,7 +18,7 @@ piles.Initial.yukon                      = function(i)
         return t
     end
 end
-piles.Initial.double_yukon               = function(i)
+ops.Initial.double_yukon                 = function(i)
     local t = {}
     local ii = math.min(i, 8)
     for j = 1, ii + 6 do
@@ -27,18 +26,18 @@ piles.Initial.double_yukon               = function(i)
     end
     return t
 end
-piles.Initial.triple_yukon               = function(i)
-    local t = piles.Initial.face_down(i + 6)
+ops.Initial.triple_yukon                 = function(i)
+    local t = ops.Initial.face_down(i + 6)
     for j = #t - 5, #t do
         t[j] = true
     end
     return t
 end
-piles.Initial.chinese_discipline         = function(i)
+ops.Initial.chinese_discipline           = function(i)
     if i < 3 then
-        return piles.Initial.face_up(7)
+        return ops.Initial.face_up(7)
     else
-        local t = piles.Initial.face_down(7)
+        local t = ops.Initial.face_down(7)
         for j = i, 7 do
             t[j] = true
         end
@@ -65,7 +64,7 @@ local yukon                              = {
         Size   = 7,
         Create = function(i)
             return {
-                Initial = piles.Initial.yukon(i),
+                Initial = ops.Initial.yukon(i),
                 Layout = "Column",
                 Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
             }
@@ -84,7 +83,7 @@ double_yukon.Tableau                     = {
     Size   = 10,
     Create = function(i)
         return {
-            Initial = piles.Initial.double_yukon(i),
+            Initial = ops.Initial.double_yukon(i),
             Layout = "Column",
             Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
         }
@@ -101,7 +100,7 @@ triple_yukon.Tableau                     = {
     Size   = 13,
     Create = function(i)
         return {
-            Initial = piles.Initial.triple_yukon(i),
+            Initial = ops.Initial.triple_yukon(i),
             Layout = "Column",
             Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
         }
@@ -112,9 +111,9 @@ triple_yukon.Tableau                     = {
 
 local alaska                             = Sol.copy(yukon)
 alaska.Info.Name                         = "Alaska"
-alaska.Tableau.create                    = function(i)
+alaska.Tableau.Create                    = function(i)
     return {
-        Initial = piles.Initial.yukon(i),
+        Initial = ops.Initial.yukon(i),
         Layout = "Column",
         Rule = { Build = rules.Build.UpOrDownInSuit, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
     }
@@ -134,7 +133,7 @@ local brisbane_initial                   = {
 
 local brisbane                           = Sol.copy(yukon)
 brisbane.Info.Name                       = "Brisbane"
-brisbane.Tableau.create                  = function(i)
+brisbane.Tableau.Create                  = function(i)
     return {
         Initial = brisbane_initial[i + 1],
         Layout = "Column",
@@ -150,7 +149,7 @@ geoffrey.Tableau                         = {
     Size   = 8,
     Create = function(i)
         return {
-            Initial = i < 4 and piles.Initial.face_up(7) or { false, false, false, false, true, true },
+            Initial = i < 4 and ops.Initial.face_up(7) or { false, false, false, false, true, true },
             Layout = "Column",
             Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
         }
@@ -162,7 +161,7 @@ geoffrey.on_created                      = Sol.Layout.forty_thieves
 
 local queensland                         = Sol.copy(yukon)
 queensland.Info.Name                     = "Queensland"
-queensland.Tableau.create                = function(i)
+queensland.Tableau.Create                = function(i)
     return {
         Initial = brisbane_initial[i + 1],
         Layout = "Column",
@@ -174,9 +173,9 @@ end
 
 local roslin                             = Sol.copy(yukon)
 roslin.Info.Name                         = "Roslin"
-roslin.Tableau.create                    = function(i)
+roslin.Tableau.Create                    = function(i)
     return {
-        Initial = piles.Initial.yukon(i),
+        Initial = ops.Initial.yukon(i),
         Layout = "Column",
         Rule = { Build = rules.Build.UpOrDownAlternateColors, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
     }
@@ -186,9 +185,9 @@ end
 
 local moosehide                          = Sol.copy(yukon)
 moosehide.Info.Name                      = "Moosehide"
-moosehide.Tableau.create                 = function(i)
+moosehide.Tableau.Create                 = function(i)
     return {
-        Initial = piles.Initial.yukon(i),
+        Initial = ops.Initial.yukon(i),
         Layout = "Column",
         Rule = { Build = rules.Build.DownAnyButOwnSuit, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
     }
@@ -198,9 +197,9 @@ end
 
 local russian_solitaire                  = Sol.copy(yukon)
 russian_solitaire.Info.Name              = "Russian Solitaire"
-russian_solitaire.Tableau.create         = function(i)
+russian_solitaire.Tableau.Create         = function(i)
     return {
-        Initial = piles.Initial.yukon(i),
+        Initial = ops.Initial.yukon(i),
         Layout = "Column",
         Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
     }
@@ -216,7 +215,7 @@ double_russian_solitaire.Tableau         = {
     Size   = 10,
     Create = function(i)
         return {
-            Initial = piles.Initial.double_yukon(i),
+            Initial = ops.Initial.double_yukon(i),
             Layout = "Column",
             Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
         }
@@ -233,7 +232,7 @@ triple_russian_solitaire.Tableau         = {
     Size   = 13,
     Create = function(i)
         return {
-            Initial = piles.Initial.triple_yukon(i),
+            Initial = ops.Initial.triple_yukon(i),
             Layout = "Column",
             Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
         }
@@ -253,7 +252,7 @@ local hawaiian                           = {
     },
     Reserve    = {
         Position = { x = 0, y = 0 },
-        Initial  = piles.Initial.face_up(54),
+        Initial  = ops.Initial.face_up(54),
         Layout   = "Squared"
     },
     Foundation = {
@@ -270,7 +269,7 @@ local hawaiian                           = {
         Create = function(i)
             return {
                 Position = { x = i, y = 1 },
-                Initial = piles.Initial.face_up(5),
+                Initial = ops.Initial.face_up(5),
                 Layout = "Column",
                 Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.FaceUp, Empty = rules.Empty.Any }
             }
@@ -290,7 +289,7 @@ local chinese_discipline                 = {
         Redeals       = 0
     },
     Stock      = {
-        Initial = piles.Initial.face_down(3)
+        Initial = ops.Initial.face_down(3)
     },
     Foundation = {
         Size   = 4,
@@ -300,7 +299,7 @@ local chinese_discipline                 = {
         Size   = 7,
         Create = function(i)
             return {
-                Initial = piles.Initial.chinese_discipline(i),
+                Initial = ops.Initial.chinese_discipline(i),
                 Layout = "Column",
                 Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
             }
@@ -314,9 +313,9 @@ local chinese_discipline                 = {
 
 local chinese_solitaire                  = Sol.copy(chinese_discipline)
 chinese_solitaire.Info.Name              = "Chinese Solitaire"
-chinese_solitaire.Tableau.create         = function(i)
+chinese_solitaire.Tableau.Create         = function(i)
     return {
-        Initial = piles.Initial.chinese_discipline(i),
+        Initial = ops.Initial.chinese_discipline(i),
         Layout = "Column",
         Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.FaceUp, Empty = rules.Empty.Any }
     }
@@ -335,7 +334,7 @@ local rushdike                           = {
         Redeals       = 0
     },
     Stock      = {
-        Initial = piles.Initial.face_down(24)
+        Initial = ops.Initial.face_down(24)
     },
     Foundation = {
         Size   = 4,
@@ -345,7 +344,7 @@ local rushdike                           = {
         Size   = 7,
         Create = function(i)
             return {
-                Initial = piles.Initial.top_face_up(i + 1),
+                Initial = ops.Initial.top_face_up(i + 1),
                 Layout = "Column",
                 Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
             }
@@ -368,7 +367,7 @@ local queenie                            = {
         Redeals       = 0
     },
     Stock      = {
-        Initial = piles.Initial.face_down(24)
+        Initial = ops.Initial.face_down(24)
     },
     Foundation = {
         Size   = 4,
@@ -378,7 +377,7 @@ local queenie                            = {
         Size   = 7,
         Create = function(i)
             return {
-                Initial = piles.Initial.face_up(i + 1),
+                Initial = ops.Initial.face_up(i + 1),
                 Layout = "Column",
                 Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.FaceUp, Empty = rules.Empty.King }
             }

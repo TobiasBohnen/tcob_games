@@ -37,8 +37,7 @@ Sol.RankValues <- {
 Sol.Ranks <- ["Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King"]
 
 function Sol::get_rank(r, interval, wrap) {
-    local rank = Sol.RankValues[r] - 1
-    local target = rank + interval
+    local target = Sol.RankValues[r] - 1 + interval
 
     if (wrap) {
         target = target % 13

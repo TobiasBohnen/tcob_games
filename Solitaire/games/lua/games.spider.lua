@@ -4,7 +4,6 @@
 -- https://opensource.org/licenses/MIT
 
 local ops   = require 'base/ops'
-local piles = require 'base/piles'
 local rules = require 'base/rules'
 
 
@@ -19,7 +18,7 @@ local spider             = {
     },
     Stock      = {
         Position = { x = 0, y = 0 },
-        Initial = piles.Initial.face_down(50)
+        Initial = ops.Initial.face_down(50)
     },
     Foundation = {
         Size   = 4,
@@ -35,7 +34,7 @@ local spider             = {
         Create = function(i)
             return {
                 Position = { x = i, y = 1 },
-                Initial  = piles.Initial.top_face_up(i < 4 and 6 or 5),
+                Initial  = ops.Initial.top_face_up(i < 4 and 6 or 5),
                 Layout   = "Column",
                 Rule     = { Build = rules.Build.DownByRank, Move = rules.Move.InSeqInSuit, Empty = rules.Empty.Any }
             }
@@ -87,7 +86,7 @@ arachnida.Foundation     = {
 arachnida.Tableau.Create = function(i)
     return {
         Position = { x = i + 1, y = 0 },
-        Initial  = piles.Initial.top_face_up(i < 4 and 6 or 5),
+        Initial  = ops.Initial.top_face_up(i < 4 and 6 or 5),
         Layout   = "Column",
         Rule     = { Build = rules.Build.InRankOrDownByRank, Move = rules.Move.InSeqInSuitOrSameRank, Empty = rules.Empty.Any }
     }

@@ -166,10 +166,10 @@ return {
             piles.Foundation[i + 1].Position = { x = foundationOffsetX + i, y = 0 }
         end
 
-        local fcOffsetX = (piles.TableauSize - piles.Piles.FreeCellSize) / 2
+        local fcOffsetX = (piles.TableauSize - piles.FreeCellSize) / 2
         fcOffsetX = math.max(0, fcOffsetX)
 
-        for i = 0, piles.Piles.FreeCellSize - 1 do
+        for i = 0, piles.FreeCellSize - 1 do
             piles.FreeCell[i + 1].Position = { x = fcOffsetX + i, y = 1 }
         end
 

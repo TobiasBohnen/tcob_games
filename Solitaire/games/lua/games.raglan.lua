@@ -4,7 +4,6 @@
 -- https://opensource.org/licenses/MIT
 
 local ops   = require 'base/ops'
-local piles = require 'base/piles'
 local rules = require 'base/rules'
 
 
@@ -20,7 +19,7 @@ local raglan = {
     Reserve           = {
         Size   = 6,
         Create = {
-            Initial = piles.Initial.face_up(1),
+            Initial = ops.Initial.face_up(1),
             Layout = "Squared",
             Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.Top, Empty = rules.Empty.None }
         }
@@ -33,7 +32,7 @@ local raglan = {
         Size   = 9,
         Create = function(i)
             return {
-                Initial = piles.Initial.face_up(i < 7 and i + 1 or 7),
+                Initial = ops.Initial.face_up(i < 7 and i + 1 or 7),
                 Layout = "Column",
                 Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.Top, Empty = rules.Empty.Any }
             }

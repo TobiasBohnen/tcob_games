@@ -4,7 +4,6 @@
 -- https://opensource.org/licenses/MIT
 
 local ops   = require 'base/ops'
-local piles = require 'base/piles'
 local rules = require 'base/rules'
 
 
@@ -23,13 +22,13 @@ local free_cell                       = {
     },
     Foundation = {
         Size   = 4,
-        Create = piles.ace_upsuit_top
+        Create = { Rule = rules.ace_upsuit_top }
     },
     Tableau    = {
         Size   = 8,
         Create = function(i)
             return {
-                Initial = piles.Initial.face_up(i < 4 and 7 or 6),
+                Initial = ops.Initial.face_up(i < 4 and 7 or 6),
                 Layout = "Column",
                 Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.SuperMove, Empty = rules.Empty.Any }
             }
@@ -73,7 +72,7 @@ local double_free_cell                = {
         Size   = 10,
         Create = function(i)
             return {
-                Initial = piles.Initial.face_up(i < 4 and 11 or 10),
+                Initial = ops.Initial.face_up(i < 4 and 11 or 10),
                 Layout = "Column",
                 Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.SuperMove, Empty = rules.Empty.Any }
             }
@@ -88,11 +87,11 @@ local double_free_cell_2              = Sol.copy(free_cell)
 double_free_cell_2.Info.Name          = "Double FreeCell II"
 double_free_cell_2.Info.DeckCount     = 2
 double_free_cell_2.FreeCell.Size      = 6
-double_free_cell_2.Foundation.create  = { Rule = { Build = rules.Build.UpInSuit, Wrap = true, Move = rules.Move.Top, Empty = rules.Empty.Ace } }
+double_free_cell_2.Foundation.Create  = { Rule = { Build = rules.Build.UpInSuit, Wrap = true, Move = rules.Move.Top, Empty = rules.Empty.Ace } }
 double_free_cell_2.Tableau            = {
     Size   = 10,
     Create = {
-        Initial = piles.Initial.face_up(10),
+        Initial = ops.Initial.face_up(10),
         Layout = "Column",
         Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.SuperMove, Empty = rules.Empty.Any }
     }
@@ -121,7 +120,7 @@ local triple_free_cell                = {
     Tableau    = {
         Size   = 13,
         Create = {
-            Initial = piles.Initial.face_up(12),
+            Initial = ops.Initial.face_up(12),
             Layout = "Column",
             Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.SuperMove, Empty = rules.Empty.Any }
         }
@@ -133,9 +132,9 @@ local triple_free_cell                = {
 
 local bakers_game                     = Sol.copy(free_cell)
 bakers_game.Info.Name                 = "Baker's Game"
-bakers_game.Tableau.create            = function(i)
+bakers_game.Tableau.Create            = function(i)
     return {
-        Initial = piles.Initial.face_up(i < 4 and 7 or 6),
+        Initial = ops.Initial.face_up(i < 4 and 7 or 6),
         Layout = "Column",
         Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.SuperMove, Empty = rules.Empty.Any }
     }
@@ -145,9 +144,9 @@ end
 
 local bakers_game_ko                  = Sol.copy(free_cell)
 bakers_game_ko.Info.Name              = "King Only Baker's Game"
-bakers_game_ko.Tableau.create         = function(i)
+bakers_game_ko.Tableau.Create         = function(i)
     return {
-        Initial = piles.Initial.face_up(i < 4 and 7 or 6),
+        Initial = ops.Initial.face_up(i < 4 and 7 or 6),
         Layout = "Column",
         Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.SuperMove, Empty = rules.Empty.King }
     }
@@ -162,7 +161,7 @@ bath.Tableau                          = {
     Size = 10,
     Create = function(i)
         return {
-            Initial = piles.Initial.face_up(math.min(i + 1, 8)),
+            Initial = ops.Initial.face_up(math.min(i + 1, 8)),
             Layout = "Column",
             Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.SuperMove, Empty = rules.Empty.Any }
         }
@@ -191,7 +190,7 @@ local big_cell                        = {
     Tableau    = {
         Size   = 13,
         Create = {
-            Initial = piles.Initial.face_up(12),
+            Initial = ops.Initial.face_up(12),
             Layout = "Column",
             Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.SuperMove, Empty = rules.Empty.Any }
         }
@@ -214,7 +213,7 @@ local cell_11                         = {
         Size   = 11,
         Create = function(i)
             return {
-                Initial = piles.Initial.face_up((i == 0 or i == 10) and 1 or 0),
+                Initial = ops.Initial.face_up((i == 0 or i == 10) and 1 or 0),
                 Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.Top, Empty = rules.Empty.Any }
             }
         end
@@ -227,7 +226,7 @@ local cell_11                         = {
         Size   = 13,
         Create = function(i)
             return {
-                Initial = piles.Initial.face_up((i == 0 or i == 12) and 11 or 12),
+                Initial = ops.Initial.face_up((i == 0 or i == 12) and 11 or 12),
                 Layout = "Column",
                 Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.SuperMove, Empty = rules.Empty.Any }
             }
@@ -244,7 +243,7 @@ challenge_free_cell.Tableau           = {
     Size = 8,
     Create = function(i)
         return {
-            Initial = piles.Initial.face_up(i < 4 and 6 or 5),
+            Initial = ops.Initial.face_up(i < 4 and 6 or 5),
             Layout = "Column",
             Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.SuperMove, Empty = rules.Empty.Any }
         }
@@ -269,7 +268,7 @@ super_challenge_free_cell.Tableau     = {
     Size = 8,
     Create = function(i)
         return {
-            Initial = piles.Initial.face_up(i < 4 and 6 or 5),
+            Initial = ops.Initial.face_up(i < 4 and 6 or 5),
             Layout = "Column",
             Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.SuperMove, Empty = rules.Empty.King }
         }
@@ -283,7 +282,7 @@ clink.Info.Name                       = "Clink"
 clink.FreeCell                        = {
     Size = 2,
     Create = {
-        Initial = piles.Initial.face_up(1),
+        Initial = ops.Initial.face_up(1),
         Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.Top, Empty = rules.Empty.Any }
     }
 }
@@ -294,7 +293,7 @@ clink.Foundation                      = {
 clink.Tableau                         = {
     Size = 8,
     Create = {
-        Initial = piles.Initial.face_up(6),
+        Initial = ops.Initial.face_up(6),
         Layout  = "Column",
         Rule    = { Build = rules.Build.DownAlternateColors, Move = rules.Move.InSeq, Empty = rules.Empty.Any }
     }
@@ -341,7 +340,7 @@ local deep                            = {
         Create = function(i)
             return {
                 Position = { x = i, y = 1 },
-                Initial = piles.Initial.face_up(13),
+                Initial = ops.Initial.face_up(13),
                 Layout = "Column",
                 Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.InSeq, Empty = rules.Empty.Any }
             }
@@ -364,7 +363,7 @@ local eight_off                       = {
         Size   = 8,
         Create = function(i)
             return {
-                Initial = i % 2 == 0 and piles.Initial.face_up(1) or {},
+                Initial = i % 2 == 0 and ops.Initial.face_up(1) or {},
                 Rule    = { Build = rules.Build.NoBuilding, Move = rules.Move.Top, Empty = rules.Empty.Any }
             }
         end
@@ -376,7 +375,7 @@ local eight_off                       = {
     Tableau    = {
         Size   = 8,
         Create = {
-            Initial = piles.Initial.face_up(6),
+            Initial = ops.Initial.face_up(6),
             Layout = "Column",
             Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.SuperMove, Empty = rules.Empty.King }
         }
@@ -393,7 +392,7 @@ footling.Tableau                      = {
     Size = 8,
     Create = function(i)
         return {
-            Initial = piles.Initial.face_up(i < 4 and 7 or 6),
+            Initial = ops.Initial.face_up(i < 4 and 7 or 6),
             Layout = "Column",
             Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.InSeq, Empty = rules.Empty.Any }
         }
@@ -404,14 +403,14 @@ footling.Tableau                      = {
 
 local fore_cell                       = Sol.copy(free_cell)
 fore_cell.Info.Name                   = "ForeCell"
-fore_cell.FreeCell.create             = {
-    Initial = piles.Initial.face_up(1),
+fore_cell.FreeCell.Create             = {
+    Initial = ops.Initial.face_up(1),
     Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.Top, Empty = rules.Empty.Any }
 }
 fore_cell.Tableau                     = {
     Size = 8,
     Create = {
-        Initial = piles.Initial.face_up(6),
+        Initial = ops.Initial.face_up(6),
         Layout = "Column",
         Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.SuperMove, Empty = rules.Empty.King }
     }
@@ -425,7 +424,7 @@ four_colours.Tableau                  = {
     Size = 7,
     Create = function(i)
         return {
-            Initial = i < 4 and piles.Initial.face_up(13) or {},
+            Initial = i < 4 and ops.Initial.face_up(13) or {},
             Layout = "Column",
             Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.InSeq, Empty = rules.Empty.Any }
         }
@@ -455,7 +454,7 @@ king_cell.Tableau                     = {
     Size = 8,
     Create = function(i)
         return {
-            Initial = piles.Initial.face_up(i < 4 and 7 or 6),
+            Initial = ops.Initial.face_up(i < 4 and 7 or 6),
             Layout = "Column",
             Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.SuperMove, Empty = rules.Empty.King }
         }
@@ -485,7 +484,7 @@ local flipper                         = {
         Size   = 7,
         Create = function(i)
             return {
-                Initial = piles.Initial.face_up(i % 3 == 0 and 8 or 7),
+                Initial = ops.Initial.face_up(i % 3 == 0 and 8 or 7),
                 Layout = "Column",
                 Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.InSeq, Empty = rules.Empty.Any }
             }
@@ -530,7 +529,7 @@ local penguin                         = {
         Size   = 7,
         Create = function(i)
             return {
-                Initial = piles.Initial.face_up(i > 0 and 7 or 6),
+                Initial = ops.Initial.face_up(i > 0 and 7 or 6),
                 Layout = "Column",
                 Rule = { Build = rules.Build.DownInSuit, Wrap = true, Move = rules.Move.InSeq, Empty = function(game) return rules.Empty.FirstFoundation(game, -1) end }
             }
@@ -558,7 +557,7 @@ relaxed_free_cell.Tableau             = {
     Size = 8,
     Create = function(i)
         return {
-            Initial = piles.Initial.face_up(i < 4 and 7 or 6),
+            Initial = ops.Initial.face_up(i < 4 and 7 or 6),
             Layout = "Column",
             Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.InSeq, Empty = rules.Empty.Any }
         }
@@ -599,7 +598,7 @@ local snake                           = {
         Create = function(i)
             return {
                 Position = { x = i, y = 1 },
-                Initial = piles.Initial.face_up(i == 0 and 96 or 0),
+                Initial = ops.Initial.face_up(i == 0 and 96 or 0),
                 Layout = "Column",
                 Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.SuperMove, Empty = rules.Empty.None }
             }
@@ -625,10 +624,10 @@ local snake                           = {
 
 local cats_tail                       = Sol.copy(snake)
 cats_tail.Info.Name                   = "Cat's Tail"
-cats_tail.Tableau.create              = function(i)
+cats_tail.Tableau.Create              = function(i)
     return {
         Position = { x = i, y = 1 },
-        Initial = piles.Initial.face_up(i == 0 and 104 or 0),
+        Initial = ops.Initial.face_up(i == 0 and 104 or 0),
         Layout = "Column",
         Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.InSeq, Empty = rules.Empty.None }
     }

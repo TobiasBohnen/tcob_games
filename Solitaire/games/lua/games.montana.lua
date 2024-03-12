@@ -4,7 +4,6 @@
 -- https://opensource.org/licenses/MIT
 
 local ops   = require 'base/ops'
-local piles = require 'base/piles'
 local rules = require 'base/rules'
 
 
@@ -141,7 +140,7 @@ local montana                     = {
         Size   = 52,
         Create = {
             Position = {},
-            Initial = piles.Initial.face_up(1),
+            Initial = ops.Initial.face_up(1),
             Layout = "Squared",
             Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.Top, Empty = rules.Empty.None }
         }
@@ -205,7 +204,7 @@ local blue_moon                   = {
         Size   = 56,
         Create = function(i)
             return {
-                Initial = piles.Initial.face_up(i % 14 == 0 and 0 or 1),
+                Initial = ops.Initial.face_up(i % 14 == 0 and 0 or 1),
                 Layout = "Squared",
                 Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.Top, Empty = rules.Empty.None }
             }
@@ -240,9 +239,9 @@ end
 
 local red_moon                    = Sol.copy(blue_moon)
 red_moon.Info.Name                = "Red Moon"
-red_moon.Tableau.create           = function(i)
+red_moon.Tableau.Create           = function(i)
     return {
-        Initial = piles.Initial.face_up((i % 14 < 2) and 0 or 1),
+        Initial = ops.Initial.face_up((i % 14 < 2) and 0 or 1),
         Layout = "Squared",
         Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.Top, Empty = rules.Empty.None }
     }
@@ -264,9 +263,9 @@ end
 
 local galary                      = Sol.copy(blue_moon)
 galary.Info.Name                  = "Galary"
-galary.Tableau.create             = function(i)
+galary.Tableau.Create             = function(i)
     return {
-        Initial = piles.Initial.face_up((i % 14 == 0 or i % 14 == 1) and 0 or 1),
+        Initial = ops.Initial.face_up((i % 14 == 0 or i % 14 == 1) and 0 or 1),
         Layout = "Squared",
         Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.Top, Empty = rules.Empty.None }
     }
@@ -296,7 +295,7 @@ local paganini                    = {
         Size   = 40,
         Create = function(i)
             return {
-                Initial = piles.Initial.face_up(i % 10 == 0 and 0 or 1),
+                Initial = ops.Initial.face_up(i % 10 == 0 and 0 or 1),
                 Layout = "Squared",
                 Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.Top, Empty = rules.Empty.None }
             }
@@ -341,18 +340,18 @@ local spoilt                      = {
     },
     Stock             = {
         Position = { x = 0, y = 1 },
-        Initial = piles.Initial.face_down(3)
+        Initial = ops.Initial.face_down(3)
     },
     Waste             = {
         Position = { x = 0, y = 2 },
-        Initial = piles.Initial.face_up(1)
+        Initial = ops.Initial.face_up(1)
     },
     Tableau           = {
         Size   = 32,
         Create = function(i)
             return {
                 Position = { x = i % 8 + 1, y = i // 8 },
-                Initial = piles.Initial.face_down(i % 8 == 0 and 0 or 1),
+                Initial = ops.Initial.face_down(i % 8 == 0 and 0 or 1),
                 Layout = "Squared",
                 Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.None, Empty = rules.Empty.None }
             }

@@ -3,7 +3,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-local shuffle_tab = {
+local shuffle = {
     // before shuffle
     ace_to_foundation = function(game, card) {
         if (card.Rank == "Ace") {
@@ -27,17 +27,51 @@ local shuffle_tab = {
     }
 }
 
-local redeal_tab = {
+local redeal = {
     waste_to_stock = @(game) game.Waste[0].redeal(game.Stock[0])
 }
 
-local deal_tab = {
+local deal = {
     stock_to_waste = @(game) game.Stock[0].deal(game.Waste[0], game.CardDealCount),
     stock_to_waste_by_redeals_left = @(game) game.Stock[0].deal(game.Waste[0], game.RedealsLeft + 1)
 }
 
+local initial = {
+    top_face_up = function(size) {
+        local retValue = []
+        for (local i = 0; i < size - 1; i += 1) {
+            retValue.append(false)
+        }
+        retValue.append(true)
+        return retValue
+    },
+    face_up = function(size) {
+        local retValue = []
+        for (local i = 0; i < size; i += 1) {
+            retValue.append(true)
+        }
+        return retValue
+    },
+    face_down = function(size) {
+        local retValue = []
+        for (local i = 0; i < size; i += 1) {
+            retValue.append(false)
+        }
+        return retValue
+    },
+    alternate = function(size, first) {
+        local retValue = []
+        for (local i = 0; i < size; i += 1) {
+            retValue.append(first)
+            first = !first
+        }
+        return retValue
+    }
+}
+
 return {
-    Shuffle = shuffle_tab,
-    Redeal = redeal_tab,
-    Deal = deal_tab
+    Initial = initial,
+    Shuffle = shuffle,
+    Redeal = redeal,
+    Deal = deal
 }

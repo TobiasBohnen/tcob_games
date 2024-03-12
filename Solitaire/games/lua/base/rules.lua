@@ -333,4 +333,6 @@ return {
     Build = build,
     Move = move,
     Empty = empty,
+
+    ace_upsuit_top = { Build = build.UpInSuit, Move = move.Top, Empty = empty.Ace },
 }

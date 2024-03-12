@@ -4,7 +4,6 @@
 -- https://opensource.org/licenses/MIT
 
 local ops   = require 'base/ops'
-local piles = require 'base/piles'
 local rules = require 'base/rules'
 
 
@@ -18,17 +17,17 @@ local forty_thieves        = {
         Redeals       = 0
     },
     Stock      = {
-        Initial = piles.Initial.face_down(64)
+        Initial = ops.Initial.face_down(64)
     },
     Waste      = {},
     Foundation = {
         Size   = 8,
-        Create = piles.ace_upsuit_top
+        Create = { Rule = rules.ace_upsuit_top }
     },
     Tableau    = {
         Size   = 10,
         Create = {
-            Initial = piles.Initial.face_up(4),
+            Initial = ops.Initial.face_up(4),
             Layout = "Column",
             Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.Top, Empty = rules.Empty.Any }
         }
@@ -41,11 +40,11 @@ local forty_thieves        = {
 
 local alternation          = Sol.copy(forty_thieves)
 alternation.Info.Name      = "Alternation"
-alternation.Stock.Initial  = piles.Initial.face_down(55)
+alternation.Stock.Initial  = ops.Initial.face_down(55)
 alternation.Tableau        = {
     Size   = 7,
     Create = {
-        Initial = piles.Initial.alternate(7, true),
+        Initial = ops.Initial.alternate(7, true),
         Layout = "Column",
         Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.InSeq, Empty = rules.Empty.King }
     }
@@ -56,7 +55,7 @@ alternation.Tableau        = {
 local interchange          = Sol.copy(alternation)
 interchange.Info.Name      = "Interchange"
 interchange.Tableau.Create = {
-    Initial = piles.Initial.alternate(7, true),
+    Initial = ops.Initial.alternate(7, true),
     Layout = "Column",
     Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.InSeq, Empty = rules.Empty.King }
 }
@@ -65,11 +64,11 @@ interchange.Tableau.Create = {
 
 local busy_aces            = Sol.copy(forty_thieves)
 busy_aces.Info.Name        = "Busy Aces"
-busy_aces.Stock.Initial    = piles.Initial.face_down(92)
+busy_aces.Stock.Initial    = ops.Initial.face_down(92)
 busy_aces.Tableau          = {
     Size   = 12,
     Create = {
-        Initial = piles.Initial.face_up(1),
+        Initial = ops.Initial.face_up(1),
         Layout = "Column",
         Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.Top, Empty = rules.Empty.Any }
     }
@@ -79,11 +78,11 @@ busy_aces.Tableau          = {
 
 local corona               = Sol.copy(forty_thieves)
 corona.Info.Name           = "Corona"
-corona.Stock.Initial       = piles.Initial.face_down(68)
+corona.Stock.Initial       = ops.Initial.face_down(68)
 corona.Tableau             = {
     Size   = 12,
     Create = {
-        Initial = piles.Initial.face_up(3),
+        Initial = ops.Initial.face_up(3),
         Layout = "Column",
         Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.Top, Empty = rules.Empty.Any }
     }
@@ -96,11 +95,11 @@ end
 
 local courtyard            = Sol.copy(forty_thieves)
 courtyard.Info.Name        = "Courtyard"
-courtyard.Stock.Initial    = piles.Initial.face_down(92)
+courtyard.Stock.Initial    = ops.Initial.face_down(92)
 courtyard.Tableau          = {
     Size   = 12,
     Create = {
-        Initial = piles.Initial.face_up(1),
+        Initial = ops.Initial.face_up(1),
         Layout = "Column",
         Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.InSeq, Empty = rules.Empty.Any }
     }

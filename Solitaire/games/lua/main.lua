@@ -33,8 +33,7 @@ Sol.Ranks = { "Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "N
 Sol.SuitColors = { Hearts = "Red", Diamonds = "Red", Spades = "Black", Clubs = "Black" }
 
 function Sol.get_rank(r, interval, wrap)
-    local rank = Sol.RankValues[r]
-    local target = rank + interval
+    local target = Sol.RankValues[r] + interval
 
     if wrap then
         target = ((target - 1) % 13 + 13) % 13 + 1

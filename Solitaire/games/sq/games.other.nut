@@ -4,7 +4,6 @@
 // https://opensource.org/licenses/MIT
 
 local ops = dofile("./base/ops.nut", true)
-local piles = dofile("./base/piles.nut", true)
 local rules = dofile("./base/rules.nut", true)
 
 local aces_up = {
@@ -17,7 +16,7 @@ local aces_up = {
         Redeals = 0
     },
     Stock = {
-        Initial = piles.Initial.face_down(48)
+        Initial = ops.Initial.face_down(48)
     },
     Foundation = {
         Rule = {
@@ -27,7 +26,7 @@ local aces_up = {
     Tableau = {
         Size = 4,
         Create = @(i) {
-            Initial = piles.Initial.face_up(1),
+            Initial = ops.Initial.face_up(1),
                 Layout = "Column",
                 Rule = {
                     Build = rules.Build.NoBuilding,
@@ -86,7 +85,7 @@ local aces_up = {
 
 local aces_up_5 = Sol.copy(aces_up)
 aces_up_5.Info.Name = "Aces Up 5"
-aces_up_5.Stock.Initial = piles.Initial.face_down(47)
+aces_up_5.Stock.Initial = ops.Initial.face_down(47)
 aces_up_5.Tableau.Size = 5
 
 # # # # # # # #
@@ -105,7 +104,7 @@ local aces_square = {
             x = 4.5,
             y = 2
         },
-        Initial = piles.Initial.face_down(36)
+        Initial = ops.Initial.face_down(36)
     },
     Foundation = {
         Position = {
@@ -123,7 +122,7 @@ local aces_square = {
                     x = i % 4,
                     y = i / 4
                 },
-                Initial = piles.Initial.face_up(1),
+                Initial = ops.Initial.face_up(1),
                 Layout = "Column",
                 Rule = {
                     Build = rules.Build.NoBuilding,
@@ -215,7 +214,7 @@ local four_seasons = {
             x = 1.5,
             y = 0
         },
-        Initial = piles.Initial.face_down(46)
+        Initial = ops.Initial.face_down(46)
     },
     Waste = {
         Position = {
@@ -230,7 +229,7 @@ local four_seasons = {
                     x = four_seasons_fou_pos[i][0],
                     y = four_seasons_fou_pos[i][1]
                 },
-                Initial = piles.Initial.face_up(i == 0 ? 1 : 0),
+                Initial = ops.Initial.face_up(i == 0 ? 1 : 0),
                 Rule = {
                     Build = rules.Build.UpInSuit,
                     Wrap = true,
@@ -246,7 +245,7 @@ local four_seasons = {
                     x = four_seasons_tab_pos[i][0],
                     y = four_seasons_tab_pos[i][1]
                 },
-                Initial = piles.Initial.face_up(1),
+                Initial = ops.Initial.face_up(1),
                 Layout = "Squared",
                 Rule = {
                     Build = rules.Build.DownByRank,
