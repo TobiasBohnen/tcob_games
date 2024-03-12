@@ -39,6 +39,6 @@ local initial = {
 }
 
 return {
-    ace_upsuit_top = function() return { Rule = { Build = "UpInSuit", Move = rules.Move.Top, Empty = rules.Empty.Ace } } end,
+    ace_upsuit_top = { Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.Top, Empty = rules.Empty.Ace } },
     Initial = initial
 }

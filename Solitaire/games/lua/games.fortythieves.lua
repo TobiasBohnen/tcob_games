@@ -23,14 +23,14 @@ local forty_thieves        = {
     Waste      = {},
     Foundation = {
         Size   = 8,
-        create = piles.ace_upsuit_top
+        Create = piles.ace_upsuit_top
     },
     Tableau    = {
         Size   = 10,
-        create = {
+        Create = {
             Initial = piles.Initial.face_up(4),
             Layout = "Column",
-            Rule = { Build = "DownInSuit", Move = rules.Move.Top, Empty = rules.Empty.Any }
+            Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.Top, Empty = rules.Empty.Any }
         }
     },
     on_deal    = ops.Deal.stock_to_waste,
@@ -44,10 +44,10 @@ alternation.Info.Name      = "Alternation"
 alternation.Stock.Initial  = piles.Initial.face_down(55)
 alternation.Tableau        = {
     Size   = 7,
-    create = {
+    Create = {
         Initial = piles.Initial.alternate(7, true),
         Layout = "Column",
-        Rule = { Build = "DownAlternateColors", Move = rules.Move.InSeq, Empty = rules.Empty.King }
+        Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.InSeq, Empty = rules.Empty.King }
     }
 }
 
@@ -55,10 +55,10 @@ alternation.Tableau        = {
 
 local interchange          = Sol.copy(alternation)
 interchange.Info.Name      = "Interchange"
-interchange.Tableau.create = {
+interchange.Tableau.Create = {
     Initial = piles.Initial.alternate(7, true),
     Layout = "Column",
-    Rule = { Build = "DownInSuit", Move = rules.Move.InSeq, Empty = rules.Empty.King }
+    Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.InSeq, Empty = rules.Empty.King }
 }
 
 ------
@@ -68,10 +68,10 @@ busy_aces.Info.Name        = "Busy Aces"
 busy_aces.Stock.Initial    = piles.Initial.face_down(92)
 busy_aces.Tableau          = {
     Size   = 12,
-    create = {
+    Create = {
         Initial = piles.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Build = "DownInSuit", Move = rules.Move.Top, Empty = rules.Empty.Any }
+        Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.Top, Empty = rules.Empty.Any }
     }
 }
 
@@ -82,10 +82,10 @@ corona.Info.Name           = "Corona"
 corona.Stock.Initial       = piles.Initial.face_down(68)
 corona.Tableau             = {
     Size   = 12,
-    create = {
+    Create = {
         Initial = piles.Initial.face_up(3),
         Layout = "Column",
-        Rule = { Build = "DownInSuit", Move = rules.Move.Top, Empty = rules.Empty.Any }
+        Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.Top, Empty = rules.Empty.Any }
     }
 }
 corona.on_change           = function(game)
@@ -99,10 +99,10 @@ courtyard.Info.Name        = "Courtyard"
 courtyard.Stock.Initial    = piles.Initial.face_down(92)
 courtyard.Tableau          = {
     Size   = 12,
-    create = {
+    Create = {
         Initial = piles.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Build = "DownInSuit", Move = rules.Move.InSeq, Empty = rules.Empty.Any }
+        Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.InSeq, Empty = rules.Empty.Any }
     }
 }
 courtyard.on_change        = corona.on_change

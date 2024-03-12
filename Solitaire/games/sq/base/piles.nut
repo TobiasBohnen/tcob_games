@@ -3,6 +3,8 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
+local rules = dofile("./base/rules.nut", true)
+
 local initial_tab = {
     top_face_up = function(size) {
         local retValue = []
@@ -37,11 +39,11 @@ local initial_tab = {
 }
 
 return {
-    ace_upsuit_top = @() {
+    ace_upsuit_top = {
         Rule = {
-            Build = "UpInSuit",
+            Build = rules.Build.UpInSuit,
             Move = rules.Move.Top,
-            Empty = "Ace"
+            Empty = rules.Empty.Ace
         }
     },
     Initial = initial_tab

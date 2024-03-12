@@ -290,17 +290,26 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
         pileTab.try_get(pile.HasMarker, "HasMarker");
 
         if (Table ruleTable; pileTab.try_get(ruleTable, "Rule")) {
-            ruleTable.try_get(pile.Rule.Build, "Build");
             ruleTable.try_get(pile.Rule.Interval, "Interval");
             ruleTable.try_get(pile.Rule.Wrap, "Wrap");
             ruleTable.try_get(pile.Rule.Limit, "Limit");
+
+            if (Table buildTable; ruleTable.try_get(buildTable, "Build")) {
+                buildTable.try_get(pile.Rule.BuildHint, "BuildHint");
+
+                Function<bool> func;
+                buildTable.try_get(func, "Build");
+                pile.Rule.Build = {[func](card const& target, card const& drop, i32 interval, bool wrap) {
+                    return func(target, drop, interval, wrap);
+                }};
+            }
 
             if (Table moveTable; ruleTable.try_get(moveTable, "Move")) {
                 moveTable.try_get(pile.Rule.IsPlayable, "IsPlayable");
                 moveTable.try_get(pile.Rule.IsSequence, "IsSequence");
 
                 Function<bool> func;
-                moveTable.try_get(func, "move");
+                moveTable.try_get(func, "Move");
                 pile.Rule.Move = {[func](base_game const* game, class pile const* target, isize idx) {
                     return func(game, target, idx - IndexOffset);
                 }};
@@ -319,16 +328,16 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
         if (Table pileTypeTable; gameRef.try_get(pileTypeTable, name)) {
             isize size {1};
             pileTypeTable.try_get(size, "Size");
-            if (size == 1 && !pileTypeTable.has("create")) { // table is definition
+            if (size == 1 && !pileTypeTable.has("Create")) { // table is definition
                 create_piles(piles, 1, [&](auto& pile, i32) {
                     createPile(pile, pileTypeTable);
                 });
-            } else if (Table createTable; pileTypeTable.try_get(createTable, "create")) { // use 'create' table
+            } else if (Table createTable; pileTypeTable.try_get(createTable, "Create")) { // use 'create' table
                 create_piles(piles, size, [&](auto& pile, i32) {
                     createPile(pile, createTable);
                 });
             } else { // call 'create' function
-                Function<Table> create {pileTypeTable["create"].template as<Function<Table>>()};
+                Function<Table> create {pileTypeTable["Create"].template as<Function<Table>>()};
                 create_piles(piles, size, [&](auto& pile, i32 i) {
                     createPile(pile, create(i));
                 });

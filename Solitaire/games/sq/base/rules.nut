@@ -3,31 +3,203 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
+local rules = {
+    in_suit = function(card0, card1) {
+        return card0.Suit == card1.Suit;
+    },
+
+    in_color = function(card0, card1) {
+        return Sol.SuitColors[card0.Suit] == Sol.SuitColors[card1.Suit];
+    },
+
+    alternate_color = function(card0, card1) {
+        return Sol.SuitColors[card0.Suit] != Sol.SuitColors[card1.Suit];
+    },
+
+    in_rank = function(card0, card1) {
+        return card0.Rank == card1.Rank;
+    },
+
+    build_up = function(card0, card1, interval, wrap) {
+        return Sol.get_rank(card0.Rank, interval, wrap) == card1.Rank;
+    },
+
+    build_down = function(card0, card1, interval, wrap) {
+        return Sol.get_rank(card0.Rank, -interval, wrap) == card1.Rank;
+    }
+};
+
+local build = {
+    NoBuilding = {
+        BuildHint = "No building.",
+        Build = function(target, drop, interval, wrap) {
+            return false;
+        }
+    },
+
+    Any = {
+        BuildHint = "Any card.",
+        Build = function(target, drop, interval, wrap) {
+            return true;
+        }
+    },
+
+    InRank = {
+        BuildHint = "Build by same rank.",
+        Build = function(target, drop, interval, wrap) {
+            return rules.in_rank(target, drop);
+        }
+    },
+
+    InRankOrDownByRank = {
+        BuildHint = "Build down by rank or by same rank.",
+        Build = function(target, drop, interval, wrap) {
+            return rules.in_rank(target, drop) || rules.build_down(target, drop, interval, wrap);
+        }
+    },
+
+    RankPack = {
+        BuildHint = "Build by same rank, then build up by rank.",
+        Build = function(target, drop, interval, wrap) {
+            if (target.CardCount % 4 == 0) {
+                return rules.build_up(target, drop, interval, wrap);
+            }
+            return rules.in_rank(target, drop);
+        }
+    },
+
+    UpOrDownByRank = {
+        BuildHint = "Build up or down by rank.",
+        Build = function(target, drop, interval, wrap) {
+            return rules.build_up(target, drop, interval, wrap) || rules.build_down(target, drop, interval, wrap);
+        }
+    },
+
+    DownByRank = {
+        BuildHint = "Build down by rank.",
+        Build = function(target, drop, interval, wrap) {
+            return rules.build_down(target, drop, interval, wrap);
+        }
+    },
+
+    UpByRank = {
+        BuildHint = "Build up by rank.",
+        Build = function(target, drop, interval, wrap) {
+            return rules.build_up(target, drop, interval, wrap);
+        }
+    },
+
+    UpOrDownAnyButOwnSuit = {
+        BuildHint = "Build up or down by any suit but own.",
+        Build = function(target, drop, interval, wrap) {
+            return !rules.in_suit(target, drop) && (rules.build_up(target, drop, interval, wrap) || rules.build_down(target, drop, interval, wrap));
+        }
+    },
+
+    DownAnyButOwnSuit = {
+        BuildHint = "Build down by any suit but own.",
+        Build = function(target, drop, interval, wrap) {
+            return !rules.in_suit(target, drop) && rules.build_down(target, drop, interval, wrap);
+        }
+    },
+
+    UpAnyButOwnSuit = {
+        BuildHint = "Build up by any suit but own.",
+        Build = function(target, drop, interval, wrap) {
+            return !rules.in_suit(target, drop) && rules.build_up(target, drop, interval, wrap);
+        }
+    },
+
+    UpOrDownInSuit = {
+        BuildHint = "Build up or down by suit.",
+        Build = function(target, drop, interval, wrap) {
+            return rules.in_suit(target, drop) && (rules.build_up(target, drop, interval, wrap) || rules.build_down(target, drop, interval, wrap));
+        }
+    },
+
+    DownInSuit = {
+        BuildHint = "Build down by suit.",
+        Build = function(target, drop, interval, wrap) {
+            return rules.in_suit(target, drop) && rules.build_down(target, drop, interval, wrap);
+        }
+    },
+
+    UpInSuit = {
+        BuildHint = "Build up by suit.",
+        Build = function(target, drop, interval, wrap) {
+            return rules.in_suit(target, drop) && rules.build_up(target, drop, interval, wrap);
+        }
+    },
+
+    UpOrDownInColor = {
+        BuildHint = "Build up or down by color.",
+        Build = function(target, drop, interval, wrap) {
+            return rules.in_color(target, drop) && (rules.build_up(target, drop, interval, wrap) || rules.build_down(target, drop, interval, wrap));
+        }
+    },
+
+    DownInColor = {
+        BuildHint = "Build down by color.",
+        Build = function(target, drop, interval, wrap) {
+            return rules.in_color(target, drop) && rules.build_down(target, drop, interval, wrap);
+        }
+    },
+
+    UpInColor = {
+        BuildHint = "Build up by color.",
+        Build = function(target, drop, interval, wrap) {
+            return rules.in_color(target, drop) && rules.build_up(target, drop, interval, wrap);
+        }
+    },
+
+    UpOrDownAlternateColors = {
+        BuildHint = "Build up or down by alternate color.",
+        Build = function(target, drop, interval, wrap) {
+            return rules.alternate_color(target, drop) && (rules.build_up(target, drop, interval, wrap) || rules.build_down(target, drop, interval, wrap));
+        }
+    },
+
+    DownAlternateColors = {
+        BuildHint = "Build down by alternate color.",
+        Build = function(target, drop, interval, wrap) {
+            return rules.alternate_color(target, drop) && rules.build_down(target, drop, interval, wrap);
+        }
+    },
+
+    UpAlternateColors = {
+        BuildHint = "Build up by alternate color.",
+        Build = function(target, drop, interval, wrap) {
+            return rules.alternate_color(target, drop) && rules.build_up(target, drop, interval, wrap);
+        }
+    }
+};
+
+
 local move = {
     None = {
         IsPlayable = false,
         IsSequence = false,
-        move = @(_, _, _) false
+        Move = @(_, _, _) false
     },
     Top = {
         IsPlayable = true,
         IsSequence = false,
-        move = @(_, target, idx) idx == target.CardCount - 1
+        Move = @(_, target, idx) idx == target.CardCount - 1
     },
     TopOrPile = {
         IsPlayable = true,
         IsSequence = true,
-        move = @(_, target, idx) idx == target.CardCount - 1 || idx == 0
+        Move = @(_, target, idx) idx == target.CardCount - 1 || idx == 0
     },
     FaceUp = {
         IsPlayable = true,
         IsSequence = true,
-        move = @(_, target, idx) target.Cards[idx].IsFaceUp
+        Move = @(_, target, idx) target.Cards[idx].IsFaceUp
     },
     InSeq = {
         IsPlayable = true,
         IsSequence = true,
-        move = function(game, target, idx) {
+        Move = function(game, target, idx) {
             local cards = target.Cards
             if (cards[idx].IsFaceDown) {
                 return false
@@ -43,7 +215,7 @@ local move = {
     InSeqInSuit = {
         IsPlayable = true,
         IsSequence = true,
-        move = function(game, target, idx) {
+        Move = function(game, target, idx) {
             local cards = target.Cards
             if (cards[idx].IsFaceDown) {
                 return false
@@ -60,7 +232,7 @@ local move = {
     InSeqInSuitOrSameRank = {
         IsPlayable = true,
         IsSequence = true,
-        move = function(game, target, idx) {
+        Move = function(game, target, idx) {
             local cards = target.Cards
             if (cards[idx].IsFaceDown) {
                 return false
@@ -90,7 +262,7 @@ local move = {
     SuperMove = {
         IsPlayable = true,
         IsSequence = true,
-        move = function(game, target, idx) {
+        Move = function(game, target, idx) {
             local cards = target.Cards
             if (cards[idx].IsFaceDown) {
                 return false
@@ -163,6 +335,7 @@ local empty = {
 }
 
 return {
+    Build = build,
     Move = move,
     Empty = empty,
 }

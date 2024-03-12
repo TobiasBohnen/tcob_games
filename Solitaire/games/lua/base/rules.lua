@@ -3,67 +3,196 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local build = {
+local rules = {
     in_suit = function(card0, card1)
-    end,
-    suit = function(card0, suit)
+        return card0.Suit == card1.Suit
     end,
 
     in_color = function(card0, card1)
+        return Sol.SuitColors[card0.Suit] == Sol.SuitColors[card1.Suit]
     end,
     alternate_color = function(card0, card1)
+        return Sol.SuitColors[card0.Suit] ~= Sol.SuitColors[card1.Suit]
     end,
 
     in_rank = function(card0, card1)
-    end,
-    rank = function(card0, rank)
-    end,
-    rank_higher = function(card0, card1)
-    end,
-    build_up = function(card0, card1, interval, wrap)
-    end,
-    build_down = function(card0, card1, interval, wrap)
+        return card0.Rank == card1.Rank
     end,
 
-    fill = function(pile, card0, numCards)
+    build_up = function(card0, card1, interval, wrap)
+        return Sol.get_rank(card0.Rank, interval, wrap) == card1.Rank
     end,
-    empty = function(pile)
-    end,
-    limit_size = function(pile, numCards)
-    end,
+    build_down = function(card0, card1, interval, wrap)
+        return Sol.get_rank(card0.Rank, -interval, wrap) == card1.Rank
+    end
+}
+
+local build = {
+    NoBuilding         = {
+        BuildHint = "No building.",
+        Build = function(target, drop, interval, wrap)
+            return false
+        end
+    },
+    Any                = {
+        BuildHint = "Any card.",
+        Build = function(target, drop, interval, wrap)
+            return true
+        end
+    },
+
+    InRank             = {
+        BuildHint = "Build by same rank.",
+        Build = function(target, drop, interval, wrap)
+            return rules.in_rank(target, drop)
+        end
+    },
+
+    InRankOrDownByRank = {
+        BuildHint = "Build down by rank or by same rank.",
+        Build = function(target, drop, interval, wrap)
+            return rules.in_rank(target, drop) or rules.build_down(target, drop, interval, wrap)
+        end
+    },
+
+    RankPack           = {
+        BuildHint = "Build by same rank, then build up by rank.",
+        Build = function(target, drop, interval, wrap)
+            if target.CardCount % 4 == 0 then
+                return rules.build_up(target, drop, interval, wrap)
+            end
+            return rules.in_rank(target, drop)
+        end
+    },
+
+    UpOrDownByRank     = {
+        BuildHint = "Build up or down by rank.",
+        Build = function(target, drop, interval, wrap)
+            return rules.build_up(target, drop, interval, wrap) or rules.build_down(target, drop, interval, wrap)
+        end
+    },
+    DownByRank         = {
+        BuildHint = "Build down by rank.",
+        Build = function(target, drop, interval, wrap)
+            return rules.build_down(target, drop, interval, wrap)
+        end
+    },
+    UpByRank           = {
+        BuildHint = "Build up by rank.",
+        Build = function(target, drop, interval, wrap)
+            return rules.build_up(target, drop, interval, wrap)
+        end
+    },
+
+
+    UpOrDownAnyButOwnSuit = {
+        BuildHint = "Build up or down by any suit but own.",
+        Build = function(target, drop, interval, wrap)
+            return not rules.in_suit(target, drop) and (rules.build_up(target, drop, interval, wrap) or rules.build_down(target, drop, interval, wrap))
+        end
+    },
+    DownAnyButOwnSuit = {
+        BuildHint = "Build down by any suit but own.",
+        Build = function(target, drop, interval, wrap)
+            return not rules.in_suit(target, drop) and rules.build_down(target, drop, interval, wrap)
+        end
+    },
+    UpAnyButOwnSuit = {
+        BuildHint = "Build up by any suit but own.",
+        Build = function(target, drop, interval, wrap)
+            return not rules.in_suit(target, drop) and rules.build_up(target, drop, interval, wrap)
+        end
+    },
+
+    UpOrDownInSuit = {
+        BuildHint = "Build up or down by suit.",
+        Build = function(target, drop, interval, wrap)
+            return rules.in_suit(target, drop) and (rules.build_up(target, drop, interval, wrap) or rules.build_down(target, drop, interval, wrap))
+        end
+    },
+    DownInSuit = {
+        BuildHint = "Build down by suit.",
+        Build = function(target, drop, interval, wrap)
+            return rules.in_suit(target, drop) and rules.build_down(target, drop, interval, wrap)
+        end
+    },
+    UpInSuit = {
+        BuildHint = "Build up by suit.",
+        Build = function(target, drop, interval, wrap)
+            return rules.in_suit(target, drop) and rules.build_up(target, drop, interval, wrap)
+        end
+    },
+
+    UpOrDownInColor = {
+        BuildHint = "Build up or down by color.",
+        Build = function(target, drop, interval, wrap)
+            return rules.in_color(target, drop) and (rules.build_up(target, drop, interval, wrap) or rules.build_down(target, drop, interval, wrap))
+        end
+    },
+    DownInColor = {
+        BuildHint = "Build down by color.",
+        Build = function(target, drop, interval, wrap)
+            return rules.in_color(target, drop) and rules.build_down(target, drop, interval, wrap)
+        end
+    },
+    UpInColor = {
+        BuildHint = "Build up by color.",
+        Build = function(target, drop, interval, wrap)
+            return rules.in_color(target, drop) and rules.build_up(target, drop, interval, wrap)
+        end
+    },
+
+    UpOrDownAlternateColors = {
+        BuildHint = "Build up or down by alternate color.",
+        Build = function(target, drop, interval, wrap)
+            return rules.alternate_color(target, drop) and (rules.build_up(target, drop, interval, wrap) or rules.build_down(target, drop, interval, wrap))
+        end
+    },
+    DownAlternateColors = {
+        BuildHint = "Build down by alternate color.",
+        Build = function(target, drop, interval, wrap)
+            return rules.alternate_color(target, drop) and rules.build_down(target, drop, interval, wrap)
+        end
+    },
+    UpAlternateColors = {
+        BuildHint = "Build up by alternate color.",
+        Build = function(target, drop, interval, wrap)
+            return rules.alternate_color(target, drop) and rules.build_up(target, drop, interval, wrap)
+        end
+    },
 }
 
 local move = {
     None = {
         IsPlayable = false,
         IsSequence = false,
-        move = function(_, _, _) return false end
+        Move = function(_, _, _) return false end
     },
     Top = {
         IsPlayable = true,
         IsSequence = false,
-        move = function(_, target, idx)
+        Move = function(_, target, idx)
             return idx == target.CardCount
         end
     },
     TopOrPile = {
         IsPlayable = true,
         IsSequence = true,
-        move = function(_, target, idx)
+        Move = function(_, target, idx)
             return idx == target.CardCount or idx == 1
         end
     },
     FaceUp = {
         IsPlayable = true,
         IsSequence = true,
-        move = function(_, target, idx)
+        Move = function(_, target, idx)
             return target.Cards[idx].IsFaceUp
         end
     },
     InSeq = {
         IsPlayable = true,
         IsSequence = true,
-        move = function(game, target, idx)
+        Move = function(game, target, idx)
             local cards = target.Cards
             if cards[idx].IsFaceDown then return false end
             for i = idx, #cards - 1, 1 do
@@ -75,7 +204,7 @@ local move = {
     InSeqInSuit = {
         IsPlayable = true,
         IsSequence = true,
-        move = function(game, target, idx)
+        Move = function(game, target, idx)
             local cards = target.Cards
             if cards[idx].IsFaceDown then return false end
 
@@ -93,7 +222,7 @@ local move = {
     InSeqInSuitOrSameRank = {
         IsPlayable = true,
         IsSequence = true,
-        move = function(game, target, idx)
+        Move = function(game, target, idx)
             local cards = target.Cards
             if cards[idx].IsFaceDown then return false end
             local targetSuit = cards[idx].Suit
@@ -122,7 +251,7 @@ local move = {
     SuperMove = {
         IsPlayable = true,
         IsSequence = true,
-        move = function(game, target, idx)
+        Move = function(game, target, idx)
             local cards = target.Cards
             if cards[idx].IsFaceDown then return false end
 
@@ -214,6 +343,7 @@ local empty = {
 }
 
 return {
+    Build = build,
     Move = move,
     Empty = empty,
 }

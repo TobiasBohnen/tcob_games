@@ -23,21 +23,21 @@ local spider             = {
     },
     Foundation = {
         Size   = 4,
-        create = function(i)
+        Create = function(i)
             return {
                 Position = { x = i + 2, y = 0 },
-                Rule = { Build = "NoBuilding", Move = rules.Move.None }
+                Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.None }
             }
         end
     },
     Tableau    = {
         Size   = 10,
-        create = function(i)
+        Create = function(i)
             return {
                 Position = { x = i, y = 1 },
                 Initial  = piles.Initial.top_face_up(i < 4 and 6 or 5),
                 Layout   = "Column",
-                Rule     = { Build = "DownByRank", Move = rules.Move.InSeqInSuit, Empty = rules.Empty.Any }
+                Rule     = { Build = rules.Build.DownByRank, Move = rules.Move.InSeqInSuit, Empty = rules.Empty.Any }
             }
         end
     },
@@ -82,14 +82,14 @@ local arachnida          = Sol.copy(spider)
 arachnida.Info.Name      = "Arachnida"
 arachnida.Foundation     = {
     Position = { x = 11, y = 0 },
-    Rule = { Build = "NoBuilding", Move = rules.Move.None }
+    Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.None }
 }
-arachnida.Tableau.create = function(i)
+arachnida.Tableau.Create = function(i)
     return {
         Position = { x = i + 1, y = 0 },
         Initial  = piles.Initial.top_face_up(i < 4 and 6 or 5),
         Layout   = "Column",
-        Rule     = { Build = "InRankOrDownByRank", Move = rules.Move.InSeqInSuitOrSameRank, Empty = rules.Empty.Any }
+        Rule     = { Build = rules.Build.InRankOrDownByRank, Move = rules.Move.InSeqInSuitOrSameRank, Empty = rules.Empty.Any }
     }
 end
 

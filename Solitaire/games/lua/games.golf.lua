@@ -49,14 +49,14 @@ local golf                 = {
     Foundation  = {
         Initial = piles.Initial.face_up(1),
         Layout  = "Squared",
-        Rule    = { Build = "UpOrDownByRank", Move = rules.Move.None }
+        Rule    = { Build = rules.Build.UpOrDownByRank, Move = rules.Move.None }
     },
     Tableau     = {
         Size   = 7,
-        create = {
+        Create = {
             Initial = piles.Initial.top_face_up(5),
             Layout = "Column",
-            Rule = { Build = "NoBuilding", Move = rules.Move.Top }
+            Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.Top }
         }
     },
     on_deal     = function(game)
@@ -74,10 +74,10 @@ double_golf.Info.DeckCount = 2
 double_golf.Stock.Initial  = piles.Initial.face_down(40)
 double_golf.Tableau        = {
     Size   = 9,
-    create = {
+    Create = {
         Initial = piles.Initial.top_face_up(7),
         Layout = "Column",
-        Rule = { Build = "NoBuilding", Move = rules.Move.Top }
+        Rule = { Build = rules.Build.NoBuilding, Move = rules.Move.Top }
     }
 }
 
@@ -88,7 +88,7 @@ putt_putt.Info.Name        = "Putt Putt"
 putt_putt.Foundation       = {
     Initial = piles.Initial.face_up(1),
     Layout  = "Squared",
-    Rule    = { Build = "UpOrDownByRank", Wrap = true, Move = rules.Move.None }
+    Rule    = { Build = rules.Build.UpOrDownByRank, Wrap = true, Move = rules.Move.None }
 }
 
 ------
@@ -118,16 +118,16 @@ local black_hole           = {
     },
     Foundation        = {
         Position = { x = 4, y = 1.5 },
-        Rule     = { Build = "UpOrDownByRank", Wrap = true, Move = rules.Move.None }
+        Rule     = { Build = rules.Build.UpOrDownByRank, Wrap = true, Move = rules.Move.None }
     },
     Tableau           = {
         Size   = 17,
-        create = function(i)
+        Create = function(i)
             return {
                 Position = { x = black_hole_pos[i + 1][1], y = black_hole_pos[i + 1][2] },
                 Initial = piles.Initial.face_up(3),
                 Layout = "Row",
-                Rule = { Build = "NoBuilding" }
+                Rule = { Build = rules.Build.NoBuilding }
             }
         end
     },

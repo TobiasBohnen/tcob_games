@@ -19,15 +19,15 @@ local fan                    = {
     },
     Foundation = {
         Size   = 4,
-        create = piles.ace_upsuit_top
+        Create = piles.ace_upsuit_top
     },
     Tableau    = {
         Size   = 18,
-        create = function(i)
+        Create = function(i)
             return {
                 Initial = piles.Initial.face_up(i < 17 and 3 or 1),
                 Layout = "Row",
-                Rule = { Build = "DownInSuit", Move = rules.Move.Top, Empty = rules.Empty.King }
+                Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.Top, Empty = rules.Empty.King }
             }
         end
     },
@@ -40,21 +40,21 @@ local bear_river             = Sol.copy(fan)
 bear_river.Info.Name         = "Bear River"
 bear_river.Foundation        = {
     Size   = 4,
-    create = function(i)
+    Create = function(i)
         return {
             Initial = piles.Initial.face_up(i == 0 and 1 or 0),
-            Rule = { Build = "UpInSuit", Wrap = true, Move = rules.Move.None, Empty = function(game) return rules.Empty.FirstFoundation(game) end }
+            Rule = { Build = rules.Build.UpInSuit, Wrap = true, Move = rules.Move.None, Empty = function(game) return rules.Empty.FirstFoundation(game) end }
         }
     end
 }
 bear_river.Tableau           = {
     Size   = 18,
-    create = function(i)
+    Create = function(i)
         local lastInRow = i % 6 == 5
         return {
             Initial = piles.Initial.face_up(lastInRow and 2 or 3),
             Layout = "Row",
-            Rule = { Build = "UpOrDownInSuit", Wrap = true, Move = rules.Move.Top, Empty = lastInRow and "Any" or "None", Limit = 3 }
+            Rule = { Build = rules.Build.UpOrDownInSuit, Wrap = true, Move = rules.Move.Top, Empty = lastInRow and "Any" or "None", Limit = 3 }
         }
     end
 }
@@ -66,10 +66,10 @@ local box_fan                = Sol.copy(fan)
 box_fan.Info.Name            = "Box Fan"
 box_fan.Tableau              = {
     Size   = 16,
-    create = {
+    Create = {
         Initial = piles.Initial.face_up(3),
         Layout = "Row",
-        Rule = { Build = "DownAlternateColors", Move = rules.Move.Top, Empty = rules.Empty.King }
+        Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.Top, Empty = rules.Empty.King }
     }
 }
 box_fan.on_before_shuffle    = ops.Shuffle.ace_to_foundation
@@ -81,11 +81,11 @@ local ceiling_fan            = Sol.copy(fan)
 ceiling_fan.Info.Name        = "Ceiling Fan"
 ceiling_fan.Tableau          = {
     Size   = 18,
-    create = function(i)
+    Create = function(i)
         return {
             Initial = piles.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
-            Rule = { Build = "DownAlternateColors", Move = rules.Move.Top, Empty = rules.Empty.King }
+            Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.Top, Empty = rules.Empty.King }
         }
     end
 }
@@ -103,20 +103,20 @@ local clover_leaf            = {
     },
     Foundation        = {
         Size   = 4,
-        create = function(i)
+        Create = function(i)
             if i < 2 then
-                return { Rule = { Build = "UpInSuit", Move = rules.Move.Top, Empty = function() return rules.Empty.CardColor("Black", "Ace") end } }
+                return { Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.Top, Empty = function() return rules.Empty.CardColor("Black", "Ace") end } }
             else
-                return { Rule = { Build = "DownInSuit", Move = rules.Move.Top, Empty = function() return rules.Empty.CardColor("Red", "King") end } }
+                return { Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.Top, Empty = function() return rules.Empty.CardColor("Red", "King") end } }
             end
         end
     },
     Tableau           = {
         Size   = 16,
-        create = {
+        Create = {
             Initial = piles.Initial.face_up(3),
             Layout = "Row",
-            Rule = { Build = "UpOrDownInSuit", Move = rules.Move.Top, Empty = function() return rules.Empty.Ranks({ "Ace", "King" }) end }
+            Rule = { Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top, Empty = function() return rules.Empty.Ranks({ "Ace", "King" }) end }
         }
     },
     on_before_shuffle = function(game, card)
@@ -138,10 +138,10 @@ local quads                  = Sol.copy(fan)
 quads.Info.Name              = "Quads"
 quads.Tableau                = {
     Size   = 13,
-    create = {
+    Create = {
         Initial = piles.Initial.face_up(4),
         Layout = "Row",
-        Rule = { Build = "InRank", Move = rules.Move.Top, Empty = rules.Empty.Any, Limit = 4 }
+        Rule = { Build = rules.Build.InRank, Move = rules.Move.Top, Empty = rules.Empty.Any, Limit = 4 }
     }
 }
 quads.on_shuffle             = function(game, card, pileType)
@@ -158,11 +158,11 @@ local quads_plus             = Sol.copy(fan)
 quads_plus.Info.Name         = "Quads+"
 quads_plus.Tableau           = {
     Size   = 13,
-    create = function(i)
+    Create = function(i)
         return {
             Initial = piles.Initial.face_up(i < 12 and 4 or 0),
             Layout = "Row",
-            Rule = { Build = "InRank", Move = rules.Move.Top, Empty = rules.Empty.Any, Limit = 4 }
+            Rule = { Build = rules.Build.InRank, Move = rules.Move.Top, Empty = rules.Empty.Any, Limit = 4 }
         }
     end
 }
@@ -186,21 +186,21 @@ local lucky_piles            = {
     },
     Foundation = {
         Size   = 4,
-        create = function(i)
+        Create = function(i)
             return {
                 Position = { x = (i + 0.5) * 2, y = 0 },
-                Rule = { Build = "UpInSuit", Move = rules.Move.Top, Empty = rules.Empty.Ace }
+                Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.Top, Empty = rules.Empty.Ace }
             }
         end
     },
     Tableau    = {
         Size   = 13,
-        create = function(i)
+        Create = function(i)
             return {
                 Position = { x = lucky_piles_pos[i + 1][1], y = lucky_piles_pos[i + 1][2] },
                 Initial = piles.Initial.face_up(4),
                 Layout = "Row",
-                Rule = { Build = "UpOrDownInSuit", Move = rules.Move.Top, Empty = rules.Empty.King }
+                Rule = { Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top, Empty = rules.Empty.King }
             }
         end
     }
@@ -212,15 +212,15 @@ local scotch_patience        = Sol.copy(fan)
 scotch_patience.Info.Name    = "Scotch Patience"
 scotch_patience.Foundation   = {
     Size   = 4,
-    create = { Rule = { Build = "UpAlternateColors", Move = rules.Move.Top, Empty = rules.Empty.Ace } }
+    Create = { Rule = { Build = rules.Build.UpAlternateColors, Move = rules.Move.Top, Empty = rules.Empty.Ace } }
 }
 scotch_patience.Tableau      = {
     Size   = 18,
-    create = function(i)
+    Create = function(i)
         return {
             Initial = piles.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
-            Rule = { Build = "DownByRank", Move = rules.Move.Top, Empty = rules.Empty.None }
+            Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = rules.Empty.None }
         }
     end
 }
@@ -231,11 +231,11 @@ local shamrocks              = Sol.copy(fan)
 shamrocks.Info.Name          = "Shamrocks"
 shamrocks.Tableau            = {
     Size   = 18,
-    create = function(i)
+    Create = function(i)
         return {
             Initial = piles.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
-            Rule = { Build = "UpOrDownByRank", Move = rules.Move.Top, Empty = rules.Empty.None, Limit = 3 }
+            Rule = { Build = rules.Build.UpOrDownByRank, Move = rules.Move.Top, Empty = rules.Empty.None, Limit = 3 }
         }
     end
 }
@@ -246,11 +246,11 @@ local shamrocks_2            = Sol.copy(fan)
 shamrocks_2.Info.Name        = "Shamrocks II"
 shamrocks_2.Tableau          = {
     Size   = 18,
-    create = function(i)
+    Create = function(i)
         return {
             Initial = piles.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
-            Rule = { Build = "UpOrDownByRank", Move = rules.Move.Top, Empty = rules.Empty.None, Limit = 3 }
+            Rule = { Build = rules.Build.UpOrDownByRank, Move = rules.Move.Top, Empty = rules.Empty.None, Limit = 3 }
         }
     end
 }
@@ -262,11 +262,11 @@ local troika                 = Sol.copy(fan)
 troika.Info.Name             = "Troika"
 troika.Tableau               = {
     Size   = 18,
-    create = function(i)
+    Create = function(i)
         return {
             Initial = piles.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
-            Rule = { Build = "InRank", Move = rules.Move.Top, Empty = rules.Empty.None, Limit = 3 }
+            Rule = { Build = rules.Build.InRank, Move = rules.Move.Top, Empty = rules.Empty.None, Limit = 3 }
         }
     end
 }

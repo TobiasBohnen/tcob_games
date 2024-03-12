@@ -26,11 +26,11 @@ local aces_up = {
     },
     Tableau = {
         Size = 4,
-        create = @(i) {
+        Create = @(i) {
             Initial = piles.Initial.face_up(1),
                 Layout = "Column",
                 Rule = {
-                    Build = "NoBuilding",
+                    Build = rules.Build.NoBuilding,
                     Move = rules.Move.Top,
                     Empty = rules.Empty.Any
                 }
@@ -118,7 +118,7 @@ local aces_square = {
     },
     Tableau = {
         Size = 16,
-        create = @(i) {
+        Create = @(i) {
             Position = {
                     x = i % 4,
                     y = i / 4
@@ -126,7 +126,7 @@ local aces_square = {
                 Initial = piles.Initial.face_up(1),
                 Layout = "Column",
                 Rule = {
-                    Build = "NoBuilding",
+                    Build = rules.Build.NoBuilding,
                     Move = rules.Move.Top,
                     Empty = rules.Empty.None
                 }
@@ -225,14 +225,14 @@ local four_seasons = {
     },
     Foundation = {
         Size = 4,
-        create = @(i) {
+        Create = @(i) {
             Position = {
                     x = four_seasons_fou_pos[i][0],
                     y = four_seasons_fou_pos[i][1]
                 },
                 Initial = piles.Initial.face_up(i == 0 ? 1 : 0),
                 Rule = {
-                    Build = "UpInSuit",
+                    Build = rules.Build.UpInSuit,
                     Wrap = true,
                     Move = rules.Move.None,
                     Empty = @(game) rules.Empty.FirstFoundation(game, 0)
@@ -241,7 +241,7 @@ local four_seasons = {
     },
     Tableau = {
         Size = 5,
-        create = @(i) {
+        Create = @(i) {
             Position = {
                     x = four_seasons_tab_pos[i][0],
                     y = four_seasons_tab_pos[i][1]
@@ -249,7 +249,7 @@ local four_seasons = {
                 Initial = piles.Initial.face_up(1),
                 Layout = "Squared",
                 Rule = {
-                    Build = "DownByRank",
+                    Build = rules.Build.DownByRank,
                     Wrap = true,
                     Move = rules.Move.Top,
                     Empty = rules.Empty.Any

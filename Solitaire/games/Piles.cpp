@@ -152,40 +152,6 @@ auto get_pile_type_name(pile_type s) -> std::string
     return "";
 }
 
-auto static get_building_hint_text(build_type h) -> std::string
-{
-    switch (h) {
-    case build_type::Any: return "Any card.";
-    case build_type::NoBuilding: return "No building.";
-
-    case build_type::DownByRank: return "Build down by rank.";
-    case build_type::UpByRank: return "Build up by rank.";
-    case build_type::UpOrDownByRank: return "Build up or down by rank.";
-
-    case build_type::DownInSuit: return "Build down by suit.";
-    case build_type::UpInSuit: return "Build up by suit.";
-    case build_type::UpOrDownInSuit: return "Build up or down by suit.";
-
-    case build_type::DownAlternateColors: return "Build down by alternate color.";
-    case build_type::UpAlternateColors: return "Build up by alternate color.";
-    case build_type::UpOrDownAlternateColors: return "Build up or down by alternate color.";
-
-    case build_type::DownAnyButOwnSuit: return "Build down by any suit but own.";
-    case build_type::UpAnyButOwnSuit: return "Build up by any suit but own.";
-    case build_type::UpOrDownAnyButOwnSuit: return "Build up or down by any suit but own.";
-
-    case build_type::DownInColor: return "Build down by color.";
-    case build_type::UpInColor: return "Build up by color.";
-    case build_type::UpOrDownInColor: return "Build up or down by color.";
-
-    case build_type::InRank: return "Build by same rank.";
-    case build_type::InRankOrDownByRank: return "Build down by rank or by same rank.";
-    case build_type::RankPack: return "Build by same rank, then build up by rank.";
-    }
-
-    return "";
-}
-
 auto pile::get_description(i32 remainingRedeals) const -> hover_info
 {
     auto const cardCount {Cards.size()};
@@ -205,9 +171,7 @@ auto pile::get_description(i32 remainingRedeals) const -> hover_info
     } break;
     case pile_type::Foundation:
     case pile_type::Tableau: {
-        retValue.Pile      = get_pile_type_name(Type);
-        retValue.Rule      = get_building_hint_text(Rule.Build) + "\nFirst: " + get_empty_ranks(Rule.Empty);
-        retValue.CardCount = std::to_string(cardCount);
+        retValue.Rule = Rule.BuildHint + "\nFirst: " + get_empty_ranks(Rule.Empty);
         break;
     }
     }
