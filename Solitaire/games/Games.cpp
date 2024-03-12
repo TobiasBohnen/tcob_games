@@ -1,3 +1,8 @@
+// Copyright (c) 2024 Tobias Bohnen
+//
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
+
 #include "Games.hpp"
 
 #include "Field.hpp"
@@ -391,7 +396,7 @@ void base_game::after_shuffle()
 
 auto base_game::can_drop(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool
 {
-    return rules::build(targetPile, targetIndex, drop, numCards);
+    return targetPile.build(targetIndex, drop, numCards);
 }
 
 auto base_game::check_movable(pile const& targetPile, isize idx) -> bool

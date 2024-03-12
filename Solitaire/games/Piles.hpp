@@ -7,11 +7,36 @@
 
 #include "Cards.hpp"
 #include "Common.hpp" // IWYU pragma: keep
-#include "Rules.hpp"
 
 #include <deque>
 
 namespace solitaire {
+
+////////////////////////////////////////////////////////////
+
+using build_func = std::function<bool(card const&, card const&, i32, bool)>;
+using move_func  = std::function<bool(games::base_game const*, pile const*, isize)>;
+using empty_func = std::function<bool(card const&, isize)>;
+
+auto build_none(card const&, card const&, i32, bool) -> bool;
+auto move_top(games::base_game const*, pile const* target, isize idx) -> bool;
+auto empty_none(card const&, isize) -> bool;
+
+struct rule {
+    std::string BuildHint;
+    build_func  Build {build_none};
+
+    bool      IsPlayable {true};
+    bool      IsSequence {false};
+    move_func Move {move_top};
+
+    empty_func Empty {empty_none};
+
+    i32  Interval {1};
+    bool Wrap {false};
+    i32  Limit {-1};
+};
+
 ////////////////////////////////////////////////////////////
 
 enum class pile_type {
@@ -30,14 +55,6 @@ enum class layout_type {
     Column,
     Row,
     Fan
-};
-
-////////////////////////////////////////////////////////////
-
-namespace initial {
-    auto top_face_up(usize size) -> std::vector<bool>;
-    auto face_up(usize size) -> std::vector<bool>;
-    auto face_down(usize size) -> std::vector<bool>;
 };
 
 ////////////////////////////////////////////////////////////
@@ -74,6 +91,8 @@ public:
     auto get_marker_texture_name() const -> std::string;
 
     void move_cards(pile& to, isize srcOffset, isize numCards, bool reverse);
+
+    auto build(isize targetIndex, card const& drop, isize numCards) const -> bool;
 
     auto operator==(pile const& other) const -> bool
     {

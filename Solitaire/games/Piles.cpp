@@ -7,24 +7,20 @@
 
 namespace solitaire {
 
-auto initial::top_face_up(usize size) -> std::vector<bool>
+auto build_none(card const&, card const&, i32, bool) -> bool
 {
-    std::vector<bool> retValue(size, false);
-    retValue[size - 1] = true;
-    return retValue;
+    return false;
 }
 
-auto initial::face_up(usize size) -> std::vector<bool>
+auto move_top(games::base_game const*, pile const* target, isize idx) -> bool
 {
-    return std::vector<bool>(size, true);
+    return idx == std::ssize(target->Cards) - 1;
 }
 
-auto initial::face_down(usize size) -> std::vector<bool>
+auto empty_none(card const&, isize) -> bool
 {
-    return std::vector<bool>(size, false);
+    return false;
 }
-
-////////////////////////////////////////////////////////////
 
 void pile::set_active(bool b, isize idx)
 {
@@ -222,6 +218,33 @@ void pile::move_cards(pile& to, isize srcOffset, isize numCards, bool reverse)
     Cards.erase(Cards.begin() + srcOffset, Cards.begin() + srcOffset + numCards);
 
     if (Type != pile_type::Stock) { flip_up_top_card(); }
+}
+
+static auto fill(pile const& pile, card const& card0, isize numCards) -> bool
+{
+    if (!pile.empty()) { return false; }
+    return pile.Rule.Empty(card0, numCards);
+}
+
+static auto limit_size(pile const& pile, isize numCards) -> bool
+{
+    if (pile.Rule.Limit < 0) { return true; }
+    return std::ssize(pile.Cards) + numCards <= pile.Rule.Limit;
+}
+
+auto pile::build(isize targetIndex, card const& drop, isize numCards) const -> bool
+{
+    if ((!Rule.IsSequence) && numCards > 1) { return false; }
+
+    if (!limit_size(*this, numCards)) { return false; }
+
+    if (fill(*this, drop, numCards)) { return true; }
+    if (empty() || targetIndex < 0) { return false; } // can't fill and is empty
+
+    card const& target {Cards[targetIndex]};
+    if (target.is_face_down()) { return false; }
+
+    return Rule.Build(target, drop, Rule.Interval, Rule.Wrap);
 }
 
 ////////////////////////////////////////////////////////////

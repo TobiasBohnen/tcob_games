@@ -169,29 +169,22 @@ local move = {
         Move = function(_, _, _) return false end
     },
     Top = {
-        IsPlayable = true,
         IsSequence = false,
         Move = function(_, target, idx)
             return idx == target.CardCount
         end
     },
     TopOrPile = {
-        IsPlayable = true,
-        IsSequence = true,
         Move = function(_, target, idx)
             return idx == target.CardCount or idx == 1
         end
     },
     FaceUp = {
-        IsPlayable = true,
-        IsSequence = true,
         Move = function(_, target, idx)
             return target.Cards[idx].IsFaceUp
         end
     },
     InSeq = {
-        IsPlayable = true,
-        IsSequence = true,
         Move = function(game, target, idx)
             local cards = target.Cards
             if cards[idx].IsFaceDown then return false end
@@ -202,8 +195,6 @@ local move = {
         end
     },
     InSeqInSuit = {
-        IsPlayable = true,
-        IsSequence = true,
         Move = function(game, target, idx)
             local cards = target.Cards
             if cards[idx].IsFaceDown then return false end
@@ -220,8 +211,6 @@ local move = {
         end
     },
     InSeqInSuitOrSameRank = {
-        IsPlayable = true,
-        IsSequence = true,
         Move = function(game, target, idx)
             local cards = target.Cards
             if cards[idx].IsFaceDown then return false end
@@ -249,8 +238,6 @@ local move = {
         end
     },
     SuperMove = {
-        IsPlayable = true,
-        IsSequence = true,
         Move = function(game, target, idx)
             local cards = target.Cards
             if cards[idx].IsFaceDown then return false end

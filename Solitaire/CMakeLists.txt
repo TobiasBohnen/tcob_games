@@ -10,7 +10,6 @@ target_sources(Solitaire PRIVATE
     ./games/Cards.cpp
     ./games/Games.cpp
     ./games/Piles.cpp
-    ./games/Rules.cpp
 )
 
 set_target_properties(Solitaire PROPERTIES
