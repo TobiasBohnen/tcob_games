@@ -10,7 +10,6 @@ local rules = require 'base/rules'
 local forty_thieves        = {
     Info       = {
         Name          = "Forty Thieves",
-        Type          = "SimplePacker",
         Family        = "FortyThieves",
         DeckCount     = 2,
         CardDealCount = 1,

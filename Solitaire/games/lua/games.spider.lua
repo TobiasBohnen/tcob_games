@@ -10,7 +10,6 @@ local rules = require 'base/rules'
 local spider             = {
     Info       = {
         Name          = "Spider",
-        Type          = "Spider",
         Family        = "Spider",
         DeckCount     = 2,
         CardDealCount = 10,

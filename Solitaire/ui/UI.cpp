@@ -92,40 +92,6 @@ form_menu::form_menu(gfx::window* window, rect_f bounds,
         createTab(games::family::Yukon, "Yukon");
         createTab(games::family::Other, "Other");
     }
-    // By Type
-    {
-        auto tabContainer {tabGames->create_tab<tab_container>("byType", "By Type")};
-        auto createTab {[&](std::shared_ptr<tab_container>& parent, games::type type, std::string const& name) {
-            auto tabPanel {parent->create_tab<panel>(name)};
-            auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-
-            if (!createListBox(tabPanelLayout, name, [type](auto const& game) { return game.Type == type; })) {
-                parent->remove_tab(tabPanel.get());
-            }
-        }};
-        {
-            auto tabGroup {tabContainer->create_tab<tab_container>("Closed")};
-            createTab(tabGroup, games::type::SimpleBuilder, "Simple Builder");
-            createTab(tabGroup, games::type::ReservedBuilder, "Reserved Builder");
-            createTab(tabGroup, games::type::SimplePacker, "Simple Packer");
-            createTab(tabGroup, games::type::ReservedPacker, "Reserved Packer");
-            createTab(tabGroup, games::type::ClosedNonBuilder, "Closed Non-Builder");
-        }
-        {
-            auto tabGroup {tabContainer->create_tab<tab_container>("Half-Open")};
-            createTab(tabGroup, games::type::Builder, "Builder");
-            createTab(tabGroup, games::type::Blockade, "Blockade");
-            createTab(tabGroup, games::type::Planner, "Planner");
-            createTab(tabGroup, games::type::Packer, "Packer");
-            createTab(tabGroup, games::type::Spider, "Spider");
-        }
-        {
-            auto tabGroup {tabContainer->create_tab<tab_container>("Open")};
-            createTab(tabGroup, games::type::OpenBuilder, "Open Builder");
-            createTab(tabGroup, games::type::OpenPacker, "Open Packer");
-            createTab(tabGroup, games::type::OpenNonBuilder, "Open Non-Builder");
-        }
-    }
     // By Deck Count
     {
         auto tabContainer {tabGames->create_tab<tab_container>("byDeckCount", "By Deck Count")};

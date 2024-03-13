@@ -36,7 +36,6 @@ end
 local golf                 = {
     Info        = {
         Name          = "Golf",
-        Type          = "ReservedBuilder",
         Family        = "Golf",
         DeckCount     = 1,
         CardDealCount = 1,
@@ -109,7 +108,6 @@ local black_hole_pos       = {
 local black_hole           = {
     Info              = {
         Name          = "Black Hole",
-        Type          = "OpenBuilder",
         Family        = "Golf",
         DeckCount     = 1,
         CardDealCount = 0,

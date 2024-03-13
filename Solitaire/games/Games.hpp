@@ -13,25 +13,6 @@
 namespace solitaire::games {
 ////////////////////////////////////////////////////////////
 
-enum class type {
-    // Closed
-    SimpleBuilder,
-    ReservedBuilder,
-    SimplePacker,
-    ReservedPacker,
-    ClosedNonBuilder,
-    // Half-Open
-    Builder,
-    Blockade,
-    Planner,
-    Packer,
-    Spider,
-    // Open
-    OpenBuilder,
-    OpenPacker,
-    OpenNonBuilder
-};
-
 enum class family {
     Other,
     BakersDozen,
@@ -53,7 +34,6 @@ enum class family {
 
 struct game_info {
     std::string Name;
-    type        Type {};
     family      Family {};
 
     i32 DeckCount {0};

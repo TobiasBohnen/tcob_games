@@ -10,24 +10,6 @@ The Info table contains basic information about the game.
 
 The unique identifier for the game.
 
-#### Type (**string**)
-
-Possible values:
-
-- SimpleBuilder
-- ReservedBuilder
-- SimplePacker
-- ReservedPacker
-- ClosedNonBuilder
-- Builder
-- Blockade
-- Planner
-- Packer
-- Spider
-- OpenBuilder
-- OpenPacker
-- OpenNonBuilder
-
 #### Family (**string**)
 
 Possible values:

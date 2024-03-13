@@ -10,7 +10,6 @@ local rules = require 'base/rules'
 local raglan = {
     Info              = {
         Name          = "Raglan",
-        Type          = "OpenPacker",
         Family        = "Raglan",
         DeckCount     = 1,
         CardDealCount = 0,
