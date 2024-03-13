@@ -3,8 +3,8 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-local ops = dofile("./base/ops.nut", true)
-local rules = dofile("./base/rules.nut", true)
+local ops = require("base/ops")
+local rules = require("base/rules")
 
 local aces_up = {
     Info = {

@@ -143,7 +143,7 @@ public:
 
     void static CreateWrapper(auto&& script);
     template <typename T>
-    void static CreateGlobals(auto&& scene, auto&& globalTable, auto&& makeFunc);
+    void static CreateGlobals(auto&& scene, auto&& script, auto&& globalTable, auto&& makeFunc, string const& ext);
 
 protected:
     auto do_redeal() -> bool override;

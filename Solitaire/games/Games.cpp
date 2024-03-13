@@ -532,8 +532,8 @@ lua_script_game::lua_script_game(field& f, game_info info, lua::table tab)
 void lua_script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs)
 {
     using namespace scripting::lua;
-    script.open_libraries(library::Table, library::String, library::Math, library::Coroutine, library::Utf8, library::Package);
-    // TODO: sandbox; remove 'Package'
+    script.open_libraries(library::Table, library::String, library::Math, library::Coroutine);
+    // TODO: sandbox
 
     auto make_func {[&](auto&& func) {
         auto ptr {make_shared_closure(std::function {func})};
@@ -541,11 +541,12 @@ void lua_script_game::CreateAPI(start_scene* scene, scripting::lua::script& scri
         return ptr.get();
     }};
 
-    CreateGlobals<lua_script_game>(scene, script.get_global_table(), make_func);
+    auto& global {script.get_global_table()};
+    CreateGlobals<lua_script_game>(scene, script, global, make_func, "lua");
     CreateWrapper(script);
 
     (void)script.run_file("main.lua");
-    script.get_global_table()["Sol"]["Layout"] = script.run_file<scripting::lua::table>("layout.lua");
+    global["Sol"]["Layout"] = script.run_file<scripting::lua::table>("layout.lua");
 }
 
 ////////////////////////////////////////////////////////////
@@ -559,8 +560,8 @@ void squirrel_script_game::CreateAPI(start_scene* scene, scripting::squirrel::sc
 {
     using namespace scripting::squirrel;
 
-    script.open_libraries(library::IO, library::Math, library::String);
-    // TODO: sandbox; remove 'IO'
+    script.open_libraries(library::Math, library::String);
+    // TODO: sandbox
 
     auto make_func {[&](auto&& func) {
         auto ptr {make_shared_closure(std::function {func})};
@@ -571,7 +572,7 @@ void squirrel_script_game::CreateAPI(start_scene* scene, scripting::squirrel::sc
     auto& root {script.get_root_table()};
     auto  view {script.get_view()};
 
-    CreateGlobals<squirrel_script_game>(scene, root, make_func);
+    CreateGlobals<squirrel_script_game>(scene, script, root, make_func, "nut");
     CreateWrapper(script);
 
     // Lua interop

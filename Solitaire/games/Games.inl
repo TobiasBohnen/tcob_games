@@ -162,7 +162,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>
 template <typename T>
-inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& scene, auto&& globalTable, auto&& makeFunc)
+inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& scene, auto&& script, auto&& globalTable, auto&& makeFunc, string const& ext)
 {
     globalTable["Sol"]["register_game"] = makeFunc([scene](Table& tab) {
         auto             infoTab {tab["Info"].template as<Table>()};
@@ -176,6 +176,16 @@ inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& scen
 
         auto func {[tab, info](auto& field) { return std::make_shared<T>(field, info, tab); }};
         scene->register_game(info, func);
+    });
+
+    globalTable["require"] = makeFunc([&globalTable, &script, ext](std::string const& package) {
+        if (globalTable.has("package", "loaded", package)) {
+            return globalTable["package"]["loaded"][package].template as<Table>();
+        }
+
+        auto pkg {script.template run_file<Table>(package + "." + ext).value()};
+        globalTable["package"]["loaded"][package] = pkg;
+        return pkg;
     });
 }
 
