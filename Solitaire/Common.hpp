@@ -25,8 +25,6 @@ struct hover_info {
     std::string CardCount;
 };
 
-constexpr color COLOR_HOVER {colors::LightBlue};
-constexpr color COLOR_DROP {colors::LightGreen};
 constexpr isize INDEX_MARKER {-1};
 constexpr isize INDEX_INVALID {-2};
 constexpr f32   CARD_PADDING {1.05f};

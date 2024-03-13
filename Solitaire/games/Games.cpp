@@ -325,7 +325,7 @@ void base_game::click(pile* srcPile, u8 clicks)
         // deal card
         srcPile->remove_tint();
         deal_cards();
-        srcPile->tint_cards(COLOR_HOVER, std::ssize(srcPile->Cards) - 1);
+        srcPile->tint_cards(_field.get_hover_color(), std::ssize(srcPile->Cards) - 1);
     } else if (clicks > 1) {
         // try move to foundation
         auto_move_to_foundation(*srcPile);
@@ -532,7 +532,8 @@ lua_script_game::lua_script_game(field& f, game_info info, lua::table tab)
 void lua_script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs)
 {
     using namespace scripting::lua;
-    script.open_libraries();
+    script.open_libraries(library::Table, library::String, library::Math, library::Coroutine, library::Utf8, library::Package);
+    // TODO: sandbox; remove 'Package'
 
     auto make_func {[&](auto&& func) {
         auto ptr {make_shared_closure(std::function {func})};
@@ -558,7 +559,8 @@ void squirrel_script_game::CreateAPI(start_scene* scene, scripting::squirrel::sc
 {
     using namespace scripting::squirrel;
 
-    script.open_libraries();
+    script.open_libraries(library::IO, library::Math, library::String);
+    // TODO: sandbox; remove 'IO'
 
     auto make_func {[&](auto&& func) {
         auto ptr {make_shared_closure(std::function {func})};

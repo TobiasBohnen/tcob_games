@@ -27,6 +27,9 @@ public:
     auto get_size() const -> size_i;
     auto get_material() const -> assets::asset_ptr<gfx::material> const&;
 
+    auto get_hover_color() const -> color;
+    auto get_drop_color() const -> color;
+
     void mark_dirty();
 
 protected:

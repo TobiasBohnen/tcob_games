@@ -74,7 +74,7 @@ public:
     bool HasMarker {true};
 
     auto is_active() const -> bool;
-    void set_active(bool b, isize idx);
+    void set_active(bool b, isize idx, color color);
 
     auto is_playable() const -> bool;
     auto empty() const -> bool;

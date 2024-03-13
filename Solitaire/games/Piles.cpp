@@ -22,13 +22,13 @@ auto empty_none(card const&, isize) -> bool
     return false;
 }
 
-void pile::set_active(bool b, isize idx)
+void pile::set_active(bool b, isize idx, color color)
 {
     _isActive = b;
     if (!b) {
         remove_tint();
     } else {
-        tint_cards(COLOR_HOVER, idx);
+        tint_cards(color, idx);
     }
 }
 

@@ -41,6 +41,16 @@ auto field::get_material() const -> assets::asset_ptr<gfx::material> const&
     return _mat;
 }
 
+auto field::get_hover_color() const -> color
+{
+    return colors::LightBlue;
+}
+
+auto field::get_drop_color() const -> color
+{
+    return colors::LightGreen;
+}
+
 void field::start(std::shared_ptr<games::base_game> const& game, bool cont)
 {
     _text.hide();
@@ -293,7 +303,7 @@ void field::check_drop_pile()
             mark_dirty();
         }
         if (_dropTarget.Pile) {
-            _dropTarget.Pile->tint_cards(COLOR_DROP, _dropTarget.Index);
+            _dropTarget.Pile->tint_cards(get_drop_color(), _dropTarget.Index);
             mark_dirty();
         }
     }
@@ -305,11 +315,11 @@ void field::check_hover_pile(point_i pos)
     _hovered = _currentGame->hover_at(point_i {(*_parentWindow->Camera).convert_screen_to_world(pos)});
 
     if (oldPile.Pile) {
-        oldPile.Pile->set_active(false, oldPile.Index);
+        oldPile.Pile->set_active(false, oldPile.Index, get_hover_color());
         mark_dirty();
     }
     if (_hovered.Pile) {
-        _hovered.Pile->set_active(true, _hovered.Index);
+        _hovered.Pile->set_active(true, _hovered.Index, get_hover_color());
         mark_dirty();
     }
 }
