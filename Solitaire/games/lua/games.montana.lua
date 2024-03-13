@@ -142,7 +142,7 @@ local montana                     = {
             Position = {},
             Initial = ops.Initial.face_up(1),
             Layout = "Squared",
-            Rule = { Build = rules.Build.None, Move = rules.Move.Top, Empty = rules.Empty.None }
+            Rule = rules.none_none_top
         }
     },
     on_shuffle  = function(_, card, _)
@@ -206,7 +206,7 @@ local blue_moon                   = {
             return {
                 Initial = ops.Initial.face_up(i % 14 == 0 and 0 or 1),
                 Layout = "Squared",
-                Rule = { Build = rules.Build.None, Move = rules.Move.Top, Empty = rules.Empty.None }
+                Rule = rules.none_none_top
             }
         end
     },
@@ -243,7 +243,7 @@ red_moon.Tableau.Create           = function(i)
     return {
         Initial = ops.Initial.face_up((i % 14 < 2) and 0 or 1),
         Layout = "Squared",
-        Rule = { Build = rules.Build.None, Move = rules.Move.Top, Empty = rules.Empty.None }
+        Rule = rules.none_none_top
     }
 end
 red_moon.on_before_shuffle        = blue_moon.on_shuffle
@@ -267,7 +267,7 @@ galary.Tableau.Create             = function(i)
     return {
         Initial = ops.Initial.face_up((i % 14 == 0 or i % 14 == 1) and 0 or 1),
         Layout = "Squared",
-        Rule = { Build = rules.Build.None, Move = rules.Move.Top, Empty = rules.Empty.None }
+        Rule = rules.none_none_top
     }
 end
 galary.on_before_shuffle          = function(game, card)
@@ -297,7 +297,7 @@ local paganini                    = {
             return {
                 Initial = ops.Initial.face_up(i % 10 == 0 and 0 or 1),
                 Layout = "Squared",
-                Rule = { Build = rules.Build.None, Move = rules.Move.Top, Empty = rules.Empty.None }
+                Rule = rules.none_none_top
             }
         end
     },

@@ -29,9 +29,9 @@ local aces_up = {
             Initial = ops.Initial.face_up(1),
                 Layout = "Column",
                 Rule = {
+                    Base = rules.Base.Any,
                     Build = rules.Build.None,
-                    Move = rules.Move.Top,
-                    Empty = rules.Empty.Any
+                    Move = rules.Move.Top
                 }
         }
     },
@@ -125,9 +125,9 @@ local aces_square = {
                 Initial = ops.Initial.face_up(1),
                 Layout = "Column",
                 Rule = {
+                    Base = rules.Base.None,
                     Build = rules.Build.None,
-                    Move = rules.Move.Top,
-                    Empty = rules.Empty.None
+                    Move = rules.Move.Top
                 }
         }
     },
@@ -231,10 +231,10 @@ local four_seasons = {
                 },
                 Initial = ops.Initial.face_up(i == 0 ? 1 : 0),
                 Rule = {
+                    Base = @(game) rules.Base.FirstFoundation(game, 0),
                     Build = rules.Build.UpInSuit,
-                    Wrap = true,
                     Move = rules.Move.None,
-                    Empty = @(game) rules.Empty.FirstFoundation(game, 0)
+                    Wrap = true
                 }
         }
     },
@@ -248,10 +248,10 @@ local four_seasons = {
                 Initial = ops.Initial.face_up(1),
                 Layout = "Squared",
                 Rule = {
+                    Base = rules.Base.Any,
                     Build = rules.Build.DownByRank,
-                    Wrap = true,
                     Move = rules.Move.Top,
-                    Empty = rules.Empty.Any
+                    Wrap = true
                 }
 
         }

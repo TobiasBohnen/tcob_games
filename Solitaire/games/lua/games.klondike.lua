@@ -249,7 +249,7 @@ eight_by_eight2.Tableau                  = {
         return {
             Initial = ops.Initial.face_up(8),
             Layout = "Column",
-            Rule = { Empty = rules.Empty.AnySingle, Build = rules.Build.DownByRank, Move = rules.Move.InSeq }
+            Rule = { Base = rules.Base.AnySingle, Build = rules.Build.DownByRank, Move = rules.Move.InSeq }
         }
     end
 }
@@ -279,7 +279,7 @@ arabella.Tableau                         = {
         return {
             Initial = ops.Initial.top_face_up(i + 1),
             Layout = "Column",
-            Rule = { Build = rules.Build.DownByRank, Move = rules.Move.InSeqInSuit, Empty = rules.Empty.King }
+            Rule = { Base = rules.Base.King, Build = rules.Build.DownByRank, Move = rules.Move.InSeqInSuit }
         }
     end
 }
@@ -333,7 +333,7 @@ chinaman.Tableau                         = {
         return {
             Initial = ops.Initial.top_face_up(i + 1),
             Layout = "Column",
-            Rule = { Empty = rules.Empty.King, Build = rules.Build.DownAnyButOwnSuit, Move = rules.Move.InSeq }
+            Rule = { Base = rules.Base.King, Build = rules.Build.DownAnyButOwnSuit, Move = rules.Move.InSeq }
         }
     end
 }
@@ -483,7 +483,7 @@ kingsley.Tableau.Create                  = function(i)
     return {
         Initial = ops.Initial.top_face_up(i + 1),
         Layout = "Column",
-        Rule = { Build = rules.Build.UpAlternateColors, Move = rules.Move.InSeq, Empty = rules.Empty.Ace }
+        Rule = { Base = rules.Base.Ace, Build = rules.Build.UpAlternateColors, Move = rules.Move.InSeq }
     }
 end
 
@@ -540,14 +540,14 @@ thirty_six.Info.Redeals                  = 0
 thirty_six.Stock.Initial                 = ops.Initial.face_down(16)
 thirty_six.Foundation                    = {
     Size = 4,
-    Create = { Rule = { Build = rules.Build.UpInColor, Move = rules.Move.Top, Empty = rules.Empty.Ace } }
+    Create = { Rule = { Base = rules.Base.Ace, Build = rules.Build.UpInColor, Move = rules.Move.Top } }
 }
 thirty_six.Tableau                       = {
     Size = 6,
     Create = {
         Initial = ops.Initial.face_up(6),
         Layout  = "Column",
-        Rule    = { Build = rules.Build.DownByRank, Move = rules.Move.InSeq, Empty = rules.Empty.Any }
+        Rule    = { Base = rules.Base.Any, Build = rules.Build.DownByRank, Move = rules.Move.InSeq }
     }
 }
 thirty_six.on_shuffle                    = function(game, card, pileType)
@@ -590,7 +590,7 @@ whitehorse.Stock.Initial                 = ops.Initial.face_down(45)
 whitehorse.Waste.Layout                  = "Fan"
 whitehorse.Foundation                    = {
     Size = 4,
-    Create = { Rule = { Build = rules.Build.UpInColor, Move = rules.Move.Top, Empty = rules.Empty.Ace } }
+    Create = { Rule = { Base = rules.Base.Ace, Build = rules.Build.UpInColor, Move = rules.Move.Top } }
 }
 whitehorse.Tableau                       = {
     Size = 7,
@@ -633,7 +633,7 @@ bim_bom.Tableau                          = {
     Create = {
         Initial = ops.Initial.face_up(5),
         Layout  = "Column",
-        Rule    = { Build = rules.Build.DownInSuit, Move = rules.Move.FaceUp, Empty = rules.Empty.Any }
+        Rule    = { Base = rules.Base.Any, Build = rules.Build.DownInSuit, Move = rules.Move.FaceUp }
     }
 }
 
@@ -760,7 +760,7 @@ whitehead.Tableau.Create    = function(i)
     return {
         Initial = ops.Initial.face_up(i + 1),
         Layout = "Column",
-        Rule = { Build = rules.Build.DownInColor, Move = rules.Move.InSeqInSuit, Empty = rules.Empty.Any }
+        Rule = { Base = rules.Base.Any, Build = rules.Build.DownInColor, Move = rules.Move.InSeqInSuit }
     }
 end
 

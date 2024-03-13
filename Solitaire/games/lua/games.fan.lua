@@ -53,7 +53,7 @@ bear_river.Tableau           = {
         return {
             Initial = ops.Initial.face_up(lastInRow and 2 or 3),
             Layout = "Row",
-            Rule = { Build = rules.Build.UpOrDownInSuit, Wrap = true, Move = rules.Move.Top, Empty = lastInRow and "Any" or "None", Limit = 3 }
+            Rule = { Base = lastInRow and rules.Base.Any or rules.Base.None, Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top, Wrap = true, Limit = 3 }
         }
     end
 }
@@ -68,7 +68,7 @@ box_fan.Tableau              = {
     Create = {
         Initial = ops.Initial.face_up(3),
         Layout = "Row",
-        Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.Top, Empty = rules.Empty.King }
+        Rule = rules.king_downac_top
     }
 }
 box_fan.on_before_shuffle    = ops.Shuffle.ace_to_foundation
@@ -84,7 +84,7 @@ ceiling_fan.Tableau          = {
         return {
             Initial = ops.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
-            Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.Top, Empty = rules.Empty.King }
+            Rule = rules.king_downac_top
         }
     end
 }
@@ -104,9 +104,9 @@ local clover_leaf            = {
         Size   = 4,
         Create = function(i)
             if i < 2 then
-                return { Rule = { Build = rules.Build.UpInSuit, Move = rules.Move.Top, Empty = function() return rules.Empty.CardColor("Black", "Ace") end } }
+                return { Rule = { Base = function() return rules.Base.CardColor("Black", "Ace") end, Build = rules.Build.UpInSuit, Move = rules.Move.Top } }
             else
-                return { Rule = { Build = rules.Build.DownInSuit, Move = rules.Move.Top, Empty = function() return rules.Empty.CardColor("Red", "King") end } }
+                return { Rule = { Base = function() return rules.Base.CardColor("Red", "King") end, Build = rules.Build.DownInSuit, Move = rules.Move.Top } }
             end
         end
     },
@@ -115,7 +115,7 @@ local clover_leaf            = {
         Create = {
             Initial = ops.Initial.face_up(3),
             Layout = "Row",
-            Rule = { Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top, Empty = function() return rules.Empty.Ranks({ "Ace", "King" }) end }
+            Rule = { Base = function() return rules.Base.Ranks({ "Ace", "King" }) end, Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top }
         }
     },
     on_before_shuffle = function(game, card)
@@ -140,7 +140,7 @@ quads.Tableau                = {
     Create = {
         Initial = ops.Initial.face_up(4),
         Layout = "Row",
-        Rule = { Build = rules.Build.InRank, Move = rules.Move.Top, Empty = rules.Empty.Any, Limit = 4 }
+        Rule = { Base = rules.Base.Any, Build = rules.Build.InRank, Move = rules.Move.Top, Limit = 4 }
     }
 }
 quads.on_shuffle             = function(game, card, pileType)
@@ -161,7 +161,7 @@ quads_plus.Tableau           = {
         return {
             Initial = ops.Initial.face_up(i < 12 and 4 or 0),
             Layout = "Row",
-            Rule = { Build = rules.Build.InRank, Move = rules.Move.Top, Empty = rules.Empty.Any, Limit = 4 }
+            Rule = { Base = rules.Base.Any, Build = rules.Build.InRank, Move = rules.Move.Top, Limit = 4 }
         }
     end
 }
@@ -199,7 +199,7 @@ local lucky_piles            = {
                 Position = { x = lucky_piles_pos[i + 1][1], y = lucky_piles_pos[i + 1][2] },
                 Initial = ops.Initial.face_up(4),
                 Layout = "Row",
-                Rule = { Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top, Empty = rules.Empty.King }
+                Rule = { Base = rules.Base.King, Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top }
             }
         end
     }
@@ -211,7 +211,7 @@ local scotch_patience        = Sol.copy(fan)
 scotch_patience.Info.Name    = "Scotch Patience"
 scotch_patience.Foundation   = {
     Size   = 4,
-    Create = { Rule = { Build = rules.Build.UpAlternateColors, Move = rules.Move.Top, Empty = rules.Empty.Ace } }
+    Create = { Rule = rules.ace_upac_top }
 }
 scotch_patience.Tableau      = {
     Size   = 18,
@@ -234,7 +234,7 @@ shamrocks.Tableau            = {
         return {
             Initial = ops.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
-            Rule = { Build = rules.Build.UpOrDownByRank, Move = rules.Move.Top, Empty = rules.Empty.None, Limit = 3 }
+            Rule = { Base = rules.Base.None, Build = rules.Build.UpOrDownByRank, Move = rules.Move.Top, Limit = 3 }
         }
     end
 }
@@ -249,7 +249,7 @@ shamrocks_2.Tableau          = {
         return {
             Initial = ops.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
-            Rule = { Build = rules.Build.UpOrDownByRank, Move = rules.Move.Top, Empty = rules.Empty.None, Limit = 3 }
+            Rule = { Base = rules.Base.None, Build = rules.Build.UpOrDownByRank, Move = rules.Move.Top, Limit = 3 }
         }
     end
 }
@@ -265,7 +265,7 @@ troika.Tableau               = {
         return {
             Initial = ops.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
-            Rule = { Build = rules.Build.InRank, Move = rules.Move.Top, Empty = rules.Empty.None, Limit = 3 }
+            Rule = { Base = rules.Base.None, Build = rules.Build.InRank, Move = rules.Move.Top, Limit = 3 }
         }
     end
 }

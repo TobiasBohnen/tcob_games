@@ -36,7 +36,7 @@ local spider             = {
                 Position = { x = i, y = 1 },
                 Initial  = ops.Initial.top_face_up(i < 4 and 6 or 5),
                 Layout   = "Column",
-                Rule     = { Build = rules.Build.DownByRank, Move = rules.Move.InSeqInSuit, Empty = rules.Empty.Any }
+                Rule     = { Base = rules.Base.Any, Build = rules.Build.DownByRank, Move = rules.Move.InSeqInSuit }
             }
         end
     },
@@ -89,7 +89,7 @@ arachnida.Tableau.Create = function(i)
         Position = { x = i + 1, y = 0 },
         Initial  = ops.Initial.top_face_up(i < 4 and 6 or 5),
         Layout   = "Column",
-        Rule     = { Build = rules.Build.InRankOrDownByRank, Move = rules.Move.InSeqInSuitOrSameRank, Empty = rules.Empty.Any }
+        Rule     = { Base = rules.Base.Any, Build = rules.Build.InRankOrDownByRank, Move = rules.Move.InSeqInSuitOrSameRank }
     }
 end
 

@@ -162,12 +162,12 @@ auto pile::get_description(i32 remainingRedeals) const -> hover_info
     case pile_type::FreeCell:
         break;
     case pile_type::Stock: {
-        std::string redeals {remainingRedeals < 0 ? "unlimited" : std::to_string(remainingRedeals)};
+        std::string redeals {remainingRedeals < 0 ? "∞" : std::to_string(remainingRedeals)};
         retValue.Rule = "Redeals: " + redeals;
     } break;
     case pile_type::Foundation:
     case pile_type::Tableau: {
-        retValue.Rule = Rule.BuildHint + "\nFirst: " + get_empty_ranks(Rule.Empty);
+        retValue.Rule = Rule.BuildHint + "\nBase: " + get_empty_ranks(Rule.Base);
         break;
     }
     }
@@ -183,7 +183,7 @@ auto pile::get_marker_texture_name() const -> std::string
     // redeal for Stock
     // rank for Foundation/Tableau
     if (Type == pile_type::Foundation || Type == pile_type::Tableau) {
-        auto const valid {get_valid_cards(Rule.Empty)};
+        auto const valid {get_valid_cards(Rule.Base)};
         if (valid.size() == 52) {
             return "card_base_gen"; // Any
         }
@@ -223,7 +223,7 @@ void pile::move_cards(pile& to, isize srcOffset, isize numCards, bool reverse)
 static auto fill(pile const& pile, card const& card0, isize numCards) -> bool
 {
     if (!pile.empty()) { return false; }
-    return pile.Rule.Empty(card0, numCards);
+    return pile.Rule.Base(card0, numCards);
 }
 
 static auto limit_size(pile const& pile, isize numCards) -> bool

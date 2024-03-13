@@ -48,14 +48,14 @@ local golf                 = {
     Foundation  = {
         Initial = ops.Initial.face_up(1),
         Layout  = "Squared",
-        Rule    = { Empty = rules.Empty.None, Build = rules.Build.UpOrDownByRank, Move = rules.Move.None }
+        Rule    = { Base = rules.Base.None, Build = rules.Build.UpOrDownByRank, Move = rules.Move.None }
     },
     Tableau     = {
         Size   = 7,
         Create = {
             Initial = ops.Initial.top_face_up(5),
             Layout = "Column",
-            Rule = { Empty = rules.Empty.None, Build = rules.Build.None, Move = rules.Move.Top }
+            Rule = { Base = rules.Base.None, Build = rules.Build.None, Move = rules.Move.Top }
         }
     },
     on_deal     = function(game)
@@ -76,7 +76,7 @@ double_golf.Tableau        = {
     Create = {
         Initial = ops.Initial.top_face_up(7),
         Layout = "Column",
-        Rule = { Build = rules.Build.None, Move = rules.Move.Top }
+        Rule = { Base = rules.Base.None, Build = rules.Build.None, Move = rules.Move.Top }
     }
 }
 
@@ -87,7 +87,7 @@ putt_putt.Info.Name        = "Putt Putt"
 putt_putt.Foundation       = {
     Initial = ops.Initial.face_up(1),
     Layout  = "Squared",
-    Rule    = { Build = rules.Build.UpOrDownByRank, Wrap = true, Move = rules.Move.None }
+    Rule    = { Base = rules.Base.None, Build = rules.Build.UpOrDownByRank, Move = rules.Move.None, Wrap = true }
 }
 
 ------
@@ -117,7 +117,7 @@ local black_hole           = {
     },
     Foundation        = {
         Position = { x = 4, y = 1.5 },
-        Rule     = { Build = rules.Build.UpOrDownByRank, Wrap = true, Move = rules.Move.None }
+        Rule     = { Build = rules.Build.UpOrDownByRank, Move = rules.Move.None, Wrap = true }
     },
     Tableau           = {
         Size   = 17,

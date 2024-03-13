@@ -155,7 +155,7 @@ There are three ways to define a pile:
 
 #### Limit
 
-#### Empty
+#### Base
 
 ## Global functions
 

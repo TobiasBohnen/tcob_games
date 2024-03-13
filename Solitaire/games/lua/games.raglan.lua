@@ -21,7 +21,7 @@ local raglan = {
         Create = {
             Initial = ops.Initial.face_up(1),
             Layout = "Squared",
-            Rule = { Build = rules.Build.None, Move = rules.Move.Top, Empty = rules.Empty.None }
+            Rule = rules.none_none_top
         }
     },
     Foundation        = {

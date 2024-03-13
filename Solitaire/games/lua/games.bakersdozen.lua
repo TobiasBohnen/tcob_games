@@ -150,7 +150,7 @@ cruel.Tableau                          = {
     Create = {
         Initial = ops.Initial.face_up(4),
         Layout = "Column",
-        Rule = { Empty = rules.Empty.None, Build = rules.Build.DownInSuit, Move = rules.Move.Top }
+        Rule = { Base = rules.Base.None, Build = rules.Build.DownInSuit, Move = rules.Move.Top }
     }
 }
 cruel.on_before_shuffle                = ops.Shuffle.ace_to_foundation
@@ -197,7 +197,7 @@ perseverance.Info.Redeals              = 2
 perseverance.Tableau.Create            = {
     Initial = ops.Initial.face_up(4),
     Layout = "Column",
-    Rule = { Empty = rules.Empty.None, Build = rules.Build.DownInSuit, Move = rules.Move.InSeq }
+    Rule = { Base = rules.Base.None, Build = rules.Build.DownInSuit, Move = rules.Move.InSeq }
 }
 
 ------
@@ -333,7 +333,7 @@ martha.Tableau                         = {
     Create = {
         Initial = ops.Initial.alternate(4, false),
         Layout = "Column",
-        Rule = { Empty = rules.Empty.AnySingle, Build = rules.Build.DownAlternateColors, Move = rules.Move.InSeq }
+        Rule = { Base = rules.Base.AnySingle, Build = rules.Build.DownAlternateColors, Move = rules.Move.InSeq }
     }
 }
 martha.on_before_shuffle               = ops.Shuffle.ace_to_foundation
@@ -354,7 +354,7 @@ portuguese_solitaire.Tableau.Create    = {
 local spanish_patience                 = Sol.copy(castles_in_spain)
 spanish_patience.Info.Name             = "Spanish Patience"
 spanish_patience.Info.Type             = "OpenPacker"
-spanish_patience.Foundation.Create     = { Rule = { Build = rules.Build.UpAlternateColors, Move = rules.Move.Top, Empty = rules.Empty.Ace } }
+spanish_patience.Foundation.Create     = { Rule = rules.ace_upac_top }
 spanish_patience.Tableau.Create        = {
     Initial = ops.Initial.face_up(4),
     Layout = "Column",

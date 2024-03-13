@@ -280,7 +280,7 @@ local move = {
     },
 }
 
-local empty = {
+local base_tab = {
     Ace = @(_) @(card, _) card.Rank == "Ace",
     King = @(_) @(card, _) card.Rank == "King",
     None = @(_) @(_, _) false,
@@ -323,11 +323,11 @@ local empty = {
 return {
     Build = build,
     Move = move,
-    Empty = empty,
+    Base = base_tab,
 
     ace_upsuit_top = {
         Build = build.UpInSuit,
         Move = move.Top,
-        Empty = empty.Ace
+        Base = base_tab.Ace
     }
 }

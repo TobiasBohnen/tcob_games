@@ -260,7 +260,7 @@ local move = {
     },
 }
 
-local empty = {
+local base = {
     Ace = function()
         return function(card)
             return card.Rank == "Ace"
@@ -331,27 +331,31 @@ local empty = {
 return {
     Build = build,
     Move = move,
-    Empty = empty,
+    Base = base,
 
-    any_downac_top = { Empty = empty.Any, Build = build.DownAlternateColors, Move = move.Top },
-    any_downac_inseq = { Empty = empty.Any, Build = build.DownAlternateColors, Move = move.InSeq },
-    any_downac_faceup = { Empty = empty.Any, Build = build.DownAlternateColors, Move = move.FaceUp },
-    any_downrank_top = { Empty = empty.Any, Build = build.DownByRank, Move = move.Top },
-    any_downsuit_top = { Empty = empty.Any, Build = build.DownInSuit, Move = move.Top },
-    any_downsuit_inseq = { Empty = empty.Any, Build = build.DownInSuit, Move = move.InSeq },
-    any_updownsuit_top = { Empty = empty.Any, Build = build.UpOrDownInSuit, Move = move.Top },
-    any_updownac_top = { Empty = empty.Any, Build = build.UpOrDownAlternateColors, Move = move.Top },
-    any_none_top = { Empty = empty.Any, Build = build.None, Move = move.Top },
-    ace_upsuit_top = { Empty = empty.Ace, Build = build.UpInSuit, Move = move.Top },
-    ace_upsuit_none = { Empty = empty.Ace, Build = build.UpInSuit, Move = move.None },
-    king_downac_faceup = { Empty = empty.King, Build = build.DownAlternateColors, Move = move.FaceUp },
-    king_downac_inseq = { Empty = empty.King, Build = build.DownAlternateColors, Move = move.InSeq },
-    king_downrank_top = { Empty = empty.King, Build = build.DownByRank, Move = move.Top },
-    king_downsuit_top = { Empty = empty.King, Build = build.DownInSuit, Move = move.Top },
-    king_downsuit_inseq = { Empty = empty.King, Build = build.DownInSuit, Move = move.InSeq },
-    king_downsuit_faceup = { Empty = empty.King, Build = build.DownInSuit, Move = move.FaceUp },
-    none_downrank_top = { Empty = empty.None, Build = build.DownByRank, Move = move.Top },
-    none_none_none = { Empty = empty.None, Build = build.None, Move = move.None },
-    ff_upsuit_top = { Empty = function(game) return empty.FirstFoundation(game) end, Build = build.UpInSuit, Move = move.Top, Wrap = true },
-    ff_upsuit_none = { Empty = function(game) return empty.FirstFoundation(game) end, Build = build.UpInSuit, Move = move.None, Wrap = true }
+    any_downac_top = { Base = base.Any, Build = build.DownAlternateColors, Move = move.Top },
+    any_downac_inseq = { Base = base.Any, Build = build.DownAlternateColors, Move = move.InSeq },
+    any_downac_faceup = { Base = base.Any, Build = build.DownAlternateColors, Move = move.FaceUp },
+    any_downac_sm = { Base = base.Any, Build = build.DownAlternateColors, Move = move.SuperMove },
+    any_downrank_top = { Base = base.Any, Build = build.DownByRank, Move = move.Top },
+    any_downsuit_top = { Base = base.Any, Build = build.DownInSuit, Move = move.Top },
+    any_downsuit_inseq = { Base = base.Any, Build = build.DownInSuit, Move = move.InSeq },
+    any_updownsuit_top = { Base = base.Any, Build = build.UpOrDownInSuit, Move = move.Top },
+    any_updownac_top = { Base = base.Any, Build = build.UpOrDownAlternateColors, Move = move.Top },
+    any_none_top = { Base = base.Any, Build = build.None, Move = move.Top },
+    ace_upac_top = { Base = base.Ace, Build = build.UpAlternateColors, Move = move.Top },
+    ace_upsuit_top = { Base = base.Ace, Build = build.UpInSuit, Move = move.Top },
+    ace_upsuit_none = { Base = base.Ace, Build = build.UpInSuit, Move = move.None },
+    king_downac_top = { Base = base.King, Build = build.DownAlternateColors, Move = move.Top },
+    king_downac_faceup = { Base = base.King, Build = build.DownAlternateColors, Move = move.FaceUp },
+    king_downac_inseq = { Base = base.King, Build = build.DownAlternateColors, Move = move.InSeq },
+    king_downrank_top = { Base = base.King, Build = build.DownByRank, Move = move.Top },
+    king_downsuit_top = { Base = base.King, Build = build.DownInSuit, Move = move.Top },
+    king_downsuit_inseq = { Base = base.King, Build = build.DownInSuit, Move = move.InSeq },
+    king_downsuit_faceup = { Base = base.King, Build = build.DownInSuit, Move = move.FaceUp },
+    none_downrank_top = { Base = base.None, Build = build.DownByRank, Move = move.Top },
+    none_none_top = { Base = base.None, Build = build.None, Move = move.Top },
+    none_none_none = { Base = base.None, Build = build.None, Move = move.None },
+    ff_upsuit_top = { Base = function(game) return base.FirstFoundation(game) end, Build = build.UpInSuit, Move = move.Top, Wrap = true },
+    ff_upsuit_none = { Base = function(game) return base.FirstFoundation(game) end, Build = build.UpInSuit, Move = move.None, Wrap = true }
 }

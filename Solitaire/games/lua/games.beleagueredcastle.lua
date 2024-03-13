@@ -46,7 +46,7 @@ castle_mount.Tableau        = {
     Create = {
         Initial = ops.Initial.face_up(12),
         Layout = "Column",
-        Rule = { Build = rules.Build.DownByRank, Move = rules.Move.InSeqInSuit, Empty = rules.Empty.King }
+        Rule = { Base = rules.Base.King, Build = rules.Build.DownByRank, Move = rules.Move.InSeqInSuit }
     }
 }
 castle_mount.on_created     = Sol.Layout.canister
@@ -91,7 +91,7 @@ lightweight.Tableau              = {
     Create = {
         Initial = ops.Initial.face_up(8),
         Layout = "Column",
-        Rule = { Build = rules.Build.DownByRank, Move = rules.Move.InSeq, Empty = rules.Empty.King }
+        Rule = { Base = rules.Base.King, Build = rules.Build.DownByRank, Move = rules.Move.InSeq }
     }
 }
 lightweight.on_created           = Sol.Layout.canister
@@ -232,7 +232,7 @@ local canister                   = {
             return {
                 Initial = ops.Initial.face_up((i < 2 or i >= 6) and 6 or 7),
                 Layout = "Column",
-                Rule = { Build = rules.Build.DownByRank, Move = rules.Move.InSeq, Empty = rules.Empty.Any }
+                Rule = { Base = rules.Base.Any, Build = rules.Build.DownByRank, Move = rules.Move.InSeq }
             }
         end
     },
@@ -259,7 +259,7 @@ british_canister.Tableau.Create  = function(i)
     return {
         Initial = ops.Initial.face_up((i < 2 or i >= 6) and 6 or 7),
         Layout = "Column",
-        Rule = { Build = rules.Build.DownAlternateColors, Move = rules.Move.Top, Empty = rules.Empty.King }
+        Rule = rules.king_downac_top
     }
 end
 
@@ -284,7 +284,7 @@ local chessboard                 = {
             return {
                 Initial = ops.Initial.face_up(i < 2 and 6 or 5),
                 Layout = "Column",
-                Rule = { Build = rules.Build.UpOrDownInSuit, Wrap = true, Move = rules.Move.Top, Empty = rules.Empty.Any }
+                Rule = { Base = rules.Base.Any, Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top, Wrap = true }
             }
         end
     },
@@ -308,7 +308,7 @@ lasker.Tableau.Create            = function(i)
     return {
         Initial = ops.Initial.face_up(i < 2 and 6 or 5),
         Layout = "Column",
-        Rule = { Empty = rules.Empty.Any, Build = rules.Build.UpOrDownInSuit, Move = rules.Move.InSeq, Wrap = true }
+        Rule = { Base = rules.Base.Any, Build = rules.Build.UpOrDownInSuit, Move = rules.Move.InSeq, Wrap = true }
     }
 end
 
@@ -361,7 +361,7 @@ local morehead                   = {
             return {
                 Initial = ops.Initial.face_up(i < 7 and i + 1 or 8),
                 Layout = "Column",
-                Rule = { Empty = rules.Empty.Any, Build = rules.Build.DownAnyButOwnSuit, Move = rules.Move.Top }
+                Rule = { Base = rules.Base.Any, Build = rules.Build.DownAnyButOwnSuit, Move = rules.Move.Top }
             }
         end
     },
@@ -585,33 +585,34 @@ local zerline                    = {
     FreeCell   = {
         Position = { x = 5, y = 0 },
         Layout = "Row",
-        Rule = { Empty = rules.Empty.Any, Build = rules.Build.Any, Move = rules.Move.Top, Limit = 4 }
+        Rule = { Base = rules.Base.Any, Build = rules.Build.Any, Move = rules.Move.Top, Limit = 4 }
     },
     Foundation = {
         Size   = 8,
         Create = function(i)
             return {
                 Position = { x = i % 2 + 3.5, y = i // 2 + 1 },
-                Rule = { Empty = rules.Empty.King, Build = rules.Build.UpInSuit, Move = rules.Move.Top, Wrap = true }
+                Rule = { Base = rules.Base.King, Build = rules.Build.UpInSuit, Move = rules.Move.Top, Wrap = true }
             }
         end
     },
     Tableau    = {
         Size   = 8,
         Create = function(i)
+            local rule = { Base = function() return rules.Base.Ranks({ "Queen" }) end, Build = rules.Build.DownByRank, Move = rules.Move.Top }
             if i < 4 then
                 return {
                     Position = { x = 0, y = i + 1 },
                     Initial = ops.Initial.face_up(5),
                     Layout = "Row",
-                    Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = function() return rules.Empty.Ranks({ "Queen" }) end }
+                    Rule = rule
                 }
             else
                 return {
                     Position = { x = 6, y = i - 3 },
                     Initial = ops.Initial.face_up(5),
                     Layout = "Row",
-                    Rule = { Build = rules.Build.DownByRank, Move = rules.Move.Top, Empty = function() return rules.Empty.Ranks({ "Queen" }) end }
+                    Rule = rule
                 }
             end
         end
@@ -639,21 +640,21 @@ zerline_3_decks.Stock.Initial    = ops.Initial.face_down(116)
 zerline_3_decks.FreeCell         = {
     Position = { x = 5, y = 0 },
     Layout = "Row",
-    Rule = { Empty = rules.Empty.Any, Build = rules.Build.Any, Move = rules.Move.Top, Limit = 6 }
+    Rule = { Base = rules.Base.Any, Build = rules.Build.Any, Move = rules.Move.Top, Limit = 6 }
 }
 zerline_3_decks.Foundation       = {
     Size   = 12,
     Create = function(i)
         return {
             Position = { x = i % 3 + 3, y = i // 3 + 1 },
-            Rule = { Empty = rules.Empty.King, Build = rules.Build.UpInSuit, Move = rules.Move.Top, Wrap = true }
+            Rule = { Base = rules.Base.King, Build = rules.Build.UpInSuit, Move = rules.Move.Top, Wrap = true }
         }
     end
 }
 zerline_3_decks.Tableau          = {
     Size   = 8,
     Create = function(i)
-        local rule = { Empty = function() return rules.Empty.Ranks({ "Queen" }) end, Build = rules.Build.DownByRank, Move = rules.Move.Top }
+        local rule = { Base = function() return rules.Base.Ranks({ "Queen" }) end, Build = rules.Build.DownByRank, Move = rules.Move.Top }
         if i < 4 then
             return {
                 Position = { x = 0, y = i + 1 },

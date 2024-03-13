@@ -319,9 +319,9 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
                 }
             }
 
-            if (Function<Function<bool>> emptyFunc; ruleTable.try_get(emptyFunc, "Empty")) {
+            if (Function<Function<bool>> emptyFunc; ruleTable.try_get(emptyFunc, "Base")) {
                 auto func {emptyFunc(static_cast<base_game*>(this))};
-                pile.Rule.Empty = {[func](card const& card, isize numCards) {
+                pile.Rule.Base = {[func](card const& card, isize numCards) {
                     return func(card, numCards);
                 }};
             }

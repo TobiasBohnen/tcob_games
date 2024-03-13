@@ -30,7 +30,7 @@ struct rule {
     bool      IsSequence {false};
     move_func Move {move_top};
 
-    empty_func Empty {empty_none};
+    empty_func Base {empty_none};
 
     i32  Interval {1};
     bool Wrap {false};
