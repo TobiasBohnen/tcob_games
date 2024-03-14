@@ -71,7 +71,7 @@ void base_game::new_game()
             for (isize i {0}; i < std::ssize(pile->Initial); ++i) {
                 assert(!cards.empty());
                 auto& card {cards.back()};
-                if (!shuffle(card, pile->Type)) {
+                if (!on_shuffle(card, pile->Type)) {
                     if (pile->Initial[i]) {
                         card.flip_face_up();
                     } else {
@@ -380,20 +380,6 @@ void base_game::clear_pile_cards()
     }
 }
 
-auto base_game::before_shuffle(card& /* card */) -> bool
-{
-    return false;
-}
-
-auto base_game::shuffle(card& /* card */, pile_type /*pile*/) -> bool
-{
-    return false;
-}
-
-void base_game::after_shuffle()
-{
-}
-
 auto base_game::can_drop(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool
 {
     return targetPile.build(targetIndex, drop, numCards);
@@ -408,10 +394,10 @@ auto base_game::check_movable(pile const& targetPile, isize idx) -> bool
     }
 
     if (!targetPile.is_playable()) { // non-playable -> hover top
-        return move_top(nullptr, &targetPile, idx);
+        return move_top(&targetPile, idx);
     }
 
-    bool const retValue {targetPile.Rule.Move(this, &targetPile, idx)};
+    bool const retValue {targetPile.Rule.Move(&targetPile, idx)};
     _movableCache[key] = retValue;
     return retValue;
 }
@@ -435,20 +421,6 @@ auto base_game::deal_cards() -> bool
     }
 
     return false;
-}
-
-auto base_game::do_redeal() -> bool
-{
-    return false;
-}
-
-auto base_game::do_deal() -> bool
-{
-    return false;
-}
-
-void base_game::on_change()
-{
 }
 
 auto base_game::check_state() const -> game_state
@@ -546,7 +518,6 @@ void lua_script_game::CreateAPI(start_scene* scene, scripting::lua::script& scri
     CreateWrapper(script);
 
     (void)script.run_file("main.lua");
-    global["Sol"]["Layout"] = script.run_file<scripting::lua::table>("layout.lua");
 }
 
 ////////////////////////////////////////////////////////////

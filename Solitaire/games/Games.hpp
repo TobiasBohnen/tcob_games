@@ -84,14 +84,14 @@ public:
     void key_down(input::keyboard::event& ev);
 
 protected:
-    auto virtual do_redeal() -> bool;
-    auto virtual do_deal() -> bool;
+    auto virtual do_redeal() -> bool = 0;
+    auto virtual do_deal() -> bool   = 0;
 
-    auto virtual before_shuffle(card& card) -> bool;
-    auto virtual shuffle(card& card, pile_type pileType) -> bool;
-    void virtual after_shuffle();
+    auto virtual before_shuffle(card& card) -> bool                 = 0;
+    auto virtual on_shuffle(card& card, pile_type pileType) -> bool = 0;
+    void virtual after_shuffle()                                    = 0;
 
-    void virtual on_change();
+    void virtual on_change() = 0;
 
     auto virtual check_state() const -> game_state;
 
@@ -150,7 +150,7 @@ protected:
     auto do_deal() -> bool override;
 
     auto before_shuffle(card& card) -> bool override;
-    auto shuffle(card& card, pile_type pileType) -> bool override;
+    auto on_shuffle(card& card, pile_type pileType) -> bool override;
     void after_shuffle() override;
 
     void on_change() override;

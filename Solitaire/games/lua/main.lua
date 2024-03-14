@@ -3,6 +3,8 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
+Sol.Layout = require "layout"
+
 function Sol.copy(obj, seen)
     if type(obj) ~= 'table' then return obj end
     if seen and seen[obj] then return seen[obj] end

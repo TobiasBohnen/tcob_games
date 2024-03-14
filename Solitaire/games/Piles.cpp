@@ -12,7 +12,7 @@ auto build_none(card const&, card const&, i32, bool) -> bool
     return false;
 }
 
-auto move_top(games::base_game const*, pile const* target, isize idx) -> bool
+auto move_top(pile const* target, isize idx) -> bool
 {
     return idx == std::ssize(target->Cards) - 1;
 }

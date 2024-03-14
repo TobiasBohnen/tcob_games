@@ -221,7 +221,7 @@ inline auto script_game<Table, Function, IndexOffset>::do_redeal() -> bool
     if (_callbacks.OnRedeal) {
         return (*_callbacks.OnRedeal)(static_cast<base_game const*>(this));
     }
-    return base_game::do_redeal();
+    return false;
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>
@@ -230,7 +230,7 @@ inline auto script_game<Table, Function, IndexOffset>::do_deal() -> bool
     if (_callbacks.OnDeal) {
         return (*_callbacks.OnDeal)(static_cast<base_game const*>(this));
     }
-    return base_game::do_deal();
+    return false;
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>
@@ -239,16 +239,16 @@ inline auto script_game<Table, Function, IndexOffset>::before_shuffle(card& card
     if (_callbacks.OnBeforeShuffle) {
         return (*_callbacks.OnBeforeShuffle)(static_cast<base_game const*>(this), card);
     }
-    return base_game::before_shuffle(card);
+    return false;
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>
-inline auto script_game<Table, Function, IndexOffset>::shuffle(card& card, pile_type pileType) -> bool
+inline auto script_game<Table, Function, IndexOffset>::on_shuffle(card& card, pile_type pileType) -> bool
 {
     if (_callbacks.OnShuffle) {
         return (*_callbacks.OnShuffle)(static_cast<base_game const*>(this), card, pileType);
     }
-    return base_game::shuffle(card, pileType);
+    return false;
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>
@@ -256,8 +256,6 @@ inline void script_game<Table, Function, IndexOffset>::after_shuffle()
 {
     if (_callbacks.OnAfterShuffle) {
         (*_callbacks.OnAfterShuffle)(static_cast<base_game const*>(this));
-    } else {
-        base_game::after_shuffle();
     }
 }
 
@@ -266,8 +264,6 @@ inline void script_game<Table, Function, IndexOffset>::on_change()
 {
     if (_callbacks.OnChange) {
         (*_callbacks.OnChange)(static_cast<base_game const*>(this));
-    } else {
-        base_game::on_change();
     }
 }
 
@@ -306,11 +302,11 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
             if (Table buildTable; ruleTable.try_get(buildTable, "Build")) {
                 buildTable.try_get(pile.Rule.BuildHint, "Hint");
 
-                Function<bool> func;
-                buildTable.try_get(func, "Build");
-                pile.Rule.Build = {[func](card const& target, card const& drop, i32 interval, bool wrap) {
-                    return func(target, drop, interval, wrap);
-                }};
+                if (Function<bool> func; buildTable.try_get(func, "Build")) {
+                    pile.Rule.Build = {[func](card const& target, card const& drop, i32 interval, bool wrap) {
+                        return func(target, drop, interval, wrap);
+                    }};
+                }
             }
 
             if (Table moveTable; ruleTable.try_get(moveTable, "Move")) {
@@ -322,8 +318,8 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
                 }
 
                 if (Function<bool> func; moveTable.try_get(func, "Move")) {
-                    pile.Rule.Move = {[func](base_game const* game, class pile const* target, isize idx) {
-                        return func(game, target, idx - IndexOffset);
+                    pile.Rule.Move = {[this, func](class pile const* target, isize idx) {
+                        return func(static_cast<base_game*>(this), target, idx - IndexOffset);
                     }};
                 }
             }
@@ -341,15 +337,15 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
         if (Table pileTypeTable; gameRef.try_get(pileTypeTable, name)) {
             isize size {1};
             pileTypeTable.try_get(size, "Size");
-            if (size == 1 && !pileTypeTable.has("Create")) { // table is definition
+            if (size == 1 && !pileTypeTable.has("Create")) { // pile table is definition
                 create_piles(piles, 1, [&](auto& pile, i32) {
                     createPile(pile, pileTypeTable);
                 });
-            } else if (Table createTable; pileTypeTable.try_get(createTable, "Create")) { // use 'create' table
+            } else if (Table createTable; pileTypeTable.try_get(createTable, "Create")) { // use 'Create' table
                 create_piles(piles, size, [&](auto& pile, i32) {
                     createPile(pile, createTable);
                 });
-            } else { // call 'create' function
+            } else { // call 'Create' function
                 Function<Table> create {pileTypeTable["Create"].template as<Function<Table>>()};
                 create_piles(piles, size, [&](auto& pile, i32 i) {
                     createPile(pile, create(i));
