@@ -513,7 +513,24 @@ void lua_script_game::CreateAPI(start_scene* scene, scripting::lua::script& scri
 {
     using namespace scripting::lua;
     script.open_libraries(library::Table, library::String, library::Math, library::Coroutine);
-    // TODO: sandbox
+    auto& global {script.get_global_table()};
+
+    table env {script.create_table()};
+    env["table"]     = global["table"];
+    env["string"]    = global["string"];
+    env["math"]      = global["math"];
+    env["coroutine"] = global["coroutine"];
+
+    env["pairs"]        = global["pairs"];
+    env["ipairs"]       = global["ipairs"];
+    env["print"]        = global["print"];
+    env["type"]         = global["type"];
+    env["tonumber"]     = global["tonumber"];
+    env["tostring"]     = global["tostring"];
+    env["setmetatable"] = global["setmetatable"];
+    env["getmetatable"] = global["getmetatable"];
+
+    script.set_environment(env);
 
     auto make_func {[&](auto&& func) {
         auto ptr {make_shared_closure(std::function {func})};
@@ -521,11 +538,11 @@ void lua_script_game::CreateAPI(start_scene* scene, scripting::lua::script& scri
         return ptr.get();
     }};
 
-    auto& global {script.get_global_table()};
-    CreateGlobals<lua_script_game>(scene, script, global, make_func, "lua");
+    CreateGlobals<lua_script_game>(scene, script, env, make_func, "lua");
     CreateWrapper(script);
 
     (void)script.run_file("main.lua");
+    global["Sol"]["Layout"] = env["Sol"]["Layout"];
 }
 
 ////////////////////////////////////////////////////////////
@@ -540,7 +557,6 @@ void squirrel_script_game::CreateAPI(start_scene* scene, scripting::squirrel::sc
     using namespace scripting::squirrel;
 
     script.open_libraries(library::Math, library::String);
-    // TODO: sandbox
 
     auto make_func {[&](auto&& func) {
         auto ptr {make_shared_closure(std::function {func})};

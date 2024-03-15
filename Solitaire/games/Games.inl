@@ -178,7 +178,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& scen
         scene->register_game(info, func);
     });
 
-    globalTable["require"] = makeFunc([&globalTable, &script, ext](std::string const& package) {
+    globalTable["require"] = makeFunc([globalTable, &script, ext](std::string const& package) {
         if (globalTable.has("package", "loaded", package)) {
             return globalTable["package"]["loaded"][package].template as<Table>();
         }
