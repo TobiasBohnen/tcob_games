@@ -281,42 +281,38 @@ local move = {
 }
 
 local base_tab = {
-    Ace = @(_) @(card, _) card.Rank == "Ace",
-    King = @(_) @(card, _) card.Rank == "King",
-    None = @(_) @(_, _) false,
-    Any = @(_) @(_, _) true,
-    AnySingle = @(_) @(_, numCards) numCards == 1,
-    FirstFoundation = function(game, interval) {
-        return function(card, _) {
-            local pile = game.Foundation[0]
-            if (pile.IsEmpty) {
-                return false
-            }
-            local rank = pile.Cards[0].Rank
-            return card.Rank == Sol.get_rank(rank, interval, true)
-        }
-    },
-    Card = @(suit, rank) @(card, _) card.Rank == rank && card.Suit == suit,
-    CardColor = @(color, rank) @(card, _) card.Rank == rank && Sol.SuitColors[card.Suit] == color,
-    Suits = function(s) {
-        return function(card, _) {
-            foreach(value in s) {
-                if (value == card.Suit) {
-                    return true
-                }
-            }
+    //direct
+    Ace = @(_, card, _) card.Rank == "Ace",
+    King = @(_, card, _) card.Rank == "King",
+    None = @(_, _, _) false,
+    Any = @(_, _, _) true,
+    AnySingle = @(_, _, numCards) numCards == 1,
+    //indirect
+    FirstFoundation = function(game, card, interval) {
+        local pile = game.Foundation[0]
+        if (pile.IsEmpty) {
             return false
         }
+        local rank = pile.Cards[0].Rank
+        return card.Rank == Sol.get_rank(rank, interval, true)
     },
-    Ranks = function(r) {
-        return function(card, _) {
-            foreach(value in r) {
-                if (value == card.Rank) {
-                    return true
-                }
+    Card = @(card, suit, rank) card.Rank == rank && card.Suit == suit,
+    CardColor = @(card, color, rank) card.Rank == rank && Sol.SuitColors[card.Suit] == color,
+    Suits = function(card, s) {
+        foreach(value in s) {
+            if (value == card.Suit) {
+                return true
             }
-            return false
         }
+        return false
+    },
+    Ranks = function(card, r) {
+        foreach(value in r) {
+            if (value == card.Rank) {
+                return true
+            }
+        }
+        return false
     }
 }
 

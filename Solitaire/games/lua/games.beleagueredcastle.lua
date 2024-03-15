@@ -586,7 +586,7 @@ local zerline                    = {
     Tableau    = {
         Size   = 8,
         Create = function(i)
-            local rule = { Base = function() return rules.Base.Ranks({ "Queen" }) end, Build = rules.Build.DownByRank, Move = rules.Move.Top }
+            local rule = { Base = function(_, card, _) return rules.Base.Ranks(card, { "Queen" }) end, Build = rules.Build.DownByRank, Move = rules.Move.Top }
             if i < 4 then
                 return {
                     Position = { x = 0, y = i + 1 },
@@ -641,7 +641,7 @@ zerline_3_decks.Foundation       = {
 zerline_3_decks.Tableau          = {
     Size   = 8,
     Create = function(i)
-        local rule = { Base = function() return rules.Base.Ranks({ "Queen" }) end, Build = rules.Build.DownByRank, Move = rules.Move.Top }
+        local rule = { Base = function(_, card, _) return rules.Base.Ranks(card, { "Queen" }) end, Build = rules.Build.DownByRank, Move = rules.Move.Top }
         if i < 4 then
             return {
                 Position = { x = 0, y = i + 1 },

@@ -261,70 +261,52 @@ local move = {
 }
 
 local base = {
-    Ace = function()
-        return function(card)
-            return card.Rank == "Ace"
-        end
+    --direct
+    Ace = function(_, card, _)
+        return card.Rank == "Ace"
     end,
-    King = function()
-        return function(card)
-            return card.Rank == "King"
-        end
+    King = function(_, card, _)
+        return card.Rank == "King"
     end,
-    None = function()
-        return function()
+    None = function(_, _, _)
+        return false
+    end,
+    Any = function(_, _, _)
+        return true
+    end,
+    AnySingle = function(_, _, numCards)
+        return numCards == 1
+    end,
+    --indirect
+    FirstFoundation = function(game, card, interval)
+        local pile = game.Foundation[1]
+        if pile.IsEmpty then
             return false
         end
+        local rank = pile.Cards[1].Rank
+        return card.Rank == Sol.get_rank(rank, interval or 0, true)
     end,
-    Any = function()
-        return function()
-            return true
-        end
+    Card = function(card, suit, rank)
+        return card.Rank == rank and card.Suit == suit
     end,
-    AnySingle = function()
-        return function(_, numCards)
-            return numCards == 1
-        end
+    CardColor = function(card, color, rank)
+        return card.Rank == rank and Sol.SuitColors[card.Suit] == color
     end,
-    FirstFoundation = function(game, interval)
-        return function(card)
-            local pile = game.Foundation[1]
-            if pile.IsEmpty then
-                return false
+    Suits = function(card, suits)
+        for _, value in ipairs(suits) do
+            if value == card.Suit then
+                return true
             end
-            local rank = pile.Cards[1].Rank
-            return card.Rank == Sol.get_rank(rank, interval or 0, true);
         end
+        return false
     end,
-    Card = function(suit, rank)
-        return function(card)
-            return card.Rank == rank and card.Suit == suit;
-        end
-    end,
-    CardColor = function(color, rank)
-        return function(card)
-            return card.Rank == rank and Sol.SuitColors[card.Suit] == color;
-        end
-    end,
-    Suits = function(suits)
-        return function(card)
-            for _, value in ipairs(suits) do
-                if value == card.Suit then
-                    return true
-                end
+    Ranks = function(card, ranks)
+        for _, value in ipairs(ranks) do
+            if value == card.Rank then
+                return true
             end
-            return false
         end
-    end,
-    Ranks = function(ranks)
-        return function(card)
-            for _, value in ipairs(ranks) do
-                if value == card.Rank then
-                    return true
-                end
-            end
-            return false
-        end
+        return false
     end
 }
 
@@ -356,6 +338,6 @@ return {
     none_downrank_top = { Base = base.None, Build = build.DownByRank, Move = move.Top },
     none_none_top = { Base = base.None, Build = build.None, Move = move.Top },
     none_none_none = { Base = base.None, Build = build.None, Move = move.None },
-    ff_upsuit_top = { Base = function(game) return base.FirstFoundation(game) end, Build = build.UpInSuit, Move = move.Top, Wrap = true },
-    ff_upsuit_none = { Base = function(game) return base.FirstFoundation(game) end, Build = build.UpInSuit, Move = move.None, Wrap = true }
+    ff_upsuit_top = { Base = function(game, card, _) return base.FirstFoundation(game, card) end, Build = build.UpInSuit, Move = move.Top, Wrap = true },
+    ff_upsuit_none = { Base = function(game, card, _) return base.FirstFoundation(game, card) end, Build = build.UpInSuit, Move = move.None, Wrap = true }
 }

@@ -43,7 +43,7 @@ function Sol::get_rank(r, interval, wrap) {
         target = target % 13
     }
 
-    if (target == 0 || target > 13) {
+    if (target < 0 || target > 13) {
         return ""
     }
 

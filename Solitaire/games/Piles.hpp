@@ -24,6 +24,8 @@ auto empty_none(card const&, isize) -> bool;
 
 struct rule {
     std::string BuildHint;
+    i32         Interval {1};
+    bool        Wrap {false};
     build_func  Build {build_none};
 
     bool      IsPlayable {true};
@@ -32,9 +34,7 @@ struct rule {
 
     empty_func Base {empty_none};
 
-    i32  Interval {1};
-    bool Wrap {false};
-    i32  Limit {-1};
+    i32 Limit {-1};
 };
 
 ////////////////////////////////////////////////////////////

@@ -434,7 +434,7 @@ german_free_cell.FreeCell             = {
     Create = function(i)
         return {
             Layout = "Column",
-            Rule = { Base = function() return rules.Base.Suits({ german_free_cell_empty[i + 1] }) end, Build = rules.Build.None, Move = rules.Move.Top }
+            Rule = { Base = function(_, card, _) return rules.Base.Suits(card, { german_free_cell_empty[i + 1] }) end, Build = rules.Build.None, Move = rules.Move.Top }
         }
     end
 }
@@ -522,7 +522,7 @@ local penguin                         = {
             return {
                 Initial = ops.Initial.face_up(i > 0 and 7 or 6),
                 Layout = "Column",
-                Rule = { Base = function(game) return rules.Base.FirstFoundation(game, -1) end, Build = rules.Build.DownInSuit, Move = rules.Move.InSeq, Wrap = true }
+                Rule = { Base = function(game, card, _) return rules.Base.FirstFoundation(game, card, -1) end, Build = rules.Build.DownInSuit, Move = rules.Move.InSeq, Wrap = true }
             }
         end
     },

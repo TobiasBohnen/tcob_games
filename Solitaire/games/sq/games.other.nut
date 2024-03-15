@@ -228,7 +228,7 @@ local four_seasons = {
                 },
                 Initial = ops.Initial.face_up(i == 0 ? 1 : 0),
                 Rule = {
-                    Base = @(game) rules.Base.FirstFoundation(game, 0),
+                    Base = @(game, card, _) rules.Base.FirstFoundation(game, card, 0),
                     Build = rules.Build.UpInSuit,
                     Move = rules.Move.None,
                     Wrap = true

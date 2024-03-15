@@ -210,7 +210,7 @@ template <typename Table, template <typename> typename Function, isize IndexOffs
 inline auto script_game<Table, Function, IndexOffset>::can_drop(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool
 {
     if (_callbacks.CheckDrop) {
-        return (*_callbacks.CheckDrop)(static_cast<base_game const*>(this), &targetPile, targetIndex + IndexOffset, drop, numCards);
+        return (*_callbacks.CheckDrop)(static_cast<base_game const*>(this), &targetPile, targetIndex - IndexOffset, drop, numCards);
     }
     return base_game::can_drop(targetPile, targetIndex, drop, numCards);
 }
@@ -280,7 +280,7 @@ template <typename Table, template <typename> typename Function, isize IndexOffs
 inline auto script_game<Table, Function, IndexOffset>::check_movable(pile const& targetPile, isize idx) -> bool
 {
     if (_callbacks.CheckMovable) {
-        return (*_callbacks.CheckMovable)(static_cast<base_game const*>(this), &targetPile, idx + IndexOffset);
+        return (*_callbacks.CheckMovable)(static_cast<base_game const*>(this), &targetPile, idx - IndexOffset);
     }
     return base_game::check_movable(targetPile, idx);
 }
@@ -324,10 +324,9 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
                 }
             }
 
-            if (Function<Function<bool>> emptyFunc; ruleTable.try_get(emptyFunc, "Base")) {
-                auto func {emptyFunc(static_cast<base_game*>(this))};
-                pile.Rule.Base = {[func](card const& card, isize numCards) {
-                    return func(card, numCards);
+            if (Function<bool> func; ruleTable.try_get(func, "Base")) {
+                pile.Rule.Base = {[this, func](card const& card, isize numCards) {
+                    return func(static_cast<base_game*>(this), card, numCards);
                 }};
             }
         }

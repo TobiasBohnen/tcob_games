@@ -102,9 +102,9 @@ local clover_leaf            = {
         Size   = 4,
         Create = function(i)
             if i < 2 then
-                return { Rule = { Base = function() return rules.Base.CardColor("Black", "Ace") end, Build = rules.Build.UpInSuit, Move = rules.Move.Top } }
+                return { Rule = { Base = function(_, card, _) return rules.Base.CardColor(card, "Black", "Ace") end, Build = rules.Build.UpInSuit, Move = rules.Move.Top } }
             else
-                return { Rule = { Base = function() return rules.Base.CardColor("Red", "King") end, Build = rules.Build.DownInSuit, Move = rules.Move.Top } }
+                return { Rule = { Base = function(_, card, _) return rules.Base.CardColor(card, "Red", "King") end, Build = rules.Build.DownInSuit, Move = rules.Move.Top } }
             end
         end
     },
@@ -113,7 +113,7 @@ local clover_leaf            = {
         Create = {
             Initial = ops.Initial.face_up(3),
             Layout = "Row",
-            Rule = { Base = function() return rules.Base.Ranks({ "Ace", "King" }) end, Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top }
+            Rule = { Base = function(_, card, _) return rules.Base.Ranks(card, { "Ace", "King" }) end, Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top }
         }
     },
     on_before_shuffle = function(game, card)
