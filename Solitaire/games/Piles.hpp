@@ -14,18 +14,16 @@ namespace solitaire {
 
 ////////////////////////////////////////////////////////////
 
-using build_func = std::function<bool(card const&, card const&, i32, bool)>;
+using build_func = std::function<bool(card const&, card const&)>;
 using move_func  = std::function<bool(pile const*, isize)>;
 using empty_func = std::function<bool(card const&, isize)>;
 
-auto build_none(card const&, card const&, i32, bool) -> bool;
+auto build_none(card const&, card const&) -> bool;
 auto move_top(pile const* target, isize idx) -> bool;
 auto empty_none(card const&, isize) -> bool;
 
 struct rule {
     std::string BuildHint;
-    i32         Interval {1};
-    bool        Wrap {false};
     build_func  Build {build_none};
 
     bool      IsPlayable {true};

@@ -85,7 +85,7 @@ local double_free_cell_2              = Sol.copy(free_cell)
 double_free_cell_2.Info.Name          = "Double FreeCell II"
 double_free_cell_2.Info.DeckCount     = 2
 double_free_cell_2.FreeCell.Size      = 6
-double_free_cell_2.Foundation.Create  = { Rule = { Base = rules.Base.Ace, Build = rules.Build.UpInSuit, Move = rules.Move.Top, Wrap = true } }
+double_free_cell_2.Foundation.Create  = { Rule = { Base = rules.Base.Ace, Build = rules.Build.UpInSuit(true), Move = rules.Move.Top() } }
 double_free_cell_2.Tableau            = {
     Size   = 10,
     Create = {
@@ -133,7 +133,7 @@ bakers_game.Tableau.Create            = function(i)
     return {
         Initial = ops.Initial.face_up(i < 4 and 7 or 6),
         Layout = "Column",
-        Rule = { Base = rules.Base.Any, Build = rules.Build.DownInSuit, Move = rules.Move.SuperMove }
+        Rule = { Base = rules.Base.Any, Build = rules.Build.DownInSuit(), Move = rules.Move.SuperMove() }
     }
 end
 
@@ -145,7 +145,7 @@ bakers_game_ko.Tableau.Create         = function(i)
     return {
         Initial = ops.Initial.face_up(i < 4 and 7 or 6),
         Layout = "Column",
-        Rule = { Base = rules.Base.King, Build = rules.Build.DownInSuit, Move = rules.Move.SuperMove }
+        Rule = { Base = rules.Base.King, Build = rules.Build.DownInSuit(), Move = rules.Move.SuperMove() }
     }
 end
 
@@ -265,7 +265,7 @@ super_challenge_free_cell.Tableau     = {
         return {
             Initial = ops.Initial.face_up(i < 4 and 6 or 5),
             Layout = "Column",
-            Rule = { Base = rules.Base.King, Build = rules.Build.DownAlternateColors, Move = rules.Move.SuperMove }
+            Rule = { Base = rules.Base.King, Build = rules.Build.DownAlternateColors(), Move = rules.Move.SuperMove() }
         }
     end
 }
@@ -283,7 +283,7 @@ clink.FreeCell                        = {
 }
 clink.Foundation                      = {
     Size = 2,
-    Create = { Rule = { Base = rules.Base.Ace, Build = rules.Build.UpInSuit, Move = rules.Move.Top, Wrap = true } }
+    Create = { Rule = { Base = rules.Base.Ace, Build = rules.Build.UpInSuit(true), Move = rules.Move.Top() } }
 }
 clink.Tableau                         = {
     Size = 8,
@@ -370,7 +370,7 @@ local eight_off                       = {
         Create = {
             Initial = ops.Initial.face_up(6),
             Layout = "Column",
-            Rule = { Base = rules.Base.King, Build = rules.Build.DownInSuit, Move = rules.Move.SuperMove }
+            Rule = { Base = rules.Base.King, Build = rules.Build.DownInSuit(), Move = rules.Move.SuperMove() }
         }
     },
     on_created = Sol.Layout.double_free_cell
@@ -380,7 +380,7 @@ local eight_off                       = {
 
 local footling                        = Sol.copy(free_cell)
 footling.Info.Name                    = "Footling"
-footling.Foundation                   = { Rule = { Base = rules.Base.Ace, Build = rules.Build.RankPack, Move = rules.Move.Top } }
+footling.Foundation                   = { Rule = { Base = rules.Base.Ace, Build = rules.Build.RankPack(), Move = rules.Move.Top() } }
 footling.Tableau                      = {
     Size = 8,
     Create = function(i)
@@ -405,7 +405,7 @@ fore_cell.Tableau                     = {
     Create = {
         Initial = ops.Initial.face_up(6),
         Layout = "Column",
-        Rule = { Base = rules.Base.King, Build = rules.Build.DownAlternateColors, Move = rules.Move.SuperMove }
+        Rule = { Base = rules.Base.King, Build = rules.Build.DownAlternateColors(), Move = rules.Move.SuperMove() }
     }
 }
 
@@ -434,7 +434,7 @@ german_free_cell.FreeCell             = {
     Create = function(i)
         return {
             Layout = "Column",
-            Rule = { Base = function(_, card, _) return rules.Base.Suits(card, { german_free_cell_empty[i + 1] }) end, Build = rules.Build.None, Move = rules.Move.Top }
+            Rule = { Base = function(_, card, _) return rules.Base.Suits(card, { german_free_cell_empty[i + 1] }) end, Build = rules.Build.None(), Move = rules.Move.Top() }
         }
     end
 }
@@ -449,7 +449,7 @@ king_cell.Tableau                     = {
         return {
             Initial = ops.Initial.face_up(i < 4 and 7 or 6),
             Layout = "Column",
-            Rule = { Base = rules.Base.King, Build = rules.Build.DownAlternateColors, Move = rules.Move.SuperMove }
+            Rule = { Base = rules.Base.King, Build = rules.Build.DownAlternateColors(), Move = rules.Move.SuperMove() }
         }
     end
 }
@@ -522,7 +522,7 @@ local penguin                         = {
             return {
                 Initial = ops.Initial.face_up(i > 0 and 7 or 6),
                 Layout = "Column",
-                Rule = { Base = function(game, card, _) return rules.Base.FirstFoundation(game, card, -1) end, Build = rules.Build.DownInSuit, Move = rules.Move.InSeq, Wrap = true }
+                Rule = { Base = function(game, card, _) return rules.Base.FirstFoundation(game, card, -1) end, Build = rules.Build.DownInSuit(true), Move = rules.Move.InSeq() }
             }
         end
     },
@@ -590,7 +590,7 @@ local snake                           = {
                 Position = { x = i, y = 1 },
                 Initial = ops.Initial.face_up(i == 0 and 96 or 0),
                 Layout = "Column",
-                Rule = { Base = rules.Base.None, Build = rules.Build.DownAlternateColors, Move = rules.Move.SuperMove }
+                Rule = { Base = rules.Base.None, Build = rules.Build.DownAlternateColors(), Move = rules.Move.SuperMove() }
             }
         end
     },
@@ -619,7 +619,7 @@ cats_tail.Tableau.Create              = function(i)
         Position = { x = i, y = 1 },
         Initial = ops.Initial.face_up(i == 0 and 104 or 0),
         Layout = "Column",
-        Rule = { Base = rules.Base.None, Build = rules.Build.DownAlternateColors, Move = rules.Move.InSeq }
+        Rule = { Base = rules.Base.None, Build = rules.Build.DownAlternateColors(), Move = rules.Move.InSeq() }
     }
 end
 cats_tail.on_before_shuffle           = nil

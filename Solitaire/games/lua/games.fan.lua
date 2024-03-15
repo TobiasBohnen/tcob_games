@@ -52,7 +52,7 @@ bear_river.Tableau           = {
         return {
             Initial = ops.Initial.face_up(lastInRow and 2 or 3),
             Layout = "Row",
-            Rule = { Base = lastInRow and rules.Base.Any or rules.Base.None, Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top, Wrap = true, Limit = 3 }
+            Rule = { Base = lastInRow and rules.Base.Any or rules.Base.None, Build = rules.Build.UpOrDownInSuit(true), Move = rules.Move.Top(), Limit = 3 }
         }
     end
 }
@@ -102,9 +102,9 @@ local clover_leaf            = {
         Size   = 4,
         Create = function(i)
             if i < 2 then
-                return { Rule = { Base = function(_, card, _) return rules.Base.CardColor(card, "Black", "Ace") end, Build = rules.Build.UpInSuit, Move = rules.Move.Top } }
+                return { Rule = { Base = function(_, card, _) return rules.Base.CardColor(card, "Black", "Ace") end, Build = rules.Build.UpInSuit(), Move = rules.Move.Top() } }
             else
-                return { Rule = { Base = function(_, card, _) return rules.Base.CardColor(card, "Red", "King") end, Build = rules.Build.DownInSuit, Move = rules.Move.Top } }
+                return { Rule = { Base = function(_, card, _) return rules.Base.CardColor(card, "Red", "King") end, Build = rules.Build.DownInSuit(), Move = rules.Move.Top() } }
             end
         end
     },
@@ -113,7 +113,7 @@ local clover_leaf            = {
         Create = {
             Initial = ops.Initial.face_up(3),
             Layout = "Row",
-            Rule = { Base = function(_, card, _) return rules.Base.Ranks(card, { "Ace", "King" }) end, Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top }
+            Rule = { Base = function(_, card, _) return rules.Base.Ranks(card, { "Ace", "King" }) end, Build = rules.Build.UpOrDownInSuit(), Move = rules.Move.Top() }
         }
     },
     on_before_shuffle = function(game, card)
@@ -138,7 +138,7 @@ quads.Tableau                = {
     Create = {
         Initial = ops.Initial.face_up(4),
         Layout = "Row",
-        Rule = { Base = rules.Base.Any, Build = rules.Build.InRank, Move = rules.Move.Top, Limit = 4 }
+        Rule = { Base = rules.Base.Any, Build = rules.Build.InRank(), Move = rules.Move.Top(), Limit = 4 }
     }
 }
 quads.on_shuffle             = function(game, card, pileType)
@@ -159,7 +159,7 @@ quads_plus.Tableau           = {
         return {
             Initial = ops.Initial.face_up(i < 12 and 4 or 0),
             Layout = "Row",
-            Rule = { Base = rules.Base.Any, Build = rules.Build.InRank, Move = rules.Move.Top, Limit = 4 }
+            Rule = { Base = rules.Base.Any, Build = rules.Build.InRank(), Move = rules.Move.Top(), Limit = 4 }
         }
     end
 }
@@ -196,7 +196,7 @@ local lucky_piles            = {
                 Position = { x = lucky_piles_pos[i + 1][1], y = lucky_piles_pos[i + 1][2] },
                 Initial = ops.Initial.face_up(4),
                 Layout = "Row",
-                Rule = { Base = rules.Base.King, Build = rules.Build.UpOrDownInSuit, Move = rules.Move.Top }
+                Rule = { Base = rules.Base.King, Build = rules.Build.UpOrDownInSuit(), Move = rules.Move.Top() }
             }
         end
     }
@@ -231,7 +231,7 @@ shamrocks.Tableau            = {
         return {
             Initial = ops.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
-            Rule = { Base = rules.Base.None, Build = rules.Build.UpOrDownByRank, Move = rules.Move.Top, Limit = 3 }
+            Rule = { Base = rules.Base.None, Build = rules.Build.UpOrDownByRank(), Move = rules.Move.Top(), Limit = 3 }
         }
     end
 }
@@ -246,7 +246,7 @@ shamrocks_2.Tableau          = {
         return {
             Initial = ops.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
-            Rule = { Base = rules.Base.None, Build = rules.Build.UpOrDownByRank, Move = rules.Move.Top, Limit = 3 }
+            Rule = { Base = rules.Base.None, Build = rules.Build.UpOrDownByRank(), Move = rules.Move.Top(), Limit = 3 }
         }
     end
 }
@@ -262,7 +262,7 @@ troika.Tableau               = {
         return {
             Initial = ops.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
-            Rule = { Base = rules.Base.None, Build = rules.Build.InRank, Move = rules.Move.Top, Limit = 3 }
+            Rule = { Base = rules.Base.None, Build = rules.Build.InRank(), Move = rules.Move.Top(), Limit = 3 }
         }
     end
 }

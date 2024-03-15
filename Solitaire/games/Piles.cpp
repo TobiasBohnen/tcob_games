@@ -7,7 +7,7 @@
 
 namespace solitaire {
 
-auto build_none(card const&, card const&, i32, bool) -> bool
+auto build_none(card const&, card const&) -> bool
 {
     return false;
 }
@@ -244,7 +244,7 @@ auto pile::build(isize targetIndex, card const& drop, isize numCards) const -> b
     card const& target {Cards[targetIndex]};
     if (target.is_face_down()) { return false; }
 
-    return Rule.Build(target, drop, Rule.Interval, Rule.Wrap);
+    return Rule.Build(target, drop);
 }
 
 ////////////////////////////////////////////////////////////

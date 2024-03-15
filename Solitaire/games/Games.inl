@@ -295,16 +295,14 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
         pileTab.try_get(pile.HasMarker, "HasMarker");
 
         if (Table ruleTable; pileTab.try_get(ruleTable, "Rule")) {
-            ruleTable.try_get(pile.Rule.Interval, "Interval");
-            ruleTable.try_get(pile.Rule.Wrap, "Wrap");
             ruleTable.try_get(pile.Rule.Limit, "Limit");
 
             if (Table buildTable; ruleTable.try_get(buildTable, "Build")) {
                 buildTable.try_get(pile.Rule.BuildHint, "Hint");
 
                 if (Function<bool> func; buildTable.try_get(func, "Build")) {
-                    pile.Rule.Build = {[func](card const& target, card const& drop, i32 interval, bool wrap) {
-                        return func(target, drop, interval, wrap);
+                    pile.Rule.Build = {[func](card const& target, card const& drop) {
+                        return func(target, drop);
                     }};
                 }
             }

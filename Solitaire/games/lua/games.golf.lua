@@ -47,14 +47,14 @@ local golf                 = {
     Foundation  = {
         Initial = ops.Initial.face_up(1),
         Layout  = "Squared",
-        Rule    = { Base = rules.Base.None, Build = rules.Build.UpOrDownByRank, Move = rules.Move.None }
+        Rule    = { Base = rules.Base.None, Build = rules.Build.UpOrDownByRank(), Move = rules.Move.None() }
     },
     Tableau     = {
         Size   = 7,
         Create = {
             Initial = ops.Initial.top_face_up(5),
             Layout = "Column",
-            Rule = { Base = rules.Base.None, Build = rules.Build.None, Move = rules.Move.Top }
+            Rule = { Base = rules.Base.None, Build = rules.Build.None(), Move = rules.Move.Top() }
         }
     },
     on_deal     = function(game)
@@ -75,7 +75,7 @@ double_golf.Tableau        = {
     Create = {
         Initial = ops.Initial.top_face_up(7),
         Layout = "Column",
-        Rule = { Base = rules.Base.None, Build = rules.Build.None, Move = rules.Move.Top }
+        Rule = { Base = rules.Base.None, Build = rules.Build.None(), Move = rules.Move.Top() }
     }
 }
 
@@ -86,7 +86,7 @@ putt_putt.Info.Name        = "Putt Putt"
 putt_putt.Foundation       = {
     Initial = ops.Initial.face_up(1),
     Layout  = "Squared",
-    Rule    = { Base = rules.Base.None, Build = rules.Build.UpOrDownByRank, Move = rules.Move.None, Wrap = true }
+    Rule    = { Base = rules.Base.None, Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.None() }
 }
 
 ------
@@ -115,7 +115,7 @@ local black_hole           = {
     },
     Foundation        = {
         Position = { x = 4, y = 1.5 },
-        Rule     = { Build = rules.Build.UpOrDownByRank, Move = rules.Move.None, Wrap = true }
+        Rule     = { Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.None() }
     },
     Tableau           = {
         Size   = 17,
@@ -124,7 +124,7 @@ local black_hole           = {
                 Position = { x = black_hole_pos[i + 1][1], y = black_hole_pos[i + 1][2] },
                 Initial = ops.Initial.face_up(3),
                 Layout = "Row",
-                Rule = { Build = rules.Build.None }
+                Rule = { Build = rules.Build.None() }
             }
         end
     },

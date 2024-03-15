@@ -148,7 +148,7 @@ cruel.Tableau                          = {
     Create = {
         Initial = ops.Initial.face_up(4),
         Layout = "Column",
-        Rule = { Base = rules.Base.None, Build = rules.Build.DownInSuit, Move = rules.Move.Top }
+        Rule = rules.none_downsuit_top
     }
 }
 cruel.on_before_shuffle                = ops.Shuffle.ace_to_foundation
@@ -195,7 +195,7 @@ perseverance.Info.Redeals              = 2
 perseverance.Tableau.Create            = {
     Initial = ops.Initial.face_up(4),
     Layout = "Column",
-    Rule = { Base = rules.Base.None, Build = rules.Build.DownInSuit, Move = rules.Move.InSeq }
+    Rule = { Base = rules.Base.None, Build = rules.Build.DownInSuit(), Move = rules.Move.InSeq() }
 }
 
 ------
@@ -328,7 +328,7 @@ martha.Tableau                         = {
     Create = {
         Initial = ops.Initial.alternate(4, false),
         Layout = "Column",
-        Rule = { Base = rules.Base.AnySingle, Build = rules.Build.DownAlternateColors, Move = rules.Move.InSeq }
+        Rule = { Base = rules.Base.AnySingle, Build = rules.Build.DownAlternateColors(), Move = rules.Move.InSeq() }
     }
 }
 martha.on_before_shuffle               = ops.Shuffle.ace_to_foundation

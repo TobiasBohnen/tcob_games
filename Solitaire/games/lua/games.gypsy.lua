@@ -56,7 +56,7 @@ agnes_sorel.Tableau                   = {
         return {
             Initial = ops.Initial.face_up(i + 1),
             Layout = "Column",
-            Rule = { Base = rules.Base.None, Build = rules.Build.DownInColor, Move = rules.Move.InSeq }
+            Rule = { Base = rules.Base.None, Build = rules.Build.DownInColor(), Move = rules.Move.InSeq() }
         }
     end
 }
@@ -273,7 +273,7 @@ local cone                            = {
         Create = function(i)
             return {
                 Position = { x = 8, y = i + 1 },
-                Rule = { Base = rules.Base.Ace, Build = rules.Build.UpInSuit, Move = rules.Move.Top, Wrap = true }
+                Rule = { Base = rules.Base.Ace, Build = rules.Build.UpInSuit(true), Move = rules.Move.Top() }
             }
         end
     },

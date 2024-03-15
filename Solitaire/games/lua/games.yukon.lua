@@ -114,7 +114,7 @@ alaska.Tableau.Create                    = function(i)
     return {
         Initial = ops.Initial.yukon(i),
         Layout = "Column",
-        Rule = { Base = rules.Base.King, Build = rules.Build.UpOrDownInSuit, Move = rules.Move.FaceUp }
+        Rule = { Base = rules.Base.King, Build = rules.Build.UpOrDownInSuit(), Move = rules.Move.FaceUp() }
     }
 end
 
@@ -136,7 +136,7 @@ brisbane.Tableau.Create                  = function(i)
     return {
         Initial = brisbane_initial[i + 1],
         Layout = "Column",
-        Rule = { Base = rules.Base.King, Build = rules.Build.DownByRank, Move = rules.Move.FaceUp }
+        Rule = { Base = rules.Base.King, Build = rules.Build.DownByRank(), Move = rules.Move.FaceUp() }
     }
 end
 
@@ -150,7 +150,7 @@ geoffrey.Tableau                         = {
         return {
             Initial = i < 4 and ops.Initial.face_up(7) or { false, false, false, false, true, true },
             Layout = "Column",
-            Rule = { Base = rules.Base.King, Build = rules.Build.DownInSuit, Move = rules.Move.FaceUp }
+            Rule = rules.king_downsuit_faceup
         }
     end
 }
@@ -164,7 +164,7 @@ queensland.Tableau.Create                = function(i)
     return {
         Initial = brisbane_initial[i + 1],
         Layout = "Column",
-        Rule = { Base = rules.Base.Any, Build = rules.Build.DownInSuit, Move = rules.Move.FaceUp }
+        Rule = rules.any_downsuit_faceup
     }
 end
 
@@ -176,7 +176,7 @@ roslin.Tableau.Create                    = function(i)
     return {
         Initial = ops.Initial.yukon(i),
         Layout = "Column",
-        Rule = { Base = rules.Base.King, Build = rules.Build.UpOrDownAlternateColors, Move = rules.Move.FaceUp }
+        Rule = { Base = rules.Base.King, Build = rules.Build.UpOrDownAlternateColors(), Move = rules.Move.FaceUp() }
     }
 end
 
@@ -188,7 +188,7 @@ moosehide.Tableau.Create                 = function(i)
     return {
         Initial = ops.Initial.yukon(i),
         Layout = "Column",
-        Rule = { Base = rules.Base.King, Build = rules.Build.DownAnyButOwnSuit, Move = rules.Move.FaceUp }
+        Rule = { Base = rules.Base.King, Build = rules.Build.DownAnyButOwnSuit(), Move = rules.Move.FaceUp() }
     }
 end
 
@@ -200,7 +200,7 @@ russian_solitaire.Tableau.Create         = function(i)
     return {
         Initial = ops.Initial.yukon(i),
         Layout = "Column",
-        Rule = { Base = rules.Base.King, Build = rules.Build.DownInSuit, Move = rules.Move.FaceUp }
+        Rule = rules.king_downsuit_faceup
     }
 end
 

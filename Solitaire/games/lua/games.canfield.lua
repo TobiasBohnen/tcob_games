@@ -35,7 +35,7 @@ local canfield                      = {
         Create = {
             Initial = ops.Initial.face_up(1),
             Layout = "Column",
-            Rule = { Base = rules.Base.Any, Build = rules.Build.DownAlternateColors, Move = rules.Move.TopOrPile, Wrap = true }
+            Rule = { Base = rules.Base.Any, Build = rules.Build.DownAlternateColors(true), Move = rules.Move.TopOrPile() }
         }
     },
     on_change  = function(game) game.Reserve[1]:deal_to_group(game.Tableau, true) end,
@@ -117,7 +117,7 @@ american_toad.Tableau               = {
     Create = {
         Initial = ops.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Base = rules.Base.Any, Build = rules.Build.DownInSuit, Move = rules.Move.TopOrPile, Wrap = true }
+        Rule = { Base = rules.Base.Any, Build = rules.Build.DownInSuit(true), Move = rules.Move.TopOrPile() }
     }
 }
 
@@ -138,7 +138,7 @@ chameleon.Tableau                   = {
     Create = {
         Initial = ops.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Base = rules.Base.Any, Build = rules.Build.DownByRank, Move = rules.Move.TopOrPile, Wrap = true }
+        Rule = { Base = rules.Base.Any, Build = rules.Build.DownByRank(true), Move = rules.Move.TopOrPile() }
     }
 }
 
@@ -158,7 +158,7 @@ demon.Tableau                       = {
     Create = {
         Initial = ops.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Base = rules.Base.Any, Build = rules.Build.DownAlternateColors, Move = rules.Move.InSeq, Wrap = true }
+        Rule = { Base = rules.Base.Any, Build = rules.Build.DownAlternateColors(true), Move = rules.Move.InSeq() }
     }
 }
 
@@ -203,7 +203,7 @@ local eagle_wing                    = {
                 Position = { x = eagle_wing_pos[i + 1][1], y = eagle_wing_pos[i + 1][2] },
                 Initial = ops.Initial.face_up(1),
                 Layout = "Column",
-                Rule = { Base = rules.Base.None, Build = rules.Build.DownInSuit, Move = rules.Move.Top, Wrap = true, Limit = 3 }
+                Rule = { Base = rules.Base.None, Build = rules.Build.DownInSuit(true), Move = rules.Move.Top(), Limit = 3 }
             }
         end
     },
@@ -226,7 +226,7 @@ minerva.Reserve.Create              = {
     Initial = ops.Initial.top_face_up(11),
     Layout = "Column"
 }
-minerva.Foundation.Create           = { Rule = { Base = rules.Base.Ace, Build = rules.Build.UpInSuit, Move = rules.Move.None, Wrap = true } }
+minerva.Foundation.Create           = { Rule = { Base = rules.Base.Ace, Build = rules.Build.UpInSuit(), Move = rules.Move.None() } }
 minerva.Tableau                     = {
     Size   = 7,
     Create = {
@@ -310,7 +310,7 @@ dutchess.Tableau.Create             = function(i)
         Position = { x = i + 4, y = 1 },
         Initial = ops.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Base = rules.Base.Any, Build = rules.Build.DownAlternateColors, Move = rules.Move.InSeq, Wrap = true }
+        Rule = { Base = rules.Base.Any, Build = rules.Build.DownAlternateColors(), Move = rules.Move.InSeq() }
     }
 end
 dutchess.check_drop                 = function(game, targetPile, targetIndex, drop, numCards)
