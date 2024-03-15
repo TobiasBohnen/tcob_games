@@ -25,10 +25,17 @@ auto base_game::get_name() const -> std::string
     return _gameInfo.Name;
 }
 
-auto base_game::get_description(pile const* pile) const -> hover_info
+auto base_game::get_description(pile const* pile) -> hover_info
 {
-    // TODO: cache description; clear cache on change
-    return pile ? pile->get_description(_remainingRedeals) : hover_info {};
+    if (!pile) { return {}; }
+
+    if (auto it {_descriptionCache.find(pile)}; it != _descriptionCache.end()) {
+        return it->second;
+    }
+
+    auto const retValue {pile->get_description(_remainingRedeals)};
+    _descriptionCache[pile] = retValue;
+    return retValue;
 }
 
 void base_game::start(size_f cardSize, std::optional<data::config::object> const& loadObj)
@@ -181,6 +188,7 @@ auto base_game::can_undo() const -> bool
 void base_game::layout_piles()
 {
     _movableCache.clear();
+    _descriptionCache.clear();
     on_change();
 
     for (auto& [_, piles] : _piles) {

@@ -58,7 +58,7 @@ public:
     std::vector<foundation> Foundation;
 
     auto get_name() const -> std::string;
-    auto get_description(pile const* pile) const -> hover_info;
+    auto get_description(pile const* pile) -> hover_info;
 
     auto info() const -> game_info;
     auto state() const -> game_state;
@@ -118,6 +118,7 @@ private:
 
     std::unordered_map<pile_type, std::vector<pile*>> _piles;
     flat_map<std::pair<pile const*, isize>, bool>     _movableCache;
+    std::unordered_map<pile const*, hover_info>       _descriptionCache;
 
     game_state _state {game_state::Initial};
     game_info  _gameInfo;
