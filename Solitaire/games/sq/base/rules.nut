@@ -263,8 +263,13 @@ return {
     Base = base_tab,
 
     ace_upsuit_top = {
-        Build = build.UpInSuit(),
-        Move = move.Top(),
-        Base = base_tab.Ace
-    }
+        Base = base_tab.Ace,
+        Build = build.UpInSuit()
+        Move = move.Top()
+    },
+    any_downac_inseq = {
+        Base = base_tab.Any,
+        Build = build.DownAlternateColors(),
+        Move = move.InSeq()
+    },
 }
