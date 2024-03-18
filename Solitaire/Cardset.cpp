@@ -326,10 +326,10 @@ void cardset::draw_suit(suit s, point_f pos, f32 size)
         _canvas->begin_path();
 
         _canvas->move_to(halfPath[0][0]);
-        for (const auto& path : halfPath) {
+        for (auto const& path : halfPath) {
             _canvas->cubic_bezier_to(path[1], path[2], path[3]);
         }
-        for (const auto& path : halfPath | std::views::reverse) {
+        for (auto const& path : halfPath | std::views::reverse) {
             _canvas->cubic_bezier_to({-path[2].X, path[2].Y}, {-path[1].X, path[1].Y}, {-path[0].X, path[0].Y});
         }
 
