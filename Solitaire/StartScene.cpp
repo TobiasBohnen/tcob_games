@@ -215,7 +215,7 @@ void start_scene::load_scripts()
 {
     {
         games::lua_script_game::CreateAPI(this, _luaScript, _luaFunctions);
-        auto const files {io::enumerate("/", "games.*.lua", true)};
+        auto const files {io::enumerate("/", "*games.*.lua", true)};
         for (auto const& file : files) {
             (void)_luaScript.run_file(file);
         }
@@ -223,7 +223,7 @@ void start_scene::load_scripts()
 
     {
         games::squirrel_script_game::CreateAPI(this, _sqScript, _sqFunctions);
-        auto const files {io::enumerate("/", "games.*.nut", true)};
+        auto const files {io::enumerate("/", "*games.*.nut", true)};
         for (auto const& file : files) {
             (void)_sqScript.run_file(file);
         }
