@@ -39,7 +39,7 @@ cardset::cardset(std::string const& matName, assets::group& resGrp)
 
 auto cardset::load() const -> bool
 {
-    auto files {io::enumerate(CardsetFolder, "*card*.png", false)};
+    auto files {io::enumerate(CardsetFolder, {"*card*.png"}, false)};
     if (files.size() < CardsetCardCount) { return false; }
 
     auto const info {gfx::image::LoadInfo(*files.begin())};

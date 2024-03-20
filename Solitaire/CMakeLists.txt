@@ -46,8 +46,8 @@ if(TCOB_BUILD_SHARED AND NOT TCOB_IS_CI)
 endif()
 
 add_custom_target(Solitaire_copyFiles ALL
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/games/lua/ ${CMAKE_BINARY_DIR}/../../x64/games/
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/games/sq/ ${CMAKE_BINARY_DIR}/../../x64/games/
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/games/lua/ ${CMAKE_BINARY_DIR}/../../x64/
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/games/sq/ ${CMAKE_BINARY_DIR}/../../x64/
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/theme.ini ${CMAKE_BINARY_DIR}/../../x64/
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/solitaire.zip ${CMAKE_BINARY_DIR}/../../x64/
 )
