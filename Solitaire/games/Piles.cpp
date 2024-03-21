@@ -110,8 +110,7 @@ auto static get_valid_cards(empty_func const& func) -> std::multimap<rank, suit>
 
 auto static get_empty_ranks(empty_func const& func) -> std::string
 {
-    std::array<bool, 26>                     ranks {};
-    static std::array<std::string, 13> const rankNames = {"Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King"};
+    std::array<bool, 26> ranks {};
 
     for (i32 i {0}; i < 26; ++i) {
         ranks[i] = func({i < 13 ? suit::Clubs : suit::Diamonds, static_cast<rank>(i % 13 + 1), 0}, 1);
@@ -122,13 +121,14 @@ auto static get_empty_ranks(empty_func const& func) -> std::string
     if (countTrue == 0) { return "None"; }
 
     std::string retValue;
-    for (i32 i {0}; i < 13; ++i) {
-        if (ranks[i] && ranks[i + 13]) {
-            retValue += rankNames[i];
-        } else if (ranks[i]) {
-            retValue += "Black " + rankNames[i];
-        } else if (ranks[i + 13]) {
-            retValue += "Red " + rankNames[i];
+    for (u8 cr {static_cast<u8>(rank::Ace)}; cr <= static_cast<u8>(rank::King); ++cr) {
+        auto const r {get_rank_name(static_cast<rank>(cr + 1))};
+        if (ranks[cr] && ranks[cr + 13]) {
+            retValue += r;
+        } else if (ranks[cr]) {
+            retValue += "Black " + r;
+        } else if (ranks[cr + 13]) {
+            retValue += "Red " + r;
         }
     }
     return retValue;
@@ -187,11 +187,10 @@ auto pile::get_marker_texture_name() const -> std::string
         if (valid.size() == 52) {
             return "card_base_gen"; // Any
         }
-        if (valid.count(rank::Ace) == 4) {
-            return "card_base_ace";
-        }
-        if (valid.count(rank::King) == 4) {
-            return "card_base_king";
+        for (u8 cr {static_cast<u8>(rank::Ace)}; cr <= static_cast<u8>(rank::King); ++cr) {
+            if (valid.count(static_cast<rank>(cr)) == 4) {
+                return "card_base_" + helper::to_lower(get_rank_name(static_cast<rank>(cr)));
+            }
         }
         return "card_base_gen";
     }

@@ -97,7 +97,6 @@ protected:
 
     auto virtual check_movable(pile const& targetPile, isize idx) -> bool;
 
-    void add_pile(pile* p);
     void create_piles(auto&& piles, isize size, std::function<void(pile&, i32)> const& func);
 
     void layout_piles();

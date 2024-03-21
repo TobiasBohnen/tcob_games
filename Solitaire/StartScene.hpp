@@ -36,9 +36,6 @@ protected:
 
     void on_key_down(input::keyboard::event& ev) override;
 
-    void on_mouse_motion(input::mouse::motion_event& ev) override;
-    void on_mouse_wheel(input::mouse::wheel_event& ev) override;
-
 private:
     void load_scripts();
 

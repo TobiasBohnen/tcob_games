@@ -84,8 +84,8 @@ auto card::FromValue(u16 value) -> card
 deck::deck(u8 num)
 {
     Cards.reserve(52);
-    for (i32 s {static_cast<i32>(suit::Hearts)}; s <= static_cast<i32>(suit::Spades); ++s) {
-        for (i32 r {static_cast<i32>(rank::Ace)}; r <= static_cast<i32>(rank::King); ++r) {
+    for (u8 s {static_cast<u8>(suit::Hearts)}; s <= static_cast<u8>(suit::Spades); ++s) {
+        for (u8 r {static_cast<u8>(rank::Ace)}; r <= static_cast<u8>(rank::King); ++r) {
             Cards.emplace_back(static_cast<suit>(s), static_cast<rank>(r), num);
         }
     }
@@ -117,6 +117,48 @@ auto get_suit_color(suit s) -> suit_color
     case suit::Spades:
         return suit_color::Black;
     }
+}
+
+auto get_rank_symbol(rank r) -> std::string
+{
+    switch (r) {
+    case rank::Ace: return "A";
+    case rank::Two: return "2";
+    case rank::Three: return "3";
+    case rank::Four: return "4";
+    case rank::Five: return "5";
+    case rank::Six: return "6";
+    case rank::Seven: return "7";
+    case rank::Eight: return "8";
+    case rank::Nine: return "9";
+    case rank::Ten: return "10";
+    case rank::Jack: return "J";
+    case rank::Queen: return "Q";
+    case rank::King: return "K";
+    }
+
+    return "";
+}
+
+auto get_rank_name(rank r) -> std::string
+{
+    switch (r) {
+    case rank::Ace: return "Ace";
+    case rank::Two: return "Two";
+    case rank::Three: return "Three";
+    case rank::Four: return "Four";
+    case rank::Five: return "Five";
+    case rank::Six: return "Six";
+    case rank::Seven: return "Seven";
+    case rank::Eight: return "Eight";
+    case rank::Nine: return "Nine";
+    case rank::Ten: return "Ten";
+    case rank::Jack: return "Jack";
+    case rank::Queen: return "Queen";
+    case rank::King: return "King";
+    }
+
+    return "";
 }
 
 } // namespace solitaire

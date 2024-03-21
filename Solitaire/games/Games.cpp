@@ -446,11 +446,6 @@ auto base_game::check_state() const -> game_state
     return game_state::Success;
 }
 
-void base_game::add_pile(pile* p)
-{
-    _piles[p->Type].push_back(p);
-}
-
 auto base_game::find_pile(card const& card) const -> pile*
 {
     for (auto const& kvp : _piles) {

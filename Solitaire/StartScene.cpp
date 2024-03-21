@@ -37,9 +37,13 @@ void start_scene::on_start()
     resGrp.mount("./solitaire.zip");
     resMgr.load_all_groups();
 
-    auto& window {get_game().get_window()};
+    auto& window {get_window()};
     auto  windowSize {window.Size()};
     auto& configFile {locate_service<data::config_file>()};
+
+    auto defaultCursor {resGrp.get<gfx::cursor>("default")};
+    window.Cursor             = defaultCursor;
+    defaultCursor->ActiveMode = "cursor32";
 
     // field
     f32 const height {windowSize.Height / 10.f * 9.f};
@@ -184,30 +188,6 @@ void start_scene::on_key_down(input::keyboard::event& ev)
         break;
     default:
         break;
-    }
-}
-
-void start_scene::on_mouse_motion(input::mouse::motion_event& ev)
-{
-    if (input::system::IsMouseButtonDown(input::mouse::button::Right)) {
-        auto&         camera {*get_window().Camera};
-        size_f const  zoom {camera.get_zoom()};
-        point_f const off {-ev.RelativeMotion.X / zoom.Width, -ev.RelativeMotion.Y / zoom.Height};
-        camera.move_by(off);
-        ev.Handled = true;
-    }
-}
-
-void start_scene::on_mouse_wheel(input::mouse::wheel_event& ev)
-{
-    if (!_formControls->Bounds->contains(ev.Position)) {
-        auto& camera {*get_window().Camera};
-        if (ev.Scroll.Y > 0) {
-            camera.zoom_by({1.1f, 1.1f});
-        } else {
-            camera.zoom_by({1 / 1.1f, 1 / 1.1f});
-        }
-        ev.Handled = true;
     }
 }
 

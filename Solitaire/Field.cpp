@@ -59,15 +59,16 @@ void field::start(std::shared_ptr<games::base_game> const& game, bool cont)
         _currentGame->save(_saveGame);
     }
 
-    _dropTarget = {};
-    _hovered    = {};
+    _dropTarget   = {};
+    _hovered      = {};
+    _manualCamera = false;
 
     _currentGame = game;
 
     _cardQuads.clear();
     _cardQuads.resize(_currentGame->info().DeckCount * 52);
 
-    auto const cardSize {calc_card_size()};
+    auto const cardSize {get_card_size()};
     if (cont) {
         _currentGame->start(cardSize, _saveGame);
     } else {
@@ -136,10 +137,6 @@ void field::on_update(milliseconds deltaTime)
     _text.update(deltaTime);
 }
 
-void field::on_fixed_update(milliseconds /* deltaTime */)
-{
-}
-
 void field::on_draw_to(gfx::render_target& target)
 {
     _markerSprites.draw_to(target);
@@ -154,14 +151,26 @@ void field::draw_cards(gfx::render_target& target)
     if (_currentGame && (_cardQuadsDirty || _isDragging)) {
         _cardRenderer.set_material(_mat);
 
+        size_f bounds {size_f::Zero};
+
         pile const* dragPile {nullptr};
         {
             auto quadIt {_cardQuads.begin()};
             for (auto const& [_, piles] : _currentGame->piles()) {
                 for (auto const* pile : piles) {
+                    if (pile->Marker) {
+                        bounds.Width  = std::max(bounds.Width, pile->Marker->Bounds->right());
+                        bounds.Height = std::max(bounds.Height, pile->Marker->Bounds->bottom());
+                    }
+
                     if (_isDragging && pile->is_active()) {
                         dragPile = pile;
                     } else {
+                        for (auto const& card : pile->Cards) {
+                            bounds.Width  = std::max(bounds.Width, card.Bounds.right());
+                            bounds.Height = std::max(bounds.Height, card.Bounds.bottom());
+                        }
+
                         get_pile_quads(quadIt, pile);
                     }
                 }
@@ -179,13 +188,28 @@ void field::draw_cards(gfx::render_target& target)
         }
 
         _cardQuadsDirty = false;
+        move_camera(bounds);
     } else {
         _cardRenderer.set_geometry(_cardQuads);
         _cardRenderer.render_to_target(target);
     }
 }
 
-void field::get_pile_quads(std::vector<gfx::quad>::iterator& quadIt, pile const* pile)
+void field::move_camera(size_f bounds)
+{
+    if (!_manualCamera) {
+        auto&      camera {*_parentWindow->Camera};
+        auto const winSize {_parentWindow->Size()};
+
+        f32 const     off {static_cast<f32>(winSize.Height - _size.Height)};
+        f32 const     zoom {std::min(winSize.Width / bounds.Width, (winSize.Height - off) / bounds.Height)};
+        point_f const pos {bounds.Width / 2, (bounds.Height + (off / zoom)) / 2};
+        camera.look_at(pos);
+        camera.set_zoom({zoom, zoom});
+    }
+}
+
+void field::get_pile_quads(std::vector<gfx::quad>::iterator& quadIt, pile const* pile) const
 {
     for (auto const& card : pile->Cards) {
         auto& quad {*quadIt};
@@ -203,8 +227,6 @@ auto field::can_draw() const -> bool
 
 void field::on_key_down(input::keyboard::event& ev)
 {
-    // TODO: check if any form has focus
-
     using namespace tcob::enum_ops;
 
     if (!_currentGame) { return; }
@@ -215,7 +237,7 @@ void field::on_key_down(input::keyboard::event& ev)
                 _currentCardSet++;
                 if (_currentCardSet > _maxCardSet) { _currentCardSet = 1; }
                 _mat = _resGrp.get<gfx::material>("mat-cards" + std::to_string(_currentCardSet));
-                create_markers(calc_card_size());
+                create_markers(get_card_size());
                 _currentGame->restart();
                 ev.Handled = true;
             }
@@ -227,6 +249,14 @@ void field::on_key_down(input::keyboard::event& ev)
 
 void field::on_mouse_motion(input::mouse::motion_event& ev)
 {
+    if (input::system::IsMouseButtonDown(input::mouse::button::Right)) {
+        auto&         camera {*_parentWindow->Camera};
+        size_f const  zoom {camera.get_zoom()};
+        point_f const off {-ev.RelativeMotion.X / zoom.Width, -ev.RelativeMotion.Y / zoom.Height};
+        camera.move_by(off);
+        _manualCamera = true;
+    }
+
     if (!_currentGame) { return; }
 
     if (_buttonDown) {
@@ -237,6 +267,19 @@ void field::on_mouse_motion(input::mouse::motion_event& ev)
     }
 
     HoverChange(_currentGame->get_description(_hovered.Pile));
+    ev.Handled = true;
+}
+
+void field::on_mouse_wheel(input::mouse::wheel_event& ev)
+{
+    auto& camera {*_parentWindow->Camera};
+    if (ev.Scroll.Y > 0) {
+        camera.zoom_by({1.1f, 1.1f});
+    } else {
+        camera.zoom_by({1 / 1.1f, 1 / 1.1f});
+    }
+    _manualCamera = true;
+    ev.Handled    = true;
 }
 
 void field::on_mouse_button_down(input::mouse::button_event& ev)
@@ -281,8 +324,7 @@ void field::drag_cards(input::mouse::motion_event const& ev)
     size_f const  zoom {(*_parentWindow->Camera).get_zoom()};
     point_f const off {ev.RelativeMotion.X / zoom.Width, ev.RelativeMotion.Y / zoom.Height};
     for (isize i {_hovered.Index}; i < std::ssize(cards); ++i) {
-        auto& card {cards[i]};
-        card.Bounds.move_by(off);
+        cards[i].Bounds.move_by(off);
     }
 
     _dragRect   = cards[_hovered.Index].Bounds;
@@ -324,50 +366,9 @@ void field::check_hover_pile(point_i pos)
     }
 }
 
-auto field::calc_card_size() -> size_f
+auto field::get_card_size() const -> size_f
 {
-    size_f max {0, 2};
-    for (auto const& [_, piles] : _currentGame->piles()) {
-        for (auto const* pile : piles) {
-            isize const countTrue {std::min<isize>(20, std::ranges::count(pile->Initial, true))};
-            isize const countFalse {std::min<isize>(20, std::ranges::count(pile->Initial, false))};
-            f32 const   c {(countFalse / FACE_DOWN_OFFSET) + (countTrue / FACE_UP_OFFSET)};
-
-            if (pile->Layout == layout_type::Column) {
-                max.Width  = std::max(pile->Position.X * CARD_PADDING, max.Width);
-                max.Height = std::max((pile->Position.Y + c) * CARD_PADDING, max.Height);
-            } else if (pile->Layout == layout_type::Row || pile->Layout == layout_type::Fan) {
-                max.Width  = std::max((pile->Position.X + c) * CARD_PADDING, max.Width);
-                max.Height = std::max(pile->Position.Y * CARD_PADDING, max.Height);
-            } else {
-                max.Width  = std::max(pile->Position.X * CARD_PADDING, max.Width);
-                max.Height = std::max(pile->Position.Y * CARD_PADDING, max.Height);
-            }
-        }
-    }
-
-    max.Width++;
-    max.Height++;
-
-    auto const   tex {_mat->Texture};
-    size_i const texSize {tex->get_size()};
-    rect_f const uvRect {tex->get_region("card_back").UVRect};
-    size_f const texRegSize {std::abs(uvRect.Width * texSize.Width), std::abs(uvRect.Height * texSize.Height)};
-    f32 const    texAsp {texRegSize.Width / static_cast<f32>(texRegSize.Height)};
-
-    auto const windowSize {_size};
-
-    // TODO: get size from cardset and adjust zoom
-    size_f retValue;
-    retValue.Width  = windowSize.Width / max.Width;
-    retValue.Height = retValue.Width / texAsp;
-
-    if (retValue.Height * max.Height > windowSize.Height) {
-        retValue.Width *= windowSize.Height / (retValue.Height * max.Height);
-        retValue.Height = retValue.Width / texAsp;
-    }
-
-    return retValue;
+    return _cardSets[_currentCardSet]->get_card_size();
 }
 
 }

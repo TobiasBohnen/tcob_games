@@ -19,7 +19,9 @@ class cardset {
 public:
     cardset(std::string const& matName, assets::group& resGrp);
 
-    void create(assets::group& resGrp);
+    auto get_card_size() -> size_f;
+
+    void create(assets::group& resGrp, size_f texSize);
     auto load() const -> bool;
 
 private:
@@ -32,7 +34,6 @@ private:
 
     void set_suit_color(gfx::canvas& canvas, suit s);
 
-    auto get_pad(size_f const& size) -> size_f;
     auto pad_rect(rect_f const& rect) -> rect_f;
 
     assets::manual_asset_ptr<gfx::texture> _texture;

@@ -33,14 +33,15 @@ public:
     void mark_dirty();
 
 protected:
+    void move_camera(size_f bounds);
     void on_update(milliseconds deltaTime) override;
-    void on_fixed_update(milliseconds deltaTime) override;
 
     void on_draw_to(gfx::render_target& target) override;
     auto can_draw() const -> bool override;
 
     void on_key_down(input::keyboard::event& ev) override;
     void on_mouse_motion(input::mouse::motion_event& ev) override;
+    void on_mouse_wheel(input::mouse::wheel_event& ev) override;
     void on_mouse_button_down(input::mouse::button_event& ev) override;
     void on_mouse_button_up(input::mouse::button_event& ev) override;
 
@@ -53,8 +54,8 @@ private:
 
     void create_markers(size_f const& cardSize);
 
-    void get_pile_quads(std::vector<gfx::quad>::iterator& quadIt, pile const* pile);
-    auto calc_card_size() -> size_f;
+    void get_pile_quads(std::vector<gfx::quad>::iterator& quadIt, pile const* pile) const;
+    auto get_card_size() const -> size_f;
 
     gfx::window*   _parentWindow;
     assets::group& _resGrp;
@@ -81,6 +82,7 @@ private:
 
     bool _buttonDown {false};
     bool _isDragging {false};
+    bool _manualCamera {false};
 };
 
 }

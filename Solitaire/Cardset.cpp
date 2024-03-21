@@ -4,37 +4,22 @@
 
 namespace solitaire {
 
-auto static get_rank_symbol(rank r) -> std::string
-{
-    switch (r) {
-    case rank::Ace: return "A";
-    case rank::Two: return "2";
-    case rank::Three: return "3";
-    case rank::Four: return "4";
-    case rank::Five: return "5";
-    case rank::Six: return "6";
-    case rank::Seven: return "7";
-    case rank::Eight: return "8";
-    case rank::Nine: return "9";
-    case rank::Ten: return "10";
-    case rank::Jack: return "J";
-    case rank::Queen: return "Q";
-    case rank::King: return "K";
-    }
-
-    return "";
-}
-
-static constexpr color CardsetBackColor {colors::SeaShell};
-static string const    CardsetFolder {"/cardsets/cards1/"};
-static constexpr isize CardsetCardCount {57};
+static constexpr color  CardsetBackColor {colors::SeaShell};
+static string const     CardsetFolder {"/cardsets/cards1/"};
+static constexpr isize  CardsetCardCount {68};
+static constexpr size_f CardsetTexSize {240, 360};
 
 cardset::cardset(std::string const& matName, assets::group& resGrp)
 {
-    if (!load()) { create(resGrp); }
+    if (!load()) { create(resGrp, CardsetTexSize); }
 
     auto mat {resGrp.get_bucket<gfx::material>()->create_or_get(matName, nullptr)};
     mat->Texture = _texture;
+}
+
+auto cardset::get_card_size() -> size_f
+{
+    return CardsetTexSize;
 }
 
 auto cardset::load() const -> bool
@@ -60,12 +45,11 @@ auto cardset::load() const -> bool
     return true;
 }
 
-void cardset::create(assets::group& resGrp)
+void cardset::create(assets::group& resGrp, size_f texSize)
 {
-    i32 const    columns {10};
-    i32 const    rows {8};
-    size_f const texSize {240, 360};
-
+    i32 const columns {10};
+    i32 const rows {8};
+    static_assert(columns * rows >= CardsetCardCount);
     size_f const canvasSize {texSize.Width * columns, texSize.Height * rows};
 
     gfx::canvas canvas;
@@ -94,8 +78,8 @@ void cardset::create(assets::group& resGrp)
     }};
 
     // draw cards
-    for (u8 cs {static_cast<u8>(suit::Hearts)}; cs <= static_cast<i32>(suit::Spades); ++cs) {
-        for (u8 cr {static_cast<u8>(rank::Ace)}; cr <= static_cast<i32>(rank::King); ++cr) {
+    for (u8 cs {static_cast<u8>(suit::Hearts)}; cs <= static_cast<u8>(suit::Spades); ++cs) {
+        for (u8 cr {static_cast<u8>(rank::Ace)}; cr <= static_cast<u8>(rank::King); ++cr) {
             rect_f const rect {nextRect()};
             card const   c {static_cast<suit>(cs), static_cast<rank>(cr), 0, false};
             draw_card(canvas, fonts, c.get_suit(), c.get_rank(), rect);
@@ -121,15 +105,13 @@ void cardset::create(assets::group& resGrp)
         canvas.fill();
         addRegion("card_base_gen", rect);
     }
+
     {
-        rect_f const rect {nextRect()};
-        draw_marker(canvas, fonts, rank::Ace, rect);
-        addRegion("card_base_ace", rect);
-    }
-    {
-        rect_f const rect {nextRect()};
-        draw_marker(canvas, fonts, rank::King, rect);
-        addRegion("card_base_king", rect);
+        for (u8 cr {static_cast<u8>(rank::Ace)}; cr <= static_cast<u8>(rank::King); ++cr) {
+            rect_f const rect {nextRect()};
+            draw_marker(canvas, fonts, static_cast<rank>(cr), rect);
+            addRegion("card_base_" + helper::to_lower(get_rank_name(static_cast<rank>(cr))), rect);
+        }
     }
 
     // draw empty
@@ -169,9 +151,9 @@ void cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, rank r,
 
     draw_shape(canvas, cardRect, CardsetBackColor, colors::Black);
 
-    point_f offset {rect.X + 6, rect.Y + 1};
-
     {
+        point_f offset {rect.X + 6, rect.Y + 1};
+
         set_suit_color(canvas, s);
         canvas.set_font(fonts.NormalFont);
         std::string const rankSymbol {get_rank_symbol(r)};
@@ -195,8 +177,8 @@ void cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, rank r,
         f32 const top {cardRect.Y + suitSize * 2};
         f32 const centerTop {top + suitSize};
 
-        f32 const ten {top + suitSize / 2};
-        f32 const nine {ten + suitSize};
+        f32 const nineCenterY {top + suitSize * 1.5f};
+        f32 const tenCenterY {(top + nineCenterY) / 2};
 
         auto drawTwo {[&]() {
             draw_suit(canvas, s, {centerX, top}, suitSize);
@@ -210,7 +192,6 @@ void cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, rank r,
             draw_suit(canvas, s, {right, top}, suitSize);
             canvas.rotate_at({180}, cardCenter);
             draw_suit(canvas, s, {left, top}, suitSize);
-
             draw_suit(canvas, s, {right, top}, suitSize);
             canvas.reset_transform();
         }};
@@ -255,23 +236,23 @@ void cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, rank r,
         } break;
         case rank::Nine: {
             drawFour();
-            draw_suit(canvas, s, {left, nine}, suitSize);
-            draw_suit(canvas, s, {right, nine}, suitSize);
+            draw_suit(canvas, s, {left, nineCenterY}, suitSize);
+            draw_suit(canvas, s, {right, nineCenterY}, suitSize);
             draw_suit(canvas, s, cardCenter, suitSize);
             canvas.rotate_at({180}, cardCenter);
-            draw_suit(canvas, s, {left, nine}, suitSize);
-            draw_suit(canvas, s, {right, nine}, suitSize);
+            draw_suit(canvas, s, {left, nineCenterY}, suitSize);
+            draw_suit(canvas, s, {right, nineCenterY}, suitSize);
             canvas.reset_transform();
         } break;
         case rank::Ten: {
             drawFour();
-            draw_suit(canvas, s, {left, nine}, suitSize);
-            draw_suit(canvas, s, {right, nine}, suitSize);
-            draw_suit(canvas, s, {centerX, ten}, suitSize);
+            draw_suit(canvas, s, {left, nineCenterY}, suitSize);
+            draw_suit(canvas, s, {right, nineCenterY}, suitSize);
+            draw_suit(canvas, s, {centerX, tenCenterY}, suitSize);
             canvas.rotate_at({180}, cardCenter);
-            draw_suit(canvas, s, {left, nine}, suitSize);
-            draw_suit(canvas, s, {right, nine}, suitSize);
-            draw_suit(canvas, s, {centerX, ten}, suitSize);
+            draw_suit(canvas, s, {left, nineCenterY}, suitSize);
+            draw_suit(canvas, s, {right, nineCenterY}, suitSize);
+            draw_suit(canvas, s, {centerX, tenCenterY}, suitSize);
             canvas.reset_transform();
         } break;
 
@@ -281,8 +262,7 @@ void cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, rank r,
             set_suit_color(canvas, s);
             canvas.set_font(fonts.LargeFont);
             std::string const rankSymbol {get_rank_symbol(r)};
-            auto const        cardPad {get_pad(rect.get_size())};
-            canvas.draw_textbox(rect.as_shrunk({cardPad.Width, cardPad.Height + fonts.LargeFont->get_info().Descender}), rankSymbol);
+            canvas.draw_textbox(pad_rect(rect), rankSymbol);
         } break;
         }
     }
@@ -299,8 +279,7 @@ void cardset::draw_marker(gfx::canvas& canvas, fonts const& fonts, rank r, rect_
     canvas.set_fill_style(colors::Green);
     canvas.set_font(fonts.LargeFont);
     std::string const rankSymbol {get_rank_symbol(r)};
-    auto const        cardPad {get_pad(rect.get_size())};
-    canvas.draw_textbox(rect.as_shrunk({cardPad.Width, cardPad.Height + fonts.LargeFont->get_info().Descender}), rankSymbol);
+    canvas.draw_textbox(pad_rect(rect), rankSymbol);
 
     canvas.restore();
 }
@@ -310,8 +289,7 @@ void cardset::draw_back(gfx::canvas& canvas, rect_f const& rect)
     canvas.save();
     draw_shape(canvas, pad_rect(rect), colors::LightSteelBlue, colors::White);
 
-    auto const   cardPad {get_pad(rect.get_size())};
-    rect_f const backRect {rect.as_shrunk(cardPad * 4)};
+    rect_f const backRect {rect.as_shrunk(rect.get_size() / 50 * 4)};
 
     canvas.set_scissor(backRect);
 
@@ -366,14 +344,9 @@ void cardset::set_suit_color(gfx::canvas& canvas, suit s)
     }
 }
 
-auto cardset::get_pad(size_f const& size) -> size_f
-{
-    return size / 50;
-}
-
 auto cardset::pad_rect(rect_f const& rect) -> rect_f
 {
-    auto const cardPad {get_pad(rect.get_size())};
+    auto const cardPad {rect.get_size() / 50};
     return rect.as_shrunk(cardPad);
 }
 

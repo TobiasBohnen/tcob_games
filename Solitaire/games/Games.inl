@@ -15,7 +15,7 @@ inline void base_game::create_piles(auto&& piles, isize size, std::function<void
     for (i32 i {0}; i < size; ++i) {
         auto& pile {piles.emplace_back()};
         func(pile, i);
-        add_pile(&pile);
+        _piles[pile.Type].push_back(&pile);
     }
 }
 
