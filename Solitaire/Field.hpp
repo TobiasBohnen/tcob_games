@@ -39,7 +39,6 @@ protected:
     void on_draw_to(gfx::render_target& target) override;
     auto can_draw() const -> bool override;
 
-    void on_key_down(input::keyboard::event& ev) override;
     void on_mouse_motion(input::mouse::motion_event& ev) override;
     void on_mouse_wheel(input::mouse::wheel_event& ev) override;
     void on_mouse_button_down(input::mouse::button_event& ev) override;
@@ -68,7 +67,7 @@ private:
     std::vector<gfx::quad>           _cardQuads;
     bool                             _cardQuadsDirty {true};
     gfx::text                        _text;
-    assets::asset_ptr<gfx::material> _mat;
+    assets::asset_ptr<gfx::material> _material;
 
     i32                                   _currentCardSet {1};
     i32                                   _maxCardSet {1};
@@ -82,7 +81,11 @@ private:
 
     bool _buttonDown {false};
     bool _isDragging {false};
-    bool _manualCamera {false};
+
+    bool                                             _camManual {false};
+    bool                                             _camInstant {true};
+    std::unique_ptr<tweening::linear_tween<point_f>> _camPosTween;
+    std::unique_ptr<tweening::linear_tween<size_f>>  _camZoomTween;
 };
 
 }

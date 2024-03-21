@@ -28,7 +28,7 @@ field::field(gfx::window* parent, size_i size, assets::group& resGrp)
     _text.hide();
 
     _cardSets.push_back(std::make_shared<cardset>("mat-cards1", resGrp));
-    _mat = {resGrp.get<gfx::material>("mat-cards1")};
+    _material = {resGrp.get<gfx::material>("mat-cards1")};
 }
 
 auto field::get_size() const -> size_i
@@ -38,7 +38,7 @@ auto field::get_size() const -> size_i
 
 auto field::get_material() const -> assets::asset_ptr<gfx::material> const&
 {
-    return _mat;
+    return _material;
 }
 
 auto field::get_hover_color() const -> color
@@ -61,7 +61,10 @@ void field::start(std::shared_ptr<games::base_game> const& game, bool cont)
 
     _dropTarget   = {};
     _hovered      = {};
-    _manualCamera = false;
+    _camManual    = false;
+    _camInstant   = true;
+    _camPosTween  = nullptr;
+    _camZoomTween = nullptr;
 
     _currentGame = game;
 
@@ -100,7 +103,7 @@ void field::create_markers(size_f const& cardSize)
             if (!pile->HasMarker) { continue; }
 
             pile->Marker                = _markerSprites.create_sprite();
-            pile->Marker->Material      = _mat;
+            pile->Marker->Material      = _material;
             pile->Marker->TextureRegion = pile->get_marker_texture_name();
             pile->Marker->Bounds        = {multiply(pile->Position, cardSize), cardSize};
         }
@@ -135,6 +138,8 @@ void field::on_update(milliseconds deltaTime)
     }
 
     _text.update(deltaTime);
+    if (_camPosTween) { _camPosTween->update(deltaTime); }
+    if (_camZoomTween) { _camZoomTween->update(deltaTime); }
 }
 
 void field::on_draw_to(gfx::render_target& target)
@@ -149,7 +154,7 @@ void field::on_draw_to(gfx::render_target& target)
 void field::draw_cards(gfx::render_target& target)
 {
     if (_currentGame && (_cardQuadsDirty || _isDragging)) {
-        _cardRenderer.set_material(_mat);
+        _cardRenderer.set_material(_material);
 
         size_f bounds {size_f::Zero};
 
@@ -197,15 +202,29 @@ void field::draw_cards(gfx::render_target& target)
 
 void field::move_camera(size_f bounds)
 {
-    if (!_manualCamera) {
+    if (!_camManual) {
+        using namespace tcob::tweening;
+
         auto&      camera {*_parentWindow->Camera};
         auto const winSize {_parentWindow->Size()};
 
         f32 const     off {static_cast<f32>(winSize.Height - _size.Height)};
         f32 const     zoom {std::min(winSize.Width / bounds.Width, (winSize.Height - off) / bounds.Height)};
         point_f const pos {bounds.Width / 2, (bounds.Height + (off / zoom)) / 2};
-        camera.look_at(pos);
-        camera.set_zoom({zoom, zoom});
+
+        if (_camInstant) {
+            camera.look_at(pos);
+            camera.set_zoom(size_f {zoom, zoom});
+            _camInstant = false;
+        } else {
+            _camPosTween = make_unique_tween<linear_tween<point_f>>(0.75s, camera.get_look_at(), pos);
+            _camPosTween->start();
+            _camPosTween->Value.Changed.connect([&](auto val) { camera.look_at(val); });
+
+            _camZoomTween = make_unique_tween<linear_tween<size_f>>(0.75s, camera.get_zoom(), size_f {zoom, zoom});
+            _camZoomTween->start();
+            _camZoomTween->Value.Changed.connect([&](auto val) { camera.set_zoom(val); });
+        }
     }
 }
 
@@ -214,7 +233,7 @@ void field::get_pile_quads(std::vector<gfx::quad>::iterator& quadIt, pile const*
     for (auto const& card : pile->Cards) {
         auto& quad {*quadIt};
         gfx::geometry::set_color(quad, card.Color);
-        gfx::geometry::set_texcoords(quad, _mat->Texture->get_region(card.get_texture_name()));
+        gfx::geometry::set_texcoords(quad, _material->Texture->get_region(card.get_texture_name()));
         gfx::geometry::set_position(quad, card.Bounds);
         ++quadIt;
     }
@@ -225,28 +244,6 @@ auto field::can_draw() const -> bool
     return _currentGame != nullptr;
 }
 
-void field::on_key_down(input::keyboard::event& ev)
-{
-    using namespace tcob::enum_ops;
-
-    if (!_currentGame) { return; }
-
-    if (!ev.Repeat) {
-        if (ev.KeyCode == input::key_code::c) {
-            if (_currentGame) {
-                _currentCardSet++;
-                if (_currentCardSet > _maxCardSet) { _currentCardSet = 1; }
-                _mat = _resGrp.get<gfx::material>("mat-cards" + std::to_string(_currentCardSet));
-                create_markers(get_card_size());
-                _currentGame->restart();
-                ev.Handled = true;
-            }
-        }
-    }
-
-    _currentGame->key_down(ev);
-}
-
 void field::on_mouse_motion(input::mouse::motion_event& ev)
 {
     if (input::system::IsMouseButtonDown(input::mouse::button::Right)) {
@@ -254,7 +251,7 @@ void field::on_mouse_motion(input::mouse::motion_event& ev)
         size_f const  zoom {camera.get_zoom()};
         point_f const off {-ev.RelativeMotion.X / zoom.Width, -ev.RelativeMotion.Y / zoom.Height};
         camera.move_by(off);
-        _manualCamera = true;
+        _camManual = true;
     }
 
     if (!_currentGame) { return; }
@@ -278,8 +275,8 @@ void field::on_mouse_wheel(input::mouse::wheel_event& ev)
     } else {
         camera.zoom_by({1 / 1.1f, 1 / 1.1f});
     }
-    _manualCamera = true;
-    ev.Handled    = true;
+    _camManual = true;
+    ev.Handled = true;
 }
 
 void field::on_mouse_button_down(input::mouse::button_event& ev)
