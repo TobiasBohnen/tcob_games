@@ -272,4 +272,9 @@ return {
         Build = build.DownAlternateColors(),
         Move = move.InSeq()
     },
+    any_none_top = {
+        Base = base_tab.Any,
+        Build = build.None(),
+        Move = move.Top()
+    },
 }

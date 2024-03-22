@@ -178,7 +178,64 @@ local aces_square = {
         }
 
         game.Stock[0].deal_to_group(game.Tableau, true)
+    }
+}
+
+# # # # # # # #
+
+local aglet = {
+    Info = {
+        Name = "Aglet",
+        Family = "Other",
+        DeckCount = 1,
+        CardDealCount = 0,
+        Redeals = 0
     },
+    FreeCell = {
+        Create = {
+            Position = {
+                x = 0,
+                y = 0
+            },
+            Layout = "Column",
+            Rule = {
+                Base = rules.Base.Any,
+                Build = rules.Build.Any(),
+                Move = rules.Move.Top()
+            }
+        }
+    },
+    Foundation = {
+        Size = 4,
+        Create = @(i) {
+            Position = {
+                    x = i + 3,
+                    y = 0
+                },
+                Rule = {
+                    Base = rules.Base.Ace,
+                    Build = rules.Build.UpByRank(),
+                    Move = rules.Move.Top()
+                }
+        }
+    },
+    Tableau = {
+        Size = 8,
+        Create = @(i) {
+            Position = {
+                    x = i + 1,
+                    y = 1
+                },
+                Initial = ops.Initial.face_up(6),
+                Layout = "Column",
+                Rule = {
+                    Base = rules.Base.None,
+                    Build = rules.Build.None(),
+                    Move = rules.Move.Top()
+                }
+        }
+    },
+    on_before_shuffle = ops.Shuffle.ace_to_foundation
 }
 
 # # # # # # # #
@@ -260,4 +317,5 @@ local four_seasons = {
 Sol.register_game(aces_up)
 Sol.register_game(aces_up_5)
 Sol.register_game(aces_square)
+Sol.register_game(aglet)
 Sol.register_game(four_seasons)
