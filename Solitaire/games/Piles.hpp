@@ -88,7 +88,7 @@ public:
     auto get_description(i32 remainingRedeals) const -> hover_info;
     auto get_marker_texture_name() const -> std::string;
 
-    void move_cards(pile& to, isize srcOffset, isize numCards, bool reverse);
+    void move_cards(pile& to, isize startIndex, isize numCards, bool reverse);
 
     auto build(isize targetIndex, card const& drop, isize numCards) const -> bool;
 

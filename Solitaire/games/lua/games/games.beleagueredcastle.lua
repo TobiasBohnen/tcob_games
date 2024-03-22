@@ -57,7 +57,7 @@ citadel.Info.Name           = "Citadel"
 citadel.on_shuffle          = function(game, card)
     local foundation = game.Foundation
     for _, v in ipairs(foundation) do
-        if game:drop(v, card) then
+        if v:play(game, card) then
             return true
         end
     end
@@ -186,13 +186,13 @@ castles_end.Tableau.Create       = {
     Layout = "Column",
     Rule = rules.any_updownac_top
 }
-castles_end.check_drop           = function(game, targetPile, targetIndex, drop, numCards)
+castles_end.check_playable       = function(game, targetPile, targetIndex, drop, numCards)
     local foundation1 = game.Foundation[1]
     if foundation1.IsEmpty then -- block card drops if foundation is empty
         return targetPile == foundation1
     end
 
-    return game:can_drop(targetPile, targetIndex, drop, numCards)
+    return game:can_play(targetPile, targetIndex, drop, numCards)
 end
 
 ------
@@ -262,18 +262,18 @@ end
 ------
 
 local chessboard                 = {
-    Info       = {
+    Info           = {
         Name          = "Chessboard",
         Family        = "BeleagueredCastle",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation = {
+    Foundation     = {
         Size   = 4,
         Create = { Rule = rules.ff_upsuit_none }
     },
-    Tableau    = {
+    Tableau        = {
         Size   = 10,
         Create = function(i)
             return {
@@ -283,15 +283,15 @@ local chessboard                 = {
             }
         end
     },
-    check_drop = function(game, targetPile, targetIndex, drop, numCards)
+    check_playable = function(game, targetPile, targetIndex, drop, numCards)
         local foundation1 = game.Foundation[1]
         if foundation1.IsEmpty and targetPile == foundation1 then -- allow any card on first foundation
             return true
         end
 
-        return game:can_drop(targetPile, targetIndex, drop, numCards)
+        return game:can_play(targetPile, targetIndex, drop, numCards)
     end,
-    on_created = Sol.Layout.canister
+    on_created     = Sol.Layout.canister
 }
 
 ------
@@ -391,18 +391,18 @@ local penelopes_web              = {
 ------
 
 local selective_castle           = {
-    Info       = {
+    Info           = {
         Name          = "Selective Castle",
         Family        = "BeleagueredCastle",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation = {
+    Foundation     = {
         Size   = 4,
         Create = { Rule = rules.ff_upsuit_none }
     },
-    Tableau    = {
+    Tableau        = {
         Size   = 8,
         Create = function(i)
             return {
@@ -412,15 +412,15 @@ local selective_castle           = {
             }
         end
     },
-    check_drop = function(game, targetPile, targetIndex, drop, numCards)
+    check_playable = function(game, targetPile, targetIndex, drop, numCards)
         local foundation1 = game.Foundation[1]
         if foundation1.IsEmpty and targetPile == foundation1 then -- allow any card on first foundation
             return true
         end
 
-        return game:can_drop(targetPile, targetIndex, drop, numCards)
+        return game:can_play(targetPile, targetIndex, drop, numCards)
     end,
-    on_created = Sol.Layout.beleaguered_castle
+    on_created     = Sol.Layout.beleaguered_castle
 }
 
 ------
@@ -555,26 +555,26 @@ local castle_of_indolence        = {
 ------
 
 local zerline                    = {
-    Info       = {
+    Info           = {
         Name          = "Zerline",
         Family        = "BeleagueredCastle",
         DeckCount     = 2,
         CardDealCount = 1,
         Redeals       = 0
     },
-    Stock      = {
+    Stock          = {
         Position = { x = 3, y = 0 },
         Initial = ops.Initial.face_down(64)
     },
-    Waste      = {
+    Waste          = {
         Position = { x = 4, y = 0 }
     },
-    FreeCell   = {
+    FreeCell       = {
         Position = { x = 5, y = 0 },
         Layout = "Row",
         Rule = { Base = rules.Base.Any, Build = rules.Build.Any(), Move = rules.Move.Top(), Limit = 4 }
     },
-    Foundation = {
+    Foundation     = {
         Size   = 8,
         Create = function(i)
             return {
@@ -583,7 +583,7 @@ local zerline                    = {
             }
         end
     },
-    Tableau    = {
+    Tableau        = {
         Size   = 8,
         Create = function(i)
             local rule = { Base = function(_, card, _) return rules.Base.Ranks(card, { "Queen" }) end, Build = rules.Build.DownByRank(), Move = rules.Move.Top() }
@@ -604,17 +604,17 @@ local zerline                    = {
             end
         end
     },
-    on_deal    = ops.Deal.stock_to_waste,
-    check_drop = function(game, targetPile, targetIndex, drop, numCards)
+    on_deal        = ops.Deal.stock_to_waste,
+    check_playable = function(game, targetPile, targetIndex, drop, numCards)
         if targetPile.Type == "FreeCell" then
             local srcPile = game:find_pile(drop)
             if srcPile.Type == "Tableau" then
-                return game:can_drop(targetPile, targetIndex, drop, numCards)
+                return game:can_play(targetPile, targetIndex, drop, numCards)
             end
             return false
         end
 
-        return game:can_drop(targetPile, targetIndex, drop, numCards)
+        return game:can_play(targetPile, targetIndex, drop, numCards)
     end
 }
 

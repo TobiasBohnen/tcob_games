@@ -198,15 +198,15 @@ auto pile::get_marker_texture_name() const -> std::string
     return "card_empty";
 }
 
-void pile::move_cards(pile& to, isize srcOffset, isize numCards, bool reverse)
+void pile::move_cards(pile& to, isize startIndex, isize numCards, bool reverse)
 {
-    if (srcOffset < 0) {
-        numCards += srcOffset;
-        srcOffset = 0;
+    if (startIndex < 0) {
+        numCards += startIndex;
+        startIndex = 0;
     }
 
     for (isize i {0}; i < numCards; ++i) {
-        auto& card {Cards[i + srcOffset]};
+        auto& card {Cards[i + startIndex]};
         if (reverse) {
             to.Cards.emplace_front(card);
         } else {
@@ -214,7 +214,7 @@ void pile::move_cards(pile& to, isize srcOffset, isize numCards, bool reverse)
         }
     }
 
-    Cards.erase(Cards.begin() + srcOffset, Cards.begin() + srcOffset + numCards);
+    Cards.erase(Cards.begin() + startIndex, Cards.begin() + startIndex + numCards);
 
     if (Type != pile_type::Stock) { flip_up_top_card(); }
 }

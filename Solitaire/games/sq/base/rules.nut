@@ -138,7 +138,7 @@ local move = {
                 return false
             }
             for (local i = idx; i < cards.len() - 1; ++i) {
-                if (!game.can_drop(target, i, cards[i + 1], 1)) {
+                if (!game.can_play(target, i, cards[i + 1], 1)) {
                     return false
                 }
             }
@@ -153,7 +153,7 @@ local move = {
             }
             for (local i = idx; i < cards.len() - 1; ++i) {
                 if (cards[i + 1].Suit != targetSuit ||
-                    !game.can_drop(target, i, cards[i + 1], 1)) {
+                    !game.can_play(target, i, cards[i + 1], 1)) {
                     return false
                 }
             }
@@ -170,7 +170,7 @@ local move = {
             local result = true
             for (local i = idx; i < cards.len() - 1; ++i) {
                 if (cards[i + 1].Suit != targetSuit ||
-                    !game.can_drop(target, i, cards[i + 1], 1)) {
+                    !game.can_play(target, i, cards[i + 1], 1)) {
                     result = false
                     break
                 }
@@ -212,7 +212,7 @@ local move = {
             }
 
             for (local i = idx; i < cards.len() - 1; ++i) {
-                if (!game.can_drop(target, i, cards[i + 1], 1)) {
+                if (!game.can_play(target, i, cards[i + 1], 1)) {
                     return false
                 }
             }

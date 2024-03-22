@@ -273,7 +273,7 @@ auto base_game::drop_target_at(rect_f const& rect, card const& move, isize numCa
         if (auto target {get_pile_at(point, true)};
             target.Pile
             && target.Index == std::ssize(target.Pile->Cards) - 1
-            && can_drop(*target.Pile, target.Index, move, numCards)) {
+            && can_play(*target.Pile, target.Index, move, numCards)) {
             candidates.push_back(target);
         }
     }
@@ -314,17 +314,6 @@ void base_game::key_down(input::keyboard::event& ev)
     }
 }
 
-auto base_game::drop(pile& to, card& card) const -> bool
-{
-    if (can_drop(to, std::ssize(to.Cards) - 1, card, 1)) {
-        card.flip_face_up();
-        to.Cards.emplace_back(card);
-        return true;
-    }
-
-    return false;
-}
-
 void base_game::click(pile* srcPile, u8 clicks)
 {
     if (!srcPile || srcPile->Type == pile_type::Foundation) { return; }
@@ -346,7 +335,7 @@ void base_game::auto_move_to_foundation(pile& srcPile)
         auto& card {srcPile.Cards.back()};
 
         for (auto& fou : Foundation) {
-            if (!can_drop(fou, std::ssize(fou.Cards) - 1, card, 1)) { continue; }
+            if (!can_play(fou, std::ssize(fou.Cards) - 1, card, 1)) { continue; }
 
             srcPile.move_cards(fou, std::ssize(srcPile.Cards) - 1, 1, false);
             end_turn();
@@ -388,7 +377,7 @@ void base_game::clear_pile_cards()
     }
 }
 
-auto base_game::can_drop(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool
+auto base_game::can_play(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool
 {
     return targetPile.build(targetIndex, drop, numCards);
 }

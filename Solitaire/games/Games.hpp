@@ -75,10 +75,9 @@ public:
     auto hover_at(point_i pos) -> hit_test_result;
     auto drop_target_at(rect_f const& rect, card const& move, isize numCards) -> hit_test_result;
     void drop_cards(hit_test_result const& hovered, hit_test_result const& dropTarget);
-    auto drop(pile& to, card& card) const -> bool;
     auto find_pile(card const& card) const -> pile*;
 
-    auto virtual can_drop(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool;
+    auto virtual can_play(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool;
 
     void click(pile* srcPile, u8 clicks);
     void key_down(input::keyboard::event& ev);
@@ -139,7 +138,7 @@ class script_game : public base_game {
 public:
     script_game(field& f, game_info info, Table table);
 
-    auto can_drop(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool override;
+    auto can_play(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool override;
 
     void static CreateWrapper(auto&& script);
     template <typename T>
@@ -163,13 +162,13 @@ private:
     void make_piles(auto&& gameRef);
 
     struct callbacks {
-        std::optional<Function<bool>>       CheckDrop;
         std::optional<Function<bool>>       OnRedeal;
         std::optional<Function<bool>>       OnDeal;
         std::optional<Function<bool>>       OnBeforeShuffle;
         std::optional<Function<bool>>       OnShuffle;
         std::optional<Function<void>>       OnAfterShuffle;
         std::optional<Function<void>>       OnChange;
+        std::optional<Function<bool>>       CheckPlay;
         std::optional<Function<game_state>> CheckState;
         std::optional<Function<bool>>       CheckMovable;
     };

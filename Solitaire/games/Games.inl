@@ -29,19 +29,19 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     gameWrapper["RedealsLeft"]   = getter {[](base_game* game) { return game->redeals_left(); }};
     gameWrapper["CardDealCount"] = getter {[](base_game* game) { return game->info().CardDealCount; }};
 
-    auto const returnPile {[](base_game* game, pile_type type) {
+    auto static const returnPile {[](base_game* game, pile_type type) {
         auto const& piles {game->piles()};
         if (piles.contains(type)) { return game->piles().at(type); }
         return std::vector<pile*> {};
     }};
 
     // properties
-    gameWrapper["Stock"]      = getter {[returnPile](base_game* game) { return returnPile(game, pile_type::Stock); }};
-    gameWrapper["Waste"]      = getter {[returnPile](base_game* game) { return returnPile(game, pile_type::Waste); }};
-    gameWrapper["Foundation"] = getter {[returnPile](base_game* game) { return returnPile(game, pile_type::Foundation); }};
-    gameWrapper["Tableau"]    = getter {[returnPile](base_game* game) { return returnPile(game, pile_type::Tableau); }};
-    gameWrapper["Reserve"]    = getter {[returnPile](base_game* game) { return returnPile(game, pile_type::Reserve); }};
-    gameWrapper["FreeCell"]   = getter {[returnPile](base_game* game) { return returnPile(game, pile_type::FreeCell); }};
+    gameWrapper["Stock"]      = getter {[](base_game* game) { return returnPile(game, pile_type::Stock); }};
+    gameWrapper["Waste"]      = getter {[](base_game* game) { return returnPile(game, pile_type::Waste); }};
+    gameWrapper["Foundation"] = getter {[](base_game* game) { return returnPile(game, pile_type::Foundation); }};
+    gameWrapper["Tableau"]    = getter {[](base_game* game) { return returnPile(game, pile_type::Tableau); }};
+    gameWrapper["Reserve"]    = getter {[](base_game* game) { return returnPile(game, pile_type::Reserve); }};
+    gameWrapper["FreeCell"]   = getter {[](base_game* game) { return returnPile(game, pile_type::FreeCell); }};
 
     // methods
     gameWrapper["shuffle_cards"] = [](base_game* game, std::vector<card> const& cards) {
@@ -50,13 +50,12 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
         return shuffled;
     };
     gameWrapper["find_pile"] = [](base_game* game, card& card) { return game->find_pile(card); };
-    gameWrapper["drop"]      = [](base_game* game, pile* to, card& card) { return game->drop(*to, card); };
-    gameWrapper["can_drop"]  = [](base_game* game, pile* targetPile, isize targetIndex, card const& drop, isize numCards) {
-        return game->base_game::can_drop(*targetPile, targetIndex + IndexOffset, drop, numCards);
+    gameWrapper["can_play"]  = [](base_game* game, pile* targetPile, isize targetIndex, card const& drop, isize numCards) {
+        return game->base_game::can_play(*targetPile, targetIndex + IndexOffset, drop, numCards);
     };
 
     // static methods
-    auto placeCard {[](card& card, pile& to, bool ifEmpty, bool front) {
+    auto static const placeCard {[](card& card, pile& to, bool ifEmpty, bool front) {
         bool const canPlace {ifEmpty ? to.Cards.empty() : true};
         if (canPlace) {
             card.flip_face_up();
@@ -69,38 +68,39 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
         }
         return false;
     }};
+
     gameWrapper["PlaceTop"] = overload(
-        [=](card& card, std::vector<pile*>& to, bool ifEmpty) {
+        [](card& card, std::vector<pile*>& to, bool ifEmpty) {
             for (auto& pile : to) {
                 if (placeCard(card, *pile, ifEmpty, false)) { return true; }
             }
             return false;
         },
-        [=](card& card, std::vector<pile*>& to, i32 offset, usize size, bool ifEmpty) {
+        [](card& card, std::vector<pile*>& to, i32 offset, usize size, bool ifEmpty) {
             auto const target {std::span<pile*>(to.data() + offset + IndexOffset, size)};
             for (auto& pile : target) {
                 if (placeCard(card, *pile, ifEmpty, false)) { return true; }
             }
             return false;
         },
-        [=](card& card, pile* to, bool ifEmpty) {
+        [](card& card, pile* to, bool ifEmpty) {
             return placeCard(card, *to, ifEmpty, false);
         });
     gameWrapper["PlaceBottom"] = overload(
-        [=](card& card, std::vector<pile*>& to, bool ifEmpty) {
+        [](card& card, std::vector<pile*>& to, bool ifEmpty) {
             for (auto& pile : to) {
                 if (placeCard(card, *pile, ifEmpty, true)) { return true; }
             }
             return false;
         },
-        [=](card& card, std::vector<pile*>& to, i32 offset, usize size, bool ifEmpty) {
+        [](card& card, std::vector<pile*>& to, i32 offset, usize size, bool ifEmpty) {
             auto const target {std::span<pile*>(to.data() + offset + IndexOffset, size)};
             for (auto& pile : target) {
                 if (placeCard(card, *pile, ifEmpty, true)) { return true; }
             }
             return false;
         },
-        [=](card& card, pile* to, bool ifEmpty) {
+        [](card& card, pile* to, bool ifEmpty) {
             return placeCard(card, *to, ifEmpty, true);
         });
 
@@ -157,6 +157,15 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
 
         return true;
     };
+    pileWrapper["play"] = [](pile* p, base_game* game, card& card) {
+        if (game->can_play(*p, std::ssize(p->Cards) - 1, card, 1)) {
+            card.flip_face_up();
+            p->Cards.emplace_back(card);
+            return true;
+        }
+
+        return false;
+    };
     pileWrapper["check_bounds"] = [](pile* p, isize i, point_i pos) { return p->Cards[i - 1].Bounds.contains(pos); };
 }
 
@@ -195,7 +204,7 @@ inline script_game<Table, Function, IndexOffset>::script_game(field& f, game_inf
     , _table {std::move(table)}
 {
     make_piles(_table);
-    _table.try_get(_callbacks.CheckDrop, "check_drop");
+    _table.try_get(_callbacks.CheckPlay, "check_playable");
     _table.try_get(_callbacks.OnRedeal, "on_redeal");
     _table.try_get(_callbacks.OnDeal, "on_deal");
     _table.try_get(_callbacks.OnBeforeShuffle, "on_before_shuffle");
@@ -207,12 +216,12 @@ inline script_game<Table, Function, IndexOffset>::script_game(field& f, game_inf
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>
-inline auto script_game<Table, Function, IndexOffset>::can_drop(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool
+inline auto script_game<Table, Function, IndexOffset>::can_play(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool
 {
-    if (_callbacks.CheckDrop) {
-        return (*_callbacks.CheckDrop)(static_cast<base_game const*>(this), &targetPile, targetIndex - IndexOffset, drop, numCards);
+    if (_callbacks.CheckPlay) {
+        return (*_callbacks.CheckPlay)(static_cast<base_game const*>(this), &targetPile, targetIndex - IndexOffset, drop, numCards);
     }
-    return base_game::can_drop(targetPile, targetIndex, drop, numCards);
+    return base_game::can_play(targetPile, targetIndex, drop, numCards);
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>

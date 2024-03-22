@@ -34,7 +34,7 @@ local aces_up = {
                 }
         }
     },
-    check_drop = function(game, targetPile, _, drop, numCards) {
+    check_playable = function(game, targetPile, _, drop, numCards) {
         if (numCards != 1) {
             return false
         }
@@ -129,7 +129,7 @@ local aces_square = {
                 }
         }
     },
-    check_drop = function(game, targetPile, _, drop, numCards) {
+    check_playable = function(game, targetPile, _, drop, numCards) {
         if (drop.Rank == "Ace" || targetPile.IsEmpty || numCards > 1) {
             return false
         }

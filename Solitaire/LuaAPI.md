@@ -105,14 +105,14 @@ There are three ways to define a pile:
 - *Signature*: function(game)
 - *Return value*: Running, Failure, Success
 
-#### check_drop
+#### check_playable
 
-- *Signature*: function(game, pile, index, drop, numCards)
-- *Return value*: **true** if the card can be dropped at the specified index, **false** otherwise.
+- *Signature*: function(game, pile, index, card, numCards)
+- *Return value*: **true** if the card can be played at the specified index, **false** otherwise.
 
 #### check_movable
 
-- *Signature*: function(game, targetPile, idx)
+- *Signature*: function(game, pile, index)
 - *Return value*: **true** if the card at the index can be moved, **false** otherwise.
 
 ### Pile
@@ -157,9 +157,7 @@ There are three ways to define a pile:
 
 ### find_pile
 
-### can_drop
-
-### drop
+### can_play
 
 ### shuffle_cards
 
@@ -192,6 +190,8 @@ There are three ways to define a pile:
 ### deal
 
 ### deal_to_group
+
+### play
 
 ## *card* members
 

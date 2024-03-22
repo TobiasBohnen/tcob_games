@@ -270,7 +270,7 @@ local move = {
                 local cards = target.Cards
                 if cards[idx].IsFaceDown then return false end
                 for i = idx, #cards - 1, 1 do
-                    if not game:can_drop(target, i, cards[i + 1], 1) then return false end
+                    if not game:can_play(target, i, cards[i + 1], 1) then return false end
                 end
                 return true
             end
@@ -284,7 +284,7 @@ local move = {
 
                 local targetSuit = cards[idx].Suit
                 for i = idx, #cards - 1, 1 do
-                    if not game:can_drop(target, i, cards[i + 1], 1)
+                    if not game:can_play(target, i, cards[i + 1], 1)
                         or cards[i + 1].Suit ~= targetSuit
                     then
                         return false
@@ -303,7 +303,7 @@ local move = {
 
                 local result = true
                 for i = idx, #cards - 1, 1 do
-                    if not game:can_drop(target, i, cards[i + 1], 1)
+                    if not game:can_play(target, i, cards[i + 1], 1)
                         or cards[i + 1].Suit ~= targetSuit
                     then
                         result = false
@@ -341,7 +341,7 @@ local move = {
                 end
 
                 for i = idx, #cards - 1, 1 do
-                    if not game:can_drop(target, i, cards[i + 1], 1) then return false end
+                    if not game:can_play(target, i, cards[i + 1], 1) then return false end
                 end
                 return true
             end
