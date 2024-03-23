@@ -339,18 +339,10 @@ void base_game::auto_move_to_foundation(pile& srcPile)
 
             srcPile.move_cards(fou, std::ssize(srcPile.Cards) - 1, 1, false);
             end_turn();
-            auto_deal(srcPile);
             srcPile.remove_tint();
             fou.remove_tint();
             return;
         }
-    }
-}
-
-void base_game::auto_deal(pile& from)
-{
-    if (from.Type == pile_type::Waste && from.empty()) {
-        deal_cards();
     }
 }
 
@@ -362,7 +354,6 @@ void base_game::drop_cards(hit_test_result const& hovered, hit_test_result const
     if (dropTarget.Pile && hovered.Pile) {
         hovered.Pile->move_cards(*dropTarget.Pile, hovered.Index, std::ssize(hovered.Pile->Cards) - hovered.Index, false);
         end_turn();
-        auto_deal(*hovered.Pile);
     } else {
         layout_piles();
     }
@@ -457,6 +448,11 @@ void base_game::end_turn()
     _undoStack.push(_currentState);
     _currentState = {};
     save(_currentState);
+
+    // deal if first Waste is empty
+    if (!Waste.empty() && Waste[0].empty()) {
+        deal_cards();
+    }
 }
 
 auto base_game::rand() -> rng&

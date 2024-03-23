@@ -111,7 +111,6 @@ private:
     auto get_pile_at(point_i pos, bool ignoreActivePile) -> hit_test_result;
 
     auto deal_cards() -> bool;
-    void auto_deal(pile& from);
     void auto_move_to_foundation(pile& srcPile);
 
     std::unordered_map<pile_type, std::vector<pile*>> _piles;
