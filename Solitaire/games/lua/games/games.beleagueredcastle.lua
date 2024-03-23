@@ -7,7 +7,7 @@ local ops   = require 'base/ops'
 local rules = require 'base/rules'
 
 
-local beleaguered_castle    = {
+local beleaguered_castle       = {
     Info              = {
         Name          = "Beleaguered Castle",
         Family        = "BeleagueredCastle",
@@ -33,14 +33,14 @@ local beleaguered_castle    = {
 
 ------
 
-local castle_mount          = Sol.copy(beleaguered_castle)
-castle_mount.Info.Name      = "Castle Mount"
-castle_mount.Info.DeckCount = 3
-castle_mount.Foundation     = {
+local castle_mount             = Sol.copy(beleaguered_castle)
+castle_mount.Info.Name         = "Castle Mount"
+castle_mount.Info.DeckCount    = 3
+castle_mount.Foundation        = {
     Size   = 12,
     Create = { Rule = rules.ace_upsuit_none }
 }
-castle_mount.Tableau        = {
+castle_mount.Tableau           = {
     Size   = 12,
     Create = {
         Initial = ops.Initial.face_up(12),
@@ -48,13 +48,13 @@ castle_mount.Tableau        = {
         Rule = { Base = rules.Base.King, Build = rules.Build.DownByRank(), Move = rules.Move.InSeqInSuit() }
     }
 }
-castle_mount.on_created     = Sol.Layout.canister
+castle_mount.on_created        = Sol.Layout.canister
 
 ------
 
-local citadel               = Sol.copy(beleaguered_castle)
-citadel.Info.Name           = "Citadel"
-citadel.on_shuffle          = function(game, card)
+local citadel                  = Sol.copy(beleaguered_castle)
+citadel.Info.Name              = "Citadel"
+citadel.on_shuffle             = function(game, card)
     local foundation = game.Foundation
     for _, v in ipairs(foundation) do
         if v:play(game, card) then
@@ -65,12 +65,11 @@ citadel.on_shuffle          = function(game, card)
     return false
 end
 
-
 ------
 
-local exiled_kings               = Sol.copy(citadel)
-exiled_kings.Info.Name           = "Exiled Kings"
-exiled_kings.Tableau.Create      = {
+local exiled_kings             = Sol.copy(citadel)
+exiled_kings.Info.Name         = "Exiled Kings"
+exiled_kings.Tableau.Create    = {
     Initial = ops.Initial.face_up(6),
     Layout = "Row",
     Rule = rules.king_downrank_top
@@ -78,14 +77,14 @@ exiled_kings.Tableau.Create      = {
 
 ------
 
-local lightweight                = Sol.copy(beleaguered_castle)
-lightweight.Info.Name            = "Lightweight"
-lightweight.Info.DeckCount       = 2
-lightweight.Foundation           = {
+local lightweight              = Sol.copy(beleaguered_castle)
+lightweight.Info.Name          = "Lightweight"
+lightweight.Info.DeckCount     = 2
+lightweight.Foundation         = {
     Size   = 8,
     Create = { Rule = rules.ace_upsuit_none }
 }
-lightweight.Tableau              = {
+lightweight.Tableau            = {
     Size   = 12,
     Create = {
         Initial = ops.Initial.face_up(8),
@@ -93,60 +92,11 @@ lightweight.Tableau              = {
         Rule = { Base = rules.Base.King, Build = rules.Build.DownByRank(), Move = rules.Move.InSeq() }
     }
 }
-lightweight.on_created           = Sol.Layout.canister
+lightweight.on_created         = Sol.Layout.canister
 
 ------
 
-local fastness                   = {
-    Info       = {
-        Name          = "Fastness",
-        Family        = "BeleagueredCastle",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
-    },
-    FreeCell   = {
-        Size   = 2,
-        Create = { Rule = rules.any_none_top }
-    },
-    Foundation = {
-        Size   = 4,
-        Create = { Rule = rules.ace_upsuit_none }
-    },
-    Tableau    = {
-        Size   = 8,
-        Create = function(i)
-            return {
-                Initial = ops.Initial.face_up(i < 4 and 7 or 6),
-                Layout = "Row",
-                Rule = rules.any_downrank_top
-            }
-        end
-    },
-    on_created = Sol.Layout.fastness
-}
-
-------
-
-local siegecraft                 = Sol.copy(fastness)
-siegecraft.Info.Name             = "Siegecraft"
-siegecraft.FreeCell              = { Rule = rules.any_none_top }
-siegecraft.Tableau.Create        = {
-    Initial = ops.Initial.face_up(6),
-    Layout = "Row",
-    Rule = rules.any_downrank_top
-}
-siegecraft.on_before_shuffle     = ops.Shuffle.ace_to_foundation
-
-------
-
-local stronghold                 = Sol.copy(fastness)
-stronghold.Info.Name             = "Stronghold"
-stronghold.FreeCell              = { Rule = rules.any_none_top }
-
-------
-
-local bastion                    = {
+local bastion                  = {
     Info       = {
         Name          = "Bastion",
         Family        = "BeleagueredCastle",
@@ -178,15 +128,15 @@ local bastion                    = {
 
 ------
 
-local castles_end                = Sol.copy(bastion)
-castles_end.Info.Name            = "Castles End"
-castles_end.Foundation.Create    = { Rule = rules.ff_upsuit_top }
-castles_end.Tableau.Create       = {
+local castles_end              = Sol.copy(bastion)
+castles_end.Info.Name          = "Castles End"
+castles_end.Foundation.Create  = { Rule = rules.ff_upsuit_top }
+castles_end.Tableau.Create     = {
     Initial = ops.Initial.face_up(5),
     Layout = "Column",
     Rule = rules.any_updownac_top
 }
-castles_end.check_playable       = function(game, targetPile, targetIndex, drop, numCards)
+castles_end.check_playable     = function(game, targetPile, targetIndex, drop, numCards)
     local foundation1 = game.Foundation[1]
     if foundation1.IsEmpty then -- block card drops if foundation is empty
         return targetPile == foundation1
@@ -197,10 +147,10 @@ end
 
 ------
 
-local ten_by_one                 = Sol.copy(bastion)
-ten_by_one.Info.Name             = "Ten by One"
-ten_by_one.FreeCell              = { Rule = rules.any_none_top }
-ten_by_one.Tableau.Create        = function(i)
+local ten_by_one               = Sol.copy(bastion)
+ten_by_one.Info.Name           = "Ten by One"
+ten_by_one.FreeCell            = { Rule = rules.any_none_top }
+ten_by_one.Tableau.Create      = function(i)
     return {
         Initial = ops.Initial.face_up(i < 2 and 6 or 5),
         Layout = "Column",
@@ -210,58 +160,7 @@ end
 
 ------
 
-local canister                   = {
-    Info       = {
-        Name          = "Canister",
-        Family        = "BeleagueredCastle",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
-    },
-    Foundation = {
-        Size   = 4,
-        Create = { Rule = rules.ace_upsuit_none }
-    },
-    Tableau    = {
-        Size   = 8,
-        Create = function(i)
-            return {
-                Initial = ops.Initial.face_up((i < 2 or i >= 6) and 6 or 7),
-                Layout = "Column",
-                Rule = { Base = rules.Base.Any, Build = rules.Build.DownByRank(), Move = rules.Move.InSeq() }
-            }
-        end
-    },
-    on_created = Sol.Layout.canister
-}
-
-------
-
-local american_canister          = Sol.copy(canister)
-american_canister.Info.Name      = "American Canister"
-american_canister.Tableau.Create = function(i)
-    return {
-        Initial = ops.Initial.face_up((i < 2 or i >= 6) and 6 or 7),
-        Layout = "Column",
-        Rule = rules.any_downac_inseq
-    }
-end
-
-------
-
-local british_canister           = Sol.copy(canister)
-british_canister.Info.Name       = "British Canister"
-british_canister.Tableau.Create  = function(i)
-    return {
-        Initial = ops.Initial.face_up((i < 2 or i >= 6) and 6 or 7),
-        Layout = "Column",
-        Rule = rules.king_downac_top
-    }
-end
-
-------
-
-local chessboard                 = {
+local chessboard               = {
     Info           = {
         Name          = "Chessboard",
         Family        = "BeleagueredCastle",
@@ -296,10 +195,10 @@ local chessboard                 = {
 
 ------
 
-local lasker                     = Sol.copy(chessboard)
-lasker.Info.Name                 = "Lasker"
-lasker.Foundation.Create         = { Rule = rules.ff_upsuit_top }
-lasker.Tableau.Create            = function(i)
+local lasker                   = Sol.copy(chessboard)
+lasker.Info.Name               = "Lasker"
+lasker.Foundation.Create       = { Rule = rules.ff_upsuit_top }
+lasker.Tableau.Create          = function(i)
     return {
         Initial = ops.Initial.face_up(i < 2 and 6 or 5),
         Layout = "Column",
@@ -309,7 +208,7 @@ end
 
 ------
 
-local fortress                   = {
+local fortress                 = {
     Info       = {
         Name          = "Fortress",
         Family        = "BeleagueredCastle",
@@ -336,7 +235,7 @@ local fortress                   = {
 
 ------
 
-local morehead                   = {
+local morehead                 = {
     Info = {
         Name          = "Morehead",
         Family        = "BeleagueredCastle",
@@ -363,7 +262,7 @@ local morehead                   = {
 
 ------
 
-local penelopes_web              = {
+local penelopes_web            = {
     Info       = {
         Name          = "Penelope's Web",
         Family        = "BeleagueredCastle",
@@ -390,7 +289,7 @@ local penelopes_web              = {
 
 ------
 
-local selective_castle           = {
+local selective_castle         = {
     Info           = {
         Name          = "Selective Castle",
         Family        = "BeleagueredCastle",
@@ -425,7 +324,7 @@ local selective_castle           = {
 
 ------
 
-local streets_and_alleys         = {
+local streets_and_alleys       = {
     Info       = {
         Name          = "Streets and Alleys",
         Family        = "BeleagueredCastle",
@@ -452,7 +351,7 @@ local streets_and_alleys         = {
 
 ------
 
-local chequers                   = {
+local chequers                 = {
     Info       = {
         Name          = "Chequers",
         Family        = "BeleagueredCastle",
@@ -503,7 +402,7 @@ local chequers                   = {
 
 ------
 
-local castle_of_indolence        = {
+local castle_of_indolence      = {
     Info       = {
         Name          = "Castle of Indolence",
         Family        = "BeleagueredCastle",
@@ -554,7 +453,7 @@ local castle_of_indolence        = {
 
 ------
 
-local zerline                    = {
+local zerline                  = {
     Info           = {
         Name          = "Zerline",
         Family        = "BeleagueredCastle",
@@ -620,16 +519,16 @@ local zerline                    = {
 
 ------
 
-local zerline_3_decks            = Sol.copy(zerline)
-zerline_3_decks.Info.Name        = "Zerline (3 Decks)"
-zerline_3_decks.Info.DeckCount   = 3
-zerline_3_decks.Stock.Initial    = ops.Initial.face_down(116)
-zerline_3_decks.FreeCell         = {
+local zerline_3_decks          = Sol.copy(zerline)
+zerline_3_decks.Info.Name      = "Zerline (3 Decks)"
+zerline_3_decks.Info.DeckCount = 3
+zerline_3_decks.Stock.Initial  = ops.Initial.face_down(116)
+zerline_3_decks.FreeCell       = {
     Position = { x = 5, y = 0 },
     Layout = "Row",
     Rule = { Base = rules.Base.Any, Build = rules.Build.Any(), Move = rules.Move.Top(), Limit = 6 }
 }
-zerline_3_decks.Foundation       = {
+zerline_3_decks.Foundation     = {
     Size   = 12,
     Create = function(i)
         return {
@@ -638,7 +537,7 @@ zerline_3_decks.Foundation       = {
         }
     end
 }
-zerline_3_decks.Tableau          = {
+zerline_3_decks.Tableau        = {
     Size   = 8,
     Create = function(i)
         local rule = { Base = function(_, card, _) return rules.Base.Ranks(card, { "Queen" }) end, Build = rules.Build.DownByRank(), Move = rules.Move.Top() }
@@ -660,13 +559,12 @@ zerline_3_decks.Tableau          = {
     end
 }
 
+------
+
 ------------
 
 Sol.register_game(beleaguered_castle)
-Sol.register_game(american_canister)
 Sol.register_game(bastion)
-Sol.register_game(british_canister)
-Sol.register_game(canister)
 Sol.register_game(castle_mount)
 Sol.register_game(castle_of_indolence)
 Sol.register_game(castles_end)
@@ -674,16 +572,13 @@ Sol.register_game(chequers)
 Sol.register_game(chessboard)
 Sol.register_game(citadel)
 Sol.register_game(exiled_kings)
-Sol.register_game(fastness)
 Sol.register_game(fortress)
 Sol.register_game(lasker)
 Sol.register_game(lightweight)
 Sol.register_game(morehead)
 Sol.register_game(penelopes_web)
 Sol.register_game(selective_castle)
-Sol.register_game(siegecraft)
 Sol.register_game(streets_and_alleys)
-Sol.register_game(stronghold)
 Sol.register_game(ten_by_one)
 Sol.register_game(zerline)
 Sol.register_game(zerline_3_decks)
