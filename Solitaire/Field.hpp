@@ -29,6 +29,8 @@ public:
 
     void mark_dirty();
 
+    auto current_game() const -> std::shared_ptr<games::base_game>;
+
 protected:
     void move_camera(size_f bounds);
     void on_update(milliseconds deltaTime) override;

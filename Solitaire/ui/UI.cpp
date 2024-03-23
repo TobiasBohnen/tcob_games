@@ -10,28 +10,41 @@ namespace solitaire {
 form_controls::form_controls(gfx::window* window, rect_f bounds)
     : form {"MainMenu", window, bounds}
 {
-    auto mainPanel {create_container<panel>(dock_style::Fill, "main")};
+    using namespace tcob::literals;
 
-    auto mainPanelLayout {mainPanel->create_layout<grid_layout>(size_i {20, 6})};
+    auto mainPanel {create_container<glass>(dock_style::Fill, "main")};
+    mainPanel->Class = "panel-transparent";
+    auto mainPanelLayout {mainPanel->create_layout<dock_layout>()};
 
-    BtnMenu        = mainPanelLayout->create_widget<button>({0, 0, 3, 6}, "btnGames");
+    auto menuPanel {mainPanelLayout->create_widget<panel>(dock_style::Bottom, "menu")};
+    menuPanel->Flex = {100_pct, 10_pct};
+    auto menuPanelLayout {menuPanel->create_layout<grid_layout>(size_i {20, 6})};
+
+    BtnMenu        = menuPanelLayout->create_widget<button>({0, 0, 3, 6}, "btnGames");
     BtnMenu->Label = "Menu";
 
-    LblPile             = mainPanelLayout->create_widget<label>({4, 0, 2, 6}, "lblInfo0");
+    LblPile             = menuPanelLayout->create_widget<label>({4, 0, 2, 6}, "lblInfo0");
     LblPile->Class      = "label-small";
-    LblRule             = mainPanelLayout->create_widget<label>({6, 0, 4, 6}, "lblInfo1");
+    LblRule             = menuPanelLayout->create_widget<label>({6, 0, 4, 6}, "lblInfo1");
     LblRule->Class      = "label-small";
-    LblCardCount        = mainPanelLayout->create_widget<label>({10, 0, 1, 6}, "lblInfo2");
+    LblCardCount        = menuPanelLayout->create_widget<label>({10, 0, 1, 6}, "lblInfo2");
     LblCardCount->Class = "label-small";
 
-    BtnNewGame        = mainPanelLayout->create_widget<button>({12, 0, 2, 6}, "BtnNewGame");
+    BtnNewGame        = menuPanelLayout->create_widget<button>({12, 0, 2, 6}, "BtnNewGame");
     BtnNewGame->Label = "New Game";
 
-    BtnUndo        = mainPanelLayout->create_widget<button>({14, 0, 2, 6}, "btnUndo");
+    BtnUndo        = menuPanelLayout->create_widget<button>({14, 0, 2, 6}, "btnUndo");
     BtnUndo->Label = "Undo";
 
-    BtnQuit        = mainPanelLayout->create_widget<button>({18, 0, 2, 6}, "btnQuit");
+    BtnQuit        = menuPanelLayout->create_widget<button>({18, 0, 2, 6}, "btnQuit");
     BtnQuit->Label = "Quit";
+
+    auto overlayPanel {mainPanelLayout->create_widget<glass>(dock_style::Fill, "overlay")};
+    overlayPanel->Class = "panel-transparent";
+    overlayPanel->disable();
+    auto overlayPanelLayout {overlayPanel->create_layout<dock_layout>()};
+
+    Canvas = overlayPanelLayout->create_widget<canvas_widget>(dock_style::Fill, "canvas");
 }
 
 ////////////////////////////////////////////////////////////

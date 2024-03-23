@@ -11,8 +11,6 @@
 #include <ranges>
 #include <utility>
 
-#include <iostream>
-
 namespace solitaire::games {
 
 base_game::base_game(field& f, game_info info)
@@ -313,15 +311,6 @@ void base_game::key_down(input::keyboard::event& ev)
         } else if (ev.KeyCode == input::key_code::z && (ev.KeyMods & input::key_mod::LeftControl) == input::key_mod::LeftControl) {
             undo();
             ev.Handled = true;
-        } else if (ev.KeyCode == input::key_code::m) {
-            auto const& moves {get_available_moves()};
-            i32         i {1};
-            for (auto const& move : moves) {
-                std::cout << std::format("move {}: {} #{} card #{} -> {} #{} card #{}.\n",
-                                         i++,
-                                         get_pile_type_name(move.Src->Type), move.SrcIdx, move.SrcCardIdx,
-                                         get_pile_type_name(move.Dst->Type), move.DstIdx, move.DstCardIdx);
-            }
         }
     }
 }

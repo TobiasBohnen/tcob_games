@@ -35,6 +35,11 @@ auto field::get_size() const -> size_i
     return _size;
 }
 
+auto field::current_game() const -> std::shared_ptr<games::base_game>
+{
+    return _currentGame;
+}
+
 auto field::get_material() const -> assets::asset_ptr<gfx::material> const&
 {
     return _material;

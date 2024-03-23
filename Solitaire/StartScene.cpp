@@ -5,6 +5,8 @@
 
 #include "StartScene.hpp"
 
+#include <iostream>
+
 namespace solitaire {
 
 start_scene::start_scene(game& game)
@@ -58,7 +60,7 @@ void start_scene::on_start()
     load_scripts();
 
     // ui
-    rect_i const menuBounds {0, static_cast<i32>(height), windowSize.Width, windowSize.Height - static_cast<i32>(height)};
+    rect_i const menuBounds {0, 0, windowSize.Width, windowSize.Height};
     _formControls = std::make_shared<form_controls>(&window, rect_f {menuBounds});
 
 #if defined(TCOB_DEBUG)
@@ -178,7 +180,7 @@ void start_scene::on_fixed_update(milliseconds /* deltaTime */)
 
 void start_scene::on_key_down(input::keyboard::event& ev)
 {
-    if (_formControls->get_focus_widget() != nullptr || _formMenu->get_focus_widget() != nullptr) {
+    if (_formMenu->get_focus_widget() != nullptr) {
         return;
     }
 
@@ -188,6 +190,56 @@ void start_scene::on_key_down(input::keyboard::event& ev)
         break;
     default:
         break;
+    }
+
+    if (ev.KeyCode == input::key_code::m) {
+        _formControls->force_redraw("");
+
+        auto game {_playField->current_game()};
+        if (!game) { return; }
+
+        auto const& moves {game->get_available_moves()};
+        i32         i {1};
+
+        _formControls->Canvas->clear();
+        auto drawArrow {[&](point_f from, point_f to) {
+            from = point_f {(*get_window().Camera).convert_world_to_screen(from)};
+            to   = point_f {(*get_window().Camera).convert_world_to_screen(to)};
+
+            f32 const headLength {10};
+            f32 const angle {std::atan2(to.Y - from.Y, to.X - from.X)};
+
+            auto ctx {_formControls->Canvas};
+
+            ctx->begin_path();
+            ctx->move_to(from);
+            ctx->line_to(to);
+            ctx->set_stroke_style(colors::Blue);
+            ctx->set_stroke_width(2);
+            ctx->stroke();
+
+            // Draw arrowhead
+            ctx->begin_path();
+            ctx->move_to(to);
+            ctx->line_to({to.X - headLength * std::cos(angle - TAU_F / 12), to.Y - headLength * std::sin(angle - TAU_F / 12)});
+            ctx->line_to({to.X - headLength * std::cos(angle + TAU_F / 12), to.Y - headLength * std::sin(angle + TAU_F / 12)});
+            ctx->line_to(to);
+            ctx->set_fill_style(colors::Blue);
+            ctx->fill();
+        }};
+
+        for (auto const& move : moves) {
+            std::cout << std::format("move {}: {} #{} card #{} -> {} #{} card #{}.\n",
+                                     i++,
+                                     get_pile_type_name(move.Src->Type), move.SrcIdx, move.SrcCardIdx,
+                                     get_pile_type_name(move.Dst->Type), move.DstIdx, move.DstCardIdx);
+
+            if (move.DstCardIdx >= 0) {
+                drawArrow(move.Src->Cards[move.SrcCardIdx].Bounds.get_center(), move.Dst->Cards[move.DstCardIdx].Bounds.get_center());
+            } else {
+                drawArrow(move.Src->Cards[move.SrcCardIdx].Bounds.get_center(), move.Dst->Marker->Bounds().get_center());
+            }
+        }
     }
 }
 
