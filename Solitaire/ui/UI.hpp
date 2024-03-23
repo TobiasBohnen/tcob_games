@@ -15,7 +15,7 @@ class form_controls : public form {
 public:
     form_controls(gfx::window* window, rect_f bounds);
 
-    std::shared_ptr<button> BtnStart;
+    std::shared_ptr<button> BtnNewGame;
     std::shared_ptr<button> BtnMenu;
     std::shared_ptr<label>  LblPile;
     std::shared_ptr<label>  LblRule;

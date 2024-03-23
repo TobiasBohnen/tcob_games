@@ -14,10 +14,9 @@ static char const* SAVE_NAME {"save.ini"};
 field::field(gfx::window* parent, size_i size, assets::group& resGrp)
     : _parentWindow {parent}
     , _resGrp {resGrp}
+    , _size {size}
     , _cardRenderer {gfx::buffer_usage_hint::DynamicDraw}
     , _text {resGrp.get<gfx::font_family>("Poppins")->get_font({.Weight = gfx::font::weight::Bold}, 96)}
-    , _size {size}
-
 {
     _saveGame.load(SAVE_NAME);
 
@@ -41,16 +40,6 @@ auto field::get_material() const -> assets::asset_ptr<gfx::material> const&
     return _material;
 }
 
-auto field::get_hover_color() const -> color
-{
-    return colors::LightBlue;
-}
-
-auto field::get_drop_color() const -> color
-{
-    return colors::LightGreen;
-}
-
 void field::start(std::shared_ptr<games::base_game> const& game, bool cont)
 {
     _text.hide();
@@ -71,7 +60,7 @@ void field::start(std::shared_ptr<games::base_game> const& game, bool cont)
     _cardQuads.clear();
     _cardQuads.resize(_currentGame->info().DeckCount * 52);
 
-    auto const cardSize {get_card_size()};
+    auto const& cardSize {_cardSets[_currentCardSet]->get_card_size()};
     if (cont) {
         _currentGame->start(cardSize, _saveGame);
     } else {
@@ -244,6 +233,15 @@ auto field::can_draw() const -> bool
     return _currentGame != nullptr;
 }
 
+void field::on_key_down(input::keyboard::event& ev)
+{
+    using namespace tcob::enum_ops;
+
+    if (!_currentGame) { return; }
+
+    _currentGame->key_down(ev);
+}
+
 void field::on_mouse_motion(input::mouse::motion_event& ev)
 {
     if (input::system::IsMouseButtonDown(input::mouse::button::Right)) {
@@ -258,9 +256,9 @@ void field::on_mouse_motion(input::mouse::motion_event& ev)
 
     if (_buttonDown) {
         if (_hovered.Pile) { drag_cards(ev); }
-        if (_isDragging) { check_drop_pile(); }
+        if (_isDragging) { get_drop_target(); }
     } else {
-        check_hover_pile(ev.Position);
+        get_hovered(ev.Position);
     }
 
     HoverChange(_currentGame->get_description(_hovered.Pile));
@@ -287,7 +285,7 @@ void field::on_mouse_button_down(input::mouse::button_event& ev)
         _buttonDown = true;
         _currentGame->click(_hovered.Pile, ev.Clicks);
 
-        if (ev.Clicks > 1) { check_hover_pile(ev.Position); }
+        if (ev.Clicks > 1) { get_hovered(ev.Position); }
         HoverChange(_currentGame->get_description(_hovered.Pile));
     }
 }
@@ -303,7 +301,7 @@ void field::on_mouse_button_up(input::mouse::button_event& ev)
             _isDragging = false;
         }
 
-        check_hover_pile(ev.Position);
+        get_hovered(ev.Position);
         HoverChange(_currentGame->get_description(_hovered.Pile));
     }
 }
@@ -318,7 +316,7 @@ void field::drag_cards(input::mouse::motion_event const& ev)
         return;
     }
 
-    size_f const  zoom {(*_parentWindow->Camera).get_zoom()};
+    auto const    zoom {(*_parentWindow->Camera).get_zoom()};
     point_f const off {ev.RelativeMotion.X / zoom.Width, ev.RelativeMotion.Y / zoom.Height};
     for (isize i {_hovered.Index}; i < std::ssize(cards); ++i) {
         cards[i].Bounds.move_by(off);
@@ -329,7 +327,7 @@ void field::drag_cards(input::mouse::motion_event const& ev)
     mark_dirty();
 }
 
-void field::check_drop_pile()
+void field::get_drop_target()
 {
     auto        oldPile {_dropTarget};
     auto const& card {_hovered.Pile->Cards[_hovered.Index]};
@@ -348,24 +346,36 @@ void field::check_drop_pile()
     }
 }
 
-void field::check_hover_pile(point_i pos)
+void field::get_hovered(point_i pos)
 {
     auto oldPile {_hovered};
     _hovered = _currentGame->hover_at(point_i {(*_parentWindow->Camera).convert_screen_to_world(pos)});
 
     if (oldPile.Pile) {
-        oldPile.Pile->set_active(false, oldPile.Index, get_hover_color());
+        oldPile.Pile->set_active(false, oldPile.Index, colors::Transparent);
         mark_dirty();
     }
     if (_hovered.Pile) {
-        _hovered.Pile->set_active(true, _hovered.Index, get_hover_color());
+        _hovered.Pile->set_active(true, _hovered.Index, get_hover_color(_hovered.Pile, _hovered.Index));
         mark_dirty();
     }
 }
 
-auto field::get_card_size() const -> size_f
+auto field::get_hover_color(pile* pile, isize idx) const -> color
 {
-    return _cardSets[_currentCardSet]->get_card_size();
+    auto const& moves {_currentGame->get_available_moves()};
+    for (auto const& move : moves) {
+        if (move.Src == pile && move.SrcCardIdx == idx) {
+            return colors::LightGreen; // TODO: add option to disable
+        }
+    }
+
+    return colors::LightBlue;
+}
+
+auto field::get_drop_color() const -> color
+{
+    return colors::LightGreen; // TODO: add option to disable
 }
 
 }

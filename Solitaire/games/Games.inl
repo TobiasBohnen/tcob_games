@@ -286,7 +286,7 @@ inline auto script_game<Table, Function, IndexOffset>::check_state() const -> ga
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>
-inline auto script_game<Table, Function, IndexOffset>::check_movable(pile const& targetPile, isize idx) -> bool
+inline auto script_game<Table, Function, IndexOffset>::check_movable(pile const& targetPile, isize idx) const -> bool
 {
     if (_callbacks.CheckMovable) {
         return (*_callbacks.CheckMovable)(static_cast<base_game const*>(this), &targetPile, idx - IndexOffset);

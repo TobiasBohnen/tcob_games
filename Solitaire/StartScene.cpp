@@ -102,7 +102,7 @@ void start_scene::on_start()
 
 void start_scene::connect_ui_events()
 {
-    _formControls->BtnStart->Click.connect([&](auto const&) {
+    _formControls->BtnNewGame->Click.connect([&](auto const&) {
         auto const game {_formMenu->SelectedGame()};
         if (_games.contains(game)) {
             _playField->start(_games[game].second(*_playField), false);

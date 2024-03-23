@@ -11,6 +11,8 @@
 #include <ranges>
 #include <utility>
 
+#include <iostream>
+
 namespace solitaire::games {
 
 base_game::base_game(field& f, game_info info)
@@ -237,6 +239,7 @@ void base_game::layout_piles()
         }
     }
 
+    calc_available_moves();
     _field.mark_dirty();
     _state = check_state();
 }
@@ -310,6 +313,15 @@ void base_game::key_down(input::keyboard::event& ev)
         } else if (ev.KeyCode == input::key_code::z && (ev.KeyMods & input::key_mod::LeftControl) == input::key_mod::LeftControl) {
             undo();
             ev.Handled = true;
+        } else if (ev.KeyCode == input::key_code::m) {
+            auto const& moves {get_available_moves()};
+            i32         i {1};
+            for (auto const& move : moves) {
+                std::cout << std::format("move {}: {} #{} card #{} -> {} #{} card #{}.\n",
+                                         i++,
+                                         get_pile_type_name(move.Src->Type), move.SrcIdx, move.SrcCardIdx,
+                                         get_pile_type_name(move.Dst->Type), move.DstIdx, move.DstCardIdx);
+            }
         }
     }
 }
@@ -322,7 +334,6 @@ void base_game::click(pile* srcPile, u8 clicks)
         // deal card
         srcPile->remove_tint();
         deal_cards();
-        srcPile->tint_cards(_field.get_hover_color(), std::ssize(srcPile->Cards) - 1);
     } else if (clicks > 1) {
         // try move to foundation
         auto_move_to_foundation(*srcPile);
@@ -373,7 +384,7 @@ auto base_game::can_play(pile const& targetPile, isize targetIndex, card const& 
     return targetPile.build(targetIndex, drop, numCards);
 }
 
-auto base_game::check_movable(pile const& targetPile, isize idx) -> bool
+auto base_game::check_movable(pile const& targetPile, isize idx) const -> bool
 {
     std::pair<pile const*, isize> const key {&targetPile, idx};
 
@@ -422,7 +433,12 @@ auto base_game::check_state() const -> game_state
         }
     }
 
-    // TODO: detect dead game
+    if (Stock.empty() || (Stock[0].empty() && _remainingRedeals == 0)) {
+        if (get_available_moves().empty()) {
+            return game_state::Failure;
+        }
+    }
+
     return game_state::Success;
 }
 
@@ -437,6 +453,58 @@ auto base_game::find_pile(card const& card) const -> pile*
     }
 
     return nullptr;
+}
+
+void base_game::calc_available_moves()
+{
+    std::vector<move> movable;
+    for (auto const& kvp : _piles) {
+        isize srcIdx {0};
+        for (auto* pile : kvp.second) {
+            if (!pile->is_playable()) { continue; }
+
+            for (isize srcCardIdx {0}; srcCardIdx < std::ssize(pile->Cards); ++srcCardIdx) {
+                if (!check_movable(*pile, srcCardIdx)) { continue; }
+
+                auto& m {movable.emplace_back()};
+                m.Src        = pile;
+                m.SrcIdx     = srcIdx;
+                m.SrcCardIdx = srcCardIdx;
+            }
+            srcIdx++;
+        }
+    }
+
+    _availableMoves.clear();
+    for (auto const& kvp : _piles) {
+        isize dstIdx {0};
+        for (auto* pile : kvp.second) {
+            for (auto const& move : movable) {
+                if (move.Src == pile) { continue; }
+                if (move.Src->Type == pile_type::Foundation && pile->Type == pile_type::Foundation) { continue; } // ignore Foundation to Foundation
+                if (move.Src->Type == pile_type::FreeCell && pile->Type == pile_type::FreeCell) { continue; }     // ignore FreeCell to FreeCell
+
+                if (can_play(*pile,
+                             pile->empty() ? -1 : pile->Cards.size() - 1,
+                             move.Src->Cards[move.SrcCardIdx],
+                             std::ssize(move.Src->Cards) - move.SrcCardIdx)) {
+                    auto& m {_availableMoves.emplace_back()};
+                    m.Src        = move.Src;
+                    m.SrcIdx     = move.SrcIdx;
+                    m.SrcCardIdx = move.SrcCardIdx;
+                    m.Dst        = pile;
+                    m.DstIdx     = dstIdx;
+                    m.DstCardIdx = std::ssize(pile->Cards) - 1;
+                }
+            }
+            dstIdx++;
+        }
+    }
+}
+
+auto base_game::get_available_moves() const -> std::vector<move> const&
+{
+    return _availableMoves;
 }
 
 void base_game::end_turn()

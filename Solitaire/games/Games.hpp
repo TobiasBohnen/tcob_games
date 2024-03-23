@@ -43,6 +43,15 @@ struct game_info {
 
 ////////////////////////////////////////////////////////////
 
+struct move {
+    pile* Src {nullptr};
+    isize SrcIdx {0};
+    isize SrcCardIdx {0};
+    pile* Dst {nullptr};
+    isize DstIdx {0};
+    isize DstCardIdx {0};
+};
+
 class base_game {
 public:
     using rng = random::rng_xoshiro_256_plus_plus;
@@ -76,6 +85,7 @@ public:
     auto drop_target_at(rect_f const& rect, card const& move, isize numCards) -> hit_test_result;
     void drop_cards(hit_test_result const& hovered, hit_test_result const& dropTarget);
     auto find_pile(card const& card) const -> pile*;
+    auto get_available_moves() const -> std::vector<move> const&;
 
     auto virtual can_play(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool;
 
@@ -94,7 +104,7 @@ protected:
 
     auto virtual check_state() const -> game_state;
 
-    auto virtual check_movable(pile const& targetPile, isize idx) -> bool;
+    auto virtual check_movable(pile const& targetPile, isize idx) const -> bool;
 
     void create_piles(auto&& piles, isize size, std::function<void(pile&, i32)> const& func);
 
@@ -103,6 +113,8 @@ protected:
     void end_turn();
 
 private:
+    void calc_available_moves();
+
     void new_game();
     auto load(std::optional<data::config::object> const& loadObj) -> bool;
 
@@ -113,9 +125,10 @@ private:
     auto deal_cards() -> bool;
     void auto_move_to_foundation(pile& srcPile);
 
-    std::unordered_map<pile_type, std::vector<pile*>> _piles;
-    flat_map<std::pair<pile const*, isize>, bool>     _movableCache;
-    std::unordered_map<pile const*, hover_info>       _descriptionCache;
+    std::unordered_map<pile_type, std::vector<pile*>>     _piles;
+    mutable flat_map<std::pair<pile const*, isize>, bool> _movableCache;
+    mutable std::unordered_map<pile const*, hover_info>   _descriptionCache;
+    std::vector<move>                                     _availableMoves;
 
     game_state _state {game_state::Initial};
     game_info  _gameInfo;
@@ -155,7 +168,7 @@ protected:
 
     auto check_state() const -> game_state override;
 
-    auto check_movable(pile const& targetPile, isize idx) -> bool override;
+    auto check_movable(pile const& targetPile, isize idx) const -> bool override;
 
 private:
     void make_piles(auto&& gameRef);

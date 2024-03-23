@@ -24,11 +24,11 @@ form_controls::form_controls(gfx::window* window, rect_f bounds)
     LblCardCount        = mainPanelLayout->create_widget<label>({10, 0, 1, 6}, "lblInfo2");
     LblCardCount->Class = "label-small";
 
-    BtnUndo        = mainPanelLayout->create_widget<button>({12, 0, 2, 6}, "btnUndo");
-    BtnUndo->Label = "Undo";
+    BtnNewGame        = mainPanelLayout->create_widget<button>({12, 0, 2, 6}, "BtnNewGame");
+    BtnNewGame->Label = "New Game";
 
-    BtnStart        = mainPanelLayout->create_widget<button>({14, 0, 2, 6}, "btnPlay");
-    BtnStart->Label = "Restart";
+    BtnUndo        = mainPanelLayout->create_widget<button>({14, 0, 2, 6}, "btnUndo");
+    BtnUndo->Label = "Undo";
 
     BtnQuit        = mainPanelLayout->create_widget<button>({18, 0, 2, 6}, "btnQuit");
     BtnQuit->Label = "Quit";
