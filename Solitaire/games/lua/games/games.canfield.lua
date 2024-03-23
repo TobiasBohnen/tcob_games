@@ -239,10 +239,64 @@ minerva.on_change                   = nil
 
 ------
 
+local munger                        = Sol.copy(minerva)
+munger.Info.Name                    = "Munger"
+munger.Info.Redeals                 = 0
+munger.Stock.Initial                = ops.Initial.face_down(17)
+munger.Reserve.Create               = {
+    Initial = ops.Initial.top_face_up(7),
+    Layout = "Column"
+}
+
+------
+
+local mystique                      = Sol.copy(minerva)
+mystique.Info.Name                  = "Mystique"
+mystique.Info.Redeals               = 0
+mystique.Stock.Initial              = ops.Initial.face_down(15)
+mystique.Reserve.Create             = {
+    Initial = ops.Initial.top_face_up(9),
+    Layout = "Column"
+}
+mystique.Tableau                    = {
+    Size   = 7,
+    Create = {
+        Initial = ops.Initial.alternate(4, false),
+        Layout = "Column",
+        Rule = rules.any_downac_inseq
+    }
+}
+
+------
+
+local rainbow                       = Sol.copy(canfield)
+rainbow.Info.Name                   = "Rainbow"
+rainbow.Info.CardDealCount          = 1
+rainbow.Info.Redeals                = 0
+rainbow.Tableau.Create              = {
+    Initial = ops.Initial.face_up(1),
+    Layout = "Column",
+    Rule = { Base = rules.Base.Any, Build = rules.Build.DownByRank(true), Move = rules.Move.TopOrPile() }
+}
+
+------
+
 local rainfall                      = Sol.copy(canfield)
 rainfall.Info.Name                  = "Rainfall"
 rainfall.Info.CardDealCount         = 1
 rainfall.Info.Redeals               = 2
+
+------
+
+local storehouse                    = Sol.copy(canfield)
+storehouse.Info.Name                = "Storehouse"
+storehouse.Info.CardDealCount       = 1
+storehouse.Info.Redeals             = 2
+storehouse.Tableau.Create           = {
+    Initial = ops.Initial.face_up(1),
+    Layout = "Column",
+    Rule = { Base = rules.Base.Any, Build = rules.Build.DownInSuit(true), Move = rules.Move.TopOrPile() }
+}
 
 ------
 
@@ -258,6 +312,10 @@ Sol.register_game(chameleon)
 Sol.register_game(demon)
 Sol.register_game(eagle_wing)
 Sol.register_game(minerva)
+Sol.register_game(munger)
+Sol.register_game(mystique)
+Sol.register_game(rainbow)
 Sol.register_game(rainfall)
+Sol.register_game(storehouse)
 Sol.register_game(superior_canfield)
 Sol.register_game(variegated_canfield)
