@@ -465,25 +465,35 @@ void base_game::calc_available_moves()
     }
 
     _availableMoves.clear();
+
     for (auto const& kvp : _piles) {
         isize dstIdx {0};
-        for (auto* pile : kvp.second) {
-            for (auto const& move : movable) {
-                if (move.Src == pile) { continue; }
-                if (move.Src->Type == pile_type::Foundation && pile->Type == pile_type::Foundation) { continue; } // ignore Foundation to Foundation
-                if (move.Src->Type == pile_type::FreeCell && pile->Type == pile_type::FreeCell) { continue; }     // ignore FreeCell to FreeCell
+        for (auto* dst : kvp.second) {
+            for (auto& src : movable) {
+                if (src.Src == dst) { continue; }
+                if (src.Src->Type == pile_type::Foundation && dst->Type == pile_type::Foundation) { continue; } // ignore Foundation to Foundation
+                if (src.Src->Type == pile_type::Foundation && dst->Type == pile_type::FreeCell) { continue; }   // ignore Foundation to FreeCell
+                if (src.Src->Type == pile_type::FreeCell && dst->Type == pile_type::FreeCell) { continue; }     // ignore FreeCell to FreeCell
 
-                if (can_play(*pile,
-                             pile->empty() ? -1 : pile->Cards.size() - 1,
-                             move.Src->Cards[move.SrcCardIdx],
-                             std::ssize(move.Src->Cards) - move.SrcCardIdx)) {
+                if (can_play(*dst,
+                             dst->empty() ? -1 : dst->Cards.size() - 1,
+                             src.Src->Cards[src.SrcCardIdx],
+                             std::ssize(src.Src->Cards) - src.SrcCardIdx)) {
+                    if (dst->Type == pile_type::Foundation) { // limit foundation/freecell destinations to 1
+                        if (src.HasFoundation) { continue; }
+                        src.HasFoundation = true;
+                    } else if (dst->Type == pile_type::FreeCell) {
+                        if (src.HasFreeCell) { continue; }
+                        src.HasFreeCell = true;
+                    }
+
                     auto& m {_availableMoves.emplace_back()};
-                    m.Src        = move.Src;
-                    m.SrcIdx     = move.SrcIdx;
-                    m.SrcCardIdx = move.SrcCardIdx;
-                    m.Dst        = pile;
+                    m.Src        = src.Src;
+                    m.SrcIdx     = src.SrcIdx;
+                    m.SrcCardIdx = src.SrcCardIdx;
+                    m.Dst        = dst;
                     m.DstIdx     = dstIdx;
-                    m.DstCardIdx = std::ssize(pile->Cards) - 1;
+                    m.DstCardIdx = std::ssize(dst->Cards) - 1;
                 }
             }
             dstIdx++;

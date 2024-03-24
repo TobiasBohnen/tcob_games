@@ -47,9 +47,13 @@ struct move {
     pile* Src {nullptr};
     isize SrcIdx {0};
     isize SrcCardIdx {0};
+
     pile* Dst {nullptr};
     isize DstIdx {0};
     isize DstCardIdx {0};
+
+    bool HasFoundation {false};
+    bool HasFreeCell {false};
 };
 
 class base_game {
