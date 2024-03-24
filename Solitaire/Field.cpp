@@ -11,8 +11,9 @@
 namespace solitaire {
 static char const* SAVE_NAME {"save.ini"};
 
-field::field(gfx::window* parent, size_i size, assets::group& resGrp)
+field::field(gfx::window* parent, gfx::ui::canvas_widget* canvas, size_i size, assets::group& resGrp)
     : _parentWindow {parent}
+    , _canvas {canvas}
     , _resGrp {resGrp}
     , _size {size}
     , _cardRenderer {gfx::buffer_usage_hint::DynamicDraw}
@@ -244,7 +245,67 @@ void field::on_key_down(input::keyboard::event& ev)
 
     if (!_currentGame) { return; }
 
-    _currentGame->key_down(ev);
+    if (ev.KeyCode == input::key_code::m) {
+        _canvas->force_redraw("");
+
+        auto const& moves {_currentGame->get_available_moves()};
+        if (moves.empty()) { return; }
+        if (_currentMove >= moves.size()) { // TODO:reset _currentMove on game change
+            _currentMove = 0;
+        }
+        auto const& move {moves[_currentMove++]};
+
+        rect_f srcBounds {move.Src->Cards[move.SrcCardIdx].Bounds};
+        for (isize i {move.SrcCardIdx + 1}; i < std::ssize(move.Src->Cards); ++i) {
+            srcBounds = srcBounds.as_merged(move.Src->Cards[i].Bounds);
+        }
+
+        rect_f dstBounds;
+        if (move.DstCardIdx >= 0) {
+            dstBounds = move.Dst->Cards[move.DstCardIdx].Bounds;
+        } else if (move.Dst->Marker) {
+            dstBounds = move.Dst->Marker->Bounds();
+        }
+
+        auto& camera {*_parentWindow->Camera};
+        _canvas->clear();
+
+        // Draw bounds
+        _canvas->begin_path();
+        _canvas->rounded_rect(rect_f {camera.convert_world_to_screen(srcBounds)}, 10);
+        _canvas->rounded_rect(rect_f {camera.convert_world_to_screen(dstBounds)}, 10);
+        _canvas->set_stroke_style(colors::Green);
+        _canvas->set_stroke_width(10);
+        _canvas->stroke();
+
+        // Draw arrow
+        auto from {point_f {camera.convert_world_to_screen(srcBounds.get_center())}};
+        auto to {point_f {camera.convert_world_to_screen(dstBounds.get_center())}};
+
+        f32 const borderWidth {3};
+        f32 const arrowWidth {6};
+        f32 const headLength {arrowWidth * 6};
+
+        _canvas->set_line_cap(gfx::line_cap::Round);
+        _canvas->begin_path();
+        _canvas->move_to(from);
+        _canvas->line_to(to);
+
+        f32 const angle {std::atan2(to.Y - from.Y, to.X - from.X)};
+
+        _canvas->move_to(to);
+        _canvas->line_to({to.X - headLength * std::cos(angle - TAU_F / 12), to.Y - headLength * std::sin(angle - TAU_F / 12)});
+        _canvas->move_to(to);
+        _canvas->line_to({to.X - headLength * std::cos(angle + TAU_F / 12), to.Y - headLength * std::sin(angle + TAU_F / 12)});
+        _canvas->set_stroke_style(colors::Black);
+        _canvas->set_stroke_width(arrowWidth + borderWidth);
+        _canvas->stroke();
+        _canvas->set_stroke_style(colors::Gray);
+        _canvas->set_stroke_width(arrowWidth);
+        _canvas->stroke();
+    } else {
+        _currentGame->key_down(ev);
+    }
 }
 
 void field::on_mouse_motion(input::mouse::motion_event& ev)

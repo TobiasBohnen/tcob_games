@@ -14,7 +14,7 @@ namespace solitaire {
 
 class field : public gfx::entity {
 public:
-    field(gfx::window* parent, size_i size, assets::group& resGrp);
+    field(gfx::window* parent, gfx::ui::canvas_widget* canvas, size_i size, assets::group& resGrp);
 
     signal<hover_info const> HoverChange;
 
@@ -55,9 +55,10 @@ private:
     auto get_drop_color() const -> color;
     void get_drop_target();
 
-    gfx::window*   _parentWindow;
-    assets::group& _resGrp;
-    size_i         _size;
+    gfx::window*            _parentWindow;
+    gfx::ui::canvas_widget* _canvas;
+    assets::group&          _resGrp;
+    size_i                  _size;
 
     std::shared_ptr<games::base_game> _currentGame;
     data::config::object              _saveGame;
@@ -69,6 +70,8 @@ private:
     bool                             _cardQuadsDirty {true};
     gfx::text                        _text;
     assets::asset_ptr<gfx::material> _material;
+
+    usize _currentMove {0};
 
     // cardsets
     i32                                   _currentCardSet {1};

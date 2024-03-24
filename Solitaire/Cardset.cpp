@@ -289,7 +289,7 @@ void cardset::draw_back(gfx::canvas& canvas, rect_f const& rect)
     canvas.save();
     draw_shape(canvas, pad_rect(rect), colors::LightSteelBlue, colors::White);
 
-    rect_f const backRect {rect.as_shrunk(rect.get_size() / 50 * 4)};
+    rect_f const backRect {rect.as_padded(rect.get_size() / 50 * 4)};
 
     canvas.set_scissor(backRect);
 
@@ -347,7 +347,7 @@ void cardset::set_suit_color(gfx::canvas& canvas, suit s)
 auto cardset::pad_rect(rect_f const& rect) -> rect_f
 {
     auto const cardPad {rect.get_size() / 50};
-    return rect.as_shrunk(cardPad);
+    return rect.as_padded(cardPad);
 }
 
 void cardset::draw_suit(gfx::canvas& canvas, suit s, point_f pos, f32 size)

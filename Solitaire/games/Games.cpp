@@ -285,7 +285,7 @@ auto base_game::drop_target_at(rect_f const& rect, card const& move, isize numCa
     f32             maxArea {0};
     hit_test_result retValue;
     for (auto const& candidate : candidates) {
-        auto const interSect {rect.as_intersection(candidate.Index == INDEX_MARKER ? candidate.Pile->Marker->Bounds : candidate.Pile->Cards[candidate.Index].Bounds)};
+        auto const interSect {rect.as_intersected(candidate.Index == INDEX_MARKER ? candidate.Pile->Marker->Bounds : candidate.Pile->Cards[candidate.Index].Bounds)};
         if (interSect.Width * interSect.Height > maxArea) {
             maxArea  = interSect.Width * interSect.Height;
             retValue = candidate;
