@@ -34,11 +34,11 @@ auto cardset::load() const -> bool
     _texture->create(texSize, static_cast<u32>(files.size()), gfx::texture::format::RGBA8);
     _texture->Filtering = gfx::texture::filtering::Linear;
 
-    u32 level {0};
+    u32  level {0};
+    auto tempImg {gfx::image::CreateEmpty(texSize, gfx::image::format::RGBA)};
     for (auto const& file : files) {
-        auto const tempImg {gfx::image::Load(file)};
-        if (!tempImg) { return false; }
-        _texture->update_data(tempImg->get_data(), level);
+        if (tempImg.load(file) != load_status::Ok) { return false; }
+        _texture->update_data(tempImg.get_data(), level);
         _texture->add_region(io::get_stem(file), {{0, 0, 1, 1}, level++});
     }
 

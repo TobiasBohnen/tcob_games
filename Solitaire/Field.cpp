@@ -189,6 +189,7 @@ void field::draw_cards(gfx::render_target& target)
 
         _cardQuadsDirty = false;
         move_camera(bounds);
+        _canvas->clear();
     } else {
         _cardRenderer.set_geometry(_cardQuads);
         _cardRenderer.render_to_target(target);
@@ -246,8 +247,6 @@ void field::on_key_down(input::keyboard::event& ev)
     if (!_currentGame) { return; }
 
     if (ev.KeyCode == input::key_code::m) {
-        _canvas->force_redraw("");
-
         auto const& moves {_currentGame->get_available_moves()};
         if (moves.empty()) { return; }
         if (_currentMove >= moves.size()) { // TODO:reset _currentMove on game change
@@ -315,6 +314,7 @@ void field::on_mouse_motion(input::mouse::motion_event& ev)
         size_f const  zoom {camera.get_zoom()};
         point_f const off {-ev.RelativeMotion.X / zoom.Width, -ev.RelativeMotion.Y / zoom.Height};
         camera.move_by(off);
+        _canvas->clear();
         _camManual = true;
     }
 
@@ -339,6 +339,7 @@ void field::on_mouse_wheel(input::mouse::wheel_event& ev)
     } else {
         camera.zoom_by({1 / 1.1f, 1 / 1.1f});
     }
+    _canvas->clear();
     _camManual = true;
     ev.Handled = true;
 }
