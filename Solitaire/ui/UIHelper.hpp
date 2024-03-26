@@ -15,8 +15,7 @@ struct color_theme {
     color Background {colors::Transparent};
     color Container {colors::Transparent};
     color DropShadow {colors::Transparent};
-    color BarLower {colors::Transparent};
-    color BarHigher {colors::Transparent};
+    color Bar {colors::Transparent};
     color Border {colors::Transparent};
     color Caret {colors::Transparent};
     color Item {colors::Transparent};
