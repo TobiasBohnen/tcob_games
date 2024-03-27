@@ -342,7 +342,8 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->Item.Text.Font      = resGrp.get<gfx::font_family>("Poppins");
         style->Item.Text.Size      = 32_px;
         style->Item.Text.Alignment = {gfx::horizontal_alignment::Left, gfx::vertical_alignment::Middle};
-        style->Item.Border.Size    = 2_px;
+        style->Item.Text.AutoSize  = element::text::auto_size_mode::Always;
+        style->Item.Border.Size    = 5_px;
 
         auto hoverStyle {styles.create<item_style>("list_items", {.Hover = true})};
         hoverStyle->Item = style->Item;

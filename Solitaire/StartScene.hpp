@@ -7,6 +7,7 @@
 
 #include "Common.hpp" // IWYU pragma: keep
 
+#include "Cardset.hpp"
 #include "Field.hpp"
 #include "Games.hpp"
 #include "ui/UI.hpp"
@@ -53,6 +54,7 @@ private:
 
     std::map<std::string, std::pair<games::game_info, func>> _games {};
     std::map<std::string, color_themes>                      _themes {};
+    std::map<std::string, std::shared_ptr<cardset>>          _cardSets;
 };
 
 }

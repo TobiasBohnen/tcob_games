@@ -4,27 +4,54 @@
 
 namespace solitaire {
 
-static constexpr color  CardsetBackColor {colors::SeaShell};
-static string const     CardsetFolder {"/cardsets/cards1/"};
-static constexpr isize  CardsetCardCount {68};
-static constexpr size_f CardsetTexSize {240, 360};
+static string const    CardsetFolder {"/cardsets/"};
+static constexpr isize CardsetCardCount {68};
 
-cardset::cardset(std::string const& matName, assets::group& resGrp)
+auto load_cardsets() -> std::map<std::string, std::shared_ptr<cardset>>
 {
-    if (!load()) { create(resGrp, CardsetTexSize); }
+    std::map<std::string, std::shared_ptr<cardset>> retValue;
 
-    auto mat {resGrp.get_bucket<gfx::material>()->create_or_get(matName, nullptr)};
-    mat->Texture = _texture;
+    auto& resMgr {locate_service<assets::library>()};
+    auto& resGrp {resMgr.create_or_get_group("solitaire")};
+    retValue["default"] = std::make_shared<default_cardset>(resGrp);
+
+    for (auto const& gi : io::get_sub_folders(CardsetFolder)) {
+        auto const name {io::get_stem(gi)};
+        if (name == "default") { continue; }
+        retValue[name] = std::make_shared<cardset>(name, resGrp);
+    }
+
+    return retValue;
+}
+
+////////////////////////////////////////////////////////////
+
+cardset::cardset(std::string folder, assets::group& resGrp)
+    : _folder {std::move(folder)}
+{
+    if (!load()) { create(resGrp, _texture.get_obj()); }
+
+    _material->Texture = _texture;
 }
 
 auto cardset::get_card_size() -> size_f
 {
-    return CardsetTexSize;
+    return size_f {_texture->get_size()};
+}
+
+auto cardset::get_material() const -> assets::asset_ptr<gfx::material>
+{
+    return _material;
+}
+
+void cardset::create(assets::group& /* resGrp */, gfx::texture* /* tex */)
+{
 }
 
 auto cardset::load() const -> bool
 {
-    auto files {io::enumerate(CardsetFolder, {"*card*.png"}, false)};
+    std::string const folder {CardsetFolder + _folder + "/"};
+    auto              files {io::enumerate(folder, {"*card*.png"}, false)};
     if (files.size() < CardsetCardCount) { return false; }
 
     auto const info {gfx::image::LoadInfo(*files.begin())};
@@ -45,10 +72,25 @@ auto cardset::load() const -> bool
     return true;
 }
 
-void cardset::create(assets::group& resGrp, size_f texSize)
+auto cardset::get_folder() const -> std::string
 {
-    i32 const columns {10};
-    i32 const rows {8};
+    return CardsetFolder + _folder + "/";
+}
+
+////////////////////////////////////////////////////////////
+
+static constexpr color CardsetBackColor {colors::SeaShell};
+
+default_cardset::default_cardset(assets::group& resGrp)
+    : cardset {"default", resGrp}
+{
+}
+
+void default_cardset::create(assets::group& resGrp, gfx::texture* tex)
+{
+    size_f const texSize {tex->get_size()};
+    i32 const    columns {10};
+    i32 const    rows {8};
     static_assert(columns * rows >= CardsetCardCount);
     size_f const canvasSize {texSize.Width * columns, texSize.Height * rows};
 
@@ -123,25 +165,28 @@ void cardset::create(assets::group& resGrp, size_f texSize)
 
     canvas.end_frame();
     auto const& regions {tempTex->get_regions()};
-    _texture->create(size_i {texSize}, static_cast<u32>(regions.size()), gfx::texture::format::RGBA8);
-    _texture->Filtering = gfx::texture::filtering::Linear;
+    tex->create(size_i {texSize}, static_cast<u32>(regions.size()), gfx::texture::format::RGBA8);
+    tex->Filtering = gfx::texture::filtering::Linear;
 
     auto tempImg {tempTex->copy_to_image(0)};
     tempImg.flip_vertically();
+
+    auto const folder {get_folder()};
+    io::create_folder(folder);
     u32 level {0};
-    io::create_folder(CardsetFolder);
     for (auto const& [k, v] : regions) {
         if (k == "default") { continue; }
 
         auto const data {tempImg.get_data(rect_i {v.UVRect})};
         gfx::image cardimg {gfx::image::Create(size_i {texSize}, gfx::image::format::RGBA, data)};
-        (void)cardimg.save(CardsetFolder + k + ".png");
-        _texture->update_data(data, level);
-        _texture->add_region(k, gfx::texture_region {{0, 0, 1, 1}, level++});
+
+        (void)cardimg.save(folder + k + ".png");
+        tex->update_data(data, level);
+        tex->add_region(k, gfx::texture_region {{0, 0, 1, 1}, level++});
     }
 }
 
-void cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, rank r, rect_f const& rect)
+void default_cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, rank r, rect_f const& rect)
 {
     canvas.save();
 
@@ -270,7 +315,7 @@ void cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, rank r,
     canvas.restore();
 }
 
-void cardset::draw_marker(gfx::canvas& canvas, fonts const& fonts, rank r, rect_f const& rect)
+void default_cardset::draw_marker(gfx::canvas& canvas, fonts const& fonts, rank r, rect_f const& rect)
 {
     canvas.save();
 
@@ -284,7 +329,7 @@ void cardset::draw_marker(gfx::canvas& canvas, fonts const& fonts, rank r, rect_
     canvas.restore();
 }
 
-void cardset::draw_back(gfx::canvas& canvas, rect_f const& rect)
+void default_cardset::draw_back(gfx::canvas& canvas, rect_f const& rect)
 {
     canvas.save();
     draw_shape(canvas, pad_rect(rect), colors::LightSteelBlue, colors::White);
@@ -330,7 +375,7 @@ void cardset::draw_back(gfx::canvas& canvas, rect_f const& rect)
     canvas.restore();
 }
 
-void cardset::set_suit_color(gfx::canvas& canvas, suit s)
+void default_cardset::set_suit_color(gfx::canvas& canvas, suit s)
 {
     switch (s) {
     case suit::Diamonds:
@@ -344,13 +389,13 @@ void cardset::set_suit_color(gfx::canvas& canvas, suit s)
     }
 }
 
-auto cardset::pad_rect(rect_f const& rect) -> rect_f
+auto default_cardset::pad_rect(rect_f const& rect) -> rect_f
 {
     auto const cardPad {rect.get_size() / 50};
     return rect.as_padded(cardPad);
 }
 
-void cardset::draw_suit(gfx::canvas& canvas, suit s, point_f pos, f32 size)
+void default_cardset::draw_suit(gfx::canvas& canvas, suit s, point_f pos, f32 size)
 {
     auto draw {[&](std::vector<std::vector<point_f>> const& halfPath) {
         canvas.save();
@@ -405,7 +450,7 @@ void cardset::draw_suit(gfx::canvas& canvas, suit s, point_f pos, f32 size)
     }
 }
 
-void cardset::draw_shape(gfx::canvas& canvas, rect_f const& bounds, color fill, color stroke)
+void default_cardset::draw_shape(gfx::canvas& canvas, rect_f const& bounds, color fill, color stroke)
 {
     canvas.set_fill_style(fill);
     canvas.set_stroke_style(stroke);

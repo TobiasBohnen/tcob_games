@@ -5,8 +5,9 @@
 
 #pragma once
 
-#include "Cardset.hpp"
 #include "Common.hpp" // IWYU pragma: keep
+
+#include "Cardset.hpp"
 
 namespace solitaire {
 
@@ -25,7 +26,8 @@ public:
     auto state() const -> game_state;
 
     auto get_size() const -> size_i;
-    auto get_material() const -> assets::asset_ptr<gfx::material> const&;
+
+    void set_cardset(std::shared_ptr<cardset> cardset);
 
     void mark_dirty();
 
@@ -63,20 +65,15 @@ private:
     std::shared_ptr<games::base_game> _currentGame;
     data::config::object              _saveGame;
 
+    std::shared_ptr<cardset> _cardset;
+    usize                    _currentMove {0};
+
     // render
-    gfx::sprite_batch                _markerSprites;
-    gfx::quad_renderer               _cardRenderer;
-    std::vector<gfx::quad>           _cardQuads;
-    bool                             _cardQuadsDirty {true};
-    gfx::text                        _text;
-    assets::asset_ptr<gfx::material> _material;
-
-    usize _currentMove {0};
-
-    // cardsets
-    i32                                   _currentCardSet {1};
-    i32                                   _maxCardSet {1};
-    std::vector<std::shared_ptr<cardset>> _cardSets;
+    gfx::sprite_batch      _markerSprites;
+    gfx::quad_renderer     _cardRenderer;
+    std::vector<gfx::quad> _cardQuads;
+    bool                   _cardQuadsDirty {true};
+    gfx::text              _text;
 
     // hover/drag
     hit_test_result _hovered {};

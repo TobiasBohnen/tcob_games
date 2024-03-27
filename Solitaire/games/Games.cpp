@@ -41,12 +41,9 @@ auto base_game::get_description(pile const* pile) -> hover_info
 void base_game::start(size_f cardSize, std::optional<data::config::object> const& loadObj)
 {
     _cardSize = cardSize;
+    _state    = game_state::Initial;
 
-    _state = game_state::Initial;
-
-    if (!load(loadObj)) {
-        new_game();
-    }
+    if (!load(loadObj)) { new_game(); }
 
     init();
 }
@@ -58,7 +55,7 @@ void base_game::restart()
 
 void base_game::new_game()
 {
-    clear_pile_cards();
+    clear_piles();
 
     std::vector<card> cards;
     for (i32 i {0}; i < _gameInfo.DeckCount; ++i) {
@@ -104,7 +101,7 @@ auto base_game::load(std::optional<data::config::object> const& loadObj) -> bool
 
     if (!loadObj) { return false; }
 
-    clear_pile_cards();
+    clear_piles();
 
     if (!loadObj->has(_gameInfo.Name)) { return false; }
 
@@ -358,11 +355,12 @@ void base_game::drop_cards(hit_test_result const& hovered, hit_test_result const
     }
 }
 
-void base_game::clear_pile_cards()
+void base_game::clear_piles()
 {
     for (auto& kvp : _piles) {
         for (auto* pile : kvp.second) {
             pile->Cards.clear();
+            pile->set_active(false, -2, colors::Transparent);
         }
     }
 }

@@ -50,7 +50,7 @@ form_controls::form_controls(gfx::window* window, rect_f bounds)
 ////////////////////////////////////////////////////////////
 
 form_menu::form_menu(gfx::window* window, rect_f bounds,
-                     std::vector<games::game_info> const& games, std::vector<std::string> const& colorThemes)
+                     std::vector<games::game_info> const& games, std::vector<std::string> const& colorThemes, std::vector<std::string> const& cardSets)
     : form {"Games", window, bounds}
 {
     using namespace tcob::literals;
@@ -141,11 +141,23 @@ form_menu::form_menu(gfx::window* window, rect_f bounds,
         auto panelLayout {panelThemes->create_layout<dock_layout>()};
         auto listBox {panelLayout->create_widget<list_box>(dock_style::Fill, "lbxThemes")};
         listBox->Class = "list_box_games";
-        for (auto const& colorTheme : colorThemes) {
-            listBox->add_item(colorTheme);
-        }
+        for (auto const& colorTheme : colorThemes) { listBox->add_item(colorTheme); }
         listBox->SelectedItemIndex.Changed.connect([&, lb = listBox.get()](auto val) {
             if (val != -1) { SelectedTheme = lb->get_selected_item(); }
+        });
+        listBox->DoubleClick.connect([&] { hide(); });
+    }
+
+    // Cardsets
+    auto panelCardsets {create_container<panel>(dock_style::Left, "panelCardsets")};
+    panelCardsets->Flex = {0_pct, 0_pct};
+    {
+        auto panelLayout {panelCardsets->create_layout<dock_layout>()};
+        auto listBox {panelLayout->create_widget<list_box>(dock_style::Fill, "lbxCardsets")};
+        listBox->Class = "list_box_games";
+        for (auto const& cardSet : cardSets) { listBox->add_item(cardSet); }
+        listBox->SelectedItemIndex.Changed.connect([&, lb = listBox.get()](auto val) {
+            if (val != -1) { SelectedCardset = lb->get_selected_item(); }
         });
         listBox->DoubleClick.connect([&] { hide(); });
     }
@@ -156,16 +168,26 @@ form_menu::form_menu(gfx::window* window, rect_f bounds,
 
     auto btnGames {menuLayout->create_widget<button>({1, 1, 3, 2}, "btnGames")};
     btnGames->Label = "Games";
-    btnGames->Click.connect([tabT = panelThemes.get(), tabG = tabGames.get()](auto&) {
+    btnGames->Click.connect([tabC = panelCardsets.get(), tabT = panelThemes.get(), tabG = tabGames.get()](auto&) {
         tabT->Flex = {0_pct, 0_pct};
+        tabC->Flex = {0_pct, 0_pct};
         tabG->Flex = {85_pct, 100_pct};
     });
 
     auto btnThemes {menuLayout->create_widget<button>({1, 4, 3, 2}, "btnThemes")};
     btnThemes->Label = "Themes";
-    btnThemes->Click.connect([tabT = panelThemes.get(), tabG = tabGames.get()](auto&) {
+    btnThemes->Click.connect([tabC = panelCardsets.get(), tabT = panelThemes.get(), tabG = tabGames.get()](auto&) {
         tabG->Flex = {0_pct, 0_pct};
+        tabC->Flex = {0_pct, 0_pct};
         tabT->Flex = {85_pct, 100_pct};
+    });
+
+    auto btnCardsets {menuLayout->create_widget<button>({1, 7, 3, 2}, "btnCardsets")};
+    btnCardsets->Label = "Cardsets";
+    btnCardsets->Click.connect([tabC = panelCardsets.get(), tabT = panelThemes.get(), tabG = tabGames.get()](auto&) {
+        tabG->Flex = {0_pct, 0_pct};
+        tabT->Flex = {0_pct, 0_pct};
+        tabC->Flex = {85_pct, 100_pct};
     });
 
     auto btnBack {menuLayout->create_widget<button>({1, 18, 3, 2}, "btnBack")};

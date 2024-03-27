@@ -128,7 +128,7 @@ private:
     auto load(std::optional<data::config::object> const& loadObj) -> bool;
 
     void init();
-    void clear_pile_cards();
+    void clear_piles();
     auto get_pile_at(point_i pos, bool ignoreActivePile) -> hit_test_result;
 
     auto deal_cards() -> bool;

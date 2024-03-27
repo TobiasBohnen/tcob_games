@@ -30,10 +30,11 @@ public:
 class form_menu : public form {
 public:
     form_menu(gfx::window* window, rect_f bounds,
-              std::vector<games::game_info> const& games, std::vector<std::string> const& colorThemes);
+              std::vector<games::game_info> const& games, std::vector<std::string> const& colorThemes, std::vector<std::string> const& cardSets);
 
     prop<std::string> SelectedGame;
     prop<std::string> SelectedTheme;
+    prop<std::string> SelectedCardset;
 };
 
 }

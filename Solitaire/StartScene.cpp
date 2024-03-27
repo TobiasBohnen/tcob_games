@@ -71,7 +71,14 @@ void start_scene::on_start()
         themes.push_back(gi.first);
     }
 
-    _formMenu = std::make_shared<form_menu>(&window, rect_f {point_f::Zero, size_f {windowSize}}, games, themes);
+    _cardSets = load_cardsets();
+    std::vector<std::string> cardSets;
+    cardSets.reserve(_cardSets.size());
+    for (auto const& gi : _cardSets) {
+        cardSets.push_back(gi.first);
+    }
+
+    _formMenu = std::make_shared<form_menu>(&window, rect_f {point_f::Zero, size_f {windowSize}}, games, themes, cardSets);
     _formMenu->hide();
     connect_ui_events();
 
@@ -92,12 +99,13 @@ void start_scene::on_start()
 
     locate_service<stats>().reset();
 
+    _formMenu->SelectedTheme   = configFile.get<std::string>("sol", "theme").value_or("default");
+    _formMenu->SelectedCardset = configFile.get<std::string>("sol", "cardset").value_or("default");
+
     // load config
     if (configFile.has("sol", "game")) {
         _formMenu->SelectedGame = configFile["sol"]["game"].as<std::string>();
     }
-
-    _formMenu->SelectedTheme = configFile.get<std::string>("sol", "theme").value_or("default");
 }
 
 void start_scene::connect_ui_events()
@@ -149,6 +157,15 @@ void start_scene::connect_ui_events()
         _formControls->force_redraw("");
 
         locate_service<data::config_file>()["sol"]["theme"] = newTheme;
+    });
+
+    _formMenu->SelectedCardset.Changed.connect([&](auto const& cardset) {
+        auto newCardset {cardset};
+        if (!_cardSets.contains(cardset)) { newCardset = "default"; }
+
+        locate_service<data::config_file>()["sol"]["cardset"] = newCardset;
+
+        _playField->set_cardset(_cardSets[newCardset]);
     });
 
     _formMenu->VisibilityChanged.connect([&](bool val) {

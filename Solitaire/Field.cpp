@@ -5,6 +5,8 @@
 
 #include "Field.hpp"
 
+#include <utility>
+
 #include "Cards.hpp"
 #include "Games.hpp"
 
@@ -26,9 +28,6 @@ field::field(gfx::window* parent, gfx::ui::canvas_widget* canvas, size_i size, a
     effects.add(1, gfx::make_unique_quad_tween<gfx::wave_effect>(3s, {30, 4.f}));
     effects.start_all(playback_style::Looped);
     _text.hide();
-
-    _cardSets.push_back(std::make_shared<cardset>("mat-cards1", resGrp));
-    _material = {resGrp.get<gfx::material>("mat-cards1")};
 }
 
 auto field::get_size() const -> size_i
@@ -36,14 +35,13 @@ auto field::get_size() const -> size_i
     return _size;
 }
 
-auto field::current_game() const -> std::shared_ptr<games::base_game>
+void field::set_cardset(std::shared_ptr<cardset> cardset)
 {
-    return _currentGame;
-}
-
-auto field::get_material() const -> assets::asset_ptr<gfx::material> const&
-{
-    return _material;
+    _cardset        = std::move(cardset);
+    _cardQuadsDirty = true;
+    if (_currentGame) {
+        start(_currentGame, true);
+    }
 }
 
 void field::start(std::shared_ptr<games::base_game> const& game, bool cont)
@@ -66,7 +64,7 @@ void field::start(std::shared_ptr<games::base_game> const& game, bool cont)
     _cardQuads.clear();
     _cardQuads.resize(_currentGame->info().DeckCount * 52);
 
-    auto const& cardSize {_cardSets[_currentCardSet]->get_card_size()};
+    auto const& cardSize {_cardset->get_card_size()};
     if (cont) {
         _currentGame->start(cardSize, _saveGame);
     } else {
@@ -98,7 +96,7 @@ void field::create_markers(size_f const& cardSize)
             if (!pile->HasMarker) { continue; }
 
             pile->Marker                = _markerSprites.create_sprite();
-            pile->Marker->Material      = _material;
+            pile->Marker->Material      = _cardset->get_material();
             pile->Marker->TextureRegion = pile->get_marker_texture_name();
             pile->Marker->Bounds        = {multiply(pile->Position, cardSize), cardSize};
         }
@@ -149,7 +147,7 @@ void field::on_draw_to(gfx::render_target& target)
 void field::draw_cards(gfx::render_target& target)
 {
     if (_currentGame && (_cardQuadsDirty || _isDragging)) {
-        _cardRenderer.set_material(_material);
+        _cardRenderer.set_material(_cardset->get_material());
 
         size_f bounds {size_f::Zero};
 
@@ -187,9 +185,9 @@ void field::draw_cards(gfx::render_target& target)
             _cardRenderer.render_to_target(target);
         }
 
-        _cardQuadsDirty = false;
         move_camera(bounds);
         _canvas->clear();
+        _cardQuadsDirty = false;
     } else {
         _cardRenderer.set_geometry(_cardQuads);
         _cardRenderer.render_to_target(target);
@@ -236,10 +234,11 @@ void field::move_camera(size_f bounds)
 
 void field::get_pile_quads(std::vector<gfx::quad>::iterator& quadIt, pile const* pile) const
 {
+    auto const mat {_cardset->get_material()};
     for (auto const& card : pile->Cards) {
         auto& quad {*quadIt};
         gfx::geometry::set_color(quad, card.Color);
-        gfx::geometry::set_texcoords(quad, _material->Texture->get_region(card.get_texture_name()));
+        gfx::geometry::set_texcoords(quad, mat->Texture->get_region(card.get_texture_name()));
         gfx::geometry::set_position(quad, card.Bounds);
         ++quadIt;
     }
@@ -432,6 +431,7 @@ void field::get_hovered(point_i pos)
         oldPile.Pile->set_active(false, oldPile.Index, colors::Transparent);
         mark_dirty();
     }
+
     if (_hovered.Pile) {
         _hovered.Pile->set_active(true, _hovered.Index, get_hover_color(_hovered.Pile, _hovered.Index));
         mark_dirty();

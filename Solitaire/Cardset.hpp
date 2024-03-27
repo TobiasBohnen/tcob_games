@@ -15,14 +15,38 @@ struct fonts {
     gfx::font* LargeFont {nullptr};
 };
 
+////////////////////////////////////////////////////////////
+
 class cardset {
 public:
-    cardset(std::string const& matName, assets::group& resGrp);
+    virtual ~cardset() = default;
+    cardset(std::string folder, assets::group& resGrp);
 
     auto get_card_size() -> size_f;
 
-    void create(assets::group& resGrp, size_f texSize);
+    auto get_material() const -> assets::asset_ptr<gfx::material>;
+
+    void virtual create(assets::group& resGrp, gfx::texture* tex);
     auto load() const -> bool;
+
+protected:
+    auto get_folder() const -> std::string;
+
+private:
+    assets::manual_asset_ptr<gfx::material> _material;
+    assets::manual_asset_ptr<gfx::texture>  _texture;
+    std::string                             _folder;
+};
+
+auto load_cardsets() -> std::map<std::string, std::shared_ptr<cardset>>;
+
+////////////////////////////////////////////////////////////
+
+class default_cardset : public cardset {
+public:
+    default_cardset(assets::group& resGrp);
+
+    void create(assets::group& resGrp, gfx::texture* tex) override;
 
 private:
     void draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, rank r, rect_f const& rect);
@@ -35,8 +59,6 @@ private:
     void set_suit_color(gfx::canvas& canvas, suit s);
 
     auto pad_rect(rect_f const& rect) -> rect_f;
-
-    assets::manual_asset_ptr<gfx::texture> _texture;
 };
 
 }
