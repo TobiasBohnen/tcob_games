@@ -215,7 +215,17 @@ void field::move_camera(size_f bounds)
         } else {
             _camPosTween = make_unique_tween<linear_tween<point_f>>(0.75s, camera.get_look_at(), pos);
             _camPosTween->start();
-            _camPosTween->Value.Changed.connect([&](auto val) { camera.look_at(val); });
+            _camPosTween->Value.Changed.connect([&](auto val) {
+                if (_hovered.Pile && _isDragging) {
+                    auto& cards {_hovered.Pile->Cards};
+                    for (isize i {_hovered.Index}; i < std::ssize(cards); ++i) {
+                        cards[i].Bounds.move_by(val - camera.get_look_at());
+                    }
+
+                    _dragRect = cards[_hovered.Index].Bounds;
+                }
+                camera.look_at(val);
+            });
 
             _camZoomTween = make_unique_tween<linear_tween<size_f>>(0.75s, camera.get_zoom(), size_f {zoom, zoom});
             _camZoomTween->start();
