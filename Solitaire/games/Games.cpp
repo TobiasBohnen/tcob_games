@@ -239,7 +239,6 @@ void base_game::layout_piles()
 
     calc_available_moves();
     _field.mark_dirty();
-    _state = check_state();
 }
 
 auto base_game::get_pile_at(point_i pos, bool ignoreActivePile) -> hit_test_result
@@ -448,6 +447,11 @@ auto base_game::find_pile(card const& card) const -> pile*
 
 void base_game::calc_available_moves()
 {
+    if (_gameInfo.DisableHints) {
+        _availableMoves.clear();
+        return;
+    }
+
     std::vector<move> movable;
     for (auto const& kvp : _piles) {
         isize srcIdx {0};
@@ -471,21 +475,22 @@ void base_game::calc_available_moves()
     for (auto const& kvp : _piles) {
         isize dstIdx {0};
         for (auto* dst : kvp.second) {
+            if (dst->Type == pile_type::Stock || dst->Type == pile_type::Waste || dst->Type == pile_type::Reserve) { continue; }
             for (auto& src : movable) {
                 if (src.Src == dst) { continue; }
                 if (src.Src->Type == pile_type::Foundation && dst->Type == pile_type::Foundation) { continue; } // ignore Foundation to Foundation
                 if (src.Src->Type == pile_type::Foundation && dst->Type == pile_type::FreeCell) { continue; }   // ignore Foundation to FreeCell
                 if (src.Src->Type == pile_type::FreeCell && dst->Type == pile_type::FreeCell) { continue; }     // ignore FreeCell to FreeCell
+                if (dst->Type == pile_type::Foundation && src.HasFoundation) { continue; }                      // limit foundation/freecell destinations to 1
+                if (dst->Type == pile_type::FreeCell && src.HasFreeCell) { continue; }
 
                 if (can_play(*dst,
                              dst->empty() ? -1 : dst->Cards.size() - 1,
                              src.Src->Cards[src.SrcCardIdx],
                              std::ssize(src.Src->Cards) - src.SrcCardIdx)) {
-                    if (dst->Type == pile_type::Foundation) { // limit foundation/freecell destinations to 1
-                        if (src.HasFoundation) { continue; }
+                    if (dst->Type == pile_type::Foundation) {
                         src.HasFoundation = true;
                     } else if (dst->Type == pile_type::FreeCell) {
-                        if (src.HasFreeCell) { continue; }
                         src.HasFreeCell = true;
                     }
 
@@ -524,6 +529,8 @@ void base_game::end_turn(bool deal)
             deal_cards();
         }
     }
+
+    _state = check_state();
 }
 
 auto base_game::rand() -> rng&

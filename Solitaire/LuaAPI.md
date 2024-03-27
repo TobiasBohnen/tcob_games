@@ -33,6 +33,10 @@ Possible values:
 
 The number of decks used.
 
+#### DeckRanks (**array**)
+
+#### DeckSuits (**array**)
+
 #### CardDealCount (**integer**)
 
 The number of cards dealt. (Currently only used when dealing from the Stock to the Waste.)
@@ -40,6 +44,8 @@ The number of cards dealt. (Currently only used when dealing from the Stock to t
 #### Redeals (**integer**)
 
 The number of redeals allowed throughout the game.
+
+#### DisableHints (**bool**)
 
 ### Stock / Waste / Reserve / FreeCell / Tableau / Foundation (**table**)
 

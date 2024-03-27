@@ -132,7 +132,8 @@ local montana                     = {
         Family        = "Montana",
         DeckCount     = 1,
         CardDealCount = 0,
-        Redeals       = 2
+        Redeals       = 2,
+        DisableHints  = true
     },
     Stock          = {},
     Tableau        = {
@@ -195,7 +196,8 @@ local blue_moon                   = {
         Family        = "Montana",
         DeckCount     = 1,
         CardDealCount = 0,
-        Redeals       = 2
+        Redeals       = 2,
+        DisableHints  = true
     },
     Stock          = {},
     Tableau        = {
@@ -286,7 +288,8 @@ local paganini                    = {
         DeckCount     = 1,
         DeckRanks     = paganini_ranks,
         CardDealCount = 0,
-        Redeals       = 1
+        Redeals       = 1,
+        DisableHints  = true
     },
     Stock          = {},
     Tableau        = {
@@ -331,7 +334,8 @@ local spoilt                      = {
         DeckCount     = 1,
         DeckRanks     = spoilt_ranks,
         CardDealCount = 1,
-        Redeals       = 0
+        Redeals       = 0,
+        DisableHints  = true
     },
     Stock          = {
         Position = { x = 0, y = 1 },

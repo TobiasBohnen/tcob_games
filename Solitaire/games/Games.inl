@@ -150,6 +150,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& scen
         infoTab.try_get(info.DeckSuits, "DeckSuits");
         infoTab.try_get(info.CardDealCount, "CardDealCount");
         infoTab.try_get(info.Redeals, "Redeals");
+        infoTab.try_get(info.DisableHints, "DisableHints");
 
         auto func {[tab, info](auto& field) { return std::make_shared<T>(field, info, tab); }};
         scene->register_game(info, func);
