@@ -118,10 +118,19 @@ form_menu::form_menu(gfx::window* window, rect_f bounds,
         createTab(2, "2");
         createTab(3, "3");
 
-        auto tabPanel {tabContainer->create_tab<panel>(">= 4")};
-        auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-        if (!createListBox(tabPanelLayout, "4+", [](auto const& game) { return game.DeckCount >= 4; })) {
-            tabContainer->remove_tab(tabPanel.get());
+        {
+            auto tabPanel {tabContainer->create_tab<panel>(">= 4")};
+            auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
+            if (!createListBox(tabPanelLayout, "4+", [](auto const& game) { return game.DeckCount >= 4; })) {
+                tabContainer->remove_tab(tabPanel.get());
+            }
+        }
+        {
+            auto tabPanel {tabContainer->create_tab<panel>("stripped")};
+            auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
+            if (!createListBox(tabPanelLayout, "stripped", [](auto const& game) { return game.DeckRanks.size() < 13 || game.DeckSuits.size() < 4; })) {
+                tabContainer->remove_tab(tabPanel.get());
+            }
         }
     }
 
