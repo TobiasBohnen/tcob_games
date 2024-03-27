@@ -31,7 +31,7 @@ local gypsy                           = {
         }
     },
     on_created = Sol.Layout.gypsy,
-    on_deal    = function(game) return game.Stock[1]:deal_to_group(game.Tableau, false) end
+    on_deal    = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
 }
 
 ------
@@ -77,7 +77,7 @@ blockade.Tableau                      = {
     }
 }
 blockade.on_created                   = Sol.Layout.klondike
-blockade.on_change                    = function(game) game.Stock[1]:deal_to_group(game.Tableau, true) end
+blockade.on_change                    = function(game) ops.Deal.to_group(game.Stock[1], game.Tableau, true) end
 
 ------
 
@@ -296,10 +296,10 @@ local cone                            = {
         end
         --deal last 4 cards to reserve
         if game.Stock[1].CardCount == 4 then
-            return game.Stock[1]:deal_to_group(game.Reserve, false)
+            return ops.Deal.to_group(game.Stock[1], game.Reserve, false)
         end
 
-        return game.Stock[1]:deal_to_group(game.Tableau, false)
+        return ops.Deal.to_group(game.Stock[1], game.Tableau, false)
     end
 }
 
@@ -329,7 +329,7 @@ local easthaven                       = {
         }
     },
     on_created = Sol.Layout.klondike,
-    on_deal    = function(game) return game.Stock[1]:deal_to_group(game.Tableau, false) end
+    on_deal    = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
 }
 
 ------

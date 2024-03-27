@@ -53,12 +53,12 @@ local gate                 = {
     on_change  = function(game)
         local reserve = game.Reserve
         if reserve[1].IsEmpty and reserve[2].IsEmpty then
-            game.Waste[1]:deal_to_group(game.Tableau, true)
+            ops.Deal.to_group(game.Waste[1], game.Tableau, true)
         else
             if reserve[1].CardCount > reserve[2].CardCount then
-                game.Reserve[1]:deal_to_group(game.Tableau, true)
+                ops.Deal.to_group(game.Reserve[1], game.Tableau, true)
             else
-                game.Reserve[2]:deal_to_group(game.Tableau, true)
+                ops.Deal.to_group(game.Reserve[2], game.Tableau, true)
             end
         end
     end,

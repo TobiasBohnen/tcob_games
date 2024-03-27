@@ -185,12 +185,6 @@ There are three ways to define a pile:
 
 ### move_cards
 
-### redeal
-
-### deal
-
-### deal_to_group
-
 ### play
 
 ## *card* members

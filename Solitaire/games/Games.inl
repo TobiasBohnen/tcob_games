@@ -122,42 +122,8 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     pileWrapper["clear"]              = [](pile* p) { p->Cards.clear(); };
 
     pileWrapper["move_rank_to_bottom"] = [](pile* p, rank r) { std::ranges::stable_partition(p->Cards, [r](card const& c) { return c.get_rank() == r; }); };
-    pileWrapper["move_cards"]          = [](pile* p, pile* to, isize startIndex, isize numCards, bool reverse) {
-        p->move_cards(*to, startIndex + IndexOffset, numCards, reverse);
-    };
-    pileWrapper["redeal"] = [](pile* p, pile* to) {
-        if (to->empty() && !p->empty()) {
-            p->move_cards(*to, 0, std::ssize(p->Cards), true);
-            to->flip_down_cards();
-            return true;
-        }
-
-        return false;
-    };
-    pileWrapper["deal"] = [](pile* p, pile* to, i32 cardDealCount) {
-        if (p->empty()) { return false; }
-
-        for (i32 i {0}; i < cardDealCount; ++i) {
-            p->move_cards(*to, std::ssize(p->Cards) - 1, 1, false);
-        }
-        to->flip_up_cards();
-
-        return true;
-    };
-    pileWrapper["deal_to_group"] = [](pile* p, std::vector<pile*> const& to, bool ifEmpty) {
-        if (p->empty()) { return false; }
-
-        for (auto* toPile : to) {
-            if (ifEmpty && !toPile->empty()) { continue; }
-            if (p->empty()) { break; }
-
-            p->move_cards(*toPile, std::ssize(p->Cards) - 1, 1, false);
-            toPile->flip_up_top_card();
-        }
-
-        return true;
-    };
-    pileWrapper["play"] = [](pile* p, base_game* game, card& card) {
+    pileWrapper["move_cards"]          = [](pile* p, pile* to, isize startIndex, isize numCards, bool reverse) { p->move_cards(*to, startIndex + IndexOffset, numCards, reverse); };
+    pileWrapper["play_card"]           = [](pile* p, base_game* game, card& card) {
         if (game->can_play(*p, std::ssize(p->Cards) - 1, card, 1)) {
             card.flip_face_up();
             p->Cards.emplace_back(card);
@@ -204,15 +170,15 @@ inline script_game<Table, Function, IndexOffset>::script_game(field& f, game_inf
     , _table {std::move(table)}
 {
     make_piles(_table);
-    _table.try_get(_callbacks.CheckPlay, "check_playable");
     _table.try_get(_callbacks.OnRedeal, "on_redeal");
     _table.try_get(_callbacks.OnDeal, "on_deal");
     _table.try_get(_callbacks.OnBeforeShuffle, "on_before_shuffle");
     _table.try_get(_callbacks.OnShuffle, "on_shuffle");
     _table.try_get(_callbacks.OnAfterShuffle, "on_after_shuffle");
     _table.try_get(_callbacks.OnChange, "on_change");
-    _table.try_get(_callbacks.CheckState, "check_state");
     _table.try_get(_callbacks.CheckMovable, "check_movable");
+    _table.try_get(_callbacks.CheckPlay, "check_playable");
+    _table.try_get(_callbacks.CheckState, "check_state");
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>

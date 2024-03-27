@@ -338,7 +338,7 @@ void base_game::auto_move_to_foundation(pile& srcPile)
             if (!can_play(fou, std::ssize(fou.Cards) - 1, card, 1)) { continue; }
 
             srcPile.move_cards(fou, std::ssize(srcPile.Cards) - 1, 1, false);
-            end_turn();
+            end_turn(true);
             srcPile.remove_tint();
             fou.remove_tint();
             return;
@@ -353,7 +353,7 @@ void base_game::drop_cards(hit_test_result const& hovered, hit_test_result const
 
     if (dropTarget.Pile && hovered.Pile) {
         hovered.Pile->move_cards(*dropTarget.Pile, hovered.Index, std::ssize(hovered.Pile->Cards) - hovered.Index, false);
-        end_turn();
+        end_turn(true);
     } else {
         layout_piles();
     }
@@ -399,12 +399,12 @@ auto base_game::deal_cards() -> bool
                 --_remainingRedeals;
             }
 
-            end_turn();
+            end_turn(false);
         }
     }
 
     if (do_deal()) {
-        end_turn();
+        end_turn(false);
         return true;
     }
 
@@ -414,13 +414,15 @@ auto base_game::deal_cards() -> bool
 auto base_game::check_state() const -> game_state
 {
     // success if cards only on foundation piles
+    bool success {true};
     for (auto const& kvp : _piles) {
         if (kvp.first != pile_type::Foundation) {
             for (auto const& pile : kvp.second) {
-                if (!pile->empty()) { return game_state::Running; }
+                if (!pile->empty()) { success = false; }
             }
         }
     }
+    if (success) { return game_state::Success; }
 
     if (Stock.empty() || (Stock[0].empty() && _remainingRedeals == 0)) {
         if (get_available_moves().empty()) {
@@ -428,7 +430,7 @@ auto base_game::check_state() const -> game_state
         }
     }
 
-    return game_state::Success;
+    return game_state::Running;
 }
 
 auto base_game::find_pile(card const& card) const -> pile*
@@ -506,7 +508,7 @@ auto base_game::get_available_moves() const -> std::vector<move> const&
     return _availableMoves;
 }
 
-void base_game::end_turn()
+void base_game::end_turn(bool deal)
 {
     ++_turn;
 
@@ -517,8 +519,10 @@ void base_game::end_turn()
     save(_currentState);
 
     // deal if first Waste is empty
-    if (!Waste.empty() && Waste[0].empty()) {
-        deal_cards();
+    if (deal) {
+        if (!Waste.empty() && Waste[0].empty()) {
+            deal_cards();
+        }
     }
 }
 

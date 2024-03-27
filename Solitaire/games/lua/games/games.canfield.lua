@@ -38,7 +38,7 @@ local canfield                      = {
             Rule = { Base = rules.Base.Any, Build = rules.Build.DownAlternateColors(true), Move = rules.Move.TopOrPile() }
         }
     },
-    on_change  = function(game) game.Reserve[1]:deal_to_group(game.Tableau, true) end,
+    on_change  = function(game) ops.Deal.to_group(game.Reserve[1], game.Tableau, true) end,
     on_redeal  = ops.Redeal.waste_to_stock,
     on_deal    = ops.Deal.stock_to_waste,
     on_created = Sol.Layout.canfield
@@ -208,7 +208,7 @@ local eagle_wing                    = {
         end
     },
     on_change  = function(game)
-        game.Reserve[1]:deal_to_group(game.Tableau, true)
+        ops.Deal.to_group(game.Reserve[1], game.Tableau, true)
         game.Reserve[1]:flip_down_top_card()
     end,
     on_redeal  = ops.Redeal.waste_to_stock,

@@ -76,7 +76,7 @@ local aces_up = {
 
         return "Running"
     },
-    on_deal = @(game) game.Stock[0].deal_to_group(game.Tableau, false),
+    on_deal = @(game) ops.Deal.to_group(game.Stock[0], game.Tableau, false),
     on_created = @(game) Lua.Sol.Layout.klondike(game)
 }
 
@@ -177,7 +177,7 @@ local aces_square = {
             }
         }
 
-        game.Stock[0].deal_to_group(game.Tableau, true)
+        ops.Deal.to_group(game.Stock[0], game.Tableau, true)
     }
 }
 

@@ -302,7 +302,7 @@ local chinese_discipline                 = {
             }
         end
     },
-    on_deal    = function(game) return game.Stock[1]:deal_to_group(game.Tableau, false) end,
+    on_deal    = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end,
     on_created = Sol.Layout.klondike
 }
 
@@ -346,7 +346,7 @@ local rushdike                           = {
             }
         end
     },
-    on_deal    = function(game) return game.Stock[1]:deal_to_group(game.Tableau, false) end,
+    on_deal    = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end,
     on_created = Sol.Layout.klondike
 }
 
@@ -378,7 +378,7 @@ local queenie                            = {
             }
         end
     },
-    on_deal    = function(game) return game.Stock[1]:deal_to_group(game.Tableau, false) end,
+    on_deal    = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end,
     on_created = Sol.Layout.klondike
 }
 

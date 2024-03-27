@@ -57,9 +57,7 @@ citadel.Info.Name              = "Citadel"
 citadel.on_shuffle             = function(game, card)
     local foundation = game.Foundation
     for _, v in ipairs(foundation) do
-        if v:play(game, card) then
-            return true
-        end
+        if v:play_card(game, card) then return true end
     end
 
     return false
@@ -393,7 +391,7 @@ local chequers                 = {
     },
     on_change  = function(game)
         local reserve1 = game.Reserve[1]
-        reserve1:deal_to_group(game.Tableau, true)
+        ops.Deal.to_group(reserve1, game.Tableau, true)
         if not reserve1.IsEmpty then
             reserve1:flip_down_top_card()
         end

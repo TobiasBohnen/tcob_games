@@ -27,13 +27,53 @@ local shuffle = {
     }
 }
 
+local function redeal_func(from, to) {
+    if (to.IsEmpty && !from.IsEmpty) {
+        from.move_cards(to, 0, from.Cards.len(), true)
+        to.flip_down_cards()
+        return true
+    }
+
+    return false
+}
+
 local redeal = {
-    waste_to_stock = @(game) game.Waste[0].redeal(game.Stock[0])
+    to_pile = redeal_func,
+    waste_to_stock = @(game) redeal_func(game.Waste[0], game.Stock[0])
+}
+
+local function deal_func(from, to, count) {
+    if (from.IsEmpty) {
+        return false
+    }
+    for (local i = 0; i < count; i++) {
+        from.move_cards(to, from.Cards.len() - 1, 1, false)
+    }
+    to.flip_up_cards()
+    return true
+}
+
+local function deal_group_func(from, to, ifEmpty) {
+    if (from.IsEmpty) {
+        return false
+    }
+    foreach(toPile in to) {
+        if (from.IsEmpty) {
+            break
+        }
+        if (ifEmpty == toPile.IsEmpty) {
+            from.move_cards(toPile, from.Cards.len() - 1, 1, false)
+            toPile.flip_up_top_card()
+        }
+    }
+    return true
 }
 
 local deal = {
-    stock_to_waste = @(game) game.Stock[0].deal(game.Waste[0], game.CardDealCount),
-    stock_to_waste_by_redeals_left = @(game) game.Stock[0].deal(game.Waste[0], game.RedealsLeft + 1)
+    to_pile = deal_func,
+    to_group = deal_group_func,
+    stock_to_waste = @(game) deal_func(game.Stock[0], game.Waste[0], game.CardDealCount),
+    stock_to_waste_by_redeals_left = @(game) deal_func(game.Stock[0], game.Waste[0], game.RedealsLeft + 1)
 }
 
 local initial = {

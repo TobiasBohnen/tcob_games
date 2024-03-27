@@ -58,7 +58,7 @@ local golf                 = {
         }
     },
     on_deal     = function(game)
-        return game.Stock[1]:deal(game.Foundation[1], game.CardDealCount)
+        return ops.Deal.to_pile(game.Stock[1], game.Foundation[1], game.CardDealCount)
     end,
     check_state = golf_check_state,
     on_created  = Sol.Layout.golf

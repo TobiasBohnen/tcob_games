@@ -114,7 +114,7 @@ protected:
 
     void layout_piles();
 
-    void end_turn();
+    void end_turn(bool deal);
 
 private:
     void calc_available_moves();

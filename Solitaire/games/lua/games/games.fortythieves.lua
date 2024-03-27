@@ -87,7 +87,7 @@ corona.Tableau             = {
     }
 }
 corona.on_change           = function(game)
-    return game.Waste[1]:deal_to_group(game.Tableau, true) or game.Stock[1]:deal_to_group(game.Tableau, true)
+    return ops.Deal.to_group(game.Waste[1], game.Tableau, true) or ops.Deal.to_group(game.Stock[1], game.Tableau, true)
 end
 
 ------

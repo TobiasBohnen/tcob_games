@@ -63,6 +63,7 @@ local spider             = {
                         end
                     end
                 end
+                --
             end
         end
     end,
@@ -71,7 +72,7 @@ local spider             = {
             if tableau.IsEmpty then return false end
         end
 
-        return game.Stock[1]:deal_to_group(game.Tableau, false)
+        return ops.Deal.to_group(game.Stock[1], game.Tableau, false)
     end
 }
 
