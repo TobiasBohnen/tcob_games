@@ -186,6 +186,7 @@ void field::draw_cards(gfx::render_target& target)
         }
 
         move_camera(bounds);
+
         _canvas->clear();
         _cardQuadsDirty = false;
     } else {

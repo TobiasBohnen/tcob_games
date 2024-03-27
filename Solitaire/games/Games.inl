@@ -180,15 +180,15 @@ inline script_game<Table, Function, IndexOffset>::script_game(field& f, game_inf
     _table.try_get(_callbacks.OnAfterShuffle, "on_after_shuffle");
     _table.try_get(_callbacks.OnChange, "on_change");
     _table.try_get(_callbacks.CheckMovable, "check_movable");
-    _table.try_get(_callbacks.CheckPlay, "check_playable");
+    _table.try_get(_callbacks.CheckPlayable, "check_playable");
     _table.try_get(_callbacks.CheckState, "check_state");
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>
 inline auto script_game<Table, Function, IndexOffset>::can_play(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool
 {
-    if (_callbacks.CheckPlay) {
-        return (*_callbacks.CheckPlay)(static_cast<base_game const*>(this), &targetPile, targetIndex - IndexOffset, drop, numCards);
+    if (_callbacks.CheckPlayable) {
+        return (*_callbacks.CheckPlayable)(static_cast<base_game const*>(this), &targetPile, targetIndex - IndexOffset, drop, numCards);
     }
     return base_game::can_play(targetPile, targetIndex, drop, numCards);
 }

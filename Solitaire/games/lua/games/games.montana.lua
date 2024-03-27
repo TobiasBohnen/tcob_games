@@ -81,18 +81,21 @@ local montana_base                = {
         local columns = #ranks + 1
         if not targetPile.IsEmpty then return false end
 
+        local checkLeft = string.find(mode, "l")
+        local checkRight = string.find(mode, "r")
+
         for i, tab in ipairs(tableau) do
             if tab == targetPile then
                 if i % columns == 1 then return drop.Rank == ranks[1] end --leftmost column
 
                 local result = false
 
-                if string.find(mode, "l") then
+                if checkLeft then
                     result = check_left(tableau[i - 1])
                 end
                 if result then return true end
 
-                if string.find(mode, "r") and i % columns ~= 0 then
+                if checkRight and i % columns ~= 0 then
                     result = check_right(tableau[i + 1])
                 end
                 if result then return true end
@@ -334,8 +337,7 @@ local spoilt                      = {
         DeckCount     = 1,
         DeckRanks     = spoilt_ranks,
         CardDealCount = 1,
-        Redeals       = 0,
-        DisableHints  = true
+        Redeals       = 0
     },
     Stock          = {
         Position = { x = 0, y = 1 },
@@ -373,12 +375,8 @@ local spoilt                      = {
                 tableau:flip_up_top_card()
             end
         else
-            local stock = game.Stock[1]
-            if not stock.IsEmpty and sevenCount > 0 then
-                if stock.CardCount > 3 - sevenCount then
-                    ops.Deal.stock_to_waste(game)
-                    return
-                end
+            if not game.Stock[1].IsEmpty and game.Waste[1].IsEmpty then
+                ops.Deal.stock_to_waste(game)
             end
         end
     end,
@@ -412,7 +410,25 @@ local spoilt                      = {
         end
 
         return false
-    end
+    end,
+
+    check_state    = function(game)
+        if game.Stock[1].IsEmpty and game.Waste[1].IsEmpty then
+            --check rank and suit
+            local tableau = game.Tableau
+            for i, tab in ipairs(tableau) do
+                local x = (i - 1) % 8 + 1
+                local y = (i - 1) // 8 + 1
+                local card = tab.Cards[1]
+                if card.Rank ~= spoilt_ranks[x] or card.Suit ~= tableau[y * 7].Cards[1].Suit then
+                    return "Failure"
+                end
+            end
+            return "Success"
+        end
+
+        return "Running"
+    end,
 }
 
 ------------------------

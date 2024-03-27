@@ -189,9 +189,9 @@ private:
         std::optional<Function<bool>>       OnShuffle;
         std::optional<Function<void>>       OnAfterShuffle;
         std::optional<Function<void>>       OnChange;
-        std::optional<Function<bool>>       CheckPlay;
-        std::optional<Function<game_state>> CheckState;
         std::optional<Function<bool>>       CheckMovable;
+        std::optional<Function<bool>>       CheckPlayable;
+        std::optional<Function<game_state>> CheckState;
     };
 
     callbacks _callbacks;

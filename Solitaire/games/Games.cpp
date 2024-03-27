@@ -163,6 +163,8 @@ void base_game::init()
 
     _currentState = {};
     save(_currentState);
+
+    _state = check_state();
 }
 
 void base_game::undo()
@@ -263,7 +265,9 @@ auto base_game::get_pile_at(point_i pos, bool ignoreActivePile) -> hit_test_resu
 
 auto base_game::drop_target_at(rect_f const& rect, card const& move, isize numCards) -> hit_test_result
 {
-    std::array<point_i, 4> points {point_i {rect.top_left()}, point_i {rect.top_right()}, point_i {rect.bottom_left()}, point_i {rect.bottom_right()}};
+    std::array<point_i, 4> points {
+        point_i {rect.top_left()}, point_i {rect.top_right()},
+        point_i {rect.bottom_left()}, point_i {rect.bottom_right()}};
 
     std::vector<hit_test_result> candidates;
     for (auto const& point : points) {
@@ -281,7 +285,9 @@ auto base_game::drop_target_at(rect_f const& rect, card const& move, isize numCa
     f32             maxArea {0};
     hit_test_result retValue;
     for (auto const& candidate : candidates) {
-        auto const interSect {rect.as_intersected(candidate.Index == INDEX_MARKER ? candidate.Pile->Marker->Bounds : candidate.Pile->Cards[candidate.Index].Bounds)};
+        auto const interSect {rect.as_intersected(candidate.Index == INDEX_MARKER
+                                                      ? candidate.Pile->Marker->Bounds
+                                                      : candidate.Pile->Cards[candidate.Index].Bounds)};
         if (interSect.Width * interSect.Height > maxArea) {
             maxArea  = interSect.Width * interSect.Height;
             retValue = candidate;
@@ -469,6 +475,7 @@ void base_game::calc_available_moves()
     }
 
     _availableMoves.clear();
+    _availableMoves.reserve(movable.size());
 
     for (auto const& kvp : _piles) {
         isize dstIdx {0};
