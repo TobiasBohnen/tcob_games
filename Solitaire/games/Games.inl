@@ -146,6 +146,8 @@ inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& scen
         infoTab.try_get(info.Name, "Name");
         infoTab.try_get(info.Family, "Family");
         infoTab.try_get(info.DeckCount, "DeckCount");
+        infoTab.try_get(info.DeckRanks, "DeckRanks");
+        infoTab.try_get(info.DeckSuits, "DeckSuits");
         infoTab.try_get(info.CardDealCount, "CardDealCount");
         infoTab.try_get(info.Redeals, "Redeals");
 

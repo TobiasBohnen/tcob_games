@@ -81,12 +81,16 @@ auto card::FromValue(u16 value) -> card
 
 ////////////////////////////////////////////////////////////
 
-deck::deck(u8 num)
+deck::deck(u8 num, std::unordered_set<suit> const& suits, std::unordered_set<rank> const& ranks)
 {
     Cards.reserve(52);
     for (u8 s {static_cast<u8>(suit::Hearts)}; s <= static_cast<u8>(suit::Spades); ++s) {
-        for (u8 r {static_cast<u8>(rank::Ace)}; r <= static_cast<u8>(rank::King); ++r) {
-            Cards.emplace_back(static_cast<suit>(s), static_cast<rank>(r), num);
+        if (suits.contains(static_cast<suit>(s))) {
+            for (u8 r {static_cast<u8>(rank::Ace)}; r <= static_cast<u8>(rank::King); ++r) {
+                if (ranks.contains(static_cast<rank>(r))) {
+                    Cards.emplace_back(static_cast<suit>(s), static_cast<rank>(r), num);
+                }
+            }
         }
     }
 }

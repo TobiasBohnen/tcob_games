@@ -103,13 +103,13 @@ private:
 ////////////////////////////////////////////////////////////
 
 struct deck {
-    deck(u8 num);
+    deck(u8 num, std::unordered_set<suit> const& suits, std::unordered_set<rank> const& ranks);
 
     std::vector<card> Cards;
 
-    auto static GetShuffled(auto&& rand, u8 num) -> deck
+    auto static GetShuffled(auto&& rand, u8 num, std::unordered_set<suit> const& suits, std::unordered_set<rank> const& ranks) -> deck
     {
-        deck deck {num};
+        deck deck {num, suits, ranks};
         rand.template shuffle<card>(deck.Cards);
         return deck;
     }

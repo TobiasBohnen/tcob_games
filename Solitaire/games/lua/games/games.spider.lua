@@ -7,7 +7,7 @@ local ops   = require 'base/ops'
 local rules = require 'base/rules'
 
 
-local spider             = {
+local spider                   = {
     Info       = {
         Name          = "Spider",
         Family        = "Spider",
@@ -33,7 +33,7 @@ local spider             = {
         Create = function(i)
             return {
                 Position = { x = i, y = 1 },
-                Initial  = ops.Initial.top_face_up(i < 4 and 6 or 5),
+                Initial  = ops.Initial.top_face_up(i % 3 == 0 and 6 or 5),
                 Layout   = "Column",
                 Rule     = { Base = rules.Base.Any, Build = rules.Build.DownByRank(), Move = rules.Move.InSeqInSuit() }
             }
@@ -78,13 +78,29 @@ local spider             = {
 
 ------
 
-local arachnida          = Sol.copy(spider)
-arachnida.Info.Name      = "Arachnida"
-arachnida.Foundation     = {
+local spider_1_suit            = Sol.copy(spider)
+spider_1_suit.Info.Name        = "Spider (1 suit)"
+spider_1_suit.Info.DeckCount   = 8
+spider_1_suit.Info.DeckSuits   = { "Clubs" }
+spider_1_suit.Foundation.Size  = 8
+
+------
+
+local spider_2_suits           = Sol.copy(spider)
+spider_2_suits.Info.Name       = "Spider (2 suits)"
+spider_2_suits.Info.DeckCount  = 4
+spider_2_suits.Info.DeckSuits  = { "Clubs", "Hearts" }
+spider_2_suits.Foundation.Size = 8
+
+------
+
+local arachnida                = Sol.copy(spider)
+arachnida.Info.Name            = "Arachnida"
+arachnida.Foundation           = {
     Position = { x = 11, y = 0 },
     Rule = rules.none_none_none
 }
-arachnida.Tableau.Create = function(i)
+arachnida.Tableau.Create       = function(i)
     return {
         Position = { x = i + 1, y = 0 },
         Initial  = ops.Initial.top_face_up(i < 4 and 6 or 5),
@@ -96,4 +112,6 @@ end
 ------------------------
 
 Sol.register_game(spider)
+Sol.register_game(spider_1_suit)
+Sol.register_game(spider_2_suits)
 Sol.register_game(arachnida)

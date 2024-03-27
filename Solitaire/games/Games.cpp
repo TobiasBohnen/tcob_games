@@ -62,7 +62,7 @@ void base_game::new_game()
 
     std::vector<card> cards;
     for (i32 i {0}; i < _gameInfo.DeckCount; ++i) {
-        deck const deck {deck::GetShuffled(_rand, static_cast<u8>(i))};
+        deck const deck {deck::GetShuffled(_rand, static_cast<u8>(i), _gameInfo.DeckSuits, _gameInfo.DeckRanks)};
         cards.insert(cards.end(), deck.Cards.begin(), deck.Cards.end());
     }
 

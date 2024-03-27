@@ -280,15 +280,16 @@ end
 local paganini_ranks              = { "Ace", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
 
 local paganini                    = {
-    Info              = {
+    Info           = {
         Name          = "Paganini",
         Family        = "Montana",
         DeckCount     = 1,
+        DeckRanks     = paganini_ranks,
         CardDealCount = 0,
         Redeals       = 1
     },
-    Stock             = {},
-    Tableau           = {
+    Stock          = {},
+    Tableau        = {
         Size   = 40,
         Create = function(i)
             return {
@@ -298,11 +299,7 @@ local paganini                    = {
             }
         end
     },
-    on_before_shuffle = function(_, card)
-        local rank = card.Rank
-        return rank == "Two" or rank == "Three" or rank == "Four" or rank == "Five"
-    end,
-    on_shuffle        = function(game, card, _)
+    on_shuffle     = function(game, card, _)
         if card.Rank == "Ace" then
             return game.PlaceTop(card, game.Tableau, 1, 1, true)
                 or game.PlaceTop(card, game.Tableau, 11, 1, true)
@@ -312,37 +309,39 @@ local paganini                    = {
 
         return false
     end,
-    check_playable    = function(game, targetPile, _, drop, _)
+    check_playable = function(game, targetPile, _, drop, _)
         return montana_base.check_playable(game, targetPile, drop, paganini_ranks, "l")
     end,
-    on_redeal         = function(game)
+    on_redeal      = function(game)
         return montana_base.redeal(game, paganini_ranks)
     end,
-    check_state       = function(game)
+    check_state    = function(game)
         return montana_base.check_state(game, paganini_ranks)
     end,
-    on_created        = function(game) Sol.Layout.montana(game, 10) end
+    on_created     = function(game) Sol.Layout.montana(game, 10) end
 }
 
 ------
+local spoilt_ranks                = { "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace" }
 
 local spoilt                      = {
-    Info              = {
+    Info           = {
         Name          = "Spoilt",
         Family        = "Montana",
         DeckCount     = 1,
+        DeckRanks     = spoilt_ranks,
         CardDealCount = 1,
         Redeals       = 0
     },
-    Stock             = {
+    Stock          = {
         Position = { x = 0, y = 1 },
         Initial = ops.Initial.face_down(3)
     },
-    Waste             = {
+    Waste          = {
         Position = { x = 0, y = 2 },
         Initial = ops.Initial.face_up(1)
     },
-    Tableau           = {
+    Tableau        = {
         Size   = 32,
         Create = function(i)
             return {
@@ -353,11 +352,7 @@ local spoilt                      = {
             }
         end
     },
-    on_before_shuffle = function(_, card)
-        local rank = card.Rank
-        return rank == "Two" or rank == "Three" or rank == "Four" or rank == "Five" or rank == "Six"
-    end,
-    on_change         = function(game)
+    on_change      = function(game)
         local sevenCount = 0
         for i, tableau in ipairs(game.Tableau) do
             if tableau.CardCount == 2 then
@@ -383,8 +378,7 @@ local spoilt                      = {
             end
         end
     end,
-    check_playable    = function(game, targetPile, _, drop, _)
-        local ranks = { "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace" }
+    check_playable = function(game, targetPile, _, drop, _)
         local tableau = game.Tableau
 
         --get suits per row
@@ -405,7 +399,7 @@ local spoilt                      = {
         for i, tab in ipairs(tableau) do
             if tab == targetPile then
                 local x = (i - 1) % 8 + 1
-                if drop.Rank == ranks[x] then                                 --rank fits
+                if drop.Rank == spoilt_ranks[x] then                          --rank fits
                     local y = (i - 1) // 8 + 1
                     if suitRows[drop.Suit] == y then return true end          --suit fits row
                     return suitRows[drop.Suit] == nil and rowEmpty[y] == true --suit not used elsewhere, and row is empty

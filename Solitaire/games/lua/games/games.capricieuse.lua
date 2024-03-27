@@ -66,6 +66,7 @@ local capricieuse              = {
 local strata                   = Sol.copy(capricieuse)
 strata.Info.Name               = "Strata"
 strata.Foundation.Create       = { Rule = rules.ace_upsuit_top }
+strata.Info.DeckRanks          = { "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace" }
 strata.Tableau                 = {
     Size   = 8,
     Create = {
@@ -74,10 +75,7 @@ strata.Tableau                 = {
         Rule = rules.any_downac_top
     }
 }
-strata.on_before_shuffle       = function(_, card)
-    local rank = card.Rank
-    return rank == "Two" or rank == "Three" or rank == "Four" or rank == "Five" or rank == "Six"
-end
+strata.on_before_shuffle       = nil
 
 ------
 

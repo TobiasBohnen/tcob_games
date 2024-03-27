@@ -79,10 +79,10 @@ triple_klondike_by_3s.Info.CardDealCount = 3
 
 local half_klondike                      = Sol.copy(klondike)
 half_klondike.Info.Name                  = "Half Klondike"
+half_klondike.Info.DeckSuits             = { "Spades", "Hearts" }
 half_klondike.Stock.Initial              = ops.Initial.face_down(16)
 half_klondike.Foundation.Size            = 2
 half_klondike.Tableau.Size               = 4
-half_klondike.on_before_shuffle          = function(_, card) return card.Suit == "Clubs" or card.Suit == "Diamonds" end
 
 ------
 
@@ -340,10 +340,10 @@ chinaman.Tableau                         = {
 local chinese_klondike                   = Sol.copy(klondike)
 chinese_klondike.Info.Name               = "Chinese Klondike"
 chinese_klondike.Info.DeckCount          = 3
+chinese_klondike.Info.DeckSuits          = { "Clubs", "Spades", "Hearts" }
 chinese_klondike.Stock.Initial           = ops.Initial.face_down(39)
 chinese_klondike.Foundation.Size         = 9
 chinese_klondike.Tableau.Size            = 12
-chinese_klondike.on_before_shuffle       = function(game, card) return card.Suit == "Diamonds" end
 chinese_klondike.on_created              = Sol.Layout.big_harp
 
 ------
