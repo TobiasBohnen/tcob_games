@@ -16,12 +16,12 @@ local bakers_dozen                     = {
         Redeals       = 0
     },
     Foundation       = {
-        Size   = 4,
-        Create = { Rule = rules.ace_upsuit_top }
+        Size = 4,
+        Pile = { Rule = rules.ace_upsuit_top }
     },
     Tableau          = {
-        Size   = 13,
-        Create = {
+        Size = 13,
+        Pile = {
             Initial = ops.Initial.face_up(4),
             Layout = "Column",
             Rule = rules.none_downrank_top
@@ -44,8 +44,8 @@ bakers_dozen_two_decks.Tableau.Size    = 26
 local good_measure                     = Sol.copy(bakers_dozen)
 good_measure.Info.Name                 = "Good Measure"
 good_measure.Tableau                   = {
-    Size   = 10,
-    Create = {
+    Size = 10,
+    Pile = {
         Initial = ops.Initial.face_up(5),
         Layout = "Column",
         Rule = rules.none_downrank_top
@@ -70,12 +70,12 @@ local fifteen                          = {
         Redeals       = 0
     },
     Foundation       = {
-        Size   = 8,
-        Create = { Rule = rules.ace_upsuit_top }
+        Size = 8,
+        Pile = { Rule = rules.ace_upsuit_top }
     },
     Tableau          = {
-        Size   = 15,
-        Create = function(i)
+        Size = 15,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.face_up(i ~= 14 and 7 or 6),
                 Layout = "Column",
@@ -97,8 +97,8 @@ local nationale                        = {
         Redeals       = 0
     },
     Foundation        = {
-        Size   = 8,
-        Create = function(i)
+        Size = 8,
+        Pile = function(i)
             if i < 4 then
                 return { Rule = rules.ace_upsuit_top }
             else
@@ -107,8 +107,8 @@ local nationale                        = {
         end
     },
     Tableau           = {
-        Size   = 12,
-        Create = {
+        Size = 12,
+        Pile = {
             Initial = ops.Initial.face_up(8),
             Layout = "Column",
             Rule = rules.any_updownsuit_top

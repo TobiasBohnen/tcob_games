@@ -7,7 +7,7 @@ local ops   = require 'base/ops'
 local rules = require 'base/rules'
 
 
-local canister                   = {
+local canister                 = {
     Info             = {
         Name          = "Canister",
         Family        = "BeleagueredCastle",
@@ -16,12 +16,12 @@ local canister                   = {
         Redeals       = 0
     },
     Foundation       = {
-        Size   = 4,
-        Create = { Rule = rules.ace_upsuit_none }
+        Size = 4,
+        Pile = { Rule = rules.ace_upsuit_none }
     },
     Tableau          = {
-        Size   = 8,
-        Create = function(i)
+        Size = 8,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.face_up((i < 2 or i >= 6) and 6 or 7),
                 Layout = "Column",
@@ -34,9 +34,9 @@ local canister                   = {
 
 ------
 
-local american_canister          = Sol.copy(canister)
-american_canister.Info.Name      = "American Canister"
-american_canister.Tableau.Create = function(i)
+local american_canister        = Sol.copy(canister)
+american_canister.Info.Name    = "American Canister"
+american_canister.Tableau.Pile = function(i)
     return {
         Initial = ops.Initial.face_up((i < 2 or i >= 6) and 6 or 7),
         Layout = "Column",
@@ -46,9 +46,9 @@ end
 
 ------
 
-local british_canister           = Sol.copy(canister)
-british_canister.Info.Name       = "British Canister"
-british_canister.Tableau.Create  = function(i)
+local british_canister         = Sol.copy(canister)
+british_canister.Info.Name     = "British Canister"
+british_canister.Tableau.Pile  = function(i)
     return {
         Initial = ops.Initial.face_up((i < 2 or i >= 6) and 6 or 7),
         Layout = "Column",

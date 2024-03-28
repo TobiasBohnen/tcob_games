@@ -16,12 +16,12 @@ local beleaguered_castle       = {
         Redeals       = 0
     },
     Foundation        = {
-        Size   = 4,
-        Create = { Rule = rules.ace_upsuit_none }
+        Size = 4,
+        Pile = { Rule = rules.ace_upsuit_none }
     },
     Tableau           = {
-        Size   = 8,
-        Create = {
+        Size = 8,
+        Pile = {
             Initial = ops.Initial.face_up(6),
             Layout = "Row",
             Rule = rules.any_downrank_top
@@ -37,12 +37,12 @@ local castle_mount             = Sol.copy(beleaguered_castle)
 castle_mount.Info.Name         = "Castle Mount"
 castle_mount.Info.DeckCount    = 3
 castle_mount.Foundation        = {
-    Size   = 12,
-    Create = { Rule = rules.ace_upsuit_none }
+    Size = 12,
+    Pile = { Rule = rules.ace_upsuit_none }
 }
 castle_mount.Tableau           = {
-    Size   = 12,
-    Create = {
+    Size = 12,
+    Pile = {
         Initial = ops.Initial.face_up(12),
         Layout = "Column",
         Rule = { Base = rules.Base.King, Build = rules.Build.DownByRank(), Move = rules.Move.InSeqInSuit() }
@@ -67,7 +67,7 @@ end
 
 local exiled_kings             = Sol.copy(citadel)
 exiled_kings.Info.Name         = "Exiled Kings"
-exiled_kings.Tableau.Create    = {
+exiled_kings.Tableau.Pile      = {
     Initial = ops.Initial.face_up(6),
     Layout = "Row",
     Rule = rules.king_downrank_top
@@ -79,12 +79,12 @@ local lightweight              = Sol.copy(beleaguered_castle)
 lightweight.Info.Name          = "Lightweight"
 lightweight.Info.DeckCount     = 2
 lightweight.Foundation         = {
-    Size   = 8,
-    Create = { Rule = rules.ace_upsuit_none }
+    Size = 8,
+    Pile = { Rule = rules.ace_upsuit_none }
 }
 lightweight.Tableau            = {
-    Size   = 12,
-    Create = {
+    Size = 12,
+    Pile = {
         Initial = ops.Initial.face_up(8),
         Layout = "Column",
         Rule = { Base = rules.Base.King, Build = rules.Build.DownByRank(), Move = rules.Move.InSeq() }
@@ -103,12 +103,12 @@ local chessboard               = {
         Redeals       = 0
     },
     Foundation       = {
-        Size   = 4,
-        Create = { Rule = rules.ff_upsuit_none }
+        Size = 4,
+        Pile = { Rule = rules.ff_upsuit_none }
     },
     Tableau          = {
-        Size   = 10,
-        Create = function(i)
+        Size = 10,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.face_up(i < 2 and 6 or 5),
                 Layout = "Column",
@@ -131,8 +131,8 @@ local chessboard               = {
 
 local lasker                   = Sol.copy(chessboard)
 lasker.Info.Name               = "Lasker"
-lasker.Foundation.Create       = { Rule = rules.ff_upsuit_top }
-lasker.Tableau.Create          = function(i)
+lasker.Foundation.Pile         = { Rule = rules.ff_upsuit_top }
+lasker.Tableau.Pile            = function(i)
     return {
         Initial = ops.Initial.face_up(i < 2 and 6 or 5),
         Layout = "Column",
@@ -151,12 +151,12 @@ local fortress                 = {
         Redeals       = 0
     },
     Foundation       = {
-        Size   = 4,
-        Create = { Rule = rules.ace_upsuit_top }
+        Size = 4,
+        Pile = { Rule = rules.ace_upsuit_top }
     },
     Tableau          = {
-        Size   = 10,
-        Create = function(i)
+        Size = 10,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.face_up(i < 2 and 6 or 5),
                 Layout = "Column",
@@ -178,12 +178,12 @@ local morehead                 = {
         Redeals       = 0
     },
     Foundation = {
-        Size   = 4,
-        Create = { Rule = rules.ace_upsuit_top }
+        Size = 4,
+        Pile = { Rule = rules.ace_upsuit_top }
     },
     Tableau = {
-        Size   = 10,
-        Create = function(i)
+        Size = 10,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.face_up(i < 7 and i + 1 or 8),
                 Layout = "Column",
@@ -205,12 +205,12 @@ local penelopes_web            = {
         Redeals       = 0
     },
     Foundation       = {
-        Size   = 4,
-        Create = { Rule = rules.ace_upsuit_none }
+        Size = 4,
+        Pile = { Rule = rules.ace_upsuit_none }
     },
     Tableau          = {
-        Size   = 8,
-        Create = function(i)
+        Size = 8,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.face_up(i < 4 and 7 or 6),
                 Layout = "Row",
@@ -232,12 +232,12 @@ local selective_castle         = {
         Redeals       = 0
     },
     Foundation       = {
-        Size   = 4,
-        Create = { Rule = rules.ff_upsuit_none }
+        Size = 4,
+        Pile = { Rule = rules.ff_upsuit_none }
     },
     Tableau          = {
-        Size   = 8,
-        Create = function(i)
+        Size = 8,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.face_up(i < 4 and 7 or 6),
                 Layout = "Row",
@@ -267,12 +267,12 @@ local streets_and_alleys       = {
         Redeals       = 0
     },
     Foundation       = {
-        Size   = 4,
-        Create = { Rule = rules.ace_upsuit_none }
+        Size = 4,
+        Pile = { Rule = rules.ace_upsuit_none }
     },
     Tableau          = {
-        Size   = 8,
-        Create = function(i)
+        Size = 8,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.face_up(i < 4 and 7 or 6),
                 Layout = "Row",
@@ -299,8 +299,8 @@ local chequers                 = {
         Rule = rules.none_none_none
     },
     Foundation  = {
-        Size   = 8,
-        Create = function(i)
+        Size = 8,
+        Pile = function(i)
             if i < 4 then
                 return {
                     Position = { x = i + 2, y = 0 },
@@ -315,8 +315,8 @@ local chequers                 = {
         end
     },
     Tableau     = {
-        Size   = 25,
-        Create = function(i)
+        Size = 25,
+        Pile = function(i)
             return {
                 Position = { x = i % 5 * 2.5, y = i // 5 + 1 },
                 Initial = ops.Initial.face_up(4),
@@ -345,8 +345,8 @@ local castle_of_indolence      = {
         Redeals       = 0
     },
     Reserve    = {
-        Size   = 4,
-        Create = function(i)
+        Size = 4,
+        Pile = function(i)
             return {
                 Position = { x = i + 2, y = 4 },
                 Initial = ops.Initial.face_up(13),
@@ -355,8 +355,8 @@ local castle_of_indolence      = {
         end
     },
     Foundation = {
-        Size   = 8,
-        Create = function(i)
+        Size = 8,
+        Pile = function(i)
             return {
                 Position = { x = i % 2 + 3, y = i // 2 },
                 Rule = rules.ace_upsuit_top
@@ -364,8 +364,8 @@ local castle_of_indolence      = {
         end
     },
     Tableau    = {
-        Size   = 8,
-        Create = function(i)
+        Size = 8,
+        Pile = function(i)
             if i < 4 then
                 return {
                     Position = { x = 0, y = i },
@@ -408,8 +408,8 @@ local zerline                  = {
         Rule = { Base = rules.Base.Any, Build = rules.Build.Any(), Move = rules.Move.Top(), Limit = 4 }
     },
     Foundation     = {
-        Size   = 8,
-        Create = function(i)
+        Size = 8,
+        Pile = function(i)
             return {
                 Position = { x = i % 2 + 3.5, y = i // 2 + 1 },
                 Rule = { Base = rules.Base.King, Build = rules.Build.UpInSuit(true), Move = rules.Move.Top() }
@@ -417,8 +417,8 @@ local zerline                  = {
         end
     },
     Tableau        = {
-        Size   = 8,
-        Create = function(i)
+        Size = 8,
+        Pile = function(i)
             local rule = { Base = function(_, card, _) return rules.Base.Ranks(card, { "Queen" }) end, Build = rules.Build.DownByRank(), Move = rules.Move.Top() }
             if i < 4 then
                 return {
@@ -463,8 +463,8 @@ zerline_3_decks.FreeCell       = {
     Rule = { Base = rules.Base.Any, Build = rules.Build.Any(), Move = rules.Move.Top(), Limit = 6 }
 }
 zerline_3_decks.Foundation     = {
-    Size   = 12,
-    Create = function(i)
+    Size = 12,
+    Pile = function(i)
         return {
             Position = { x = i % 3 + 3, y = i // 3 + 1 },
             Rule = { Base = rules.Base.King, Build = rules.Build.UpInSuit(true), Move = rules.Move.Top() }
@@ -472,8 +472,8 @@ zerline_3_decks.Foundation     = {
     end
 }
 zerline_3_decks.Tableau        = {
-    Size   = 8,
-    Create = function(i)
+    Size = 8,
+    Pile = function(i)
         local rule = { Base = function(_, card, _) return rules.Base.Ranks(card, { "Queen" }) end, Build = rules.Build.DownByRank(), Move = rules.Move.Top() }
         if i < 4 then
             return {

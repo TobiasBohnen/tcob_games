@@ -62,24 +62,24 @@ There are three ways to define a pile:
 2) For multiple identical piles, define a **table** with the following member:
 
    - *Size*: Indicates the **number** of piles.
-   - *Create*: A **table** in the form of [Pile](#pile).
+   - *Pile*: A **table** in the form of [Pile](#pile).
 
    ```lua
    Foundation = {
       Size   = 8,
-      Create = { Rule = rules.ace_upsuit_top }
+      Pile = { Rule = rules.ace_upsuit_top }
    }
    ```
 
 3) For multiple different piles, define a table with the following member:
 
    - *Size*: Specifies the **number** of piles.
-   - *Create*: A **function** with a single parameter (0 to Size - 1), that returns a **table** in the form of [Pile](#pile).
+   - *Pile*: A **function** with a single parameter (0 to Size - 1), that returns a **table** in the form of [Pile](#pile).
 
    ```lua
    Tableau = {
       Size   = 8,
-      Create = function(i)
+      Pile = function(i)
          return {
                Initial = ops.Initial.face_up(i + 1),
                Rule = { Base = rules.Base.None, Build = rules.Build.DownInColor(), Move = rules.Move.InSeq() }

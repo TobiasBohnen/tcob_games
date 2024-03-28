@@ -164,8 +164,8 @@ void base_game::init()
     _currentState = {};
     save(_currentState);
 
-    _state = check_state();
     calc_available_moves();
+    _state = check_state();
 }
 
 void base_game::undo()
@@ -521,8 +521,8 @@ void base_game::end_turn(bool deal)
         }
     }
 
-    _state = check_state();
     calc_available_moves();
+    _state = check_state();
 }
 
 auto base_game::rand() -> rng&

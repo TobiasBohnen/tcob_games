@@ -22,8 +22,8 @@ local canfield                      = {
         Layout = "Column"
     },
     Foundation       = {
-        Size   = 4,
-        Create = function(i)
+        Size = 4,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.face_up(i == 0 and 1 or 0),
                 Rule = rules.ff_upsuit_none
@@ -31,8 +31,8 @@ local canfield                      = {
         end
     },
     Tableau          = {
-        Size   = 4,
-        Create = {
+        Size = 4,
+        Pile = {
             Initial = ops.Initial.face_up(1),
             Layout = "Column",
             Rule = { Base = rules.Base.Any, Build = rules.Build.DownAlternateColors(true), Move = rules.Move.TopOrPile() }
@@ -91,8 +91,8 @@ acme.Info.Name                      = "Acme"
 acme.Info.CardDealCount             = 1
 acme.Info.Redeals                   = 1
 acme.Stock.Initial                  = ops.Initial.face_down(31)
-acme.Foundation.Create              = { Rule = rules.ace_upsuit_none }
-acme.Tableau.Create                 = {
+acme.Foundation.Pile                = { Rule = rules.ace_upsuit_none }
+acme.Tableau.Pile                   = {
     Initial = ops.Initial.face_up(1),
     Layout = "Column",
     Rule = rules.any_downsuit_top
@@ -113,8 +113,8 @@ american_toad.Reserve               = {
 }
 american_toad.Foundation.Size       = 8
 american_toad.Tableau               = {
-    Size   = 8,
-    Create = {
+    Size = 8,
+    Pile = {
         Initial = ops.Initial.face_up(1),
         Layout = "Column",
         Rule = { Base = rules.Base.Any, Build = rules.Build.DownInSuit(true), Move = rules.Move.TopOrPile() }
@@ -129,13 +129,13 @@ chameleon.Info.DeckCount            = 1
 chameleon.Info.CardDealCount        = 1
 chameleon.Info.Redeals              = 0
 chameleon.Stock.Initial             = ops.Initial.face_down(36)
-chameleon.Reserve.Create            = {
+chameleon.Reserve.Pile              = {
     Initial = ops.Initial.top_face_up(12),
     Layout = "Column"
 }
 chameleon.Tableau                   = {
-    Size   = 3,
-    Create = {
+    Size = 3,
+    Pile = {
         Initial = ops.Initial.face_up(1),
         Layout = "Column",
         Rule = { Base = rules.Base.Any, Build = rules.Build.DownByRank(true), Move = rules.Move.TopOrPile() }
@@ -148,14 +148,14 @@ local demon                         = Sol.copy(canfield)
 demon.Info.Name                     = "Demon"
 demon.Info.DeckCount                = 2
 demon.Stock.Initial                 = ops.Initial.face_down(55)
-demon.Reserve.Create                = {
+demon.Reserve.Pile                  = {
     Initial = ops.Initial.top_face_up(40),
     Layout = "Column"
 }
 demon.Foundation.Size               = 8
 demon.Tableau                       = {
-    Size   = 8,
-    Create = {
+    Size = 8,
+    Pile = {
         Initial = ops.Initial.face_up(1),
         Layout = "Column",
         Rule = { Base = rules.Base.Any, Build = rules.Build.DownAlternateColors(true), Move = rules.Move.InSeq() }
@@ -187,8 +187,8 @@ local eagle_wing                    = {
         Layout = "Squared"
     },
     Foundation  = {
-        Size   = 4,
-        Create = function(i)
+        Size = 4,
+        Pile = function(i)
             return {
                 Position = { x = i + 3, y = 0 },
                 Initial = ops.Initial.face_up(i == 0 and 1 or 0),
@@ -197,8 +197,8 @@ local eagle_wing                    = {
         end
     },
     Tableau     = {
-        Size   = 8,
-        Create = function(i)
+        Size = 8,
+        Pile = function(i)
             return {
                 Position = { x = eagle_wing_pos[i + 1][1], y = eagle_wing_pos[i + 1][2] },
                 Initial = ops.Initial.face_up(1),
@@ -222,14 +222,14 @@ minerva.Info.Name                   = "Minerva"
 minerva.Info.CardDealCount          = 1
 minerva.Info.Redeals                = 1
 minerva.Stock.Initial               = ops.Initial.face_down(13)
-minerva.Reserve.Create              = {
+minerva.Reserve.Pile                = {
     Initial = ops.Initial.top_face_up(11),
     Layout = "Column"
 }
-minerva.Foundation.Create           = { Rule = { Base = rules.Base.Ace, Build = rules.Build.UpInSuit(), Move = rules.Move.None() } }
+minerva.Foundation.Pile             = { Rule = { Base = rules.Base.Ace, Build = rules.Build.UpInSuit(), Move = rules.Move.None() } }
 minerva.Tableau                     = {
-    Size   = 7,
-    Create = {
+    Size = 7,
+    Pile = {
         Initial = ops.Initial.alternate(4, false),
         Layout = "Column",
         Rule = rules.king_downac_inseq
@@ -243,7 +243,7 @@ local munger                        = Sol.copy(minerva)
 munger.Info.Name                    = "Munger"
 munger.Info.Redeals                 = 0
 munger.Stock.Initial                = ops.Initial.face_down(17)
-munger.Reserve.Create               = {
+munger.Reserve.Pile                 = {
     Initial = ops.Initial.top_face_up(7),
     Layout = "Column"
 }
@@ -254,13 +254,13 @@ local mystique                      = Sol.copy(minerva)
 mystique.Info.Name                  = "Mystique"
 mystique.Info.Redeals               = 0
 mystique.Stock.Initial              = ops.Initial.face_down(15)
-mystique.Reserve.Create             = {
+mystique.Reserve.Pile               = {
     Initial = ops.Initial.top_face_up(9),
     Layout = "Column"
 }
 mystique.Tableau                    = {
-    Size   = 7,
-    Create = {
+    Size = 7,
+    Pile = {
         Initial = ops.Initial.alternate(4, false),
         Layout = "Column",
         Rule = rules.any_downac_inseq
@@ -273,7 +273,7 @@ local rainbow                       = Sol.copy(canfield)
 rainbow.Info.Name                   = "Rainbow"
 rainbow.Info.CardDealCount          = 1
 rainbow.Info.Redeals                = 0
-rainbow.Tableau.Create              = {
+rainbow.Tableau.Pile                = {
     Initial = ops.Initial.face_up(1),
     Layout = "Column",
     Rule = { Base = rules.Base.Any, Build = rules.Build.DownByRank(true), Move = rules.Move.TopOrPile() }
@@ -292,7 +292,7 @@ local storehouse                    = Sol.copy(canfield)
 storehouse.Info.Name                = "Storehouse"
 storehouse.Info.CardDealCount       = 1
 storehouse.Info.Redeals             = 2
-storehouse.Tableau.Create           = {
+storehouse.Tableau.Pile             = {
     Initial = ops.Initial.face_up(1),
     Layout = "Column",
     Rule = { Base = rules.Base.Any, Build = rules.Build.DownInSuit(true), Move = rules.Move.TopOrPile() }

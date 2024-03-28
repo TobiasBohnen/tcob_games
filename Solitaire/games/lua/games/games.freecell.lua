@@ -16,16 +16,16 @@ local free_cell                       = {
         Redeals       = 0
     },
     FreeCell         = {
-        Size   = 4,
-        Create = { Rule = rules.any_none_top }
+        Size = 4,
+        Pile = { Rule = rules.any_none_top }
     },
     Foundation       = {
-        Size   = 4,
-        Create = { Rule = rules.ace_upsuit_top }
+        Size = 4,
+        Pile = { Rule = rules.ace_upsuit_top }
     },
     Tableau          = {
-        Size   = 8,
-        Create = function(i)
+        Size = 8,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.face_up(i < 4 and 7 or 6),
                 Layout = "Column",
@@ -59,16 +59,16 @@ local double_free_cell                = {
         Redeals       = 0
     },
     FreeCell         = {
-        Size   = 8,
-        Create = { Rule = rules.any_none_top }
+        Size = 8,
+        Pile = { Rule = rules.any_none_top }
     },
     Foundation       = {
-        Size   = 8,
-        Create = { Rule = rules.ace_upsuit_top }
+        Size = 8,
+        Pile = { Rule = rules.ace_upsuit_top }
     },
     Tableau          = {
-        Size   = 10,
-        Create = function(i)
+        Size = 10,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.face_up(i < 4 and 11 or 10),
                 Layout = "Column",
@@ -85,10 +85,10 @@ local double_free_cell_2              = Sol.copy(free_cell)
 double_free_cell_2.Info.Name          = "Double FreeCell II"
 double_free_cell_2.Info.DeckCount     = 2
 double_free_cell_2.FreeCell.Size      = 6
-double_free_cell_2.Foundation.Create  = { Rule = { Base = rules.Base.Ace, Build = rules.Build.UpInSuit(true), Move = rules.Move.Top() } }
+double_free_cell_2.Foundation.Pile    = { Rule = { Base = rules.Base.Ace, Build = rules.Build.UpInSuit(true), Move = rules.Move.Top() } }
 double_free_cell_2.Tableau            = {
-    Size   = 10,
-    Create = {
+    Size = 10,
+    Pile = {
         Initial = ops.Initial.face_up(10),
         Layout = "Column",
         Rule = rules.any_downac_sm
@@ -107,16 +107,16 @@ local triple_free_cell                = {
         Redeals       = 0
     },
     FreeCell         = {
-        Size   = 10,
-        Create = { Rule = rules.any_none_top }
+        Size = 10,
+        Pile = { Rule = rules.any_none_top }
     },
     Foundation       = {
-        Size   = 12,
-        Create = { Rule = rules.ace_upsuit_top }
+        Size = 12,
+        Pile = { Rule = rules.ace_upsuit_top }
     },
     Tableau          = {
-        Size   = 13,
-        Create = {
+        Size = 13,
+        Pile = {
             Initial = ops.Initial.face_up(12),
             Layout = "Column",
             Rule = rules.any_downac_sm
@@ -129,7 +129,7 @@ local triple_free_cell                = {
 
 local bakers_game                     = Sol.copy(free_cell)
 bakers_game.Info.Name                 = "Baker's Game"
-bakers_game.Tableau.Create            = function(i)
+bakers_game.Tableau.Pile              = function(i)
     return {
         Initial = ops.Initial.face_up(i < 4 and 7 or 6),
         Layout = "Column",
@@ -141,7 +141,7 @@ end
 
 local bakers_game_ko                  = Sol.copy(free_cell)
 bakers_game_ko.Info.Name              = "King Only Baker's Game"
-bakers_game_ko.Tableau.Create         = function(i)
+bakers_game_ko.Tableau.Pile           = function(i)
     return {
         Initial = ops.Initial.face_up(i < 4 and 7 or 6),
         Layout = "Column",
@@ -156,7 +156,7 @@ bath.Info.Name                        = "Bath"
 bath.FreeCell.Size                    = 2
 bath.Tableau                          = {
     Size = 10,
-    Create = function(i)
+    Pile = function(i)
         return {
             Initial = ops.Initial.face_up(math.min(i + 1, 8)),
             Layout = "Column",
@@ -176,16 +176,16 @@ local big_cell                        = {
         Redeals       = 0
     },
     FreeCell         = {
-        Size   = 4,
-        Create = { Rule = rules.any_none_top }
+        Size = 4,
+        Pile = { Rule = rules.any_none_top }
     },
     Foundation       = {
-        Size   = 12,
-        Create = { Rule = rules.ace_upsuit_top }
+        Size = 12,
+        Pile = { Rule = rules.ace_upsuit_top }
     },
     Tableau          = {
-        Size   = 13,
-        Create = {
+        Size = 13,
+        Pile = {
             Initial = ops.Initial.face_up(12),
             Layout = "Column",
             Rule = rules.any_downac_sm
@@ -205,8 +205,8 @@ local cell_11                         = {
         Redeals       = 0
     },
     FreeCell         = {
-        Size   = 11,
-        Create = function(i)
+        Size = 11,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.face_up((i == 0 or i == 10) and 1 or 0),
                 Rule = rules.any_none_top
@@ -214,12 +214,12 @@ local cell_11                         = {
         end
     },
     Foundation       = {
-        Size   = 12,
-        Create = { Rule = rules.ace_upsuit_top }
+        Size = 12,
+        Pile = { Rule = rules.ace_upsuit_top }
     },
     Tableau          = {
-        Size   = 13,
-        Create = function(i)
+        Size = 13,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.face_up((i == 0 or i == 12) and 11 or 12),
                 Layout = "Column",
@@ -236,7 +236,7 @@ local challenge_free_cell             = Sol.copy(free_cell)
 challenge_free_cell.Info.Name         = "Challenge FreeCell"
 challenge_free_cell.Tableau           = {
     Size = 8,
-    Create = function(i)
+    Pile = function(i)
         return {
             Initial = ops.Initial.face_up(i < 4 and 6 or 5),
             Layout = "Column",
@@ -261,7 +261,7 @@ local super_challenge_free_cell       = Sol.copy(challenge_free_cell)
 super_challenge_free_cell.Info.Name   = "Super Challenge FreeCell"
 super_challenge_free_cell.Tableau     = {
     Size = 8,
-    Create = function(i)
+    Pile = function(i)
         return {
             Initial = ops.Initial.face_up(i < 4 and 6 or 5),
             Layout = "Column",
@@ -276,18 +276,18 @@ local clink                           = Sol.copy(free_cell)
 clink.Info.Name                       = "Clink"
 clink.FreeCell                        = {
     Size = 2,
-    Create = {
+    Pile = {
         Initial = ops.Initial.face_up(1),
         Rule = rules.any_none_top
     }
 }
 clink.Foundation                      = {
     Size = 2,
-    Create = { Rule = { Base = rules.Base.Ace, Build = rules.Build.UpInSuit(true), Move = rules.Move.Top() } }
+    Pile = { Rule = { Base = rules.Base.Ace, Build = rules.Build.UpInSuit(true), Move = rules.Move.Top() } }
 }
 clink.Tableau                         = {
     Size = 8,
-    Create = {
+    Pile = {
         Initial = ops.Initial.face_up(6),
         Layout  = "Column",
         Rule    = rules.any_downac_inseq
@@ -312,8 +312,8 @@ local deep                            = {
         Redeals       = 0
     },
     FreeCell   = {
-        Size   = 8,
-        Create = function(i)
+        Size = 8,
+        Pile = function(i)
             return {
                 Position = { x = i, y = 0 },
                 Rule = rules.any_none_top
@@ -321,8 +321,8 @@ local deep                            = {
         end
     },
     Foundation = {
-        Size   = 8,
-        Create = function(i)
+        Size = 8,
+        Pile = function(i)
             return {
                 Position = { x = i % 2 + 8, y = i // 2 },
                 Rule = rules.ace_upsuit_top
@@ -330,8 +330,8 @@ local deep                            = {
         end
     },
     Tableau    = {
-        Size   = 8,
-        Create = function(i)
+        Size = 8,
+        Pile = function(i)
             return {
                 Position = { x = i, y = 1 },
                 Initial = ops.Initial.face_up(13),
@@ -353,8 +353,8 @@ local eight_off                       = {
         Redeals       = 0
     },
     FreeCell         = {
-        Size   = 8,
-        Create = function(i)
+        Size = 8,
+        Pile = function(i)
             return {
                 Initial = i % 2 == 0 and ops.Initial.face_up(1) or {},
                 Rule    = rules.any_none_top
@@ -362,12 +362,12 @@ local eight_off                       = {
         end
     },
     Foundation       = {
-        Size   = 4,
-        Create = { Rule = rules.ace_upsuit_top }
+        Size = 4,
+        Pile = { Rule = rules.ace_upsuit_top }
     },
     Tableau          = {
-        Size   = 8,
-        Create = {
+        Size = 8,
+        Pile = {
             Initial = ops.Initial.face_up(6),
             Layout = "Column",
             Rule = { Base = rules.Base.King, Build = rules.Build.DownInSuit(), Move = rules.Move.SuperMove() }
@@ -383,7 +383,7 @@ footling.Info.Name                    = "Footling"
 footling.Foundation                   = { Rule = { Base = rules.Base.Ace, Build = rules.Build.RankPack(), Move = rules.Move.Top() } }
 footling.Tableau                      = {
     Size = 8,
-    Create = function(i)
+    Pile = function(i)
         return {
             Initial = ops.Initial.face_up(i < 4 and 7 or 6),
             Layout = "Column",
@@ -396,13 +396,13 @@ footling.Tableau                      = {
 
 local fore_cell                       = Sol.copy(free_cell)
 fore_cell.Info.Name                   = "ForeCell"
-fore_cell.FreeCell.Create             = {
+fore_cell.FreeCell.Pile               = {
     Initial = ops.Initial.face_up(1),
     Rule = rules.any_none_top
 }
 fore_cell.Tableau                     = {
     Size = 8,
-    Create = {
+    Pile = {
         Initial = ops.Initial.face_up(6),
         Layout = "Column",
         Rule = { Base = rules.Base.King, Build = rules.Build.DownAlternateColors(), Move = rules.Move.SuperMove() }
@@ -415,7 +415,7 @@ local four_colours                    = Sol.copy(free_cell)
 four_colours.Info.Name                = "Four Colours"
 four_colours.Tableau                  = {
     Size = 7,
-    Create = function(i)
+    Pile = function(i)
         return {
             Initial = i < 4 and ops.Initial.face_up(13) or {},
             Layout = "Column",
@@ -431,7 +431,7 @@ local german_free_cell                = Sol.copy(free_cell)
 german_free_cell.Info.Name            = "German FreeCell"
 german_free_cell.FreeCell             = {
     Size = 4,
-    Create = function(i)
+    Pile = function(i)
         return {
             Layout = "Column",
             Rule = { Base = function(_, card, _) return rules.Base.Suits(card, { german_free_cell_empty[i + 1] }) end, Build = rules.Build.None(), Move = rules.Move.Top() }
@@ -445,7 +445,7 @@ local king_cell                       = Sol.copy(free_cell)
 king_cell.Info.Name                   = "KingCell"
 king_cell.Tableau                     = {
     Size = 8,
-    Create = function(i)
+    Pile = function(i)
         return {
             Initial = ops.Initial.face_up(i < 4 and 7 or 6),
             Layout = "Column",
@@ -465,16 +465,16 @@ local flipper                         = {
         Redeals       = 0
     },
     FreeCell         = {
-        Size   = 7,
-        Create = { Rule = rules.any_none_top }
+        Size = 7,
+        Pile = { Rule = rules.any_none_top }
     },
     Foundation       = {
-        Size   = 4,
-        Create = { Rule = rules.ace_upsuit_top }
+        Size = 4,
+        Pile = { Rule = rules.ace_upsuit_top }
     },
     Tableau          = {
-        Size   = 7,
-        Create = function(i)
+        Size = 7,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.face_up(i % 3 == 0 and 8 or 7),
                 Layout = "Column",
@@ -509,16 +509,16 @@ local penguin                         = {
         Redeals       = 0
     },
     FreeCell          = {
-        Size   = 7,
-        Create = { Rule = rules.any_none_top }
+        Size = 7,
+        Pile = { Rule = rules.any_none_top }
     },
     Foundation        = {
-        Size   = 4,
-        Create = { Rule = rules.ff_upsuit_none }
+        Size = 4,
+        Pile = { Rule = rules.ff_upsuit_none }
     },
     Tableau           = {
-        Size   = 7,
-        Create = function(i)
+        Size = 7,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.face_up(i > 0 and 7 or 6),
                 Layout = "Column",
@@ -550,7 +550,7 @@ local relaxed_free_cell               = Sol.copy(free_cell)
 relaxed_free_cell.Info.Name           = "Relaxed FreeCell"
 relaxed_free_cell.Tableau             = {
     Size = 8,
-    Create = function(i)
+    Pile = function(i)
         return {
             Initial = ops.Initial.face_up(i < 4 and 7 or 6),
             Layout = "Column",

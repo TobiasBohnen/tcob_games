@@ -7,7 +7,7 @@ local ops   = require 'base/ops'
 local rules = require 'base/rules'
 
 
-local gate                 = {
+local gate                = {
     Info        = {
         Name          = "Gate",
         Family        = "Canfield",
@@ -22,7 +22,7 @@ local gate                 = {
     Waste       = { Position = { x = 1, y = 0 } },
     Reserve     = {
         Size = 2,
-        Create = function(i)
+        Pile = function(i)
             return {
                 Position = { x = i == 0 and 0 or 10, y = 1 },
                 Initial = ops.Initial.face_up(5),
@@ -31,8 +31,8 @@ local gate                 = {
         end
     },
     Foundation  = {
-        Size   = 4,
-        Create = function(i)
+        Size = 4,
+        Pile = function(i)
             return {
                 Position = { x = i + 2.5, y = 0 },
                 Rule = rules.ace_upsuit_top
@@ -40,8 +40,8 @@ local gate                 = {
         end
     },
     Tableau     = {
-        Size   = 8,
-        Create = function(i)
+        Size = 8,
+        Pile = function(i)
             return {
                 Position = { x = i + 1.5, y = 1 },
                 Initial = ops.Initial.face_up(1),
@@ -67,17 +67,17 @@ local gate                 = {
 
 ------
 
-local little_gate          = Sol.copy(gate)
-little_gate.Info.Name      = "Little Gate"
-little_gate.Stock.Initial  = ops.Initial.face_down(38)
-little_gate.Reserve.Create = function(i)
+local little_gate         = Sol.copy(gate)
+little_gate.Info.Name     = "Little Gate"
+little_gate.Stock.Initial = ops.Initial.face_down(38)
+little_gate.Reserve.Pile  = function(i)
     return {
         Position = { x = i == 0 and 0 or 6, y = 1 },
         Initial = ops.Initial.face_up(5),
         Layout = "Column"
     }
 end
-little_gate.Tableau.Size   = 4
+little_gate.Tableau.Size  = 4
 
 ------
 

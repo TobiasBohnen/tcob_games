@@ -24,7 +24,7 @@ local aces_up = {
     },
     Tableau = {
         Size = 4,
-        Create = @(i) {
+        Pile = @(i) {
             Initial = ops.Initial.face_up(1),
                 Layout = "Column",
                 Rule = {
@@ -115,7 +115,7 @@ local aces_square = {
     },
     Tableau = {
         Size = 16,
-        Create = @(i) {
+        Pile = @(i) {
             Position = {
                     x = i % 4,
                     y = i / 4
@@ -192,7 +192,7 @@ local aglet = {
         Redeals = 0
     },
     FreeCell = {
-        Create = {
+        Pile = {
             Position = {
                 x = 0,
                 y = 0
@@ -207,7 +207,7 @@ local aglet = {
     },
     Foundation = {
         Size = 4,
-        Create = @(i) {
+        Pile = @(i) {
             Position = {
                     x = i + 3,
                     y = 0
@@ -221,7 +221,7 @@ local aglet = {
     },
     Tableau = {
         Size = 8,
-        Create = @(i) {
+        Pile = @(i) {
             Position = {
                     x = i + 1,
                     y = 1
@@ -278,7 +278,7 @@ local four_seasons = {
     },
     Foundation = {
         Size = 4,
-        Create = @(i) {
+        Pile = @(i) {
             Position = {
                     x = four_seasons_fou_pos[i][0],
                     y = four_seasons_fou_pos[i][1]
@@ -293,7 +293,7 @@ local four_seasons = {
     },
     Tableau = {
         Size = 5,
-        Create = @(i) {
+        Pile = @(i) {
             Position = {
                     x = four_seasons_tab_pos[i][0],
                     y = four_seasons_tab_pos[i][1]

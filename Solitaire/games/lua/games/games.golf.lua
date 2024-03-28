@@ -33,7 +33,7 @@ end
 
 ------
 
-local golf                         = {
+local golf                       = {
     Info             = {
         Name          = "Golf",
         Family        = "Golf",
@@ -50,8 +50,8 @@ local golf                         = {
         Rule    = { Base = rules.Base.None, Build = rules.Build.UpOrDownByRank(), Move = rules.Move.None() }
     },
     Tableau          = {
-        Size   = 7,
-        Create = {
+        Size = 7,
+        Pile = {
             Initial = ops.Initial.top_face_up(5),
             Layout = "Column",
             Rule = { Base = rules.Base.None, Build = rules.Build.None(), Move = rules.Move.Top() }
@@ -66,18 +66,18 @@ local golf                         = {
 
 ------
 
-local double_golf                  = Sol.copy(golf)
-double_golf.Info.Name              = "Double Golf"
-double_golf.Info.DeckCount         = 2
-double_golf.Stock.Initial          = ops.Initial.face_down(40)
-double_golf.Tableau.Size           = 9
-double_golf.Tableau.Create.Initial = ops.Initial.top_face_up(7)
+local double_golf                = Sol.copy(golf)
+double_golf.Info.Name            = "Double Golf"
+double_golf.Info.DeckCount       = 2
+double_golf.Stock.Initial        = ops.Initial.face_down(40)
+double_golf.Tableau.Size         = 9
+double_golf.Tableau.Pile.Initial = ops.Initial.top_face_up(7)
 
 ------
 
-local putt_putt                    = Sol.copy(golf)
-putt_putt.Info.Name                = "Putt Putt"
-putt_putt.Foundation               = {
+local putt_putt                  = Sol.copy(golf)
+putt_putt.Info.Name              = "Putt Putt"
+putt_putt.Foundation             = {
     Initial = ops.Initial.face_up(1),
     Layout  = "Squared",
     Rule    = { Base = rules.Base.None, Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.None() }
@@ -85,22 +85,22 @@ putt_putt.Foundation               = {
 
 ------
 
-local double_putt                  = Sol.copy(putt_putt)
-double_putt.Info.Name              = "Double Putt"
-double_putt.Info.DeckCount         = 2
-double_putt.Stock.Initial          = ops.Initial.face_down(40)
-double_putt.Tableau.Size           = 9
-double_putt.Tableau.Create.Initial = ops.Initial.top_face_up(7)
+local double_putt                = Sol.copy(putt_putt)
+double_putt.Info.Name            = "Double Putt"
+double_putt.Info.DeckCount       = 2
+double_putt.Stock.Initial        = ops.Initial.face_down(40)
+double_putt.Tableau.Size         = 9
+double_putt.Tableau.Pile.Initial = ops.Initial.top_face_up(7)
 
 ------
-local black_hole_pos               = {
+local black_hole_pos             = {
     { 0, 0 }, { 2, 0 }, { 4, 0 }, { 6, 0 }, { 8, 0 },
     { 0, 1 }, { 2, 1 }, --[[ --]] { 6, 1 }, { 8, 1 },
     { 0, 2 }, { 2, 2 }, --[[ --]] { 6, 2 }, { 8, 2 },
     { 0, 3 }, { 2, 3 }, { 4, 3 }, { 6, 3 } --[[ --]]
 }
 
-local black_hole                   = {
+local black_hole                 = {
     Info              = {
         Name          = "Black Hole",
         Family        = "Golf",
@@ -113,8 +113,8 @@ local black_hole                   = {
         Rule     = { Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.None() }
     },
     Tableau           = {
-        Size   = 17,
-        Create = function(i)
+        Size = 17,
+        Pile = function(i)
             return {
                 Position = { x = black_hole_pos[i + 1][1], y = black_hole_pos[i + 1][2] },
                 Initial = ops.Initial.face_up(3),

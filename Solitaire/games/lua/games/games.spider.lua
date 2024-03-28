@@ -20,8 +20,8 @@ local spider                   = {
         Initial = ops.Initial.face_down(50)
     },
     Foundation  = {
-        Size   = 4,
-        Create = function(i)
+        Size = 4,
+        Pile = function(i)
             return {
                 Position = { x = i + 2, y = 0 },
                 Rule = rules.none_none_none
@@ -29,8 +29,8 @@ local spider                   = {
         end
     },
     Tableau     = {
-        Size   = 10,
-        Create = function(i)
+        Size = 10,
+        Pile = function(i)
             return {
                 Position = { x = i, y = 1 },
                 Initial  = ops.Initial.top_face_up(i % 3 == 0 and 6 or 5),
@@ -100,7 +100,7 @@ arachnida.Foundation           = {
     Position = { x = 11, y = 0 },
     Rule = rules.none_none_none
 }
-arachnida.Tableau.Create       = function(i)
+arachnida.Tableau.Pile         = function(i)
     return {
         Position = { x = i + 1, y = 0 },
         Initial  = ops.Initial.top_face_up(i < 4 and 6 or 5),

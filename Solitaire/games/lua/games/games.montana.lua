@@ -127,8 +127,8 @@ local montana                     = {
     },
     Stock            = {},
     Tableau          = {
-        Size   = 52,
-        Create = {
+        Size = 52,
+        Pile = {
             Position = {},
             Initial = ops.Initial.face_up(1),
             Layout = "Squared",
@@ -191,8 +191,8 @@ local blue_moon                   = {
     },
     Stock            = {},
     Tableau          = {
-        Size   = 56,
-        Create = function(i)
+        Size = 56,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.face_up(i % 14 == 0 and 0 or 1),
                 Layout = "Squared",
@@ -229,7 +229,7 @@ end
 
 local red_moon                    = Sol.copy(blue_moon)
 red_moon.Info.Name                = "Red Moon"
-red_moon.Tableau.Create           = function(i)
+red_moon.Tableau.Pile             = function(i)
     return {
         Initial = ops.Initial.face_up((i % 14 < 2) and 0 or 1),
         Layout = "Squared",
@@ -253,7 +253,7 @@ end
 
 local galary                      = Sol.copy(blue_moon)
 galary.Info.Name                  = "Galary"
-galary.Tableau.Create             = function(i)
+galary.Tableau.Pile               = function(i)
     return {
         Initial = ops.Initial.face_up((i % 14 == 0 or i % 14 == 1) and 0 or 1),
         Layout = "Squared",
@@ -283,8 +283,8 @@ local paganini                    = {
     },
     Stock            = {},
     Tableau          = {
-        Size   = 40,
-        Create = function(i)
+        Size = 40,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.face_up(i % 10 == 0 and 0 or 1),
                 Layout = "Squared",
@@ -335,8 +335,8 @@ local spoilt                      = {
         Initial = ops.Initial.face_up(1)
     },
     Tableau        = {
-        Size   = 32,
-        Create = function(i)
+        Size = 32,
+        Pile = function(i)
             return {
                 Position = { x = i % 8 + 1, y = i // 8 },
                 Initial = ops.Initial.face_down(i % 8 == 0 and 0 or 1),

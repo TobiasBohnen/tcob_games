@@ -20,11 +20,11 @@ local gypsy                                = {
     },
     Foundation       = {
         Size   = 8,
-        Create = { Rule = rules.ace_upsuit_top }
+        Pile = { Rule = rules.ace_upsuit_top }
     },
     Tableau          = {
         Size   = 8,
-        Create = {
+        Pile = {
             Initial = ops.Initial.top_face_up(3),
             Layout = "Column",
             Rule = rules.any_downac_inseq
@@ -43,7 +43,7 @@ agnes_sorel.Info.CardDealCount             = 7
 agnes_sorel.Stock.Initial                  = ops.Initial.face_down(23)
 agnes_sorel.Foundation                     = {
     Size   = 4,
-    Create = function(i)
+    Pile = function(i)
         return {
             Initial = i == 0 and ops.Initial.face_up(1) or {},
             Rule = rules.ff_upsuit_none
@@ -52,7 +52,7 @@ agnes_sorel.Foundation                     = {
 }
 agnes_sorel.Tableau                        = {
     Size   = 7,
-    Create = function(i)
+    Pile = function(i)
         return {
             Initial = ops.Initial.face_up(i + 1),
             Layout = "Column",
@@ -70,7 +70,7 @@ blockade.Info.CardDealCount                = 12
 blockade.Stock.Initial                     = ops.Initial.face_down(92)
 blockade.Tableau                           = {
     Size   = 12,
-    Create = {
+    Pile = {
         Initial = ops.Initial.face_up(1),
         Layout = "Column",
         Rule = rules.any_downsuit_inseq
@@ -83,8 +83,8 @@ blockade.on_end_turn                       = function(game) ops.Deal.to_group(ga
 
 local die_koenigsbergerin                  = Sol.copy(gypsy)
 die_koenigsbergerin.Info.Name              = "Die Königsbergerin"
-die_koenigsbergerin.Foundation.Create.Rule = rules.ace_upsuit_none
-die_koenigsbergerin.Tableau.Create.Initial = ops.Initial.face_up(3)
+die_koenigsbergerin.Foundation.Pile.Rule = rules.ace_upsuit_none
+die_koenigsbergerin.Tableau.Pile.Initial = ops.Initial.face_up(3)
 die_koenigsbergerin.on_shuffle             = function(game, card, pileType)
     if pileType == "Tableau" and card.Rank == "Ace" then
         return game.PlaceTop(card, game.Foundation, true)
@@ -121,7 +121,7 @@ elba.Info.CardDealCount                    = 10
 elba.Stock.Initial                         = ops.Initial.face_down(54)
 elba.Tableau                               = {
     Size   = 10,
-    Create = {
+    Pile = {
         Initial = ops.Initial.top_face_up(5),
         Layout = "Column",
         Rule = rules.king_downac_inseq
@@ -137,7 +137,7 @@ hypotenuse.Info.CardDealCount              = 10
 hypotenuse.Stock.Initial                   = ops.Initial.face_down(49)
 hypotenuse.Tableau                         = {
     Size   = 10,
-    Create = function(i)
+    Pile = function(i)
         return {
             Initial = ops.Initial.top_face_up(10 - i),
             Layout = "Column",
@@ -155,7 +155,7 @@ irmgard.Info.CardDealCount                 = 9
 irmgard.Stock.Initial                      = ops.Initial.face_down(79)
 irmgard.Tableau                            = {
     Size   = 9,
-    Create = function(i)
+    Pile = function(i)
         return {
             Initial = ops.Initial.top_face_up(i < 5 and i + 1 or 9 - i),
             Layout = "Column",
@@ -171,10 +171,10 @@ local lexington_harp                       = Sol.copy(gypsy)
 lexington_harp.Info.Name                   = "Lexington Harp"
 --lexington_harp.Info.Family = "Gypsy/Yukon"
 lexington_harp.Stock.Initial               = ops.Initial.face_down(68)
-lexington_harp.Foundation.Create.Rule      = rules.ace_upsuit_none
+lexington_harp.Foundation.Pile.Rule      = rules.ace_upsuit_none
 lexington_harp.Tableau                     = {
     Size   = 8,
-    Create = function(i)
+    Pile = function(i)
         return {
             Initial = ops.Initial.top_face_up(i + 1),
             Layout = "Column",
@@ -188,7 +188,7 @@ lexington_harp.Tableau                     = {
 local brunswick                            = Sol.copy(lexington_harp)
 brunswick.Info.Name                        = "Brunswick"
 --brunswick.Info.Family = "Gypsy/Yukon"
-brunswick.Tableau.Create                   = function(i)
+brunswick.Tableau.Pile                   = function(i)
     return {
         Initial = ops.Initial.face_up(i + 1),
         Layout = "Column",
@@ -201,7 +201,7 @@ end
 local milligan_harp                        = Sol.copy(lexington_harp)
 milligan_harp.Info.Name                    = "Milligan Harp"
 --milligan_harp.Info.Family = "Gypsy/Yukon"
-milligan_harp.Tableau.Create               = function(i)
+milligan_harp.Tableau.Pile               = function(i)
     return {
         Initial = ops.Initial.top_face_up(i + 1),
         Layout = "Column",
@@ -213,7 +213,7 @@ end
 
 local carlton                              = Sol.copy(lexington_harp)
 carlton.Info.Name                          = "Carlton"
-carlton.Tableau.Create                     = function(i)
+carlton.Tableau.Pile                     = function(i)
     return {
         Initial = ops.Initial.face_up(i + 1),
         Layout = "Column",
@@ -229,7 +229,7 @@ mississippi.Info.Name                      = "Mississippi"
 mississippi.Stock.Initial                  = ops.Initial.face_down(76)
 mississippi.Tableau                        = {
     Size   = 7,
-    Create = function(i)
+    Pile = function(i)
         return {
             Initial = ops.Initial.top_face_up(i + 1),
             Layout = "Column",
@@ -254,7 +254,7 @@ local cone                                 = {
     },
     Reserve    = {
         Size   = 4,
-        Create = function(i)
+        Pile = function(i)
             return {
                 Position = { x = 0, y = i + 1 },
                 Rule = rules.none_none_top
@@ -263,7 +263,7 @@ local cone                                 = {
     },
     Foundation = {
         Size   = 4,
-        Create = function(i)
+        Pile = function(i)
             return {
                 Position = { x = 8, y = i + 1 },
                 Rule = { Base = rules.Base.Ace, Build = rules.Build.UpInSuit(true), Move = rules.Move.Top() }
@@ -272,7 +272,7 @@ local cone                                 = {
     },
     Tableau    = {
         Size   = 7,
-        Create = function(i)
+        Pile = function(i)
             return {
                 Position = { x = i + 1, y = 0 },
                 Initial = ops.Initial.top_face_up(i < 4 and i + 1 or 7 - i),
@@ -311,11 +311,11 @@ local easthaven                            = {
     },
     Foundation       = {
         Size   = 4,
-        Create = { Rule = rules.ace_upsuit_top }
+        Pile = { Rule = rules.ace_upsuit_top }
     },
     Tableau          = {
         Size   = 7,
-        Create = {
+        Pile = {
             Initial = ops.Initial.top_face_up(3),
             Layout = "Column",
             Rule = rules.any_downac_inseq

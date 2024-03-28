@@ -7,7 +7,7 @@ local ops   = require 'base/ops'
 local rules = require 'base/rules'
 
 
-local duke                 = {
+local duke               = {
     Info       = {
         Name          = "Duke",
         Family        = "Canfield",
@@ -21,8 +21,8 @@ local duke                 = {
     },
     Waste      = { Position = { x = 1, y = 0 } },
     Reserve    = {
-        Size   = 4,
-        Create = function(i)
+        Size = 4,
+        Pile = function(i)
             return {
                 Position = { x = i % 2 * 2, y = i // 2 + 1 },
                 Initial  = ops.Initial.face_up(3),
@@ -32,8 +32,8 @@ local duke                 = {
         end
     },
     Foundation = {
-        Size   = 4,
-        Create = function(i)
+        Size = 4,
+        Pile = function(i)
             return {
                 Position = { x = i + 3, y = 0 },
                 Rule = rules.ace_upsuit_top
@@ -41,8 +41,8 @@ local duke                 = {
         end
     },
     Tableau    = {
-        Size   = 4,
-        Create = function(i)
+        Size = 4,
+        Pile = function(i)
             return {
                 Position = { x = i + 4, y = 1 },
                 Initial = ops.Initial.face_up(1),
@@ -57,16 +57,16 @@ local duke                 = {
 
 ------
 
-local dutchess             = Sol.copy(duke)
-dutchess.Info.Name         = "Dutchess"
-dutchess.Info.Redeals      = 1
-dutchess.Foundation.Create = function(i)
+local dutchess           = Sol.copy(duke)
+dutchess.Info.Name       = "Dutchess"
+dutchess.Info.Redeals    = 1
+dutchess.Foundation.Pile = function(i)
     return {
         Position = { x = i + 3, y = 0 },
         Rule = rules.ff_upsuit_none
     }
 end
-dutchess.Tableau.Create    = function(i)
+dutchess.Tableau.Pile    = function(i)
     return {
         Position = { x = i + 4, y = 1 },
         Initial = ops.Initial.face_up(1),
@@ -74,7 +74,7 @@ dutchess.Tableau.Create    = function(i)
         Rule = { Base = rules.Base.Any, Build = rules.Build.DownAlternateColors(), Move = rules.Move.InSeq() }
     }
 end
-dutchess.check_playable    = function(game, targetPile, targetIndex, drop, numCards)
+dutchess.check_playable  = function(game, targetPile, targetIndex, drop, numCards)
     local srcPile = game:find_pile(drop)
     if game.Foundation[1].IsEmpty then
         return srcPile.Type == "Reserve" and targetPile == game.Foundation[1]
@@ -95,7 +95,7 @@ dutchess.check_playable    = function(game, targetPile, targetIndex, drop, numCa
 
     return game:can_play(targetPile, targetIndex, drop, numCards)
 end
-dutchess.on_deal           = function(game)
+dutchess.on_deal         = function(game)
     if game.Foundation[1].IsEmpty then return false end
     return ops.Deal.stock_to_waste(game)
 end

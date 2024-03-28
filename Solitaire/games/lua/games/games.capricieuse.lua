@@ -17,8 +17,8 @@ local capricieuse              = {
     },
     Stock             = {},
     Foundation        = {
-        Size   = 8,
-        Create = function(i)
+        Size = 8,
+        Pile = function(i)
             if i < 4 then
                 return { Rule = rules.ace_upsuit_top }
             else
@@ -27,8 +27,8 @@ local capricieuse              = {
         end
     },
     Tableau           = {
-        Size   = 12,
-        Create = {
+        Size = 12,
+        Pile = {
             Initial = ops.Initial.face_up(8),
             Layout = "Column",
             Rule = rules.any_updownsuit_top
@@ -65,11 +65,11 @@ local capricieuse              = {
 
 local strata                   = Sol.copy(capricieuse)
 strata.Info.Name               = "Strata"
-strata.Foundation.Create       = { Rule = rules.ace_upsuit_top }
+strata.Foundation.Pile         = { Rule = rules.ace_upsuit_top }
 strata.Info.DeckRanks          = { "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace" }
 strata.Tableau                 = {
-    Size   = 8,
-    Create = {
+    Size = 8,
+    Pile = {
         Initial = ops.Initial.face_up(8),
         Layout = "Column",
         Rule = rules.any_downac_top
@@ -84,12 +84,12 @@ cruel.Info.Name                = "Cruel"
 cruel.Info.DeckCount           = 1
 cruel.Info.Redeals             = -1
 cruel.Foundation               = {
-    Size   = 4,
-    Create = { Rule = rules.ace_upsuit_top }
+    Size = 4,
+    Pile = { Rule = rules.ace_upsuit_top }
 }
 cruel.Tableau                  = {
-    Size   = 12,
-    Create = {
+    Size = 12,
+    Pile = {
         Initial = ops.Initial.face_up(4),
         Layout = "Column",
         Rule = rules.none_downsuit_top
@@ -125,7 +125,7 @@ cruel.on_piles_created         = Sol.Layout.bakers_dozen
 local indefatigable            = Sol.copy(cruel)
 indefatigable.Info.Name        = "Indefatigable"
 indefatigable.Info.Redeals     = 2
-indefatigable.Tableau.Create   = {
+indefatigable.Tableau.Pile     = {
     Initial = ops.Initial.face_up(4),
     Layout = "Column",
     Rule = rules.any_updownsuit_top
@@ -136,7 +136,7 @@ indefatigable.Tableau.Create   = {
 local perseverance             = Sol.copy(cruel)
 perseverance.Info.Name         = "Perseverance"
 perseverance.Info.Redeals      = 2
-perseverance.Tableau.Create    = {
+perseverance.Tableau.Pile      = {
     Initial = ops.Initial.face_up(4),
     Layout = "Column",
     Rule = { Base = rules.Base.None, Build = rules.Build.DownInSuit(), Move = rules.Move.InSeq() }
@@ -147,8 +147,8 @@ perseverance.Tableau.Create    = {
 local royal_family             = Sol.copy(cruel)
 royal_family.Info.Name         = "Royal Family"
 royal_family.Info.Redeals      = 1
-royal_family.Foundation.Create = { Rule = rules.king_downsuit_top }
-royal_family.Tableau.Create    = {
+royal_family.Foundation.Pile   = { Rule = rules.king_downsuit_top }
+royal_family.Tableau.Pile      = {
     Initial = ops.Initial.face_up(4),
     Layout = "Column",
     Rule = rules.any_updownac_top

@@ -16,12 +16,12 @@ local fan                    = {
         Redeals       = 0
     },
     Foundation       = {
-        Size   = 4,
-        Create = { Rule = rules.ace_upsuit_top }
+        Size = 4,
+        Pile = { Rule = rules.ace_upsuit_top }
     },
     Tableau          = {
-        Size   = 18,
-        Create = function(i)
+        Size = 18,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.face_up(i < 17 and 3 or 1),
                 Layout = "Row",
@@ -37,8 +37,8 @@ local fan                    = {
 local bear_river             = Sol.copy(fan)
 bear_river.Info.Name         = "Bear River"
 bear_river.Foundation        = {
-    Size   = 4,
-    Create = function(i)
+    Size = 4,
+    Pile = function(i)
         return {
             Initial = ops.Initial.face_up(i == 0 and 1 or 0),
             Rule = rules.ff_upsuit_none
@@ -46,8 +46,8 @@ bear_river.Foundation        = {
     end
 }
 bear_river.Tableau           = {
-    Size   = 18,
-    Create = function(i)
+    Size = 18,
+    Pile = function(i)
         local lastInRow = i % 6 == 5
         return {
             Initial = ops.Initial.face_up(lastInRow and 2 or 3),
@@ -63,8 +63,8 @@ bear_river.on_piles_created  = function(game) Sol.Layout.fan(game, 6) end
 local box_fan                = Sol.copy(fan)
 box_fan.Info.Name            = "Box Fan"
 box_fan.Tableau              = {
-    Size   = 16,
-    Create = {
+    Size = 16,
+    Pile = {
         Initial = ops.Initial.face_up(3),
         Layout = "Row",
         Rule = rules.king_downac_top
@@ -78,8 +78,8 @@ box_fan.on_piles_created     = function(game) Sol.Layout.fan(game, 4) end
 local ceiling_fan            = Sol.copy(fan)
 ceiling_fan.Info.Name        = "Ceiling Fan"
 ceiling_fan.Tableau          = {
-    Size   = 18,
-    Create = function(i)
+    Size = 18,
+    Pile = function(i)
         return {
             Initial = ops.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
@@ -99,8 +99,8 @@ local clover_leaf            = {
         Redeals       = 0
     },
     Foundation        = {
-        Size   = 4,
-        Create = function(i)
+        Size = 4,
+        Pile = function(i)
             if i < 2 then
                 return { Rule = { Base = function(_, card, _) return rules.Base.CardColor(card, "Black", "Ace") end, Build = rules.Build.UpInSuit(), Move = rules.Move.Top() } }
             else
@@ -109,8 +109,8 @@ local clover_leaf            = {
         end
     },
     Tableau           = {
-        Size   = 16,
-        Create = {
+        Size = 16,
+        Pile = {
             Initial = ops.Initial.face_up(3),
             Layout = "Row",
             Rule = { Base = function(_, card, _) return rules.Base.Ranks(card, { "Ace", "King" }) end, Build = rules.Build.UpOrDownInSuit(), Move = rules.Move.Top() }
@@ -134,8 +134,8 @@ local clover_leaf            = {
 local quads                  = Sol.copy(fan)
 quads.Info.Name              = "Quads"
 quads.Tableau                = {
-    Size   = 13,
-    Create = {
+    Size = 13,
+    Pile = {
         Initial = ops.Initial.face_up(4),
         Layout = "Row",
         Rule = { Base = rules.Base.Any, Build = rules.Build.InRank(), Move = rules.Move.Top(), Limit = 4 }
@@ -154,8 +154,8 @@ end
 local quads_plus             = Sol.copy(fan)
 quads_plus.Info.Name         = "Quads+"
 quads_plus.Tableau           = {
-    Size   = 13,
-    Create = function(i)
+    Size = 13,
+    Pile = function(i)
         return {
             Initial = ops.Initial.face_up(i < 12 and 4 or 0),
             Layout = "Row",
@@ -181,8 +181,8 @@ local lucky_piles            = {
         Redeals       = 0
     },
     Foundation = {
-        Size   = 4,
-        Create = function(i)
+        Size = 4,
+        Pile = function(i)
             return {
                 Position = { x = (i + 0.5) * 2, y = 0 },
                 Rule = rules.ace_upsuit_top
@@ -190,8 +190,8 @@ local lucky_piles            = {
         end
     },
     Tableau    = {
-        Size   = 13,
-        Create = function(i)
+        Size = 13,
+        Pile = function(i)
             return {
                 Position = { x = lucky_piles_pos[i + 1][1], y = lucky_piles_pos[i + 1][2] },
                 Initial = ops.Initial.face_up(4),
@@ -207,12 +207,12 @@ local lucky_piles            = {
 local scotch_patience        = Sol.copy(fan)
 scotch_patience.Info.Name    = "Scotch Patience"
 scotch_patience.Foundation   = {
-    Size   = 4,
-    Create = { Rule = rules.ace_upac_top }
+    Size = 4,
+    Pile = { Rule = rules.ace_upac_top }
 }
 scotch_patience.Tableau      = {
-    Size   = 18,
-    Create = function(i)
+    Size = 18,
+    Pile = function(i)
         return {
             Initial = ops.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
@@ -226,8 +226,8 @@ scotch_patience.Tableau      = {
 local shamrocks              = Sol.copy(fan)
 shamrocks.Info.Name          = "Shamrocks"
 shamrocks.Tableau            = {
-    Size   = 18,
-    Create = function(i)
+    Size = 18,
+    Pile = function(i)
         return {
             Initial = ops.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
@@ -241,8 +241,8 @@ shamrocks.Tableau            = {
 local shamrocks_2            = Sol.copy(fan)
 shamrocks_2.Info.Name        = "Shamrocks II"
 shamrocks_2.Tableau          = {
-    Size   = 18,
-    Create = function(i)
+    Size = 18,
+    Pile = function(i)
         return {
             Initial = ops.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",
@@ -257,8 +257,8 @@ shamrocks_2.on_after_shuffle = ops.Shuffle.kings_to_bottom
 local troika                 = Sol.copy(fan)
 troika.Info.Name             = "Troika"
 troika.Tableau               = {
-    Size   = 18,
-    Create = function(i)
+    Size = 18,
+    Pile = function(i)
         return {
             Initial = ops.Initial.face_up(i < 17 and 3 or 1),
             Layout = "Row",

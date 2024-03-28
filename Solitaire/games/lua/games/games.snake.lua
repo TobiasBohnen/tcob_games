@@ -16,8 +16,8 @@ local snake                 = {
         Redeals       = 0
     },
     FreeCell          = {
-        Size   = 7,
-        Create = function(i)
+        Size = 7,
+        Pile = function(i)
             return {
                 Position = { x = i + 1, y = 0 },
                 Rule     = rules.any_none_top
@@ -25,8 +25,8 @@ local snake                 = {
         end
     },
     Foundation        = {
-        Size   = 8,
-        Create = function(i)
+        Size = 8,
+        Pile = function(i)
             return {
                 Position = { x = i % 2 + 9, y = i // 2 },
                 Rule = rules.ace_upsuit_top
@@ -34,8 +34,8 @@ local snake                 = {
         end
     },
     Tableau           = {
-        Size   = 9,
-        Create = function(i)
+        Size = 9,
+        Pile = function(i)
             return {
                 Position = { x = i, y = 1 },
                 Initial = ops.Initial.face_up(i == 0 and 96 or 0),
@@ -64,7 +64,7 @@ local snake                 = {
 
 local cats_tail             = Sol.copy(snake)
 cats_tail.Info.Name         = "Cat's Tail"
-cats_tail.Tableau.Create    = function(i)
+cats_tail.Tableau.Pile      = function(i)
     return {
         Position = { x = i, y = 1 },
         Initial = ops.Initial.face_up(i == 0 and 104 or 0),

@@ -18,12 +18,12 @@ local klondike                           = {
     Stock            = { Initial = ops.Initial.face_down(24) },
     Waste            = {},
     Foundation       = {
-        Size   = 4,
-        Create = { Rule = rules.ace_upsuit_top }
+        Size = 4,
+        Pile = { Rule = rules.ace_upsuit_top }
     },
     Tableau          = {
-        Size   = 7,
-        Create = function(i)
+        Size = 7,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.top_face_up(i + 1),
                 Layout = "Column",
@@ -101,7 +101,7 @@ local big_deal                           = {
     Waste      = { Position = { x = 1, y = 7 } },
     Foundation = {
         Size = 16,
-        Create = function(i)
+        Pile = function(i)
             return {
                 Position = { x = i % 2 + 12, y = i // 2 },
                 Rule = rules.ace_upsuit_top
@@ -110,7 +110,7 @@ local big_deal                           = {
     },
     Tableau    = {
         Size = 12,
-        Create = function(i)
+        Pile = function(i)
             return {
                 Position = { x = i, y = 0 },
                 Initial  = ops.Initial.top_face_up(i + 1),
@@ -129,8 +129,8 @@ local big_forty                          = Sol.copy(klondike)
 big_forty.Info.Name                      = "Big Forty"
 big_forty.Stock.Initial                  = ops.Initial.face_down(12)
 big_forty.Tableau                        = {
-    Size   = 10,
-    Create = {
+    Size = 10,
+    Pile = {
         Initial = ops.Initial.top_face_up(4),
         Layout = "Column",
         Rule = rules.any_downsuit_inseq
@@ -146,8 +146,8 @@ big_harp.Info.Redeals                    = 0
 big_harp.Stock.Initial                   = ops.Initial.face_down(49)
 big_harp.Foundation.Size                 = 8
 big_harp.Tableau                         = {
-    Size   = 10,
-    Create = function(i)
+    Size = 10,
+    Pile = function(i)
         return {
             Initial = ops.Initial.top_face_up(10 - i),
             Layout = "Column",
@@ -163,8 +163,8 @@ local ali_baba                           = Sol.copy(klondike)
 ali_baba.Info.Name                       = "Ali Baba"
 ali_baba.Stock.Initial                   = ops.Initial.face_down(8)
 ali_baba.Tableau                         = {
-    Size   = 10,
-    Create = {
+    Size = 10,
+    Pile = {
         Initial = ops.Initial.top_face_up(4),
         Layout = "Column",
         Rule = rules.any_downsuit_inseq
@@ -179,8 +179,8 @@ blind_alleys.Info.Name                   = "Blind Alleys"
 blind_alleys.Info.Redeals                = 1
 blind_alleys.Stock.Initial               = ops.Initial.face_down(30)
 blind_alleys.Tableau                     = {
-    Size   = 6,
-    Create = {
+    Size = 6,
+    Pile = {
         Initial = ops.Initial.top_face_up(3),
         Layout = "Column",
         Rule = rules.any_downac_inseq
@@ -193,7 +193,7 @@ blind_alleys.on_before_shuffle           = ops.Shuffle.ace_to_foundation
 local cassim                             = Sol.copy(klondike)
 cassim.Info.Name                         = "Cassim"
 cassim.Stock.Initial                     = ops.Initial.face_down(20)
-cassim.Tableau.Create                    = {
+cassim.Tableau.Pile                      = {
     Initial = ops.Initial.top_face_up(4),
     Layout = "Column",
     Rule = rules.any_downsuit_inseq
@@ -214,11 +214,11 @@ local eight_by_eight                     = {
     Waste            = {},
     Foundation       = {
         Size = 8,
-        Create = { Rule = rules.ace_upsuit_top }
+        Pile = { Rule = rules.ace_upsuit_top }
     },
     Tableau          = {
         Size = 8,
-        Create = function(i)
+        Pile = function(i)
             return {
                 Initial = ops.Initial.face_up(8),
                 Layout  = "Column",
@@ -241,8 +241,8 @@ eight_by_eight2.Info.Redeals             = 2
 eight_by_eight2.Stock.Initial            = ops.Initial.face_down(40)
 eight_by_eight2.Foundation.Size          = 8
 eight_by_eight2.Tableau                  = {
-    Size   = 8,
-    Create = {
+    Size = 8,
+    Pile = {
         Initial = ops.Initial.face_up(8),
         Layout = "Column",
         Rule = { Base = rules.Base.AnySingle, Build = rules.Build.DownByRank(), Move = rules.Move.InSeq() }
@@ -255,7 +255,7 @@ eight_by_eight2.on_deal                  = ops.Deal.stock_to_waste_by_redeals_le
 local eight_by_eight3                    = Sol.copy(eight_by_eight)
 eight_by_eight3.Info.Name                = "Eight Times Eight"
 eight_by_eight3.Info.Redeals             = 2
-eight_by_eight3.Tableau.Create           = {
+eight_by_eight3.Tableau.Pile             = {
     Initial = ops.Initial.face_up(8),
     Layout = "Column",
     Rule = rules.any_downac_inseq
@@ -269,8 +269,8 @@ arabella.Info.DeckCount                  = 3
 arabella.Stock.Initial                   = ops.Initial.face_down(65)
 arabella.Foundation.Size                 = 12
 arabella.Tableau                         = {
-    Size   = 13,
-    Create = function(i)
+    Size = 13,
+    Pile = function(i)
         return {
             Initial = ops.Initial.top_face_up(i + 1),
             Layout = "Column",
@@ -284,7 +284,7 @@ arabella.on_piles_created                = Sol.Layout.big_harp
 
 local athena                             = Sol.copy(klondike)
 athena.Info.Name                         = "Athena"
-athena.Tableau.Create                    = {
+athena.Tableau.Pile                      = {
     Initial = ops.Initial.alternate(4, false),
     Layout = "Column",
     Rule = rules.any_downac_inseq
@@ -297,8 +297,8 @@ aunt_mary.Info.Name                      = "Aunt Mary"
 aunt_mary.Info.Redeals                   = 0
 aunt_mary.Stock.Initial                  = ops.Initial.face_down(16)
 aunt_mary.Tableau                        = {
-    Size   = 6,
-    Create = function(i)
+    Size = 6,
+    Pile = function(i)
         return {
             Initial = { i < 1, i < 2, i < 3, i < 4, i < 5, i < 6 },
             Layout = "Column",
@@ -323,8 +323,8 @@ chinaman.Info.CardDealCount              = 3
 chinaman.Info.Redeals                    = 2
 chinaman.Waste.Layout                    = "Fan"
 chinaman.Tableau                         = {
-    Size   = 7,
-    Create = function(i)
+    Size = 7,
+    Pile = function(i)
         return {
             Initial = ops.Initial.top_face_up(i + 1),
             Layout = "Column",
@@ -351,8 +351,8 @@ eastcliff.Info.Name                      = "Eastcliff"
 eastcliff.Info.Redeals                   = 0
 eastcliff.Stock.Initial                  = ops.Initial.face_down(31)
 eastcliff.Tableau                        = {
-    Size   = 7,
-    Create = {
+    Size = 7,
+    Pile = {
         Initial = ops.Initial.top_face_up(3),
         Layout = "Column",
         Rule = rules.any_downac_inseq
@@ -368,8 +368,8 @@ eight_sages.Info.Redeals                 = 1
 eight_sages.Stock.Initial                = ops.Initial.face_down(96)
 eight_sages.Foundation.Size              = 8
 eight_sages.Tableau                      = {
-    Size   = 8,
-    Create = {
+    Size = 8,
+    Pile = {
         Initial = ops.Initial.face_up(1),
         Layout = "Column",
         Rule = rules.any_downac_top
@@ -412,7 +412,7 @@ local guardian                           = {
     },
     Foundation  = {
         Size = 4,
-        Create = function(i)
+        Pile = function(i)
             return {
                 Position = { x = i + 3, y = 0 },
                 Rule = rules.ace_upsuit_top
@@ -421,7 +421,7 @@ local guardian                           = {
     },
     Tableau     = {
         Size = 12,
-        Create = function(i)
+        Pile = function(i)
             local tab = {
                 HasMarker = i < 3,
                 Layout    = "Column",
@@ -472,8 +472,8 @@ gold_rush.on_deal                        = ops.Deal.stock_to_waste_by_redeals_le
 local kingsley                           = Sol.copy(klondike)
 kingsley.Info.Name                       = "Kingsley"
 kingsley.Info.Redeals                    = 0
-kingsley.Foundation.Create               = { Rule = rules.king_downsuit_top }
-kingsley.Tableau.Create                  = function(i)
+kingsley.Foundation.Pile                 = { Rule = rules.king_downsuit_top }
+kingsley.Tableau.Pile                    = function(i)
     return {
         Initial = ops.Initial.top_face_up(i + 1),
         Layout = "Column",
@@ -499,12 +499,12 @@ qc.Info.DeckCount                        = 2
 qc.Info.Redeals                          = 1
 qc.Stock.Initial                         = ops.Initial.face_down(80)
 qc.Foundation                            = {
-    Size   = 8,
-    Create = { Rule = rules.ace_upsuit_none }
+    Size = 8,
+    Pile = { Rule = rules.ace_upsuit_none }
 }
 qc.Tableau                               = {
-    Size   = 6,
-    Create = {
+    Size = 6,
+    Pile = {
         Initial = ops.Initial.top_face_up(4),
         Layout  = "Column",
         Rule    = rules.any_downsuit_top
@@ -518,7 +518,7 @@ end
 
 local saratoga                           = Sol.copy(klondike_by_3s)
 saratoga.Info.Name                       = "Saratoga"
-saratoga.Tableau.Create                  = function(i)
+saratoga.Tableau.Pile                    = function(i)
     return {
         Initial = ops.Initial.face_up(i + 1),
         Layout = "Column",
@@ -534,11 +534,11 @@ thirty_six.Info.Redeals                  = 0
 thirty_six.Stock.Initial                 = ops.Initial.face_down(16)
 thirty_six.Foundation                    = {
     Size = 4,
-    Create = { Rule = { Base = rules.Base.Ace, Build = rules.Build.UpInColor(), Move = rules.Move.Top() } }
+    Pile = { Rule = { Base = rules.Base.Ace, Build = rules.Build.UpInColor(), Move = rules.Move.Top() } }
 }
 thirty_six.Tableau                       = {
     Size = 6,
-    Create = {
+    Pile = {
         Initial = ops.Initial.face_up(6),
         Layout  = "Column",
         Rule    = { Base = rules.Base.Any, Build = rules.Build.DownByRank(), Move = rules.Move.InSeq() }
@@ -556,7 +556,7 @@ end
 
 local trigon                             = Sol.copy(klondike)
 trigon.Info.Name                         = "Trigon"
-trigon.Tableau.Create                    = function(i)
+trigon.Tableau.Pile                      = function(i)
     return {
         Initial = ops.Initial.top_face_up(i + 1),
         Layout = "Column",
@@ -584,11 +584,11 @@ whitehorse.Stock.Initial                 = ops.Initial.face_down(45)
 whitehorse.Waste.Layout                  = "Fan"
 whitehorse.Foundation                    = {
     Size = 4,
-    Create = { Rule = { Base = rules.Base.Ace, Build = rules.Build.UpInColor(), Move = rules.Move.Top() } }
+    Pile = { Rule = { Base = rules.Base.Ace, Build = rules.Build.UpInColor(), Move = rules.Move.Top() } }
 }
 whitehorse.Tableau                       = {
     Size = 7,
-    Create = {
+    Pile = {
         Initial = ops.Initial.face_up(1),
         Layout  = "Column",
         Rule    = rules.king_downac_inseq
@@ -607,7 +607,7 @@ australian_patience.Info.Redeals         = 0
 australian_patience.Stock.Initial        = ops.Initial.face_down(24)
 australian_patience.Tableau              = {
     Size = 7,
-    Create = {
+    Pile = {
         Initial = ops.Initial.face_up(4),
         Layout  = "Column",
         Rule    = rules.king_downsuit_faceup
@@ -624,7 +624,7 @@ bim_bom.Stock.Initial                    = ops.Initial.face_down(64)
 bim_bom.Foundation.Size                  = 8
 bim_bom.Tableau                          = {
     Size = 8,
-    Create = {
+    Pile = {
         Initial = ops.Initial.face_up(5),
         Layout  = "Column",
         Rule    = rules.any_downsuit_faceup
@@ -642,12 +642,12 @@ local somerset                           = {
         Redeals       = 0
     },
     Foundation       = {
-        Size   = 4,
-        Create = { Rule = rules.ace_upsuit_top }
+        Size = 4,
+        Pile = { Rule = rules.ace_upsuit_top }
     },
     Tableau          = {
-        Size   = 10,
-        Create = function(i)
+        Size = 10,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.face_up(i < 7 and i + 1 or 8),
                 Layout = "Column",
@@ -667,8 +667,8 @@ steps.Info.Redeals                       = 1
 steps.Stock.Initial                      = ops.Initial.face_down(76)
 steps.Foundation.Size                    = 8
 steps.Tableau                            = {
-    Size   = 7,
-    Create = function(i)
+    Size = 7,
+    Pile = function(i)
         return {
             Initial = ops.Initial.top_face_up(i + 1),
             Layout = "Column",
@@ -700,7 +700,7 @@ local function usk_redeal(game)
     return true
 end
 
-local usk                   = {
+local usk                 = {
     Info             = {
         Name          = "Usk",
         Family        = "Klondike",
@@ -710,12 +710,12 @@ local usk                   = {
     },
     Stock            = {},
     Foundation       = {
-        Size   = 4,
-        Create = { Rule = rules.ace_upsuit_top }
+        Size = 4,
+        Pile = { Rule = rules.ace_upsuit_top }
     },
     Tableau          = {
-        Size   = 10,
-        Create = function(i)
+        Size = 10,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.face_up(i < 7 and i + 1 or 8),
                 Layout = "Column",
@@ -729,14 +729,14 @@ local usk                   = {
 
 ------
 
-local westcliff             = Sol.copy(klondike)
-westcliff.Info.Name         = "Westcliff"
-westcliff.Info.Redeals      = 0
-westcliff.Stock.Initial     = ops.Initial.face_down(22)
-westcliff.Foundation.Create = { Rule = rules.ace_upsuit_none }
-westcliff.Tableau           = {
+local westcliff           = Sol.copy(klondike)
+westcliff.Info.Name       = "Westcliff"
+westcliff.Info.Redeals    = 0
+westcliff.Stock.Initial   = ops.Initial.face_down(22)
+westcliff.Foundation.Pile = { Rule = rules.ace_upsuit_none }
+westcliff.Tableau         = {
     Size = 10,
-    Create = {
+    Pile = {
         Initial = ops.Initial.top_face_up(3),
         Layout  = "Column",
         Rule    = rules.any_downac_inseq
@@ -745,10 +745,10 @@ westcliff.Tableau           = {
 
 ------
 
-local whitehead             = Sol.copy(klondike)
-whitehead.Info.Name         = "Whitehead"
-whitehead.Info.Redeals      = 0
-whitehead.Tableau.Create    = function(i)
+local whitehead           = Sol.copy(klondike)
+whitehead.Info.Name       = "Whitehead"
+whitehead.Info.Redeals    = 0
+whitehead.Tableau.Pile    = function(i)
     return {
         Initial = ops.Initial.face_up(i + 1),
         Layout = "Column",

@@ -16,16 +16,16 @@ local fastness               = {
         Redeals       = 0
     },
     FreeCell         = {
-        Size   = 2,
-        Create = { Rule = rules.any_none_top }
+        Size = 2,
+        Pile = { Rule = rules.any_none_top }
     },
     Foundation       = {
-        Size   = 4,
-        Create = { Rule = rules.ace_upsuit_none }
+        Size = 4,
+        Pile = { Rule = rules.ace_upsuit_none }
     },
     Tableau          = {
-        Size   = 8,
-        Create = function(i)
+        Size = 8,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.face_up(i < 4 and 7 or 6),
                 Layout = "Row",
@@ -41,7 +41,7 @@ local fastness               = {
 local siegecraft             = Sol.copy(fastness)
 siegecraft.Info.Name         = "Siegecraft"
 siegecraft.FreeCell          = { Rule = rules.any_none_top }
-siegecraft.Tableau.Create    = {
+siegecraft.Tableau.Pile      = {
     Initial = ops.Initial.face_up(6),
     Layout = "Row",
     Rule = rules.any_downrank_top

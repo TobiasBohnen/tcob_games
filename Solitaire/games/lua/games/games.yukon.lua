@@ -56,12 +56,12 @@ local yukon                              = {
         Redeals       = 0
     },
     Foundation       = {
-        Size   = 4,
-        Create = { Rule = rules.ace_upsuit_none }
+        Size = 4,
+        Pile = { Rule = rules.ace_upsuit_none }
     },
     Tableau          = {
-        Size   = 7,
-        Create = function(i)
+        Size = 7,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.yukon(i),
                 Layout = "Column",
@@ -79,8 +79,8 @@ double_yukon.Info.Name                   = "Double Yukon"
 double_yukon.Info.DeckCount              = 2
 double_yukon.Foundation.Size             = 8
 double_yukon.Tableau                     = {
-    Size   = 10,
-    Create = function(i)
+    Size = 10,
+    Pile = function(i)
         return {
             Initial = ops.Initial.double_yukon(i),
             Layout = "Column",
@@ -96,8 +96,8 @@ triple_yukon.Info.Name                   = "Triple Yukon"
 triple_yukon.Info.DeckCount              = 3
 triple_yukon.Foundation.Size             = 12
 triple_yukon.Tableau                     = {
-    Size   = 13,
-    Create = function(i)
+    Size = 13,
+    Pile = function(i)
         return {
             Initial = ops.Initial.triple_yukon(i),
             Layout = "Column",
@@ -110,7 +110,7 @@ triple_yukon.Tableau                     = {
 
 local alaska                             = Sol.copy(yukon)
 alaska.Info.Name                         = "Alaska"
-alaska.Tableau.Create                    = function(i)
+alaska.Tableau.Pile                      = function(i)
     return {
         Initial = ops.Initial.yukon(i),
         Layout = "Column",
@@ -132,7 +132,7 @@ local brisbane_initial                   = {
 
 local brisbane                           = Sol.copy(yukon)
 brisbane.Info.Name                       = "Brisbane"
-brisbane.Tableau.Create                  = function(i)
+brisbane.Tableau.Pile                    = function(i)
     return {
         Initial = brisbane_initial[i + 1],
         Layout = "Column",
@@ -145,8 +145,8 @@ end
 local geoffrey                           = Sol.copy(yukon)
 geoffrey.Info.Name                       = "Geoffrey"
 geoffrey.Tableau                         = {
-    Size   = 8,
-    Create = function(i)
+    Size = 8,
+    Pile = function(i)
         return {
             Initial = i < 4 and ops.Initial.face_up(7) or { false, false, false, false, true, true },
             Layout = "Column",
@@ -160,7 +160,7 @@ geoffrey.on_piles_created                = Sol.Layout.forty_thieves
 
 local queensland                         = Sol.copy(yukon)
 queensland.Info.Name                     = "Queensland"
-queensland.Tableau.Create                = function(i)
+queensland.Tableau.Pile                  = function(i)
     return {
         Initial = brisbane_initial[i + 1],
         Layout = "Column",
@@ -172,7 +172,7 @@ end
 
 local roslin                             = Sol.copy(yukon)
 roslin.Info.Name                         = "Roslin"
-roslin.Tableau.Create                    = function(i)
+roslin.Tableau.Pile                      = function(i)
     return {
         Initial = ops.Initial.yukon(i),
         Layout = "Column",
@@ -184,7 +184,7 @@ end
 
 local moosehide                          = Sol.copy(yukon)
 moosehide.Info.Name                      = "Moosehide"
-moosehide.Tableau.Create                 = function(i)
+moosehide.Tableau.Pile                   = function(i)
     return {
         Initial = ops.Initial.yukon(i),
         Layout = "Column",
@@ -196,7 +196,7 @@ end
 
 local russian_solitaire                  = Sol.copy(yukon)
 russian_solitaire.Info.Name              = "Russian Solitaire"
-russian_solitaire.Tableau.Create         = function(i)
+russian_solitaire.Tableau.Pile           = function(i)
     return {
         Initial = ops.Initial.yukon(i),
         Layout = "Column",
@@ -211,8 +211,8 @@ double_russian_solitaire.Info.Name       = "Double Russian Solitaire"
 double_russian_solitaire.Info.DeckCount  = 2
 double_russian_solitaire.Foundation.Size = 8
 double_russian_solitaire.Tableau         = {
-    Size   = 10,
-    Create = function(i)
+    Size = 10,
+    Pile = function(i)
         return {
             Initial = ops.Initial.double_yukon(i),
             Layout = "Column",
@@ -228,8 +228,8 @@ triple_russian_solitaire.Info.Name       = "Triple Russian Solitaire"
 triple_russian_solitaire.Info.DeckCount  = 3
 triple_russian_solitaire.Foundation.Size = 12
 triple_russian_solitaire.Tableau         = {
-    Size   = 13,
-    Create = function(i)
+    Size = 13,
+    Pile = function(i)
         return {
             Initial = ops.Initial.triple_yukon(i),
             Layout = "Column",
@@ -254,8 +254,8 @@ local hawaiian                           = {
         Layout   = "Squared"
     },
     Foundation = {
-        Size   = 8,
-        Create = function(i)
+        Size = 8,
+        Pile = function(i)
             return {
                 Position = { x = i + 2, y = 0 },
                 Rule = rules.ace_upsuit_none
@@ -263,8 +263,8 @@ local hawaiian                           = {
         end
     },
     Tableau    = {
-        Size   = 10,
-        Create = function(i)
+        Size = 10,
+        Pile = function(i)
             return {
                 Position = { x = i, y = 1 },
                 Initial = ops.Initial.face_up(5),
@@ -289,12 +289,12 @@ local chinese_discipline                 = {
         Initial = ops.Initial.face_down(3)
     },
     Foundation       = {
-        Size   = 4,
-        Create = { Rule = rules.ace_upsuit_none }
+        Size = 4,
+        Pile = { Rule = rules.ace_upsuit_none }
     },
     Tableau          = {
-        Size   = 7,
-        Create = function(i)
+        Size = 7,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.chinese_discipline(i),
                 Layout = "Column",
@@ -310,7 +310,7 @@ local chinese_discipline                 = {
 
 local chinese_solitaire                  = Sol.copy(chinese_discipline)
 chinese_solitaire.Info.Name              = "Chinese Solitaire"
-chinese_solitaire.Tableau.Create         = function(i)
+chinese_solitaire.Tableau.Pile           = function(i)
     return {
         Initial = ops.Initial.chinese_discipline(i),
         Layout = "Column",
@@ -333,12 +333,12 @@ local rushdike                           = {
         Initial = ops.Initial.face_down(24)
     },
     Foundation       = {
-        Size   = 4,
-        Create = { Rule = rules.ace_upsuit_none }
+        Size = 4,
+        Pile = { Rule = rules.ace_upsuit_none }
     },
     Tableau          = {
-        Size   = 7,
-        Create = function(i)
+        Size = 7,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.top_face_up(i + 1),
                 Layout = "Column",
@@ -365,12 +365,12 @@ local queenie                            = {
         Initial = ops.Initial.face_down(24)
     },
     Foundation       = {
-        Size   = 4,
-        Create = { Rule = rules.ace_upsuit_none }
+        Size = 4,
+        Pile = { Rule = rules.ace_upsuit_none }
     },
     Tableau          = {
-        Size   = 7,
-        Create = function(i)
+        Size = 7,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.face_up(i + 1),
                 Layout = "Column",

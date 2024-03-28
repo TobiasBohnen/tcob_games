@@ -16,20 +16,20 @@ local raglan = {
         Redeals       = 0
     },
     Reserve           = {
-        Size   = 6,
-        Create = {
+        Size = 6,
+        Pile = {
             Initial = ops.Initial.face_up(1),
             Layout = "Squared",
             Rule = rules.none_none_top
         }
     },
     Foundation        = {
-        Size   = 4,
-        Create = { Rule = rules.ace_upsuit_top }
+        Size = 4,
+        Pile = { Rule = rules.ace_upsuit_top }
     },
     Tableau           = {
-        Size   = 9,
-        Create = function(i)
+        Size = 9,
+        Pile = function(i)
             return {
                 Initial = ops.Initial.face_up(i < 7 and i + 1 or 7),
                 Layout = "Column",
