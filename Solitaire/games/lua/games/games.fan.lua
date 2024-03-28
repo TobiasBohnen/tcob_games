@@ -8,18 +8,18 @@ local rules = require 'base/rules'
 
 
 local fan                    = {
-    Info       = {
+    Info             = {
         Name          = "Fan",
         Family        = "Fan",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation = {
+    Foundation       = {
         Size   = 4,
         Create = { Rule = rules.ace_upsuit_top }
     },
-    Tableau    = {
+    Tableau          = {
         Size   = 18,
         Create = function(i)
             return {
@@ -29,7 +29,7 @@ local fan                    = {
             }
         end
     },
-    on_created = function(game) Sol.Layout.fan(game, 5) end
+    on_piles_created = function(game) Sol.Layout.fan(game, 5) end
 }
 
 ------
@@ -56,7 +56,7 @@ bear_river.Tableau           = {
         }
     end
 }
-bear_river.on_created        = function(game) Sol.Layout.fan(game, 6) end
+bear_river.on_piles_created  = function(game) Sol.Layout.fan(game, 6) end
 
 ------
 
@@ -71,7 +71,7 @@ box_fan.Tableau              = {
     }
 }
 box_fan.on_before_shuffle    = ops.Shuffle.ace_to_foundation
-box_fan.on_created           = function(game) Sol.Layout.fan(game, 4) end
+box_fan.on_piles_created     = function(game) Sol.Layout.fan(game, 4) end
 
 ------
 
@@ -126,7 +126,7 @@ local clover_leaf            = {
 
         return false
     end,
-    on_created        = function(game) Sol.Layout.fan(game, 4) end
+    on_piles_created  = function(game) Sol.Layout.fan(game, 4) end
 }
 
 ------

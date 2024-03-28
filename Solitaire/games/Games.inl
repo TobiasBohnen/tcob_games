@@ -178,7 +178,7 @@ inline script_game<Table, Function, IndexOffset>::script_game(field& f, game_inf
     _table.try_get(_callbacks.OnBeforeShuffle, "on_before_shuffle");
     _table.try_get(_callbacks.OnShuffle, "on_shuffle");
     _table.try_get(_callbacks.OnAfterShuffle, "on_after_shuffle");
-    _table.try_get(_callbacks.OnChange, "on_change");
+    _table.try_get(_callbacks.OnEndTurn, "on_end_turn");
     _table.try_get(_callbacks.CheckMovable, "check_movable");
     _table.try_get(_callbacks.CheckPlayable, "check_playable");
     _table.try_get(_callbacks.CheckState, "check_state");
@@ -238,10 +238,10 @@ inline void script_game<Table, Function, IndexOffset>::after_shuffle()
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>
-inline void script_game<Table, Function, IndexOffset>::on_change()
+inline void script_game<Table, Function, IndexOffset>::on_end_turn()
 {
-    if (_callbacks.OnChange) {
-        (*_callbacks.OnChange)(static_cast<base_game const*>(this));
+    if (_callbacks.OnEndTurn) {
+        (*_callbacks.OnEndTurn)(static_cast<base_game const*>(this));
     }
 }
 
@@ -336,7 +336,7 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
     createPiles(Foundation, "Foundation");
     createPiles(Tableau, "Tableau");
 
-    if (Function<void> func; gameRef.try_get(func, "on_created")) {
+    if (Function<void> func; gameRef.try_get(func, "on_piles_created")) {
         func(static_cast<base_game*>(this));
     }
 }

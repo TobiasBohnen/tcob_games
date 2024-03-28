@@ -8,22 +8,22 @@ local rules = require 'base/rules'
 
 
 local free_cell                       = {
-    Info       = {
+    Info             = {
         Name          = "FreeCell",
         Family        = "FreeCell",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    FreeCell   = {
+    FreeCell         = {
         Size   = 4,
         Create = { Rule = rules.any_none_top }
     },
-    Foundation = {
+    Foundation       = {
         Size   = 4,
         Create = { Rule = rules.ace_upsuit_top }
     },
-    Tableau    = {
+    Tableau          = {
         Size   = 8,
         Create = function(i)
             return {
@@ -33,7 +33,7 @@ local free_cell                       = {
             }
         end
     },
-    on_created = Sol.Layout.free_cell
+    on_piles_created = Sol.Layout.free_cell
 }
 
 ------
@@ -51,22 +51,22 @@ free_cell_2.FreeCell.Size             = 2
 ------
 
 local double_free_cell                = {
-    Info       = {
+    Info             = {
         Name          = "Double FreeCell",
         Family        = "FreeCell",
         DeckCount     = 2,
         CardDealCount = 0,
         Redeals       = 0
     },
-    FreeCell   = {
+    FreeCell         = {
         Size   = 8,
         Create = { Rule = rules.any_none_top }
     },
-    Foundation = {
+    Foundation       = {
         Size   = 8,
         Create = { Rule = rules.ace_upsuit_top }
     },
-    Tableau    = {
+    Tableau          = {
         Size   = 10,
         Create = function(i)
             return {
@@ -76,7 +76,7 @@ local double_free_cell                = {
             }
         end
     },
-    on_created = Sol.Layout.double_free_cell
+    on_piles_created = Sol.Layout.double_free_cell
 }
 
 ------
@@ -99,22 +99,22 @@ double_free_cell_2.on_before_shuffle  = ops.Shuffle.ace_to_foundation
 ------
 
 local triple_free_cell                = {
-    Info       = {
+    Info             = {
         Name          = "Triple FreeCell",
         Family        = "FreeCell",
         DeckCount     = 3,
         CardDealCount = 0,
         Redeals       = 0
     },
-    FreeCell   = {
+    FreeCell         = {
         Size   = 10,
         Create = { Rule = rules.any_none_top }
     },
-    Foundation = {
+    Foundation       = {
         Size   = 12,
         Create = { Rule = rules.ace_upsuit_top }
     },
-    Tableau    = {
+    Tableau          = {
         Size   = 13,
         Create = {
             Initial = ops.Initial.face_up(12),
@@ -122,7 +122,7 @@ local triple_free_cell                = {
             Rule = rules.any_downac_sm
         }
     },
-    on_created = Sol.Layout.double_free_cell
+    on_piles_created = Sol.Layout.double_free_cell
 }
 
 ------
@@ -168,22 +168,22 @@ bath.Tableau                          = {
 ------
 
 local big_cell                        = {
-    Info       = {
+    Info             = {
         Name          = "Big Cell",
         Family        = "FreeCell",
         DeckCount     = 3,
         CardDealCount = 0,
         Redeals       = 0
     },
-    FreeCell   = {
+    FreeCell         = {
         Size   = 4,
         Create = { Rule = rules.any_none_top }
     },
-    Foundation = {
+    Foundation       = {
         Size   = 12,
         Create = { Rule = rules.ace_upsuit_top }
     },
-    Tableau    = {
+    Tableau          = {
         Size   = 13,
         Create = {
             Initial = ops.Initial.face_up(12),
@@ -191,20 +191,20 @@ local big_cell                        = {
             Rule = rules.any_downac_sm
         }
     },
-    on_created = Sol.Layout.double_free_cell
+    on_piles_created = Sol.Layout.double_free_cell
 }
 
 ------
 
 local cell_11                         = {
-    Info       = {
+    Info             = {
         Name          = "Cell 11",
         Family        = "FreeCell",
         DeckCount     = 3,
         CardDealCount = 0,
         Redeals       = 0
     },
-    FreeCell   = {
+    FreeCell         = {
         Size   = 11,
         Create = function(i)
             return {
@@ -213,11 +213,11 @@ local cell_11                         = {
             }
         end
     },
-    Foundation = {
+    Foundation       = {
         Size   = 12,
         Create = { Rule = rules.ace_upsuit_top }
     },
-    Tableau    = {
+    Tableau          = {
         Size   = 13,
         Create = function(i)
             return {
@@ -227,7 +227,7 @@ local cell_11                         = {
             }
         end
     },
-    on_created = Sol.Layout.double_free_cell
+    on_piles_created = Sol.Layout.double_free_cell
 }
 
 ------
@@ -345,14 +345,14 @@ local deep                            = {
 ------
 
 local eight_off                       = {
-    Info       = {
+    Info             = {
         Name          = "Eight Off",
         Family        = "FreeCell",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    FreeCell   = {
+    FreeCell         = {
         Size   = 8,
         Create = function(i)
             return {
@@ -361,11 +361,11 @@ local eight_off                       = {
             }
         end
     },
-    Foundation = {
+    Foundation       = {
         Size   = 4,
         Create = { Rule = rules.ace_upsuit_top }
     },
-    Tableau    = {
+    Tableau          = {
         Size   = 8,
         Create = {
             Initial = ops.Initial.face_up(6),
@@ -373,7 +373,7 @@ local eight_off                       = {
             Rule = { Base = rules.Base.King, Build = rules.Build.DownInSuit(), Move = rules.Move.SuperMove() }
         }
     },
-    on_created = Sol.Layout.double_free_cell
+    on_piles_created = Sol.Layout.double_free_cell
 }
 
 ------
@@ -457,22 +457,22 @@ king_cell.Tableau                     = {
 ------
 
 local flipper                         = {
-    Info       = {
+    Info             = {
         Name          = "Flipper",
         Family        = "FreeCell",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    FreeCell   = {
+    FreeCell         = {
         Size   = 7,
         Create = { Rule = rules.any_none_top }
     },
-    Foundation = {
+    Foundation       = {
         Size   = 4,
         Create = { Rule = rules.ace_upsuit_top }
     },
-    Tableau    = {
+    Tableau          = {
         Size   = 7,
         Create = function(i)
             return {
@@ -482,7 +482,7 @@ local flipper                         = {
             }
         end
     },
-    on_change  = function(game)
+    on_end_turn      = function(game)
         local tableau = game.Tableau
         local freeCell = game.FreeCell
         for i, tab in ipairs(tableau) do
@@ -495,7 +495,7 @@ local flipper                         = {
             end
         end
     end,
-    on_created = Sol.Layout.flipper
+    on_piles_created = Sol.Layout.flipper
 }
 
 ------
@@ -522,7 +522,11 @@ local penguin                         = {
             return {
                 Initial = ops.Initial.face_up(i > 0 and 7 or 6),
                 Layout = "Column",
-                Rule = { Base = function(game, card, _) return rules.Base.FirstFoundation(game, card, -1) end, Build = rules.Build.DownInSuit(true), Move = rules.Move.InSeq() }
+                Rule = {
+                    Base = function(game, card, _) return rules.Base.FirstFoundation(game, card, -1) end,
+                    Build = rules.Build.DownInSuit(true),
+                    Move = rules.Move.InSeq()
+                }
             }
         end
     },
@@ -537,7 +541,7 @@ local penguin                         = {
         end
         return false
     end,
-    on_created        = Sol.Layout.flipper
+    on_piles_created  = Sol.Layout.flipper
 }
 
 ------

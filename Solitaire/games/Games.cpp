@@ -165,6 +165,7 @@ void base_game::init()
     save(_currentState);
 
     _state = check_state();
+    calc_available_moves();
 }
 
 void base_game::undo()
@@ -188,7 +189,6 @@ void base_game::layout_piles()
 {
     _movableCache.clear();
     _descriptionCache.clear();
-    on_change();
 
     for (auto& [_, piles] : _piles) {
         for (auto* pile : piles) {
@@ -236,7 +236,6 @@ void base_game::layout_piles()
         }
     }
 
-    calc_available_moves();
     _field.mark_dirty();
 }
 
@@ -476,7 +475,6 @@ void base_game::calc_available_moves()
 
     _availableMoves.clear();
     _availableMoves.reserve(movable.size());
-
     for (auto const& kvp : _piles) {
         isize dstIdx {0};
         for (auto* dst : kvp.second) {
@@ -522,6 +520,7 @@ void base_game::end_turn(bool deal)
 {
     ++_turn;
 
+    on_end_turn();
     layout_piles();
 
     _undoStack.push(_currentState);
@@ -536,6 +535,7 @@ void base_game::end_turn(bool deal)
     }
 
     _state = check_state();
+    calc_available_moves();
 }
 
 auto base_game::rand() -> rng&

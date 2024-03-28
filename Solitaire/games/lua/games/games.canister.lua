@@ -8,18 +8,18 @@ local rules = require 'base/rules'
 
 
 local canister                   = {
-    Info       = {
+    Info             = {
         Name          = "Canister",
         Family        = "BeleagueredCastle",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation = {
+    Foundation       = {
         Size   = 4,
         Create = { Rule = rules.ace_upsuit_none }
     },
-    Tableau    = {
+    Tableau          = {
         Size   = 8,
         Create = function(i)
             return {
@@ -29,7 +29,7 @@ local canister                   = {
             }
         end
     },
-    on_created = Sol.Layout.canister
+    on_piles_created = Sol.Layout.canister
 }
 
 ------

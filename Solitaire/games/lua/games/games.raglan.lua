@@ -38,7 +38,7 @@ local raglan = {
         end
     },
     on_before_shuffle = ops.Shuffle.ace_to_foundation,
-    on_created        = Sol.Layout.raglan
+    on_piles_created  = Sol.Layout.raglan
 }
 
 ------------------------

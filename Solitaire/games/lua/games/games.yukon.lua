@@ -48,18 +48,18 @@ end
 ------
 
 local yukon                              = {
-    Info       = {
+    Info             = {
         Name          = "Yukon",
         Family        = "Yukon",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation = {
+    Foundation       = {
         Size   = 4,
         Create = { Rule = rules.ace_upsuit_none }
     },
-    Tableau    = {
+    Tableau          = {
         Size   = 7,
         Create = function(i)
             return {
@@ -69,7 +69,7 @@ local yukon                              = {
             }
         end
     },
-    on_created = Sol.Layout.yukon
+    on_piles_created = Sol.Layout.yukon
 }
 
 ------
@@ -154,7 +154,7 @@ geoffrey.Tableau                         = {
         }
     end
 }
-geoffrey.on_created                      = Sol.Layout.forty_thieves
+geoffrey.on_piles_created                = Sol.Layout.forty_thieves
 
 ------
 
@@ -278,21 +278,21 @@ local hawaiian                           = {
 ------
 
 local chinese_discipline                 = {
-    Info       = {
+    Info             = {
         Name          = "Chinese Discipline",
         Family        = "Yukon",
         DeckCount     = 1,
         CardDealCount = 3,
         Redeals       = 0
     },
-    Stock      = {
+    Stock            = {
         Initial = ops.Initial.face_down(3)
     },
-    Foundation = {
+    Foundation       = {
         Size   = 4,
         Create = { Rule = rules.ace_upsuit_none }
     },
-    Tableau    = {
+    Tableau          = {
         Size   = 7,
         Create = function(i)
             return {
@@ -302,8 +302,8 @@ local chinese_discipline                 = {
             }
         end
     },
-    on_deal    = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end,
-    on_created = Sol.Layout.klondike
+    on_deal          = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end,
+    on_piles_created = Sol.Layout.klondike
 }
 
 ------
@@ -321,7 +321,7 @@ end
 ------
 
 local rushdike                           = {
-    Info       = {
+    Info             = {
         Name          = "Rushdike",
         Family        = "Yukon",
         --Family = "Gypsy/Yukon/Klondike"
@@ -329,14 +329,14 @@ local rushdike                           = {
         CardDealCount = 7,
         Redeals       = 0
     },
-    Stock      = {
+    Stock            = {
         Initial = ops.Initial.face_down(24)
     },
-    Foundation = {
+    Foundation       = {
         Size   = 4,
         Create = { Rule = rules.ace_upsuit_none }
     },
-    Tableau    = {
+    Tableau          = {
         Size   = 7,
         Create = function(i)
             return {
@@ -346,14 +346,14 @@ local rushdike                           = {
             }
         end
     },
-    on_deal    = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end,
-    on_created = Sol.Layout.klondike
+    on_deal          = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end,
+    on_piles_created = Sol.Layout.klondike
 }
 
 ------
 
 local queenie                            = {
-    Info       = {
+    Info             = {
         Name          = "Queenie",
         Family        = "Yukon",
         --queenie.Info.Family = "Yukon/Gypsy"
@@ -361,14 +361,14 @@ local queenie                            = {
         CardDealCount = 7,
         Redeals       = 0
     },
-    Stock      = {
+    Stock            = {
         Initial = ops.Initial.face_down(24)
     },
-    Foundation = {
+    Foundation       = {
         Size   = 4,
         Create = { Rule = rules.ace_upsuit_none }
     },
-    Tableau    = {
+    Tableau          = {
         Size   = 7,
         Create = function(i)
             return {
@@ -378,8 +378,8 @@ local queenie                            = {
             }
         end
     },
-    on_deal    = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end,
-    on_created = Sol.Layout.klondike
+    on_deal          = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end,
+    on_piles_created = Sol.Layout.klondike
 }
 
 ------

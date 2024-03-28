@@ -8,18 +8,18 @@ local rules = require 'base/rules'
 
 
 local spider                   = {
-    Info       = {
+    Info        = {
         Name          = "Spider",
         Family        = "Spider",
         DeckCount     = 2,
         CardDealCount = 10,
         Redeals       = 0
     },
-    Stock      = {
+    Stock       = {
         Position = { x = 0, y = 0 },
         Initial = ops.Initial.face_down(50)
     },
-    Foundation = {
+    Foundation  = {
         Size   = 4,
         Create = function(i)
             return {
@@ -28,7 +28,7 @@ local spider                   = {
             }
         end
     },
-    Tableau    = {
+    Tableau     = {
         Size   = 10,
         Create = function(i)
             return {
@@ -39,7 +39,7 @@ local spider                   = {
             }
         end
     },
-    on_change  = function(game)
+    on_end_turn = function(game)
         for _, tableau in ipairs(game.Tableau) do
             if tableau.CardCount >= 13 then
                 -- look for completed stack
@@ -67,7 +67,7 @@ local spider                   = {
             end
         end
     end,
-    on_deal    = function(game)
+    on_deal     = function(game)
         for _, tableau in ipairs(game.Tableau) do
             if tableau.IsEmpty then return false end
         end

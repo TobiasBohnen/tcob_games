@@ -8,22 +8,22 @@ local rules = require 'base/rules'
 
 
 local forty_thieves        = {
-    Info       = {
+    Info             = {
         Name          = "Forty Thieves",
         Family        = "FortyThieves",
         DeckCount     = 2,
         CardDealCount = 1,
         Redeals       = 0
     },
-    Stock      = {
+    Stock            = {
         Initial = ops.Initial.face_down(64)
     },
-    Waste      = {},
-    Foundation = {
+    Waste            = {},
+    Foundation       = {
         Size   = 8,
         Create = { Rule = rules.ace_upsuit_top }
     },
-    Tableau    = {
+    Tableau          = {
         Size   = 10,
         Create = {
             Initial = ops.Initial.face_up(4),
@@ -31,8 +31,8 @@ local forty_thieves        = {
             Rule = rules.any_downsuit_top
         }
     },
-    on_deal    = ops.Deal.stock_to_waste,
-    on_created = Sol.Layout.forty_thieves
+    on_deal          = ops.Deal.stock_to_waste,
+    on_piles_created = Sol.Layout.forty_thieves
 }
 
 ------
@@ -86,7 +86,7 @@ corona.Tableau             = {
         Rule = rules.any_downsuit_top
     }
 }
-corona.on_change           = function(game)
+corona.on_end_turn         = function(game)
     return ops.Deal.to_group(game.Waste[1], game.Tableau, true) or ops.Deal.to_group(game.Stock[1], game.Tableau, true)
 end
 
@@ -103,7 +103,7 @@ courtyard.Tableau          = {
         Rule = rules.any_downsuit_inseq
     }
 }
-courtyard.on_change        = corona.on_change
+courtyard.on_end_turn      = corona.on_end_turn
 
 ------------------------
 

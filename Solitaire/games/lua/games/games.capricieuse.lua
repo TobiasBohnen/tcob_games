@@ -58,7 +58,7 @@ local capricieuse              = {
 
         return false
     end,
-    on_created        = Sol.Layout.capricieuse
+    on_piles_created  = Sol.Layout.capricieuse
 }
 
 ------
@@ -118,7 +118,7 @@ cruel.on_redeal                = function(game)
 
     return true
 end
-cruel.on_created               = Sol.Layout.bakers_dozen
+cruel.on_piles_created         = Sol.Layout.bakers_dozen
 
 ------
 

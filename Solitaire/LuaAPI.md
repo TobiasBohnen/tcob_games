@@ -1,4 +1,4 @@
-# Lua
+# Script API
 
 ## Game Definition
 
@@ -49,25 +49,48 @@ The number of redeals allowed throughout the game.
 
 ### Stock / Waste / Reserve / FreeCell / Tableau / Foundation (**table**)
 
-The pile tables describe one or more piles of the the specified type.
+The pile tables describe one or more piles of the specified type.
 
 There are three ways to define a pile:
 
 1) For a single pile, the **table** is in the form of [Pile](#pile).
 
-2) For multiple identical piles, use a **table** with the following member:
+   ```lua
+   Stock = { Initial = ops.Initial.face_down(80) }
+   ```
+
+2) For multiple identical piles, define a **table** with the following member:
+
+   - *Size*: Indicates the **number** of piles.
+   - *Create*: A **table** in the form of [Pile](#pile).
+
+   ```lua
+   Foundation = {
+      Size   = 8,
+      Create = { Rule = rules.ace_upsuit_top }
+   }
+   ```
+
+3) For multiple different piles, define a table with the following member:
 
    - *Size*: Specifies the **number** of piles.
-   - *create*: A **table** in the form of [Pile](#pile).
+   - *Create*: A **function** with a single parameter (0 to Size - 1), that returns a **table** in the form of [Pile](#pile).
 
-3) For multiple different piles, use a table with the following member:
-
-   - *Size*: Specifies the **number** of piles.
-   - *create*: A **function** with a single parameter (0 to Size - 1), that returns a **table** in the form of [Pile](#pile).
+   ```lua
+   Tableau = {
+      Size   = 8,
+      Create = function(i)
+         return {
+               Initial = ops.Initial.face_up(i + 1),
+               Rule = { Base = rules.Base.None, Build = rules.Build.DownInColor(), Move = rules.Move.InSeq() }
+         }
+      end
+   }
+   ```
 
 ### Callbacks
 
-#### on_created
+#### on_piles_created
 
 - *Signature*: function(game)
 - *Description*: Called once after creating all piles.
@@ -91,7 +114,7 @@ There are three ways to define a pile:
 - *Description*: Called after starting a new game after every card has been moved to a pile.
 - *Return value*: none
 
-#### on_change
+#### on_end_turn
 
 - *Signature*: function(game)
 - *Return value*: none

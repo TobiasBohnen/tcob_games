@@ -8,20 +8,20 @@ local rules = require 'base/rules'
 
 
 local canfield                      = {
-    Info       = {
+    Info             = {
         Name          = "Canfield",
         Family        = "Canfield",
         DeckCount     = 1,
         CardDealCount = 3,
         Redeals       = -1
     },
-    Stock      = { Initial = ops.Initial.face_down(34) },
-    Waste      = {},
-    Reserve    = {
+    Stock            = { Initial = ops.Initial.face_down(34) },
+    Waste            = {},
+    Reserve          = {
         Initial = ops.Initial.top_face_up(13),
         Layout = "Column"
     },
-    Foundation = {
+    Foundation       = {
         Size   = 4,
         Create = function(i)
             return {
@@ -30,7 +30,7 @@ local canfield                      = {
             }
         end
     },
-    Tableau    = {
+    Tableau          = {
         Size   = 4,
         Create = {
             Initial = ops.Initial.face_up(1),
@@ -38,10 +38,10 @@ local canfield                      = {
             Rule = { Base = rules.Base.Any, Build = rules.Build.DownAlternateColors(true), Move = rules.Move.TopOrPile() }
         }
     },
-    on_change  = function(game) ops.Deal.to_group(game.Reserve[1], game.Tableau, true) end,
-    on_redeal  = ops.Redeal.waste_to_stock,
-    on_deal    = ops.Deal.stock_to_waste,
-    on_created = Sol.Layout.canfield
+    on_end_turn      = function(game) ops.Deal.to_group(game.Reserve[1], game.Tableau, true) end,
+    on_redeal        = ops.Redeal.waste_to_stock,
+    on_deal          = ops.Deal.stock_to_waste,
+    on_piles_created = Sol.Layout.canfield
 }
 
 ------
@@ -75,7 +75,7 @@ triple_canfield.Tableau.Size        = 7
 local superior_canfield             = Sol.copy(canfield)
 superior_canfield.Info.Name         = "Superior Canfield"
 superior_canfield.Reserve.Initial   = ops.Initial.face_up(13)
-superior_canfield.on_change         = nil
+superior_canfield.on_end_turn       = nil
 
 ------
 
@@ -169,24 +169,24 @@ local eagle_wing_pos                = {
 }
 
 local eagle_wing                    = {
-    Info       = {
+    Info        = {
         Name          = "Eagle Wing",
         Family        = "Canfield",
         DeckCount     = 1,
         CardDealCount = 1,
         Redeals       = 2
     },
-    Stock      = {
+    Stock       = {
         Position = { x = 0, y = 0 },
         Initial = ops.Initial.face_down(30)
     },
-    Waste      = { Position = { x = 1, y = 0 } },
-    Reserve    = {
+    Waste       = { Position = { x = 1, y = 0 } },
+    Reserve     = {
         Position = { x = 4, y = 2 },
         Initial = ops.Initial.face_down(13),
         Layout = "Squared"
     },
-    Foundation = {
+    Foundation  = {
         Size   = 4,
         Create = function(i)
             return {
@@ -196,7 +196,7 @@ local eagle_wing                    = {
             }
         end
     },
-    Tableau    = {
+    Tableau     = {
         Size   = 8,
         Create = function(i)
             return {
@@ -207,12 +207,12 @@ local eagle_wing                    = {
             }
         end
     },
-    on_change  = function(game)
+    on_end_turn = function(game)
         ops.Deal.to_group(game.Reserve[1], game.Tableau, true)
         game.Reserve[1]:flip_down_top_card()
     end,
-    on_redeal  = ops.Redeal.waste_to_stock,
-    on_deal    = ops.Deal.stock_to_waste
+    on_redeal   = ops.Redeal.waste_to_stock,
+    on_deal     = ops.Deal.stock_to_waste
 }
 
 ------
@@ -235,7 +235,7 @@ minerva.Tableau                     = {
         Rule = rules.king_downac_inseq
     }
 }
-minerva.on_change                   = nil
+minerva.on_end_turn                 = nil
 
 ------
 

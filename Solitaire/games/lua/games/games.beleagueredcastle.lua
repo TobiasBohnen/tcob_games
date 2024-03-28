@@ -28,7 +28,7 @@ local beleaguered_castle       = {
         }
     },
     on_before_shuffle = ops.Shuffle.ace_to_foundation,
-    on_created        = Sol.Layout.beleaguered_castle
+    on_piles_created  = Sol.Layout.beleaguered_castle
 }
 
 ------
@@ -48,7 +48,7 @@ castle_mount.Tableau           = {
         Rule = { Base = rules.Base.King, Build = rules.Build.DownByRank(), Move = rules.Move.InSeqInSuit() }
     }
 }
-castle_mount.on_created        = Sol.Layout.canister
+castle_mount.on_piles_created  = Sol.Layout.canister
 
 ------
 
@@ -90,87 +90,23 @@ lightweight.Tableau            = {
         Rule = { Base = rules.Base.King, Build = rules.Build.DownByRank(), Move = rules.Move.InSeq() }
     }
 }
-lightweight.on_created         = Sol.Layout.canister
-
-------
-
-local bastion                  = {
-    Info       = {
-        Name          = "Bastion",
-        Family        = "BeleagueredCastle",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
-    },
-    FreeCell   = {
-        Size   = 2,
-        Create = {
-            Initial = ops.Initial.face_up(1),
-            Rule = rules.any_none_top
-        }
-    },
-    Foundation = {
-        Size   = 4,
-        Create = { Rule = rules.ace_upsuit_top }
-    },
-    Tableau    = {
-        Size   = 10,
-        Create = {
-            Initial = ops.Initial.face_up(5),
-            Layout = "Column",
-            Rule = rules.any_updownsuit_top
-        }
-    },
-    on_created = Sol.Layout.free_cell
-}
-
-------
-
-local castles_end              = Sol.copy(bastion)
-castles_end.Info.Name          = "Castles End"
-castles_end.Foundation.Create  = { Rule = rules.ff_upsuit_top }
-castles_end.Tableau.Create     = {
-    Initial = ops.Initial.face_up(5),
-    Layout = "Column",
-    Rule = rules.any_updownac_top
-}
-castles_end.check_playable     = function(game, targetPile, targetIndex, drop, numCards)
-    local foundation1 = game.Foundation[1]
-    if foundation1.IsEmpty then -- block card drops if foundation is empty
-        return targetPile == foundation1
-    end
-
-    return game:can_play(targetPile, targetIndex, drop, numCards)
-end
-
-------
-
-local ten_by_one               = Sol.copy(bastion)
-ten_by_one.Info.Name           = "Ten by One"
-ten_by_one.FreeCell            = { Rule = rules.any_none_top }
-ten_by_one.Tableau.Create      = function(i)
-    return {
-        Initial = ops.Initial.face_up(i < 2 and 6 or 5),
-        Layout = "Column",
-        Rule = rules.any_updownsuit_top
-    }
-end
+lightweight.on_piles_created   = Sol.Layout.canister
 
 ------
 
 local chessboard               = {
-    Info           = {
+    Info             = {
         Name          = "Chessboard",
         Family        = "BeleagueredCastle",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation     = {
+    Foundation       = {
         Size   = 4,
         Create = { Rule = rules.ff_upsuit_none }
     },
-    Tableau        = {
+    Tableau          = {
         Size   = 10,
         Create = function(i)
             return {
@@ -180,7 +116,7 @@ local chessboard               = {
             }
         end
     },
-    check_playable = function(game, targetPile, targetIndex, drop, numCards)
+    check_playable   = function(game, targetPile, targetIndex, drop, numCards)
         local foundation1 = game.Foundation[1]
         if foundation1.IsEmpty and targetPile == foundation1 then -- allow any card on first foundation
             return true
@@ -188,7 +124,7 @@ local chessboard               = {
 
         return game:can_play(targetPile, targetIndex, drop, numCards)
     end,
-    on_created     = Sol.Layout.canister
+    on_piles_created = Sol.Layout.canister
 }
 
 ------
@@ -207,18 +143,18 @@ end
 ------
 
 local fortress                 = {
-    Info       = {
+    Info             = {
         Name          = "Fortress",
         Family        = "BeleagueredCastle",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation = {
+    Foundation       = {
         Size   = 4,
         Create = { Rule = rules.ace_upsuit_top }
     },
-    Tableau    = {
+    Tableau          = {
         Size   = 10,
         Create = function(i)
             return {
@@ -228,7 +164,7 @@ local fortress                 = {
             }
         end
     },
-    on_created = Sol.Layout.canister
+    on_piles_created = Sol.Layout.canister
 }
 
 ------
@@ -255,24 +191,24 @@ local morehead                 = {
             }
         end
     },
-    on_created = Sol.Layout.canister
+    on_piles_created = Sol.Layout.canister
 }
 
 ------
 
 local penelopes_web            = {
-    Info       = {
+    Info             = {
         Name          = "Penelope's Web",
         Family        = "BeleagueredCastle",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation = {
+    Foundation       = {
         Size   = 4,
         Create = { Rule = rules.ace_upsuit_none }
     },
-    Tableau    = {
+    Tableau          = {
         Size   = 8,
         Create = function(i)
             return {
@@ -282,24 +218,24 @@ local penelopes_web            = {
             }
         end
     },
-    on_created = Sol.Layout.beleaguered_castle
+    on_piles_created = Sol.Layout.beleaguered_castle
 }
 
 ------
 
 local selective_castle         = {
-    Info           = {
+    Info             = {
         Name          = "Selective Castle",
         Family        = "BeleagueredCastle",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation     = {
+    Foundation       = {
         Size   = 4,
         Create = { Rule = rules.ff_upsuit_none }
     },
-    Tableau        = {
+    Tableau          = {
         Size   = 8,
         Create = function(i)
             return {
@@ -309,7 +245,7 @@ local selective_castle         = {
             }
         end
     },
-    check_playable = function(game, targetPile, targetIndex, drop, numCards)
+    check_playable   = function(game, targetPile, targetIndex, drop, numCards)
         local foundation1 = game.Foundation[1]
         if foundation1.IsEmpty and targetPile == foundation1 then -- allow any card on first foundation
             return true
@@ -317,24 +253,24 @@ local selective_castle         = {
 
         return game:can_play(targetPile, targetIndex, drop, numCards)
     end,
-    on_created     = Sol.Layout.beleaguered_castle
+    on_piles_created = Sol.Layout.beleaguered_castle
 }
 
 ------
 
 local streets_and_alleys       = {
-    Info       = {
+    Info             = {
         Name          = "Streets and Alleys",
         Family        = "BeleagueredCastle",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation = {
+    Foundation       = {
         Size   = 4,
         Create = { Rule = rules.ace_upsuit_none }
     },
-    Tableau    = {
+    Tableau          = {
         Size   = 8,
         Create = function(i)
             return {
@@ -344,25 +280,25 @@ local streets_and_alleys       = {
             }
         end
     },
-    on_created = Sol.Layout.beleaguered_castle
+    on_piles_created = Sol.Layout.beleaguered_castle
 }
 
 ------
 
 local chequers                 = {
-    Info       = {
+    Info        = {
         Name          = "Chequers",
         Family        = "BeleagueredCastle",
         DeckCount     = 2,
         CardDealCount = 0,
         Redeals       = 0
     },
-    Reserve    = {
+    Reserve     = {
         Position = { x = 0, y = 0 },
         Initial = ops.Initial.face_down(4),
         Rule = rules.none_none_none
     },
-    Foundation = {
+    Foundation  = {
         Size   = 8,
         Create = function(i)
             if i < 4 then
@@ -378,7 +314,7 @@ local chequers                 = {
             end
         end
     },
-    Tableau    = {
+    Tableau     = {
         Size   = 25,
         Create = function(i)
             return {
@@ -389,7 +325,7 @@ local chequers                 = {
             }
         end
     },
-    on_change  = function(game)
+    on_end_turn = function(game)
         local reserve1 = game.Reserve[1]
         ops.Deal.to_group(reserve1, game.Tableau, true)
         if not reserve1.IsEmpty then
@@ -562,10 +498,8 @@ zerline_3_decks.Tableau        = {
 ------------
 
 Sol.register_game(beleaguered_castle)
-Sol.register_game(bastion)
 Sol.register_game(castle_mount)
 Sol.register_game(castle_of_indolence)
-Sol.register_game(castles_end)
 Sol.register_game(chequers)
 Sol.register_game(chessboard)
 Sol.register_game(citadel)
@@ -577,6 +511,5 @@ Sol.register_game(morehead)
 Sol.register_game(penelopes_web)
 Sol.register_game(selective_castle)
 Sol.register_game(streets_and_alleys)
-Sol.register_game(ten_by_one)
 Sol.register_game(zerline)
 Sol.register_game(zerline_3_decks)

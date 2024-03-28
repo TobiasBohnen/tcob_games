@@ -109,7 +109,7 @@ protected:
     auto virtual on_shuffle(card& card, pile_type pileType) -> bool = 0;
     void virtual after_shuffle()                                    = 0;
 
-    void virtual on_change() = 0;
+    void virtual on_end_turn() = 0;
 
     auto virtual check_state() const -> game_state;
 
@@ -173,7 +173,7 @@ protected:
     auto on_shuffle(card& card, pile_type pileType) -> bool override;
     void after_shuffle() override;
 
-    void on_change() override;
+    void on_end_turn() override;
 
     auto check_state() const -> game_state override;
 
@@ -188,7 +188,7 @@ private:
         std::optional<Function<bool>>       OnBeforeShuffle;
         std::optional<Function<bool>>       OnShuffle;
         std::optional<Function<void>>       OnAfterShuffle;
-        std::optional<Function<void>>       OnChange;
+        std::optional<Function<void>>       OnEndTurn;
         std::optional<Function<bool>>       CheckMovable;
         std::optional<Function<bool>>       CheckPlayable;
         std::optional<Function<game_state>> CheckState;

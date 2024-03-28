@@ -8,21 +8,21 @@ local rules = require 'base/rules'
 
 
 local gypsy                           = {
-    Info       = {
+    Info             = {
         Name          = "Gypsy",
         Family        = "Gypsy",
         DeckCount     = 2,
         CardDealCount = 8,
         Redeals       = 0
     },
-    Stock      = {
+    Stock            = {
         Initial = ops.Initial.face_down(80)
     },
-    Foundation = {
+    Foundation       = {
         Size   = 8,
         Create = { Rule = rules.ace_upsuit_top }
     },
-    Tableau    = {
+    Tableau          = {
         Size   = 8,
         Create = {
             Initial = ops.Initial.top_face_up(3),
@@ -30,8 +30,8 @@ local gypsy                           = {
             Rule = rules.any_downac_inseq
         }
     },
-    on_created = Sol.Layout.gypsy,
-    on_deal    = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
+    on_piles_created = Sol.Layout.gypsy,
+    on_deal          = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
 }
 
 ------
@@ -60,7 +60,7 @@ agnes_sorel.Tableau                   = {
         }
     end
 }
-agnes_sorel.on_created                = Sol.Layout.klondike
+agnes_sorel.on_piles_created          = Sol.Layout.klondike
 
 ------
 
@@ -76,8 +76,8 @@ blockade.Tableau                      = {
         Rule = rules.any_downsuit_inseq
     }
 }
-blockade.on_created                   = Sol.Layout.klondike
-blockade.on_change                    = function(game) ops.Deal.to_group(game.Stock[1], game.Tableau, true) end
+blockade.on_piles_created             = Sol.Layout.klondike
+blockade.on_end_turn                  = function(game) ops.Deal.to_group(game.Stock[1], game.Tableau, true) end
 
 ------
 
@@ -131,7 +131,7 @@ elba.Tableau                          = {
         Rule = rules.king_downac_inseq
     }
 }
-elba.on_created                       = Sol.Layout.klondike
+elba.on_piles_created                 = Sol.Layout.klondike
 
 ------
 
@@ -149,7 +149,7 @@ hypotenuse.Tableau                    = {
         }
     end
 }
-hypotenuse.on_created                 = Sol.Layout.klondike
+hypotenuse.on_piles_created           = Sol.Layout.klondike
 
 ------
 
@@ -167,7 +167,7 @@ irmgard.Tableau                       = {
         }
     end
 }
-irmgard.on_created                    = Sol.Layout.klondike
+irmgard.on_piles_created              = Sol.Layout.klondike
 
 ------
 
@@ -306,21 +306,21 @@ local cone                            = {
 ------
 
 local easthaven                       = {
-    Info       = {
+    Info             = {
         Name          = "Easthaven",
         Family        = "Gypsy",
         DeckCount     = 1,
         CardDealCount = 7,
         Redeals       = 0
     },
-    Stock      = {
+    Stock            = {
         Initial = ops.Initial.face_down(31)
     },
-    Foundation = {
+    Foundation       = {
         Size   = 4,
         Create = { Rule = rules.ace_upsuit_top }
     },
-    Tableau    = {
+    Tableau          = {
         Size   = 7,
         Create = {
             Initial = ops.Initial.top_face_up(3),
@@ -328,8 +328,8 @@ local easthaven                       = {
             Rule = rules.any_downac_inseq
         }
     },
-    on_created = Sol.Layout.klondike,
-    on_deal    = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
+    on_piles_created = Sol.Layout.klondike,
+    on_deal          = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
 }
 
 ------

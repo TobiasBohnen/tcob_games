@@ -8,18 +8,18 @@ local rules = require 'base/rules'
 
 
 local castles_in_spain              = {
-    Info       = {
+    Info             = {
         Name          = "Castles In Spain",
         Family        = "BakersDozen",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation = {
+    Foundation       = {
         Size   = 4,
         Create = { Rule = rules.ace_upsuit_top }
     },
-    Tableau    = {
+    Tableau          = {
         Size   = 13,
         Create = {
             Initial = ops.Initial.top_face_up(4),
@@ -27,7 +27,7 @@ local castles_in_spain              = {
             Rule = rules.any_downac_top
         }
     },
-    on_created = Sol.Layout.bakers_dozen
+    on_piles_created = Sol.Layout.bakers_dozen
 }
 
 ------

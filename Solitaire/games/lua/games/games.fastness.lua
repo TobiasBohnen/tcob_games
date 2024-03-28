@@ -8,22 +8,22 @@ local rules = require 'base/rules'
 
 
 local fastness               = {
-    Info       = {
+    Info             = {
         Name          = "Fastness",
         Family        = "BeleagueredCastle",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    FreeCell   = {
+    FreeCell         = {
         Size   = 2,
         Create = { Rule = rules.any_none_top }
     },
-    Foundation = {
+    Foundation       = {
         Size   = 4,
         Create = { Rule = rules.ace_upsuit_none }
     },
-    Tableau    = {
+    Tableau          = {
         Size   = 8,
         Create = function(i)
             return {
@@ -33,7 +33,7 @@ local fastness               = {
             }
         end
     },
-    on_created = Sol.Layout.fastness
+    on_piles_created = Sol.Layout.fastness
 }
 
 ------

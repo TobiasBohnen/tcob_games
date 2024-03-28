@@ -8,19 +8,19 @@ local rules = require 'base/rules'
 
 
 local gate                 = {
-    Info       = {
+    Info        = {
         Name          = "Gate",
         Family        = "Canfield",
         DeckCount     = 1,
         CardDealCount = 1,
         Redeals       = 0
     },
-    Stock      = {
+    Stock       = {
         Position = { x = 0, y = 0 },
         Initial = ops.Initial.face_down(34)
     },
-    Waste      = { Position = { x = 1, y = 0 } },
-    Reserve    = {
+    Waste       = { Position = { x = 1, y = 0 } },
+    Reserve     = {
         Size = 2,
         Create = function(i)
             return {
@@ -30,7 +30,7 @@ local gate                 = {
             }
         end
     },
-    Foundation = {
+    Foundation  = {
         Size   = 4,
         Create = function(i)
             return {
@@ -39,7 +39,7 @@ local gate                 = {
             }
         end
     },
-    Tableau    = {
+    Tableau     = {
         Size   = 8,
         Create = function(i)
             return {
@@ -50,7 +50,7 @@ local gate                 = {
             }
         end
     },
-    on_change  = function(game)
+    on_end_turn = function(game)
         local reserve = game.Reserve
         if reserve[1].IsEmpty and reserve[2].IsEmpty then
             ops.Deal.to_group(game.Waste[1], game.Tableau, true)
@@ -62,7 +62,7 @@ local gate                 = {
             end
         end
     end,
-    on_deal    = ops.Deal.stock_to_waste
+    on_deal     = ops.Deal.stock_to_waste
 }
 
 ------

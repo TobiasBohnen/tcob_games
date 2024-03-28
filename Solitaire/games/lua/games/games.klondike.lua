@@ -8,20 +8,20 @@ local rules = require 'base/rules'
 
 
 local klondike                           = {
-    Info       = {
+    Info             = {
         Name          = "Klondike",
         Family        = "Klondike",
         DeckCount     = 1,
         CardDealCount = 1,
         Redeals       = -1
     },
-    Stock      = { Initial = ops.Initial.face_down(24) },
-    Waste      = {},
-    Foundation = {
+    Stock            = { Initial = ops.Initial.face_down(24) },
+    Waste            = {},
+    Foundation       = {
         Size   = 4,
         Create = { Rule = rules.ace_upsuit_top }
     },
-    Tableau    = {
+    Tableau          = {
         Size   = 7,
         Create = function(i)
             return {
@@ -31,9 +31,9 @@ local klondike                           = {
             }
         end
     },
-    on_redeal  = ops.Redeal.waste_to_stock,
-    on_deal    = ops.Deal.stock_to_waste,
-    on_created = Sol.Layout.klondike
+    on_redeal        = ops.Redeal.waste_to_stock,
+    on_deal          = ops.Deal.stock_to_waste,
+    on_piles_created = Sol.Layout.klondike
 }
 
 ------
@@ -51,7 +51,7 @@ double_klondike.Info.DeckCount           = 2
 double_klondike.Stock.Initial            = ops.Initial.face_down(59)
 double_klondike.Foundation.Size          = 8
 double_klondike.Tableau.Size             = 9
-double_klondike.on_created               = Sol.Layout.big_harp
+double_klondike.on_piles_created         = Sol.Layout.big_harp
 
 ------
 
@@ -67,7 +67,7 @@ triple_klondike.Info.DeckCount           = 3
 triple_klondike.Stock.Initial            = ops.Initial.face_down(65)
 triple_klondike.Foundation.Size          = 12
 triple_klondike.Tableau.Size             = 13
-triple_klondike.on_created               = Sol.Layout.big_harp
+triple_klondike.on_piles_created         = Sol.Layout.big_harp
 
 ------
 
@@ -155,7 +155,7 @@ big_harp.Tableau                         = {
         }
     end
 }
-big_harp.on_created                      = Sol.Layout.big_harp
+big_harp.on_piles_created                = Sol.Layout.big_harp
 
 ------
 
@@ -203,20 +203,20 @@ cassim.on_before_shuffle                 = ops.Shuffle.ace_to_foundation
 ------
 
 local eight_by_eight                     = {
-    Info       = {
+    Info             = {
         Name = "8 x 8",
         Family = "Klondike",
         DeckCount = 2,
         CardDealCount = 1,
         Redeals = -1
     },
-    Stock      = { Initial = ops.Initial.face_down(40) },
-    Waste      = {},
-    Foundation = {
+    Stock            = { Initial = ops.Initial.face_down(40) },
+    Waste            = {},
+    Foundation       = {
         Size = 8,
         Create = { Rule = rules.ace_upsuit_top }
     },
-    Tableau    = {
+    Tableau          = {
         Size = 8,
         Create = function(i)
             return {
@@ -226,9 +226,9 @@ local eight_by_eight                     = {
             }
         end
     },
-    on_redeal  = ops.Redeal.waste_to_stock,
-    on_deal    = ops.Deal.stock_to_waste,
-    on_created = Sol.Layout.big_harp
+    on_redeal        = ops.Redeal.waste_to_stock,
+    on_deal          = ops.Deal.stock_to_waste,
+    on_piles_created = Sol.Layout.big_harp
 }
 
 ------
@@ -280,7 +280,7 @@ arabella.Tableau                         = {
         }
     end
 }
-arabella.on_created                      = Sol.Layout.big_harp
+arabella.on_piles_created                = Sol.Layout.big_harp
 
 ------
 
@@ -344,7 +344,7 @@ chinese_klondike.Info.DeckSuits          = { "Clubs", "Spades", "Hearts" }
 chinese_klondike.Stock.Initial           = ops.Initial.face_down(39)
 chinese_klondike.Foundation.Size         = 9
 chinese_klondike.Tableau.Size            = 12
-chinese_klondike.on_created              = Sol.Layout.big_harp
+chinese_klondike.on_piles_created        = Sol.Layout.big_harp
 
 ------
 
@@ -397,22 +397,22 @@ gargantua.Info.Redeals                   = 1
 ------
 
 local guardian                           = {
-    Info       = {
+    Info        = {
         Name = "Guardian",
         Family = "Klondike",
         DeckCount = 1,
         CardDealCount = 3,
         Redeals = -1
     },
-    Stock      = {
+    Stock       = {
         Position = { x = 0, y = 0 },
         Initial = ops.Initial.face_down(40)
     },
-    Waste      = {
+    Waste       = {
         Position = { x = 1, y = 0 },
         Layout = "Fan"
     },
-    Foundation = {
+    Foundation  = {
         Size = 4,
         Create = function(i)
             return {
@@ -421,7 +421,7 @@ local guardian                           = {
             }
         end
     },
-    Tableau    = {
+    Tableau     = {
         Size = 12,
         Create = function(i)
             local tab = {
@@ -445,9 +445,9 @@ local guardian                           = {
             return tab
         end
     },
-    on_redeal  = ops.Redeal.waste_to_stock,
-    on_deal    = ops.Deal.stock_to_waste,
-    on_change  = function(game)
+    on_redeal   = ops.Redeal.waste_to_stock,
+    on_deal     = ops.Deal.stock_to_waste,
+    on_end_turn = function(game)
         for tabIdx = 1, 7 do
             local pile = game.Tableau[tabIdx]
             if not pile.IsEmpty then
@@ -491,7 +491,7 @@ double_kingsley.Info.DeckCount           = 2
 double_kingsley.Stock.Initial            = ops.Initial.face_down(59)
 double_kingsley.Foundation.Size          = 8
 double_kingsley.Tableau.Size             = 9
-double_kingsley.on_created               = Sol.Layout.big_harp
+double_kingsley.on_piles_created         = Sol.Layout.big_harp
 
 ------
 
@@ -512,7 +512,7 @@ qc.Tableau                               = {
         Rule    = rules.any_downsuit_top
     }
 }
-qc.on_change                             = function(game)
+qc.on_end_turn                           = function(game)
     return ops.Deal.to_group(game.Waste[1], game.Tableau, true) or ops.Deal.to_group(game.Stock[1], game.Tableau, true)
 end
 
@@ -574,7 +574,7 @@ double_trigon.Info.DeckCount             = 2
 double_trigon.Stock.Initial              = ops.Initial.face_down(59)
 double_trigon.Foundation.Size            = 8
 double_trigon.Tableau.Size               = 9
-double_trigon.on_created                 = Sol.Layout.big_harp
+double_trigon.on_piles_created           = Sol.Layout.big_harp
 
 ------
 
@@ -596,7 +596,7 @@ whitehorse.Tableau                       = {
         Rule    = rules.king_downac_inseq
     }
 }
-whitehorse.on_change                     = function(game)
+whitehorse.on_end_turn                   = function(game)
     return ops.Deal.to_group(game.Waste[1], game.Tableau, true) or ops.Deal.to_group(game.Stock[1], game.Tableau, true)
 end
 
@@ -636,18 +636,18 @@ bim_bom.Tableau                          = {
 ------
 
 local somerset                           = {
-    Info       = {
+    Info             = {
         Name          = "Somerset",
         Family        = "Klondike",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation = {
+    Foundation       = {
         Size   = 4,
         Create = { Rule = rules.ace_upsuit_top }
     },
-    Tableau    = {
+    Tableau          = {
         Size   = 10,
         Create = function(i)
             return {
@@ -657,7 +657,7 @@ local somerset                           = {
             }
         end
     },
-    on_created = Sol.Layout.canister
+    on_piles_created = Sol.Layout.canister
 }
 
 ------
@@ -678,7 +678,7 @@ steps.Tableau                            = {
         }
     end
 }
-steps.on_created                         = Sol.Layout.klondike
+steps.on_piles_created                   = Sol.Layout.klondike
 
 ------
 local function usk_redeal(game)
@@ -703,19 +703,19 @@ local function usk_redeal(game)
 end
 
 local usk                   = {
-    Info       = {
+    Info             = {
         Name          = "Usk",
         Family        = "Klondike",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 1
     },
-    Stock      = {},
-    Foundation = {
+    Stock            = {},
+    Foundation       = {
         Size   = 4,
         Create = { Rule = rules.ace_upsuit_top }
     },
-    Tableau    = {
+    Tableau          = {
         Size   = 10,
         Create = function(i)
             return {
@@ -725,8 +725,8 @@ local usk                   = {
             }
         end
     },
-    on_redeal  = usk_redeal,
-    on_created = Sol.Layout.canister
+    on_redeal        = usk_redeal,
+    on_piles_created = Sol.Layout.canister
 }
 
 ------

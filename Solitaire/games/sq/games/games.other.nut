@@ -77,7 +77,7 @@ local aces_up = {
         return "Running"
     },
     on_deal = @(game) ops.Deal.to_group(game.Stock[0], game.Tableau, false),
-    on_created = @(game) Lua.Sol.Layout.klondike(game)
+    on_piles_created = @(game) Lua.Sol.Layout.klondike(game)
 }
 
 # # # # # # # #
@@ -169,7 +169,7 @@ local aces_square = {
         }
         return "Running"
     },
-    on_change = function(game) {
+    on_end_turn = function(game) {
         local foundation = game.Foundation[0]
         foreach(tab in game.Tableau) {
             if (tab.CardCount > 1) {

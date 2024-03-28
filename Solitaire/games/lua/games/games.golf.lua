@@ -34,22 +34,22 @@ end
 ------
 
 local golf                 = {
-    Info        = {
+    Info             = {
         Name          = "Golf",
         Family        = "Golf",
         DeckCount     = 1,
         CardDealCount = 1,
         Redeals       = 0
     },
-    Stock       = {
+    Stock            = {
         Initial = ops.Initial.face_down(16)
     },
-    Foundation  = {
+    Foundation       = {
         Initial = ops.Initial.face_up(1),
         Layout  = "Squared",
         Rule    = { Base = rules.Base.None, Build = rules.Build.UpOrDownByRank(), Move = rules.Move.None() }
     },
-    Tableau     = {
+    Tableau          = {
         Size   = 7,
         Create = {
             Initial = ops.Initial.top_face_up(5),
@@ -57,11 +57,11 @@ local golf                 = {
             Rule = { Base = rules.Base.None, Build = rules.Build.None(), Move = rules.Move.Top() }
         }
     },
-    on_deal     = function(game)
+    on_deal          = function(game)
         return ops.Deal.to_pile(game.Stock[1], game.Foundation[1], game.CardDealCount)
     end,
-    check_state = golf_check_state,
-    on_created  = Sol.Layout.golf
+    check_state      = golf_check_state,
+    on_piles_created = Sol.Layout.golf
 }
 
 ------
