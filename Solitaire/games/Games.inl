@@ -49,7 +49,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
         game->rand().template shuffle<card>(shuffled);
         return shuffled;
     };
-    gameWrapper["get_pile_index "] = [](base_game* game, pile* p) -> isize {
+    gameWrapper["get_pile_index"] = [](base_game* game, pile* p) -> isize {
         auto const& piles {game->piles().at(p->Type)};
         return std::distance(piles.begin(), std::find(piles.begin(), piles.end(), p)) - IndexOffset;
     };
