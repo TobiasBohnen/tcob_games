@@ -7,7 +7,7 @@ local ops   = require 'base/ops'
 local rules = require 'base/rules'
 
 
-local gypsy                           = {
+local gypsy                                = {
     Info             = {
         Name          = "Gypsy",
         Family        = "Gypsy",
@@ -36,12 +36,12 @@ local gypsy                           = {
 
 ------
 
-local agnes_sorel                     = Sol.copy(gypsy)
-agnes_sorel.Info.Name                 = "Agnes Sorel"
-agnes_sorel.Info.DeckCount            = 1
-agnes_sorel.Info.CardDealCount        = 7
-agnes_sorel.Stock.Initial             = ops.Initial.face_down(23)
-agnes_sorel.Foundation                = {
+local agnes_sorel                          = Sol.copy(gypsy)
+agnes_sorel.Info.Name                      = "Agnes Sorel"
+agnes_sorel.Info.DeckCount                 = 1
+agnes_sorel.Info.CardDealCount             = 7
+agnes_sorel.Stock.Initial                  = ops.Initial.face_down(23)
+agnes_sorel.Foundation                     = {
     Size   = 4,
     Create = function(i)
         return {
@@ -50,7 +50,7 @@ agnes_sorel.Foundation                = {
         }
     end
 }
-agnes_sorel.Tableau                   = {
+agnes_sorel.Tableau                        = {
     Size   = 7,
     Create = function(i)
         return {
@@ -60,15 +60,15 @@ agnes_sorel.Tableau                   = {
         }
     end
 }
-agnes_sorel.on_piles_created          = Sol.Layout.klondike
+agnes_sorel.on_piles_created               = Sol.Layout.klondike
 
 ------
 
-local blockade                        = Sol.copy(gypsy)
-blockade.Info.Name                    = "Blockade"
-blockade.Info.CardDealCount           = 12
-blockade.Stock.Initial                = ops.Initial.face_down(92)
-blockade.Tableau                      = {
+local blockade                             = Sol.copy(gypsy)
+blockade.Info.Name                         = "Blockade"
+blockade.Info.CardDealCount                = 12
+blockade.Stock.Initial                     = ops.Initial.face_down(92)
+blockade.Tableau                           = {
     Size   = 12,
     Create = {
         Initial = ops.Initial.face_up(1),
@@ -76,27 +76,23 @@ blockade.Tableau                      = {
         Rule = rules.any_downsuit_inseq
     }
 }
-blockade.on_piles_created             = Sol.Layout.klondike
-blockade.on_end_turn                  = function(game) ops.Deal.to_group(game.Stock[1], game.Tableau, true) end
+blockade.on_piles_created                  = Sol.Layout.klondike
+blockade.on_end_turn                       = function(game) ops.Deal.to_group(game.Stock[1], game.Tableau, true) end
 
 ------
 
-local die_koenigsbergerin             = Sol.copy(gypsy)
-die_koenigsbergerin.Info.Name         = "Die Königsbergerin"
-die_koenigsbergerin.Tableau.Create    = {
-    Initial = ops.Initial.face_up(3),
-    Layout = "Column",
-    Rule = rules.any_downac_inseq
-}
-die_koenigsbergerin.Foundation.Create = { Rule = rules.ace_upsuit_none }
-die_koenigsbergerin.on_shuffle        = function(game, card, pileType)
+local die_koenigsbergerin                  = Sol.copy(gypsy)
+die_koenigsbergerin.Info.Name              = "Die Königsbergerin"
+die_koenigsbergerin.Foundation.Create.Rule = rules.ace_upsuit_none
+die_koenigsbergerin.Tableau.Create.Initial = ops.Initial.face_up(3)
+die_koenigsbergerin.on_shuffle             = function(game, card, pileType)
     if pileType == "Tableau" and card.Rank == "Ace" then
         return game.PlaceTop(card, game.Foundation, true)
     end
 
     return false
 end
-die_koenigsbergerin.on_after_shuffle  = function(game)
+die_koenigsbergerin.on_after_shuffle       = function(game)
     -- refill Tableau from Stock back to three cards
     local tableau = game.Tableau
     local stock = game.Stock[1]
@@ -119,11 +115,11 @@ end
 
 ------
 
-local elba                            = Sol.copy(gypsy)
-elba.Info.Name                        = "Elba"
-elba.Info.CardDealCount               = 10
-elba.Stock.Initial                    = ops.Initial.face_down(54)
-elba.Tableau                          = {
+local elba                                 = Sol.copy(gypsy)
+elba.Info.Name                             = "Elba"
+elba.Info.CardDealCount                    = 10
+elba.Stock.Initial                         = ops.Initial.face_down(54)
+elba.Tableau                               = {
     Size   = 10,
     Create = {
         Initial = ops.Initial.top_face_up(5),
@@ -131,15 +127,15 @@ elba.Tableau                          = {
         Rule = rules.king_downac_inseq
     }
 }
-elba.on_piles_created                 = Sol.Layout.klondike
+elba.on_piles_created                      = Sol.Layout.klondike
 
 ------
 
-local hypotenuse                      = Sol.copy(gypsy)
-hypotenuse.Info.Name                  = "Hypotenuse"
-hypotenuse.Info.CardDealCount         = 10
-hypotenuse.Stock.Initial              = ops.Initial.face_down(49)
-hypotenuse.Tableau                    = {
+local hypotenuse                           = Sol.copy(gypsy)
+hypotenuse.Info.Name                       = "Hypotenuse"
+hypotenuse.Info.CardDealCount              = 10
+hypotenuse.Stock.Initial                   = ops.Initial.face_down(49)
+hypotenuse.Tableau                         = {
     Size   = 10,
     Create = function(i)
         return {
@@ -149,15 +145,15 @@ hypotenuse.Tableau                    = {
         }
     end
 }
-hypotenuse.on_piles_created           = Sol.Layout.klondike
+hypotenuse.on_piles_created                = Sol.Layout.klondike
 
 ------
 
-local irmgard                         = Sol.copy(gypsy)
-irmgard.Info.Name                     = "Irmgard"
-irmgard.Info.CardDealCount            = 9
-irmgard.Stock.Initial                 = ops.Initial.face_down(79)
-irmgard.Tableau                       = {
+local irmgard                              = Sol.copy(gypsy)
+irmgard.Info.Name                          = "Irmgard"
+irmgard.Info.CardDealCount                 = 9
+irmgard.Stock.Initial                      = ops.Initial.face_down(79)
+irmgard.Tableau                            = {
     Size   = 9,
     Create = function(i)
         return {
@@ -167,19 +163,16 @@ irmgard.Tableau                       = {
         }
     end
 }
-irmgard.on_piles_created              = Sol.Layout.klondike
+irmgard.on_piles_created                   = Sol.Layout.klondike
 
 ------
 
-local lexington_harp                  = Sol.copy(gypsy)
-lexington_harp.Info.Name              = "Lexington Harp"
+local lexington_harp                       = Sol.copy(gypsy)
+lexington_harp.Info.Name                   = "Lexington Harp"
 --lexington_harp.Info.Family = "Gypsy/Yukon"
-lexington_harp.Stock.Initial          = ops.Initial.face_down(68)
-lexington_harp.Foundation             = {
-    Size   = 8,
-    Create = { Rule = rules.ace_upsuit_none }
-}
-lexington_harp.Tableau                = {
+lexington_harp.Stock.Initial               = ops.Initial.face_down(68)
+lexington_harp.Foundation.Create.Rule      = rules.ace_upsuit_none
+lexington_harp.Tableau                     = {
     Size   = 8,
     Create = function(i)
         return {
@@ -192,10 +185,10 @@ lexington_harp.Tableau                = {
 
 ------
 
-local brunswick                       = Sol.copy(lexington_harp)
-brunswick.Info.Name                   = "Brunswick"
+local brunswick                            = Sol.copy(lexington_harp)
+brunswick.Info.Name                        = "Brunswick"
 --brunswick.Info.Family = "Gypsy/Yukon"
-brunswick.Tableau.Create              = function(i)
+brunswick.Tableau.Create                   = function(i)
     return {
         Initial = ops.Initial.face_up(i + 1),
         Layout = "Column",
@@ -205,10 +198,10 @@ end
 
 ------
 
-local milligan_harp                   = Sol.copy(lexington_harp)
-milligan_harp.Info.Name               = "Milligan Harp"
+local milligan_harp                        = Sol.copy(lexington_harp)
+milligan_harp.Info.Name                    = "Milligan Harp"
 --milligan_harp.Info.Family = "Gypsy/Yukon"
-milligan_harp.Tableau.Create          = function(i)
+milligan_harp.Tableau.Create               = function(i)
     return {
         Initial = ops.Initial.top_face_up(i + 1),
         Layout = "Column",
@@ -218,9 +211,9 @@ end
 
 ------
 
-local carlton                         = Sol.copy(lexington_harp)
-carlton.Info.Name                     = "Carlton"
-carlton.Tableau.Create                = function(i)
+local carlton                              = Sol.copy(lexington_harp)
+carlton.Info.Name                          = "Carlton"
+carlton.Tableau.Create                     = function(i)
     return {
         Initial = ops.Initial.face_up(i + 1),
         Layout = "Column",
@@ -230,11 +223,11 @@ end
 
 ------
 
-local mississippi                     = Sol.copy(lexington_harp)
-mississippi.Info.Name                 = "Mississippi"
+local mississippi                          = Sol.copy(lexington_harp)
+mississippi.Info.Name                      = "Mississippi"
 --milligan_harp.Info.Family = "Gypsy/Yukon"
-mississippi.Stock.Initial             = ops.Initial.face_down(76)
-mississippi.Tableau                   = {
+mississippi.Stock.Initial                  = ops.Initial.face_down(76)
+mississippi.Tableau                        = {
     Size   = 7,
     Create = function(i)
         return {
@@ -247,7 +240,7 @@ mississippi.Tableau                   = {
 
 ------
 
-local cone                            = {
+local cone                                 = {
     Info       = {
         Name          = "Cone",
         Family        = "Gypsy",
@@ -305,7 +298,7 @@ local cone                            = {
 
 ------
 
-local easthaven                       = {
+local easthaven                            = {
     Info             = {
         Name          = "Easthaven",
         Family        = "Gypsy",
@@ -334,12 +327,12 @@ local easthaven                       = {
 
 ------
 
-local double_easthaven                = Sol.copy(easthaven)
-double_easthaven.Info.Name            = "Double Easthaven"
-double_easthaven.Info.DeckCount       = 2
-double_easthaven.Info.CardDealCount   = 8
-double_easthaven.Stock.Initial        = ops.Initial.face_down(80)
-double_easthaven.Tableau.Size         = 8
+local double_easthaven                     = Sol.copy(easthaven)
+double_easthaven.Info.Name                 = "Double Easthaven"
+double_easthaven.Info.DeckCount            = 2
+double_easthaven.Info.CardDealCount        = 8
+double_easthaven.Stock.Initial             = ops.Initial.face_down(80)
+double_easthaven.Tableau.Size              = 8
 
 ------
 
