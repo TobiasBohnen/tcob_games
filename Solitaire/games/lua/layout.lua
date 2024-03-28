@@ -238,15 +238,7 @@ return {
     -- Foundation       -> top
     -- Tableau          -> second row
     forty_thieves = function(game)
-        local piles     = get_piles(game)
-
-        local bottomRow = 3
-        if piles.HasStock then
-            piles.Stock[1].Position = { x = piles.TableauSize - 1, y = bottomRow }
-        end
-        if piles.HasWaste then
-            piles.Waste[1].Position = { x = piles.TableauSize - 2, y = bottomRow }
-        end
+        local piles = get_piles(game)
 
         local foundationOffsetX = (piles.TableauSize - piles.FoundationSize) / 2
         foundationOffsetX = math.max(0, foundationOffsetX)
@@ -260,6 +252,14 @@ return {
 
         for i = 0, piles.TableauSize - 1 do
             piles.Tableau[i + 1].Position = { x = i + tableauOffsetX, y = 1 }
+        end
+
+        local bottomRow = 3
+        if piles.HasStock then
+            piles.Stock[1].Position = { x = foundationOffsetX + piles.FoundationSize - 1, y = bottomRow }
+        end
+        if piles.HasWaste then
+            piles.Waste[1].Position = { x = foundationOffsetX + piles.FoundationSize - 2, y = bottomRow }
         end
     end,
     -- FreeCells        -> top left

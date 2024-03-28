@@ -242,13 +242,11 @@ eight_by_eight2.Stock.Initial            = ops.Initial.face_down(40)
 eight_by_eight2.Foundation.Size          = 8
 eight_by_eight2.Tableau                  = {
     Size   = 8,
-    Create = function(i)
-        return {
-            Initial = ops.Initial.face_up(8),
-            Layout = "Column",
-            Rule = { Base = rules.Base.AnySingle, Build = rules.Build.DownByRank(), Move = rules.Move.InSeq() }
-        }
-    end
+    Create = {
+        Initial = ops.Initial.face_up(8),
+        Layout = "Column",
+        Rule = { Base = rules.Base.AnySingle, Build = rules.Build.DownByRank(), Move = rules.Move.InSeq() }
+    }
 }
 eight_by_eight2.on_deal                  = ops.Deal.stock_to_waste_by_redeals_left
 

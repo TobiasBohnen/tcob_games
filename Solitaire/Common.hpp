@@ -29,7 +29,7 @@ constexpr isize INDEX_MARKER {-1};
 constexpr isize INDEX_INVALID {-2};
 constexpr f32   CARD_PADDING {1.05f};
 constexpr f32   FACE_DOWN_OFFSET {10.0f};
-constexpr f32   FACE_UP_OFFSET {5.0f};
+constexpr f32   FACE_UP_OFFSET {7.0f};
 
 class field;
 class pile;
