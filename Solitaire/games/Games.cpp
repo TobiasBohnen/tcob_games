@@ -435,19 +435,6 @@ auto base_game::check_state() const -> game_state
     return game_state::Running;
 }
 
-auto base_game::find_pile(card const& card) const -> pile*
-{
-    for (auto const& kvp : _piles) {
-        for (auto* pile : kvp.second) {
-            for (auto const& c : pile->Cards) {
-                if (c == card) { return pile; }
-            }
-        }
-    }
-
-    return nullptr;
-}
-
 void base_game::calc_available_moves()
 {
     if (_gameInfo.DisableHints) {
