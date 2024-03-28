@@ -49,8 +49,22 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
         game->rand().template shuffle<card>(shuffled);
         return shuffled;
     };
-    gameWrapper["find_pile"] = [](base_game* game, card& card) { return game->find_pile(card); };
-    gameWrapper["can_play"]  = [](base_game* game, pile* targetPile, isize targetIndex, card const& drop, isize numCards) {
+    gameWrapper["get_pile_index "] = [](base_game* game, pile* p) -> isize {
+        auto const& piles {game->piles().at(p->Type)};
+        return std::distance(piles.begin(), std::find(piles.begin(), piles.end(), p)) - IndexOffset;
+    };
+    gameWrapper["find_pile"] = [](base_game* game, card& card) -> pile* {
+        for (auto const& piles : game->piles()) {
+            for (auto* pile : piles.second) {
+                for (auto const& c : pile->Cards) {
+                    if (c == card) { return pile; }
+                }
+            }
+        }
+
+        return nullptr;
+    };
+    gameWrapper["can_play"] = [](base_game* game, pile* targetPile, isize targetIndex, card const& drop, isize numCards) {
         return game->base_game::can_play(*targetPile, targetIndex + IndexOffset, drop, numCards);
     };
 

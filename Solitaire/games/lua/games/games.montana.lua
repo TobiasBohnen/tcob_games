@@ -84,23 +84,10 @@ local montana_base                = {
         local checkLeft = string.find(mode, "l")
         local checkRight = string.find(mode, "r")
 
-        for i, tab in ipairs(tableau) do
-            if tab == targetPile then
-                if i % columns == 1 then return drop.Rank == ranks[1] end --leftmost column
-
-                local result = false
-
-                if checkLeft then
-                    result = check_left(tableau[i - 1])
-                end
-                if result then return true end
-
-                if checkRight and i % columns ~= 0 then
-                    result = check_right(tableau[i + 1])
-                end
-                if result then return true end
-            end
-        end
+        local i = game:get_pile_index(targetPile)
+        if i % columns == 1 then return drop.Rank == ranks[1] end --leftmost column
+        if checkLeft and check_left(tableau[i - 1]) then return true end
+        if checkRight and i % columns ~= 0 and check_right(tableau[i + 1]) then return true end
 
         return false
     end,

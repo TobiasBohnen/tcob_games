@@ -184,6 +184,8 @@ There are three ways to define a pile:
 
 ### Stock / Waste / Reserve / FreeCell / Tableau / Foundation
 
+### get_pile_index
+
 ### find_pile
 
 ### can_play

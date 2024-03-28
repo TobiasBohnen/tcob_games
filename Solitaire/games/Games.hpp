@@ -93,7 +93,6 @@ public:
     auto hover_at(point_i pos) -> hit_test_result;
     auto drop_target_at(rect_f const& rect, card const& move, isize numCards) -> hit_test_result;
     void drop_cards(hit_test_result const& hovered, hit_test_result const& dropTarget);
-    auto find_pile(card const& card) const -> pile*;
     auto get_available_moves() const -> std::vector<move> const&;
 
     auto virtual can_play(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool;
