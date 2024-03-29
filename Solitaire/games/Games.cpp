@@ -514,11 +514,8 @@ void base_game::end_turn(bool deal)
     _currentState = {};
     save(_currentState);
 
-    // deal if first Waste is empty
-    if (deal) {
-        if (!Waste.empty() && Waste[0].empty()) {
-            deal_cards();
-        }
+    if (deal && std::ranges::all_of(Waste, [](auto&& waste) { return waste.empty(); })) { // deal if all Waste piles are empty
+        deal_cards();
     }
 
     calc_available_moves();

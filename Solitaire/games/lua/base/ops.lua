@@ -44,7 +44,7 @@ local redeal = {
 
 local function deal_func(from, to, count)
     if from.IsEmpty then return false end
-    for _ = 1, count, 1 do
+    for _ = 1, count do
         from:move_cards(to, #from.Cards, 1, false)
     end
     to:flip_up_cards()
