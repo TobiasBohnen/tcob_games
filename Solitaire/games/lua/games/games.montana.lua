@@ -7,7 +7,7 @@ local ops   = require 'base/ops'
 local rules = require 'base/rules'
 
 
-local montana_base                = {
+local montana_base <const>         = {
     redeal = function(game, ranks)
         local columns = #ranks + 1
         local tableau = game.Tableau
@@ -114,9 +114,9 @@ local montana_base                = {
 }
 
 ------
-local montana_ranks               = { table.unpack(Sol.Ranks, 2, 13) }
+local montana_ranks <const>        = { table.unpack(Sol.Ranks, 2, 13) }
 
-local montana                     = {
+local montana                      = {
     Info             = {
         Name          = "Montana",
         Family        = "Montana",
@@ -152,23 +152,23 @@ local montana                     = {
 
 ------
 
-local double_montana              = Sol.copy(montana)
-double_montana.Info.Name          = "Double Montana"
-double_montana.Info.DeckCount     = 2
-double_montana.Tableau.Size       = 104
+local double_montana               = Sol.copy(montana)
+double_montana.Info.Name           = "Double Montana"
+double_montana.Info.DeckCount      = 2
+double_montana.Tableau.Size        = 104
 
 ------
 
-local moonlight                   = Sol.copy(montana)
-moonlight.Info.Name               = "Moonlight"
-moonlight.check_playable          = function(game, targetPile, _, drop, _)
+local moonlight                    = Sol.copy(montana)
+moonlight.Info.Name                = "Moonlight"
+moonlight.check_playable           = function(game, targetPile, _, drop, _)
     return montana_base.check_playable(game, targetPile, drop, montana_ranks, "rl")
 end
 
 ------
-local blue_moon_ranks             = Sol.Ranks
+local blue_moon_ranks <const>      = Sol.Ranks
 
-local blue_moon_shuffle           = function(game, card, rows)
+local blue_moon_shuffle            = function(game, card, rows)
     if card.Rank == "Ace" then
         for i = 0, rows - 1 do
             if game.PlaceTop(card, game.Tableau, 1 + i * 14, 1, true) then
@@ -180,7 +180,7 @@ local blue_moon_shuffle           = function(game, card, rows)
     return false
 end
 
-local blue_moon                   = {
+local blue_moon                    = {
     Info             = {
         Name          = "Blue Moon",
         Family        = "Montana",
@@ -217,61 +217,61 @@ local blue_moon                   = {
 
 ------
 
-local double_blue_moon            = Sol.copy(blue_moon)
-double_blue_moon.Info.Name        = "Double Blue Moon"
-double_blue_moon.Info.DeckCount   = 2
-double_blue_moon.Tableau.Size     = 112
-double_blue_moon.on_shuffle       = function(game, card, _)
+local double_blue_moon             = Sol.copy(blue_moon)
+double_blue_moon.Info.Name         = "Double Blue Moon"
+double_blue_moon.Info.DeckCount    = 2
+double_blue_moon.Tableau.Size      = 112
+double_blue_moon.on_shuffle        = function(game, card, _)
     return blue_moon_shuffle(game, card, 8)
 end
 
 ------
 
-local red_moon                    = Sol.copy(blue_moon)
-red_moon.Info.Name                = "Red Moon"
-red_moon.Tableau.Pile             = function(i)
+local red_moon                     = Sol.copy(blue_moon)
+red_moon.Info.Name                 = "Red Moon"
+red_moon.Tableau.Pile              = function(i)
     return {
         Initial = ops.Initial.face_up((i % 14 < 2) and 0 or 1),
         Layout = "Squared",
         Rule = rules.none_none_top
     }
 end
-red_moon.on_before_shuffle        = blue_moon.on_shuffle
-red_moon.on_shuffle               = nil
+red_moon.on_before_shuffle         = blue_moon.on_shuffle
+red_moon.on_shuffle                = nil
 
 ------
 
-local double_red_moon             = Sol.copy(red_moon)
-double_red_moon.Info.Name         = "Double Red Moon"
-double_red_moon.Info.DeckCount    = 2
-double_red_moon.Tableau.Size      = 112
-double_red_moon.on_before_shuffle = function(game, card, _)
+local double_red_moon              = Sol.copy(red_moon)
+double_red_moon.Info.Name          = "Double Red Moon"
+double_red_moon.Info.DeckCount     = 2
+double_red_moon.Tableau.Size       = 112
+double_red_moon.on_before_shuffle  = function(game, card, _)
     return blue_moon_shuffle(game, card, 8)
 end
 
 ------
 
-local galary                      = Sol.copy(blue_moon)
-galary.Info.Name                  = "Galary"
-galary.Tableau.Pile               = function(i)
+local galary                       = Sol.copy(blue_moon)
+galary.Info.Name                   = "Galary"
+galary.Tableau.Pile                = function(i)
     return {
         Initial = ops.Initial.face_up((i % 14 == 0 or i % 14 == 1) and 0 or 1),
         Layout = "Squared",
         Rule = rules.none_none_top
     }
 end
-galary.on_before_shuffle          = function(game, card)
+galary.on_before_shuffle           = function(game, card)
     return blue_moon.on_shuffle(game, card)
 end
-galary.on_shuffle                 = nil
-galary.check_playable             = function(game, targetPile, _, drop, _)
+galary.on_shuffle                  = nil
+galary.check_playable              = function(game, targetPile, _, drop, _)
     return montana_base.check_playable(game, targetPile, drop, blue_moon_ranks, "rl")
 end
 
 ------
-local paganini_ranks              = { "Ace", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
+local paganini_ranks <const>       = { "Ace", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
 
-local paganini                    = {
+local paganini                     = {
     Info             = {
         Name          = "Paganini",
         Family        = "Montana",
@@ -315,9 +315,9 @@ local paganini                    = {
 }
 
 ------
-local spoilt_ranks                = { "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace" }
+local spoilt_ranks <const>         = { "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace" }
 
-local spoilt                      = {
+local spoilt                       = {
     Info           = {
         Name          = "Spoilt",
         Family        = "Montana",

@@ -276,7 +276,7 @@ local move = {
             end
         }
     end,
-    InSeqInSuit = function()
+    InSeqInSuit = function() -- in sequence and in suit
         return {
             Move = function(game, target, idx)
                 local cards = target.Cards
@@ -294,7 +294,25 @@ local move = {
             end
         }
     end,
-    InSeqInSuitOrSameRank = function()
+    InSeqAlternateColors = function() -- in sequence and alternate colors
+        return {
+            Move = function(game, target, idx)
+                local cards = target.Cards
+                if cards[idx].IsFaceDown then return false end
+
+                for i = idx, #cards - 1 do
+                    local targetColor = Sol.SuitColors[cards[i].Suit]
+                    if not game:can_play(target, i, cards[i + 1], 1)
+                        or Sol.SuitColors[cards[i + 1].Suit] == targetColor
+                    then
+                        return false
+                    end
+                end
+                return true
+            end
+        }
+    end,
+    InSeqInSuitOrSameRank = function() -- in sequence and (in suit or same rank)
         return {
             Move = function(game, target, idx)
                 local cards = target.Cards
