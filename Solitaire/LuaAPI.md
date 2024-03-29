@@ -139,11 +139,6 @@ There are three ways to define a pile:
 - *Signature*: function(game, pile, index, card, numCards)
 - *Return value*: **true** if the card can be played at the specified index, **false** otherwise.
 
-#### check_movable
-
-- *Signature*: function(game, pile, index)
-- *Return value*: **true** if the card at the index can be moved, **false** otherwise.
-
 ### Pile
 
 #### Position

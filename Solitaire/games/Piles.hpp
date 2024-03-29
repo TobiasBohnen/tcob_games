@@ -23,12 +23,13 @@ auto move_top(pile const* target, isize idx) -> bool;
 auto empty_none(card const&, isize) -> bool;
 
 struct rule {
-    std::string BuildHint;
+    std::string BuildHint {"No building"};
     build_func  Build {build_none};
 
-    bool      IsPlayable {true};
-    bool      IsSequence {false};
-    move_func Move {move_top};
+    bool        IsPlayable {true};
+    bool        IsSequence {false};
+    std::string MoveHint {"None"};
+    move_func   Move {move_top};
 
     empty_func Base {empty_none};
 
@@ -85,7 +86,7 @@ public:
     void flip_down_cards();
     void flip_down_top_card();
 
-    auto get_description(i32 remainingRedeals) const -> hover_info;
+    auto get_description(games::base_game const& game) const -> hover_info;
     auto get_marker_texture_name() const -> std::string;
 
     void move_cards(pile& to, isize startIndex, isize numCards, bool reverse);

@@ -33,7 +33,7 @@ auto base_game::get_description(pile const* pile) -> hover_info
         return it->second;
     }
 
-    auto const retValue {pile->get_description(_remainingRedeals)};
+    auto const retValue {pile->get_description(*this)};
     _descriptionCache[pile] = retValue;
     return retValue;
 }
@@ -164,6 +164,8 @@ void base_game::init()
     _currentState = {};
     save(_currentState);
 
+    _movableCache.clear();
+    _descriptionCache.clear();
     calc_available_moves();
     _state = check_state();
 }
@@ -185,11 +187,32 @@ auto base_game::can_undo() const -> bool
     return !_undoStack.empty();
 }
 
-void base_game::layout_piles()
+void base_game::end_turn(bool deal)
 {
+    ++_turn;
+
+    on_end_turn();
+    layout_piles();
+
+    _undoStack.push(_currentState);
+    _currentState = {};
+    save(_currentState);
+
+    // deal if all Waste piles are empty
+    if (deal
+        && !Waste.empty()
+        && std::ranges::all_of(Waste, [](auto&& waste) { return waste.empty(); })) {
+        deal_cards();
+    }
+
     _movableCache.clear();
     _descriptionCache.clear();
+    calc_available_moves();
+    _state = check_state();
+}
 
+void base_game::layout_piles()
+{
     for (auto& [_, piles] : _piles) {
         for (auto* pile : piles) {
             point_f pos {multiply(pile->Position, _cardSize)};
@@ -501,27 +524,6 @@ void base_game::calc_available_moves()
 auto base_game::get_available_moves() const -> std::vector<move> const&
 {
     return _availableMoves;
-}
-
-void base_game::end_turn(bool deal)
-{
-    ++_turn;
-
-    on_end_turn();
-    layout_piles();
-
-    _undoStack.push(_currentState);
-    _currentState = {};
-    save(_currentState);
-
-    if (deal
-        && !Waste.empty()
-        && std::ranges::all_of(Waste, [](auto&& waste) { return waste.empty(); })) { // deal if all Waste piles are empty
-        deal_cards();
-    }
-
-    calc_available_moves();
-    _state = check_state();
 }
 
 auto base_game::rand() -> rng&

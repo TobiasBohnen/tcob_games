@@ -193,7 +193,6 @@ inline script_game<Table, Function, IndexOffset>::script_game(field& f, game_inf
     _table.try_get(_callbacks.OnShuffle, "on_shuffle");
     _table.try_get(_callbacks.OnAfterShuffle, "on_after_shuffle");
     _table.try_get(_callbacks.OnEndTurn, "on_end_turn");
-    _table.try_get(_callbacks.CheckMovable, "check_movable");
     _table.try_get(_callbacks.CheckPlayable, "check_playable");
     _table.try_get(_callbacks.CheckState, "check_state");
 }
@@ -269,15 +268,6 @@ inline auto script_game<Table, Function, IndexOffset>::check_state() const -> ga
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>
-inline auto script_game<Table, Function, IndexOffset>::check_movable(pile const& targetPile, isize idx) const -> bool
-{
-    if (_callbacks.CheckMovable) {
-        return (*_callbacks.CheckMovable)(static_cast<base_game const*>(this), &targetPile, idx - IndexOffset);
-    }
-    return base_game::check_movable(targetPile, idx);
-}
-
-template <typename Table, template <typename> typename Function, isize IndexOffset>
 inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef)
 {
     auto const createPile {[this](pile& pile, Table const& pileTab) {
@@ -300,6 +290,8 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
             }
 
             if (Table moveTable; ruleTable.try_get(moveTable, "Move")) {
+                moveTable.try_get(pile.Rule.MoveHint, "Hint");
+
                 if (!moveTable.try_get(pile.Rule.IsPlayable, "IsPlayable")) {
                     pile.Rule.IsPlayable = true;
                 }

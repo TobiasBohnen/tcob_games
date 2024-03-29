@@ -30,7 +30,7 @@ local rules = {
 local build = {
     None                    = function(_, _)
         return {
-            Hint = "No building.",
+            Hint = "No building",
             Build = function(_, _)
                 return false
             end
@@ -38,7 +38,7 @@ local build = {
     end,
     Any                     = function(_, _)
         return {
-            Hint = "Any card.",
+            Hint = "Any card",
             Build = function(_, _)
                 return true
             end
@@ -47,7 +47,7 @@ local build = {
 
     InRank                  = function(_, _)
         return {
-            Hint = "Build by same rank.",
+            Hint = "Build by same rank",
             Build = function(target, drop)
                 return rules.in_rank(target, drop)
             end
@@ -58,7 +58,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build down by rank or by same rank.",
+            Hint = "Build down by rank or by same rank",
             Build = function(target, drop)
                 return rules.in_rank(target, drop) or rules.build_down(target, drop, wrap, interval)
             end
@@ -69,7 +69,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build by same rank, then build up by rank.",
+            Hint = "Build by same rank, then build up by rank",
             Build = function(target, drop)
                 if target.CardCount % 4 == 0 then
                     return rules.build_up(target, drop, wrap, interval)
@@ -83,7 +83,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build up or down by rank.",
+            Hint = "Build up or down by rank",
             Build = function(target, drop)
                 return rules.build_up(target, drop, wrap, interval) or rules.build_down(target, drop, wrap, interval)
             end
@@ -93,7 +93,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build down by rank.",
+            Hint = "Build down by rank",
             Build = function(target, drop)
                 return rules.build_down(target, drop, wrap, interval)
             end
@@ -103,7 +103,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build up by rank.",
+            Hint = "Build up by rank",
             Build = function(target, drop)
                 return rules.build_up(target, drop, wrap, interval)
             end
@@ -114,7 +114,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build up or down by any suit but own.",
+            Hint = "Build up or down by any suit but own",
             Build = function(target, drop)
                 return not rules.in_suit(target, drop) and (rules.build_up(target, drop, wrap, interval) or rules.build_down(target, drop, wrap, interval))
             end
@@ -124,7 +124,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build down by any suit but own.",
+            Hint = "Build down by any suit but own",
             Build = function(target, drop)
                 return not rules.in_suit(target, drop) and rules.build_down(target, drop, wrap, interval)
             end
@@ -134,7 +134,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build up by any suit but own.",
+            Hint = "Build up by any suit but own",
             Build = function(target, drop)
                 return not rules.in_suit(target, drop) and rules.build_up(target, drop, wrap, interval)
             end
@@ -145,7 +145,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build up or down by suit.",
+            Hint = "Build up or down by suit",
             Build = function(target, drop)
                 return rules.in_suit(target, drop) and (rules.build_up(target, drop, wrap, interval) or rules.build_down(target, drop, wrap, interval))
             end
@@ -155,7 +155,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build down by suit.",
+            Hint = "Build down by suit",
             Build = function(target, drop)
                 return rules.in_suit(target, drop) and rules.build_down(target, drop, wrap, interval)
             end
@@ -165,7 +165,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build up by suit.",
+            Hint = "Build up by suit",
             Build = function(target, drop)
                 return rules.in_suit(target, drop) and rules.build_up(target, drop, wrap, interval)
             end
@@ -176,7 +176,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build up or down by color.",
+            Hint = "Build up or down by color",
             Build = function(target, drop)
                 return rules.in_color(target, drop) and (rules.build_up(target, drop, wrap, interval) or rules.build_down(target, drop, wrap, interval))
             end
@@ -186,7 +186,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build down by color.",
+            Hint = "Build down by color",
             Build = function(target, drop)
                 return rules.in_color(target, drop) and rules.build_down(target, drop, wrap, interval)
             end
@@ -196,7 +196,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build up by color.",
+            Hint = "Build up by color",
             Build = function(target, drop)
                 return rules.in_color(target, drop) and rules.build_up(target, drop, wrap, interval)
             end
@@ -207,7 +207,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build up or down by alternate color.",
+            Hint = "Build up or down by alternate color",
             Build = function(target, drop)
                 return rules.alternate_color(target, drop) and (rules.build_up(target, drop, wrap, interval) or rules.build_down(target, drop, wrap, interval))
             end
@@ -217,7 +217,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build down by alternate color.",
+            Hint = "Build down by alternate color",
             Build = function(target, drop)
                 return rules.alternate_color(target, drop) and rules.build_down(target, drop, wrap, interval)
             end
@@ -227,7 +227,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build up by alternate color.",
+            Hint = "Build up by alternate color",
             Build = function(target, drop)
                 return rules.alternate_color(target, drop) and rules.build_up(target, drop, wrap, interval)
             end
@@ -238,12 +238,14 @@ local build = {
 local move = {
     None = function()
         return {
+            Hint = "None",
             IsPlayable = false,
             IsSequence = false
         }
     end,
     Top = function()
         return {
+            Hint = "Top card",
             IsSequence = false,
             Move = function(_, target, idx)
                 return idx == target.CardCount
@@ -252,6 +254,7 @@ local move = {
     end,
     TopOrPile = function()
         return {
+            Hint = "Top card or whole pile",
             Move = function(_, target, idx)
                 return idx == target.CardCount or idx == 1
             end
@@ -259,6 +262,7 @@ local move = {
     end,
     FaceUp = function()
         return {
+            Hint = "Face-up cards",
             Move = function(_, target, idx)
                 return target.Cards[idx].IsFaceUp
             end
@@ -266,6 +270,7 @@ local move = {
     end,
     InSeq = function()
         return {
+            Hint = "Sequence of cards",
             Move = function(game, target, idx)
                 local cards = target.Cards
                 if cards[idx].IsFaceDown then return false end
@@ -278,6 +283,7 @@ local move = {
     end,
     InSeqInSuit = function() -- in sequence and in suit
         return {
+            Hint = "Sequence of cards in the same suit",
             Move = function(game, target, idx)
                 local cards = target.Cards
                 if cards[idx].IsFaceDown then return false end
@@ -296,6 +302,7 @@ local move = {
     end,
     InSeqAlternateColors = function() -- in sequence and alternate colors
         return {
+            Hint = "Sequence of cards of alternate colors",
             Move = function(game, target, idx)
                 local cards = target.Cards
                 if cards[idx].IsFaceDown then return false end
@@ -314,6 +321,7 @@ local move = {
     end,
     InSeqInSuitOrSameRank = function() -- in sequence and (in suit or same rank)
         return {
+            Hint = "Sequence of cards in the same suit or the same suit",
             Move = function(game, target, idx)
                 local cards = target.Cards
                 if cards[idx].IsFaceDown then return false end
@@ -343,6 +351,7 @@ local move = {
     end,
     SuperMove = function()
         return {
+            Hint = "Sequence of cards",
             Move = function(game, target, idx)
                 local cards = target.Cards
                 if cards[idx].IsFaceDown then return false end

@@ -112,8 +112,6 @@ protected:
 
     auto virtual check_state() const -> game_state;
 
-    auto virtual check_movable(pile const& targetPile, isize idx) const -> bool;
-
     void create_piles(auto&& piles, isize size, std::function<void(pile&, i32)> const& func);
 
     void layout_piles();
@@ -121,6 +119,7 @@ protected:
     void end_turn(bool deal);
 
 private:
+    auto check_movable(pile const& targetPile, isize idx) const -> bool;
     void calc_available_moves();
 
     void new_game();
@@ -176,8 +175,6 @@ protected:
 
     auto check_state() const -> game_state override;
 
-    auto check_movable(pile const& targetPile, isize idx) const -> bool override;
-
 private:
     void make_piles(auto&& gameRef);
 
@@ -188,7 +185,6 @@ private:
         std::optional<Function<bool>>       OnShuffle;
         std::optional<Function<void>>       OnAfterShuffle;
         std::optional<Function<void>>       OnEndTurn;
-        std::optional<Function<bool>>       CheckMovable;
         std::optional<Function<bool>>       CheckPlayable;
         std::optional<Function<game_state>> CheckState;
     };

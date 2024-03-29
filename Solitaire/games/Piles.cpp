@@ -5,6 +5,8 @@
 
 #include "Piles.hpp"
 
+#include "Games.hpp"
+
 namespace solitaire {
 
 auto build_none(card const&, card const&) -> bool
@@ -93,7 +95,7 @@ void pile::flip_down_top_card()
     if (!empty()) { Cards.back().flip_face_down(); }
 }
 
-auto static get_valid_cards(empty_func const& func) -> std::multimap<rank, suit>
+auto static get_base_cards(empty_func const& func) -> std::multimap<rank, suit>
 {
     std::multimap<rank, suit> retValue;
 
@@ -120,18 +122,19 @@ auto static get_empty_ranks(empty_func const& func) -> std::string
     if (countTrue == 26) { return "Any"; }
     if (countTrue == 0) { return "None"; }
 
-    std::string retValue;
-    for (u8 cr {static_cast<u8>(rank::Ace)}; cr <= static_cast<u8>(rank::King); ++cr) {
+    std::vector<std::string> retValue;
+    for (u8 cr {0}; cr < 13; ++cr) {
         auto const r {get_rank_name(static_cast<rank>(cr + 1))};
         if (ranks[cr] && ranks[cr + 13]) {
-            retValue += r;
+            retValue.push_back(r);
         } else if (ranks[cr]) {
-            retValue += "Black " + r;
+            retValue.push_back("Black " + r);
         } else if (ranks[cr + 13]) {
-            retValue += "Red " + r;
+            retValue.push_back("Red " + r);
         }
     }
-    return retValue;
+    // TODO: translate
+    return helper::join(retValue, "/");
 }
 
 auto get_pile_type_name(pile_type s) -> std::string
@@ -145,10 +148,11 @@ auto get_pile_type_name(pile_type s) -> std::string
     case pile_type::FreeCell: return "FreeCell";
     }
 
+    // TODO: translate
     return "";
 }
 
-auto pile::get_description(i32 remainingRedeals) const -> hover_info
+auto pile::get_description(games::base_game const& game) const -> hover_info
 {
     auto const cardCount {Cards.size()};
 
@@ -157,17 +161,16 @@ auto pile::get_description(i32 remainingRedeals) const -> hover_info
     retValue.CardCount = std::to_string(cardCount);
 
     switch (Type) {
+    case pile_type::Stock: {
+        std::string redeals {game.redeals_left() < 0 ? "∞" : std::to_string(game.redeals_left())};
+        retValue.Rule = "Redeals: " + redeals;
+    } break;
     case pile_type::Waste:
     case pile_type::Reserve:
     case pile_type::FreeCell:
-        break;
-    case pile_type::Stock: {
-        std::string redeals {remainingRedeals < 0 ? "∞" : std::to_string(remainingRedeals)};
-        retValue.Rule = "Redeals: " + redeals;
-    } break;
     case pile_type::Foundation:
     case pile_type::Tableau: {
-        retValue.Rule = Rule.BuildHint + "\nBase: " + get_empty_ranks(Rule.Base);
+        retValue.Rule = Rule.BuildHint + "\nMove: " + Rule.MoveHint + "\nBase: " + get_empty_ranks(Rule.Base);
         break;
     }
     }
@@ -179,11 +182,9 @@ auto pile::get_description(i32 remainingRedeals) const -> hover_info
 auto pile::get_marker_texture_name() const -> std::string
 {
     // TODO:
-    // empty for Waste/Reserve/FreeCell
     // redeal for Stock
-    // rank for Foundation/Tableau
     if (Type == pile_type::Foundation || Type == pile_type::Tableau) {
-        auto const valid {get_valid_cards(Rule.Base)};
+        auto const valid {get_base_cards(Rule.Base)};
         if (valid.size() == 52) {
             return "card_base_gen"; // Any
         }
