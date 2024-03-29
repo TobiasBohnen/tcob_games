@@ -177,20 +177,31 @@ return {
             piles.Tableau[i + 1].Position = { x = i, y = 2 }
         end
     end,
-    -- Foundation       -> left
+    -- Foundation       -> right or top
     -- Tableau          -> in columns
     fan = function(game, columns)
-        local piles             = get_piles(game)
+        local piles = get_piles(game)
 
-        local foundationOffsetX = (columns - piles.FoundationSize) / 2
-        foundationOffsetX       = math.max(0, foundationOffsetX)
+        if piles.FoundationSize <= 4 then
+            --foundation right
+            for i = 0, piles.FoundationSize - 1 do
+                piles.Foundation[i + 1].Position = { x = columns * 2, y = i }
+            end
 
-        for i = 0, piles.FoundationSize - 1 do
-            piles.Foundation[i + 1].Position = { x = columns * 2, y = i }
-        end
+            for i = 0, piles.TableauSize - 1 do
+                piles.Tableau[i + 1].Position = { x = (i % columns) * 2, y = i // columns }
+            end
+        else
+            --foundation top
+            local foundationOffsetX = math.max(0, ((columns * 2) - piles.FoundationSize) / 2)
 
-        for i = 0, piles.TableauSize - 1 do
-            piles.Tableau[i + 1].Position = { x = (i % columns) * 2, y = i // columns }
+            for i = 0, piles.FoundationSize - 1 do
+                piles.Foundation[i + 1].Position = { x = foundationOffsetX + i, y = 0 }
+            end
+
+            for i = 0, piles.TableauSize - 1 do
+                piles.Tableau[i + 1].Position = { x = (i % columns) * 2, y = i // columns + 1 }
+            end
         end
     end,
     -- FreeCell         -> top
@@ -240,8 +251,7 @@ return {
     forty_thieves = function(game)
         local piles = get_piles(game)
 
-        local foundationOffsetX = (piles.TableauSize - piles.FoundationSize) / 2
-        foundationOffsetX = math.max(0, foundationOffsetX)
+        local foundationOffsetX = math.max(0, (piles.TableauSize - piles.FoundationSize) / 2)
 
         for i = 0, piles.FoundationSize - 1 do
             piles.Foundation[i + 1].Position = { x = i + foundationOffsetX, y = 0 }

@@ -846,7 +846,7 @@ thieves_of_egypt.Foundation.Size         = 8
 thieves_of_egypt.Tableau                 = {
     Size = 10,
     Pile = function(i)
-        local cardCount = { 1, 3, 5, 7, 9, 10, 8, 6, 4, 2 }
+        local cardCount <const> = { 1, 3, 5, 7, 9, 10, 8, 6, 4, 2 }
         return {
             Initial = ops.Initial.face_up(cardCount[i + 1]),
             Layout = "Column",
