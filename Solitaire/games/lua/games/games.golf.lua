@@ -135,7 +135,7 @@ local black_hole                 = {
 ------------------------
 
 Sol.register_game(golf)
-Sol.register_game(double_golf)
-Sol.register_game(putt_putt)
-Sol.register_game(double_putt)
 Sol.register_game(black_hole)
+Sol.register_game(double_golf)
+Sol.register_game(double_putt)
+Sol.register_game(putt_putt)

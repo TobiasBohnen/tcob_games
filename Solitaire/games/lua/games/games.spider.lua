@@ -112,6 +112,6 @@ end
 ------------------------
 
 Sol.register_game(spider)
+Sol.register_game(arachnida)
 Sol.register_game(spider_1_suit)
 Sol.register_game(spider_2_suits)
-Sol.register_game(arachnida)

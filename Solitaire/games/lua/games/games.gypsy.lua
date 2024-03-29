@@ -7,7 +7,7 @@ local ops   = require 'base/ops'
 local rules = require 'base/rules'
 
 
-local gypsy                                = {
+local gypsy                              = {
     Info             = {
         Name          = "Gypsy",
         Family        = "Gypsy",
@@ -19,11 +19,11 @@ local gypsy                                = {
         Initial = ops.Initial.face_down(80)
     },
     Foundation       = {
-        Size   = 8,
+        Size = 8,
         Pile = { Rule = rules.ace_upsuit_top }
     },
     Tableau          = {
-        Size   = 8,
+        Size = 8,
         Pile = {
             Initial = ops.Initial.top_face_up(3),
             Layout = "Column",
@@ -36,13 +36,13 @@ local gypsy                                = {
 
 ------
 
-local agnes_sorel                          = Sol.copy(gypsy)
-agnes_sorel.Info.Name                      = "Agnes Sorel"
-agnes_sorel.Info.DeckCount                 = 1
-agnes_sorel.Info.CardDealCount             = 7
-agnes_sorel.Stock.Initial                  = ops.Initial.face_down(23)
-agnes_sorel.Foundation                     = {
-    Size   = 4,
+local agnes_sorel                        = Sol.copy(gypsy)
+agnes_sorel.Info.Name                    = "Agnes Sorel"
+agnes_sorel.Info.DeckCount               = 1
+agnes_sorel.Info.CardDealCount           = 7
+agnes_sorel.Stock.Initial                = ops.Initial.face_down(23)
+agnes_sorel.Foundation                   = {
+    Size = 4,
     Pile = function(i)
         return {
             Initial = i == 0 and ops.Initial.face_up(1) or {},
@@ -50,8 +50,8 @@ agnes_sorel.Foundation                     = {
         }
     end
 }
-agnes_sorel.Tableau                        = {
-    Size   = 7,
+agnes_sorel.Tableau                      = {
+    Size = 7,
     Pile = function(i)
         return {
             Initial = ops.Initial.face_up(i + 1),
@@ -60,39 +60,39 @@ agnes_sorel.Tableau                        = {
         }
     end
 }
-agnes_sorel.on_piles_created               = Sol.Layout.klondike
+agnes_sorel.on_piles_created             = Sol.Layout.klondike
 
 ------
 
-local blockade                             = Sol.copy(gypsy)
-blockade.Info.Name                         = "Blockade"
-blockade.Info.CardDealCount                = 12
-blockade.Stock.Initial                     = ops.Initial.face_down(92)
-blockade.Tableau                           = {
-    Size   = 12,
+local blockade                           = Sol.copy(gypsy)
+blockade.Info.Name                       = "Blockade"
+blockade.Info.CardDealCount              = 12
+blockade.Stock.Initial                   = ops.Initial.face_down(92)
+blockade.Tableau                         = {
+    Size = 12,
     Pile = {
         Initial = ops.Initial.face_up(1),
         Layout = "Column",
         Rule = rules.any_downsuit_inseq
     }
 }
-blockade.on_piles_created                  = Sol.Layout.klondike
-blockade.on_end_turn                       = function(game) ops.Deal.to_group(game.Stock[1], game.Tableau, true) end
+blockade.on_piles_created                = Sol.Layout.klondike
+blockade.on_end_turn                     = function(game) ops.Deal.to_group(game.Stock[1], game.Tableau, true) end
 
 ------
 
-local die_koenigsbergerin                  = Sol.copy(gypsy)
-die_koenigsbergerin.Info.Name              = "Die Königsbergerin"
+local die_koenigsbergerin                = Sol.copy(gypsy)
+die_koenigsbergerin.Info.Name            = "Die Königsbergerin"
 die_koenigsbergerin.Foundation.Pile.Rule = rules.ace_upsuit_none
 die_koenigsbergerin.Tableau.Pile.Initial = ops.Initial.face_up(3)
-die_koenigsbergerin.on_shuffle             = function(game, card, pileType)
+die_koenigsbergerin.on_shuffle           = function(game, card, pileType)
     if pileType == "Tableau" and card.Rank == "Ace" then
         return game.PlaceTop(card, game.Foundation, true)
     end
 
     return false
 end
-die_koenigsbergerin.on_after_shuffle       = function(game)
+die_koenigsbergerin.on_after_shuffle     = function(game)
     -- refill Tableau from Stock back to three cards
     local tableau = game.Tableau
     local stock = game.Stock[1]
@@ -115,28 +115,28 @@ end
 
 ------
 
-local elba                                 = Sol.copy(gypsy)
-elba.Info.Name                             = "Elba"
-elba.Info.CardDealCount                    = 10
-elba.Stock.Initial                         = ops.Initial.face_down(54)
-elba.Tableau                               = {
-    Size   = 10,
+local elba                               = Sol.copy(gypsy)
+elba.Info.Name                           = "Elba"
+elba.Info.CardDealCount                  = 10
+elba.Stock.Initial                       = ops.Initial.face_down(54)
+elba.Tableau                             = {
+    Size = 10,
     Pile = {
         Initial = ops.Initial.top_face_up(5),
         Layout = "Column",
         Rule = rules.king_downac_inseq
     }
 }
-elba.on_piles_created                      = Sol.Layout.klondike
+elba.on_piles_created                    = Sol.Layout.klondike
 
 ------
 
-local hypotenuse                           = Sol.copy(gypsy)
-hypotenuse.Info.Name                       = "Hypotenuse"
-hypotenuse.Info.CardDealCount              = 10
-hypotenuse.Stock.Initial                   = ops.Initial.face_down(49)
-hypotenuse.Tableau                         = {
-    Size   = 10,
+local hypotenuse                         = Sol.copy(gypsy)
+hypotenuse.Info.Name                     = "Hypotenuse"
+hypotenuse.Info.CardDealCount            = 10
+hypotenuse.Stock.Initial                 = ops.Initial.face_down(49)
+hypotenuse.Tableau                       = {
+    Size = 10,
     Pile = function(i)
         return {
             Initial = ops.Initial.top_face_up(10 - i),
@@ -145,16 +145,16 @@ hypotenuse.Tableau                         = {
         }
     end
 }
-hypotenuse.on_piles_created                = Sol.Layout.klondike
+hypotenuse.on_piles_created              = Sol.Layout.klondike
 
 ------
 
-local irmgard                              = Sol.copy(gypsy)
-irmgard.Info.Name                          = "Irmgard"
-irmgard.Info.CardDealCount                 = 9
-irmgard.Stock.Initial                      = ops.Initial.face_down(79)
-irmgard.Tableau                            = {
-    Size   = 9,
+local irmgard                            = Sol.copy(gypsy)
+irmgard.Info.Name                        = "Irmgard"
+irmgard.Info.CardDealCount               = 9
+irmgard.Stock.Initial                    = ops.Initial.face_down(79)
+irmgard.Tableau                          = {
+    Size = 9,
     Pile = function(i)
         return {
             Initial = ops.Initial.top_face_up(i < 5 and i + 1 or 9 - i),
@@ -163,17 +163,17 @@ irmgard.Tableau                            = {
         }
     end
 }
-irmgard.on_piles_created                   = Sol.Layout.klondike
+irmgard.on_piles_created                 = Sol.Layout.klondike
 
 ------
 
-local lexington_harp                       = Sol.copy(gypsy)
-lexington_harp.Info.Name                   = "Lexington Harp"
+local lexington_harp                     = Sol.copy(gypsy)
+lexington_harp.Info.Name                 = "Lexington Harp"
 --lexington_harp.Info.Family = "Gypsy/Yukon"
-lexington_harp.Stock.Initial               = ops.Initial.face_down(68)
+lexington_harp.Stock.Initial             = ops.Initial.face_down(68)
 lexington_harp.Foundation.Pile.Rule      = rules.ace_upsuit_none
-lexington_harp.Tableau                     = {
-    Size   = 8,
+lexington_harp.Tableau                   = {
+    Size = 8,
     Pile = function(i)
         return {
             Initial = ops.Initial.top_face_up(i + 1),
@@ -185,8 +185,8 @@ lexington_harp.Tableau                     = {
 
 ------
 
-local brunswick                            = Sol.copy(lexington_harp)
-brunswick.Info.Name                        = "Brunswick"
+local brunswick                          = Sol.copy(lexington_harp)
+brunswick.Info.Name                      = "Brunswick"
 --brunswick.Info.Family = "Gypsy/Yukon"
 brunswick.Tableau.Pile                   = function(i)
     return {
@@ -198,8 +198,8 @@ end
 
 ------
 
-local milligan_harp                        = Sol.copy(lexington_harp)
-milligan_harp.Info.Name                    = "Milligan Harp"
+local milligan_harp                      = Sol.copy(lexington_harp)
+milligan_harp.Info.Name                  = "Milligan Harp"
 --milligan_harp.Info.Family = "Gypsy/Yukon"
 milligan_harp.Tableau.Pile               = function(i)
     return {
@@ -211,8 +211,8 @@ end
 
 ------
 
-local carlton                              = Sol.copy(lexington_harp)
-carlton.Info.Name                          = "Carlton"
+local carlton                            = Sol.copy(lexington_harp)
+carlton.Info.Name                        = "Carlton"
 carlton.Tableau.Pile                     = function(i)
     return {
         Initial = ops.Initial.face_up(i + 1),
@@ -223,12 +223,12 @@ end
 
 ------
 
-local mississippi                          = Sol.copy(lexington_harp)
-mississippi.Info.Name                      = "Mississippi"
+local mississippi                        = Sol.copy(lexington_harp)
+mississippi.Info.Name                    = "Mississippi"
 --milligan_harp.Info.Family = "Gypsy/Yukon"
-mississippi.Stock.Initial                  = ops.Initial.face_down(76)
-mississippi.Tableau                        = {
-    Size   = 7,
+mississippi.Stock.Initial                = ops.Initial.face_down(76)
+mississippi.Tableau                      = {
+    Size = 7,
     Pile = function(i)
         return {
             Initial = ops.Initial.top_face_up(i + 1),
@@ -240,7 +240,7 @@ mississippi.Tableau                        = {
 
 ------
 
-local cone                                 = {
+local cone                               = {
     Info       = {
         Name          = "Cone",
         Family        = "Gypsy",
@@ -253,7 +253,7 @@ local cone                                 = {
         Initial = ops.Initial.face_down(88)
     },
     Reserve    = {
-        Size   = 4,
+        Size = 4,
         Pile = function(i)
             return {
                 Position = { x = 0, y = i + 1 },
@@ -262,7 +262,7 @@ local cone                                 = {
         end
     },
     Foundation = {
-        Size   = 4,
+        Size = 4,
         Pile = function(i)
             return {
                 Position = { x = 8, y = i + 1 },
@@ -271,7 +271,7 @@ local cone                                 = {
         end
     },
     Tableau    = {
-        Size   = 7,
+        Size = 7,
         Pile = function(i)
             return {
                 Position = { x = i + 1, y = 0 },
@@ -298,7 +298,7 @@ local cone                                 = {
 
 ------
 
-local easthaven                            = {
+local easthaven                          = {
     Info             = {
         Name          = "Easthaven",
         Family        = "Gypsy",
@@ -310,11 +310,11 @@ local easthaven                            = {
         Initial = ops.Initial.face_down(31)
     },
     Foundation       = {
-        Size   = 4,
+        Size = 4,
         Pile = { Rule = rules.ace_upsuit_top }
     },
     Tableau          = {
-        Size   = 7,
+        Size = 7,
         Pile = {
             Initial = ops.Initial.top_face_up(3),
             Layout = "Column",
@@ -327,12 +327,12 @@ local easthaven                            = {
 
 ------
 
-local double_easthaven                     = Sol.copy(easthaven)
-double_easthaven.Info.Name                 = "Double Easthaven"
-double_easthaven.Info.DeckCount            = 2
-double_easthaven.Info.CardDealCount        = 8
-double_easthaven.Stock.Initial             = ops.Initial.face_down(80)
-double_easthaven.Tableau.Size              = 8
+local double_easthaven                   = Sol.copy(easthaven)
+double_easthaven.Info.Name               = "Double Easthaven"
+double_easthaven.Info.DeckCount          = 2
+double_easthaven.Info.CardDealCount      = 8
+double_easthaven.Stock.Initial           = ops.Initial.face_down(80)
+double_easthaven.Tableau.Size            = 8
 
 ------
 
@@ -345,8 +345,8 @@ Sol.register_game(brunswick)
 Sol.register_game(carlton)
 Sol.register_game(cone)
 Sol.register_game(die_koenigsbergerin)
-Sol.register_game(easthaven)
 Sol.register_game(double_easthaven)
+Sol.register_game(easthaven)
 Sol.register_game(elba)
 Sol.register_game(hypotenuse)
 Sol.register_game(irmgard)

@@ -421,12 +421,12 @@ local spoilt                      = {
 ------------------------
 
 Sol.register_game(montana)
-Sol.register_game(double_montana)
 Sol.register_game(blue_moon)
 Sol.register_game(double_blue_moon)
+Sol.register_game(double_montana)
+Sol.register_game(double_red_moon)
 Sol.register_game(galary)
 Sol.register_game(paganini)
 Sol.register_game(moonlight)
 Sol.register_game(red_moon)
-Sol.register_game(double_red_moon)
 Sol.register_game(spoilt)

@@ -60,6 +60,6 @@ end
 
 ------------
 
+Sol.register_game(canister)
 Sol.register_game(american_canister)
 Sol.register_game(british_canister)
-Sol.register_game(canister)
