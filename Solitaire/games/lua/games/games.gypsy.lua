@@ -46,7 +46,7 @@ agnes_sorel.Foundation                   = {
     Pile = function(i)
         return {
             Initial = i == 0 and ops.Initial.face_up(1) or {},
-            Rule = rules.ff_upsuit_none
+            Rule = rules.ff_upsuit_none_l13
         }
     end
 }

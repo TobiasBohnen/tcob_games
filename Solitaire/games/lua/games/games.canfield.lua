@@ -26,7 +26,7 @@ local canfield                      = {
         Pile = function(i)
             return {
                 Initial = ops.Initial.face_up(i == 0 and 1 or 0),
-                Rule = rules.ff_upsuit_none
+                Rule = rules.ff_upsuit_none_l13
             }
         end
     },
@@ -192,7 +192,7 @@ local eagle_wing                    = {
             return {
                 Position = { x = i + 3, y = 0 },
                 Initial = ops.Initial.face_up(i == 0 and 1 or 0),
-                Rule = rules.ff_upsuit_none
+                Rule = rules.ff_upsuit_none_l13
             }
         end
     },

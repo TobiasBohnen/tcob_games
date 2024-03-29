@@ -531,7 +531,7 @@ local penguin                               = {
     },
     Foundation        = {
         Size = 4,
-        Pile = { Rule = rules.ff_upsuit_none }
+        Pile = { Rule = rules.ff_upsuit_none_l13 }
     },
     Tableau           = {
         Size = 7,

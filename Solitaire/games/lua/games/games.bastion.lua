@@ -41,7 +41,7 @@ local bastion               = {
 
 local castles_end           = Sol.copy(bastion)
 castles_end.Info.Name       = "Castles End"
-castles_end.Foundation.Pile = { Rule = rules.ff_upsuit_top }
+castles_end.Foundation.Pile = { Rule = rules.ff_upsuit_top_l13 }
 castles_end.Tableau.Pile    = {
     Initial = ops.Initial.face_up(5),
     Layout = "Column",

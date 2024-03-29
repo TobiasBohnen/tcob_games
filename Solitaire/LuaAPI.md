@@ -151,17 +151,13 @@ There are three ways to define a pile:
 
 #### Rule
 
-#### Build
+##### Base
 
-#### Interval
+##### Build
 
-#### Wrap
+##### Move
 
-#### Move
-
-#### Limit
-
-#### Base
+##### Limit
 
 ## Global functions
 
@@ -176,6 +172,8 @@ There are three ways to define a pile:
 ### RedealsLeft
 
 ### CardDealCount
+
+### DeckCount
 
 ### Stock / Waste / Reserve / FreeCell / Tableau / Foundation
 

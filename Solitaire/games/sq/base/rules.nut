@@ -27,6 +27,10 @@ local rules = {
     build_down = function(card0, card1, wrap, interval) {
         return Sol.get_rank(card0.Rank, -interval, wrap) == card1.Rank;
     }
+
+    build_up_or_down = function(card0, card1, wrap, interval) {
+        return Sol.get_rank(card0.Rank, interval, wrap) == card1.Rank || Sol.get_rank(card0.Rank, -interval, wrap) == card1.Rank;
+    }
 };
 
 local build = {
@@ -58,7 +62,7 @@ local build = {
     },
 
     UpOrDownByRank = @(wrap = false, interval = 1) {
-        Hint = "Build up or down by rank", Build = @(game, target, drop) rules.build_up(target, drop, wrap, interval) || rules.build_down(target, drop, wrap, interval)
+        Hint = "Build up or down by rank", Build = @(game, target, drop) rules.build_up_or_down(target, drop, wrap, interval)
     },
 
     DownByRank = @(wrap = false, interval = 1) {
@@ -70,7 +74,7 @@ local build = {
     },
 
     UpOrDownAnyButOwnSuit = @(wrap = false, interval = 1) {
-        Hint = "Build up or down by any suit but own", Build = @(game, target, drop) !rules.in_suit(target, drop) && (rules.build_up(target, drop, wrap, interval) || rules.build_down(target, drop, wrap, interval))
+        Hint = "Build up or down by any suit but own", Build = @(game, target, drop) !rules.in_suit(target, drop) && rules.build_up_or_down(target, drop, wrap, interval)
     },
 
     DownAnyButOwnSuit = @(wrap = false, interval = 1) {
@@ -82,7 +86,7 @@ local build = {
     },
 
     UpOrDownInSuit = @(wrap = false, interval = 1) {
-        Hint = "Build up or down by suit", Build = @(game, target, drop) rules.in_suit(target, drop) && (rules.build_up(target, drop, wrap, interval) || rules.build_down(target, drop, wrap, interval))
+        Hint = "Build up or down by suit", Build = @(game, target, drop) rules.in_suit(target, drop) && rules.build_up_or_down(target, drop, wrap, interval)
     },
 
     DownInSuit = @(wrap = false, interval = 1) {
@@ -95,7 +99,7 @@ local build = {
 
     UpOrDownInColor = {
         Hint = "Build up or down by color",
-        Build = @(target, drop) rules.in_color(game, target, drop) && (rules.build_up(target, drop, wrap, interval) || rules.build_down(target, drop, wrap, interval))
+        Build = @(target, drop) rules.in_color(game, target, drop) && rules.build_up_or_down(target, drop, wrap, interval)
     },
 
     DownInColor = @(wrap = false, interval = 1) {
@@ -107,7 +111,7 @@ local build = {
     },
 
     UpOrDownAlternateColors = @(wrap = false, interval = 1) {
-        Hint = "Build up or down by alternate color", Build = @(game, target, drop) rules.alternate_color(target, drop) && (rules.build_up(target, drop, wrap, interval) || rules.build_down(target, drop, wrap, interval))
+        Hint = "Build up or down by alternate color", Build = @(game, target, drop) rules.alternate_color(target, drop) && rules.build_up_or_down(target, drop, wrap, interval)
     },
 
     DownAlternateColors = @(wrap = false, interval = 1) {

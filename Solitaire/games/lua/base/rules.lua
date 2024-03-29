@@ -24,6 +24,10 @@ local rules = {
     end,
     build_down = function(card0, card1, wrap, interval)
         return Sol.get_rank(card0.Rank, -interval, wrap) == card1.Rank
+    end,
+
+    build_up_or_down = function(card0, card1, wrap, interval)
+        return Sol.get_rank(card0.Rank, interval, wrap) == card1.Rank or Sol.get_rank(card0.Rank, -interval, wrap) == card1.Rank
     end
 }
 
@@ -86,7 +90,7 @@ local build = {
         return {
             Hint = "Build up or down by rank",
             Build = function(_, target, drop)
-                return rules.build_up(target, drop, wrap, interval) or rules.build_down(target, drop, wrap, interval)
+                return rules.build_up_or_down(target, drop, wrap, interval)
             end
         }
     end,
@@ -117,7 +121,7 @@ local build = {
         return {
             Hint = "Build up or down by any suit but own",
             Build = function(_, target, drop)
-                return not rules.in_suit(target, drop) and (rules.build_up(target, drop, wrap, interval) or rules.build_down(target, drop, wrap, interval))
+                return not rules.in_suit(target, drop) and rules.build_up_or_down(target, drop, wrap, interval)
             end
         }
     end,
@@ -148,7 +152,7 @@ local build = {
         return {
             Hint = "Build up or down by suit",
             Build = function(_, target, drop)
-                return rules.in_suit(target, drop) and (rules.build_up(target, drop, wrap, interval) or rules.build_down(target, drop, wrap, interval))
+                return rules.in_suit(target, drop) and rules.build_up_or_down(target, drop, wrap, interval)
             end
         }
     end,
@@ -179,7 +183,7 @@ local build = {
         return {
             Hint = "Build up or down by color",
             Build = function(_, target, drop)
-                return rules.in_color(target, drop) and (rules.build_up(target, drop, wrap, interval) or rules.build_down(target, drop, wrap, interval))
+                return rules.in_color(target, drop) and rules.build_up_or_down(target, drop, wrap, interval)
             end
         }
     end,
@@ -210,7 +214,7 @@ local build = {
         return {
             Hint = "Build up or down by alternate color",
             Build = function(_, target, drop)
-                return rules.alternate_color(target, drop) and (rules.build_up(target, drop, wrap, interval) or rules.build_down(target, drop, wrap, interval))
+                return rules.alternate_color(target, drop) and rules.build_up_or_down(target, drop, wrap, interval)
             end
         }
     end,
@@ -459,6 +463,6 @@ return {
     none_downsuit_top = { Base = base.None, Build = build.DownInSuit(), Move = move.Top() },
     none_none_top = { Base = base.None, Build = build.None(), Move = move.Top() },
     none_none_none = { Base = base.None, Build = build.None(), Move = move.None() },
-    ff_upsuit_top = { Base = function(game, card, _) return base.FirstFoundation(game, card) end, Build = build.UpInSuit(true), Move = move.Top() },
-    ff_upsuit_none = { Base = function(game, card, _) return base.FirstFoundation(game, card) end, Build = build.UpInSuit(true), Move = move.None() }
+    ff_upsuit_top_l13 = { Base = function(game, card, _) return base.FirstFoundation(game, card) end, Build = build.UpInSuit(true), Move = move.Top(), Limit = 13 },
+    ff_upsuit_none_l13 = { Base = function(game, card, _) return base.FirstFoundation(game, card) end, Build = build.UpInSuit(true), Move = move.None(), Limit = 13 }
 }
