@@ -306,6 +306,13 @@ emperor.Tableau.Pile.Initial            = ops.Initial.top_face_up(4)
 
 ------
 
+local roosevelt                         = Sol.copy(streets)
+roosevelt.Info.Name                     = "Roosevelt"
+roosevelt.Stock.Initial                 = ops.Initial.face_down(76)
+roosevelt.Tableau.Size                  = 7
+
+------
+
 local forty_and_eight                   = Sol.copy(forty_thieves)
 forty_and_eight.Info.Name               = "Forty and Eight"
 forty_and_eight.Info.Redeal             = 1
@@ -349,6 +356,7 @@ Sol.register_game(forty_nine)
 Sol.register_game(interchange)
 Sol.register_game(limited)
 Sol.register_game(lucas)
+Sol.register_game(roosevelt)
 Sol.register_game(rows_of_four)
 Sol.register_game(san_juan_hill)
 Sol.register_game(single_rail)

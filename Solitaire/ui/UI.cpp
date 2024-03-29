@@ -101,6 +101,7 @@ form_menu::form_menu(gfx::window* window, rect_f bounds,
         createTab(games::family::Gypsy, "Gypsy");
         createTab(games::family::Klondike, "Klondike");
         createTab(games::family::Montana, "Montana");
+        createTab(games::family::Raglan, "Raglan");
         createTab(games::family::Spider, "Spider");
         createTab(games::family::Yukon, "Yukon");
         createTab(games::family::Other, "Other");
