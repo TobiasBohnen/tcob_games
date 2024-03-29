@@ -28,6 +28,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     auto& gameWrapper {*script.template create_wrapper<base_game>("script_game")};
     gameWrapper["RedealsLeft"]   = getter {[](base_game* game) { return game->redeals_left(); }};
     gameWrapper["CardDealCount"] = getter {[](base_game* game) { return game->info().CardDealCount; }};
+    gameWrapper["DeckCount"]     = getter {[](base_game* game) { return game->info().DeckCount; }};
 
     auto static const returnPile {[](base_game* game, pile_type type) {
         auto const& piles {game->piles()};
@@ -124,7 +125,9 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     // properties
     pileWrapper["Type"]      = getter {[](pile* p) { return p->Type; }};
     pileWrapper["IsEmpty"]   = getter {[](pile* p) { return p->empty(); }};
-    pileWrapper["CardCount"] = getter {[](pile* p) { return p->Cards.size(); }};
+    pileWrapper["CardCount"] = getter {[](pile* p) {
+        return p->Cards.size();
+    }};
     pileWrapper["Cards"]     = getter {[](pile* p) { return p->Cards; }};
     pileWrapper["Position"]  = property {[](pile* p) { return p->Position; }, [](pile* p, point_f pos) { p->Position = pos; }};
 
@@ -283,8 +286,8 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
                 buildTable.try_get(pile.Rule.BuildHint, "Hint");
 
                 if (Function<bool> func; buildTable.try_get(func, "Build")) {
-                    pile.Rule.Build = {[func](card const& target, card const& drop) {
-                        return func(target, drop);
+                    pile.Rule.Build = {[this, func](card const& target, card const& drop) {
+                        return func(static_cast<base_game*>(this), target, drop);
                     }};
                 }
             }

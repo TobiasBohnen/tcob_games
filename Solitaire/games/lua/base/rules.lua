@@ -31,7 +31,7 @@ local build = {
     None                    = function(_, _)
         return {
             Hint = "No building",
-            Build = function(_, _)
+            Build = function(_, _, _)
                 return false
             end
         }
@@ -39,7 +39,7 @@ local build = {
     Any                     = function(_, _)
         return {
             Hint = "Any card",
-            Build = function(_, _)
+            Build = function(_, _, _)
                 return true
             end
         }
@@ -48,7 +48,7 @@ local build = {
     InRank                  = function(_, _)
         return {
             Hint = "Build by same rank",
-            Build = function(target, drop)
+            Build = function(_, target, drop)
                 return rules.in_rank(target, drop)
             end
         }
@@ -59,7 +59,7 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Build down by rank or by same rank",
-            Build = function(target, drop)
+            Build = function(_, target, drop)
                 return rules.in_rank(target, drop) or rules.build_down(target, drop, wrap, interval)
             end
         }
@@ -70,8 +70,9 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Build by same rank, then build up by rank",
-            Build = function(target, drop)
-                if target.CardCount % 4 == 0 then
+            Build = function(game, target, drop)
+                local count = game:find_pile(target).CardCount
+                if count > 0 and count % (game.DeckCount * 4) == 0 then
                     return rules.build_up(target, drop, wrap, interval)
                 end
                 return rules.in_rank(target, drop)
@@ -84,7 +85,7 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Build up or down by rank",
-            Build = function(target, drop)
+            Build = function(_, target, drop)
                 return rules.build_up(target, drop, wrap, interval) or rules.build_down(target, drop, wrap, interval)
             end
         }
@@ -94,7 +95,7 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Build down by rank",
-            Build = function(target, drop)
+            Build = function(_, target, drop)
                 return rules.build_down(target, drop, wrap, interval)
             end
         }
@@ -104,7 +105,7 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Build up by rank",
-            Build = function(target, drop)
+            Build = function(_, target, drop)
                 return rules.build_up(target, drop, wrap, interval)
             end
         }
@@ -115,7 +116,7 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Build up or down by any suit but own",
-            Build = function(target, drop)
+            Build = function(_, target, drop)
                 return not rules.in_suit(target, drop) and (rules.build_up(target, drop, wrap, interval) or rules.build_down(target, drop, wrap, interval))
             end
         }
@@ -125,7 +126,7 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Build down by any suit but own",
-            Build = function(target, drop)
+            Build = function(_, target, drop)
                 return not rules.in_suit(target, drop) and rules.build_down(target, drop, wrap, interval)
             end
         }
@@ -135,7 +136,7 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Build up by any suit but own",
-            Build = function(target, drop)
+            Build = function(_, target, drop)
                 return not rules.in_suit(target, drop) and rules.build_up(target, drop, wrap, interval)
             end
         }
@@ -146,7 +147,7 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Build up or down by suit",
-            Build = function(target, drop)
+            Build = function(_, target, drop)
                 return rules.in_suit(target, drop) and (rules.build_up(target, drop, wrap, interval) or rules.build_down(target, drop, wrap, interval))
             end
         }
@@ -156,7 +157,7 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Build down by suit",
-            Build = function(target, drop)
+            Build = function(_, target, drop)
                 return rules.in_suit(target, drop) and rules.build_down(target, drop, wrap, interval)
             end
         }
@@ -166,7 +167,7 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Build up by suit",
-            Build = function(target, drop)
+            Build = function(_, target, drop)
                 return rules.in_suit(target, drop) and rules.build_up(target, drop, wrap, interval)
             end
         }
@@ -177,7 +178,7 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Build up or down by color",
-            Build = function(target, drop)
+            Build = function(_, target, drop)
                 return rules.in_color(target, drop) and (rules.build_up(target, drop, wrap, interval) or rules.build_down(target, drop, wrap, interval))
             end
         }
@@ -187,7 +188,7 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Build down by color",
-            Build = function(target, drop)
+            Build = function(_, target, drop)
                 return rules.in_color(target, drop) and rules.build_down(target, drop, wrap, interval)
             end
         }
@@ -197,7 +198,7 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Build up by color",
-            Build = function(target, drop)
+            Build = function(_, target, drop)
                 return rules.in_color(target, drop) and rules.build_up(target, drop, wrap, interval)
             end
         }
@@ -208,7 +209,7 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Build up or down by alternate color",
-            Build = function(target, drop)
+            Build = function(_, target, drop)
                 return rules.alternate_color(target, drop) and (rules.build_up(target, drop, wrap, interval) or rules.build_down(target, drop, wrap, interval))
             end
         }
@@ -218,7 +219,7 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Build down by alternate color",
-            Build = function(target, drop)
+            Build = function(_, target, drop)
                 return rules.alternate_color(target, drop) and rules.build_down(target, drop, wrap, interval)
             end
         }
@@ -228,7 +229,7 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Build up by alternate color",
-            Build = function(target, drop)
+            Build = function(_, target, drop)
                 return rules.alternate_color(target, drop) and rules.build_up(target, drop, wrap, interval)
             end
         }
