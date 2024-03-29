@@ -16,7 +16,7 @@ local function golf_check_state(game)
     for _, tableau in ipairs(game.Tableau) do
         if not tableau.IsEmpty then
             success = false
-            if game:can_play(foundation[1], #foundation[1].Cards - 1, tableau.Cards[#tableau.Cards], 1) then
+            if game:can_play(foundation[1], #foundation[1].Cards, tableau.Cards[#tableau.Cards], 1) then
                 dead = false
                 break
             end
@@ -33,7 +33,7 @@ end
 
 ------
 
-local golf                       = {
+local golf                                 = {
     Info             = {
         Name          = "Golf",
         Family        = "Golf",
@@ -52,7 +52,7 @@ local golf                       = {
     Tableau          = {
         Size = 7,
         Pile = {
-            Initial = ops.Initial.top_face_up(5),
+            Initial = ops.Initial.face_up(5),
             Layout = "Column",
             Rule = { Base = rules.Base.None, Build = rules.Build.None(), Move = rules.Move.Top() }
         }
@@ -66,18 +66,18 @@ local golf                       = {
 
 ------
 
-local double_golf                = Sol.copy(golf)
-double_golf.Info.Name            = "Double Golf"
-double_golf.Info.DeckCount       = 2
-double_golf.Stock.Initial        = ops.Initial.face_down(40)
-double_golf.Tableau.Size         = 9
-double_golf.Tableau.Pile.Initial = ops.Initial.top_face_up(7)
+local double_golf                          = Sol.copy(golf)
+double_golf.Info.Name                      = "Double Golf"
+double_golf.Info.DeckCount                 = 2
+double_golf.Stock.Initial                  = ops.Initial.face_down(40)
+double_golf.Tableau.Size                   = 9
+double_golf.Tableau.Pile.Initial           = ops.Initial.top_face_up(7)
 
 ------
 
-local putt_putt                  = Sol.copy(golf)
-putt_putt.Info.Name              = "Putt Putt"
-putt_putt.Foundation             = {
+local putt_putt                            = Sol.copy(golf)
+putt_putt.Info.Name                        = "Putt Putt"
+putt_putt.Foundation                       = {
     Initial = ops.Initial.face_up(1),
     Layout  = "Squared",
     Rule    = { Base = rules.Base.None, Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.None() }
@@ -85,22 +85,47 @@ putt_putt.Foundation             = {
 
 ------
 
-local double_putt                = Sol.copy(putt_putt)
-double_putt.Info.Name            = "Double Putt"
-double_putt.Info.DeckCount       = 2
-double_putt.Stock.Initial        = ops.Initial.face_down(40)
-double_putt.Tableau.Size         = 9
-double_putt.Tableau.Pile.Initial = ops.Initial.top_face_up(7)
+local double_putt                          = Sol.copy(putt_putt)
+double_putt.Info.Name                      = "Double Putt"
+double_putt.Info.DeckCount                 = 2
+double_putt.Stock.Initial                  = ops.Initial.face_down(40)
+double_putt.Tableau.Size                   = 9
+double_putt.Tableau.Pile.Initial           = ops.Initial.top_face_up(7)
 
 ------
-local black_hole_pos             = {
+
+local all_in_a_row                         = {
+    Info             = {
+        Name          = "All in a Row",
+        Family        = "Golf",
+        DeckCount     = 1,
+        CardDealCount = 0,
+        Redeals       = 0
+    },
+    Foundation       = {
+        Layout = "Squared",
+        Rule   = { Base = rules.Base.Any, Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.None() }
+    },
+    Tableau          = {
+        Size = 13,
+        Pile = {
+            Initial = ops.Initial.face_up(4),
+            Layout = "Column",
+            Rule = { Base = rules.Base.None, Build = rules.Build.None(), Move = rules.Move.Top() }
+        }
+    },
+    on_piles_created = Sol.Layout.golf
+}
+
+------
+local black_hole_pos                       = {
     { 0, 0 }, { 2, 0 }, { 4, 0 }, { 6, 0 }, { 8, 0 },
     { 0, 1 }, { 2, 1 }, --[[ --]] { 6, 1 }, { 8, 1 },
     { 0, 2 }, { 2, 2 }, --[[ --]] { 6, 2 }, { 8, 2 },
     { 0, 3 }, { 2, 3 }, { 4, 3 }, { 6, 3 } --[[ --]]
 }
 
-local black_hole                 = {
+local black_hole                           = {
     Info              = {
         Name          = "Black Hole",
         Family        = "Golf",
@@ -132,10 +157,214 @@ local black_hole                 = {
     end
 }
 
+------
+
+local dolphin                              = {
+    Info = {
+        Name          = "Dolphin",
+        Family        = "Golf",
+        DeckCount     = 1,
+        CardDealCount = 0,
+        Redeals       = 0
+    },
+    FreeCell = {
+        Size = 4,
+        Pile = { Rule = rules.any_none_top }
+    },
+    Foundation = {
+        Layout = "Squared",
+        Rule   = { Base = rules.Base.Any, Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.Top() }
+    },
+    Tableau = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Initial = ops.Initial.face_up(i < 4 and 7 or 6),
+                Layout = "Column",
+                Rule = { Base = rules.Base.None, Build = rules.Build.None(), Move = rules.Move.Top() }
+            }
+        end
+    },
+    on_piles_created = Sol.Layout.free_cell
+}
+
+------
+
+local double_dolphin                       = Sol.copy(dolphin)
+double_dolphin.Info.Name                   = "Double Dolphin"
+double_dolphin.Info.DeckCount              = 2
+double_dolphin.FreeCell.Size               = 5
+double_dolphin.Tableau                     = {
+    Size = 10,
+    Pile = function(i)
+        return {
+            Initial = ops.Initial.face_up(i < 4 and 11 or 10),
+            Layout = "Column",
+            Rule = { Base = rules.Base.None, Build = rules.Build.None(), Move = rules.Move.Top() }
+        }
+    end
+}
+
+------
+
+local flake                                = {
+    Info = {
+        Name          = "Flake",
+        Family        = "Golf",
+        DeckCount     = 1,
+        CardDealCount = 0,
+        Redeals       = 0
+    },
+    Foundation = {
+        Layout = "Squared",
+        Rule   = { Base = rules.Base.Any, Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.None() }
+    },
+    Tableau = {
+        Size = 6,
+        Pile = function(i)
+            return {
+                Initial = ops.Initial.face_up(i < 4 and 9 or 8),
+                Layout = "Column",
+                Rule = { Base = rules.Base.Any, Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.Top() }
+            }
+        end
+    },
+    on_piles_created = Sol.Layout.free_cell
+}
+
+------
+
+local flake_2_decks                        = Sol.copy(flake)
+flake_2_decks.Info.Name                    = "Flake (2 decks)"
+flake_2_decks.Info.DeckCount               = 2
+flake_2_decks.Tableau                      = {
+    Size = 8,
+    Pile = {
+        Initial = ops.Initial.face_up(13),
+        Layout = "Column",
+        Rule = { Base = rules.Base.Any, Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.Top() }
+    }
+}
+
+------
+
+local robert                               = {
+    Info       = {
+        Name          = "Robert",
+        Family        = "Golf",
+        DeckCount     = 1,
+        CardDealCount = 1,
+        Redeals       = 2
+    },
+    Stock      = {
+        Position = { x = 0, y = 1 },
+        Initial = ops.Initial.face_down(51)
+    },
+    Waste      = {
+        Position = { x = 1, y = 1 }
+    },
+    Foundation = {
+        Position = { x = 0.5, y = 0 },
+        Initial  = ops.Initial.face_up(1),
+        Layout   = "Squared",
+        Rule     = { Base = rules.Base.None, Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.None() }
+    },
+    on_deal    = ops.Deal.stock_to_waste,
+    on_redeal  = ops.Redeal.waste_to_stock
+}
+
+------
+
+local wasatch                              = Sol.copy(robert)
+wasatch.Info.Name                          = "Wasatch"
+wasatch.Info.CardDealCount                 = 3
+wasatch.Info.Redeals                       = -1
+
+------
+
+local bobby                                = Sol.copy(robert)
+bobby.Info.Name                            = "Bobby"
+bobby.Foundation                           = {
+    Size = 2,
+    Pile = function(i)
+        return {
+            Position = { x = i, y = 0 },
+            Initial  = ops.Initial.face_up(1 - i),
+            Layout   = "Squared",
+            Rule     = { Base = rules.Base.Any, Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.None() }
+        }
+    end
+}
+
+------
+
+local dead_king_golf                       = Sol.copy(golf)
+dead_king_golf.Info.Name                   = "Dead King Golf"
+dead_king_golf.Foundation.Rule.Build.Build = function(_, target, drop)
+    if target.Rank == "King" then return false end
+    return Sol.get_rank(target.Rank, 1, false) == drop.Rank or Sol.get_rank(target.Rank, -1, false) == drop.Rank
+end
+
+------
+
+local uintah                               = {
+    Info              = {
+        Name          = "Uintah",
+        Family        = "Golf",
+        DeckCount     = 1,
+        CardDealCount = 3,
+        Redeals       = -1
+    },
+    Stock             = {
+        Position = { x = 1, y = 1 },
+        Initial = ops.Initial.face_down(48)
+    },
+    Waste             = {
+        Position = { x = 2, y = 1 }
+    },
+    Foundation        = {
+        Size = 4,
+        Pile = function(i)
+            return {
+                Position = { x = i, y = 0 },
+                Layout   = "Squared",
+                Rule     = { Base = rules.Base.None, Build = rules.Build.UpOrDownInColor(true), Move = rules.Move.None() }
+            }
+        end
+    },
+    on_deal           = ops.Deal.stock_to_waste,
+    on_redeal         = ops.Redeal.waste_to_stock,
+    on_before_shuffle = function(game, card)
+        if card.Suit == "Clubs" then
+            return game.PlaceTop(card, game.Foundation[1], true)
+        end
+        if card.Suit == "Spades" then
+            return game.PlaceTop(card, game.Foundation[2], true)
+        end
+        if card.Suit == "Hearts" then
+            return game.PlaceTop(card, game.Foundation[3], true)
+        end
+        if card.Suit == "Diamonds" then
+            return game.PlaceTop(card, game.Foundation[4], true)
+        end
+        return false
+    end
+}
+
 ------------------------
 
 Sol.register_game(golf)
+Sol.register_game(all_in_a_row)
 Sol.register_game(black_hole)
+Sol.register_game(bobby)
+Sol.register_game(dead_king_golf)
+Sol.register_game(dolphin)
+Sol.register_game(double_dolphin)
 Sol.register_game(double_golf)
 Sol.register_game(double_putt)
+Sol.register_game(flake)
+Sol.register_game(flake_2_decks)
 Sol.register_game(putt_putt)
+Sol.register_game(robert)
+Sol.register_game(uintah)
+Sol.register_game(wasatch)
