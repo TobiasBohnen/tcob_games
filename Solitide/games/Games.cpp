@@ -57,8 +57,7 @@ void base_game::new_game()
 {
     clear_piles();
 
-    std::vector<card> cards;
-
+    // seed to base64
     io::base64_filter  filter;
     auto const&        state {_rand.get_state()};
     std::vector<ubyte> bytes;
@@ -70,11 +69,14 @@ void base_game::new_game()
     auto base64 {filter.to(bytes)};
     _info.InitialSeed = std::string(reinterpret_cast<byte*>(base64->data()), base64->size());
 
+    // create decks
+    std::vector<card> cards;
     for (i32 i {0}; i < _info.DeckCount; ++i) {
         deck const deck {deck::GetShuffled(_rand, static_cast<u8>(i), _info.DeckSuits, _info.DeckRanks)};
         cards.insert(cards.end(), deck.Cards.begin(), deck.Cards.end());
     }
 
+    // on_before_shuffle
     for (isize i {std::ssize(cards) - 1}; i >= 0; --i) {
         auto& card {cards[i]};
         if (before_shuffle(card)) { // AKA moving specific cards to piles -> TODO: make it a pile property
@@ -82,6 +84,7 @@ void base_game::new_game()
         }
     }
 
+    // shuffle to piles
     for (auto& [_, piles] : _piles) {
         for (auto* pile : piles) {
             for (isize i {0}; i < std::ssize(pile->Initial); ++i) {
@@ -121,7 +124,7 @@ auto base_game::load(std::optional<data::config::object> const& loadObj) -> bool
     if (!obj.has("Redeals") || !obj.has("Turn")) { return false; }
     _info.RemainingRedeals = obj["Redeals"].as<i32>();
     _info.Turn             = obj["Turn"].as<i32>();
-    _info.InitialSeed      = obj["InitialSeed"].as<string>();
+    _info.InitialSeed      = obj["Seed"].as<string>();
     _info.Time             = milliseconds {obj["Time"].as<f64>()};
 
     auto const createCard {[&](entry const& entry) { return card::FromValue(entry.as<u16>()); }};
@@ -165,10 +168,10 @@ void base_game::save(tcob::data::config::object& saveObj)
         obj[get_pile_type_name(kvp.first)] = pilesArr;
     }
 
-    obj["Redeals"]     = _info.RemainingRedeals;
-    obj["Turn"]        = _info.Turn;
-    obj["InitialSeed"] = _info.InitialSeed;
-    obj["Time"]        = _info.Time.count();
+    obj["Redeals"] = _info.RemainingRedeals;
+    obj["Turn"]    = _info.Turn;
+    obj["Seed"]    = _info.InitialSeed;
+    obj["Time"]    = _info.Time.count();
 
     saveObj[_info.Name] = obj;
 }

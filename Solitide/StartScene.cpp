@@ -133,8 +133,12 @@ void start_scene::on_start()
 void start_scene::connect_ui_events()
 {
     _formControls->BtnNewGame->Click.connect([&](auto const&) {
-        auto const game {_formMenu->SelectedGame()};
-        start_game(game, false);
+        auto game {_cardTable->game()};
+        if (game && game->State != game_state::Success) {
+            game->State = game_state::Failure;
+        }
+
+        start_game(_formMenu->SelectedGame(), start_reason::Restart);
     });
 
     _formControls->BtnMenu->Click.connect([&](auto const&) {
@@ -142,12 +146,14 @@ void start_scene::connect_ui_events()
     });
 
     _formControls->BtnUndo->Click.connect([&](auto const&) {
-        _cardTable->undo();
+        if (auto game {_cardTable->game()}) {
+            game->undo();
+        }
     });
 
     _formControls->BtnQuit->Click.connect([&](auto const&) {
-        if (_cardTable->game()) {
-            _cardTable->game()->save(_saveGame);
+        if (auto game {_cardTable->game()}) {
+            game->save(_saveGame);
             _saveGame.save(SAVE_NAME);
         }
         get_game().pop_current_scene();
@@ -158,7 +164,7 @@ void start_scene::connect_ui_events()
         camera.set_position(point_f::Zero);
         camera.set_zoom(size_f::One);
 
-        start_game(game, true);
+        start_game(game, start_reason::Resume);
     });
 
     _formMenu->SelectedTheme.Changed.connect([&](auto const& theme) {
@@ -184,7 +190,7 @@ void start_scene::connect_ui_events()
         locate_service<data::config_file>()["sol"]["cardset"] = newCardset;
 
         _cardTable->set_cardset(_cardSets[newCardset]);
-        start_game(_formMenu->SelectedGame(), true);
+        start_game(_formMenu->SelectedGame(), start_reason::Resume);
     });
 
     _formMenu->VisibilityChanged.connect([&](bool val) {
@@ -239,22 +245,42 @@ void start_scene::on_key_down(input::keyboard::event& ev)
     }
 }
 
-void start_scene::start_game(string const& game, bool resume)
+void start_scene::start_game(string const& name, start_reason reason)
 {
-    if (_games.contains(game)) {
-        auto current {_cardTable->game()};
-        if (!resume && current) {
-            // TODO: save on win/lose
-            auto const& info {current->info()};
-            auto        id {_dbGames->select_from<i64>("ID").where("Name = '" + info.Name + "'")()};
-            using tup   = std::tuple<i64, string, bool, i64, i64>;
-            std::ignore = _dbHistory->insert_into(db::replace, "GameID", "Seed", "Won", "Turns", "Time")(
-                tup {id[0], info.InitialSeed, current->State == game_state::Success, info.Turn, info.Time.count()});
+    if (reason == start_reason::Resume) {
+        if (auto game {_cardTable->game()}) {
+            game->save(_saveGame);
+        }
+    }
+
+    if (_games.contains(name)) {
+        auto newGame {_games[name].second(*_cardTable)};
+        newGame->State.Changed.connect([&](auto val) {
+            switch (val) {
+            case game_state::Success:
+            case game_state::Failure: {
+                auto const  current {_cardTable->game()};
+                auto const& info {current->info()};
+                auto const  id {_dbGames->select_from<i64>("ID").where("Name = '" + info.Name + "'")()};
+                using tup   = std::tuple<i64, string, bool, i64, i64>;
+                std::ignore = _dbHistory->insert_into(db::replace, "GameID", "Seed", "Won", "Turns", "Time")(
+                    tup {id[0], info.InitialSeed, current->State == game_state::Success, info.Turn, info.Time.count()});
+            } break;
+            default: break;
+            }
+        });
+
+        switch (reason) {
+        case start_reason::Restart:
+            _cardTable->start(newGame);
+            break;
+        case start_reason::Resume:
+            _cardTable->resume(newGame, _saveGame);
+            break;
         }
 
-        _cardTable->start(_games[game].second(*_cardTable), _saveGame, resume);
         locate_service<stats>().reset();
-        locate_service<data::config_file>()["sol"]["game"] = game;
+        locate_service<data::config_file>()["sol"]["game"] = name;
     }
 }
 

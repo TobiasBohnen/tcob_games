@@ -19,12 +19,10 @@ public:
 
     signal<hover_info const> HoverChange;
 
-    void start(std::shared_ptr<games::base_game> const& game, data::config::object& savegame, bool resume);
-    void undo();
+    void start(std::shared_ptr<games::base_game> const& game);
+    void resume(std::shared_ptr<games::base_game> const& game, data::config::object& savegame);
 
     auto game() const -> std::shared_ptr<games::base_game>;
-
-    auto get_size() const -> size_i;
 
     void set_cardset(std::shared_ptr<cardset> cardset);
 
@@ -44,6 +42,8 @@ protected:
     void on_mouse_button_up(input::mouse::button_event& ev) override;
 
 private:
+    void start_game(std::shared_ptr<games::base_game> const& game, std::optional<data::config::object> const& savegame);
+
     void draw_cards(gfx::render_target& target);
     void create_markers(size_f const& cardSize);
     void get_pile_quads(std::vector<gfx::quad>::iterator& quadIt, pile const* pile) const;

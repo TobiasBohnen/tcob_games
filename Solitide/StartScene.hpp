@@ -17,6 +17,11 @@
 
 namespace solitaire {
 
+enum class start_reason {
+    Restart,
+    Resume
+};
+
 class start_scene : public scene {
 public:
     using func = std::function<std::shared_ptr<games::base_game>(card_table&)>;
@@ -38,7 +43,7 @@ protected:
     void on_key_down(input::keyboard::event& ev) override;
 
 private:
-    void start_game(string const& game, bool resume);
+    void start_game(string const& name, start_reason reason);
 
     void load_scripts();
 

@@ -27,24 +27,21 @@ card_table::card_table(gfx::window* parent, gfx::ui::canvas_widget* canvas, size
     _text.hide();
 }
 
-auto card_table::get_size() const -> size_i
+void card_table::start(std::shared_ptr<games::base_game> const& game)
 {
-    return _size;
+    start_game(game, std::nullopt);
 }
 
-void card_table::set_cardset(std::shared_ptr<cardset> cardset)
+void card_table::resume(std::shared_ptr<games::base_game> const& game, data::config::object& savegame)
 {
-    _cardset        = std::move(cardset);
-    _cardQuadsDirty = true;
+    start_game(game, savegame);
 }
 
-void card_table::start(std::shared_ptr<games::base_game> const& game, data::config::object& savegame, bool resume)
+void card_table::start_game(std::shared_ptr<games::base_game> const& game, std::optional<data::config::object> const& savegame)
 {
+    _currentGame = game;
+
     _text.hide();
-
-    if (_currentGame) {
-        _currentGame->save(savegame);
-    }
 
     _dropTarget   = {};
     _hovered      = {};
@@ -53,25 +50,18 @@ void card_table::start(std::shared_ptr<games::base_game> const& game, data::conf
     _camPosTween  = nullptr;
     _camZoomTween = nullptr;
 
-    _currentGame = game;
-
     _cardQuads.clear();
     _cardQuads.resize(_currentGame->info().DeckCount * 52);
 
     auto const& cardSize {_cardset->get_card_size()};
-    if (resume) {
-        _currentGame->start(cardSize, savegame);
-    } else {
-        _currentGame->start(cardSize, std::nullopt);
-    }
+    _currentGame->start(cardSize, savegame);
     create_markers(cardSize);
 }
 
-void card_table::undo()
+void card_table::set_cardset(std::shared_ptr<cardset> cardset)
 {
-    if (_currentGame && _currentGame->can_undo()) {
-        _currentGame->undo();
-    }
+    _cardset        = std::move(cardset);
+    _cardQuadsDirty = true;
 }
 
 void card_table::create_markers(size_f const& cardSize)
