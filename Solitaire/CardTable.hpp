@@ -13,9 +13,9 @@ namespace solitaire {
 
 ////////////////////////////////////////////////////////////
 
-class field : public gfx::entity {
+class card_table : public gfx::entity {
 public:
-    field(gfx::window* parent, gfx::ui::canvas_widget* canvas, size_i size, assets::group& resGrp);
+    card_table(gfx::window* parent, gfx::ui::canvas_widget* canvas, size_i size, assets::group& resGrp);
 
     signal<hover_info const> HoverChange;
 

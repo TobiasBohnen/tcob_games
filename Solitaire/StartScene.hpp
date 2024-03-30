@@ -7,8 +7,8 @@
 
 #include "Common.hpp" // IWYU pragma: keep
 
+#include "CardTable.hpp"
 #include "Cardset.hpp"
-#include "Field.hpp"
 #include "Games.hpp"
 #include "ui/UI.hpp"
 #include "ui/UIHelper.hpp"
@@ -19,7 +19,7 @@ namespace solitaire {
 
 class start_scene : public scene {
 public:
-    using func = std::function<std::shared_ptr<games::base_game>(field&)>;
+    using func = std::function<std::shared_ptr<games::base_game>(card_table&)>;
 
     start_scene(game& game);
     ~start_scene() override;
@@ -50,7 +50,7 @@ private:
     std::vector<scripting::squirrel::native_closure_shared_ptr> _sqFunctions;
 
     input::mouse::button           _buttonDown {input::mouse::button::None};
-    std::shared_ptr<field>         _playField {};
+    std::shared_ptr<card_table>    _cardTable {};
     std::shared_ptr<form_controls> _formControls {};
     std::shared_ptr<form_menu>     _formMenu {};
 

@@ -3,7 +3,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-#include "Field.hpp"
+#include "CardTable.hpp"
 
 #include <utility>
 
@@ -12,7 +12,7 @@
 
 namespace solitaire {
 
-field::field(gfx::window* parent, gfx::ui::canvas_widget* canvas, size_i size, assets::group& resGrp)
+card_table::card_table(gfx::window* parent, gfx::ui::canvas_widget* canvas, size_i size, assets::group& resGrp)
     : _parentWindow {parent}
     , _canvas {canvas}
     , _resGrp {resGrp}
@@ -27,18 +27,18 @@ field::field(gfx::window* parent, gfx::ui::canvas_widget* canvas, size_i size, a
     _text.hide();
 }
 
-auto field::get_size() const -> size_i
+auto card_table::get_size() const -> size_i
 {
     return _size;
 }
 
-void field::set_cardset(std::shared_ptr<cardset> cardset)
+void card_table::set_cardset(std::shared_ptr<cardset> cardset)
 {
     _cardset        = std::move(cardset);
     _cardQuadsDirty = true;
 }
 
-void field::start(std::shared_ptr<games::base_game> const& game, data::config::object& savegame, bool resume)
+void card_table::start(std::shared_ptr<games::base_game> const& game, data::config::object& savegame, bool resume)
 {
     _text.hide();
 
@@ -67,14 +67,14 @@ void field::start(std::shared_ptr<games::base_game> const& game, data::config::o
     create_markers(cardSize);
 }
 
-void field::undo()
+void card_table::undo()
 {
     if (_currentGame && _currentGame->can_undo()) {
         _currentGame->undo();
     }
 }
 
-void field::create_markers(size_f const& cardSize)
+void card_table::create_markers(size_f const& cardSize)
 {
     _markerSprites.clear();
     for (auto const& [_, piles] : _currentGame->piles()) {
@@ -89,22 +89,22 @@ void field::create_markers(size_f const& cardSize)
     }
 }
 
-void field::mark_dirty()
+void card_table::mark_dirty()
 {
     _cardQuadsDirty = true;
 }
 
-auto field::state() const -> game_state
+auto card_table::state() const -> game_state
 {
     return _currentGame ? _currentGame->state() : game_state::Initial;
 }
 
-auto field::game() const -> std::shared_ptr<games::base_game>
+auto card_table::game() const -> std::shared_ptr<games::base_game>
 {
     return _currentGame;
 }
 
-void field::on_update(milliseconds deltaTime)
+void card_table::on_update(milliseconds deltaTime)
 {
     _markerSprites.update(deltaTime);
 
@@ -130,7 +130,7 @@ void field::on_update(milliseconds deltaTime)
     }
 }
 
-void field::on_draw_to(gfx::render_target& target)
+void card_table::on_draw_to(gfx::render_target& target)
 {
     _markerSprites.draw_to(target);
 
@@ -139,7 +139,7 @@ void field::on_draw_to(gfx::render_target& target)
     _text.draw_to(target);
 }
 
-void field::draw_cards(gfx::render_target& target)
+void card_table::draw_cards(gfx::render_target& target)
 {
     if (_currentGame && (_cardQuadsDirty || _isDragging)) {
         _cardRenderer.set_material(_cardset->get_material());
@@ -190,7 +190,7 @@ void field::draw_cards(gfx::render_target& target)
     }
 }
 
-void field::move_camera(size_f bounds)
+void card_table::move_camera(size_f bounds)
 {
     if (!_camManual) {
         using namespace tcob::tweening;
@@ -228,7 +228,7 @@ void field::move_camera(size_f bounds)
     }
 }
 
-void field::get_pile_quads(std::vector<gfx::quad>::iterator& quadIt, pile const* pile) const
+void card_table::get_pile_quads(std::vector<gfx::quad>::iterator& quadIt, pile const* pile) const
 {
     auto const mat {_cardset->get_material()};
     for (auto const& card : pile->Cards) {
@@ -240,12 +240,12 @@ void field::get_pile_quads(std::vector<gfx::quad>::iterator& quadIt, pile const*
     }
 }
 
-auto field::can_draw() const -> bool
+auto card_table::can_draw() const -> bool
 {
     return _currentGame != nullptr;
 }
 
-void field::on_key_down(input::keyboard::event& ev)
+void card_table::on_key_down(input::keyboard::event& ev)
 {
     using namespace tcob::enum_ops;
 
@@ -312,7 +312,7 @@ void field::on_key_down(input::keyboard::event& ev)
     }
 }
 
-void field::on_mouse_motion(input::mouse::motion_event& ev)
+void card_table::on_mouse_motion(input::mouse::motion_event& ev)
 {
     if (input::system::IsMouseButtonDown(input::mouse::button::Right)) {
         auto&         camera {*_parentWindow->Camera};
@@ -336,7 +336,7 @@ void field::on_mouse_motion(input::mouse::motion_event& ev)
     ev.Handled = true;
 }
 
-void field::on_mouse_wheel(input::mouse::wheel_event& ev)
+void card_table::on_mouse_wheel(input::mouse::wheel_event& ev)
 {
     auto& camera {*_parentWindow->Camera};
     if (ev.Scroll.Y > 0) {
@@ -349,7 +349,7 @@ void field::on_mouse_wheel(input::mouse::wheel_event& ev)
     ev.Handled = true;
 }
 
-void field::on_mouse_button_down(input::mouse::button_event& ev)
+void card_table::on_mouse_button_down(input::mouse::button_event& ev)
 {
     if (!_currentGame) { return; }
 
@@ -362,7 +362,7 @@ void field::on_mouse_button_down(input::mouse::button_event& ev)
     }
 }
 
-void field::on_mouse_button_up(input::mouse::button_event& ev)
+void card_table::on_mouse_button_up(input::mouse::button_event& ev)
 {
     if (!_currentGame) { return; }
 
@@ -378,7 +378,7 @@ void field::on_mouse_button_up(input::mouse::button_event& ev)
     }
 }
 
-void field::drag_cards(input::mouse::motion_event const& ev)
+void card_table::drag_cards(input::mouse::motion_event const& ev)
 {
     _isDragging = false;
 
@@ -399,7 +399,7 @@ void field::drag_cards(input::mouse::motion_event const& ev)
     mark_dirty();
 }
 
-void field::get_drop_target()
+void card_table::get_drop_target()
 {
     auto        oldPile {_dropTarget};
     auto const& card {_hovered.Pile->Cards[_hovered.Index]};
@@ -418,7 +418,7 @@ void field::get_drop_target()
     }
 }
 
-void field::get_hovered(point_i pos)
+void card_table::get_hovered(point_i pos)
 {
     auto oldPile {_hovered};
     _hovered = _currentGame->hover_at(point_i {(*_parentWindow->Camera).convert_screen_to_world(pos)});
@@ -434,7 +434,7 @@ void field::get_hovered(point_i pos)
     }
 }
 
-auto field::get_hover_color(pile* pile, isize idx) const -> color
+auto card_table::get_hover_color(pile* pile, isize idx) const -> color
 {
     auto const& moves {_currentGame->get_available_moves()};
     for (auto const& move : moves) {
@@ -446,7 +446,7 @@ auto field::get_hover_color(pile* pile, isize idx) const -> color
     return colors::LightBlue;
 }
 
-auto field::get_drop_color() const -> color
+auto card_table::get_drop_color() const -> color
 {
     return colors::LightGreen; // TODO: add option to disable
 }

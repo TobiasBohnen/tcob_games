@@ -169,7 +169,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& scen
         infoTab.try_get(info.Redeals, "Redeals");
         infoTab.try_get(info.DisableHints, "DisableHints");
 
-        auto func {[tab, info](auto& field) { return std::make_shared<T>(field, info, tab); }};
+        auto func {[tab, info](auto& cardTable) { return std::make_shared<T>(cardTable, info, tab); }};
         scene->register_game(info, func);
     });
 
@@ -185,7 +185,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& scen
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>
-inline script_game<Table, Function, IndexOffset>::script_game(field& f, game_info info, Table table)
+inline script_game<Table, Function, IndexOffset>::script_game(card_table& f, game_info info, Table table)
     : base_game {f, info}
     , _table {std::move(table)}
 {

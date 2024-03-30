@@ -104,18 +104,18 @@ void start_scene::on_start()
     _formMenu->hide();
     connect_ui_events();
 
-    // field
+    // card table
     f32 const height {windowSize.Height / 10.f * 9.f};
-    _playField = std::make_shared<field>(&window, _formControls->Canvas.get(), size_i {windowSize.Width, static_cast<i32>(height)}, resGrp);
+    _cardTable = std::make_shared<card_table>(&window, _formControls->Canvas.get(), size_i {windowSize.Width, static_cast<i32>(height)}, resGrp);
 
-    _playField->HoverChange.connect([&](hover_info const& str) {
+    _cardTable->HoverChange.connect([&](hover_info const& str) {
         _formControls->LblPile->Label      = str.Pile;
         _formControls->LblRule->Label      = str.Rule;
         _formControls->LblCardCount->Label = str.CardCount;
     });
 
     // render queues
-    get_root_node()->create_child()->attach_entity(_playField);
+    get_root_node()->create_child()->attach_entity(_cardTable);
     get_root_node()->create_child()->attach_entity(_formControls);
     get_root_node()->create_child()->attach_entity(_formMenu);
 
@@ -142,12 +142,12 @@ void start_scene::connect_ui_events()
     });
 
     _formControls->BtnUndo->Click.connect([&](auto const&) {
-        _playField->undo();
+        _cardTable->undo();
     });
 
     _formControls->BtnQuit->Click.connect([&](auto const&) {
-        if (_playField->game()) {
-            _playField->game()->save(_saveGame);
+        if (_cardTable->game()) {
+            _cardTable->game()->save(_saveGame);
             _saveGame.save(SAVE_NAME);
         }
         get_game().pop_current_scene();
@@ -183,7 +183,7 @@ void start_scene::connect_ui_events()
 
         locate_service<data::config_file>()["sol"]["cardset"] = newCardset;
 
-        _playField->set_cardset(_cardSets[newCardset]);
+        _cardTable->set_cardset(_cardSets[newCardset]);
         start_game(_formMenu->SelectedGame(), true);
     });
 
@@ -208,7 +208,7 @@ void start_scene::on_fixed_update(milliseconds /* deltaTime */)
 {
     auto stat {locate_service<stats>()};
 
-    if (auto game {_playField->game()}) {
+    if (auto game {_cardTable->game()}) {
         auto const& info {game->info()};
         // TODO: move to ui
         get_window().Title = std::format("Solitaire {} Turn {} Time {:%M:%S}",
@@ -242,7 +242,7 @@ void start_scene::on_key_down(input::keyboard::event& ev)
 void start_scene::start_game(string const& game, bool resume)
 {
     if (_games.contains(game)) {
-        auto current {_playField->game()};
+        auto current {_cardTable->game()};
         if (!resume && current) {
             // TODO: save on win/lose
             auto const& info {current->info()};
@@ -252,7 +252,7 @@ void start_scene::start_game(string const& game, bool resume)
                 tup {id[0], info.InitialSeed, current->state() == game_state::Success, info.Turn, info.Time.count()});
         }
 
-        _playField->start(_games[game].second(*_playField), _saveGame, resume);
+        _cardTable->start(_games[game].second(*_cardTable), _saveGame, resume);
         locate_service<stats>().reset();
         locate_service<data::config_file>()["sol"]["game"] = game;
     }

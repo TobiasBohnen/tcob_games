@@ -5,7 +5,7 @@
 
 #include "Games.hpp"
 
-#include "Field.hpp"
+#include "CardTable.hpp"
 #include "StartScene.hpp"
 
 #include <ranges>
@@ -13,9 +13,9 @@
 
 namespace solitaire::games {
 
-base_game::base_game(field& f, game_info info)
+base_game::base_game(card_table& f, game_info info)
     : _info {std::move(info)}
-    , _field {f}
+    , _cardTable {f}
 {
     _info.RemainingRedeals = _info.Redeals;
 }
@@ -229,6 +229,7 @@ void base_game::end_turn(bool deal)
 
 void base_game::layout_piles()
 {
+    // TODO: move to card_table?
     for (auto& [_, piles] : _piles) {
         for (auto* pile : piles) {
             point_f pos {multiply(pile->Position, _cardSize)};
@@ -275,7 +276,7 @@ void base_game::layout_piles()
         }
     }
 
-    _field.mark_dirty();
+    _cardTable.mark_dirty();
 }
 
 auto base_game::get_pile_at(point_i pos, bool ignoreActivePile) -> hit_test_result
@@ -572,7 +573,7 @@ auto base_game::state() const -> game_state
 
 using namespace scripting;
 
-lua_script_game::lua_script_game(field& f, game_info info, lua::table tab)
+lua_script_game::lua_script_game(card_table& f, game_info info, lua::table tab)
     : script_game {f, std::move(info), std::move(tab)}
 {
 }
@@ -616,7 +617,7 @@ void lua_script_game::CreateAPI(start_scene* scene, scripting::lua::script& scri
 
 ////////////////////////////////////////////////////////////
 
-squirrel_script_game::squirrel_script_game(field& f, game_info info, scripting::squirrel::table tab)
+squirrel_script_game::squirrel_script_game(card_table& f, game_info info, scripting::squirrel::table tab)
     : script_game {f, std::move(info), std::move(tab)}
 {
 }

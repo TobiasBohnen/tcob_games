@@ -7,7 +7,7 @@
 
 #include "Common.hpp" // IWYU pragma: keep
 
-#include "Field.hpp"
+#include "CardTable.hpp"
 #include "Piles.hpp"
 
 namespace solitaire::games {
@@ -72,7 +72,7 @@ class base_game {
 public:
     using rng = random::rng_xoshiro_256_plus_plus;
 
-    base_game(field& f, game_info info);
+    base_game(card_table& f, game_info info);
     virtual ~base_game() = default;
 
     std::vector<stock>      Stock;
@@ -145,10 +145,10 @@ private:
     mutable std::unordered_map<pile const*, hover_info>   _descriptionCache;
     std::vector<move>                                     _availableMoves;
 
-    game_state _state {game_state::Initial};
-    game_info  _info;
-    size_f     _cardSize;
-    field&     _field;
+    game_state  _state {game_state::Initial};
+    game_info   _info;
+    size_f      _cardSize;
+    card_table& _cardTable;
 
     data::config::object             _currentState;
     std::stack<data::config::object> _undoStack;
@@ -161,7 +161,7 @@ private:
 template <typename Table, template <typename> typename Function, isize IndexOffset>
 class script_game : public base_game {
 public:
-    script_game(field& f, game_info info, Table table);
+    script_game(card_table& f, game_info info, Table table);
 
     auto can_play(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool override;
 
@@ -203,7 +203,7 @@ private:
 
 class lua_script_game : public script_game<scripting::lua::table, scripting::lua::function, -1> {
 public:
-    lua_script_game(field& f, game_info info, scripting::lua::table tab);
+    lua_script_game(card_table& f, game_info info, scripting::lua::table tab);
 
     void static CreateAPI(start_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs);
 };
@@ -212,7 +212,7 @@ public:
 
 class squirrel_script_game : public script_game<scripting::squirrel::table, scripting::squirrel::function, 0> {
 public:
-    squirrel_script_game(field& f, game_info info, scripting::squirrel::table tab);
+    squirrel_script_game(card_table& f, game_info info, scripting::squirrel::table tab);
 
     void static CreateAPI(start_scene* scene, scripting::squirrel::script& script, std::vector<scripting::squirrel::native_closure_shared_ptr>& funcs);
 };
