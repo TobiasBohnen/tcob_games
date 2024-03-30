@@ -12,15 +12,15 @@
 
 namespace solitaire {
 
-card_table::card_table(gfx::window* parent, gfx::ui::canvas_widget* canvas, size_i size, assets::group& resGrp)
+card_table::card_table(gfx::window* parent, gfx::ui::canvas_widget* canvas, rect_f const& bounds, assets::group& resGrp)
     : _parentWindow {parent}
     , _canvas {canvas}
     , _resGrp {resGrp}
-    , _size {size}
+    , _bounds {bounds}
     , _cardRenderer {gfx::buffer_usage_hint::DynamicDraw}
     , _text {resGrp.get<gfx::font_family>("Poppins")->get_font({.Weight = gfx::font::weight::Bold}, 96)}
 {
-    _text.Bounds = {point_f::Zero, size_f {_size}};
+    _text.Bounds = bounds;
     auto& effects {_text.get_effects()};
     effects.add(1, gfx::make_unique_quad_tween<gfx::wave_effect>(3s, {30, 4.f}));
     effects.start_all(playback_style::Looped);
@@ -87,6 +87,68 @@ void card_table::mark_dirty()
 auto card_table::game() const -> std::shared_ptr<games::base_game>
 {
     return _currentGame;
+}
+
+void card_table::show_next_move()
+{
+    if (!_currentGame) { return; }
+
+    auto const& moves {_currentGame->get_available_moves()};
+    if (moves.empty()) { return; }
+    if (_currentMove >= moves.size()) { // TODO:reset _currentMove on game change
+        _currentMove = 0;
+    }
+    auto const& move {moves[_currentMove++]};
+
+    rect_f srcBounds {move.Src->Cards[move.SrcCardIdx].Bounds};
+    for (isize i {move.SrcCardIdx + 1}; i < std::ssize(move.Src->Cards); ++i) {
+        srcBounds = srcBounds.as_merged(move.Src->Cards[i].Bounds);
+    }
+
+    rect_f dstBounds;
+    if (move.DstCardIdx >= 0) {
+        dstBounds = move.Dst->Cards[move.DstCardIdx].Bounds;
+    } else if (move.Dst->Marker) {
+        dstBounds = move.Dst->Marker->Bounds();
+    }
+
+    auto& camera {*_parentWindow->Camera};
+    _canvas->clear();
+    _canvas->translate(-_bounds.get_position());
+
+    // Draw bounds
+    _canvas->begin_path();
+    _canvas->rounded_rect(rect_f {camera.convert_world_to_screen(srcBounds)}, 10);
+    _canvas->rounded_rect(rect_f {camera.convert_world_to_screen(dstBounds)}, 10);
+    _canvas->set_stroke_style(colors::Green);
+    _canvas->set_stroke_width(10);
+    _canvas->stroke();
+
+    // Draw arrow
+    auto from {point_f {camera.convert_world_to_screen(srcBounds.get_center())}};
+    auto to {point_f {camera.convert_world_to_screen(dstBounds.get_center())}};
+
+    f32 const borderWidth {3};
+    f32 const arrowWidth {6};
+    f32 const headLength {arrowWidth * 6};
+
+    _canvas->set_line_cap(gfx::line_cap::Round);
+    _canvas->begin_path();
+    _canvas->move_to(from);
+    _canvas->line_to(to);
+
+    f32 const angle {std::atan2(to.Y - from.Y, to.X - from.X)};
+
+    _canvas->move_to(to);
+    _canvas->line_to({to.X - headLength * std::cos(angle - TAU_F / 12), to.Y - headLength * std::sin(angle - TAU_F / 12)});
+    _canvas->move_to(to);
+    _canvas->line_to({to.X - headLength * std::cos(angle + TAU_F / 12), to.Y - headLength * std::sin(angle + TAU_F / 12)});
+    _canvas->set_stroke_style(colors::Black);
+    _canvas->set_stroke_width(arrowWidth + borderWidth);
+    _canvas->stroke();
+    _canvas->set_stroke_style(colors::Gray);
+    _canvas->set_stroke_width(arrowWidth);
+    _canvas->stroke();
 }
 
 void card_table::on_update(milliseconds deltaTime)
@@ -175,7 +237,7 @@ void card_table::draw_cards(gfx::render_target& target)
     }
 }
 
-void card_table::move_camera(size_f bounds)
+void card_table::move_camera(size_f cardBounds)
 {
     if (!_camManual) {
         using namespace tcob::tweening;
@@ -183,9 +245,10 @@ void card_table::move_camera(size_f bounds)
         auto&      camera {*_parentWindow->Camera};
         auto const winSize {_parentWindow->Size()};
 
-        f32 const     off {static_cast<f32>(winSize.Height - _size.Height)};
-        f32 const     zoom {std::min(winSize.Width / bounds.Width, (winSize.Height - off) / bounds.Height)};
-        point_f const pos {bounds.Width / 2, (bounds.Height + (off / zoom)) / 2};
+        f32 const     hDiff {static_cast<f32>(winSize.Height - _bounds.Height)};
+        f32 const     zoom {std::min(winSize.Width / cardBounds.Width, (winSize.Height - hDiff) / cardBounds.Height)};
+        //  point_f const pos {cardBounds.Width / 2, (cardBounds.Height + (off / zoom)) / 2}; // FIXME: _bounds X and Y are ignored
+        point_f const pos {cardBounds.Width / 2, cardBounds.Height / 2};
 
         if (_camInstant) {
             camera.look_at(pos);
@@ -236,65 +299,7 @@ void card_table::on_key_down(input::keyboard::event& ev)
 
     if (!_currentGame) { return; }
 
-    if (ev.KeyCode == input::key_code::m) {
-        auto const& moves {_currentGame->get_available_moves()};
-        if (moves.empty()) { return; }
-        if (_currentMove >= moves.size()) { // TODO:reset _currentMove on game change
-            _currentMove = 0;
-        }
-        auto const& move {moves[_currentMove++]};
-
-        rect_f srcBounds {move.Src->Cards[move.SrcCardIdx].Bounds};
-        for (isize i {move.SrcCardIdx + 1}; i < std::ssize(move.Src->Cards); ++i) {
-            srcBounds = srcBounds.as_merged(move.Src->Cards[i].Bounds);
-        }
-
-        rect_f dstBounds;
-        if (move.DstCardIdx >= 0) {
-            dstBounds = move.Dst->Cards[move.DstCardIdx].Bounds;
-        } else if (move.Dst->Marker) {
-            dstBounds = move.Dst->Marker->Bounds();
-        }
-
-        auto& camera {*_parentWindow->Camera};
-        _canvas->clear();
-
-        // Draw bounds
-        _canvas->begin_path();
-        _canvas->rounded_rect(rect_f {camera.convert_world_to_screen(srcBounds)}, 10);
-        _canvas->rounded_rect(rect_f {camera.convert_world_to_screen(dstBounds)}, 10);
-        _canvas->set_stroke_style(colors::Green);
-        _canvas->set_stroke_width(10);
-        _canvas->stroke();
-
-        // Draw arrow
-        auto from {point_f {camera.convert_world_to_screen(srcBounds.get_center())}};
-        auto to {point_f {camera.convert_world_to_screen(dstBounds.get_center())}};
-
-        f32 const borderWidth {3};
-        f32 const arrowWidth {6};
-        f32 const headLength {arrowWidth * 6};
-
-        _canvas->set_line_cap(gfx::line_cap::Round);
-        _canvas->begin_path();
-        _canvas->move_to(from);
-        _canvas->line_to(to);
-
-        f32 const angle {std::atan2(to.Y - from.Y, to.X - from.X)};
-
-        _canvas->move_to(to);
-        _canvas->line_to({to.X - headLength * std::cos(angle - TAU_F / 12), to.Y - headLength * std::sin(angle - TAU_F / 12)});
-        _canvas->move_to(to);
-        _canvas->line_to({to.X - headLength * std::cos(angle + TAU_F / 12), to.Y - headLength * std::sin(angle + TAU_F / 12)});
-        _canvas->set_stroke_style(colors::Black);
-        _canvas->set_stroke_width(arrowWidth + borderWidth);
-        _canvas->stroke();
-        _canvas->set_stroke_style(colors::Gray);
-        _canvas->set_stroke_width(arrowWidth);
-        _canvas->stroke();
-    } else {
-        _currentGame->key_down(ev);
-    }
+    _currentGame->key_down(ev);
 }
 
 void card_table::on_mouse_motion(input::mouse::motion_event& ev)

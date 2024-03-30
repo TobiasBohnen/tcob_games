@@ -19,10 +19,18 @@ enum class game_state {
     Success
 };
 
-struct hover_info {
+struct pile_description {
     std::string Pile;
-    std::string Rule;
     std::string CardCount;
+
+    std::string Description;
+    std::string DescriptionLabel;
+
+    std::string Move;
+    std::string MoveLabel;
+
+    std::string Base;
+    std::string BaseLabel;
 };
 
 constexpr isize INDEX_MARKER {-1};

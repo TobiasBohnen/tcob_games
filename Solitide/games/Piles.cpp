@@ -152,25 +152,30 @@ auto get_pile_type_name(pile_type s) -> std::string
     return "";
 }
 
-auto pile::get_description(games::base_game const& game) const -> hover_info
+auto pile::get_description(games::base_game const& game) const -> pile_description
 {
     auto const cardCount {Cards.size()};
 
-    hover_info retValue;
+    pile_description retValue;
     retValue.Pile      = get_pile_type_name(Type);
     retValue.CardCount = std::to_string(cardCount);
 
     switch (Type) {
     case pile_type::Stock: {
-        std::string redeals {game.info().RemainingRedeals < 0 ? "∞" : std::to_string(game.info().RemainingRedeals)};
-        retValue.Rule = "Redeals: " + redeals;
+        retValue.Description      = game.info().RemainingRedeals < 0 ? "∞" : std::to_string(game.info().RemainingRedeals);
+        retValue.DescriptionLabel = "Redeals";
     } break;
     case pile_type::Waste:
     case pile_type::Reserve:
     case pile_type::FreeCell:
     case pile_type::Foundation:
     case pile_type::Tableau: {
-        retValue.Rule = Rule.BuildHint + "\nMove: " + Rule.MoveHint + "\nBase: " + get_empty_ranks(Rule.Base);
+        retValue.Description      = Rule.BuildHint;
+        retValue.DescriptionLabel = "Build";
+        retValue.Move             = Rule.MoveHint;
+        retValue.MoveLabel        = "Move";
+        retValue.Base             = get_empty_ranks(Rule.Base);
+        retValue.BaseLabel        = "Base";
         break;
     }
     }

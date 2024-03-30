@@ -15,13 +15,33 @@ class form_controls : public form {
 public:
     form_controls(gfx::window* window, rect_f bounds);
 
-    std::shared_ptr<button>        BtnNewGame;
-    std::shared_ptr<button>        BtnMenu;
-    std::shared_ptr<label>         LblPile;
-    std::shared_ptr<label>         LblRule;
-    std::shared_ptr<label>         LblCardCount;
-    std::shared_ptr<button>        BtnUndo;
-    std::shared_ptr<button>        BtnQuit;
+    std::shared_ptr<button> BtnNewGame;
+    std::shared_ptr<button> BtnMenu;
+    std::shared_ptr<button> BtnHint;
+    std::shared_ptr<button> BtnUndo;
+    std::shared_ptr<button> BtnQuit;
+
+    std::shared_ptr<label> LblPile;
+    std::shared_ptr<label> LblPileLabel;
+
+    std::shared_ptr<label> LblDescription;
+    std::shared_ptr<label> LblDescriptionLabel;
+
+    std::shared_ptr<label> LblMove;
+    std::shared_ptr<label> LblMoveLabel;
+
+    std::shared_ptr<label> LblBase;
+    std::shared_ptr<label> LblBaseLabel;
+
+    std::shared_ptr<label> LblCardCount;
+    std::shared_ptr<label> LblCardCountLabel;
+
+    std::shared_ptr<label> LblTurn;
+    std::shared_ptr<label> LblTurnLabel;
+
+    std::shared_ptr<label> LblTime;
+    std::shared_ptr<label> LblTimeLabel;
+
     std::shared_ptr<canvas_widget> Canvas;
 };
 

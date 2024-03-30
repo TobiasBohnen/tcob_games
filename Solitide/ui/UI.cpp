@@ -16,28 +16,60 @@ form_controls::form_controls(gfx::window* window, rect_f bounds)
     mainPanel->Class = "panel-transparent";
     auto mainPanelLayout {mainPanel->create_layout<dock_layout>()};
 
-    auto menuPanel {mainPanelLayout->create_widget<panel>(dock_style::Bottom, "menu")};
-    menuPanel->Flex = {100_pct, 10_pct};
-    auto menuPanelLayout {menuPanel->create_layout<grid_layout>(size_i {20, 6})};
+    // menu
+    {
+        auto menuPanel {mainPanelLayout->create_widget<panel>(dock_style::Top, "menu")};
+        menuPanel->Flex = {100_pct, 10_pct};
+        auto menuPanelLayout {menuPanel->create_layout<grid_layout>(size_i {20, 6})};
 
-    BtnMenu        = menuPanelLayout->create_widget<button>({0, 0, 3, 6}, "btnGames");
-    BtnMenu->Label = "Menu";
+        BtnMenu        = menuPanelLayout->create_widget<button>({0, 0, 3, 6}, "btnGames");
+        BtnMenu->Label = "Menu";
 
-    LblPile             = menuPanelLayout->create_widget<label>({4, 0, 2, 6}, "lblInfo0");
-    LblPile->Class      = "label-small";
-    LblRule             = menuPanelLayout->create_widget<label>({6, 0, 4, 6}, "lblInfo1");
-    LblRule->Class      = "label-small";
-    LblCardCount        = menuPanelLayout->create_widget<label>({10, 0, 1, 6}, "lblInfo2");
-    LblCardCount->Class = "label-small";
+        BtnNewGame        = menuPanelLayout->create_widget<button>({4, 0, 2, 6}, "BtnNewGame");
+        BtnNewGame->Label = "New Game";
 
-    BtnNewGame        = menuPanelLayout->create_widget<button>({12, 0, 2, 6}, "BtnNewGame");
-    BtnNewGame->Label = "New Game";
+        BtnHint        = menuPanelLayout->create_widget<button>({13, 0, 2, 6}, "btnHint");
+        BtnHint->Label = "Hint";
 
-    BtnUndo        = menuPanelLayout->create_widget<button>({14, 0, 2, 6}, "btnUndo");
-    BtnUndo->Label = "Undo";
+        BtnUndo        = menuPanelLayout->create_widget<button>({15, 0, 2, 6}, "btnUndo");
+        BtnUndo->Label = "Undo";
 
-    BtnQuit        = menuPanelLayout->create_widget<button>({18, 0, 2, 6}, "btnQuit");
-    BtnQuit->Label = "Quit";
+        BtnQuit        = menuPanelLayout->create_widget<button>({18, 0, 2, 6}, "btnQuit");
+        BtnQuit->Label = "Quit";
+    }
+
+    // status
+    {
+        auto statusPanel {mainPanelLayout->create_widget<panel>(dock_style::Bottom, "status")};
+        statusPanel->Flex = {100_pct, 10_pct};
+        auto statusPanelLayout {statusPanel->create_layout<grid_layout>(size_i {20, 6})};
+
+        i32  i {0};
+        auto create {[&](rect_i const& rect, string const& text = "") {
+            auto l {statusPanelLayout->create_widget<label>(rect, "lblInfo" + std::to_string(i))};
+            l->Class = "label-small";
+            l->Label = text;
+            return l;
+        }};
+
+        LblPile           = create({0, 3, 2, 3});
+        LblPileLabel      = create({0, 0, 2, 3}, "Pile");
+        LblCardCount      = create({2, 3, 1, 3});
+        LblCardCountLabel = create({2, 0, 1, 3}, "Cards");
+
+        LblDescription      = create({4, 3, 4, 3});
+        LblDescriptionLabel = create({4, 0, 4, 3});
+        LblMove             = create({8, 3, 4, 3});
+        LblMoveLabel        = create({8, 0, 4, 3});
+        LblBase             = create({12, 3, 4, 3});
+        LblBaseLabel        = create({12, 0, 4, 3});
+
+        LblTurn      = create({18, 3, 1, 3});
+        LblTurnLabel = create({18, 0, 1, 3}, "Turn");
+
+        LblTime      = create({19, 3, 1, 3});
+        LblTimeLabel = create({19, 0, 1, 3}, "Time");
+    }
 
     auto overlayPanel {mainPanelLayout->create_widget<glass>(dock_style::Fill, "overlay")};
     overlayPanel->Class = "panel-transparent";

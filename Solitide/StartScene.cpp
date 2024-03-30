@@ -105,13 +105,23 @@ void start_scene::on_start()
     connect_ui_events();
 
     // card table
-    f32 const height {windowSize.Height / 10.f * 9.f};
-    _cardTable = std::make_shared<card_table>(&window, _formControls->Canvas.get(), size_i {windowSize.Width, static_cast<i32>(height)}, resGrp);
+    f32 const tableX {0};
+    f32 const tableY {windowSize.Height / 10.f * 1.f};
+    f32 const tableWidth {static_cast<f32>(windowSize.Width)};
+    f32 const tableHeight {windowSize.Height / 10.f * 8.f};
+    _cardTable = std::make_shared<card_table>(&window, _formControls->Canvas.get(),
+                                              rect_f {{tableX, tableY}, {tableWidth, tableHeight}}, resGrp);
 
-    _cardTable->HoverChange.connect([&](hover_info const& str) {
+    _cardTable->HoverChange.connect([&](pile_description const& str) {
         _formControls->LblPile->Label      = str.Pile;
-        _formControls->LblRule->Label      = str.Rule;
         _formControls->LblCardCount->Label = str.CardCount;
+
+        _formControls->LblDescription->Label      = str.Description;
+        _formControls->LblDescriptionLabel->Label = str.DescriptionLabel;
+        _formControls->LblMove->Label             = str.Move;
+        _formControls->LblMoveLabel->Label        = str.MoveLabel;
+        _formControls->LblBase->Label             = str.Base;
+        _formControls->LblBaseLabel->Label        = str.BaseLabel;
     });
 
     // render queues
@@ -143,6 +153,10 @@ void start_scene::connect_ui_events()
 
     _formControls->BtnMenu->Click.connect([&](auto const&) {
         _formMenu->show();
+    });
+
+    _formControls->BtnHint->Click.connect([&](auto const&) {
+        _cardTable->show_next_move();
     });
 
     _formControls->BtnUndo->Click.connect([&](auto const&) {
@@ -216,10 +230,8 @@ void start_scene::on_fixed_update(milliseconds /* deltaTime */)
 
     if (auto game {_cardTable->game()}) {
         auto const& info {game->info()};
-        // TODO: move to ui
-        get_window().Title = std::format("Solitide {} Turn {} Time {:%M:%S}",
-                                         _formMenu->SelectedGame(),
-                                         info.Turn, seconds(info.Time.count() / 1000));
+        _formControls->LblTurn->Label = std::to_string(info.Turn);
+        _formControls->LblTime->Label = std::format("{:%M:%S}", seconds {info.Time.count() / 1000});
     } else {
         get_window().Title = "Solitide";
     }

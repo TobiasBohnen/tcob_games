@@ -85,7 +85,7 @@ public:
     prop<game_state> State;
 
     auto get_name() const -> std::string;
-    auto get_description(pile const* pile) -> hover_info;
+    auto get_description(pile const* pile) -> pile_description;
 
     auto info() const -> game_info const&;
     auto piles() const -> std::unordered_map<pile_type, std::vector<pile*>> const&;
@@ -141,10 +141,10 @@ private:
     auto deal_cards() -> bool;
     void auto_move_to_foundation(pile& srcPile);
 
-    std::unordered_map<pile_type, std::vector<pile*>>     _piles;
-    mutable flat_map<std::pair<pile const*, isize>, bool> _movableCache;
-    mutable std::unordered_map<pile const*, hover_info>   _descriptionCache;
-    std::vector<move>                                     _availableMoves;
+    std::unordered_map<pile_type, std::vector<pile*>>         _piles;
+    mutable flat_map<std::pair<pile const*, isize>, bool>     _movableCache;
+    mutable std::unordered_map<pile const*, pile_description> _descriptionCache;
+    std::vector<move>                                         _availableMoves;
 
     game_info   _info;
     size_f      _cardSize;

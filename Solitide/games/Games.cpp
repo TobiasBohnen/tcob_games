@@ -25,7 +25,7 @@ auto base_game::get_name() const -> std::string
     return _info.Name;
 }
 
-auto base_game::get_description(pile const* pile) -> hover_info
+auto base_game::get_description(pile const* pile) -> pile_description
 {
     if (!pile) { return {}; }
 
