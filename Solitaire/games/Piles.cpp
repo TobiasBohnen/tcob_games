@@ -162,7 +162,7 @@ auto pile::get_description(games::base_game const& game) const -> hover_info
 
     switch (Type) {
     case pile_type::Stock: {
-        std::string redeals {game.redeals_left() < 0 ? "∞" : std::to_string(game.redeals_left())};
+        std::string redeals {game.info().RemainingRedeals < 0 ? "∞" : std::to_string(game.info().RemainingRedeals)};
         retValue.Rule = "Redeals: " + redeals;
     } break;
     case pile_type::Waste:

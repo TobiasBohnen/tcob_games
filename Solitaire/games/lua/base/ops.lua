@@ -55,7 +55,7 @@ local function deal_group_func(from, to, ifEmpty)
     if from.IsEmpty then return false end
     for _, toPile in ipairs(to) do
         if from.IsEmpty then break end
-        if ifEmpty == toPile.IsEmpty then
+        if not ifEmpty or ifEmpty == toPile.IsEmpty then
             from:move_cards(toPile, #from.Cards, 1, false)
             toPile:flip_up_top_card()
         end

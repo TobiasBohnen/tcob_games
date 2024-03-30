@@ -43,7 +43,43 @@ struct game_info {
     std::unordered_set<rank> DeckRanks {rank::Ace, rank::Two, rank::Three, rank::Four, rank::Five, rank::Six, rank::Seven, rank::Eight, rank::Nine, rank::Ten, rank::Jack, rank::Queen, rank::King};
     std::unordered_set<suit> DeckSuits {suit::Clubs, suit::Diamonds, suit::Hearts, suit::Spades};
 
-    bool DisableHints {false}; // TODO: replace with script function 'get_hints'
+    // TODO: replace with script function 'get_hints'
+    bool DisableHints {false};
+
+    // load/save
+    std::string InitialSeed;
+    i32         RemainingRedeals {};
+    i32         Turn {0};
+
+    void static Serialize(game_info const& v, auto&& s)
+    {
+        s["Name"]             = v.Name;
+        s["Family"]           = v.Family;
+        s["DeckCount"]        = v.DeckCount;
+        s["CardDealCount"]    = v.CardDealCount;
+        s["Redeals"]          = v.Redeals;
+        s["DeckRanks"]        = v.DeckRanks;
+        s["DeckSuits"]        = v.DeckSuits;
+        s["DisableHints"]     = v.DisableHints;
+        s["InitialSeed"]      = v.InitialSeed;
+        s["RemainingRedeals"] = v.RemainingRedeals;
+        s["Turn"]             = v.Turn;
+    }
+
+    auto static Deserialize(game_info& v, auto&& s) -> bool
+    {
+        return s.try_get(v.Name, "Name")
+            && s.try_get(v.Family, "Family")
+            && s.try_get(v.DeckCount, "DeckCount")
+            && s.try_get(v.CardDealCount, "CardDealCount")
+            && s.try_get(v.Redeals, "Redeals")
+            && s.try_get(v.DeckRanks, "DeckRanks")
+            && s.try_get(v.DeckSuits, "DeckSuits")
+            && s.try_get(v.DisableHints, "DisableHints")
+            && s.try_get(v.InitialSeed, "InitialSeed")
+            && s.try_get(v.RemainingRedeals, "RemainingRedeals")
+            && s.try_get(v.Turn, "Turn");
+    }
 };
 
 ////////////////////////////////////////////////////////////
@@ -81,7 +117,6 @@ public:
     auto info() const -> game_info;
     auto state() const -> game_state;
     auto piles() const -> std::unordered_map<pile_type, std::vector<pile*>> const&;
-    auto redeals_left() const -> i32;
     auto rand() -> rng&;
 
     void start(size_f cardSize, std::optional<data::config::object> const& loadObj);
@@ -141,9 +176,7 @@ private:
     game_info  _gameInfo;
     size_f     _cardSize;
     field&     _field;
-    i32        _turn {0};
 
-    i32                              _remainingRedeals {};
     data::config::object             _currentState;
     std::stack<data::config::object> _undoStack;
 

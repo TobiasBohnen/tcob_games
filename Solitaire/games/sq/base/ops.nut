@@ -61,7 +61,7 @@ local function deal_group_func(from, to, ifEmpty) {
         if (from.IsEmpty) {
             break
         }
-        if (ifEmpty == toPile.IsEmpty) {
+        if (!ifEmpty || ifEmpty == toPile.IsEmpty) {
             from.move_cards(toPile, from.Cards.len() - 1, 1, false)
             toPile.flip_up_top_card()
         }

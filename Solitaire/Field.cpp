@@ -11,7 +11,6 @@
 #include "Games.hpp"
 
 namespace solitaire {
-static char const* SAVE_NAME {"save.ini"};
 
 field::field(gfx::window* parent, gfx::ui::canvas_widget* canvas, size_i size, assets::group& resGrp)
     : _parentWindow {parent}
@@ -21,8 +20,6 @@ field::field(gfx::window* parent, gfx::ui::canvas_widget* canvas, size_i size, a
     , _cardRenderer {gfx::buffer_usage_hint::DynamicDraw}
     , _text {resGrp.get<gfx::font_family>("Poppins")->get_font({.Weight = gfx::font::weight::Bold}, 96)}
 {
-    _saveGame.load(SAVE_NAME);
-
     _text.Bounds = {point_f::Zero, size_f {_size}};
     auto& effects {_text.get_effects()};
     effects.add(1, gfx::make_unique_quad_tween<gfx::wave_effect>(3s, {30, 4.f}));
@@ -39,17 +36,14 @@ void field::set_cardset(std::shared_ptr<cardset> cardset)
 {
     _cardset        = std::move(cardset);
     _cardQuadsDirty = true;
-    if (_currentGame) {
-        start(_currentGame, true);
-    }
 }
 
-void field::start(std::shared_ptr<games::base_game> const& game, bool cont)
+void field::start(std::shared_ptr<games::base_game> const& game, data::config::object& savegame, bool resume)
 {
     _text.hide();
 
     if (_currentGame) {
-        _currentGame->save(_saveGame);
+        _currentGame->save(savegame);
     }
 
     _dropTarget   = {};
@@ -65,8 +59,8 @@ void field::start(std::shared_ptr<games::base_game> const& game, bool cont)
     _cardQuads.resize(_currentGame->info().DeckCount * 52);
 
     auto const& cardSize {_cardset->get_card_size()};
-    if (cont) {
-        _currentGame->start(cardSize, _saveGame);
+    if (resume) {
+        _currentGame->start(cardSize, savegame);
     } else {
         _currentGame->start(cardSize, std::nullopt);
     }
@@ -77,14 +71,6 @@ void field::undo()
 {
     if (_currentGame && _currentGame->can_undo()) {
         _currentGame->undo();
-    }
-}
-
-void field::quit()
-{
-    if (_currentGame) {
-        _currentGame->save(_saveGame);
-        _saveGame.save(SAVE_NAME);
     }
 }
 
@@ -111,6 +97,11 @@ void field::mark_dirty()
 auto field::state() const -> game_state
 {
     return _currentGame ? _currentGame->state() : game_state::Initial;
+}
+
+auto field::game() const -> std::shared_ptr<games::base_game>
+{
+    return _currentGame;
 }
 
 void field::on_update(milliseconds deltaTime)

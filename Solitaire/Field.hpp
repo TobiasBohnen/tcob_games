@@ -19,19 +19,17 @@ public:
 
     signal<hover_info const> HoverChange;
 
-    void start(std::shared_ptr<games::base_game> const& game, bool cont);
+    void start(std::shared_ptr<games::base_game> const& game, data::config::object& savegame, bool resume);
     void undo();
-    void quit();
 
     auto state() const -> game_state;
+    auto game() const -> std::shared_ptr<games::base_game>;
 
     auto get_size() const -> size_i;
 
     void set_cardset(std::shared_ptr<cardset> cardset);
 
     void mark_dirty();
-
-    auto current_game() const -> std::shared_ptr<games::base_game>;
 
 protected:
     void move_camera(size_f bounds);
@@ -63,7 +61,6 @@ private:
     size_i                  _size;
 
     std::shared_ptr<games::base_game> _currentGame;
-    data::config::object              _saveGame;
 
     std::shared_ptr<cardset> _cardset;
     usize                    _currentMove {0};

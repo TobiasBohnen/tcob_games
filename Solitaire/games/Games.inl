@@ -26,7 +26,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
 
     // game
     auto& gameWrapper {*script.template create_wrapper<base_game>("script_game")};
-    gameWrapper["RedealsLeft"]   = getter {[](base_game* game) { return game->redeals_left(); }};
+    gameWrapper["RedealsLeft"]   = getter {[](base_game* game) { return game->info().RemainingRedeals; }};
     gameWrapper["CardDealCount"] = getter {[](base_game* game) { return game->info().CardDealCount; }};
     gameWrapper["DeckCount"]     = getter {[](base_game* game) { return game->info().DeckCount; }};
 

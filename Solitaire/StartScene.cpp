@@ -7,9 +7,30 @@
 
 namespace solitaire {
 
+namespace db = tcob::data::sqlite;
+
+static char const* SAVE_NAME {"save.ini"};
+static char const* DB_NAME {"profile.db"};
+
 start_scene::start_scene(game& game)
     : scene {game}
+    , _database {*data::sqlite::database::Open(DB_NAME)}
 {
+    _database.create_table("games",
+                           db::column {"ID", db::type::Integer, false, db::primary_key {}},
+                           db::column {"Name", db::type::Text, true, db::unique {}},
+                           db::column {"Family", db::type::Text},
+                           db::column {"DeckCount", db::type::Integer});
+    _database.create_table("history",
+                           db::column {"ID", db::type::Integer, false, db::primary_key {}},
+                           db::column {"GameID", db::type::Integer},
+                           db::column {"Seed", db::type::Text, true},
+                           db::column {"Won", db::type::Integer},
+                           db::column {"Turns", db::type::Integer},
+                           db::column {"Time", db::type::Integer},
+                           db::unique {"GameID", "Seed"});
+
+    _saveGame.load(SAVE_NAME);
 }
 
 start_scene::~start_scene() = default;
@@ -51,19 +72,18 @@ void start_scene::on_start()
     rect_i const menuBounds {0, 0, windowSize.Width, windowSize.Height};
     _formControls = std::make_shared<form_controls>(&window, rect_f {menuBounds});
 
-#if defined(TCOB_DEBUG)
-    io::ofstream stream {"games.txt"};
-    for (auto const& g : _games) {
-        stream << g.first << "\n";
-    }
-#endif
-
-    std::vector<games::game_info> games;
+    // games
+    std::vector<games::game_info>                      games;
+    std::vector<std::tuple<string, games::family, u8>> dbvalues;
     games.reserve(_games.size());
     for (auto const& gi : _games) {
-        games.push_back(gi.second.first);
-    }
+        games.emplace_back(gi.second.first);
 
+        dbvalues.emplace_back(gi.first, gi.second.first.Family, gi.second.first.DeckCount);
+    }
+    (void)_database.get_table("games")->insert_into(db::ignore, "Name", "Family", "DeckCount")(dbvalues);
+
+    // themes
     _themes = load_themes();
     std::vector<std::string> themes;
     themes.reserve(_themes.size());
@@ -71,6 +91,7 @@ void start_scene::on_start()
         themes.push_back(gi.first);
     }
 
+    // cardsets
     _cardSets = load_cardsets();
     std::vector<std::string> cardSets;
     cardSets.reserve(_cardSets.size());
@@ -112,10 +133,7 @@ void start_scene::connect_ui_events()
 {
     _formControls->BtnNewGame->Click.connect([&](auto const&) {
         auto const game {_formMenu->SelectedGame()};
-        if (_games.contains(game)) {
-            _playField->start(_games[game].second(*_playField), false);
-            locate_service<stats>().reset();
-        }
+        start_game(game, false);
     });
 
     _formControls->BtnMenu->Click.connect([&](auto const&) {
@@ -127,7 +145,10 @@ void start_scene::connect_ui_events()
     });
 
     _formControls->BtnQuit->Click.connect([&](auto const&) {
-        _playField->quit();
+        if (_playField->game()) {
+            _playField->game()->save(_saveGame);
+            _saveGame.save(SAVE_NAME);
+        }
         get_game().pop_current_scene();
     });
 
@@ -136,11 +157,7 @@ void start_scene::connect_ui_events()
         camera.set_position(point_f::Zero);
         camera.set_zoom(size_f::One);
 
-        if (_games.contains(game)) {
-            _playField->start(_games[game].second(*_playField), true);
-            locate_service<stats>().reset();
-            locate_service<data::config_file>()["sol"]["game"] = game;
-        }
+        start_game(game, true);
     });
 
     _formMenu->SelectedTheme.Changed.connect([&](auto const& theme) {
@@ -166,6 +183,7 @@ void start_scene::connect_ui_events()
         locate_service<data::config_file>()["sol"]["cardset"] = newCardset;
 
         _playField->set_cardset(_cardSets[newCardset]);
+        start_game(_formMenu->SelectedGame(), true);
     });
 
     _formMenu->VisibilityChanged.connect([&](bool val) {
@@ -205,6 +223,25 @@ void start_scene::on_key_down(input::keyboard::event& ev)
         break;
     default:
         break;
+    }
+}
+
+void start_scene::start_game(string const& game, bool resume)
+{
+    if (_games.contains(game)) {
+        auto current {_playField->game()};
+        if (!resume && current) {
+            // TODO: save on win/lose
+            auto const& info {current->info()};
+            auto        id {_database.get_table("games")->select_from<i64>("ID").where("Name = '" + info.Name + "'")()};
+            using tup = std::tuple<i64, string, bool, i64, i64>;
+            (void)_database.get_table("history")->insert_into(db::replace, "GameID", "Seed", "Won", "Turns", "Time")(
+                tup {id[0], info.InitialSeed, current->state() == game_state::Success, info.Turn, 0});
+        }
+
+        _playField->start(_games[game].second(*_playField), _saveGame, resume);
+        locate_service<stats>().reset();
+        locate_service<data::config_file>()["sol"]["game"] = game;
     }
 }
 
