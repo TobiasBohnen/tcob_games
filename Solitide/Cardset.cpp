@@ -18,7 +18,7 @@ auto load_cardsets() -> std::map<std::string, std::shared_ptr<cardset>>
     for (auto const& gi : io::get_sub_folders(CardsetFolder)) {
         auto const name {io::get_stem(gi)};
         if (name == "default") { continue; }
-        retValue[name] = std::make_shared<cardset>(name, resGrp);
+        retValue[name] = std::make_shared<cardset>(name);
     }
 
     return retValue;
@@ -26,11 +26,10 @@ auto load_cardsets() -> std::map<std::string, std::shared_ptr<cardset>>
 
 ////////////////////////////////////////////////////////////
 
-cardset::cardset(std::string folder, assets::group& resGrp)
-    : _folder {std::move(folder)}
+cardset::cardset(std::string folder)
+    : _name {std::move(folder)}
+    , _loaded {load()}
 {
-    if (!load()) { create(resGrp, _texture.get_obj()); }
-
     _material->Texture = _texture;
 }
 
@@ -44,13 +43,9 @@ auto cardset::get_material() const -> assets::asset_ptr<gfx::material>
     return _material;
 }
 
-void cardset::create(assets::group& /* resGrp */, gfx::texture* /* tex */)
-{
-}
-
 auto cardset::load() const -> bool
 {
-    std::string const folder {CardsetFolder + _folder + "/"};
+    std::string const folder {CardsetFolder + _name + "/"};
     auto              files {io::enumerate(folder, {"*card*.png"}, false)};
     if (files.size() < CardsetCardCount) { return false; }
 
@@ -74,7 +69,17 @@ auto cardset::load() const -> bool
 
 auto cardset::get_folder() const -> std::string
 {
-    return CardsetFolder + _folder + "/";
+    return CardsetFolder + _name + "/";
+}
+
+auto cardset::get_texture() const -> gfx::texture*
+{
+    return _texture.get_obj();
+}
+
+auto cardset::is_loaded() const -> bool
+{
+    return _loaded;
 }
 
 ////////////////////////////////////////////////////////////
@@ -82,15 +87,19 @@ auto cardset::get_folder() const -> std::string
 static constexpr color CardsetBackColor {colors::SeaShell};
 
 default_cardset::default_cardset(assets::group& resGrp)
-    : cardset {"default", resGrp}
+    : cardset {"default"}
 {
+    if (!is_loaded()) {
+        create(resGrp, get_texture());
+    }
 }
 
 void default_cardset::create(assets::group& resGrp, gfx::texture* tex)
 {
-    size_f const texSize {tex->get_size()};
-    i32 const    columns {10};
-    i32 const    rows {8};
+    size_f const texSize {240, 360};
+    tex->create(size_i {texSize}, CardsetCardCount, gfx::texture::format::RGBA8);
+    i32 const columns {10};
+    i32 const rows {8};
     static_assert(columns * rows >= CardsetCardCount);
     size_f const canvasSize {texSize.Width * columns, texSize.Height * rows};
 

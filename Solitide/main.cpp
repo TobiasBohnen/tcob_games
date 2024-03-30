@@ -14,9 +14,8 @@
 class my_game : public tcob::game {
 public:
     my_game(char const* argv)
-        : tcob::game {{.Path = argv, .Name = "Solitaire"}}
+        : tcob::game {{.Path = argv, .Name = "Solitide"}}
     {
-        //  get_window().ClearColor = colors::DarkGreen;
         start();
     }
 

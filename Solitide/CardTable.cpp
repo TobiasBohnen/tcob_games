@@ -94,11 +94,6 @@ void card_table::mark_dirty()
     _cardQuadsDirty = true;
 }
 
-auto card_table::state() const -> game_state
-{
-    return _currentGame ? _currentGame->state() : game_state::Initial;
-}
-
 auto card_table::game() const -> std::shared_ptr<games::base_game>
 {
     return _currentGame;
@@ -106,9 +101,11 @@ auto card_table::game() const -> std::shared_ptr<games::base_game>
 
 void card_table::on_update(milliseconds deltaTime)
 {
+    if (!_currentGame) { return; }
+
     _markerSprites.update(deltaTime);
 
-    auto const gameState {state()};
+    auto const gameState {_currentGame->State()};
     if (gameState == game_state::Success) {
         _text.Style = {.Color = colors::Green, .Alignment = {.Horizontal = gfx::horizontal_alignment::Centered, .Vertical = gfx::vertical_alignment::Middle}};
         _text.Text  = "{EFFECT:1}GAME WON";
@@ -125,9 +122,7 @@ void card_table::on_update(milliseconds deltaTime)
     if (_camPosTween) { _camPosTween->update(deltaTime); }
     if (_camZoomTween) { _camZoomTween->update(deltaTime); }
 
-    if (_currentGame) {
-        _currentGame->update(deltaTime);
-    }
+    _currentGame->update(deltaTime);
 }
 
 void card_table::on_draw_to(gfx::render_target& target)

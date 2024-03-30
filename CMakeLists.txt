@@ -6,5 +6,5 @@ if(TCOB_ENABLE_ADDON_PHYSICS_BOX2D
     add_subdirectory(Mines)
     add_subdirectory(Snake)
     add_subdirectory(BrickOut)
-    add_subdirectory(Solitaire)
+    add_subdirectory(Solitide)
 endif()

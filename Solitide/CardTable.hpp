@@ -22,7 +22,6 @@ public:
     void start(std::shared_ptr<games::base_game> const& game, data::config::object& savegame, bool resume);
     void undo();
 
-    auto state() const -> game_state;
     auto game() const -> std::shared_ptr<games::base_game>;
 
     auto get_size() const -> size_i;

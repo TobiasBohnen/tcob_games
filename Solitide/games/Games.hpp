@@ -82,11 +82,12 @@ public:
     std::vector<tableau>    Tableau;
     std::vector<foundation> Foundation;
 
+    prop<game_state> State;
+
     auto get_name() const -> std::string;
     auto get_description(pile const* pile) -> hover_info;
 
     auto info() const -> game_info const&;
-    auto state() const -> game_state;
     auto piles() const -> std::unordered_map<pile_type, std::vector<pile*>> const&;
     auto rand() -> rng&;
 
@@ -145,7 +146,6 @@ private:
     mutable std::unordered_map<pile const*, hover_info>   _descriptionCache;
     std::vector<move>                                     _availableMoves;
 
-    game_state  _state {game_state::Initial};
     game_info   _info;
     size_f      _cardSize;
     card_table& _cardTable;

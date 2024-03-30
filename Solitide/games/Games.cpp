@@ -41,7 +41,7 @@ auto base_game::get_description(pile const* pile) -> hover_info
 void base_game::start(size_f cardSize, std::optional<data::config::object> const& loadObj)
 {
     _cardSize = cardSize;
-    _state    = game_state::Initial;
+    State     = game_state::Initial;
 
     if (!load(loadObj)) { new_game(); }
 
@@ -183,7 +183,7 @@ void base_game::init()
     _movableCache.clear();
     _descriptionCache.clear();
     calc_available_moves();
-    _state = check_state();
+    State = check_state();
 }
 
 void base_game::undo()
@@ -224,7 +224,7 @@ void base_game::end_turn(bool deal)
     _movableCache.clear();
     _descriptionCache.clear();
     calc_available_moves();
-    _state = check_state();
+    State = check_state();
 }
 
 void base_game::layout_piles()
@@ -562,11 +562,6 @@ auto base_game::piles() const -> std::unordered_map<pile_type, std::vector<pile*
 auto base_game::info() const -> game_info const&
 {
     return _info;
-}
-
-auto base_game::state() const -> game_state
-{
-    return _state;
 }
 
 ////////////////////////////////////////////////////////////

@@ -211,11 +211,11 @@ void start_scene::on_fixed_update(milliseconds /* deltaTime */)
     if (auto game {_cardTable->game()}) {
         auto const& info {game->info()};
         // TODO: move to ui
-        get_window().Title = std::format("Solitaire {} Turn {} Time {:%M:%S}",
+        get_window().Title = std::format("Solitide {} Turn {} Time {:%M:%S}",
                                          _formMenu->SelectedGame(),
                                          info.Turn, seconds(info.Time.count() / 1000));
     } else {
-        get_window().Title = "Solitaire";
+        get_window().Title = "Solitide";
     }
 
 #if defined(TCOB_DEBUG)
@@ -249,7 +249,7 @@ void start_scene::start_game(string const& game, bool resume)
             auto        id {_dbGames->select_from<i64>("ID").where("Name = '" + info.Name + "'")()};
             using tup   = std::tuple<i64, string, bool, i64, i64>;
             std::ignore = _dbHistory->insert_into(db::replace, "GameID", "Seed", "Won", "Turns", "Time")(
-                tup {id[0], info.InitialSeed, current->state() == game_state::Success, info.Turn, info.Time.count()});
+                tup {id[0], info.InitialSeed, current->State == game_state::Success, info.Turn, info.Time.count()});
         }
 
         _cardTable->start(_games[game].second(*_cardTable), _saveGame, resume);
