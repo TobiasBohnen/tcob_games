@@ -180,7 +180,7 @@ void default_cardset::create(assets::group& resGrp, gfx::texture* tex)
         auto const data {tempImg.get_data(rect_i {v.UVRect})};
         gfx::image cardimg {gfx::image::Create(size_i {texSize}, gfx::image::format::RGBA, data)};
 
-        (void)cardimg.save(folder + k + ".png");
+        std::ignore = cardimg.save(folder + k + ".png");
         tex->update_data(data, level);
         tex->add_region(k, gfx::texture_region {{0, 0, 1, 1}, level++});
     }

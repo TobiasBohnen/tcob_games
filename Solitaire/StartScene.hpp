@@ -58,8 +58,11 @@ private:
     std::map<std::string, color_themes>                      _themes {};
     std::map<std::string, std::shared_ptr<cardset>>          _cardSets;
 
-    data::config::object   _saveGame;
-    data::sqlite::database _database;
+    data::config::object _saveGame;
+
+    data::sqlite::database             _database;
+    std::optional<data::sqlite::table> _dbGames;
+    std::optional<data::sqlite::table> _dbHistory;
 };
 
 }

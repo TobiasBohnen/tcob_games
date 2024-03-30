@@ -47,39 +47,10 @@ struct game_info {
     bool DisableHints {false};
 
     // load/save
-    std::string InitialSeed;
-    i32         RemainingRedeals {};
-    i32         Turn {0};
-
-    void static Serialize(game_info const& v, auto&& s)
-    {
-        s["Name"]             = v.Name;
-        s["Family"]           = v.Family;
-        s["DeckCount"]        = v.DeckCount;
-        s["CardDealCount"]    = v.CardDealCount;
-        s["Redeals"]          = v.Redeals;
-        s["DeckRanks"]        = v.DeckRanks;
-        s["DeckSuits"]        = v.DeckSuits;
-        s["DisableHints"]     = v.DisableHints;
-        s["InitialSeed"]      = v.InitialSeed;
-        s["RemainingRedeals"] = v.RemainingRedeals;
-        s["Turn"]             = v.Turn;
-    }
-
-    auto static Deserialize(game_info& v, auto&& s) -> bool
-    {
-        return s.try_get(v.Name, "Name")
-            && s.try_get(v.Family, "Family")
-            && s.try_get(v.DeckCount, "DeckCount")
-            && s.try_get(v.CardDealCount, "CardDealCount")
-            && s.try_get(v.Redeals, "Redeals")
-            && s.try_get(v.DeckRanks, "DeckRanks")
-            && s.try_get(v.DeckSuits, "DeckSuits")
-            && s.try_get(v.DisableHints, "DisableHints")
-            && s.try_get(v.InitialSeed, "InitialSeed")
-            && s.try_get(v.RemainingRedeals, "RemainingRedeals")
-            && s.try_get(v.Turn, "Turn");
-    }
+    std::string        InitialSeed;
+    i32                RemainingRedeals {};
+    i32                Turn {0};
+    tcob::milliseconds Time {0};
 };
 
 ////////////////////////////////////////////////////////////
@@ -114,7 +85,7 @@ public:
     auto get_name() const -> std::string;
     auto get_description(pile const* pile) -> hover_info;
 
-    auto info() const -> game_info;
+    auto info() const -> game_info const&;
     auto state() const -> game_state;
     auto piles() const -> std::unordered_map<pile_type, std::vector<pile*>> const&;
     auto rand() -> rng&;
@@ -134,6 +105,8 @@ public:
 
     void click(pile* srcPile, u8 clicks);
     void key_down(input::keyboard::event& ev);
+
+    void update(milliseconds delta);
 
 protected:
     auto virtual do_redeal() -> bool = 0;
@@ -173,7 +146,7 @@ private:
     std::vector<move>                                     _availableMoves;
 
     game_state _state {game_state::Initial};
-    game_info  _gameInfo;
+    game_info  _info;
     size_f     _cardSize;
     field&     _field;
 

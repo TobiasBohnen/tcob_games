@@ -16,19 +16,20 @@ start_scene::start_scene(game& game)
     : scene {game}
     , _database {*data::sqlite::database::Open(DB_NAME)}
 {
-    _database.create_table("games",
-                           db::column {"ID", db::type::Integer, false, db::primary_key {}},
-                           db::column {"Name", db::type::Text, true, db::unique {}},
-                           db::column {"Family", db::type::Text},
-                           db::column {"DeckCount", db::type::Integer});
-    _database.create_table("history",
-                           db::column {"ID", db::type::Integer, false, db::primary_key {}},
-                           db::column {"GameID", db::type::Integer},
-                           db::column {"Seed", db::type::Text, true},
-                           db::column {"Won", db::type::Integer},
-                           db::column {"Turns", db::type::Integer},
-                           db::column {"Time", db::type::Integer},
-                           db::unique {"GameID", "Seed"});
+    _dbGames   = _database.create_table("games",
+                                        db::column {"ID", db::type::Integer, false, db::primary_key {}},
+                                        db::column {"Name", db::type::Text, true, db::unique {}},
+                                        db::column {"Family", db::type::Text},
+                                        db::column {"DeckCount", db::type::Integer});
+    _dbHistory = _database.create_table("history",
+                                        db::column {"ID", db::type::Integer, false, db::primary_key {}},
+                                        db::column {"GameID", db::type::Integer},
+                                        db::column {"Seed", db::type::Text, true},
+                                        db::column {"Won", db::type::Integer},
+                                        db::column {"Turns", db::type::Integer},
+                                        db::column {"Time", db::type::Real},
+                                        db::unique {"GameID", "Seed"});
+    assert(_dbGames && _dbHistory);
 
     _saveGame.load(SAVE_NAME);
 }
@@ -81,7 +82,7 @@ void start_scene::on_start()
 
         dbvalues.emplace_back(gi.first, gi.second.first.Family, gi.second.first.DeckCount);
     }
-    (void)_database.get_table("games")->insert_into(db::ignore, "Name", "Family", "DeckCount")(dbvalues);
+    std::ignore = _dbGames->insert_into(db::ignore, "Name", "Family", "DeckCount")(dbvalues);
 
     // themes
     _themes = load_themes();
@@ -207,8 +208,20 @@ void start_scene::on_fixed_update(milliseconds /* deltaTime */)
 {
     auto stat {locate_service<stats>()};
 
-    get_window().Title = std::format("Solitaire {} | avg FPS: {:.2f} best FPS: {:.2f} worst FPS: {:.2f}",
-                                     _formMenu->SelectedGame(), stat.get_average_FPS(), stat.get_best_FPS(), stat.get_worst_FPS());
+    if (auto game {_playField->game()}) {
+        auto const& info {game->info()};
+        // TODO: move to ui
+        get_window().Title = std::format("Solitaire {} Turn {} Time {:%M:%S}",
+                                         _formMenu->SelectedGame(),
+                                         info.Turn, seconds(info.Time.count() / 1000));
+    } else {
+        get_window().Title = "Solitaire";
+    }
+
+#if defined(TCOB_DEBUG)
+    get_window().Title += std::format(" | avg FPS: {:.2f} best FPS: {:.2f} worst FPS: {:.2f}",
+                                      stat.get_average_FPS(), stat.get_best_FPS(), stat.get_worst_FPS());
+#endif
 }
 
 void start_scene::on_key_down(input::keyboard::event& ev)
@@ -233,10 +246,10 @@ void start_scene::start_game(string const& game, bool resume)
         if (!resume && current) {
             // TODO: save on win/lose
             auto const& info {current->info()};
-            auto        id {_database.get_table("games")->select_from<i64>("ID").where("Name = '" + info.Name + "'")()};
-            using tup = std::tuple<i64, string, bool, i64, i64>;
-            (void)_database.get_table("history")->insert_into(db::replace, "GameID", "Seed", "Won", "Turns", "Time")(
-                tup {id[0], info.InitialSeed, current->state() == game_state::Success, info.Turn, 0});
+            auto        id {_dbGames->select_from<i64>("ID").where("Name = '" + info.Name + "'")()};
+            using tup   = std::tuple<i64, string, bool, i64, i64>;
+            std::ignore = _dbHistory->insert_into(db::replace, "GameID", "Seed", "Won", "Turns", "Time")(
+                tup {id[0], info.InitialSeed, current->state() == game_state::Success, info.Turn, info.Time.count()});
         }
 
         _playField->start(_games[game].second(*_playField), _saveGame, resume);
@@ -251,7 +264,7 @@ void start_scene::load_scripts()
         games::lua_script_game::CreateAPI(this, _luaScript, _luaFunctions);
         auto const files {io::enumerate("/", {"games.*.lua", false}, true)};
         for (auto const& file : files) {
-            (void)_luaScript.run_file(file);
+            std::ignore = _luaScript.run_file(file);
         }
     }
 
@@ -259,7 +272,7 @@ void start_scene::load_scripts()
         games::squirrel_script_game::CreateAPI(this, _sqScript, _sqFunctions);
         auto const files {io::enumerate("/", {"games.*.nut", false}, true)};
         for (auto const& file : files) {
-            (void)_sqScript.run_file(file);
+            std::ignore = _sqScript.run_file(file);
         }
     }
 }

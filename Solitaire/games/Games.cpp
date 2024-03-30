@@ -14,15 +14,15 @@
 namespace solitaire::games {
 
 base_game::base_game(field& f, game_info info)
-    : _gameInfo {std::move(info)}
+    : _info {std::move(info)}
     , _field {f}
 {
-    _gameInfo.RemainingRedeals = _gameInfo.Redeals;
+    _info.RemainingRedeals = _info.Redeals;
 }
 
 auto base_game::get_name() const -> std::string
 {
-    return _gameInfo.Name;
+    return _info.Name;
 }
 
 auto base_game::get_description(pile const* pile) -> hover_info
@@ -68,10 +68,10 @@ void base_game::new_game()
         bytes.insert(bytes.end(), ptr, ptr + sizeof(u64));
     }
     auto base64 {filter.to(bytes)};
-    _gameInfo.InitialSeed = std::string(reinterpret_cast<byte*>(base64->data()), base64->size());
+    _info.InitialSeed = std::string(reinterpret_cast<byte*>(base64->data()), base64->size());
 
-    for (i32 i {0}; i < _gameInfo.DeckCount; ++i) {
-        deck const deck {deck::GetShuffled(_rand, static_cast<u8>(i), _gameInfo.DeckSuits, _gameInfo.DeckRanks)};
+    for (i32 i {0}; i < _info.DeckCount; ++i) {
+        deck const deck {deck::GetShuffled(_rand, static_cast<u8>(i), _info.DeckSuits, _info.DeckRanks)};
         cards.insert(cards.end(), deck.Cards.begin(), deck.Cards.end());
     }
 
@@ -115,13 +115,14 @@ auto base_game::load(std::optional<data::config::object> const& loadObj) -> bool
 
     clear_piles();
 
-    if (!loadObj->has(_gameInfo.Name)) { return false; }
+    if (!loadObj->has(_info.Name)) { return false; }
 
-    object const obj {loadObj->get<object>(_gameInfo.Name).value()};
+    object const obj {loadObj->get<object>(_info.Name).value()};
     if (!obj.has("Redeals") || !obj.has("Turn")) { return false; }
-    _gameInfo.RemainingRedeals = obj["Redeals"].as<i32>();
-    _gameInfo.Turn             = obj["Turn"].as<i32>();
-    _gameInfo.InitialSeed      = obj["InitialSeed"].as<string>();
+    _info.RemainingRedeals = obj["Redeals"].as<i32>();
+    _info.Turn             = obj["Turn"].as<i32>();
+    _info.InitialSeed      = obj["InitialSeed"].as<string>();
+    _info.Time             = milliseconds {obj["Time"].as<f64>()};
 
     auto const createCard {[&](entry const& entry) { return card::FromValue(entry.as<u16>()); }};
     for (auto& [type, piles] : _piles) {
@@ -164,11 +165,12 @@ void base_game::save(tcob::data::config::object& saveObj)
         obj[get_pile_type_name(kvp.first)] = pilesArr;
     }
 
-    obj["Redeals"]     = _gameInfo.RemainingRedeals;
-    obj["Turn"]        = _gameInfo.Turn;
-    obj["InitialSeed"] = _gameInfo.InitialSeed;
+    obj["Redeals"]     = _info.RemainingRedeals;
+    obj["Turn"]        = _info.Turn;
+    obj["InitialSeed"] = _info.InitialSeed;
+    obj["Time"]        = _info.Time.count();
 
-    saveObj[_gameInfo.Name] = obj;
+    saveObj[_info.Name] = obj;
 }
 
 void base_game::init()
@@ -187,12 +189,12 @@ void base_game::init()
 void base_game::undo()
 {
     if (can_undo()) {
-        i32 const oldTurn {_gameInfo.Turn};
+        i32 const oldTurn {_info.Turn};
         load(_undoStack.top());
         _undoStack.pop();
 
         init();
-        _gameInfo.Turn = oldTurn + 1;
+        _info.Turn = oldTurn + 1;
     }
 }
 
@@ -203,7 +205,7 @@ auto base_game::can_undo() const -> bool
 
 void base_game::end_turn(bool deal)
 {
-    ++_gameInfo.Turn;
+    ++_info.Turn;
 
     on_end_turn();
     layout_piles();
@@ -353,6 +355,12 @@ void base_game::key_down(input::keyboard::event& ev)
     }
 }
 
+void base_game::update(milliseconds delta)
+{
+    // TODO: pause
+    _info.Time += delta;
+}
+
 void base_game::click(pile* srcPile, u8 clicks)
 {
     if (!srcPile || srcPile->Type == pile_type::Foundation) { return; }
@@ -431,11 +439,11 @@ auto base_game::check_movable(pile const& targetPile, isize idx) const -> bool
 
 auto base_game::deal_cards() -> bool
 {
-    if (_gameInfo.RemainingRedeals != 0) {
+    if (_info.RemainingRedeals != 0) {
         // e.g. Waste -> Stock
         if (do_redeal()) {
-            if (_gameInfo.RemainingRedeals > 0) {
-                --_gameInfo.RemainingRedeals;
+            if (_info.RemainingRedeals > 0) {
+                --_info.RemainingRedeals;
             }
 
             end_turn(false);
@@ -463,7 +471,7 @@ auto base_game::check_state() const -> game_state
     }
     if (success) { return game_state::Success; }
 
-    if (Stock.empty() || (Stock[0].empty() && _gameInfo.RemainingRedeals == 0)) {
+    if (Stock.empty() || (Stock[0].empty() && _info.RemainingRedeals == 0)) {
         if (get_available_moves().empty()) {
             return game_state::Failure;
         }
@@ -474,7 +482,7 @@ auto base_game::check_state() const -> game_state
 
 void base_game::calc_available_moves()
 {
-    if (_gameInfo.DisableHints) {
+    if (_info.DisableHints) {
         _availableMoves.clear();
         return;
     }
@@ -550,9 +558,9 @@ auto base_game::piles() const -> std::unordered_map<pile_type, std::vector<pile*
     return _piles;
 }
 
-auto base_game::info() const -> game_info
+auto base_game::info() const -> game_info const&
 {
-    return _gameInfo;
+    return _info;
 }
 
 auto base_game::state() const -> game_state
@@ -601,7 +609,8 @@ void lua_script_game::CreateAPI(start_scene* scene, scripting::lua::script& scri
     CreateGlobals<lua_script_game>(scene, script, env, make_func, "lua");
     CreateWrapper(script);
 
-    (void)script.run_file("main.lua");
+    std::ignore = script.run_file("main.lua");
+
     global["Sol"]["Layout"] = env["Sol"]["Layout"];
 }
 
@@ -671,7 +680,7 @@ void squirrel_script_game::CreateAPI(start_scene* scene, scripting::squirrel::sc
 
     root["Lua"] = lua;
 
-    (void)script.run_file("main.nut");
+    std::ignore = script.run_file("main.nut");
 }
 
 } // namespace solitaire
