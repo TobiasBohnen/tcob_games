@@ -273,10 +273,10 @@ void start_scene::start_game(string const& name, start_reason reason)
             case game_state::Failure: {
                 auto const  current {_cardTable->game()};
                 auto const& info {current->info()};
-                auto const  id {_dbGames->select_from<i64>("ID").where("Name = '" + info.Name + "'")()};
-                using tup   = std::tuple<i64, string, bool, i64, i64>;
-                std::ignore = _dbHistory->insert_into(db::replace, "GameID", "Seed", "Won", "Turns", "Time")(
-                    tup {id[0], info.InitialSeed, current->State == game_state::Success, info.Turn, info.Time.count()});
+                auto const  id {_dbGames->select_from<i64>("ID").where("Name = ?")(info.Name)};
+                using tupInsert = std::tuple<i64, string, bool, i64, i64>;
+                std::ignore     = _dbHistory->insert_into(db::replace, "GameID", "Seed", "Won", "Turns", "Time")(
+                    tupInsert {id[0], info.InitialSeed, current->State == game_state::Success, info.Turn, info.Time.count()});
             } break;
             default: break;
             }
