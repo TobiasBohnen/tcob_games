@@ -169,7 +169,7 @@ local move = {
             }
     },
     InSeqAlternateColors = @() {
-        Hint = "Sequence of cards of alternate colors",
+        Hint = "Color-alternating card sequence",
             Move = function(game, target, idx) {
                 local cards = target.Cards
                 if (cards[idx].IsFaceDown) {
@@ -186,7 +186,7 @@ local move = {
             }
     },
     InSeqInSuitOrSameRank = @() {
-        Hint = "Sequence of cards in the same suit or the same suit",
+        Hint = "Sequence of cards in the same suit or rank",
             Move = function(game, target, idx) {
                 local cards = target.Cards
                 if (cards[idx].IsFaceDown) {
