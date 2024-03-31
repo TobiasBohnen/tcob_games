@@ -24,6 +24,8 @@ public:
     std::shared_ptr<label> LblPile;
     std::shared_ptr<label> LblPileLabel;
 
+    std::shared_ptr<label> LblGameName;
+
     std::shared_ptr<label> LblDescription;
     std::shared_ptr<label> LblDescriptionLabel;
 

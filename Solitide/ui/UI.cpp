@@ -52,17 +52,19 @@ form_controls::form_controls(gfx::window* window, rect_f bounds)
             return l;
         }};
 
-        LblPile           = create({0, 3, 2, 3});
-        LblPileLabel      = create({0, 0, 2, 3}, "Pile");
-        LblCardCount      = create({2, 3, 1, 3});
-        LblCardCountLabel = create({2, 0, 1, 3}, "Cards");
+        LblGameName = create({0, 0, 2, 6});
 
-        LblDescription      = create({4, 3, 4, 3});
-        LblDescriptionLabel = create({4, 0, 4, 3});
-        LblMove             = create({8, 3, 4, 3});
-        LblMoveLabel        = create({8, 0, 4, 3});
-        LblBase             = create({12, 3, 4, 3});
-        LblBaseLabel        = create({12, 0, 4, 3});
+        LblPile           = create({2, 3, 2, 3});
+        LblPileLabel      = create({2, 0, 2, 3}, "Pile");
+        LblCardCount      = create({4, 3, 1, 3});
+        LblCardCountLabel = create({4, 0, 1, 3}, "Cards");
+
+        LblDescription      = create({6, 3, 3, 3});
+        LblDescriptionLabel = create({6, 0, 3, 3});
+        LblMove             = create({9, 3, 3, 3});
+        LblMoveLabel        = create({9, 0, 3, 3});
+        LblBase             = create({12, 3, 3, 3});
+        LblBaseLabel        = create({12, 0, 3, 3});
 
         LblTurn      = create({18, 3, 1, 3});
         LblTurnLabel = create({18, 0, 1, 3}, "Turn");
@@ -197,31 +199,33 @@ form_menu::form_menu(gfx::window* window, rect_f bounds,
 
     // menu
     auto menu {create_container<panel>(dock_style::Fill, "menu")};
-    auto menuLayout {menu->create_layout<grid_layout>(size_i {5, 20})};
+    auto menuLayout {menu->create_layout<grid_layout>(size_i {6, 20})};
 
-    auto btnGames {menuLayout->create_widget<button>({1, 1, 3, 2}, "btnGames")};
-    btnGames->Label = "Games";
-    btnGames->Click.connect([tabC = panelCardsets.get(), tabT = panelThemes.get(), tabG = tabGames.get()](auto&) {
-        tabT->Flex = {0_pct, 0_pct};
-        tabC->Flex = {0_pct, 0_pct};
-        tabG->Flex = {85_pct, 100_pct};
-    });
+    auto const enableContainer {[](form const* f, string const& enable) {
+        for (auto const& w : f->get_widgets()) {
+            if (w->get_name() != "menu") {
+                w->Flex = w->get_name() == enable ? dimensions {85_pct, 100_pct} : dimensions {0_pct, 0_pct};
+            }
+        }
+    }};
+    auto       btnGames {menuLayout->create_widget<radio_button>({0, 1, 3, 2}, "btnGames")};
+    auto       btnGamesL {menuLayout->create_widget<label>({3, 1, 2, 2}, "btnGamesL")};
+    btnGames->Checked = true;
+    btnGames->Click.connect([enableContainer](auto const& ev) { enableContainer(ev.Sender->get_form(), "tabGames"); });
+    btnGamesL->Label = "Games";
+    btnGamesL->For   = btnGames;
 
-    auto btnThemes {menuLayout->create_widget<button>({1, 4, 3, 2}, "btnThemes")};
-    btnThemes->Label = "Themes";
-    btnThemes->Click.connect([tabC = panelCardsets.get(), tabT = panelThemes.get(), tabG = tabGames.get()](auto&) {
-        tabG->Flex = {0_pct, 0_pct};
-        tabC->Flex = {0_pct, 0_pct};
-        tabT->Flex = {85_pct, 100_pct};
-    });
+    auto btnThemes {menuLayout->create_widget<radio_button>({0, 4, 3, 2}, "btnThemes")};
+    auto btnThemesL {menuLayout->create_widget<label>({3, 4, 2, 2}, "btnThemesL")};
+    btnThemes->Click.connect([enableContainer](auto const& ev) { enableContainer(ev.Sender->get_form(), "panelThemes"); });
+    btnThemesL->Label = "Themes";
+    btnThemesL->For   = btnThemes;
 
-    auto btnCardsets {menuLayout->create_widget<button>({1, 7, 3, 2}, "btnCardsets")};
-    btnCardsets->Label = "Cardsets";
-    btnCardsets->Click.connect([tabC = panelCardsets.get(), tabT = panelThemes.get(), tabG = tabGames.get()](auto&) {
-        tabG->Flex = {0_pct, 0_pct};
-        tabT->Flex = {0_pct, 0_pct};
-        tabC->Flex = {85_pct, 100_pct};
-    });
+    auto btnCardsets {menuLayout->create_widget<radio_button>({0, 7, 3, 2}, "btnCardsets")};
+    auto btnCardsetsL {menuLayout->create_widget<label>({3, 7, 2, 2}, "btnCardsetsL")};
+    btnCardsets->Click.connect([enableContainer](auto const& ev) { enableContainer(ev.Sender->get_form(), "panelCardsets"); });
+    btnCardsetsL->Label = "Cardsets";
+    btnCardsetsL->For   = btnCardsets;
 
     auto btnBack {menuLayout->create_widget<button>({1, 18, 3, 2}, "btnBack")};
     btnBack->Label = "Back";

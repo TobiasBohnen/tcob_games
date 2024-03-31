@@ -232,6 +232,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
 
         theme.Normal.apply(style);
         style->Text.Shadow.Color = colors::Transparent;
+        style->DropShadow.Color  = colors::Transparent;
     }
     {
         auto style {styles.create<label>("label-small", {})};
@@ -241,9 +242,10 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->Text.Alignment = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
         style->Text.AutoSize  = element::text::auto_size_mode::Always;
         theme.Normal.apply(style);
-        style->Text.Color       = colors::White;
-        style->DropShadow.Color = colors::Transparent;
-        style->Margin           = {5_px};
+        style->Text.Color        = colors::White;
+        style->DropShadow.Color  = colors::Transparent;
+        style->Text.Shadow.Color = colors::Transparent;
+        style->Margin            = {3_px};
     }
     {
         auto style {styles.create<list_box>("list_box", {})};
@@ -299,7 +301,27 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->MaxTabs          = 8;
         theme.Normal.apply(style);
     }
+    {
+        auto style {styles.create<radio_button>("radio_button", {})};
+        style->Border.Type   = element::border::type::Solid;
+        style->Border.Size   = 3_px;
+        style->Border.Radius = 5_px;
+        style->Margin        = {5_px};
+        style->Padding       = {5_px};
+        style->Cursor        = "cursor2";
+        style->Tick.Type     = element::tick::type::Cross;
+        style->Tick.Size     = 100_pct;
 
+        auto hoverStyle {styles.create<radio_button>("radio_button", {.Hover = true})};
+        *hoverStyle = *style;
+
+        auto activeStyle {styles.create<radio_button>("radio_button", {.Active = true})};
+        *activeStyle = *style;
+
+        theme.Normal.apply(style);
+        theme.Hover.apply(hoverStyle);
+        theme.Active.apply(activeStyle);
+    }
     {
         auto style {styles.create<thumb_style>("slider_thumb", {}, {})};
         style->Thumb.Type          = element::thumb::type::Rectangle;
@@ -392,6 +414,7 @@ auto load_themes() -> std::map<std::string, color_themes>
             normal.DropShadow      = color {0, 0, 0, 128};
             normal.Text            = colors::Black;
             normal.Bar             = colors::SlateGray;
+            normal.Tick            = colors::MidnightBlue;
             normal.Caret           = colors::DarkGray;
             normal.Item            = colors::LightGray;
             normal.Thumb           = colors::DodgerBlue;
@@ -404,6 +427,7 @@ auto load_themes() -> std::map<std::string, color_themes>
             hover.DropShadow = color {0, 0, 0, 128};
             hover.Text       = hover.Border;
             hover.Bar        = normal.Bar;
+            hover.Tick       = normal.Bar;
             hover.Caret      = normal.Caret;
             hover.Item       = colors::LightBlue;
             hover.Thumb      = normal.Thumb;
@@ -415,6 +439,7 @@ auto load_themes() -> std::map<std::string, color_themes>
             active.DropShadow = color {0, 0, 0, 128};
             active.Text       = colors::White;
             active.Bar        = normal.Bar;
+            active.Tick       = colors::ForestGreen;
             active.Caret      = normal.Caret;
             active.Item       = normal.Background;
             active.Thumb      = normal.Thumb;

@@ -230,8 +230,9 @@ void start_scene::on_fixed_update(milliseconds /* deltaTime */)
 
     if (auto game {_cardTable->game()}) {
         auto const& info {game->info()};
-        _formControls->LblTurn->Label = std::to_string(info.Turn);
-        _formControls->LblTime->Label = std::format("{:%M:%S}", seconds {info.Time.count() / 1000});
+        _formControls->LblGameName->Label = info.Name;
+        _formControls->LblTurn->Label     = std::to_string(info.Turn);
+        _formControls->LblTime->Label     = std::format("{:%M:%S}", seconds {info.Time.count() / 1000});
     } else {
         get_window().Title = "Solitide";
     }
