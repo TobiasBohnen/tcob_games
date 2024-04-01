@@ -128,7 +128,7 @@ auto base_game::load(std::optional<data::config::object> const& loadObj) -> bool
     _info.Time             = milliseconds {obj["Time"].as<f64>()};
 
     auto const createCard {[&](entry const& entry) { return card::FromValue(entry.as<u16>()); }};
-    for (auto& [type, piles] : _piles) {
+    for (auto const& [type, piles] : _piles) {
         auto const pileType {get_pile_type_name(type)};
         if (!obj.has(pileType)) { return false; }
 
@@ -156,16 +156,16 @@ void base_game::save(tcob::data::config::object& saveObj)
 
     object obj;
 
-    for (auto const& kvp : _piles) {
+    for (auto const& [type, piles] : _piles) {
         array pilesArr;
-        for (auto const& pile : kvp.second) {
+        for (auto const& pile : piles) {
             array pileArr;
             for (auto const& card : pile->Cards) {
                 pileArr.add(card.to_value());
             }
             pilesArr.add(pileArr);
         }
-        obj[get_pile_type_name(kvp.first)] = pilesArr;
+        obj[get_pile_type_name(type)] = pilesArr;
     }
 
     obj["Redeals"] = _info.RemainingRedeals;
@@ -217,8 +217,7 @@ void base_game::end_turn(bool deal)
     _currentState = {};
     save(_currentState);
 
-    // deal if all Waste piles are empty
-    if (deal
+    if (deal // if all Waste piles are empty
         && !Waste.empty()
         && std::ranges::all_of(Waste, [](auto&& waste) { return waste.empty(); })) {
         deal_cards();
@@ -297,8 +296,8 @@ auto base_game::get_pile_at(point_i pos, bool ignoreActivePile) -> hit_test_resu
         return INDEX_INVALID;
     }};
 
-    for (auto const& entry : _piles) {
-        for (auto* pile : entry.second | std::views::reverse) {
+    for (auto const& [type, piles] : _piles) {
+        for (auto* pile : piles | std::views::reverse) {
             isize const idx {checkPile(*pile)};
             if (idx != INDEX_INVALID) { return {pile, idx}; }
         }
@@ -413,8 +412,8 @@ void base_game::drop_cards(hit_test_result const& hovered, hit_test_result const
 
 void base_game::clear_piles()
 {
-    for (auto& kvp : _piles) {
-        for (auto* pile : kvp.second) {
+    for (auto const& [_, piles] : _piles) {
+        for (auto* pile : piles) {
             pile->Cards.clear();
             pile->set_active(false, -2, colors::Transparent);
         }
@@ -468,9 +467,9 @@ auto base_game::check_state() const -> game_state
 {
     // success if cards only on foundation piles
     bool success {true};
-    for (auto const& kvp : _piles) {
-        if (kvp.first != pile_type::Foundation) {
-            for (auto const& pile : kvp.second) {
+    for (auto const& [type, piles] : _piles) {
+        if (type != pile_type::Foundation) {
+            for (auto const& pile : piles) {
                 if (!pile->empty()) { success = false; }
             }
         }
@@ -494,9 +493,9 @@ void base_game::calc_available_moves()
     }
 
     std::vector<move> movable;
-    for (auto const& kvp : _piles) {
+    for (auto const& [_, piles] : _piles) {
         isize srcIdx {0};
-        for (auto* pile : kvp.second) {
+        for (auto* pile : piles) {
             if (!pile->is_playable()) { continue; }
 
             for (isize srcCardIdx {0}; srcCardIdx < std::ssize(pile->Cards); ++srcCardIdx) {
@@ -513,16 +512,16 @@ void base_game::calc_available_moves()
 
     _availableMoves.clear();
     _availableMoves.reserve(movable.size());
-    for (auto const& kvp : _piles) {
+    for (auto const& [_, piles] : _piles) {
         isize dstIdx {0};
-        for (auto* dst : kvp.second) {
-            if (dst->Type == pile_type::Stock || dst->Type == pile_type::Waste || dst->Type == pile_type::Reserve) { continue; }
+        for (auto* dst : piles) {
+            if (dst->Type == pile_type::Stock || dst->Type == pile_type::Waste || dst->Type == pile_type::Reserve) { continue; } // skip Stock/Waste/Reserve
             for (auto& src : movable) {
                 if (src.Src == dst) { continue; }
-                if (src.Src->Type == pile_type::Foundation && dst->Type == pile_type::Foundation) { continue; } // ignore Foundation to Foundation
-                if (src.Src->Type == pile_type::Foundation && dst->Type == pile_type::FreeCell) { continue; }   // ignore Foundation to FreeCell
-                if (src.Src->Type == pile_type::FreeCell && dst->Type == pile_type::FreeCell) { continue; }     // ignore FreeCell to FreeCell
-                if (dst->Type == pile_type::Foundation && src.HasFoundation) { continue; }                      // limit foundation/freecell destinations to 1
+                if (src.Src->Type == pile_type::Foundation && dst->Type == pile_type::Foundation) { continue; }                  // ignore Foundation to Foundation
+                if (src.Src->Type == pile_type::Foundation && dst->Type == pile_type::FreeCell) { continue; }                    // ignore Foundation to FreeCell
+                if (src.Src->Type == pile_type::FreeCell && dst->Type == pile_type::FreeCell) { continue; }                      // ignore FreeCell to FreeCell
+                if (dst->Type == pile_type::Foundation && src.HasFoundation) { continue; }                                       // limit foundation/freecell destinations to 1
                 if (dst->Type == pile_type::FreeCell && src.HasFreeCell) { continue; }
 
                 if (can_play(*dst,

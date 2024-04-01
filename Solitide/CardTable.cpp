@@ -162,7 +162,7 @@ void card_table::on_draw_to(gfx::render_target& target)
 
 void card_table::draw_cards(gfx::render_target& target)
 {
-    if (_currentGame && (_renderDirty || _isDragging)) {
+    if (_renderDirty || _isDragging) {
         _cardRenderer.set_material(_cardset->get_material());
 
         size_f bounds {size_f::Zero};
@@ -214,9 +214,13 @@ void card_table::draw_canvas()
 {
     if (_canvasDirty) {
         _canvas->clear();
+
+        _canvas->save();
         _canvas->translate(-_bounds.get_position());
 
         if (_showHint) { draw_hint(); }
+
+        _canvas->restore();
         _canvasDirty = false;
     }
 }
