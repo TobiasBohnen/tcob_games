@@ -24,11 +24,12 @@ public:
 
     auto game() const -> std::shared_ptr<games::base_game>;
 
-    void show_next_move();
+    void show_next_hint();
 
     void set_cardset(std::shared_ptr<cardset> cardset);
 
-    void mark_dirty();
+    void on_pile_layout();
+    void on_end_turn();
 
 protected:
     void move_camera(size_f cardBounds);
@@ -44,9 +45,15 @@ protected:
     void on_mouse_button_up(input::mouse::button_event& ev) override;
 
 private:
+    void mark_dirty();
+
     void start_game(std::shared_ptr<games::base_game> const& game, std::optional<data::config::object> const& savegame);
 
     void draw_cards(gfx::render_target& target);
+
+    void draw_canvas();
+    void draw_hint();
+
     void create_markers(size_f const& cardSize);
     void get_pile_quads(std::vector<gfx::quad>::iterator& quadIt, pile const* pile) const;
 
@@ -56,22 +63,27 @@ private:
     auto get_drop_color() const -> color;
     void get_drop_target();
 
-    gfx::window*            _parentWindow;
-    gfx::ui::canvas_widget* _canvas;
-    assets::group&          _resGrp;
-    rect_f                  _bounds;
+    gfx::window*   _parentWindow;
+    assets::group& _resGrp;
+    rect_f         _bounds;
 
     std::shared_ptr<games::base_game> _currentGame;
 
     std::shared_ptr<cardset> _cardset;
-    usize                    _currentMove {0};
 
     // render
     gfx::sprite_batch      _markerSprites;
     gfx::quad_renderer     _cardRenderer;
     std::vector<gfx::quad> _cardQuads;
-    bool                   _cardQuadsDirty {true};
+    bool                   _renderDirty {true};
     gfx::text              _text;
+
+    // canvas
+    gfx::ui::canvas_widget* _canvas;
+    isize                   _currentHint {-1};
+    bool                    _showHint {false};
+    timer                   _hintTimer;
+    bool                    _canvasDirty {true};
 
     // hover/drag
     hit_test_result _hovered {};

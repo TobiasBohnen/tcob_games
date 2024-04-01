@@ -1,15 +1,15 @@
 add_executable(Solitide)
 
 target_sources(Solitide PRIVATE
+    Cards.cpp
     Cardset.cpp
     CardTable.cpp
-    main.cpp
+    Piles.cpp
     StartScene.cpp
+    main.cpp
     ./ui/UI.cpp
     ./ui/UIHelper.cpp
-    ./games/Cards.cpp
     ./games/Games.cpp
-    ./games/Piles.cpp
 )
 
 set_target_properties(Solitide PROPERTIES

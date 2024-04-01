@@ -228,6 +228,8 @@ void base_game::end_turn(bool deal)
     _descriptionCache.clear();
     calc_available_moves();
     State = check_state();
+
+    _cardTable.on_end_turn();
 }
 
 void base_game::layout_piles()
@@ -279,7 +281,7 @@ void base_game::layout_piles()
         }
     }
 
-    _cardTable.mark_dirty();
+    _cardTable.on_pile_layout();
 }
 
 auto base_game::get_pile_at(point_i pos, bool ignoreActivePile) -> hit_test_result
@@ -476,7 +478,7 @@ auto base_game::check_state() const -> game_state
     if (success) { return game_state::Success; }
 
     if (Stock.empty() || (Stock[0].empty() && _info.RemainingRedeals == 0)) {
-        if (get_available_moves().empty()) {
+        if (get_available_hints().empty()) {
             return game_state::Failure;
         }
     }
@@ -547,7 +549,7 @@ void base_game::calc_available_moves()
     }
 }
 
-auto base_game::get_available_moves() const -> std::vector<move> const&
+auto base_game::get_available_hints() const -> std::vector<move> const&
 {
     return _availableMoves;
 }

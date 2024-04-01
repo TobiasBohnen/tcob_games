@@ -156,7 +156,7 @@ void start_scene::connect_ui_events()
     });
 
     _formControls->BtnHint->Click.connect([&](auto const&) {
-        _cardTable->show_next_move();
+        _cardTable->show_next_hint();
     });
 
     _formControls->BtnUndo->Click.connect([&](auto const&) {
@@ -235,13 +235,10 @@ void start_scene::on_fixed_update(milliseconds deltaTime)
         _formControls->LblGameName->Label = info.Name;
         _formControls->LblTurn->Label     = std::to_string(info.Turn);
         _formControls->LblTime->Label     = std::format("{:%M:%S}", seconds {info.Time.count() / 1000});
-    } else {
-        get_window().Title = "Solitide";
     }
-
 #if defined(TCOB_DEBUG)
-    get_window().Title += std::format(" | avg FPS: {:.2f} best FPS: {:.2f} worst FPS: {:.2f}",
-                                      stat.get_average_FPS(), stat.get_best_FPS(), stat.get_worst_FPS());
+    get_window().Title = std::format("Solitide | avg FPS: {:.2f} best FPS: {:.2f} worst FPS: {:.2f}",
+                                     stat.get_average_FPS(), stat.get_best_FPS(), stat.get_worst_FPS());
 #endif
 }
 
