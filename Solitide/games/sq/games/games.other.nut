@@ -28,7 +28,7 @@ local aces_up = {
             Initial = ops.Initial.face_up(1),
                 Layout = "Column",
                 Rule = {
-                    Base = rules.Base.Any,
+                    Base = rules.Base.Any(),
                     Build = rules.Build.None(),
                     Move = rules.Move.Top()
                 }
@@ -123,7 +123,7 @@ local aces_square = {
                 Initial = ops.Initial.face_up(1),
                 Layout = "Column",
                 Rule = {
-                    Base = rules.Base.None,
+                    Base = rules.Base.None(),
                     Build = rules.Build.None(),
                     Move = rules.Move.Top()
                 }
@@ -199,7 +199,7 @@ local aglet = {
             },
             Layout = "Column",
             Rule = {
-                Base = rules.Base.Any,
+                Base = rules.Base.Any(),
                 Build = rules.Build.Any(),
                 Move = rules.Move.Top()
             }
@@ -213,7 +213,7 @@ local aglet = {
                     y = 0
                 },
                 Rule = {
-                    Base = rules.Base.Ace,
+                    Base = rules.Base.Ace(),
                     Build = rules.Build.UpByRank(),
                     Move = rules.Move.Top()
                 }
@@ -229,7 +229,7 @@ local aglet = {
                 Initial = ops.Initial.face_up(6),
                 Layout = "Column",
                 Rule = {
-                    Base = rules.Base.None,
+                    Base = rules.Base.None(),
                     Build = rules.Build.None(),
                     Move = rules.Move.Top()
                 }
@@ -285,7 +285,7 @@ local four_seasons = {
                 },
                 Initial = ops.Initial.face_up(i == 0 ? 1 : 0),
                 Rule = {
-                    Base = @(game, card, _) rules.Base.FirstFoundation(game, card, 0),
+                    Base = rules.Base.FirstFoundation(0),
                     Build = rules.Build.UpInSuit(true),
                     Move = rules.Move.None()
                 }
@@ -301,7 +301,7 @@ local four_seasons = {
                 Initial = ops.Initial.face_up(1),
                 Layout = "Squared",
                 Rule = {
-                    Base = rules.Base.Any,
+                    Base = rules.Base.Any(),
                     Build = rules.Build.DownByRank(true),
                     Move = rules.Move.Top()
                 }

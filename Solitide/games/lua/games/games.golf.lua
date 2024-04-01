@@ -47,14 +47,14 @@ local golf                                 = {
     Foundation       = {
         Initial = ops.Initial.face_up(1),
         Layout  = "Squared",
-        Rule    = { Base = rules.Base.None, Build = rules.Build.UpOrDownByRank(), Move = rules.Move.None() }
+        Rule    = { Base = rules.Base.None(), Build = rules.Build.UpOrDownByRank(), Move = rules.Move.None() }
     },
     Tableau          = {
         Size = 7,
         Pile = {
             Initial = ops.Initial.face_up(5),
             Layout = "Column",
-            Rule = { Base = rules.Base.None, Build = rules.Build.None(), Move = rules.Move.Top() }
+            Rule = { Base = rules.Base.None(), Build = rules.Build.None(), Move = rules.Move.Top() }
         }
     },
     on_deal          = function(game)
@@ -104,14 +104,14 @@ local all_in_a_row                         = {
     },
     Foundation       = {
         Layout = "Squared",
-        Rule   = { Base = rules.Base.Any, Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.None() }
+        Rule   = { Base = rules.Base.Any(), Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.None() }
     },
     Tableau          = {
         Size = 13,
         Pile = {
             Initial = ops.Initial.face_up(4),
             Layout = "Column",
-            Rule = { Base = rules.Base.None, Build = rules.Build.None(), Move = rules.Move.Top() }
+            Rule = { Base = rules.Base.None(), Build = rules.Build.None(), Move = rules.Move.Top() }
         }
     },
     on_piles_created = Sol.Layout.golf
@@ -173,7 +173,7 @@ local dolphin                              = {
     },
     Foundation = {
         Layout = "Squared",
-        Rule   = { Base = rules.Base.Any, Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.Top() }
+        Rule   = { Base = rules.Base.Any(), Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.Top() }
     },
     Tableau = {
         Size = 8,
@@ -181,7 +181,7 @@ local dolphin                              = {
             return {
                 Initial = ops.Initial.face_up(i < 4 and 7 or 6),
                 Layout = "Column",
-                Rule = { Base = rules.Base.None, Build = rules.Build.None(), Move = rules.Move.Top() }
+                Rule = { Base = rules.Base.None(), Build = rules.Build.None(), Move = rules.Move.Top() }
             }
         end
     },
@@ -200,7 +200,7 @@ double_dolphin.Tableau                     = {
         return {
             Initial = ops.Initial.face_up(i < 4 and 11 or 10),
             Layout = "Column",
-            Rule = { Base = rules.Base.None, Build = rules.Build.None(), Move = rules.Move.Top() }
+            Rule = { Base = rules.Base.None(), Build = rules.Build.None(), Move = rules.Move.Top() }
         }
     end
 }
@@ -217,7 +217,7 @@ local flake                                = {
     },
     Foundation = {
         Layout = "Squared",
-        Rule   = { Base = rules.Base.Any, Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.None() }
+        Rule   = { Base = rules.Base.Any(), Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.None() }
     },
     Tableau = {
         Size = 6,
@@ -225,7 +225,7 @@ local flake                                = {
             return {
                 Initial = ops.Initial.face_up(i < 4 and 9 or 8),
                 Layout = "Column",
-                Rule = { Base = rules.Base.Any, Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.Top() }
+                Rule = { Base = rules.Base.Any(), Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.Top() }
             }
         end
     },
@@ -242,7 +242,7 @@ flake_2_decks.Tableau                      = {
     Pile = {
         Initial = ops.Initial.face_up(13),
         Layout = "Column",
-        Rule = { Base = rules.Base.Any, Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.Top() }
+        Rule = { Base = rules.Base.Any(), Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.Top() }
     }
 }
 
@@ -267,7 +267,7 @@ local robert                               = {
         Position = { x = 0.5, y = 0 },
         Initial  = ops.Initial.face_up(1),
         Layout   = "Squared",
-        Rule     = { Base = rules.Base.None, Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.None() }
+        Rule     = { Base = rules.Base.None(), Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.None() }
     },
     on_deal    = ops.Deal.stock_to_waste,
     on_redeal  = ops.Redeal.waste_to_stock
@@ -291,7 +291,7 @@ bobby.Foundation                           = {
             Position = { x = i, y = 0 },
             Initial  = ops.Initial.face_up(1 - i),
             Layout   = "Squared",
-            Rule     = { Base = rules.Base.Any, Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.None() }
+            Rule     = { Base = rules.Base.Any(), Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.None() }
         }
     end
 }
@@ -328,7 +328,7 @@ local uintah                               = {
             return {
                 Position = { x = i, y = 0 },
                 Layout   = "Squared",
-                Rule     = { Base = rules.Base.None, Build = rules.Build.UpOrDownInColor(true), Move = rules.Move.None() }
+                Rule     = { Base = rules.Base.None(), Build = rules.Build.UpOrDownInColor(true), Move = rules.Move.None() }
             }
         end
     },

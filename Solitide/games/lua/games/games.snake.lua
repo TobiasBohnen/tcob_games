@@ -40,7 +40,7 @@ local snake                 = {
                 Position = { x = i, y = 1 },
                 Initial = ops.Initial.face_up(i == 0 and 96 or 0),
                 Layout = "Column",
-                Rule = { Base = rules.Base.None, Build = rules.Build.DownAlternateColors(), Move = rules.Move.SuperMove() }
+                Rule = { Base = rules.Base.None(), Build = rules.Build.DownAlternateColors(), Move = rules.Move.SuperMove() }
             }
         end
     },
@@ -69,7 +69,7 @@ cats_tail.Tableau.Pile      = function(i)
         Position = { x = i, y = 1 },
         Initial = ops.Initial.face_up(i == 0 and 104 or 0),
         Layout = "Column",
-        Rule = { Base = rules.Base.None, Build = rules.Build.DownAlternateColors(), Move = rules.Move.InSeq() }
+        Rule = { Base = rules.Base.None(), Build = rules.Build.DownAlternateColors(), Move = rules.Move.InSeq() }
     }
 end
 cats_tail.on_before_shuffle = nil

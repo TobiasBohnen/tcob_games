@@ -35,7 +35,7 @@ local function spider_check(game)
     end
 end
 
-local spider_rule <const>         = { Base = rules.Base.Any, Build = rules.Build.DownByRank(), Move = rules.Move.InSeqInSuit() }
+local spider_rule <const>         = { Base = rules.Base.Any(), Build = rules.Build.DownByRank(), Move = rules.Move.InSeqInSuit() }
 
 local spider                      = {
     Info        = {
@@ -160,7 +160,7 @@ arachnida.Tableau.Pile            = function(i)
         Position = { x = i + 1, y = 0 },
         Initial  = ops.Initial.top_face_up(i < 4 and 6 or 5),
         Layout   = "Column",
-        Rule     = { Base = rules.Base.Any, Build = rules.Build.InRankOrDownByRank(), Move = rules.Move.InSeqInSuitOrSameRank() }
+        Rule     = { Base = rules.Base.Any(), Build = rules.Build.InRankOrDownByRank(), Move = rules.Move.InSeqInSuitOrSameRank() }
     }
 end
 
@@ -173,7 +173,7 @@ black_widow.Tableau.Pile          = function(i)
         Position = { x = i, y = 1 },
         Initial  = ops.Initial.top_face_up(i % 3 == 0 and 6 or 5),
         Layout   = "Column",
-        Rule     = { Base = rules.Base.Any, Build = rules.Build.DownByRank(), Move = rules.Move.InSeq() }
+        Rule     = { Base = rules.Base.Any(), Build = rules.Build.DownByRank(), Move = rules.Move.InSeq() }
     }
 end
 
@@ -269,7 +269,7 @@ baby_spiderette.Tableau.Pile      = function(i)
         Position = { x = i, y = 1 },
         Initial  = ops.Initial.top_face_up(i + 1),
         Layout   = "Column",
-        Rule     = { Base = rules.Base.Any, Build = rules.Build.DownByRank(), Move = rules.Move.InSeq() }
+        Rule     = { Base = rules.Base.Any(), Build = rules.Build.DownByRank(), Move = rules.Move.InSeq() }
     }
 end
 
@@ -297,7 +297,7 @@ fair_maids.Tableau.Pile           = function(i)
         Position = { x = i, y = 1 },
         Initial  = ops.Initial.top_face_up(4),
         Layout   = "Column",
-        Rule     = { Base = rules.Base.Any, Build = rules.Build.DownByRank(), Move = rules.Move.InSeqAlternateColors() }
+        Rule     = { Base = rules.Base.Any(), Build = rules.Build.DownByRank(), Move = rules.Move.InSeqAlternateColors() }
     }
 end
 

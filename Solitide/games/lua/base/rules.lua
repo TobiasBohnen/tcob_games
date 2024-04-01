@@ -34,7 +34,7 @@ local rules = {
 local build = {
     None                    = function(_, _)
         return {
-            Hint = "No building",
+            Hint = "None",
             Build = function(_, _, _)
                 return false
             end
@@ -51,7 +51,7 @@ local build = {
 
     InRank                  = function(_, _)
         return {
-            Hint = "Build by same rank",
+            Hint = "By same rank",
             Build = function(_, target, drop)
                 return rules.in_rank(target, drop)
             end
@@ -62,7 +62,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build down by rank or by same rank",
+            Hint = "Down by rank or by same rank",
             Build = function(_, target, drop)
                 return rules.in_rank(target, drop) or rules.build_down(target, drop, wrap, interval)
             end
@@ -73,7 +73,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build by same rank, then build up by rank",
+            Hint = "By same rank, then up by rank",
             Build = function(game, target, drop)
                 local count = game:find_pile(target).CardCount
                 if count > 0 and count % (game.DeckCount * 4) == 0 then
@@ -88,7 +88,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build up or down by rank",
+            Hint = "Up or down by rank",
             Build = function(_, target, drop)
                 return rules.build_up_or_down(target, drop, wrap, interval)
             end
@@ -98,7 +98,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build down by rank",
+            Hint = "Down by rank",
             Build = function(_, target, drop)
                 return rules.build_down(target, drop, wrap, interval)
             end
@@ -108,7 +108,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build up by rank",
+            Hint = "Up by rank",
             Build = function(_, target, drop)
                 return rules.build_up(target, drop, wrap, interval)
             end
@@ -119,7 +119,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build up or down by any suit but own",
+            Hint = "Up or down by any suit but own",
             Build = function(_, target, drop)
                 return not rules.in_suit(target, drop) and rules.build_up_or_down(target, drop, wrap, interval)
             end
@@ -129,7 +129,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build down by any suit but own",
+            Hint = "Down by any suit but own",
             Build = function(_, target, drop)
                 return not rules.in_suit(target, drop) and rules.build_down(target, drop, wrap, interval)
             end
@@ -139,7 +139,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build up by any suit but own",
+            Hint = "Up by any suit but own",
             Build = function(_, target, drop)
                 return not rules.in_suit(target, drop) and rules.build_up(target, drop, wrap, interval)
             end
@@ -150,7 +150,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build up or down by suit",
+            Hint = "Up or down by suit",
             Build = function(_, target, drop)
                 return rules.in_suit(target, drop) and rules.build_up_or_down(target, drop, wrap, interval)
             end
@@ -160,7 +160,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build down by suit",
+            Hint = "Down by suit",
             Build = function(_, target, drop)
                 return rules.in_suit(target, drop) and rules.build_down(target, drop, wrap, interval)
             end
@@ -170,7 +170,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build up by suit",
+            Hint = "Up by suit",
             Build = function(_, target, drop)
                 return rules.in_suit(target, drop) and rules.build_up(target, drop, wrap, interval)
             end
@@ -181,7 +181,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build up or down by color",
+            Hint = "Up or down by color",
             Build = function(_, target, drop)
                 return rules.in_color(target, drop) and rules.build_up_or_down(target, drop, wrap, interval)
             end
@@ -191,7 +191,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build down by color",
+            Hint = "Down by color",
             Build = function(_, target, drop)
                 return rules.in_color(target, drop) and rules.build_down(target, drop, wrap, interval)
             end
@@ -201,7 +201,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build up by color",
+            Hint = "Up by color",
             Build = function(_, target, drop)
                 return rules.in_color(target, drop) and rules.build_up(target, drop, wrap, interval)
             end
@@ -212,7 +212,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build up or down by alternate color",
+            Hint = "Up or down by alternate color",
             Build = function(_, target, drop)
                 return rules.alternate_color(target, drop) and rules.build_up_or_down(target, drop, wrap, interval)
             end
@@ -222,7 +222,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build down by alternate color",
+            Hint = "Down by alternate color",
             Build = function(_, target, drop)
                 return rules.alternate_color(target, drop) and rules.build_down(target, drop, wrap, interval)
             end
@@ -232,7 +232,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Build up by alternate color",
+            Hint = "Up by alternate color",
             Build = function(_, target, drop)
                 return rules.alternate_color(target, drop) and rules.build_up(target, drop, wrap, interval)
             end
@@ -356,7 +356,7 @@ local move = {
     end,
     SuperMove = function()
         return {
-            Hint = "Sequence of cards",
+            Hint = "Top card (SuperMove)",
             Move = function(game, target, idx)
                 local cards = target.Cards
                 if cards[idx].IsFaceDown then return false end
@@ -382,52 +382,104 @@ local move = {
 }
 
 local base = {
-    --direct
-    Ace = function(_, card, _)
-        return card.Rank == "Ace"
+    Ace = function()
+        return {
+            Hint = "Ace",
+            Base = function(_, card, _)
+                return card.Rank == "Ace"
+            end
+        }
     end,
-    King = function(_, card, _)
-        return card.Rank == "King"
+    King = function()
+        return {
+            Hint = "King",
+            Base = function(_, card, _)
+                return card.Rank == "King"
+            end
+        }
     end,
-    None = function(_, _, _)
-        return false
+    None = function()
+        return {
+            Hint = "None",
+            Base = function(_, _, _)
+                return false
+            end
+        }
     end,
-    Any = function(_, _, _)
-        return true
-    end,
-    AnySingle = function(_, _, numCards)
-        return numCards == 1
-    end,
-    --indirect
-    FirstFoundation = function(game, card, interval)
-        local pile = game.Foundation[1]
-        if pile.IsEmpty then
-            return false
-        end
-        local rank = pile.Cards[1].Rank
-        return card.Rank == Sol.get_rank(rank, interval or 0, true)
-    end,
-    Card = function(card, suit, rank)
-        return card.Rank == rank and card.Suit == suit
-    end,
-    CardColor = function(card, color, rank)
-        return card.Rank == rank and Sol.SuitColors[card.Suit] == color
-    end,
-    Suits = function(card, suits)
-        for _, value in ipairs(suits) do
-            if value == card.Suit then
+    Any = function()
+        return {
+            Hint = "Any",
+            Base = function(_, _, _)
                 return true
             end
-        end
-        return false
+        }
     end,
-    Ranks = function(card, ranks)
-        for _, value in ipairs(ranks) do
-            if value == card.Rank then
-                return true
+    AnySingle = function()
+        return {
+            Hint = "Any; no sequences",
+            Base = function(_, _, numCards)
+                return numCards == 1
             end
+        }
+    end,
+    FirstFoundation = function(interval)
+        interval = interval or 0
+        local intervalStr = ""
+        if interval ~= 0 then
+            intervalStr = tostring(interval)
+            if interval > 0 then intervalStr = "+" .. intervalStr end
         end
-        return false
+        return {
+            Hint = "Rank" .. intervalStr .. " of first foundation card",
+            Base = function(game, card, _)
+                local pile = game.Foundation[1]
+                if pile.IsEmpty then return false end
+                local rank = pile.Cards[1].Rank
+                return card.Rank == Sol.get_rank(rank, interval, true)
+            end
+        }
+    end,
+    Card = function(suit, rank)
+        return {
+            Hint = rank .. " of " .. suit,
+            Base = function(_, card, _)
+                return card.Rank == rank and card.Suit == suit
+            end
+        }
+    end,
+    CardColor = function(color, rank)
+        return {
+            Hint = color .. " " .. rank,
+            Base = function(_, card, _)
+                return card.Rank == rank and Sol.SuitColors[card.Suit] == color
+            end
+        }
+    end,
+    Suits = function(suits)
+        return {
+            Hint = table.concat(suits, "/"),
+            Base = function(_, card, _)
+                for _, value in ipairs(suits) do
+                    if value == card.Suit then
+                        return true
+                    end
+                end
+                return false
+            end
+        }
+    end,
+    Ranks = function(ranks)
+        return {
+            Hint = table.concat(ranks, "/"),
+            Base = function(_, card, _)
+                for _, value in ipairs(ranks) do
+                    if value == card.Rank then
+                        return true
+                    end
+                end
+                return false
+            end
+        }
     end
 }
 
@@ -436,33 +488,33 @@ return {
     Move = move,
     Base = base,
 
-    any_downac_top = { Base = base.Any, Build = build.DownAlternateColors(), Move = move.Top() },
-    any_downac_inseq = { Base = base.Any, Build = build.DownAlternateColors(), Move = move.InSeq() },
-    any_downac_faceup = { Base = base.Any, Build = build.DownAlternateColors(), Move = move.FaceUp() },
-    any_downac_sm = { Base = base.Any, Build = build.DownAlternateColors(), Move = move.SuperMove() },
-    any_downrank_top = { Base = base.Any, Build = build.DownByRank(), Move = move.Top() },
-    any_downrank_inseq = { Base = base.Any, Build = build.DownByRank(), Move = move.InSeq() },
-    any_downsuit_top = { Base = base.Any, Build = build.DownInSuit(), Move = move.Top() },
-    any_downsuit_inseq = { Base = base.Any, Build = build.DownInSuit(), Move = move.InSeq() },
-    any_downsuit_faceup = { Base = base.Any, Build = build.DownInSuit(), Move = move.FaceUp() },
-    any_updownsuit_top = { Base = base.Any, Build = build.UpOrDownInSuit(), Move = move.Top() },
-    any_updownac_top = { Base = base.Any, Build = build.UpOrDownAlternateColors(), Move = move.Top() },
-    any_none_top = { Base = base.Any, Build = build.None(), Move = move.Top() },
-    ace_upac_top = { Base = base.Ace, Build = build.UpAlternateColors(), Move = move.Top() },
-    ace_upsuit_top = { Base = base.Ace, Build = build.UpInSuit(), Move = move.Top() },
-    ace_upsuit_none = { Base = base.Ace, Build = build.UpInSuit(), Move = move.None() },
-    king_downac_top = { Base = base.King, Build = build.DownAlternateColors(), Move = move.Top() },
-    king_downac_faceup = { Base = base.King, Build = build.DownAlternateColors(), Move = move.FaceUp() },
-    king_downac_inseq = { Base = base.King, Build = build.DownAlternateColors(), Move = move.InSeq() },
-    king_downrank_top = { Base = base.King, Build = build.DownByRank(), Move = move.Top() },
-    king_downrank_inseq = { Base = base.King, Build = build.DownByRank(), Move = move.InSeq() },
-    king_downsuit_top = { Base = base.King, Build = build.DownInSuit(), Move = move.Top() },
-    king_downsuit_inseq = { Base = base.King, Build = build.DownInSuit(), Move = move.InSeq() },
-    king_downsuit_faceup = { Base = base.King, Build = build.DownInSuit(), Move = move.FaceUp() },
-    none_downrank_top = { Base = base.None, Build = build.DownByRank(), Move = move.Top() },
-    none_downsuit_top = { Base = base.None, Build = build.DownInSuit(), Move = move.Top() },
-    none_none_top = { Base = base.None, Build = build.None(), Move = move.Top() },
-    none_none_none = { Base = base.None, Build = build.None(), Move = move.None() },
-    ff_upsuit_top_l13 = { Base = function(game, card, _) return base.FirstFoundation(game, card) end, Build = build.UpInSuit(true), Move = move.Top(), Limit = 13 },
-    ff_upsuit_none_l13 = { Base = function(game, card, _) return base.FirstFoundation(game, card) end, Build = build.UpInSuit(true), Move = move.None(), Limit = 13 }
+    any_downac_top = { Base = base.Any(), Build = build.DownAlternateColors(), Move = move.Top() },
+    any_downac_inseq = { Base = base.Any(), Build = build.DownAlternateColors(), Move = move.InSeq() },
+    any_downac_faceup = { Base = base.Any(), Build = build.DownAlternateColors(), Move = move.FaceUp() },
+    any_downac_sm = { Base = base.Any(), Build = build.DownAlternateColors(), Move = move.SuperMove() },
+    any_downrank_top = { Base = base.Any(), Build = build.DownByRank(), Move = move.Top() },
+    any_downrank_inseq = { Base = base.Any(), Build = build.DownByRank(), Move = move.InSeq() },
+    any_downsuit_top = { Base = base.Any(), Build = build.DownInSuit(), Move = move.Top() },
+    any_downsuit_inseq = { Base = base.Any(), Build = build.DownInSuit(), Move = move.InSeq() },
+    any_downsuit_faceup = { Base = base.Any(), Build = build.DownInSuit(), Move = move.FaceUp() },
+    any_updownsuit_top = { Base = base.Any(), Build = build.UpOrDownInSuit(), Move = move.Top() },
+    any_updownac_top = { Base = base.Any(), Build = build.UpOrDownAlternateColors(), Move = move.Top() },
+    any_none_top = { Base = base.Any(), Build = build.None(), Move = move.Top() },
+    ace_upac_top = { Base = base.Ace(), Build = build.UpAlternateColors(), Move = move.Top() },
+    ace_upsuit_top = { Base = base.Ace(), Build = build.UpInSuit(), Move = move.Top() },
+    ace_upsuit_none = { Base = base.Ace(), Build = build.UpInSuit(), Move = move.None() },
+    king_downac_top = { Base = base.King(), Build = build.DownAlternateColors(), Move = move.Top() },
+    king_downac_faceup = { Base = base.King(), Build = build.DownAlternateColors(), Move = move.FaceUp() },
+    king_downac_inseq = { Base = base.King(), Build = build.DownAlternateColors(), Move = move.InSeq() },
+    king_downrank_top = { Base = base.King(), Build = build.DownByRank(), Move = move.Top() },
+    king_downrank_inseq = { Base = base.King(), Build = build.DownByRank(), Move = move.InSeq() },
+    king_downsuit_top = { Base = base.King(), Build = build.DownInSuit(), Move = move.Top() },
+    king_downsuit_inseq = { Base = base.King(), Build = build.DownInSuit(), Move = move.InSeq() },
+    king_downsuit_faceup = { Base = base.King(), Build = build.DownInSuit(), Move = move.FaceUp() },
+    none_downrank_top = { Base = base.None(), Build = build.DownByRank(), Move = move.Top() },
+    none_downsuit_top = { Base = base.None(), Build = build.DownInSuit(), Move = move.Top() },
+    none_none_top = { Base = base.None(), Build = build.None(), Move = move.Top() },
+    none_none_none = { Base = base.None(), Build = build.None(), Move = move.None() },
+    ff_upsuit_top_l13 = { Base = base.FirstFoundation(), Build = build.UpInSuit(true), Move = move.Top(), Limit = 13 },
+    ff_upsuit_none_l13 = { Base = base.FirstFoundation(), Build = build.UpInSuit(true), Move = move.None(), Limit = 13 }
 }

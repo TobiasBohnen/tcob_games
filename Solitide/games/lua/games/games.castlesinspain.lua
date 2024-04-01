@@ -39,7 +39,7 @@ martha.Tableau                    = {
     Pile = {
         Initial = ops.Initial.alternate(4, false),
         Layout = "Column",
-        Rule = { Base = rules.Base.AnySingle, Build = rules.Build.DownAlternateColors(), Move = rules.Move.InSeq() }
+        Rule = { Base = rules.Base.AnySingle(), Build = rules.Build.DownAlternateColors(), Move = rules.Move.InSeq() }
     }
 }
 martha.on_before_shuffle          = ops.Shuffle.ace_to_foundation

@@ -35,7 +35,7 @@ local canfield                      = {
         Pile = {
             Initial = ops.Initial.face_up(1),
             Layout = "Column",
-            Rule = { Base = rules.Base.Any, Build = rules.Build.DownAlternateColors(true), Move = rules.Move.TopOrPile() }
+            Rule = { Base = rules.Base.Any(), Build = rules.Build.DownAlternateColors(true), Move = rules.Move.TopOrPile() }
         }
     },
     on_end_turn      = function(game) ops.Deal.to_group(game.Reserve[1], game.Tableau, true) end,
@@ -117,7 +117,7 @@ american_toad.Tableau               = {
     Pile = {
         Initial = ops.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Base = rules.Base.Any, Build = rules.Build.DownInSuit(true), Move = rules.Move.TopOrPile() }
+        Rule = { Base = rules.Base.Any(), Build = rules.Build.DownInSuit(true), Move = rules.Move.TopOrPile() }
     }
 }
 
@@ -138,7 +138,7 @@ chameleon.Tableau                   = {
     Pile = {
         Initial = ops.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Base = rules.Base.Any, Build = rules.Build.DownByRank(true), Move = rules.Move.TopOrPile() }
+        Rule = { Base = rules.Base.Any(), Build = rules.Build.DownByRank(true), Move = rules.Move.TopOrPile() }
     }
 }
 
@@ -158,7 +158,7 @@ demon.Tableau                       = {
     Pile = {
         Initial = ops.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Base = rules.Base.Any, Build = rules.Build.DownAlternateColors(true), Move = rules.Move.InSeq() }
+        Rule = { Base = rules.Base.Any(), Build = rules.Build.DownAlternateColors(true), Move = rules.Move.InSeq() }
     }
 }
 
@@ -203,7 +203,7 @@ local eagle_wing                    = {
                 Position = { x = eagle_wing_pos[i + 1][1], y = eagle_wing_pos[i + 1][2] },
                 Initial = ops.Initial.face_up(1),
                 Layout = "Column",
-                Rule = { Base = rules.Base.None, Build = rules.Build.DownInSuit(true), Move = rules.Move.Top(), Limit = 3 }
+                Rule = { Base = rules.Base.None(), Build = rules.Build.DownInSuit(true), Move = rules.Move.Top(), Limit = 3 }
             }
         end
     },
@@ -226,7 +226,7 @@ minerva.Reserve.Pile                = {
     Initial = ops.Initial.top_face_up(11),
     Layout = "Column"
 }
-minerva.Foundation.Pile             = { Rule = { Base = rules.Base.Ace, Build = rules.Build.UpInSuit(), Move = rules.Move.None() } }
+minerva.Foundation.Pile             = { Rule = { Base = rules.Base.Ace(), Build = rules.Build.UpInSuit(), Move = rules.Move.None() } }
 minerva.Tableau                     = {
     Size = 7,
     Pile = {
@@ -276,7 +276,7 @@ rainbow.Info.Redeals                = 0
 rainbow.Tableau.Pile                = {
     Initial = ops.Initial.face_up(1),
     Layout = "Column",
-    Rule = { Base = rules.Base.Any, Build = rules.Build.DownByRank(true), Move = rules.Move.TopOrPile() }
+    Rule = { Base = rules.Base.Any(), Build = rules.Build.DownByRank(true), Move = rules.Move.TopOrPile() }
 }
 
 ------
@@ -295,7 +295,7 @@ storehouse.Info.Redeals             = 2
 storehouse.Tableau.Pile             = {
     Initial = ops.Initial.face_up(1),
     Layout = "Column",
-    Rule = { Base = rules.Base.Any, Build = rules.Build.DownInSuit(true), Move = rules.Move.TopOrPile() }
+    Rule = { Base = rules.Base.Any(), Build = rules.Build.DownInSuit(true), Move = rules.Move.TopOrPile() }
 }
 
 ------

@@ -242,7 +242,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->Text.Alignment = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
         style->Text.AutoSize  = element::text::auto_size_mode::Always;
         theme.Normal.apply(style);
-        style->Text.Color        = colors::White;
+        //  style->Text.Color        = colors::White;
         style->DropShadow.Color  = colors::Transparent;
         style->Text.Shadow.Color = colors::Transparent;
         style->Margin            = {3_px};

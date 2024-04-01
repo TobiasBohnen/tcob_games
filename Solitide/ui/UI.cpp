@@ -59,12 +59,12 @@ form_controls::form_controls(gfx::window* window, rect_f bounds)
         LblCardCount      = create({4, 3, 1, 3});
         LblCardCountLabel = create({4, 0, 1, 3}, "Cards");
 
-        LblDescription      = create({6, 3, 3, 3});
-        LblDescriptionLabel = create({6, 0, 3, 3});
-        LblMove             = create({9, 3, 3, 3});
-        LblMoveLabel        = create({9, 0, 3, 3});
-        LblBase             = create({12, 3, 3, 3});
-        LblBaseLabel        = create({12, 0, 3, 3});
+        LblBase             = create({6, 3, 3, 3});
+        LblBaseLabel        = create({6, 0, 3, 3});
+        LblDescription      = create({9, 3, 3, 3});
+        LblDescriptionLabel = create({9, 0, 3, 3});
+        LblMove             = create({12, 3, 3, 3});
+        LblMoveLabel        = create({12, 0, 3, 3});
 
         LblTurn      = create({18, 3, 1, 3});
         LblTurnLabel = create({18, 0, 1, 3}, "Turn");

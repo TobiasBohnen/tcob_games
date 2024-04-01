@@ -45,7 +45,7 @@ auto cardset::get_material() const -> assets::asset_ptr<gfx::material>
 
 auto cardset::load() const -> bool
 {
-    std::string const folder {CardsetFolder + _name + "/"};
+    std::string const folder {get_folder()};
     auto              files {io::enumerate(folder, {"*card*.png"}, false)};
     if (files.size() < CardsetCardCount) { return false; }
 

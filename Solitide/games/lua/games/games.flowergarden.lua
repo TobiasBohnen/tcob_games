@@ -79,7 +79,7 @@ stonewall.Tableau.Pile        = {
 
 local wildflower              = Sol.copy(flower_garden)
 wildflower.Info.Name          = "Wildflower"
-wildflower.Tableau.Pile.Rule  = { Base = rules.Base.Any, Build = rules.Build.DownByRank(), Move = rules.Move.InSeqInSuit() }
+wildflower.Tableau.Pile.Rule  = { Base = rules.Base.Any(), Build = rules.Build.DownByRank(), Move = rules.Move.InSeqInSuit() }
 
 ------
 

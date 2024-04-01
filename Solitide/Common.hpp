@@ -31,6 +31,13 @@ struct pile_description {
 
     std::string Base;
     std::string BaseLabel;
+
+    auto equal(pile_description const& other) const -> bool
+    {
+        return Description == other.Description && DescriptionLabel == other.DescriptionLabel
+            && Move == other.Move && MoveLabel == other.MoveLabel
+            && Base == other.Base && BaseLabel == other.BaseLabel;
+    }
 };
 
 constexpr isize INDEX_MARKER {-1};

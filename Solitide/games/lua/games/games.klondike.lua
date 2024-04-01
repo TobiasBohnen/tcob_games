@@ -181,7 +181,7 @@ lady_jane.Tableau.Pile                   = function(i)
     return {
         Initial = ops.Initial.face_up(i + 1),
         Layout = "Column",
-        Rule = { Base = rules.Base.Any, Build = rules.Build.DownByRank(), Move = rules.Move.InSeqInSuit() }
+        Rule = { Base = rules.Base.Any(), Build = rules.Build.DownByRank(), Move = rules.Move.InSeqInSuit() }
     }
 end
 
@@ -229,7 +229,7 @@ arabella.Tableau                         = {
         return {
             Initial = ops.Initial.top_face_up(i + 1),
             Layout = "Column",
-            Rule = { Base = rules.Base.King, Build = rules.Build.DownByRank(), Move = rules.Move.InSeqInSuit() }
+            Rule = { Base = rules.Base.King(), Build = rules.Build.DownByRank(), Move = rules.Move.InSeqInSuit() }
         }
     end
 }
@@ -326,7 +326,7 @@ chinaman.Tableau                         = {
         return {
             Initial = ops.Initial.top_face_up(i + 1),
             Layout = "Column",
-            Rule = { Base = rules.Base.King, Build = rules.Build.DownAnyButOwnSuit(), Move = rules.Move.InSeq() }
+            Rule = { Base = rules.Base.King(), Build = rules.Build.DownAnyButOwnSuit(), Move = rules.Move.InSeq() }
         }
     end
 }
@@ -401,7 +401,7 @@ eight_by_eight2.Tableau                  = {
     Pile = {
         Initial = ops.Initial.face_up(8),
         Layout = "Column",
-        Rule = { Base = rules.Base.AnySingle, Build = rules.Build.DownByRank(), Move = rules.Move.InSeq() }
+        Rule = { Base = rules.Base.AnySingle(), Build = rules.Build.DownByRank(), Move = rules.Move.InSeq() }
     }
 }
 eight_by_eight2.on_deal                  = ops.Deal.stock_to_waste_by_redeals_left
@@ -546,7 +546,7 @@ kingsley.Tableau.Pile                    = function(i)
     return {
         Initial = ops.Initial.top_face_up(i + 1),
         Layout = "Column",
-        Rule = { Base = rules.Base.Ace, Build = rules.Build.UpAlternateColors(), Move = rules.Move.InSeq() }
+        Rule = { Base = rules.Base.Ace(), Build = rules.Build.UpAlternateColors(), Move = rules.Move.InSeq() }
     }
 end
 
@@ -697,7 +697,7 @@ smokey.Tableau.Pile                      = function(i)
     return {
         Initial = ops.Initial.face_up(i + 1),
         Layout = "Column",
-        Rule = { Base = rules.Base.Any, Build = rules.Build.DownInColor(), Move = rules.Move.InSeqInSuit() }
+        Rule = { Base = rules.Base.Any(), Build = rules.Build.DownInColor(), Move = rules.Move.InSeqInSuit() }
     }
 end
 
@@ -809,14 +809,14 @@ thirty_six.Info.Redeals                  = 0
 thirty_six.Stock.Initial                 = ops.Initial.face_down(16)
 thirty_six.Foundation                    = {
     Size = 4,
-    Pile = { Rule = { Base = rules.Base.Ace, Build = rules.Build.UpInColor(), Move = rules.Move.Top() } }
+    Pile = { Rule = { Base = rules.Base.Ace(), Build = rules.Build.UpInColor(), Move = rules.Move.Top() } }
 }
 thirty_six.Tableau                       = {
     Size = 6,
     Pile = {
         Initial = ops.Initial.face_up(6),
         Layout  = "Column",
-        Rule    = { Base = rules.Base.Any, Build = rules.Build.DownByRank(), Move = rules.Move.InSeq() }
+        Rule    = { Base = rules.Base.Any(), Build = rules.Build.DownByRank(), Move = rules.Move.InSeq() }
     }
 }
 thirty_six.on_shuffle                    = function(game, card, pileType)
@@ -864,7 +864,7 @@ thumb_and_pouch.Tableau.Pile             = function(i)
     return {
         Initial = ops.Initial.top_face_up(i + 1),
         Layout = "Column",
-        Rule = { Base = rules.Base.Any, Build = rules.Build.DownAnyButOwnSuit(), Move = rules.Move.InSeq() }
+        Rule = { Base = rules.Base.Any(), Build = rules.Build.DownAnyButOwnSuit(), Move = rules.Move.InSeq() }
     }
 end
 
@@ -965,7 +965,7 @@ whitehead.Tableau.Pile      = function(i)
     return {
         Initial = ops.Initial.face_up(i + 1),
         Layout = "Column",
-        Rule = { Base = rules.Base.Any, Build = rules.Build.DownInColor(), Move = rules.Move.InSeqInSuit() }
+        Rule = { Base = rules.Base.Any(), Build = rules.Build.DownInColor(), Move = rules.Move.InSeqInSuit() }
     }
 end
 
@@ -978,7 +978,7 @@ whitehorse.Stock.Initial    = ops.Initial.face_down(45)
 whitehorse.Waste.Layout     = "Fan"
 whitehorse.Foundation       = {
     Size = 4,
-    Pile = { Rule = { Base = rules.Base.Ace, Build = rules.Build.UpInColor(), Move = rules.Move.Top() } }
+    Pile = { Rule = { Base = rules.Base.Ace(), Build = rules.Build.UpInColor(), Move = rules.Move.Top() } }
 }
 whitehorse.Tableau          = {
     Size = 7,
@@ -1002,7 +1002,7 @@ batsford.Stock.Initial      = ops.Initial.face_down(49)
 batsford.FreeCell           = {
     Position = { x = 0, y = 3 },
     Layout = "Squared",
-    Rule = { Base = rules.Base.King, Build = rules.Build.InRank(), Move = rules.Move.Top(), Limit = 3 }
+    Rule = { Base = rules.Base.King(), Build = rules.Build.InRank(), Move = rules.Move.Top(), Limit = 3 }
 }
 batsford.Tableau.Size       = 10
 
@@ -1033,13 +1033,13 @@ local doorway               = {
             if i == 0 then
                 return {
                     Position = { x = 0, y = 1 },
-                    Rule = { Base = rules.Base.King, Build = rules.Base.None(), Move = rules.Move.Top() }
+                    Rule = { Base = rules.Base.King(), Build = rules.Base.None(), Move = rules.Move.Top() }
                 }
             else
                 return {
                     Position = { x = 7, y = 1 },
                     Rule = {
-                        Base = function(_, card, _) return rules.Base.Ranks(card, { "Queen" }) end, Build = rules.Base.None(), Move = rules.Move.Top()
+                        Base = rules.Base.Ranks({ "Queen" }), Build = rules.Base.None(), Move = rules.Move.Top()
                     }
                 }
             end

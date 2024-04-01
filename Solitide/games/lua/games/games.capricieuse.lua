@@ -139,7 +139,7 @@ perseverance.Info.Redeals      = 2
 perseverance.Tableau.Pile      = {
     Initial = ops.Initial.face_up(4),
     Layout = "Column",
-    Rule = { Base = rules.Base.None, Build = rules.Build.DownInSuit(), Move = rules.Move.InSeq() }
+    Rule = { Base = rules.Base.None(), Build = rules.Build.DownInSuit(), Move = rules.Move.InSeq() }
 }
 
 ------

@@ -224,11 +224,13 @@ void start_scene::on_update(milliseconds)
 {
 }
 
-void start_scene::on_fixed_update(milliseconds /* deltaTime */)
+void start_scene::on_fixed_update(milliseconds deltaTime)
 {
     auto stat {locate_service<stats>()};
 
     if (auto game {_cardTable->game()}) {
+        game->update(deltaTime);
+
         auto const& info {game->info()};
         _formControls->LblGameName->Label = info.Name;
         _formControls->LblTurn->Label     = std::to_string(info.Turn);
@@ -292,8 +294,45 @@ void start_scene::start_game(string const& name, start_reason reason)
             break;
         }
 
+        generate_rule(*newGame);
+
         locate_service<stats>().reset();
         locate_service<data::config_file>()["sol"]["game"] = name;
+    }
+}
+
+void start_scene::generate_rule(games::base_game const& game) const
+{
+    // generate rules     // TODO: translate
+    io::create_folder("/rules/");
+    auto         file {std::format("/rules/rule-{}.txt", game.get_name())};
+    //   if (io::exists(file)) { return; }
+    io::ofstream fs {file};
+
+    auto writePileType {
+        [&](pile_type pt, std::vector<pile*> const& piles) {
+            if (piles.empty()) { return; }
+
+            fs.write(std::format("{} ({})\n", get_pile_type_name(pt), piles.size()));
+            pile_description last;
+            for (auto const* pile : piles) {
+                auto const desc {pile->get_description(game)};
+                if (!desc.equal(last)) {
+                    fs.write(std::format("{}: {}\n", desc.DescriptionLabel, desc.Description));
+                    if (!desc.MoveLabel.empty()) { fs.write(std::format("{}: {}\n", desc.MoveLabel, desc.Move)); }
+                    if (!desc.MoveLabel.empty()) { fs.write(std::format("{}: {}\n", desc.BaseLabel, desc.Base)); }
+                    last = desc;
+                    fs.write("\n");
+                }
+            }
+        }};
+
+    auto const&                    piles {game.piles()};
+    std::array<pile_type, 6> const pileOrder {pile_type::Foundation, pile_type::Tableau, pile_type::Stock,
+                                              pile_type::Waste, pile_type::Reserve, pile_type::FreeCell};
+    for (auto pt : pileOrder) {
+        if (!piles.contains(pt)) { continue; }
+        writePileType(pt, piles.at(pt));
     }
 }
 

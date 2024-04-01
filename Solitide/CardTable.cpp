@@ -173,8 +173,6 @@ void card_table::on_update(milliseconds deltaTime)
     _text.update(deltaTime);
     if (_camPosTween) { _camPosTween->update(deltaTime); }
     if (_camZoomTween) { _camZoomTween->update(deltaTime); }
-
-    _currentGame->update(deltaTime);
 }
 
 void card_table::on_draw_to(gfx::render_target& target)

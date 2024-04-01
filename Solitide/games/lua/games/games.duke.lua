@@ -71,7 +71,7 @@ dutchess.Tableau.Pile    = function(i)
         Position = { x = i + 4, y = 1 },
         Initial = ops.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Base = rules.Base.Any, Build = rules.Build.DownAlternateColors(), Move = rules.Move.InSeq() }
+        Rule = { Base = rules.Base.Any(), Build = rules.Build.DownAlternateColors(), Move = rules.Move.InSeq() }
     }
 end
 dutchess.check_playable  = function(game, targetPile, targetIndex, drop, numCards)

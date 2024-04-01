@@ -31,7 +31,8 @@ struct rule {
     std::string MoveHint {"None"};
     move_func   Move {move_top};
 
-    empty_func Base {empty_none};
+    std::string BaseHint {"None"};
+    empty_func  Base {empty_none};
 
     i32 Limit {-1};
 };
@@ -47,7 +48,7 @@ enum class pile_type {
     FreeCell
 };
 
-auto get_pile_type_name(pile_type s) -> std::string;
+auto get_pile_type_name(pile_type pt) -> std::string;
 
 enum class layout_type {
     Squared,

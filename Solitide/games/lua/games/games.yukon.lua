@@ -114,7 +114,7 @@ alaska.Tableau.Pile                      = function(i)
     return {
         Initial = ops.Initial.yukon(i),
         Layout = "Column",
-        Rule = { Base = rules.Base.King, Build = rules.Build.UpOrDownInSuit(), Move = rules.Move.FaceUp() }
+        Rule = { Base = rules.Base.King(), Build = rules.Build.UpOrDownInSuit(), Move = rules.Move.FaceUp() }
     }
 end
 
@@ -136,7 +136,7 @@ brisbane.Tableau.Pile                    = function(i)
     return {
         Initial = brisbane_initial[i + 1],
         Layout = "Column",
-        Rule = { Base = rules.Base.King, Build = rules.Build.DownByRank(), Move = rules.Move.FaceUp() }
+        Rule = { Base = rules.Base.King(), Build = rules.Build.DownByRank(), Move = rules.Move.FaceUp() }
     }
 end
 
@@ -176,7 +176,7 @@ roslin.Tableau.Pile                      = function(i)
     return {
         Initial = ops.Initial.yukon(i),
         Layout = "Column",
-        Rule = { Base = rules.Base.King, Build = rules.Build.UpOrDownAlternateColors(), Move = rules.Move.FaceUp() }
+        Rule = { Base = rules.Base.King(), Build = rules.Build.UpOrDownAlternateColors(), Move = rules.Move.FaceUp() }
     }
 end
 
@@ -188,7 +188,7 @@ moosehide.Tableau.Pile                   = function(i)
     return {
         Initial = ops.Initial.yukon(i),
         Layout = "Column",
-        Rule = { Base = rules.Base.King, Build = rules.Build.DownAnyButOwnSuit(), Move = rules.Move.FaceUp() }
+        Rule = { Base = rules.Base.King(), Build = rules.Build.DownAnyButOwnSuit(), Move = rules.Move.FaceUp() }
     }
 end
 

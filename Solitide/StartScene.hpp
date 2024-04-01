@@ -44,6 +44,7 @@ protected:
 
 private:
     void start_game(string const& name, start_reason reason);
+    void generate_rule(games::base_game const& game) const;
 
     void load_scripts();
 

@@ -309,10 +309,14 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
                 }
             }
 
-            if (Function<bool> func; ruleTable.try_get(func, "Base")) {
-                pile.Rule.Base = {[this, func](card const& card, isize numCards) {
-                    return func(static_cast<base_game*>(this), card, numCards);
-                }};
+            if (Table baseTable; ruleTable.try_get(baseTable, "Base")) {
+                baseTable.try_get(pile.Rule.BaseHint, "Hint");
+
+                if (Function<bool> func; baseTable.try_get(func, "Base")) {
+                    pile.Rule.Base = {[this, func](card const& card, isize numCards) {
+                        return func(static_cast<base_game*>(this), card, numCards);
+                    }};
+                }
             }
         }
     }};

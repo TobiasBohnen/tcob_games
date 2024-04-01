@@ -25,7 +25,7 @@ local canister                 = {
             return {
                 Initial = ops.Initial.face_up((i < 2 or i >= 6) and 6 or 7),
                 Layout = "Column",
-                Rule = { Base = rules.Base.Any, Build = rules.Build.DownByRank(), Move = rules.Move.InSeq() }
+                Rule = { Base = rules.Base.Any(), Build = rules.Build.DownByRank(), Move = rules.Move.InSeq() }
             }
         end
     },

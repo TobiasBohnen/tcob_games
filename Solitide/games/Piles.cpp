@@ -110,36 +110,9 @@ auto static get_base_cards(empty_func const& func) -> std::multimap<rank, suit>
     return retValue;
 }
 
-auto static get_empty_ranks(empty_func const& func) -> std::string
+auto get_pile_type_name(pile_type pt) -> std::string
 {
-    std::array<bool, 26> ranks {};
-
-    for (i32 i {0}; i < 26; ++i) {
-        ranks[i] = func({i < 13 ? suit::Clubs : suit::Diamonds, static_cast<rank>(i % 13 + 1), 0}, 1);
-    }
-
-    isize const countTrue {std::ranges::count(ranks, true)};
-    if (countTrue == 26) { return "Any"; }
-    if (countTrue == 0) { return "None"; }
-
-    std::vector<std::string> retValue;
-    for (u8 cr {0}; cr < 13; ++cr) {
-        auto const r {get_rank_name(static_cast<rank>(cr + 1))};
-        if (ranks[cr] && ranks[cr + 13]) {
-            retValue.push_back(r);
-        } else if (ranks[cr]) {
-            retValue.push_back("Black " + r);
-        } else if (ranks[cr + 13]) {
-            retValue.push_back("Red " + r);
-        }
-    }
-    // TODO: translate
-    return helper::join(retValue, "/");
-}
-
-auto get_pile_type_name(pile_type s) -> std::string
-{
-    switch (s) {
+    switch (pt) {
     case pile_type::Stock: return "Stock";
     case pile_type::Waste: return "Waste";
     case pile_type::Foundation: return "Foundation";
@@ -174,7 +147,7 @@ auto pile::get_description(games::base_game const& game) const -> pile_descripti
         retValue.DescriptionLabel = "Build";
         retValue.Move             = Rule.MoveHint;
         retValue.MoveLabel        = "Move";
-        retValue.Base             = get_empty_ranks(Rule.Base);
+        retValue.Base             = Rule.BaseHint;
         retValue.BaseLabel        = "Base";
         break;
     }
