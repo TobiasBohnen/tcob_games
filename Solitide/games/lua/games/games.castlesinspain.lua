@@ -46,6 +46,12 @@ martha.on_before_shuffle          = ops.Shuffle.ace_to_foundation
 
 ------
 
+local stewart                     = Sol.copy(martha)
+stewart.Info.Name                 = "Stewart"
+stewart.Tableau.Pile.Rule         = { Base = rules.Base.AnySingle(), Build = rules.Build.DownAlternateColors(), Move = rules.Move.Top() }
+
+------
+
 local portuguese_solitaire        = Sol.copy(castles_in_spain)
 portuguese_solitaire.Info.Name    = "Portuguese Solitaire"
 portuguese_solitaire.Tableau.Pile = {
@@ -99,4 +105,5 @@ Sol.register_game(martha)
 Sol.register_game(portuguese_solitaire)
 Sol.register_game(spanish_patience)
 Sol.register_game(spanish_patience_2)
+Sol.register_game(stewart)
 Sol.register_game(vineyard)

@@ -72,6 +72,16 @@ triple_canfield.Tableau.Size        = 7
 
 ------
 
+local quadruple_canfield            = Sol.copy(canfield)
+quadruple_canfield.Info.Name        = "Quadruple Canfield"
+quadruple_canfield.Info.DeckCount   = 4
+quadruple_canfield.Stock.Initial    = ops.Initial.face_down(160)
+quadruple_canfield.Reserve.Initial  = ops.Initial.top_face_up(39)
+quadruple_canfield.Foundation.Size  = 16
+quadruple_canfield.Tableau.Size     = 8
+
+------
+
 local superior_canfield             = Sol.copy(canfield)
 superior_canfield.Info.Name         = "Superior Canfield"
 superior_canfield.Reserve.Initial   = ops.Initial.face_up(13)
@@ -313,6 +323,7 @@ Sol.register_game(eagle_wing)
 Sol.register_game(minerva)
 Sol.register_game(munger)
 Sol.register_game(mystique)
+Sol.register_game(quadruple_canfield)
 Sol.register_game(rainbow)
 Sol.register_game(rainfall)
 Sol.register_game(storehouse)

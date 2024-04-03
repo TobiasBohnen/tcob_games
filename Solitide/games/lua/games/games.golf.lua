@@ -351,6 +351,33 @@ local uintah                               = {
     end
 }
 
+------
+
+local double_uintah                        = Sol.copy(uintah)
+double_uintah.Info.Name                    = "Double Uintah"
+double_uintah.Info.DeckCount               = 2
+double_uintah.Stock                        = {
+    Position = { x = 3, y = 1 },
+    Initial = ops.Initial.face_down(96)
+}
+double_uintah.Waste                        = { Position = { x = 4, y = 1 } }
+double_uintah.Foundation.Size              = 8
+double_uintah.on_before_shuffle            = function(game, card)
+    if card.Suit == "Clubs" then
+        return game.PlaceTop(card, game.Foundation[1], true) or game.PlaceTop(card, game.Foundation[2], true)
+    end
+    if card.Suit == "Spades" then
+        return game.PlaceTop(card, game.Foundation[3], true) or game.PlaceTop(card, game.Foundation[4], true)
+    end
+    if card.Suit == "Hearts" then
+        return game.PlaceTop(card, game.Foundation[5], true) or game.PlaceTop(card, game.Foundation[6], true)
+    end
+    if card.Suit == "Diamonds" then
+        return game.PlaceTop(card, game.Foundation[7], true) or game.PlaceTop(card, game.Foundation[8], true)
+    end
+    return false
+end
+
 ------------------------
 
 Sol.register_game(golf)
@@ -362,6 +389,7 @@ Sol.register_game(dolphin)
 Sol.register_game(double_dolphin)
 Sol.register_game(double_golf)
 Sol.register_game(double_putt)
+Sol.register_game(double_uintah)
 Sol.register_game(flake)
 Sol.register_game(flake_2_decks)
 Sol.register_game(putt_putt)

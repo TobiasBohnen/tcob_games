@@ -33,6 +33,23 @@ ops.Initial.triple_yukon                 = function(i)
     end
     return t
 end
+ops.Initial.quadruple_yukon              = function(i)
+    if i == 0 then
+        return { true }
+    elseif i <= 12 then
+        local t = ops.Initial.face_down(i + 6)
+        for j = #t - 5, #t do
+            t[j] = true
+        end
+        return t
+    else
+        local t = ops.Initial.face_down(i + 5)
+        for j = #t - 4, #t do
+            t[j] = true
+        end
+        return t
+    end
+end
 ops.Initial.chinese_discipline           = function(i)
     if i < 3 then
         return ops.Initial.face_up(7)
@@ -100,6 +117,23 @@ triple_yukon.Tableau                     = {
     Pile = function(i)
         return {
             Initial = ops.Initial.triple_yukon(i),
+            Layout = "Column",
+            Rule = rules.king_downac_faceup
+        }
+    end
+}
+
+------
+
+local quadruple_yukon                    = Sol.copy(yukon)
+quadruple_yukon.Info.Name                = "Quadruple Yukon"
+quadruple_yukon.Info.DeckCount           = 4
+quadruple_yukon.Foundation.Size          = 16
+quadruple_yukon.Tableau                  = {
+    Size = 16,
+    Pile = function(i)
+        return {
+            Initial = ops.Initial.quadruple_yukon(i),
             Layout = "Column",
             Rule = rules.king_downac_faceup
         }
@@ -396,6 +430,7 @@ Sol.register_game(double_yukon)
 Sol.register_game(geoffrey)
 Sol.register_game(hawaiian)
 Sol.register_game(moosehide)
+Sol.register_game(quadruple_yukon)
 Sol.register_game(queenie)
 Sol.register_game(queensland)
 Sol.register_game(roslin)

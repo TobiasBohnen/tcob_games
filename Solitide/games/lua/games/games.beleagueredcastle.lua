@@ -142,6 +142,18 @@ end
 
 ------
 
+local morphy                   = Sol.copy(chessboard)
+morphy.Info.Name               = "Morphy"
+morphy.Tableau.Pile            = function(i)
+    return {
+        Initial = ops.Initial.face_up(i < 2 and 6 or 5),
+        Layout = "Column",
+        Rule = { Base = rules.Base.Any(), Build = rules.Build.UpOrDownAlternateColors(true), Move = rules.Move.Top() }
+    }
+end
+
+------
+
 local fortress                 = {
     Info             = {
         Name          = "Fortress",
@@ -508,6 +520,7 @@ Sol.register_game(fortress)
 Sol.register_game(lasker)
 Sol.register_game(lightweight)
 Sol.register_game(morehead)
+Sol.register_game(morphy)
 Sol.register_game(penelopes_web)
 Sol.register_game(selective_castle)
 Sol.register_game(streets_and_alleys)

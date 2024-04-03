@@ -473,6 +473,141 @@ king_cell.Tableau                           = {
 
 ------
 
+local petal                                 = Sol.copy(free_cell)
+petal.Info.Name                             = "Petal"
+petal.FreeCell.Pile.Initial                 = ops.Initial.face_up(1)
+petal.Foundation.Pile.Rule                  = rules.ff_upsuit_none_l13
+petal.Tableau.Pile                          = function(i)
+    return {
+        Initial = ops.Initial.face_up(i < 4 and 6 or 5),
+        Layout = "Column",
+        Rule = rules.any_downac_sm
+    }
+end
+petal.on_before_shuffle                     = function(game, card)
+    local foundation = game.Foundation
+    if foundation[1].IsEmpty then
+        return game.PlaceTop(card, foundation[1], true)
+    else
+        local rank = foundation[1].Cards[1].Rank
+        if card.Rank == rank then
+            return game.PlaceTop(card, foundation, true)
+        end
+    end
+
+    return false
+end
+
+------
+
+local relaxed_free_cell                     = Sol.copy(free_cell)
+relaxed_free_cell.Info.Name                 = "Relaxed FreeCell"
+relaxed_free_cell.Tableau                   = {
+    Size = 8,
+    Pile = function(i)
+        return {
+            Initial = ops.Initial.face_up(i < 4 and 7 or 6),
+            Layout = "Column",
+            Rule = rules.any_downac_inseq
+        }
+    end
+}
+
+------
+
+local repair                                = Sol.copy(free_cell)
+repair.Info.Name                            = "Repair"
+repair.Info.DeckCount                       = 2
+repair.FreeCell.Pile.Initial                = ops.Initial.face_up(1)
+repair.Foundation.Size                      = 8
+repair.Tableau                              = {
+    Size = 10,
+    Pile = {
+        Initial = ops.Initial.face_up(10),
+        Layout = "Column",
+        Rule = rules.any_downac_inseq
+    }
+}
+
+------
+
+local seven_x_five                          = Sol.copy(free_cell)
+seven_x_five.Info.Name                      = "Seven by Five"
+seven_x_five.FreeCell.Size                  = 5
+seven_x_five.Tableau                        = {
+    Size = 7,
+    Pile = function(i)
+        return {
+            Initial = ops.Initial.face_up(i < 3 and 8 or 7),
+            Layout = "Column",
+            Rule = rules.any_downac_sm
+        }
+    end
+}
+
+------
+
+local seven_x_four                          = Sol.copy(free_cell)
+seven_x_four.Info.Name                      = "Seven by Four"
+seven_x_four.Tableau                        = {
+    Size = 7,
+    Pile = function(i)
+        return {
+            Initial = ops.Initial.face_up(i < 3 and 8 or 7),
+            Layout = "Column",
+            Rule = rules.any_downac_sm
+        }
+    end
+}
+
+------
+
+local seahaven_towers                       = Sol.copy(free_cell)
+seahaven_towers.Info.Name                   = "Seahaven Towers"
+seahaven_towers.FreeCell                    = {
+    Size = 4,
+    Pile = function(i)
+        return {
+            Initial = ops.Initial.face_up((i == 1 or i == 2) and 1 or 0),
+            Rule = rules.any_none_top
+        }
+    end
+}
+seahaven_towers.Tableau                     = {
+    Size = 10,
+    Pile = {
+        Initial = ops.Initial.face_up(5),
+        Layout = "Column",
+        Rule = { Base = rules.Base.King(), Build = rules.Build.DownInSuit(), Move = rules.Move.SuperMove() }
+    }
+}
+
+------
+
+local double_seahaven_towers                = Sol.copy(seahaven_towers)
+double_seahaven_towers.Info.Name            = "Double Seahaven Towers"
+double_seahaven_towers.Info.DeckCount       = 2
+double_seahaven_towers.FreeCell             = {
+    Size = 8,
+    Pile = function(i)
+        return {
+            Initial = ops.Initial.face_up((i > 0 and i < 7) and 1 or 0),
+            Rule = rules.any_none_top
+        }
+    end
+}
+double_seahaven_towers.Foundation.Size      = 8
+double_seahaven_towers.Tableau.Size         = 14
+double_seahaven_towers.Tableau.Pile.Initial = ops.Initial.face_up(7)
+
+------
+
+local relaxed_seahaven_towers               = Sol.copy(seahaven_towers)
+relaxed_seahaven_towers.Info.Name           = "Relaxed Seahaven Towers"
+relaxed_seahaven_towers.Tableau.Pile.Rule   = rules.king_downsuit_inseq
+
+------
+
 local flipper                               = {
     Info             = {
         Name          = "Flipper",
@@ -563,114 +698,6 @@ local penguin                               = {
 
 ------
 
-local seahaven_towers                       = Sol.copy(free_cell)
-seahaven_towers.Info.Name                   = "Seahaven Towers"
-seahaven_towers.FreeCell                    = {
-    Size = 4,
-    Pile = function(i)
-        return {
-            Initial = ops.Initial.face_up((i == 1 or i == 2) and 1 or 0),
-            Rule = rules.any_none_top
-        }
-    end
-}
-seahaven_towers.Tableau                     = {
-    Size = 10,
-    Pile = {
-        Initial = ops.Initial.face_up(5),
-        Layout = "Column",
-        Rule = { Base = rules.Base.King(), Build = rules.Build.DownInSuit(), Move = rules.Move.SuperMove() }
-    }
-}
-
-------
-
-local double_seahaven_towers                = Sol.copy(seahaven_towers)
-double_seahaven_towers.Info.Name            = "Double Seahaven Towers"
-double_seahaven_towers.Info.DeckCount       = 2
-double_seahaven_towers.FreeCell             = {
-    Size = 8,
-    Pile = function(i)
-        return {
-            Initial = ops.Initial.face_up((i > 0 and i < 7) and 1 or 0),
-            Rule = rules.any_none_top
-        }
-    end
-}
-double_seahaven_towers.Foundation.Size      = 8
-double_seahaven_towers.Tableau.Size         = 14
-double_seahaven_towers.Tableau.Pile.Initial = ops.Initial.face_up(7)
-
-------
-
-local relaxed_seahaven_towers               = Sol.copy(seahaven_towers)
-relaxed_seahaven_towers.Info.Name           = "Relaxed Seahaven Towers"
-relaxed_seahaven_towers.Tableau.Pile.Rule   = rules.king_downsuit_inseq
-
-------
-
-local relaxed_free_cell                     = Sol.copy(free_cell)
-relaxed_free_cell.Info.Name                 = "Relaxed FreeCell"
-relaxed_free_cell.Tableau                   = {
-    Size = 8,
-    Pile = function(i)
-        return {
-            Initial = ops.Initial.face_up(i < 4 and 7 or 6),
-            Layout = "Column",
-            Rule = rules.any_downac_inseq
-        }
-    end
-}
-
-------
-
-local repair                                = Sol.copy(free_cell)
-repair.Info.Name                            = "Repair"
-repair.Info.DeckCount                       = 2
-repair.FreeCell.Pile.Initial                = ops.Initial.face_up(1)
-repair.Foundation.Size                      = 8
-repair.Tableau                              = {
-    Size = 10,
-    Pile = {
-        Initial = ops.Initial.face_up(10),
-        Layout = "Column",
-        Rule = rules.any_downac_inseq
-    }
-}
-
-------
-
-local seven_x_five                          = Sol.copy(free_cell)
-seven_x_five.Info.Name                      = "Seven by Five"
-seven_x_five.FreeCell.Size                  = 5
-seven_x_five.Tableau                        = {
-    Size = 7,
-    Pile = function(i)
-        return {
-            Initial = ops.Initial.face_up(i < 3 and 8 or 7),
-            Layout = "Column",
-            Rule = rules.any_downac_sm
-        }
-    end
-}
-
-------
-
-local seven_x_four                          = Sol.copy(free_cell)
-seven_x_four.Info.Name                      = "Seven by Four"
-seven_x_four.Tableau                        = {
-    Size = 7,
-    Pile = function(i)
-        return {
-            Initial = ops.Initial.face_up(i < 3 and 8 or 7),
-            Layout = "Column",
-            Rule = rules.any_downac_sm
-        }
-    end
-}
-
-------
-
 ------------------------
 
 Sol.register_game(free_cell)
@@ -696,6 +723,7 @@ Sol.register_game(free_cell_2)
 Sol.register_game(german_free_cell)
 Sol.register_game(king_cell)
 Sol.register_game(penguin)
+Sol.register_game(petal)
 Sol.register_game(relaxed_free_cell)
 Sol.register_game(relaxed_seahaven_towers)
 Sol.register_game(repair)

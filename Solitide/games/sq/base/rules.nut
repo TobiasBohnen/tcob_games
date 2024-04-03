@@ -50,8 +50,9 @@ local build = {
         Hint = "Down by rank or by same rank", Build = @(game, target, drop) rules.in_rank(target, drop) || rules.build_down(target, drop, wrap, interval)
     },
 
-    RankPack = @(wrap = false, interval = 1) {
-        Hint = "By same rank, then up by rank",
+    RankPack = function(wrap = false, interval = 1) {
+        return {
+            Hint = "By same rank, then up by rank",
             Build = function(game, target, drop) {
                 local count = game.find_pile(target).CardCount
                 if (count > 0 && count % (game.DeckCount * 4) == 0) {
@@ -59,6 +60,7 @@ local build = {
                 }
                 return rules.in_rank(target, drop)
             }
+        }
     },
 
     UpOrDownByRank = @(wrap = false, interval = 1) {
@@ -136,8 +138,9 @@ local move = {
     FaceUp = @() {
         Hint = "Face-up cards", Move = @(_, target, idx) target.Cards[idx].IsFaceUp
     },
-    InSeq = @() {
-        Hint = "Sequence of cards",
+    InSeq = function() {
+        return {
+            Hint = "Sequence of cards",
             Move = function(game, target, idx) {
                 local cards = target.Cards
                 if (cards[idx].IsFaceDown) {
@@ -150,9 +153,11 @@ local move = {
                 }
                 return true
             }
+        }
     },
-    InSeqInSuit = @() {
-        Hint = "Sequence of cards in the same suit",
+    InSeqInSuit = function() {
+        return {
+            Hint = "Sequence of cards in the same suit",
             Move = function(game, target, idx) {
                 local cards = target.Cards
                 if (cards[idx].IsFaceDown) {
@@ -167,9 +172,11 @@ local move = {
                 }
                 return true
             }
+        }
     },
-    InSeqAlternateColors = @() {
-        Hint = "Color-alternating card sequence",
+    InSeqAlternateColors = function() {
+        return {
+            Hint = "Color-alternating card sequence",
             Move = function(game, target, idx) {
                 local cards = target.Cards
                 if (cards[idx].IsFaceDown) {
@@ -184,9 +191,11 @@ local move = {
                 }
                 return true
             }
+        }
     },
-    InSeqInSuitOrSameRank = @() {
-        Hint = "Sequence of cards in the same suit or rank",
+    InSeqInSuitOrSameRank = function() {
+        return {
+            Hint = "Sequence of cards in the same suit or rank",
             Move = function(game, target, idx) {
                 local cards = target.Cards
                 if (cards[idx].IsFaceDown) {
@@ -214,9 +223,11 @@ local move = {
                 }
                 return true
             }
+        }
     },
-    SuperMove = @() {
-        Hint = "Top card (SuperMove)",
+    SuperMove = function() {
+        return {
+            Hint = "Top card (SuperMove)",
             Move = function(game, target, idx) {
                 local cards = target.Cards
                 if (cards[idx].IsFaceDown) {
@@ -246,7 +257,8 @@ local move = {
                 }
                 return true
             }
-    },
+        }
+    }
 }
 
 local base_tab = {
@@ -287,13 +299,17 @@ local base_tab = {
             }
         }
     },
-    Card = @(suit, rank) {
-        Hint = rank + " of " + suit,
+    Card = function(suit, rank) {
+        return {
+            Hint = rank + " of " + suit,
             Base = @(game, card, numCards) card.Rank == rank && card.Suit == suit
+        }
     },
-    CardColor = @(color, rank) {
-        Hint = color + " " + rank,
+    CardColor = function(color, rank) {
+        return {
+            Hint = color + " " + rank,
             Base = @(game, card, numCards) card.Rank == rank && Sol.SuitColors[card.Suit] == color
+        }
     },
     Suits = function(s) {
         local suits = "";

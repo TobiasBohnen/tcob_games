@@ -351,8 +351,6 @@ auto card_table::can_draw() const -> bool
 
 void card_table::on_key_down(input::keyboard::event& ev)
 {
-    using namespace tcob::enum_ops;
-
     if (!_currentGame) { return; }
 
     _currentGame->key_down(ev);
@@ -360,6 +358,8 @@ void card_table::on_key_down(input::keyboard::event& ev)
 
 void card_table::on_mouse_motion(input::mouse::motion_event& ev)
 {
+    if (!_currentGame) { return; }
+
     if (input::system::IsMouseButtonDown(input::mouse::button::Right)) {
         auto&         camera {*_parentWindow->Camera};
         size_f const  zoom {camera.get_zoom()};
@@ -367,18 +367,17 @@ void card_table::on_mouse_motion(input::mouse::motion_event& ev)
         camera.move_by(off);
         _camManual   = true;
         _canvasDirty = true;
-    }
-
-    if (!_currentGame) { return; }
-
-    if (_buttonDown) {
-        if (_hovered.Pile) { drag_cards(ev); }
-        if (_isDragging) { get_drop_target(); }
     } else {
-        get_hovered(ev.Position);
+        if (_buttonDown) {
+            if (_hovered.Pile) { drag_cards(ev); }
+            if (_isDragging) { get_drop_target(); }
+        } else {
+            get_hovered(ev.Position);
+        }
+
+        HoverChange(_currentGame->get_description(_hovered.Pile));
     }
 
-    HoverChange(_currentGame->get_description(_hovered.Pile));
     ev.Handled = true;
 }
 
