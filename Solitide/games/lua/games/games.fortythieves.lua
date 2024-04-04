@@ -183,29 +183,17 @@ big_courtyard.Foundation.Size           = 12
 
 ------
 
-local limited                           = Sol.copy(forty_thieves)
-limited.Info.Name                       = "Limited"
-limited.Stock.Initial                   = ops.Initial.face_down(68)
-limited.Tableau.Size                    = 12
-limited.Tableau.Pile.Initial            = ops.Initial.face_up(3)
-
-------
-
-local carnation                         = Sol.copy(limited)
-carnation.Info.Name                     = "Carnation"
-carnation.Info.DeckCount                = 4
-carnation.Stock.Initial                 = ops.Initial.face_down(160)
-carnation.Foundation.Size               = 16
-carnation.Tableau.Size                  = 16
-
-------
-
-local express                           = Sol.copy(limited)
-express.Info.Name                       = "Express"
-express.Info.DeckCount                  = 3
-express.Stock.Initial                   = ops.Initial.face_down(114)
-express.Foundation.Size                 = 12
-express.Tableau.Size                    = 14
+local deuces                            = Sol.copy(forty_thieves)
+deuces.Info.Name                        = "Deuces"
+deuces.Stock.Initial                    = ops.Initial.face_down(86)
+deuces.Foundation.Pile.Rule             = { Base = rules.Base.Ranks({ "Two" }), Build = rules.Build.UpInSuit(true), Move = rules.Move.Top() }
+deuces.Tableau.Pile.Initial             = ops.Initial.face_up(1)
+deuces.on_before_shuffle                = function(game, card)
+    if card.Rank == "Two" then
+        return game.PlaceTop(card, game.Foundation, true)
+    end
+    return false
+end
 
 ------
 
@@ -266,6 +254,268 @@ local famous_fifty                      = Sol.copy(forty_thieves)
 famous_fifty.Info.Name                  = "Famous Fifty"
 famous_fifty.Stock.Initial              = ops.Initial.face_down(54)
 famous_fifty.Tableau.Pile.Initial       = ops.Initial.face_up(5)
+
+------
+
+local foothold                          = Sol.copy(forty_thieves)
+foothold.Info.Name                      = "Foothold"
+foothold.Tableau                        = {
+    Size = 8,
+    Pile = {
+        Initial = ops.Initial.face_up(5),
+        Layout = "Column",
+        Rule = rules.any_updownac_top
+    }
+}
+
+------
+
+local indian_initial <const>            = { false, true, true }
+
+local indian                            = Sol.copy(forty_thieves)
+indian.Info.Name                        = "Indian"
+indian.Stock.Initial                    = ops.Initial.face_down(74)
+indian.Tableau.Pile.Initial             = indian_initial
+indian.Tableau.Pile.Rule                = rules.any_downabos_top
+
+------
+
+local indian_patience                   = Sol.copy(indian)
+indian_patience.Info.Name               = "Indian Patience"
+indian_patience.check_playable          = function(game, targetPile, targetIndex, drop, numCards)
+    if numCards > 1 then return false end
+
+    if not game.Stock.IsEmpty then
+        -- no building on single-card tableau
+        if targetPile.Type == "Tableau" and targetPile.CardCount == 1 then
+            return false
+        end
+
+        -- single-card tableau only movable to foundation
+        local srcPile = game:find_pile(drop)
+        if srcPile.Type == "Tableau" and srcPile.CardCount == 1 then
+            if targetPile.Type ~= "Foundation" then return false end
+        end
+    end
+
+    return game:can_play(targetPile, targetIndex, drop, numCards)
+end
+indian_patience.on_end_turn             = function(game)
+    local tableau = game.Tableau
+    for _, tab in ipairs(tableau) do -- deal 3 cards to empty tableau
+        if tab.IsEmpty and ops.Deal.to_pile(game.Stock[1], tab, 3) then
+            tab:flip_cards(indian_initial)
+        end
+    end
+end
+
+------
+
+local josephine                         = Sol.copy(forty_thieves)
+josephine.Info.Name                     = "Josephine"
+josephine.Tableau.Pile.Rule             = rules.any_downsuit_inseq
+
+------
+
+local lady_palk                         = Sol.copy(forty_thieves)
+lady_palk.Info.Name                     = "Lady Palk"
+lady_palk.Stock.Initial                 = ops.Initial.face_down(72)
+lady_palk.Tableau.Size                  = 8
+lady_palk.Tableau.Pile.Rule             = rules.any_downrank_inseq
+
+------
+
+local limited                           = Sol.copy(forty_thieves)
+limited.Info.Name                       = "Limited"
+limited.Stock.Initial                   = ops.Initial.face_down(68)
+limited.Tableau.Size                    = 12
+limited.Tableau.Pile.Initial            = ops.Initial.face_up(3)
+
+------
+
+local carnation                         = Sol.copy(limited)
+carnation.Info.Name                     = "Carnation"
+carnation.Info.DeckCount                = 4
+carnation.Stock.Initial                 = ops.Initial.face_down(160)
+carnation.Foundation.Size               = 16
+carnation.Tableau.Size                  = 16
+
+------
+
+local express                           = Sol.copy(limited)
+express.Info.Name                       = "Express"
+express.Info.DeckCount                  = 3
+express.Stock.Initial                   = ops.Initial.face_down(114)
+express.Foundation.Size                 = 12
+express.Tableau.Size                    = 14
+
+------
+
+local little_forty                      = Sol.copy(forty_thieves)
+little_forty.Info.Name                  = "Little Forty"
+little_forty.Info.CardDealCount         = 3
+little_forty.Info.Redeals               = 3
+little_forty.Tableau.Pile.Rule          = rules.spider
+little_forty.on_end_turn                = function(game)
+    return ops.Deal.to_group(game.Waste[1], game.Tableau, true) or ops.Deal.to_group(game.Stock[1], game.Tableau, true)
+end
+
+------
+
+local little_napoleon                   = Sol.copy(forty_thieves)
+little_napoleon.Info.Name               = "Little Napoleon"
+little_napoleon.Stock.Initial           = ops.Initial.face_down(72)
+little_napoleon.Tableau                 = {
+    Size = 8,
+    Pile = {
+        Initial = ops.Initial.top_face_up(4),
+        Layout = "Column",
+        Rule = rules.spider
+    }
+}
+
+------
+
+local malmaison                         = Sol.copy(forty_thieves)
+malmaison.Info.Name                     = "Malmaison"
+malmaison.Info.DeckCount                = 4
+malmaison.Stock.Initial                 = ops.Initial.face_down(128)
+malmaison.Foundation.Size               = 16
+malmaison.Tableau.Pile                  = {
+    Initial = ops.Initial.face_up(8),
+    Layout = "Column",
+    Rule = rules.any_downsuit_inseq
+}
+
+------
+
+local maria                             = Sol.copy(forty_thieves)
+maria.Info.Name                         = "Maria"
+maria.Stock.Initial                     = ops.Initial.face_down(68)
+maria.Tableau                           = {
+    Size = 9,
+    Pile = {
+        Initial = ops.Initial.face_up(4),
+        Layout = "Column",
+        Rule = rules.any_downac_top
+    }
+}
+
+------
+
+local marie_rose                        = Sol.copy(forty_thieves)
+marie_rose.Info.Name                    = "Marie Rose"
+marie_rose.Info.DeckCount               = 3
+marie_rose.Stock.Initial                = ops.Initial.face_down(96)
+marie_rose.Foundation.Size              = 12
+marie_rose.Tableau                      = {
+    Size = 12,
+    Pile = {
+        Initial = ops.Initial.face_up(5),
+        Layout = "Column",
+        Rule = rules.any_downsuit_inseq
+    }
+}
+
+------
+
+local midshipman                        = Sol.copy(forty_thieves)
+midshipman.Info.Name                    = "Midshipman"
+midshipman.Stock.Initial                = ops.Initial.face_down(68)
+midshipman.Tableau                      = {
+    Size = 9,
+    Pile = {
+        Initial = { false, false, true, true },
+        Layout = "Column",
+        Rule = rules.any_downabos_top
+    }
+}
+
+------
+
+local mumbai                            = Sol.copy(forty_thieves)
+mumbai.Info.Name                        = "Mumbai"
+mumbai.Info.DeckCount                   = 3
+mumbai.Stock.Initial                    = ops.Initial.face_down(117)
+mumbai.Foundation.Size                  = 12
+mumbai.Tableau                          = {
+    Size = 13,
+    Pile = {
+        Initial = indian_initial,
+        Layout = "Column",
+        Rule = rules.any_downabos_top
+    }
+}
+
+------
+
+local napoleons_exile                   = Sol.copy(forty_thieves)
+napoleons_exile.Info.Name               = "Napoleon's Exile"
+napoleons_exile.Tableau.Pile.Rule       = rules.any_downrank_top
+
+------
+
+local napoleons_shoulder                = Sol.copy(forty_thieves)
+napoleons_shoulder.Info.Name            = "Napoleon's Shoulder"
+napoleons_shoulder.Stock.Initial        = ops.Initial.face_down(56)
+napoleons_shoulder.Tableau              = {
+    Size = 12,
+    Pile = {
+        Initial = ops.Initial.face_up(4),
+        Layout = "Column",
+        Rule = rules.any_downrank_top
+    }
+}
+napoleons_shoulder.check_playable       = function(game, targetPile, targetIndex, drop, numCards)
+    -- empty tableau can only be filled from waste
+    if targetPile.IsEmpty and targetPile.Type == "Tableau" then
+        return game:find_pile(drop).Type == "Waste"
+    end
+
+    return game:can_play(targetPile, targetIndex, drop, numCards)
+end
+
+------
+
+local napoleons_square                  = Sol.copy(forty_thieves)
+napoleons_square.Info.Name              = "Napoleon's Square"
+napoleons_square.Stock.Initial          = ops.Initial.face_down(56)
+napoleons_square.Tableau                = {
+    Size = 12,
+    Pile = {
+        Initial = ops.Initial.face_up(4),
+        Layout = "Column",
+        Rule = rules.any_downsuit_inseq
+    }
+}
+
+------
+
+local number_ten                        = Sol.copy(forty_thieves)
+number_ten.Info.Name                    = "Number Ten"
+number_ten.Tableau.Pile                 = {
+    Initial = { false, false, true, true },
+    Layout = "Column",
+    Rule = rules.any_downac_inseq
+}
+
+------
+
+local number_twelve                     = Sol.copy(number_ten)
+number_twelve.Info.Name                 = "Number Twelve"
+number_twelve.Info.DeckCount            = 3
+number_twelve.Stock.Initial             = ops.Initial.face_down(108)
+number_twelve.Foundation.Size           = 12
+number_twelve.Tableau.Size              = 12
+
+------
+
+local pluto                             = Sol.copy(forty_thieves)
+pluto.Info.Name                         = "Pluto"
+pluto.Stock.Initial                     = ops.Initial.face_down(92)
+pluto.Foundation.Pile.Rule              = { Base = rules.Base.Ranks({ "Two" }), Build = rules.Build.UpInSuit(true), Move = rules.Move.Top() }
+pluto.Tableau.Size                      = 12
+pluto.Tableau.Pile.Initial              = ops.Initial.face_up(1)
 
 ------
 
@@ -344,6 +594,7 @@ Sol.register_game(carnation)
 Sol.register_game(carre_napoleon)
 Sol.register_game(corona)
 Sol.register_game(courtyard)
+Sol.register_game(deuces)
 Sol.register_game(diplomat)
 Sol.register_game(double_rail)
 Sol.register_game(eighty_thieves)
@@ -351,11 +602,29 @@ Sol.register_game(emperor)
 Sol.register_game(express)
 Sol.register_game(famous_fifty)
 Sol.register_game(final_battle)
+Sol.register_game(foothold)
 Sol.register_game(forty_and_eight)
 Sol.register_game(forty_nine)
+Sol.register_game(indian)
+Sol.register_game(indian_patience)
 Sol.register_game(interchange)
+Sol.register_game(josephine)
+Sol.register_game(lady_palk)
 Sol.register_game(limited)
+Sol.register_game(little_forty)
+Sol.register_game(little_napoleon)
 Sol.register_game(lucas)
+Sol.register_game(malmaison)
+Sol.register_game(maria)
+Sol.register_game(marie_rose)
+Sol.register_game(midshipman)
+Sol.register_game(mumbai)
+Sol.register_game(napoleons_exile)
+Sol.register_game(napoleons_shoulder)
+Sol.register_game(napoleons_square)
+Sol.register_game(number_ten)
+Sol.register_game(number_twelve)
+Sol.register_game(pluto)
 Sol.register_game(roosevelt)
 Sol.register_game(rows_of_four)
 Sol.register_game(san_juan_hill)

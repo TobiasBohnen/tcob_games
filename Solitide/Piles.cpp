@@ -75,6 +75,18 @@ void pile::tint_cards(color color, isize idx)
     }
 }
 
+void pile::flip_cards(std::vector<bool> const& val)
+{
+    for (usize i {0}; i < val.size(); ++i) {
+        if (i >= Cards.size()) { return; }
+        if (val[i]) {
+            Cards[i].flip_face_up();
+        } else {
+            Cards[i].flip_face_down();
+        }
+    }
+}
+
 void pile::flip_up_cards()
 {
     for (auto& card : Cards) { card.flip_face_up(); }

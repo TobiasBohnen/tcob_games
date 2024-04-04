@@ -82,6 +82,7 @@ public:
     void remove_tint();
     void tint_cards(color color, isize idx);
 
+    void flip_cards(std::vector<bool> const& val);
     void flip_up_cards();
     void flip_up_top_card();
     void flip_down_cards();

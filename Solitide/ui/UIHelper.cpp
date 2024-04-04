@@ -173,6 +173,8 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
     using namespace std::chrono_literals;
     namespace element = element;
 
+    styles.clear();
+
     {
         auto style {styles.create<panel>("panel", {})};
         style->Border.Size      = 2_px;

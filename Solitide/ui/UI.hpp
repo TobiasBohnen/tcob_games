@@ -57,6 +57,10 @@ public:
     prop<std::string> SelectedGame;
     prop<std::string> SelectedTheme;
     prop<std::string> SelectedCardset;
+
+    std::shared_ptr<list_box> LbxGamesByName;
+    std::shared_ptr<list_box> LbxThemes;
+    std::shared_ptr<list_box> LbxCardsets;
 };
 
 }

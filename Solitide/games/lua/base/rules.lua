@@ -497,6 +497,7 @@ return {
     any_downsuit_top = { Base = base.Any(), Build = build.DownInSuit(), Move = move.Top() },
     any_downsuit_inseq = { Base = base.Any(), Build = build.DownInSuit(), Move = move.InSeq() },
     any_downsuit_faceup = { Base = base.Any(), Build = build.DownInSuit(), Move = move.FaceUp() },
+    any_downabos_top = { Base = base.Any(), Build = build.DownAnyButOwnSuit(), Move = move.Top() },
     any_updownsuit_top = { Base = base.Any(), Build = build.UpOrDownInSuit(), Move = move.Top() },
     any_updownac_top = { Base = base.Any(), Build = build.UpOrDownAlternateColors(), Move = move.Top() },
     any_none_top = { Base = base.Any(), Build = build.None(), Move = move.Top() },
@@ -516,5 +517,6 @@ return {
     none_none_top = { Base = base.None(), Build = build.None(), Move = move.Top() },
     none_none_none = { Base = base.None(), Build = build.None(), Move = move.None() },
     ff_upsuit_top_l13 = { Base = base.FirstFoundation(), Build = build.UpInSuit(true), Move = move.Top(), Limit = 13 },
-    ff_upsuit_none_l13 = { Base = base.FirstFoundation(), Build = build.UpInSuit(true), Move = move.None(), Limit = 13 }
+    ff_upsuit_none_l13 = { Base = base.FirstFoundation(), Build = build.UpInSuit(true), Move = move.None(), Limit = 13 },
+    spider = { Base = base.Any(), Build = build.DownByRank(), Move = move.InSeqInSuit() },
 }

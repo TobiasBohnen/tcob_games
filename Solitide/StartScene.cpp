@@ -69,9 +69,7 @@ void start_scene::on_start()
 
     load_scripts();
 
-    // ui
     rect_i const menuBounds {0, 0, windowSize.Width, windowSize.Height};
-    _formControls = std::make_shared<form_controls>(&window, rect_f {menuBounds});
 
     // games
     std::vector<games::game_info>                      games;
@@ -100,7 +98,9 @@ void start_scene::on_start()
         cardSets.push_back(gi.first);
     }
 
-    _formMenu = std::make_shared<form_menu>(&window, rect_f {point_f::Zero, size_f {windowSize}}, games, themes, cardSets);
+    // ui
+    _formControls = std::make_shared<form_controls>(&window, rect_f {menuBounds});
+    _formMenu     = std::make_shared<form_menu>(&window, rect_f {point_f::Zero, size_f {windowSize}}, games, themes, cardSets);
     _formMenu->hide();
     connect_ui_events();
 
@@ -131,12 +131,20 @@ void start_scene::on_start()
 
     locate_service<stats>().reset();
 
-    _formMenu->SelectedTheme   = configFile.get<std::string>("sol", "theme").value_or("default");
+    // config
+    _formMenu->SelectedTheme = configFile.get<std::string>("sol", "theme").value_or("default");
+    _formMenu->LbxThemes->select_item(_formMenu->SelectedTheme);
     _formMenu->SelectedCardset = configFile.get<std::string>("sol", "cardset").value_or("default");
+    _formMenu->LbxCardsets->select_item(_formMenu->SelectedCardset);
+
+    _formMenu->fixed_update(0s);     // updates style
+    _formControls->fixed_update(0s); // updates style
 
     // load config
     if (configFile.has("sol", "game")) {
         _formMenu->SelectedGame = configFile["sol"]["game"].as<std::string>();
+        _formMenu->LbxGamesByName->select_item(_formMenu->SelectedGame);
+        _formMenu->LbxGamesByName->scroll_to_selected();
     }
 }
 

@@ -205,6 +205,8 @@ There are three ways to define a pile:
 
 ### flip_down_top_card
 
+### flip_cards
+
 ### move_rank_to_bottom
 
 ### move_cards

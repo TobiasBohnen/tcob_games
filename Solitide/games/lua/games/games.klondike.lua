@@ -197,7 +197,7 @@ lady_jane.Tableau.Pile                      = function(i)
     return {
         Initial = ops.Initial.face_up(i + 1),
         Layout = "Column",
-        Rule = { Base = rules.Base.Any(), Build = rules.Build.DownByRank(), Move = rules.Move.InSeqInSuit() }
+        Rule = rules.spider
     }
 end
 

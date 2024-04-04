@@ -35,8 +35,6 @@ local function spider_check(game)
     end
 end
 
-local spider_rule <const>         = { Base = rules.Base.Any(), Build = rules.Build.DownByRank(), Move = rules.Move.InSeqInSuit() }
-
 local spider                      = {
     Info        = {
         Name          = "Spider",
@@ -65,7 +63,7 @@ local spider                      = {
                 Position = { x = i, y = 1 },
                 Initial  = ops.Initial.top_face_up(i % 3 == 0 and 6 or 5),
                 Layout   = "Column",
-                Rule     = spider_rule
+                Rule     = rules.spider
             }
         end
     },
@@ -108,7 +106,7 @@ spider_4_decks.Tableau            = {
             Position = { x = i + 0.5, y = 1 },
             Initial  = ops.Initial.top_face_up(6),
             Layout   = "Column",
-            Rule     = spider_rule
+            Rule     = rules.spider
         }
     end
 }
@@ -128,7 +126,7 @@ big_spider.Tableau                = {
             Position = { x = i + 0.5, y = 1 },
             Initial  = ops.Initial.top_face_up(6),
             Layout   = "Column",
-            Rule     = spider_rule
+            Rule     = rules.spider
         }
     end
 }
@@ -193,7 +191,7 @@ chinese_spider.Tableau            = {
             Position = { x = i + 0.5, y = 1 },
             Initial  = ops.Initial.top_face_up(6),
             Layout   = "Column",
-            Rule     = spider_rule
+            Rule     = rules.spider
         }
     end
 }
@@ -207,7 +205,7 @@ open_spider.Tableau.Pile          = function(i)
         Position = { x = i, y = 1 },
         Initial  = ops.Initial.face_up(i % 3 == 0 and 6 or 5),
         Layout   = "Column",
-        Rule     = spider_rule
+        Rule     = rules.spider
     }
 end
 
@@ -235,7 +233,7 @@ spider_3x3.Tableau                = {
             Position = { x = i + 0.5, y = 1 },
             Initial  = ops.Initial.top_face_up(5),
             Layout   = "Column",
-            Rule     = spider_rule
+            Rule     = rules.spider
         }
     end
 }
@@ -255,7 +253,7 @@ spiderette.Tableau                = {
             Position = { x = i, y = 1 },
             Initial  = ops.Initial.top_face_up(i + 1),
             Layout   = "Column",
-            Rule     = spider_rule
+            Rule     = rules.spider
         }
     end
 }
@@ -283,7 +281,7 @@ will_o_the_wisp.Tableau.Pile      = function(i)
         Position = { x = i, y = 1 },
         Initial  = ops.Initial.top_face_up(3),
         Layout   = "Column",
-        Rule     = spider_rule
+        Rule     = rules.spider
     }
 end
 

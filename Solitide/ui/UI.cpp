@@ -93,28 +93,30 @@ form_menu::form_menu(gfx::window* window, rect_f bounds,
     auto tabGames {create_container<tab_container>(dock_style::Left, "tabGames")};
     tabGames->Flex = {85_pct, 100_pct};
 
-    auto createListBox {[&](std::shared_ptr<dock_layout>& tabPanelLayout, std::string const& name, auto&& pred) {
+    auto createListBox {[&](std::shared_ptr<dock_layout>& tabPanelLayout, std::string const& name, auto&& pred) -> std::shared_ptr<list_box> {
         auto listBox {tabPanelLayout->create_widget<list_box>(dock_style::Fill, "lbxGames" + name)};
         listBox->Class = "list_box_games";
-        bool retValue {false};
+        bool check {false};
         for (auto const& game : games) {
             if (pred(game)) {
                 listBox->add_item(game.Name);
-                retValue = true;
+                check = true;
             }
         }
+        if (!check) { return nullptr; }
+
         listBox->SelectedItemIndex.Changed.connect([&, lb = listBox.get()](auto val) {
             if (val != -1) { SelectedGame = lb->get_selected_item(); }
         });
         listBox->DoubleClick.connect([&] { hide(); });
-        return retValue;
+        return listBox;
     }};
 
     // By Name
     {
         auto tabPanel {tabGames->create_tab<panel>("byName", "By Name")};
         auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-        createListBox(tabPanelLayout, "0", [](auto const&) { return true; });
+        LbxGamesByName = createListBox(tabPanelLayout, "0", [](auto const&) { return true; });
     }
     // By Family
     {
@@ -174,13 +176,13 @@ form_menu::form_menu(gfx::window* window, rect_f bounds,
     panelThemes->Flex = {0_pct, 0_pct};
     {
         auto panelLayout {panelThemes->create_layout<dock_layout>()};
-        auto listBox {panelLayout->create_widget<list_box>(dock_style::Fill, "lbxThemes")};
-        listBox->Class = "list_box_games";
-        for (auto const& colorTheme : colorThemes) { listBox->add_item(colorTheme); }
-        listBox->SelectedItemIndex.Changed.connect([&, lb = listBox.get()](auto val) {
+        LbxThemes        = panelLayout->create_widget<list_box>(dock_style::Fill, "lbxThemes");
+        LbxThemes->Class = "list_box_games";
+        for (auto const& colorTheme : colorThemes) { LbxThemes->add_item(colorTheme); }
+        LbxThemes->SelectedItemIndex.Changed.connect([&, lb = LbxThemes.get()](auto val) {
             if (val != -1) { SelectedTheme = lb->get_selected_item(); }
         });
-        listBox->DoubleClick.connect([&] { hide(); });
+        LbxThemes->DoubleClick.connect([&] { hide(); });
     }
 
     // Cardsets
@@ -188,13 +190,13 @@ form_menu::form_menu(gfx::window* window, rect_f bounds,
     panelCardsets->Flex = {0_pct, 0_pct};
     {
         auto panelLayout {panelCardsets->create_layout<dock_layout>()};
-        auto listBox {panelLayout->create_widget<list_box>(dock_style::Fill, "lbxCardsets")};
-        listBox->Class = "list_box_games";
-        for (auto const& cardSet : cardSets) { listBox->add_item(cardSet); }
-        listBox->SelectedItemIndex.Changed.connect([&, lb = listBox.get()](auto val) {
+        LbxCardsets        = panelLayout->create_widget<list_box>(dock_style::Fill, "lbxCardsets");
+        LbxCardsets->Class = "list_box_games";
+        for (auto const& cardSet : cardSets) { LbxCardsets->add_item(cardSet); }
+        LbxCardsets->SelectedItemIndex.Changed.connect([&, lb = LbxCardsets.get()](auto val) {
             if (val != -1) { SelectedCardset = lb->get_selected_item(); }
         });
-        listBox->DoubleClick.connect([&] { hide(); });
+        LbxCardsets->DoubleClick.connect([&] { hide(); });
     }
 
     // menu

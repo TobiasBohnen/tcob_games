@@ -132,6 +132,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     pileWrapper["Position"]  = property {[](pile* p) { return p->Position; }, [](pile* p, point_f pos) { p->Position = pos; }};
 
     // methods
+    pileWrapper["flip_cards"]         = [](pile* p, std::vector<bool> const& val) { p->flip_cards(val); };
     pileWrapper["flip_up_cards"]      = [](pile* p) { p->flip_up_cards(); };
     pileWrapper["flip_up_top_card"]   = [](pile* p) { p->flip_up_top_card(); };
     pileWrapper["flip_down_cards"]    = [](pile* p) { p->flip_down_cards(); };
