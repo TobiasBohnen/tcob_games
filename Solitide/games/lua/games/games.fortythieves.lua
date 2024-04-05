@@ -270,6 +270,14 @@ foothold.Tableau                        = {
 
 ------
 
+local forty_and_eight                   = Sol.copy(forty_thieves)
+forty_and_eight.Info.Name               = "Forty and Eight"
+forty_and_eight.Info.Redeal             = 1
+forty_and_eight.Stock.Initial           = ops.Initial.face_down(72)
+forty_and_eight.Tableau.Size            = 8
+
+------
+
 local indian_initial <const>            = { false, true, true }
 
 local indian                            = Sol.copy(forty_thieves)
@@ -412,6 +420,20 @@ marie_rose.Tableau                      = {
     Size = 12,
     Pile = {
         Initial = ops.Initial.face_up(5),
+        Layout = "Column",
+        Rule = rules.any_downsuit_inseq
+    }
+}
+
+------
+
+local mc_clellan                        = Sol.copy(forty_thieves)
+mc_clellan.Info.Name                    = "McClellan"
+mc_clellan.Stock.Initial                = ops.Initial.face_down(72)
+mc_clellan.Tableau                      = {
+    Size = 8,
+    Pile = {
+        Initial = ops.Initial.top_face_up(4),
         Layout = "Column",
         Rule = rules.any_downsuit_inseq
     }
@@ -563,11 +585,11 @@ roosevelt.Tableau.Size                  = 7
 
 ------
 
-local forty_and_eight                   = Sol.copy(forty_thieves)
-forty_and_eight.Info.Name               = "Forty and Eight"
-forty_and_eight.Info.Redeal             = 1
-forty_and_eight.Stock.Initial           = ops.Initial.face_down(72)
-forty_and_eight.Tableau.Size            = 8
+local thirty_nine_steps                 = Sol.copy(forty_thieves)
+thirty_nine_steps.Info.Name             = "Thirty-Nine Steps"
+thirty_nine_steps.Stock.Initial         = ops.Initial.face_down(65)
+thirty_nine_steps.Tableau.Size          = 13
+thirty_nine_steps.Tableau.Pile.Initial  = ops.Initial.face_up(3)
 
 ------
 
@@ -617,6 +639,7 @@ Sol.register_game(lucas)
 Sol.register_game(malmaison)
 Sol.register_game(maria)
 Sol.register_game(marie_rose)
+Sol.register_game(mc_clellan)
 Sol.register_game(midshipman)
 Sol.register_game(mumbai)
 Sol.register_game(napoleons_exile)
@@ -633,5 +656,6 @@ Sol.register_game(sixty_thieves)
 Sol.register_game(streets)
 Sol.register_game(triple_interchange)
 Sol.register_game(triple_rail)
+Sol.register_game(thirty_nine_steps)
 Sol.register_game(unlimited)
 Sol.register_game(waning_moon)
