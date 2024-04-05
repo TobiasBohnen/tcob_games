@@ -12,15 +12,14 @@
 
 namespace solitaire {
 
-card_table::card_table(gfx::window* parent, gfx::ui::canvas_widget* canvas, rect_f const& bounds, assets::group& resGrp)
+card_table::card_table(gfx::window* parent, gfx::ui::canvas_widget* canvas, assets::group& resGrp)
     : _parentWindow {parent}
     , _resGrp {resGrp}
-    , _bounds {bounds}
     , _cardRenderer {gfx::buffer_usage_hint::DynamicDraw}
     , _text {resGrp.get<gfx::font_family>("Poppins")->get_font({.Weight = gfx::font::weight::Bold}, 96)}
     , _canvas {canvas}
 {
-    _text.Bounds = bounds;
+
     auto& effects {_text.get_effects()};
     effects.add(1, gfx::make_unique_quad_tween<gfx::wave_effect>(3s, {30, 4.f}));
     effects.start_all(playback_style::Looped);
@@ -30,6 +29,11 @@ card_table::card_table(gfx::window* parent, gfx::ui::canvas_widget* canvas, rect
         _canvasDirty = true;
         _showHint    = false;
         _hintTimer.stop();
+    });
+
+    Bounds.Changed.connect([&](auto const& val) {
+        _text.Bounds = val;
+        mark_dirty();
     });
 }
 
@@ -216,7 +220,7 @@ void card_table::draw_canvas()
         _canvas->clear();
 
         _canvas->save();
-        _canvas->translate(-_bounds.get_position());
+        _canvas->translate(-Bounds->get_position());
 
         if (_showHint) { draw_hint(); }
 
@@ -301,7 +305,7 @@ void card_table::move_camera(size_f cardBounds)
         auto&      camera {*_parentWindow->Camera};
         auto const winSize {_parentWindow->Size()};
 
-        f32 const     hDiff {static_cast<f32>(winSize.Height - _bounds.Height)};
+        f32 const     hDiff {static_cast<f32>(winSize.Height - Bounds->Height)};
         f32 const     zoom {std::min(winSize.Width / cardBounds.Width, (winSize.Height - hDiff) / cardBounds.Height)};
         //  point_f const pos {cardBounds.Width / 2, (cardBounds.Height + (off / zoom)) / 2}; // FIXME: _bounds X and Y are ignored
         point_f const pos {cardBounds.Width / 2, cardBounds.Height / 2};

@@ -13,7 +13,7 @@ namespace solitaire {
 
 class form_controls : public form {
 public:
-    form_controls(gfx::window* window, rect_f bounds);
+    form_controls(gfx::window* window);
 
     std::shared_ptr<button> BtnNewGame;
     std::shared_ptr<button> BtnMenu;
@@ -51,8 +51,7 @@ public:
 
 class form_menu : public form {
 public:
-    form_menu(gfx::window* window, rect_f bounds,
-              std::vector<games::game_info> const& games, std::vector<std::string> const& colorThemes, std::vector<std::string> const& cardSets);
+    form_menu(gfx::window* window, std::vector<games::game_info> const& games, std::vector<std::string> const& colorThemes, std::vector<std::string> const& cardSets);
 
     prop<std::string> SelectedGame;
     prop<std::string> SelectedTheme;
@@ -61,6 +60,12 @@ public:
     std::shared_ptr<list_box> LbxGamesByName;
     std::shared_ptr<list_box> LbxThemes;
     std::shared_ptr<list_box> LbxCardsets;
+
+    std::shared_ptr<panel>  PanelSettings;
+    std::shared_ptr<button> BtnApplySettings;
+
+private:
+    void create_menubar();
 };
 
 }

@@ -12,6 +12,17 @@ namespace db = tcob::data::sqlite;
 static char const* SAVE_NAME {"save.ini"};
 static char const* DB_NAME {"profile.db"};
 
+auto static get_size(string_view str) -> size_i
+{
+    i32                    width {}, height {};
+    size_t const           xPos {str.find('x')};
+    std::string_view const widthStrView(str.data(), xPos);
+    std::string_view const heightStrView(str.data() + xPos + 1);
+    std::from_chars(widthStrView.data(), widthStrView.data() + widthStrView.size(), width);
+    std::from_chars(heightStrView.data(), heightStrView.data() + heightStrView.size(), height);
+    return {width, height};
+}
+
 start_scene::start_scene(game& game)
     : scene {game}
     , _database {*data::sqlite::database::Open(DB_NAME)}
@@ -69,8 +80,6 @@ void start_scene::on_start()
 
     load_scripts();
 
-    rect_i const menuBounds {0, 0, windowSize.Width, windowSize.Height};
-
     // games
     std::vector<games::game_info>                      games;
     std::vector<std::tuple<string, games::family, u8>> dbvalues;
@@ -86,31 +95,22 @@ void start_scene::on_start()
     _themes = load_themes();
     std::vector<std::string> themes;
     themes.reserve(_themes.size());
-    for (auto const& gi : _themes) {
-        themes.push_back(gi.first);
-    }
+    for (auto const& gi : _themes) { themes.push_back(gi.first); }
 
     // cardsets
     _cardSets = load_cardsets();
     std::vector<std::string> cardSets;
     cardSets.reserve(_cardSets.size());
-    for (auto const& gi : _cardSets) {
-        cardSets.push_back(gi.first);
-    }
+    for (auto const& gi : _cardSets) { cardSets.push_back(gi.first); }
 
     // ui
-    _formControls = std::make_shared<form_controls>(&window, rect_f {menuBounds});
-    _formMenu     = std::make_shared<form_menu>(&window, rect_f {point_f::Zero, size_f {windowSize}}, games, themes, cardSets);
+    _formControls = std::make_shared<form_controls>(&window);
+    _formMenu     = std::make_shared<form_menu>(&window, games, themes, cardSets);
     _formMenu->hide();
     connect_ui_events();
 
     // card table
-    f32 const tableX {0};
-    f32 const tableY {windowSize.Height / 10.f * 1.f};
-    f32 const tableWidth {static_cast<f32>(windowSize.Width)};
-    f32 const tableHeight {windowSize.Height / 10.f * 8.f};
-    _cardTable = std::make_shared<card_table>(&window, _formControls->Canvas.get(),
-                                              rect_f {{tableX, tableY}, {tableWidth, tableHeight}}, resGrp);
+    _cardTable = std::make_shared<card_table>(&window, _formControls->Canvas.get(), resGrp);
 
     _cardTable->HoverChange.connect([&](pile_description const& str) {
         _formControls->LblPile->Label      = str.Pile;
@@ -123,6 +123,8 @@ void start_scene::on_start()
         _formControls->LblBase->Label             = str.Base;
         _formControls->LblBaseLabel->Label        = str.BaseLabel;
     });
+
+    set_children_bounds(windowSize);
 
     // render queues
     get_root_node()->create_child()->attach_entity(_cardTable);
@@ -222,6 +224,26 @@ void start_scene::connect_ui_events()
             _formControls->show();
         }
     });
+
+    _formMenu->BtnApplySettings->Click.connect([&]() {
+        data::config::object obj;
+        _formMenu->PanelSettings->submit(obj);
+
+        assert(obj.has("lbxResolution", "selected"));
+        assert(obj.has("chkFullScreen", "checked"));
+        assert(obj.has("chkVSync", "checked"));
+
+        auto& window {get_window()};
+
+        auto const res {get_size(obj["lbxResolution"]["selected"].as<string>())};
+        window.Size = res;
+        set_children_bounds(res);
+
+        window.FullScreen = obj["chkFullScreen"]["checked"].as<bool>();
+        window.VSync      = obj["chkVSync"]["checked"].as<bool>();
+
+        start_game(_formMenu->SelectedGame(), start_reason::Restart);
+    });
 }
 
 void start_scene::on_draw_to(gfx::render_target&)
@@ -263,6 +285,19 @@ void start_scene::on_key_down(input::keyboard::event& ev)
     default:
         break;
     }
+}
+
+void start_scene::set_children_bounds(size_i size)
+{
+    rect_f const menuBounds {0, 0, static_cast<f32>(size.Width), static_cast<f32>(size.Height)};
+    _formMenu->Bounds     = menuBounds;
+    _formControls->Bounds = menuBounds;
+
+    f32 const tableX {0};
+    f32 const tableY {menuBounds.Height / 10.f * 1.f};
+    f32 const tableWidth {menuBounds.Width};
+    f32 const tableHeight {menuBounds.Height / 10.f * 8.f};
+    _cardTable->Bounds = rect_f {{tableX, tableY}, {tableWidth, tableHeight}};
 }
 
 void start_scene::start_game(string const& name, start_reason reason)

@@ -292,6 +292,27 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         theme.Hover.apply(hoverStyle);
     }
     {
+        auto style {styles.create<list_box>("list_box_res", {})};
+        style->Border.Size                = 2_px;
+        style->Border.Radius              = 5_px;
+        style->Margin                     = {5_px};
+        style->Padding                    = {5_px};
+        style->DropShadow.Color           = color {0, 0, 0, 128};
+        style->ItemHeight                 = 20_pct;
+        style->ItemClass                  = "list_items";
+        style->VScrollBar.ThumbClass      = "scrollbar_thumb";
+        style->VScrollBar.Bar.Type        = element::bar::type::Continuous;
+        style->VScrollBar.Bar.Size        = 20_pct;
+        style->VScrollBar.Bar.Border.Size = 2_px;
+        style->VScrollBar.Bar.Delay       = 250ms;
+
+        auto hoverStyle {styles.create<list_box>("list_box_res", {.Hover = true})};
+        *hoverStyle = *style;
+
+        theme.Normal.apply(style);
+        theme.Hover.apply(hoverStyle);
+    }
+    {
         auto style {styles.create<tab_container>("tab_container", {})};
         style->Border.Size      = 2_px;
         style->Border.Radius    = 5_px;
@@ -302,6 +323,25 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->TabItemClass     = "tab_items";
         style->MaxTabs          = 8;
         theme.Normal.apply(style);
+    }
+    {
+        auto style {styles.create<checkbox>("checkbox", {})};
+        style->Border.Size   = 3_px;
+        style->Border.Radius = 5_px;
+        style->Margin        = {5_px};
+        style->Padding       = {2_px};
+        style->Tick.Type     = element::tick::type::Rect;
+        style->Tick.Size     = 95_pct;
+
+        auto hoverStyle {styles.create<checkbox>("checkbox", {.Hover = true})};
+        *hoverStyle = *style;
+
+        auto activeStyle {styles.create<checkbox>("checkbox", {.Active = true})};
+        *activeStyle = *style;
+
+        theme.Normal.apply(style);
+        theme.Hover.apply(hoverStyle);
+        theme.Active.apply(activeStyle);
     }
     {
         auto style {styles.create<radio_button>("radio_button", {})};

@@ -43,6 +43,7 @@ protected:
     void on_key_down(input::keyboard::event& ev) override;
 
 private:
+    void set_children_bounds(size_i size);
     void start_game(string const& name, start_reason reason);
     void generate_rule(games::base_game const& game) const;
 

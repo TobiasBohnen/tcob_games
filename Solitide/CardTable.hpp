@@ -15,9 +15,10 @@ namespace solitaire {
 
 class card_table : public gfx::entity {
 public:
-    card_table(gfx::window* parent, gfx::ui::canvas_widget* canvas, rect_f const& bounds, assets::group& resGrp);
+    card_table(gfx::window* parent, gfx::ui::canvas_widget* canvas, assets::group& resGrp);
 
     signal<pile_description const> HoverChange;
+    prop<rect_f>                   Bounds;
 
     void start(std::shared_ptr<games::base_game> const& game);
     void resume(std::shared_ptr<games::base_game> const& game, data::config::object& savegame);
@@ -65,7 +66,6 @@ private:
 
     gfx::window*   _parentWindow;
     assets::group& _resGrp;
-    rect_f         _bounds;
 
     std::shared_ptr<games::base_game> _currentGame;
 

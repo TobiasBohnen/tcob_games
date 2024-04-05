@@ -7,13 +7,12 @@
 
 namespace solitaire {
 
-form_controls::form_controls(gfx::window* window, rect_f bounds)
-    : form {"MainMenu", window, bounds}
-{
-    using namespace tcob::literals;
+using namespace tcob::literals;
 
+form_controls::form_controls(gfx::window* window)
+    : form {"MainMenu", window}
+{
     auto mainPanel {create_container<glass>(dock_style::Fill, "main")};
-    mainPanel->Class = "panel-transparent";
     auto mainPanelLayout {mainPanel->create_layout<dock_layout>()};
 
     // menu
@@ -74,7 +73,6 @@ form_controls::form_controls(gfx::window* window, rect_f bounds)
     }
 
     auto overlayPanel {mainPanelLayout->create_widget<glass>(dock_style::Fill, "overlay")};
-    overlayPanel->Class = "panel-transparent";
     overlayPanel->disable();
     auto overlayPanelLayout {overlayPanel->create_layout<dock_layout>()};
 
@@ -83,14 +81,19 @@ form_controls::form_controls(gfx::window* window, rect_f bounds)
 
 ////////////////////////////////////////////////////////////
 
-form_menu::form_menu(gfx::window* window, rect_f bounds,
-                     std::vector<games::game_info> const& games, std::vector<std::string> const& colorThemes, std::vector<std::string> const& cardSets)
-    : form {"Games", window, bounds}
-{
-    using namespace tcob::literals;
+static string const TabGamesName {"tabGames"};
+static string const TabSettingsName {"tabSettings"};
+static string const TabThemesName {"tabThemes"};
+static string const TabCardsetsName {"tabCardsets"};
 
+form_menu::form_menu(gfx::window*                         window,
+                     std::vector<games::game_info> const& games,
+                     std::vector<std::string> const&      colorThemes,
+                     std::vector<std::string> const&      cardSets)
+    : form {"Games", window}
+{
     // Games
-    auto tabGames {create_container<tab_container>(dock_style::Left, "tabGames")};
+    auto tabGames {create_container<tab_container>(dock_style::Left, TabGamesName)};
     tabGames->Flex = {85_pct, 100_pct};
 
     auto createListBox {[&](std::shared_ptr<dock_layout>& tabPanelLayout, std::string const& name, auto&& pred) -> std::shared_ptr<list_box> {
@@ -171,8 +174,50 @@ form_menu::form_menu(gfx::window* window, rect_f bounds,
         }
     }
 
+    // Setting
+    PanelSettings       = create_container<panel>(dock_style::Left, TabSettingsName);
+    PanelSettings->Flex = {0_pct, 0_pct};
+    {
+        auto        panelLayout {PanelSettings->create_layout<grid_layout>(size_i {40, 40})};
+        auto const& config {locate_service<data::config_file>()};
+
+        // resolution
+        {
+            auto const& renderSystem {locate_service<gfx::render_system>()};
+            auto const  displayModes {renderSystem.get_displays()};
+            auto        lbxRes {panelLayout->create_widget<list_box>({4, 1, 5, 12}, "lbxResolution")}; // TODO: change to drop-down-list
+            lbxRes->Class = "list_box_res";
+            for (auto const& dm : displayModes.at(0).Modes) {
+                lbxRes->add_item(std::format("{}x{}", dm.Size.Width, dm.Size.Height));
+            }
+            auto const res {config[Cfg::Video::Name][Cfg::Video::resolution].as<size_i>()};
+            lbxRes->select_item(std::format("{}x{}", res.Width, res.Height));
+            auto lbl {panelLayout->create_widget<label>({0, 1, 4, 12}, "lblResolution")};
+            lbl->Label = "Resolution";
+        }
+
+        // fullscreen
+        {
+            auto chkFullScreen {panelLayout->create_widget<checkbox>({4, 14, 5, 3}, "chkFullScreen")};
+            chkFullScreen->Checked = config[Cfg::Video::Name][Cfg::Video::fullscreen].as<bool>();
+            auto lbl {panelLayout->create_widget<label>({0, 14, 4, 3}, "lblFullScreen")};
+            lbl->Label = "Fullscreen";
+        }
+
+        // vsync
+        {
+            auto chkFullScreen {panelLayout->create_widget<checkbox>({4, 18, 5, 3}, "chkVSync")};
+            chkFullScreen->Checked = config[Cfg::Video::Name][Cfg::Video::fullscreen].as<bool>();
+            auto lbl {panelLayout->create_widget<label>({0, 18, 4, 3}, "lblVSync")};
+            lbl->Label = "VSync";
+        }
+
+        BtnApplySettings        = panelLayout->create_widget<button>({36, 36, 5, 3}, "chkFullScreen");
+        BtnApplySettings->Label = "Apply";
+    }
+
     // Themes
-    auto panelThemes {create_container<panel>(dock_style::Left, "panelThemes")};
+    auto panelThemes {create_container<panel>(dock_style::Left, TabThemesName)};
     panelThemes->Flex = {0_pct, 0_pct};
     {
         auto panelLayout {panelThemes->create_layout<dock_layout>()};
@@ -186,7 +231,7 @@ form_menu::form_menu(gfx::window* window, rect_f bounds,
     }
 
     // Cardsets
-    auto panelCardsets {create_container<panel>(dock_style::Left, "panelCardsets")};
+    auto panelCardsets {create_container<panel>(dock_style::Left, TabCardsetsName)};
     panelCardsets->Flex = {0_pct, 0_pct};
     {
         auto panelLayout {panelCardsets->create_layout<dock_layout>()};
@@ -199,37 +244,56 @@ form_menu::form_menu(gfx::window* window, rect_f bounds,
         LbxCardsets->DoubleClick.connect([&] { hide(); });
     }
 
-    // menu
-    auto menu {create_container<panel>(dock_style::Fill, "menu")};
+    create_menubar();
+}
+
+void form_menu::create_menubar()
+{
+    static string const MenuName {"menu"};
+
+    auto menu {create_container<panel>(dock_style::Fill, MenuName)};
     auto menuLayout {menu->create_layout<grid_layout>(size_i {6, 20})};
 
     auto const enableContainer {[](form const* f, string const& enable) {
         for (auto const& w : f->get_widgets()) {
-            if (w->get_name() != "menu") {
+            if (w->get_name() != MenuName) {
                 w->Flex = w->get_name() == enable ? dimensions {85_pct, 100_pct} : dimensions {0_pct, 0_pct};
             }
         }
     }};
-    auto       btnGames {menuLayout->create_widget<radio_button>({0, 1, 3, 2}, "btnGames")};
-    auto       btnGamesL {menuLayout->create_widget<label>({3, 1, 2, 2}, "btnGamesL")};
-    btnGames->Checked = true;
-    btnGames->Click.connect([enableContainer](auto const& ev) { enableContainer(ev.Sender->get_form(), "tabGames"); });
-    btnGamesL->Label = "Games";
-    btnGamesL->For   = btnGames;
 
-    auto btnThemes {menuLayout->create_widget<radio_button>({0, 4, 3, 2}, "btnThemes")};
-    auto btnThemesL {menuLayout->create_widget<label>({3, 4, 2, 2}, "btnThemesL")};
-    btnThemes->Click.connect([enableContainer](auto const& ev) { enableContainer(ev.Sender->get_form(), "panelThemes"); });
-    btnThemesL->Label = "Themes";
-    btnThemesL->For   = btnThemes;
+    rect_i btnRect {0, 1, 3, 2};
 
-    auto btnCardsets {menuLayout->create_widget<radio_button>({0, 7, 3, 2}, "btnCardsets")};
-    auto btnCardsetsL {menuLayout->create_widget<label>({3, 7, 2, 2}, "btnCardsetsL")};
-    btnCardsets->Click.connect([enableContainer](auto const& ev) { enableContainer(ev.Sender->get_form(), "panelCardsets"); });
-    btnCardsetsL->Label = "Cardsets";
-    btnCardsetsL->For   = btnCardsets;
+    auto const createMenuButton {[&](string const& text) {
+        auto btn {menuLayout->create_widget<radio_button>(btnRect, "btn" + text)};
+        auto lbl {menuLayout->create_widget<label>({btnRect.Width, btnRect.Y, btnRect.Width - 1, btnRect.Height}, "lblBtn" + text)};
 
-    auto btnBack {menuLayout->create_widget<button>({1, 18, 3, 2}, "btnBack")};
+        lbl->Label = text;
+        lbl->For   = btn;
+
+        btnRect.Y += btnRect.Height + 1;
+        return btn;
+    }};
+
+    {
+        auto btn {createMenuButton("Games")};
+        btn->Checked = true;
+        btn->Click.connect([enableContainer](auto const& ev) { enableContainer(ev.Sender->get_form(), TabGamesName); });
+    }
+    {
+        auto btn {createMenuButton("Settings")};
+        btn->Click.connect([enableContainer](auto const& ev) { enableContainer(ev.Sender->get_form(), TabSettingsName); });
+    }
+    {
+        auto btn {createMenuButton("Themes")};
+        btn->Click.connect([enableContainer](auto const& ev) { enableContainer(ev.Sender->get_form(), TabThemesName); });
+    }
+    {
+        auto btn {createMenuButton("Cardsets")};
+        btn->Click.connect([enableContainer](auto const& ev) { enableContainer(ev.Sender->get_form(), TabCardsetsName); });
+    }
+
+    auto btnBack {menuLayout->create_widget<button>({1, 18, 4, 2}, "btnBack")};
     btnBack->Label = "Back";
     btnBack->Click.connect([&](auto&) { hide(); });
 }
