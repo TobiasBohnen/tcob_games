@@ -449,15 +449,15 @@ eight_sages.Tableau                         = {
         Rule = rules.any_downac_top
     }
 }
-eight_sages.check_playable                  = function(game, targetPile, targetCardIndex, drop, numCards)
+eight_sages.check_playable                  = function(game, targetPile, targetCardIndex, card, numCards)
     if targetPile.Type == "Tableau" then
-        local srcPile = game:find_pile(drop)
+        local srcPile = game:find_pile(card)
         if srcPile.Type ~= "Waste" then
             return false
         end
     end
 
-    return game:can_play(targetPile, targetCardIndex, drop, numCards)
+    return game:can_play(targetPile, targetCardIndex, card, numCards)
 end
 
 ------

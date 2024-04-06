@@ -52,8 +52,8 @@ local build = {
     InRank                  = function(_, _)
         return {
             Hint = "By same rank",
-            Func = function(_, target, drop)
-                return rules.in_rank(target, drop)
+            Func = function(_, target, card)
+                return rules.in_rank(target, card)
             end
         }
     end,
@@ -63,8 +63,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Down by rank or by same rank",
-            Func = function(_, target, drop)
-                return rules.in_rank(target, drop) or rules.build_down(target, drop, wrap, interval)
+            Func = function(_, target, card)
+                return rules.in_rank(target, card) or rules.build_down(target, card, wrap, interval)
             end
         }
     end,
@@ -74,12 +74,12 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "By same rank, then up by rank",
-            Func = function(game, target, drop)
+            Func = function(game, target, card)
                 local count = game:find_pile(target).CardCount
                 if count > 0 and count % (game.DeckCount * 4) == 0 then
-                    return rules.build_up(target, drop, wrap, interval)
+                    return rules.build_up(target, card, wrap, interval)
                 end
-                return rules.in_rank(target, drop)
+                return rules.in_rank(target, card)
             end
         }
     end,
@@ -89,8 +89,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Up or down by rank",
-            Func = function(_, target, drop)
-                return rules.build_up_or_down(target, drop, wrap, interval)
+            Func = function(_, target, card)
+                return rules.build_up_or_down(target, card, wrap, interval)
             end
         }
     end,
@@ -99,8 +99,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Down by rank",
-            Func = function(_, target, drop)
-                return rules.build_down(target, drop, wrap, interval)
+            Func = function(_, target, card)
+                return rules.build_down(target, card, wrap, interval)
             end
         }
     end,
@@ -109,8 +109,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Up by rank",
-            Func = function(_, target, drop)
-                return rules.build_up(target, drop, wrap, interval)
+            Func = function(_, target, card)
+                return rules.build_up(target, card, wrap, interval)
             end
         }
     end,
@@ -120,8 +120,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Up or down by any suit but own",
-            Func = function(_, target, drop)
-                return not rules.in_suit(target, drop) and rules.build_up_or_down(target, drop, wrap, interval)
+            Func = function(_, target, card)
+                return not rules.in_suit(target, card) and rules.build_up_or_down(target, card, wrap, interval)
             end
         }
     end,
@@ -130,8 +130,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Down by any suit but own",
-            Func = function(_, target, drop)
-                return not rules.in_suit(target, drop) and rules.build_down(target, drop, wrap, interval)
+            Func = function(_, target, card)
+                return not rules.in_suit(target, card) and rules.build_down(target, card, wrap, interval)
             end
         }
     end,
@@ -140,8 +140,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Up by any suit but own",
-            Func = function(_, target, drop)
-                return not rules.in_suit(target, drop) and rules.build_up(target, drop, wrap, interval)
+            Func = function(_, target, card)
+                return not rules.in_suit(target, card) and rules.build_up(target, card, wrap, interval)
             end
         }
     end,
@@ -151,8 +151,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Up or down by suit",
-            Func = function(_, target, drop)
-                return rules.in_suit(target, drop) and rules.build_up_or_down(target, drop, wrap, interval)
+            Func = function(_, target, card)
+                return rules.in_suit(target, card) and rules.build_up_or_down(target, card, wrap, interval)
             end
         }
     end,
@@ -161,8 +161,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Down by suit",
-            Func = function(_, target, drop)
-                return rules.in_suit(target, drop) and rules.build_down(target, drop, wrap, interval)
+            Func = function(_, target, card)
+                return rules.in_suit(target, card) and rules.build_down(target, card, wrap, interval)
             end
         }
     end,
@@ -171,8 +171,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Up by suit",
-            Func = function(_, target, drop)
-                return rules.in_suit(target, drop) and rules.build_up(target, drop, wrap, interval)
+            Func = function(_, target, card)
+                return rules.in_suit(target, card) and rules.build_up(target, card, wrap, interval)
             end
         }
     end,
@@ -182,8 +182,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Up or down by color",
-            Func = function(_, target, drop)
-                return rules.in_color(target, drop) and rules.build_up_or_down(target, drop, wrap, interval)
+            Func = function(_, target, card)
+                return rules.in_color(target, card) and rules.build_up_or_down(target, card, wrap, interval)
             end
         }
     end,
@@ -192,8 +192,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Down by color",
-            Func = function(_, target, drop)
-                return rules.in_color(target, drop) and rules.build_down(target, drop, wrap, interval)
+            Func = function(_, target, card)
+                return rules.in_color(target, card) and rules.build_down(target, card, wrap, interval)
             end
         }
     end,
@@ -202,8 +202,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Up by color",
-            Func = function(_, target, drop)
-                return rules.in_color(target, drop) and rules.build_up(target, drop, wrap, interval)
+            Func = function(_, target, card)
+                return rules.in_color(target, card) and rules.build_up(target, card, wrap, interval)
             end
         }
     end,
@@ -213,8 +213,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Up or down by alternate color",
-            Func = function(_, target, drop)
-                return rules.alternate_color(target, drop) and rules.build_up_or_down(target, drop, wrap, interval)
+            Func = function(_, target, card)
+                return rules.alternate_color(target, card) and rules.build_up_or_down(target, card, wrap, interval)
             end
         }
     end,
@@ -223,8 +223,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Down by alternate color",
-            Func = function(_, target, drop)
-                return rules.alternate_color(target, drop) and rules.build_down(target, drop, wrap, interval)
+            Func = function(_, target, card)
+                return rules.alternate_color(target, card) and rules.build_down(target, card, wrap, interval)
             end
         }
     end,
@@ -233,8 +233,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Up by alternate color",
-            Func = function(_, target, drop)
-                return rules.alternate_color(target, drop) and rules.build_up(target, drop, wrap, interval)
+            Func = function(_, target, card)
+                return rules.alternate_color(target, card) and rules.build_up(target, card, wrap, interval)
             end
         }
     end,

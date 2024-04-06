@@ -65,8 +65,8 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
 
         return nullptr;
     };
-    gameWrapper["can_play"] = [](base_game* game, pile* targetPile, isize targetIndex, card const& drop, isize numCards) {
-        return game->base_game::can_play(*targetPile, targetIndex + IndexOffset, drop, numCards);
+    gameWrapper["can_play"] = [](base_game* game, pile* targetPile, isize targetIndex, card const& card, isize numCards) {
+        return game->base_game::can_play(*targetPile, targetIndex + IndexOffset, card, numCards);
     };
     gameWrapper["play_card"] = [](base_game* game, pile* to, card& card) {
         if (game->base_game::can_play(*to, std::ssize(to->Cards) - 1, card, 1)) { // skip script check_playable here
@@ -212,12 +212,12 @@ inline script_game<Table, Function, IndexOffset>::script_game(card_table& f, gam
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>
-inline auto script_game<Table, Function, IndexOffset>::can_play(pile const& targetPile, isize targetCardIndex, card const& drop, isize numCards) const -> bool
+inline auto script_game<Table, Function, IndexOffset>::can_play(pile const& targetPile, isize targetCardIndex, card const& card, isize numCards) const -> bool
 {
     if (_callbacks.CheckPlayable) {
-        return (*_callbacks.CheckPlayable)(static_cast<base_game const*>(this), &targetPile, targetCardIndex - IndexOffset, drop, numCards);
+        return (*_callbacks.CheckPlayable)(static_cast<base_game const*>(this), &targetPile, targetCardIndex - IndexOffset, card, numCards);
     }
-    return base_game::can_play(targetPile, targetCardIndex, drop, numCards);
+    return base_game::can_play(targetPile, targetCardIndex, card, numCards);
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>
@@ -305,8 +305,8 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
                 buildTable.try_get(pile.Rule.BuildHint, "Hint");
 
                 if (Function<bool> func; buildTable.try_get(func, "Func")) {
-                    pile.Rule.Build = {[this, func](card const& target, card const& drop) {
-                        return func(static_cast<base_game*>(this), target, drop);
+                    pile.Rule.Build = {[this, func](card const& target, card const& card) {
+                        return func(static_cast<base_game*>(this), target, card);
                     }};
                 }
             }

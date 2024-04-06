@@ -93,7 +93,7 @@ public:
 
     void move_cards(pile& to, isize startIndex, isize numCards, bool reverse);
 
-    auto build(isize targetIndex, card const& drop, isize numCards) const -> bool;
+    auto build(isize targetIndex, card const& card, isize numCards) const -> bool;
 
     auto operator==(pile const& other) const -> bool
     {

@@ -424,9 +424,9 @@ void base_game::clear_piles()
     }
 }
 
-auto base_game::can_play(pile const& targetPile, isize targetCardIndex, card const& drop, isize numCards) const -> bool
+auto base_game::can_play(pile const& targetPile, isize targetCardIndex, card const& card, isize numCards) const -> bool
 {
-    return targetPile.build(targetCardIndex, drop, numCards);
+    return targetPile.build(targetCardIndex, card, numCards);
 }
 
 auto base_game::check_movable(pile const& targetPile, isize idx) const -> bool

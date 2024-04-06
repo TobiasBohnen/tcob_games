@@ -34,20 +34,20 @@ local aces_up = {
                 }
         }
     },
-    check_playable = function(game, targetPile, _, drop, numCards) {
+    check_playable = function(game, targetPile, _, card, numCards) {
         if (numCards != 1) {
             return false
         }
 
         if (targetPile.Type == "Foundation") {
-            if (drop.Rank == "Ace") {
+            if (card.Rank == "Ace") {
                 return false
             }
-            local dropRank = Sol.RankValues[drop.Rank]
+            local cardRank = Sol.RankValues[card.Rank]
             foreach(tab in game.Tableau) {
                 if (!tab.IsEmpty) {
                     local tabCard = tab.Cards[tab.CardCount - 1]
-                    if (tabCard.Suit == drop.Suit && (tabCard.Rank == "Ace" || Sol.RankValues[tabCard.Rank] > dropRank)) {
+                    if (tabCard.Suit == card.Suit && (tabCard.Rank == "Ace" || Sol.RankValues[tabCard.Rank] > cardRank)) {
                         return true
                     }
                 }
@@ -129,20 +129,20 @@ local aces_square = {
                 }
         }
     },
-    check_playable = function(game, targetPile, _, drop, numCards) {
-        if (drop.Rank == "Ace" || targetPile.IsEmpty || numCards > 1) {
+    check_playable = function(game, targetPile, _, card, numCards) {
+        if (card.Rank == "Ace" || targetPile.IsEmpty || numCards > 1) {
             return false
         }
 
         if (targetPile.Type == "Tableau") {
             local targetCard = targetPile.Cards[0]
-            if (targetCard.Rank == "Ace" || targetCard.Suit != drop.Suit) {
+            if (targetCard.Rank == "Ace" || targetCard.Suit != card.Suit) {
                 return false
             }
             local tableau = game.Tableau
             local tabSize = tableau.len()
 
-            local srcPile = game.find_pile(drop)
+            local srcPile = game.find_pile(card)
             local dstPileIndex = -1
             local srcPileIndex = -1
             for (local i = 0; i < tabSize; i++) {

@@ -103,7 +103,7 @@ public:
 
     auto get_available_hints() const -> std::vector<move> const&;
 
-    auto virtual can_play(pile const& targetPile, isize targetCardIndex, card const& drop, isize numCards) const -> bool;
+    auto virtual can_play(pile const& targetPile, isize targetCardIndex, card const& card, isize numCards) const -> bool;
 
     void click(pile* srcPile, u8 clicks);
     void key_down(input::keyboard::event& ev);
@@ -167,7 +167,7 @@ class script_game : public base_game {
 public:
     script_game(card_table& f, game_info info, Table table);
 
-    auto can_play(pile const& targetPile, isize targetCardIndex, card const& drop, isize numCards) const -> bool override;
+    auto can_play(pile const& targetPile, isize targetCardIndex, card const& card, isize numCards) const -> bool override;
 
     void static CreateWrapper(auto&& script);
     template <typename T>

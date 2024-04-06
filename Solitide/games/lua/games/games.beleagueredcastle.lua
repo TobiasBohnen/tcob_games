@@ -369,10 +369,10 @@ local rittenhouse              = {
             if not check then break end
         end
     end,
-    check_playable    = function(game, targetPile, targetCardIndex, drop, numCards)
+    check_playable    = function(game, targetPile, targetCardIndex, card, numCards)
         if targetPile.Type == "Foundation" then
             local dstPileIdx = game:get_pile_index(targetPile)
-            local srcPileIdx = game:get_pile_index(game:find_pile(drop))
+            local srcPileIdx = game:get_pile_index(game:find_pile(card))
 
             if srcPileIdx > 5 then
                 if dstPileIdx ~= srcPileIdx - 1 then return false end
@@ -381,7 +381,7 @@ local rittenhouse              = {
             end
         end
 
-        return game:can_play(targetPile, targetCardIndex, drop, numCards)
+        return game:can_play(targetPile, targetCardIndex, card, numCards)
     end,
 }
 
@@ -409,13 +409,13 @@ local selective_castle         = {
             }
         end
     },
-    check_playable   = function(game, targetPile, targetCardIndex, drop, numCards)
+    check_playable   = function(game, targetPile, targetCardIndex, card, numCards)
         local foundation1 = game.Foundation[1]
         if foundation1.IsEmpty and targetPile == foundation1 then -- allow any card on first foundation
             return true
         end
 
-        return game:can_play(targetPile, targetCardIndex, drop, numCards)
+        return game:can_play(targetPile, targetCardIndex, card, numCards)
     end,
     on_piles_created = Sol.Layout.beleaguered_castle
 }
@@ -500,16 +500,16 @@ local zerline                  = {
         end
     },
     on_deal        = ops.Deal.stock_to_waste,
-    check_playable = function(game, targetPile, targetCardIndex, drop, numCards)
+    check_playable = function(game, targetPile, targetCardIndex, card, numCards)
         if targetPile.Type == "FreeCell" then
-            local srcPile = game:find_pile(drop)
+            local srcPile = game:find_pile(card)
             if srcPile.Type == "Tableau" then
-                return game:can_play(targetPile, targetCardIndex, drop, numCards)
+                return game:can_play(targetPile, targetCardIndex, card, numCards)
             end
             return false
         end
 
-        return game:can_play(targetPile, targetCardIndex, drop, numCards)
+        return game:can_play(targetPile, targetCardIndex, card, numCards)
     end
 }
 

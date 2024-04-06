@@ -7,7 +7,7 @@ local ops   = require 'base/ops'
 local rules = require 'base/rules'
 
 
-local montana_base <const>         = {
+local montana_base <const>        = {
     redeal = function(game, ranks)
         local columns = #ranks + 1
         local tableau = game.Tableau
@@ -52,17 +52,17 @@ local montana_base <const>         = {
         return true
     end,
 
-    check_playable = function(game, targetPile, drop, ranks, mode)
+    check_playable = function(game, targetPile, card, ranks, mode)
         local tableau = game.Tableau
 
         local check_left = function(leftTab)
             --check if left card is one rank higher
             if leftTab.IsEmpty then return false end
             local leftCard = leftTab.Cards[1]
-            if leftCard.Suit == drop.Suit then
+            if leftCard.Suit == card.Suit then
                 for k, v in ipairs(ranks) do
                     if k == #ranks then return false end --don't wrap
-                    if v == leftCard.Rank then return ranks[k + 1] == drop.Rank end
+                    if v == leftCard.Rank then return ranks[k + 1] == card.Rank end
                 end
             end
         end
@@ -70,10 +70,10 @@ local montana_base <const>         = {
             --check if right card is one rank lower
             if rightTab.IsEmpty then return false end
             local rightCard = rightTab.Cards[1]
-            if rightCard.Suit == drop.Suit then
+            if rightCard.Suit == card.Suit then
                 for k, v in ipairs(ranks) do
                     if k == #ranks then return false end --don't wrap
-                    if v == rightCard.Rank then return ranks[k - 1] == drop.Rank end
+                    if v == rightCard.Rank then return ranks[k - 1] == card.Rank end
                 end
             end
         end
@@ -85,7 +85,7 @@ local montana_base <const>         = {
         local checkRight = string.find(mode, "r")
 
         local i = game:get_pile_index(targetPile)
-        if i % columns == 1 then return drop.Rank == ranks[1] end --leftmost column
+        if i % columns == 1 then return card.Rank == ranks[1] end --leftmost column
         if checkLeft and check_left(tableau[i - 1]) then return true end
         if checkRight and i % columns ~= 0 and check_right(tableau[i + 1]) then return true end
 
@@ -114,9 +114,9 @@ local montana_base <const>         = {
 }
 
 ------
-local montana_ranks <const>        = { table.unpack(Sol.Ranks, 2, 13) }
+local montana_ranks <const>       = { table.unpack(Sol.Ranks, 2, 13) }
 
-local montana                      = {
+local montana                     = {
     Info             = {
         Name          = "Montana",
         Family        = "Montana",
@@ -145,30 +145,30 @@ local montana                      = {
     check_state      = function(game)
         return montana_base.check_state(game, montana_ranks)
     end,
-    check_playable   = function(game, targetPile, _, drop, _)
-        return montana_base.check_playable(game, targetPile, drop, montana_ranks, "l")
+    check_playable   = function(game, targetPile, _, card, _)
+        return montana_base.check_playable(game, targetPile, card, montana_ranks, "l")
     end
 }
 
 ------
 
-local double_montana               = Sol.copy(montana)
-double_montana.Info.Name           = "Double Montana"
-double_montana.Info.DeckCount      = 2
-double_montana.Tableau.Size        = 104
+local double_montana              = Sol.copy(montana)
+double_montana.Info.Name          = "Double Montana"
+double_montana.Info.DeckCount     = 2
+double_montana.Tableau.Size       = 104
 
 ------
 
-local moonlight                    = Sol.copy(montana)
-moonlight.Info.Name                = "Moonlight"
-moonlight.check_playable           = function(game, targetPile, _, drop, _)
-    return montana_base.check_playable(game, targetPile, drop, montana_ranks, "rl")
+local moonlight                   = Sol.copy(montana)
+moonlight.Info.Name               = "Moonlight"
+moonlight.check_playable          = function(game, targetPile, _, card, _)
+    return montana_base.check_playable(game, targetPile, card, montana_ranks, "rl")
 end
 
 ------
-local blue_moon_ranks <const>      = Sol.Ranks
+local blue_moon_ranks <const>     = Sol.Ranks
 
-local blue_moon_shuffle            = function(game, card, rows)
+local blue_moon_shuffle           = function(game, card, rows)
     if card.Rank == "Ace" then
         for i = 0, rows - 1 do
             if game.PlaceTop(card, game.Tableau, 1 + i * 14, 1, true) then
@@ -180,7 +180,7 @@ local blue_moon_shuffle            = function(game, card, rows)
     return false
 end
 
-local blue_moon                    = {
+local blue_moon                   = {
     Info             = {
         Name          = "Blue Moon",
         Family        = "Montana",
@@ -203,8 +203,8 @@ local blue_moon                    = {
     on_shuffle       = function(game, card, _)
         return blue_moon_shuffle(game, card, 4)
     end,
-    check_playable   = function(game, targetPile, _, drop, _)
-        return montana_base.check_playable(game, targetPile, drop, blue_moon_ranks, "l")
+    check_playable   = function(game, targetPile, _, card, _)
+        return montana_base.check_playable(game, targetPile, card, blue_moon_ranks, "l")
     end,
     on_redeal        = function(game)
         return montana_base.redeal(game, blue_moon_ranks)
@@ -217,61 +217,61 @@ local blue_moon                    = {
 
 ------
 
-local double_blue_moon             = Sol.copy(blue_moon)
-double_blue_moon.Info.Name         = "Double Blue Moon"
-double_blue_moon.Info.DeckCount    = 2
-double_blue_moon.Tableau.Size      = 112
-double_blue_moon.on_shuffle        = function(game, card, _)
+local double_blue_moon            = Sol.copy(blue_moon)
+double_blue_moon.Info.Name        = "Double Blue Moon"
+double_blue_moon.Info.DeckCount   = 2
+double_blue_moon.Tableau.Size     = 112
+double_blue_moon.on_shuffle       = function(game, card, _)
     return blue_moon_shuffle(game, card, 8)
 end
 
 ------
 
-local red_moon                     = Sol.copy(blue_moon)
-red_moon.Info.Name                 = "Red Moon"
-red_moon.Tableau.Pile              = function(i)
+local red_moon                    = Sol.copy(blue_moon)
+red_moon.Info.Name                = "Red Moon"
+red_moon.Tableau.Pile             = function(i)
     return {
         Initial = ops.Initial.face_up((i % 14 < 2) and 0 or 1),
         Layout = "Squared",
         Rule = rules.none_none_top
     }
 end
-red_moon.on_before_shuffle         = blue_moon.on_shuffle
-red_moon.on_shuffle                = nil
+red_moon.on_before_shuffle        = blue_moon.on_shuffle
+red_moon.on_shuffle               = nil
 
 ------
 
-local double_red_moon              = Sol.copy(red_moon)
-double_red_moon.Info.Name          = "Double Red Moon"
-double_red_moon.Info.DeckCount     = 2
-double_red_moon.Tableau.Size       = 112
-double_red_moon.on_before_shuffle  = function(game, card, _)
+local double_red_moon             = Sol.copy(red_moon)
+double_red_moon.Info.Name         = "Double Red Moon"
+double_red_moon.Info.DeckCount    = 2
+double_red_moon.Tableau.Size      = 112
+double_red_moon.on_before_shuffle = function(game, card, _)
     return blue_moon_shuffle(game, card, 8)
 end
 
 ------
 
-local galary                       = Sol.copy(blue_moon)
-galary.Info.Name                   = "Galary"
-galary.Tableau.Pile                = function(i)
+local galary                      = Sol.copy(blue_moon)
+galary.Info.Name                  = "Galary"
+galary.Tableau.Pile               = function(i)
     return {
         Initial = ops.Initial.face_up((i % 14 == 0 or i % 14 == 1) and 0 or 1),
         Layout = "Squared",
         Rule = rules.none_none_top
     }
 end
-galary.on_before_shuffle           = function(game, card)
+galary.on_before_shuffle          = function(game, card)
     return blue_moon.on_shuffle(game, card)
 end
-galary.on_shuffle                  = nil
-galary.check_playable              = function(game, targetPile, _, drop, _)
-    return montana_base.check_playable(game, targetPile, drop, blue_moon_ranks, "rl")
+galary.on_shuffle                 = nil
+galary.check_playable             = function(game, targetPile, _, card, _)
+    return montana_base.check_playable(game, targetPile, card, blue_moon_ranks, "rl")
 end
 
 ------
-local paganini_ranks <const>       = { "Ace", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
+local paganini_ranks <const>      = { "Ace", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
 
-local paganini                     = {
+local paganini                    = {
     Info             = {
         Name          = "Paganini",
         Family        = "Montana",
@@ -302,8 +302,8 @@ local paganini                     = {
 
         return false
     end,
-    check_playable   = function(game, targetPile, _, drop, _)
-        return montana_base.check_playable(game, targetPile, drop, paganini_ranks, "l")
+    check_playable   = function(game, targetPile, _, card, _)
+        return montana_base.check_playable(game, targetPile, card, paganini_ranks, "l")
     end,
     on_redeal        = function(game)
         return montana_base.redeal(game, paganini_ranks)
@@ -315,9 +315,9 @@ local paganini                     = {
 }
 
 ------
-local spoilt_ranks <const>         = { "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace" }
+local spoilt_ranks <const>        = { "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace" }
 
-local spoilt                       = {
+local spoilt                      = {
     Info           = {
         Name          = "Spoilt",
         Family        = "Montana",
@@ -367,7 +367,7 @@ local spoilt                       = {
             end
         end
     end,
-    check_playable = function(game, targetPile, _, drop, _)
+    check_playable = function(game, targetPile, _, card, _)
         local tableau = game.Tableau
 
         --get suits per row
@@ -388,10 +388,10 @@ local spoilt                       = {
         for i, tab in ipairs(tableau) do
             if tab == targetPile then
                 local x = (i - 1) % 8 + 1
-                if drop.Rank == spoilt_ranks[x] then                          --rank fits
+                if card.Rank == spoilt_ranks[x] then                          --rank fits
                     local y = (i - 1) // 8 + 1
-                    if suitRows[drop.Suit] == y then return true end          --suit fits row
-                    return suitRows[drop.Suit] == nil and rowEmpty[y] == true --suit not used elsewhere, and row is empty
+                    if suitRows[card.Suit] == y then return true end          --suit fits row
+                    return suitRows[card.Suit] == nil and rowEmpty[y] == true --suit not used elsewhere, and row is empty
                 end
             end
         end

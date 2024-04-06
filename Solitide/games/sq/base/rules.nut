@@ -35,93 +35,93 @@ local rules = {
 
 local build = {
     None = @(wrap = false, interval = 1) {
-        Hint = "No building", Func = @(game, target, drop) false
+        Hint = "No building", Func = @(game, target, card) false
     },
 
     Any = @(wrap = false, interval = 1) {
-        Hint = "Any card", Func = @(game, target, drop) true
+        Hint = "Any card", Func = @(game, target, card) true
     },
 
     InRank = @(wrap = false, interval = 1) {
-        Hint = "By same rank", Func = @(game, target, drop) rules.in_rank(target, drop)
+        Hint = "By same rank", Func = @(game, target, card) rules.in_rank(target, card)
     },
 
     InRankOrDownByRank = @(wrap = false, interval = 1) {
-        Hint = "Down by rank or by same rank", Func = @(game, target, drop) rules.in_rank(target, drop) || rules.build_down(target, drop, wrap, interval)
+        Hint = "Down by rank or by same rank", Func = @(game, target, card) rules.in_rank(target, card) || rules.build_down(target, card, wrap, interval)
     },
 
     RankPack = function(wrap = false, interval = 1) {
         return {
             Hint = "By same rank, then up by rank",
-            Func = function(game, target, drop) {
+            Func = function(game, target, card) {
                 local count = game.find_pile(target).CardCount
                 if (count > 0 && count % (game.DeckCount * 4) == 0) {
-                    return rules.build_up(target, drop, wrap, interval)
+                    return rules.build_up(target, card, wrap, interval)
                 }
-                return rules.in_rank(target, drop)
+                return rules.in_rank(target, card)
             }
         }
     },
 
     UpOrDownByRank = @(wrap = false, interval = 1) {
-        Hint = "Up or down by rank", Func = @(game, target, drop) rules.build_up_or_down(target, drop, wrap, interval)
+        Hint = "Up or down by rank", Func = @(game, target, card) rules.build_up_or_down(target, card, wrap, interval)
     },
 
     DownByRank = @(wrap = false, interval = 1) {
-        Hint = "Down by rank", Func = @(game, target, drop) rules.build_down(target, drop, wrap, interval)
+        Hint = "Down by rank", Func = @(game, target, card) rules.build_down(target, card, wrap, interval)
     },
 
     UpByRank = @(wrap = false, interval = 1) {
-        Hint = "Up by rank", Func = @(game, target, drop) rules.build_up(target, drop, wrap, interval)
+        Hint = "Up by rank", Func = @(game, target, card) rules.build_up(target, card, wrap, interval)
     },
 
     UpOrDownAnyButOwnSuit = @(wrap = false, interval = 1) {
-        Hint = "Up or down by any suit but own", Func = @(game, target, drop) !rules.in_suit(target, drop) && rules.build_up_or_down(target, drop, wrap, interval)
+        Hint = "Up or down by any suit but own", Func = @(game, target, card) !rules.in_suit(target, card) && rules.build_up_or_down(target, card, wrap, interval)
     },
 
     DownAnyButOwnSuit = @(wrap = false, interval = 1) {
-        Hint = "Down by any suit but own", Func = @(game, target, drop) !rules.in_suit(target, drop) && rules.build_down(target, drop, wrap, interval)
+        Hint = "Down by any suit but own", Func = @(game, target, card) !rules.in_suit(target, card) && rules.build_down(target, card, wrap, interval)
     },
 
     UpAnyButOwnSuit = @(wrap = false, interval = 1) {
-        Hint = "Up by any suit but own", Func = @(game, target, drop) !rules.in_suit(target, drop) && rules.build_up(target, drop, wrap, interval)
+        Hint = "Up by any suit but own", Func = @(game, target, card) !rules.in_suit(target, card) && rules.build_up(target, card, wrap, interval)
     },
 
     UpOrDownInSuit = @(wrap = false, interval = 1) {
-        Hint = "Up or down by suit", Func = @(game, target, drop) rules.in_suit(target, drop) && rules.build_up_or_down(target, drop, wrap, interval)
+        Hint = "Up or down by suit", Func = @(game, target, card) rules.in_suit(target, card) && rules.build_up_or_down(target, card, wrap, interval)
     },
 
     DownInSuit = @(wrap = false, interval = 1) {
-        Hint = "Down by suit", Func = @(game, target, drop) rules.in_suit(target, drop) && rules.build_down(target, drop, wrap, interval)
+        Hint = "Down by suit", Func = @(game, target, card) rules.in_suit(target, card) && rules.build_down(target, card, wrap, interval)
     },
 
     UpInSuit = @(wrap = false, interval = 1) {
-        Hint = "Up by suit", Func = @(game, target, drop) rules.in_suit(target, drop) && rules.build_up(target, drop, wrap, interval)
+        Hint = "Up by suit", Func = @(game, target, card) rules.in_suit(target, card) && rules.build_up(target, card, wrap, interval)
     },
 
     UpOrDownInColor = {
         Hint = "Up or down by color",
-        Func = @(target, drop) rules.in_color(game, target, drop) && rules.build_up_or_down(target, drop, wrap, interval)
+        Func = @(target, card) rules.in_color(game, target, card) && rules.build_up_or_down(target, card, wrap, interval)
     },
 
     DownInColor = @(wrap = false, interval = 1) {
-        Hint = "Down by color", Func = @(game, target, drop) rules.in_color(target, drop) && rules.build_down(target, drop, wrap, interval)
+        Hint = "Down by color", Func = @(game, target, card) rules.in_color(target, card) && rules.build_down(target, card, wrap, interval)
     },
 
     UpInColor = @(wrap = false, interval = 1) {
-        Hint = "Up by color", Func = @(game, target, drop) rules.in_color(target, drop) && rules.build_up(target, drop, wrap, interval)
+        Hint = "Up by color", Func = @(game, target, card) rules.in_color(target, card) && rules.build_up(target, card, wrap, interval)
     },
 
     UpOrDownAlternateColors = @(wrap = false, interval = 1) {
-        Hint = "Up or down by alternate color", Func = @(game, target, drop) rules.alternate_color(target, drop) && rules.build_up_or_down(target, drop, wrap, interval)
+        Hint = "Up or down by alternate color", Func = @(game, target, card) rules.alternate_color(target, card) && rules.build_up_or_down(target, card, wrap, interval)
     },
 
     DownAlternateColors = @(wrap = false, interval = 1) {
-        Hint = "Down by alternate color", Func = @(game, target, drop) rules.alternate_color(target, drop) && rules.build_down(target, drop, wrap, interval)
+        Hint = "Down by alternate color", Func = @(game, target, card) rules.alternate_color(target, card) && rules.build_down(target, card, wrap, interval)
     },
 
     UpAlternateColors = @(wrap = false, interval = 1) {
-        Hint = "Up by alternate color", Func = @(game, target, drop) rules.alternate_color(target, drop) && rules.build_up(target, drop, wrap, interval)
+        Hint = "Up by alternate color", Func = @(game, target, card) rules.alternate_color(target, card) && rules.build_up(target, card, wrap, interval)
     }
 };
 

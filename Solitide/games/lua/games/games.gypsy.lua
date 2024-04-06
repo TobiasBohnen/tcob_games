@@ -158,11 +158,11 @@ churchill.on_deal                        = function(game)
     end
     return true
 end
-churchill.check_playable                 = function(game, targetPile, targetCardIndex, drop, numCards)
+churchill.check_playable                 = function(game, targetPile, targetCardIndex, card, numCards)
     -- reserve only to foundation
-    if game:find_pile(drop).Type == "Reserve" and targetPile.Type ~= "Foundation" then return false end
+    if game:find_pile(card).Type == "Reserve" and targetPile.Type ~= "Foundation" then return false end
 
-    return game:can_play(targetPile, targetCardIndex, drop, numCards)
+    return game:can_play(targetPile, targetCardIndex, card, numCards)
 end
 churchill.on_piles_created               = Sol.Layout.canfield
 
@@ -502,13 +502,13 @@ local miss_milligan                      = {
             Rule = rules.king_downac_inseq
         }
     },
-    check_playable   = function(game, targetPile, targetCardIndex, drop, numCards)
+    check_playable   = function(game, targetPile, targetCardIndex, card, numCards)
         -- FreeCell is usable if Stock is empty
         if targetPile.Type == "FreeCell" and not game.Stock[1].IsEmpty then
             return false
         end
 
-        return game:can_play(targetPile, targetCardIndex, drop, numCards)
+        return game:can_play(targetPile, targetCardIndex, card, numCards)
     end,
     on_piles_created = Sol.Layout.canfield,
     on_deal          = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end

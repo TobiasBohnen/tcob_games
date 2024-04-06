@@ -290,7 +290,7 @@ indian.Tableau.Pile.Rule                = rules.any_downabos_top
 
 local indian_patience                   = Sol.copy(indian)
 indian_patience.Info.Name               = "Indian Patience"
-indian_patience.check_playable          = function(game, targetPile, targetCardIndex, drop, numCards)
+indian_patience.check_playable          = function(game, targetPile, targetCardIndex, card, numCards)
     if numCards > 1 then return false end
 
     if not game.Stock.IsEmpty then
@@ -300,13 +300,13 @@ indian_patience.check_playable          = function(game, targetPile, targetCardI
         end
 
         -- single-card tableau only movable to foundation
-        local srcPile = game:find_pile(drop)
+        local srcPile = game:find_pile(card)
         if srcPile.Type == "Tableau" and srcPile.CardCount == 1 then
             if targetPile.Type ~= "Foundation" then return false end
         end
     end
 
-    return game:can_play(targetPile, targetCardIndex, drop, numCards)
+    return game:can_play(targetPile, targetCardIndex, card, numCards)
 end
 indian_patience.on_end_turn             = function(game)
     local tableau = game.Tableau
@@ -488,13 +488,13 @@ napoleons_shoulder.Tableau              = {
         Rule = rules.any_downrank_top
     }
 }
-napoleons_shoulder.check_playable       = function(game, targetPile, targetCardIndex, drop, numCards)
+napoleons_shoulder.check_playable       = function(game, targetPile, targetCardIndex, card, numCards)
     -- empty tableau can only be filled from waste
     if targetPile.IsEmpty and targetPile.Type == "Tableau" then
-        return game:find_pile(drop).Type == "Waste"
+        return game:find_pile(card).Type == "Waste"
     end
 
-    return game:can_play(targetPile, targetCardIndex, drop, numCards)
+    return game:can_play(targetPile, targetCardIndex, card, numCards)
 end
 
 ------

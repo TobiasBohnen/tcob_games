@@ -29,13 +29,13 @@ local chessboard       = {
             }
         end
     },
-    check_playable   = function(game, targetPile, targetCardIndex, drop, numCards)
+    check_playable   = function(game, targetPile, targetCardIndex, card, numCards)
         local foundation1 = game.Foundation[1]
         if foundation1.IsEmpty and targetPile == foundation1 then -- allow any card on first foundation
             return true
         end
 
-        return game:can_play(targetPile, targetCardIndex, drop, numCards)
+        return game:can_play(targetPile, targetCardIndex, card, numCards)
     end,
     on_piles_created = Sol.Layout.canister
 }

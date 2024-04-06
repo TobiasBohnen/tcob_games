@@ -222,19 +222,19 @@ static auto limit_size(pile const& pile, isize numCards) -> bool
     return std::ssize(pile.Cards) + numCards <= pile.Rule.Limit;
 }
 
-auto pile::build(isize targetIndex, card const& drop, isize numCards) const -> bool
+auto pile::build(isize targetIndex, card const& card, isize numCards) const -> bool
 {
     if ((!Rule.IsSequence) && numCards > 1) { return false; }
 
     if (!limit_size(*this, numCards)) { return false; }
 
-    if (fill(*this, drop, numCards)) { return true; }
+    if (fill(*this, card, numCards)) { return true; }
     if (empty() || targetIndex < 0) { return false; } // can't fill and is empty
 
-    card const& target {Cards[targetIndex]};
+    auto const& target {Cards[targetIndex]};
     if (target.is_face_down()) { return false; }
 
-    return Rule.Build(target, drop);
+    return Rule.Build(target, card);
 }
 
 ////////////////////////////////////////////////////////////
