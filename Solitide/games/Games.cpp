@@ -90,7 +90,7 @@ void base_game::new_game()
             for (isize i {0}; i < std::ssize(pile->Initial); ++i) {
                 assert(!cards.empty());
                 auto& card {cards.back()};
-                if (!on_shuffle(card, pile->Type)) {
+                if (!on_shuffle(card, pile)) {
                     if (pile->Initial[i]) {
                         card.flip_face_up();
                     } else {
@@ -404,6 +404,7 @@ void base_game::drop_cards(hit_test_result const& hovered, hit_test_result const
 
     if (dropTarget.Pile && hovered.Pile) {
         hovered.Pile->move_cards(*dropTarget.Pile, hovered.Index, std::ssize(hovered.Pile->Cards) - hovered.Index, false);
+        on_drop(dropTarget.Pile);
         end_turn(true);
     } else {
         layout_piles();
@@ -420,9 +421,9 @@ void base_game::clear_piles()
     }
 }
 
-auto base_game::can_play(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool
+auto base_game::can_play(pile const& targetPile, isize targetCardIndex, card const& drop, isize numCards) const -> bool
 {
-    return targetPile.build(targetIndex, drop, numCards);
+    return targetPile.build(targetCardIndex, drop, numCards);
 }
 
 auto base_game::check_movable(pile const& targetPile, isize idx) const -> bool

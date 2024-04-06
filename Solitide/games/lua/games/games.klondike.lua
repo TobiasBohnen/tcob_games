@@ -449,7 +449,7 @@ eight_sages.Tableau                         = {
         Rule = rules.any_downac_top
     }
 }
-eight_sages.check_playable                  = function(game, targetPile, targetIndex, drop, numCards)
+eight_sages.check_playable                  = function(game, targetPile, targetCardIndex, drop, numCards)
     if targetPile.Type == "Tableau" then
         local srcPile = game:find_pile(drop)
         if srcPile.Type ~= "Waste" then
@@ -457,7 +457,7 @@ eight_sages.check_playable                  = function(game, targetPile, targetI
         end
     end
 
-    return game:can_play(targetPile, targetIndex, drop, numCards)
+    return game:can_play(targetPile, targetCardIndex, drop, numCards)
 end
 
 ------
@@ -835,8 +835,8 @@ thirty_six.Tableau                          = {
         Rule    = { Base = rules.Base.Any(), Build = rules.Build.DownByRank(), Move = rules.Move.InSeq() }
     }
 }
-thirty_six.on_shuffle                       = function(game, card, pileType)
-    if pileType == "Tableau" and card.Rank == "Ace" then
+thirty_six.on_shuffle                       = function(game, card, pile)
+    if pile.Type == "Tableau" and card.Rank == "Ace" then
         return game.PlaceTop(card, game.Foundation, true)
     end
 

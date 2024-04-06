@@ -6,219 +6,227 @@
 
 The Info table contains basic information about the game.
 
-#### Name (**string**)
+- Name (**string**)
 
-The unique identifier for the game.
+    The unique identifier for the game.
 
-#### Family (**string**)
+- Family (**string**)
 
-Possible values:
+   Possible values:
+  - Other
+  - BakersDozen
+  - BeleagueredCastle
+  - Canfield
+  - Fan
+  - FortyThieves
+  - FreeCell
+  - Golf
+  - Gypsy
+  - Klondike
+  - Montana
+  - Raglan
+  - Spider
+  - Yukon
 
-- Other
-- BakersDozen
-- BeleagueredCastle
-- Canfield
-- Fan
-- FortyThieves
-- FreeCell
-- Golf
-- Gypsy
-- Klondike
-- Montana
-- Raglan
-- Spider
-- Yukon
+- DeckCount (**integer**)
 
-#### DeckCount (**integer**)
+    The number of decks used.
 
-The number of decks used.
+- DeckRanks (**array**)
 
-#### DeckRanks (**array**)
+- DeckSuits (**array**)
 
-#### DeckSuits (**array**)
+- CardDealCount (**integer**)
 
-#### CardDealCount (**integer**)
+    The number of cards dealt. (Currently only used when dealing from the _Stock_ to the _Waste_.)
 
-The number of cards dealt. (Currently only used when dealing from the Stock to the Waste.)
+- Redeals (**integer**)
 
-#### Redeals (**integer**)
+    The number of redeals allowed throughout the game.
 
-The number of redeals allowed throughout the game.
+- DisableHints (**bool**)
 
-#### DisableHints (**bool**)
+- Stock / Waste / Reserve / FreeCell / Tableau / Foundation (**table**)
 
-### Stock / Waste / Reserve / FreeCell / Tableau / Foundation (**table**)
+   The pile tables describe one or more piles of the specified type.
 
-The pile tables describe one or more piles of the specified type.
+   There are three ways to define a pile:
 
-There are three ways to define a pile:
+   1) For a single pile, the **table** is in the form of [Pile](#pile).
 
-1) For a single pile, the **table** is in the form of [Pile](#pile).
+      ```lua
+      Stock = { Initial = ops.Initial.face_down(80) }
+      ```
 
-   ```lua
-   Stock = { Initial = ops.Initial.face_down(80) }
-   ```
+   2) For multiple identical piles, define a **table** with the following member:
 
-2) For multiple identical piles, define a **table** with the following member:
+      - _Size_: Indicates the **number** of piles.
+      - _Pile_: A **table** in the form of [Pile](#pile).
 
-   - *Size*: Indicates the **number** of piles.
-   - *Pile*: A **table** in the form of [Pile](#pile).
+      ```lua
+      Foundation = {
+         Size   = 8,
+         Pile = { Rule = rules.ace_upsuit_top }
+      }
+      ```
 
-   ```lua
-   Foundation = {
-      Size   = 8,
-      Pile = { Rule = rules.ace_upsuit_top }
-   }
-   ```
+   3) For multiple different piles, define a table with the following member:
 
-3) For multiple different piles, define a table with the following member:
+      - _Size_: Specifies the **number** of piles.
+      - _Pile_: A **function** with a single parameter (0 to Size - 1), that returns a **table** in the form of [Pile](#pile).
 
-   - *Size*: Specifies the **number** of piles.
-   - *Pile*: A **function** with a single parameter (0 to Size - 1), that returns a **table** in the form of [Pile](#pile).
-
-   ```lua
-   Tableau = {
-      Size   = 8,
-      Pile = function(i)
-         return {
-               Initial = ops.Initial.face_up(i + 1),
-               Rule = { Base = rules.Base.None, Build = rules.Build.DownInColor(), Move = rules.Move.InSeq() }
-         }
-      end
-   }
-   ```
+      ```lua
+      Tableau = {
+         Size   = 8,
+         Pile = function(i)
+            return {
+                  Initial = ops.Initial.face_up(i + 1),
+                  Rule = { Base = rules.Base.None(), Build = rules.Build.DownInColor(), Move = rules.Move.InSeq() }
+            }
+         end
+      }
+      ```
 
 ### Callbacks
 
-#### on_piles_created
+- on_piles_created
 
-- *Signature*: function(game)
-- *Description*: Called once after creating all piles.
-- *Return value*: none
+  - _Signature_: function(game)
+  - _Description_: Called once after creating all piles.
+  - _Return value_: none
 
-#### on_before_shuffle
+- on_before_shuffle
 
-- *Signature*: function(game, card)
-- *Description*: Called after starting a new game for every card, before it's moved to a pile.
-- *Return value*: **true** if the function handled the card, **false** otherwise.
+  - _Signature_: function(game, card)
+  - _Description_: Called after starting a new game for every card, before it's moved to a pile.
+  - _Return value_: **true** if the function handled the card, **false** otherwise.
 
-#### on_shuffle
+- on_shuffle
 
-- *Signature*: function(game, card, pileType)
-- *Description*: Called after starting a new game for every card, when it's moved to a pile.
-- *Return value*: **true** if the function handled the card, **false** otherwise.
+  - _Signature_: function(game, card, pile)
+  - _Description_: Called after starting a new game for every card, when it's moved to a pile.
+  - _Return value_: **true** if the function handled the card, **false** otherwise.
 
-#### on_after_shuffle
+- on_after_shuffle
 
-- *Signature*: function(game)
-- *Description*: Called after starting a new game after every card has been moved to a pile.
-- *Return value*: none
+  - _Signature_: function(game)
+  - _Description_: Called after starting a new game after every card has been moved to a pile.
+  - _Return value_: none
 
-#### on_end_turn
+- on_drop
 
-- *Signature*: function(game)
-- *Return value*: none
+  - _Signature_: function(game, pile)
+  - _Description_: Called when the player dropped a valid card on a pile.
+  - _Return value_: none
 
-#### on_redeal
+- on_end_turn
 
-- *Signature*: function(game)
-- *Return value*: **true** if redeal was successful, **false** otherwise.
+  - _Signature_: function(game)
+  - _Description_: Called when a turn ends.
+  - _Return value_: none
 
-#### on_deal
+- on_redeal
 
-- *Signature*: function(game)
-- *Return value*: **true** if deal was successful, **false** otherwise.
+  - _Signature_: function(game)
+  - _Return value_: **true** if redeal was successful, **false** otherwise.
 
-#### check_state
+- on_deal
 
-- *Signature*: function(game)
-- *Return value*: Running, Failure, Success
+  - _Signature_: function(game)
+  - _Return value_: **true** if deal was successful, **false** otherwise.
 
-#### check_playable
+- check_state
 
-- *Signature*: function(game, pile, index, card, numCards)
-- *Return value*: **true** if the card can be played at the specified index, **false** otherwise.
+  - _Signature_: function(game)
+  - _Return value_: Running, Failure, Success
+
+- check_playable
+
+  - _Signature_: function(game, targetPile, targetCardIndex, card, numCards)
+  - _Return value_: **true** if the card can be played at the specified index, **false** otherwise.
 
 ### Pile
 
-#### Position
+- Position
 
-#### Initial
+- Initial
 
-#### Layout
+- Layout
 
-#### HasMarker
+- HasMarker
 
-#### Rule
+- Rule
 
-##### Base
+  - Base
 
-##### Build
+  - Build
 
-##### Move
+  - Move
 
-##### Limit
+  - Limit
 
 ## Global functions
 
-### register_game
+- register_game
 
-### copy
+- copy
 
-### get_rank
+- get_rank
 
-## *game* members
+## _game_ members
 
-### RedealsLeft
+- RedealsLeft
 
-### CardDealCount
+- CardDealCount
 
-### DeckCount
+- DeckCount
 
-### Stock / Waste / Reserve / FreeCell / Tableau / Foundation
+- Stock / Waste / Reserve / FreeCell / Tableau / Foundation
 
-### get_pile_index
+- get_pile_index
 
-### find_pile
+- find_pile
 
-### can_play
+- can_play
 
-### shuffle_cards
+- play_card
 
-### PlaceTop
+- shuffle_cards
 
-### PlaceBottom
+- PlaceTop
 
-## *pile* members
+- PlaceBottom
 
-### Type
+## _pile_ members
 
-### CardCount
+- Type
 
-### IsEmpty
+- CardCount
 
-### flip_up_cards
+- IsEmpty
 
-### flip_up_top_card
+- flip_up_cards
 
-### flip_down_cards
+- flip_up_top_card
 
-### flip_down_top_card
+- flip_down_cards
 
-### flip_cards
+- flip_down_top_card
 
-### move_rank_to_bottom
+- flip_cards
 
-### move_cards
+- move_rank_to_bottom
 
-### play
+- move_cards
 
-## *card* members
+- play_card
 
-### Suit
+## _card_ members
 
-### Rank
+- Suit
 
-### Deck
+- Rank
 
-### Color
+- Deck
+
+- Color

@@ -190,8 +190,8 @@ quads.Tableau                        = {
         Rule = { Base = rules.Base.Any(), Build = rules.Build.InRank(), Move = rules.Move.Top(), Limit = 4 }
     }
 }
-quads.on_shuffle                     = function(game, card, pileType)
-    if pileType == "Tableau" and card.Rank == "Ace" then
+quads.on_shuffle                     = function(game, card, pile)
+    if pile.Type == "Tableau" and card.Rank == "Ace" then
         return game.PlaceTop(card, game.Foundation, true)
     end
 
@@ -315,8 +315,8 @@ troika.Tableau                       = {
         }
     end
 }
-troika.on_shuffle                    = function(game, card, pileType)
-    if pileType == "Tableau" and card.Rank == "Ace" then
+troika.on_shuffle                    = function(game, card, pile)
+    if pile.Type == "Tableau" and card.Rank == "Ace" then
         return game.PlaceTop(card, game.Foundation, true)
     end
 

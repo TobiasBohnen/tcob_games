@@ -47,13 +47,13 @@ castles_end.Tableau.Pile    = {
     Layout = "Column",
     Rule = rules.any_updownac_top
 }
-castles_end.check_playable  = function(game, targetPile, targetIndex, drop, numCards)
+castles_end.check_playable  = function(game, targetPile, targetCardIndex, drop, numCards)
     local foundation1 = game.Foundation[1]
     if foundation1.IsEmpty then -- block card drops if foundation is empty
         return targetPile == foundation1
     end
 
-    return game:can_play(targetPile, targetIndex, drop, numCards)
+    return game:can_play(targetPile, targetCardIndex, drop, numCards)
 end
 
 ------

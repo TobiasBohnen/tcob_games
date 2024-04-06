@@ -74,7 +74,7 @@ dutchess.Tableau.Pile    = function(i)
         Rule = { Base = rules.Base.Any(), Build = rules.Build.DownAlternateColors(), Move = rules.Move.InSeq() }
     }
 end
-dutchess.check_playable  = function(game, targetPile, targetIndex, drop, numCards)
+dutchess.check_playable  = function(game, targetPile, targetCardIndex, drop, numCards)
     local srcPile = game:find_pile(drop)
     if game.Foundation[1].IsEmpty then
         return srcPile.Type == "Reserve" and targetPile == game.Foundation[1]
@@ -93,7 +93,7 @@ dutchess.check_playable  = function(game, targetPile, targetIndex, drop, numCard
         end
     end
 
-    return game:can_play(targetPile, targetIndex, drop, numCards)
+    return game:can_play(targetPile, targetCardIndex, drop, numCards)
 end
 dutchess.on_deal         = function(game)
     if game.Foundation[1].IsEmpty then return false end

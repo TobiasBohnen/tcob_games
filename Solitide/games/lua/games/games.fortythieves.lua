@@ -130,12 +130,12 @@ carre_napoleon.Tableau                  = {
     }
 }
 carre_napoleon.on_before_shuffle        = ops.Shuffle.ace_to_foundation
-carre_napoleon.on_shuffle               = function(game, card, pileType)
-    if pileType ~= "Tableau" then return false end
+carre_napoleon.on_shuffle               = function(game, card, pile)
+    if pile.Type ~= "Tableau" then return false end
 
     local foundation = game.Foundation
     for _, v in ipairs(foundation) do
-        if v:play_card(game, card) then return true end
+        if game:play_card(v, card) then return true end
     end
 
     return false
@@ -290,7 +290,7 @@ indian.Tableau.Pile.Rule                = rules.any_downabos_top
 
 local indian_patience                   = Sol.copy(indian)
 indian_patience.Info.Name               = "Indian Patience"
-indian_patience.check_playable          = function(game, targetPile, targetIndex, drop, numCards)
+indian_patience.check_playable          = function(game, targetPile, targetCardIndex, drop, numCards)
     if numCards > 1 then return false end
 
     if not game.Stock.IsEmpty then
@@ -306,7 +306,7 @@ indian_patience.check_playable          = function(game, targetPile, targetIndex
         end
     end
 
-    return game:can_play(targetPile, targetIndex, drop, numCards)
+    return game:can_play(targetPile, targetCardIndex, drop, numCards)
 end
 indian_patience.on_end_turn             = function(game)
     local tableau = game.Tableau
@@ -488,13 +488,13 @@ napoleons_shoulder.Tableau              = {
         Rule = rules.any_downrank_top
     }
 }
-napoleons_shoulder.check_playable       = function(game, targetPile, targetIndex, drop, numCards)
+napoleons_shoulder.check_playable       = function(game, targetPile, targetCardIndex, drop, numCards)
     -- empty tableau can only be filled from waste
     if targetPile.IsEmpty and targetPile.Type == "Tableau" then
         return game:find_pile(drop).Type == "Waste"
     end
 
-    return game:can_play(targetPile, targetIndex, drop, numCards)
+    return game:can_play(targetPile, targetCardIndex, drop, numCards)
 end
 
 ------

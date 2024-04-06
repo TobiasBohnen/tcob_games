@@ -102,7 +102,7 @@ public:
     void drop_cards(hit_test_result const& hovered, hit_test_result const& dropTarget);
     auto get_available_hints() const -> std::vector<move> const&;
 
-    auto virtual can_play(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool;
+    auto virtual can_play(pile const& targetPile, isize targetCardIndex, card const& drop, isize numCards) const -> bool;
 
     void click(pile* srcPile, u8 clicks);
     void key_down(input::keyboard::event& ev);
@@ -113,11 +113,12 @@ protected:
     auto virtual do_redeal() -> bool = 0;
     auto virtual do_deal() -> bool   = 0;
 
-    auto virtual before_shuffle(card& card) -> bool                 = 0;
-    auto virtual on_shuffle(card& card, pile_type pileType) -> bool = 0;
-    void virtual after_shuffle()                                    = 0;
+    auto virtual before_shuffle(card& card) -> bool         = 0;
+    auto virtual on_shuffle(card& card, pile* pile) -> bool = 0;
+    void virtual after_shuffle()                            = 0;
 
-    void virtual on_end_turn() = 0;
+    void virtual on_drop(pile* pile) = 0;
+    void virtual on_end_turn()       = 0;
 
     auto virtual check_state() const -> game_state;
 
@@ -163,7 +164,7 @@ class script_game : public base_game {
 public:
     script_game(card_table& f, game_info info, Table table);
 
-    auto can_play(pile const& targetPile, isize targetIndex, card const& drop, isize numCards) const -> bool override;
+    auto can_play(pile const& targetPile, isize targetCardIndex, card const& drop, isize numCards) const -> bool override;
 
     void static CreateWrapper(auto&& script);
     template <typename T>
@@ -174,9 +175,10 @@ protected:
     auto do_deal() -> bool override;
 
     auto before_shuffle(card& card) -> bool override;
-    auto on_shuffle(card& card, pile_type pileType) -> bool override;
+    auto on_shuffle(card& card, pile* pile) -> bool override;
     void after_shuffle() override;
 
+    void on_drop(pile* pile) override;
     void on_end_turn() override;
 
     auto check_state() const -> game_state override;
@@ -190,6 +192,7 @@ private:
         std::optional<Function<bool>>       OnBeforeShuffle;
         std::optional<Function<bool>>       OnShuffle;
         std::optional<Function<void>>       OnAfterShuffle;
+        std::optional<Function<void>>       OnDrop;
         std::optional<Function<void>>       OnEndTurn;
         std::optional<Function<bool>>       CheckPlayable;
         std::optional<Function<game_state>> CheckState;

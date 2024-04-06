@@ -85,8 +85,8 @@ local die_koenigsbergerin                = Sol.copy(gypsy)
 die_koenigsbergerin.Info.Name            = "Die Königsbergerin"
 die_koenigsbergerin.Foundation.Pile.Rule = rules.ace_upsuit_none
 die_koenigsbergerin.Tableau.Pile.Initial = ops.Initial.face_up(3)
-die_koenigsbergerin.on_shuffle           = function(game, card, pileType)
-    if pileType == "Tableau" and card.Rank == "Ace" then
+die_koenigsbergerin.on_shuffle           = function(game, card, pile)
+    if pile.Type == "Tableau" and card.Rank == "Ace" then
         return game.PlaceTop(card, game.Foundation, true)
     end
 
