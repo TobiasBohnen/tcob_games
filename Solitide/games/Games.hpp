@@ -97,9 +97,10 @@ public:
     void undo();
     auto can_undo() const -> bool;
 
-    auto hover_at(point_i pos) -> hit_test_result;
-    auto drop_target_at(rect_f const& rect, card const& move, isize numCards) -> hit_test_result;
-    void drop_cards(hit_test_result const& hovered, hit_test_result const& dropTarget);
+    auto drop_target_at(rect_f const& rect, card const& move, isize numCards) const -> hit_test_result;
+    auto hover_at(point_i pos) const -> hit_test_result;
+    void drop_cards(hit_test_result const& hovered, hit_test_result const& dropTarget); // TODO: replace with play_cards
+
     auto get_available_hints() const -> std::vector<move> const&;
 
     auto virtual can_play(pile const& targetPile, isize targetCardIndex, card const& drop, isize numCards) const -> bool;
@@ -137,10 +138,12 @@ private:
 
     void init();
     void clear_piles();
-    auto get_pile_at(point_i pos, bool ignoreActivePile) -> hit_test_result;
+    auto get_pile_at(point_i pos, bool ignoreActivePile) const -> hit_test_result;
 
     auto deal_cards() -> bool;
-    void auto_move_to_foundation(pile& srcPile);
+
+    void play_cards(pile& from, pile& to, isize startIndex, isize numCards);
+    void play_to_foundation(pile& from);
 
     std::unordered_map<pile_type, std::vector<pile*>>         _piles;
     mutable flat_map<std::pair<pile const*, isize>, bool>     _movableCache;

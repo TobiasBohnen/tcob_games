@@ -24,9 +24,9 @@ auto empty_none(card const&, isize) -> bool
     return false;
 }
 
-void pile::set_active(bool b, isize idx, color color)
+void pile::set_hovering(bool b, isize idx, color color)
 {
-    _isActive = b;
+    _isHovering = b;
     if (!b) {
         remove_tint();
     } else {
@@ -34,9 +34,9 @@ void pile::set_active(bool b, isize idx, color color)
     }
 }
 
-auto pile::is_active() const -> bool
+auto pile::is_hovering() const -> bool
 {
-    return _isActive;
+    return _isHovering;
 }
 
 auto pile::is_playable() const -> bool

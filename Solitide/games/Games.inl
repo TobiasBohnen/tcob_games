@@ -132,13 +132,12 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     auto& pileWrapper {*script.template create_wrapper<pile>("pile")};
 
     // properties
-    pileWrapper["Type"]      = getter {[](pile* p) { return p->Type; }};
-    pileWrapper["IsEmpty"]   = getter {[](pile* p) { return p->empty(); }};
-    pileWrapper["CardCount"] = getter {[](pile* p) {
-        return p->Cards.size();
-    }};
-    pileWrapper["Cards"]     = getter {[](pile* p) { return p->Cards; }};
-    pileWrapper["Position"]  = property {[](pile* p) { return p->Position; }, [](pile* p, point_f pos) { p->Position = pos; }};
+    pileWrapper["Type"]       = getter {[](pile* p) { return p->Type; }};
+    pileWrapper["IsEmpty"]    = getter {[](pile* p) { return p->empty(); }};
+    pileWrapper["CardCount"]  = getter {[](pile* p) { return p->Cards.size(); }};
+    pileWrapper["Cards"]      = getter {[](pile* p) { return p->Cards; }};
+    pileWrapper["Position"]   = property {[](pile* p) { return p->Position; }, [](pile* p, point_f pos) { p->Position = pos; }};
+    pileWrapper["IsPlayable"] = property {[](pile* p) { return p->Rule.IsPlayable; }, [](pile* p, bool val) { p->Rule.IsPlayable = val; }};
 
     // methods
     pileWrapper["flip_cards"]         = [](pile* p, std::vector<bool> const& val) { p->flip_cards(val); };
@@ -305,7 +304,7 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
             if (Table buildTable; ruleTable.try_get(buildTable, "Build")) {
                 buildTable.try_get(pile.Rule.BuildHint, "Hint");
 
-                if (Function<bool> func; buildTable.try_get(func, "Build")) {
+                if (Function<bool> func; buildTable.try_get(func, "Func")) {
                     pile.Rule.Build = {[this, func](card const& target, card const& drop) {
                         return func(static_cast<base_game*>(this), target, drop);
                     }};
@@ -322,7 +321,7 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
                     pile.Rule.IsSequence = true;
                 }
 
-                if (Function<bool> func; moveTable.try_get(func, "Move")) {
+                if (Function<bool> func; moveTable.try_get(func, "Func")) {
                     pile.Rule.Move = {[this, func](class pile const* target, isize idx) {
                         return func(static_cast<base_game*>(this), target, idx - IndexOffset);
                     }};
@@ -332,7 +331,7 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
             if (Table baseTable; ruleTable.try_get(baseTable, "Base")) {
                 baseTable.try_get(pile.Rule.BaseHint, "Hint");
 
-                if (Function<bool> func; baseTable.try_get(func, "Base")) {
+                if (Function<bool> func; baseTable.try_get(func, "Func")) {
                     pile.Rule.Base = {[this, func](card const& card, isize numCards) {
                         return func(static_cast<base_game*>(this), card, numCards);
                     }};

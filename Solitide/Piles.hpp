@@ -73,8 +73,8 @@ public:
 
     bool HasMarker {true};
 
-    auto is_active() const -> bool;
-    void set_active(bool b, isize idx, color color);
+    auto is_hovering() const -> bool;
+    void set_hovering(bool b, isize idx, color color);
 
     auto is_playable() const -> bool;
     auto empty() const -> bool;
@@ -101,7 +101,7 @@ public:
     }
 
 private:
-    bool _isActive {false};
+    bool _isHovering {false};
 };
 
 ////////////////////////////////////////////////////////////

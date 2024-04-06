@@ -115,6 +115,59 @@ end
 
 ------
 
+local churchill                          = Sol.copy(gypsy)
+churchill.Info.Name                      = "Churchill"
+churchill.Info.CardDealCount             = 10
+churchill.Stock.Initial                  = ops.Initial.face_down(68)
+churchill.Reserve                        = {
+    Initial = ops.Initial.face_up(6),
+    Layout = "Column",
+    Rule = rules.none_none_top
+}
+churchill.Tableau                        = {
+    Size = 10,
+    Pile = function(i)
+        return {
+            Initial = ops.Initial.top_face_up(i < 5 and i + 1 or 10 - i),
+            Layout = "Column",
+            Rule = rules.king_downac_inseq
+        }
+    end
+}
+churchill.on_deal                        = function(game)
+    -- no card on sequence with king as first card in pile
+    local stock = game.Stock[1]
+    local tableau = game.Tableau
+
+    if stock.IsEmpty then return false end
+    for _, toPile in ipairs(tableau) do
+        if stock.IsEmpty then break end
+        local inSeq = true
+        local cards = toPile.Cards
+        for index, card in ipairs(cards) do
+            if index > 13 or card.IsFaceDown or card.Rank ~= Sol.Ranks[14 - index] then
+                inSeq = false
+                break
+            end
+        end
+
+        if not inSeq then
+            stock:move_cards(toPile, #stock.Cards, 1, false)
+            toPile:flip_up_top_card()
+        end
+    end
+    return true
+end
+churchill.check_playable                 = function(game, targetPile, targetCardIndex, drop, numCards)
+    -- reserve only to foundation
+    if game:find_pile(drop).Type == "Reserve" and targetPile.Type ~= "Foundation" then return false end
+
+    return game:can_play(targetPile, targetCardIndex, drop, numCards)
+end
+churchill.on_piles_created               = Sol.Layout.canfield
+
+------
+
 local elba                               = Sol.copy(gypsy)
 elba.Info.Name                           = "Elba"
 elba.Info.CardDealCount                  = 10
@@ -128,6 +181,22 @@ elba.Tableau                             = {
     }
 }
 elba.on_piles_created                    = Sol.Layout.klondike
+
+------
+
+local eclipse                            = Sol.copy(gypsy)
+eclipse.Info.Name                        = "Eclipse"
+eclipse.Info.CardDealCount               = 13
+eclipse.Stock.Initial                    = ops.Initial.face_down(52)
+eclipse.Tableau                          = {
+    Size = 13,
+    Pile = {
+        Initial = ops.Initial.face_up(4),
+        Layout = "Column",
+        Rule = rules.king_downsuit_inseq
+    }
+}
+eclipse.on_piles_created                 = Sol.Layout.klondike
 
 ------
 
@@ -149,6 +218,69 @@ hypotenuse.on_piles_created              = Sol.Layout.klondike
 
 ------
 
+local eternal_triangle                   = Sol.copy(hypotenuse)
+eternal_triangle.Info.Name               = "Eternal Triangle"
+eternal_triangle.Tableau.Pile            = function(i)
+    return {
+        Initial = ops.Initial.face_up(10 - i),
+        Layout = "Column",
+        Rule = rules.king_downac_inseq
+    }
+end
+
+------
+
+local flamenco                           = Sol.copy(gypsy)
+flamenco.Info.Name                       = "Flamenco"
+flamenco.Stock.Initial                   = ops.Initial.face_down(72)
+flamenco.Tableau.Pile                    = {
+    Initial = ops.Initial.face_up(3),
+    Layout = "Column",
+    Rule = rules.any_downac_inseq
+}
+flamenco.Foundation.Pile                 = function(i)
+    return { Rule = i < 4 and rules.ace_upsuit_top or rules.king_downsuit_top }
+end
+flamenco.on_before_shuffle               = function(game, card)
+    if card.Rank == "Ace" then
+        return game.PlaceTop(card, game.Foundation, 1, 4, true)
+    end
+    if card.Rank == "King" then
+        return game.PlaceTop(card, game.Foundation, 5, 4, true)
+    end
+
+    return false
+end
+
+------
+
+local giant                              = Sol.copy(gypsy)
+giant.Info.Name                          = "Giant"
+giant.Stock.Initial                      = ops.Initial.face_down(96)
+giant.Tableau.Pile.Initial               = ops.Initial.face_up(1)
+giant.Foundation.Pile.Rule               = {
+    Base = rules.Base.Ace(),
+    Build = rules.Build.UpInSuit(),
+    Move = {
+        Hint = "Top card (if Stock is empty)",
+        IsSequence = false,
+        IsPlayable = false,
+        Func = function(_, target, idx)
+            return idx == target.CardCount
+        end
+    }
+}
+giant.on_end_turn                        = function(game)
+    if game.Stock[1].IsEmpty then
+        local foundation = game.Foundation
+        for _, fou in ipairs(foundation) do
+            fou.IsPlayable = true
+        end
+    end
+end
+
+------
+
 local irmgard                            = Sol.copy(gypsy)
 irmgard.Info.Name                        = "Irmgard"
 irmgard.Info.CardDealCount               = 9
@@ -164,6 +296,13 @@ irmgard.Tableau                          = {
     end
 }
 irmgard.on_piles_created                 = Sol.Layout.klondike
+
+------
+
+local millie                             = Sol.copy(gypsy)
+millie.Info.Name                         = "Millie"
+millie.Stock.Initial                     = ops.Initial.face_down(96)
+millie.Tableau.Pile.Initial              = ops.Initial.face_up(1)
 
 ------
 
@@ -336,6 +475,153 @@ double_easthaven.Tableau.Size            = 8
 
 ------
 
+local miss_milligan                      = {
+    Info             = {
+        Name          = "Miss Milligan",
+        Family        = "Gypsy",
+        DeckCount     = 2,
+        CardDealCount = 8,
+        Redeals       = 0
+    },
+    Stock            = {
+        Initial = ops.Initial.face_down(96)
+    },
+    FreeCell         = {
+        Layout = "Column",
+        Rule = { Base = rules.Base.Any(), Build = rules.Build.None(), Move = rules.Move.FaceUp() }
+    },
+    Foundation       = {
+        Size = 8,
+        Pile = { Rule = rules.ace_upsuit_none }
+    },
+    Tableau          = {
+        Size = 8,
+        Pile = {
+            Initial = ops.Initial.top_face_up(1),
+            Layout = "Column",
+            Rule = rules.king_downac_inseq
+        }
+    },
+    check_playable   = function(game, targetPile, targetCardIndex, drop, numCards)
+        -- FreeCell is usable if Stock is empty
+        if targetPile.Type == "FreeCell" and not game.Stock[1].IsEmpty then
+            return false
+        end
+
+        return game:can_play(targetPile, targetCardIndex, drop, numCards)
+    end,
+    on_piles_created = Sol.Layout.canfield,
+    on_deal          = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
+}
+
+------
+
+local imperial_guards                    = Sol.copy(miss_milligan)
+imperial_guards.Info.Name                = "Imperial Guards"
+imperial_guards.Tableau.Pile.Rule        = rules.any_downac_inseq
+
+------
+
+local leprechaun                         = {
+    Info       = {
+        Name          = "Leprechaun",
+        Family        = "Gypsy",
+        DeckCount     = 2,
+        CardDealCount = 8,
+        Redeals       = 0
+    },
+    Stock      = {
+        Position = { x = 0, y = 0 },
+        Initial = ops.Initial.face_down(48)
+    },
+    Reserve    = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Position = { x = 2 + i, y = 0 },
+                Initial = ops.Initial.face_down(4),
+                Layout = "Column",
+                Rule = rules.none_none_top
+            }
+        end
+    },
+    Foundation = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Position = { x = 2 + i, y = 1.5 },
+                Rule = rules.ace_upsuit_none
+            }
+        end
+    },
+    Tableau    = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Position = { x = 2 + i, y = 2.5 },
+                Initial = ops.Initial.top_face_up(3),
+                Layout = "Column",
+                Rule = rules.any_downac_inseq
+            }
+        end
+    },
+    on_drop    = function(game, pile)
+        if pile.Type == "Foundation" then
+            local idx = game:get_pile_index(pile)
+            game.Reserve[idx]:flip_up_top_card()
+        end
+    end,
+    on_deal    = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
+}
+
+------
+
+local milligan_cell                      = {
+    Info       = {
+        Name          = "Milligan Cell",
+        Family        = "Gypsy",
+        DeckCount     = 2,
+        CardDealCount = 8,
+        Redeals       = 0
+    },
+    Stock      = {
+        Position = { x = 0, y = 0 },
+        Initial = ops.Initial.face_down(96)
+    },
+    FreeCell   = {
+        Size = 4,
+        Pile = function(i)
+            return {
+                Position = { x = 0, y = i + 1 },
+                Rule = rules.any_none_top
+            }
+        end
+    },
+    Foundation = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Position = { x = 2 + i, y = 0 },
+                Rule = rules.ace_upsuit_none
+            }
+        end
+    },
+    Tableau    = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Position = { x = 2 + i, y = 1 },
+                Initial = ops.Initial.top_face_up(1),
+                Layout = "Column",
+                Rule = rules.king_downac_inseq
+            }
+        end
+    },
+    on_deal    = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
+}
+
+------
+
 ------------------------
 
 Sol.register_game(gypsy)
@@ -343,13 +629,23 @@ Sol.register_game(agnes_sorel)
 Sol.register_game(blockade)
 Sol.register_game(brunswick)
 Sol.register_game(carlton)
+Sol.register_game(churchill)
 Sol.register_game(cone)
 Sol.register_game(die_koenigsbergerin)
 Sol.register_game(double_easthaven)
 Sol.register_game(easthaven)
+Sol.register_game(eclipse)
 Sol.register_game(elba)
+Sol.register_game(eternal_triangle)
+Sol.register_game(flamenco)
+Sol.register_game(giant)
 Sol.register_game(hypotenuse)
+Sol.register_game(imperial_guards)
 Sol.register_game(irmgard)
+Sol.register_game(leprechaun)
 Sol.register_game(lexington_harp)
+Sol.register_game(millie)
+Sol.register_game(milligan_cell)
 Sol.register_game(milligan_harp)
+Sol.register_game(miss_milligan)
 Sol.register_game(mississippi)

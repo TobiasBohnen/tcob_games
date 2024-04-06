@@ -283,10 +283,10 @@ void base_game::layout_piles()
     _cardTable.on_pile_layout();
 }
 
-auto base_game::get_pile_at(point_i pos, bool ignoreActivePile) -> hit_test_result
+auto base_game::get_pile_at(point_i pos, bool ignoreActivePile) const -> hit_test_result
 {
     auto const checkPile {[&](pile const& p) -> isize {
-        if (ignoreActivePile && p.is_active()) { return INDEX_INVALID; }
+        if (ignoreActivePile && p.is_hovering()) { return INDEX_INVALID; }
         if (p.empty() && p.Marker && p.Marker->Bounds->contains(pos)) { return INDEX_MARKER; }
 
         for (isize i {std::ssize(p.Cards) - 1}; i >= 0; --i) {
@@ -306,7 +306,7 @@ auto base_game::get_pile_at(point_i pos, bool ignoreActivePile) -> hit_test_resu
     return {};
 }
 
-auto base_game::drop_target_at(rect_f const& rect, card const& move, isize numCards) -> hit_test_result
+auto base_game::drop_target_at(rect_f const& rect, card const& move, isize numCards) const -> hit_test_result
 {
     std::array<point_i, 4> points {
         point_i {rect.top_left()}, point_i {rect.top_right()},
@@ -340,7 +340,7 @@ auto base_game::drop_target_at(rect_f const& rect, card const& move, isize numCa
     return retValue;
 }
 
-auto base_game::hover_at(point_i pos) -> hit_test_result
+auto base_game::hover_at(point_i pos) const -> hit_test_result
 {
     return get_pile_at(pos, false);
 }
@@ -376,22 +376,20 @@ void base_game::click(pile* srcPile, u8 clicks)
         deal_cards();
     } else if (clicks > 1) {
         // try move to foundation
-        auto_move_to_foundation(*srcPile);
+        play_to_foundation(*srcPile);
     }
 }
 
-void base_game::auto_move_to_foundation(pile& srcPile)
+void base_game::play_to_foundation(pile& from)
 {
-    if (!srcPile.empty()) {
-        auto& card {srcPile.Cards.back()};
+    if (!from.empty()) {
+        auto& card {from.Cards.back()};
 
         for (auto& fou : Foundation) {
             if (!can_play(fou, std::ssize(fou.Cards) - 1, card, 1)) { continue; }
 
-            srcPile.move_cards(fou, std::ssize(srcPile.Cards) - 1, 1, false);
-            end_turn(true);
-            srcPile.remove_tint();
-            fou.remove_tint();
+            play_cards(from, fou, std::ssize(from.Cards) - 1, 1);
+
             return;
         }
     }
@@ -399,16 +397,21 @@ void base_game::auto_move_to_foundation(pile& srcPile)
 
 void base_game::drop_cards(hit_test_result const& hovered, hit_test_result const& dropTarget)
 {
-    if (hovered.Pile) { hovered.Pile->remove_tint(); }
-    if (dropTarget.Pile) { dropTarget.Pile->remove_tint(); }
-
     if (dropTarget.Pile && hovered.Pile) {
-        hovered.Pile->move_cards(*dropTarget.Pile, hovered.Index, std::ssize(hovered.Pile->Cards) - hovered.Index, false);
-        on_drop(dropTarget.Pile);
-        end_turn(true);
+        play_cards(*hovered.Pile, *dropTarget.Pile, hovered.Index, std::ssize(hovered.Pile->Cards) - hovered.Index);
     } else {
         layout_piles();
     }
+}
+
+void base_game::play_cards(pile& from, pile& to, isize startIndex, isize numCards)
+{
+    from.move_cards(to, startIndex, numCards, false);
+    on_drop(&to);
+    end_turn(true);
+
+    from.remove_tint();
+    to.remove_tint();
 }
 
 void base_game::clear_piles()
@@ -416,7 +419,7 @@ void base_game::clear_piles()
     for (auto const& [_, piles] : _piles) {
         for (auto* pile : piles) {
             pile->Cards.clear();
-            pile->set_active(false, -2, colors::Transparent);
+            pile->set_hovering(false, -2, colors::Transparent);
         }
     }
 }

@@ -91,9 +91,9 @@ return {
             piles.Tableau[i + 1].Position = { x = i + tableauOffsetX, y = 0 }
         end
     end,
-    -- Stock, Waste and Reserve     -> top left
-    -- Foundation                   -> top right
-    -- Tableau                      -> second row
+    -- Stock, Waste, single Reserve/FreeCell    -> top left
+    -- Foundation                               -> top right
+    -- Tableau                                  -> second row
     canfield = function(game)
         local piles = get_piles(game)
 
@@ -105,6 +105,8 @@ return {
         end
         if piles.ReserveSize > 0 then
             piles.Reserve[1].Position = { x = 0, y = 1 }
+        elseif piles.FreeCellSize > 0 then
+            piles.FreeCell[1].Position = { x = 0, y = 1 }
         end
 
         for i = 0, piles.FoundationSize - 1 do

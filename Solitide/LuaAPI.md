@@ -87,6 +87,32 @@ The Info table contains basic information about the game.
       }
       ```
 
+#### Pile
+
+- Position
+
+- Initial
+
+- Layout
+
+- HasMarker
+
+- Rule
+
+  - Base
+    - Hint
+    - Func
+
+  - Build
+    - Hint
+    - Func
+
+  - Move
+    - Hint
+    - Func
+
+  - Limit
+
 ### Callbacks
 
 - on_piles_created
@@ -145,26 +171,6 @@ The Info table contains basic information about the game.
   - _Signature_: function(game, targetPile, targetCardIndex, card, numCards)
   - _Return value_: **true** if the card can be played at the specified index, **false** otherwise.
 
-### Pile
-
-- Position
-
-- Initial
-
-- Layout
-
-- HasMarker
-
-- Rule
-
-  - Base
-
-  - Build
-
-  - Move
-
-  - Limit
-
 ## Global functions
 
 - register_game
@@ -204,6 +210,8 @@ The Info table contains basic information about the game.
 - CardCount
 
 - IsEmpty
+
+- IsPlayable
 
 - flip_up_cards
 

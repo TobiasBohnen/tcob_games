@@ -181,7 +181,7 @@ void card_table::draw_cards(gfx::render_target& target)
                         bounds.Height = std::max(bounds.Height, pile->Marker->Bounds->bottom());
                     }
 
-                    if (_isDragging && pile->is_active()) {
+                    if (_isDragging && pile->is_hovering()) {
                         dragPile = pile;
                     } else {
                         for (auto const& card : pile->Cards) {
@@ -476,12 +476,12 @@ void card_table::get_hovered(point_i pos)
     _hovered = _currentGame->hover_at(point_i {(*_parentWindow->Camera).convert_screen_to_world(pos)});
 
     if (oldPile.Pile) {
-        oldPile.Pile->set_active(false, oldPile.Index, colors::Transparent);
+        oldPile.Pile->set_hovering(false, oldPile.Index, colors::Transparent);
         mark_dirty();
     }
 
     if (_hovered.Pile) {
-        _hovered.Pile->set_active(true, _hovered.Index, get_hover_color(_hovered.Pile, _hovered.Index));
+        _hovered.Pile->set_hovering(true, _hovered.Index, get_hover_color(_hovered.Pile, _hovered.Index));
         mark_dirty();
     }
 }

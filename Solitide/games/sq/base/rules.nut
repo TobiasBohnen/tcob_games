@@ -35,25 +35,25 @@ local rules = {
 
 local build = {
     None = @(wrap = false, interval = 1) {
-        Hint = "No building", Build = @(game, target, drop) false
+        Hint = "No building", Func = @(game, target, drop) false
     },
 
     Any = @(wrap = false, interval = 1) {
-        Hint = "Any card", Build = @(game, target, drop) true
+        Hint = "Any card", Func = @(game, target, drop) true
     },
 
     InRank = @(wrap = false, interval = 1) {
-        Hint = "By same rank", Build = @(game, target, drop) rules.in_rank(target, drop)
+        Hint = "By same rank", Func = @(game, target, drop) rules.in_rank(target, drop)
     },
 
     InRankOrDownByRank = @(wrap = false, interval = 1) {
-        Hint = "Down by rank or by same rank", Build = @(game, target, drop) rules.in_rank(target, drop) || rules.build_down(target, drop, wrap, interval)
+        Hint = "Down by rank or by same rank", Func = @(game, target, drop) rules.in_rank(target, drop) || rules.build_down(target, drop, wrap, interval)
     },
 
     RankPack = function(wrap = false, interval = 1) {
         return {
             Hint = "By same rank, then up by rank",
-            Build = function(game, target, drop) {
+            Func = function(game, target, drop) {
                 local count = game.find_pile(target).CardCount
                 if (count > 0 && count % (game.DeckCount * 4) == 0) {
                     return rules.build_up(target, drop, wrap, interval)
@@ -64,64 +64,64 @@ local build = {
     },
 
     UpOrDownByRank = @(wrap = false, interval = 1) {
-        Hint = "Up or down by rank", Build = @(game, target, drop) rules.build_up_or_down(target, drop, wrap, interval)
+        Hint = "Up or down by rank", Func = @(game, target, drop) rules.build_up_or_down(target, drop, wrap, interval)
     },
 
     DownByRank = @(wrap = false, interval = 1) {
-        Hint = "Down by rank", Build = @(game, target, drop) rules.build_down(target, drop, wrap, interval)
+        Hint = "Down by rank", Func = @(game, target, drop) rules.build_down(target, drop, wrap, interval)
     },
 
     UpByRank = @(wrap = false, interval = 1) {
-        Hint = "Up by rank", Build = @(game, target, drop) rules.build_up(target, drop, wrap, interval)
+        Hint = "Up by rank", Func = @(game, target, drop) rules.build_up(target, drop, wrap, interval)
     },
 
     UpOrDownAnyButOwnSuit = @(wrap = false, interval = 1) {
-        Hint = "Up or down by any suit but own", Build = @(game, target, drop) !rules.in_suit(target, drop) && rules.build_up_or_down(target, drop, wrap, interval)
+        Hint = "Up or down by any suit but own", Func = @(game, target, drop) !rules.in_suit(target, drop) && rules.build_up_or_down(target, drop, wrap, interval)
     },
 
     DownAnyButOwnSuit = @(wrap = false, interval = 1) {
-        Hint = "Down by any suit but own", Build = @(game, target, drop) !rules.in_suit(target, drop) && rules.build_down(target, drop, wrap, interval)
+        Hint = "Down by any suit but own", Func = @(game, target, drop) !rules.in_suit(target, drop) && rules.build_down(target, drop, wrap, interval)
     },
 
     UpAnyButOwnSuit = @(wrap = false, interval = 1) {
-        Hint = "Up by any suit but own", Build = @(game, target, drop) !rules.in_suit(target, drop) && rules.build_up(target, drop, wrap, interval)
+        Hint = "Up by any suit but own", Func = @(game, target, drop) !rules.in_suit(target, drop) && rules.build_up(target, drop, wrap, interval)
     },
 
     UpOrDownInSuit = @(wrap = false, interval = 1) {
-        Hint = "Up or down by suit", Build = @(game, target, drop) rules.in_suit(target, drop) && rules.build_up_or_down(target, drop, wrap, interval)
+        Hint = "Up or down by suit", Func = @(game, target, drop) rules.in_suit(target, drop) && rules.build_up_or_down(target, drop, wrap, interval)
     },
 
     DownInSuit = @(wrap = false, interval = 1) {
-        Hint = "Down by suit", Build = @(game, target, drop) rules.in_suit(target, drop) && rules.build_down(target, drop, wrap, interval)
+        Hint = "Down by suit", Func = @(game, target, drop) rules.in_suit(target, drop) && rules.build_down(target, drop, wrap, interval)
     },
 
     UpInSuit = @(wrap = false, interval = 1) {
-        Hint = "Up by suit", Build = @(game, target, drop) rules.in_suit(target, drop) && rules.build_up(target, drop, wrap, interval)
+        Hint = "Up by suit", Func = @(game, target, drop) rules.in_suit(target, drop) && rules.build_up(target, drop, wrap, interval)
     },
 
     UpOrDownInColor = {
         Hint = "Up or down by color",
-        Build = @(target, drop) rules.in_color(game, target, drop) && rules.build_up_or_down(target, drop, wrap, interval)
+        Func = @(target, drop) rules.in_color(game, target, drop) && rules.build_up_or_down(target, drop, wrap, interval)
     },
 
     DownInColor = @(wrap = false, interval = 1) {
-        Hint = "Down by color", Build = @(game, target, drop) rules.in_color(target, drop) && rules.build_down(target, drop, wrap, interval)
+        Hint = "Down by color", Func = @(game, target, drop) rules.in_color(target, drop) && rules.build_down(target, drop, wrap, interval)
     },
 
     UpInColor = @(wrap = false, interval = 1) {
-        Hint = "Up by color", Build = @(game, target, drop) rules.in_color(target, drop) && rules.build_up(target, drop, wrap, interval)
+        Hint = "Up by color", Func = @(game, target, drop) rules.in_color(target, drop) && rules.build_up(target, drop, wrap, interval)
     },
 
     UpOrDownAlternateColors = @(wrap = false, interval = 1) {
-        Hint = "Up or down by alternate color", Build = @(game, target, drop) rules.alternate_color(target, drop) && rules.build_up_or_down(target, drop, wrap, interval)
+        Hint = "Up or down by alternate color", Func = @(game, target, drop) rules.alternate_color(target, drop) && rules.build_up_or_down(target, drop, wrap, interval)
     },
 
     DownAlternateColors = @(wrap = false, interval = 1) {
-        Hint = "Down by alternate color", Build = @(game, target, drop) rules.alternate_color(target, drop) && rules.build_down(target, drop, wrap, interval)
+        Hint = "Down by alternate color", Func = @(game, target, drop) rules.alternate_color(target, drop) && rules.build_down(target, drop, wrap, interval)
     },
 
     UpAlternateColors = @(wrap = false, interval = 1) {
-        Hint = "Up by alternate color", Build = @(game, target, drop) rules.alternate_color(target, drop) && rules.build_up(target, drop, wrap, interval)
+        Hint = "Up by alternate color", Func = @(game, target, drop) rules.alternate_color(target, drop) && rules.build_up(target, drop, wrap, interval)
     }
 };
 
@@ -130,18 +130,18 @@ local move = {
         Hint = "None", IsPlayable = false, IsSequence = false
     },
     Top = @() {
-        Hint = "Top card", IsSequence = false, Move = @(_, target, idx) idx == target.CardCount - 1
+        Hint = "Top card", IsSequence = false, Func = @(_, target, idx) idx == target.CardCount - 1
     },
     TopOrPile = @() {
-        Hint = "Top card or whole pile", Move = @(_, target, idx) idx == target.CardCount - 1 || idx == 0
+        Hint = "Top card or whole pile", Func = @(_, target, idx) idx == target.CardCount - 1 || idx == 0
     },
     FaceUp = @() {
-        Hint = "Face-up cards", Move = @(_, target, idx) target.Cards[idx].IsFaceUp
+        Hint = "Face-up cards", Func = @(_, target, idx) target.Cards[idx].IsFaceUp
     },
     InSeq = function() {
         return {
             Hint = "Sequence of cards",
-            Move = function(game, target, idx) {
+            Func = function(game, target, idx) {
                 local cards = target.Cards
                 if (cards[idx].IsFaceDown) {
                     return false
@@ -158,7 +158,7 @@ local move = {
     InSeqInSuit = function() {
         return {
             Hint = "Sequence of cards in the same suit",
-            Move = function(game, target, idx) {
+            Func = function(game, target, idx) {
                 local cards = target.Cards
                 if (cards[idx].IsFaceDown) {
                     return false
@@ -177,7 +177,7 @@ local move = {
     InSeqAlternateColors = function() {
         return {
             Hint = "Color-alternating card sequence",
-            Move = function(game, target, idx) {
+            Func = function(game, target, idx) {
                 local cards = target.Cards
                 if (cards[idx].IsFaceDown) {
                     return false
@@ -196,7 +196,7 @@ local move = {
     InSeqInSuitOrSameRank = function() {
         return {
             Hint = "Sequence of cards in the same suit or rank",
-            Move = function(game, target, idx) {
+            Func = function(game, target, idx) {
                 local cards = target.Cards
                 if (cards[idx].IsFaceDown) {
                     return false
@@ -228,7 +228,7 @@ local move = {
     SuperMove = function() {
         return {
             Hint = "Top card (SuperMove)",
-            Move = function(game, target, idx) {
+            Func = function(game, target, idx) {
                 local cards = target.Cards
                 if (cards[idx].IsFaceDown) {
                     return false
@@ -264,19 +264,19 @@ local move = {
 local base_tab = {
     //direct
     Ace = @() {
-        Hint = "Ace", Base = @(_, card, _) card.Rank == "Ace"
+        Hint = "Ace", Func = @(_, card, _) card.Rank == "Ace"
     },
     King = @() {
-        Hint = "King", Base = @(_, card, _) card.Rank == "King"
+        Hint = "King", Func = @(_, card, _) card.Rank == "King"
     },
     None = @() {
-        Hint = "None", Base = @(_, _, _) false
+        Hint = "None", Func = @(_, _, _) false
     },
     Any = @() {
-        Hint = "Any", Base = @(_, _, _) true
+        Hint = "Any", Func = @(_, _, _) true
     },
     AnySingle = @() {
-        Hint = "Any; no sequences", Base = @(_, _, numCards) numCards == 1
+        Hint = "Any; no sequences", Func = @(_, _, numCards) numCards == 1
     },
     FirstFoundation = function(interval) {
         local intervalStr = ""
@@ -289,7 +289,7 @@ local base_tab = {
 
         return {
             Hint = "Rank" + intervalStr + " of first foundation card",
-            Base = function(game, card, numCards) {
+            Func = function(game, card, numCards) {
                 local pile = game.Foundation[0]
                 if (pile.IsEmpty) {
                     return false
@@ -302,13 +302,13 @@ local base_tab = {
     Card = function(suit, rank) {
         return {
             Hint = rank + " of " + suit,
-            Base = @(game, card, numCards) card.Rank == rank && card.Suit == suit
+            Func = @(game, card, numCards) card.Rank == rank && card.Suit == suit
         }
     },
     CardColor = function(color, rank) {
         return {
             Hint = color + " " + rank,
-            Base = @(game, card, numCards) card.Rank == rank && Sol.SuitColors[card.Suit] == color
+            Func = @(game, card, numCards) card.Rank == rank && Sol.SuitColors[card.Suit] == color
         }
     },
     Suits = function(s) {
@@ -318,7 +318,7 @@ local base_tab = {
         }
         return {
             Hint = suits,
-            Base = function(game, card, numCards) {
+            Func = function(game, card, numCards) {
                 foreach(value in s) {
                     if (value == card.Suit) {
                         return true
@@ -335,7 +335,7 @@ local base_tab = {
         }
         return {
             Hint = ranks,
-            Base = function(game, card, numCards) {
+            Func = function(game, card, numCards) {
                 foreach(value in r) {
                     if (value == card.Rank) {
                         return true

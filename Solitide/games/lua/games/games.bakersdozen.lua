@@ -99,11 +99,7 @@ local nationale                        = {
     Foundation        = {
         Size = 8,
         Pile = function(i)
-            if i < 4 then
-                return { Rule = rules.ace_upsuit_top }
-            else
-                return { Rule = rules.king_downsuit_top }
-            end
+            return { Rule = i < 4 and rules.ace_upsuit_top or rules.king_downsuit_top }
         end
     },
     Tableau           = {
