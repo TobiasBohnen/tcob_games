@@ -3,10 +3,6 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local ops   = require 'base/ops'
-local rules = require 'base/rules'
-
-
 local beleaguered_castle       = {
     Info              = {
         Name          = "Beleaguered Castle",
@@ -17,17 +13,17 @@ local beleaguered_castle       = {
     },
     Foundation        = {
         Size = 4,
-        Pile = { Rule = rules.ace_upsuit_none }
+        Pile = { Rule = Sol.Rules.ace_upsuit_none }
     },
     Tableau           = {
         Size = 8,
         Pile = {
-            Initial = ops.Initial.face_up(6),
+            Initial = Sol.Initial.face_up(6),
             Layout = "Row",
-            Rule = rules.any_downrank_top
+            Rule = Sol.Rules.any_downrank_top
         }
     },
-    on_before_shuffle = ops.Shuffle.ace_to_foundation,
+    on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation,
     on_piles_created  = Sol.Layout.beleaguered_castle
 }
 
@@ -38,14 +34,14 @@ castle_mount.Info.Name         = "Castle Mount"
 castle_mount.Info.DeckCount    = 3
 castle_mount.Foundation        = {
     Size = 12,
-    Pile = { Rule = rules.ace_upsuit_none }
+    Pile = { Rule = Sol.Rules.ace_upsuit_none }
 }
 castle_mount.Tableau           = {
     Size = 12,
     Pile = {
-        Initial = ops.Initial.face_up(12),
+        Initial = Sol.Initial.face_up(12),
         Layout = "Column",
-        Rule = { Base = rules.Base.King(), Build = rules.Build.DownByRank(), Move = rules.Move.InSeqInSuit() }
+        Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.InSeqInSuit() }
     }
 }
 castle_mount.on_piles_created  = Sol.Layout.canister
@@ -68,9 +64,9 @@ end
 local exiled_kings             = Sol.copy(citadel)
 exiled_kings.Info.Name         = "Exiled Kings"
 exiled_kings.Tableau.Pile      = {
-    Initial = ops.Initial.face_up(6),
+    Initial = Sol.Initial.face_up(6),
     Layout = "Row",
-    Rule = rules.king_downrank_top
+    Rule = Sol.Rules.king_downrank_top
 }
 
 ------
@@ -88,8 +84,8 @@ local castle_of_indolence      = {
         Pile = function(i)
             return {
                 Position = { x = i + 2, y = 4 },
-                Initial = ops.Initial.face_up(13),
-                Rule = rules.none_none_none
+                Initial = Sol.Initial.face_up(13),
+                Rule = Sol.Rules.none_none_none
             }
         end
     },
@@ -98,7 +94,7 @@ local castle_of_indolence      = {
         Pile = function(i)
             return {
                 Position = { x = i % 2 + 3, y = i // 2 },
-                Rule = rules.ace_upsuit_top
+                Rule = Sol.Rules.ace_upsuit_top
             }
         end
     },
@@ -108,16 +104,16 @@ local castle_of_indolence      = {
             if i < 4 then
                 return {
                     Position = { x = 0, y = i },
-                    Initial = ops.Initial.face_up(7),
+                    Initial = Sol.Initial.face_up(7),
                     Layout = "Row",
-                    Rule = rules.any_downrank_top
+                    Rule = Sol.Rules.any_downrank_top
                 }
             else
                 return {
                     Position = { x = 5, y = i - 4 },
-                    Initial = ops.Initial.face_up(6),
+                    Initial = Sol.Initial.face_up(6),
                     Layout = "Row",
-                    Rule = rules.any_downrank_top
+                    Rule = Sol.Rules.any_downrank_top
                 }
             end
         end
@@ -136,8 +132,8 @@ local chequers                 = {
     },
     Reserve     = {
         Position = { x = 0, y = 0 },
-        Initial = ops.Initial.face_down(4),
-        Rule = rules.none_none_none
+        Initial = Sol.Initial.face_down(4),
+        Rule = Sol.Rules.none_none_none
     },
     Foundation  = {
         Size = 8,
@@ -145,12 +141,12 @@ local chequers                 = {
             if i < 4 then
                 return {
                     Position = { x = i + 2, y = 0 },
-                    Rule = rules.ace_upsuit_top
+                    Rule = Sol.Rules.ace_upsuit_top
                 }
             else
                 return {
                     Position = { x = i + 2, y = 0 },
-                    Rule = rules.king_downsuit_top
+                    Rule = Sol.Rules.king_downsuit_top
                 }
             end
         end
@@ -160,15 +156,15 @@ local chequers                 = {
         Pile = function(i)
             return {
                 Position = { x = i % 5 * 2.5, y = i // 5 + 1 },
-                Initial = ops.Initial.face_up(4),
+                Initial = Sol.Initial.face_up(4),
                 Layout = "Row",
-                Rule = rules.any_updownsuit_top
+                Rule = Sol.Rules.any_updownsuit_top
             }
         end
     },
     on_end_turn = function(game)
         local reserve1 = game.Reserve[1]
-        ops.Deal.to_group(reserve1, game.Tableau, true)
+        Sol.Ops.Deal.to_group(reserve1, game.Tableau, true)
         if not reserve1.IsEmpty then
             reserve1:flip_down_top_card()
         end
@@ -187,15 +183,15 @@ local fortress                 = {
     },
     Foundation       = {
         Size = 4,
-        Pile = { Rule = rules.ace_upsuit_top }
+        Pile = { Rule = Sol.Rules.ace_upsuit_top }
     },
     Tableau          = {
         Size = 10,
         Pile = function(i)
             return {
-                Initial = ops.Initial.face_up(i < 2 and 6 or 5),
+                Initial = Sol.Initial.face_up(i < 2 and 6 or 5),
                 Layout = "Column",
-                Rule = rules.any_updownsuit_top
+                Rule = Sol.Rules.any_updownsuit_top
             }
         end
     },
@@ -209,14 +205,14 @@ lightweight.Info.Name          = "Lightweight"
 lightweight.Info.DeckCount     = 2
 lightweight.Foundation         = {
     Size = 8,
-    Pile = { Rule = rules.ace_upsuit_none }
+    Pile = { Rule = Sol.Rules.ace_upsuit_none }
 }
 lightweight.Tableau            = {
     Size = 12,
     Pile = {
-        Initial = ops.Initial.face_up(8),
+        Initial = Sol.Initial.face_up(8),
         Layout = "Column",
-        Rule = { Base = rules.Base.King(), Build = rules.Build.DownByRank(), Move = rules.Move.InSeq() }
+        Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.InSeq() }
     }
 }
 lightweight.on_piles_created   = Sol.Layout.canister
@@ -233,15 +229,15 @@ local morehead                 = {
     },
     Foundation = {
         Size = 4,
-        Pile = { Rule = rules.ace_upsuit_top }
+        Pile = { Rule = Sol.Rules.ace_upsuit_top }
     },
     Tableau = {
         Size = 10,
         Pile = function(i)
             return {
-                Initial = ops.Initial.face_up(i < 7 and i + 1 or 8),
+                Initial = Sol.Initial.face_up(i < 7 and i + 1 or 8),
                 Layout = "Column",
-                Rule = { Base = rules.Base.Any(), Build = rules.Build.DownAnyButOwnSuit(), Move = rules.Move.Top() }
+                Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAnyButOwnSuit(), Move = Sol.Rules.Move.Top() }
             }
         end
     },
@@ -260,15 +256,15 @@ local penelopes_web            = {
     },
     Foundation       = {
         Size = 4,
-        Pile = { Rule = rules.ace_upsuit_none }
+        Pile = { Rule = Sol.Rules.ace_upsuit_none }
     },
     Tableau          = {
         Size = 8,
         Pile = function(i)
             return {
-                Initial = ops.Initial.face_up(i < 4 and 7 or 6),
+                Initial = Sol.Initial.face_up(i < 4 and 7 or 6),
                 Layout = "Row",
-                Rule = rules.king_downrank_top
+                Rule = Sol.Rules.king_downrank_top
             }
         end
     },
@@ -291,12 +287,12 @@ local rittenhouse              = {
             if i < 4 then
                 return {
                     Position = { x = i, y = 0 },
-                    Rule = rules.ace_uprank_none
+                    Rule = Sol.Rules.ace_uprank_none
                 }
             else
                 return {
                     Position = { x = i + 1, y = 0 },
-                    Rule = rules.king_downrank_none
+                    Rule = Sol.Rules.king_downrank_none
                 }
             end
         end
@@ -306,9 +302,9 @@ local rittenhouse              = {
         Pile = function(i)
             return {
                 Position = { x = i, y = 1 },
-                Initial = ops.Initial.face_up(i < 6 and 11 or 10),
+                Initial = Sol.Initial.face_up(i < 6 and 11 or 10),
                 Layout = "Column",
-                Rule = rules.any_updownrank_top
+                Rule = Sol.Rules.any_updownrank_top
             }
         end
     },
@@ -397,15 +393,15 @@ local selective_castle         = {
     },
     Foundation       = {
         Size = 4,
-        Pile = { Rule = rules.ff_upsuit_none_l13 }
+        Pile = { Rule = Sol.Rules.ff_upsuit_none_l13 }
     },
     Tableau          = {
         Size = 8,
         Pile = function(i)
             return {
-                Initial = ops.Initial.face_up(i < 4 and 7 or 6),
+                Initial = Sol.Initial.face_up(i < 4 and 7 or 6),
                 Layout = "Row",
-                Rule = rules.any_downrank_top
+                Rule = Sol.Rules.any_downrank_top
             }
         end
     },
@@ -432,15 +428,15 @@ local streets_and_alleys       = {
     },
     Foundation       = {
         Size = 4,
-        Pile = { Rule = rules.ace_upsuit_none }
+        Pile = { Rule = Sol.Rules.ace_upsuit_none }
     },
     Tableau          = {
         Size = 8,
         Pile = function(i)
             return {
-                Initial = ops.Initial.face_up(i < 4 and 7 or 6),
+                Initial = Sol.Initial.face_up(i < 4 and 7 or 6),
                 Layout = "Row",
-                Rule = rules.any_downrank_top
+                Rule = Sol.Rules.any_downrank_top
             }
         end
     },
@@ -459,7 +455,7 @@ local zerline                  = {
     },
     Stock          = {
         Position = { x = 3, y = 0 },
-        Initial = ops.Initial.face_down(64)
+        Initial = Sol.Initial.face_down(64)
     },
     Waste          = {
         Position = { x = 4, y = 0 }
@@ -467,39 +463,39 @@ local zerline                  = {
     FreeCell       = {
         Position = { x = 5, y = 0 },
         Layout = "Row",
-        Rule = { Base = rules.Base.Any(), Build = rules.Build.Any(), Move = rules.Move.Top(), Limit = 4 }
+        Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.Any(), Move = Sol.Rules.Move.Top(), Limit = 4 }
     },
     Foundation     = {
         Size = 8,
         Pile = function(i)
             return {
                 Position = { x = i % 2 + 3.5, y = i // 2 + 1 },
-                Rule = { Base = rules.Base.King(), Build = rules.Build.UpInSuit(true), Move = rules.Move.Top() }
+                Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top() }
             }
         end
     },
     Tableau        = {
         Size = 8,
         Pile = function(i)
-            local rule = { Base = rules.Base.Ranks({ "Queen" }), Build = rules.Build.DownByRank(), Move = rules.Move.Top() }
+            local rule = { Base = Sol.Rules.Base.Ranks({ "Queen" }), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.Top() }
             if i < 4 then
                 return {
                     Position = { x = 0, y = i + 1 },
-                    Initial = ops.Initial.face_up(5),
+                    Initial = Sol.Initial.face_up(5),
                     Layout = "Row",
                     Rule = rule
                 }
             else
                 return {
                     Position = { x = 6, y = i - 3 },
-                    Initial = ops.Initial.face_up(5),
+                    Initial = Sol.Initial.face_up(5),
                     Layout = "Row",
                     Rule = rule
                 }
             end
         end
     },
-    on_deal        = ops.Deal.stock_to_waste,
+    on_deal        = Sol.Ops.Deal.stock_to_waste,
     check_playable = function(game, targetPile, targetCardIndex, card, numCards)
         if targetPile.Type == "FreeCell" then
             local srcPile = game:find_pile(card)
@@ -518,36 +514,36 @@ local zerline                  = {
 local zerline_3_decks          = Sol.copy(zerline)
 zerline_3_decks.Info.Name      = "Zerline (3 Decks)"
 zerline_3_decks.Info.DeckCount = 3
-zerline_3_decks.Stock.Initial  = ops.Initial.face_down(116)
+zerline_3_decks.Stock.Initial  = Sol.Initial.face_down(116)
 zerline_3_decks.FreeCell       = {
     Position = { x = 5, y = 0 },
     Layout = "Row",
-    Rule = { Base = rules.Base.Any(), Build = rules.Build.Any(), Move = rules.Move.Top(), Limit = 6 }
+    Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.Any(), Move = Sol.Rules.Move.Top(), Limit = 6 }
 }
 zerline_3_decks.Foundation     = {
     Size = 12,
     Pile = function(i)
         return {
             Position = { x = i % 3 + 3, y = i // 3 + 1 },
-            Rule = { Base = rules.Base.King(), Build = rules.Build.UpInSuit(true), Move = rules.Move.Top() }
+            Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top() }
         }
     end
 }
 zerline_3_decks.Tableau        = {
     Size = 8,
     Pile = function(i)
-        local rule = { Base = rules.Base.Ranks({ "Queen" }), Build = rules.Build.DownByRank(), Move = rules.Move.Top() }
+        local rule = { Base = Sol.Rules.Base.Ranks({ "Queen" }), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.Top() }
         if i < 4 then
             return {
                 Position = { x = 0, y = i + 1 },
-                Initial = ops.Initial.face_up(5),
+                Initial = Sol.Initial.face_up(5),
                 Layout = "Row",
                 Rule = rule
             }
         else
             return {
                 Position = { x = 7, y = i - 3 },
-                Initial = ops.Initial.face_up(5),
+                Initial = Sol.Initial.face_up(5),
                 Layout = "Row",
                 Rule = rule
             }

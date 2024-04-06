@@ -3,10 +3,6 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local ops   = require 'base/ops'
-local rules = require 'base/rules'
-
-
 local fastness               = {
     Info             = {
         Name          = "Fastness",
@@ -17,19 +13,19 @@ local fastness               = {
     },
     FreeCell         = {
         Size = 2,
-        Pile = { Rule = rules.any_none_top }
+        Pile = { Rule = Sol.Rules.any_none_top }
     },
     Foundation       = {
         Size = 4,
-        Pile = { Rule = rules.ace_upsuit_none }
+        Pile = { Rule = Sol.Rules.ace_upsuit_none }
     },
     Tableau          = {
         Size = 8,
         Pile = function(i)
             return {
-                Initial = ops.Initial.face_up(i < 4 and 7 or 6),
+                Initial = Sol.Initial.face_up(i < 4 and 7 or 6),
                 Layout = "Row",
-                Rule = rules.any_downrank_top
+                Rule = Sol.Rules.any_downrank_top
             }
         end
     },
@@ -40,19 +36,19 @@ local fastness               = {
 
 local siegecraft             = Sol.copy(fastness)
 siegecraft.Info.Name         = "Siegecraft"
-siegecraft.FreeCell          = { Rule = rules.any_none_top }
+siegecraft.FreeCell          = { Rule = Sol.Rules.any_none_top }
 siegecraft.Tableau.Pile      = {
-    Initial = ops.Initial.face_up(6),
+    Initial = Sol.Initial.face_up(6),
     Layout = "Row",
-    Rule = rules.any_downrank_top
+    Rule = Sol.Rules.any_downrank_top
 }
-siegecraft.on_before_shuffle = ops.Shuffle.ace_to_foundation
+siegecraft.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
 
 ------
 
 local stronghold             = Sol.copy(fastness)
 stronghold.Info.Name         = "Stronghold"
-stronghold.FreeCell          = { Rule = rules.any_none_top }
+stronghold.FreeCell          = { Rule = Sol.Rules.any_none_top }
 
 ------------
 

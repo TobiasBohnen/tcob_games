@@ -3,10 +3,6 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local ops   = require 'base/ops'
-local rules = require 'base/rules'
-
-
 local gypsy                              = {
     Info             = {
         Name          = "Gypsy",
@@ -16,22 +12,22 @@ local gypsy                              = {
         Redeals       = 0
     },
     Stock            = {
-        Initial = ops.Initial.face_down(80)
+        Initial = Sol.Initial.face_down(80)
     },
     Foundation       = {
         Size = 8,
-        Pile = { Rule = rules.ace_upsuit_top }
+        Pile = { Rule = Sol.Rules.ace_upsuit_top }
     },
     Tableau          = {
         Size = 8,
         Pile = {
-            Initial = ops.Initial.top_face_up(3),
+            Initial = Sol.Initial.top_face_up(3),
             Layout = "Column",
-            Rule = rules.any_downac_inseq
+            Rule = Sol.Rules.any_downac_inseq
         }
     },
     on_piles_created = Sol.Layout.gypsy,
-    on_deal          = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
+    on_deal          = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
 }
 
 ------
@@ -40,13 +36,13 @@ local agnes_sorel                        = Sol.copy(gypsy)
 agnes_sorel.Info.Name                    = "Agnes Sorel"
 agnes_sorel.Info.DeckCount               = 1
 agnes_sorel.Info.CardDealCount           = 7
-agnes_sorel.Stock.Initial                = ops.Initial.face_down(23)
+agnes_sorel.Stock.Initial                = Sol.Initial.face_down(23)
 agnes_sorel.Foundation                   = {
     Size = 4,
     Pile = function(i)
         return {
-            Initial = i == 0 and ops.Initial.face_up(1) or {},
-            Rule = rules.ff_upsuit_none_l13
+            Initial = i == 0 and Sol.Initial.face_up(1) or {},
+            Rule = Sol.Rules.ff_upsuit_none_l13
         }
     end
 }
@@ -54,9 +50,9 @@ agnes_sorel.Tableau                      = {
     Size = 7,
     Pile = function(i)
         return {
-            Initial = ops.Initial.face_up(i + 1),
+            Initial = Sol.Initial.face_up(i + 1),
             Layout = "Column",
-            Rule = { Base = rules.Base.None(), Build = rules.Build.DownInColor(), Move = rules.Move.InSeq() }
+            Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.DownInColor(), Move = Sol.Rules.Move.InSeq() }
         }
     end
 }
@@ -67,24 +63,24 @@ agnes_sorel.on_piles_created             = Sol.Layout.klondike
 local blockade                           = Sol.copy(gypsy)
 blockade.Info.Name                       = "Blockade"
 blockade.Info.CardDealCount              = 12
-blockade.Stock.Initial                   = ops.Initial.face_down(92)
+blockade.Stock.Initial                   = Sol.Initial.face_down(92)
 blockade.Tableau                         = {
     Size = 12,
     Pile = {
-        Initial = ops.Initial.face_up(1),
+        Initial = Sol.Initial.face_up(1),
         Layout = "Column",
-        Rule = rules.any_downsuit_inseq
+        Rule = Sol.Rules.any_downsuit_inseq
     }
 }
 blockade.on_piles_created                = Sol.Layout.klondike
-blockade.on_end_turn                     = function(game) ops.Deal.to_group(game.Stock[1], game.Tableau, true) end
+blockade.on_end_turn                     = function(game) Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, true) end
 
 ------
 
 local die_koenigsbergerin                = Sol.copy(gypsy)
 die_koenigsbergerin.Info.Name            = "Die Königsbergerin"
-die_koenigsbergerin.Foundation.Pile.Rule = rules.ace_upsuit_none
-die_koenigsbergerin.Tableau.Pile.Initial = ops.Initial.face_up(3)
+die_koenigsbergerin.Foundation.Pile.Rule = Sol.Rules.ace_upsuit_none
+die_koenigsbergerin.Tableau.Pile.Initial = Sol.Initial.face_up(3)
 die_koenigsbergerin.on_shuffle           = function(game, card, pile)
     if pile.Type == "Tableau" and card.Rank == "Ace" then
         return game.PlaceTop(card, game.Foundation, true)
@@ -118,19 +114,19 @@ end
 local churchill                          = Sol.copy(gypsy)
 churchill.Info.Name                      = "Churchill"
 churchill.Info.CardDealCount             = 10
-churchill.Stock.Initial                  = ops.Initial.face_down(68)
+churchill.Stock.Initial                  = Sol.Initial.face_down(68)
 churchill.Reserve                        = {
-    Initial = ops.Initial.face_up(6),
+    Initial = Sol.Initial.face_up(6),
     Layout = "Column",
-    Rule = rules.none_none_top
+    Rule = Sol.Rules.none_none_top
 }
 churchill.Tableau                        = {
     Size = 10,
     Pile = function(i)
         return {
-            Initial = ops.Initial.top_face_up(i < 5 and i + 1 or 10 - i),
+            Initial = Sol.Initial.top_face_up(i < 5 and i + 1 or 10 - i),
             Layout = "Column",
-            Rule = rules.king_downac_inseq
+            Rule = Sol.Rules.king_downac_inseq
         }
     end
 }
@@ -171,13 +167,13 @@ churchill.on_piles_created               = Sol.Layout.canfield
 local elba                               = Sol.copy(gypsy)
 elba.Info.Name                           = "Elba"
 elba.Info.CardDealCount                  = 10
-elba.Stock.Initial                       = ops.Initial.face_down(54)
+elba.Stock.Initial                       = Sol.Initial.face_down(54)
 elba.Tableau                             = {
     Size = 10,
     Pile = {
-        Initial = ops.Initial.top_face_up(5),
+        Initial = Sol.Initial.top_face_up(5),
         Layout = "Column",
-        Rule = rules.king_downac_inseq
+        Rule = Sol.Rules.king_downac_inseq
     }
 }
 elba.on_piles_created                    = Sol.Layout.klondike
@@ -187,13 +183,13 @@ elba.on_piles_created                    = Sol.Layout.klondike
 local eclipse                            = Sol.copy(gypsy)
 eclipse.Info.Name                        = "Eclipse"
 eclipse.Info.CardDealCount               = 13
-eclipse.Stock.Initial                    = ops.Initial.face_down(52)
+eclipse.Stock.Initial                    = Sol.Initial.face_down(52)
 eclipse.Tableau                          = {
     Size = 13,
     Pile = {
-        Initial = ops.Initial.face_up(4),
+        Initial = Sol.Initial.face_up(4),
         Layout = "Column",
-        Rule = rules.king_downsuit_inseq
+        Rule = Sol.Rules.king_downsuit_inseq
     }
 }
 eclipse.on_piles_created                 = Sol.Layout.klondike
@@ -203,14 +199,14 @@ eclipse.on_piles_created                 = Sol.Layout.klondike
 local hypotenuse                         = Sol.copy(gypsy)
 hypotenuse.Info.Name                     = "Hypotenuse"
 hypotenuse.Info.CardDealCount            = 10
-hypotenuse.Stock.Initial                 = ops.Initial.face_down(49)
+hypotenuse.Stock.Initial                 = Sol.Initial.face_down(49)
 hypotenuse.Tableau                       = {
     Size = 10,
     Pile = function(i)
         return {
-            Initial = ops.Initial.top_face_up(10 - i),
+            Initial = Sol.Initial.top_face_up(10 - i),
             Layout = "Column",
-            Rule = rules.king_downac_inseq
+            Rule = Sol.Rules.king_downac_inseq
         }
     end
 }
@@ -222,9 +218,9 @@ local eternal_triangle                   = Sol.copy(hypotenuse)
 eternal_triangle.Info.Name               = "Eternal Triangle"
 eternal_triangle.Tableau.Pile            = function(i)
     return {
-        Initial = ops.Initial.face_up(10 - i),
+        Initial = Sol.Initial.face_up(10 - i),
         Layout = "Column",
-        Rule = rules.king_downac_inseq
+        Rule = Sol.Rules.king_downac_inseq
     }
 end
 
@@ -232,14 +228,14 @@ end
 
 local flamenco                           = Sol.copy(gypsy)
 flamenco.Info.Name                       = "Flamenco"
-flamenco.Stock.Initial                   = ops.Initial.face_down(72)
+flamenco.Stock.Initial                   = Sol.Initial.face_down(72)
 flamenco.Tableau.Pile                    = {
-    Initial = ops.Initial.face_up(3),
+    Initial = Sol.Initial.face_up(3),
     Layout = "Column",
-    Rule = rules.any_downac_inseq
+    Rule = Sol.Rules.any_downac_inseq
 }
 flamenco.Foundation.Pile                 = function(i)
-    return { Rule = i < 4 and rules.ace_upsuit_top or rules.king_downsuit_top }
+    return { Rule = i < 4 and Sol.Rules.ace_upsuit_top or Sol.Rules.king_downsuit_top }
 end
 flamenco.on_before_shuffle               = function(game, card)
     if card.Rank == "Ace" then
@@ -256,11 +252,11 @@ end
 
 local giant                              = Sol.copy(gypsy)
 giant.Info.Name                          = "Giant"
-giant.Stock.Initial                      = ops.Initial.face_down(96)
-giant.Tableau.Pile.Initial               = ops.Initial.face_up(1)
+giant.Stock.Initial                      = Sol.Initial.face_down(96)
+giant.Tableau.Pile.Initial               = Sol.Initial.face_up(1)
 giant.Foundation.Pile.Rule               = {
-    Base = rules.Base.Ace(),
-    Build = rules.Build.UpInSuit(),
+    Base = Sol.Rules.Base.Ace(),
+    Build = Sol.Rules.Build.UpInSuit(),
     Move = {
         Hint = "Top card (if Stock is empty)",
         IsSequence = false,
@@ -284,14 +280,14 @@ end
 local irmgard                            = Sol.copy(gypsy)
 irmgard.Info.Name                        = "Irmgard"
 irmgard.Info.CardDealCount               = 9
-irmgard.Stock.Initial                    = ops.Initial.face_down(79)
+irmgard.Stock.Initial                    = Sol.Initial.face_down(79)
 irmgard.Tableau                          = {
     Size = 9,
     Pile = function(i)
         return {
-            Initial = ops.Initial.top_face_up(i < 5 and i + 1 or 9 - i),
+            Initial = Sol.Initial.top_face_up(i < 5 and i + 1 or 9 - i),
             Layout = "Column",
-            Rule = rules.king_downac_inseq
+            Rule = Sol.Rules.king_downac_inseq
         }
     end
 }
@@ -301,23 +297,23 @@ irmgard.on_piles_created                 = Sol.Layout.klondike
 
 local millie                             = Sol.copy(gypsy)
 millie.Info.Name                         = "Millie"
-millie.Stock.Initial                     = ops.Initial.face_down(96)
-millie.Tableau.Pile.Initial              = ops.Initial.face_up(1)
+millie.Stock.Initial                     = Sol.Initial.face_down(96)
+millie.Tableau.Pile.Initial              = Sol.Initial.face_up(1)
 
 ------
 
 local lexington_harp                     = Sol.copy(gypsy)
 lexington_harp.Info.Name                 = "Lexington Harp"
 --lexington_harp.Info.Family = "Gypsy/Yukon"
-lexington_harp.Stock.Initial             = ops.Initial.face_down(68)
-lexington_harp.Foundation.Pile.Rule      = rules.ace_upsuit_none
+lexington_harp.Stock.Initial             = Sol.Initial.face_down(68)
+lexington_harp.Foundation.Pile.Rule      = Sol.Rules.ace_upsuit_none
 lexington_harp.Tableau                   = {
     Size = 8,
     Pile = function(i)
         return {
-            Initial = ops.Initial.top_face_up(i + 1),
+            Initial = Sol.Initial.top_face_up(i + 1),
             Layout = "Column",
-            Rule = rules.any_downac_faceup
+            Rule = Sol.Rules.any_downac_faceup
         }
     end
 }
@@ -329,9 +325,9 @@ brunswick.Info.Name                      = "Brunswick"
 --brunswick.Info.Family = "Gypsy/Yukon"
 brunswick.Tableau.Pile                   = function(i)
     return {
-        Initial = ops.Initial.face_up(i + 1),
+        Initial = Sol.Initial.face_up(i + 1),
         Layout = "Column",
-        Rule = rules.any_downac_faceup
+        Rule = Sol.Rules.any_downac_faceup
     }
 end
 
@@ -342,9 +338,9 @@ milligan_harp.Info.Name                  = "Milligan Harp"
 --milligan_harp.Info.Family = "Gypsy/Yukon"
 milligan_harp.Tableau.Pile               = function(i)
     return {
-        Initial = ops.Initial.top_face_up(i + 1),
+        Initial = Sol.Initial.top_face_up(i + 1),
         Layout = "Column",
-        Rule = rules.any_downac_inseq
+        Rule = Sol.Rules.any_downac_inseq
     }
 end
 
@@ -354,9 +350,9 @@ local carlton                            = Sol.copy(lexington_harp)
 carlton.Info.Name                        = "Carlton"
 carlton.Tableau.Pile                     = function(i)
     return {
-        Initial = ops.Initial.face_up(i + 1),
+        Initial = Sol.Initial.face_up(i + 1),
         Layout = "Column",
-        Rule = rules.any_downac_inseq
+        Rule = Sol.Rules.any_downac_inseq
     }
 end
 
@@ -365,14 +361,14 @@ end
 local mississippi                        = Sol.copy(lexington_harp)
 mississippi.Info.Name                    = "Mississippi"
 --milligan_harp.Info.Family = "Gypsy/Yukon"
-mississippi.Stock.Initial                = ops.Initial.face_down(76)
+mississippi.Stock.Initial                = Sol.Initial.face_down(76)
 mississippi.Tableau                      = {
     Size = 7,
     Pile = function(i)
         return {
-            Initial = ops.Initial.top_face_up(i + 1),
+            Initial = Sol.Initial.top_face_up(i + 1),
             Layout = "Column",
-            Rule = rules.any_downac_faceup
+            Rule = Sol.Rules.any_downac_faceup
         }
     end
 }
@@ -389,14 +385,14 @@ local cone                               = {
     },
     Stock      = {
         Position = { x = 0, y = 0 },
-        Initial = ops.Initial.face_down(88)
+        Initial = Sol.Initial.face_down(88)
     },
     Reserve    = {
         Size = 4,
         Pile = function(i)
             return {
                 Position = { x = 0, y = i + 1 },
-                Rule = rules.none_none_top
+                Rule = Sol.Rules.none_none_top
             }
         end
     },
@@ -405,7 +401,7 @@ local cone                               = {
         Pile = function(i)
             return {
                 Position = { x = 8, y = i + 1 },
-                Rule = { Base = rules.Base.Ace(), Build = rules.Build.UpInSuit(true), Move = rules.Move.Top() }
+                Rule = { Base = Sol.Rules.Base.Ace(), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top() }
             }
         end
     },
@@ -414,9 +410,9 @@ local cone                               = {
         Pile = function(i)
             return {
                 Position = { x = i + 1, y = 0 },
-                Initial = ops.Initial.top_face_up(i < 4 and i + 1 or 7 - i),
+                Initial = Sol.Initial.top_face_up(i < 4 and i + 1 or 7 - i),
                 Layout = "Column",
-                Rule = rules.any_downac_inseq
+                Rule = Sol.Rules.any_downac_inseq
             }
         end
     },
@@ -428,10 +424,10 @@ local cone                               = {
         end
         --deal last 4 cards to reserve
         if game.Stock[1].CardCount == 4 then
-            return ops.Deal.to_group(game.Stock[1], game.Reserve, false)
+            return Sol.Ops.Deal.to_group(game.Stock[1], game.Reserve, false)
         end
 
-        return ops.Deal.to_group(game.Stock[1], game.Tableau, false)
+        return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, false)
     end
 }
 
@@ -446,22 +442,22 @@ local easthaven                          = {
         Redeals       = 0
     },
     Stock            = {
-        Initial = ops.Initial.face_down(31)
+        Initial = Sol.Initial.face_down(31)
     },
     Foundation       = {
         Size = 4,
-        Pile = { Rule = rules.ace_upsuit_top }
+        Pile = { Rule = Sol.Rules.ace_upsuit_top }
     },
     Tableau          = {
         Size = 7,
         Pile = {
-            Initial = ops.Initial.top_face_up(3),
+            Initial = Sol.Initial.top_face_up(3),
             Layout = "Column",
-            Rule = rules.any_downac_inseq
+            Rule = Sol.Rules.any_downac_inseq
         }
     },
     on_piles_created = Sol.Layout.klondike,
-    on_deal          = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
+    on_deal          = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
 }
 
 ------
@@ -470,7 +466,7 @@ local double_easthaven                   = Sol.copy(easthaven)
 double_easthaven.Info.Name               = "Double Easthaven"
 double_easthaven.Info.DeckCount          = 2
 double_easthaven.Info.CardDealCount      = 8
-double_easthaven.Stock.Initial           = ops.Initial.face_down(80)
+double_easthaven.Stock.Initial           = Sol.Initial.face_down(80)
 double_easthaven.Tableau.Size            = 8
 
 ------
@@ -484,22 +480,22 @@ local miss_milligan                      = {
         Redeals       = 0
     },
     Stock            = {
-        Initial = ops.Initial.face_down(96)
+        Initial = Sol.Initial.face_down(96)
     },
     FreeCell         = {
         Layout = "Column",
-        Rule = { Base = rules.Base.Any(), Build = rules.Build.None(), Move = rules.Move.FaceUp() }
+        Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.FaceUp() }
     },
     Foundation       = {
         Size = 8,
-        Pile = { Rule = rules.ace_upsuit_none }
+        Pile = { Rule = Sol.Rules.ace_upsuit_none }
     },
     Tableau          = {
         Size = 8,
         Pile = {
-            Initial = ops.Initial.top_face_up(1),
+            Initial = Sol.Initial.top_face_up(1),
             Layout = "Column",
-            Rule = rules.king_downac_inseq
+            Rule = Sol.Rules.king_downac_inseq
         }
     },
     check_playable   = function(game, targetPile, targetCardIndex, card, numCards)
@@ -511,14 +507,14 @@ local miss_milligan                      = {
         return game:can_play(targetPile, targetCardIndex, card, numCards)
     end,
     on_piles_created = Sol.Layout.canfield,
-    on_deal          = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
+    on_deal          = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
 }
 
 ------
 
 local imperial_guards                    = Sol.copy(miss_milligan)
 imperial_guards.Info.Name                = "Imperial Guards"
-imperial_guards.Tableau.Pile.Rule        = rules.any_downac_inseq
+imperial_guards.Tableau.Pile.Rule        = Sol.Rules.any_downac_inseq
 
 ------
 
@@ -532,16 +528,16 @@ local leprechaun                         = {
     },
     Stock      = {
         Position = { x = 0, y = 0 },
-        Initial = ops.Initial.face_down(48)
+        Initial = Sol.Initial.face_down(48)
     },
     Reserve    = {
         Size = 8,
         Pile = function(i)
             return {
                 Position = { x = 2 + i, y = 0 },
-                Initial = ops.Initial.face_down(4),
+                Initial = Sol.Initial.face_down(4),
                 Layout = "Column",
-                Rule = rules.none_none_top
+                Rule = Sol.Rules.none_none_top
             }
         end
     },
@@ -550,7 +546,7 @@ local leprechaun                         = {
         Pile = function(i)
             return {
                 Position = { x = 2 + i, y = 1.5 },
-                Rule = rules.ace_upsuit_none
+                Rule = Sol.Rules.ace_upsuit_none
             }
         end
     },
@@ -559,9 +555,9 @@ local leprechaun                         = {
         Pile = function(i)
             return {
                 Position = { x = 2 + i, y = 2.5 },
-                Initial = ops.Initial.top_face_up(3),
+                Initial = Sol.Initial.top_face_up(3),
                 Layout = "Column",
-                Rule = rules.any_downac_inseq
+                Rule = Sol.Rules.any_downac_inseq
             }
         end
     },
@@ -571,7 +567,7 @@ local leprechaun                         = {
             game.Reserve[idx]:flip_up_top_card()
         end
     end,
-    on_deal    = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
+    on_deal    = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
 }
 
 ------
@@ -586,14 +582,14 @@ local milligan_cell                      = {
     },
     Stock      = {
         Position = { x = 0, y = 0 },
-        Initial = ops.Initial.face_down(96)
+        Initial = Sol.Initial.face_down(96)
     },
     FreeCell   = {
         Size = 4,
         Pile = function(i)
             return {
                 Position = { x = 0, y = i + 1 },
-                Rule = rules.any_none_top
+                Rule = Sol.Rules.any_none_top
             }
         end
     },
@@ -602,7 +598,7 @@ local milligan_cell                      = {
         Pile = function(i)
             return {
                 Position = { x = 2 + i, y = 0 },
-                Rule = rules.ace_upsuit_none
+                Rule = Sol.Rules.ace_upsuit_none
             }
         end
     },
@@ -611,13 +607,13 @@ local milligan_cell                      = {
         Pile = function(i)
             return {
                 Position = { x = 2 + i, y = 1 },
-                Initial = ops.Initial.top_face_up(1),
+                Initial = Sol.Initial.top_face_up(1),
                 Layout = "Column",
-                Rule = rules.king_downac_inseq
+                Rule = Sol.Rules.king_downac_inseq
             }
         end
     },
-    on_deal    = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
+    on_deal    = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
 }
 
 ------

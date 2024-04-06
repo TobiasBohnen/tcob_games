@@ -4,6 +4,8 @@
 -- https://opensource.org/licenses/MIT
 
 Sol.Layout = require "layout"
+Sol.Rules = require "rules"
+Sol.Ops = require "ops"
 
 function Sol.copy(obj, seen)
     if type(obj) ~= 'table' then return obj end
@@ -61,3 +63,36 @@ function Sol.shuffle_tableau(game)
 
     return game:shuffle_cards(cards)
 end
+
+Sol.Initial = {
+    top_face_up = function(size)
+        local retValue = {}
+        for i = 1, size - 1 do
+            retValue[i] = false
+        end
+        retValue[size] = true
+        return retValue
+    end,
+    face_up = function(size)
+        local retValue = {}
+        for i = 1, size do
+            retValue[i] = true
+        end
+        return retValue
+    end,
+    face_down = function(size)
+        local retValue = {}
+        for i = 1, size do
+            retValue[i] = false
+        end
+        return retValue
+    end,
+    alternate = function(size, first)
+        local retValue = {}
+        for i = 1, size do
+            retValue[i] = first
+            first = not first
+        end
+        return retValue
+    end
+}

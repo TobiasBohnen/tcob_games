@@ -3,10 +3,6 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local ops   = require 'base/ops'
-local rules = require 'base/rules'
-
-
 local snake                 = {
     Info              = {
         Name          = "Snake",
@@ -20,7 +16,7 @@ local snake                 = {
         Pile = function(i)
             return {
                 Position = { x = i + 1, y = 0 },
-                Rule     = rules.any_none_top
+                Rule     = Sol.Rules.any_none_top
             }
         end
     },
@@ -29,7 +25,7 @@ local snake                 = {
         Pile = function(i)
             return {
                 Position = { x = i % 2 + 9, y = i // 2 },
-                Rule = rules.ace_upsuit_top
+                Rule = Sol.Rules.ace_upsuit_top
             }
         end
     },
@@ -38,13 +34,13 @@ local snake                 = {
         Pile = function(i)
             return {
                 Position = { x = i, y = 1 },
-                Initial = ops.Initial.face_up(i == 0 and 96 or 0),
+                Initial = Sol.Initial.face_up(i == 0 and 96 or 0),
                 Layout = "Column",
-                Rule = { Base = rules.Base.None(), Build = rules.Build.DownAlternateColors(), Move = rules.Move.SuperMove() }
+                Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.DownAlternateColors(), Move = Sol.Rules.Move.SuperMove() }
             }
         end
     },
-    on_before_shuffle = ops.Shuffle.ace_to_foundation,
+    on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation,
     on_after_shuffle  = function(game)
         -- kings start new pile
         local tableau = game.Tableau
@@ -67,9 +63,9 @@ cats_tail.Info.Name         = "Cat's Tail"
 cats_tail.Tableau.Pile      = function(i)
     return {
         Position = { x = i, y = 1 },
-        Initial = ops.Initial.face_up(i == 0 and 104 or 0),
+        Initial = Sol.Initial.face_up(i == 0 and 104 or 0),
         Layout = "Column",
-        Rule = { Base = rules.Base.None(), Build = rules.Build.DownAlternateColors(), Move = rules.Move.InSeq() }
+        Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.DownAlternateColors(), Move = Sol.Rules.Move.InSeq() }
     }
 end
 cats_tail.on_before_shuffle = nil

@@ -3,10 +3,6 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local ops   = require 'base/ops'
-local rules = require 'base/rules'
-
-
 local bakers_dozen                     = {
     Info             = {
         Name          = "Baker's Dozen",
@@ -17,17 +13,17 @@ local bakers_dozen                     = {
     },
     Foundation       = {
         Size = 4,
-        Pile = { Rule = rules.ace_upsuit_top }
+        Pile = { Rule = Sol.Rules.ace_upsuit_top }
     },
     Tableau          = {
         Size = 13,
         Pile = {
-            Initial = ops.Initial.face_up(4),
+            Initial = Sol.Initial.face_up(4),
             Layout = "Column",
-            Rule = rules.none_downrank_top
+            Rule = Sol.Rules.none_downrank_top
         }
     },
-    on_after_shuffle = ops.Shuffle.kings_to_bottom,
+    on_after_shuffle = Sol.Ops.Shuffle.kings_to_bottom,
     on_piles_created = Sol.Layout.bakers_dozen
 }
 
@@ -46,9 +42,9 @@ good_measure.Info.Name                 = "Good Measure"
 good_measure.Tableau                   = {
     Size = 10,
     Pile = {
-        Initial = ops.Initial.face_up(5),
+        Initial = Sol.Initial.face_up(5),
         Layout = "Column",
-        Rule = rules.none_downrank_top
+        Rule = Sol.Rules.none_downrank_top
     }
 }
 good_measure.on_before_shuffle         = function(game, card)
@@ -71,15 +67,15 @@ local fifteen                          = {
     },
     Foundation       = {
         Size = 8,
-        Pile = { Rule = rules.ace_upsuit_top }
+        Pile = { Rule = Sol.Rules.ace_upsuit_top }
     },
     Tableau          = {
         Size = 15,
         Pile = function(i)
             return {
-                Initial = ops.Initial.face_up(i ~= 14 and 7 or 6),
+                Initial = Sol.Initial.face_up(i ~= 14 and 7 or 6),
                 Layout = "Column",
-                Rule = rules.any_updownsuit_top
+                Rule = Sol.Rules.any_updownsuit_top
             }
         end
     },
@@ -99,15 +95,15 @@ local nationale                        = {
     Foundation        = {
         Size = 8,
         Pile = function(i)
-            return { Rule = i < 4 and rules.ace_upsuit_top or rules.king_downsuit_top }
+            return { Rule = i < 4 and Sol.Rules.ace_upsuit_top or Sol.Rules.king_downsuit_top }
         end
     },
     Tableau           = {
         Size = 12,
         Pile = {
-            Initial = ops.Initial.face_up(8),
+            Initial = Sol.Initial.face_up(8),
             Layout = "Column",
-            Rule = rules.any_updownsuit_top
+            Rule = Sol.Rules.any_updownsuit_top
         }
     },
     on_before_shuffle = function(game, card)

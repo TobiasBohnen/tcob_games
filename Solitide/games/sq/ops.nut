@@ -76,41 +76,7 @@ local deal = {
     stock_to_waste_by_redeals_left = @(game) deal_func(game.Stock[0], game.Waste[0], game.RedealsLeft + 1)
 }
 
-local initial = {
-    top_face_up = function(size) {
-        local retValue = []
-        for (local i = 0; i < size - 1; i += 1) {
-            retValue.append(false)
-        }
-        retValue.append(true)
-        return retValue
-    },
-    face_up = function(size) {
-        local retValue = []
-        for (local i = 0; i < size; i += 1) {
-            retValue.append(true)
-        }
-        return retValue
-    },
-    face_down = function(size) {
-        local retValue = []
-        for (local i = 0; i < size; i += 1) {
-            retValue.append(false)
-        }
-        return retValue
-    },
-    alternate = function(size, first) {
-        local retValue = []
-        for (local i = 0; i < size; i += 1) {
-            retValue.append(first)
-            first = !first
-        }
-        return retValue
-    }
-}
-
 return {
-    Initial = initial,
     Shuffle = shuffle,
     Redeal = redeal,
     Deal = deal

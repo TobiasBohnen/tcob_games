@@ -3,10 +3,6 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local ops   = require 'base/ops'
-local rules = require 'base/rules'
-
-
 local capricieuse              = {
     Info              = {
         Name          = "Capricieuse",
@@ -19,15 +15,15 @@ local capricieuse              = {
     Foundation        = {
         Size = 8,
         Pile = function(i)
-            return { Rule = i < 4 and rules.ace_upsuit_top or rules.king_downsuit_top }
+            return { Rule = i < 4 and Sol.Rules.ace_upsuit_top or Sol.Rules.king_downsuit_top }
         end
     },
     Tableau           = {
         Size = 12,
         Pile = {
-            Initial = ops.Initial.face_up(8),
+            Initial = Sol.Initial.face_up(8),
             Layout = "Column",
-            Rule = rules.any_updownsuit_top
+            Rule = Sol.Rules.any_updownsuit_top
         }
     },
     on_redeal         = function(game)
@@ -61,14 +57,14 @@ local capricieuse              = {
 
 local strata                   = Sol.copy(capricieuse)
 strata.Info.Name               = "Strata"
-strata.Foundation.Pile         = { Rule = rules.ace_upsuit_top }
+strata.Foundation.Pile         = { Rule = Sol.Rules.ace_upsuit_top }
 strata.Info.DeckRanks          = { "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace" }
 strata.Tableau                 = {
     Size = 8,
     Pile = {
-        Initial = ops.Initial.face_up(8),
+        Initial = Sol.Initial.face_up(8),
         Layout = "Column",
-        Rule = rules.any_downac_top
+        Rule = Sol.Rules.any_downac_top
     }
 }
 strata.on_before_shuffle       = nil
@@ -81,17 +77,17 @@ cruel.Info.DeckCount           = 1
 cruel.Info.Redeals             = -1
 cruel.Foundation               = {
     Size = 4,
-    Pile = { Rule = rules.ace_upsuit_top }
+    Pile = { Rule = Sol.Rules.ace_upsuit_top }
 }
 cruel.Tableau                  = {
     Size = 12,
     Pile = {
-        Initial = ops.Initial.face_up(4),
+        Initial = Sol.Initial.face_up(4),
         Layout = "Column",
-        Rule = rules.none_downsuit_top
+        Rule = Sol.Rules.none_downsuit_top
     }
 }
-cruel.on_before_shuffle        = ops.Shuffle.ace_to_foundation
+cruel.on_before_shuffle        = Sol.Ops.Shuffle.ace_to_foundation
 cruel.on_redeal                = function(game)
     local cards = {}
 
@@ -122,9 +118,9 @@ local indefatigable            = Sol.copy(cruel)
 indefatigable.Info.Name        = "Indefatigable"
 indefatigable.Info.Redeals     = 2
 indefatigable.Tableau.Pile     = {
-    Initial = ops.Initial.face_up(4),
+    Initial = Sol.Initial.face_up(4),
     Layout = "Column",
-    Rule = rules.any_updownsuit_top
+    Rule = Sol.Rules.any_updownsuit_top
 }
 
 ------
@@ -133,9 +129,9 @@ local perseverance             = Sol.copy(cruel)
 perseverance.Info.Name         = "Perseverance"
 perseverance.Info.Redeals      = 2
 perseverance.Tableau.Pile      = {
-    Initial = ops.Initial.face_up(4),
+    Initial = Sol.Initial.face_up(4),
     Layout = "Column",
-    Rule = { Base = rules.Base.None(), Build = rules.Build.DownInSuit(), Move = rules.Move.InSeq() }
+    Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.DownInSuit(), Move = Sol.Rules.Move.InSeq() }
 }
 
 ------
@@ -143,13 +139,13 @@ perseverance.Tableau.Pile      = {
 local royal_family             = Sol.copy(cruel)
 royal_family.Info.Name         = "Royal Family"
 royal_family.Info.Redeals      = 1
-royal_family.Foundation.Pile   = { Rule = rules.king_downsuit_top }
+royal_family.Foundation.Pile   = { Rule = Sol.Rules.king_downsuit_top }
 royal_family.Tableau.Pile      = {
-    Initial = ops.Initial.face_up(4),
+    Initial = Sol.Initial.face_up(4),
     Layout = "Column",
-    Rule = rules.any_updownac_top
+    Rule = Sol.Rules.any_updownac_top
 }
-royal_family.on_before_shuffle = ops.Shuffle.king_to_foundation
+royal_family.on_before_shuffle = Sol.Ops.Shuffle.king_to_foundation
 
 ------
 

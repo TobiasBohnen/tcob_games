@@ -3,10 +3,6 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local ops   = require 'base/ops'
-local rules = require 'base/rules'
-
-
 local duke               = {
     Info       = {
         Name          = "Duke",
@@ -17,7 +13,7 @@ local duke               = {
     },
     Stock      = {
         Position = { x = 0, y = 0 },
-        Initial = ops.Initial.face_down(36)
+        Initial = Sol.Initial.face_down(36)
     },
     Waste      = { Position = { x = 1, y = 0 } },
     Reserve    = {
@@ -25,9 +21,9 @@ local duke               = {
         Pile = function(i)
             return {
                 Position = { x = i % 2 * 2, y = i // 2 + 1 },
-                Initial  = ops.Initial.face_up(3),
+                Initial  = Sol.Initial.face_up(3),
                 Layout   = "Row",
-                Rule     = rules.none_none_top,
+                Rule     = Sol.Rules.none_none_top,
             }
         end
     },
@@ -36,7 +32,7 @@ local duke               = {
         Pile = function(i)
             return {
                 Position = { x = i + 3, y = 0 },
-                Rule = rules.ace_upsuit_top
+                Rule = Sol.Rules.ace_upsuit_top
             }
         end
     },
@@ -45,14 +41,14 @@ local duke               = {
         Pile = function(i)
             return {
                 Position = { x = i + 4, y = 1 },
-                Initial = ops.Initial.face_up(1),
+                Initial = Sol.Initial.face_up(1),
                 Layout = "Column",
-                Rule = rules.any_downac_inseq
+                Rule = Sol.Rules.any_downac_inseq
             }
         end
     },
-    on_redeal  = ops.Redeal.waste_to_stock,
-    on_deal    = ops.Deal.stock_to_waste
+    on_redeal  = Sol.Ops.Redeal.waste_to_stock,
+    on_deal    = Sol.Ops.Deal.stock_to_waste
 }
 
 ------
@@ -63,15 +59,15 @@ dutchess.Info.Redeals    = 1
 dutchess.Foundation.Pile = function(i)
     return {
         Position = { x = i + 3, y = 0 },
-        Rule = rules.ff_upsuit_none_l13
+        Rule = Sol.Rules.ff_upsuit_none_l13
     }
 end
 dutchess.Tableau.Pile    = function(i)
     return {
         Position = { x = i + 4, y = 1 },
-        Initial = ops.Initial.face_up(1),
+        Initial = Sol.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Base = rules.Base.Any(), Build = rules.Build.DownAlternateColors(), Move = rules.Move.InSeq() }
+        Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAlternateColors(), Move = Sol.Rules.Move.InSeq() }
     }
 end
 dutchess.check_playable  = function(game, targetPile, targetCardIndex, card, numCards)
@@ -97,7 +93,7 @@ dutchess.check_playable  = function(game, targetPile, targetCardIndex, card, num
 end
 dutchess.on_deal         = function(game)
     if game.Foundation[1].IsEmpty then return false end
-    return ops.Deal.stock_to_waste(game)
+    return Sol.Ops.Deal.stock_to_waste(game)
 end
 
 ------------------------

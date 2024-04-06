@@ -3,10 +3,6 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local ops   = require 'base/ops'
-local rules = require 'base/rules'
-
-
 local canfield                      = {
     Info             = {
         Name          = "Canfield",
@@ -15,32 +11,32 @@ local canfield                      = {
         CardDealCount = 3,
         Redeals       = -1
     },
-    Stock            = { Initial = ops.Initial.face_down(34) },
+    Stock            = { Initial = Sol.Initial.face_down(34) },
     Waste            = {},
     Reserve          = {
-        Initial = ops.Initial.top_face_up(13),
+        Initial = Sol.Initial.top_face_up(13),
         Layout = "Column"
     },
     Foundation       = {
         Size = 4,
         Pile = function(i)
             return {
-                Initial = ops.Initial.face_up(i == 0 and 1 or 0),
-                Rule = rules.ff_upsuit_none_l13
+                Initial = Sol.Initial.face_up(i == 0 and 1 or 0),
+                Rule = Sol.Rules.ff_upsuit_none_l13
             }
         end
     },
     Tableau          = {
         Size = 4,
         Pile = {
-            Initial = ops.Initial.face_up(1),
+            Initial = Sol.Initial.face_up(1),
             Layout = "Column",
-            Rule = { Base = rules.Base.Any(), Build = rules.Build.DownAlternateColors(true), Move = rules.Move.TopOrPile() }
+            Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.TopOrPile() }
         }
     },
-    on_end_turn      = function(game) ops.Deal.to_group(game.Reserve[1], game.Tableau, true) end,
-    on_redeal        = ops.Redeal.waste_to_stock,
-    on_deal          = ops.Deal.stock_to_waste,
+    on_end_turn      = function(game) Sol.Ops.Deal.to_group(game.Reserve[1], game.Tableau, true) end,
+    on_redeal        = Sol.Ops.Redeal.waste_to_stock,
+    on_deal          = Sol.Ops.Deal.stock_to_waste,
     on_piles_created = Sol.Layout.canfield
 }
 
@@ -49,14 +45,14 @@ local canfield                      = {
 local canfield_rush                 = Sol.copy(canfield)
 canfield_rush.Info.Name             = "Canfield Rush"
 canfield_rush.Info.Redeals          = 2
-canfield_rush.on_deal               = ops.Deal.stock_to_waste_by_redeals_left
+canfield_rush.on_deal               = Sol.Ops.Deal.stock_to_waste_by_redeals_left
 
 ------
 
 local double_canfield               = Sol.copy(canfield)
 double_canfield.Info.Name           = "Double Canfield"
 double_canfield.Info.DeckCount      = 2
-double_canfield.Stock.Initial       = ops.Initial.face_down(85)
+double_canfield.Stock.Initial       = Sol.Initial.face_down(85)
 double_canfield.Foundation.Size     = 8
 double_canfield.Tableau.Size        = 5
 
@@ -65,8 +61,8 @@ double_canfield.Tableau.Size        = 5
 local triple_canfield               = Sol.copy(canfield)
 triple_canfield.Info.Name           = "Triple Canfield"
 triple_canfield.Info.DeckCount      = 3
-triple_canfield.Stock.Initial       = ops.Initial.face_down(122)
-triple_canfield.Reserve.Initial     = ops.Initial.top_face_up(26)
+triple_canfield.Stock.Initial       = Sol.Initial.face_down(122)
+triple_canfield.Reserve.Initial     = Sol.Initial.top_face_up(26)
 triple_canfield.Foundation.Size     = 12
 triple_canfield.Tableau.Size        = 7
 
@@ -75,8 +71,8 @@ triple_canfield.Tableau.Size        = 7
 local quadruple_canfield            = Sol.copy(canfield)
 quadruple_canfield.Info.Name        = "Quadruple Canfield"
 quadruple_canfield.Info.DeckCount   = 4
-quadruple_canfield.Stock.Initial    = ops.Initial.face_down(160)
-quadruple_canfield.Reserve.Initial  = ops.Initial.top_face_up(39)
+quadruple_canfield.Stock.Initial    = Sol.Initial.face_down(160)
+quadruple_canfield.Reserve.Initial  = Sol.Initial.top_face_up(39)
 quadruple_canfield.Foundation.Size  = 16
 quadruple_canfield.Tableau.Size     = 8
 
@@ -84,7 +80,7 @@ quadruple_canfield.Tableau.Size     = 8
 
 local superior_canfield             = Sol.copy(canfield)
 superior_canfield.Info.Name         = "Superior Canfield"
-superior_canfield.Reserve.Initial   = ops.Initial.face_up(13)
+superior_canfield.Reserve.Initial   = Sol.Initial.face_up(13)
 superior_canfield.on_end_turn       = nil
 
 ------
@@ -92,7 +88,7 @@ superior_canfield.on_end_turn       = nil
 local variegated_canfield           = Sol.copy(double_canfield)
 variegated_canfield.Info.Name       = "Variegated Canfield"
 variegated_canfield.Info.Redeals    = 2
-variegated_canfield.Reserve.Initial = ops.Initial.face_up(13)
+variegated_canfield.Reserve.Initial = Sol.Initial.face_up(13)
 
 ------
 
@@ -100,14 +96,14 @@ local acme                          = Sol.copy(canfield)
 acme.Info.Name                      = "Acme"
 acme.Info.CardDealCount             = 1
 acme.Info.Redeals                   = 1
-acme.Stock.Initial                  = ops.Initial.face_down(31)
-acme.Foundation.Pile                = { Rule = rules.ace_upsuit_none }
+acme.Stock.Initial                  = Sol.Initial.face_down(31)
+acme.Foundation.Pile                = { Rule = Sol.Rules.ace_upsuit_none }
 acme.Tableau.Pile                   = {
-    Initial = ops.Initial.face_up(1),
+    Initial = Sol.Initial.face_up(1),
     Layout = "Column",
-    Rule = rules.any_downsuit_top
+    Rule = Sol.Rules.any_downsuit_top
 }
-acme.on_before_shuffle              = ops.Shuffle.ace_to_foundation
+acme.on_before_shuffle              = Sol.Ops.Shuffle.ace_to_foundation
 
 ------
 
@@ -116,18 +112,18 @@ american_toad.Info.Name             = "American Toad"
 american_toad.Info.DeckCount        = 2
 american_toad.Info.CardDealCount    = 1
 american_toad.Info.Redeals          = 1
-american_toad.Stock.Initial         = ops.Initial.face_down(75)
+american_toad.Stock.Initial         = Sol.Initial.face_down(75)
 american_toad.Reserve               = {
-    Initial = ops.Initial.face_up(20),
+    Initial = Sol.Initial.face_up(20),
     Layout = "Column"
 }
 american_toad.Foundation.Size       = 8
 american_toad.Tableau               = {
     Size = 8,
     Pile = {
-        Initial = ops.Initial.face_up(1),
+        Initial = Sol.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Base = rules.Base.Any(), Build = rules.Build.DownInSuit(true), Move = rules.Move.TopOrPile() }
+        Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownInSuit(true), Move = Sol.Rules.Move.TopOrPile() }
     }
 }
 
@@ -138,17 +134,17 @@ chameleon.Info.Name                 = "Chameleon"
 chameleon.Info.DeckCount            = 1
 chameleon.Info.CardDealCount        = 1
 chameleon.Info.Redeals              = 0
-chameleon.Stock.Initial             = ops.Initial.face_down(36)
+chameleon.Stock.Initial             = Sol.Initial.face_down(36)
 chameleon.Reserve.Pile              = {
-    Initial = ops.Initial.top_face_up(12),
+    Initial = Sol.Initial.top_face_up(12),
     Layout = "Column"
 }
 chameleon.Tableau                   = {
     Size = 3,
     Pile = {
-        Initial = ops.Initial.face_up(1),
+        Initial = Sol.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Base = rules.Base.Any(), Build = rules.Build.DownByRank(true), Move = rules.Move.TopOrPile() }
+        Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.TopOrPile() }
     }
 }
 
@@ -157,18 +153,18 @@ chameleon.Tableau                   = {
 local demon                         = Sol.copy(canfield)
 demon.Info.Name                     = "Demon"
 demon.Info.DeckCount                = 2
-demon.Stock.Initial                 = ops.Initial.face_down(55)
+demon.Stock.Initial                 = Sol.Initial.face_down(55)
 demon.Reserve.Pile                  = {
-    Initial = ops.Initial.top_face_up(40),
+    Initial = Sol.Initial.top_face_up(40),
     Layout = "Column"
 }
 demon.Foundation.Size               = 8
 demon.Tableau                       = {
     Size = 8,
     Pile = {
-        Initial = ops.Initial.face_up(1),
+        Initial = Sol.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Base = rules.Base.Any(), Build = rules.Build.DownAlternateColors(true), Move = rules.Move.InSeq() }
+        Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.InSeq() }
     }
 }
 
@@ -188,12 +184,12 @@ local eagle_wing                    = {
     },
     Stock       = {
         Position = { x = 0, y = 0 },
-        Initial = ops.Initial.face_down(30)
+        Initial = Sol.Initial.face_down(30)
     },
     Waste       = { Position = { x = 1, y = 0 } },
     Reserve     = {
         Position = { x = 4, y = 2 },
-        Initial = ops.Initial.face_down(13),
+        Initial = Sol.Initial.face_down(13),
         Layout = "Squared"
     },
     Foundation  = {
@@ -201,8 +197,8 @@ local eagle_wing                    = {
         Pile = function(i)
             return {
                 Position = { x = i + 3, y = 0 },
-                Initial = ops.Initial.face_up(i == 0 and 1 or 0),
-                Rule = rules.ff_upsuit_none_l13
+                Initial = Sol.Initial.face_up(i == 0 and 1 or 0),
+                Rule = Sol.Rules.ff_upsuit_none_l13
             }
         end
     },
@@ -211,18 +207,18 @@ local eagle_wing                    = {
         Pile = function(i)
             return {
                 Position = { x = eagle_wing_pos[i + 1][1], y = eagle_wing_pos[i + 1][2] },
-                Initial = ops.Initial.face_up(1),
+                Initial = Sol.Initial.face_up(1),
                 Layout = "Column",
-                Rule = { Base = rules.Base.None(), Build = rules.Build.DownInSuit(true), Move = rules.Move.Top(), Limit = 3 }
+                Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.DownInSuit(true), Move = Sol.Rules.Move.Top(), Limit = 3 }
             }
         end
     },
     on_end_turn = function(game)
-        ops.Deal.to_group(game.Reserve[1], game.Tableau, true)
+        Sol.Ops.Deal.to_group(game.Reserve[1], game.Tableau, true)
         game.Reserve[1]:flip_down_top_card()
     end,
-    on_redeal   = ops.Redeal.waste_to_stock,
-    on_deal     = ops.Deal.stock_to_waste
+    on_redeal   = Sol.Ops.Redeal.waste_to_stock,
+    on_deal     = Sol.Ops.Deal.stock_to_waste
 }
 
 ------
@@ -231,18 +227,18 @@ local minerva                       = Sol.copy(canfield)
 minerva.Info.Name                   = "Minerva"
 minerva.Info.CardDealCount          = 1
 minerva.Info.Redeals                = 1
-minerva.Stock.Initial               = ops.Initial.face_down(13)
+minerva.Stock.Initial               = Sol.Initial.face_down(13)
 minerva.Reserve.Pile                = {
-    Initial = ops.Initial.top_face_up(11),
+    Initial = Sol.Initial.top_face_up(11),
     Layout = "Column"
 }
-minerva.Foundation.Pile             = { Rule = { Base = rules.Base.Ace(), Build = rules.Build.UpInSuit(), Move = rules.Move.None() } }
+minerva.Foundation.Pile             = { Rule = { Base = Sol.Rules.Base.Ace(), Build = Sol.Rules.Build.UpInSuit(), Move = Sol.Rules.Move.None() } }
 minerva.Tableau                     = {
     Size = 7,
     Pile = {
-        Initial = ops.Initial.alternate(4, false),
+        Initial = Sol.Initial.alternate(4, false),
         Layout = "Column",
-        Rule = rules.king_downac_inseq
+        Rule = Sol.Rules.king_downac_inseq
     }
 }
 minerva.on_end_turn                 = nil
@@ -252,9 +248,9 @@ minerva.on_end_turn                 = nil
 local munger                        = Sol.copy(minerva)
 munger.Info.Name                    = "Munger"
 munger.Info.Redeals                 = 0
-munger.Stock.Initial                = ops.Initial.face_down(17)
+munger.Stock.Initial                = Sol.Initial.face_down(17)
 munger.Reserve.Pile                 = {
-    Initial = ops.Initial.top_face_up(7),
+    Initial = Sol.Initial.top_face_up(7),
     Layout = "Column"
 }
 
@@ -263,17 +259,17 @@ munger.Reserve.Pile                 = {
 local mystique                      = Sol.copy(minerva)
 mystique.Info.Name                  = "Mystique"
 mystique.Info.Redeals               = 0
-mystique.Stock.Initial              = ops.Initial.face_down(15)
+mystique.Stock.Initial              = Sol.Initial.face_down(15)
 mystique.Reserve.Pile               = {
-    Initial = ops.Initial.top_face_up(9),
+    Initial = Sol.Initial.top_face_up(9),
     Layout = "Column"
 }
 mystique.Tableau                    = {
     Size = 7,
     Pile = {
-        Initial = ops.Initial.alternate(4, false),
+        Initial = Sol.Initial.alternate(4, false),
         Layout = "Column",
-        Rule = rules.any_downac_inseq
+        Rule = Sol.Rules.any_downac_inseq
     }
 }
 
@@ -284,9 +280,9 @@ rainbow.Info.Name                   = "Rainbow"
 rainbow.Info.CardDealCount          = 1
 rainbow.Info.Redeals                = 0
 rainbow.Tableau.Pile                = {
-    Initial = ops.Initial.face_up(1),
+    Initial = Sol.Initial.face_up(1),
     Layout = "Column",
-    Rule = { Base = rules.Base.Any(), Build = rules.Build.DownByRank(true), Move = rules.Move.TopOrPile() }
+    Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.TopOrPile() }
 }
 
 ------
@@ -303,9 +299,9 @@ storehouse.Info.Name                = "Storehouse"
 storehouse.Info.CardDealCount       = 1
 storehouse.Info.Redeals             = 2
 storehouse.Tableau.Pile             = {
-    Initial = ops.Initial.face_up(1),
+    Initial = Sol.Initial.face_up(1),
     Layout = "Column",
-    Rule = { Base = rules.Base.Any(), Build = rules.Build.DownInSuit(true), Move = rules.Move.TopOrPile() }
+    Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownInSuit(true), Move = Sol.Rules.Move.TopOrPile() }
 }
 
 ------

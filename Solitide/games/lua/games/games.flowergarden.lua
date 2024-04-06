@@ -3,10 +3,6 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local ops   = require 'base/ops'
-local rules = require 'base/rules'
-
-
 local flower_garden           = {
     Info             = {
         Name          = "Flower Garden",
@@ -18,21 +14,21 @@ local flower_garden           = {
     Reserve          = {
         Size = 16,
         Pile = {
-            Initial = ops.Initial.face_up(1),
+            Initial = Sol.Initial.face_up(1),
             Layout = "Squared",
-            Rule = rules.none_none_top
+            Rule = Sol.Rules.none_none_top
         }
     },
     Foundation       = {
         Size = 4,
-        Pile = { Rule = rules.ace_upsuit_top }
+        Pile = { Rule = Sol.Rules.ace_upsuit_top }
     },
     Tableau          = {
         Size = 6,
         Pile = {
-            Initial = ops.Initial.face_up(6),
+            Initial = Sol.Initial.face_up(6),
             Layout = "Column",
-            Rule = rules.any_downrank_top
+            Rule = Sol.Rules.any_downrank_top
         }
     },
     on_piles_created = function(game) Sol.Layout.raglan(game, 4) end
@@ -46,9 +42,9 @@ northwest_territory.Tableau   = {
     Size = 8,
     Pile = function(i)
         return {
-            Initial = ops.Initial.top_face_up(i + 1),
+            Initial = Sol.Initial.top_face_up(i + 1),
             Layout = "Column",
-            Rule = rules.king_downac_inseq
+            Rule = Sol.Rules.king_downac_inseq
         }
     end
 }
@@ -60,9 +56,9 @@ artic_garden.Info.Name        = "Artic Garden"
 artic_garden.Tableau.Pile     =
     function(i)
         return {
-            Initial = ops.Initial.face_up(i + 1),
+            Initial = Sol.Initial.face_up(i + 1),
             Layout = "Column",
-            Rule = rules.king_downac_inseq
+            Rule = Sol.Rules.king_downac_inseq
         }
     end
 
@@ -71,15 +67,15 @@ artic_garden.Tableau.Pile     =
 local stonewall               = Sol.copy(flower_garden)
 stonewall.Info.Name           = "Stonewall"
 stonewall.Tableau.Pile        = {
-    Initial = ops.Initial.alternate(6, false),
+    Initial = Sol.Initial.alternate(6, false),
     Layout = "Column",
-    Rule = rules.any_downac_inseq
+    Rule = Sol.Rules.any_downac_inseq
 }
 ------
 
 local wildflower              = Sol.copy(flower_garden)
 wildflower.Info.Name          = "Wildflower"
-wildflower.Tableau.Pile.Rule  = rules.spider
+wildflower.Tableau.Pile.Rule  = Sol.Rules.spider
 
 ------
 

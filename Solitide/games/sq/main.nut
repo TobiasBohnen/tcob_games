@@ -3,6 +3,9 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
+Sol.Rules <- require("rules")
+Sol.Ops <- require("ops")
+
 function Sol::copy(obj) {
     switch (typeof(obj)) {
         case "table":
@@ -57,7 +60,6 @@ function Sol::get_rank(r, interval, wrap) {
     return Sol.Ranks[target]
 }
 
-
 function Sol::shuffle_tableau(game) {
     local cards = []
 
@@ -70,4 +72,37 @@ function Sol::shuffle_tableau(game) {
     }
 
     return game.shuffle_cards(cards)
+}
+
+Sol.Initial <- {
+    top_face_up = function(size) {
+        local retValue = []
+        for (local i = 0; i < size - 1; i += 1) {
+            retValue.append(false)
+        }
+        retValue.append(true)
+        return retValue
+    },
+    face_up = function(size) {
+        local retValue = []
+        for (local i = 0; i < size; i += 1) {
+            retValue.append(true)
+        }
+        return retValue
+    },
+    face_down = function(size) {
+        local retValue = []
+        for (local i = 0; i < size; i += 1) {
+            retValue.append(false)
+        }
+        return retValue
+    },
+    alternate = function(size, first) {
+        local retValue = []
+        for (local i = 0; i < size; i += 1) {
+            retValue.append(first)
+            first = !first
+        }
+        return retValue
+    }
 }

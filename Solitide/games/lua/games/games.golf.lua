@@ -3,10 +3,6 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local ops   = require 'base/ops'
-local rules = require 'base/rules'
-
-
 local function golf_check_state(game)
     local foundation = game.Foundation
     if foundation[1].IsEmpty then return "Running" end
@@ -42,23 +38,23 @@ local golf                                = {
         Redeals       = 0
     },
     Stock            = {
-        Initial = ops.Initial.face_down(16)
+        Initial = Sol.Initial.face_down(16)
     },
     Foundation       = {
-        Initial = ops.Initial.face_up(1),
+        Initial = Sol.Initial.face_up(1),
         Layout  = "Squared",
-        Rule    = { Base = rules.Base.None(), Build = rules.Build.UpOrDownByRank(), Move = rules.Move.None() }
+        Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpOrDownByRank(), Move = Sol.Rules.Move.None() }
     },
     Tableau          = {
         Size = 7,
         Pile = {
-            Initial = ops.Initial.face_up(5),
+            Initial = Sol.Initial.face_up(5),
             Layout = "Column",
-            Rule = { Base = rules.Base.None(), Build = rules.Build.None(), Move = rules.Move.Top() }
+            Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
         }
     },
     on_deal          = function(game)
-        return ops.Deal.to_pile(game.Stock[1], game.Foundation[1], game.CardDealCount)
+        return Sol.Ops.Deal.to_pile(game.Stock[1], game.Foundation[1], game.CardDealCount)
     end,
     check_state      = golf_check_state,
     on_piles_created = Sol.Layout.golf
@@ -69,18 +65,18 @@ local golf                                = {
 local double_golf                         = Sol.copy(golf)
 double_golf.Info.Name                     = "Double Golf"
 double_golf.Info.DeckCount                = 2
-double_golf.Stock.Initial                 = ops.Initial.face_down(40)
+double_golf.Stock.Initial                 = Sol.Initial.face_down(40)
 double_golf.Tableau.Size                  = 9
-double_golf.Tableau.Pile.Initial          = ops.Initial.top_face_up(7)
+double_golf.Tableau.Pile.Initial          = Sol.Initial.top_face_up(7)
 
 ------
 
 local putt_putt                           = Sol.copy(golf)
 putt_putt.Info.Name                       = "Putt Putt"
 putt_putt.Foundation                      = {
-    Initial = ops.Initial.face_up(1),
+    Initial = Sol.Initial.face_up(1),
     Layout  = "Squared",
-    Rule    = { Base = rules.Base.None, Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.None() }
+    Rule    = { Base = Sol.Rules.Base.None, Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.None() }
 }
 
 ------
@@ -88,9 +84,9 @@ putt_putt.Foundation                      = {
 local double_putt                         = Sol.copy(putt_putt)
 double_putt.Info.Name                     = "Double Putt"
 double_putt.Info.DeckCount                = 2
-double_putt.Stock.Initial                 = ops.Initial.face_down(40)
+double_putt.Stock.Initial                 = Sol.Initial.face_down(40)
 double_putt.Tableau.Size                  = 9
-double_putt.Tableau.Pile.Initial          = ops.Initial.top_face_up(7)
+double_putt.Tableau.Pile.Initial          = Sol.Initial.top_face_up(7)
 
 ------
 
@@ -104,14 +100,14 @@ local all_in_a_row                        = {
     },
     Foundation       = {
         Layout = "Squared",
-        Rule   = { Base = rules.Base.Any(), Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.None() }
+        Rule   = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.None() }
     },
     Tableau          = {
         Size = 13,
         Pile = {
-            Initial = ops.Initial.face_up(4),
+            Initial = Sol.Initial.face_up(4),
             Layout = "Column",
-            Rule = { Base = rules.Base.None(), Build = rules.Build.None(), Move = rules.Move.Top() }
+            Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
         }
     },
     on_piles_created = Sol.Layout.golf
@@ -135,16 +131,16 @@ local black_hole                          = {
     },
     Foundation        = {
         Position = { x = 4, y = 1.5 },
-        Rule     = { Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.None() }
+        Rule     = { Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.None() }
     },
     Tableau           = {
         Size = 17,
         Pile = function(i)
             return {
                 Position = { x = black_hole_pos[i + 1][1], y = black_hole_pos[i + 1][2] },
-                Initial = ops.Initial.face_up(3),
+                Initial = Sol.Initial.face_up(3),
                 Layout = "Row",
-                Rule = { Build = rules.Build.None() }
+                Rule = { Build = Sol.Rules.Build.None() }
             }
         end
     },
@@ -169,19 +165,19 @@ local dolphin                             = {
     },
     FreeCell = {
         Size = 4,
-        Pile = { Rule = rules.any_none_top }
+        Pile = { Rule = Sol.Rules.any_none_top }
     },
     Foundation = {
         Layout = "Squared",
-        Rule   = { Base = rules.Base.Any(), Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.Top() }
+        Rule   = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.Top() }
     },
     Tableau = {
         Size = 8,
         Pile = function(i)
             return {
-                Initial = ops.Initial.face_up(i < 4 and 7 or 6),
+                Initial = Sol.Initial.face_up(i < 4 and 7 or 6),
                 Layout = "Column",
-                Rule = { Base = rules.Base.None(), Build = rules.Build.None(), Move = rules.Move.Top() }
+                Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
             }
         end
     },
@@ -198,9 +194,9 @@ double_dolphin.Tableau                    = {
     Size = 10,
     Pile = function(i)
         return {
-            Initial = ops.Initial.face_up(i < 4 and 11 or 10),
+            Initial = Sol.Initial.face_up(i < 4 and 11 or 10),
             Layout = "Column",
-            Rule = { Base = rules.Base.None(), Build = rules.Build.None(), Move = rules.Move.Top() }
+            Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
         }
     end
 }
@@ -217,15 +213,15 @@ local flake                               = {
     },
     Foundation = {
         Layout = "Squared",
-        Rule   = { Base = rules.Base.Any(), Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.None() }
+        Rule   = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.None() }
     },
     Tableau = {
         Size = 6,
         Pile = function(i)
             return {
-                Initial = ops.Initial.face_up(i < 4 and 9 or 8),
+                Initial = Sol.Initial.face_up(i < 4 and 9 or 8),
                 Layout = "Column",
-                Rule = { Base = rules.Base.Any(), Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.Top() }
+                Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.Top() }
             }
         end
     },
@@ -240,9 +236,9 @@ flake_2_decks.Info.DeckCount              = 2
 flake_2_decks.Tableau                     = {
     Size = 8,
     Pile = {
-        Initial = ops.Initial.face_up(13),
+        Initial = Sol.Initial.face_up(13),
         Layout = "Column",
-        Rule = { Base = rules.Base.Any(), Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.Top() }
+        Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.Top() }
     }
 }
 
@@ -258,19 +254,19 @@ local robert                              = {
     },
     Stock      = {
         Position = { x = 0, y = 1 },
-        Initial = ops.Initial.face_down(51)
+        Initial = Sol.Initial.face_down(51)
     },
     Waste      = {
         Position = { x = 1, y = 1 }
     },
     Foundation = {
         Position = { x = 0.5, y = 0 },
-        Initial  = ops.Initial.face_up(1),
+        Initial  = Sol.Initial.face_up(1),
         Layout   = "Squared",
-        Rule     = { Base = rules.Base.None(), Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.None() }
+        Rule     = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.None() }
     },
-    on_deal    = ops.Deal.stock_to_waste,
-    on_redeal  = ops.Redeal.waste_to_stock
+    on_deal    = Sol.Ops.Deal.stock_to_waste,
+    on_redeal  = Sol.Ops.Redeal.waste_to_stock
 }
 
 ------
@@ -289,9 +285,9 @@ bobby.Foundation                          = {
     Pile = function(i)
         return {
             Position = { x = i, y = 0 },
-            Initial  = ops.Initial.face_up(1 - i),
+            Initial  = Sol.Initial.face_up(1 - i),
             Layout   = "Squared",
-            Rule     = { Base = rules.Base.Any(), Build = rules.Build.UpOrDownByRank(true), Move = rules.Move.None() }
+            Rule     = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.None() }
         }
     end
 }
@@ -317,7 +313,7 @@ local uintah                              = {
     },
     Stock             = {
         Position = { x = 1, y = 1 },
-        Initial = ops.Initial.face_down(48)
+        Initial = Sol.Initial.face_down(48)
     },
     Waste             = {
         Position = { x = 2, y = 1 }
@@ -328,12 +324,12 @@ local uintah                              = {
             return {
                 Position = { x = i, y = 0 },
                 Layout   = "Squared",
-                Rule     = { Base = rules.Base.None(), Build = rules.Build.UpOrDownInColor(true), Move = rules.Move.None() }
+                Rule     = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpOrDownInColor(true), Move = Sol.Rules.Move.None() }
             }
         end
     },
-    on_deal           = ops.Deal.stock_to_waste,
-    on_redeal         = ops.Redeal.waste_to_stock,
+    on_deal           = Sol.Ops.Deal.stock_to_waste,
+    on_redeal         = Sol.Ops.Redeal.waste_to_stock,
     on_before_shuffle = function(game, card)
         if card.Suit == "Clubs" then
             return game.PlaceTop(card, game.Foundation[1], true)
@@ -358,7 +354,7 @@ double_uintah.Info.Name                   = "Double Uintah"
 double_uintah.Info.DeckCount              = 2
 double_uintah.Stock                       = {
     Position = { x = 3, y = 1 },
-    Initial = ops.Initial.face_down(96)
+    Initial = Sol.Initial.face_down(96)
 }
 double_uintah.Waste                       = { Position = { x = 4, y = 1 } }
 double_uintah.Foundation.Size             = 8

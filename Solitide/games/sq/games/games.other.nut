@@ -3,9 +3,6 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-local ops = require("base/ops")
-local rules = require("base/rules")
-
 local aces_up = {
     Info = {
         Name = "Aces Up",
@@ -15,22 +12,22 @@ local aces_up = {
         Redeals = 0
     },
     Stock = {
-        Initial = ops.Initial.face_down(48)
+        Initial = Sol.Initial.face_down(48)
     },
     Foundation = {
         Rule = {
-            Move = rules.Move.None()
+            Move = Sol.Rules.Move.None()
         }
     },
     Tableau = {
         Size = 4,
         Pile = @(i) {
-            Initial = ops.Initial.face_up(1),
+            Initial = Sol.Initial.face_up(1),
                 Layout = "Column",
                 Rule = {
-                    Base = rules.Base.Any(),
-                    Build = rules.Build.None(),
-                    Move = rules.Move.Top()
+                    Base = Sol.Rules.Base.Any(),
+                    Build = Sol.Rules.Build.None(),
+                    Move = Sol.Rules.Move.Top()
                 }
         }
     },
@@ -76,7 +73,7 @@ local aces_up = {
 
         return "Running"
     },
-    on_deal = @(game) ops.Deal.to_group(game.Stock[0], game.Tableau, false),
+    on_deal = @(game) Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, false),
     on_piles_created = @(game) Lua.Sol.Layout.klondike(game)
 }
 
@@ -84,7 +81,7 @@ local aces_up = {
 
 local aces_up_5 = Sol.copy(aces_up)
 aces_up_5.Info.Name = "Aces Up 5"
-aces_up_5.Stock.Initial = ops.Initial.face_down(47)
+aces_up_5.Stock.Initial = Sol.Initial.face_down(47)
 aces_up_5.Tableau.Size = 5
 
 # # # # # # # #
@@ -102,7 +99,7 @@ local aces_square = {
             x = 4.5,
             y = 2
         },
-        Initial = ops.Initial.face_down(36)
+        Initial = Sol.Initial.face_down(36)
     },
     Foundation = {
         Position = {
@@ -110,7 +107,7 @@ local aces_square = {
             y = 0
         },
         Rule = {
-            Move = rules.Move.None()
+            Move = Sol.Rules.Move.None()
         }
     },
     Tableau = {
@@ -120,12 +117,12 @@ local aces_square = {
                     x = i % 4,
                     y = i / 4
                 },
-                Initial = ops.Initial.face_up(1),
+                Initial = Sol.Initial.face_up(1),
                 Layout = "Column",
                 Rule = {
-                    Base = rules.Base.None(),
-                    Build = rules.Build.None(),
-                    Move = rules.Move.Top()
+                    Base = Sol.Rules.Base.None(),
+                    Build = Sol.Rules.Build.None(),
+                    Move = Sol.Rules.Move.Top()
                 }
         }
     },
@@ -177,7 +174,7 @@ local aces_square = {
             }
         }
 
-        ops.Deal.to_group(game.Stock[0], game.Tableau, true)
+        Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, true)
     }
 }
 
@@ -199,9 +196,9 @@ local aglet = {
             },
             Layout = "Column",
             Rule = {
-                Base = rules.Base.Any(),
-                Build = rules.Build.Any(),
-                Move = rules.Move.Top()
+                Base = Sol.Rules.Base.Any(),
+                Build = Sol.Rules.Build.Any(),
+                Move = Sol.Rules.Move.Top()
             }
         }
     },
@@ -213,9 +210,9 @@ local aglet = {
                     y = 0
                 },
                 Rule = {
-                    Base = rules.Base.Ace(),
-                    Build = rules.Build.UpByRank(),
-                    Move = rules.Move.Top()
+                    Base = Sol.Rules.Base.Ace(),
+                    Build = Sol.Rules.Build.UpByRank(),
+                    Move = Sol.Rules.Move.Top()
                 }
         }
     },
@@ -226,16 +223,16 @@ local aglet = {
                     x = i + 1,
                     y = 1
                 },
-                Initial = ops.Initial.face_up(6),
+                Initial = Sol.Initial.face_up(6),
                 Layout = "Column",
                 Rule = {
-                    Base = rules.Base.None(),
-                    Build = rules.Build.None(),
-                    Move = rules.Move.Top()
+                    Base = Sol.Rules.Base.None(),
+                    Build = Sol.Rules.Build.None(),
+                    Move = Sol.Rules.Move.Top()
                 }
         }
     },
-    on_before_shuffle = ops.Shuffle.ace_to_foundation
+    on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
 }
 
 # # # # # # # #
@@ -268,7 +265,7 @@ local four_seasons = {
             x = 1.5,
             y = 0
         },
-        Initial = ops.Initial.face_down(46)
+        Initial = Sol.Initial.face_down(46)
     },
     Waste = {
         Position = {
@@ -283,11 +280,11 @@ local four_seasons = {
                     x = four_seasons_fou_pos[i][0],
                     y = four_seasons_fou_pos[i][1]
                 },
-                Initial = ops.Initial.face_up(i == 0 ? 1 : 0),
+                Initial = Sol.Initial.face_up(i == 0 ? 1 : 0),
                 Rule = {
-                    Base = rules.Base.FirstFoundation(0),
-                    Build = rules.Build.UpInSuit(true),
-                    Move = rules.Move.None()
+                    Base = Sol.Rules.Base.FirstFoundation(0),
+                    Build = Sol.Rules.Build.UpInSuit(true),
+                    Move = Sol.Rules.Move.None()
                 }
         }
     },
@@ -298,17 +295,17 @@ local four_seasons = {
                     x = four_seasons_tab_pos[i][0],
                     y = four_seasons_tab_pos[i][1]
                 },
-                Initial = ops.Initial.face_up(1),
+                Initial = Sol.Initial.face_up(1),
                 Layout = "Squared",
                 Rule = {
-                    Base = rules.Base.Any(),
-                    Build = rules.Build.DownByRank(true),
-                    Move = rules.Move.Top()
+                    Base = Sol.Rules.Base.Any(),
+                    Build = Sol.Rules.Build.DownByRank(true),
+                    Move = Sol.Rules.Move.Top()
                 }
 
         }
     },
-    on_deal = ops.Deal.stock_to_waste
+    on_deal = Sol.Ops.Deal.stock_to_waste
 }
 
 # # # # # # # #

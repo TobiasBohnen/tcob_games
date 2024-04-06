@@ -3,10 +3,6 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local ops   = require 'base/ops'
-local rules = require 'base/rules'
-
-
 local montana_base <const>        = {
     redeal = function(game, ranks)
         local columns = #ranks + 1
@@ -130,9 +126,9 @@ local montana                     = {
         Size = 52,
         Pile = {
             Position = {},
-            Initial = ops.Initial.face_up(1),
+            Initial = Sol.Initial.face_up(1),
             Layout = "Squared",
-            Rule = rules.none_none_top
+            Rule = Sol.Rules.none_none_top
         }
     },
     on_shuffle       = function(_, card, _)
@@ -194,9 +190,9 @@ local blue_moon                   = {
         Size = 56,
         Pile = function(i)
             return {
-                Initial = ops.Initial.face_up(i % 14 == 0 and 0 or 1),
+                Initial = Sol.Initial.face_up(i % 14 == 0 and 0 or 1),
                 Layout = "Squared",
-                Rule = rules.none_none_top
+                Rule = Sol.Rules.none_none_top
             }
         end
     },
@@ -231,9 +227,9 @@ local red_moon                    = Sol.copy(blue_moon)
 red_moon.Info.Name                = "Red Moon"
 red_moon.Tableau.Pile             = function(i)
     return {
-        Initial = ops.Initial.face_up((i % 14 < 2) and 0 or 1),
+        Initial = Sol.Initial.face_up((i % 14 < 2) and 0 or 1),
         Layout = "Squared",
-        Rule = rules.none_none_top
+        Rule = Sol.Rules.none_none_top
     }
 end
 red_moon.on_before_shuffle        = blue_moon.on_shuffle
@@ -255,9 +251,9 @@ local galary                      = Sol.copy(blue_moon)
 galary.Info.Name                  = "Galary"
 galary.Tableau.Pile               = function(i)
     return {
-        Initial = ops.Initial.face_up((i % 14 == 0 or i % 14 == 1) and 0 or 1),
+        Initial = Sol.Initial.face_up((i % 14 == 0 or i % 14 == 1) and 0 or 1),
         Layout = "Squared",
-        Rule = rules.none_none_top
+        Rule = Sol.Rules.none_none_top
     }
 end
 galary.on_before_shuffle          = function(game, card)
@@ -286,9 +282,9 @@ local paganini                    = {
         Size = 40,
         Pile = function(i)
             return {
-                Initial = ops.Initial.face_up(i % 10 == 0 and 0 or 1),
+                Initial = Sol.Initial.face_up(i % 10 == 0 and 0 or 1),
                 Layout = "Squared",
-                Rule = rules.none_none_top
+                Rule = Sol.Rules.none_none_top
             }
         end
     },
@@ -328,20 +324,20 @@ local spoilt                      = {
     },
     Stock          = {
         Position = { x = 0, y = 1 },
-        Initial = ops.Initial.face_down(3)
+        Initial = Sol.Initial.face_down(3)
     },
     Waste          = {
         Position = { x = 0, y = 2 },
-        Initial = ops.Initial.face_up(1)
+        Initial = Sol.Initial.face_up(1)
     },
     Tableau        = {
         Size = 32,
         Pile = function(i)
             return {
                 Position = { x = i % 8 + 1, y = i // 8 },
-                Initial = ops.Initial.face_down(i % 8 == 0 and 0 or 1),
+                Initial = Sol.Initial.face_down(i % 8 == 0 and 0 or 1),
                 Layout = "Squared",
-                Rule = rules.none_none_none
+                Rule = Sol.Rules.none_none_none
             }
         end
     },
@@ -363,7 +359,7 @@ local spoilt                      = {
             end
         else
             if not game.Stock[1].IsEmpty and game.Waste[1].IsEmpty then
-                ops.Deal.stock_to_waste(game)
+                Sol.Ops.Deal.stock_to_waste(game)
             end
         end
     end,

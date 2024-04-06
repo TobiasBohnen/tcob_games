@@ -55,7 +55,7 @@ The Info table contains basic information about the game.
    1) For a single pile, the **table** is in the form of [Pile](#pile).
 
       ```lua
-      Stock = { Initial = ops.Initial.face_down(80) }
+      Stock = { Initial = Sol.Initial.face_down(80) }
       ```
 
    2) For multiple identical piles, define a **table** with the following member:
@@ -66,7 +66,7 @@ The Info table contains basic information about the game.
       ```lua
       Foundation = {
          Size   = 8,
-         Pile = { Rule = rules.ace_upsuit_top }
+         Pile = { Rule = Sol.Rules.ace_upsuit_top }
       }
       ```
 
@@ -80,8 +80,8 @@ The Info table contains basic information about the game.
          Size   = 8,
          Pile = function(i)
             return {
-                  Initial = ops.Initial.face_up(i + 1),
-                  Rule = { Base = rules.Base.None(), Build = rules.Build.DownInColor(), Move = rules.Move.InSeq() }
+                  Initial = Sol.Initial.face_up(i + 1),
+                  Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.DownInColor(), Move = Sol.Rules.Move.InSeq() }
             }
          end
       }

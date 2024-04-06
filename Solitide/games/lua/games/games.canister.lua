@@ -3,10 +3,6 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local ops   = require 'base/ops'
-local rules = require 'base/rules'
-
-
 local canister                 = {
     Info             = {
         Name          = "Canister",
@@ -17,15 +13,15 @@ local canister                 = {
     },
     Foundation       = {
         Size = 4,
-        Pile = { Rule = rules.ace_upsuit_none }
+        Pile = { Rule = Sol.Rules.ace_upsuit_none }
     },
     Tableau          = {
         Size = 8,
         Pile = function(i)
             return {
-                Initial = ops.Initial.face_up((i < 2 or i >= 6) and 6 or 7),
+                Initial = Sol.Initial.face_up((i < 2 or i >= 6) and 6 or 7),
                 Layout = "Column",
-                Rule = { Base = rules.Base.Any(), Build = rules.Build.DownByRank(), Move = rules.Move.InSeq() }
+                Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.InSeq() }
             }
         end
     },
@@ -38,9 +34,9 @@ local american_canister        = Sol.copy(canister)
 american_canister.Info.Name    = "American Canister"
 american_canister.Tableau.Pile = function(i)
     return {
-        Initial = ops.Initial.face_up((i < 2 or i >= 6) and 6 or 7),
+        Initial = Sol.Initial.face_up((i < 2 or i >= 6) and 6 or 7),
         Layout = "Column",
-        Rule = rules.any_downac_inseq
+        Rule = Sol.Rules.any_downac_inseq
     }
 end
 
@@ -50,9 +46,9 @@ local british_canister         = Sol.copy(canister)
 british_canister.Info.Name     = "British Canister"
 british_canister.Tableau.Pile  = function(i)
     return {
-        Initial = ops.Initial.face_up((i < 2 or i >= 6) and 6 or 7),
+        Initial = Sol.Initial.face_up((i < 2 or i >= 6) and 6 or 7),
         Layout = "Column",
-        Rule = rules.king_downac_top
+        Rule = Sol.Rules.king_downac_top
     }
 end
 

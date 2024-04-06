@@ -3,64 +3,62 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local ops   = require 'base/ops'
-local rules = require 'base/rules'
-
-
-ops.Initial.yukon                        = function(i)
-    if i == 0 then
-        return { true }
-    else
+local initial <const>                    = {
+    yukon              = function(i)
+        if i == 0 then
+            return { true }
+        else
+            local t = {}
+            for j = 1, i + 5 do
+                t[j] = j > i
+            end
+            return t
+        end
+    end,
+    double_yukon       = function(i)
         local t = {}
-        for j = 1, i + 5 do
-            t[j] = j > i
+        local ii = math.min(i, 8)
+        for j = 1, ii + 6 do
+            t[j] = j > ii
         end
         return t
-    end
-end
-ops.Initial.double_yukon                 = function(i)
-    local t = {}
-    local ii = math.min(i, 8)
-    for j = 1, ii + 6 do
-        t[j] = j > ii
-    end
-    return t
-end
-ops.Initial.triple_yukon                 = function(i)
-    local t = ops.Initial.face_down(i + 6)
-    for j = #t - 5, #t do
-        t[j] = true
-    end
-    return t
-end
-ops.Initial.quadruple_yukon              = function(i)
-    if i == 0 then
-        return { true }
-    elseif i <= 12 then
-        local t = ops.Initial.face_down(i + 6)
+    end,
+    triple_yukon       = function(i)
+        local t = Sol.Initial.face_down(i + 6)
         for j = #t - 5, #t do
             t[j] = true
         end
         return t
-    else
-        local t = ops.Initial.face_down(i + 5)
-        for j = #t - 4, #t do
-            t[j] = true
+    end,
+    quadruple_yukon    = function(i)
+        if i == 0 then
+            return { true }
+        elseif i <= 12 then
+            local t = Sol.Initial.face_down(i + 6)
+            for j = #t - 5, #t do
+                t[j] = true
+            end
+            return t
+        else
+            local t = Sol.Initial.face_down(i + 5)
+            for j = #t - 4, #t do
+                t[j] = true
+            end
+            return t
         end
-        return t
-    end
-end
-ops.Initial.chinese_discipline           = function(i)
-    if i < 3 then
-        return ops.Initial.face_up(7)
-    else
-        local t = ops.Initial.face_down(7)
-        for j = i, 7 do
-            t[j] = true
+    end,
+    chinese_discipline = function(i)
+        if i < 3 then
+            return Sol.Initial.face_up(7)
+        else
+            local t = Sol.Initial.face_down(7)
+            for j = i, 7 do
+                t[j] = true
+            end
+            return t
         end
-        return t
     end
-end
+}
 
 ------
 
@@ -74,15 +72,15 @@ local yukon                              = {
     },
     Foundation       = {
         Size = 4,
-        Pile = { Rule = rules.ace_upsuit_none }
+        Pile = { Rule = Sol.Rules.ace_upsuit_none }
     },
     Tableau          = {
         Size = 7,
         Pile = function(i)
             return {
-                Initial = ops.Initial.yukon(i),
+                Initial = initial.yukon(i),
                 Layout = "Column",
-                Rule = rules.king_downac_faceup
+                Rule = Sol.Rules.king_downac_faceup
             }
         end
     },
@@ -99,9 +97,9 @@ double_yukon.Tableau                     = {
     Size = 10,
     Pile = function(i)
         return {
-            Initial = ops.Initial.double_yukon(i),
+            Initial = initial.double_yukon(i),
             Layout = "Column",
-            Rule = rules.king_downac_faceup
+            Rule = Sol.Rules.king_downac_faceup
         }
     end
 }
@@ -116,9 +114,9 @@ triple_yukon.Tableau                     = {
     Size = 13,
     Pile = function(i)
         return {
-            Initial = ops.Initial.triple_yukon(i),
+            Initial = initial.triple_yukon(i),
             Layout = "Column",
-            Rule = rules.king_downac_faceup
+            Rule = Sol.Rules.king_downac_faceup
         }
     end
 }
@@ -133,9 +131,9 @@ quadruple_yukon.Tableau                  = {
     Size = 16,
     Pile = function(i)
         return {
-            Initial = ops.Initial.quadruple_yukon(i),
+            Initial = initial.quadruple_yukon(i),
             Layout = "Column",
-            Rule = rules.king_downac_faceup
+            Rule = Sol.Rules.king_downac_faceup
         }
     end
 }
@@ -146,9 +144,9 @@ local alaska                             = Sol.copy(yukon)
 alaska.Info.Name                         = "Alaska"
 alaska.Tableau.Pile                      = function(i)
     return {
-        Initial = ops.Initial.yukon(i),
+        Initial = initial.yukon(i),
         Layout = "Column",
-        Rule = { Base = rules.Base.King(), Build = rules.Build.UpOrDownInSuit(), Move = rules.Move.FaceUp() }
+        Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.UpOrDownInSuit(), Move = Sol.Rules.Move.FaceUp() }
     }
 end
 
@@ -170,7 +168,7 @@ brisbane.Tableau.Pile                    = function(i)
     return {
         Initial = brisbane_initial[i + 1],
         Layout = "Column",
-        Rule = { Base = rules.Base.King(), Build = rules.Build.DownByRank(), Move = rules.Move.FaceUp() }
+        Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.FaceUp() }
     }
 end
 
@@ -182,9 +180,9 @@ geoffrey.Tableau                         = {
     Size = 8,
     Pile = function(i)
         return {
-            Initial = i < 4 and ops.Initial.face_up(7) or { false, false, false, false, true, true },
+            Initial = i < 4 and Sol.Initial.face_up(7) or { false, false, false, false, true, true },
             Layout = "Column",
-            Rule = rules.king_downsuit_faceup
+            Rule = Sol.Rules.king_downsuit_faceup
         }
     end
 }
@@ -198,7 +196,7 @@ queensland.Tableau.Pile                  = function(i)
     return {
         Initial = brisbane_initial[i + 1],
         Layout = "Column",
-        Rule = rules.any_downsuit_faceup
+        Rule = Sol.Rules.any_downsuit_faceup
     }
 end
 
@@ -208,9 +206,9 @@ local roslin                             = Sol.copy(yukon)
 roslin.Info.Name                         = "Roslin"
 roslin.Tableau.Pile                      = function(i)
     return {
-        Initial = ops.Initial.yukon(i),
+        Initial = initial.yukon(i),
         Layout = "Column",
-        Rule = { Base = rules.Base.King(), Build = rules.Build.UpOrDownAlternateColors(), Move = rules.Move.FaceUp() }
+        Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.UpOrDownAlternateColors(), Move = Sol.Rules.Move.FaceUp() }
     }
 end
 
@@ -220,9 +218,9 @@ local moosehide                          = Sol.copy(yukon)
 moosehide.Info.Name                      = "Moosehide"
 moosehide.Tableau.Pile                   = function(i)
     return {
-        Initial = ops.Initial.yukon(i),
+        Initial = initial.yukon(i),
         Layout = "Column",
-        Rule = { Base = rules.Base.King(), Build = rules.Build.DownAnyButOwnSuit(), Move = rules.Move.FaceUp() }
+        Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownAnyButOwnSuit(), Move = Sol.Rules.Move.FaceUp() }
     }
 end
 
@@ -232,9 +230,9 @@ local russian_solitaire                  = Sol.copy(yukon)
 russian_solitaire.Info.Name              = "Russian Solitaire"
 russian_solitaire.Tableau.Pile           = function(i)
     return {
-        Initial = ops.Initial.yukon(i),
+        Initial = initial.yukon(i),
         Layout = "Column",
-        Rule = rules.king_downsuit_faceup
+        Rule = Sol.Rules.king_downsuit_faceup
     }
 end
 
@@ -248,9 +246,9 @@ double_russian_solitaire.Tableau         = {
     Size = 10,
     Pile = function(i)
         return {
-            Initial = ops.Initial.double_yukon(i),
+            Initial = initial.double_yukon(i),
             Layout = "Column",
-            Rule = rules.king_downsuit_faceup
+            Rule = Sol.Rules.king_downsuit_faceup
         }
     end
 }
@@ -265,9 +263,9 @@ triple_russian_solitaire.Tableau         = {
     Size = 13,
     Pile = function(i)
         return {
-            Initial = ops.Initial.triple_yukon(i),
+            Initial = initial.triple_yukon(i),
             Layout = "Column",
-            Rule = rules.king_downsuit_faceup
+            Rule = Sol.Rules.king_downsuit_faceup
         }
     end
 }
@@ -284,7 +282,7 @@ local hawaiian                           = {
     },
     Reserve    = {
         Position = { x = 0, y = 0 },
-        Initial  = ops.Initial.face_up(54),
+        Initial  = Sol.Initial.face_up(54),
         Layout   = "Squared"
     },
     Foundation = {
@@ -292,7 +290,7 @@ local hawaiian                           = {
         Pile = function(i)
             return {
                 Position = { x = i + 2, y = 0 },
-                Rule = rules.ace_upsuit_none
+                Rule = Sol.Rules.ace_upsuit_none
             }
         end
     },
@@ -301,9 +299,9 @@ local hawaiian                           = {
         Pile = function(i)
             return {
                 Position = { x = i, y = 1 },
-                Initial = ops.Initial.face_up(5),
+                Initial = Sol.Initial.face_up(5),
                 Layout = "Column",
-                Rule = rules.any_downac_faceup
+                Rule = Sol.Rules.any_downac_faceup
             }
         end
     }
@@ -320,23 +318,23 @@ local chinese_discipline                 = {
         Redeals       = 0
     },
     Stock            = {
-        Initial = ops.Initial.face_down(3)
+        Initial = Sol.Initial.face_down(3)
     },
     Foundation       = {
         Size = 4,
-        Pile = { Rule = rules.ace_upsuit_none }
+        Pile = { Rule = Sol.Rules.ace_upsuit_none }
     },
     Tableau          = {
         Size = 7,
         Pile = function(i)
             return {
-                Initial = ops.Initial.chinese_discipline(i),
+                Initial = initial.chinese_discipline(i),
                 Layout = "Column",
-                Rule = rules.king_downac_faceup
+                Rule = Sol.Rules.king_downac_faceup
             }
         end
     },
-    on_deal          = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end,
+    on_deal          = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, false) end,
     on_piles_created = Sol.Layout.klondike
 }
 
@@ -346,9 +344,9 @@ local chinese_solitaire                  = Sol.copy(chinese_discipline)
 chinese_solitaire.Info.Name              = "Chinese Solitaire"
 chinese_solitaire.Tableau.Pile           = function(i)
     return {
-        Initial = ops.Initial.chinese_discipline(i),
+        Initial = initial.chinese_discipline(i),
         Layout = "Column",
-        Rule = rules.any_downac_faceup
+        Rule = Sol.Rules.any_downac_faceup
     }
 end
 
@@ -364,23 +362,23 @@ local rushdike                           = {
         Redeals       = 0
     },
     Stock            = {
-        Initial = ops.Initial.face_down(24)
+        Initial = Sol.Initial.face_down(24)
     },
     Foundation       = {
         Size = 4,
-        Pile = { Rule = rules.ace_upsuit_none }
+        Pile = { Rule = Sol.Rules.ace_upsuit_none }
     },
     Tableau          = {
         Size = 7,
         Pile = function(i)
             return {
-                Initial = ops.Initial.top_face_up(i + 1),
+                Initial = Sol.Initial.top_face_up(i + 1),
                 Layout = "Column",
-                Rule = rules.king_downsuit_faceup
+                Rule = Sol.Rules.king_downsuit_faceup
             }
         end
     },
-    on_deal          = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end,
+    on_deal          = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, false) end,
     on_piles_created = Sol.Layout.klondike
 }
 
@@ -396,23 +394,23 @@ local queenie                            = {
         Redeals       = 0
     },
     Stock            = {
-        Initial = ops.Initial.face_down(24)
+        Initial = Sol.Initial.face_down(24)
     },
     Foundation       = {
         Size = 4,
-        Pile = { Rule = rules.ace_upsuit_none }
+        Pile = { Rule = Sol.Rules.ace_upsuit_none }
     },
     Tableau          = {
         Size = 7,
         Pile = function(i)
             return {
-                Initial = ops.Initial.face_up(i + 1),
+                Initial = Sol.Initial.face_up(i + 1),
                 Layout = "Column",
-                Rule = rules.king_downac_faceup
+                Rule = Sol.Rules.king_downac_faceup
             }
         end
     },
-    on_deal          = function(game) return ops.Deal.to_group(game.Stock[1], game.Tableau, false) end,
+    on_deal          = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, false) end,
     on_piles_created = Sol.Layout.klondike
 }
 
