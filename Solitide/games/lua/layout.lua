@@ -345,6 +345,8 @@ return {
 
         if piles.HasWaste then
             piles.Waste[1].Position = { x = 1, y = 0 }
+        else
+            offX = offX - 1
         end
 
         local foundationOffsetX = piles.TableauSize - piles.FoundationSize - offX

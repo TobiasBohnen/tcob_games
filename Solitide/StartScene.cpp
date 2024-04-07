@@ -67,7 +67,7 @@ void start_scene::on_start()
 {
     auto& resMgr {locate_service<assets::library>()};
     auto& resGrp {resMgr.create_or_get_group("solitaire")};
-    resGrp.mount("./solitaire.zip");
+    resGrp.mount("./solitide.zip");
     resMgr.load_all_groups();
 
     auto& window {get_window()};

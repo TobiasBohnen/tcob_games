@@ -164,6 +164,13 @@ churchill.on_piles_created               = Sol.Layout.canfield
 
 ------
 
+local pitt_the_younger                   = Sol.copy(churchill)
+pitt_the_younger.Info.Name               = "Pitt the Younger"
+pitt_the_younger.Stock.Initial           = Sol.Initial.face_down(63)
+pitt_the_younger.Reserve.Initial         = Sol.Initial.face_up(11)
+
+------
+
 local elba                               = Sol.copy(gypsy)
 elba.Info.Name                           = "Elba"
 elba.Info.CardDealCount                  = 10
@@ -304,6 +311,7 @@ millie.Tableau.Pile.Initial              = Sol.Initial.face_up(1)
 
 local lexington_harp                     = Sol.copy(gypsy)
 lexington_harp.Info.Name                 = "Lexington Harp"
+lexington_harp.Info.CardDealCount        = 8
 --lexington_harp.Info.Family = "Gypsy/Yukon"
 lexington_harp.Stock.Initial             = Sol.Initial.face_down(68)
 lexington_harp.Foundation.Pile.Rule      = Sol.Rules.ace_upsuit_none
@@ -360,6 +368,7 @@ end
 
 local mississippi                        = Sol.copy(lexington_harp)
 mississippi.Info.Name                    = "Mississippi"
+mississippi.Info.CardDealCount           = 7
 --milligan_harp.Info.Family = "Gypsy/Yukon"
 mississippi.Stock.Initial                = Sol.Initial.face_down(76)
 mississippi.Tableau                      = {
@@ -467,54 +476,18 @@ double_easthaven.Info.Name               = "Double Easthaven"
 double_easthaven.Info.DeckCount          = 2
 double_easthaven.Info.CardDealCount      = 8
 double_easthaven.Stock.Initial           = Sol.Initial.face_down(80)
+double_easthaven.Foundation.Size         = 8
 double_easthaven.Tableau.Size            = 8
 
 ------
 
-local miss_milligan                      = {
-    Info             = {
-        Name          = "Miss Milligan",
-        Family        = "Gypsy",
-        DeckCount     = 2,
-        CardDealCount = 8,
-        Redeals       = 0
-    },
-    Stock            = {
-        Initial = Sol.Initial.face_down(96)
-    },
-    FreeCell         = {
-        Layout = "Column",
-        Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.FaceUp() }
-    },
-    Foundation       = {
-        Size = 8,
-        Pile = { Rule = Sol.Rules.ace_upsuit_none }
-    },
-    Tableau          = {
-        Size = 8,
-        Pile = {
-            Initial = Sol.Initial.top_face_up(1),
-            Layout = "Column",
-            Rule = Sol.Rules.king_downac_inseq
-        }
-    },
-    check_playable   = function(game, targetPile, targetCardIndex, card, numCards)
-        -- FreeCell is usable if Stock is empty
-        if targetPile.Type == "FreeCell" and not game.Stock[1].IsEmpty then
-            return false
-        end
-
-        return game:can_play(targetPile, targetCardIndex, card, numCards)
-    end,
-    on_piles_created = Sol.Layout.canfield,
-    on_deal          = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
-}
-
-------
-
-local imperial_guards                    = Sol.copy(miss_milligan)
-imperial_guards.Info.Name                = "Imperial Guards"
-imperial_guards.Tableau.Pile.Rule        = Sol.Rules.any_downac_inseq
+local triple_easthaven                   = Sol.copy(easthaven)
+triple_easthaven.Info.Name               = "Triple Easthaven"
+triple_easthaven.Info.DeckCount          = 3
+triple_easthaven.Info.CardDealCount      = 12
+triple_easthaven.Stock.Initial           = Sol.Initial.face_down(120)
+triple_easthaven.Foundation.Size         = 12
+triple_easthaven.Tableau.Size            = 12
 
 ------
 
@@ -618,6 +591,131 @@ local milligan_cell                      = {
 
 ------
 
+local miss_milligan                      = {
+    Info             = {
+        Name          = "Miss Milligan",
+        Family        = "Gypsy",
+        DeckCount     = 2,
+        CardDealCount = 8,
+        Redeals       = 0
+    },
+    Stock            = {
+        Initial = Sol.Initial.face_down(96)
+    },
+    FreeCell         = {
+        Layout = "Column",
+        Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.FaceUp() }
+    },
+    Foundation       = {
+        Size = 8,
+        Pile = { Rule = Sol.Rules.ace_upsuit_none }
+    },
+    Tableau          = {
+        Size = 8,
+        Pile = {
+            Initial = Sol.Initial.top_face_up(1),
+            Layout = "Column",
+            Rule = Sol.Rules.king_downac_inseq
+        }
+    },
+    check_playable   = function(game, targetPile, targetCardIndex, card, numCards)
+        -- FreeCell is usable if Stock is empty
+        if targetPile.Type == "FreeCell" and not game.Stock[1].IsEmpty then
+            return false
+        end
+
+        return game:can_play(targetPile, targetCardIndex, card, numCards)
+    end,
+    on_piles_created = Sol.Layout.canfield,
+    on_deal          = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
+}
+
+------
+
+local imperial_guards                    = Sol.copy(miss_milligan)
+imperial_guards.Info.Name                = "Imperial Guards"
+imperial_guards.Tableau.Pile.Rule        = Sol.Rules.any_downac_inseq
+
+------
+
+local nomad                              = {
+    Info             = {
+        Name          = "Nomad",
+        Family        = "Gypsy",
+        DeckCount     = 2,
+        CardDealCount = 8,
+        Redeals       = 0
+    },
+    Stock            = {
+        Initial = Sol.Initial.face_down(72)
+    },
+    FreeCell         = {
+        Rule = Sol.Rules.any_none_top
+    },
+    Foundation       = {
+        Size = 8,
+        Pile = { Rule = Sol.Rules.ace_upsuit_top }
+    },
+    Tableau          = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Initial = Sol.Initial.face_up(4),
+                Layout = "Column",
+                Rule = Sol.Rules.any_downac_inseq
+            }
+        end
+    },
+    on_deal          = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, false) end,
+    on_piles_created = Sol.Layout.canfield
+}
+
+------
+
+local phantom_blockade                   = Sol.copy(gypsy)
+phantom_blockade.Info.Name               = "Phantom Blockade"
+phantom_blockade.Info.CardDealCount      = 13
+phantom_blockade.Stock.Initial           = Sol.Initial.face_down(65)
+phantom_blockade.Tableau                 = {
+    Size = 13,
+    Pile = {
+        Initial = Sol.Initial.face_up(3),
+        Layout = "Column",
+        Rule = Sol.Rules.king_downac_inseq
+    }
+}
+
+------
+
+local westhaven                          = {
+    Info             = {
+        Name          = "Westhaven",
+        Family        = "Gypsy",
+        DeckCount     = 1,
+        CardDealCount = 10,
+        Redeals       = 0
+    },
+    Stock            = {
+        Initial = Sol.Initial.face_down(22)
+    },
+    Foundation       = {
+        Size = 4,
+        Pile = { Rule = Sol.Rules.ace_upsuit_none }
+    },
+    Tableau          = {
+        Size = 10,
+        Pile = {
+            Initial = Sol.Initial.top_face_up(3),
+            Layout = "Column",
+            Rule = Sol.Rules.any_downac_inseq
+        }
+    },
+    on_piles_created = Sol.Layout.klondike,
+    on_deal          = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
+}
+
+------
+
 ------------------------
 
 Sol.register_game(gypsy)
@@ -645,3 +743,8 @@ Sol.register_game(milligan_cell)
 Sol.register_game(milligan_harp)
 Sol.register_game(miss_milligan)
 Sol.register_game(mississippi)
+Sol.register_game(nomad)
+Sol.register_game(phantom_blockade)
+Sol.register_game(pitt_the_younger)
+Sol.register_game(triple_easthaven)
+Sol.register_game(westhaven)
