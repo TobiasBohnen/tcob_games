@@ -463,9 +463,9 @@ auto load_themes() -> std::map<std::string, color_themes>
 {
     std::map<std::string, color_themes> retValue;
 
-    if (io::is_file("theme.ini")) {
+    if (io::is_file("themes.json")) {
         data::config::object themes {};
-        themes.load("theme.ini");
+        themes.load("themes.json");
 
         for (auto const& [k, v] : themes) {
             color_theme normal;
