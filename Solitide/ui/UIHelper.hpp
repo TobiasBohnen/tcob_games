@@ -17,21 +17,16 @@ struct color_theme {
     color DropShadow {colors::Transparent};
     color Bar {colors::Transparent};
     color Border {colors::Transparent};
-    color Caret {colors::Transparent};
     color Item {colors::Transparent};
     color LabelBackground {colors::Transparent};
-    color NavArrowInc {colors::Transparent};
-    color NavArrowDec {colors::Transparent};
-    color NavArrow {colors::Transparent};
     color Text {colors::Transparent};
-    color TextShadow {colors::Transparent};
-    color TextDecoration {colors::Transparent};
     color Thumb {colors::Transparent};
     color Tick {colors::Transparent};
 
     void apply(std::shared_ptr<button::style> const& style) const;
     void apply(std::shared_ptr<checkbox::style> const& style) const;
     void apply(std::shared_ptr<cycle_button::style> const& style) const;
+    void apply(std::shared_ptr<drop_down_list::style> const& style) const;
     void apply(std::shared_ptr<grid_view::style> const& style) const;
     void apply(std::shared_ptr<image_box::style> const& style) const;
     void apply(std::shared_ptr<label::style> const& style) const;

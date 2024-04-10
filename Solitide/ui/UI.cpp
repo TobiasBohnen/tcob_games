@@ -185,34 +185,34 @@ form_menu::form_menu(gfx::window*                         window,
         {
             auto const& renderSystem {locate_service<gfx::render_system>()};
             auto const  displayModes {renderSystem.get_displays()};
-            auto        lbxRes {panelLayout->create_widget<list_box>({4, 1, 5, 12}, "lbxResolution")}; // TODO: change to drop-down-list
-            lbxRes->Class = "list_box_res";
+            auto        ddlRes {panelLayout->create_widget<drop_down_list>({4, 1, 5, 3}, "ddlResolution")}; // TODO: change to drop-down-list
             for (auto const& dm : displayModes.at(0).Modes) {
-                lbxRes->add_item(std::format("{}x{}", dm.Size.Width, dm.Size.Height));
+                ddlRes->add_item(std::format("{}x{}", dm.Size.Width, dm.Size.Height));
             }
             auto const res {config[Cfg::Video::Name][Cfg::Video::resolution].as<size_i>()};
-            lbxRes->select_item(std::format("{}x{}", res.Width, res.Height));
-            auto lbl {panelLayout->create_widget<label>({0, 1, 4, 12}, "lblResolution")};
-            lbl->Label = "Resolution";
+            ddlRes->select_item(std::format("{}x{}", res.Width, res.Height));
+            auto lbl {panelLayout->create_widget<label>({0, 1, 4, 3}, "lblResolution")};
+            lbl->Label     = "Resolution";
+            ddlRes->ZOrder = 1;
         }
 
         // fullscreen
         {
-            auto chkFullScreen {panelLayout->create_widget<checkbox>({4, 14, 5, 3}, "chkFullScreen")};
+            auto chkFullScreen {panelLayout->create_widget<checkbox>({4, 5, 5, 3}, "chkFullScreen")};
             chkFullScreen->Checked = config[Cfg::Video::Name][Cfg::Video::fullscreen].as<bool>();
-            auto lbl {panelLayout->create_widget<label>({0, 14, 4, 3}, "lblFullScreen")};
+            auto lbl {panelLayout->create_widget<label>({0, 5, 4, 3}, "lblFullScreen")};
             lbl->Label = "Fullscreen";
         }
 
         // vsync
         {
-            auto chkFullScreen {panelLayout->create_widget<checkbox>({4, 18, 5, 3}, "chkVSync")};
+            auto chkFullScreen {panelLayout->create_widget<checkbox>({4, 9, 5, 3}, "chkVSync")};
             chkFullScreen->Checked = config[Cfg::Video::Name][Cfg::Video::fullscreen].as<bool>();
-            auto lbl {panelLayout->create_widget<label>({0, 18, 4, 3}, "lblVSync")};
+            auto lbl {panelLayout->create_widget<label>({0, 9, 4, 3}, "lblVSync")};
             lbl->Label = "VSync";
         }
 
-        BtnApplySettings        = panelLayout->create_widget<button>({36, 36, 5, 3}, "chkFullScreen");
+        BtnApplySettings        = panelLayout->create_widget<button>({36, 36, 5, 3}, "btnApply");
         BtnApplySettings->Label = "Apply";
     }
 

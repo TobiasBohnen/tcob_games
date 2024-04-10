@@ -6,12 +6,10 @@ namespace solitaire {
 
 void color_theme::apply(std::shared_ptr<button::style> const& style) const
 {
-    style->Background            = Background;
-    style->Border.Background     = Border;
-    style->DropShadow.Color      = DropShadow;
-    style->Text.Color            = Text;
-    style->Text.Decoration.Color = TextDecoration;
-    style->Text.Shadow.Color     = TextShadow;
+    style->Background        = Background;
+    style->Border.Background = Border;
+    style->DropShadow.Color  = DropShadow;
+    style->Text.Color        = Text;
 }
 
 void color_theme::apply(std::shared_ptr<checkbox::style> const& style) const
@@ -24,12 +22,20 @@ void color_theme::apply(std::shared_ptr<checkbox::style> const& style) const
 
 void color_theme::apply(std::shared_ptr<cycle_button::style> const& style) const
 {
-    style->Background            = Background;
-    style->Border.Background     = Border;
-    style->DropShadow.Color      = DropShadow;
-    style->Text.Color            = Text;
-    style->Text.Decoration.Color = TextDecoration;
-    style->Text.Shadow.Color     = TextShadow;
+    style->Background        = Background;
+    style->Border.Background = Border;
+    style->DropShadow.Color  = DropShadow;
+    style->Text.Color        = Text;
+}
+
+void color_theme::apply(std::shared_ptr<drop_down_list::style> const& style) const
+{
+    style->Background                      = Background;
+    style->Border.Background               = Border;
+    style->DropShadow.Color                = DropShadow;
+    style->Text.Color                      = Text;
+    style->VScrollBar.Bar.HigherBackground = Bar;
+    style->VScrollBar.Bar.LowerBackground  = Bar;
 }
 
 void color_theme::apply(std::shared_ptr<grid_view::style> const& style) const
@@ -50,12 +56,10 @@ void color_theme::apply(std::shared_ptr<image_box::style> const& style) const
 
 void color_theme::apply(std::shared_ptr<label::style> const& style) const
 {
-    style->Background            = LabelBackground;
-    style->Border.Background     = Border;
-    style->DropShadow.Color      = DropShadow;
-    style->Text.Color            = Text;
-    style->Text.Decoration.Color = TextDecoration;
-    style->Text.Shadow.Color     = TextShadow;
+    style->Background        = LabelBackground;
+    style->Border.Background = Border;
+    style->DropShadow.Color  = DropShadow;
+    style->Text.Color        = Text;
 }
 
 void color_theme::apply(std::shared_ptr<list_box::style> const& style) const
@@ -92,23 +96,19 @@ void color_theme::apply(std::shared_ptr<slider::style> const& style) const
 
 void color_theme::apply(std::shared_ptr<spinner::style> const& style) const
 {
-    style->Background            = Background;
-    style->Border.Background     = Border;
-    style->DropShadow.Color      = DropShadow;
-    style->Text.Color            = Text;
-    style->Text.Decoration.Color = TextDecoration;
-    style->Text.Shadow.Color     = TextShadow;
+    style->Background        = Background;
+    style->Border.Background = Border;
+    style->DropShadow.Color  = DropShadow;
+    style->Text.Color        = Text;
 }
 
 void color_theme::apply(std::shared_ptr<text_box::style> const& style) const
 {
-    style->Background            = Background;
-    style->Border.Background     = Border;
-    style->DropShadow.Color      = DropShadow;
-    style->Text.Color            = Text;
-    style->Text.Decoration.Color = TextDecoration;
-    style->Text.Shadow.Color     = TextShadow;
-    style->Caret.Color           = Caret;
+    style->Background        = Background;
+    style->Border.Background = Border;
+    style->DropShadow.Color  = DropShadow;
+    style->Text.Color        = Text;
+    style->Caret.Color       = Tick;
 }
 
 void color_theme::apply(std::shared_ptr<toggle::style> const& style) const
@@ -152,18 +152,16 @@ void color_theme::apply(std::shared_ptr<thumb_style> const& style) const
 
 void color_theme::apply(std::shared_ptr<item_style> const& style) const
 {
-    style->Item.Background            = Item;
-    style->Item.Border.Background     = Border;
-    style->Item.Text.Color            = Text;
-    style->Item.Text.Decoration.Color = TextDecoration;
-    style->Item.Text.Shadow.Color     = TextShadow;
+    style->Item.Background        = Item;
+    style->Item.Border.Background = Border;
+    style->Item.Text.Color        = Text;
 }
 
 void color_theme::apply(std::shared_ptr<nav_arrows_style> const& style) const
 {
-    style->NavArrow.Foreground        = NavArrow;
-    style->NavArrow.IncBackground     = NavArrowInc;
-    style->NavArrow.DecBackground     = NavArrowDec;
+    style->NavArrow.Foreground        = Tick;
+    style->NavArrow.IncBackground     = Bar;
+    style->NavArrow.DecBackground     = Bar;
     style->NavArrow.Border.Background = Border;
 }
 
@@ -292,21 +290,24 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         theme.Hover.apply(hoverStyle);
     }
     {
-        auto style {styles.create<list_box>("list_box_res", {})};
+        auto style {styles.create<drop_down_list>("drop_down_list", {})};
         style->Border.Size                = 2_px;
         style->Border.Radius              = 5_px;
         style->Margin                     = {5_px};
         style->Padding                    = {5_px};
         style->DropShadow.Color           = color {0, 0, 0, 128};
-        style->ItemHeight                 = 20_pct;
+        style->Text.Font                  = resGrp.get<gfx::font_family>("Poppins");
+        style->Text.Size                  = 50_pct;
+        style->Text.Alignment             = {gfx::horizontal_alignment::Left, gfx::vertical_alignment::Middle};
         style->ItemClass                  = "list_items";
+        style->ItemHeight                 = 150_pct;
         style->VScrollBar.ThumbClass      = "scrollbar_thumb";
         style->VScrollBar.Bar.Type        = element::bar::type::Continuous;
         style->VScrollBar.Bar.Size        = 20_pct;
         style->VScrollBar.Bar.Border.Size = 2_px;
         style->VScrollBar.Bar.Delay       = 250ms;
 
-        auto hoverStyle {styles.create<list_box>("list_box_res", {.Hover = true})};
+        auto hoverStyle {styles.create<drop_down_list>("drop_down_list", {.Hover = true})};
         *hoverStyle = *style;
 
         theme.Normal.apply(style);
@@ -439,6 +440,23 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         theme.Hover.apply(hoverStyle);
         theme.Active.apply(activeStyle);
     }
+    {
+        auto style {styles.create<nav_arrows_style>("nav_arrows", {}, {})};
+        style->NavArrow.Height        = {0.75f, length::type::Relative};
+        style->NavArrow.Width         = {0.25f, length::type::Relative};
+        style->NavArrow.Border.Size   = 3_px;
+        style->NavArrow.Border.Radius = 0_px;
+
+        auto hoverStyle {styles.create<nav_arrows_style>("nav_arrows", {.Hover = true})};
+        hoverStyle->NavArrow = style->NavArrow;
+
+        auto activeStyle {styles.create<nav_arrows_style>("nav_arrows", {.Active = true})};
+        activeStyle->NavArrow = style->NavArrow;
+
+        theme.Normal.apply(style);
+        theme.Hover.apply(hoverStyle);
+        theme.Active.apply(activeStyle);
+    }
 }
 
 auto load_themes() -> std::map<std::string, color_themes>
@@ -457,7 +475,6 @@ auto load_themes() -> std::map<std::string, color_themes>
             normal.Text            = colors::Black;
             normal.Bar             = colors::SlateGray;
             normal.Tick            = colors::MidnightBlue;
-            normal.Caret           = colors::DarkGray;
             normal.Item            = colors::LightGray;
             normal.Thumb           = colors::DodgerBlue;
             normal.Container       = colors::LavenderBlush;
@@ -470,7 +487,6 @@ auto load_themes() -> std::map<std::string, color_themes>
             hover.Text       = hover.Border;
             hover.Bar        = normal.Bar;
             hover.Tick       = normal.Bar;
-            hover.Caret      = normal.Caret;
             hover.Item       = colors::LightBlue;
             hover.Thumb      = normal.Thumb;
             hover.Container  = normal.Container;
@@ -482,7 +498,6 @@ auto load_themes() -> std::map<std::string, color_themes>
             active.Text       = colors::White;
             active.Bar        = normal.Bar;
             active.Tick       = colors::ForestGreen;
-            active.Caret      = normal.Caret;
             active.Item       = normal.Background;
             active.Thumb      = normal.Thumb;
             active.Container  = normal.Container;
@@ -503,7 +518,6 @@ auto load_themes() -> std::map<std::string, color_themes>
             getColor(normal.Border, "normal", "Border");
             getColor(normal.DropShadow, "normal", "DropShadow");
             getColor(normal.Text, "normal", "Text");
-            getColor(normal.Caret, "normal", "Text");
             getColor(normal.Bar, "normal", "Bar");
             getColor(normal.Tick, "normal", "Tick");
             getColor(normal.Item, "normal", "Item");
@@ -515,7 +529,6 @@ auto load_themes() -> std::map<std::string, color_themes>
             getColor(hover.Border, "hover", "Border");
             getColor(hover.DropShadow, "hover", "DropShadow");
             getColor(hover.Text, "hover", "Text");
-            getColor(hover.Caret, "hover", "Text");
             getColor(hover.Bar, "hover", "Bar");
             getColor(hover.Tick, "hover", "Tick");
             getColor(hover.Item, "hover", "Item");
@@ -526,7 +539,6 @@ auto load_themes() -> std::map<std::string, color_themes>
             getColor(active.Border, "active", "Border");
             getColor(active.DropShadow, "active", "DropShadow");
             getColor(active.Text, "active", "Text");
-            getColor(active.Caret, "active", "Text");
             getColor(active.Bar, "active", "Bar");
             getColor(active.Tick, "active", "Tick");
             getColor(active.Item, "active", "Item");

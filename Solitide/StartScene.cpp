@@ -229,13 +229,13 @@ void start_scene::connect_ui_events()
         data::config::object obj;
         _formMenu->PanelSettings->submit(obj);
 
-        assert(obj.has("lbxResolution", "selected"));
+        assert(obj.has("ddlResolution", "selected"));
         assert(obj.has("chkFullScreen", "checked"));
         assert(obj.has("chkVSync", "checked"));
 
         auto& window {get_window()};
 
-        auto const res {get_size(obj["lbxResolution"]["selected"].as<string>())};
+        auto const res {get_size(obj["ddlResolution"]["selected"].as<string>())};
         window.Size = res;
         set_children_bounds(res);
 
