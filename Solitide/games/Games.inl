@@ -324,8 +324,12 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
             if (Table moveTable; ruleTable.try_get(moveTable, "Move")) {
                 moveTable.try_get(pile.Rule.MoveHint, "Hint");
 
-                moveTable.try_get(pile.Rule.IsPlayable, "IsPlayable");
-                moveTable.try_get(pile.Rule.IsSequence, "IsSequence");
+                if (!moveTable.try_get(pile.Rule.IsPlayable, "IsPlayable")) {
+                    pile.Rule.IsPlayable = true;
+                }
+                if (!moveTable.try_get(pile.Rule.IsSequence, "IsSequence")) {
+                    pile.Rule.IsSequence = true;
+                }
 
                 if (Function<bool> func; moveTable.try_get(func, "Func")) {
                     pile.Rule.Move = {[this, func](class pile const* target, isize idx) {

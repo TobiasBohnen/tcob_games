@@ -456,7 +456,7 @@ void card_table::get_drop_target()
     auto        oldPile {_dropTarget};
     auto const& card {_hovered.Pile->Cards[_hovered.Index]};
     isize const numCards {std::ssize(_hovered.Pile->Cards) - _hovered.Index};
-    _dropTarget = _currentGame->drop_target_at(_dragRect, card, numCards);
+    _dropTarget = get_drop_target_at(_dragRect, card, numCards);
 
     if (_dropTarget.Pile != oldPile.Pile || _dropTarget.Index != oldPile.Index) {
         if (oldPile.Pile) {
@@ -470,10 +470,44 @@ void card_table::get_drop_target()
     }
 }
 
+auto card_table::get_drop_target_at(rect_f const& rect, card const& card, isize numCards) const -> hit_test_result
+{
+    std::array<point_i, 4> points {
+        point_i {rect.top_left()}, point_i {rect.top_right()},
+        point_i {rect.bottom_left()}, point_i {rect.bottom_right()}};
+
+    std::vector<hit_test_result> candidates;
+    for (auto const& point : points) {
+        if (auto target {get_pile_at(point, true)};
+            target.Pile
+            && target.Index == std::ssize(target.Pile->Cards) - 1
+            && _currentGame->can_play(*target.Pile, target.Index, card, numCards)) {
+            candidates.push_back(target);
+        }
+    }
+
+    if (candidates.empty()) { return {}; }
+    if (candidates.size() == 1) { return candidates[0]; }
+
+    f32             maxArea {0};
+    hit_test_result retValue;
+    for (auto const& candidate : candidates) {
+        auto const interSect {rect.as_intersected(candidate.Index == INDEX_MARKER
+                                                      ? candidate.Pile->Marker->Bounds
+                                                      : candidate.Pile->Cards[candidate.Index].Bounds)};
+        if (interSect.Width * interSect.Height > maxArea) {
+            maxArea  = interSect.Width * interSect.Height;
+            retValue = candidate;
+        }
+    }
+
+    return retValue;
+}
+
 void card_table::get_hovered(point_i pos)
 {
     auto oldPile {_hovered};
-    _hovered = _currentGame->hover_at(point_i {(*_parentWindow->Camera).convert_screen_to_world(pos)});
+    _hovered = get_pile_at(point_i {(*_parentWindow->Camera).convert_screen_to_world(pos)}, false);
 
     if (oldPile.Pile) {
         oldPile.Pile->set_hovering(false, oldPile.Index, colors::Transparent);
@@ -484,6 +518,29 @@ void card_table::get_hovered(point_i pos)
         _hovered.Pile->set_hovering(true, _hovered.Index, get_hover_color(_hovered.Pile, _hovered.Index));
         mark_dirty();
     }
+}
+
+auto card_table::get_pile_at(point_i pos, bool ignoreActivePile) const -> hit_test_result
+{
+    auto const checkPile {[&](pile const& p) -> isize {
+        if (ignoreActivePile && p.is_hovering()) { return INDEX_INVALID; }
+        if (p.empty() && p.Marker && p.Marker->Bounds->contains(pos)) { return INDEX_MARKER; }
+
+        for (isize i {std::ssize(p.Cards) - 1}; i >= 0; --i) {
+            if (p.Cards[i].Bounds.contains(pos) && _currentGame->check_movable(p, i)) { return i; }
+        }
+
+        return INDEX_INVALID;
+    }};
+
+    for (auto const& [type, piles] : _currentGame->piles()) {
+        for (auto* pile : piles | std::views::reverse) {
+            isize const idx {checkPile(*pile)};
+            if (idx != INDEX_INVALID) { return {pile, idx}; }
+        }
+    }
+
+    return {};
 }
 
 auto card_table::get_hover_color(pile* pile, isize idx) const -> color

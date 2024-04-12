@@ -188,7 +188,7 @@ void base_game::init()
 
     _movableCache.clear();
     _descriptionCache.clear();
-    calc_available_moves();
+    calc_hints();
     State = get_state();
 }
 
@@ -228,7 +228,7 @@ void base_game::end_turn(bool deal)
 
     _movableCache.clear();
     _descriptionCache.clear();
-    calc_available_moves();
+    calc_hints();
     State = get_state();
 
     _cardTable.on_end_turn();
@@ -284,68 +284,6 @@ void base_game::layout_piles()
     }
 
     _cardTable.on_pile_layout();
-}
-
-auto base_game::get_pile_at(point_i pos, bool ignoreActivePile) const -> hit_test_result
-{
-    auto const checkPile {[&](pile const& p) -> isize {
-        if (ignoreActivePile && p.is_hovering()) { return INDEX_INVALID; }
-        if (p.empty() && p.Marker && p.Marker->Bounds->contains(pos)) { return INDEX_MARKER; }
-
-        for (isize i {std::ssize(p.Cards) - 1}; i >= 0; --i) {
-            if (p.Cards[i].Bounds.contains(pos) && check_movable(p, i)) { return i; }
-        }
-
-        return INDEX_INVALID;
-    }};
-
-    for (auto const& [type, piles] : _piles) {
-        for (auto* pile : piles | std::views::reverse) {
-            isize const idx {checkPile(*pile)};
-            if (idx != INDEX_INVALID) { return {pile, idx}; }
-        }
-    }
-
-    return {};
-}
-
-auto base_game::drop_target_at(rect_f const& rect, card const& move, isize numCards) const -> hit_test_result
-{
-    std::array<point_i, 4> points {
-        point_i {rect.top_left()}, point_i {rect.top_right()},
-        point_i {rect.bottom_left()}, point_i {rect.bottom_right()}};
-
-    std::vector<hit_test_result> candidates;
-    for (auto const& point : points) {
-        if (auto target {get_pile_at(point, true)};
-            target.Pile
-            && target.Index == std::ssize(target.Pile->Cards) - 1
-            && can_play(*target.Pile, target.Index, move, numCards)) {
-            candidates.push_back(target);
-        }
-    }
-
-    if (candidates.empty()) { return {}; }
-    if (candidates.size() == 1) { return candidates[0]; }
-
-    f32             maxArea {0};
-    hit_test_result retValue;
-    for (auto const& candidate : candidates) {
-        auto const interSect {rect.as_intersected(candidate.Index == INDEX_MARKER
-                                                      ? candidate.Pile->Marker->Bounds
-                                                      : candidate.Pile->Cards[candidate.Index].Bounds)};
-        if (interSect.Width * interSect.Height > maxArea) {
-            maxArea  = interSect.Width * interSect.Height;
-            retValue = candidate;
-        }
-    }
-
-    return retValue;
-}
-
-auto base_game::hover_at(point_i pos) const -> hit_test_result
-{
-    return get_pile_at(pos, false);
 }
 
 void base_game::key_down(input::keyboard::event& ev)
@@ -491,7 +429,7 @@ auto base_game::get_state() const -> game_state
     return game_state::Running;
 }
 
-void base_game::calc_available_moves()
+void base_game::calc_hints()
 {
     if (_info.DisableHints) {
         _availableMoves.clear();

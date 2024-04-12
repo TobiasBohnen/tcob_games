@@ -60,9 +60,13 @@ private:
 
     void drag_cards(input::mouse::motion_event const& ev);
     auto get_hover_color(pile* pile, isize idx) const -> color;
-    void get_hovered(point_i pos);
     auto get_drop_color() const -> color;
+
     void get_drop_target();
+    auto get_drop_target_at(rect_f const& rect, card const& card, isize numCards) const -> hit_test_result;
+    void get_hovered(point_i pos);
+
+    auto get_pile_at(point_i pos, bool ignoreActivePile) const -> hit_test_result;
 
     gfx::window*   _parentWindow;
     assets::group& _resGrp;

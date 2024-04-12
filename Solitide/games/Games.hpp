@@ -97,11 +97,10 @@ public:
     void undo();
     auto can_undo() const -> bool;
 
-    auto drop_target_at(rect_f const& rect, card const& move, isize numCards) const -> hit_test_result;
-    auto hover_at(point_i pos) const -> hit_test_result;
     void drop_cards(hit_test_result const& hovered, hit_test_result const& dropTarget); // TODO: replace with play_cards
 
     auto get_available_hints() const -> std::vector<move> const&;
+    auto check_movable(pile const& targetPile, isize idx) const -> bool;
 
     auto virtual can_play(pile const& targetPile, isize targetCardIndex, card const& card, isize numCards) const -> bool;
 
@@ -132,15 +131,13 @@ protected:
     void end_turn(bool deal);
 
 private:
-    auto check_movable(pile const& targetPile, isize idx) const -> bool;
-    void calc_available_moves();
+    void calc_hints();
 
     void new_game();
     auto load(std::optional<data::config::object> const& loadObj) -> bool;
 
     void init();
     void clear_piles();
-    auto get_pile_at(point_i pos, bool ignoreActivePile) const -> hit_test_result;
 
     auto deal_cards() -> bool;
 
