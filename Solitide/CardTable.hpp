@@ -33,7 +33,6 @@ public:
     void on_end_turn();
 
 protected:
-    void move_camera(size_f cardBounds);
     void on_update(milliseconds deltaTime) override;
 
     void on_draw_to(gfx::render_target& target) override;
@@ -46,12 +45,14 @@ protected:
     void on_mouse_button_up(input::mouse::button_event& ev) override;
 
 private:
+    void move_camera(size_f cardBounds);
+    void drag_camera(point_i rel);
+
     void mark_dirty();
 
     void start_game(std::shared_ptr<games::base_game> const& game, std::optional<data::config::object> const& savegame);
 
     void draw_cards(gfx::render_target& target);
-
     void draw_canvas();
     void draw_hint();
 
@@ -66,7 +67,7 @@ private:
     auto get_drop_target_at(rect_f const& rect, card const& card, isize numCards) const -> hit_test_result;
     void get_hovered(point_i pos);
 
-    auto get_pile_at(point_i pos, bool ignoreActivePile) const -> hit_test_result;
+    auto get_pile_at(point_i pos, bool ignoreHoveredPile) const -> hit_test_result;
 
     gfx::window*   _parentWindow;
     assets::group& _resGrp;

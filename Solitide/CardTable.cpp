@@ -19,7 +19,6 @@ card_table::card_table(gfx::window* parent, gfx::ui::canvas_widget* canvas, asse
     , _text {resGrp.get<gfx::font_family>("Poppins")->get_font({.Weight = gfx::font::weight::Bold}, 96)}
     , _canvas {canvas}
 {
-
     auto& effects {_text.get_effects()};
     effects.add(1, gfx::make_unique_quad_tween<gfx::wave_effect>(3s, {30, 4.f}));
     effects.start_all(playback_style::Looped);
@@ -336,6 +335,16 @@ void card_table::move_camera(size_f cardBounds)
     }
 }
 
+void card_table::drag_camera(point_i rel)
+{
+    auto&         camera {*_parentWindow->Camera};
+    size_f const  zoom {camera.get_zoom()};
+    point_f const off {-rel.X / zoom.Width, -rel.Y / zoom.Height};
+    camera.move_by(off);
+    _camManual   = true;
+    _canvasDirty = true;
+}
+
 void card_table::get_pile_quads(std::vector<gfx::quad>::iterator& quadIt, pile const* pile) const
 {
     auto const mat {_cardset->get_material()};
@@ -365,12 +374,7 @@ void card_table::on_mouse_motion(input::mouse::motion_event& ev)
     if (!_currentGame) { return; }
 
     if (input::system::IsMouseButtonDown(input::mouse::button::Right)) {
-        auto&         camera {*_parentWindow->Camera};
-        size_f const  zoom {camera.get_zoom()};
-        point_f const off {-ev.RelativeMotion.X / zoom.Width, -ev.RelativeMotion.Y / zoom.Height};
-        camera.move_by(off);
-        _camManual   = true;
-        _canvasDirty = true;
+        drag_camera(ev.RelativeMotion);
     } else {
         if (_buttonDown) {
             if (_hovered.Pile) { drag_cards(ev); }
@@ -510,7 +514,7 @@ void card_table::get_hovered(point_i pos)
     _hovered = get_pile_at(point_i {(*_parentWindow->Camera).convert_screen_to_world(pos)}, false);
 
     if (oldPile.Pile) {
-        oldPile.Pile->set_hovering(false, oldPile.Index, colors::Transparent);
+        oldPile.Pile->set_hovering(false, oldPile.Index, colors::White);
         mark_dirty();
     }
 
@@ -520,13 +524,16 @@ void card_table::get_hovered(point_i pos)
     }
 }
 
-auto card_table::get_pile_at(point_i pos, bool ignoreActivePile) const -> hit_test_result
+auto card_table::get_pile_at(point_i pos, bool ignoreHoveredPile) const -> hit_test_result
 {
     auto const checkPile {[&](pile const& p) -> isize {
-        if (ignoreActivePile && p.is_hovering()) { return INDEX_INVALID; }
-        if (p.empty() && p.Marker && p.Marker->Bounds->contains(pos)) { return INDEX_MARKER; }
+        auto const top {std::ssize(p.Cards) - 1};
 
-        for (isize i {std::ssize(p.Cards) - 1}; i >= 0; --i) {
+        if (ignoreHoveredPile && p.is_hovering()) { return INDEX_INVALID; }
+        if (p.empty() && p.Marker && p.Marker->Bounds->contains(pos)) { return INDEX_MARKER; }
+        if (!p.is_playable() && !p.empty() && p.Cards[top].Bounds.contains(pos)) { return top; }
+
+        for (isize i {top}; i >= 0; --i) {
             if (p.Cards[i].Bounds.contains(pos) && _currentGame->check_movable(p, i)) { return i; }
         }
 

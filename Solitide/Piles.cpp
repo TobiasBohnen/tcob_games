@@ -67,7 +67,6 @@ void pile::tint_cards(color color, isize idx)
 {
     if (idx == INDEX_MARKER) {
         Marker->Color = color;
-        ++idx;
     } else {
         for (; idx < std::ssize(Cards); ++idx) {
             Cards[idx].Color = color;

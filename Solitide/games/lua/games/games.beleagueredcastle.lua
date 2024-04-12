@@ -85,7 +85,7 @@ local castle_of_indolence      = {
             return {
                 Position = { x = i + 2, y = 4 },
                 Initial = Sol.Initial.face_up(13),
-                Rule = Sol.Rules.none_none_none
+                Rule = Sol.Rules.none_none_top
             }
         end
     },

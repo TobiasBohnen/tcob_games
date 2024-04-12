@@ -28,7 +28,7 @@ struct rule {
 
     bool        IsPlayable {true};
     bool        IsSequence {false};
-    std::string MoveHint {"None"};
+    std::string MoveHint {"Top"};
     move_func   Move {move_top};
 
     std::string BaseHint {"None"};
