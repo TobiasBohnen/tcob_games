@@ -3,19 +3,19 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local fan                   = {
-    Info             = {
+local fan                 = {
+    Info       = {
         Name          = "Fan",
         Family        = "Fan",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation       = {
+    Foundation = {
         Size = 4,
         Pile = { Rule = Sol.Rules.ace_upsuit_top }
     },
-    Tableau          = {
+    Tableau    = {
         Size = 18,
         Pile = function(i)
             return {
@@ -25,14 +25,14 @@ local fan                   = {
             }
         end
     },
-    on_piles_created = function(game) Sol.Layout.fan(game, 5) end
+    on_init    = function(game) Sol.Layout.fan(game, 5) end
 }
 
 ------
 
-local bear_river            = Sol.copy(fan)
-bear_river.Info.Name        = "Bear River"
-bear_river.Foundation       = {
+local bear_river          = Sol.copy(fan)
+bear_river.Info.Name      = "Bear River"
+bear_river.Foundation     = {
     Size = 4,
     Pile = function(i)
         return {
@@ -41,7 +41,7 @@ bear_river.Foundation       = {
         }
     end
 }
-bear_river.Tableau          = {
+bear_river.Tableau        = {
     Size = 18,
     Pile = function(i)
         local lastInRow = i % 6 == 5
@@ -52,13 +52,13 @@ bear_river.Tableau          = {
         }
     end
 }
-bear_river.on_piles_created = function(game) Sol.Layout.fan(game, 6) end
+bear_river.on_init        = function(game) Sol.Layout.fan(game, 6) end
 
 ------
 
-local box_fan               = Sol.copy(fan)
-box_fan.Info.Name           = "Box Fan"
-box_fan.Tableau             = {
+local box_fan             = Sol.copy(fan)
+box_fan.Info.Name         = "Box Fan"
+box_fan.Tableau           = {
     Size = 16,
     Pile = {
         Initial = Sol.Initial.face_up(3),
@@ -66,14 +66,14 @@ box_fan.Tableau             = {
         Rule = Sol.Rules.king_downac_top
     }
 }
-box_fan.on_before_shuffle   = Sol.Ops.Shuffle.ace_to_foundation
-box_fan.on_piles_created    = function(game) Sol.Layout.fan(game, 4) end
+box_fan.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
+box_fan.on_init           = function(game) Sol.Layout.fan(game, 4) end
 
 ------
 
-local ceiling_fan           = Sol.copy(fan)
-ceiling_fan.Info.Name       = "Ceiling Fan"
-ceiling_fan.Tableau         = {
+local ceiling_fan         = Sol.copy(fan)
+ceiling_fan.Info.Name     = "Ceiling Fan"
+ceiling_fan.Tableau       = {
     Size = 18,
     Pile = function(i)
         return {
@@ -86,7 +86,7 @@ ceiling_fan.Tableau         = {
 
 ------
 
-local clover_leaf           = {
+local clover_leaf         = {
     Info              = {
         Name          = "Clover Leaf",
         Family        = "Fan",
@@ -122,15 +122,15 @@ local clover_leaf           = {
 
         return false
     end,
-    on_piles_created  = function(game) Sol.Layout.fan(game, 4) end
+    on_init           = function(game) Sol.Layout.fan(game, 4) end
 }
 
 
 ------
 
-local alexander_the_great            = Sol.copy(clover_leaf)
-alexander_the_great.Info.Name        = "Alexander the Great"
-alexander_the_great.Tableau          = {
+local alexander_the_great         = Sol.copy(clover_leaf)
+alexander_the_great.Info.Name     = "Alexander the Great"
+alexander_the_great.Tableau       = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(4),
@@ -138,15 +138,15 @@ alexander_the_great.Tableau          = {
         Rule = { Base = Sol.Rules.Base.Ranks({ "Ace", "King" }), Build = Sol.Rules.Build.UpOrDownInSuit(), Move = Sol.Rules.Move.Top() }
     }
 }
-alexander_the_great.on_piles_created = function(game) Sol.Layout.fan(game, 3) end
+alexander_the_great.on_init       = function(game) Sol.Layout.fan(game, 3) end
 
 ------
 
-local house_in_the_wood              = Sol.copy(fan)
-house_in_the_wood.Info.Name          = "House in the Wood"
-house_in_the_wood.Info.DeckCount     = 2
-house_in_the_wood.Foundation.Size    = 8
-house_in_the_wood.Tableau            = {
+local house_in_the_wood           = Sol.copy(fan)
+house_in_the_wood.Info.Name       = "House in the Wood"
+house_in_the_wood.Info.DeckCount  = 2
+house_in_the_wood.Foundation.Size = 8
+house_in_the_wood.Tableau         = {
     Size = 35,
     Pile = function(i)
         return {
@@ -156,13 +156,13 @@ house_in_the_wood.Tableau            = {
         }
     end
 }
-house_in_the_wood.on_piles_created   = function(game) Sol.Layout.fan(game, 6) end
+house_in_the_wood.on_init         = function(game) Sol.Layout.fan(game, 6) end
 
 ------
 
-local house_on_the_hill              = Sol.copy(house_in_the_wood)
-house_on_the_hill.Info.Name          = "House on the Hill"
-house_on_the_hill.Foundation.Pile    = function(i)
+local house_on_the_hill           = Sol.copy(house_in_the_wood)
+house_on_the_hill.Info.Name       = "House on the Hill"
+house_on_the_hill.Foundation.Pile = function(i)
     if (i < 4) then
         return {
             Rule = Sol.Rules.ace_upsuit_top
@@ -176,9 +176,9 @@ end
 
 ------
 
-local quads                          = Sol.copy(fan)
-quads.Info.Name                      = "Quads"
-quads.Tableau                        = {
+local quads                       = Sol.copy(fan)
+quads.Info.Name                   = "Quads"
+quads.Tableau                     = {
     Size = 13,
     Pile = {
         Initial = Sol.Initial.face_up(4),
@@ -186,7 +186,7 @@ quads.Tableau                        = {
         Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.InRank(), Move = Sol.Rules.Move.Top(), Limit = 4 }
     }
 }
-quads.on_shuffle                     = function(game, card, pile)
+quads.on_shuffle                  = function(game, card, pile)
     if pile.Type == "Tableau" and card.Rank == "Ace" then
         return game.PlaceTop(card, game.Foundation, true)
     end
@@ -196,9 +196,9 @@ end
 
 ------
 
-local quads_plus                     = Sol.copy(fan)
-quads_plus.Info.Name                 = "Quads+"
-quads_plus.Tableau                   = {
+local quads_plus                  = Sol.copy(fan)
+quads_plus.Info.Name              = "Quads+"
+quads_plus.Tableau                = {
     Size = 13,
     Pile = function(i)
         return {
@@ -208,16 +208,16 @@ quads_plus.Tableau                   = {
         }
     end
 }
-quads_plus.on_before_shuffle         = Sol.Ops.Shuffle.ace_to_foundation
+quads_plus.on_before_shuffle      = Sol.Ops.Shuffle.ace_to_foundation
 
 ------
 
-local lucky_piles_pos                = {
+local lucky_piles_pos             = {
     { 0, 1 }, { 2, 1 }, { 4, 1 }, { 6, 1 }, { 8, 1 },
     { 2, 2 }, { 4, 2 }, { 6, 2 },
     { 0, 3 }, { 2, 3 }, { 4, 3 }, { 6, 3 }, { 8, 3 } }
 
-local lucky_piles                    = {
+local lucky_piles                 = {
     Info       = {
         Name          = "Lucky Piles",
         Family        = "Fan",
@@ -249,13 +249,13 @@ local lucky_piles                    = {
 
 ------
 
-local scotch_patience                = Sol.copy(fan)
-scotch_patience.Info.Name            = "Scotch Patience"
-scotch_patience.Foundation           = {
+local scotch_patience             = Sol.copy(fan)
+scotch_patience.Info.Name         = "Scotch Patience"
+scotch_patience.Foundation        = {
     Size = 4,
     Pile = { Rule = Sol.Rules.ace_upac_top }
 }
-scotch_patience.Tableau              = {
+scotch_patience.Tableau           = {
     Size = 18,
     Pile = function(i)
         return {
@@ -268,9 +268,9 @@ scotch_patience.Tableau              = {
 
 ------
 
-local shamrocks                      = Sol.copy(fan)
-shamrocks.Info.Name                  = "Shamrocks"
-shamrocks.Tableau                    = {
+local shamrocks                   = Sol.copy(fan)
+shamrocks.Info.Name               = "Shamrocks"
+shamrocks.Tableau                 = {
     Size = 18,
     Pile = function(i)
         return {
@@ -283,9 +283,9 @@ shamrocks.Tableau                    = {
 
 ------
 
-local shamrocks_2                    = Sol.copy(fan)
-shamrocks_2.Info.Name                = "Shamrocks II"
-shamrocks_2.Tableau                  = {
+local shamrocks_2                 = Sol.copy(fan)
+shamrocks_2.Info.Name             = "Shamrocks II"
+shamrocks_2.Tableau               = {
     Size = 18,
     Pile = function(i)
         return {
@@ -295,13 +295,13 @@ shamrocks_2.Tableau                  = {
         }
     end
 }
-shamrocks_2.on_after_shuffle         = Sol.Ops.Shuffle.kings_to_bottom
+shamrocks_2.on_after_shuffle      = Sol.Ops.Shuffle.kings_to_bottom
 
 ------
 
-local troika                         = Sol.copy(fan)
-troika.Info.Name                     = "Troika"
-troika.Tableau                       = {
+local troika                      = Sol.copy(fan)
+troika.Info.Name                  = "Troika"
+troika.Tableau                    = {
     Size = 18,
     Pile = function(i)
         return {
@@ -311,7 +311,7 @@ troika.Tableau                       = {
         }
     end
 }
-troika.on_shuffle                    = function(game, card, pile)
+troika.on_shuffle                 = function(game, card, pile)
     if pile.Type == "Tableau" and card.Rank == "Ace" then
         return game.PlaceTop(card, game.Foundation, true)
     end

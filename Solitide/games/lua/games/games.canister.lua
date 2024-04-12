@@ -4,18 +4,18 @@
 -- https://opensource.org/licenses/MIT
 
 local canister                 = {
-    Info             = {
+    Info       = {
         Name          = "Canister",
         Family        = "BeleagueredCastle",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation       = {
+    Foundation = {
         Size = 4,
         Pile = { Rule = Sol.Rules.ace_upsuit_none }
     },
-    Tableau          = {
+    Tableau    = {
         Size = 8,
         Pile = function(i)
             return {
@@ -25,7 +25,7 @@ local canister                 = {
             }
         end
     },
-    on_piles_created = Sol.Layout.canister
+    on_init    = Sol.Layout.canister
 }
 
 ------

@@ -115,12 +115,6 @@ The Info table contains basic information about the game.
 
 ### Callbacks
 
-- on_piles_created
-
-  - _Signature_: function(game)
-  - _Description_: Called once after creating all piles.
-  - _Return value_: none
-
 - on_before_shuffle
 
   - _Signature_: function(game, card)
@@ -139,6 +133,12 @@ The Info table contains basic information about the game.
   - _Description_: Called after starting a new game after every card has been moved to a pile.
   - _Return value_: none
 
+- on_init
+
+  - _Signature_: function(game)
+  - _Description_: Called on initialisation.
+  - _Return value_: none
+
 - on_drop
 
   - _Signature_: function(game, pile)
@@ -151,17 +151,17 @@ The Info table contains basic information about the game.
   - _Description_: Called when a turn ends.
   - _Return value_: none
 
-- on_redeal
+- do_redeal
 
   - _Signature_: function(game)
   - _Return value_: **true** if redeal was successful, **false** otherwise.
 
-- on_deal
+- do_deal
 
   - _Signature_: function(game)
   - _Return value_: **true** if deal was successful, **false** otherwise.
 
-- check_state
+- get_state
 
   - _Signature_: function(game)
   - _Return value_: Running, Failure, Success

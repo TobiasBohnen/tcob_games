@@ -34,7 +34,7 @@ local raglan                  = {
         end
     },
     on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation,
-    on_piles_created  = function(game) Sol.Layout.raglan(game, 2) end
+    on_init           = function(game) Sol.Layout.raglan(game, 2) end
 }
 
 ------

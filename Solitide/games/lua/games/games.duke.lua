@@ -47,8 +47,8 @@ local duke               = {
             }
         end
     },
-    on_redeal  = Sol.Ops.Redeal.waste_to_stock,
-    on_deal    = Sol.Ops.Deal.stock_to_waste
+    do_redeal  = Sol.Ops.Redeal.waste_to_stock,
+    do_deal    = Sol.Ops.Deal.stock_to_waste
 }
 
 ------
@@ -91,7 +91,7 @@ dutchess.check_playable  = function(game, targetPile, targetCardIndex, card, num
 
     return game:can_play(targetPile, targetCardIndex, card, numCards)
 end
-dutchess.on_deal         = function(game)
+dutchess.do_deal         = function(game)
     if game.Foundation[1].IsEmpty then return false end
     return Sol.Ops.Deal.stock_to_waste(game)
 end

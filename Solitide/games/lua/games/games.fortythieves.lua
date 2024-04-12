@@ -4,22 +4,22 @@
 -- https://opensource.org/licenses/MIT
 
 local forty_thieves                     = {
-    Info             = {
+    Info       = {
         Name          = "Forty Thieves",
         Family        = "FortyThieves",
         DeckCount     = 2,
         CardDealCount = 1,
         Redeals       = 0
     },
-    Stock            = {
+    Stock      = {
         Initial = Sol.Initial.face_down(64)
     },
-    Waste            = {},
-    Foundation       = {
+    Waste      = {},
+    Foundation = {
         Size = 8,
         Pile = { Rule = Sol.Rules.ace_upsuit_top }
     },
-    Tableau          = {
+    Tableau    = {
         Size = 10,
         Pile = {
             Initial = Sol.Initial.face_up(4),
@@ -27,8 +27,8 @@ local forty_thieves                     = {
             Rule = Sol.Rules.any_downsuit_top
         }
     },
-    on_deal          = Sol.Ops.Deal.stock_to_waste,
-    on_piles_created = Sol.Layout.forty_thieves
+    do_deal    = Sol.Ops.Deal.stock_to_waste,
+    on_init    = Sol.Layout.forty_thieves
 }
 
 ------

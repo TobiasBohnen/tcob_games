@@ -4,18 +4,18 @@
 -- https://opensource.org/licenses/MIT
 
 local chessboard       = {
-    Info             = {
+    Info           = {
         Name          = "Chessboard",
         Family        = "BeleagueredCastle",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation       = {
+    Foundation     = {
         Size = 4,
         Pile = { Rule = Sol.Rules.ff_upsuit_none_l13 }
     },
-    Tableau          = {
+    Tableau        = {
         Size = 10,
         Pile = function(i)
             return {
@@ -25,7 +25,7 @@ local chessboard       = {
             }
         end
     },
-    check_playable   = function(game, targetPile, targetCardIndex, card, numCards)
+    check_playable = function(game, targetPile, targetCardIndex, card, numCards)
         local foundation1 = game.Foundation[1]
         if foundation1.IsEmpty and targetPile == foundation1 then -- allow any card on first foundation
             return true
@@ -33,7 +33,7 @@ local chessboard       = {
 
         return game:can_play(targetPile, targetCardIndex, card, numCards)
     end,
-    on_piles_created = Sol.Layout.canister
+    on_init        = Sol.Layout.canister
 }
 
 ------

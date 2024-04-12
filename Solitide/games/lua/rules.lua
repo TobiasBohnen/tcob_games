@@ -513,6 +513,7 @@ return {
     king_downrank_inseq = { Base = base.King(), Build = build.DownByRank(), Move = move.InSeq() },
     king_downrank_none = { Base = base.King(), Build = build.DownByRank(), Move = move.None() },
     king_downsuit_top = { Base = base.King(), Build = build.DownInSuit(), Move = move.Top() },
+    king_downsuit_none = { Base = base.King(), Build = build.DownInSuit(), Move = move.None() },
     king_downsuit_inseq = { Base = base.King(), Build = build.DownInSuit(), Move = move.InSeq() },
     king_downsuit_faceup = { Base = base.King(), Build = build.DownInSuit(), Move = move.FaceUp() },
     none_downrank_top = { Base = base.None(), Build = build.DownByRank(), Move = move.Top() },

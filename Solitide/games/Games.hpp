@@ -118,10 +118,12 @@ protected:
     auto virtual on_shuffle(card& card, pile* pile) -> bool = 0;
     void virtual after_shuffle()                            = 0;
 
+    void virtual on_init() = 0;
+
     void virtual on_drop(pile* pile) = 0;
     void virtual on_end_turn()       = 0;
 
-    auto virtual check_state() const -> game_state;
+    auto virtual get_state() const -> game_state;
 
     void create_piles(auto&& piles, isize size, std::function<void(pile&, i32)> const& func);
 
@@ -154,7 +156,7 @@ private:
     size_f      _cardSize;
     card_table& _cardTable;
 
-    data::config::object             _currentState;
+    data::config::object             _saveState;
     std::stack<data::config::object> _undoStack;
 
     rng _rand {}; // TODO: custom state
@@ -181,24 +183,27 @@ protected:
     auto on_shuffle(card& card, pile* pile) -> bool override;
     void after_shuffle() override;
 
+    void on_init() override;
+
     void on_drop(pile* pile) override;
     void on_end_turn() override;
 
-    auto check_state() const -> game_state override;
+    auto get_state() const -> game_state override;
 
 private:
     void make_piles(auto&& gameRef);
 
     struct callbacks {
-        std::optional<Function<bool>>       OnRedeal;
-        std::optional<Function<bool>>       OnDeal;
+        std::optional<Function<bool>>       DoRedeal;
+        std::optional<Function<bool>>       DoDeal;
         std::optional<Function<bool>>       OnBeforeShuffle;
         std::optional<Function<bool>>       OnShuffle;
         std::optional<Function<void>>       OnAfterShuffle;
+        std::optional<Function<void>>       OnInit;
         std::optional<Function<void>>       OnDrop;
         std::optional<Function<void>>       OnEndTurn;
         std::optional<Function<bool>>       CheckPlayable;
-        std::optional<Function<game_state>> CheckState;
+        std::optional<Function<game_state>> GetState;
     };
 
     callbacks _callbacks;

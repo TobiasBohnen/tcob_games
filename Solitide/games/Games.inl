@@ -132,10 +132,11 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     auto& pileWrapper {*script.template create_wrapper<pile>("pile")};
 
     // properties
-    pileWrapper["Type"]       = getter {[](pile* p) { return p->Type; }};
-    pileWrapper["IsEmpty"]    = getter {[](pile* p) { return p->empty(); }};
-    pileWrapper["CardCount"]  = getter {[](pile* p) { return p->Cards.size(); }};
-    pileWrapper["Cards"]      = getter {[](pile* p) { return p->Cards; }};
+    pileWrapper["Type"]      = getter {[](pile* p) { return p->Type; }};
+    pileWrapper["IsEmpty"]   = getter {[](pile* p) { return p->empty(); }};
+    pileWrapper["CardCount"] = getter {[](pile* p) { return p->Cards.size(); }};
+    pileWrapper["Cards"]     = getter {[](pile* p) { return p->Cards; }};
+
     pileWrapper["Position"]   = property {[](pile* p) { return p->Position; }, [](pile* p, point_f pos) { p->Position = pos; }};
     pileWrapper["IsPlayable"] = property {[](pile* p) { return p->Rule.IsPlayable; }, [](pile* p, bool val) { p->Rule.IsPlayable = val; }};
 
@@ -200,15 +201,16 @@ inline script_game<Table, Function, IndexOffset>::script_game(card_table& f, gam
     , _table {std::move(table)}
 {
     make_piles(_table);
-    _table.try_get(_callbacks.OnRedeal, "on_redeal");
-    _table.try_get(_callbacks.OnDeal, "on_deal");
+    _table.try_get(_callbacks.DoRedeal, "do_redeal");
+    _table.try_get(_callbacks.DoDeal, "do_deal");
     _table.try_get(_callbacks.OnBeforeShuffle, "on_before_shuffle");
     _table.try_get(_callbacks.OnShuffle, "on_shuffle");
     _table.try_get(_callbacks.OnAfterShuffle, "on_after_shuffle");
+    _table.try_get(_callbacks.OnInit, "on_init");
     _table.try_get(_callbacks.OnDrop, "on_drop");
     _table.try_get(_callbacks.OnEndTurn, "on_end_turn");
     _table.try_get(_callbacks.CheckPlayable, "check_playable");
-    _table.try_get(_callbacks.CheckState, "check_state");
+    _table.try_get(_callbacks.GetState, "get_state");
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>
@@ -223,8 +225,8 @@ inline auto script_game<Table, Function, IndexOffset>::can_play(pile const& targ
 template <typename Table, template <typename> typename Function, isize IndexOffset>
 inline auto script_game<Table, Function, IndexOffset>::do_redeal() -> bool
 {
-    if (_callbacks.OnRedeal) {
-        return (*_callbacks.OnRedeal)(static_cast<base_game const*>(this));
+    if (_callbacks.DoRedeal) {
+        return (*_callbacks.DoRedeal)(static_cast<base_game const*>(this));
     }
     return false;
 }
@@ -232,8 +234,8 @@ inline auto script_game<Table, Function, IndexOffset>::do_redeal() -> bool
 template <typename Table, template <typename> typename Function, isize IndexOffset>
 inline auto script_game<Table, Function, IndexOffset>::do_deal() -> bool
 {
-    if (_callbacks.OnDeal) {
-        return (*_callbacks.OnDeal)(static_cast<base_game const*>(this));
+    if (_callbacks.DoDeal) {
+        return (*_callbacks.DoDeal)(static_cast<base_game const*>(this));
     }
     return false;
 }
@@ -265,6 +267,14 @@ inline void script_game<Table, Function, IndexOffset>::after_shuffle()
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>
+inline void script_game<Table, Function, IndexOffset>::on_init()
+{
+    if (_callbacks.OnInit) {
+        (*_callbacks.OnInit)(static_cast<base_game const*>(this));
+    }
+}
+
+template <typename Table, template <typename> typename Function, isize IndexOffset>
 inline void script_game<Table, Function, IndexOffset>::on_drop(pile* pile)
 {
     if (_callbacks.OnDrop) {
@@ -281,12 +291,12 @@ inline void script_game<Table, Function, IndexOffset>::on_end_turn()
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>
-inline auto script_game<Table, Function, IndexOffset>::check_state() const -> game_state
+inline auto script_game<Table, Function, IndexOffset>::get_state() const -> game_state
 {
-    if (_callbacks.CheckState) {
-        return (*_callbacks.CheckState)(static_cast<base_game const*>(this));
+    if (_callbacks.GetState) {
+        return (*_callbacks.GetState)(static_cast<base_game const*>(this));
     }
-    return base_game::check_state();
+    return base_game::get_state();
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>
@@ -314,12 +324,8 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
             if (Table moveTable; ruleTable.try_get(moveTable, "Move")) {
                 moveTable.try_get(pile.Rule.MoveHint, "Hint");
 
-                if (!moveTable.try_get(pile.Rule.IsPlayable, "IsPlayable")) {
-                    pile.Rule.IsPlayable = true;
-                }
-                if (!moveTable.try_get(pile.Rule.IsSequence, "IsSequence")) {
-                    pile.Rule.IsSequence = true;
-                }
+                moveTable.try_get(pile.Rule.IsPlayable, "IsPlayable");
+                moveTable.try_get(pile.Rule.IsSequence, "IsSequence");
 
                 if (Function<bool> func; moveTable.try_get(func, "Func")) {
                     pile.Rule.Move = {[this, func](class pile const* target, isize idx) {
@@ -367,10 +373,6 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
     createPiles(FreeCell, "FreeCell");
     createPiles(Foundation, "Foundation");
     createPiles(Tableau, "Tableau");
-
-    if (Function<void> func; gameRef.try_get(func, "on_piles_created")) {
-        func(static_cast<base_game*>(this));
-    }
 }
 
 }

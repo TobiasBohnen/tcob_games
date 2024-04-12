@@ -30,22 +30,22 @@ end
 ------
 
 local golf                                = {
-    Info             = {
+    Info       = {
         Name          = "Golf",
         Family        = "Golf",
         DeckCount     = 1,
         CardDealCount = 1,
         Redeals       = 0
     },
-    Stock            = {
+    Stock      = {
         Initial = Sol.Initial.face_down(16)
     },
-    Foundation       = {
+    Foundation = {
         Initial = Sol.Initial.face_up(1),
         Layout  = "Squared",
         Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpOrDownByRank(), Move = Sol.Rules.Move.None() }
     },
-    Tableau          = {
+    Tableau    = {
         Size = 7,
         Pile = {
             Initial = Sol.Initial.face_up(5),
@@ -53,11 +53,11 @@ local golf                                = {
             Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
         }
     },
-    on_deal          = function(game)
+    do_deal    = function(game)
         return Sol.Ops.Deal.to_pile(game.Stock[1], game.Foundation[1], game.CardDealCount)
     end,
-    check_state      = golf_check_state,
-    on_piles_created = Sol.Layout.golf
+    get_state  = golf_check_state,
+    on_init    = Sol.Layout.golf
 }
 
 ------
@@ -91,18 +91,18 @@ double_putt.Tableau.Pile.Initial          = Sol.Initial.top_face_up(7)
 ------
 
 local all_in_a_row                        = {
-    Info             = {
+    Info       = {
         Name          = "All in a Row",
         Family        = "Golf",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation       = {
+    Foundation = {
         Layout = "Squared",
         Rule   = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.None() }
     },
-    Tableau          = {
+    Tableau    = {
         Size = 13,
         Pile = {
             Initial = Sol.Initial.face_up(4),
@@ -110,7 +110,7 @@ local all_in_a_row                        = {
             Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
         }
     },
-    on_piles_created = Sol.Layout.golf
+    on_init    = Sol.Layout.golf
 }
 
 ------
@@ -181,7 +181,7 @@ local dolphin                             = {
             }
         end
     },
-    on_piles_created = Sol.Layout.free_cell
+    on_init = Sol.Layout.free_cell
 }
 
 ------
@@ -225,7 +225,7 @@ local flake                               = {
             }
         end
     },
-    on_piles_created = Sol.Layout.free_cell
+    on_init = Sol.Layout.free_cell
 }
 
 ------
@@ -265,8 +265,8 @@ local robert                              = {
         Layout   = "Squared",
         Rule     = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.None() }
     },
-    on_deal    = Sol.Ops.Deal.stock_to_waste,
-    on_redeal  = Sol.Ops.Redeal.waste_to_stock
+    do_deal    = Sol.Ops.Deal.stock_to_waste,
+    do_redeal  = Sol.Ops.Redeal.waste_to_stock
 }
 
 ------
@@ -328,8 +328,8 @@ local uintah                              = {
             }
         end
     },
-    on_deal           = Sol.Ops.Deal.stock_to_waste,
-    on_redeal         = Sol.Ops.Redeal.waste_to_stock,
+    do_deal           = Sol.Ops.Deal.stock_to_waste,
+    do_redeal         = Sol.Ops.Redeal.waste_to_stock,
     on_before_shuffle = function(game, card)
         if card.Suit == "Clubs" then
             return game.PlaceTop(card, game.Foundation[1], true)

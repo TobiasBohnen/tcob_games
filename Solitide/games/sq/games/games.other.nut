@@ -55,7 +55,7 @@ local aces_up = {
 
         return false
     },
-    check_state = function(game) {
+    get_state = function(game) {
         if (game.Foundation[0].CardCount == 48) {
             return "Success"
         }
@@ -73,8 +73,8 @@ local aces_up = {
 
         return "Running"
     },
-    on_deal = @(game) Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, false),
-    on_piles_created = @(game) Lua.Sol.Layout.klondike(game)
+    do_deal = @(game) Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, false),
+    on_init = @(game) Lua.Sol.Layout.klondike(game)
 }
 
 # # # # # # # #
@@ -160,7 +160,7 @@ local aces_square = {
 
         return false
     },
-    check_state = function(game) {
+    get_state = function(game) {
         if (game.Foundation[0].CardCount == 48) {
             return "Success"
         }
@@ -305,7 +305,7 @@ local four_seasons = {
 
         }
     },
-    on_deal = Sol.Ops.Deal.stock_to_waste
+    do_deal = Sol.Ops.Deal.stock_to_waste
 }
 
 # # # # # # # #

@@ -65,7 +65,7 @@ local spider                      = {
         end
     },
     on_end_turn = spider_check,
-    on_deal     = function(game)
+    do_deal     = function(game)
         for _, tableau in ipairs(game.Tableau) do
             if tableau.IsEmpty then return false end
         end
@@ -210,7 +210,7 @@ end
 
 local relaxed_spider              = Sol.copy(spider)
 relaxed_spider.Info.Name          = "Relaxed Spider"
-relaxed_spider.on_deal            = function(game)
+relaxed_spider.do_deal            = function(game)
     return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, false)
 end
 

@@ -24,7 +24,7 @@ local beleaguered_castle       = {
         }
     },
     on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation,
-    on_piles_created  = Sol.Layout.beleaguered_castle
+    on_init           = Sol.Layout.beleaguered_castle
 }
 
 ------
@@ -44,7 +44,7 @@ castle_mount.Tableau           = {
         Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.InSeqInSuit() }
     }
 }
-castle_mount.on_piles_created  = Sol.Layout.canister
+castle_mount.on_init           = Sol.Layout.canister
 
 ------
 
@@ -174,18 +174,18 @@ local chequers                 = {
 ------
 
 local fortress                 = {
-    Info             = {
+    Info       = {
         Name          = "Fortress",
         Family        = "BeleagueredCastle",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation       = {
+    Foundation = {
         Size = 4,
         Pile = { Rule = Sol.Rules.ace_upsuit_top }
     },
-    Tableau          = {
+    Tableau    = {
         Size = 10,
         Pile = function(i)
             return {
@@ -195,7 +195,7 @@ local fortress                 = {
             }
         end
     },
-    on_piles_created = Sol.Layout.canister
+    on_init    = Sol.Layout.canister
 }
 
 ------
@@ -215,7 +215,7 @@ lightweight.Tableau            = {
         Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.InSeq() }
     }
 }
-lightweight.on_piles_created   = Sol.Layout.canister
+lightweight.on_init            = Sol.Layout.canister
 
 ------
 
@@ -241,24 +241,24 @@ local morehead                 = {
             }
         end
     },
-    on_piles_created = Sol.Layout.canister
+    on_init = Sol.Layout.canister
 }
 
 ------
 
 local penelopes_web            = {
-    Info             = {
+    Info       = {
         Name          = "Penelope's Web",
         Family        = "BeleagueredCastle",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation       = {
+    Foundation = {
         Size = 4,
         Pile = { Rule = Sol.Rules.ace_upsuit_none }
     },
-    Tableau          = {
+    Tableau    = {
         Size = 8,
         Pile = function(i)
             return {
@@ -268,7 +268,7 @@ local penelopes_web            = {
             }
         end
     },
-    on_piles_created = Sol.Layout.beleaguered_castle
+    on_init    = Sol.Layout.beleaguered_castle
 }
 
 ------
@@ -384,18 +384,18 @@ local rittenhouse              = {
 ------
 
 local selective_castle         = {
-    Info             = {
+    Info           = {
         Name          = "Selective Castle",
         Family        = "BeleagueredCastle",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation       = {
+    Foundation     = {
         Size = 4,
         Pile = { Rule = Sol.Rules.ff_upsuit_none_l13 }
     },
-    Tableau          = {
+    Tableau        = {
         Size = 8,
         Pile = function(i)
             return {
@@ -405,7 +405,7 @@ local selective_castle         = {
             }
         end
     },
-    check_playable   = function(game, targetPile, targetCardIndex, card, numCards)
+    check_playable = function(game, targetPile, targetCardIndex, card, numCards)
         local foundation1 = game.Foundation[1]
         if foundation1.IsEmpty and targetPile == foundation1 then -- allow any card on first foundation
             return true
@@ -413,24 +413,24 @@ local selective_castle         = {
 
         return game:can_play(targetPile, targetCardIndex, card, numCards)
     end,
-    on_piles_created = Sol.Layout.beleaguered_castle
+    on_init        = Sol.Layout.beleaguered_castle
 }
 
 ------
 
 local streets_and_alleys       = {
-    Info             = {
+    Info       = {
         Name          = "Streets and Alleys",
         Family        = "BeleagueredCastle",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation       = {
+    Foundation = {
         Size = 4,
         Pile = { Rule = Sol.Rules.ace_upsuit_none }
     },
-    Tableau          = {
+    Tableau    = {
         Size = 8,
         Pile = function(i)
             return {
@@ -440,7 +440,7 @@ local streets_and_alleys       = {
             }
         end
     },
-    on_piles_created = Sol.Layout.beleaguered_castle
+    on_init    = Sol.Layout.beleaguered_castle
 }
 
 ------
@@ -495,7 +495,7 @@ local zerline                  = {
             end
         end
     },
-    on_deal        = Sol.Ops.Deal.stock_to_waste,
+    do_deal        = Sol.Ops.Deal.stock_to_waste,
     check_playable = function(game, targetPile, targetCardIndex, card, numCards)
         if targetPile.Type == "FreeCell" then
             local srcPile = game:find_pile(card)

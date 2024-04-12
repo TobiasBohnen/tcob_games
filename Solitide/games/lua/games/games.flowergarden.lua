@@ -4,14 +4,14 @@
 -- https://opensource.org/licenses/MIT
 
 local flower_garden           = {
-    Info             = {
+    Info       = {
         Name          = "Flower Garden",
         Family        = "Raglan",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    Reserve          = {
+    Reserve    = {
         Size = 16,
         Pile = {
             Initial = Sol.Initial.face_up(1),
@@ -19,11 +19,11 @@ local flower_garden           = {
             Rule = Sol.Rules.none_none_top
         }
     },
-    Foundation       = {
+    Foundation = {
         Size = 4,
         Pile = { Rule = Sol.Rules.ace_upsuit_top }
     },
-    Tableau          = {
+    Tableau    = {
         Size = 6,
         Pile = {
             Initial = Sol.Initial.face_up(6),
@@ -31,7 +31,7 @@ local flower_garden           = {
             Rule = Sol.Rules.any_downrank_top
         }
     },
-    on_piles_created = function(game) Sol.Layout.raglan(game, 4) end
+    on_init    = function(game) Sol.Layout.raglan(game, 4) end
 }
 
 ------

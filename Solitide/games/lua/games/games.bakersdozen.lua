@@ -24,7 +24,7 @@ local bakers_dozen                     = {
         }
     },
     on_after_shuffle = Sol.Ops.Shuffle.kings_to_bottom,
-    on_piles_created = Sol.Layout.bakers_dozen
+    on_init          = Sol.Layout.bakers_dozen
 }
 
 ------
@@ -58,18 +58,18 @@ end
 ------
 
 local fifteen                          = {
-    Info             = {
+    Info       = {
         Name          = "Fifteen",
         Family        = "BakersDozen",
         DeckCount     = 2,
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation       = {
+    Foundation = {
         Size = 8,
         Pile = { Rule = Sol.Rules.ace_upsuit_top }
     },
-    Tableau          = {
+    Tableau    = {
         Size = 15,
         Pile = function(i)
             return {
@@ -79,7 +79,7 @@ local fifteen                          = {
             }
         end
     },
-    on_piles_created = Sol.Layout.canister
+    on_init    = Sol.Layout.canister
 }
 
 ------
@@ -116,7 +116,7 @@ local nationale                        = {
 
         return false
     end,
-    on_piles_created  = Sol.Layout.canister
+    on_init           = Sol.Layout.canister
 }
 
 ------

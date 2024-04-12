@@ -4,20 +4,20 @@
 -- https://opensource.org/licenses/MIT
 
 local canfield                      = {
-    Info             = {
+    Info        = {
         Name          = "Canfield",
         Family        = "Canfield",
         DeckCount     = 1,
         CardDealCount = 3,
         Redeals       = -1
     },
-    Stock            = { Initial = Sol.Initial.face_down(34) },
-    Waste            = {},
-    Reserve          = {
+    Stock       = { Initial = Sol.Initial.face_down(34) },
+    Waste       = {},
+    Reserve     = {
         Initial = Sol.Initial.top_face_up(13),
         Layout = "Column"
     },
-    Foundation       = {
+    Foundation  = {
         Size = 4,
         Pile = function(i)
             return {
@@ -26,7 +26,7 @@ local canfield                      = {
             }
         end
     },
-    Tableau          = {
+    Tableau     = {
         Size = 4,
         Pile = {
             Initial = Sol.Initial.face_up(1),
@@ -34,10 +34,10 @@ local canfield                      = {
             Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.TopOrPile() }
         }
     },
-    on_end_turn      = function(game) Sol.Ops.Deal.to_group(game.Reserve[1], game.Tableau, true) end,
-    on_redeal        = Sol.Ops.Redeal.waste_to_stock,
-    on_deal          = Sol.Ops.Deal.stock_to_waste,
-    on_piles_created = Sol.Layout.canfield
+    on_end_turn = function(game) Sol.Ops.Deal.to_group(game.Reserve[1], game.Tableau, true) end,
+    do_redeal   = Sol.Ops.Redeal.waste_to_stock,
+    do_deal     = Sol.Ops.Deal.stock_to_waste,
+    on_init     = Sol.Layout.canfield
 }
 
 ------
@@ -45,7 +45,7 @@ local canfield                      = {
 local canfield_rush                 = Sol.copy(canfield)
 canfield_rush.Info.Name             = "Canfield Rush"
 canfield_rush.Info.Redeals          = 2
-canfield_rush.on_deal               = Sol.Ops.Deal.stock_to_waste_by_redeals_left
+canfield_rush.do_deal               = Sol.Ops.Deal.stock_to_waste_by_redeals_left
 
 ------
 
@@ -129,9 +129,33 @@ american_toad.Tableau               = {
 
 ------
 
+local beehive                       = Sol.copy(canfield)
+beehive.Info.Name                   = "Beehive"
+beehive.Stock.Initial               = Sol.Initial.face_down(33)
+beehive.Foundation                  = { Rule = Sol.Rules.none_none_none }
+beehive.Tableau                     = {
+    Size = 6,
+    Pile = {
+        Initial = Sol.Initial.face_up(1),
+        Layout = "Column",
+        Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.InRank(), Move = Sol.Rules.Move.InSeq() }
+    }
+}
+beehive.on_end_turn                 = function(game)
+    local tableau = game.Tableau
+    for _, tab in ipairs(game.Tableau) do
+        if tab.CardCount == 4 then
+            tab:move_cards(game.Foundation[1], 1, 4, false)
+        end
+    end
+
+    Sol.Ops.Deal.to_group(game.Reserve[1], tableau, true)
+end
+
+------
+
 local chameleon                     = Sol.copy(canfield)
 chameleon.Info.Name                 = "Chameleon"
-chameleon.Info.DeckCount            = 1
 chameleon.Info.CardDealCount        = 1
 chameleon.Info.Redeals              = 0
 chameleon.Stock.Initial             = Sol.Initial.face_down(36)
@@ -217,8 +241,40 @@ local eagle_wing                    = {
         Sol.Ops.Deal.to_group(game.Reserve[1], game.Tableau, true)
         game.Reserve[1]:flip_down_top_card()
     end,
-    on_redeal   = Sol.Ops.Redeal.waste_to_stock,
-    on_deal     = Sol.Ops.Deal.stock_to_waste
+    do_redeal   = Sol.Ops.Redeal.waste_to_stock,
+    do_deal     = Sol.Ops.Deal.stock_to_waste
+}
+
+------
+
+local lafayette                     = Sol.copy(canfield)
+lafayette.Info.Name                 = "Lafayette"
+lafayette.Stock.Initial             = Sol.Initial.face_down(35)
+lafayette.Foundation                = {
+    Size = 8,
+    Pile = function(i)
+        if i < 4 then
+            return {
+                Rule = Sol.Rules.ace_upsuit_none
+            }
+        else
+            return {
+                Rule = Sol.Rules.king_downsuit_none
+            }
+        end
+    end
+}
+lafayette.Tableau                   = {
+    Size = 4,
+    Pile = {
+        Initial = Sol.Initial.face_up(1),
+        Layout = "Column",
+        Rule = {
+            Base = Sol.Rules.Base.Ranks({ "Seven" }),
+            Build = Sol.Rules.Build.DownAlternateColors(),
+            Move = Sol.Rules.Move.InSeq()
+        }
+    }
 }
 
 ------
@@ -311,11 +367,13 @@ storehouse.Tableau.Pile             = {
 Sol.register_game(canfield)
 Sol.register_game(acme)
 Sol.register_game(american_toad)
+Sol.register_game(beehive)
 Sol.register_game(canfield_rush)
 Sol.register_game(chameleon)
 Sol.register_game(demon)
 Sol.register_game(double_canfield)
 Sol.register_game(eagle_wing)
+Sol.register_game(lafayette)
 Sol.register_game(minerva)
 Sol.register_game(munger)
 Sol.register_game(mystique)

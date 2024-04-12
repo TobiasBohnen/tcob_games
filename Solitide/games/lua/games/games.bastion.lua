@@ -4,25 +4,25 @@
 -- https://opensource.org/licenses/MIT
 
 local bastion               = {
-    Info             = {
+    Info       = {
         Name          = "Bastion",
         Family        = "BeleagueredCastle",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    FreeCell         = {
+    FreeCell   = {
         Size = 2,
         Pile = {
             Initial = Sol.Initial.face_up(1),
             Rule = Sol.Rules.any_none_top
         }
     },
-    Foundation       = {
+    Foundation = {
         Size = 4,
         Pile = { Rule = Sol.Rules.ace_upsuit_top }
     },
-    Tableau          = {
+    Tableau    = {
         Size = 10,
         Pile = {
             Initial = Sol.Initial.face_up(5),
@@ -30,7 +30,7 @@ local bastion               = {
             Rule = Sol.Rules.any_updownsuit_top
         }
     },
-    on_piles_created = Sol.Layout.free_cell
+    on_init    = Sol.Layout.free_cell
 }
 
 ------

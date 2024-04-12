@@ -4,18 +4,18 @@
 -- https://opensource.org/licenses/MIT
 
 local castles_in_spain            = {
-    Info             = {
+    Info       = {
         Name          = "Castles In Spain",
         Family        = "BakersDozen",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    Foundation       = {
+    Foundation = {
         Size = 4,
         Pile = { Rule = Sol.Rules.ace_upsuit_top }
     },
-    Tableau          = {
+    Tableau    = {
         Size = 13,
         Pile = {
             Initial = Sol.Initial.top_face_up(4),
@@ -23,7 +23,7 @@ local castles_in_spain            = {
             Rule = Sol.Rules.any_downac_top
         }
     },
-    on_piles_created = Sol.Layout.bakers_dozen
+    on_init    = Sol.Layout.bakers_dozen
 }
 
 ------

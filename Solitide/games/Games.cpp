@@ -50,7 +50,7 @@ void base_game::start(size_f cardSize, std::optional<data::config::object> const
 
 void base_game::restart()
 {
-    start(_cardSize, _currentState);
+    start(_cardSize, _saveState);
 }
 
 void base_game::new_game()
@@ -121,7 +121,8 @@ auto base_game::load(std::optional<data::config::object> const& loadObj) -> bool
     if (!loadObj->has(_info.Name)) { return false; }
 
     object const obj {loadObj->get<object>(_info.Name).value()};
-    if (!obj.has("Redeals") || !obj.has("Turn")) { return false; }
+    if (!obj.has("Redeals") || !obj.has("Turn") || !obj.has("Seed") || !obj.has("Time")) { return false; }
+
     _info.RemainingRedeals = obj["Redeals"].as<i32>();
     _info.Turn             = obj["Turn"].as<i32>();
     _info.InitialSeed      = obj["Seed"].as<string>();
@@ -178,15 +179,17 @@ void base_game::save(tcob::data::config::object& saveObj)
 
 void base_game::init()
 {
+    on_init();
+
     layout_piles();
 
-    _currentState = {};
-    save(_currentState);
+    _saveState = {};
+    save(_saveState);
 
     _movableCache.clear();
     _descriptionCache.clear();
     calc_available_moves();
-    State = check_state();
+    State = get_state();
 }
 
 void base_game::undo()
@@ -213,9 +216,9 @@ void base_game::end_turn(bool deal)
     on_end_turn();
     layout_piles();
 
-    _undoStack.push(_currentState);
-    _currentState = {};
-    save(_currentState);
+    _undoStack.push(_saveState);
+    _saveState = {};
+    save(_saveState);
 
     if (deal // if all Waste piles are empty
         && !Waste.empty()
@@ -226,7 +229,7 @@ void base_game::end_turn(bool deal)
     _movableCache.clear();
     _descriptionCache.clear();
     calc_available_moves();
-    State = check_state();
+    State = get_state();
 
     _cardTable.on_end_turn();
 }
@@ -363,7 +366,9 @@ void base_game::key_down(input::keyboard::event& ev)
 void base_game::update(milliseconds delta)
 {
     // TODO: pause
-    _info.Time += delta;
+    if (State == game_state::Running) {
+        _info.Time += delta;
+    }
 }
 
 void base_game::click(pile* srcPile, u8 clicks)
@@ -409,9 +414,6 @@ void base_game::play_cards(pile& from, pile& to, isize startIndex, isize numCard
     from.move_cards(to, startIndex, numCards, false);
     on_drop(&to);
     end_turn(true);
-
-    from.remove_tint();
-    to.remove_tint();
 }
 
 void base_game::clear_piles()
@@ -467,7 +469,7 @@ auto base_game::deal_cards() -> bool
     return false;
 }
 
-auto base_game::check_state() const -> game_state
+auto base_game::get_state() const -> game_state
 {
     // success if cards only on foundation piles
     bool success {true};

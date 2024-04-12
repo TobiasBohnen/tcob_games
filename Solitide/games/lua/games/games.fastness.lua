@@ -4,22 +4,22 @@
 -- https://opensource.org/licenses/MIT
 
 local fastness               = {
-    Info             = {
+    Info       = {
         Name          = "Fastness",
         Family        = "BeleagueredCastle",
         DeckCount     = 1,
         CardDealCount = 0,
         Redeals       = 0
     },
-    FreeCell         = {
+    FreeCell   = {
         Size = 2,
         Pile = { Rule = Sol.Rules.any_none_top }
     },
-    Foundation       = {
+    Foundation = {
         Size = 4,
         Pile = { Rule = Sol.Rules.ace_upsuit_none }
     },
-    Tableau          = {
+    Tableau    = {
         Size = 8,
         Pile = function(i)
             return {
@@ -29,7 +29,7 @@ local fastness               = {
             }
         end
     },
-    on_piles_created = Sol.Layout.fastness
+    on_init    = Sol.Layout.fastness
 }
 
 ------

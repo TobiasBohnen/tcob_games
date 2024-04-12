@@ -208,6 +208,8 @@ void pile::move_cards(pile& to, isize startIndex, isize numCards, bool reverse)
     Cards.erase(Cards.begin() + startIndex, Cards.begin() + startIndex + numCards);
 
     if (Type != pile_type::Stock) { flip_up_top_card(); }
+    remove_tint();
+    to.remove_tint();
 }
 
 static auto fill(pile const& pile, card const& card0, isize numCards) -> bool
