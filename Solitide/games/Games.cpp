@@ -231,7 +231,7 @@ void base_game::end_turn(bool deal)
     calc_hints();
     State = get_state();
 
-    _cardTable.on_end_turn();
+    _cardTable.mark_dirty();
 }
 
 void base_game::layout_piles()
@@ -283,7 +283,7 @@ void base_game::layout_piles()
         }
     }
 
-    _cardTable.on_pile_layout();
+    _cardTable.mark_dirty();
 }
 
 void base_game::key_down(input::keyboard::event& ev)
