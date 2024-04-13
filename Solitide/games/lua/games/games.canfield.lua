@@ -143,7 +143,7 @@ beehive.Tableau                     = {
 }
 beehive.on_end_turn                 = function(game)
     local tableau = game.Tableau
-    for _, tab in ipairs(game.Tableau) do
+    for _, tab in ipairs(tableau) do
         if tab.CardCount == 4 then
             tab:move_cards(game.Foundation[1], 1, 4, false)
         end

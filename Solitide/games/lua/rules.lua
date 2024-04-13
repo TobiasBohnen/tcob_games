@@ -516,6 +516,7 @@ return {
     king_downsuit_none = { Base = base.King(), Build = build.DownInSuit(), Move = move.None() },
     king_downsuit_inseq = { Base = base.King(), Build = build.DownInSuit(), Move = move.InSeq() },
     king_downsuit_faceup = { Base = base.King(), Build = build.DownInSuit(), Move = move.FaceUp() },
+    none_downac_top = { Base = base.None(), Build = build.DownAlternateColors(), Move = move.Top() },
     none_downrank_top = { Base = base.None(), Build = build.DownByRank(), Move = move.Top() },
     none_downsuit_top = { Base = base.None(), Build = build.DownInSuit(), Move = move.Top() },
     none_none_top = { Base = base.None(), Build = build.None(), Move = move.Top() },

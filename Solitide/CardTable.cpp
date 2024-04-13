@@ -285,7 +285,7 @@ void card_table::drag_cards(input::mouse::motion_event const& ev)
     _dragRect   = cards[_hovered.Index].Bounds;
     _isDragging = true;
 
-    _cardCanvas.disable_hint();
+    _cardCanvas.mark_dirty();
     mark_dirty();
 }
 
@@ -497,6 +497,7 @@ void card_canvas::draw_hint()
     _canvas->stroke();
 
     auto const screenSrcBounds {rect_f {camera.convert_world_to_screen(srcBounds)}};
+
     _canvas->set_global_composite_blendfunc(gfx::blend_func::One, gfx::blend_func::Zero);
     _canvas->begin_path();
     _canvas->rounded_rect(screenSrcBounds, 10);

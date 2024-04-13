@@ -14,6 +14,7 @@ local function get_piles(game)
         Stock = stock,
         HasStock = #stock > 0,
         Waste = waste,
+        WasteSize = #waste,
         HasWaste = #waste > 0,
         Tableau = tableau,
         TableauSize = #tableau,
@@ -181,6 +182,7 @@ return {
     end,
     -- Foundation       -> right or top
     -- Tableau          -> in columns
+    -- Stock and Waste      -> bottom
     fan = function(game, columns)
         local piles = get_piles(game)
 
@@ -203,6 +205,16 @@ return {
 
             for i = 0, piles.TableauSize - 1 do
                 piles.Tableau[i + 1].Position = { x = (i % columns) * 2, y = i // columns + 1 }
+            end
+        end
+
+        if piles.HasStock then
+            local stockOffsetX = math.max(0, ((columns * 2) - (piles.WasteSize + 1)) / 2)
+            local stockOffsetY = piles.TableauSize // columns
+            piles.Stock[1].Position = { x = stockOffsetX, y = stockOffsetY }
+
+            for i = 1, piles.WasteSize do
+                piles.Waste[i].Position = { x = stockOffsetX + i, y = stockOffsetY }
             end
         end
     end,

@@ -225,9 +225,13 @@ The Info table contains basic information about the game.
 
 - move_rank_to_bottom
 
+- move_card
+
 - move_cards
 
 - play_card
+
+- clear
 
 ## _card_ members
 
