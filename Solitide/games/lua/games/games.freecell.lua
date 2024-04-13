@@ -7,8 +7,7 @@ local free_cell                             = {
     Info       = {
         Name      = "FreeCell",
         Family    = "FreeCell",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     FreeCell   = {
         Size = 4,
@@ -49,8 +48,7 @@ local double_free_cell                      = {
     Info       = {
         Name      = "Double FreeCell",
         Family    = "FreeCell",
-        DeckCount = 2,
-        Redeals   = 0
+        DeckCount = 2
     },
     FreeCell   = {
         Size = 8,
@@ -96,8 +94,7 @@ local triple_free_cell                      = {
     Info       = {
         Name      = "Triple FreeCell",
         Family    = "FreeCell",
-        DeckCount = 3,
-        Redeals   = 0
+        DeckCount = 3
     },
     FreeCell   = {
         Size = 10,
@@ -164,8 +161,7 @@ local big_cell                              = {
     Info       = {
         Name      = "Big Cell",
         Family    = "FreeCell",
-        DeckCount = 3,
-        Redeals   = 0
+        DeckCount = 3
     },
     FreeCell   = {
         Size = 4,
@@ -192,8 +188,7 @@ local cell_11                               = {
     Info       = {
         Name      = "Cell 11",
         Family    = "FreeCell",
-        DeckCount = 3,
-        Redeals   = 0
+        DeckCount = 3
     },
     FreeCell   = {
         Size = 11,
@@ -298,8 +293,7 @@ local deep                                  = {
     Info       = {
         Name      = "Deep",
         Family    = "FreeCell",
-        DeckCount = 2,
-        Redeals   = 0
+        DeckCount = 2
     },
     FreeCell   = {
         Size = 8,
@@ -338,8 +332,7 @@ local eight_off                             = {
     Info       = {
         Name      = "Eight Off",
         Family    = "FreeCell",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     FreeCell   = {
         Size = 8,
@@ -601,8 +594,7 @@ local flipper                               = {
     Info        = {
         Name      = "Flipper",
         Family    = "FreeCell",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     FreeCell    = {
         Size = 7,
@@ -644,8 +636,7 @@ local penguin                               = {
     Info              = {
         Name      = "Penguin",
         Family    = "FreeCell",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     FreeCell          = {
         Size = 7,

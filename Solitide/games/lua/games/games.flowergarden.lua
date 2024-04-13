@@ -7,8 +7,7 @@ local flower_garden           = {
     Info       = {
         Name      = "Flower Garden",
         Family    = "Raglan",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     Reserve    = {
         Size = 16,

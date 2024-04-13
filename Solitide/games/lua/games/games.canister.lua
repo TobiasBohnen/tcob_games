@@ -7,8 +7,7 @@ local canister                 = {
     Info       = {
         Name      = "Canister",
         Family    = "BeleagueredCastle",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     Foundation = {
         Size = 4,

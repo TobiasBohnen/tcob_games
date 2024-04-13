@@ -7,8 +7,7 @@ local castles_in_spain            = {
     Info       = {
         Name      = "Castles In Spain",
         Family    = "BakersDozen",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     Foundation = {
         Size = 4,

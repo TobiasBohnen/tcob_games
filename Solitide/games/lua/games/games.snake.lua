@@ -7,8 +7,7 @@ local snake                 = {
     Info              = {
         Name      = "Snake",
         Family    = "FreeCell",
-        DeckCount = 2,
-        Redeals   = 0
+        DeckCount = 2
     },
     FreeCell          = {
         Size = 7,

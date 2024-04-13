@@ -7,8 +7,7 @@ local beleaguered_castle       = {
     Info              = {
         Name      = "Beleaguered Castle",
         Family    = "BeleagueredCastle",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     Foundation        = {
         Size = 4,
@@ -74,8 +73,7 @@ local castle_of_indolence      = {
     Info       = {
         Name      = "Castle of Indolence",
         Family    = "BeleagueredCastle",
-        DeckCount = 2,
-        Redeals   = 0
+        DeckCount = 2
     },
     Reserve    = {
         Size = 4,
@@ -124,8 +122,7 @@ local chequers                 = {
     Info        = {
         Name      = "Chequers",
         Family    = "BeleagueredCastle",
-        DeckCount = 2,
-        Redeals   = 0
+        DeckCount = 2
     },
     Reserve     = {
         Position = { x = 0, y = 0 },
@@ -174,8 +171,7 @@ local fortress                 = {
     Info       = {
         Name      = "Fortress",
         Family    = "BeleagueredCastle",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     Foundation = {
         Size = 4,
@@ -219,8 +215,7 @@ local morehead                 = {
     Info = {
         Name      = "Morehead",
         Family    = "BeleagueredCastle",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     Foundation = {
         Size = 4,
@@ -245,8 +240,7 @@ local penelopes_web            = {
     Info       = {
         Name      = "Penelope's Web",
         Family    = "BeleagueredCastle",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     Foundation = {
         Size = 4,
@@ -271,8 +265,7 @@ local rittenhouse              = {
     Info              = {
         Name      = "Rittenhouse",
         Family    = "BeleagueredCastle",
-        DeckCount = 2,
-        Redeals   = 0
+        DeckCount = 2
     },
     Foundation        = {
         Size = 8,
@@ -380,8 +373,7 @@ local selective_castle         = {
     Info           = {
         Name      = "Selective Castle",
         Family    = "BeleagueredCastle",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     Foundation     = {
         Size = 4,
@@ -414,8 +406,7 @@ local streets_and_alleys       = {
     Info       = {
         Name      = "Streets and Alleys",
         Family    = "BeleagueredCastle",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     Foundation = {
         Size = 4,
@@ -440,8 +431,7 @@ local zerline                  = {
     Info           = {
         Name      = "Zerline",
         Family    = "BeleagueredCastle",
-        DeckCount = 2,
-        Redeals   = 0
+        DeckCount = 2
     },
     Stock          = {
         Position = { x = 3, y = 0 },

@@ -7,8 +7,7 @@ local bastion               = {
     Info       = {
         Name      = "Bastion",
         Family    = "BeleagueredCastle",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     FreeCell   = {
         Size = 2,

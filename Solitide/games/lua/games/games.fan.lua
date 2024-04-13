@@ -7,8 +7,7 @@ local fan                 = {
     Info       = {
         Name      = "Fan",
         Family    = "Fan",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     Foundation = {
         Size = 4,
@@ -89,8 +88,7 @@ local clover_leaf         = {
     Info              = {
         Name      = "Clover Leaf",
         Family    = "Fan",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     Foundation        = {
         Size = 4,
@@ -219,8 +217,7 @@ local lucky_piles                 = {
     Info       = {
         Name      = "Lucky Piles",
         Family    = "Fan",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     Foundation = {
         Size = 4,
@@ -322,8 +319,7 @@ local belvedere                   = {
     Info              = {
         Name      = "Belvedere",
         Family    = "Fan",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     Stock             = {
         Initial = Sol.Initial.face_down(27)
@@ -379,8 +375,7 @@ local club                        = {
     Info           = {
         Name      = "Club",
         Family    = "Fan",
-        DeckCount = 2,
-        Redeals   = 0
+        DeckCount = 2
     },
     Stock          = {
         Position = { x = 0, y = 0 },

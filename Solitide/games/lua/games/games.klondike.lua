@@ -715,8 +715,7 @@ local somerset                     = {
     Info       = {
         Name      = "Somerset",
         Family    = "Klondike",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     Foundation = {
         Size = 4,
@@ -761,8 +760,7 @@ local spike                        = {
     Info       = {
         Name      = "Spike",
         Family    = "Klondike",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     Stock      = {
         Position = { x = 0, y = 0 },
@@ -798,13 +796,7 @@ local spike                        = {
             }
         end
     },
-    do_deal    = function(game)
-        local stock1 = game.Stock[1]
-        local waste = game.Waste
-        return Sol.Ops.Deal.to_pile(stock1, waste[1], 1) and
-            Sol.Ops.Deal.to_pile(stock1, waste[2], 1) and
-            Sol.Ops.Deal.to_pile(stock1, waste[3], 1)
-    end
+    do_deal    = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Waste, false) end
 }
 
 ------
@@ -1023,8 +1015,7 @@ local doorway               = {
     Info       = {
         Name      = "Doorway",
         Family    = "Klondike",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     Stock      = {
         Position = { x = 0, y = 0 },

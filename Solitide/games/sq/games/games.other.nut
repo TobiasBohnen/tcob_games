@@ -7,8 +7,7 @@ local aces_up = {
     Info = {
         Name = "Aces Up",
         Family = "Other",
-        DeckCount = 1,
-        Redeals = 0
+        DeckCount = 1
     },
     Stock = {
         Initial = Sol.Initial.face_down(48)
@@ -89,8 +88,7 @@ local aces_square = {
     Info = {
         Name = "Aces Square",
         Family = "Other",
-        DeckCount = 1,
-        Redeals = 0
+        DeckCount = 1
     },
     Stock = {
         Position = {
@@ -182,8 +180,7 @@ local aglet = {
     Info = {
         Name = "Aglet",
         Family = "Other",
-        DeckCount = 1,
-        Redeals = 0
+        DeckCount = 1
     },
     FreeCell = {
         Pile = {
@@ -253,8 +250,7 @@ local four_seasons = {
     Info = {
         Name = "Four Seasons",
         Family = "Other",
-        DeckCount = 1,
-        Redeals = 0
+        DeckCount = 1
     },
     Stock = {
         Position = {

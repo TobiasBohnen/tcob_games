@@ -7,8 +7,7 @@ local gypsy                              = {
     Info       = {
         Name      = "Gypsy",
         Family    = "Gypsy",
-        DeckCount = 2,
-        Redeals   = 0
+        DeckCount = 2
     },
     Stock      = {
         Initial = Sol.Initial.face_down(80)
@@ -386,8 +385,7 @@ local cone                          = {
     Info       = {
         Name      = "Cone",
         Family    = "Gypsy",
-        DeckCount = 2,
-        Redeals   = 0
+        DeckCount = 2
     },
     Stock      = {
         Position = { x = 0, y = 0 },
@@ -443,8 +441,7 @@ local easthaven                     = {
     Info       = {
         Name      = "Easthaven",
         Family    = "Gypsy",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     Stock      = {
         Initial = Sol.Initial.face_down(31)
@@ -489,8 +486,7 @@ local leprechaun                    = {
     Info       = {
         Name      = "Leprechaun",
         Family    = "Gypsy",
-        DeckCount = 2,
-        Redeals   = 0
+        DeckCount = 2
     },
     Stock      = {
         Position = { x = 0, y = 0 },
@@ -542,8 +538,7 @@ local milligan_cell                 = {
     Info       = {
         Name      = "Milligan Cell",
         Family    = "Gypsy",
-        DeckCount = 2,
-        Redeals   = 0
+        DeckCount = 2
     },
     Stock      = {
         Position = { x = 0, y = 0 },
@@ -587,8 +582,7 @@ local miss_milligan                 = {
     Info           = {
         Name      = "Miss Milligan",
         Family    = "Gypsy",
-        DeckCount = 2,
-        Redeals   = 0
+        DeckCount = 2
     },
     Stock          = {
         Initial = Sol.Initial.face_down(96)
@@ -633,8 +627,7 @@ local nomad                         = {
     Info       = {
         Name      = "Nomad",
         Family    = "Gypsy",
-        DeckCount = 2,
-        Redeals   = 0
+        DeckCount = 2
     },
     Stock      = {
         Initial = Sol.Initial.face_down(72)
@@ -680,8 +673,7 @@ local westhaven                     = {
     Info       = {
         Name      = "Westhaven",
         Family    = "Gypsy",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     Stock      = {
         Initial = Sol.Initial.face_down(22)

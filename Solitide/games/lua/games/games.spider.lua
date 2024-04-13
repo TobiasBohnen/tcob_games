@@ -36,8 +36,7 @@ local spider                      = {
     Info        = {
         Name      = "Spider",
         Family    = "Spider",
-        DeckCount = 2,
-        Redeals   = 0
+        DeckCount = 2
     },
     Stock       = {
         Position = { x = 0, y = 0 },

@@ -315,8 +315,7 @@ local spoilt                      = {
         Name      = "Spoilt",
         Family    = "Montana",
         DeckCount = 1,
-        DeckRanks = spoilt_ranks,
-        Redeals   = 0
+        DeckRanks = spoilt_ranks
     },
     Stock          = {
         Position = { x = 0, y = 1 },

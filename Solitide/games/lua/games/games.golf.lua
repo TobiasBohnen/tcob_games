@@ -33,8 +33,7 @@ local golf                                = {
     Info       = {
         Name      = "Golf",
         Family    = "Golf",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     Stock      = {
         Initial = Sol.Initial.face_down(16)
@@ -93,8 +92,7 @@ local all_in_a_row                        = {
     Info       = {
         Name      = "All in a Row",
         Family    = "Golf",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     Foundation = {
         Layout = "Squared",
@@ -123,8 +121,7 @@ local black_hole                          = {
     Info              = {
         Name      = "Black Hole",
         Family    = "Golf",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     Foundation        = {
         Position = { x = 4, y = 1.5 },
@@ -156,8 +153,7 @@ local dolphin                             = {
     Info = {
         Name      = "Dolphin",
         Family    = "Golf",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     FreeCell = {
         Size = 4,
@@ -203,8 +199,7 @@ local flake                               = {
     Info = {
         Name      = "Flake",
         Family    = "Golf",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     Foundation = {
         Layout = "Squared",

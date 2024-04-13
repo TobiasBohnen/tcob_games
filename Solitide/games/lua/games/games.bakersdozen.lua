@@ -7,8 +7,7 @@ local bakers_dozen                     = {
     Info             = {
         Name      = "Baker's Dozen",
         Family    = "BakersDozen",
-        DeckCount = 1,
-        Redeals   = 0
+        DeckCount = 1
     },
     Foundation       = {
         Size = 4,
@@ -60,8 +59,7 @@ local fifteen                          = {
     Info       = {
         Name      = "Fifteen",
         Family    = "BakersDozen",
-        DeckCount = 2,
-        Redeals   = 0
+        DeckCount = 2
     },
     Foundation = {
         Size = 8,
@@ -86,8 +84,7 @@ local nationale                        = {
     Info              = {
         Name      = "Nationale",
         Family    = "BakersDozen",
-        DeckCount = 2,
-        Redeals   = 0
+        DeckCount = 2
     },
     Foundation        = {
         Size = 8,

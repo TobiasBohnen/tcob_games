@@ -7,8 +7,7 @@ local forty_thieves                     = {
     Info       = {
         Name      = "Forty Thieves",
         Family    = "FortyThieves",
-        DeckCount = 2,
-        Redeals   = 0
+        DeckCount = 2
     },
     Stock      = {
         Initial = Sol.Initial.face_down(64)
