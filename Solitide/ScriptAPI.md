@@ -13,7 +13,6 @@ The Info table contains basic information about the game.
 - Family (**string**)
 
    Possible values:
-  - Other
   - BakersDozen
   - BeleagueredCastle
   - Canfield
@@ -27,6 +26,7 @@ The Info table contains basic information about the game.
   - Raglan
   - Spider
   - Yukon
+  - Other
 
 - DeckCount (**integer**)
 
@@ -42,19 +42,19 @@ The Info table contains basic information about the game.
 
 - DisableHints (**bool**)
 
-- Stock / Waste / Reserve / FreeCell / Tableau / Foundation (**table**)
+### Stock / Waste / Reserve / FreeCell / Tableau / Foundation (**table**)
 
    The pile tables describe one or more piles of the specified type.
 
    There are three ways to define a pile:
 
-   1) For a single pile, the **table** is in the form of [Pile](#pile).
+- For a single pile, the **table** is in the form of [Pile](#pile).
 
       ```lua
       Stock = { Initial = Sol.Initial.face_down(80) }
       ```
 
-   2) For multiple identical piles, define a **table** with the following member:
+- For multiple identical piles, define a **table** with the following member:
 
       - _Size_: Indicates the **number** of piles.
       - _Pile_: A **table** in the form of [Pile](#pile).
@@ -66,7 +66,7 @@ The Info table contains basic information about the game.
       }
       ```
 
-   3) For multiple different piles, define a table with the following member:
+- For multiple different piles, define a table with the following member:
 
       - _Size_: Specifies the **number** of piles.
       - _Pile_: A **function** with a single parameter (0 to Size - 1), that returns a **table** in the form of [Pile](#pile).

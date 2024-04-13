@@ -519,6 +519,126 @@ local fascination_fan             = {
     end
 }
 
+------
+
+local free_fan                    = {
+    Info       = {
+        Name      = "Free Fan",
+        Family    = "Fan",
+        DeckCount = 1
+    },
+    FreeCell   = {
+        Size = 2,
+        Pile = function(i)
+            return {
+                Position = { x = ((i + 18) % 5) * 2, y = (i + 18) // 5 },
+                Rule = Sol.Rules.any_none_top
+            }
+        end
+    },
+    Foundation = {
+        Size = 4,
+        Pile = function(i)
+            return {
+                Position = { x = 10, y = i },
+                Rule = Sol.Rules.ace_upsuit_top
+            }
+        end
+    },
+    Tableau    = {
+        Size = 18,
+        Pile = function(i)
+            return {
+                Position = { x = (i % 5) * 2, y = i // 5 },
+                Initial = Sol.Initial.face_up(i < 17 and 3 or 1),
+                Layout = "Row",
+                Rule = Sol.Rules.king_downsuit_top
+            }
+        end
+    }
+}
+
+------
+
+local new_york                    = {
+    Info           = {
+        Name      = "New York",
+        Family    = "Fan",
+        DeckCount = 2
+    },
+    Reserve        = {
+        Position = { x = 0, y = 0 },
+        Initial = Sol.Initial.top_face_up(95),
+        Rule = Sol.Rules.none_none_top
+    },
+    FreeCell       = {
+        Size = 3,
+        Pile = function(i)
+            return {
+                Position = { x = 0, y = i + 1 },
+                Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.Any(), Move = Sol.Rules.Move.Top() }
+            }
+        end
+    },
+    Foundation     = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Position = { x = i + 2, y = 0 },
+                Initial = Sol.Initial.face_up(i == 0 and 1 or 0),
+                Rule = Sol.Rules.ff_upsuit_none_l13
+            }
+        end
+    },
+    Tableau        = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Position = { x = i + 2, y = 1 },
+                Initial = Sol.Initial.face_up(1),
+                Layout = "Column",
+                Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.Top() }
+            }
+        end
+    },
+    check_playable = function(game, targetPile, targetCardIndex, card, numCards)
+        if targetPile.Type == "FreeCell" then -- freecells only accept reserve cards
+            if game:find_pile(card).Type ~= "Reserve" then return false end
+        end
+
+        return game:can_play(targetPile, targetCardIndex, card, numCards)
+    end
+}
+
+------
+
+local gotham                      = Sol.copy(new_york)
+gotham.Info.Name                  = "Gotham"
+gotham.Reserve.Initial            = Sol.Initial.top_face_up(79)
+gotham.Tableau.Pile               = function(i)
+    return {
+        Position = { x = i + 2, y = 1 },
+        Initial = Sol.Initial.face_up(3),
+        Layout = "Column",
+        Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.InSeq() }
+    }
+end
+gotham.check_playable             = function(game, targetPile, targetCardIndex, card, numCards)
+    local srcPile = game:find_pile(card)
+
+    if targetPile.Type == "FreeCell" then -- freecells only accept reserve cards
+        if srcPile.Type ~= "Reserve" then return false end
+    end
+
+    if targetPile.Type == "Tableau" and targetPile.IsEmpty then -- empty piles can only be filled from reserve or freecell
+        if srcPile.Type ~= "Reserve" and srcPile.Type ~= "FreeCell" then return false end
+    end
+
+    return game:can_play(targetPile, targetCardIndex, card, numCards)
+end
+
+------
+
 ------------------------
 
 Sol.register_game(fan)
@@ -533,8 +653,11 @@ Sol.register_game(club)
 Sol.register_game(crescent)
 Sol.register_game(dover)
 Sol.register_game(fascination_fan)
+Sol.register_game(free_fan)
+Sol.register_game(gotham)
 Sol.register_game(house_in_the_wood)
 Sol.register_game(house_on_the_hill)
+Sol.register_game(new_york)
 Sol.register_game(quads)
 Sol.register_game(quads_plus)
 Sol.register_game(lucky_piles)
