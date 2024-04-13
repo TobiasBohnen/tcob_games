@@ -5,11 +5,10 @@
 
 local forty_thieves                     = {
     Info       = {
-        Name          = "Forty Thieves",
-        Family        = "FortyThieves",
-        DeckCount     = 2,
-        CardDealCount = 1,
-        Redeals       = 0
+        Name      = "Forty Thieves",
+        Family    = "FortyThieves",
+        DeckCount = 2,
+        Redeals   = 0
     },
     Stock      = {
         Initial = Sol.Initial.face_down(64)
@@ -357,12 +356,12 @@ express.Tableau.Size                    = 14
 
 local little_forty                      = Sol.copy(forty_thieves)
 little_forty.Info.Name                  = "Little Forty"
-little_forty.Info.CardDealCount         = 3
 little_forty.Info.Redeals               = 3
 little_forty.Tableau.Pile.Rule          = Sol.Rules.spider
 little_forty.on_end_turn                = function(game)
     return Sol.Ops.Deal.to_group(game.Waste[1], game.Tableau, true) or Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, true)
 end
+little_forty.do_deal                    = Sol.Ops.Deal.stock_to_waste_by_3
 
 ------
 

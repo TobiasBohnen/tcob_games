@@ -5,11 +5,10 @@
 
 local canister                 = {
     Info       = {
-        Name          = "Canister",
-        Family        = "BeleagueredCastle",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Canister",
+        Family    = "BeleagueredCastle",
+        DeckCount = 1,
+        Redeals   = 0
     },
     Foundation = {
         Size = 4,

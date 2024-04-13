@@ -5,11 +5,10 @@
 
 local duke               = {
     Info       = {
-        Name          = "Duke",
-        Family        = "Canfield",
-        DeckCount     = 1,
-        CardDealCount = 1,
-        Redeals       = 2
+        Name      = "Duke",
+        Family    = "Canfield",
+        DeckCount = 1,
+        Redeals   = 2
     },
     Stock      = {
         Position = { x = 0, y = 0 },

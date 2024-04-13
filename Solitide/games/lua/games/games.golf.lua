@@ -31,11 +31,10 @@ end
 
 local golf                                = {
     Info       = {
-        Name          = "Golf",
-        Family        = "Golf",
-        DeckCount     = 1,
-        CardDealCount = 1,
-        Redeals       = 0
+        Name      = "Golf",
+        Family    = "Golf",
+        DeckCount = 1,
+        Redeals   = 0
     },
     Stock      = {
         Initial = Sol.Initial.face_down(16)
@@ -54,7 +53,7 @@ local golf                                = {
         }
     },
     do_deal    = function(game)
-        return Sol.Ops.Deal.to_pile(game.Stock[1], game.Foundation[1], game.CardDealCount)
+        return Sol.Ops.Deal.to_pile(game.Stock[1], game.Foundation[1], 1)
     end,
     get_state  = golf_check_state,
     on_init    = Sol.Layout.golf
@@ -92,11 +91,10 @@ double_putt.Tableau.Pile.Initial          = Sol.Initial.top_face_up(7)
 
 local all_in_a_row                        = {
     Info       = {
-        Name          = "All in a Row",
-        Family        = "Golf",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "All in a Row",
+        Family    = "Golf",
+        DeckCount = 1,
+        Redeals   = 0
     },
     Foundation = {
         Layout = "Squared",
@@ -123,11 +121,10 @@ local black_hole_pos                      = {
 
 local black_hole                          = {
     Info              = {
-        Name          = "Black Hole",
-        Family        = "Golf",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Black Hole",
+        Family    = "Golf",
+        DeckCount = 1,
+        Redeals   = 0
     },
     Foundation        = {
         Position = { x = 4, y = 1.5 },
@@ -157,11 +154,10 @@ local black_hole                          = {
 
 local dolphin                             = {
     Info = {
-        Name          = "Dolphin",
-        Family        = "Golf",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Dolphin",
+        Family    = "Golf",
+        DeckCount = 1,
+        Redeals   = 0
     },
     FreeCell = {
         Size = 4,
@@ -205,11 +201,10 @@ double_dolphin.Tableau                    = {
 
 local flake                               = {
     Info = {
-        Name          = "Flake",
-        Family        = "Golf",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Flake",
+        Family    = "Golf",
+        DeckCount = 1,
+        Redeals   = 0
     },
     Foundation = {
         Layout = "Squared",
@@ -246,11 +241,10 @@ flake_2_decks.Tableau                     = {
 
 local robert                              = {
     Info       = {
-        Name          = "Robert",
-        Family        = "Golf",
-        DeckCount     = 1,
-        CardDealCount = 1,
-        Redeals       = 2
+        Name      = "Robert",
+        Family    = "Golf",
+        DeckCount = 1,
+        Redeals   = 2
     },
     Stock      = {
         Position = { x = 0, y = 1 },
@@ -273,8 +267,8 @@ local robert                              = {
 
 local wasatch                             = Sol.copy(robert)
 wasatch.Info.Name                         = "Wasatch"
-wasatch.Info.CardDealCount                = 3
 wasatch.Info.Redeals                      = -1
+wasatch.do_deal                           = Sol.Ops.Deal.stock_to_waste_by_3
 
 ------
 
@@ -305,11 +299,10 @@ end
 
 local uintah                              = {
     Info              = {
-        Name          = "Uintah",
-        Family        = "Golf",
-        DeckCount     = 1,
-        CardDealCount = 3,
-        Redeals       = -1
+        Name      = "Uintah",
+        Family    = "Golf",
+        DeckCount = 1,
+        Redeals   = -1
     },
     Stock             = {
         Position = { x = 1, y = 1 },
@@ -328,7 +321,7 @@ local uintah                              = {
             }
         end
     },
-    do_deal           = Sol.Ops.Deal.stock_to_waste,
+    do_deal           = Sol.Ops.Deal.stock_to_waste_by_3,
     do_redeal         = Sol.Ops.Redeal.waste_to_stock,
     on_before_shuffle = function(game, card)
         if card.Suit == "Clubs" then

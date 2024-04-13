@@ -5,11 +5,10 @@
 
 local bastion               = {
     Info       = {
-        Name          = "Bastion",
-        Family        = "BeleagueredCastle",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Bastion",
+        Family    = "BeleagueredCastle",
+        DeckCount = 1,
+        Redeals   = 0
     },
     FreeCell   = {
         Size = 2,

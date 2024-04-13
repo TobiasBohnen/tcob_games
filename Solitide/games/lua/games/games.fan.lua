@@ -5,11 +5,10 @@
 
 local fan                 = {
     Info       = {
-        Name          = "Fan",
-        Family        = "Fan",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Fan",
+        Family    = "Fan",
+        DeckCount = 1,
+        Redeals   = 0
     },
     Foundation = {
         Size = 4,
@@ -88,11 +87,10 @@ ceiling_fan.Tableau       = {
 
 local clover_leaf         = {
     Info              = {
-        Name          = "Clover Leaf",
-        Family        = "Fan",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Clover Leaf",
+        Family    = "Fan",
+        DeckCount = 1,
+        Redeals   = 0
     },
     Foundation        = {
         Size = 4,
@@ -219,11 +217,10 @@ local lucky_piles_pos             = {
 
 local lucky_piles                 = {
     Info       = {
-        Name          = "Lucky Piles",
-        Family        = "Fan",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Lucky Piles",
+        Family    = "Fan",
+        DeckCount = 1,
+        Redeals   = 0
     },
     Foundation = {
         Size = 4,
@@ -323,11 +320,10 @@ end
 
 local belvedere                   = {
     Info              = {
-        Name          = "Belvedere",
-        Family        = "Fan",
-        DeckCount     = 1,
-        CardDealCount = 3,
-        Redeals       = 0
+        Name      = "Belvedere",
+        Family    = "Fan",
+        DeckCount = 1,
+        Redeals   = 0
     },
     Stock             = {
         Initial = Sol.Initial.face_down(27)
@@ -381,11 +377,10 @@ dover.Stock.Initial               = Sol.Initial.face_down(80)
 
 local club                        = {
     Info           = {
-        Name          = "Club",
-        Family        = "Fan",
-        DeckCount     = 2,
-        CardDealCount = 1,
-        Redeals       = 0
+        Name      = "Club",
+        Family    = "Fan",
+        DeckCount = 2,
+        Redeals   = 0
     },
     Stock          = {
         Position = { x = 0, y = 0 },
@@ -436,11 +431,10 @@ local club                        = {
 
 local crescent                    = {
     Info              = {
-        Name          = "Crescent",
-        Family        = "Fan",
-        DeckCount     = 2,
-        CardDealCount = 0,
-        Redeals       = 3
+        Name      = "Crescent",
+        Family    = "Fan",
+        DeckCount = 2,
+        Redeals   = 3
     },
     Stock             = { Position = { x = 0, y = 0 } },
     Foundation        = {
@@ -487,11 +481,10 @@ local crescent                    = {
 
 local fascination_fan             = {
     Info = {
-        Name          = "Fascination Fan",
-        Family        = "Fan",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 6
+        Name      = "Fascination Fan",
+        Family    = "Fan",
+        DeckCount = 1,
+        Redeals   = 6
     },
     Stock = { Position = { x = 0, y = 0 } },
     Foundation = {

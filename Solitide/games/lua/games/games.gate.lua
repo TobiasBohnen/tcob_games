@@ -5,11 +5,10 @@
 
 local gate                = {
     Info        = {
-        Name          = "Gate",
-        Family        = "Canfield",
-        DeckCount     = 1,
-        CardDealCount = 1,
-        Redeals       = 0
+        Name      = "Gate",
+        Family    = "Canfield",
+        DeckCount = 1,
+        Redeals   = 0
     },
     Stock       = {
         Position = { x = 0, y = 0 },

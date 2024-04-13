@@ -72,7 +72,8 @@ local function deal_group_func(from, to, ifEmpty) {
 local deal = {
     to_pile = deal_func,
     to_group = deal_group_func,
-    stock_to_waste = @(game) deal_func(game.Stock[0], game.Waste[0], game.CardDealCount),
+    stock_to_waste = @(game) deal_func(game.Stock[0], game.Waste[0], 1),
+    stock_to_waste_by_3 = @(game) deal_func(game.Stock[0], game.Waste[0], 3),
     stock_to_waste_by_redeals_left = @(game) deal_func(game.Stock[0], game.Waste[0], game.RedealsLeft + 1)
 }
 

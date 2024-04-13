@@ -5,11 +5,10 @@
 
 local canfield                      = {
     Info        = {
-        Name          = "Canfield",
-        Family        = "Canfield",
-        DeckCount     = 1,
-        CardDealCount = 3,
-        Redeals       = -1
+        Name      = "Canfield",
+        Family    = "Canfield",
+        DeckCount = 1,
+        Redeals   = -1
     },
     Stock       = { Initial = Sol.Initial.face_down(34) },
     Waste       = {},
@@ -36,7 +35,7 @@ local canfield                      = {
     },
     on_end_turn = function(game) Sol.Ops.Deal.to_group(game.Reserve[1], game.Tableau, true) end,
     do_redeal   = Sol.Ops.Redeal.waste_to_stock,
-    do_deal     = Sol.Ops.Deal.stock_to_waste,
+    do_deal     = Sol.Ops.Deal.stock_to_waste_by_3,
     on_init     = Sol.Layout.canfield
 }
 
@@ -94,7 +93,6 @@ variegated_canfield.Reserve.Initial = Sol.Initial.face_up(13)
 
 local acme                          = Sol.copy(canfield)
 acme.Info.Name                      = "Acme"
-acme.Info.CardDealCount             = 1
 acme.Info.Redeals                   = 1
 acme.Stock.Initial                  = Sol.Initial.face_down(31)
 acme.Foundation.Pile                = { Rule = Sol.Rules.ace_upsuit_none }
@@ -104,13 +102,13 @@ acme.Tableau.Pile                   = {
     Rule = Sol.Rules.any_downsuit_top
 }
 acme.on_before_shuffle              = Sol.Ops.Shuffle.ace_to_foundation
+acme.do_deal                        = Sol.Ops.Deal.stock_to_waste
 
 ------
 
 local american_toad                 = Sol.copy(canfield)
 american_toad.Info.Name             = "American Toad"
 american_toad.Info.DeckCount        = 2
-american_toad.Info.CardDealCount    = 1
 american_toad.Info.Redeals          = 1
 american_toad.Stock.Initial         = Sol.Initial.face_down(75)
 american_toad.Reserve               = {
@@ -126,6 +124,7 @@ american_toad.Tableau               = {
         Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownInSuit(true), Move = Sol.Rules.Move.TopOrPile() }
     }
 }
+american_toad.do_deal               = Sol.Ops.Deal.stock_to_waste
 
 ------
 
@@ -156,7 +155,6 @@ end
 
 local chameleon                     = Sol.copy(canfield)
 chameleon.Info.Name                 = "Chameleon"
-chameleon.Info.CardDealCount        = 1
 chameleon.Info.Redeals              = 0
 chameleon.Stock.Initial             = Sol.Initial.face_down(36)
 chameleon.Reserve.Pile              = {
@@ -171,6 +169,7 @@ chameleon.Tableau                   = {
         Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.TopOrPile() }
     }
 }
+chameleon.do_deal                   = Sol.Ops.Deal.stock_to_waste
 
 ------
 
@@ -200,11 +199,10 @@ local eagle_wing_pos                = {
 
 local eagle_wing                    = {
     Info        = {
-        Name          = "Eagle Wing",
-        Family        = "Canfield",
-        DeckCount     = 1,
-        CardDealCount = 1,
-        Redeals       = 2
+        Name      = "Eagle Wing",
+        Family    = "Canfield",
+        DeckCount = 1,
+        Redeals   = 2
     },
     Stock       = {
         Position = { x = 0, y = 0 },
@@ -281,7 +279,6 @@ lafayette.Tableau                   = {
 
 local minerva                       = Sol.copy(canfield)
 minerva.Info.Name                   = "Minerva"
-minerva.Info.CardDealCount          = 1
 minerva.Info.Redeals                = 1
 minerva.Stock.Initial               = Sol.Initial.face_down(13)
 minerva.Reserve.Pile                = {
@@ -298,6 +295,7 @@ minerva.Tableau                     = {
     }
 }
 minerva.on_end_turn                 = nil
+minerva.do_deal                     = Sol.Ops.Deal.stock_to_waste
 
 ------
 
@@ -333,32 +331,32 @@ mystique.Tableau                    = {
 
 local rainbow                       = Sol.copy(canfield)
 rainbow.Info.Name                   = "Rainbow"
-rainbow.Info.CardDealCount          = 1
 rainbow.Info.Redeals                = 0
 rainbow.Tableau.Pile                = {
     Initial = Sol.Initial.face_up(1),
     Layout = "Column",
     Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.TopOrPile() }
 }
+rainbow.do_deal                     = Sol.Ops.Deal.stock_to_waste
 
 ------
 
 local rainfall                      = Sol.copy(canfield)
 rainfall.Info.Name                  = "Rainfall"
-rainfall.Info.CardDealCount         = 1
 rainfall.Info.Redeals               = 2
+rainfall.do_deal                    = Sol.Ops.Deal.stock_to_waste
 
 ------
 
 local storehouse                    = Sol.copy(canfield)
 storehouse.Info.Name                = "Storehouse"
-storehouse.Info.CardDealCount       = 1
 storehouse.Info.Redeals             = 2
 storehouse.Tableau.Pile             = {
     Initial = Sol.Initial.face_up(1),
     Layout = "Column",
     Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownInSuit(true), Move = Sol.Rules.Move.TopOrPile() }
 }
+storehouse.do_deal                  = Sol.Ops.Deal.stock_to_waste
 
 ------
 

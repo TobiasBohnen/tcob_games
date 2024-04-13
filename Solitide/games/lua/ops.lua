@@ -66,7 +66,8 @@ end
 local deal = {
     to_pile = deal_func,
     to_group = deal_group_func,
-    stock_to_waste = function(game) return deal_func(game.Stock[1], game.Waste[1], game.CardDealCount) end,
+    stock_to_waste = function(game) return deal_func(game.Stock[1], game.Waste[1], 1) end,
+    stock_to_waste_by_3 = function(game) return deal_func(game.Stock[1], game.Waste[1], 3) end,
     stock_to_waste_by_redeals_left = function(game) return deal_func(game.Stock[1], game.Waste[1], game.RedealsLeft + 1) end
 }
 

@@ -64,11 +64,10 @@ local initial <const>                    = {
 
 local yukon                              = {
     Info       = {
-        Name          = "Yukon",
-        Family        = "Yukon",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Yukon",
+        Family    = "Yukon",
+        DeckCount = 1,
+        Redeals   = 0
     },
     Foundation = {
         Size = 4,
@@ -274,11 +273,10 @@ triple_russian_solitaire.Tableau         = {
 
 local hawaiian                           = {
     Info       = {
-        Name          = "Hawaiian",
-        Family        = "Yukon",
-        DeckCount     = 2,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Hawaiian",
+        Family    = "Yukon",
+        DeckCount = 2,
+        Redeals   = 0
     },
     Reserve    = {
         Position = { x = 0, y = 0 },
@@ -311,11 +309,10 @@ local hawaiian                           = {
 
 local chinese_discipline                 = {
     Info       = {
-        Name          = "Chinese Discipline",
-        Family        = "Yukon",
-        DeckCount     = 1,
-        CardDealCount = 3,
-        Redeals       = 0
+        Name      = "Chinese Discipline",
+        Family    = "Yukon",
+        DeckCount = 1,
+        Redeals   = 0
     },
     Stock      = {
         Initial = Sol.Initial.face_down(3)
@@ -354,12 +351,11 @@ end
 
 local rushdike                           = {
     Info       = {
-        Name          = "Rushdike",
-        Family        = "Yukon",
+        Name      = "Rushdike",
+        Family    = "Yukon",
         --Family = "Gypsy/Yukon/Klondike"
-        DeckCount     = 1,
-        CardDealCount = 7,
-        Redeals       = 0
+        DeckCount = 1,
+        Redeals   = 0
     },
     Stock      = {
         Initial = Sol.Initial.face_down(24)
@@ -386,12 +382,11 @@ local rushdike                           = {
 
 local queenie                            = {
     Info       = {
-        Name          = "Queenie",
-        Family        = "Yukon",
+        Name      = "Queenie",
+        Family    = "Yukon",
         --queenie.Info.Family = "Yukon/Gypsy"
-        DeckCount     = 1,
-        CardDealCount = 7,
-        Redeals       = 0
+        DeckCount = 1,
+        Redeals   = 0
     },
     Stock      = {
         Initial = Sol.Initial.face_down(24)

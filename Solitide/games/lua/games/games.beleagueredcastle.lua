@@ -5,11 +5,10 @@
 
 local beleaguered_castle       = {
     Info              = {
-        Name          = "Beleaguered Castle",
-        Family        = "BeleagueredCastle",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Beleaguered Castle",
+        Family    = "BeleagueredCastle",
+        DeckCount = 1,
+        Redeals   = 0
     },
     Foundation        = {
         Size = 4,
@@ -73,11 +72,10 @@ exiled_kings.Tableau.Pile      = {
 
 local castle_of_indolence      = {
     Info       = {
-        Name          = "Castle of Indolence",
-        Family        = "BeleagueredCastle",
-        DeckCount     = 2,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Castle of Indolence",
+        Family    = "BeleagueredCastle",
+        DeckCount = 2,
+        Redeals   = 0
     },
     Reserve    = {
         Size = 4,
@@ -124,11 +122,10 @@ local castle_of_indolence      = {
 
 local chequers                 = {
     Info        = {
-        Name          = "Chequers",
-        Family        = "BeleagueredCastle",
-        DeckCount     = 2,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Chequers",
+        Family    = "BeleagueredCastle",
+        DeckCount = 2,
+        Redeals   = 0
     },
     Reserve     = {
         Position = { x = 0, y = 0 },
@@ -175,11 +172,10 @@ local chequers                 = {
 
 local fortress                 = {
     Info       = {
-        Name          = "Fortress",
-        Family        = "BeleagueredCastle",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Fortress",
+        Family    = "BeleagueredCastle",
+        DeckCount = 1,
+        Redeals   = 0
     },
     Foundation = {
         Size = 4,
@@ -221,11 +217,10 @@ lightweight.on_init            = Sol.Layout.canister
 
 local morehead                 = {
     Info = {
-        Name          = "Morehead",
-        Family        = "BeleagueredCastle",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Morehead",
+        Family    = "BeleagueredCastle",
+        DeckCount = 1,
+        Redeals   = 0
     },
     Foundation = {
         Size = 4,
@@ -248,11 +243,10 @@ local morehead                 = {
 
 local penelopes_web            = {
     Info       = {
-        Name          = "Penelope's Web",
-        Family        = "BeleagueredCastle",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Penelope's Web",
+        Family    = "BeleagueredCastle",
+        DeckCount = 1,
+        Redeals   = 0
     },
     Foundation = {
         Size = 4,
@@ -275,11 +269,10 @@ local penelopes_web            = {
 
 local rittenhouse              = {
     Info              = {
-        Name          = "Rittenhouse",
-        Family        = "BeleagueredCastle",
-        DeckCount     = 2,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Rittenhouse",
+        Family    = "BeleagueredCastle",
+        DeckCount = 2,
+        Redeals   = 0
     },
     Foundation        = {
         Size = 8,
@@ -385,11 +378,10 @@ local rittenhouse              = {
 
 local selective_castle         = {
     Info           = {
-        Name          = "Selective Castle",
-        Family        = "BeleagueredCastle",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Selective Castle",
+        Family    = "BeleagueredCastle",
+        DeckCount = 1,
+        Redeals   = 0
     },
     Foundation     = {
         Size = 4,
@@ -420,11 +412,10 @@ local selective_castle         = {
 
 local streets_and_alleys       = {
     Info       = {
-        Name          = "Streets and Alleys",
-        Family        = "BeleagueredCastle",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Streets and Alleys",
+        Family    = "BeleagueredCastle",
+        DeckCount = 1,
+        Redeals   = 0
     },
     Foundation = {
         Size = 4,
@@ -447,11 +438,10 @@ local streets_and_alleys       = {
 
 local zerline                  = {
     Info           = {
-        Name          = "Zerline",
-        Family        = "BeleagueredCastle",
-        DeckCount     = 2,
-        CardDealCount = 1,
-        Redeals       = 0
+        Name      = "Zerline",
+        Family    = "BeleagueredCastle",
+        DeckCount = 2,
+        Redeals   = 0
     },
     Stock          = {
         Position = { x = 3, y = 0 },

@@ -5,11 +5,10 @@
 
 local flower_garden           = {
     Info       = {
-        Name          = "Flower Garden",
-        Family        = "Raglan",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Flower Garden",
+        Family    = "Raglan",
+        DeckCount = 1,
+        Redeals   = 0
     },
     Reserve    = {
         Size = 16,

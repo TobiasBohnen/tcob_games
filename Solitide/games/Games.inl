@@ -26,9 +26,8 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
 
     // game
     auto& gameWrapper {*script.template create_wrapper<base_game>("script_game")};
-    gameWrapper["RedealsLeft"]   = getter {[](base_game* game) { return game->info().RemainingRedeals; }};
-    gameWrapper["CardDealCount"] = getter {[](base_game* game) { return game->info().CardDealCount; }};
-    gameWrapper["DeckCount"]     = getter {[](base_game* game) { return game->info().DeckCount; }};
+    gameWrapper["RedealsLeft"] = getter {[](base_game* game) { return game->info().RemainingRedeals; }};
+    gameWrapper["DeckCount"]   = getter {[](base_game* game) { return game->info().DeckCount; }};
 
     auto static const returnPile {[](base_game* game, pile_type type) {
         auto const& piles {game->piles()};
@@ -190,7 +189,6 @@ inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& scen
         infoTab.try_get(info.DeckCount, "DeckCount");
         infoTab.try_get(info.DeckRanks, "DeckRanks");
         infoTab.try_get(info.DeckSuits, "DeckSuits");
-        infoTab.try_get(info.CardDealCount, "CardDealCount");
         infoTab.try_get(info.Redeals, "Redeals");
         infoTab.try_get(info.DisableHints, "DisableHints");
 

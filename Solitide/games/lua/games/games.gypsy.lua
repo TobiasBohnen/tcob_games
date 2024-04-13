@@ -5,11 +5,10 @@
 
 local gypsy                              = {
     Info       = {
-        Name          = "Gypsy",
-        Family        = "Gypsy",
-        DeckCount     = 2,
-        CardDealCount = 8,
-        Redeals       = 0
+        Name      = "Gypsy",
+        Family    = "Gypsy",
+        DeckCount = 2,
+        Redeals   = 0
     },
     Stock      = {
         Initial = Sol.Initial.face_down(80)
@@ -35,7 +34,6 @@ local gypsy                              = {
 local agnes_sorel                        = Sol.copy(gypsy)
 agnes_sorel.Info.Name                    = "Agnes Sorel"
 agnes_sorel.Info.DeckCount               = 1
-agnes_sorel.Info.CardDealCount           = 7
 agnes_sorel.Stock.Initial                = Sol.Initial.face_down(23)
 agnes_sorel.Foundation                   = {
     Size = 4,
@@ -62,7 +60,6 @@ agnes_sorel.on_init                      = Sol.Layout.klondike
 
 local blockade                           = Sol.copy(gypsy)
 blockade.Info.Name                       = "Blockade"
-blockade.Info.CardDealCount              = 12
 blockade.Stock.Initial                   = Sol.Initial.face_down(92)
 blockade.Tableau                         = {
     Size = 12,
@@ -113,7 +110,6 @@ end
 
 local churchill                          = Sol.copy(gypsy)
 churchill.Info.Name                      = "Churchill"
-churchill.Info.CardDealCount             = 10
 churchill.Stock.Initial                  = Sol.Initial.face_down(68)
 churchill.Reserve                        = {
     Initial = Sol.Initial.face_up(6),
@@ -173,7 +169,6 @@ pitt_the_younger.Reserve.Initial         = Sol.Initial.face_up(11)
 
 local elba                               = Sol.copy(gypsy)
 elba.Info.Name                           = "Elba"
-elba.Info.CardDealCount                  = 10
 elba.Stock.Initial                       = Sol.Initial.face_down(54)
 elba.Tableau                             = {
     Size = 10,
@@ -189,7 +184,6 @@ elba.on_init                             = Sol.Layout.klondike
 
 local eclipse                            = Sol.copy(gypsy)
 eclipse.Info.Name                        = "Eclipse"
-eclipse.Info.CardDealCount               = 13
 eclipse.Stock.Initial                    = Sol.Initial.face_down(52)
 eclipse.Tableau                          = {
     Size = 13,
@@ -205,7 +199,6 @@ eclipse.on_init                          = Sol.Layout.klondike
 
 local hypotenuse                         = Sol.copy(gypsy)
 hypotenuse.Info.Name                     = "Hypotenuse"
-hypotenuse.Info.CardDealCount            = 10
 hypotenuse.Stock.Initial                 = Sol.Initial.face_down(49)
 hypotenuse.Tableau                       = {
     Size = 10,
@@ -294,7 +287,6 @@ end
 
 local irmgard                       = Sol.copy(gypsy)
 irmgard.Info.Name                   = "Irmgard"
-irmgard.Info.CardDealCount          = 9
 irmgard.Stock.Initial               = Sol.Initial.face_down(79)
 irmgard.Tableau                     = {
     Size = 9,
@@ -319,7 +311,6 @@ millie.Tableau.Pile.Initial         = Sol.Initial.face_up(1)
 
 local lexington_harp                = Sol.copy(gypsy)
 lexington_harp.Info.Name            = "Lexington Harp"
-lexington_harp.Info.CardDealCount   = 8
 --lexington_harp.Info.Family = "Gypsy/Yukon"
 lexington_harp.Stock.Initial        = Sol.Initial.face_down(68)
 lexington_harp.Foundation.Pile.Rule = Sol.Rules.ace_upsuit_none
@@ -376,7 +367,6 @@ end
 
 local mississippi                   = Sol.copy(lexington_harp)
 mississippi.Info.Name               = "Mississippi"
-mississippi.Info.CardDealCount      = 7
 --milligan_harp.Info.Family = "Gypsy/Yukon"
 mississippi.Stock.Initial           = Sol.Initial.face_down(76)
 mississippi.Tableau                 = {
@@ -394,11 +384,10 @@ mississippi.Tableau                 = {
 
 local cone                          = {
     Info       = {
-        Name          = "Cone",
-        Family        = "Gypsy",
-        DeckCount     = 2,
-        CardDealCount = 7,
-        Redeals       = 0
+        Name      = "Cone",
+        Family    = "Gypsy",
+        DeckCount = 2,
+        Redeals   = 0
     },
     Stock      = {
         Position = { x = 0, y = 0 },
@@ -452,11 +441,10 @@ local cone                          = {
 
 local easthaven                     = {
     Info       = {
-        Name          = "Easthaven",
-        Family        = "Gypsy",
-        DeckCount     = 1,
-        CardDealCount = 7,
-        Redeals       = 0
+        Name      = "Easthaven",
+        Family    = "Gypsy",
+        DeckCount = 1,
+        Redeals   = 0
     },
     Stock      = {
         Initial = Sol.Initial.face_down(31)
@@ -482,7 +470,6 @@ local easthaven                     = {
 local double_easthaven              = Sol.copy(easthaven)
 double_easthaven.Info.Name          = "Double Easthaven"
 double_easthaven.Info.DeckCount     = 2
-double_easthaven.Info.CardDealCount = 8
 double_easthaven.Stock.Initial      = Sol.Initial.face_down(80)
 double_easthaven.Foundation.Size    = 8
 double_easthaven.Tableau.Size       = 8
@@ -492,7 +479,6 @@ double_easthaven.Tableau.Size       = 8
 local triple_easthaven              = Sol.copy(easthaven)
 triple_easthaven.Info.Name          = "Triple Easthaven"
 triple_easthaven.Info.DeckCount     = 3
-triple_easthaven.Info.CardDealCount = 12
 triple_easthaven.Stock.Initial      = Sol.Initial.face_down(120)
 triple_easthaven.Foundation.Size    = 12
 triple_easthaven.Tableau.Size       = 12
@@ -501,11 +487,10 @@ triple_easthaven.Tableau.Size       = 12
 
 local leprechaun                    = {
     Info       = {
-        Name          = "Leprechaun",
-        Family        = "Gypsy",
-        DeckCount     = 2,
-        CardDealCount = 8,
-        Redeals       = 0
+        Name      = "Leprechaun",
+        Family    = "Gypsy",
+        DeckCount = 2,
+        Redeals   = 0
     },
     Stock      = {
         Position = { x = 0, y = 0 },
@@ -555,11 +540,10 @@ local leprechaun                    = {
 
 local milligan_cell                 = {
     Info       = {
-        Name          = "Milligan Cell",
-        Family        = "Gypsy",
-        DeckCount     = 2,
-        CardDealCount = 8,
-        Redeals       = 0
+        Name      = "Milligan Cell",
+        Family    = "Gypsy",
+        DeckCount = 2,
+        Redeals   = 0
     },
     Stock      = {
         Position = { x = 0, y = 0 },
@@ -601,11 +585,10 @@ local milligan_cell                 = {
 
 local miss_milligan                 = {
     Info           = {
-        Name          = "Miss Milligan",
-        Family        = "Gypsy",
-        DeckCount     = 2,
-        CardDealCount = 8,
-        Redeals       = 0
+        Name      = "Miss Milligan",
+        Family    = "Gypsy",
+        DeckCount = 2,
+        Redeals   = 0
     },
     Stock          = {
         Initial = Sol.Initial.face_down(96)
@@ -648,11 +631,10 @@ imperial_guards.Tableau.Pile.Rule   = Sol.Rules.any_downac_inseq
 
 local nomad                         = {
     Info       = {
-        Name          = "Nomad",
-        Family        = "Gypsy",
-        DeckCount     = 2,
-        CardDealCount = 8,
-        Redeals       = 0
+        Name      = "Nomad",
+        Family    = "Gypsy",
+        DeckCount = 2,
+        Redeals   = 0
     },
     Stock      = {
         Initial = Sol.Initial.face_down(72)
@@ -682,7 +664,6 @@ local nomad                         = {
 
 local phantom_blockade              = Sol.copy(gypsy)
 phantom_blockade.Info.Name          = "Phantom Blockade"
-phantom_blockade.Info.CardDealCount = 13
 phantom_blockade.Stock.Initial      = Sol.Initial.face_down(65)
 phantom_blockade.Tableau            = {
     Size = 13,
@@ -697,11 +678,10 @@ phantom_blockade.Tableau            = {
 
 local westhaven                     = {
     Info       = {
-        Name          = "Westhaven",
-        Family        = "Gypsy",
-        DeckCount     = 1,
-        CardDealCount = 10,
-        Redeals       = 0
+        Name      = "Westhaven",
+        Family    = "Gypsy",
+        DeckCount = 1,
+        Redeals   = 0
     },
     Stock      = {
         Initial = Sol.Initial.face_down(22)

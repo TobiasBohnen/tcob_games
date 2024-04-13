@@ -8,7 +8,6 @@ local aces_up = {
         Name = "Aces Up",
         Family = "Other",
         DeckCount = 1,
-        CardDealCount = 4,
         Redeals = 0
     },
     Stock = {
@@ -91,7 +90,6 @@ local aces_square = {
         Name = "Aces Square",
         Family = "Other",
         DeckCount = 1,
-        CardDealCount = 2,
         Redeals = 0
     },
     Stock = {
@@ -185,7 +183,6 @@ local aglet = {
         Name = "Aglet",
         Family = "Other",
         DeckCount = 1,
-        CardDealCount = 0,
         Redeals = 0
     },
     FreeCell = {
@@ -257,7 +254,6 @@ local four_seasons = {
         Name = "Four Seasons",
         Family = "Other",
         DeckCount = 1,
-        CardDealCount = 1,
         Redeals = 0
     },
     Stock = {

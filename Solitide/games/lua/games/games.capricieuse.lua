@@ -5,11 +5,10 @@
 
 local capricieuse              = {
     Info              = {
-        Name          = "Capricieuse",
-        Family        = "BakersDozen",
-        DeckCount     = 2,
-        CardDealCount = 0,
-        Redeals       = 2
+        Name      = "Capricieuse",
+        Family    = "BakersDozen",
+        DeckCount = 2,
+        Redeals   = 2
     },
     Stock             = {},
     Foundation        = {

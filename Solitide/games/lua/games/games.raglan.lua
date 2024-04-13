@@ -5,11 +5,10 @@
 
 local raglan                  = {
     Info              = {
-        Name          = "Raglan",
-        Family        = "Raglan",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Raglan",
+        Family    = "Raglan",
+        DeckCount = 1,
+        Redeals   = 0
     },
     Reserve           = {
         Size = 6,

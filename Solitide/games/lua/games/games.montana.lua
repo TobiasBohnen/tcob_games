@@ -114,12 +114,11 @@ local montana_ranks <const>       = { table.unpack(Sol.Ranks, 2, 13) }
 
 local montana                     = {
     Info           = {
-        Name          = "Montana",
-        Family        = "Montana",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 2,
-        DisableHints  = true
+        Name         = "Montana",
+        Family       = "Montana",
+        DeckCount    = 1,
+        Redeals      = 2,
+        DisableHints = true
     },
     Stock          = {},
     Tableau        = {
@@ -178,12 +177,11 @@ end
 
 local blue_moon                   = {
     Info           = {
-        Name          = "Blue Moon",
-        Family        = "Montana",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 2,
-        DisableHints  = true
+        Name         = "Blue Moon",
+        Family       = "Montana",
+        DeckCount    = 1,
+        Redeals      = 2,
+        DisableHints = true
     },
     Stock          = {},
     Tableau        = {
@@ -269,13 +267,12 @@ local paganini_ranks <const>      = { "Ace", "Six", "Seven", "Eight", "Nine", "T
 
 local paganini                    = {
     Info           = {
-        Name          = "Paganini",
-        Family        = "Montana",
-        DeckCount     = 1,
-        DeckRanks     = paganini_ranks,
-        CardDealCount = 0,
-        Redeals       = 1,
-        DisableHints  = true
+        Name         = "Paganini",
+        Family       = "Montana",
+        DeckCount    = 1,
+        DeckRanks    = paganini_ranks,
+        Redeals      = 1,
+        DisableHints = true
     },
     Stock          = {},
     Tableau        = {
@@ -315,12 +312,11 @@ local spoilt_ranks <const>        = { "Seven", "Eight", "Nine", "Ten", "Jack", "
 
 local spoilt                      = {
     Info           = {
-        Name          = "Spoilt",
-        Family        = "Montana",
-        DeckCount     = 1,
-        DeckRanks     = spoilt_ranks,
-        CardDealCount = 1,
-        Redeals       = 0
+        Name      = "Spoilt",
+        Family    = "Montana",
+        DeckCount = 1,
+        DeckRanks = spoilt_ranks,
+        Redeals   = 0
     },
     Stock          = {
         Position = { x = 0, y = 1 },
@@ -394,7 +390,6 @@ local spoilt                      = {
 
         return false
     end,
-
     get_state      = function(game)
         if game.Stock[1].IsEmpty and game.Waste[1].IsEmpty then
             --check rank and suit
@@ -411,7 +406,7 @@ local spoilt                      = {
         end
 
         return "Running"
-    end,
+    end
 }
 
 ------------------------

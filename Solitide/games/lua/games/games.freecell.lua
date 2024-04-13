@@ -5,11 +5,10 @@
 
 local free_cell                             = {
     Info       = {
-        Name          = "FreeCell",
-        Family        = "FreeCell",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "FreeCell",
+        Family    = "FreeCell",
+        DeckCount = 1,
+        Redeals   = 0
     },
     FreeCell   = {
         Size = 4,
@@ -48,11 +47,10 @@ free_cell_2.FreeCell.Size                   = 2
 
 local double_free_cell                      = {
     Info       = {
-        Name          = "Double FreeCell",
-        Family        = "FreeCell",
-        DeckCount     = 2,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Double FreeCell",
+        Family    = "FreeCell",
+        DeckCount = 2,
+        Redeals   = 0
     },
     FreeCell   = {
         Size = 8,
@@ -96,11 +94,10 @@ double_free_cell_2.on_before_shuffle        = Sol.Ops.Shuffle.ace_to_foundation
 
 local triple_free_cell                      = {
     Info       = {
-        Name          = "Triple FreeCell",
-        Family        = "FreeCell",
-        DeckCount     = 3,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Triple FreeCell",
+        Family    = "FreeCell",
+        DeckCount = 3,
+        Redeals   = 0
     },
     FreeCell   = {
         Size = 10,
@@ -165,11 +162,10 @@ bath.Tableau                                = {
 
 local big_cell                              = {
     Info       = {
-        Name          = "Big Cell",
-        Family        = "FreeCell",
-        DeckCount     = 3,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Big Cell",
+        Family    = "FreeCell",
+        DeckCount = 3,
+        Redeals   = 0
     },
     FreeCell   = {
         Size = 4,
@@ -194,11 +190,10 @@ local big_cell                              = {
 
 local cell_11                               = {
     Info       = {
-        Name          = "Cell 11",
-        Family        = "FreeCell",
-        DeckCount     = 3,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Cell 11",
+        Family    = "FreeCell",
+        DeckCount = 3,
+        Redeals   = 0
     },
     FreeCell   = {
         Size = 11,
@@ -301,11 +296,10 @@ end
 
 local deep                                  = {
     Info       = {
-        Name          = "Deep",
-        Family        = "FreeCell",
-        DeckCount     = 2,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Deep",
+        Family    = "FreeCell",
+        DeckCount = 2,
+        Redeals   = 0
     },
     FreeCell   = {
         Size = 8,
@@ -342,11 +336,10 @@ local deep                                  = {
 
 local eight_off                             = {
     Info       = {
-        Name          = "Eight Off",
-        Family        = "FreeCell",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Eight Off",
+        Family    = "FreeCell",
+        DeckCount = 1,
+        Redeals   = 0
     },
     FreeCell   = {
         Size = 8,
@@ -606,11 +599,10 @@ relaxed_seahaven_towers.Tableau.Pile.Rule   = Sol.Rules.king_downsuit_inseq
 
 local flipper                               = {
     Info        = {
-        Name          = "Flipper",
-        Family        = "FreeCell",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Flipper",
+        Family    = "FreeCell",
+        DeckCount = 1,
+        Redeals   = 0
     },
     FreeCell    = {
         Size = 7,
@@ -650,11 +642,10 @@ local flipper                               = {
 
 local penguin                               = {
     Info              = {
-        Name          = "Penguin",
-        Family        = "FreeCell",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Penguin",
+        Family    = "FreeCell",
+        DeckCount = 1,
+        Redeals   = 0
     },
     FreeCell          = {
         Size = 7,

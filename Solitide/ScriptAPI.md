@@ -36,10 +36,6 @@ The Info table contains basic information about the game.
 
 - DeckSuits (**array**)
 
-- CardDealCount (**integer**)
-
-    The number of cards dealt. (Currently only used when dealing from the _Stock_ to the _Waste_.)
-
 - Redeals (**integer**)
 
     The number of redeals allowed throughout the game.
@@ -182,8 +178,6 @@ The Info table contains basic information about the game.
 ## _game_ members
 
 - RedealsLeft
-
-- CardDealCount
 
 - DeckCount
 

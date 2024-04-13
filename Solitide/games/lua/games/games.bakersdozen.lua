@@ -5,11 +5,10 @@
 
 local bakers_dozen                     = {
     Info             = {
-        Name          = "Baker's Dozen",
-        Family        = "BakersDozen",
-        DeckCount     = 1,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Baker's Dozen",
+        Family    = "BakersDozen",
+        DeckCount = 1,
+        Redeals   = 0
     },
     Foundation       = {
         Size = 4,
@@ -59,11 +58,10 @@ end
 
 local fifteen                          = {
     Info       = {
-        Name          = "Fifteen",
-        Family        = "BakersDozen",
-        DeckCount     = 2,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Fifteen",
+        Family    = "BakersDozen",
+        DeckCount = 2,
+        Redeals   = 0
     },
     Foundation = {
         Size = 8,
@@ -86,11 +84,10 @@ local fifteen                          = {
 
 local nationale                        = {
     Info              = {
-        Name          = "Nationale",
-        Family        = "BakersDozen",
-        DeckCount     = 2,
-        CardDealCount = 0,
-        Redeals       = 0
+        Name      = "Nationale",
+        Family    = "BakersDozen",
+        DeckCount = 2,
+        Redeals   = 0
     },
     Foundation        = {
         Size = 8,
