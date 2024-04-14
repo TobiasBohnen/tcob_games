@@ -299,6 +299,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->Text.Font                  = resGrp.get<gfx::font_family>("Poppins");
         style->Text.Size                  = 50_pct;
         style->Text.Alignment             = {gfx::horizontal_alignment::Left, gfx::vertical_alignment::Middle};
+        style->Text.AutoSize              = element::text::auto_size_mode::Always;
         style->ItemClass                  = "list_items";
         style->ItemHeight                 = 150_pct;
         style->VScrollBar.ThumbClass      = "scrollbar_thumb";
