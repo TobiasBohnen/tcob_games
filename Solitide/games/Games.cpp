@@ -60,11 +60,7 @@ void base_game::new_game()
     _info.InitialSeed = _rand.get_state();
 
     // create decks
-    std::vector<card> cards;
-    for (i32 i {0}; i < _info.DeckCount; ++i) {
-        deck const deck {deck::GetShuffled(_rand, static_cast<u8>(i), _info.DeckSuits, _info.DeckRanks)};
-        cards.insert(cards.end(), deck.Cards.begin(), deck.Cards.end());
-    }
+    std::vector<card> cards {deck::GetShuffled(_rand, _info.DeckCount, _info.DeckSuits, _info.DeckRanks)};
 
     // on_before_shuffle
     for (isize i {std::ssize(cards) - 1}; i >= 0; --i) {

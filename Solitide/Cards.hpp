@@ -107,11 +107,16 @@ struct deck {
 
     std::vector<card> Cards;
 
-    auto static GetShuffled(auto&& rand, u8 num, std::unordered_set<suit> const& suits, std::unordered_set<rank> const& ranks) -> deck
+    auto static GetShuffled(auto&& rand, i32 num, std::unordered_set<suit> const& suits, std::unordered_set<rank> const& ranks) -> std::vector<card>
     {
-        deck deck {num, suits, ranks};
-        rand.template shuffle<card>(deck.Cards);
-        return deck;
+        std::vector<card> retValue;
+        for (u8 i {0}; i < num; ++i) {
+            deck deck {i, suits, ranks};
+            retValue.insert(retValue.end(), deck.Cards.begin(), deck.Cards.end());
+        }
+
+        rand.template shuffle<card>(retValue);
+        return retValue;
     }
 };
 
