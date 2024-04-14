@@ -891,10 +891,10 @@ double_trigon.on_init         = Sol.Layout.big_harp
 
 ------
 local function usk_redeal(game)
-    local cards = Sol.shuffle_tableau(game)
+    local tableau = game.Tableau
+    local cards = Sol.shuffle_piles(game, { tableau })
     if #cards == 0 then return false end
 
-    local tableau = game.Tableau
     local tabIdx = 1
     while #cards > 0 do
         local targetCount = tabIdx < 8 and tabIdx or 8

@@ -50,15 +50,17 @@ function Sol.get_rank(r, interval, wrap)
     return Sol.Ranks[target]
 end
 
-function Sol.shuffle_tableau(game)
+function Sol.shuffle_piles(game, pileGroups)
     local cards = {}
 
-    local tableau = game.Tableau
-    for _, tab in ipairs(tableau) do
-        for j = 1, #tab.Cards do
-            cards[#cards + 1] = tab.Cards[j]
+    for _, piles in ipairs(pileGroups) do
+        for _, pile in ipairs(piles) do
+            local pileCards = pile.Cards
+            for j = 1, #pileCards do
+                cards[#cards + 1] = pileCards[j]
+            end
+            pile:clear()
         end
-        tab:clear()
     end
 
     return game:shuffle_cards(cards)

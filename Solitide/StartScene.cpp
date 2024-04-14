@@ -23,6 +23,18 @@ auto static get_size(string_view str) -> size_i
     return {width, height};
 }
 
+auto static state_to_string(std::array<u64, 4> const& state) -> std::string
+{
+    std::vector<ubyte> bytes;
+    bytes.reserve(state.size() * sizeof(u64));
+    for (auto const& elem : state) {
+        auto const* ptr = reinterpret_cast<ubyte const*>(&elem);
+        bytes.insert(bytes.end(), ptr, ptr + sizeof(u64));
+    }
+    auto base64 {io::base64_filter {}.to(bytes)};
+    return {reinterpret_cast<byte*>(base64->data()), base64->size()};
+}
+
 start_scene::start_scene(game& game)
     : scene {game}
     , _database {*data::sqlite::database::Open(DB_NAME)}
@@ -320,7 +332,7 @@ void start_scene::start_game(string const& name, start_reason reason)
                 auto const id {_dbGames->select_from<i64>("ID").where("Name = ?")(info.Name)};
                 using tupInsert = std::tuple<i64, string, bool, i64, i64>;
                 std::ignore     = _dbHistory->insert_into(db::replace, "GameID", "Seed", "Won", "Turns", "Time")(
-                    tupInsert {id[0], info.InitialSeed, current->State == game_state::Success, info.Turn, info.Time.count()});
+                    tupInsert {id[0], state_to_string(info.InitialSeed), current->State == game_state::Success, info.Turn, info.Time.count()});
             } break;
             default: break;
             }

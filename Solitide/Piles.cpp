@@ -195,6 +195,8 @@ void pile::move_cards(pile& to, isize startIndex, isize numCards, bool reverse)
         startIndex = 0;
     }
 
+    if (numCards == 0) { return; }
+
     for (isize i {0}; i < numCards; ++i) {
         auto& card {Cards[i + startIndex]};
         if (reverse) {

@@ -12,7 +12,7 @@ local function golf_check_state(game)
     for _, tableau in ipairs(game.Tableau) do
         if not tableau.IsEmpty then
             success = false
-            if game:can_play(foundation[1], #foundation[1].Cards, tableau.Cards[#tableau.Cards], 1) then
+            if game:can_play(foundation[1], #foundation[1].Cards, tableau.Cards[tableau.CardCount], 1) then
                 dead = false
                 break
             end

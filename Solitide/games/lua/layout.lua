@@ -185,6 +185,7 @@ return {
     -- Stock and Waste      -> bottom
     fan = function(game, columns)
         local piles = get_piles(game)
+        local maxY = 0
 
         if piles.FoundationSize <= 4 then
             --foundation right
@@ -193,6 +194,7 @@ return {
             end
 
             for i = 0, piles.TableauSize - 1 do
+                maxY = math.max(maxY, i // columns)
                 piles.Tableau[i + 1].Position = { x = (i % columns) * 2, y = i // columns }
             end
         else
@@ -204,13 +206,14 @@ return {
             end
 
             for i = 0, piles.TableauSize - 1 do
+                maxY = math.max(maxY, i // columns + 1)
                 piles.Tableau[i + 1].Position = { x = (i % columns) * 2, y = i // columns + 1 }
             end
         end
 
         if piles.HasStock then
             local stockOffsetX = math.max(0, ((columns * 2) - (piles.WasteSize + 1)) / 2)
-            local stockOffsetY = piles.TableauSize // columns
+            local stockOffsetY = maxY + 1
             piles.Stock[1].Position = { x = stockOffsetX, y = stockOffsetY }
 
             for i = 1, piles.WasteSize do

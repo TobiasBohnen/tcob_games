@@ -8,6 +8,7 @@
 #include "Common.hpp" // IWYU pragma: keep
 
 #include "Cardset.hpp"
+#include "Piles.hpp"
 
 namespace solitaire {
 

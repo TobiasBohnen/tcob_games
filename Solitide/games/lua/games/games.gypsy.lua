@@ -101,8 +101,6 @@ die_koenigsbergerin.on_after_shuffle     = function(game)
         end
         tab:flip_up_cards()
     end
-
-    return false
 end
 
 ------
@@ -126,7 +124,7 @@ churchill.Tableau                        = {
     end
 }
 churchill.do_deal                        = function(game)
-    -- no card on sequence with king as first card in pile
+    -- don't deal card on sequence with king as first card in pile
     local stock = game.Stock[1]
     local tableau = game.Tableau
 

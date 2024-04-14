@@ -26,10 +26,10 @@ local capricieuse              = {
         }
     },
     do_redeal         = function(game)
-        local cards = Sol.shuffle_tableau(game)
+        local tableau = game.Tableau
+        local cards = Sol.shuffle_piles(game, { tableau })
         if #cards == 0 then return false end
 
-        local tableau = game.Tableau
         local tabIdx = 1
         while #cards > 0 do
             game.PlaceTop(table.remove(cards), tableau[tabIdx], false)
@@ -92,8 +92,9 @@ cruel.do_redeal                = function(game)
 
     local tableau = game.Tableau
     for _, tab in ipairs(tableau) do
-        for j = #tab.Cards, 1, -1 do
-            cards[#cards + 1] = tab.Cards[j]
+        local tabCards = tab.Cards
+        for j = #tabCards, 1, -1 do
+            cards[#cards + 1] = tabCards[j]
         end
         tab:clear()
     end

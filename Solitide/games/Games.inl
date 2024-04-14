@@ -26,6 +26,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
 
     // game
     auto& gameWrapper {*script.template create_wrapper<base_game>("script_game")};
+    // properties
     gameWrapper["RedealsLeft"] = getter {[](base_game* game) { return game->info().RemainingRedeals; }};
     gameWrapper["DeckCount"]   = getter {[](base_game* game) { return game->info().DeckCount; }};
 
@@ -35,7 +36,6 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
         return std::vector<pile*> {};
     }};
 
-    // properties
     gameWrapper["Stock"]      = getter {[](base_game* game) { return returnPile(game, pile_type::Stock); }};
     gameWrapper["Waste"]      = getter {[](base_game* game) { return returnPile(game, pile_type::Waste); }};
     gameWrapper["Foundation"] = getter {[](base_game* game) { return returnPile(game, pile_type::Foundation); }};

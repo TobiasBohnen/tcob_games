@@ -315,62 +315,6 @@ end
 
 ------
 
-local belvedere                   = {
-    Info              = {
-        Name      = "Belvedere",
-        Family    = "Fan",
-        DeckCount = 1
-    },
-    Stock             = {
-        Initial = Sol.Initial.face_down(27)
-    },
-    Waste             = {
-        Size = 3,
-        Pile = {
-            Layout = "Squared",
-            Rule = Sol.Rules.none_none_top
-        }
-    },
-    Foundation        = {
-        Size = 4,
-        Pile = { Rule = Sol.Rules.ace_uprank_none }
-    },
-    Tableau           = {
-        Size = 8,
-        Pile = {
-            Initial = Sol.Initial.face_up(3),
-            Layout = "Row",
-            Rule = Sol.Rules.none_downrank_top
-        }
-    },
-    on_before_shuffle = function(game, card)
-        if card.Rank == "Ace" then
-            return game.PlaceTop(card, game.Foundation[1], true)
-        end
-
-        return false
-    end,
-    on_init           = function(game) Sol.Layout.fan(game, 4) end,
-    do_deal           = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Waste, false) end
-}
-
-------
-
-local bristol                     = Sol.copy(belvedere)
-bristol.Info.Name                 = "Bristol"
-bristol.Stock.Initial             = Sol.Initial.face_down(28)
-bristol.on_before_shuffle         = nil
-bristol.on_after_shuffle          = Sol.Ops.Shuffle.kings_to_bottom
-
-------
-
-local dover                       = Sol.copy(bristol)
-dover.Info.Name                   = "Dover"
-dover.Info.DeckCount              = 2
-dover.Stock.Initial               = Sol.Initial.face_down(80)
-
-------
-
 local club                        = {
     Info           = {
         Name      = "Club",
@@ -503,17 +447,117 @@ local fascination_fan             = {
         end
     },
     do_redeal = function(game)
-        local cards = Sol.shuffle_tableau(game)
+        local tableau = game.Tableau
+        local cards = Sol.shuffle_piles(game, { tableau })
         if #cards == 0 then return false end
 
-        for _, tableau in ipairs(game.Tableau) do
+        for _, tab in ipairs(tableau) do
             for _ = 1, 3 do
                 if #cards == 0 then break end
-                local card = table.remove(cards)
-                game.PlaceTop(card, tableau, false)
+                game.PlaceTop(table.remove(cards), tab, false)
             end
-            tableau:flip_cards({ false, false, true })
+            tab:flip_cards({ false, false, true })
         end
+
+        return true
+    end
+}
+
+------
+
+local forest_glade                = {
+    Info = {
+        Name      = "Forest Glade",
+        Family    = "Fan",
+        DeckCount = 2,
+        Redeals   = 2
+    },
+    Stock = {
+        Position = { x = 0, y = 5 },
+        Initial = Sol.Initial.face_down(56)
+    },
+    Foundation = {
+        Size = 16,
+        Pile = function(i)
+            if i < 8 then
+                return {
+                    Position = { x = i % 2, y = i // 2 },
+                    Rule = { Base = Sol.Rules.Base.Ace(), Build = Sol.Rules.Build.UpInSuit(false, 2), Move = Sol.Rules.Move.Top() }
+                }
+            else
+                return {
+                    Position = { x = (i - 8) % 2 + 8, y = (i - 8) // 2 },
+                    Rule = { Base = Sol.Rules.Base.Ranks({ "Two" }), Build = Sol.Rules.Build.UpInSuit(false, 2), Move = Sol.Rules.Move.Top() }
+                }
+            end
+        end
+    },
+    Tableau = {
+        Size = 16,
+        Pile = function(i)
+            local pos = {}
+            if i >= 2 and i <= 13 then
+                pos.x = ((i + 1) % 3) * 2 + 2
+                pos.y = (i + 1) // 3
+            elseif i < 2 then
+                pos.x = i * 2 + 3
+                pos.y = 0
+            else
+                pos.x = (i - 14) * 2 + 3
+                pos.y = 5
+            end
+            return {
+                Position = pos,
+                Initial = Sol.Initial.face_up(3),
+                Layout = "Row",
+                Rule = Sol.Rules.king_downsuit_top
+            }
+        end
+    },
+    do_deal = function(game)
+        local tableau = game.Tableau
+        local stock = game.Stock[1]
+
+        -- fill empty tableau piles from stock
+        for _, tab in ipairs(tableau) do
+            if stock.IsEmpty then break end
+            if tab.IsEmpty then
+                stock:move_cards(tab, stock.CardCount - 2, 3, false)
+                tab:flip_up_cards()
+                return true
+            end
+        end
+
+        return false
+    end,
+    do_redeal = function(game)
+        local tableau = game.Tableau
+        local stock = game.Stock[1]
+
+        -- don't redeal if tableau has a empty pile
+        for _, tab in ipairs(tableau) do
+            if tab.IsEmpty then
+                return false
+            end
+        end
+
+        -- shuffle
+        local cards = Sol.shuffle_piles(game, { tableau, game.Stock })
+        if #cards == 0 then return false end
+
+        -- redeal
+        for _, tab in ipairs(tableau) do
+            for _ = 1, 3 do
+                if #cards == 0 then break end
+                game.PlaceTop(table.remove(cards), tab, false)
+            end
+            tab:flip_up_cards()
+        end
+
+        while #cards ~= 0 do
+            game.PlaceTop(table.remove(cards), stock, false)
+        end
+        stock:flip_down_cards()
 
         return true
     end
@@ -560,82 +604,166 @@ local free_fan                    = {
 
 ------
 
-local new_york                    = {
-    Info           = {
-        Name      = "New York",
+local intelligence                = {
+    Info             = {
+        Name      = "Intelligence",
         Family    = "Fan",
-        DeckCount = 2
+        DeckCount = 2,
+        Redeals   = 2
     },
-    Reserve        = {
-        Position = { x = 0, y = 0 },
-        Initial = Sol.Initial.top_face_up(95),
-        Rule = Sol.Rules.none_none_top
+    Stock            = {
+        Initial = Sol.Initial.face_down(50)
     },
-    FreeCell       = {
-        Size = 3,
-        Pile = function(i)
-            return {
-                Position = { x = 0, y = i + 1 },
-                Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.Any(), Move = Sol.Rules.Move.Top() }
-            }
-        end
-    },
-    Foundation     = {
+    Foundation       = {
         Size = 8,
-        Pile = function(i)
-            return {
-                Position = { x = i + 2, y = 0 },
-                Initial = Sol.Initial.face_up(i == 0 and 1 or 0),
-                Rule = Sol.Rules.ff_upsuit_none_l13
-            }
-        end
+        Pile = { Rule = Sol.Rules.ace_upsuit_top }
     },
-    Tableau        = {
-        Size = 8,
-        Pile = function(i)
-            return {
-                Position = { x = i + 2, y = 1 },
-                Initial = Sol.Initial.face_up(1),
-                Layout = "Column",
-                Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.Top() }
-            }
-        end
+    Tableau          = {
+        Size = 18,
+        Pile = {
+            Initial = Sol.Initial.face_up(3),
+            Layout = "Row",
+            Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpOrDownInSuit(), Move = Sol.Rules.Move.Top() }
+        }
     },
-    check_playable = function(game, targetPile, targetCardIndex, card, numCards)
-        if targetPile.Type == "FreeCell" then -- freecells only accept reserve cards
-            if game:find_pile(card).Type ~= "Reserve" then return false end
+    on_shuffle       = function(game, card, pile)
+        if pile.Type == "Tableau" and card.Rank == "Ace" then
+            return game.PlaceTop(card, game.Foundation, true)
         end
 
-        return game:can_play(targetPile, targetCardIndex, card, numCards)
-    end
+        return false
+    end,
+    on_after_shuffle = function(game)
+        -- refill Tableau from Stock back to three cards
+        local stock = game.Stock[1]
+        local stockCards = stock.Cards
+        local idx = #stockCards
+        for _, tab in ipairs(game.Tableau) do
+            while tab.CardCount < 3 do
+                if stockCards[idx].Rank == "Ace" then
+                    for _, fou in ipairs(game.Foundation) do
+                        if fou.IsEmpty then
+                            stock:move_cards(fou, idx, 1, false)
+                            fou:flip_up_cards()
+                            break
+                        end
+                    end
+                else
+                    stock:move_cards(tab, idx, 1, false)
+                end
+
+                idx = idx - 1
+            end
+            tab:flip_up_cards()
+        end
+
+        return false
+    end,
+    do_redeal        = function(game)
+        local tableau = game.Tableau
+        local stock = game.Stock[1]
+        local foundation = game.Foundation
+
+        -- shuffle
+        local cards = Sol.shuffle_piles(game, { tableau, game.Stock })
+        if #cards == 0 then return false end
+
+        -- redeal
+        for _, tab in ipairs(tableau) do
+            local i = 1
+            while i <= 3 do
+                if #cards == 0 then break end
+
+                local card = table.remove(cards)
+                if card.Rank == "Ace" then
+                    game.PlaceTop(card, foundation, true)
+                else
+                    game.PlaceTop(card, tab, false)
+                    i = i + 1
+                end
+            end
+            tab:flip_up_cards()
+        end
+
+        while #cards ~= 0 do
+            game.PlaceTop(table.remove(cards), stock, false)
+        end
+        stock:flip_down_cards()
+
+        return true
+    end,
+    on_end_turn      = function(game)
+        local tableau = game.Tableau
+        local stock = game.Stock[1]
+
+        -- fill empty tableau piles from stock
+        for _, tab in ipairs(tableau) do
+            if stock.IsEmpty then break end
+            if tab.IsEmpty then
+                stock:move_cards(tab, stock.CardCount - 2, 3, false)
+                tab:flip_up_cards()
+                return true
+            end
+        end
+    end,
+    on_init          = function(game) Sol.Layout.fan(game, 4) end,
 }
 
 ------
 
-local gotham                      = Sol.copy(new_york)
-gotham.Info.Name                  = "Gotham"
-gotham.Reserve.Initial            = Sol.Initial.top_face_up(79)
-gotham.Tableau.Pile               = function(i)
-    return {
-        Position = { x = i + 2, y = 1 },
-        Initial = Sol.Initial.face_up(3),
-        Layout = "Column",
-        Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.InSeq() }
-    }
-end
-gotham.check_playable             = function(game, targetPile, targetCardIndex, card, numCards)
-    local srcPile = game:find_pile(card)
+local intelligence_plus           = Sol.copy(intelligence)
+intelligence_plus.Info.Name       = "Intelligence +"
+intelligence_plus.Stock.Initial   = Sol.Initial.face_down(47)
+intelligence_plus.Tableau.Size    = 19
 
-    if targetPile.Type == "FreeCell" then -- freecells only accept reserve cards
-        if srcPile.Type ~= "Reserve" then return false end
-    end
+------
 
-    if targetPile.Type == "Tableau" and targetPile.IsEmpty then -- empty piles can only be filled from reserve or freecell
-        if srcPile.Type ~= "Reserve" and srcPile.Type ~= "FreeCell" then return false end
-    end
+local la_belle_lucie              = {
+    Info       = {
+        Name      = "La Belle Lucie",
+        Family    = "Fan",
+        DeckCount = 1,
+        Redeals   = 2
+    },
+    Stock      = {},
+    Foundation = {
+        Size = 4,
+        Pile = { Rule = Sol.Rules.ace_upsuit_top }
+    },
+    Tableau    = {
+        Size = 18,
+        Pile = function(i)
+            return {
+                Initial = Sol.Initial.face_up(i == 17 and 1 or 3),
+                Layout = "Row",
+                Rule = Sol.Rules.none_downsuit_top
+            }
+        end
+    },
+    do_redeal  = function(game)
+        local tableau = game.Tableau
 
-    return game:can_play(targetPile, targetCardIndex, card, numCards)
-end
+        -- shuffle
+        local cards = Sol.shuffle_piles(game, { tableau, game.Stock })
+        if #cards == 0 then return false end
+
+        -- redeal
+        for _, tab in ipairs(tableau) do
+            local i = 1
+            while i <= 3 do
+                if #cards == 0 then break end
+
+                local card = table.remove(cards)
+                game.PlaceTop(card, tab, false)
+                i = i + 1
+            end
+            tab:flip_up_cards()
+        end
+
+        return true
+    end,
+    on_init    = function(game) Sol.Layout.fan(game, 4) end,
+}
 
 ------
 
@@ -644,20 +772,19 @@ end
 Sol.register_game(fan)
 Sol.register_game(alexander_the_great)
 Sol.register_game(bear_river)
-Sol.register_game(belvedere)
 Sol.register_game(box_fan)
-Sol.register_game(bristol)
 Sol.register_game(ceiling_fan)
 Sol.register_game(clover_leaf)
 Sol.register_game(club)
 Sol.register_game(crescent)
-Sol.register_game(dover)
 Sol.register_game(fascination_fan)
+Sol.register_game(forest_glade)
 Sol.register_game(free_fan)
-Sol.register_game(gotham)
 Sol.register_game(house_in_the_wood)
 Sol.register_game(house_on_the_hill)
-Sol.register_game(new_york)
+Sol.register_game(intelligence)
+Sol.register_game(intelligence_plus)
+Sol.register_game(la_belle_lucie)
 Sol.register_game(quads)
 Sol.register_game(quads_plus)
 Sol.register_game(lucky_piles)

@@ -57,17 +57,7 @@ void base_game::new_game()
 {
     clear_piles();
 
-    // seed to base64
-    io::base64_filter  filter;
-    auto const&        state {_rand.get_state()};
-    std::vector<ubyte> bytes;
-    bytes.reserve(state.size() * sizeof(u64));
-    for (auto const& elem : state) {
-        auto const* ptr = reinterpret_cast<ubyte const*>(&elem);
-        bytes.insert(bytes.end(), ptr, ptr + sizeof(u64));
-    }
-    auto base64 {filter.to(bytes)};
-    _info.InitialSeed = std::string(reinterpret_cast<byte*>(base64->data()), base64->size());
+    _info.InitialSeed = _rand.get_state();
 
     // create decks
     std::vector<card> cards;
@@ -85,7 +75,12 @@ void base_game::new_game()
     }
 
     // shuffle to piles
-    for (auto& [_, piles] : _piles) {
+    static constexpr std::array<pile_type, 6> shuffleOrder {pile_type::Tableau, pile_type::Foundation, pile_type::Reserve, pile_type::FreeCell, pile_type::Waste, pile_type::Stock};
+
+    for (auto const pileType : shuffleOrder) {
+        if (!_piles.contains(pileType)) { continue; }
+
+        auto const& piles {_piles.at(pileType)};
         for (auto* pile : piles) {
             for (isize i {0}; i < std::ssize(pile->Initial); ++i) {
                 assert(!cards.empty());
@@ -121,11 +116,12 @@ auto base_game::load(std::optional<data::config::object> const& loadObj) -> bool
     if (!loadObj->has(_info.Name)) { return false; }
 
     object const obj {loadObj->get<object>(_info.Name).value()};
-    if (!obj.has("Redeals") || !obj.has("Turn") || !obj.has("Seed") || !obj.has("Time")) { return false; }
+    if (!obj.has("Redeals") || !obj.has("Turn") || !obj.has("RNGSeed") || !obj.has("RNGState") || !obj.has("Time")) { return false; }
 
     _info.RemainingRedeals = obj["Redeals"].as<i32>();
     _info.Turn             = obj["Turn"].as<i32>();
-    _info.InitialSeed      = obj["Seed"].as<string>();
+    _info.InitialSeed      = obj["RNGSeed"].as<rng::state_type>();
+    _rand                  = rng {obj["RNGState"].as<rng::state_type>()};
     _info.Time             = milliseconds {obj["Time"].as<f64>()};
 
     auto const createCard {[&](entry const& entry) { return card::FromValue(entry.as<u16>()); }};
@@ -169,10 +165,11 @@ void base_game::save(tcob::data::config::object& saveObj)
         obj[get_pile_type_name(type)] = pilesArr;
     }
 
-    obj["Redeals"] = _info.RemainingRedeals;
-    obj["Turn"]    = _info.Turn;
-    obj["Seed"]    = _info.InitialSeed;
-    obj["Time"]    = _info.Time.count();
+    obj["Redeals"]  = _info.RemainingRedeals;
+    obj["Turn"]     = _info.Turn;
+    obj["RNGSeed"]  = _info.InitialSeed;
+    obj["RNGState"] = _rand.get_state();
+    obj["Time"]     = _info.Time.count();
 
     saveObj[_info.Name] = obj;
 }
@@ -181,15 +178,10 @@ void base_game::init()
 {
     on_init();
 
-    layout_piles();
+    layout();
 
     _saveState = {};
     save(_saveState);
-
-    _movableCache.clear();
-    _descriptionCache.clear();
-    calc_hints();
-    State = get_state();
 }
 
 void base_game::undo()
@@ -209,12 +201,21 @@ auto base_game::can_undo() const -> bool
     return !_undoStack.empty();
 }
 
+void base_game::layout()
+{
+    layout_piles();
+    _movableCache.clear();
+    _descriptionCache.clear();
+    calc_hints();
+    State = get_state();
+}
+
 void base_game::end_turn(bool deal)
 {
     ++_info.Turn;
 
     on_end_turn();
-    layout_piles();
+    layout();
 
     _undoStack.push(_saveState);
     _saveState = {};
@@ -225,13 +226,6 @@ void base_game::end_turn(bool deal)
         && std::ranges::all_of(Waste, [](auto&& waste) { return waste.empty(); })) {
         deal_cards();
     }
-
-    _movableCache.clear();
-    _descriptionCache.clear();
-    calc_hints();
-    State = get_state();
-
-    _cardTable.mark_dirty();
 }
 
 void base_game::layout_piles()

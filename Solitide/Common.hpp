@@ -19,27 +19,6 @@ enum class game_state {
     Success
 };
 
-struct pile_description {
-    std::string Pile;
-    std::string CardCount;
-
-    std::string Description;
-    std::string DescriptionLabel;
-
-    std::string Move;
-    std::string MoveLabel;
-
-    std::string Base;
-    std::string BaseLabel;
-
-    auto equal(pile_description const& other) const -> bool
-    {
-        return Description == other.Description && DescriptionLabel == other.DescriptionLabel
-            && Move == other.Move && MoveLabel == other.MoveLabel
-            && Base == other.Base && BaseLabel == other.BaseLabel;
-    }
-};
-
 constexpr isize INDEX_MARKER {-1};
 constexpr isize INDEX_INVALID {-2};
 constexpr f32   CARD_PADDING {1.05f};
@@ -57,6 +36,7 @@ namespace games {
 using lua_value  = std::variant<i64, f64, bool, std::string>;
 using lua_return = std::optional<lua_value>;
 using lua_params = scripting::parameter_pack<std::variant<games::base_game*, i64, f64, bool, std::string>>;
+using rng        = random::rng_xoshiro_256_plus_plus;
 
 ////////////////////////////////////////////////////////////
 

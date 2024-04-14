@@ -46,7 +46,7 @@ struct game_info {
     bool DisableHints {false};
 
     // load/save
-    std::string        InitialSeed;
+    rng::state_type    InitialSeed {};
     i32                RemainingRedeals {};
     i32                Turn {0};
     tcob::milliseconds Time {0};
@@ -69,8 +69,6 @@ struct move {
 
 class base_game {
 public:
-    using rng = random::rng_xoshiro_256_plus_plus;
-
     base_game(card_table& f, game_info info);
     virtual ~base_game() = default;
 
@@ -125,6 +123,7 @@ protected:
 
     void create_piles(auto&& piles, isize size, std::function<void(pile&, i32)> const& func);
 
+    void layout();
     void layout_piles();
 
     void end_turn(bool deal);
