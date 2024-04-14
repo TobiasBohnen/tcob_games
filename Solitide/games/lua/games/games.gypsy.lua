@@ -282,10 +282,10 @@ end
 
 ------
 
-local irmgard                       = Sol.copy(gypsy)
-irmgard.Info.Name                   = "Irmgard"
-irmgard.Stock.Initial               = Sol.Initial.face_down(79)
-irmgard.Tableau                     = {
+local irmgard                     = Sol.copy(gypsy)
+irmgard.Info.Name                 = "Irmgard"
+irmgard.Stock.Initial             = Sol.Initial.face_down(79)
+irmgard.Tableau                   = {
     Size = 9,
     Pile = function(i)
         return {
@@ -295,91 +295,18 @@ irmgard.Tableau                     = {
         }
     end
 }
-irmgard.on_init                     = Sol.Layout.klondike
+irmgard.on_init                   = Sol.Layout.klondike
 
 ------
 
-local millie                        = Sol.copy(gypsy)
-millie.Info.Name                    = "Millie"
-millie.Stock.Initial                = Sol.Initial.face_down(96)
-millie.Tableau.Pile.Initial         = Sol.Initial.face_up(1)
+local millie                      = Sol.copy(gypsy)
+millie.Info.Name                  = "Millie"
+millie.Stock.Initial              = Sol.Initial.face_down(96)
+millie.Tableau.Pile.Initial       = Sol.Initial.face_up(1)
 
 ------
 
-local lexington_harp                = Sol.copy(gypsy)
-lexington_harp.Info.Name            = "Lexington Harp"
---lexington_harp.Info.Family = "Gypsy/Yukon"
-lexington_harp.Stock.Initial        = Sol.Initial.face_down(68)
-lexington_harp.Foundation.Pile.Rule = Sol.Rules.ace_upsuit_none
-lexington_harp.Tableau              = {
-    Size = 8,
-    Pile = function(i)
-        return {
-            Initial = Sol.Initial.top_face_up(i + 1),
-            Layout = "Column",
-            Rule = Sol.Rules.any_downac_faceup
-        }
-    end
-}
-
-------
-
-local brunswick                     = Sol.copy(lexington_harp)
-brunswick.Info.Name                 = "Brunswick"
---brunswick.Info.Family = "Gypsy/Yukon"
-brunswick.Tableau.Pile              = function(i)
-    return {
-        Initial = Sol.Initial.face_up(i + 1),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downac_faceup
-    }
-end
-
-------
-
-local milligan_harp                 = Sol.copy(lexington_harp)
-milligan_harp.Info.Name             = "Milligan Harp"
---milligan_harp.Info.Family = "Gypsy/Yukon"
-milligan_harp.Tableau.Pile          = function(i)
-    return {
-        Initial = Sol.Initial.top_face_up(i + 1),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downac_inseq
-    }
-end
-
-------
-
-local carlton                       = Sol.copy(lexington_harp)
-carlton.Info.Name                   = "Carlton"
-carlton.Tableau.Pile                = function(i)
-    return {
-        Initial = Sol.Initial.face_up(i + 1),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downac_inseq
-    }
-end
-
-------
-
-local mississippi                   = Sol.copy(lexington_harp)
-mississippi.Info.Name               = "Mississippi"
---milligan_harp.Info.Family = "Gypsy/Yukon"
-mississippi.Stock.Initial           = Sol.Initial.face_down(76)
-mississippi.Tableau                 = {
-    Size = 7,
-    Pile = function(i)
-        return {
-            Initial = Sol.Initial.top_face_up(i + 1),
-            Layout = "Column",
-            Rule = Sol.Rules.any_downac_faceup
-        }
-    end
-}
-
-------
-
-local cone                          = {
+local cone                        = {
     Info       = {
         Name      = "Cone",
         Family    = "Gypsy",
@@ -435,52 +362,7 @@ local cone                          = {
 
 ------
 
-local easthaven                     = {
-    Info       = {
-        Name      = "Easthaven",
-        Family    = "Gypsy",
-        DeckCount = 1
-    },
-    Stock      = {
-        Initial = Sol.Initial.face_down(31)
-    },
-    Foundation = {
-        Size = 4,
-        Pile = { Rule = Sol.Rules.ace_upsuit_top }
-    },
-    Tableau    = {
-        Size = 7,
-        Pile = {
-            Initial = Sol.Initial.top_face_up(3),
-            Layout = "Column",
-            Rule = Sol.Rules.any_downac_inseq
-        }
-    },
-    on_init    = Sol.Layout.klondike,
-    do_deal    = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
-}
-
-------
-
-local double_easthaven              = Sol.copy(easthaven)
-double_easthaven.Info.Name          = "Double Easthaven"
-double_easthaven.Info.DeckCount     = 2
-double_easthaven.Stock.Initial      = Sol.Initial.face_down(80)
-double_easthaven.Foundation.Size    = 8
-double_easthaven.Tableau.Size       = 8
-
-------
-
-local triple_easthaven              = Sol.copy(easthaven)
-triple_easthaven.Info.Name          = "Triple Easthaven"
-triple_easthaven.Info.DeckCount     = 3
-triple_easthaven.Stock.Initial      = Sol.Initial.face_down(120)
-triple_easthaven.Foundation.Size    = 12
-triple_easthaven.Tableau.Size       = 12
-
-------
-
-local leprechaun                    = {
+local leprechaun                  = {
     Info       = {
         Name      = "Leprechaun",
         Family    = "Gypsy",
@@ -532,7 +414,7 @@ local leprechaun                    = {
 
 ------
 
-local milligan_cell                 = {
+local milligan_cell               = {
     Info       = {
         Name      = "Milligan Cell",
         Family    = "Gypsy",
@@ -576,7 +458,7 @@ local milligan_cell                 = {
 
 ------
 
-local miss_milligan                 = {
+local miss_milligan               = {
     Info           = {
         Name      = "Miss Milligan",
         Family    = "Gypsy",
@@ -615,13 +497,13 @@ local miss_milligan                 = {
 
 ------
 
-local imperial_guards               = Sol.copy(miss_milligan)
-imperial_guards.Info.Name           = "Imperial Guards"
-imperial_guards.Tableau.Pile.Rule   = Sol.Rules.any_downac_inseq
+local imperial_guards             = Sol.copy(miss_milligan)
+imperial_guards.Info.Name         = "Imperial Guards"
+imperial_guards.Tableau.Pile.Rule = Sol.Rules.any_downac_inseq
 
 ------
 
-local nomad                         = {
+local nomad                       = {
     Info       = {
         Name      = "Nomad",
         Family    = "Gypsy",
@@ -653,10 +535,10 @@ local nomad                         = {
 
 ------
 
-local phantom_blockade              = Sol.copy(gypsy)
-phantom_blockade.Info.Name          = "Phantom Blockade"
-phantom_blockade.Stock.Initial      = Sol.Initial.face_down(65)
-phantom_blockade.Tableau            = {
+local phantom_blockade            = Sol.copy(gypsy)
+phantom_blockade.Info.Name        = "Phantom Blockade"
+phantom_blockade.Stock.Initial    = Sol.Initial.face_down(65)
+phantom_blockade.Tableau          = {
     Size = 13,
     Pile = {
         Initial = Sol.Initial.face_up(3),
@@ -667,45 +549,14 @@ phantom_blockade.Tableau            = {
 
 ------
 
-local westhaven                     = {
-    Info       = {
-        Name      = "Westhaven",
-        Family    = "Gypsy",
-        DeckCount = 1
-    },
-    Stock      = {
-        Initial = Sol.Initial.face_down(22)
-    },
-    Foundation = {
-        Size = 4,
-        Pile = { Rule = Sol.Rules.ace_upsuit_none }
-    },
-    Tableau    = {
-        Size = 10,
-        Pile = {
-            Initial = Sol.Initial.top_face_up(3),
-            Layout = "Column",
-            Rule = Sol.Rules.any_downac_inseq
-        }
-    },
-    on_init    = Sol.Layout.klondike,
-    do_deal    = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
-}
-
-------
-
 ------------------------
 
 Sol.register_game(gypsy)
 Sol.register_game(agnes_sorel)
 Sol.register_game(blockade)
-Sol.register_game(brunswick)
-Sol.register_game(carlton)
 Sol.register_game(churchill)
 Sol.register_game(cone)
 Sol.register_game(die_koenigsbergerin)
-Sol.register_game(double_easthaven)
-Sol.register_game(easthaven)
 Sol.register_game(eclipse)
 Sol.register_game(elba)
 Sol.register_game(eternal_triangle)
@@ -715,14 +566,9 @@ Sol.register_game(hypotenuse)
 Sol.register_game(imperial_guards)
 Sol.register_game(irmgard)
 Sol.register_game(leprechaun)
-Sol.register_game(lexington_harp)
 Sol.register_game(millie)
 Sol.register_game(milligan_cell)
-Sol.register_game(milligan_harp)
 Sol.register_game(miss_milligan)
-Sol.register_game(mississippi)
 Sol.register_game(nomad)
 Sol.register_game(phantom_blockade)
 Sol.register_game(pitt_the_younger)
-Sol.register_game(triple_easthaven)
-Sol.register_game(westhaven)

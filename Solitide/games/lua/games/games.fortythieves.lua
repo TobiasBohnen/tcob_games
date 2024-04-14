@@ -517,6 +517,12 @@ number_ten.Tableau.Pile                 = {
 
 ------
 
+local rank_and_file                     = Sol.copy(number_ten)
+rank_and_file.Info.Name                 = "Rank and File"
+rank_and_file.Tableau.Pile.Initial      = Sol.Initial.top_face_up(4)
+
+------
+
 local number_twelve                     = Sol.copy(number_ten)
 number_twelve.Info.Name                 = "Number Twelve"
 number_twelve.Info.DeckCount            = 3
@@ -642,6 +648,7 @@ Sol.register_game(napoleons_square)
 Sol.register_game(number_ten)
 Sol.register_game(number_twelve)
 Sol.register_game(pluto)
+Sol.register_game(rank_and_file)
 Sol.register_game(roosevelt)
 Sol.register_game(rows_of_four)
 Sol.register_game(san_juan_hill)

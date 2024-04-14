@@ -228,6 +228,13 @@ australian_patience.Tableau        = {
 
 ------
 
+local canberra                     = Sol.copy(australian_patience)
+canberra.Info.Name                 = "Canberra"
+--canberra.Info.Family = "Klondike/Yukon"
+canberra.Info.Redeals              = 1
+
+------
+
 local arabella                     = Sol.copy(klondike)
 arabella.Info.Name                 = "Arabella"
 arabella.Info.DeckCount            = 3
@@ -1081,6 +1088,7 @@ Sol.register_game(big_harp)
 Sol.register_game(bim_bom)
 Sol.register_game(blind_alleys)
 Sol.register_game(boost)
+Sol.register_game(canberra)
 Sol.register_game(cassim)
 Sol.register_game(chinaman)
 Sol.register_game(chinese_klondike)
