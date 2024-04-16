@@ -52,8 +52,8 @@ local build = {
     InRank                  = function(_, _)
         return {
             Hint = "By same rank",
-            Func = function(_, target, card)
-                return rules.in_rank(target, card)
+            Func = function(_, dst, src)
+                return rules.in_rank(dst, src)
             end
         }
     end,
@@ -63,8 +63,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Down by rank or by same rank",
-            Func = function(_, target, card)
-                return rules.in_rank(target, card) or rules.build_down(target, card, wrap, interval)
+            Func = function(_, dst, src)
+                return rules.in_rank(dst, src) or rules.build_down(dst, src, wrap, interval)
             end
         }
     end,
@@ -74,12 +74,12 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "By same rank, then up by rank",
-            Func = function(game, target, card)
-                local count = game:find_pile(target).CardCount
+            Func = function(game, dst, src)
+                local count = game:find_pile(dst).CardCount
                 if count > 0 and count % (game.DeckCount * 4) == 0 then
-                    return rules.build_up(target, card, wrap, interval)
+                    return rules.build_up(dst, src, wrap, interval)
                 end
-                return rules.in_rank(target, card)
+                return rules.in_rank(dst, src)
             end
         }
     end,
@@ -89,8 +89,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Up or down by rank",
-            Func = function(_, target, card)
-                return rules.build_up_or_down(target, card, wrap, interval)
+            Func = function(_, dst, src)
+                return rules.build_up_or_down(dst, src, wrap, interval)
             end
         }
     end,
@@ -99,8 +99,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Down by rank",
-            Func = function(_, target, card)
-                return rules.build_down(target, card, wrap, interval)
+            Func = function(_, dst, src)
+                return rules.build_down(dst, src, wrap, interval)
             end
         }
     end,
@@ -109,8 +109,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Up by rank",
-            Func = function(_, target, card)
-                return rules.build_up(target, card, wrap, interval)
+            Func = function(_, dst, src)
+                return rules.build_up(dst, src, wrap, interval)
             end
         }
     end,
@@ -120,8 +120,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Up or down by any suit but own",
-            Func = function(_, target, card)
-                return not rules.in_suit(target, card) and rules.build_up_or_down(target, card, wrap, interval)
+            Func = function(_, dst, src)
+                return not rules.in_suit(dst, src) and rules.build_up_or_down(dst, src, wrap, interval)
             end
         }
     end,
@@ -130,8 +130,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Down by any suit but own",
-            Func = function(_, target, card)
-                return not rules.in_suit(target, card) and rules.build_down(target, card, wrap, interval)
+            Func = function(_, dst, src)
+                return not rules.in_suit(dst, src) and rules.build_down(dst, src, wrap, interval)
             end
         }
     end,
@@ -140,8 +140,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Up by any suit but own",
-            Func = function(_, target, card)
-                return not rules.in_suit(target, card) and rules.build_up(target, card, wrap, interval)
+            Func = function(_, dst, src)
+                return not rules.in_suit(dst, src) and rules.build_up(dst, src, wrap, interval)
             end
         }
     end,
@@ -151,8 +151,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Up or down by suit",
-            Func = function(_, target, card)
-                return rules.in_suit(target, card) and rules.build_up_or_down(target, card, wrap, interval)
+            Func = function(_, dst, src)
+                return rules.in_suit(dst, src) and rules.build_up_or_down(dst, src, wrap, interval)
             end
         }
     end,
@@ -161,8 +161,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Down by suit",
-            Func = function(_, target, card)
-                return rules.in_suit(target, card) and rules.build_down(target, card, wrap, interval)
+            Func = function(_, dst, src)
+                return rules.in_suit(dst, src) and rules.build_down(dst, src, wrap, interval)
             end
         }
     end,
@@ -171,8 +171,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Up by suit",
-            Func = function(_, target, card)
-                return rules.in_suit(target, card) and rules.build_up(target, card, wrap, interval)
+            Func = function(_, dst, src)
+                return rules.in_suit(dst, src) and rules.build_up(dst, src, wrap, interval)
             end
         }
     end,
@@ -182,8 +182,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Up or down by color",
-            Func = function(_, target, card)
-                return rules.in_color(target, card) and rules.build_up_or_down(target, card, wrap, interval)
+            Func = function(_, dst, src)
+                return rules.in_color(dst, src) and rules.build_up_or_down(dst, src, wrap, interval)
             end
         }
     end,
@@ -192,8 +192,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Down by color",
-            Func = function(_, target, card)
-                return rules.in_color(target, card) and rules.build_down(target, card, wrap, interval)
+            Func = function(_, dst, src)
+                return rules.in_color(dst, src) and rules.build_down(dst, src, wrap, interval)
             end
         }
     end,
@@ -202,8 +202,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Up by color",
-            Func = function(_, target, card)
-                return rules.in_color(target, card) and rules.build_up(target, card, wrap, interval)
+            Func = function(_, dst, src)
+                return rules.in_color(dst, src) and rules.build_up(dst, src, wrap, interval)
             end
         }
     end,
@@ -213,8 +213,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Up or down by alternate color",
-            Func = function(_, target, card)
-                return rules.alternate_color(target, card) and rules.build_up_or_down(target, card, wrap, interval)
+            Func = function(_, dst, src)
+                return rules.alternate_color(dst, src) and rules.build_up_or_down(dst, src, wrap, interval)
             end
         }
     end,
@@ -223,8 +223,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Down by alternate color",
-            Func = function(_, target, card)
-                return rules.alternate_color(target, card) and rules.build_down(target, card, wrap, interval)
+            Func = function(_, dst, src)
+                return rules.alternate_color(dst, src) and rules.build_down(dst, src, wrap, interval)
             end
         }
     end,
@@ -233,8 +233,8 @@ local build = {
         wrap = wrap or false
         return {
             Hint = "Up by alternate color",
-            Func = function(_, target, card)
-                return rules.alternate_color(target, card) and rules.build_up(target, card, wrap, interval)
+            Func = function(_, dst, src)
+                return rules.alternate_color(dst, src) and rules.build_up(dst, src, wrap, interval)
             end
         }
     end,
@@ -252,35 +252,35 @@ local move = {
         return {
             Hint = "Top card",
             IsSequence = false,
-            Func = function(_, target, idx)
-                return idx == target.CardCount
+            Func = function(_, pile, idx)
+                return idx == pile.CardCount
             end
         }
     end,
     TopOrPile = function()
         return {
             Hint = "Top card or whole pile",
-            Func = function(_, target, idx)
-                return idx == target.CardCount or idx == 1
+            Func = function(_, pile, idx)
+                return idx == pile.CardCount or idx == 1
             end
         }
     end,
     FaceUp = function()
         return {
             Hint = "Face-up cards",
-            Func = function(_, target, idx)
-                return target.Cards[idx].IsFaceUp
+            Func = function(_, pile, idx)
+                return pile.Cards[idx].IsFaceUp
             end
         }
     end,
     InSeq = function()
         return {
             Hint = "Sequence of cards",
-            Func = function(game, target, idx)
-                local cards = target.Cards
+            Func = function(game, pile, idx)
+                local cards = pile.Cards
                 if cards[idx].IsFaceDown then return false end
                 for i = idx, #cards - 1 do
-                    if not game:can_play(target, i, cards[i + 1], 1) then return false end
+                    if not game:can_play(pile, i, cards[i + 1], 1) then return false end
                 end
                 return true
             end
@@ -289,13 +289,13 @@ local move = {
     InSeqInSuit = function() -- in sequence and in suit
         return {
             Hint = "Sequence of cards in the same suit",
-            Func = function(game, target, idx)
-                local cards = target.Cards
+            Func = function(game, pile, idx)
+                local cards = pile.Cards
                 if cards[idx].IsFaceDown then return false end
 
                 local targetSuit = cards[idx].Suit
                 for i = idx, #cards - 1 do
-                    if not game:can_play(target, i, cards[i + 1], 1)
+                    if not game:can_play(pile, i, cards[i + 1], 1)
                         or cards[i + 1].Suit ~= targetSuit
                     then
                         return false
@@ -308,13 +308,13 @@ local move = {
     InSeqAlternateColors = function() -- in sequence and alternate colors
         return {
             Hint = "Color-alternating card sequence",
-            Func = function(game, target, idx)
-                local cards = target.Cards
+            Func = function(game, pile, idx)
+                local cards = pile.Cards
                 if cards[idx].IsFaceDown then return false end
 
                 for i = idx, #cards - 1 do
                     local targetColor = Sol.SuitColors[cards[i].Suit]
-                    if not game:can_play(target, i, cards[i + 1], 1)
+                    if not game:can_play(pile, i, cards[i + 1], 1)
                         or Sol.SuitColors[cards[i + 1].Suit] == targetColor
                     then
                         return false
@@ -327,14 +327,14 @@ local move = {
     InSeqInSuitOrSameRank = function() -- in sequence and (in suit or same rank)
         return {
             Hint = "Sequence of cards in the same suit or rank",
-            Func = function(game, target, idx)
-                local cards = target.Cards
+            Func = function(game, pile, idx)
+                local cards = pile.Cards
                 if cards[idx].IsFaceDown then return false end
                 local targetSuit = cards[idx].Suit
 
                 local result = true
                 for i = idx, #cards - 1 do
-                    if not game:can_play(target, i, cards[i + 1], 1)
+                    if not game:can_play(pile, i, cards[i + 1], 1)
                         or cards[i + 1].Suit ~= targetSuit
                     then
                         result = false
@@ -357,12 +357,12 @@ local move = {
     SuperMove = function()
         return {
             Hint = "Top card (SuperMove)",
-            Func = function(game, target, idx)
-                local cards = target.Cards
+            Func = function(game, pile, idx)
+                local cards = pile.Cards
                 if cards[idx].IsFaceDown then return false end
 
                 local freeCell = game.FreeCell
-                if #freeCell == 0 then return idx == target.CardCount end
+                if #freeCell == 0 then return idx == pile.CardCount end
 
                 local movableCards = 0
                 for _, fc in ipairs(freeCell) do
@@ -373,7 +373,7 @@ local move = {
                 end
 
                 for i = idx, #cards - 1 do
-                    if not game:can_play(target, i, cards[i + 1], 1) then return false end
+                    if not game:can_play(pile, i, cards[i + 1], 1) then return false end
                 end
                 return true
             end

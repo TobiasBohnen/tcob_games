@@ -404,7 +404,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
     {
         auto style {styles.create<item_style>("list_items", {}, {})};
         style->Item.Padding        = {2_px};
-        style->Item.Text.Style     = {false, gfx::font::weight::Normal};
+        style->Item.Text.Style     = {false, gfx::font::weight::Bold};
         style->Item.Text.Font      = resGrp.get<gfx::font_family>("Poppins");
         style->Item.Text.Size      = 24_px;
         style->Item.Text.Alignment = {gfx::horizontal_alignment::Left, gfx::vertical_alignment::Middle};
@@ -424,7 +424,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
     {
         auto style {styles.create<item_style>("tab_items", {}, {})};
         style->Item.Padding        = {5_px};
-        style->Item.Text.Style     = {false, gfx::font::weight::Normal};
+        style->Item.Text.Style     = {false, gfx::font::weight::Heavy};
         style->Item.Text.Font      = resGrp.get<gfx::font_family>("Poppins");
         style->Item.Text.Size      = 32_px;
         style->Item.Text.Alignment = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
