@@ -48,14 +48,7 @@ castle_mount.on_init           = Sol.Layout.canister
 
 local citadel                  = Sol.copy(beleaguered_castle)
 citadel.Info.Name              = "Citadel"
-citadel.on_shuffle             = function(game, card, _)
-    local foundation = game.Foundation
-    for _, v in ipairs(foundation) do
-        if game:play_card(v, card) then return true end
-    end
-
-    return false
-end
+citadel.on_shuffle             = Sol.Ops.Shuffle.play_to_foundation
 
 ------
 

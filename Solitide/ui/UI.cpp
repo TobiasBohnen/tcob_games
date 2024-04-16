@@ -207,7 +207,7 @@ form_menu::form_menu(gfx::window*                         window,
         // vsync
         {
             auto chkFullScreen {panelLayout->create_widget<checkbox>({4, 9, 5, 3}, "chkVSync")};
-            chkFullScreen->Checked = config[Cfg::Video::Name][Cfg::Video::fullscreen].as<bool>();
+            chkFullScreen->Checked = config[Cfg::Video::Name][Cfg::Video::vsync].as<bool>();
             auto lbl {panelLayout->create_widget<label>({0, 9, 4, 3}, "lblVSync")};
             lbl->Label = "VSync";
         }

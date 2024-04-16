@@ -19,6 +19,17 @@ local shuffle = {
 
         return false
     end,
+    -- shuffle
+    play_to_foundation = function(game, card, pile)
+        if pile.Type ~= "Tableau" then return false end
+
+        local foundation = game.Foundation
+        for _, v in ipairs(foundation) do
+            if game:play_card(v, card) then return true end
+        end
+
+        return false
+    end,
     -- after shuffle
     kings_to_bottom = function(game)
         for _, v in ipairs(game.Tableau) do

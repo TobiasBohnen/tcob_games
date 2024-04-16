@@ -3,7 +3,7 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local montana_base <const>        = {
+local montana_base <const>    = {
     redeal = function(game, ranks)
         local columns = #ranks + 1
         local tableau = game.Tableau
@@ -110,9 +110,9 @@ local montana_base <const>        = {
 }
 
 ------
-local montana_ranks <const>       = { table.unpack(Sol.Ranks, 2, 13) }
+local montana_ranks <const>   = { table.unpack(Sol.Ranks, 2, 13) }
 
-local montana                     = {
+local montana                 = {
     Info           = {
         Name         = "Montana",
         Family       = "Montana",
@@ -147,23 +147,23 @@ local montana                     = {
 
 ------
 
-local double_montana              = Sol.copy(montana)
-double_montana.Info.Name          = "Double Montana"
-double_montana.Info.DeckCount     = 2
-double_montana.Tableau.Size       = 104
+local double_montana          = Sol.copy(montana)
+double_montana.Info.Name      = "Double Montana"
+double_montana.Info.DeckCount = 2
+double_montana.Tableau.Size   = 104
 
 ------
 
-local moonlight                   = Sol.copy(montana)
-moonlight.Info.Name               = "Moonlight"
-moonlight.check_playable          = function(game, targetPile, _, card, _)
+local moonlight               = Sol.copy(montana)
+moonlight.Info.Name           = "Moonlight"
+moonlight.check_playable      = function(game, targetPile, _, card, _)
     return montana_base.check_playable(game, targetPile, card, montana_ranks, "rl")
 end
 
 ------
-local blue_moon_ranks <const>     = Sol.Ranks
+local blue_moon_ranks <const> = Sol.Ranks
 
-local blue_moon_shuffle           = function(game, card, rows)
+local function blue_moon_shuffle(game, card, rows)
     if card.Rank == "Ace" then
         for i = 0, rows - 1 do
             if game.PlaceTop(card, game.Tableau, 1 + i * 14, 1, true) then
