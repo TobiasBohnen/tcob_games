@@ -211,6 +211,25 @@ hypotenuse.on_init                       = Sol.Layout.klondike
 
 ------
 
+local small_triangle                     = Sol.copy(gypsy)
+small_triangle.Info.Name                 = "Small Triangle"
+small_triangle.Info.DeckCount            = 1
+small_triangle.Stock.Initial             = Sol.Initial.face_down(24)
+small_triangle.Foundation.Size           = 4
+small_triangle.Tableau                   = {
+    Size = 7,
+    Pile = function(i)
+        return {
+            Initial = Sol.Initial.top_face_up(i + 1),
+            Layout = "Column",
+            Rule = Sol.Rules.king_downac_inseq
+        }
+    end
+}
+small_triangle.on_init                   = Sol.Layout.klondike
+
+------
+
 local eternal_triangle                   = Sol.copy(hypotenuse)
 eternal_triangle.Info.Name               = "Eternal Triangle"
 eternal_triangle.Tableau.Pile            = function(i)
@@ -572,3 +591,4 @@ Sol.register_game(miss_milligan)
 Sol.register_game(nomad)
 Sol.register_game(phantom_blockade)
 Sol.register_game(pitt_the_younger)
+Sol.register_game(small_triangle)
