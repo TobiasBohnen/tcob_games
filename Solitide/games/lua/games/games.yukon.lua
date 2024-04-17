@@ -376,6 +376,36 @@ local rushdike                           = {
 
 ------
 
+local russian_point                      = {
+    Info       = {
+        Name      = "Russian Point",
+        Family    = "Yukon",
+        --"Yukon/Gypsy"
+        DeckCount = 1
+    },
+    Stock      = {
+        Initial = Sol.Initial.face_down(27)
+    },
+    Foundation = {
+        Size = 4,
+        Pile = { Rule = Sol.Rules.ace_upsuit_none }
+    },
+    Tableau    = {
+        Size = 7,
+        Pile = function(i)
+            return {
+                Initial = Sol.Initial.top_face_up(i < 4 and i * 2 + 1 or (6 - i) * 2 + 1),
+                Layout = "Column",
+                Rule = Sol.Rules.king_downsuit_faceup
+            }
+        end
+    },
+    on_init    = Sol.Layout.klondike,
+    do_deal    = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
+}
+
+------
+
 local queenie                            = {
     Info       = {
         Name      = "Queenie",
@@ -422,6 +452,7 @@ Sol.register_game(quadruple_yukon)
 Sol.register_game(queenie)
 Sol.register_game(queensland)
 Sol.register_game(roslin)
+Sol.register_game(russian_point)
 Sol.register_game(russian_solitaire)
 Sol.register_game(triple_russian_solitaire)
 Sol.register_game(triple_yukon)

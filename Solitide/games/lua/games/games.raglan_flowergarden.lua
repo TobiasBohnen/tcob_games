@@ -3,7 +3,7 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local flower_garden           = {
+local flower_garden             = {
     Info       = {
         Name      = "Flower Garden",
         Family    = "Raglan",
@@ -34,9 +34,9 @@ local flower_garden           = {
 
 ------
 
-local northwest_territory     = Sol.copy(flower_garden)
-northwest_territory.Info.Name = "Northwest Territory"
-northwest_territory.Tableau   = {
+local northwest_territory       = Sol.copy(flower_garden)
+northwest_territory.Info.Name   = "Northwest Territory"
+northwest_territory.Tableau     = {
     Size = 8,
     Pile = function(i)
         return {
@@ -49,9 +49,9 @@ northwest_territory.Tableau   = {
 
 ------
 
-local artic_garden            = Sol.copy(northwest_territory)
-artic_garden.Info.Name        = "Artic Garden"
-artic_garden.Tableau.Pile     =
+local artic_garden              = Sol.copy(northwest_territory)
+artic_garden.Info.Name          = "Artic Garden"
+artic_garden.Tableau.Pile       =
     function(i)
         return {
             Initial = Sol.Initial.face_up(i + 1),
@@ -62,18 +62,26 @@ artic_garden.Tableau.Pile     =
 
 ------
 
-local stonewall               = Sol.copy(flower_garden)
-stonewall.Info.Name           = "Stonewall"
-stonewall.Tableau.Pile        = {
+local klondike_territory        = Sol.copy(northwest_territory)
+klondike_territory.Info.Name    = "Klondike Territory"
+klondike_territory.Reserve.Size = 24
+klondike_territory.Tableau.Size = 7
+klondike_territory.on_init      = function(game) Sol.Layout.raglan(game, 6) end
+
+------
+
+local stonewall                 = Sol.copy(flower_garden)
+stonewall.Info.Name             = "Stonewall"
+stonewall.Tableau.Pile          = {
     Initial = Sol.Initial.alternate(6, false),
     Layout = "Column",
     Rule = Sol.Rules.any_downac_inseq
 }
 ------
 
-local wildflower              = Sol.copy(flower_garden)
-wildflower.Info.Name          = "Wildflower"
-wildflower.Tableau.Pile.Rule  = Sol.Rules.spider
+local wildflower                = Sol.copy(flower_garden)
+wildflower.Info.Name            = "Wildflower"
+wildflower.Tableau.Pile.Rule    = Sol.Rules.spider
 
 ------
 
@@ -82,5 +90,6 @@ wildflower.Tableau.Pile.Rule  = Sol.Rules.spider
 Sol.register_game(flower_garden)
 Sol.register_game(artic_garden)
 Sol.register_game(northwest_territory)
+Sol.register_game(klondike_territory)
 Sol.register_game(stonewall)
 Sol.register_game(wildflower)

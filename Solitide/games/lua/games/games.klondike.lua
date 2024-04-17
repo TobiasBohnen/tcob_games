@@ -235,6 +235,21 @@ canberra.Info.Redeals              = 1
 
 ------
 
+local raw_prawn                    = Sol.copy(australian_patience)
+raw_prawn.Info.Name                = "Raw Prawn"
+--raw_prawn.Info.Family = "Klondike/Yukon"
+raw_prawn.Tableau.Pile.Rule        = Sol.Rules.any_downsuit_faceup
+
+------
+
+local tasmanian_patience           = Sol.copy(australian_patience)
+tasmanian_patience.Info.Name       = "Tasmanian Patience"
+--tasmanian_patience.Info.Family = "Klondike/Yukon"
+tasmanian_patience.Info.Redeals    = -1
+tasmanian_patience.do_deal         = Sol.Ops.Deal.stock_to_waste_by_3
+
+------
+
 local arabella                     = Sol.copy(klondike)
 arabella.Info.Name                 = "Arabella"
 arabella.Info.DeckCount            = 3
@@ -1118,6 +1133,7 @@ Sol.register_game(pantagruel)
 Sol.register_game(qc)
 Sol.register_game(quadruple_klondike)
 Sol.register_game(quadruple_klondike_by_3s)
+Sol.register_game(raw_prawn)
 Sol.register_game(saratoga)
 Sol.register_game(somerset)
 Sol.register_game(smokey)
@@ -1125,6 +1141,7 @@ Sol.register_game(souter)
 Sol.register_game(spike)
 Sol.register_game(steps)
 Sol.register_game(taking_silk)
+Sol.register_game(tasmanian_patience)
 Sol.register_game(thieves_of_egypt)
 Sol.register_game(thirty_six)
 Sol.register_game(thumb_and_pouch)
