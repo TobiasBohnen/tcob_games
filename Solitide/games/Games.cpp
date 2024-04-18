@@ -116,9 +116,9 @@ auto base_game::load(std::optional<data::config::object> const& loadObj) -> bool
 
     _info.RemainingRedeals = obj["Redeals"].as<i32>();
     _info.Turn             = obj["Turn"].as<i32>();
+    _info.Time             = milliseconds {obj["Time"].as<f64>()};
     _info.InitialSeed      = obj["RNGSeed"].as<rng::state_type>();
     _rand                  = rng {obj["RNGState"].as<rng::state_type>()};
-    _info.Time             = milliseconds {obj["Time"].as<f64>()};
 
     auto const createCard {[&](entry const& entry) { return card::FromValue(entry.as<u16>()); }};
     for (auto const& [type, piles] : _piles) {
@@ -162,9 +162,9 @@ void base_game::save(tcob::data::config::object& saveObj)
     }
 
     obj["Redeals"]  = _info.RemainingRedeals;
-    obj["Turn"]     = _info.Turn;
     obj["RNGSeed"]  = _info.InitialSeed;
     obj["RNGState"] = _rand.get_state();
+    obj["Turn"]     = _info.Turn;
     obj["Time"]     = _info.Time.count();
 
     saveObj[_info.Name] = obj;
@@ -184,11 +184,14 @@ void base_game::undo()
 {
     if (can_undo()) {
         i32 const oldTurn {_info.Turn};
+        f64 const oldTime {_info.Time.count()};
+
         load(_undoStack.top());
         _undoStack.pop();
 
         init();
         _info.Turn = oldTurn + 1;
+        _info.Time = milliseconds {oldTime};
     }
 }
 
