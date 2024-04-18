@@ -120,6 +120,9 @@ auto base_game::load(std::optional<data::config::object> const& loadObj) -> bool
     _info.InitialSeed      = obj["RNGSeed"].as<rng::state_type>();
     _rand                  = rng {obj["RNGState"].as<rng::state_type>()};
 
+    _storage.clear();
+    if (object storage; obj.try_get(storage, "Storage")) { _storage = storage.clone(true); }
+
     auto const createCard {[&](entry const& entry) { return card::FromValue(entry.as<u16>()); }};
     for (auto const& [type, piles] : _piles) {
         auto const pileType {get_pile_type_name(type)};
@@ -166,6 +169,7 @@ void base_game::save(tcob::data::config::object& saveObj)
     obj["RNGState"] = _rand.get_state();
     obj["Turn"]     = _info.Turn;
     obj["Time"]     = _info.Time.count();
+    if (!_storage.empty()) { obj["Storage"] = _storage.clone(true); }
 
     saveObj[_info.Name] = obj;
 }
@@ -499,6 +503,11 @@ auto base_game::piles() const -> std::unordered_map<pile_type, std::vector<pile*
 auto base_game::info() const -> game_info const&
 {
     return _info;
+}
+
+auto base_game::storage() -> data::config::object*
+{
+    return &_storage;
 }
 
 ////////////////////////////////////////////////////////////

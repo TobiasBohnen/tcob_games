@@ -43,6 +43,8 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     gameWrapper["Reserve"]    = getter {[](base_game* game) { return returnPile(game, pile_type::Reserve); }};
     gameWrapper["FreeCell"]   = getter {[](base_game* game) { return returnPile(game, pile_type::FreeCell); }};
 
+    gameWrapper["Storage"] = getter {[](base_game* game) { return game->storage(); }};
+
     // methods
     gameWrapper["shuffle_cards"] = [](base_game* game, std::vector<card> const& cards) {
         std::vector<card> shuffled {cards};
@@ -174,6 +176,59 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
         return false;
     };
     pileWrapper["check_bounds"] = [](pile* p, isize i, point_i pos) { return p->Cards[i - 1].Bounds.contains(pos); };
+
+    // object
+    auto& objWrap {*script.template create_wrapper<data::config::object>("object")};
+    objWrap.UnknownGet.connect([](auto&& ev) {
+        if (ev.Instance) {
+            auto const proxy {(*ev.Instance)[ev.Name]};
+            if (i64 val {0}; proxy.try_get(val)) {
+                ev.return_value(val);
+                ev.Handled = true;
+                return;
+            }
+            if (f64 val {0}; proxy.try_get(val)) {
+                ev.return_value(val);
+                ev.Handled = true;
+                return;
+            }
+            if (bool val {}; proxy.try_get(val)) {
+                ev.return_value(val);
+                ev.Handled = true;
+                return;
+            }
+            if (std::string val {}; proxy.try_get(val)) {
+                ev.return_value(val);
+                ev.Handled = true;
+                return;
+            }
+        }
+    });
+
+    objWrap.UnknownSet.connect([](auto&& ev) {
+        if (ev.Instance) {
+            if (i64 val {0}; ev.get_value(val)) {
+                (*ev.Instance)[ev.Name] = val;
+                ev.Handled              = true;
+                return;
+            }
+            if (f64 val {0}; ev.get_value(val)) {
+                (*ev.Instance)[ev.Name] = val;
+                ev.Handled              = true;
+                return;
+            }
+            if (bool val {}; ev.get_value(val)) {
+                (*ev.Instance)[ev.Name] = val;
+                ev.Handled              = true;
+                return;
+            }
+            if (std::string val {}; ev.get_value(val)) {
+                (*ev.Instance)[ev.Name] = val;
+                ev.Handled              = true;
+                return;
+            }
+        }
+    });
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>
@@ -390,5 +445,4 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
     createPiles(Foundation, "Foundation");
     createPiles(Tableau, "Tableau");
 }
-
 }

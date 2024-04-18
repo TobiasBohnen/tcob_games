@@ -87,6 +87,7 @@ public:
     auto info() const -> game_info const&;
     auto piles() const -> std::unordered_map<pile_type, std::vector<pile*>> const&;
     auto rand() -> rng&;
+    auto storage() -> data::config::object*;
 
     void start(size_f cardSize, std::optional<data::config::object> const& loadObj);
     void restart();
@@ -153,6 +154,7 @@ private:
 
     data::config::object             _saveState;
     std::stack<data::config::object> _undoStack;
+    data::config::object             _storage;
 
     rng _rand {}; // TODO: custom state
 };

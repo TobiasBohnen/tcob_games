@@ -50,38 +50,38 @@ The Info table contains basic information about the game.
 
 - For a single pile, the **table** is in the form of [Pile](#pile).
 
-      ```lua
-      Stock = { Initial = Sol.Initial.face_down(80) }
-      ```
+  ```lua
+  Stock = { Initial = Sol.Initial.face_down(80) }
+  ```
 
 - For multiple identical piles, define a **table** with the following member:
 
-      - _Size_: Indicates the **number** of piles.
-      - _Pile_: A **table** in the form of [Pile](#pile).
+  - _Size_: Indicates the **number** of piles.
+  - _Pile_: A **table** in the form of [Pile](#pile).
 
-      ```lua
-      Foundation = {
-         Size   = 8,
-         Pile = { Rule = Sol.Rules.ace_upsuit_top }
-      }
-      ```
+  ```lua
+  Foundation = {
+     Size   = 8,
+     Pile = { Rule = Sol.Rules.ace_upsuit_top }
+  }
+  ```
 
 - For multiple different piles, define a table with the following member:
 
-      - _Size_: Specifies the **number** of piles.
-      - _Pile_: A **function** with a single parameter (0 to Size - 1), that returns a **table** in the form of [Pile](#pile).
+  - _Size_: Specifies the **number** of piles.
+  - _Pile_: A **function** with a single parameter (0 to Size - 1), that returns a **table** in the form of [Pile](#pile).
 
-      ```lua
-      Tableau = {
-         Size   = 8,
-         Pile = function(i)
-            return {
-                  Initial = Sol.Initial.face_up(i + 1),
-                  Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.DownInColor(), Move = Sol.Rules.Move.InSeq() }
-            }
-         end
-      }
-      ```
+  ```lua
+  Tableau = {
+      Size   = 8,
+      Pile = function(i)
+        return {
+              Initial = Sol.Initial.face_up(i + 1),
+              Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.DownInColor(), Move = Sol.Rules.Move.InSeq() }
+        }
+      end
+  }
+  ```
 
 #### Pile
 
@@ -182,6 +182,8 @@ The Info table contains basic information about the game.
 - DeckCount
 
 - Stock / Waste / Reserve / FreeCell / Tableau / Foundation
+
+- Storage
 
 - get_pile_index
 
