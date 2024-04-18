@@ -136,7 +136,14 @@ local move = {
         Hint = "Top card or whole pile", Func = @(_, pile, idx) idx == pile.CardCount - 1 || idx == 0
     },
     FaceUp = @() {
-        Hint = "Face-up cards", Func = @(_, pile, idx) pile.Cards[idx].IsFaceUp
+        Hint = "Face-up cards", Func = function(_, pile, idx) {
+            for (local i = idx; i < pile.CardCount - 1; ++i) {
+                if (!pile.Cards[i].IsFaceUp) {
+                    return false
+                }
+            }
+            return true
+        }
     },
     InSeq = function() {
         return {

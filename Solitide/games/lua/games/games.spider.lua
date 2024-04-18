@@ -3,36 +3,32 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local function spider_check(game)
-    for _, tableau in ipairs(game.Tableau) do
-        if tableau.CardCount >= 13 then
-            local cards = tableau.Cards
-            -- look for completed stack
-            local targetSuit = cards[#cards].Suit
-            local startRank = cards[#cards].Rank
+local function spider_check_and_move(game)
+    local function check(tableau)
+        local cards = tableau.Cards
 
-            local found = true
-            for i = 0, 12 do
-                local card = cards[#cards - i]
-                local targetRank = Sol.get_rank(startRank, i, true)
-                if card.IsFaceDown or card.Suit ~= targetSuit or card.Rank ~= targetRank then
-                    found = false
-                    break
-                end
-            end
+        -- look for completed stack
+        local targetSuit = cards[#cards].Suit
+        local startRank = cards[#cards].Rank
 
-            -- move to foundation
-            if found then
-                for _, foundation in ipairs(game.Foundation) do
-                    if foundation.IsEmpty then
-                        tableau:move_cards(foundation, tableau.CardCount - 12, 13, false)
-                        tableau:flip_up_top_card()
-                        break
-                    end
-                end
-            end
-            --
+        for i = 0, 12 do
+            local card = cards[#cards - i]
+            local targetRank = Sol.get_rank(startRank, i, true)
+            if card.IsFaceDown or card.Suit ~= targetSuit or card.Rank ~= targetRank then return end
         end
+
+        -- move to foundation
+        for _, foundation in ipairs(game.Foundation) do
+            if foundation.IsEmpty then
+                tableau:move_cards(foundation, tableau.CardCount - 12, 13, false)
+                tableau:flip_up_top_card()
+                return
+            end
+        end
+    end
+
+    for _, tableau in ipairs(game.Tableau) do
+        if tableau.CardCount >= 13 then check(tableau) end
     end
 end
 
@@ -59,7 +55,7 @@ local spider                        = {
             }
         end
     },
-    on_end_turn = spider_check,
+    on_end_turn = spider_check_and_move,
     do_deal     = function(game)
         for _, tableau in ipairs(game.Tableau) do
             if tableau.IsEmpty then return false end
@@ -342,7 +338,7 @@ local simple_simon            = {
             }
         end
     },
-    on_end_turn = spider_check,
+    on_end_turn = spider_check_and_move,
     on_init     = Sol.Layout.klondike
 }
 

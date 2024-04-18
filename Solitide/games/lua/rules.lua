@@ -269,7 +269,10 @@ local move = {
         return {
             Hint = "Face-up cards",
             Func = function(_, pile, idx)
-                return pile.Cards[idx].IsFaceUp
+                for i = idx, pile.CardCount do
+                    if not pile.Cards[i].IsFaceUp then return false end
+                end
+                return true
             end
         }
     end,
