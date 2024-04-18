@@ -114,19 +114,19 @@ The Info table contains basic information about the game.
 - on_before_shuffle
 
   - _Signature_: function(game, card)
-  - _Description_: Called after starting a new game for every card, before it's moved to a pile.
+  - _Description_: Called after starting a new game for each card, before it's moved to a pile.
   - _Return value_: **true** if the function handled the card, **false** otherwise.
 
 - on_shuffle
 
   - _Signature_: function(game, card, pile)
-  - _Description_: Called after starting a new game for every card, when it's moved to a pile.
+  - _Description_: Called after starting a new game for each card, when it's moved to a pile.
   - _Return value_: **true** if the function handled the card, **false** otherwise.
 
 - on_after_shuffle
 
   - _Signature_: function(game)
-  - _Description_: Called after starting a new game after every card has been moved to a pile.
+  - _Description_: Called after starting a new game, once every card has been moved to a pile.
   - _Return value_: none
 
 - on_init
@@ -161,6 +161,11 @@ The Info table contains basic information about the game.
 
   - _Signature_: function(game)
   - _Return value_: Running, Failure, Success
+
+- get_shuffled
+
+  - _Signature_: function(game, seed)
+  - _Return value_: array of cards
 
 - check_playable
 

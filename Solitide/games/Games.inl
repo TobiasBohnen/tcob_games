@@ -43,6 +43,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     gameWrapper["Reserve"]    = getter {[](base_game* game) { return returnPile(game, pile_type::Reserve); }};
     gameWrapper["FreeCell"]   = getter {[](base_game* game) { return returnPile(game, pile_type::FreeCell); }};
 
+    gameWrapper["Name"]    = getter {[](base_game* game) { return game->get_name(); }};
     gameWrapper["Storage"] = getter {[](base_game* game) { return game->storage(); }};
 
     // methods
@@ -278,6 +279,7 @@ inline script_game<Table, Function, IndexOffset>::script_game(card_table& f, gam
     _table.try_get(_callbacks.OnEndTurn, "on_end_turn");
     _table.try_get(_callbacks.CheckPlayable, "check_playable");
     _table.try_get(_callbacks.GetState, "get_state");
+    _table.try_get(_callbacks.GetShuffled, "get_shuffled");
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>
@@ -364,6 +366,16 @@ inline auto script_game<Table, Function, IndexOffset>::get_state() const -> game
         return (*_callbacks.GetState)(static_cast<base_game const*>(this));
     }
     return base_game::get_state();
+}
+
+template <typename Table, template <typename> typename Function, isize IndexOffset>
+inline auto script_game<Table, Function, IndexOffset>::get_shuffled() -> std::vector<card>
+{
+    if (_callbacks.GetShuffled) {
+        auto const retValue {(*_callbacks.GetShuffled)(static_cast<base_game const*>(this), info().InitialSeed)};
+        return retValue.empty() ? base_game::get_shuffled() : retValue;
+    }
+    return base_game::get_shuffled();
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>

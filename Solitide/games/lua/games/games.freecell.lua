@@ -3,21 +3,24 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
+
+
+
 local free_cell                             = {
-    Info       = {
+    Info         = {
         Name      = "FreeCell",
         Family    = "FreeCell",
         DeckCount = 1
     },
-    FreeCell   = {
+    FreeCell     = {
         Size = 4,
         Pile = { Rule = Sol.Rules.any_none_top }
     },
-    Foundation = {
+    Foundation   = {
         Size = 4,
         Pile = { Rule = Sol.Rules.ace_upsuit_top }
     },
-    Tableau    = {
+    Tableau      = {
         Size = 8,
         Pile = function(i)
             return {
@@ -27,7 +30,43 @@ local free_cell                             = {
             }
         end
     },
-    on_init    = Sol.Layout.free_cell
+    get_shuffled = function(game, seed)
+        if game.Name ~= "FreeCell" then return {} end
+        if seed[1] > 1000000 or (seed[2] + seed[3] + seed[4]) ~= 0 then return {} end
+
+        --MS FreeCell shuffle:
+        local suit <const> = { "Clubs", "Diamonds", "Hearts", "Spades" }
+        local deck = {}
+        for _, r in ipairs(Sol.Ranks) do
+            for _, s in ipairs(suit) do
+                deck[#deck + 1] = { Rank = r, Suit = s, Deck = 0, IsFaceDown = false }
+            end
+        end
+
+        seed = seed[1]
+        local function rng()
+            seed = (214013 * seed + 2531011) % (1 << 31)
+            return seed >> 16
+        end
+
+        local seq <const> = {
+            1, 8, 15, 22, 29, 35, 41, 47,
+            2, 9, 16, 23, 30, 36, 42, 48,
+            3, 10, 17, 24, 31, 37, 43, 49,
+            4, 11, 18, 25, 32, 38, 44, 50,
+            5, 12, 19, 26, 33, 39, 45, 51,
+            6, 13, 20, 27, 34, 40, 46, 52,
+            7, 14, 21, 28 }
+
+        local ret = {}
+        for i = 1, 52 do
+            local idx = rng() % #deck + 1
+            deck[idx], deck[#deck] = deck[#deck], deck[idx]
+            ret[53 - seq[i]] = table.remove(deck)
+        end
+        return ret
+    end,
+    on_init      = Sol.Layout.free_cell
 }
 
 ------

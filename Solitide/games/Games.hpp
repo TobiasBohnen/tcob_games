@@ -121,6 +121,7 @@ protected:
     void virtual on_end_turn()       = 0;
 
     auto virtual get_state() const -> game_state;
+    auto virtual get_shuffled() -> std::vector<card>;
 
     void create_piles(auto&& piles, isize size, std::function<void(pile&, i32)> const& func);
 
@@ -186,21 +187,23 @@ protected:
     void on_end_turn() override;
 
     auto get_state() const -> game_state override;
+    auto get_shuffled() -> std::vector<card> override;
 
 private:
     void make_piles(auto&& gameRef);
 
     struct callbacks {
-        std::optional<Function<bool>>       DoRedeal;
-        std::optional<Function<bool>>       DoDeal;
-        std::optional<Function<bool>>       OnBeforeShuffle;
-        std::optional<Function<bool>>       OnShuffle;
-        std::optional<Function<void>>       OnAfterShuffle;
-        std::optional<Function<void>>       OnInit;
-        std::optional<Function<void>>       OnDrop;
-        std::optional<Function<void>>       OnEndTurn;
-        std::optional<Function<bool>>       CheckPlayable;
-        std::optional<Function<game_state>> GetState;
+        std::optional<Function<bool>>              DoRedeal;
+        std::optional<Function<bool>>              DoDeal;
+        std::optional<Function<bool>>              OnBeforeShuffle;
+        std::optional<Function<bool>>              OnShuffle;
+        std::optional<Function<void>>              OnAfterShuffle;
+        std::optional<Function<void>>              OnInit;
+        std::optional<Function<void>>              OnDrop;
+        std::optional<Function<void>>              OnEndTurn;
+        std::optional<Function<bool>>              CheckPlayable;
+        std::optional<Function<game_state>>        GetState;
+        std::optional<Function<std::vector<card>>> GetShuffled;
     };
 
     callbacks _callbacks;

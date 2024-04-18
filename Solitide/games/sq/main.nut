@@ -37,6 +37,7 @@ Sol.RankValues <- {
     King = 13
 }
 
+Sol.Suits <- ["Hearts", "Diamonds", "Spades", "Clubs"]
 Sol.Ranks <- ["Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King"]
 
 Sol.SuitColors <- {
