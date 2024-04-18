@@ -182,7 +182,7 @@ return {
     end,
     -- Foundation       -> right or top
     -- Tableau          -> in columns
-    -- Stock and Waste      -> bottom
+    -- Stock and Waste  -> bottom
     fan = function(game, columns)
         local piles = get_piles(game)
         local maxY = 0

@@ -23,7 +23,7 @@ auto static get_size(string_view str) -> size_i
     return {width, height};
 }
 
-auto static state_to_string(std::array<u64, 4> const& state) -> std::string
+auto static state_to_string(std::array<u64, 4> const& state) -> std::string // NOLINT
 {
     std::vector<ubyte> bytes;
     bytes.reserve(state.size() * sizeof(u64));
