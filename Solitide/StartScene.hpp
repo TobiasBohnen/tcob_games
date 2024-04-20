@@ -24,7 +24,7 @@ enum class start_reason {
 
 class start_scene : public scene {
 public:
-    using func = std::function<std::shared_ptr<games::base_game>(card_table&)>;
+    using func = std::function<std::shared_ptr<games::base_game>()>;
 
     start_scene(game& game);
     ~start_scene() override;

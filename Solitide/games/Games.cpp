@@ -5,7 +5,6 @@
 
 #include "Games.hpp"
 
-#include "CardTable.hpp"
 #include "StartScene.hpp"
 
 #include <ranges>
@@ -13,9 +12,8 @@
 
 namespace solitaire::games {
 
-base_game::base_game(card_table& f, game_info info)
+base_game::base_game(game_info info)
     : _info {std::move(info)}
-    , _cardTable {f}
 {
     _info.RemainingRedeals = _info.Redeals;
 }
@@ -25,23 +23,9 @@ auto base_game::get_name() const -> std::string
     return _info.Name;
 }
 
-auto base_game::get_description(pile const* pile) -> pile_description
+void base_game::start(std::optional<data::config::object> const& loadObj)
 {
-    if (!pile) { return {}; }
-
-    if (auto it {_descriptionCache.find(pile)}; it != _descriptionCache.end()) {
-        return it->second;
-    }
-
-    auto const retValue {pile->get_description(*this)};
-    _descriptionCache[pile] = retValue;
-    return retValue;
-}
-
-void base_game::start(size_f cardSize, std::optional<data::config::object> const& loadObj)
-{
-    _cardSize = cardSize;
-    State     = game_state::Initial;
+    State = game_state::Initial;
 
     if (!load(loadObj)) { new_game(); }
 
@@ -50,7 +34,7 @@ void base_game::start(size_f cardSize, std::optional<data::config::object> const
 
 void base_game::restart()
 {
-    start(_cardSize, _saveState);
+    start(_saveState);
 }
 
 void base_game::new_game()
@@ -178,7 +162,9 @@ void base_game::init()
 {
     on_init();
 
-    layout();
+    _movableCache.clear();
+    calc_hints();
+    State = get_state();
 
     _saveState = {};
     save(_saveState);
@@ -204,21 +190,16 @@ auto base_game::can_undo() const -> bool
     return !_undoStack.empty();
 }
 
-void base_game::layout()
-{
-    layout_piles();
-    _movableCache.clear();
-    _descriptionCache.clear();
-    calc_hints();
-    State = get_state();
-}
-
 void base_game::end_turn(bool deal)
 {
     ++_info.Turn;
 
     on_end_turn();
-    layout();
+
+    EndTurn();
+    _movableCache.clear();
+    calc_hints();
+    State = get_state();
 
     _undoStack.push(_saveState);
     _saveState = {};
@@ -231,73 +212,6 @@ void base_game::end_turn(bool deal)
     }
 }
 
-void base_game::layout_piles()
-{
-    // TODO: move to card_table?
-    for (auto& [_, piles] : _piles) {
-        for (auto* pile : piles) {
-            point_f pos {multiply(pile->Position, _cardSize)};
-
-            switch (pile->Layout) {
-            case layout_type::Squared: {
-                for (auto& card : pile->Cards) {
-                    card.Bounds = {pos, _cardSize};
-                }
-            } break;
-            case layout_type::Column: { // TODO: break large columns
-                for (auto& card : pile->Cards) {
-                    card.Bounds = {pos, _cardSize};
-                    if (card.is_face_down()) {
-                        pos.Y += _cardSize.Height / FACE_DOWN_OFFSET;
-                    } else {
-                        pos.Y += _cardSize.Height / FACE_UP_OFFSET;
-                    }
-                }
-            } break;
-            case layout_type::Row: {
-                for (auto& card : pile->Cards) {
-                    card.Bounds = {pos, _cardSize};
-                    if (card.is_face_down()) {
-                        pos.X += _cardSize.Width / FACE_DOWN_OFFSET;
-                    } else {
-                        pos.X += _cardSize.Height / FACE_UP_OFFSET;
-                    }
-                }
-            } break;
-            case layout_type::Fan: {
-                if (pile->empty()) { break; }
-                for (isize i {0}; i < std::ssize(pile->Cards); ++i) {
-                    auto& card {pile->Cards[i]};
-                    if (i < std::ssize(pile->Cards) - 3) {
-                        card.Bounds = {pos, _cardSize};
-                    } else {
-                        card.Bounds = {pos, _cardSize};
-                        pos.X += _cardSize.Height / FACE_UP_OFFSET;
-                    }
-                }
-            } break;
-            }
-        }
-    }
-
-    _cardTable.mark_dirty();
-}
-
-void base_game::key_down(input::keyboard::event& ev)
-{
-    using namespace tcob::enum_ops;
-
-    if (!ev.Repeat) {
-        if (ev.KeyCode == input::key_code::SPACE) {
-            deal_cards();
-            ev.Handled = true;
-        } else if (ev.KeyCode == input::key_code::z && (ev.KeyMods & input::key_mod::LeftControl) == input::key_mod::LeftControl) {
-            undo();
-            ev.Handled = true;
-        }
-    }
-}
-
 void base_game::update(milliseconds delta)
 {
     // TODO: pause
@@ -306,41 +220,16 @@ void base_game::update(milliseconds delta)
     }
 }
 
-void base_game::click(pile* srcPile, u8 clicks)
-{
-    if (!srcPile || srcPile->Type == pile_type::Foundation) { return; }
-
-    if (srcPile->Type == pile_type::Stock) {
-        // deal card
-        srcPile->remove_tint();
-        deal_cards();
-    } else if (clicks > 1) {
-        // try move to foundation
-        play_to_foundation(*srcPile);
-    }
-}
-
-void base_game::play_to_foundation(pile& from)
+void base_game::auto_play_cards(pile& from)
 {
     if (!from.empty()) {
         auto& card {from.Cards.back()};
 
         for (auto& fou : Foundation) {
             if (!can_play(fou, std::ssize(fou.Cards) - 1, card, 1)) { continue; }
-
             play_cards(from, fou, std::ssize(from.Cards) - 1, 1);
-
             return;
         }
-    }
-}
-
-void base_game::drop_cards(hit_test_result const& hovered, hit_test_result const& dropTarget)
-{
-    if (dropTarget.Pile && hovered.Pile) {
-        play_cards(*hovered.Pile, *dropTarget.Pile, hovered.Index, std::ssize(hovered.Pile->Cards) - hovered.Index);
-    } else {
-        layout_piles();
     }
 }
 
@@ -430,7 +319,7 @@ auto base_game::get_shuffled() -> std::vector<card>
 void base_game::calc_hints()
 {
     if (_info.DisableHints) {
-        _availableMoves.clear();
+        _hints.clear();
         return;
     }
 
@@ -452,8 +341,8 @@ void base_game::calc_hints()
         }
     }
 
-    _availableMoves.clear();
-    _availableMoves.reserve(movable.size());
+    _hints.clear();
+    _hints.reserve(movable.size());
     for (auto const& [_, piles] : _piles) {
         isize dstIdx {0};
         for (auto* dst : piles) {
@@ -461,22 +350,16 @@ void base_game::calc_hints()
             for (auto& src : movable) {
                 if (src.Src == dst) { continue; }
                 if (src.Src->Type == pile_type::Foundation && dst->Type == pile_type::Foundation) { continue; }                  // ignore Foundation to Foundation
-                if (src.Src->Type == pile_type::Foundation && dst->Type == pile_type::FreeCell) { continue; }                    // ignore Foundation to FreeCell
-                if (src.Src->Type == pile_type::FreeCell && dst->Type == pile_type::FreeCell) { continue; }                      // ignore FreeCell to FreeCell
-                if (dst->Type == pile_type::Foundation && src.HasFoundation) { continue; }                                       // limit foundation/freecell destinations to 1
-                if (dst->Type == pile_type::FreeCell && src.HasFreeCell) { continue; }
+                if (dst->Type == pile_type::FreeCell) { continue; }                                                              // ignore anything to FreeCell
+                if (dst->Type == pile_type::Foundation && src.HasFoundation) { continue; }                                       // limit foundation destinations to 1
 
                 if (can_play(*dst,
                              dst->empty() ? -1 : dst->Cards.size() - 1,
                              src.Src->Cards[src.SrcCardIdx],
                              std::ssize(src.Src->Cards) - src.SrcCardIdx)) {
-                    if (dst->Type == pile_type::Foundation) {
-                        src.HasFoundation = true;
-                    } else if (dst->Type == pile_type::FreeCell) {
-                        src.HasFreeCell = true;
-                    }
+                    if (dst->Type == pile_type::Foundation) { src.HasFoundation = true; }
 
-                    auto& m {_availableMoves.emplace_back()};
+                    auto& m {_hints.emplace_back()};
                     m.Src        = src.Src;
                     m.SrcIdx     = src.SrcIdx;
                     m.SrcCardIdx = src.SrcCardIdx;
@@ -492,7 +375,7 @@ void base_game::calc_hints()
 
 auto base_game::get_available_hints() const -> std::vector<move> const&
 {
-    return _availableMoves;
+    return _hints;
 }
 
 auto base_game::rand() -> rng&
@@ -519,8 +402,8 @@ auto base_game::storage() -> data::config::object*
 
 using namespace scripting;
 
-lua_script_game::lua_script_game(card_table& f, game_info info, lua::table tab)
-    : script_game {f, std::move(info), std::move(tab)}
+lua_script_game::lua_script_game(game_info info, lua::table tab)
+    : script_game {std::move(info), std::move(tab)}
 {
 }
 
@@ -563,8 +446,8 @@ void lua_script_game::CreateAPI(start_scene* scene, scripting::lua::script& scri
 
 ////////////////////////////////////////////////////////////
 
-squirrel_script_game::squirrel_script_game(card_table& f, game_info info, scripting::squirrel::table tab)
-    : script_game {f, std::move(info), std::move(tab)}
+squirrel_script_game::squirrel_script_game(game_info info, scripting::squirrel::table tab)
+    : script_game {std::move(info), std::move(tab)}
 {
 }
 

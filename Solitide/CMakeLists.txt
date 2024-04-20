@@ -1,6 +1,7 @@
 add_executable(Solitide)
 
 target_sources(Solitide PRIVATE
+    Canvases.cpp
     Cards.cpp
     Cardset.cpp
     CardTable.cpp

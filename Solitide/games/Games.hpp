@@ -7,7 +7,6 @@
 
 #include "Common.hpp" // IWYU pragma: keep
 
-#include "CardTable.hpp"
 #include "Piles.hpp"
 
 namespace solitaire::games {
@@ -54,22 +53,9 @@ struct game_info {
 
 ////////////////////////////////////////////////////////////
 
-struct move {
-    pile* Src {nullptr};
-    isize SrcIdx {0};
-    isize SrcCardIdx {0};
-
-    pile* Dst {nullptr};
-    isize DstIdx {0};
-    isize DstCardIdx {0};
-
-    bool HasFoundation {false};
-    bool HasFreeCell {false};
-};
-
 class base_game {
 public:
-    base_game(card_table& f, game_info info);
+    explicit base_game(game_info info);
     virtual ~base_game() = default;
 
     std::vector<stock>      Stock;
@@ -80,30 +66,29 @@ public:
     std::vector<foundation> Foundation;
 
     prop<game_state> State;
+    signal<>         EndTurn;
 
     auto get_name() const -> std::string;
-    auto get_description(pile const* pile) -> pile_description;
 
     auto info() const -> game_info const&;
     auto piles() const -> std::unordered_map<pile_type, std::vector<pile*>> const&;
     auto rand() -> rng&;
     auto storage() -> data::config::object*;
 
-    void start(size_f cardSize, std::optional<data::config::object> const& loadObj);
+    void start(std::optional<data::config::object> const& loadObj);
     void restart();
     void save(data::config::object& saveObj);
+
     void undo();
     auto can_undo() const -> bool;
 
-    void drop_cards(hit_test_result const& hovered, hit_test_result const& dropTarget); // TODO: replace with play_cards
+    auto deal_cards() -> bool;
+    void play_cards(pile& from, pile& to, isize startIndex, isize numCards);
+    void auto_play_cards(pile& from);
+    auto virtual can_play(pile const& targetPile, isize targetCardIndex, card const& card, isize numCards) const -> bool;
 
     auto get_available_hints() const -> std::vector<move> const&;
     auto check_movable(pile const& targetPile, isize idx) const -> bool;
-
-    auto virtual can_play(pile const& targetPile, isize targetCardIndex, card const& card, isize numCards) const -> bool;
-
-    void click(pile* srcPile, u8 clicks);
-    void key_down(input::keyboard::event& ev);
 
     void update(milliseconds delta);
 
@@ -125,9 +110,6 @@ protected:
 
     void create_piles(auto&& piles, isize size, std::function<void(pile&, i32)> const& func);
 
-    void layout();
-    void layout_piles();
-
     void end_turn(bool deal);
 
 private:
@@ -139,19 +121,11 @@ private:
     void init();
     void clear_piles();
 
-    auto deal_cards() -> bool;
+    std::unordered_map<pile_type, std::vector<pile*>>     _piles;
+    mutable flat_map<std::pair<pile const*, isize>, bool> _movableCache;
+    std::vector<move>                                     _hints;
 
-    void play_cards(pile& from, pile& to, isize startIndex, isize numCards);
-    void play_to_foundation(pile& from);
-
-    std::unordered_map<pile_type, std::vector<pile*>>         _piles;
-    mutable flat_map<std::pair<pile const*, isize>, bool>     _movableCache;
-    mutable std::unordered_map<pile const*, pile_description> _descriptionCache;
-    std::vector<move>                                         _availableMoves;
-
-    game_info   _info;
-    size_f      _cardSize;
-    card_table& _cardTable;
+    game_info _info;
 
     data::config::object             _saveState;
     std::stack<data::config::object> _undoStack;
@@ -165,7 +139,7 @@ private:
 template <typename Table, template <typename> typename Function, isize IndexOffset>
 class script_game : public base_game {
 public:
-    script_game(card_table& f, game_info info, Table table);
+    script_game(game_info info, Table table);
 
     auto can_play(pile const& targetPile, isize targetCardIndex, card const& card, isize numCards) const -> bool override;
 
@@ -214,7 +188,7 @@ private:
 
 class lua_script_game : public script_game<scripting::lua::table, scripting::lua::function, -1> {
 public:
-    lua_script_game(card_table& f, game_info info, scripting::lua::table tab);
+    lua_script_game(game_info info, scripting::lua::table tab);
 
     void static CreateAPI(start_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs);
 };
@@ -223,7 +197,7 @@ public:
 
 class squirrel_script_game : public script_game<scripting::squirrel::table, scripting::squirrel::function, 0> {
 public:
-    squirrel_script_game(card_table& f, game_info info, scripting::squirrel::table tab);
+    squirrel_script_game(game_info info, scripting::squirrel::table tab);
 
     void static CreateAPI(start_scene* scene, scripting::squirrel::script& script, std::vector<scripting::squirrel::native_closure_shared_ptr>& funcs);
 };

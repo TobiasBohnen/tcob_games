@@ -7,42 +7,11 @@
 
 #include "Common.hpp" // IWYU pragma: keep
 
+#include "Canvases.hpp"
 #include "Cardset.hpp"
 #include "Piles.hpp"
 
 namespace solitaire {
-
-////////////////////////////////////////////////////////////
-
-class card_table;
-
-class card_canvas {
-public:
-    card_canvas(card_table& parent, gfx::window* window, gfx::ui::canvas_widget* canvas, assets::group& resGrp);
-
-    void show_next_hint();
-
-    void draw();
-    void update(milliseconds deltaTime);
-
-    void disable_hint();
-    void mark_dirty();
-
-private:
-    void draw_hint();
-    void draw_state();
-
-    card_table&             _parent;
-    gfx::window*            _window;
-    gfx::ui::canvas_widget* _canvas;
-    assets::group&          _resGrp;
-
-    isize      _currentHint {-1};
-    bool       _showHint {false};
-    timer      _hintTimer;
-    bool       _canvasDirty {true};
-    game_state _lastState {game_state::Initial};
-};
 
 ////////////////////////////////////////////////////////////
 
@@ -62,6 +31,7 @@ public:
 
     void set_cardset(std::shared_ptr<cardset> cardset);
 
+    void layout();
     void mark_dirty();
 
 protected:
@@ -76,13 +46,15 @@ protected:
     void on_mouse_button_up(input::mouse::button_event& ev) override;
 
 private:
+    auto get_description(pile const* pile) -> pile_description;
+
     void move_camera(size_f cardBounds);
 
     void start_game(std::shared_ptr<games::base_game> const& game, std::optional<data::config::object> const& savegame);
 
     void draw_cards(gfx::render_target& target);
 
-    void create_markers(size_f const& cardSize);
+    void create_markers();
     void get_pile_quads(std::vector<gfx::quad>::iterator& quadIt, pile const* pile) const;
 
     void drag_cards(input::mouse::motion_event const& ev);
@@ -98,9 +70,9 @@ private:
     gfx::window*   _window;
     assets::group& _resGrp;
 
-    std::shared_ptr<games::base_game> _currentGame;
-
-    std::shared_ptr<cardset> _cardset;
+    std::shared_ptr<games::base_game>                 _currentGame;
+    std::unordered_map<pile const*, pile_description> _descriptionCache;
+    std::shared_ptr<cardset>                          _cardset;
 
     // render
     gfx::sprite_batch      _markerSprites;
@@ -109,7 +81,7 @@ private:
     bool                   _renderDirty {true};
 
     // canvas
-    card_canvas _cardCanvas;
+    foreground_canvas _fgCanvas;
 
     // hover/drag
     hit_test_result _hovered {};

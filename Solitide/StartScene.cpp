@@ -321,7 +321,7 @@ void start_scene::start_game(string const& name, start_reason reason)
     }
 
     if (_games.contains(name)) {
-        auto newGame {_games[name].second(*_cardTable)};
+        auto newGame {_games[name].second()};
         newGame->State.Changed.connect([&](auto val) {
             switch (val) {
             case game_state::Success:

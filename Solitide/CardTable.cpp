@@ -12,11 +12,14 @@
 
 namespace solitaire {
 
+constexpr f32 FACE_DOWN_OFFSET {10.0f};
+constexpr f32 FACE_UP_OFFSET {7.0f};
+
 card_table::card_table(gfx::window* window, gfx::ui::canvas_widget* canvas, assets::group& resGrp)
     : _window {window}
     , _resGrp {resGrp}
     , _cardRenderer {gfx::buffer_usage_hint::DynamicDraw}
-    , _cardCanvas {*this, window, canvas, resGrp}
+    , _fgCanvas {*this, window, canvas, resGrp}
 {
     Bounds.Changed.connect([&](auto const&) { mark_dirty(); });
 }
@@ -35,31 +38,94 @@ void card_table::start_game(std::shared_ptr<games::base_game> const& game, std::
 {
     _currentGame = game;
 
+    _currentGame->EndTurn.connect([&]() { layout(); });
+
     _dropTarget   = {};
     _hovered      = {};
     _camInstant   = true;
     _camPosTween  = nullptr;
     _camZoomTween = nullptr;
 
-    _cardCanvas.disable_hint();
+    _fgCanvas.disable_hint();
     mark_dirty();
 
     _cardQuads.clear();
     _cardQuads.resize(_currentGame->info().DeckCount * 52);
 
-    auto const& cardSize {_cardset->get_card_size()};
-    _currentGame->start(cardSize, savegame);
-    create_markers(cardSize);
+    _currentGame->start(savegame);
+    create_markers();
+    layout();
 }
 
 void card_table::set_cardset(std::shared_ptr<cardset> cardset)
 {
     _cardset = std::move(cardset);
+    if (_currentGame) {
+        layout();
+        if (_markerSprites.get_sprite_count() > 0) {
+            create_markers();
+        }
+    }
+}
+
+void card_table::layout()
+{
+    _descriptionCache.clear();
+
+    auto const& cardSize {_cardset->get_card_size()};
+    for (auto const& [_, piles] : _currentGame->piles()) {
+        for (auto* pile : piles) {
+            point_f   pos {multiply(pile->Position, cardSize)};
+            f32 const offsetMod {static_cast<f32>(pile->Cards.size() / 5)};
+
+            switch (pile->Layout) {
+            case layout_type::Squared: {
+                for (auto& card : pile->Cards) {
+                    card.Bounds = {pos, cardSize};
+                }
+            } break;
+            case layout_type::Column: { // TODO: break large columns
+                for (auto& card : pile->Cards) {
+                    card.Bounds = {pos, cardSize};
+                    if (card.is_face_down()) {
+                        pos.Y += cardSize.Height / (FACE_DOWN_OFFSET + offsetMod);
+                    } else {
+                        pos.Y += cardSize.Height / (FACE_UP_OFFSET + offsetMod);
+                    }
+                }
+            } break;
+            case layout_type::Row: {
+                for (auto& card : pile->Cards) {
+                    card.Bounds = {pos, cardSize};
+                    if (card.is_face_down()) {
+                        pos.X += cardSize.Width / (FACE_DOWN_OFFSET + offsetMod);
+                    } else {
+                        pos.X += cardSize.Height / (FACE_UP_OFFSET + offsetMod);
+                    }
+                }
+            } break;
+            case layout_type::Fan: {
+                if (pile->empty()) { break; }
+                for (isize i {0}; i < std::ssize(pile->Cards); ++i) {
+                    auto& card {pile->Cards[i]};
+                    if (i < std::ssize(pile->Cards) - 3) {
+                        card.Bounds = {pos, cardSize};
+                    } else {
+                        card.Bounds = {pos, cardSize};
+                        pos.X += cardSize.Height / FACE_UP_OFFSET;
+                    }
+                }
+            } break;
+            }
+        }
+    }
+
     mark_dirty();
 }
 
-void card_table::create_markers(size_f const& cardSize)
+void card_table::create_markers()
 {
+    auto const& cardSize {_cardset->get_card_size()};
     _markerSprites.clear();
     for (auto const& [_, piles] : _currentGame->piles()) {
         for (auto* pile : piles) {
@@ -76,7 +142,7 @@ void card_table::create_markers(size_f const& cardSize)
 void card_table::mark_dirty()
 {
     _renderDirty = true;
-    _cardCanvas.mark_dirty();
+    _fgCanvas.mark_dirty();
 }
 
 auto card_table::game() const -> std::shared_ptr<games::base_game>
@@ -88,14 +154,14 @@ void card_table::show_next_hint()
 {
     if (!_currentGame) { return; }
 
-    _cardCanvas.show_next_hint();
+    _fgCanvas.show_next_hint();
 }
 
 void card_table::on_update(milliseconds deltaTime)
 {
     if (!_currentGame) { return; }
 
-    _cardCanvas.update(deltaTime);
+    _fgCanvas.update(deltaTime);
 
     _markerSprites.update(deltaTime);
 
@@ -107,7 +173,7 @@ void card_table::on_draw_to(gfx::render_target& target)
 {
     _markerSprites.draw_to(target);
     draw_cards(target);
-    _cardCanvas.draw();
+    _fgCanvas.draw();
 }
 
 void card_table::draw_cards(gfx::render_target& target)
@@ -218,7 +284,17 @@ void card_table::on_key_down(input::keyboard::event& ev)
 {
     if (!_currentGame) { return; }
 
-    _currentGame->key_down(ev);
+    using namespace tcob::enum_ops;
+
+    if (!ev.Repeat) {
+        if (ev.KeyCode == input::key_code::SPACE) {
+            _currentGame->deal_cards();
+            ev.Handled = true;
+        } else if (ev.KeyCode == input::key_code::z && (ev.KeyMods & input::key_mod::LeftControl) == input::key_mod::LeftControl) {
+            _currentGame->undo();
+            ev.Handled = true;
+        }
+    }
 }
 
 void card_table::on_mouse_motion(input::mouse::motion_event& ev)
@@ -232,7 +308,7 @@ void card_table::on_mouse_motion(input::mouse::motion_event& ev)
         get_hovered(ev.Position);
     }
 
-    HoverChange(_currentGame->get_description(_hovered.Pile));
+    HoverChange(get_description(_hovered.Pile));
 
     ev.Handled = true;
 }
@@ -243,10 +319,19 @@ void card_table::on_mouse_button_down(input::mouse::button_event& ev)
 
     if (ev.Button == input::mouse::button::Left) {
         _buttonDown = true;
-        _currentGame->click(_hovered.Pile, ev.Clicks);
+        if (_hovered.Pile) {
+            if (_hovered.Pile->Type == pile_type::Stock) {
+                // deal card
+                _hovered.Pile->remove_tint();
+                _currentGame->deal_cards();
+            } else if (ev.Clicks > 1) {
+                // try move to foundation
+                _currentGame->auto_play_cards(*_hovered.Pile);
+            }
+        }
 
         if (ev.Clicks > 1) { get_hovered(ev.Position); }
-        HoverChange(_currentGame->get_description(_hovered.Pile));
+        HoverChange(get_description(_hovered.Pile));
     }
 }
 
@@ -257,13 +342,31 @@ void card_table::on_mouse_button_up(input::mouse::button_event& ev)
     if (ev.Button == input::mouse::button::Left) {
         _buttonDown = false;
         if (_isDragging) {
-            _currentGame->drop_cards(_hovered, _dropTarget);
+            if (_dropTarget.Pile && _hovered.Pile) {
+                _currentGame->play_cards(*_hovered.Pile, *_dropTarget.Pile, _hovered.Index, std::ssize(_hovered.Pile->Cards) - _hovered.Index);
+            } else {
+                layout();
+            }
             _isDragging = false;
+            _fgCanvas.disable_hint();
         }
 
         get_hovered(ev.Position);
-        HoverChange(_currentGame->get_description(_hovered.Pile));
+        HoverChange(get_description(_hovered.Pile));
     }
+}
+
+auto card_table::get_description(pile const* pile) -> pile_description
+{
+    if (!pile || !_currentGame) { return {}; }
+
+    if (auto it {_descriptionCache.find(pile)}; it != _descriptionCache.end()) {
+        return it->second;
+    }
+
+    auto const retValue {pile->get_description(*_currentGame)};
+    _descriptionCache[pile] = retValue;
+    return retValue;
 }
 
 void card_table::drag_cards(input::mouse::motion_event const& ev)
@@ -285,7 +388,7 @@ void card_table::drag_cards(input::mouse::motion_event const& ev)
     _dragRect   = cards[_hovered.Index].Bounds;
     _isDragging = true;
 
-    _cardCanvas.mark_dirty();
+    _fgCanvas.mark_dirty();
     mark_dirty();
 }
 
@@ -317,8 +420,7 @@ auto card_table::get_drop_target_at(rect_f const& rect, card const& card, isize 
     std::vector<hit_test_result> candidates;
     for (auto const& point : points) {
         if (auto target {get_pile_at(point, true)};
-            target.Pile
-            && target.Index == std::ssize(target.Pile->Cards) - 1
+            target.Pile && target.Index == std::ssize(target.Pile->Cards) - 1
             && _currentGame->can_play(*target.Pile, target.Index, card, numCards)) {
             candidates.push_back(target);
         }
@@ -399,157 +501,6 @@ auto card_table::get_hover_color(pile* pile, isize idx) const -> color
 auto card_table::get_drop_color() const -> color
 {
     return colors::LightGreen; // TODO: add option to disable
-}
-
-////////////////////////////////////////////////////////////
-
-card_canvas::card_canvas(card_table& parent, gfx::window* window, gfx::ui::canvas_widget* canvas, assets::group& resGrp)
-    : _parent {parent}
-    , _window {window}
-    , _canvas {canvas}
-    , _resGrp {resGrp}
-{
-    _hintTimer.Tick.connect([&](auto&&) {
-        _canvasDirty = true;
-        _showHint    = false;
-        _hintTimer.stop();
-    });
-}
-
-void card_canvas::show_next_hint()
-{
-    auto const& hints {_parent.game()->get_available_hints()};
-    if (hints.empty()) { return; }
-
-    _currentHint++;
-    if (_currentHint >= std::ssize(hints)) { // TODO:reset _currentHint on game change
-        _currentHint = 0;
-    }
-
-    _hintTimer.start(5s, timer::mode::BusyLoop);
-    _canvasDirty = true;
-    _showHint    = true;
-}
-
-void card_canvas::draw()
-{
-    if (_canvasDirty) {
-        _canvas->clear();
-
-        _canvas->save();
-        _canvas->translate(-_parent.Bounds->get_position());
-        _canvas->set_scissor(_parent.Bounds);
-
-        draw_hint();
-        draw_state();
-
-        _canvas->restore();
-        _canvasDirty = false;
-    }
-}
-
-void card_canvas::update(milliseconds)
-{
-    if (_parent.game()->State != _lastState) {
-        _lastState = _parent.game()->State;
-        mark_dirty();
-    }
-}
-
-void card_canvas::disable_hint()
-{
-    _hintTimer.stop();
-    mark_dirty();
-}
-
-void card_canvas::mark_dirty()
-{
-    _canvasDirty = true;
-}
-
-void card_canvas::draw_hint()
-{
-    if (!_showHint) { return; }
-
-    auto const& hints {_parent.game()->get_available_hints()};
-    if (hints.empty()) { return; }
-    auto const& hint {hints[_currentHint]};
-
-    rect_f srcBounds {hint.Src->Cards[hint.SrcCardIdx].Bounds};
-    for (isize i {hint.SrcCardIdx + 1}; i < std::ssize(hint.Src->Cards); ++i) {
-        srcBounds = srcBounds.as_merged(hint.Src->Cards[i].Bounds);
-    }
-
-    rect_f dstBounds;
-    if (hint.DstCardIdx >= 0) {
-        dstBounds = hint.Dst->Cards[hint.DstCardIdx].Bounds;
-    } else if (hint.Dst->Marker) {
-        dstBounds = hint.Dst->Marker->Bounds();
-    }
-
-    auto& camera {*_window->Camera};
-
-    // Draw bounds
-    _canvas->begin_path();
-    _canvas->rounded_rect(rect_f {camera.convert_world_to_screen(dstBounds)}, 10);
-    _canvas->set_stroke_style(colors::Red);
-    _canvas->set_stroke_width(10);
-    _canvas->stroke();
-
-    auto const screenSrcBounds {rect_f {camera.convert_world_to_screen(srcBounds)}};
-
-    _canvas->set_global_composite_blendfunc(gfx::blend_func::One, gfx::blend_func::Zero);
-    _canvas->begin_path();
-    _canvas->rounded_rect(screenSrcBounds, 10);
-    _canvas->set_fill_style(colors::Transparent);
-    _canvas->fill();
-    _canvas->set_global_composite_blendfunc(gfx::blend_func::SrcAlpha, gfx::blend_func::OneMinusSrcAlpha);
-
-    _canvas->begin_path();
-    _canvas->rounded_rect(screenSrcBounds, 10);
-    _canvas->set_stroke_style(colors::Green);
-    _canvas->set_stroke_width(10);
-    _canvas->stroke();
-
-    // Draw arrow
-    auto from {point_f {camera.convert_world_to_screen(srcBounds.get_center())}};
-    auto to {point_f {camera.convert_world_to_screen(dstBounds.get_center())}};
-
-    f32 const borderWidth {3};
-    f32 const arrowWidth {6};
-    f32 const headLength {arrowWidth * 6};
-
-    _canvas->set_line_cap(gfx::line_cap::Round);
-    _canvas->begin_path();
-    _canvas->move_to(from);
-    _canvas->line_to(to);
-
-    f32 const angle {std::atan2(to.Y - from.Y, to.X - from.X)};
-
-    _canvas->move_to(to);
-    _canvas->line_to({to.X - headLength * std::cos(angle - TAU_F / 12), to.Y - headLength * std::sin(angle - TAU_F / 12)});
-    _canvas->move_to(to);
-    _canvas->line_to({to.X - headLength * std::cos(angle + TAU_F / 12), to.Y - headLength * std::sin(angle + TAU_F / 12)});
-    _canvas->set_stroke_style(colors::Black);
-    _canvas->set_stroke_width(arrowWidth + borderWidth);
-    _canvas->stroke();
-    _canvas->set_stroke_style(colors::Gray);
-    _canvas->set_stroke_width(arrowWidth);
-    _canvas->stroke();
-}
-
-void card_canvas::draw_state()
-{
-    _canvas->set_font(_resGrp.get<gfx::font_family>("Poppins")->get_font({}, 256).get_obj()); // TODO: measure
-    _canvas->set_fill_style(colors::Green);
-    _canvas->set_text_halign(gfx::horizontal_alignment::Centered);
-    _canvas->set_text_valign(gfx::vertical_alignment::Middle);
-
-    if (_lastState == game_state::Success) {
-        _canvas->draw_textbox(_parent.Bounds, "Success!");
-    } else if (_lastState == game_state::Failure) {
-        _canvas->draw_textbox(_parent.Bounds, "Failure!");
-    }
 }
 
 }

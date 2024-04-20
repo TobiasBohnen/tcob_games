@@ -127,6 +127,20 @@ private:
 
 ////////////////////////////////////////////////////////////
 
+struct move {
+    pile* Src {nullptr};
+    isize SrcIdx {0};
+    isize SrcCardIdx {0};
+
+    pile* Dst {nullptr};
+    isize DstIdx {0};
+    isize DstCardIdx {0};
+
+    bool HasFoundation {false};
+};
+
+////////////////////////////////////////////////////////////
+
 struct stock : public pile {
     stock();
 };
