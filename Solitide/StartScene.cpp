@@ -340,14 +340,13 @@ void start_scene::start_game(string const& name, start_reason reason)
 
         switch (reason) {
         case start_reason::Restart:
+            generate_rule(*newGame);
             _cardTable->start(newGame);
             break;
         case start_reason::Resume:
             _cardTable->resume(newGame, _saveGame);
             break;
         }
-
-        generate_rule(*newGame);
 
         locate_service<stats>().reset();
         locate_service<data::config_file>()["sol"]["game"] = name;
@@ -358,7 +357,7 @@ void start_scene::generate_rule(games::base_game const& game) const
 {
     // generate rules     // TODO: translate
     io::create_folder("/rules/");
-    auto         file {std::format("/rules/rule-{}.txt", game.get_name())};
+    auto         file {std::format("/rules/rule-{}.txt", game.info().Name)};
     //   if (io::exists(file)) { return; }
     io::ofstream fs {file};
 

@@ -12,9 +12,8 @@ namespace solitaire {
 
 ////////////////////////////////////////////////////////////
 
-foreground_canvas::foreground_canvas(card_table& parent, gfx::window* window, gfx::ui::canvas_widget* canvas, assets::group& resGrp)
+foreground_canvas::foreground_canvas(card_table& parent, gfx::ui::canvas_widget* canvas, assets::group& resGrp)
     : _parent {parent}
-    , _window {window}
     , _canvas {canvas}
     , _resGrp {resGrp}
 {
@@ -25,7 +24,7 @@ foreground_canvas::foreground_canvas(card_table& parent, gfx::window* window, gf
     });
 }
 
-void foreground_canvas::show_next_hint()
+void foreground_canvas::show_hint()
 {
     auto const& hints {_parent.game()->get_available_hints()};
     if (hints.empty()) { return; }
@@ -40,7 +39,7 @@ void foreground_canvas::show_next_hint()
     _showHint    = true;
 }
 
-void foreground_canvas::draw()
+void foreground_canvas::draw(gfx::render_target& target)
 {
     if (_canvasDirty) {
         _canvas->clear();
@@ -49,7 +48,7 @@ void foreground_canvas::draw()
         _canvas->translate(-_parent.Bounds->get_position());
         _canvas->set_scissor(_parent.Bounds);
 
-        draw_hint();
+        draw_hint(target);
         draw_state();
 
         _canvas->restore();
@@ -76,7 +75,7 @@ void foreground_canvas::mark_dirty()
     _canvasDirty = true;
 }
 
-void foreground_canvas::draw_hint()
+void foreground_canvas::draw_hint(gfx::render_target& target)
 {
     if (!_showHint) { return; }
 
@@ -96,7 +95,7 @@ void foreground_canvas::draw_hint()
         dstBounds = hint.Dst->Marker->Bounds();
     }
 
-    auto& camera {*_window->Camera};
+    auto& camera {*target.Camera};
 
     // Draw bounds
     _canvas->begin_path();
@@ -150,7 +149,7 @@ void foreground_canvas::draw_hint()
 void foreground_canvas::draw_state()
 {
     _canvas->set_font(_resGrp.get<gfx::font_family>("Poppins")->get_font({}, 256).get_obj()); // TODO: measure
-    _canvas->set_fill_style(colors::Green);
+    _canvas->set_fill_style(colors::IndianRed);
     _canvas->set_text_halign(gfx::horizontal_alignment::Centered);
     _canvas->set_text_valign(gfx::vertical_alignment::Middle);
 
@@ -159,6 +158,81 @@ void foreground_canvas::draw_state()
     } else if (_lastState == game_state::Failure) {
         _canvas->draw_textbox(_parent.Bounds, "Failure!");
     }
+}
+
+////////////////////////////////////////////////////////////
+
+background_canvas::background_canvas(card_table& parent, assets::group& resGrp)
+    : _parent {parent}
+    , _resGrp {resGrp}
+    , _renderer {_canvas}
+{
+}
+
+void background_canvas::draw(gfx::render_target& target)
+{
+    if (target.Size != _bounds.get_size()) {
+        _bounds      = {point_i::Zero, target.Size()};
+        _canvasDirty = true;
+        _renderer.set_bounds(rect_f {_bounds});
+    }
+
+    if (_canvasDirty) {
+        _canvas.begin_frame(_bounds.get_size(), 1.0f);
+
+        _canvas.set_fill_style(colors::Gray);
+        _canvas.fill_rect(rect_f {_bounds});
+
+        static constexpr std::array<pile_type, 6> drawOrder {pile_type::Tableau, pile_type::Foundation, pile_type::Reserve, pile_type::FreeCell, pile_type::Waste, pile_type::Stock};
+        auto const&                               gpiles {_parent.game()->piles()};
+        for (auto const pileType : drawOrder) {
+            if (!gpiles.contains(pileType)) { continue; }
+
+            rect_f      pileBounds;
+            auto const& piles {gpiles.at(pileType)};
+            for (auto* pile : piles) {
+                pileBounds = pileBounds == rect_f::Zero ? pile->CardBounds : pileBounds.as_merged(pile->CardBounds);
+                if (pile->HasMarker) {
+                    pileBounds = pileBounds == rect_f::Zero ? pile->Marker->Bounds : pileBounds.as_merged(pile->Marker->Bounds);
+                }
+            }
+            auto srcpileBounds {rect_f {(*target.Camera).convert_world_to_screen(pileBounds)}};
+            // srcpileBounds = srcpileBounds.as_padded({-5.f, -5.f});
+
+            _canvas.begin_path();
+            _canvas.rounded_rect(srcpileBounds, 5);
+
+            switch (pileType) {
+            case pile_type::Stock: _canvas.set_fill_style(colors::Red); break;
+            case pile_type::Waste: _canvas.set_fill_style(colors::Brown); break;
+            case pile_type::Foundation: _canvas.set_fill_style(colors::White); break;
+            case pile_type::Tableau: _canvas.set_fill_style(colors::Green); break;
+            case pile_type::Reserve: _canvas.set_fill_style(colors::LightGray); break;
+            case pile_type::FreeCell: _canvas.set_fill_style(colors::Blue); break;
+            }
+            _canvas.fill();
+
+            _canvas.set_stroke_style(colors::Black);
+            _canvas.set_stroke_width(2);
+            _canvas.stroke();
+        }
+
+        _canvas.end_frame();
+
+        _canvasDirty = false;
+    }
+
+    _renderer.set_layer(0);
+    _renderer.render_to_target(target);
+}
+
+void background_canvas::update(milliseconds /* deltaTime */)
+{
+}
+
+void background_canvas::mark_dirty()
+{
+    _canvasDirty = true;
 }
 
 } // namespace solitaire

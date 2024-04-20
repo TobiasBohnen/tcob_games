@@ -81,6 +81,7 @@ private:
     bool                   _renderDirty {true};
 
     // canvas
+    background_canvas _bgCanvas;
     foreground_canvas _fgCanvas;
 
     // hover/drag

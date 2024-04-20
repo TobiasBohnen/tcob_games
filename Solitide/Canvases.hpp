@@ -15,22 +15,21 @@ class card_table;
 
 class foreground_canvas {
 public:
-    foreground_canvas(card_table& parent, gfx::window* window, gfx::ui::canvas_widget* canvas, assets::group& resGrp);
+    foreground_canvas(card_table& parent, gfx::ui::canvas_widget* canvas, assets::group& resGrp);
 
-    void show_next_hint();
-
-    void draw();
+    void draw(gfx::render_target& target);
     void update(milliseconds deltaTime);
 
+    void show_hint();
     void disable_hint();
+
     void mark_dirty();
 
 private:
-    void draw_hint();
+    void draw_hint(gfx::render_target& target);
     void draw_state();
 
     card_table&             _parent;
-    gfx::window*            _window;
     gfx::ui::canvas_widget* _canvas;
     assets::group&          _resGrp;
 
@@ -39,6 +38,27 @@ private:
     timer      _hintTimer;
     bool       _canvasDirty {true};
     game_state _lastState {game_state::Initial};
+};
+
+////////////////////////////////////////////////////////////
+
+class background_canvas {
+public:
+    background_canvas(card_table& parent, assets::group& resGrp);
+
+    void draw(gfx::render_target& target);
+    void update(milliseconds deltaTime);
+
+    void mark_dirty();
+
+private:
+    card_table&    _parent;
+    assets::group& _resGrp;
+
+    bool                 _canvasDirty {true};
+    gfx::canvas          _canvas;
+    rect_i               _bounds;
+    gfx::canvas_renderer _renderer;
 };
 
 }

@@ -91,6 +91,7 @@ public:
     std::vector<bool> Initial; // true -> faceup
 
     point_f Position {};
+    rect_f  CardBounds;
 
     bool HasMarker {true};
 

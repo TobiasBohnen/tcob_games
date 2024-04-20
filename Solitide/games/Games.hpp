@@ -66,9 +66,7 @@ public:
     std::vector<foundation> Foundation;
 
     prop<game_state> State;
-    signal<>         EndTurn;
-
-    auto get_name() const -> std::string;
+    signal<>         Layout;
 
     auto info() const -> game_info const&;
     auto piles() const -> std::unordered_map<pile_type, std::vector<pile*>> const&;
@@ -76,7 +74,6 @@ public:
     auto storage() -> data::config::object*;
 
     void start(std::optional<data::config::object> const& loadObj);
-    void restart();
     void save(data::config::object& saveObj);
 
     void undo();
@@ -119,6 +116,7 @@ private:
     auto load(std::optional<data::config::object> const& loadObj) -> bool;
 
     void init();
+    void refresh();
     void clear_piles();
 
     std::unordered_map<pile_type, std::vector<pile*>>     _piles;

@@ -18,11 +18,6 @@ base_game::base_game(game_info info)
     _info.RemainingRedeals = _info.Redeals;
 }
 
-auto base_game::get_name() const -> std::string
-{
-    return _info.Name;
-}
-
 void base_game::start(std::optional<data::config::object> const& loadObj)
 {
     State = game_state::Initial;
@@ -30,11 +25,6 @@ void base_game::start(std::optional<data::config::object> const& loadObj)
     if (!load(loadObj)) { new_game(); }
 
     init();
-}
-
-void base_game::restart()
-{
-    start(_saveState);
 }
 
 void base_game::new_game()
@@ -161,13 +151,18 @@ void base_game::save(tcob::data::config::object& saveObj)
 void base_game::init()
 {
     on_init();
-
-    _movableCache.clear();
-    calc_hints();
-    State = get_state();
+    refresh();
 
     _saveState = {};
     save(_saveState);
+}
+
+void base_game::refresh()
+{
+    _movableCache.clear();
+    calc_hints();
+    State = get_state();
+    Layout();
 }
 
 void base_game::undo()
@@ -196,10 +191,7 @@ void base_game::end_turn(bool deal)
 
     on_end_turn();
 
-    EndTurn();
-    _movableCache.clear();
-    calc_hints();
-    State = get_state();
+    refresh();
 
     _undoStack.push(_saveState);
     _saveState = {};

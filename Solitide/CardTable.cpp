@@ -19,7 +19,8 @@ card_table::card_table(gfx::window* window, gfx::ui::canvas_widget* canvas, asse
     : _window {window}
     , _resGrp {resGrp}
     , _cardRenderer {gfx::buffer_usage_hint::DynamicDraw}
-    , _fgCanvas {*this, window, canvas, resGrp}
+    , _bgCanvas {*this, resGrp}
+    , _fgCanvas {*this, canvas, resGrp}
 {
     Bounds.Changed.connect([&](auto const&) { mark_dirty(); });
 }
@@ -38,8 +39,7 @@ void card_table::start_game(std::shared_ptr<games::base_game> const& game, std::
 {
     _currentGame = game;
 
-    _currentGame->EndTurn.connect([&]() { layout(); });
-
+    _currentGame->Layout.connect([&]() { layout(); });
     _dropTarget   = {};
     _hovered      = {};
     _camInstant   = true;
@@ -54,7 +54,6 @@ void card_table::start_game(std::shared_ptr<games::base_game> const& game, std::
 
     _currentGame->start(savegame);
     create_markers();
-    layout();
 }
 
 void card_table::set_cardset(std::shared_ptr<cardset> cardset)
@@ -80,13 +79,17 @@ void card_table::layout()
 
             switch (pile->Layout) {
             case layout_type::Squared: {
+                rect_f const bounds {pos, cardSize};
                 for (auto& card : pile->Cards) {
-                    card.Bounds = {pos, cardSize};
+                    card.Bounds = bounds;
                 }
+                pile->CardBounds = bounds;
             } break;
             case layout_type::Column: { // TODO: break large columns
+                pile->CardBounds = {pos, cardSize};
                 for (auto& card : pile->Cards) {
-                    card.Bounds = {pos, cardSize};
+                    card.Bounds      = {pos, cardSize};
+                    pile->CardBounds = pile->CardBounds.as_merged(card.Bounds);
                     if (card.is_face_down()) {
                         pos.Y += cardSize.Height / (FACE_DOWN_OFFSET + offsetMod);
                     } else {
@@ -95,8 +98,10 @@ void card_table::layout()
                 }
             } break;
             case layout_type::Row: {
+                pile->CardBounds = {pos, cardSize};
                 for (auto& card : pile->Cards) {
-                    card.Bounds = {pos, cardSize};
+                    card.Bounds      = {pos, cardSize};
+                    pile->CardBounds = pile->CardBounds.as_merged(card.Bounds);
                     if (card.is_face_down()) {
                         pos.X += cardSize.Width / (FACE_DOWN_OFFSET + offsetMod);
                     } else {
@@ -105,6 +110,7 @@ void card_table::layout()
                 }
             } break;
             case layout_type::Fan: {
+                pile->CardBounds = {pos, cardSize};
                 if (pile->empty()) { break; }
                 for (isize i {0}; i < std::ssize(pile->Cards); ++i) {
                     auto& card {pile->Cards[i]};
@@ -114,6 +120,7 @@ void card_table::layout()
                         card.Bounds = {pos, cardSize};
                         pos.X += cardSize.Height / FACE_UP_OFFSET;
                     }
+                    pile->CardBounds = pile->CardBounds.as_merged(card.Bounds);
                 }
             } break;
             }
@@ -142,6 +149,7 @@ void card_table::create_markers()
 void card_table::mark_dirty()
 {
     _renderDirty = true;
+    _bgCanvas.mark_dirty();
     _fgCanvas.mark_dirty();
 }
 
@@ -154,13 +162,14 @@ void card_table::show_next_hint()
 {
     if (!_currentGame) { return; }
 
-    _fgCanvas.show_next_hint();
+    _fgCanvas.show_hint();
 }
 
 void card_table::on_update(milliseconds deltaTime)
 {
     if (!_currentGame) { return; }
 
+    _bgCanvas.update(deltaTime);
     _fgCanvas.update(deltaTime);
 
     _markerSprites.update(deltaTime);
@@ -171,9 +180,10 @@ void card_table::on_update(milliseconds deltaTime)
 
 void card_table::on_draw_to(gfx::render_target& target)
 {
+    _bgCanvas.draw(target);
     _markerSprites.draw_to(target);
     draw_cards(target);
-    _fgCanvas.draw();
+    _fgCanvas.draw(target);
 }
 
 void card_table::draw_cards(gfx::render_target& target)
@@ -181,26 +191,17 @@ void card_table::draw_cards(gfx::render_target& target)
     if (_renderDirty || _isDragging) {
         _cardRenderer.set_material(_cardset->get_material());
 
-        size_f bounds {size_f::Zero};
+        rect_f bounds {rect_f::Zero};
 
         pile const* dragPile {nullptr};
         {
             auto quadIt {_cardQuads.begin()};
             for (auto const& [_, piles] : _currentGame->piles()) {
                 for (auto const* pile : piles) {
-                    if (pile->Marker) {
-                        bounds.Width  = std::max(bounds.Width, pile->Marker->Bounds->right());
-                        bounds.Height = std::max(bounds.Height, pile->Marker->Bounds->bottom());
-                    }
-
                     if (_isDragging && pile->is_hovering()) {
                         dragPile = pile;
                     } else {
-                        for (auto const& card : pile->Cards) {
-                            bounds.Width  = std::max(bounds.Width, card.Bounds.right());
-                            bounds.Height = std::max(bounds.Height, card.Bounds.bottom());
-                        }
-
+                        bounds = bounds == rect_f::Zero ? pile->CardBounds : bounds.as_merged(pile->CardBounds);
                         get_pile_quads(quadIt, pile);
                     }
                 }
@@ -217,7 +218,7 @@ void card_table::draw_cards(gfx::render_target& target)
             _cardRenderer.render_to_target(target);
         }
 
-        move_camera(bounds);
+        move_camera(bounds.get_size());
 
         _renderDirty = false;
     } else {
@@ -241,6 +242,7 @@ void card_table::move_camera(size_f cardBounds)
     if (_camInstant) {
         camera.look_at(pos);
         camera.set_zoom(size_f {zoom, zoom});
+        _bgCanvas.mark_dirty();
         _camInstant = false;
     } else {
         _camPosTween = make_unique_tween<linear_tween<point_f>>(0.75s, camera.get_look_at(), pos);
@@ -255,11 +257,15 @@ void card_table::move_camera(size_f cardBounds)
                 _dragRect = cards[_hovered.Index].Bounds;
             }
             camera.look_at(val);
+            _bgCanvas.mark_dirty();
         });
 
         _camZoomTween = make_unique_tween<linear_tween<size_f>>(0.75s, camera.get_zoom(), size_f {zoom, zoom});
         _camZoomTween->start();
-        _camZoomTween->Value.Changed.connect([&](auto val) { camera.set_zoom(val); });
+        _camZoomTween->Value.Changed.connect([&](auto val) {
+            camera.set_zoom(val);
+            _bgCanvas.mark_dirty();
+        });
     }
 }
 
@@ -388,7 +394,6 @@ void card_table::drag_cards(input::mouse::motion_event const& ev)
     _dragRect   = cards[_hovered.Index].Bounds;
     _isDragging = true;
 
-    _fgCanvas.mark_dirty();
     mark_dirty();
 }
 

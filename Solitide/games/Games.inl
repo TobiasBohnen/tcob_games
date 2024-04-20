@@ -43,7 +43,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     gameWrapper["Reserve"]    = getter {[](base_game* game) { return returnPile(game, pile_type::Reserve); }};
     gameWrapper["FreeCell"]   = getter {[](base_game* game) { return returnPile(game, pile_type::FreeCell); }};
 
-    gameWrapper["Name"]    = getter {[](base_game* game) { return game->get_name(); }};
+    gameWrapper["Name"]    = getter {[](base_game* game) { return game->info().Name; }};
     gameWrapper["Storage"] = getter {[](base_game* game) { return game->storage(); }};
 
     // methods
