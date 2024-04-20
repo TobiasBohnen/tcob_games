@@ -268,7 +268,6 @@ void start_scene::on_update(milliseconds)
 
 void start_scene::on_fixed_update(milliseconds deltaTime)
 {
-    auto stat {locate_service<stats>()};
 
     if (auto game {_cardTable->game()}) {
         game->update(deltaTime);
@@ -279,6 +278,7 @@ void start_scene::on_fixed_update(milliseconds deltaTime)
         _formControls->LblTime->Label     = std::format("{:%M:%S}", seconds {info.Time.count() / 1000});
     }
 #if defined(TCOB_DEBUG)
+    auto stat {locate_service<stats>()};
     get_window().Title = std::format("Solitide | avg FPS: {:.2f} best FPS: {:.2f} worst FPS: {:.2f}",
                                      stat.get_average_FPS(), stat.get_best_FPS(), stat.get_worst_FPS());
 #endif
