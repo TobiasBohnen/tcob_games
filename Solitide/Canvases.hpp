@@ -11,8 +11,6 @@ namespace solitaire {
 
 ////////////////////////////////////////////////////////////
 
-class card_table;
-
 class foreground_canvas {
 public:
     foreground_canvas(card_table& parent, gfx::ui::canvas_widget* canvas, assets::group& resGrp);

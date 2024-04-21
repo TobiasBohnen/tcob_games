@@ -24,21 +24,6 @@ auto empty_none(card const&, isize) -> bool
     return false;
 }
 
-void pile::set_hovering(bool b, isize idx, color color)
-{
-    _isHovering = b;
-    if (!b) {
-        remove_tint();
-    } else {
-        tint_cards(color, idx);
-    }
-}
-
-auto pile::is_hovering() const -> bool
-{
-    return _isHovering;
-}
-
 auto pile::is_playable() const -> bool
 {
     return Rule.IsPlayable

@@ -237,7 +237,8 @@ void base_game::clear_piles()
     for (auto const& [_, piles] : _piles) {
         for (auto* pile : piles) {
             pile->Cards.clear();
-            pile->set_hovering(false, -2, colors::Transparent);
+            pile->IsHovering = false;
+            pile->remove_tint();
         }
     }
 }

@@ -90,13 +90,13 @@ public:
     layout_type       Layout {layout_type::Squared};
     std::vector<bool> Initial; // true -> faceup
 
-    point_f Position {};
-    rect_f  CardBounds;
+    point_f Position {};       // in grid coordinates
+    rect_f  Bounds;            // in world coordinates
 
     bool HasMarker {true};
 
-    auto is_hovering() const -> bool;
-    void set_hovering(bool b, isize idx, color color);
+    bool IsHovering {false};
+    bool IsDragging {false};
 
     auto is_playable() const -> bool;
     auto empty() const -> bool;
@@ -121,9 +121,6 @@ public:
     {
         return this == &other;
     }
-
-private:
-    bool _isHovering {false};
 };
 
 ////////////////////////////////////////////////////////////

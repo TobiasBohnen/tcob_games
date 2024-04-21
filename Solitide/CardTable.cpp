@@ -5,8 +5,6 @@
 
 #include "CardTable.hpp"
 
-#include <utility>
-
 #include "Cards.hpp"
 #include "Games.hpp"
 
@@ -18,7 +16,7 @@ constexpr f32 FACE_UP_OFFSET {7.0f};
 card_table::card_table(gfx::window* window, gfx::ui::canvas_widget* canvas, assets::group& resGrp)
     : _window {window}
     , _resGrp {resGrp}
-    , _cardRenderer {gfx::buffer_usage_hint::DynamicDraw}
+    , _cardRenderer {*this}
     , _bgCanvas {*this, resGrp}
     , _fgCanvas {*this, canvas, resGrp}
 {
@@ -49,21 +47,16 @@ void card_table::start_game(std::shared_ptr<games::base_game> const& game, std::
     _fgCanvas.disable_hint();
     mark_dirty();
 
-    _cardQuads.clear();
-    _cardQuads.resize(_currentGame->info().DeckCount * 52);
-
     _currentGame->start(savegame);
-    create_markers();
+    _cardRenderer.start();
 }
 
-void card_table::set_cardset(std::shared_ptr<cardset> cardset)
+void card_table::set_cardset(std::shared_ptr<cardset> const& cardset)
 {
-    _cardset = std::move(cardset);
+    _cardSize = cardset->get_card_size();
+    _cardRenderer.set_cardset(cardset);
     if (_currentGame) {
         layout();
-        if (_markerSprites.get_sprite_count() > 0) {
-            create_markers();
-        }
     }
 }
 
@@ -71,7 +64,8 @@ void card_table::layout()
 {
     _descriptionCache.clear();
 
-    auto const& cardSize {_cardset->get_card_size()};
+    auto const& cardSize {_cardSize};
+    rect_f      pileBounds;
     for (auto const& [_, piles] : _currentGame->piles()) {
         for (auto* pile : piles) {
             point_f   pos {multiply(pile->Position, cardSize)};
@@ -83,13 +77,13 @@ void card_table::layout()
                 for (auto& card : pile->Cards) {
                     card.Bounds = bounds;
                 }
-                pile->CardBounds = bounds;
+                pile->Bounds = bounds;
             } break;
             case layout_type::Column: { // TODO: break large columns
-                pile->CardBounds = {pos, cardSize};
+                pile->Bounds = {pos, cardSize};
                 for (auto& card : pile->Cards) {
-                    card.Bounds      = {pos, cardSize};
-                    pile->CardBounds = pile->CardBounds.as_merged(card.Bounds);
+                    card.Bounds  = {pos, cardSize};
+                    pile->Bounds = pile->Bounds.as_merged(card.Bounds);
                     if (card.is_face_down()) {
                         pos.Y += cardSize.Height / (FACE_DOWN_OFFSET + offsetMod);
                     } else {
@@ -98,10 +92,10 @@ void card_table::layout()
                 }
             } break;
             case layout_type::Row: {
-                pile->CardBounds = {pos, cardSize};
+                pile->Bounds = {pos, cardSize};
                 for (auto& card : pile->Cards) {
-                    card.Bounds      = {pos, cardSize};
-                    pile->CardBounds = pile->CardBounds.as_merged(card.Bounds);
+                    card.Bounds  = {pos, cardSize};
+                    pile->Bounds = pile->Bounds.as_merged(card.Bounds);
                     if (card.is_face_down()) {
                         pos.X += cardSize.Width / (FACE_DOWN_OFFSET + offsetMod);
                     } else {
@@ -110,7 +104,7 @@ void card_table::layout()
                 }
             } break;
             case layout_type::Fan: {
-                pile->CardBounds = {pos, cardSize};
+                pile->Bounds = {pos, cardSize};
                 if (pile->empty()) { break; }
                 for (isize i {0}; i < std::ssize(pile->Cards); ++i) {
                     auto& card {pile->Cards[i]};
@@ -120,35 +114,22 @@ void card_table::layout()
                         card.Bounds = {pos, cardSize};
                         pos.X += cardSize.Height / FACE_UP_OFFSET;
                     }
-                    pile->CardBounds = pile->CardBounds.as_merged(card.Bounds);
+                    pile->Bounds = pile->Bounds.as_merged(card.Bounds);
                 }
             } break;
             }
+
+            pileBounds = pileBounds == rect_f::Zero ? pile->Bounds : pileBounds.as_merged(pile->Bounds);
         }
     }
 
+    move_camera(pileBounds.get_size());
     mark_dirty();
-}
-
-void card_table::create_markers()
-{
-    auto const& cardSize {_cardset->get_card_size()};
-    _markerSprites.clear();
-    for (auto const& [_, piles] : _currentGame->piles()) {
-        for (auto* pile : piles) {
-            if (!pile->HasMarker) { continue; }
-
-            pile->Marker                = _markerSprites.create_sprite();
-            pile->Marker->Material      = _cardset->get_material();
-            pile->Marker->TextureRegion = pile->get_marker_texture_name();
-            pile->Marker->Bounds        = {multiply(pile->Position, cardSize), cardSize};
-        }
-    }
 }
 
 void card_table::mark_dirty()
 {
-    _renderDirty = true;
+    _cardRenderer.mark_dirty();
     _bgCanvas.mark_dirty();
     _fgCanvas.mark_dirty();
 }
@@ -172,7 +153,7 @@ void card_table::on_update(milliseconds deltaTime)
     _bgCanvas.update(deltaTime);
     _fgCanvas.update(deltaTime);
 
-    _markerSprites.update(deltaTime);
+    _cardRenderer.update(deltaTime);
 
     if (_camPosTween) { _camPosTween->update(deltaTime); }
     if (_camZoomTween) { _camZoomTween->update(deltaTime); }
@@ -181,50 +162,9 @@ void card_table::on_update(milliseconds deltaTime)
 void card_table::on_draw_to(gfx::render_target& target)
 {
     _bgCanvas.draw(target);
-    _markerSprites.draw_to(target);
-    draw_cards(target);
+    if (_isDragging) { _cardRenderer.mark_dirty(); }
+    _cardRenderer.draw(target);
     _fgCanvas.draw(target);
-}
-
-void card_table::draw_cards(gfx::render_target& target)
-{
-    if (_renderDirty || _isDragging) {
-        _cardRenderer.set_material(_cardset->get_material());
-
-        rect_f bounds {rect_f::Zero};
-
-        pile const* dragPile {nullptr};
-        {
-            auto quadIt {_cardQuads.begin()};
-            for (auto const& [_, piles] : _currentGame->piles()) {
-                for (auto const* pile : piles) {
-                    if (_isDragging && pile->is_hovering()) {
-                        dragPile = pile;
-                    } else {
-                        bounds = bounds == rect_f::Zero ? pile->CardBounds : bounds.as_merged(pile->CardBounds);
-                        get_pile_quads(quadIt, pile);
-                    }
-                }
-            }
-
-            _cardRenderer.set_geometry({_cardQuads.begin(), quadIt});
-            _cardRenderer.render_to_target(target);
-        }
-        if (dragPile) {
-            auto quadIt {_cardQuads.begin()};
-            get_pile_quads(quadIt, dragPile);
-
-            _cardRenderer.set_geometry({_cardQuads.begin(), quadIt});
-            _cardRenderer.render_to_target(target);
-        }
-
-        move_camera(bounds.get_size());
-
-        _renderDirty = false;
-    } else {
-        _cardRenderer.set_geometry(_cardQuads);
-        _cardRenderer.render_to_target(target);
-    }
 }
 
 void card_table::move_camera(size_f cardBounds)
@@ -266,18 +206,6 @@ void card_table::move_camera(size_f cardBounds)
             camera.set_zoom(val);
             _bgCanvas.mark_dirty();
         });
-    }
-}
-
-void card_table::get_pile_quads(std::vector<gfx::quad>::iterator& quadIt, pile const* pile) const
-{
-    auto const mat {_cardset->get_material()};
-    for (auto const& card : pile->Cards) {
-        auto& quad {*quadIt};
-        gfx::geometry::set_color(quad, card.Color);
-        gfx::geometry::set_texcoords(quad, mat->Texture->get_region(card.get_texture_name()));
-        gfx::geometry::set_position(quad, card.Bounds);
-        ++quadIt;
     }
 }
 
@@ -348,6 +276,10 @@ void card_table::on_mouse_button_up(input::mouse::button_event& ev)
     if (ev.Button == input::mouse::button::Left) {
         _buttonDown = false;
         if (_isDragging) {
+            if (_hovered.Pile) {
+                _hovered.Pile->IsDragging = false;
+            }
+
             if (_dropTarget.Pile && _hovered.Pile) {
                 _currentGame->play_cards(*_hovered.Pile, *_dropTarget.Pile, _hovered.Index, std::ssize(_hovered.Pile->Cards) - _hovered.Index);
             } else {
@@ -394,6 +326,7 @@ void card_table::drag_cards(input::mouse::motion_event const& ev)
     _dragRect   = cards[_hovered.Index].Bounds;
     _isDragging = true;
 
+    _hovered.Pile->IsDragging = true;
     mark_dirty();
 }
 
@@ -455,12 +388,14 @@ void card_table::get_hovered(point_i pos)
     _hovered = get_pile_at(point_i {(*_window->Camera).convert_screen_to_world(pos)}, false);
 
     if (oldPile.Pile) {
-        oldPile.Pile->set_hovering(false, oldPile.Index, colors::White);
+        oldPile.Pile->IsHovering = false;
+        oldPile.Pile->remove_tint();
         mark_dirty();
     }
 
     if (_hovered.Pile) {
-        _hovered.Pile->set_hovering(true, _hovered.Index, get_hover_color(_hovered.Pile, _hovered.Index));
+        _hovered.Pile->IsHovering = true;
+        _hovered.Pile->tint_cards(get_hover_color(_hovered.Pile, _hovered.Index), _hovered.Index);
         mark_dirty();
     }
 }
@@ -470,7 +405,7 @@ auto card_table::get_pile_at(point_i pos, bool ignoreHoveredPile) const -> hit_t
     auto const checkPile {[&](pile const& p) -> isize {
         auto const top {std::ssize(p.Cards) - 1};
 
-        if (ignoreHoveredPile && p.is_hovering()) { return INDEX_INVALID; }
+        if (ignoreHoveredPile && p.IsHovering) { return INDEX_INVALID; }
         if (p.empty() && p.Marker && p.Marker->Bounds->contains(pos)) { return INDEX_MARKER; }
         if (!p.is_playable() && !p.empty() && p.Cards[top].Bounds.contains(pos)) { return top; }
 

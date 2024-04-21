@@ -8,6 +8,7 @@
 #include "Common.hpp" // IWYU pragma: keep
 
 #include "Canvases.hpp"
+#include "CardRenderer.hpp"
 #include "Cardset.hpp"
 #include "Piles.hpp"
 
@@ -29,7 +30,7 @@ public:
 
     void show_next_hint();
 
-    void set_cardset(std::shared_ptr<cardset> cardset);
+    void set_cardset(std::shared_ptr<cardset> const& cardset);
 
     void layout();
     void mark_dirty();
@@ -52,11 +53,6 @@ private:
 
     void start_game(std::shared_ptr<games::base_game> const& game, std::optional<data::config::object> const& savegame);
 
-    void draw_cards(gfx::render_target& target);
-
-    void create_markers();
-    void get_pile_quads(std::vector<gfx::quad>::iterator& quadIt, pile const* pile) const;
-
     void drag_cards(input::mouse::motion_event const& ev);
     auto get_hover_color(pile* pile, isize idx) const -> color;
     auto get_drop_color() const -> color;
@@ -72,15 +68,10 @@ private:
 
     std::shared_ptr<games::base_game>                 _currentGame;
     std::unordered_map<pile const*, pile_description> _descriptionCache;
-    std::shared_ptr<cardset>                          _cardset;
+    size_f                                            _cardSize;
 
     // render
-    gfx::sprite_batch      _markerSprites;
-    gfx::quad_renderer     _cardRenderer;
-    std::vector<gfx::quad> _cardQuads;
-    bool                   _renderDirty {true};
-
-    // canvas
+    card_renderer     _cardRenderer;
     background_canvas _bgCanvas;
     foreground_canvas _fgCanvas;
 

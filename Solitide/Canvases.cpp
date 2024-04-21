@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Tobias Bohnen
+// Copyright (c) 2024 Tobias Bohnen
 //
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
@@ -191,7 +191,7 @@ void background_canvas::draw(gfx::render_target& target)
             rect_f      pileBounds;
             auto const& piles {gpiles.at(pileType)};
             for (auto* pile : piles) {
-                pileBounds = pileBounds == rect_f::Zero ? pile->CardBounds : pileBounds.as_merged(pile->CardBounds);
+                pileBounds = pileBounds == rect_f::Zero ? pile->Bounds : pileBounds.as_merged(pile->Bounds);
                 if (pile->HasMarker) {
                     pileBounds = pileBounds == rect_f::Zero ? pile->Marker->Bounds : pileBounds.as_merged(pile->Marker->Bounds);
                 }
