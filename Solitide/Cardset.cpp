@@ -111,7 +111,7 @@ void default_cardset::create(assets::group& resGrp, gfx::texture* tex)
     gfx::canvas canvas;
     canvas.begin_frame(size_i {canvasSize}, 1.0f);
 
-    auto        fontFamily {resGrp.get<gfx::font_family>("Poppins")};
+    auto        fontFamily {resGrp.get<gfx::font_family>(FONT)};
     fonts const fonts {.NormalFont = fontFamily->get_font({false, gfx::font::weight::Normal}, static_cast<u32>(texSize.Height / 7.5f)).get_obj(),
                        .LargeFont  = fontFamily->get_font({false, gfx::font::weight::Bold}, static_cast<u32>(texSize.Height / 2)).get_obj()};
 

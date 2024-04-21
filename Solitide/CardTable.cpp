@@ -38,11 +38,7 @@ void card_table::start_game(std::shared_ptr<games::base_game> const& game, std::
     _currentGame = game;
 
     _currentGame->Layout.connect([&]() { layout(); });
-    _dropTarget   = {};
-    _hovered      = {};
-    _camInstant   = true;
-    _camPosTween  = nullptr;
-    _camZoomTween = nullptr;
+    reset();
 
     _fgCanvas.disable_hint();
     mark_dirty();
@@ -149,6 +145,9 @@ void card_table::show_next_hint()
 void card_table::on_update(milliseconds deltaTime)
 {
     if (!_currentGame) { return; }
+    if (_currentGame->State != game_state::Running) {
+        reset();
+    }
 
     _bgCanvas.update(deltaTime);
     _fgCanvas.update(deltaTime);
@@ -233,7 +232,7 @@ void card_table::on_key_down(input::keyboard::event& ev)
 
 void card_table::on_mouse_motion(input::mouse::motion_event& ev)
 {
-    if (!_currentGame) { return; }
+    if (!_currentGame || _currentGame->State != game_state::Running) { return; }
 
     if (_buttonDown) {
         if (_hovered.Pile) { drag_cards(ev); }
@@ -249,7 +248,7 @@ void card_table::on_mouse_motion(input::mouse::motion_event& ev)
 
 void card_table::on_mouse_button_down(input::mouse::button_event& ev)
 {
-    if (!_currentGame) { return; }
+    if (!_currentGame || _currentGame->State != game_state::Running) { return; }
 
     if (ev.Button == input::mouse::button::Left) {
         _buttonDown = true;
@@ -271,7 +270,7 @@ void card_table::on_mouse_button_down(input::mouse::button_event& ev)
 
 void card_table::on_mouse_button_up(input::mouse::button_event& ev)
 {
-    if (!_currentGame) { return; }
+    if (!_currentGame || _currentGame->State != game_state::Running) { return; }
 
     if (ev.Button == input::mouse::button::Left) {
         _buttonDown = false;
@@ -292,6 +291,17 @@ void card_table::on_mouse_button_up(input::mouse::button_event& ev)
         get_hovered(ev.Position);
         HoverChange(get_description(_hovered.Pile));
     }
+}
+
+void card_table::reset()
+{
+    _dropTarget   = {};
+    _hovered      = {};
+    _camInstant   = true;
+    _camPosTween  = nullptr;
+    _camZoomTween = nullptr;
+    _isDragging   = false;
+    _buttonDown   = false;
 }
 
 auto card_table::get_description(pile const* pile) -> pile_description
@@ -410,7 +420,9 @@ auto card_table::get_pile_at(point_i pos, bool ignoreHoveredPile) const -> hit_t
         if (!p.is_playable() && !p.empty() && p.Cards[top].Bounds.contains(pos)) { return top; }
 
         for (isize i {top}; i >= 0; --i) {
-            if (p.Cards[i].Bounds.contains(pos) && _currentGame->check_movable(p, i)) { return i; }
+            if (p.Cards[i].Bounds.contains(pos) && _currentGame->check_movable(p, i)) {
+                return i;
+            }
         }
 
         return INDEX_INVALID;

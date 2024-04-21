@@ -254,7 +254,7 @@ void start_scene::connect_ui_events()
         window.FullScreen = obj["chkFullScreen"]["checked"].as<bool>();
         window.VSync      = obj["chkVSync"]["checked"].as<bool>();
 
-        start_game(_formMenu->SelectedGame(), start_reason::Restart);
+        start_game(_formMenu->SelectedGame(), start_reason::Resume);
     });
 }
 

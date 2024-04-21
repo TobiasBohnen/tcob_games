@@ -185,30 +185,30 @@ form_menu::form_menu(gfx::window*                         window,
         {
             auto const& renderSystem {locate_service<gfx::render_system>()};
             auto const  displayModes {renderSystem.get_displays()};
-            auto        ddlRes {panelLayout->create_widget<drop_down_list>({4, 1, 5, 3}, "ddlResolution")}; // TODO: change to drop-down-list
+            auto        ddlRes {panelLayout->create_widget<drop_down_list>({6, 1, 6, 3}, "ddlResolution")}; // TODO: change to drop-down-list
             for (auto const& dm : displayModes.at(0).Modes) {
                 ddlRes->add_item(std::format("{}x{}", dm.Size.Width, dm.Size.Height));
             }
             auto const res {config[Cfg::Video::Name][Cfg::Video::resolution].as<size_i>()};
             ddlRes->select_item(std::format("{}x{}", res.Width, res.Height));
-            auto lbl {panelLayout->create_widget<label>({0, 1, 4, 3}, "lblResolution")};
+            auto lbl {panelLayout->create_widget<label>({1, 1, 4, 3}, "lblResolution")};
             lbl->Label     = "Resolution";
             ddlRes->ZOrder = 1;
         }
 
         // fullscreen
         {
-            auto chkFullScreen {panelLayout->create_widget<checkbox>({4, 5, 5, 3}, "chkFullScreen")};
+            auto chkFullScreen {panelLayout->create_widget<checkbox>({6, 5, 6, 3}, "chkFullScreen")};
             chkFullScreen->Checked = config[Cfg::Video::Name][Cfg::Video::fullscreen].as<bool>();
-            auto lbl {panelLayout->create_widget<label>({0, 5, 4, 3}, "lblFullScreen")};
+            auto lbl {panelLayout->create_widget<label>({1, 5, 4, 3}, "lblFullScreen")};
             lbl->Label = "Fullscreen";
         }
 
         // vsync
         {
-            auto chkFullScreen {panelLayout->create_widget<checkbox>({4, 9, 5, 3}, "chkVSync")};
+            auto chkFullScreen {panelLayout->create_widget<checkbox>({6, 9, 6, 3}, "chkVSync")};
             chkFullScreen->Checked = config[Cfg::Video::Name][Cfg::Video::vsync].as<bool>();
-            auto lbl {panelLayout->create_widget<label>({0, 9, 4, 3}, "lblVSync")};
+            auto lbl {panelLayout->create_widget<label>({1, 9, 4, 3}, "lblVSync")};
             lbl->Label = "VSync";
         }
 

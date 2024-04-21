@@ -100,8 +100,11 @@ void foreground_canvas::draw_hint(gfx::render_target& target)
     // Draw bounds
     _canvas->begin_path();
     _canvas->rounded_rect(rect_f {camera.convert_world_to_screen(dstBounds)}, 10);
-    _canvas->set_stroke_style(colors::Red);
+    _canvas->set_stroke_style(colors::Black);
     _canvas->set_stroke_width(10);
+    _canvas->stroke();
+    _canvas->set_stroke_style(colors::Red);
+    _canvas->set_stroke_width(6);
     _canvas->stroke();
 
     auto const screenSrcBounds {rect_f {camera.convert_world_to_screen(srcBounds)}};
@@ -115,8 +118,11 @@ void foreground_canvas::draw_hint(gfx::render_target& target)
 
     _canvas->begin_path();
     _canvas->rounded_rect(screenSrcBounds, 10);
-    _canvas->set_stroke_style(colors::Green);
+    _canvas->set_stroke_style(colors::Black);
     _canvas->set_stroke_width(10);
+    _canvas->stroke();
+    _canvas->set_stroke_style(colors::Green);
+    _canvas->set_stroke_width(6);
     _canvas->stroke();
 
     // Draw arrow
@@ -148,15 +154,53 @@ void foreground_canvas::draw_hint(gfx::render_target& target)
 
 void foreground_canvas::draw_state()
 {
-    _canvas->set_font(_resGrp.get<gfx::font_family>("Poppins")->get_font({}, 256).get_obj()); // TODO: measure
-    _canvas->set_fill_style(colors::IndianRed);
-    _canvas->set_text_halign(gfx::horizontal_alignment::Centered);
-    _canvas->set_text_valign(gfx::vertical_alignment::Middle);
+    if (_lastState != game_state::Success && _lastState != game_state::Failure) { return; }
 
+    auto const& pBounds {_parent.Bounds};
+    f32 const   size {pBounds->get_size().Width / 5};
+    rect_f      bounds {pBounds->get_center() - point_f {size / 2, size / 2}, {size, size}};
+
+    _canvas->set_fill_style(colors::Silver);
+    _canvas->begin_path();
+    _canvas->rounded_rect(bounds, 15);
+    _canvas->fill();
+    _canvas->set_stroke_style(colors::Black);
+    _canvas->set_stroke_width(5);
+    _canvas->stroke();
+
+    bounds = bounds.as_padded(bounds.get_size() / 5);
     if (_lastState == game_state::Success) {
-        _canvas->draw_textbox(_parent.Bounds, "Success!");
+        f32 const width {bounds.Width / 15};
+        _canvas->begin_path();
+        _canvas->move_to({bounds.left(), bounds.get_center().Y});
+        _canvas->line_to({bounds.get_center().X, bounds.bottom()});
+        _canvas->line_to(bounds.top_right());
+
+        _canvas->set_stroke_width(width * 1.5f);
+        _canvas->set_stroke_style(colors::Black);
+        _canvas->set_line_cap(gfx::line_cap::Round);
+        _canvas->stroke();
+
+        _canvas->set_stroke_width(width);
+        _canvas->set_stroke_style(colors::Green);
+        _canvas->stroke();
     } else if (_lastState == game_state::Failure) {
-        _canvas->draw_textbox(_parent.Bounds, "Failure!");
+        f32 const width {bounds.Width / 10};
+
+        _canvas->begin_path();
+        _canvas->move_to(bounds.top_left());
+        _canvas->line_to(bounds.bottom_right());
+        _canvas->move_to(bounds.top_right());
+        _canvas->line_to(bounds.bottom_left());
+
+        _canvas->set_stroke_width(width * 1.5f);
+        _canvas->set_stroke_style(colors::Black);
+        _canvas->set_line_cap(gfx::line_cap::Round);
+        _canvas->stroke();
+
+        _canvas->set_stroke_width(width);
+        _canvas->set_stroke_style(colors::Red);
+        _canvas->stroke();
     }
 }
 
@@ -197,18 +241,16 @@ void background_canvas::draw(gfx::render_target& target)
                 }
             }
             auto srcpileBounds {rect_f {(*target.Camera).convert_world_to_screen(pileBounds)}};
-            // srcpileBounds = srcpileBounds.as_padded({-5.f, -5.f});
-
             _canvas.begin_path();
             _canvas.rounded_rect(srcpileBounds, 5);
 
             switch (pileType) {
-            case pile_type::Stock: _canvas.set_fill_style(colors::Red); break;
+            case pile_type::Stock: _canvas.set_fill_style(colors::Crimson); break;
             case pile_type::Waste: _canvas.set_fill_style(colors::Brown); break;
-            case pile_type::Foundation: _canvas.set_fill_style(colors::White); break;
-            case pile_type::Tableau: _canvas.set_fill_style(colors::Green); break;
+            case pile_type::Foundation: _canvas.set_fill_style(colors::DarkGreen); break;
+            case pile_type::Tableau: _canvas.set_fill_style(colors::SteelBlue); break;
             case pile_type::Reserve: _canvas.set_fill_style(colors::LightGray); break;
-            case pile_type::FreeCell: _canvas.set_fill_style(colors::Blue); break;
+            case pile_type::FreeCell: _canvas.set_fill_style(colors::LightBlue); break;
             }
             _canvas.fill();
 

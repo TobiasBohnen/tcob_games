@@ -19,9 +19,10 @@ enum class game_state {
     Success
 };
 
-constexpr isize INDEX_MARKER {-1};
-constexpr isize INDEX_INVALID {-2};
-constexpr f32   CARD_PADDING {1.05f};
+constexpr isize       INDEX_MARKER {-1};
+constexpr isize       INDEX_INVALID {-2};
+constexpr f32         CARD_MARGIN {1.05f};
+constexpr std::string FONT {"Poppins"};
 
 class card_table;
 class pile;
@@ -40,7 +41,7 @@ using rng        = random::rng_xoshiro_256_plus_plus;
 
 auto inline multiply(point_f pos, size_f size) -> point_f
 {
-    return {pos.X * CARD_PADDING * size.Width, pos.Y * CARD_PADDING * size.Height};
+    return {pos.X * CARD_MARGIN * size.Width, pos.Y * CARD_MARGIN * size.Height};
 }
 
 struct hit_test_result {

@@ -57,10 +57,7 @@ auto card::get_name() const -> std::string
 auto card::get_texture_name() const -> std::string
 {
     if (_faceDown) { return "card_back"; }
-
-    std::string retValue {"card_"};
-    retValue += get_name();
-    return retValue;
+    return "card_" + get_name();
 }
 
 auto card::to_value() const -> u16

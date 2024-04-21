@@ -172,6 +172,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
     namespace element = element;
 
     styles.clear();
+    auto fntFam {resGrp.get<gfx::font_family>(FONT)};
 
     {
         auto style {styles.create<panel>("panel", {})};
@@ -186,10 +187,10 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
     {
         auto style {styles.create<button>("button", {})};
         style->Border.Type          = element::border::type::Solid;
-        style->Border.Size          = 2_px;
+        style->Border.Size          = 5_px;
         style->Border.Radius        = 2_px;
         style->Text.Style           = {false, gfx::font::weight::Normal};
-        style->Text.Font            = resGrp.get<gfx::font_family>("Poppins");
+        style->Text.Font            = fntFam;
         style->Text.Size            = 32_px;
         style->Text.Alignment       = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
         style->Text.Decoration.Size = {3_px};
@@ -224,8 +225,11 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
     }
     {
         auto style {styles.create<label>("label", {})};
+        style->Border.Type    = element::border::type::Double;
+        style->Border.Size    = 5_px;
+        style->Border.Radius  = 2_px;
         style->Text.Style     = {false, gfx::font::weight::Normal};
-        style->Text.Font      = resGrp.get<gfx::font_family>("Poppins");
+        style->Text.Font      = fntFam;
         style->Text.Size      = 32_px;
         style->Text.Alignment = {gfx::horizontal_alignment::Left, gfx::vertical_alignment::Middle};
         style->Text.AutoSize  = element::text::auto_size_mode::OnlyShrink;
@@ -236,8 +240,11 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
     }
     {
         auto style {styles.create<label>("label-small", {})};
+        style->Border.Type    = element::border::type::Double;
+        style->Border.Size    = 5_px;
+        style->Border.Radius  = 2_px;
         style->Text.Style     = {false, gfx::font::weight::Normal};
-        style->Text.Font      = resGrp.get<gfx::font_family>("Poppins");
+        style->Text.Font      = fntFam;
         style->Text.Size      = 32_px;
         style->Text.Alignment = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
         style->Text.AutoSize  = element::text::auto_size_mode::Always;
@@ -296,7 +303,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->Margin                     = {5_px};
         style->Padding                    = {5_px};
         style->DropShadow.Color           = color {0, 0, 0, 128};
-        style->Text.Font                  = resGrp.get<gfx::font_family>("Poppins");
+        style->Text.Font                  = fntFam;
         style->Text.Size                  = 50_pct;
         style->Text.Alignment             = {gfx::horizontal_alignment::Left, gfx::vertical_alignment::Middle};
         style->Text.AutoSize              = element::text::auto_size_mode::Always;
@@ -405,7 +412,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         auto style {styles.create<item_style>("list_items", {}, {})};
         style->Item.Padding        = {2_px};
         style->Item.Text.Style     = {false, gfx::font::weight::Normal};
-        style->Item.Text.Font      = resGrp.get<gfx::font_family>("Poppins");
+        style->Item.Text.Font      = fntFam;
         style->Item.Text.Size      = 24_px;
         style->Item.Text.Alignment = {gfx::horizontal_alignment::Left, gfx::vertical_alignment::Middle};
         style->Item.Text.AutoSize  = element::text::auto_size_mode::Always;
@@ -425,7 +432,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         auto style {styles.create<item_style>("tab_items", {}, {})};
         style->Item.Padding        = {5_px};
         style->Item.Text.Style     = {false, gfx::font::weight::Heavy};
-        style->Item.Text.Font      = resGrp.get<gfx::font_family>("Poppins");
+        style->Item.Text.Font      = fntFam;
         style->Item.Text.Size      = 32_px;
         style->Item.Text.Alignment = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
         style->Item.Text.AutoSize  = element::text::auto_size_mode::Always;

@@ -47,6 +47,8 @@ protected:
     void on_mouse_button_up(input::mouse::button_event& ev) override;
 
 private:
+    void reset();
+
     auto get_description(pile const* pile) -> pile_description;
 
     void move_camera(size_f cardBounds);
