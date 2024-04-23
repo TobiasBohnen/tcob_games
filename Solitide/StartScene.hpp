@@ -24,13 +24,17 @@ enum class start_reason {
 
 class start_scene : public scene {
 public:
-    using func = std::function<std::shared_ptr<games::base_game>()>;
+    using func = std::function<std::shared_ptr<base_game>()>;
 
     start_scene(game& game);
     ~start_scene() override;
 
-    void register_game(games::game_info const& info, func&& game);
+    void register_game(game_info const& info, func&& game);
     auto call_lua(std::vector<std::string> const& funcs, lua_params const& args) -> lua_return;
+
+    auto get_games() const -> std::vector<game_info>;
+    auto get_themes() const -> std::vector<std::string>;
+    auto get_cardsets() const -> std::vector<std::string>;
 
 protected:
     void on_start() override;
@@ -45,7 +49,8 @@ protected:
 private:
     void set_children_bounds(size_i size);
     void start_game(string const& name, start_reason reason);
-    void generate_rule(games::base_game const& game) const;
+    void update_stats(string const& name) const;
+    void generate_rule(base_game const& game) const;
 
     void load_scripts();
 
@@ -61,9 +66,9 @@ private:
     std::shared_ptr<form_controls> _formControls {};
     std::shared_ptr<form_menu>     _formMenu {};
 
-    std::map<std::string, std::pair<games::game_info, func>> _games {};
-    std::map<std::string, color_themes>                      _themes {};
-    std::map<std::string, std::shared_ptr<cardset>>          _cardSets;
+    std::map<std::string, std::pair<game_info, func>> _games {};
+    std::map<std::string, color_themes>               _themes {};
+    std::map<std::string, std::shared_ptr<cardset>>   _cardSets;
 
     data::config::object _saveGame;
 

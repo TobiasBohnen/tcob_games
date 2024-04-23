@@ -59,7 +59,7 @@ start_scene::start_scene(game& game)
 
 start_scene::~start_scene() = default;
 
-void start_scene::register_game(games::game_info const& info, func&& game)
+void start_scene::register_game(game_info const& info, func&& game)
 {
     _games[info.Name] = {info, std::move(game)};
 }
@@ -73,6 +73,30 @@ auto start_scene::call_lua(std::vector<std::string> const& funcs, lua_params con
     }
 
     return tab[funcs.back()].as<function<lua_return>>()(args);
+}
+
+auto start_scene::get_games() const -> std::vector<game_info>
+{
+    std::vector<game_info> retValue;
+    retValue.reserve(_games.size());
+    for (auto const& gi : _games) { retValue.emplace_back(gi.second.first); }
+    return retValue;
+}
+
+auto start_scene::get_themes() const -> std::vector<std::string>
+{
+    std::vector<std::string> retValue;
+    retValue.reserve(_themes.size());
+    for (auto const& gi : _themes) { retValue.push_back(gi.first); }
+    return retValue;
+}
+
+auto start_scene::get_cardsets() const -> std::vector<std::string>
+{
+    std::vector<std::string> retValue;
+    retValue.reserve(_cardSets.size());
+    for (auto const& gi : _cardSets) { retValue.push_back(gi.first); }
+    return retValue;
 }
 
 void start_scene::on_start()
@@ -93,31 +117,22 @@ void start_scene::on_start()
     load_scripts();
 
     // games
-    std::vector<games::game_info>                      games;
-    std::vector<std::tuple<string, games::family, u8>> dbvalues;
-    games.reserve(_games.size());
+    std::vector<std::tuple<string, family, u8>> dbvalues;
+    dbvalues.reserve(_games.size());
     for (auto const& gi : _games) {
-        games.emplace_back(gi.second.first);
-
         dbvalues.emplace_back(gi.first, gi.second.first.Family, gi.second.first.DeckCount);
     }
     std::ignore = _dbGames->insert_into(db::ignore, "Name", "Family", "DeckCount")(dbvalues);
 
     // themes
     _themes = load_themes();
-    std::vector<std::string> themes;
-    themes.reserve(_themes.size());
-    for (auto const& gi : _themes) { themes.push_back(gi.first); }
 
     // cardsets
     _cardSets = load_cardsets();
-    std::vector<std::string> cardSets;
-    cardSets.reserve(_cardSets.size());
-    for (auto const& gi : _cardSets) { cardSets.push_back(gi.first); }
 
     // ui
     _formControls = std::make_shared<form_controls>(&window);
-    _formMenu     = std::make_shared<form_menu>(&window, games, themes, cardSets);
+    _formMenu     = std::make_shared<form_menu>(&window, *this);
     _formMenu->hide();
     connect_ui_events();
 
@@ -146,10 +161,8 @@ void start_scene::on_start()
     locate_service<stats>().reset();
 
     // config
-    _formMenu->SelectedTheme = configFile.get<std::string>("sol", "theme").value_or("default");
-    _formMenu->LbxThemes->select_item(_formMenu->SelectedTheme);
+    _formMenu->SelectedTheme   = configFile.get<std::string>("sol", "theme").value_or("default");
     _formMenu->SelectedCardset = configFile.get<std::string>("sol", "cardset").value_or("default");
-    _formMenu->LbxCardsets->select_item(_formMenu->SelectedCardset);
 
     _formMenu->fixed_update(0s);     // updates style
     _formControls->fixed_update(0s); // updates style
@@ -157,8 +170,6 @@ void start_scene::on_start()
     // load config
     if (configFile.has("sol", "game")) {
         _formMenu->SelectedGame = configFile["sol"]["game"].as<std::string>();
-        _formMenu->LbxGamesByName->select_item(_formMenu->SelectedGame);
-        _formMenu->LbxGamesByName->scroll_to_selected();
     }
 }
 
@@ -182,9 +193,7 @@ void start_scene::connect_ui_events()
     });
 
     _formControls->BtnUndo->Click.connect([&](auto const&) {
-        if (auto game {_cardTable->game()}) {
-            game->undo();
-        }
+        if (auto game {_cardTable->game()}) { game->undo(); }
     });
 
     _formControls->BtnQuit->Click.connect([&](auto const&) {
@@ -239,7 +248,7 @@ void start_scene::connect_ui_events()
 
     _formMenu->BtnApplySettings->Click.connect([&]() {
         data::config::object obj;
-        _formMenu->PanelSettings->submit(obj);
+        _formMenu->submit_settings(obj);
 
         assert(obj.has("ddlResolution", "selected"));
         assert(obj.has("chkFullScreen", "checked"));
@@ -320,40 +329,53 @@ void start_scene::start_game(string const& name, start_reason reason)
         }
     }
 
-    if (_games.contains(name)) {
-        auto newGame {_games[name].second()};
-        newGame->State.Changed.connect([&](auto val) {
-            switch (val) {
-            case game_state::Success:
-            case game_state::Failure: {
-                auto const  current {_cardTable->game()};
-                auto const& info {current->info()};
-                if (info.Turn == 0) { return; } // don't save unplayed games
-                auto const id {_dbGames->select_from<i64>("ID").where("Name = ?")(info.Name)};
-                using tupInsert = std::tuple<i64, string, bool, i64, i64>;
-                std::ignore     = _dbHistory->insert_into(db::replace, "GameID", "Seed", "Won", "Turns", "Time")(
-                    tupInsert {id[0], state_to_string(info.InitialSeed), current->State == game_state::Success, info.Turn, info.Time.count()});
-            } break;
-            default: break;
-            }
-        });
+    if (!_games.contains(name)) { return; }
 
-        switch (reason) {
-        case start_reason::Restart:
-            generate_rule(*newGame);
-            _cardTable->start(newGame);
-            break;
-        case start_reason::Resume:
-            _cardTable->resume(newGame, _saveGame);
-            break;
+    auto newGame {_games[name].second()};
+    newGame->State.Changed.connect([&](auto val) {
+        using tupInsert = std::tuple<i64, string, bool, i64, i64>;
+
+        switch (val) {
+        case game_state::Success:
+        case game_state::Failure: {
+            auto const  current {_cardTable->game()};
+            auto const& info {current->info()};
+            if (info.Turn == 0) { return; } // don't save unplayed games
+
+            auto const id {_dbGames->select_from<i64>("ID").where("Name = ?")(info.Name)};
+            std::ignore = _dbHistory->insert_into(db::replace, "GameID", "Seed", "Won", "Turns", "Time")(
+                tupInsert {id[0], state_to_string(info.InitialSeed), current->State == game_state::Success, info.Turn, info.Time.count()});
+
+            update_stats(name);
+        } break;
+        default: break;
         }
+    });
 
-        locate_service<stats>().reset();
-        locate_service<data::config_file>()["sol"]["game"] = name;
+    switch (reason) {
+    case start_reason::Restart:
+        generate_rule(*newGame);
+        _cardTable->start(newGame);
+        break;
+    case start_reason::Resume:
+        _cardTable->resume(newGame, _saveGame);
+        break;
     }
+
+    locate_service<stats>().reset();
+    locate_service<data::config_file>()["sol"]["game"] = name;
+    update_stats(name);
 }
 
-void start_scene::generate_rule(games::base_game const& game) const
+void start_scene::update_stats(string const& name) const
+{
+    auto const  id {_dbGames->select_from<i64>("ID").where("Name = ?")(name)};
+    usize const lost {_dbHistory->select_from<i64>("ID").where("GameID = ? and Won = 0")(id).size()};
+    usize const won {_dbHistory->select_from<i64>("ID").where("GameID = ? and Won = 1")(id).size()};
+    _formMenu->set_game_stats({.Won = won, .Lost = lost});
+}
+
+void start_scene::generate_rule(base_game const& game) const
 {
     // generate rules     // TODO: translate
     io::create_folder("/rules/");
@@ -391,7 +413,7 @@ void start_scene::generate_rule(games::base_game const& game) const
 void start_scene::load_scripts()
 {
     {
-        games::lua_script_game::CreateAPI(this, _luaScript, _luaFunctions);
+        lua_script_game::CreateAPI(this, _luaScript, _luaFunctions);
         auto const files {io::enumerate("/", {"games.*.lua", false}, true)};
         for (auto const& file : files) {
             std::ignore = _luaScript.run_file(file);
@@ -399,7 +421,7 @@ void start_scene::load_scripts()
     }
 
     {
-        games::squirrel_script_game::CreateAPI(this, _sqScript, _sqFunctions);
+        squirrel_script_game::CreateAPI(this, _sqScript, _sqFunctions);
         auto const files {io::enumerate("/", {"games.*.nut", false}, true)};
         for (auto const& file : files) {
             std::ignore = _sqScript.run_file(file);

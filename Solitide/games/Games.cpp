@@ -10,7 +10,7 @@
 #include <ranges>
 #include <utility>
 
-namespace solitaire::games {
+namespace solitaire {
 
 base_game::base_game(game_info info)
     : _info {std::move(info)}

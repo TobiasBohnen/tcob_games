@@ -23,17 +23,17 @@ card_table::card_table(gfx::window* window, gfx::ui::canvas_widget* canvas, asse
     Bounds.Changed.connect([&](auto const&) { mark_dirty(); });
 }
 
-void card_table::start(std::shared_ptr<games::base_game> const& game)
+void card_table::start(std::shared_ptr<base_game> const& game)
 {
     start_game(game, std::nullopt);
 }
 
-void card_table::resume(std::shared_ptr<games::base_game> const& game, data::config::object& savegame)
+void card_table::resume(std::shared_ptr<base_game> const& game, data::config::object& savegame)
 {
     start_game(game, savegame);
 }
 
-void card_table::start_game(std::shared_ptr<games::base_game> const& game, std::optional<data::config::object> const& savegame)
+void card_table::start_game(std::shared_ptr<base_game> const& game, std::optional<data::config::object> const& savegame)
 {
     _currentGame = game;
 
@@ -130,7 +130,7 @@ void card_table::mark_dirty()
     _fgCanvas.mark_dirty();
 }
 
-auto card_table::game() const -> std::shared_ptr<games::base_game>
+auto card_table::game() const -> std::shared_ptr<base_game>
 {
     return _currentGame;
 }

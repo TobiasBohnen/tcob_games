@@ -5,6 +5,9 @@
 
 #include "UI.hpp"
 
+#include "Games.hpp"
+#include "StartScene.hpp"
+
 namespace solitaire {
 
 using namespace tcob::literals;
@@ -81,170 +84,223 @@ form_controls::form_controls(gfx::window* window)
 
 ////////////////////////////////////////////////////////////
 
-static string const TabGamesName {"tabGames"};
-static string const TabSettingsName {"tabSettings"};
-static string const TabThemesName {"tabThemes"};
-static string const TabCardsetsName {"tabCardsets"};
+static string const TabGamesName {"conGames"};
+static string const TabSettingsName {"conSettings"};
+static string const TabThemesName {"conThemes"};
+static string const TabCardsetsName {"conCardsets"};
 
-form_menu::form_menu(gfx::window*                         window,
-                     std::vector<games::game_info> const& games,
-                     std::vector<std::string> const&      colorThemes,
-                     std::vector<std::string> const&      cardSets)
+form_menu::form_menu(gfx::window* window, start_scene const& scene)
     : form {"Games", window}
 {
+    create_section_games(scene.get_games());
+    create_section_settings();
+    create_section_themes(scene.get_themes());
+    create_section_cardset(scene.get_cardsets());
+    create_menubar();
+}
+
+void form_menu::submit_settings(data::config::object& obj)
+{
+    _panelSettings->submit(obj);
+}
+
+void form_menu::set_game_stats(game_stats const& stats)
+{
+    _lblWon->Label   = std::to_string(stats.Won);
+    _lblLost->Label  = std::to_string(stats.Lost);
+    _lblTotal->Label = std::to_string(stats.Lost + stats.Won);
+}
+
+void form_menu::create_section_games(std::vector<game_info> const& games)
+{
     // Games
-    auto tabGames {create_container<tab_container>(dock_style::Left, TabGamesName)};
-    tabGames->Flex = {85_pct, 100_pct};
+    auto panelGames  = create_container<panel>(dock_style::Left, TabGamesName);
+    panelGames->Flex = {85_pct, 100_pct};
+    auto panelLayout {panelGames->create_layout<dock_layout>()};
 
-    auto createListBox {[&](std::shared_ptr<dock_layout>& tabPanelLayout, std::string const& name, auto&& pred) -> std::shared_ptr<list_box> {
-        auto listBox {tabPanelLayout->create_widget<list_box>(dock_style::Fill, "lbxGames" + name)};
-        listBox->Class = "list_box_games";
-        bool check {false};
-        for (auto const& game : games) {
-            if (pred(game)) {
-                listBox->add_item(game.Name);
-                check = true;
+    {
+        auto tabGames {panelLayout->create_widget<tab_container>(dock_style::Left, "tabGames")};
+        tabGames->Flex = {50_pct, 100_pct};
+
+        auto createListBox {[&](std::shared_ptr<dock_layout>& tabPanelLayout, std::string const& name, auto&& pred) -> std::shared_ptr<list_box> {
+            auto listBox {tabPanelLayout->create_widget<list_box>(dock_style::Fill, "lbxGames" + name)};
+            bool check {false};
+            for (auto const& game : games) {
+                if (pred(game)) {
+                    listBox->add_item(game.Name);
+                    check = true;
+                }
             }
-        }
-        if (!check) { return nullptr; }
+            if (!check) { return nullptr; }
 
-        listBox->SelectedItemIndex.Changed.connect([&, lb = listBox.get()](auto val) {
-            if (val != -1) { SelectedGame = lb->get_selected_item(); }
-        });
-        listBox->DoubleClick.connect([&] { hide(); });
-        return listBox;
-    }};
+            listBox->SelectedItemIndex.Changed.connect([&, lb = listBox.get()](auto val) {
+                if (val != -1) { SelectedGame = lb->get_selected_item(); }
+            });
+            SelectedGame.Changed.connect([&, lb = listBox.get()](auto const& val) {
+                if (lb->select_item(val)) {
+                    if (!lb->is_focused()) { lb->scroll_to_selected(); }
+                } else {
+                    lb->SelectedItemIndex = -1;
+                }
+            });
 
-    // By Name
-    {
-        auto tabPanel {tabGames->create_tab<panel>("byName", "By Name")};
-        auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-        LbxGamesByName = createListBox(tabPanelLayout, "0", [](auto const&) { return true; });
-    }
-    // By Family
-    {
-        auto tabContainer {tabGames->create_tab<tab_container>("byFamily", "By Family")};
-
-        auto createTab {[&](games::family family, std::string const& name) {
-            auto tabPanel {tabContainer->create_tab<panel>(name)};
-            auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-            createListBox(tabPanelLayout, name, [family](auto const& game) { return game.Family == family; });
+            listBox->DoubleClick.connect([&] { hide(); });
+            return listBox;
         }};
-        createTab(games::family::BakersDozen, "Baker's Dozen");
-        createTab(games::family::BeleagueredCastle, "Beleaguered Castle");
-        createTab(games::family::Canfield, "Canfield");
-        createTab(games::family::Fan, "Fan");
-        createTab(games::family::FortyThieves, "Forty Thieves");
-        createTab(games::family::FreeCell, "FreeCell");
-        createTab(games::family::Golf, "Golf");
-        createTab(games::family::Gypsy, "Gypsy");
-        createTab(games::family::Klondike, "Klondike");
-        createTab(games::family::Montana, "Montana");
-        createTab(games::family::Raglan, "Raglan");
-        createTab(games::family::Spider, "Spider");
-        createTab(games::family::Yukon, "Yukon");
-        createTab(games::family::Other, "Other");
+
+        // By Name
+        {
+            auto tabPanel {tabGames->create_tab<panel>("byName", "By Name")};
+            auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
+            _lbxGamesByName = createListBox(tabPanelLayout, "0", [](auto const&) { return true; });
+        }
+        // By Family
+        {
+            auto tabContainer {tabGames->create_tab<tab_container>("byFamily", "By Family")};
+
+            auto createTab {[&](family family, std::string const& name) {
+                auto tabPanel {tabContainer->create_tab<panel>(name)};
+                auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
+                createListBox(tabPanelLayout, name, [family](auto const& game) { return game.Family == family; });
+            }};
+            createTab(family::BakersDozen, "Baker's Dozen");
+            createTab(family::BeleagueredCastle, "Beleaguered Castle");
+            createTab(family::Canfield, "Canfield");
+            createTab(family::Fan, "Fan");
+            createTab(family::FortyThieves, "Forty Thieves");
+            createTab(family::FreeCell, "FreeCell");
+            createTab(family::Golf, "Golf");
+            createTab(family::Gypsy, "Gypsy");
+            createTab(family::Klondike, "Klondike");
+            createTab(family::Montana, "Montana");
+            createTab(family::Raglan, "Raglan");
+            createTab(family::Spider, "Spider");
+            createTab(family::Yukon, "Yukon");
+            createTab(family::Other, "Other");
+        }
+        // By Deck Count
+        {
+            auto tabContainer {tabGames->create_tab<tab_container>("byDeckCount", "By Deck Count")};
+
+            auto createTab {[&](isize count, std::string const& name) {
+                auto tabPanel {tabContainer->create_tab<panel>(name)};
+                auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
+                createListBox(tabPanelLayout, name, [count](auto const& game) { return game.DeckCount == count; });
+            }};
+            createTab(1, "1");
+            createTab(2, "2");
+            createTab(3, "3");
+
+            {
+                auto tabPanel {tabContainer->create_tab<panel>(">= 4")};
+                auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
+                if (!createListBox(tabPanelLayout, "4+", [](auto const& game) { return game.DeckCount >= 4; })) {
+                    tabContainer->remove_tab(tabPanel.get());
+                }
+            }
+            {
+                auto tabPanel {tabContainer->create_tab<panel>("stripped")};
+                auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
+                if (!createListBox(tabPanelLayout, "stripped", [](auto const& game) { return game.DeckRanks.size() < 13 || game.DeckSuits.size() < 4; })) {
+                    tabContainer->remove_tab(tabPanel.get());
+                }
+            }
+        }
     }
-    // By Deck Count
     {
-        auto tabContainer {tabGames->create_tab<tab_container>("byDeckCount", "By Deck Count")};
+        auto panelGameStats {panelLayout->create_widget<panel>(dock_style::Fill, "panelGameStats")};
+        auto panelGameStatsLayout {panelGameStats->create_layout<grid_layout>(size_i {40, 40})};
 
-        auto createTab {[&](isize count, std::string const& name) {
-            auto tabPanel {tabContainer->create_tab<panel>(name)};
-            auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-            createListBox(tabPanelLayout, name, [count](auto const& game) { return game.DeckCount == count; });
-        }};
-        createTab(1, "1");
-        createTab(2, "2");
-        createTab(3, "3");
-
-        {
-            auto tabPanel {tabContainer->create_tab<panel>(">= 4")};
-            auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-            if (!createListBox(tabPanelLayout, "4+", [](auto const& game) { return game.DeckCount >= 4; })) {
-                tabContainer->remove_tab(tabPanel.get());
-            }
-        }
-        {
-            auto tabPanel {tabContainer->create_tab<panel>("stripped")};
-            auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-            if (!createListBox(tabPanelLayout, "stripped", [](auto const& game) { return game.DeckRanks.size() < 13 || game.DeckSuits.size() < 4; })) {
-                tabContainer->remove_tab(tabPanel.get());
-            }
-        }
+        _lblWon          = panelGameStatsLayout->create_widget<label>({1, 1, 5, 2}, "lblWon");
+        _lblWon->Class   = "label-small";
+        _lblLost         = panelGameStatsLayout->create_widget<label>({7, 1, 5, 2}, "lblLost");
+        _lblLost->Class  = "label-small";
+        _lblTotal        = panelGameStatsLayout->create_widget<label>({13, 1, 5, 2}, "lblTotal");
+        _lblTotal->Class = "label-small";
     }
+}
 
+void form_menu::create_section_settings()
+{
     // Setting
-    PanelSettings       = create_container<panel>(dock_style::Left, TabSettingsName);
-    PanelSettings->Flex = {0_pct, 0_pct};
+    _panelSettings       = create_container<panel>(dock_style::Left, TabSettingsName);
+    _panelSettings->Flex = {0_pct, 0_pct};
     {
-        auto        panelLayout {PanelSettings->create_layout<grid_layout>(size_i {40, 40})};
+        auto        panelLayout {_panelSettings->create_layout<grid_layout>(size_i {40, 40})};
         auto const& config {locate_service<data::config_file>()};
 
         // resolution
         {
             auto const& renderSystem {locate_service<gfx::render_system>()};
             auto const  displayModes {renderSystem.get_displays()};
-            auto        ddlRes {panelLayout->create_widget<drop_down_list>({6, 1, 6, 3}, "ddlResolution")}; // TODO: change to drop-down-list
+            auto        ddlRes {panelLayout->create_widget<drop_down_list>({6, 1, 6, 4}, "ddlResolution")}; // TODO: change to drop-down-list
             for (auto const& dm : displayModes.at(0).Modes) {
                 ddlRes->add_item(std::format("{}x{}", dm.Size.Width, dm.Size.Height));
             }
             auto const res {config[Cfg::Video::Name][Cfg::Video::resolution].as<size_i>()};
             ddlRes->select_item(std::format("{}x{}", res.Width, res.Height));
-            auto lbl {panelLayout->create_widget<label>({1, 1, 4, 3}, "lblResolution")};
+            auto lbl {panelLayout->create_widget<label>({1, 2, 4, 2}, "lblResolution")};
             lbl->Label     = "Resolution";
             ddlRes->ZOrder = 1;
         }
 
         // fullscreen
         {
-            auto chkFullScreen {panelLayout->create_widget<checkbox>({6, 5, 6, 3}, "chkFullScreen")};
+            auto chkFullScreen {panelLayout->create_widget<checkbox>({6, 5, 3, 4}, "chkFullScreen")};
             chkFullScreen->Checked = config[Cfg::Video::Name][Cfg::Video::fullscreen].as<bool>();
-            auto lbl {panelLayout->create_widget<label>({1, 5, 4, 3}, "lblFullScreen")};
+            auto lbl {panelLayout->create_widget<label>({1, 6, 4, 2}, "lblFullScreen")};
             lbl->Label = "Fullscreen";
         }
 
         // vsync
         {
-            auto chkFullScreen {panelLayout->create_widget<checkbox>({6, 9, 6, 3}, "chkVSync")};
+            auto chkFullScreen {panelLayout->create_widget<checkbox>({6, 9, 3, 4}, "chkVSync")};
             chkFullScreen->Checked = config[Cfg::Video::Name][Cfg::Video::vsync].as<bool>();
-            auto lbl {panelLayout->create_widget<label>({1, 9, 4, 3}, "lblVSync")};
+            auto lbl {panelLayout->create_widget<label>({1, 10, 4, 2}, "lblVSync")};
             lbl->Label = "VSync";
         }
 
-        BtnApplySettings        = panelLayout->create_widget<button>({36, 36, 5, 3}, "btnApply");
+        BtnApplySettings        = panelLayout->create_widget<button>({34, 36, 5, 2}, "btnApply");
         BtnApplySettings->Label = "Apply";
     }
+}
 
+void form_menu::create_section_themes(std::vector<std::string> const& colorThemes)
+{
     // Themes
     auto panelThemes {create_container<panel>(dock_style::Left, TabThemesName)};
     panelThemes->Flex = {0_pct, 0_pct};
     {
         auto panelLayout {panelThemes->create_layout<dock_layout>()};
-        LbxThemes        = panelLayout->create_widget<list_box>(dock_style::Fill, "lbxThemes");
-        LbxThemes->Class = "list_box_games";
-        for (auto const& colorTheme : colorThemes) { LbxThemes->add_item(colorTheme); }
-        LbxThemes->SelectedItemIndex.Changed.connect([&, lb = LbxThemes.get()](auto val) {
+        _lbxThemes = panelLayout->create_widget<list_box>(dock_style::Fill, "lbxThemes");
+        for (auto const& colorTheme : colorThemes) { _lbxThemes->add_item(colorTheme); }
+        _lbxThemes->SelectedItemIndex.Changed.connect([&, lb = _lbxThemes.get()](auto val) {
             if (val != -1) { SelectedTheme = lb->get_selected_item(); }
         });
-        LbxThemes->DoubleClick.connect([&] { hide(); });
+        _lbxThemes->DoubleClick.connect([&] { hide(); });
+        SelectedTheme.Changed.connect([&](auto const& val) {
+            _lbxThemes->select_item(val);
+        });
     }
+}
 
+void form_menu::create_section_cardset(std::vector<std::string> const& cardSets)
+{
     // Cardsets
     auto panelCardsets {create_container<panel>(dock_style::Left, TabCardsetsName)};
     panelCardsets->Flex = {0_pct, 0_pct};
     {
         auto panelLayout {panelCardsets->create_layout<dock_layout>()};
-        LbxCardsets        = panelLayout->create_widget<list_box>(dock_style::Fill, "lbxCardsets");
-        LbxCardsets->Class = "list_box_games";
-        for (auto const& cardSet : cardSets) { LbxCardsets->add_item(cardSet); }
-        LbxCardsets->SelectedItemIndex.Changed.connect([&, lb = LbxCardsets.get()](auto val) {
+        _lbxCardsets = panelLayout->create_widget<list_box>(dock_style::Fill, "lbxCardsets");
+        for (auto const& cardSet : cardSets) { _lbxCardsets->add_item(cardSet); }
+        _lbxCardsets->SelectedItemIndex.Changed.connect([&, lb = _lbxCardsets.get()](auto val) {
             if (val != -1) { SelectedCardset = lb->get_selected_item(); }
         });
-        LbxCardsets->DoubleClick.connect([&] { hide(); });
+        _lbxCardsets->DoubleClick.connect([&] { hide(); });
+        SelectedCardset.Changed.connect([&](auto const& val) {
+            _lbxCardsets->select_item(val);
+        });
     }
-
-    create_menubar();
 }
 
 void form_menu::create_menubar()
@@ -252,7 +308,7 @@ void form_menu::create_menubar()
     static string const MenuName {"menu"};
 
     auto menu {create_container<panel>(dock_style::Fill, MenuName)};
-    auto menuLayout {menu->create_layout<grid_layout>(size_i {6, 20})};
+    auto menuLayout {menu->create_layout<grid_layout>(size_i {6, 40})};
 
     auto const enableContainer {[](form const* f, string const& enable) {
         for (auto const& w : f->get_widgets()) {
@@ -262,12 +318,12 @@ void form_menu::create_menubar()
         }
     }};
 
-    rect_i btnRect {0, 1, 3, 2};
+    rect_i btnRect {0, 1, 3, 4};
 
     auto const createMenuButton {[&](string const& text) {
         auto btn {menuLayout->create_widget<radio_button>(btnRect, "btn" + text)};
-        auto lbl {menuLayout->create_widget<label>({btnRect.Width, btnRect.Y, btnRect.Width - 1, btnRect.Height}, "lblBtn" + text)};
 
+        auto lbl {menuLayout->create_widget<label>({btnRect.Width, btnRect.Y + 1, btnRect.Width - 1, btnRect.Height - 2}, "lblBtn" + text)};
         lbl->Label = text;
         lbl->For   = btn;
 
@@ -293,7 +349,7 @@ void form_menu::create_menubar()
         btn->Click.connect([enableContainer](auto const& ev) { enableContainer(ev.Sender->get_form(), TabCardsetsName); });
     }
 
-    auto btnBack {menuLayout->create_widget<button>({1, 18, 4, 2}, "btnBack")};
+    auto btnBack {menuLayout->create_widget<button>({1, 38, 4, 2}, "btnBack")};
     btnBack->Label = "Back";
     btnBack->Click.connect([&](auto&) { hide(); });
 }

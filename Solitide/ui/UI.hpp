@@ -51,21 +51,34 @@ public:
 
 class form_menu : public form {
 public:
-    form_menu(gfx::window* window, std::vector<games::game_info> const& games, std::vector<std::string> const& colorThemes, std::vector<std::string> const& cardSets);
+    form_menu(gfx::window* window, start_scene const& scene);
 
     prop<std::string> SelectedGame;
     prop<std::string> SelectedTheme;
     prop<std::string> SelectedCardset;
 
-    std::shared_ptr<list_box> LbxGamesByName;
-    std::shared_ptr<list_box> LbxThemes;
-    std::shared_ptr<list_box> LbxCardsets;
-
-    std::shared_ptr<panel>  PanelSettings;
     std::shared_ptr<button> BtnApplySettings;
 
+    void submit_settings(data::config::object& obj);
+    void set_game_stats(game_stats const& stats);
+
 private:
+    void create_section_games(std::vector<game_info> const& games);
+    void create_section_settings();
+    void create_section_themes(std::vector<std::string> const& colorThemes);
+    void create_section_cardset(std::vector<std::string> const& cardSets);
+
     void create_menubar();
+
+    std::shared_ptr<panel> _panelSettings;
+
+    std::shared_ptr<list_box> _lbxGamesByName;
+    std::shared_ptr<list_box> _lbxThemes;
+    std::shared_ptr<list_box> _lbxCardsets;
+
+    std::shared_ptr<label> _lblWon;
+    std::shared_ptr<label> _lblLost;
+    std::shared_ptr<label> _lblTotal;
 };
 
 }

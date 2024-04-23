@@ -121,7 +121,7 @@ auto get_pile_type_name(pile_type pt) -> std::string
     return "";
 }
 
-auto pile::get_description(games::base_game const& game) const -> pile_description
+auto pile::get_description(base_game const& game) const -> pile_description
 {
     auto const cardCount {Cards.size()};
 

@@ -21,7 +21,6 @@ public:
 
     void on_start() override
     {
-        using namespace solitaire::games;
         push_scene<solitaire::start_scene>();
     }
 };

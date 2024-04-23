@@ -6,7 +6,7 @@
 #pragma once
 #include "Games.hpp"
 
-namespace solitaire::games {
+namespace solitaire {
 ////////////////////////////////////////////////////////////
 
 inline void base_game::create_piles(auto&& piles, isize size, std::function<void(pile&, i32)> const& func)
@@ -237,8 +237,8 @@ template <typename T>
 inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& scene, auto&& script, auto&& globalTable, auto&& makeFunc, string const& ext)
 {
     globalTable["Sol"]["register_game"] = makeFunc([scene](Table& tab) {
-        auto             infoTab {tab["Info"].template as<Table>()};
-        games::game_info info;
+        auto      infoTab {tab["Info"].template as<Table>()};
+        game_info info;
 
         infoTab.try_get(info.Name, "Name");
         infoTab.try_get(info.Family, "Family");

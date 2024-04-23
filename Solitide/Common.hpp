@@ -27,14 +27,13 @@ constexpr std::string FONT {"Poppins"};
 class card_table;
 class pile;
 class start_scene;
-
-namespace games {
-    class base_game;
-}
+struct game_stats;
+struct game_info;
+class base_game;
 
 using lua_value  = std::variant<i64, f64, bool, std::string>;
 using lua_return = std::optional<lua_value>;
-using lua_params = scripting::parameter_pack<std::variant<games::base_game*, i64, f64, bool, std::string>>;
+using lua_params = scripting::parameter_pack<std::variant<base_game*, i64, f64, bool, std::string>>;
 using rng        = random::rng_xoshiro_256_plus_plus;
 
 ////////////////////////////////////////////////////////////

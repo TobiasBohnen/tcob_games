@@ -58,7 +58,6 @@ void color_theme::apply(std::shared_ptr<label::style> const& style) const
 {
     style->Background        = LabelBackground;
     style->Border.Background = Border;
-    style->DropShadow.Color  = DropShadow;
     style->Text.Color        = Text;
 }
 
@@ -66,7 +65,6 @@ void color_theme::apply(std::shared_ptr<list_box::style> const& style) const
 {
     style->Background                      = Background;
     style->Border.Background               = Border;
-    style->DropShadow.Color                = DropShadow;
     style->VScrollBar.Bar.HigherBackground = Bar;
     style->VScrollBar.Bar.LowerBackground  = Bar;
 }
@@ -123,7 +121,6 @@ void color_theme::apply(std::shared_ptr<panel::style> const& style) const
 {
     style->Background                      = Container;
     style->Border.Background               = Border;
-    style->DropShadow.Color                = DropShadow;
     style->VScrollBar.Bar.HigherBackground = Bar;
     style->VScrollBar.Bar.LowerBackground  = Bar;
     style->HScrollBar.Bar.HigherBackground = Bar;
@@ -134,14 +131,12 @@ void color_theme::apply(std::shared_ptr<tab_container::style> const& style) cons
 {
     style->Background        = Container;
     style->Border.Background = Border;
-    style->DropShadow.Color  = DropShadow;
 }
 
 void color_theme::apply(std::shared_ptr<accordion::style> const& style) const
 {
     style->Background        = Container;
     style->Border.Background = Border;
-    style->DropShadow.Color  = DropShadow;
 }
 
 void color_theme::apply(std::shared_ptr<thumb_style> const& style) const
@@ -176,18 +171,15 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
 
     {
         auto style {styles.create<panel>("panel", {})};
-        style->Border.Size      = 2_px;
-        style->Border.Radius    = 5_px;
-        style->Margin           = {5_px};
-        style->Padding          = {5_px};
-        style->DropShadow.Color = color {0, 0, 0, 128};
-
+        style->Padding       = 2_px;
+        style->Border.Size   = 2_px;
+        style->Border.Radius = 5_px;
         theme.Normal.apply(style);
     }
     {
         auto style {styles.create<button>("button", {})};
         style->Border.Type          = element::border::type::Solid;
-        style->Border.Size          = 5_px;
+        style->Border.Size          = 4_px;
         style->Border.Radius        = 2_px;
         style->Text.Style           = {false, gfx::font::weight::Normal};
         style->Text.Font            = fntFam;
@@ -235,11 +227,10 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->Text.AutoSize  = element::text::auto_size_mode::OnlyShrink;
 
         theme.Normal.apply(style);
-        style->Text.Shadow.Color = colors::Transparent;
-        style->DropShadow.Color  = colors::Transparent;
     }
     {
         auto style {styles.create<label>("label-small", {})};
+        style->Margin         = {3_px};
         style->Border.Type    = element::border::type::Double;
         style->Border.Size    = 5_px;
         style->Border.Radius  = 2_px;
@@ -249,44 +240,16 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->Text.Alignment = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
         style->Text.AutoSize  = element::text::auto_size_mode::Always;
         theme.Normal.apply(style);
-        //  style->Text.Color        = colors::White;
-        style->DropShadow.Color  = colors::Transparent;
-        style->Text.Shadow.Color = colors::Transparent;
-        style->Margin            = {3_px};
     }
     {
         auto style {styles.create<list_box>("list_box", {})};
         style->Border.Size                = 2_px;
         style->Border.Radius              = 5_px;
-        style->Margin                     = {5_px};
-        style->Padding                    = {5_px};
-        style->DropShadow.Color           = color {0, 0, 0, 128};
-        style->ItemHeight                 = 10_pct;
-        style->ItemClass                  = "list_items";
-        style->VScrollBar.ThumbClass      = "scrollbar_thumb";
-        style->VScrollBar.Bar.Type        = element::bar::type::Continuous;
-        style->VScrollBar.Bar.Size        = 15_pct;
-        style->VScrollBar.Bar.Border.Size = 2_px;
-        style->VScrollBar.Bar.Delay       = 250ms;
-
-        auto hoverStyle {styles.create<list_box>("list_box", {.Hover = true})};
-        *hoverStyle = *style;
-
-        theme.Normal.apply(style);
-        theme.Hover.apply(hoverStyle);
-    }
-    {
-        auto style {styles.create<list_box>("list_box_games", {})};
-        style->Border.Size                = 2_px;
-        style->Border.Radius              = 5_px;
-        style->Margin                     = {5_px};
-        style->Padding                    = {5_px};
-        style->DropShadow.Color           = color {0, 0, 0, 128};
         style->ItemHeight                 = 5_pct;
         style->ItemClass                  = "list_items";
         style->VScrollBar.ThumbClass      = "scrollbar_thumb";
         style->VScrollBar.Bar.Type        = element::bar::type::Continuous;
-        style->VScrollBar.Bar.Size        = 3_pct;
+        style->VScrollBar.Bar.Size        = 25_px;
         style->VScrollBar.Bar.Border.Size = 2_px;
         style->VScrollBar.Bar.Delay       = 250ms;
 
@@ -308,7 +271,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->Text.Alignment             = {gfx::horizontal_alignment::Left, gfx::vertical_alignment::Middle};
         style->Text.AutoSize              = element::text::auto_size_mode::Always;
         style->ItemClass                  = "list_items";
-        style->ItemHeight                 = 150_pct;
+        style->ItemHeight                 = 75_pct;
         style->VScrollBar.ThumbClass      = "scrollbar_thumb";
         style->VScrollBar.Bar.Type        = element::bar::type::Continuous;
         style->VScrollBar.Bar.Size        = 20_pct;
@@ -323,14 +286,23 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
     }
     {
         auto style {styles.create<tab_container>("tab_container", {})};
-        style->Border.Size      = 2_px;
+        style->Padding        = 2_px;
+        style->Border.Size    = 2_px;
+        style->Border.Radius  = 5_px;
+        style->TabBarHeight   = 5_pct;
+        style->TabItemClass   = "tab_items";
+        style->MaxTabs        = 5;
+        style->TabBarPosition = tab_container::position::Top;
+
+        theme.Normal.apply(style);
+    }
+    {
+        auto style {styles.create<accordion>("accordion", {})};
+        style->Border.Size      = 3_px;
         style->Border.Radius    = 5_px;
-        style->Margin           = {5_px};
-        style->Padding          = {5_px};
-        style->DropShadow.Color = color {0, 0, 0, 128};
-        style->TabBarHeight     = 5_pct;
-        style->TabItemClass     = "tab_items";
-        style->MaxTabs          = 8;
+        style->SectionBarHeight = 5_pct;
+        style->SectionItemClass = "section_items";
+
         theme.Normal.apply(style);
     }
     {
@@ -430,8 +402,8 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
     }
     {
         auto style {styles.create<item_style>("tab_items", {}, {})};
-        style->Item.Padding        = {5_px};
-        style->Item.Text.Style     = {false, gfx::font::weight::Heavy};
+        style->Item.Padding        = {2_px};
+        style->Item.Text.Style     = {false, gfx::font::weight::Bold};
         style->Item.Text.Font      = fntFam;
         style->Item.Text.Size      = 32_px;
         style->Item.Text.Alignment = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
@@ -442,6 +414,26 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         hoverStyle->Item = style->Item;
 
         auto activeStyle {styles.create<item_style>("tab_items", {.Active = true})};
+        activeStyle->Item = style->Item;
+
+        theme.Normal.apply(style);
+        theme.Hover.apply(hoverStyle);
+        theme.Active.apply(activeStyle);
+    }
+    {
+        auto style {styles.create<item_style>("section_items", {}, {})};
+        style->Item.Padding        = {2_px};
+        style->Item.Text.Style     = {false, gfx::font::weight::Normal};
+        style->Item.Text.Font      = resGrp.get<gfx::font_family>("Poppins");
+        style->Item.Text.Size      = 32_px;
+        style->Item.Text.Alignment = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
+        style->Item.Text.AutoSize  = element::text::auto_size_mode::Always;
+        style->Item.Border.Size    = 3_px;
+
+        auto hoverStyle {styles.create<item_style>("section_items", {.Hover = true})};
+        hoverStyle->Item = style->Item;
+
+        auto activeStyle {styles.create<item_style>("section_items", {.Active = true})};
         activeStyle->Item = style->Item;
 
         theme.Normal.apply(style);

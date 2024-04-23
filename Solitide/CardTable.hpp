@@ -23,10 +23,10 @@ public:
     signal<pile_description const> HoverChange;
     prop<rect_f>                   Bounds;
 
-    void start(std::shared_ptr<games::base_game> const& game);
-    void resume(std::shared_ptr<games::base_game> const& game, data::config::object& savegame);
+    void start(std::shared_ptr<base_game> const& game);
+    void resume(std::shared_ptr<base_game> const& game, data::config::object& savegame);
 
-    auto game() const -> std::shared_ptr<games::base_game>;
+    auto game() const -> std::shared_ptr<base_game>;
 
     void show_next_hint();
 
@@ -53,7 +53,7 @@ private:
 
     void move_camera(size_f cardBounds);
 
-    void start_game(std::shared_ptr<games::base_game> const& game, std::optional<data::config::object> const& savegame);
+    void start_game(std::shared_ptr<base_game> const& game, std::optional<data::config::object> const& savegame);
 
     void drag_cards(input::mouse::motion_event const& ev);
     auto get_hover_color(pile* pile, isize idx) const -> color;
@@ -68,7 +68,7 @@ private:
     gfx::window*   _window;
     assets::group& _resGrp;
 
-    std::shared_ptr<games::base_game>                 _currentGame;
+    std::shared_ptr<base_game>                        _currentGame;
     std::unordered_map<pile const*, pile_description> _descriptionCache;
     size_f                                            _cardSize;
 

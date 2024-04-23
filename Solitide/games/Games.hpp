@@ -9,7 +9,7 @@
 
 #include "Piles.hpp"
 
-namespace solitaire::games {
+namespace solitaire {
 ////////////////////////////////////////////////////////////
 
 enum class family {
@@ -49,6 +49,13 @@ struct game_info {
     i32                RemainingRedeals {};
     i32                Turn {0};
     tcob::milliseconds Time {0};
+};
+
+////////////////////////////////////////////////////////////
+
+struct game_stats {
+    usize Won {0};
+    usize Lost {0};
 };
 
 ////////////////////////////////////////////////////////////
