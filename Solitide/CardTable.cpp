@@ -10,8 +10,8 @@
 
 namespace solitaire {
 
-constexpr f32 FACE_DOWN_OFFSET {10.0f};
-constexpr f32 FACE_UP_OFFSET {7.0f};
+constexpr f32 FACE_DOWN_OFFSET {15.0f};
+constexpr f32 FACE_UP_OFFSET {5.0f};
 
 card_table::card_table(gfx::window* window, gfx::ui::canvas_widget* canvas, assets::group& resGrp)
     : _window {window}

@@ -294,7 +294,117 @@ local hawaiian                           = {
 
 ------
 
-local yukonic_plaque                     = {
+local wave                               = {
+    Info = {
+        Name      = "Wave",
+        Family    = "Yukon",
+        --Family = "Gypsy/Yukon/Klondike"
+        DeckCount = 2
+    },
+    Stock = { Initial = Sol.Initial.face_down(80) },
+    Foundation = {
+        Size = 8,
+        Pile = { Rule = Sol.Rules.ace_upsuit_top }
+    },
+    Tableau = {
+        Size = 8,
+        Pile = {
+            Initial = Sol.Initial.alternate(3, true),
+            Layout = "Column",
+            Rule = Sol.Rules.any_downac_faceup
+        }
+    },
+    on_init = Sol.Layout.klondike,
+    do_deal = function(game)
+        local from = game.Stock[1]
+        local to = game.Tableau
+        if from.IsEmpty then return false end
+        for _, toPile in ipairs(to) do
+            from:move_cards(toPile, #from.Cards - 1, 2, false)
+            toPile:flip_up_top_card()
+        end
+        return true
+    end
+}
+
+
+------
+
+local yukon_cells = {
+    Info       = {
+        Name      = "Yukon Cells",
+        Family    = "Yukon",
+        DeckCount = 1
+    },
+    FreeCell   = {
+        Size = 2,
+        Pile = { Rule = Sol.Rules.any_none_top }
+    },
+    Foundation = {
+        Size = 4,
+        Pile = { Rule = Sol.Rules.ace_upsuit_none }
+    },
+    Tableau    = {
+        Size = 7,
+        Pile = function(i)
+            return {
+                Initial = initial.yukon(i),
+                Layout = "Column",
+                Rule = Sol.Rules.king_downac_faceup
+            }
+        end
+    },
+    on_init    = Sol.Layout.free_cell
+}
+
+------
+
+local yukon_kings = {
+    Info      = {
+        Name      = "Yukon Kings",
+        Family    = "Yukon",
+        DeckCount = 1
+    },
+    Tableau   = {
+        Size = 7,
+        Pile = function(i)
+            return {
+                Initial = initial.yukon(i),
+                Layout = "Column",
+                Rule = Sol.Rules.king_downac_faceup
+            }
+        end
+    },
+    on_init   = Sol.Layout.yukon,
+    get_state = function(game)
+        local function check(tableau)
+            local cards = tableau.Cards
+
+            for i = 0, 11 do
+                local card0 = cards[#cards - i]
+                local card1 = cards[#cards - i - 1]
+                if card0.IsFaceDown or card1.IsFaceDown then return false end
+                if Sol.SuitColors[card0.Suit] == Sol.SuitColors[card1.Suit] then return false end
+                if Sol.get_rank(card0.Rank, 1, false) ~= card1.Rank then return false end
+            end
+
+            return true
+        end
+
+        local count = 0
+        for _, tableau in ipairs(game.Tableau) do
+            if tableau.CardCount == 13 and check(tableau) then
+                count = count + 1
+            end
+        end
+        return count == 4 and "Success" or "Running"
+    end
+}
+
+
+------
+
+local yukonic_plaque = {
     Info       = {
         Name      = "Yukonic Plague",
         Family    = "Yukon",
@@ -333,71 +443,6 @@ local yukonic_plaque                     = {
         end
     }
 }
-
-------
-
-local yukonic_cells                      = {
-    Info       = {
-        Name      = "Yukon Cells",
-        Family    = "Yukon",
-        DeckCount = 1
-    },
-    FreeCell   = {
-        Size = 2,
-        Pile = { Rule = Sol.Rules.any_none_top }
-    },
-    Foundation = {
-        Size = 4,
-        Pile = { Rule = Sol.Rules.ace_upsuit_none }
-    },
-    Tableau    = {
-        Size = 7,
-        Pile = function(i)
-            return {
-                Initial = initial.yukon(i),
-                Layout = "Column",
-                Rule = Sol.Rules.king_downac_faceup
-            }
-        end
-    },
-    on_init    = Sol.Layout.free_cell
-}
-
-------
-
-local wave                               = {
-    Info = {
-        Name      = "Wave",
-        Family    = "Yukon",
-        --Family = "Gypsy/Yukon/Klondike"
-        DeckCount = 2
-    },
-    Stock = { Initial = Sol.Initial.face_down(80) },
-    Foundation = {
-        Size = 8,
-        Pile = { Rule = Sol.Rules.ace_upsuit_top }
-    },
-    Tableau = {
-        Size = 8,
-        Pile = {
-            Initial = Sol.Initial.alternate(3, true),
-            Layout = "Column",
-            Rule = Sol.Rules.any_downac_faceup
-        }
-    },
-    on_init = Sol.Layout.klondike,
-    do_deal = function(game)
-        local from = game.Stock[1]
-        local to = game.Tableau
-        if from.IsEmpty then return false end
-        for _, toPile in ipairs(to) do
-            from:move_cards(toPile, #from.Cards - 1, 2, false)
-            toPile:flip_up_top_card()
-        end
-        return true
-    end
-}
-
 ------
 
 ------------------------
@@ -417,5 +462,6 @@ Sol.register_game(russian_solitaire)
 Sol.register_game(triple_russian_solitaire)
 Sol.register_game(triple_yukon)
 Sol.register_game(wave)
-Sol.register_game(yukonic_cells)
+Sol.register_game(yukon_cells)
+Sol.register_game(yukon_kings)
 Sol.register_game(yukonic_plaque)
