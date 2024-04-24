@@ -333,7 +333,7 @@ void start_scene::start_game(string const& name, start_reason reason)
 
     auto newGame {_games[name].second()};
     newGame->State.Changed.connect([&](auto val) {
-        using tupInsert = std::tuple<i64, string, bool, i64, i64>;
+        using tupInsert = std::tuple<i64, string, bool, i64, f64>;
 
         switch (val) {
         case game_state::Success:
@@ -372,7 +372,8 @@ void start_scene::update_stats(string const& name) const
     auto const  id {_dbGames->select_from<i64>("ID").where("Name = ?")(name)};
     usize const lost {_dbHistory->select_from<i64>("ID").where("GameID = ? and Won = 0")(id).size()};
     usize const won {_dbHistory->select_from<i64>("ID").where("GameID = ? and Won = 1")(id).size()};
-    _formMenu->set_game_stats({.Won = won, .Lost = lost});
+    auto const  entries {_dbHistory->select_from<i64, i64, i64, bool>("ID", "Turns", "Time", "Won").where("GameID = ?").order_by("ID").exec<game_history::entry>(id)};
+    _formMenu->set_game_stats({.Won = won, .Lost = lost, .Entries = entries});
 }
 
 void start_scene::generate_rule(base_game const& game) const

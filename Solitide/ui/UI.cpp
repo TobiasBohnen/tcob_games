@@ -69,7 +69,7 @@ form_controls::form_controls(gfx::window* window)
         LblMoveLabel        = create({12, 0, 3, 3});
 
         LblTurn      = create({18, 3, 1, 3});
-        LblTurnLabel = create({18, 0, 1, 3}, "Turn");
+        LblTurnLabel = create({18, 0, 1, 3}, "Turns");
 
         LblTime      = create({19, 3, 1, 3});
         LblTimeLabel = create({19, 0, 1, 3}, "Time");
@@ -104,11 +104,31 @@ void form_menu::submit_settings(data::config::object& obj)
     _panelSettings->submit(obj);
 }
 
-void form_menu::set_game_stats(game_stats const& stats)
+void form_menu::set_game_stats(game_history const& stats)
 {
-    _lblWon->Label   = std::to_string(stats.Won);
-    _lblLost->Label  = std::to_string(stats.Lost);
-    _lblTotal->Label = std::to_string(stats.Lost + stats.Won);
+    _gvWL->clear_rows();
+    _gvWL->add_row({std::to_string(stats.Won), std::to_string(stats.Lost), std::to_string(stats.Lost + stats.Won)});
+    _gvTT->clear_rows();
+
+    std::optional<i64> bestTime;
+    std::optional<i64> bestTurns;
+
+    _gvHistory->clear_rows();
+    for (auto const& entry : stats.Entries) {
+        if (entry.Won) {
+            bestTime  = !bestTime ? entry.Time : std::min(entry.Time, *bestTime);
+            bestTurns = !bestTurns ? entry.Turns : std::min(entry.Turns, *bestTurns);
+        }
+
+        _gvHistory->add_row(
+            {std::to_string(entry.ID),
+             std::to_string(entry.Turns),
+             std::format("{:%M:%S}", seconds {entry.Time / 1000.f}),
+             entry.Won ? "X" : "-"});
+    }
+    if (bestTime && bestTurns) {
+        _gvTT->add_row({std::to_string(*bestTurns), std::format("{:%M:%S}", seconds {*bestTime / 1000.f})});
+    }
 }
 
 void form_menu::create_section_games(std::vector<game_info> const& games)
@@ -120,7 +140,8 @@ void form_menu::create_section_games(std::vector<game_info> const& games)
 
     {
         auto tabGames {panelLayout->create_widget<tab_container>(dock_style::Left, "tabGames")};
-        tabGames->Flex = {50_pct, 100_pct};
+        tabGames->Flex    = {50_pct, 100_pct};
+        tabGames->MaxTabs = 5;
 
         auto createListBox {[&](std::shared_ptr<dock_layout>& tabPanelLayout, std::string const& name, auto&& pred) -> std::shared_ptr<list_box> {
             auto listBox {tabPanelLayout->create_widget<list_box>(dock_style::Fill, "lbxGames" + name)};
@@ -157,6 +178,7 @@ void form_menu::create_section_games(std::vector<game_info> const& games)
         // By Family
         {
             auto tabContainer {tabGames->create_tab<tab_container>("byFamily", "By Family")};
+            tabContainer->MaxTabs = 5;
 
             auto createTab {[&](family family, std::string const& name) {
                 auto tabPanel {tabContainer->create_tab<panel>(name)};
@@ -181,6 +203,7 @@ void form_menu::create_section_games(std::vector<game_info> const& games)
         // By Deck Count
         {
             auto tabContainer {tabGames->create_tab<tab_container>("byDeckCount", "By Deck Count")};
+            tabContainer->MaxTabs = 5;
 
             auto createTab {[&](isize count, std::string const& name) {
                 auto tabPanel {tabContainer->create_tab<panel>(name)};
@@ -211,12 +234,15 @@ void form_menu::create_section_games(std::vector<game_info> const& games)
         auto panelGameStats {panelLayout->create_widget<panel>(dock_style::Fill, "panelGameStats")};
         auto panelGameStatsLayout {panelGameStats->create_layout<grid_layout>(size_i {40, 40})};
 
-        _lblWon          = panelGameStatsLayout->create_widget<label>({1, 1, 5, 2}, "lblWon");
-        _lblWon->Class   = "label-small";
-        _lblLost         = panelGameStatsLayout->create_widget<label>({7, 1, 5, 2}, "lblLost");
-        _lblLost->Class  = "label-small";
-        _lblTotal        = panelGameStatsLayout->create_widget<label>({13, 1, 5, 2}, "lblTotal");
-        _lblTotal->Class = "label-small";
+        _gvWL        = panelGameStatsLayout->create_widget<grid_view>({0, 1, 20, 4}, "gvWinLose");
+        _gvWL->Class = "grid_view2";
+        _gvWL->set_columns({"Won", "Lost", "Total"});
+        _gvTT        = panelGameStatsLayout->create_widget<grid_view>({20, 1, 20, 4}, "gvBest");
+        _gvTT->Class = "grid_view2";
+        _gvTT->set_columns({"Least Turns", "Fastest Time"});
+
+        _gvHistory = panelGameStatsLayout->create_widget<grid_view>({1, 6, 38, 25}, "gvHistory");
+        _gvHistory->set_columns({"ID", "Turns", "Time", "Won"});
     }
 }
 

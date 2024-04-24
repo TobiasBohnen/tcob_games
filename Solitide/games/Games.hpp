@@ -45,17 +45,25 @@ struct game_info {
     bool DisableHints {false};
 
     // load/save
-    rng::state_type    InitialSeed {};
-    i32                RemainingRedeals {};
-    i32                Turn {0};
-    tcob::milliseconds Time {0};
+    i32             RemainingRedeals {};
+    rng::state_type InitialSeed {};
+    i32             Turn {0};
+    milliseconds    Time {0};
 };
 
 ////////////////////////////////////////////////////////////
 
-struct game_stats {
+struct game_history {
     usize Won {0};
     usize Lost {0};
+
+    struct entry {
+        i64  ID {0};
+        i64  Turns {0};
+        i64  Time {0};
+        bool Won {false};
+    };
+    std::vector<entry> Entries;
 };
 
 ////////////////////////////////////////////////////////////

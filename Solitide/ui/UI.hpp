@@ -60,7 +60,7 @@ public:
     std::shared_ptr<button> BtnApplySettings;
 
     void submit_settings(data::config::object& obj);
-    void set_game_stats(game_stats const& stats);
+    void set_game_stats(game_history const& stats);
 
 private:
     void create_section_games(std::vector<game_info> const& games);
@@ -76,9 +76,9 @@ private:
     std::shared_ptr<list_box> _lbxThemes;
     std::shared_ptr<list_box> _lbxCardsets;
 
-    std::shared_ptr<label> _lblWon;
-    std::shared_ptr<label> _lblLost;
-    std::shared_ptr<label> _lblTotal;
+    std::shared_ptr<grid_view> _gvWL;
+    std::shared_ptr<grid_view> _gvTT;
+    std::shared_ptr<grid_view> _gvHistory;
 };
 
 }

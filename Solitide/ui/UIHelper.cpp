@@ -171,7 +171,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
 
     {
         auto style {styles.create<panel>("panel", {})};
-        style->Padding       = 2_px;
+        // style->Padding       = 2_px;
         style->Border.Size   = 2_px;
         style->Border.Radius = 5_px;
         theme.Normal.apply(style);
@@ -291,7 +291,6 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->Border.Radius  = 5_px;
         style->TabBarHeight   = 5_pct;
         style->TabItemClass   = "tab_items";
-        style->MaxTabs        = 5;
         style->TabBarPosition = tab_container::position::Top;
 
         theme.Normal.apply(style);
@@ -345,6 +344,41 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         theme.Hover.apply(hoverStyle);
         theme.Active.apply(activeStyle);
     }
+    {
+        auto style {styles.create<grid_view>("grid_view", {})};
+        style->Border.Size                = 3_px;
+        style->Border.Radius              = 5_px;
+        style->Padding                    = {2_px};
+        style->DropShadow.Color           = color {0, 0, 0, 128};
+        style->RowHeight                  = 10_pct;
+        style->HeaderClass                = "header_items";
+        style->RowClass                   = "row_items";
+        style->AutoSizeColumns            = false;
+        style->VScrollBar.ThumbClass      = "scrollbar_thumb";
+        style->VScrollBar.Bar.Type        = element::bar::type::Continuous;
+        style->VScrollBar.Bar.Size        = 25_px;
+        style->VScrollBar.Bar.Border.Size = 3_px;
+        style->VScrollBar.Bar.Delay       = 250ms;
+
+        auto hoverStyle {styles.create<grid_view>("grid_view", {.Hover = true})};
+        *hoverStyle = *style;
+
+        theme.Normal.apply(style);
+        theme.Hover.apply(hoverStyle);
+
+        ///
+        auto style2 {styles.create<grid_view>("grid_view2", {})};
+        *style2           = *style;
+        style2->RowHeight = 50_pct;
+
+        auto hoverStyle2 {styles.create<grid_view>("grid_view2", {.Hover = true})};
+        *hoverStyle2 = *style2;
+
+        theme.Normal.apply(style2);
+        theme.Hover.apply(hoverStyle2);
+    }
+
+    // items
     {
         auto style {styles.create<thumb_style>("slider_thumb", {}, {})};
         style->Thumb.Type          = element::thumb::type::Rectangle;
@@ -452,6 +486,46 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
 
         auto activeStyle {styles.create<nav_arrows_style>("nav_arrows", {.Active = true})};
         activeStyle->NavArrow = style->NavArrow;
+
+        theme.Normal.apply(style);
+        theme.Hover.apply(hoverStyle);
+        theme.Active.apply(activeStyle);
+    }
+    {
+        auto style {styles.create<item_style>("header_items", {}, {})};
+        style->Item.Padding        = {5_px};
+        style->Item.Text.Style     = {false, gfx::font::weight::Bold};
+        style->Item.Text.Font      = resGrp.get<gfx::font_family>("Poppins");
+        style->Item.Text.AutoSize  = element::text::auto_size_mode::Always;
+        style->Item.Text.Size      = 32_px;
+        style->Item.Text.Alignment = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
+        style->Item.Border.Size    = 5_px;
+
+        auto hoverStyle {styles.create<item_style>("header_items", {.Hover = true})};
+        hoverStyle->Item = style->Item;
+
+        auto activeStyle {styles.create<item_style>("header_items", {.Active = true})};
+        activeStyle->Item = style->Item;
+
+        theme.Normal.apply(style);
+        theme.Hover.apply(hoverStyle);
+        theme.Active.apply(activeStyle);
+    }
+    {
+        auto style {styles.create<item_style>("row_items", {}, {})};
+        style->Item.Padding        = {5_px};
+        style->Item.Text.Style     = {false, gfx::font::weight::Normal};
+        style->Item.Text.Font      = resGrp.get<gfx::font_family>("Poppins");
+        style->Item.Text.AutoSize  = element::text::auto_size_mode::Always;
+        style->Item.Text.Size      = 32_px;
+        style->Item.Text.Alignment = {gfx::horizontal_alignment::Right, gfx::vertical_alignment::Middle};
+        style->Item.Border.Size    = 3_px;
+
+        auto hoverStyle {styles.create<item_style>("row_items", {.Hover = true})};
+        hoverStyle->Item = style->Item;
+
+        auto activeStyle {styles.create<item_style>("row_items", {.Active = true})};
+        activeStyle->Item = style->Item;
 
         theme.Normal.apply(style);
         theme.Hover.apply(hoverStyle);
