@@ -37,44 +37,6 @@
       "Tick": "#00FF00"
     }
   },
-  "Autumn Harvest": {
-    "active": {
-      "Background": "#8fbc8f",
-      "Bar": "#8fbc8f",
-      "Border": "#a0522d",
-      "Container": "#8fbc8f",
-      "DropShadow": "#deb887",
-      "Item": "#deb887",
-      "LabelBackground": "#deb887",
-      "Text": "#ffffff",
-      "Thumb": "#deb887",
-      "Tick": "#ffffff"
-    },
-    "hover": {
-      "Background": "#deb887",
-      "Bar": "#deb887",
-      "Border": "#8fbc8f",
-      "Container": "#deb887",
-      "DropShadow": "#a0522d",
-      "Item": "#a0522d",
-      "LabelBackground": "#a0522d",
-      "Text": "#ffffff",
-      "Thumb": "#a0522d",
-      "Tick": "#ffffff"
-    },
-    "normal": {
-      "Background": "#a0522d",
-      "Bar": "#a0522d",
-      "Border": "#deb887",
-      "Container": "#a0522d",
-      "DropShadow": "#8fbc8f",
-      "Item": "#8fbc8f",
-      "LabelBackground": "#8fbc8f",
-      "Text": "#ffffff",
-      "Thumb": "#8fbc8f",
-      "Tick": "#ffffff"
-    }
-  },
   "Bubblegum": {
     "active": {
       "Background": "#ff1493",
@@ -379,44 +341,6 @@
       "Tick": "#ffffff"
     }
   },
-  "Frosty Morning": {
-    "active": {
-      "Background": "#4682b4",
-      "Bar": "#4682b4",
-      "Border": "#4169e1",
-      "Container": "#4682b4",
-      "DropShadow": "#4169e1",
-      "Item": "#4169e1",
-      "LabelBackground": "#4169e1",
-      "Text": "#000000",
-      "Thumb": "#4169e1",
-      "Tick": "#000000"
-    },
-    "hover": {
-      "Background": "#87cefa",
-      "Bar": "#87cefa",
-      "Border": "#87ceeb",
-      "Container": "#87cefa",
-      "DropShadow": "#4682b4",
-      "Item": "#4682b4",
-      "LabelBackground": "#4682b4",
-      "Text": "#000000",
-      "Thumb": "#4682b4",
-      "Tick": "#000000"
-    },
-    "normal": {
-      "Background": "#b0c4de",
-      "Bar": "#b0c4de",
-      "Border": "#87ceeb",
-      "Container": "#b0c4de",
-      "DropShadow": "#4682b4",
-      "Item": "#4682b4",
-      "LabelBackground": "#4682b4",
-      "Text": "#000000",
-      "Thumb": "#4682b4",
-      "Tick": "#000000"
-    }
-  },
   "Galactic Blue": {
     "active": {
       "Background": "#004080",
@@ -529,44 +453,6 @@
       "Text": "#ffffff",
       "Thumb": "#a0522d",
       "Tick": "#ffffff"
-    }
-  },
-  "Golden Sunset": {
-    "active": {
-      "Background": "#ffa500",
-      "Bar": "#ffa500",
-      "Border": "#ffe4b5",
-      "Container": "#ffa500",
-      "DropShadow": "#8b4513",
-      "Item": "#8b4513",
-      "LabelBackground": "#8b4513",
-      "Text": "#000000",
-      "Thumb": "#8b4513",
-      "Tick": "#000000"
-    },
-    "hover": {
-      "Background": "#ffd966",
-      "Bar": "#ffd966",
-      "Border": "#ffe4b5",
-      "Container": "#ffd966",
-      "DropShadow": "#ffa07a",
-      "Item": "#ffa07a",
-      "LabelBackground": "#ffa07a",
-      "Text": "#000000",
-      "Thumb": "#ffa07a",
-      "Tick": "#000000"
-    },
-    "normal": {
-      "Background": "#ffd700",
-      "Bar": "#ffd700",
-      "Border": "#ffdab9",
-      "Container": "#ffd700",
-      "DropShadow": "#ff4500",
-      "Item": "#ff4500",
-      "LabelBackground": "#ff4500",
-      "Text": "#000000",
-      "Thumb": "#ff4500",
-      "Tick": "#000000"
     }
   },
   "Greyscale": {
@@ -704,7 +590,7 @@
       "DropShadow": "#8b0000",
       "Item": "#0000cd",
       "LabelBackground": "#0000cd",
-      "Text": "#ffffff",
+      "Text": "#ff0000",
       "Thumb": "#0000cd",
       "Tick": "#ffffff"
     },
@@ -794,44 +680,6 @@
       "LabelBackground": "#6a0dad",
       "Text": "#ffffff",
       "Thumb": "#6a0dad",
-      "Tick": "#ffffff"
-    }
-  },
-  "Ocean Breeze": {
-    "active": {
-      "Background": "#4682b4",
-      "Bar": "#4682b4",
-      "Border": "#4169e1",
-      "Container": "#4682b4",
-      "DropShadow": "#4169e1",
-      "Item": "#4169e1",
-      "LabelBackground": "#4169e1",
-      "Text": "#ffffff",
-      "Thumb": "#4169e1",
-      "Tick": "#ffffff"
-    },
-    "hover": {
-      "Background": "#87cefa",
-      "Bar": "#87cefa",
-      "Border": "#87ceeb",
-      "Container": "#87cefa",
-      "DropShadow": "#4682b4",
-      "Item": "#4682b4",
-      "LabelBackground": "#4682b4",
-      "Text": "#ffffff",
-      "Thumb": "#4682b4",
-      "Tick": "#ffffff"
-    },
-    "normal": {
-      "Background": "#add8e6",
-      "Bar": "#add8e6",
-      "Border": "#add8e6",
-      "Container": "#add8e6",
-      "DropShadow": "#4682b4",
-      "Item": "#4682b4",
-      "LabelBackground": "#4682b4",
-      "Text": "#ffffff",
-      "Thumb": "#4682b4",
       "Tick": "#ffffff"
     }
   },
@@ -1061,82 +909,6 @@
       "Text": "#ffffff",
       "Thumb": "#4682b4",
       "Tick": "#ffffff"
-    }
-  },
-  "Tropical Sunset": {
-    "active": {
-      "Background": "#ff4500",
-      "Bar": "#ff4500",
-      "Border": "#ff0000",
-      "Container": "#ff4500",
-      "DropShadow": "#ff0000",
-      "Item": "#ff0000",
-      "LabelBackground": "#ff0000",
-      "Text": "#ffffff",
-      "Thumb": "#ff0000",
-      "Tick": "#ffffff"
-    },
-    "hover": {
-      "Background": "#ff7f50",
-      "Bar": "#ff7f50",
-      "Border": "#ff6347",
-      "Container": "#ff7f50",
-      "DropShadow": "#ff4500",
-      "Item": "#ff4500",
-      "LabelBackground": "#ff4500",
-      "Text": "#ffffff",
-      "Thumb": "#ff4500",
-      "Tick": "#ffffff"
-    },
-    "normal": {
-      "Background": "#ff6347",
-      "Bar": "#ff6347",
-      "Border": "#ff4500",
-      "Container": "#ff6347",
-      "DropShadow": "#ff4500",
-      "Item": "#ff4500",
-      "LabelBackground": "#ff4500",
-      "Text": "#ffffff",
-      "Thumb": "#ff4500",
-      "Tick": "#ffffff"
-    }
-  },
-  "Warm Sunset": {
-    "active": {
-      "Background": "#e9967a",
-      "Bar": "#e9967a",
-      "Border": "#cd5c5c",
-      "Container": "#e9967a",
-      "DropShadow": "#8b4513",
-      "Item": "#8b4513",
-      "LabelBackground": "#8b4513",
-      "Text": "#000000",
-      "Thumb": "#8b4513",
-      "Tick": "#000000"
-    },
-    "hover": {
-      "Background": "#ffb6c1",
-      "Bar": "#ffb6c1",
-      "Border": "#ff8c69",
-      "Container": "#ffb6c1",
-      "DropShadow": "#ff6347",
-      "Item": "#ff6347",
-      "LabelBackground": "#ff6347",
-      "Text": "#000000",
-      "Thumb": "#ff6347",
-      "Tick": "#000000"
-    },
-    "normal": {
-      "Background": "#ffcccb",
-      "Bar": "#ffcccb",
-      "Border": "#ffa07a",
-      "Container": "#ffcccb",
-      "DropShadow": "#fa8072",
-      "Item": "#fa8072",
-      "LabelBackground": "#fa8072",
-      "Text": "#000000",
-      "Thumb": "#fa8072",
-      "Tick": "#000000"
     }
   },
   "default": {}
