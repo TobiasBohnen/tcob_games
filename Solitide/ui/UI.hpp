@@ -13,7 +13,7 @@ namespace solitaire {
 
 class form_controls : public form {
 public:
-    form_controls(gfx::window* window);
+    form_controls(gfx::window* window, assets::group& resGrp);
 
     std::shared_ptr<button> BtnNewGame;
     std::shared_ptr<button> BtnMenu;

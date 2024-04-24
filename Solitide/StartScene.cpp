@@ -131,7 +131,7 @@ void start_scene::on_start()
     _cardSets = load_cardsets();
 
     // ui
-    _formControls = std::make_shared<form_controls>(&window);
+    _formControls = std::make_shared<form_controls>(&window, resGrp);
     _formMenu     = std::make_shared<form_menu>(&window, *this);
     _formMenu->hide();
     connect_ui_events();

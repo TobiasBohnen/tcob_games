@@ -12,7 +12,7 @@ namespace solitaire {
 
 using namespace tcob::literals;
 
-form_controls::form_controls(gfx::window* window)
+form_controls::form_controls(gfx::window* window, assets::group& resGrp)
     : form {"MainMenu", window}
 {
     auto mainPanel {create_container<glass>(dock_style::Fill, "main")};
@@ -24,20 +24,20 @@ form_controls::form_controls(gfx::window* window)
         menuPanel->Flex = {100_pct, 10_pct};
         auto menuPanelLayout {menuPanel->create_layout<grid_layout>(size_i {20, 6})};
 
-        BtnMenu        = menuPanelLayout->create_widget<button>({0, 0, 3, 6}, "btnGames");
-        BtnMenu->Label = "Menu";
+        BtnMenu       = menuPanelLayout->create_widget<button>({0, 0, 2, 6}, "btnGames");
+        BtnMenu->Icon = resGrp.get<gfx::texture>("burger");
 
-        BtnNewGame        = menuPanelLayout->create_widget<button>({4, 0, 2, 6}, "BtnNewGame");
-        BtnNewGame->Label = "New Game";
+        BtnNewGame       = menuPanelLayout->create_widget<button>({11, 0, 2, 6}, "BtnNewGame");
+        BtnNewGame->Icon = resGrp.get<gfx::texture>("restart");
 
-        BtnHint        = menuPanelLayout->create_widget<button>({13, 0, 2, 6}, "btnHint");
-        BtnHint->Label = "Hint";
+        BtnHint       = menuPanelLayout->create_widget<button>({13, 0, 2, 6}, "btnHint");
+        BtnHint->Icon = resGrp.get<gfx::texture>("hint");
 
-        BtnUndo        = menuPanelLayout->create_widget<button>({15, 0, 2, 6}, "btnUndo");
-        BtnUndo->Label = "Undo";
+        BtnUndo       = menuPanelLayout->create_widget<button>({15, 0, 2, 6}, "btnUndo");
+        BtnUndo->Icon = resGrp.get<gfx::texture>("undo");
 
-        BtnQuit        = menuPanelLayout->create_widget<button>({18, 0, 2, 6}, "btnQuit");
-        BtnQuit->Label = "Quit";
+        BtnQuit       = menuPanelLayout->create_widget<button>({18, 0, 2, 6}, "btnQuit");
+        BtnQuit->Icon = resGrp.get<gfx::texture>("exit");
     }
 
     // status
