@@ -296,7 +296,7 @@ auto base_game::get_state() const -> game_state
     if (success) { return game_state::Success; }
 
     if (Stock.empty() || (Stock[0].empty() && _info.RemainingRedeals == 0)) {
-        if (get_available_hints().empty()) {
+        if (_hints.empty()) {
             return game_state::Failure;
         }
     }
@@ -339,11 +339,12 @@ void base_game::calc_hints()
     for (auto const& [_, piles] : _piles) {
         isize dstIdx {0};
         for (auto* dst : piles) {
-            if (dst->Type == pile_type::Stock || dst->Type == pile_type::Waste || dst->Type == pile_type::Reserve) { continue; } // skip Stock/Waste/Reserve
+            if (dst->Type == pile_type::Stock || dst->Type == pile_type::Waste || dst->Type == pile_type::Reserve) { continue; } // skip Stock/Waste/Reserve destination
             for (auto& src : movable) {
                 if (src.Src == dst) { continue; }
                 if (src.Src->Type == pile_type::Foundation && dst->Type == pile_type::Foundation) { continue; }                  // ignore Foundation to Foundation
-                if (dst->Type == pile_type::FreeCell) { continue; }                                                              // ignore anything to FreeCell
+                if (src.Src->Type == pile_type::Foundation && dst->Type == pile_type::FreeCell) { continue; }                    // ignore Foundation to FreeCell
+                if (src.Src->Type == pile_type::FreeCell && dst->Type == pile_type::FreeCell) { continue; }                      // ignore FreeCell to FreeCell
                 if (dst->Type == pile_type::Foundation && src.HasFoundation) { continue; }                                       // limit foundation destinations to 1
 
                 if (can_play(*dst,

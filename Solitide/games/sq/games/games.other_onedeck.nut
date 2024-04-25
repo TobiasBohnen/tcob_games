@@ -75,14 +75,14 @@ local aces_up = {
     on_init = @(game) Lua.Sol.Layout.klondike(game)
 }
 
-# # # # # # # #
+//////
 
 local aces_up_5 = Sol.copy(aces_up)
 aces_up_5.Info.Name = "Aces Up 5"
 aces_up_5.Stock.Initial = Sol.Initial.face_down(47)
 aces_up_5.Tableau.Size = 5
 
-# # # # # # # #
+//////
 
 local aces_square = {
     Info = {
@@ -94,14 +94,14 @@ local aces_square = {
         Position = {
             x = 4.5,
             y = 2
-        },
+        }
         Initial = Sol.Initial.face_down(36)
     },
     Foundation = {
         Position = {
             x = 4.5,
             y = 0
-        },
+        }
         Rule = {
             Move = Sol.Rules.Move.None()
         }
@@ -110,16 +110,16 @@ local aces_square = {
         Size = 16,
         Pile = @(i) {
             Position = {
-                    x = i % 4,
-                    y = i / 4
-                },
-                Initial = Sol.Initial.face_up(1),
-                Layout = "Column",
-                Rule = {
-                    Base = Sol.Rules.Base.None(),
-                    Build = Sol.Rules.Build.None(),
-                    Move = Sol.Rules.Move.Top()
-                }
+                x = i % 4,
+                y = i / 4
+            }
+            Initial = Sol.Initial.face_up(1)
+            Layout = "Column"
+            Rule = {
+                Base = Sol.Rules.Base.None(),
+                Build = Sol.Rules.Build.None(),
+                Move = Sol.Rules.Move.Top()
+            }
         }
     },
     check_playable = function(game, targetPile, _, card, numCards) {
@@ -174,7 +174,7 @@ local aces_square = {
     }
 }
 
-# # # # # # # #
+//////
 
 local aglet = {
     Info = {
@@ -187,8 +187,8 @@ local aglet = {
             Position = {
                 x = 0,
                 y = 0
-            },
-            Layout = "Column",
+            }
+            Layout = "Column"
             Rule = {
                 Base = Sol.Rules.Base.Any(),
                 Build = Sol.Rules.Build.Any(),
@@ -200,111 +200,99 @@ local aglet = {
         Size = 4,
         Pile = @(i) {
             Position = {
-                    x = i + 3,
-                    y = 0
-                },
-                Rule = {
-                    Base = Sol.Rules.Base.Ace(),
-                    Build = Sol.Rules.Build.UpByRank(),
-                    Move = Sol.Rules.Move.Top()
-                }
+                x = i + 3,
+                y = 0
+            }
+            Rule = {
+                Base = Sol.Rules.Base.Ace(),
+                Build = Sol.Rules.Build.UpByRank(),
+                Move = Sol.Rules.Move.Top()
+            }
         }
     },
     Tableau = {
         Size = 8,
         Pile = @(i) {
             Position = {
-                    x = i + 1,
-                    y = 1
-                },
-                Initial = Sol.Initial.face_up(6),
-                Layout = "Column",
-                Rule = {
-                    Base = Sol.Rules.Base.None(),
-                    Build = Sol.Rules.Build.None(),
-                    Move = Sol.Rules.Move.Top()
-                }
+                x = i + 1,
+                y = 1
+            }
+            Initial = Sol.Initial.face_up(6)
+            Layout = "Column"
+            Rule = {
+                Base = Sol.Rules.Base.None(),
+                Build = Sol.Rules.Build.None(),
+                Move = Sol.Rules.Move.Top()
+            }
         }
     },
     on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
 }
 
-# # # # # # # #
+//////
 
-local four_seasons_fou_pos = [
-    [0, 1],
-    [0, 3],
-    [4, 1],
-    [4, 3]
-]
-
-local four_seasons_tab_pos = [
+local carpet_fou_pos = [
     [2, 1],
-    [1, 2],
     [2, 2],
-    [3, 2],
-    [2, 3]
+    [8, 1],
+    [8, 2]
 ]
 
-local four_seasons = {
+local carpet = {
     Info = {
-        Name = "Four Seasons",
+        Name = "Carpet",
         Family = "Other",
         DeckCount = 1
     },
     Stock = {
         Position = {
-            x = 1.5,
+            x = 0,
             y = 0
         },
-        Initial = Sol.Initial.face_down(46)
+        Initial = Sol.Initial.face_down(28)
     },
     Waste = {
         Position = {
-            x = 2.5,
-            y = 0
+            x = 0,
+            y = 1
+        }
+    },
+    FreeCell = {
+        Size = 20,
+        Pile = @(i) {
+            Position = {
+                x = i % 5 + 3,
+                y = i / 5
+            }
+            Initial = Sol.Initial.face_up(1)
+            Layout = "Column"
+            Rule = {
+                Base = Sol.Rules.Base.Any(),
+                Build = Sol.Rules.Build.None(),
+                Move = Sol.Rules.Move.Top()
+            }
         }
     },
     Foundation = {
         Size = 4,
         Pile = @(i) {
             Position = {
-                    x = four_seasons_fou_pos[i][0],
-                    y = four_seasons_fou_pos[i][1]
-                },
-                Initial = Sol.Initial.face_up(i == 0 ? 1 : 0),
-                Rule = {
-                    Base = Sol.Rules.Base.FirstFoundation(0),
-                    Build = Sol.Rules.Build.UpInSuit(true),
-                    Move = Sol.Rules.Move.None()
-                }
+                x = carpet_fou_pos[i][0],
+                y = carpet_fou_pos[i][1]
+            }
+            Rule = Sol.Rules.ace_upsuit_top
         }
     },
-    Tableau = {
-        Size = 5,
-        Pile = @(i) {
-            Position = {
-                    x = four_seasons_tab_pos[i][0],
-                    y = four_seasons_tab_pos[i][1]
-                },
-                Initial = Sol.Initial.face_up(1),
-                Layout = "Squared",
-                Rule = {
-                    Base = Sol.Rules.Base.Any(),
-                    Build = Sol.Rules.Build.DownByRank(true),
-                    Move = Sol.Rules.Move.Top()
-                }
-
-        }
-    },
+    on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation,
     do_deal = Sol.Ops.Deal.stock_to_waste
 }
 
-# # # # # # # #
+//////
 
-# # # # # # # # # # # # # # # #
+////////////////////////
+
 Sol.register_game(aces_up)
 Sol.register_game(aces_up_5)
 Sol.register_game(aces_square)
 Sol.register_game(aglet)
-Sol.register_game(four_seasons)
+Sol.register_game(carpet)

@@ -208,10 +208,11 @@ quads_plus.on_before_shuffle      = Sol.Ops.Shuffle.ace_to_foundation
 
 ------
 
-local lucky_piles_pos             = {
+local lucky_piles_pos <const>     = {
     { 0, 1 }, { 2, 1 }, { 4, 1 }, { 6, 1 }, { 8, 1 },
     --[[ --]] { 2, 2 }, { 4, 2 }, { 6, 2 }, --[[ --]]
-    { 0, 3 }, { 2, 3 }, { 4, 3 }, { 6, 3 }, { 8, 3 } }
+    { 0, 3 }, { 2, 3 }, { 4, 3 }, { 6, 3 }, { 8, 3 }
+}
 
 local lucky_piles                 = {
     Info       = {

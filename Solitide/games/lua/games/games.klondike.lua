@@ -702,9 +702,7 @@ qc.Tableau                         = {
         Rule    = Sol.Rules.any_downsuit_top
     }
 }
-qc.on_end_turn                     = function(game)
-    return Sol.Ops.Deal.to_group(game.Waste[1], game.Tableau, true) or Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, true)
-end
+qc.on_end_turn                     = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
 
 ------
 
@@ -1007,9 +1005,7 @@ whitehorse.Tableau          = {
         Rule    = Sol.Rules.king_downac_inseq
     }
 }
-whitehorse.on_end_turn      = function(game)
-    return Sol.Ops.Deal.to_group(game.Waste[1], game.Tableau, true) or Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, true)
-end
+whitehorse.on_end_turn      = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
 
 --with freecells:
 ------

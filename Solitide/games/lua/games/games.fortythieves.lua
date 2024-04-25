@@ -80,14 +80,11 @@ carre_napoleon.on_before_shuffle    = Sol.Ops.Shuffle.ace_to_foundation
 carre_napoleon.on_shuffle           = Sol.Ops.Shuffle.play_to_foundation
 
 ------
-local function corona_end_turn(game)
-    return Sol.Ops.Deal.to_group(game.Waste[1], game.Tableau, true) or Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, true)
-end
 
-local corona                      = Sol.copy(forty_thieves)
-corona.Info.Name                  = "Corona"
-corona.Stock.Initial              = Sol.Initial.face_down(68)
-corona.Tableau                    = {
+local corona                        = Sol.copy(forty_thieves)
+corona.Info.Name                    = "Corona"
+corona.Stock.Initial                = Sol.Initial.face_down(68)
+corona.Tableau                      = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(3),
@@ -95,14 +92,14 @@ corona.Tableau                    = {
         Rule = Sol.Rules.any_downsuit_top
     }
 }
-corona.on_end_turn                = corona_end_turn
+corona.on_end_turn                  = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
 
 ------
 
-local courtyard                   = Sol.copy(forty_thieves)
-courtyard.Info.Name               = "Courtyard"
-courtyard.Stock.Initial           = Sol.Initial.face_down(92)
-courtyard.Tableau                 = {
+local courtyard                     = Sol.copy(forty_thieves)
+courtyard.Info.Name                 = "Courtyard"
+courtyard.Stock.Initial             = Sol.Initial.face_down(92)
+courtyard.Tableau                   = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(1),
@@ -110,24 +107,24 @@ courtyard.Tableau                 = {
         Rule = Sol.Rules.any_downsuit_inseq
     }
 }
-courtyard.on_end_turn             = corona_end_turn
+courtyard.on_end_turn               = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
 
 ------
 
-local big_courtyard               = Sol.copy(courtyard)
-big_courtyard.Info.Name           = "Big Courtyard"
-big_courtyard.Info.DeckCount      = 3
-big_courtyard.Stock.Initial       = Sol.Initial.face_down(144)
-big_courtyard.Foundation.Size     = 12
+local big_courtyard                 = Sol.copy(courtyard)
+big_courtyard.Info.Name             = "Big Courtyard"
+big_courtyard.Info.DeckCount        = 3
+big_courtyard.Stock.Initial         = Sol.Initial.face_down(144)
+big_courtyard.Foundation.Size       = 12
 
 ------
 
-local deuces                      = Sol.copy(forty_thieves)
-deuces.Info.Name                  = "Deuces"
-deuces.Stock.Initial              = Sol.Initial.face_down(86)
-deuces.Foundation.Pile.Rule       = { Base = Sol.Rules.Base.Ranks({ "Two" }), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top() }
-deuces.Tableau.Pile.Initial       = Sol.Initial.face_up(1)
-deuces.on_before_shuffle          = function(game, card)
+local deuces                        = Sol.copy(forty_thieves)
+deuces.Info.Name                    = "Deuces"
+deuces.Stock.Initial                = Sol.Initial.face_down(86)
+deuces.Foundation.Pile.Rule         = { Base = Sol.Rules.Base.Ranks({ "Two" }), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top() }
+deuces.Tableau.Pile.Initial         = Sol.Initial.face_up(1)
+deuces.on_before_shuffle            = function(game, card)
     if card.Rank == "Two" then
         return game.PlaceTop(card, game.Foundation, true)
     end
@@ -136,12 +133,12 @@ end
 
 ------
 
-local delivery                    = Sol.copy(forty_thieves)
-delivery.Info.Name                = "Delivery"
-delivery.Info.DeckCount           = 4
-delivery.Stock.Initial            = Sol.Initial.face_down(172)
-delivery.Foundation.Size          = 16
-delivery.Tableau                  = {
+local delivery                      = Sol.copy(forty_thieves)
+delivery.Info.Name                  = "Delivery"
+delivery.Info.DeckCount             = 4
+delivery.Stock.Initial              = Sol.Initial.face_down(172)
+delivery.Foundation.Size            = 16
+delivery.Tableau                    = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(3),
@@ -152,10 +149,10 @@ delivery.Tableau                  = {
 
 ------
 
-local dieppe                      = Sol.copy(forty_thieves)
-dieppe.Info.Name                  = "Dieppe"
-dieppe.Stock.Initial              = Sol.Initial.face_down(80)
-dieppe.Tableau                    = {
+local dieppe                        = Sol.copy(forty_thieves)
+dieppe.Info.Name                    = "Dieppe"
+dieppe.Stock.Initial                = Sol.Initial.face_down(80)
+dieppe.Tableau                      = {
     Size = 8,
     Pile = {
         Initial = Sol.Initial.face_up(3),
@@ -163,8 +160,8 @@ dieppe.Tableau                    = {
         Rule = Sol.Rules.any_downrank_top
     }
 }
-dieppe.on_shuffle                 = Sol.Ops.Shuffle.play_to_foundation
-dieppe.on_after_shuffle           = function(game)
+dieppe.on_shuffle                   = Sol.Ops.Shuffle.play_to_foundation
+dieppe.on_after_shuffle             = function(game)
     -- refill Tableau from Stock back to three cards
     local stock = game.Stock[1]
     local stockCards = stock.Cards
@@ -182,10 +179,10 @@ end
 
 ------
 
-local diplomat                    = Sol.copy(forty_thieves)
-diplomat.Info.Name                = "Diplomat"
-diplomat.Stock.Initial            = Sol.Initial.face_down(72)
-diplomat.Tableau                  = {
+local diplomat                      = Sol.copy(forty_thieves)
+diplomat.Info.Name                  = "Diplomat"
+diplomat.Stock.Initial              = Sol.Initial.face_down(72)
+diplomat.Tableau                    = {
     Size = 8,
     Pile = {
         Initial = Sol.Initial.face_up(4),
@@ -196,10 +193,10 @@ diplomat.Tableau                  = {
 
 ------
 
-local famous_fifty                = Sol.copy(forty_thieves)
-famous_fifty.Info.Name            = "Famous Fifty"
-famous_fifty.Stock.Initial        = Sol.Initial.face_down(54)
-famous_fifty.Tableau.Pile.Initial = Sol.Initial.face_up(5)
+local famous_fifty                  = Sol.copy(forty_thieves)
+famous_fifty.Info.Name              = "Famous Fifty"
+famous_fifty.Stock.Initial          = Sol.Initial.face_down(54)
+famous_fifty.Tableau.Pile.Initial   = Sol.Initial.face_up(5)
 
 ------
 local function following_build(interval)
@@ -354,9 +351,7 @@ local little_forty                = Sol.copy(forty_thieves)
 little_forty.Info.Name            = "Little Forty"
 little_forty.Info.Redeals         = 3
 little_forty.Tableau.Pile.Rule    = Sol.Rules.spider
-little_forty.on_end_turn          = function(game)
-    return Sol.Ops.Deal.to_group(game.Waste[1], game.Tableau, true) or Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, true)
-end
+little_forty.on_end_turn          = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
 little_forty.do_deal              = Sol.Ops.Deal.stock_to_waste_by_3
 
 ------
@@ -550,7 +545,7 @@ triple_line.Tableau                     = {
         Rule = Sol.Rules.any_downac_inseq
     }
 }
-triple_line.on_end_turn                 = corona_end_turn
+triple_line.on_end_turn                 = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
 
 ------
 
