@@ -61,7 +61,7 @@ local spider                        = {
             if tableau.IsEmpty then return false end
         end
 
-        return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, false)
+        return Sol.Ops.Deal.stock_to_tableau(game)
     end,
     on_init     = Sol.Layout.klondike
 }
@@ -241,9 +241,7 @@ end
 
 local relaxed_spider             = Sol.copy(spider)
 relaxed_spider.Info.Name         = "Relaxed Spider"
-relaxed_spider.do_deal           = function(game)
-    return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, false)
-end
+relaxed_spider.do_deal           = Sol.Ops.Deal.stock_to_tableau
 
 ------
 

@@ -25,7 +25,7 @@ local gypsy                              = {
         }
     },
     on_init    = Sol.Layout.gypsy,
-    do_deal    = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
+    do_deal    = Sol.Ops.Deal.stock_to_tableau
 }
 
 ------
@@ -375,7 +375,7 @@ local cone                        = {
             return Sol.Ops.Deal.to_group(game.Stock[1], game.Reserve, false)
         end
 
-        return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, false)
+        return Sol.Ops.Deal.stock_to_tableau(game)
     end
 }
 
@@ -428,7 +428,7 @@ local leprechaun                  = {
             game.Reserve[idx]:flip_up_top_card()
         end
     end,
-    do_deal    = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
+    do_deal    = Sol.Ops.Deal.stock_to_tableau
 }
 
 ------
@@ -472,7 +472,7 @@ local milligan_cell               = {
             }
         end
     },
-    do_deal    = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
+    do_deal    = Sol.Ops.Deal.stock_to_tableau
 }
 
 ------
@@ -511,7 +511,7 @@ local miss_milligan               = {
         return game:can_play(targetPile, targetCardIndex, card, numCards)
     end,
     on_init        = Sol.Layout.canfield,
-    do_deal        = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
+    do_deal        = Sol.Ops.Deal.stock_to_tableau
 }
 
 ------
@@ -548,7 +548,7 @@ local nomad                       = {
             }
         end
     },
-    do_deal    = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, false) end,
+    do_deal    = Sol.Ops.Deal.stock_to_tableau,
     on_init    = Sol.Layout.canfield
 }
 

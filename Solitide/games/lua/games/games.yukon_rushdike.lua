@@ -42,7 +42,7 @@ local rushdike                   = {
         end
     },
     on_init = Sol.Layout.klondike,
-    do_deal = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, false) end
+    do_deal = Sol.Ops.Deal.stock_to_tableau
 }
 
 ------

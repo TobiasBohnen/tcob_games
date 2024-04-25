@@ -391,11 +391,16 @@ return {
             piles.Tableau[i + 1].Position = { x = i % columns, y = i // columns }
         end
     end,
+    -- Stock            -> top left
     -- Reserve          -> right in columns
     -- Foundation       -> top
     -- Tableau          -> second row
     raglan = function(game, columns)
         local piles = get_piles(game)
+
+        if piles.HasStock then
+            piles.Stock[1].Position = { x = 0, y = 0 }
+        end
 
         for i = 0, piles.ReserveSize - 1 do
             piles.Reserve[i + 1].Position = { x = i % columns + piles.TableauSize, y = i // columns + 1 }

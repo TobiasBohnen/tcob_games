@@ -189,13 +189,14 @@ void form_menu::create_section_games(std::vector<game_info> const& games)
             createTab(family::BeleagueredCastle, "Beleaguered Castle");
             createTab(family::Canfield, "Canfield");
             createTab(family::Fan, "Fan");
+            createTab(family::FlowerGarden, "Flower Garden");
             createTab(family::FortyThieves, "Forty Thieves");
             createTab(family::FreeCell, "FreeCell");
             createTab(family::Golf, "Golf");
             createTab(family::Gypsy, "Gypsy");
             createTab(family::Klondike, "Klondike");
             createTab(family::Montana, "Montana");
-            createTab(family::Raglan, "Raglan");
+            createTab(family::Numerica, "Numerica");
             createTab(family::Spider, "Spider");
             createTab(family::Yukon, "Yukon");
             createTab(family::Other, "Other");

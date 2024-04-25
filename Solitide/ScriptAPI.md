@@ -17,13 +17,14 @@ The Info table contains basic information about the game.
   - BeleagueredCastle
   - Canfield
   - Fan
+  - FlowerGarden
   - FortyThieves
   - FreeCell
   - Golf
   - Gypsy
   - Klondike
   - Montana
-  - Raglan
+  - Numerica
   - Spider
   - Yukon
   - Other

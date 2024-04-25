@@ -18,13 +18,14 @@ enum class family {
     BeleagueredCastle,
     Canfield,
     Fan,
+    FlowerGarden,
     FortyThieves,
     FreeCell,
     Golf,
     Gypsy,
     Klondike,
     Montana,
-    Raglan,
+    Numerica,
     Spider,
     Yukon
 };
