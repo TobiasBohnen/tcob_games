@@ -19,6 +19,7 @@ auto load_cardsets() -> std::map<std::string, std::shared_ptr<cardset>>
     auto& resMgr {locate_service<assets::library>()};
     auto& resGrp {resMgr.create_or_get_group("solitaire")};
     retValue["default"] = std::make_shared<default_cardset>(resGrp);
+    retValue["mini"]    = std::make_shared<mini_cardset>(resGrp);
 
     for (auto const& gi : io::get_sub_folders(CardsetFolder)) {
         auto const name {io::get_stem(gi)};
@@ -87,24 +88,113 @@ auto cardset::is_loaded() const -> bool
     return _loaded;
 }
 
+auto cardset::pad_rect(rect_f const& rect) -> rect_f
+{
+    auto const cardPad {rect.get_size() / 50};
+    return rect.as_padded(cardPad);
+}
+
+void cardset::set_suit_color(gfx::canvas& canvas, suit s)
+{
+    switch (s) {
+    case suit::Diamonds:
+    case suit::Hearts:
+        canvas.set_fill_style(colors::Red);
+        break;
+    case suit::Clubs:
+    case suit::Spades:
+        canvas.set_fill_style(colors::Black);
+        break;
+    }
+}
+
+void cardset::draw_suit(gfx::canvas& canvas, suit s, point_f center, f32 size)
+{
+    center -= point_f {size / 2, size / 2};
+
+    auto draw {[&](string const& path) {
+        canvas.save();
+        canvas.translate(center);
+        canvas.scale({size, size});
+        canvas.begin_path();
+
+        canvas.path_2d(*gfx::canvas::path2d::Parse(path));
+
+        set_suit_color(canvas, s);
+        canvas.fill();
+
+        canvas.set_stroke_style(colors::Silver);
+        canvas.set_stroke_width(0.04f);
+        canvas.stroke();
+
+        canvas.restore();
+    }};
+
+    switch (s) {
+    case suit::Hearts: {
+        draw("m 0.483 0.2 c 0 -0.123 -0.095 -0.2 -0.233 -0.2 -0.138 0 -0.25 0.099 -0.25 0.222 0.001 0.011 0 0.021 0 0.031 0 0.081 0.045 0.16 0.083 0.233 0.04 0.076 0.097 0.142 0.151 0.21 0.083 0.105 0.265 0.303 0.265 0.303 0 0 0.182 -0.198 0.265 -0.303 0.054 -0.068 0.111 -0.134 0.151 -0.21 0.039 -0.074 0.083 -0.152 0.083 -0.233 -0 -0.011 -0 -0.021 0 -0.031 0 -0.123 -0.112 -0.222 -0.25 -0.222 -0.138 0 -0.233 0.077 -0.233 0.2 0 0.022 -0.033 0.022 -0.033 0 z");
+    } break;
+    case suit::Diamonds: {
+        draw("m 0.5 0 c 0 0 0.1 0.166 0.216 0.277 0.117 0.111 0.283 0.222 0.283 0.222 0 0 -0.166 0.111 -0.283 0.222 C 0.6 0.833 0.5 0.999 0.5 0.999 c 0 0 -0.1 -0.166 -0.216 -0.277 C 0.167 0.611 0 0.5 0 0.5 c 0 0 0.166 -0.111 0.283 -0.222 C 0.4 0.167 0.5 0 0.5 0");
+    } break;
+    case suit::Clubs: {
+        draw("m 0.583 0.622 c 0.033 0.044 0.117 0.111 0.2 0.111 0.15 0 0.216 -0.089 0.216 -0.2 0 -0.111 -0.067 -0.211 -0.216 -0.211 -0.083 0 -0.133 0.056 -0.183 0.089 -0.017 0.011 -0.033 0 -0.017 -0.011 0.05 -0.033 0.133 -0.122 0.133 -0.2 0 -0.089 -0.083 -0.2 -0.216 -0.2 -0.133 0 -0.216 0.111 -0.216 0.2 0 0.078 0.083 0.166 0.133 0.2 0.017 0.011 0 0.022 -0.017 0.011 -0.05 -0.033 -0.1 -0.089 -0.183 -0.089 -0.15 0 -0.216 0.1 -0.216 0.211 0 0.111 0.067 0.2 0.216 0.2 0.083 0 0.166 -0.067 0.2 -0.111 0.017 -0.011 0.017 0 0.017 0.011 -0.017 0.089 -0.017 0.111 -0.033 0.178 -0.017 0.067 -0.067 0.189 -0.067 0.189 0.083 -0.022 0.25 -0.022 0.333 0 0 0 -0.05 -0.122 -0.067 -0.189 -0.017 -0.067 -0.017 -0.089 -0.033 -0.178 0 -0.011 0 -0.022 0.017 -0.011 z");
+    } break;
+    case suit::Spades: {
+        draw("m 0.583 0.622 c 0.017 0.044 0.083 0.156 0.2 0.156 C 0.933 0.778 1 0.689 1 0.578 1 0.5 0.957 0.449 0.917 0.389 0.874 0.325 0.81 0.268 0.75 0.211 0.673 0.138 0.5 0 0.5 0 c 0 0 -0.173 0.138 -0.25 0.211 C 0.19 0.268 0.126 0.325 0.083 0.389 0.043 0.449 0 0.5 0 0.578 c 0 0.111 0.067 0.2 0.217 0.2 0.117 0 0.183 -0.111 0.2 -0.156 0.017 -0.011 0.017 0 0.017 0.011 C 0.417 0.722 0.417 0.744 0.4 0.811 0.383 0.878 0.333 1 0.333 1 0.417 0.978 0.583 0.978 0.667 1 c 0 0 -0.05 -0.122 -0.067 -0.189 -0.017 -0.067 -0.017 -0.089 -0.033 -0.178 0 -0.011 0 -0.022 0.017 -0.011 z");
+    } break;
+    }
+}
+
+void cardset::save_textures(assets::asset_ptr<gfx::texture> const& canvasTex, size_f texSize) const
+{
+    auto* tex {get_texture()};
+
+    auto const& regions {canvasTex->get_regions()};
+    tex->create(size_i {texSize}, static_cast<u32>(regions.size()), gfx::texture::format::RGBA8);
+    tex->Filtering = gfx::texture::filtering::Linear;
+
+    auto tempImg {canvasTex->copy_to_image(0)};
+    tempImg.flip_vertically();
+
+    auto const folder {get_folder()};
+    io::create_folder(folder);
+    u32 level {0};
+
+    data::config::object cardsetObj;
+    for (auto const& [k, v] : regions) {
+        if (k == "default") { continue; }
+
+        auto const data {tempImg.get_data(rect_i {v.UVRect})};
+        gfx::image cardimg {gfx::image::Create(size_i {texSize}, gfx::image::format::RGBA, data)};
+
+        string const file {k + ".png"};
+        cardsetObj["cards"][k] = file;
+        std::ignore            = cardimg.save(folder + file);
+        tex->update_data(data, level);
+        tex->add_region(k, gfx::texture_region {{0, 0, 1, 1}, level++});
+    }
+    cardsetObj["version"] = "1.0";
+    cardsetObj.save(folder + "cardset.json");
+}
+
 ////////////////////////////////////////////////////////////
 
-static constexpr color CardsetBackColor {colors::SeaShell};
+static constexpr color CardsetBackColorDefault {colors::SeaShell};
 
 default_cardset::default_cardset(assets::group& resGrp)
     : cardset {"default"}
 {
     if (!is_loaded()) {
-        create(resGrp, get_texture());
+        create(resGrp);
     }
 }
 
-void default_cardset::create(assets::group& resGrp, gfx::texture* tex)
+void default_cardset::create(assets::group& resGrp)
 {
     size_f const texSize {240, 360};
-    tex->create(size_i {texSize}, CardsetCardCount, gfx::texture::format::RGBA8);
-    i32 const columns {10};
-    i32 const rows {8};
+    i32 const    columns {10};
+    i32 const    rows {8};
     static_assert(columns * rows >= CardsetCardCount);
     size_f const canvasSize {texSize.Width * columns, texSize.Height * rows};
 
@@ -153,7 +243,7 @@ void default_cardset::create(assets::group& resGrp, gfx::texture* tex)
     // draw foundation/tableau marker
     {
         rect_f const rect {nextRect()};
-        draw_shape(canvas, pad_rect(rect), CardsetBackColor, colors::Black);
+        draw_shape(canvas, pad_rect(rect), CardsetBackColorDefault, colors::Black);
 
         canvas.set_fill_style(colors::Green);
         canvas.begin_path();
@@ -173,31 +263,13 @@ void default_cardset::create(assets::group& resGrp, gfx::texture* tex)
     // draw empty
     {
         rect_f const rect {nextRect()};
-        draw_shape(canvas, pad_rect(rect), CardsetBackColor, colors::Black);
+        draw_shape(canvas, pad_rect(rect), CardsetBackColorDefault, colors::Black);
         addRegion("card_empty", rect);
     }
 
     canvas.end_frame();
-    auto const& regions {tempTex->get_regions()};
-    tex->create(size_i {texSize}, static_cast<u32>(regions.size()), gfx::texture::format::RGBA8);
-    tex->Filtering = gfx::texture::filtering::Linear;
 
-    auto tempImg {tempTex->copy_to_image(0)};
-    tempImg.flip_vertically();
-
-    auto const folder {get_folder()};
-    io::create_folder(folder);
-    u32 level {0};
-    for (auto const& [k, v] : regions) {
-        if (k == "default") { continue; }
-
-        auto const data {tempImg.get_data(rect_i {v.UVRect})};
-        gfx::image cardimg {gfx::image::Create(size_i {texSize}, gfx::image::format::RGBA, data)};
-
-        std::ignore = cardimg.save(folder + k + ".png");
-        tex->update_data(data, level);
-        tex->add_region(k, gfx::texture_region {{0, 0, 1, 1}, level++});
-    }
+    save_textures(tempTex, texSize);
 }
 
 void default_cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, rank r, rect_f const& rect)
@@ -208,7 +280,7 @@ void default_cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s,
     rect_f const  cardRect {pad_rect(rect)};
     point_f const cardCenter {cardRect.get_center()};
 
-    draw_shape(canvas, cardRect, CardsetBackColor, colors::Black);
+    draw_shape(canvas, cardRect, CardsetBackColorDefault, colors::Black);
 
     {
         point_f offset {rect.X + 6, rect.Y + 1};
@@ -320,8 +392,7 @@ void default_cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s,
         case rank::King: {
             set_suit_color(canvas, s);
             canvas.set_font(fonts.LargeFont);
-            std::string const rankSymbol {get_rank_symbol(r)};
-            canvas.draw_textbox(pad_rect(rect), rankSymbol);
+            canvas.draw_textbox(pad_rect(rect), get_rank_symbol(r));
         } break;
         }
     }
@@ -333,12 +404,11 @@ void default_cardset::draw_marker(gfx::canvas& canvas, fonts const& fonts, rank 
 {
     canvas.save();
 
-    draw_shape(canvas, pad_rect(rect), CardsetBackColor, colors::Black);
+    draw_shape(canvas, pad_rect(rect), CardsetBackColorDefault, colors::Black);
 
     canvas.set_fill_style(colors::Green);
     canvas.set_font(fonts.LargeFont);
-    std::string const rankSymbol {get_rank_symbol(r)};
-    canvas.draw_textbox(pad_rect(rect), rankSymbol);
+    canvas.draw_textbox(pad_rect(rect), get_rank_symbol(r));
 
     canvas.restore();
 }
@@ -376,7 +446,7 @@ void default_cardset::draw_back(gfx::canvas& canvas, rect_f const& rect)
             canvas.line_to({x4, y4});
             canvas.close_path();
             canvas.fill();
-            canvas.set_stroke_style(CardsetBackColor);
+            canvas.set_stroke_style(CardsetBackColorDefault);
             canvas.set_stroke_width(3);
             canvas.stroke();
         }
@@ -389,64 +459,6 @@ void default_cardset::draw_back(gfx::canvas& canvas, rect_f const& rect)
     canvas.restore();
 }
 
-void default_cardset::set_suit_color(gfx::canvas& canvas, suit s)
-{
-    switch (s) {
-    case suit::Diamonds:
-    case suit::Hearts:
-        canvas.set_fill_style(colors::Red);
-        break;
-    case suit::Clubs:
-    case suit::Spades:
-        canvas.set_fill_style(colors::Black);
-        break;
-    }
-}
-
-auto default_cardset::pad_rect(rect_f const& rect) -> rect_f
-{
-    auto const cardPad {rect.get_size() / 50};
-    return rect.as_padded(cardPad);
-}
-
-void default_cardset::draw_suit(gfx::canvas& canvas, suit s, point_f center, f32 size)
-{
-    center -= point_f {size / 2, size / 2};
-
-    auto draw {[&](string const& path) {
-        canvas.save();
-        canvas.translate(center);
-        canvas.scale({size, size});
-        canvas.begin_path();
-
-        canvas.path_2d(*gfx::canvas::path2d::Parse(path));
-
-        set_suit_color(canvas, s);
-        canvas.fill();
-
-        canvas.set_stroke_style(colors::Silver);
-        canvas.set_stroke_width(0.04f);
-        canvas.stroke();
-
-        canvas.restore();
-    }};
-
-    switch (s) {
-    case suit::Hearts: {
-        draw("m 0.483 0.2 c 0 -0.123 -0.095 -0.2 -0.233 -0.2 -0.138 0 -0.25 0.099 -0.25 0.222 0.001 0.011 0 0.021 0 0.031 0 0.081 0.045 0.16 0.083 0.233 0.04 0.076 0.097 0.142 0.151 0.21 0.083 0.105 0.265 0.303 0.265 0.303 0 0 0.182 -0.198 0.265 -0.303 0.054 -0.068 0.111 -0.134 0.151 -0.21 0.039 -0.074 0.083 -0.152 0.083 -0.233 -0 -0.011 -0 -0.021 0 -0.031 0 -0.123 -0.112 -0.222 -0.25 -0.222 -0.138 0 -0.233 0.077 -0.233 0.2 0 0.022 -0.033 0.022 -0.033 0 z");
-    } break;
-    case suit::Diamonds: {
-        draw("m 0.5 0 c 0 0 0.1 0.166 0.216 0.277 0.117 0.111 0.283 0.222 0.283 0.222 0 0 -0.166 0.111 -0.283 0.222 C 0.6 0.833 0.5 0.999 0.5 0.999 c 0 0 -0.1 -0.166 -0.216 -0.277 C 0.167 0.611 0 0.5 0 0.5 c 0 0 0.166 -0.111 0.283 -0.222 C 0.4 0.167 0.5 0 0.5 0");
-    } break;
-    case suit::Clubs: {
-        draw("m 0.583 0.622 c 0.033 0.044 0.117 0.111 0.2 0.111 0.15 0 0.216 -0.089 0.216 -0.2 0 -0.111 -0.067 -0.211 -0.216 -0.211 -0.083 0 -0.133 0.056 -0.183 0.089 -0.017 0.011 -0.033 0 -0.017 -0.011 0.05 -0.033 0.133 -0.122 0.133 -0.2 0 -0.089 -0.083 -0.2 -0.216 -0.2 -0.133 0 -0.216 0.111 -0.216 0.2 0 0.078 0.083 0.166 0.133 0.2 0.017 0.011 0 0.022 -0.017 0.011 -0.05 -0.033 -0.1 -0.089 -0.183 -0.089 -0.15 0 -0.216 0.1 -0.216 0.211 0 0.111 0.067 0.2 0.216 0.2 0.083 0 0.166 -0.067 0.2 -0.111 0.017 -0.011 0.017 0 0.017 0.011 -0.017 0.089 -0.017 0.111 -0.033 0.178 -0.017 0.067 -0.067 0.189 -0.067 0.189 0.083 -0.022 0.25 -0.022 0.333 0 0 0 -0.05 -0.122 -0.067 -0.189 -0.017 -0.067 -0.017 -0.089 -0.033 -0.178 0 -0.011 0 -0.022 0.017 -0.011 z");
-    } break;
-    case suit::Spades: {
-        draw("m 0.583 0.622 c 0.017 0.044 0.083 0.156 0.2 0.156 C 0.933 0.778 1 0.689 1 0.578 1 0.5 0.957 0.449 0.917 0.389 0.874 0.325 0.81 0.268 0.75 0.211 0.673 0.138 0.5 0 0.5 0 c 0 0 -0.173 0.138 -0.25 0.211 C 0.19 0.268 0.126 0.325 0.083 0.389 0.043 0.449 0 0.5 0 0.578 c 0 0.111 0.067 0.2 0.217 0.2 0.117 0 0.183 -0.111 0.2 -0.156 0.017 -0.011 0.017 0 0.017 0.011 C 0.417 0.722 0.417 0.744 0.4 0.811 0.383 0.878 0.333 1 0.333 1 0.417 0.978 0.583 0.978 0.667 1 c 0 0 -0.05 -0.122 -0.067 -0.189 -0.017 -0.067 -0.017 -0.089 -0.033 -0.178 0 -0.011 0 -0.022 0.017 -0.011 z");
-    } break;
-    }
-}
-
 void default_cardset::draw_shape(gfx::canvas& canvas, rect_f const& bounds, color fill, color stroke)
 {
     canvas.set_fill_style(fill);
@@ -454,6 +466,155 @@ void default_cardset::draw_shape(gfx::canvas& canvas, rect_f const& bounds, colo
     canvas.set_stroke_width(3);
     canvas.begin_path();
     canvas.rounded_rect(bounds, 15);
+    canvas.fill();
+    canvas.stroke();
+}
+
+////////////////////////////////////////////////////////////
+
+static constexpr color CardsetBackColorMini {colors::LightGray};
+
+mini_cardset::mini_cardset(assets::group& resGrp)
+    : cardset {"mini"}
+{
+    if (!is_loaded()) {
+        create(resGrp);
+    }
+}
+
+void mini_cardset::create(assets::group& resGrp)
+{
+    size_f const texSize {120, 60};
+    i32 const    columns {10};
+    i32 const    rows {8};
+    static_assert(columns * rows >= CardsetCardCount);
+    size_f const canvasSize {texSize.Width * columns, texSize.Height * rows};
+
+    gfx::canvas canvas;
+    canvas.begin_frame(size_i {canvasSize}, 1.0f);
+
+    auto       fontFamily {resGrp.get<gfx::font_family>(FONT)};
+    gfx::font* font {fontFamily->get_font({false, gfx::font::weight::Normal}, static_cast<u32>(texSize.Height * 0.9f)).get_obj()};
+
+    canvas.set_text_halign(gfx::horizontal_alignment::Centered);
+    canvas.set_text_valign(gfx::vertical_alignment::Middle);
+
+    auto tempTex {canvas.get_texture()};
+    tempTex->Filtering = gfx::texture::filtering::Linear;
+
+    i32  i {0};
+    auto nextRect {[&]() {
+        f32 const x {static_cast<f32>(i % columns * texSize.Width)};
+        f32 const y {static_cast<f32>(i / columns * texSize.Height)};
+        ++i;
+        return rect_f {{x, y}, texSize};
+    }};
+
+    auto addRegion {[&](std::string const& texName, rect_f const& rect) {
+        tempTex->add_region(texName, {rect, 0});
+    }};
+
+    // draw cards
+    for (u8 cs {static_cast<u8>(suit::Hearts)}; cs <= static_cast<u8>(suit::Spades); ++cs) {
+        for (u8 cr {static_cast<u8>(rank::Ace)}; cr <= static_cast<u8>(rank::King); ++cr) {
+            rect_f const rect {nextRect()};
+            card const   c {static_cast<suit>(cs), static_cast<rank>(cr), 0, false};
+            draw_card(canvas, font, c.get_suit(), c.get_rank(), rect);
+            addRegion(c.get_texture_name(), rect);
+        }
+    }
+
+    // draw back
+    {
+        rect_f const rect {nextRect()};
+        draw_back(canvas, rect);
+        addRegion("card_back", rect);
+    }
+
+    // draw foundation/tableau marker
+    {
+        rect_f const rect {nextRect()};
+        draw_shape(canvas, pad_rect(rect), CardsetBackColorMini, colors::Black);
+
+        canvas.set_fill_style(colors::Green);
+        canvas.begin_path();
+        canvas.star(rect.get_center(), rect.Width / 5, rect.Width / 8, 5);
+        canvas.fill();
+        addRegion("card_base_gen", rect);
+    }
+
+    {
+        for (u8 cr {static_cast<u8>(rank::Ace)}; cr <= static_cast<u8>(rank::King); ++cr) {
+            rect_f const rect {nextRect()};
+            draw_marker(canvas, font, static_cast<rank>(cr), rect);
+            addRegion("card_base_" + helper::to_lower(get_rank_name(static_cast<rank>(cr))), rect);
+        }
+    }
+
+    // draw empty
+    {
+        rect_f const rect {nextRect()};
+        draw_shape(canvas, pad_rect(rect), CardsetBackColorMini, colors::Black);
+        addRegion("card_empty", rect);
+    }
+
+    canvas.end_frame();
+    save_textures(tempTex, texSize);
+}
+
+void mini_cardset::draw_card(gfx::canvas& canvas, gfx::font* font, suit s, rank r, rect_f const& rect)
+{
+    canvas.save();
+
+    rect_f const cardRect {pad_rect(rect)};
+    f32 const    width {cardRect.get_size().Width};
+    f32 const    height {cardRect.get_size().Height};
+
+    draw_shape(canvas, cardRect, CardsetBackColorMini, colors::Black);
+
+    set_suit_color(canvas, s);
+    canvas.set_font(font);
+    canvas.draw_textbox({cardRect.get_position(), {width / 2, height}}, get_rank_symbol(r));
+
+    draw_suit(canvas, s, {cardRect.get_position() + point_f {width * 0.75f, height / 2}}, width / 2.25f);
+
+    canvas.restore();
+}
+
+void mini_cardset::draw_marker(gfx::canvas& canvas, gfx::font* font, rank r, rect_f const& rect)
+{
+    canvas.save();
+
+    draw_shape(canvas, pad_rect(rect), CardsetBackColorMini, colors::Black);
+
+    canvas.set_fill_style(colors::Green);
+    canvas.set_font(font);
+    canvas.draw_textbox(pad_rect(rect), get_rank_symbol(r));
+
+    canvas.restore();
+}
+
+void mini_cardset::draw_back(gfx::canvas& canvas, rect_f const& rect)
+{
+    canvas.save();
+    rect_f const bounds {pad_rect(rect)};
+    draw_shape(canvas, bounds, colors::LightSteelBlue, colors::White);
+
+    canvas.begin_path();
+    canvas.rounded_rect(bounds.as_padded({3, 3}), 3);
+    canvas.set_fill_style(colors::MidnightBlue);
+    canvas.fill();
+
+    canvas.restore();
+}
+
+void mini_cardset::draw_shape(gfx::canvas& canvas, rect_f const& bounds, color fill, color stroke)
+{
+    canvas.set_fill_style(fill);
+    canvas.set_stroke_style(stroke);
+    canvas.set_stroke_width(2);
+    canvas.begin_path();
+    canvas.rounded_rect(bounds, 3);
     canvas.fill();
     canvas.stroke();
 }

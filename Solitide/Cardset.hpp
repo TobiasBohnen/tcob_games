@@ -10,11 +10,6 @@
 
 namespace solitaire {
 
-struct fonts {
-    gfx::font* NormalFont {nullptr};
-    gfx::font* LargeFont {nullptr};
-};
-
 ////////////////////////////////////////////////////////////
 
 class cardset {
@@ -29,11 +24,19 @@ public:
     auto load() const -> bool;
 
 protected:
-    auto get_folder() const -> std::string;
-    auto get_texture() const -> gfx::texture*;
     auto is_loaded() const -> bool;
 
+    auto pad_rect(rect_f const& rect) -> rect_f;
+
+    void set_suit_color(gfx::canvas& canvas, suit s);
+    void draw_suit(gfx::canvas& canvas, suit s, point_f center, f32 size);
+
+    void save_textures(assets::asset_ptr<gfx::texture> const& canvasTex, size_f texSize) const;
+
 private:
+    auto get_folder() const -> std::string;
+    auto get_texture() const -> gfx::texture*;
+
     assets::manual_asset_ptr<gfx::material> _material;
     assets::manual_asset_ptr<gfx::texture>  _texture;
     std::string                             _name;
@@ -45,22 +48,38 @@ auto load_cardsets() -> std::map<std::string, std::shared_ptr<cardset>>;
 ////////////////////////////////////////////////////////////
 
 class default_cardset : public cardset {
+    struct fonts {
+        gfx::font* NormalFont {nullptr};
+        gfx::font* LargeFont {nullptr};
+    };
+
 public:
     default_cardset(assets::group& resGrp);
 
-    void create(assets::group& resGrp, gfx::texture* tex);
+    void create(assets::group& resGrp);
 
 private:
     void draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, rank r, rect_f const& rect);
     void draw_marker(gfx::canvas& canvas, fonts const& fonts, rank r, rect_f const& rect);
     void draw_back(gfx::canvas& canvas, rect_f const& rect);
 
-    void draw_suit(gfx::canvas& canvas, suit s, point_f center, f32 size);
     void draw_shape(gfx::canvas& canvas, rect_f const& bounds, color fill, color stroke);
+};
 
-    void set_suit_color(gfx::canvas& canvas, suit s);
+////////////////////////////////////////////////////////////
 
-    auto pad_rect(rect_f const& rect) -> rect_f;
+class mini_cardset : public cardset {
+public:
+    mini_cardset(assets::group& resGrp);
+
+    void create(assets::group& resGrp);
+
+private:
+    void draw_card(gfx::canvas& canvas, gfx::font* font, suit s, rank r, rect_f const& rect);
+    void draw_marker(gfx::canvas& canvas, gfx::font* font, rank r, rect_f const& rect);
+    void draw_back(gfx::canvas& canvas, rect_f const& rect);
+
+    void draw_shape(gfx::canvas& canvas, rect_f const& bounds, color fill, color stroke);
 };
 
 }
