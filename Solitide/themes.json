@@ -35,6 +35,10 @@
       "Text": "#00FF00",
       "Thumb": "#006400",
       "Tick": "#00FF00"
+    },
+    "table": {
+      "A": "#006400",
+      "B": "#2E8B57"
     }
   },
   "Bubblegum": {
@@ -73,6 +77,10 @@
       "Text": "#000000",
       "Thumb": "#ff6347",
       "Tick": "#000000"
+    },
+    "table": {
+      "A": "#ff6347",
+      "B": "#ffb6c1"
     }
   },
   "Chocolate Brown": {
@@ -111,6 +119,10 @@
       "Text": "#ffffff",
       "Thumb": "#8b4513",
       "Tick": "#ffffff"
+    },
+    "table": {
+      "A": "#8b4513",
+      "B": "#4c2f1e"
     }
   },
   "Cool Blue": {
@@ -149,6 +161,10 @@
       "Text": "#ffffff",
       "Thumb": "#4682b4",
       "Tick": "#ffffff"
+    },
+    "table": {
+      "A": "#4682b4",
+      "B": "#add8e6"
     }
   },
   "Coral Reef": {
@@ -187,6 +203,10 @@
       "Text": "#ffffff",
       "Thumb": "#20b2aa",
       "Tick": "#ffffff"
+    },
+    "table": {
+      "A": "#20b2aa",
+      "B": "#f08080"
     }
   },
   "Dark Reddish Brown": {
@@ -225,6 +245,10 @@
       "Text": "#ffffff",
       "Thumb": "#2c1e1e",
       "Tick": "#ffffff"
+    },
+    "table": {
+      "A": "#2c1e1e",
+      "B": "#3b2929"
     }
   },
   "Dracula": {
@@ -263,6 +287,10 @@
       "Text": "#f8f8f2",
       "Thumb": "#bd93f9",
       "Tick": "#8be9fd"
+    },
+    "table": {
+      "A": "#6272a4",
+      "B": "#282a36"
     }
   },
   "Earthy Tones": {
@@ -301,6 +329,10 @@
       "Text": "#ffffff",
       "Thumb": "#556b2f",
       "Tick": "#ffffff"
+    },
+    "table": {
+      "A": "#8b4513",
+      "B": "#556b2f"
     }
   },
   "Forest Green": {
@@ -339,6 +371,10 @@
       "Text": "#ffffff",
       "Thumb": "#006400",
       "Tick": "#ffffff"
+    },
+    "table": {
+      "A": "#006400",
+      "B": "#228b22"
     }
   },
   "Galactic Blue": {
@@ -377,6 +413,10 @@
       "Text": "#ffffff",
       "Thumb": "#004080",
       "Tick": "#ffffff"
+    },
+    "table": {
+      "A": "#004080",
+      "B": "#001f3f"
     }
   },
   "GameBrick": {
@@ -415,6 +455,10 @@
       "Text": "#fefea2",
       "Thumb": "#71ab45",
       "Tick": "#f79422"
+    },
+    "table": {
+      "A": "#394439",
+      "B": "#8bac0f"
     }
   },
   "Golden Meadow": {
@@ -453,6 +497,10 @@
       "Text": "#ffffff",
       "Thumb": "#a0522d",
       "Tick": "#ffffff"
+    },
+    "table": {
+      "A": "#a0522d",
+      "B": "#deb887"
     }
   },
   "Greyscale": {
@@ -491,6 +539,10 @@
       "Text": "#ffffff",
       "Thumb": "#696969",
       "Tick": "#ffffff"
+    },
+    "table": {
+      "A": "#696969",
+      "B": "#808080"
     }
   },
   "Greyscale Dark": {
@@ -529,6 +581,10 @@
       "Text": "#aaaaaa",
       "Thumb": "#aaaaaa",
       "Tick": "#aaaaaa"
+    },
+    "table": {
+      "A": "#000000",
+      "B": "#000000"
     }
   },
   "Harvest Moon": {
@@ -567,6 +623,10 @@
       "Text": "#ffffff",
       "Thumb": "#deb887",
       "Tick": "#ffffff"
+    },
+    "table": {
+      "A": "#deb887",
+      "B": "#8fbc8f"
     }
   },
   "Midnight": {
@@ -605,6 +665,10 @@
       "Text": "#ffffff",
       "Thumb": "#4169e1",
       "Tick": "#ffffff"
+    },
+    "table": {
+      "A": "#4169e1",
+      "B": "#191970"
     }
   },
   "Minty Fresh": {
@@ -643,6 +707,10 @@
       "Text": "#000000",
       "Thumb": "#008000",
       "Tick": "#000000"
+    },
+    "table": {
+      "A": "#008000",
+      "B": "#98fb98"
     }
   },
   "Nebula Purple": {
@@ -681,6 +749,10 @@
       "Text": "#ffffff",
       "Thumb": "#6a0dad",
       "Tick": "#ffffff"
+    },
+    "table": {
+      "A": "#6a0dad",
+      "B": "#330033"
     }
   },
   "Orchid Dreams": {
@@ -719,6 +791,10 @@
       "Text": "#000000",
       "Thumb": "#9932cc",
       "Tick": "#000000"
+    },
+    "table": {
+      "A": "#9932cc",
+      "B": "#da70d6"
     }
   },
   "Original Mint": {
@@ -757,6 +833,10 @@
       "Text": "#ffffff",
       "Thumb": "#005959",
       "Tick": "#ffffff"
+    },
+    "table": {
+      "A": "#005959",
+      "B": "#00ffbf"
     }
   },
   "Rose Gold": {
@@ -795,6 +875,10 @@
       "Text": "#000000",
       "Thumb": "#ff69b4",
       "Tick": "#000000"
+    },
+    "table": {
+      "A": "#ff69b4",
+      "B": "#ffdab9"
     }
   },
   "Sunset Beach": {
@@ -833,6 +917,10 @@
       "Text": "#ffffff",
       "Thumb": "#ff9933",
       "Tick": "#ffffff"
+    },
+    "table": {
+      "A": "#ff9933",
+      "B": "#ffcc66"
     }
   },
   "Teal Blue": {
@@ -871,6 +959,10 @@
       "Text": "#333333",
       "Thumb": "#00ced1",
       "Tick": "#b0c4de"
+    },
+    "table": {
+      "A": "#b0c4de",
+      "B": "#008080"
     }
   },
   "Terracotta": {
@@ -909,6 +1001,10 @@
       "Text": "#ffffff",
       "Thumb": "#4682b4",
       "Tick": "#ffffff"
+    },
+    "table": {
+      "A": "#4682b4",
+      "B": "#d2691e"
     }
   },
   "default": {}

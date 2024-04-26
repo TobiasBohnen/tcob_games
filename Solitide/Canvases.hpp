@@ -47,6 +47,7 @@ public:
     void draw(gfx::render_target& target);
     void update(milliseconds deltaTime);
 
+    void set_background_colors(color a, color b);
     void mark_dirty();
 
 private:
@@ -57,6 +58,9 @@ private:
     gfx::canvas          _canvas;
     rect_i               _bounds;
     gfx::canvas_renderer _renderer;
+
+    color _colorA;
+    color _colorB;
 };
 
 }

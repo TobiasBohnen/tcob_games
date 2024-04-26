@@ -224,40 +224,12 @@ void background_canvas::draw(gfx::render_target& target)
     if (_canvasDirty) {
         _canvas.begin_frame(_bounds.get_size(), 1.0f);
 
-        _canvas.set_fill_style(colors::Gray);
-        _canvas.fill_rect(rect_f {_bounds});
-
-        static constexpr std::array<pile_type, 6> drawOrder {pile_type::Tableau, pile_type::Foundation, pile_type::Reserve, pile_type::FreeCell, pile_type::Waste, pile_type::Stock};
-        auto const&                               gpiles {_parent.game()->piles()};
-        for (auto const pileType : drawOrder) {
-            if (!gpiles.contains(pileType)) { continue; }
-
-            rect_f      pileBounds;
-            auto const& piles {gpiles.at(pileType)};
-            for (auto* pile : piles) {
-                pileBounds = pileBounds == rect_f::Zero ? pile->Bounds : pileBounds.as_merged(pile->Bounds);
-                if (pile->HasMarker) {
-                    pileBounds = pileBounds == rect_f::Zero ? pile->Marker->Bounds : pileBounds.as_merged(pile->Marker->Bounds);
-                }
-            }
-            auto srcpileBounds {rect_f {(*target.Camera).convert_world_to_screen(pileBounds)}};
-            _canvas.begin_path();
-            _canvas.rounded_rect(srcpileBounds, 5);
-
-            switch (pileType) {
-            case pile_type::Stock: _canvas.set_fill_style(colors::Crimson); break;
-            case pile_type::Waste: _canvas.set_fill_style(colors::Brown); break;
-            case pile_type::Foundation: _canvas.set_fill_style(colors::DarkGreen); break;
-            case pile_type::Tableau: _canvas.set_fill_style(colors::SteelBlue); break;
-            case pile_type::Reserve: _canvas.set_fill_style(colors::LightGray); break;
-            case pile_type::FreeCell: _canvas.set_fill_style(colors::LightBlue); break;
-            }
-            _canvas.fill();
-
-            _canvas.set_stroke_style(colors::Black);
-            _canvas.set_stroke_width(2);
-            _canvas.stroke();
-        }
+        auto rect {rect_f {_bounds}};
+        _canvas.set_fill_style(_canvas.create_linear_gradient(
+            rect.top_left() + point_f {0, _bounds.Height * 0.25f},
+            rect.bottom_left() - point_f {0, _bounds.Height * 0.25f},
+            {_colorA, _colorB}));
+        _canvas.fill_rect(rect);
 
         _canvas.end_frame();
 
@@ -270,6 +242,13 @@ void background_canvas::draw(gfx::render_target& target)
 
 void background_canvas::update(milliseconds /* deltaTime */)
 {
+}
+
+void background_canvas::set_background_colors(color a, color b)
+{
+    _colorA      = a;
+    _colorB      = b;
+    _canvasDirty = true;
 }
 
 void background_canvas::mark_dirty()

@@ -142,6 +142,11 @@ void card_table::show_next_hint()
     _fgCanvas.show_hint();
 }
 
+void card_table::set_theme(color_themes const& theme)
+{
+    _bgCanvas.set_background_colors(theme.TableBackgroundA, theme.TableBackgroundB);
+}
+
 void card_table::on_update(milliseconds deltaTime)
 {
     if (!_currentGame) { return; }

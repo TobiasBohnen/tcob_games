@@ -48,6 +48,9 @@ struct color_theme {
 };
 
 struct color_themes {
+    color TableBackgroundA {colors::Transparent};
+    color TableBackgroundB {colors::Transparent};
+
     color_theme Normal;
     color_theme Hover;
     color_theme Active;

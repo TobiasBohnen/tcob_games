@@ -619,7 +619,17 @@ auto load_themes() -> std::map<std::string, color_themes>
             getColor(active.Thumb, "active", "Thumb");
             getColor(active.Container, "active", "Container");
 
-            retValue[k] = {.Normal = normal, .Hover = hover, .Active = active};
+            color_themes ct;
+            ct.TableBackgroundA = colors::OliveDrab;
+            ct.TableBackgroundB = colors::DarkGreen;
+
+            getColor(ct.TableBackgroundA, "table", "A");
+            getColor(ct.TableBackgroundB, "table", "B");
+
+            ct.Normal   = normal;
+            ct.Hover    = hover;
+            ct.Active   = active;
+            retValue[k] = ct;
         }
     }
 

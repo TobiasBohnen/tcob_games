@@ -11,6 +11,7 @@
 #include "CardRenderer.hpp"
 #include "Cardset.hpp"
 #include "Piles.hpp"
+#include "ui/UIHelper.hpp"
 
 namespace solitaire {
 
@@ -30,6 +31,7 @@ public:
 
     void show_next_hint();
 
+    void set_theme(color_themes const& theme);
     void set_cardset(std::shared_ptr<cardset> const& cardset);
 
     void layout();

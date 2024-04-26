@@ -216,16 +216,17 @@ void start_scene::connect_ui_events()
         auto& resMgr {locate_service<assets::library>()};
         auto& resGrp {resMgr.create_or_get_group("solitaire")};
 
-        auto newTheme {theme};
-        if (!_themes.contains(theme)) { newTheme = "default"; }
+        auto themeName {theme};
+        if (!_themes.contains(theme)) { themeName = "default"; }
+        auto const& newTheme {_themes[themeName]};
 
-        create_styles(_themes[newTheme], resGrp, *_formMenu->Styles);
-        create_styles(_themes[newTheme], resGrp, *_formControls->Styles);
+        create_styles(newTheme, resGrp, *_formMenu->Styles);
+        create_styles(newTheme, resGrp, *_formControls->Styles);
 
         _formMenu->force_redraw("");
         _formControls->force_redraw("");
-
-        locate_service<data::config_file>()["sol"]["theme"] = newTheme;
+        _cardTable->set_theme(newTheme);
+        locate_service<data::config_file>()["sol"]["theme"] = themeName;
     });
 
     _formMenu->SelectedCardset.Changed.connect([&](auto const& cardset) {
