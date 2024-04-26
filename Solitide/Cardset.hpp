@@ -55,7 +55,7 @@ private:
     void draw_marker(gfx::canvas& canvas, fonts const& fonts, rank r, rect_f const& rect);
     void draw_back(gfx::canvas& canvas, rect_f const& rect);
 
-    void draw_suit(gfx::canvas& canvas, suit s, point_f pos, f32 size);
+    void draw_suit(gfx::canvas& canvas, suit s, point_f center, f32 size);
     void draw_shape(gfx::canvas& canvas, rect_f const& bounds, color fill, color stroke);
 
     void set_suit_color(gfx::canvas& canvas, suit s);
