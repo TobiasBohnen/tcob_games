@@ -55,6 +55,7 @@ start_scene::start_scene(game& game)
     assert(_dbGames && _dbHistory);
 
     _saveGame.load(SAVE_NAME);
+    _saveGame["version"] = "1.0.0"; // TODO: check version
 }
 
 start_scene::~start_scene() = default;
@@ -108,7 +109,6 @@ void start_scene::on_start()
 
     auto& window {get_window()};
     auto  windowSize {window.Size()};
-    auto& configFile {locate_service<data::config_file>()};
 
     auto defaultCursor {resGrp.get<gfx::cursor>("default")};
     window.Cursor             = defaultCursor;
@@ -161,15 +161,15 @@ void start_scene::on_start()
     locate_service<stats>().reset();
 
     // config
-    _formMenu->SelectedTheme   = configFile.get<std::string>("sol", "theme").value_or("default");
-    _formMenu->SelectedCardset = configFile.get<std::string>("sol", "cardset").value_or("default");
+    _formMenu->SelectedTheme   = _saveGame.get<std::string>("theme").value_or("default");
+    _formMenu->SelectedCardset = _saveGame.get<std::string>("cardset").value_or("default");
 
     _formMenu->fixed_update(0s);     // updates style
     _formControls->fixed_update(0s); // updates style
 
     // load config
-    if (configFile.has("sol", "game")) {
-        _formMenu->SelectedGame = configFile["sol"]["game"].as<std::string>();
+    if (_saveGame.has("game")) {
+        _formMenu->SelectedGame = _saveGame["game"].as<std::string>();
     }
 }
 
@@ -226,14 +226,14 @@ void start_scene::connect_ui_events()
         _formMenu->force_redraw("");
         _formControls->force_redraw("");
         _cardTable->set_theme(newTheme);
-        locate_service<data::config_file>()["sol"]["theme"] = themeName;
+        _saveGame["theme"] = themeName;
     });
 
     _formMenu->SelectedCardset.Changed.connect([&](auto const& cardset) {
         auto newCardset {cardset};
         if (!_cardSets.contains(cardset)) { newCardset = "default"; }
 
-        locate_service<data::config_file>()["sol"]["cardset"] = newCardset;
+        _saveGame["cardset"] = newCardset;
 
         _cardTable->set_cardset(_cardSets[newCardset]);
         start_game(_formMenu->SelectedGame(), start_reason::Resume);
@@ -278,7 +278,6 @@ void start_scene::on_update(milliseconds)
 
 void start_scene::on_fixed_update(milliseconds deltaTime)
 {
-
     if (auto game {_cardTable->game()}) {
         game->update(deltaTime);
 
@@ -364,7 +363,7 @@ void start_scene::start_game(string const& name, start_reason reason)
     }
 
     locate_service<stats>().reset();
-    locate_service<data::config_file>()["sol"]["game"] = name;
+    _saveGame["game"] = name;
     update_stats(name);
 }
 
