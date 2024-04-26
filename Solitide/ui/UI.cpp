@@ -21,22 +21,22 @@ form_controls::form_controls(gfx::window* window, assets::group& resGrp)
     // menu
     {
         auto menuPanel {mainPanelLayout->create_widget<panel>(dock_style::Top, "menu")};
-        menuPanel->Flex = {100_pct, 10_pct};
-        auto menuPanelLayout {menuPanel->create_layout<grid_layout>(size_i {20, 6})};
+        menuPanel->Flex = {100_pct, 5_pct};
+        auto menuPanelLayout {menuPanel->create_layout<grid_layout>(size_i {20, 1})};
 
-        BtnMenu       = menuPanelLayout->create_widget<button>({0, 0, 2, 6}, "btnGames");
+        BtnMenu       = menuPanelLayout->create_widget<button>({0, 0, 1, 1}, "btnMenu");
         BtnMenu->Icon = resGrp.get<gfx::texture>("burger");
 
-        BtnHint       = menuPanelLayout->create_widget<button>({11, 0, 2, 6}, "btnHint");
+        BtnHint       = menuPanelLayout->create_widget<button>({14, 0, 1, 1}, "btnHint");
         BtnHint->Icon = resGrp.get<gfx::texture>("hint");
 
-        BtnNewGame       = menuPanelLayout->create_widget<button>({13, 0, 2, 6}, "BtnNewGame");
-        BtnNewGame->Icon = resGrp.get<gfx::texture>("restart");
+        BtnNewGame       = menuPanelLayout->create_widget<button>({15, 0, 1, 1}, "BtnNewGame");
+        BtnNewGame->Icon = resGrp.get<gfx::texture>("newgame");
 
-        BtnUndo       = menuPanelLayout->create_widget<button>({15, 0, 2, 6}, "btnUndo");
+        BtnUndo       = menuPanelLayout->create_widget<button>({16, 0, 1, 1}, "btnUndo");
         BtnUndo->Icon = resGrp.get<gfx::texture>("undo");
 
-        BtnQuit       = menuPanelLayout->create_widget<button>({18, 0, 2, 6}, "btnQuit");
+        BtnQuit       = menuPanelLayout->create_widget<button>({19, 0, 1, 1}, "btnQuit");
         BtnQuit->Icon = resGrp.get<gfx::texture>("exit");
     }
 
@@ -89,14 +89,14 @@ static string const TabSettingsName {"conSettings"};
 static string const TabThemesName {"conThemes"};
 static string const TabCardsetsName {"conCardsets"};
 
-form_menu::form_menu(gfx::window* window, start_scene const& scene)
+form_menu::form_menu(gfx::window* window, assets::group& resGrp, start_scene const& scene)
     : form {"Games", window}
 {
     create_section_games(scene.get_games());
     create_section_settings();
     create_section_themes(scene.get_themes());
     create_section_cardset(scene.get_cardsets());
-    create_menubar();
+    create_menubar(resGrp);
 }
 
 void form_menu::submit_settings(data::config::object& obj)
@@ -330,7 +330,7 @@ void form_menu::create_section_cardset(std::vector<std::string> const& cardSets)
     }
 }
 
-void form_menu::create_menubar()
+void form_menu::create_menubar(assets::group& resGrp)
 {
     static string const MenuName {"menu"};
 
@@ -376,8 +376,8 @@ void form_menu::create_menubar()
         btn->Click.connect([enableContainer](auto const& ev) { enableContainer(ev.Sender->get_form(), TabCardsetsName); });
     }
 
-    auto btnBack {menuLayout->create_widget<button>({1, 38, 4, 2}, "btnBack")};
-    btnBack->Label = "Back";
+    auto btnBack {menuLayout->create_widget<button>({1, 37, 4, 2}, "btnBack")};
+    btnBack->Icon = resGrp.get<gfx::texture>("back");
     btnBack->Click.connect([&](auto&) { hide(); });
 }
 

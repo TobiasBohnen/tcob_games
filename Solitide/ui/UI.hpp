@@ -51,7 +51,7 @@ public:
 
 class form_menu : public form {
 public:
-    form_menu(gfx::window* window, start_scene const& scene);
+    form_menu(gfx::window* window, assets::group& resGrp, start_scene const& scene);
 
     prop<std::string> SelectedGame;
     prop<std::string> SelectedTheme;
@@ -68,7 +68,7 @@ private:
     void create_section_themes(std::vector<std::string> const& colorThemes);
     void create_section_cardset(std::vector<std::string> const& cardSets);
 
-    void create_menubar();
+    void create_menubar(assets::group& resGrp);
 
     std::shared_ptr<panel> _panelSettings;
 

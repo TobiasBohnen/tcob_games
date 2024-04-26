@@ -180,8 +180,7 @@ void card_table::move_camera(size_f cardBounds)
 
     f32 const     hDiff {static_cast<f32>(winSize.Height - Bounds->Height)};
     f32 const     zoom {std::min(winSize.Width / cardBounds.Width, (winSize.Height - hDiff) / cardBounds.Height)};
-    //  point_f const pos {cardBounds.Width / 2, (cardBounds.Height + (off / zoom)) / 2}; // FIXME: _bounds X and Y are ignored
-    point_f const pos {cardBounds.Width / 2, cardBounds.Height / 2};
+    point_f const pos {cardBounds.Width / 2, (cardBounds.Height + (Bounds->Y / zoom)) / 2};
 
     if (_camInstant) {
         camera.look_at(pos);

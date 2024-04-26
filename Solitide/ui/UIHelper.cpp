@@ -552,7 +552,7 @@ auto load_themes() -> std::map<std::string, color_themes>
             normal.Item            = colors::LightGray;
             normal.Thumb           = colors::DodgerBlue;
             normal.Container       = colors::LavenderBlush;
-            normal.LabelBackground = colors::DimGray;
+            normal.LabelBackground = colors::Gray;
 
             color_theme hover;
             hover.Background = normal.Background;

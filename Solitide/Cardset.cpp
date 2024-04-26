@@ -6,6 +6,7 @@
 #include "Cardset.hpp"
 
 #include <ranges>
+#include <utility>
 
 namespace solitaire {
 
@@ -18,12 +19,14 @@ auto load_cardsets() -> std::map<std::string, std::shared_ptr<cardset>>
 
     auto& resMgr {locate_service<assets::library>()};
     auto& resGrp {resMgr.create_or_get_group("solitaire")};
+
     retValue["default"] = std::make_shared<default_cardset>(resGrp);
-    retValue["mini"]    = std::make_shared<mini_cardset>(resGrp);
+    retValue["mini_h"]  = std::make_shared<mini_h_cardset>(resGrp);
+    retValue["mini_v"]  = std::make_shared<mini_v_cardset>(resGrp);
 
     for (auto const& gi : io::get_sub_folders(CardsetFolder)) {
         auto const name {io::get_stem(gi)};
-        if (name == "default") { continue; }
+        if (retValue.contains(name)) { continue; }
         retValue[name] = std::make_shared<cardset>(name);
     }
 
@@ -51,6 +54,8 @@ auto cardset::get_material() const -> assets::asset_ptr<gfx::material>
 
 auto cardset::load() const -> bool
 {
+    // TODO: use cardset.json for region mapping
+
     std::string const folder {get_folder()};
     auto              files {io::enumerate(folder, {"*card*.png"}, false)};
     if (files.size() < CardsetCardCount) { return false; }
@@ -474,27 +479,26 @@ void default_cardset::draw_shape(gfx::canvas& canvas, rect_f const& bounds, colo
 
 static constexpr color CardsetBackColorMini {colors::LightGray};
 
-mini_cardset::mini_cardset(assets::group& resGrp)
-    : cardset {"mini"}
+mini_cardset::mini_cardset(std::string folder)
+    : cardset {std::move(folder)}
 {
-    if (!is_loaded()) {
-        create(resGrp);
-    }
 }
 
-void mini_cardset::create(assets::group& resGrp)
+void mini_cardset::create(assets::group& resGrp, size_f texSize)
 {
-    size_f const texSize {120, 60};
-    i32 const    columns {10};
-    i32 const    rows {8};
+    i32 const columns {10};
+    i32 const rows {8};
     static_assert(columns * rows >= CardsetCardCount);
     size_f const canvasSize {texSize.Width * columns, texSize.Height * rows};
+    bool const   isHori {texSize.Width > texSize.Height};
 
     gfx::canvas canvas;
     canvas.begin_frame(size_i {canvasSize}, 1.0f);
 
     auto       fontFamily {resGrp.get<gfx::font_family>(FONT)};
-    gfx::font* font {fontFamily->get_font({false, gfx::font::weight::Normal}, static_cast<u32>(texSize.Height * 0.9f)).get_obj()};
+    gfx::font* font {fontFamily->get_font({false, gfx::font::weight::Normal},
+                                          static_cast<u32>((isHori ? texSize.Height : texSize.Width) * 0.9f))
+                         .get_obj()};
 
     canvas.set_text_halign(gfx::horizontal_alignment::Centered);
     canvas.set_text_valign(gfx::vertical_alignment::Middle);
@@ -574,9 +578,13 @@ void mini_cardset::draw_card(gfx::canvas& canvas, gfx::font* font, suit s, rank 
 
     set_suit_color(canvas, s);
     canvas.set_font(font);
-    canvas.draw_textbox({cardRect.get_position(), {width / 2, height}}, get_rank_symbol(r));
-
-    draw_suit(canvas, s, {cardRect.get_position() + point_f {width * 0.75f, height / 2}}, width / 2.25f);
+    if (rect.Width > rect.Height) {
+        canvas.draw_textbox({cardRect.get_position(), {width / 2, height}}, get_rank_symbol(r));
+        draw_suit(canvas, s, {cardRect.get_position() + point_f {width * 0.75f, height / 2}}, width / 2.25f);
+    } else {
+        canvas.draw_textbox({cardRect.get_position(), {width, height / 2}}, get_rank_symbol(r));
+        draw_suit(canvas, s, {cardRect.get_position() + point_f {width / 2, height * 0.75f}}, width / 2.25f);
+    }
 
     canvas.restore();
 }
@@ -617,6 +625,22 @@ void mini_cardset::draw_shape(gfx::canvas& canvas, rect_f const& bounds, color f
     canvas.rounded_rect(bounds, 3);
     canvas.fill();
     canvas.stroke();
+}
+
+mini_h_cardset::mini_h_cardset(assets::group& resGrp)
+    : mini_cardset {"mini_h"}
+{
+    if (!is_loaded()) {
+        create(resGrp, {120, 60});
+    }
+}
+
+mini_v_cardset::mini_v_cardset(assets::group& resGrp)
+    : mini_cardset {"mini_v"}
+{
+    if (!is_loaded()) {
+        create(resGrp, {60, 120});
+    }
 }
 
 } // namespace solitaire

@@ -67,12 +67,13 @@ private:
 };
 
 ////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 
 class mini_cardset : public cardset {
 public:
-    mini_cardset(assets::group& resGrp);
+    mini_cardset(std::string folder);
 
-    void create(assets::group& resGrp);
+    void create(assets::group& resGrp, size_f texSize);
 
 private:
     void draw_card(gfx::canvas& canvas, gfx::font* font, suit s, rank r, rect_f const& rect);
@@ -80,6 +81,19 @@ private:
     void draw_back(gfx::canvas& canvas, rect_f const& rect);
 
     void draw_shape(gfx::canvas& canvas, rect_f const& bounds, color fill, color stroke);
+};
+////////////////////////////////////////////////////////////
+
+class mini_h_cardset : public mini_cardset {
+public:
+    mini_h_cardset(assets::group& resGrp);
+};
+
+////////////////////////////////////////////////////////////
+
+class mini_v_cardset : public mini_cardset {
+public:
+    mini_v_cardset(assets::group& resGrp);
 };
 
 }

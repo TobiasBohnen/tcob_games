@@ -132,7 +132,7 @@ void start_scene::on_start()
 
     // ui
     _formControls = std::make_shared<form_controls>(&window, resGrp);
-    _formMenu     = std::make_shared<form_menu>(&window, *this);
+    _formMenu     = std::make_shared<form_menu>(&window, resGrp, *this);
     _formMenu->hide();
     connect_ui_events();
 
@@ -315,9 +315,9 @@ void start_scene::set_children_bounds(size_i size)
     _formControls->Bounds = menuBounds;
 
     f32 const tableX {0};
-    f32 const tableY {menuBounds.Height / 10.f * 1.f};
+    f32 const tableY {menuBounds.Height * 0.05f};
     f32 const tableWidth {menuBounds.Width};
-    f32 const tableHeight {menuBounds.Height / 10.f * 8.f};
+    f32 const tableHeight {menuBounds.Height * 0.85f};
     _cardTable->Bounds = rect_f {{tableX, tableY}, {tableWidth, tableHeight}};
 }
 
