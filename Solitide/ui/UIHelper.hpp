@@ -13,15 +13,12 @@ namespace solitaire {
 
 struct color_theme {
     color Background {colors::Transparent};
+    color Foreground {colors::Transparent};
     color Container {colors::Transparent};
-    color DropShadow {colors::Transparent};
-    color Bar {colors::Transparent};
+    color Shadow {colors::Transparent};
     color Border {colors::Transparent};
-    color Item {colors::Transparent};
-    color LabelBackground {colors::Transparent};
-    color Text {colors::Transparent};
-    color Thumb {colors::Transparent};
-    color Tick {colors::Transparent};
+    color List {colors::Transparent};
+    color Label {colors::Transparent};
 
     void apply(std::shared_ptr<button::style> const& style) const;
     void apply(std::shared_ptr<checkbox::style> const& style) const;

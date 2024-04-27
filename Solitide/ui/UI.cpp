@@ -93,7 +93,7 @@ form_menu::form_menu(gfx::window* window, assets::group& resGrp, start_scene con
     : form {"Games", window}
 {
     create_section_games(scene.get_games());
-    create_section_settings();
+    create_section_settings(resGrp);
     create_section_themes(scene.get_themes());
     create_section_cardset(scene.get_cardsets());
     create_menubar(resGrp);
@@ -247,7 +247,7 @@ void form_menu::create_section_games(std::vector<game_info> const& games)
     }
 }
 
-void form_menu::create_section_settings()
+void form_menu::create_section_settings(assets::group& resGrp)
 {
     // Setting
     _panelSettings       = create_container<panel>(dock_style::Left, TabSettingsName);
@@ -287,8 +287,8 @@ void form_menu::create_section_settings()
             lbl->Label = "VSync";
         }
 
-        BtnApplySettings        = panelLayout->create_widget<button>({34, 36, 5, 2}, "btnApply");
-        BtnApplySettings->Label = "Apply";
+        BtnApplySettings       = panelLayout->create_widget<button>({34, 36, 5, 2}, "btnApply");
+        BtnApplySettings->Icon = resGrp.get<gfx::texture>("apply");
     }
 }
 
@@ -335,7 +335,7 @@ void form_menu::create_menubar(assets::group& resGrp)
     static string const MenuName {"menu"};
 
     auto menu {create_container<panel>(dock_style::Fill, MenuName)};
-    auto menuLayout {menu->create_layout<grid_layout>(size_i {6, 40})};
+    auto menuLayout {menu->create_layout<grid_layout>(size_i {7, 40})};
 
     auto const enableContainer {[](form const* f, string const& enable) {
         for (auto const& w : f->get_widgets()) {
@@ -345,12 +345,11 @@ void form_menu::create_menubar(assets::group& resGrp)
         }
     }};
 
-    rect_i btnRect {0, 1, 3, 4};
-
+    rect_i     btnRect {1, 1, 1, 2};
     auto const createMenuButton {[&](string const& text) {
         auto btn {menuLayout->create_widget<radio_button>(btnRect, "btn" + text)};
 
-        auto lbl {menuLayout->create_widget<label>({btnRect.Width, btnRect.Y + 1, btnRect.Width - 1, btnRect.Height - 2}, "lblBtn" + text)};
+        auto lbl {menuLayout->create_widget<label>({btnRect.Width + 2, btnRect.Y, btnRect.Width + 2, btnRect.Height}, "lblBtn" + text)};
         lbl->Label = text;
         lbl->For   = btn;
 
@@ -376,7 +375,7 @@ void form_menu::create_menubar(assets::group& resGrp)
         btn->Click.connect([enableContainer](auto const& ev) { enableContainer(ev.Sender->get_form(), TabCardsetsName); });
     }
 
-    auto btnBack {menuLayout->create_widget<button>({1, 37, 4, 2}, "btnBack")};
+    auto btnBack {menuLayout->create_widget<button>({2, 37, 3, 2}, "btnBack")};
     btnBack->Icon = resGrp.get<gfx::texture>("back");
     btnBack->Click.connect([&](auto&) { hide(); });
 }

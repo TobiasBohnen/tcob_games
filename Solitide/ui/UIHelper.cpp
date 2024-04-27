@@ -8,123 +8,123 @@ void color_theme::apply(std::shared_ptr<button::style> const& style) const
 {
     style->Background        = Background;
     style->Border.Background = Border;
-    style->DropShadow.Color  = DropShadow;
-    style->Text.Color        = Text;
+    style->DropShadow.Color  = Shadow;
+    style->Text.Color        = Foreground;
 }
 
 void color_theme::apply(std::shared_ptr<checkbox::style> const& style) const
 {
     style->Background        = Background;
     style->Border.Background = Border;
-    style->DropShadow.Color  = DropShadow;
-    style->Tick.Foreground   = Tick;
+    style->DropShadow.Color  = Shadow;
+    style->Tick.Foreground   = Foreground;
 }
 
 void color_theme::apply(std::shared_ptr<cycle_button::style> const& style) const
 {
     style->Background        = Background;
     style->Border.Background = Border;
-    style->DropShadow.Color  = DropShadow;
-    style->Text.Color        = Text;
+    style->DropShadow.Color  = Shadow;
+    style->Text.Color        = Foreground;
 }
 
 void color_theme::apply(std::shared_ptr<drop_down_list::style> const& style) const
 {
     style->Background                      = Background;
     style->Border.Background               = Border;
-    style->DropShadow.Color                = DropShadow;
-    style->Text.Color                      = Text;
-    style->VScrollBar.Bar.HigherBackground = Bar;
-    style->VScrollBar.Bar.LowerBackground  = Bar;
+    style->DropShadow.Color                = Shadow;
+    style->Text.Color                      = Foreground;
+    style->VScrollBar.Bar.HigherBackground = Background;
+    style->VScrollBar.Bar.LowerBackground  = Background;
 }
 
 void color_theme::apply(std::shared_ptr<grid_view::style> const& style) const
 {
     style->Background                      = Background;
     style->Border.Background               = Border;
-    style->DropShadow.Color                = DropShadow;
-    style->VScrollBar.Bar.HigherBackground = Bar;
-    style->VScrollBar.Bar.LowerBackground  = Bar;
+    style->DropShadow.Color                = Shadow;
+    style->VScrollBar.Bar.HigherBackground = Background;
+    style->VScrollBar.Bar.LowerBackground  = Background;
 }
 
 void color_theme::apply(std::shared_ptr<image_box::style> const& style) const
 {
     style->Background        = Background;
     style->Border.Background = Border;
-    style->DropShadow.Color  = DropShadow;
+    style->DropShadow.Color  = Shadow;
 }
 
 void color_theme::apply(std::shared_ptr<label::style> const& style) const
 {
-    style->Background        = LabelBackground;
+    style->Background        = Label;
     style->Border.Background = Border;
-    style->Text.Color        = Text;
+    style->Text.Color        = Foreground;
 }
 
 void color_theme::apply(std::shared_ptr<list_box::style> const& style) const
 {
     style->Background                      = Background;
     style->Border.Background               = Border;
-    style->VScrollBar.Bar.HigherBackground = Bar;
-    style->VScrollBar.Bar.LowerBackground  = Bar;
+    style->VScrollBar.Bar.HigherBackground = Background;
+    style->VScrollBar.Bar.LowerBackground  = Background;
 }
 
 void color_theme::apply(std::shared_ptr<progress_bar::style> const& style) const
 {
     style->Background           = Background;
     style->Border.Background    = Border;
-    style->DropShadow.Color     = DropShadow;
-    style->Bar.HigherBackground = Bar;
-    style->Bar.LowerBackground  = Bar;
+    style->DropShadow.Color     = Shadow;
+    style->Bar.HigherBackground = Background;
+    style->Bar.LowerBackground  = Background;
 }
 
 void color_theme::apply(std::shared_ptr<radio_button::style> const& style) const
 {
     style->Background        = Background;
     style->Border.Background = Border;
-    style->DropShadow.Color  = DropShadow;
-    style->Tick.Foreground   = Tick;
+    style->DropShadow.Color  = Shadow;
+    style->Tick.Foreground   = Foreground;
 }
 
 void color_theme::apply(std::shared_ptr<slider::style> const& style) const
 {
-    style->Bar.HigherBackground = Bar;
-    style->Bar.LowerBackground  = Bar;
+    style->Bar.HigherBackground = Background;
+    style->Bar.LowerBackground  = Background;
 }
 
 void color_theme::apply(std::shared_ptr<spinner::style> const& style) const
 {
     style->Background        = Background;
     style->Border.Background = Border;
-    style->DropShadow.Color  = DropShadow;
-    style->Text.Color        = Text;
+    style->DropShadow.Color  = Shadow;
+    style->Text.Color        = Foreground;
 }
 
 void color_theme::apply(std::shared_ptr<text_box::style> const& style) const
 {
     style->Background        = Background;
     style->Border.Background = Border;
-    style->DropShadow.Color  = DropShadow;
-    style->Text.Color        = Text;
-    style->Caret.Color       = Tick;
+    style->DropShadow.Color  = Shadow;
+    style->Text.Color        = Foreground;
+    style->Caret.Color       = Foreground;
 }
 
 void color_theme::apply(std::shared_ptr<toggle::style> const& style) const
 {
     style->Background        = Background;
     style->Border.Background = Border;
-    style->DropShadow.Color  = DropShadow;
-    style->Tick.Foreground   = Tick;
+    style->DropShadow.Color  = Shadow;
+    style->Tick.Foreground   = Foreground;
 }
 
 void color_theme::apply(std::shared_ptr<panel::style> const& style) const
 {
     style->Background                      = Container;
     style->Border.Background               = Border;
-    style->VScrollBar.Bar.HigherBackground = Bar;
-    style->VScrollBar.Bar.LowerBackground  = Bar;
-    style->HScrollBar.Bar.HigherBackground = Bar;
-    style->HScrollBar.Bar.LowerBackground  = Bar;
+    style->VScrollBar.Bar.HigherBackground = Background;
+    style->VScrollBar.Bar.LowerBackground  = Background;
+    style->HScrollBar.Bar.HigherBackground = Background;
+    style->HScrollBar.Bar.LowerBackground  = Background;
 }
 
 void color_theme::apply(std::shared_ptr<tab_container::style> const& style) const
@@ -141,22 +141,22 @@ void color_theme::apply(std::shared_ptr<accordion::style> const& style) const
 
 void color_theme::apply(std::shared_ptr<thumb_style> const& style) const
 {
-    style->Thumb.Background        = Thumb;
+    style->Thumb.Background        = List;
     style->Thumb.Border.Background = Border;
 }
 
 void color_theme::apply(std::shared_ptr<item_style> const& style) const
 {
-    style->Item.Background        = Item;
+    style->Item.Background        = List;
     style->Item.Border.Background = Border;
-    style->Item.Text.Color        = Text;
+    style->Item.Text.Color        = Foreground;
 }
 
 void color_theme::apply(std::shared_ptr<nav_arrows_style> const& style) const
 {
-    style->NavArrow.Foreground        = Tick;
-    style->NavArrow.IncBackground     = Bar;
-    style->NavArrow.DecBackground     = Bar;
+    style->NavArrow.Foreground        = Foreground;
+    style->NavArrow.IncBackground     = Background;
+    style->NavArrow.DecBackground     = Background;
     style->NavArrow.Border.Background = Border;
 }
 
@@ -331,7 +331,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->Margin        = {5_px};
         style->Padding       = {5_px};
         style->Cursor        = "cursor2";
-        style->Tick.Type     = element::tick::type::Cross;
+        style->Tick.Type     = element::tick::type::Disc;
         style->Tick.Size     = 100_pct;
 
         auto hoverStyle {styles.create<radio_button>("radio_button", {.Hover = true})};
@@ -543,37 +543,28 @@ auto load_themes() -> std::map<std::string, color_themes>
 
         for (auto const& [k, v] : themes) {
             color_theme normal;
-            normal.Background      = colors::LightSkyBlue;
-            normal.Border          = colors::MidnightBlue;
-            normal.DropShadow      = color {0, 0, 0, 128};
-            normal.Text            = colors::Black;
-            normal.Bar             = colors::SlateGray;
-            normal.Tick            = colors::MidnightBlue;
-            normal.Item            = colors::LightGray;
-            normal.Thumb           = colors::DodgerBlue;
-            normal.Container       = colors::LavenderBlush;
-            normal.LabelBackground = colors::Gray;
+            normal.Background = colors::LightSkyBlue;
+            normal.Border     = colors::MidnightBlue;
+            normal.Shadow     = color {0, 0, 0, 128};
+            normal.Foreground = colors::Black;
+            normal.List       = colors::LightGray;
+            normal.Container  = colors::LavenderBlush;
+            normal.Label      = colors::Gray;
 
             color_theme hover;
             hover.Background = normal.Background;
             hover.Border     = colors::IndianRed;
-            hover.DropShadow = color {0, 0, 0, 128};
-            hover.Text       = hover.Border;
-            hover.Bar        = normal.Bar;
-            hover.Tick       = normal.Bar;
-            hover.Item       = colors::LightBlue;
-            hover.Thumb      = normal.Thumb;
+            hover.Shadow     = color {0, 0, 0, 128};
+            hover.Foreground = hover.Border;
+            hover.List       = colors::LightBlue;
             hover.Container  = normal.Container;
 
             color_theme active;
             active.Background = hover.Border;
             active.Border     = colors::ForestGreen;
-            active.DropShadow = color {0, 0, 0, 128};
-            active.Text       = colors::White;
-            active.Bar        = normal.Bar;
-            active.Tick       = colors::ForestGreen;
-            active.Item       = normal.Background;
-            active.Thumb      = normal.Thumb;
+            active.Shadow     = color {0, 0, 0, 128};
+            active.Foreground = colors::White;
+            active.List       = normal.Background;
             active.Container  = normal.Container;
 
             data::config::object theme {v.as<data::config::object>()};
@@ -590,33 +581,24 @@ auto load_themes() -> std::map<std::string, color_themes>
 
             getColor(normal.Background, "normal", "Background");
             getColor(normal.Border, "normal", "Border");
-            getColor(normal.DropShadow, "normal", "DropShadow");
-            getColor(normal.Text, "normal", "Text");
-            getColor(normal.Bar, "normal", "Bar");
-            getColor(normal.Tick, "normal", "Tick");
-            getColor(normal.Item, "normal", "Item");
-            getColor(normal.Thumb, "normal", "Thumb");
+            getColor(normal.Shadow, "normal", "Shadow");
+            getColor(normal.Foreground, "normal", "Foreground");
+            getColor(normal.List, "normal", "List");
             getColor(normal.Container, "normal", "Container");
-            getColor(normal.LabelBackground, "normal", "LabelBackground");
+            getColor(normal.Label, "normal", "Label");
 
             getColor(hover.Background, "hover", "Background");
             getColor(hover.Border, "hover", "Border");
-            getColor(hover.DropShadow, "hover", "DropShadow");
-            getColor(hover.Text, "hover", "Text");
-            getColor(hover.Bar, "hover", "Bar");
-            getColor(hover.Tick, "hover", "Tick");
-            getColor(hover.Item, "hover", "Item");
-            getColor(hover.Thumb, "hover", "Thumb");
+            getColor(hover.Shadow, "hover", "Shadow");
+            getColor(hover.Foreground, "hover", "Foreground");
+            getColor(hover.List, "hover", "List");
             getColor(hover.Container, "hover", "Container");
 
             getColor(active.Background, "active", "Background");
             getColor(active.Border, "active", "Border");
-            getColor(active.DropShadow, "active", "DropShadow");
-            getColor(active.Text, "active", "Text");
-            getColor(active.Bar, "active", "Bar");
-            getColor(active.Tick, "active", "Tick");
-            getColor(active.Item, "active", "Item");
-            getColor(active.Thumb, "active", "Thumb");
+            getColor(active.Shadow, "active", "Shadow");
+            getColor(active.Foreground, "active", "Foreground");
+            getColor(active.List, "active", "List");
             getColor(active.Container, "active", "Container");
 
             color_themes ct;

@@ -64,7 +64,7 @@ public:
 
 private:
     void create_section_games(std::vector<game_info> const& games);
-    void create_section_settings();
+    void create_section_settings(assets::group& resGrp);
     void create_section_themes(std::vector<std::string> const& colorThemes);
     void create_section_cardset(std::vector<std::string> const& cardSets);
 
