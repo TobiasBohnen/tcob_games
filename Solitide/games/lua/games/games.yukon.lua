@@ -315,7 +315,7 @@ local wave                               = {
         }
     },
     on_init = Sol.Layout.klondike,
-    do_deal = function(game)
+    deal = function(game)
         local from = game.Stock[1]
         local to = game.Tableau
         if from.IsEmpty then return false end

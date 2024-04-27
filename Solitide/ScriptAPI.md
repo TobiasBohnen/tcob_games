@@ -1,6 +1,6 @@
 # Script API
 
-## Game Definition
+## Game Definition (**table**)
 
 ### Info (**table**)
 
@@ -148,12 +148,12 @@ The Info table contains basic information about the game.
   - _Description_: Called when a turn ends.
   - _Return value_: none
 
-- do_redeal
+- redeal
 
   - _Signature_: function(game)
   - _Return value_: **true** if redeal was successful, **false** otherwise.
 
-- do_deal
+- deal
 
   - _Signature_: function(game)
   - _Return value_: **true** if deal was successful, **false** otherwise.
@@ -168,12 +168,12 @@ The Info table contains basic information about the game.
   - _Signature_: function(game, seed)
   - _Return value_: array of cards
 
-- check_playable
+- can_play
 
   - _Signature_: function(game, targetPile, targetCardIndex, card, numCards)
-  - _Return value_: **true** if the card can be played at the specified index, **false** otherwise.
+  - _Return value_: **true** if _card_ can be played at the specified _targetCardIndex_, **false** otherwise.
 
-## Global functions
+## _Sol_ functions
 
 - register_game
 

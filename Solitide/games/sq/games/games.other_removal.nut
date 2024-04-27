@@ -42,7 +42,7 @@ local aces_up = {
                 }
         }
     },
-    check_playable = function(game, targetPile, _, card, numCards) {
+    can_play = function(game, targetPile, _, card, numCards) {
         if (numCards != 1) {
             return false
         }
@@ -84,7 +84,7 @@ local aces_up = {
 
         return "Running"
     },
-    do_deal = @(game) Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, false),
+    deal = @(game) Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, false),
     on_init = @(game) Lua.Sol.Layout.klondike(game)
 }
 
@@ -135,7 +135,7 @@ local aces_square = {
             }
         }
     },
-    check_playable = function(game, targetPile, _, card, numCards) {
+    can_play = function(game, targetPile, _, card, numCards) {
         if (card.Rank == "Ace" || targetPile.IsEmpty || numCards > 1) {
             return false
         }
@@ -231,7 +231,7 @@ local cover = {
 
 local deck = Sol.copy(cover)
 deck.Info.Name = "Deck"
-deck.do_deal <- @(game) Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, false)
+deck.deal <- @(game) Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, false)
 deck.get_state = function(game) {
     if (game.Foundation[0].CardCount == 48) {
         return "Success"

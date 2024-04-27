@@ -24,7 +24,7 @@ local auld_lang_syne                = {
         }
     },
     on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation,
-    do_deal           = Sol.Ops.Deal.stock_to_tableau,
+    deal              = Sol.Ops.Deal.stock_to_tableau,
     on_init           = Sol.Layout.klondike
 }
 
@@ -46,7 +46,7 @@ tam_o_shanter.on_before_shuffle     = nil
 local acquaintance                  = Sol.copy(auld_lang_syne)
 acquaintance.Info.Name              = "Acquaintance"
 acquaintance.Info.Redeals           = 2
-acquaintance.do_redeal              = function(game)
+acquaintance.redeal                 = function(game)
     local stock = game.Stock[1]
     if not stock.IsEmpty then return false end
 

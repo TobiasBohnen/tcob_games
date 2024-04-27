@@ -47,7 +47,7 @@ local four_seasons = {
             }
         end
     },
-    do_deal = Sol.Ops.Deal.stock_to_waste
+    deal = Sol.Ops.Deal.stock_to_waste
 }
 
 ------
@@ -103,7 +103,7 @@ local corners = {
 
         return false
     end,
-    do_deal = Sol.Ops.Deal.stock_to_waste,
+    deal = Sol.Ops.Deal.stock_to_waste,
     on_end_turn = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
 }
 
@@ -153,7 +153,7 @@ local simplicity = {
             }
         end
     },
-    do_deal = Sol.Ops.Deal.stock_to_waste
+    deal = Sol.Ops.Deal.stock_to_waste
 }
 
 ------------------------

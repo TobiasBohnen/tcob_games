@@ -218,7 +218,7 @@ local agnes_bernauer            = {
         end
     },
     on_init    = function(game) Sol.Layout.raglan(game, 2) end,
-    do_deal    = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Reserve, false) end
+    deal    = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Reserve, false) end
 }
 
 ------

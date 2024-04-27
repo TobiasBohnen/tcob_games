@@ -4,29 +4,29 @@
 -- https://opensource.org/licenses/MIT
 
 local numerica                   = {
-    Info           = {
+    Info        = {
         Name      = "Numerica",
         Family    = "Numerica",
         DeckCount = 1
     },
-    Stock          = {
+    Stock       = {
         Initial = Sol.Initial.face_down(51)
     },
-    Waste          = {
+    Waste       = {
         Initial = Sol.Initial.face_up(1)
     },
-    Foundation     = {
+    Foundation  = {
         Size = 4,
         Pile = { Rule = Sol.Rules.ace_uprank_top }
     },
-    Tableau        = {
+    Tableau     = {
         Size = 4,
         Pile = {
             Layout = "Column",
             Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.Any(), Move = Sol.Rules.Move.Top() }
         }
     },
-    check_playable = function(game, targetPile, targetCardIndex, card, numCards)
+    can_play    = function(game, targetPile, targetCardIndex, card, numCards)
         if targetPile.Type == "Tableau" then
             local srcPile = game:find_pile(card)
             if srcPile.Type ~= "Waste" then return false end
@@ -34,14 +34,14 @@ local numerica                   = {
 
         return game:can_play(targetPile, targetCardIndex, card, numCards)
     end,
-    on_end_turn    = function(game)
+    on_end_turn = function(game)
         local waste = game.Waste[1]
 
         if waste.IsEmpty then
             Sol.Ops.Deal.stock_to_waste(game)
         end
     end,
-    on_init        = Sol.Layout.klondike
+    on_init     = Sol.Layout.klondike
 }
 
 ------

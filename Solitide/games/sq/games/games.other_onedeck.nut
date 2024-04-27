@@ -111,7 +111,7 @@ local carpet = {
         }
     },
     on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation,
-    do_deal = Sol.Ops.Deal.stock_to_waste
+    deal = Sol.Ops.Deal.stock_to_waste
 }
 
 ////////////////////////

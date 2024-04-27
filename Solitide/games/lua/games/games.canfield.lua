@@ -34,8 +34,8 @@ local canfield                      = {
         }
     },
     on_end_turn = function(game) Sol.Ops.Deal.to_group(game.Reserve[1], game.Tableau, true) end,
-    do_redeal   = Sol.Ops.Redeal.waste_to_stock,
-    do_deal     = Sol.Ops.Deal.stock_to_waste_by_3,
+    redeal      = Sol.Ops.Redeal.waste_to_stock,
+    deal        = Sol.Ops.Deal.stock_to_waste_by_3,
     on_init     = Sol.Layout.canfield
 }
 
@@ -44,7 +44,7 @@ local canfield                      = {
 local canfield_rush                 = Sol.copy(canfield)
 canfield_rush.Info.Name             = "Canfield Rush"
 canfield_rush.Info.Redeals          = 2
-canfield_rush.do_deal               = Sol.Ops.Deal.stock_to_waste_by_redeals_left
+canfield_rush.deal                  = Sol.Ops.Deal.stock_to_waste_by_redeals_left
 
 ------
 
@@ -102,7 +102,7 @@ acme.Tableau.Pile                   = {
     Rule = Sol.Rules.any_downsuit_top
 }
 acme.on_before_shuffle              = Sol.Ops.Shuffle.ace_to_foundation
-acme.do_deal                        = Sol.Ops.Deal.stock_to_waste
+acme.deal                           = Sol.Ops.Deal.stock_to_waste
 
 ------
 
@@ -124,7 +124,7 @@ american_toad.Tableau               = {
         Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownInSuit(true), Move = Sol.Rules.Move.TopOrPile() }
     }
 }
-american_toad.do_deal               = Sol.Ops.Deal.stock_to_waste
+american_toad.deal                  = Sol.Ops.Deal.stock_to_waste
 
 ------
 
@@ -169,7 +169,7 @@ chameleon.Tableau                   = {
         Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.TopOrPile() }
     }
 }
-chameleon.do_deal                   = Sol.Ops.Deal.stock_to_waste
+chameleon.deal                      = Sol.Ops.Deal.stock_to_waste
 
 ------
 
@@ -239,8 +239,8 @@ local eagle_wing                    = {
         Sol.Ops.Deal.to_group(game.Reserve[1], game.Tableau, true)
         game.Reserve[1]:flip_down_top_card()
     end,
-    do_redeal   = Sol.Ops.Redeal.waste_to_stock,
-    do_deal     = Sol.Ops.Deal.stock_to_waste
+    redeal      = Sol.Ops.Redeal.waste_to_stock,
+    deal        = Sol.Ops.Deal.stock_to_waste
 }
 
 ------
@@ -295,7 +295,7 @@ minerva.Tableau                     = {
     }
 }
 minerva.on_end_turn                 = nil
-minerva.do_deal                     = Sol.Ops.Deal.stock_to_waste
+minerva.deal                        = Sol.Ops.Deal.stock_to_waste
 
 ------
 
@@ -337,14 +337,14 @@ rainbow.Tableau.Pile                = {
     Layout = "Column",
     Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.TopOrPile() }
 }
-rainbow.do_deal                     = Sol.Ops.Deal.stock_to_waste
+rainbow.deal                        = Sol.Ops.Deal.stock_to_waste
 
 ------
 
 local rainfall                      = Sol.copy(canfield)
 rainfall.Info.Name                  = "Rainfall"
 rainfall.Info.Redeals               = 2
-rainfall.do_deal                    = Sol.Ops.Deal.stock_to_waste
+rainfall.deal                       = Sol.Ops.Deal.stock_to_waste
 
 ------
 
@@ -356,7 +356,7 @@ storehouse.Tableau.Pile             = {
     Layout = "Column",
     Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownInSuit(true), Move = Sol.Rules.Move.TopOrPile() }
 }
-storehouse.do_deal                  = Sol.Ops.Deal.stock_to_waste
+storehouse.deal                     = Sol.Ops.Deal.stock_to_waste
 
 ------
 

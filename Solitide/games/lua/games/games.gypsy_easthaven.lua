@@ -25,7 +25,7 @@ local easthaven                  = {
         }
     },
     on_init    = Sol.Layout.klondike,
-    do_deal    = Sol.Ops.Deal.stock_to_tableau
+    deal    = Sol.Ops.Deal.stock_to_tableau
 }
 
 ------

@@ -28,7 +28,7 @@ local lexington_harp       = {
         end
     },
     on_init    = Sol.Layout.gypsy,
-    do_deal    = Sol.Ops.Deal.stock_to_tableau
+    deal    = Sol.Ops.Deal.stock_to_tableau
 }
 
 ------

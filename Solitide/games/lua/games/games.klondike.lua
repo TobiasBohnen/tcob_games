@@ -26,8 +26,8 @@ local klondike                     = {
             }
         end
     },
-    do_redeal  = Sol.Ops.Redeal.waste_to_stock,
-    do_deal    = Sol.Ops.Deal.stock_to_waste,
+    redeal     = Sol.Ops.Redeal.waste_to_stock,
+    deal       = Sol.Ops.Deal.stock_to_waste,
     on_init    = Sol.Layout.klondike
 }
 
@@ -36,7 +36,7 @@ local klondike                     = {
 local klondike_by_3s               = Sol.copy(klondike)
 klondike_by_3s.Info.Name           = "Klondike by Threes"
 klondike_by_3s.Waste.Layout        = "Fan"
-klondike_by_3s.do_deal             = Sol.Ops.Deal.stock_to_waste_by_3
+klondike_by_3s.deal                = Sol.Ops.Deal.stock_to_waste_by_3
 
 ------
 
@@ -52,7 +52,7 @@ double_klondike.on_init            = Sol.Layout.big_harp
 
 local double_klondike_by_3s        = Sol.copy(double_klondike)
 double_klondike_by_3s.Info.Name    = "Double Klondike by Threes"
-double_klondike_by_3s.do_deal      = Sol.Ops.Deal.stock_to_waste_by_3
+double_klondike_by_3s.deal         = Sol.Ops.Deal.stock_to_waste_by_3
 
 ------
 
@@ -68,7 +68,7 @@ triple_klondike.on_init            = Sol.Layout.big_harp
 
 local triple_klondike_by_3s        = Sol.copy(triple_klondike)
 triple_klondike_by_3s.Info.Name    = "Triple Klondike by Threes"
-triple_klondike_by_3s.do_deal      = Sol.Ops.Deal.stock_to_waste_by_3
+triple_klondike_by_3s.deal         = Sol.Ops.Deal.stock_to_waste_by_3
 
 ------
 
@@ -84,7 +84,7 @@ quadruple_klondike.on_init         = Sol.Layout.big_harp
 
 local quadruple_klondike_by_3s     = Sol.copy(quadruple_klondike)
 quadruple_klondike_by_3s.Info.Name = "Quadruple Klondike by Threes"
-quadruple_klondike_by_3s.do_deal   = Sol.Ops.Deal.stock_to_waste_by_3
+quadruple_klondike_by_3s.deal      = Sol.Ops.Deal.stock_to_waste_by_3
 
 ------
 
@@ -129,8 +129,8 @@ local big_deal                     = {
             }
         end
     },
-    do_redeal  = Sol.Ops.Redeal.waste_to_stock,
-    do_deal    = Sol.Ops.Deal.stock_to_waste,
+    redeal     = Sol.Ops.Redeal.waste_to_stock,
+    deal       = Sol.Ops.Deal.stock_to_waste,
 }
 
 ------
@@ -179,7 +179,7 @@ inquisitor.Tableau.Pile            = function(i)
         Rule = Sol.Rules.any_downsuit_inseq
     }
 end
-inquisitor.do_deal                 = Sol.Ops.Deal.stock_to_waste_by_3
+inquisitor.deal                    = Sol.Ops.Deal.stock_to_waste_by_3
 
 ------
 
@@ -193,7 +193,7 @@ lady_jane.Tableau.Pile             = function(i)
         Rule = Sol.Rules.spider
     }
 end
-lady_jane.do_deal                  = Sol.Ops.Deal.stock_to_waste_by_3
+lady_jane.deal                     = Sol.Ops.Deal.stock_to_waste_by_3
 
 ------
 
@@ -246,7 +246,7 @@ local tasmanian_patience           = Sol.copy(australian_patience)
 tasmanian_patience.Info.Name       = "Tasmanian Patience"
 --tasmanian_patience.Info.Family = "Klondike/Yukon"
 tasmanian_patience.Info.Redeals    = -1
-tasmanian_patience.do_deal         = Sol.Ops.Deal.stock_to_waste_by_3
+tasmanian_patience.deal            = Sol.Ops.Deal.stock_to_waste_by_3
 
 ------
 
@@ -414,8 +414,8 @@ local eight_by_eight               = {
             }
         end
     },
-    do_redeal  = Sol.Ops.Redeal.waste_to_stock,
-    do_deal    = Sol.Ops.Deal.stock_to_waste,
+    redeal     = Sol.Ops.Redeal.waste_to_stock,
+    deal       = Sol.Ops.Deal.stock_to_waste,
     on_init    = Sol.Layout.big_harp
 }
 
@@ -435,7 +435,7 @@ eight_by_eight2.Tableau            = {
         Rule = { Base = Sol.Rules.Base.AnySingle(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.InSeq() }
     }
 }
-eight_by_eight2.do_deal            = Sol.Ops.Deal.stock_to_waste_by_redeals_left
+eight_by_eight2.deal               = Sol.Ops.Deal.stock_to_waste_by_redeals_left
 
 ------
 
@@ -464,7 +464,7 @@ eight_sages.Tableau                = {
         Rule = Sol.Rules.any_downac_top
     }
 }
-eight_sages.check_playable         = function(game, targetPile, targetCardIndex, card, numCards)
+eight_sages.can_play               = function(game, targetPile, targetCardIndex, card, numCards)
     if targetPile.Type == "Tableau" then
         local srcPile = game:find_pile(card)
         if srcPile.Type ~= "Waste" then
@@ -543,8 +543,8 @@ local guardian                     = {
             return tab
         end
     },
-    do_redeal   = Sol.Ops.Redeal.waste_to_stock,
-    do_deal     = Sol.Ops.Deal.stock_to_waste_by_3,
+    redeal      = Sol.Ops.Redeal.waste_to_stock,
+    deal        = Sol.Ops.Deal.stock_to_waste_by_3,
     on_end_turn = function(game)
         for tabIdx = 1, 7 do
             local pile = game.Tableau[tabIdx]
@@ -564,7 +564,7 @@ local guardian                     = {
 local gold_rush                    = Sol.copy(klondike_by_3s)
 gold_rush.Info.Name                = "Gold Rush"
 gold_rush.Info.Redeals             = 2
-gold_rush.do_deal                  = Sol.Ops.Deal.stock_to_waste_by_redeals_left
+gold_rush.deal                     = Sol.Ops.Deal.stock_to_waste_by_redeals_left
 
 ------
 
@@ -816,7 +816,7 @@ local spike                        = {
             }
         end
     },
-    do_deal    = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Waste, false) end
+    deal       = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Waste, false) end
 }
 
 ------
@@ -953,7 +953,7 @@ local usk                   = {
             }
         end
     },
-    do_redeal  = usk_redeal,
+    redeal     = usk_redeal,
     on_init    = Sol.Layout.canister
 }
 
@@ -1078,8 +1078,8 @@ local doorway               = {
             }
         end
     },
-    do_redeal  = Sol.Ops.Redeal.waste_to_stock,
-    do_deal    = Sol.Ops.Deal.stock_to_waste
+    redeal     = Sol.Ops.Redeal.waste_to_stock,
+    deal       = Sol.Ops.Deal.stock_to_waste
 }
 
 

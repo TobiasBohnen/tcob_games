@@ -25,8 +25,8 @@ local forty_thieves                 = {
             Rule = Sol.Rules.any_downsuit_top
         }
     },
-    do_deal = Sol.Ops.Deal.stock_to_waste,
-    do_redeal = Sol.Ops.Redeal.waste_to_stock,
+    deal = Sol.Ops.Deal.stock_to_waste,
+    redeal = Sol.Ops.Redeal.waste_to_stock,
     on_init = Sol.Layout.forty_thieves
 }
 
@@ -278,7 +278,7 @@ indian.Tableau.Pile.Rule          = Sol.Rules.any_downabos_top
 
 local indian_patience             = Sol.copy(indian)
 indian_patience.Info.Name         = "Indian Patience"
-indian_patience.check_playable    = function(game, targetPile, targetCardIndex, card, numCards)
+indian_patience.can_play          = function(game, targetPile, targetCardIndex, card, numCards)
     if numCards > 1 then return false end
 
     if not game.Stock.IsEmpty then
@@ -352,7 +352,7 @@ little_forty.Info.Name            = "Little Forty"
 little_forty.Info.Redeals         = 3
 little_forty.Tableau.Pile.Rule    = Sol.Rules.spider
 little_forty.on_end_turn          = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
-little_forty.do_deal              = Sol.Ops.Deal.stock_to_waste_by_3
+little_forty.deal                 = Sol.Ops.Deal.stock_to_waste_by_3
 
 ------
 
@@ -474,7 +474,7 @@ napoleons_shoulder.Tableau        = {
         Rule = Sol.Rules.any_downrank_top
     }
 }
-napoleons_shoulder.check_playable = function(game, targetPile, targetCardIndex, card, numCards)
+napoleons_shoulder.can_play       = function(game, targetPile, targetCardIndex, card, numCards)
     -- empty tableau can only be filled from waste
     if targetPile.IsEmpty and targetPile.Type == "Tableau" then
         return game:find_pile(card).Type == "Waste"

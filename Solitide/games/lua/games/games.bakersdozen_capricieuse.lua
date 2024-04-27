@@ -25,7 +25,7 @@ local capricieuse              = {
             Rule = Sol.Rules.any_updownsuit_top
         }
     },
-    do_redeal         = function(game)
+    redeal            = function(game)
         local tableau = game.Tableau
         local cards = Sol.shuffle_piles(game, { tableau })
         if #cards == 0 then return false end
@@ -87,7 +87,7 @@ cruel.Tableau                  = {
     }
 }
 cruel.on_before_shuffle        = Sol.Ops.Shuffle.ace_to_foundation
-cruel.do_redeal                = function(game)
+cruel.redeal                   = function(game)
     local cards = {}
 
     local tableau = game.Tableau

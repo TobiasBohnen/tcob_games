@@ -51,7 +51,7 @@ local golf                                = {
             Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
         }
     },
-    do_deal    = function(game)
+    deal       = function(game)
         return Sol.Ops.Deal.to_pile(game.Stock[1], game.Foundation[1], 1)
     end,
     get_state  = golf_check_state,
@@ -254,8 +254,8 @@ local robert                              = {
         Layout   = "Squared",
         Rule     = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.None() }
     },
-    do_deal    = Sol.Ops.Deal.stock_to_waste,
-    do_redeal  = Sol.Ops.Redeal.waste_to_stock
+    deal       = Sol.Ops.Deal.stock_to_waste,
+    redeal     = Sol.Ops.Redeal.waste_to_stock
 }
 
 ------
@@ -263,7 +263,7 @@ local robert                              = {
 local wasatch                             = Sol.copy(robert)
 wasatch.Info.Name                         = "Wasatch"
 wasatch.Info.Redeals                      = -1
-wasatch.do_deal                           = Sol.Ops.Deal.stock_to_waste_by_3
+wasatch.deal                              = Sol.Ops.Deal.stock_to_waste_by_3
 
 ------
 
@@ -316,8 +316,8 @@ local uintah                              = {
             }
         end
     },
-    do_deal           = Sol.Ops.Deal.stock_to_waste_by_3,
-    do_redeal         = Sol.Ops.Redeal.waste_to_stock,
+    deal              = Sol.Ops.Deal.stock_to_waste_by_3,
+    redeal            = Sol.Ops.Redeal.waste_to_stock,
     on_before_shuffle = function(game, card)
         if card.Suit == "Clubs" then
             return game.PlaceTop(card, game.Foundation[1], true)

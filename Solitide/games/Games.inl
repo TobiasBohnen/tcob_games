@@ -71,7 +71,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
         return game->base_game::can_play(*targetPile, targetIndex + IndexOffset, card, numCards);
     };
     gameWrapper["play_card"] = [](base_game* game, pile* to, card& card) {
-        if (game->base_game::can_play(*to, std::ssize(to->Cards) - 1, card, 1)) { // skip script check_playable here
+        if (game->base_game::can_play(*to, std::ssize(to->Cards) - 1, card, 1)) { // skip script can_play here
             card.flip_face_up();
             to->Cards.emplace_back(card);
             return true;
@@ -269,15 +269,15 @@ inline script_game<Table, Function, IndexOffset>::script_game(game_info info, Ta
     , _table {std::move(table)}
 {
     make_piles(_table);
-    _table.try_get(_callbacks.DoRedeal, "do_redeal");
-    _table.try_get(_callbacks.DoDeal, "do_deal");
+    _table.try_get(_callbacks.Redeal, "redeal");
+    _table.try_get(_callbacks.Deal, "deal");
     _table.try_get(_callbacks.OnBeforeShuffle, "on_before_shuffle");
     _table.try_get(_callbacks.OnShuffle, "on_shuffle");
     _table.try_get(_callbacks.OnAfterShuffle, "on_after_shuffle");
     _table.try_get(_callbacks.OnInit, "on_init");
     _table.try_get(_callbacks.OnDrop, "on_drop");
     _table.try_get(_callbacks.OnEndTurn, "on_end_turn");
-    _table.try_get(_callbacks.CheckPlayable, "check_playable");
+    _table.try_get(_callbacks.CanPlay, "can_play");
     _table.try_get(_callbacks.GetState, "get_state");
     _table.try_get(_callbacks.GetShuffled, "get_shuffled");
 }
@@ -285,8 +285,8 @@ inline script_game<Table, Function, IndexOffset>::script_game(game_info info, Ta
 template <typename Table, template <typename> typename Function, isize IndexOffset>
 inline auto script_game<Table, Function, IndexOffset>::can_play(pile const& targetPile, isize targetCardIndex, card const& card, isize numCards) const -> bool
 {
-    if (_callbacks.CheckPlayable) {
-        return (*_callbacks.CheckPlayable)(static_cast<base_game const*>(this), &targetPile, targetCardIndex - IndexOffset, card, numCards);
+    if (_callbacks.CanPlay) {
+        return (*_callbacks.CanPlay)(static_cast<base_game const*>(this), &targetPile, targetCardIndex - IndexOffset, card, numCards);
     }
     return base_game::can_play(targetPile, targetCardIndex, card, numCards);
 }
@@ -294,8 +294,8 @@ inline auto script_game<Table, Function, IndexOffset>::can_play(pile const& targ
 template <typename Table, template <typename> typename Function, isize IndexOffset>
 inline auto script_game<Table, Function, IndexOffset>::do_redeal() -> bool
 {
-    if (_callbacks.DoRedeal) {
-        return (*_callbacks.DoRedeal)(static_cast<base_game const*>(this));
+    if (_callbacks.Redeal) {
+        return (*_callbacks.Redeal)(static_cast<base_game const*>(this));
     }
     return false;
 }
@@ -303,8 +303,8 @@ inline auto script_game<Table, Function, IndexOffset>::do_redeal() -> bool
 template <typename Table, template <typename> typename Function, isize IndexOffset>
 inline auto script_game<Table, Function, IndexOffset>::do_deal() -> bool
 {
-    if (_callbacks.DoDeal) {
-        return (*_callbacks.DoDeal)(static_cast<base_game const*>(this));
+    if (_callbacks.Deal) {
+        return (*_callbacks.Deal)(static_cast<base_game const*>(this));
     }
     return false;
 }

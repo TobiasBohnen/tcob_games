@@ -46,8 +46,8 @@ local duke               = {
             }
         end
     },
-    do_redeal  = Sol.Ops.Redeal.waste_to_stock,
-    do_deal    = Sol.Ops.Deal.stock_to_waste
+    redeal     = Sol.Ops.Redeal.waste_to_stock,
+    deal       = Sol.Ops.Deal.stock_to_waste
 }
 
 ------
@@ -69,7 +69,7 @@ dutchess.Tableau.Pile    = function(i)
         Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAlternateColors(), Move = Sol.Rules.Move.InSeq() }
     }
 end
-dutchess.check_playable  = function(game, targetPile, targetCardIndex, card, numCards)
+dutchess.can_play        = function(game, targetPile, targetCardIndex, card, numCards)
     local srcPile = game:find_pile(card)
     if game.Foundation[1].IsEmpty then
         return srcPile.Type == "Reserve" and targetPile == game.Foundation[1]
@@ -90,7 +90,7 @@ dutchess.check_playable  = function(game, targetPile, targetCardIndex, card, num
 
     return game:can_play(targetPile, targetCardIndex, card, numCards)
 end
-dutchess.do_deal         = function(game)
+dutchess.deal            = function(game)
     if game.Foundation[1].IsEmpty then return false end
     return Sol.Ops.Deal.stock_to_waste(game)
 end

@@ -317,17 +317,17 @@ end
 ------
 
 local club                        = {
-    Info           = {
+    Info       = {
         Name      = "Club",
         Family    = "Fan",
         DeckCount = 2
     },
-    Stock          = {
+    Stock      = {
         Position = { x = 0, y = 0 },
         Initial = Sol.Initial.face_down(71)
     },
-    Waste          = { Position = { x = 1, y = 0 } },
-    Foundation     = {
+    Waste      = { Position = { x = 1, y = 0 } },
+    Foundation = {
         Size = 8,
         Pile = function(i)
             return {
@@ -336,7 +336,7 @@ local club                        = {
             }
         end
     },
-    Tableau        = {
+    Tableau    = {
         Size = 11,
         Pile = function(i)
             local pos = {}
@@ -353,7 +353,7 @@ local club                        = {
             }
         end
     },
-    check_playable = function(game, targetPile, targetCardIndex, card, numCards)
+    can_play   = function(game, targetPile, targetCardIndex, card, numCards)
         if targetPile.Type == "Tableau" then
             -- first tableau row can't be played to row 2 and 3 tableau piles
             local srcPile = game:find_pile(card)
@@ -364,7 +364,7 @@ local club                        = {
 
         return game:can_play(targetPile, targetCardIndex, card, numCards)
     end,
-    do_deal        = Sol.Ops.Deal.stock_to_waste
+    deal       = Sol.Ops.Deal.stock_to_waste
 }
 
 ------
@@ -407,7 +407,7 @@ local crescent                    = {
 
         return false
     end,
-    do_redeal         = function(game)
+    redeal            = function(game)
         for _, tableau in ipairs(game.Tableau) do
             if tableau.CardCount > 1 then
                 tableau:move_card(1, tableau.CardCount)
@@ -447,7 +447,7 @@ local fascination_fan             = {
             }
         end
     },
-    do_redeal = function(game)
+    redeal = function(game)
         local tableau = game.Tableau
         local cards = Sol.shuffle_piles(game, { tableau })
         if #cards == 0 then return false end
@@ -515,7 +515,7 @@ local forest_glade                = {
             }
         end
     },
-    do_deal = function(game)
+    deal = function(game)
         local tableau = game.Tableau
         local stock = game.Stock[1]
 
@@ -531,7 +531,7 @@ local forest_glade                = {
 
         return false
     end,
-    do_redeal = function(game)
+    redeal = function(game)
         local tableau = game.Tableau
         local stock = game.Stock[1]
 
@@ -660,7 +660,7 @@ local intelligence                = {
 
         return false
     end,
-    do_redeal        = function(game)
+    redeal           = function(game)
         local tableau = game.Tableau
         local stock = game.Stock[1]
         local foundation = game.Foundation
@@ -741,7 +741,7 @@ local la_belle_lucie              = {
             }
         end
     },
-    do_redeal  = function(game)
+    redeal     = function(game)
         local tableau = game.Tableau
 
         -- shuffle

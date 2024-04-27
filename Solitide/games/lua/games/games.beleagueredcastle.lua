@@ -344,7 +344,7 @@ local rittenhouse              = {
             if not check then break end
         end
     end,
-    check_playable    = function(game, targetPile, targetCardIndex, card, numCards)
+    can_play          = function(game, targetPile, targetCardIndex, card, numCards)
         if targetPile.Type == "Foundation" then
             local dstPileIdx = game:get_pile_index(targetPile)
             local srcPileIdx = game:get_pile_index(game:find_pile(card))
@@ -363,16 +363,16 @@ local rittenhouse              = {
 ------
 
 local selective_castle         = {
-    Info           = {
+    Info       = {
         Name      = "Selective Castle",
         Family    = "BeleagueredCastle",
         DeckCount = 1
     },
-    Foundation     = {
+    Foundation = {
         Size = 4,
         Pile = { Rule = Sol.Rules.ff_upsuit_none_l13 }
     },
-    Tableau        = {
+    Tableau    = {
         Size = 8,
         Pile = function(i)
             return {
@@ -382,7 +382,7 @@ local selective_castle         = {
             }
         end
     },
-    check_playable = function(game, targetPile, targetCardIndex, card, numCards)
+    can_play   = function(game, targetPile, targetCardIndex, card, numCards)
         local foundation1 = game.Foundation[1]
         if foundation1.IsEmpty and targetPile == foundation1 then -- allow any card on first foundation
             return true
@@ -390,7 +390,7 @@ local selective_castle         = {
 
         return game:can_play(targetPile, targetCardIndex, card, numCards)
     end,
-    on_init        = Sol.Layout.beleaguered_castle
+    on_init    = Sol.Layout.beleaguered_castle
 }
 
 ------
@@ -421,24 +421,24 @@ local streets_and_alleys       = {
 ------
 
 local zerline                  = {
-    Info           = {
+    Info       = {
         Name      = "Zerline",
         Family    = "BeleagueredCastle",
         DeckCount = 2
     },
-    Stock          = {
+    Stock      = {
         Position = { x = 3, y = 0 },
         Initial = Sol.Initial.face_down(64)
     },
-    Waste          = {
+    Waste      = {
         Position = { x = 4, y = 0 }
     },
-    FreeCell       = {
+    FreeCell   = {
         Position = { x = 5, y = 0 },
         Layout = "Row",
         Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.Any(), Move = Sol.Rules.Move.Top(), Limit = 4 }
     },
-    Foundation     = {
+    Foundation = {
         Size = 8,
         Pile = function(i)
             return {
@@ -447,7 +447,7 @@ local zerline                  = {
             }
         end
     },
-    Tableau        = {
+    Tableau    = {
         Size = 8,
         Pile = function(i)
             local rule = { Base = Sol.Rules.Base.Ranks({ "Queen" }), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.Top() }
@@ -468,8 +468,8 @@ local zerline                  = {
             end
         end
     },
-    do_deal        = Sol.Ops.Deal.stock_to_waste,
-    check_playable = function(game, targetPile, targetCardIndex, card, numCards)
+    deal       = Sol.Ops.Deal.stock_to_waste,
+    can_play   = function(game, targetPile, targetCardIndex, card, numCards)
         if targetPile.Type == "FreeCell" then
             local srcPile = game:find_pile(card)
             if srcPile.Type == "Tableau" then

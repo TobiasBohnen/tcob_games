@@ -56,7 +56,7 @@ local spider                        = {
         end
     },
     on_end_turn = spider_check_and_move,
-    do_deal     = function(game)
+    deal     = function(game)
         for _, tableau in ipairs(game.Tableau) do
             if tableau.IsEmpty then return false end
         end
@@ -178,7 +178,7 @@ grounds_for_a_divorce.Tableau.Pile  = {
     Layout  = "Column",
     Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.InSeqInSuit() }
 }
-grounds_for_a_divorce.do_deal       = function(game)
+grounds_for_a_divorce.deal       = function(game)
     local stock = game.Stock[1]
     if stock.IsEmpty then return false end
 
@@ -241,7 +241,7 @@ end
 
 local relaxed_spider            = Sol.copy(spider)
 relaxed_spider.Info.Name        = "Relaxed Spider"
-relaxed_spider.do_deal          = Sol.Ops.Deal.stock_to_tableau
+relaxed_spider.deal          = Sol.Ops.Deal.stock_to_tableau
 
 ------
 

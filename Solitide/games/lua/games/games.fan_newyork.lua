@@ -4,17 +4,17 @@
 -- https://opensource.org/licenses/MIT
 
 local new_york         = {
-    Info           = {
+    Info       = {
         Name      = "New York",
         Family    = "Fan",
         DeckCount = 2
     },
-    Reserve        = {
+    Reserve    = {
         Position = { x = 0, y = 0 },
         Initial = Sol.Initial.top_face_up(95),
         Rule = Sol.Rules.none_none_top
     },
-    FreeCell       = {
+    FreeCell   = {
         Size = 3,
         Pile = function(i)
             return {
@@ -23,7 +23,7 @@ local new_york         = {
             }
         end
     },
-    Foundation     = {
+    Foundation = {
         Size = 8,
         Pile = function(i)
             return {
@@ -33,7 +33,7 @@ local new_york         = {
             }
         end
     },
-    Tableau        = {
+    Tableau    = {
         Size = 8,
         Pile = function(i)
             return {
@@ -44,7 +44,7 @@ local new_york         = {
             }
         end
     },
-    check_playable = function(game, targetPile, targetCardIndex, card, numCards)
+    can_play   = function(game, targetPile, targetCardIndex, card, numCards)
         if targetPile.Type == "FreeCell" then -- freecells only accept reserve cards
             if game:find_pile(card).Type ~= "Reserve" then return false end
         end
@@ -66,7 +66,7 @@ gotham.Tableau.Pile    = function(i)
         Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.InSeq() }
     }
 end
-gotham.check_playable  = function(game, targetPile, targetCardIndex, card, numCards)
+gotham.can_play        = function(game, targetPile, targetCardIndex, card, numCards)
     local srcPile = game:find_pile(card)
 
     if targetPile.Type == "FreeCell" then -- freecells only accept reserve cards

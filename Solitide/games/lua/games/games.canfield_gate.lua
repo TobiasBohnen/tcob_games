@@ -56,7 +56,7 @@ local gate                = {
             end
         end
     end,
-    do_deal     = Sol.Ops.Deal.stock_to_waste
+    deal     = Sol.Ops.Deal.stock_to_waste
 }
 
 ------

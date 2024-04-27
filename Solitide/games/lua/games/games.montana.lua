@@ -48,7 +48,7 @@ local montana_base <const>    = {
         return true
     end,
 
-    check_playable = function(game, targetPile, card, ranks, mode)
+    can_play = function(game, targetPile, card, ranks, mode)
         local tableau = game.Tableau
 
         local check_left = function(leftTab)
@@ -113,15 +113,15 @@ local montana_base <const>    = {
 local montana_ranks <const>   = { table.unpack(Sol.Ranks, 2, 13) }
 
 local montana                 = {
-    Info           = {
+    Info       = {
         Name         = "Montana",
         Family       = "Montana",
         DeckCount    = 1,
         Redeals      = 2,
         DisableHints = true
     },
-    Stock          = {},
-    Tableau        = {
+    Stock      = {},
+    Tableau    = {
         Size = 52,
         Pile = {
             Position = {},
@@ -130,18 +130,18 @@ local montana                 = {
             Rule = Sol.Rules.none_none_top
         }
     },
-    on_shuffle     = function(_, card, _)
+    on_shuffle = function(_, card, _)
         return card.Rank == "Ace"
     end,
-    on_init        = function(game) Sol.Layout.montana(game, 13) end,
-    do_redeal      = function(game)
+    on_init    = function(game) Sol.Layout.montana(game, 13) end,
+    redeal     = function(game)
         return montana_base.redeal(game, montana_ranks)
     end,
-    get_state      = function(game)
+    get_state  = function(game)
         return montana_base.get_state(game, montana_ranks)
     end,
-    check_playable = function(game, targetPile, _, card, _)
-        return montana_base.check_playable(game, targetPile, card, montana_ranks, "l")
+    can_play   = function(game, targetPile, _, card, _)
+        return montana_base.can_play(game, targetPile, card, montana_ranks, "l")
     end
 }
 
@@ -156,8 +156,8 @@ double_montana.Tableau.Size   = 104
 
 local moonlight               = Sol.copy(montana)
 moonlight.Info.Name           = "Moonlight"
-moonlight.check_playable      = function(game, targetPile, _, card, _)
-    return montana_base.check_playable(game, targetPile, card, montana_ranks, "rl")
+moonlight.can_play            = function(game, targetPile, _, card, _)
+    return montana_base.can_play(game, targetPile, card, montana_ranks, "rl")
 end
 
 ------
@@ -176,15 +176,15 @@ local function blue_moon_shuffle(game, card, rows)
 end
 
 local blue_moon                   = {
-    Info           = {
+    Info       = {
         Name         = "Blue Moon",
         Family       = "Montana",
         DeckCount    = 1,
         Redeals      = 2,
         DisableHints = true
     },
-    Stock          = {},
-    Tableau        = {
+    Stock      = {},
+    Tableau    = {
         Size = 56,
         Pile = function(i)
             return {
@@ -194,19 +194,19 @@ local blue_moon                   = {
             }
         end
     },
-    on_shuffle     = function(game, card, _)
+    on_shuffle = function(game, card, _)
         return blue_moon_shuffle(game, card, 4)
     end,
-    check_playable = function(game, targetPile, _, card, _)
-        return montana_base.check_playable(game, targetPile, card, blue_moon_ranks, "l")
+    can_play   = function(game, targetPile, _, card, _)
+        return montana_base.can_play(game, targetPile, card, blue_moon_ranks, "l")
     end,
-    do_redeal      = function(game)
+    redeal     = function(game)
         return montana_base.redeal(game, blue_moon_ranks)
     end,
-    get_state      = function(game)
+    get_state  = function(game)
         return montana_base.get_state(game, blue_moon_ranks)
     end,
-    on_init        = function(game) Sol.Layout.montana(game, 14) end
+    on_init    = function(game) Sol.Layout.montana(game, 14) end
 }
 
 ------
@@ -258,15 +258,15 @@ galary.on_before_shuffle          = function(game, card)
     return blue_moon.on_shuffle(game, card)
 end
 galary.on_shuffle                 = nil
-galary.check_playable             = function(game, targetPile, _, card, _)
-    return montana_base.check_playable(game, targetPile, card, blue_moon_ranks, "rl")
+galary.can_play                   = function(game, targetPile, _, card, _)
+    return montana_base.can_play(game, targetPile, card, blue_moon_ranks, "rl")
 end
 
 ------
 local paganini_ranks <const>      = { "Ace", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
 
 local paganini                    = {
-    Info           = {
+    Info       = {
         Name         = "Paganini",
         Family       = "Montana",
         DeckCount    = 1,
@@ -274,8 +274,8 @@ local paganini                    = {
         Redeals      = 1,
         DisableHints = true
     },
-    Stock          = {},
-    Tableau        = {
+    Stock      = {},
+    Tableau    = {
         Size = 40,
         Pile = function(i)
             return {
@@ -285,7 +285,7 @@ local paganini                    = {
             }
         end
     },
-    on_shuffle     = function(game, card, _)
+    on_shuffle = function(game, card, _)
         if card.Rank == "Ace" then
             return game.PlaceTop(card, game.Tableau, 1, 1, true)
                 or game.PlaceTop(card, game.Tableau, 11, 1, true)
@@ -295,37 +295,37 @@ local paganini                    = {
 
         return false
     end,
-    check_playable = function(game, targetPile, _, card, _)
-        return montana_base.check_playable(game, targetPile, card, paganini_ranks, "l")
+    can_play   = function(game, targetPile, _, card, _)
+        return montana_base.can_play(game, targetPile, card, paganini_ranks, "l")
     end,
-    do_redeal      = function(game)
+    redeal     = function(game)
         return montana_base.redeal(game, paganini_ranks)
     end,
-    get_state      = function(game)
+    get_state  = function(game)
         return montana_base.get_state(game, paganini_ranks)
     end,
-    on_init        = function(game) Sol.Layout.montana(game, 10) end
+    on_init    = function(game) Sol.Layout.montana(game, 10) end
 }
 
 ------
 local spoilt_ranks <const>        = { "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace" }
 
 local spoilt                      = {
-    Info           = {
+    Info        = {
         Name      = "Spoilt",
         Family    = "Montana",
         DeckCount = 1,
         DeckRanks = spoilt_ranks
     },
-    Stock          = {
+    Stock       = {
         Position = { x = 0, y = 1 },
         Initial = Sol.Initial.face_down(3)
     },
-    Waste          = {
+    Waste       = {
         Position = { x = 0, y = 2 },
         Initial = Sol.Initial.face_up(1)
     },
-    Tableau        = {
+    Tableau     = {
         Size = 32,
         Pile = function(i)
             return {
@@ -336,7 +336,7 @@ local spoilt                      = {
             }
         end
     },
-    on_end_turn    = function(game)
+    on_end_turn = function(game)
         local sevenCount = 0
         for i, tableau in ipairs(game.Tableau) do
             if tableau.CardCount == 2 then
@@ -358,7 +358,7 @@ local spoilt                      = {
             end
         end
     end,
-    check_playable = function(game, targetPile, _, card, _)
+    can_play    = function(game, targetPile, _, card, _)
         local tableau = game.Tableau
 
         --get suits per row
@@ -389,7 +389,7 @@ local spoilt                      = {
 
         return false
     end,
-    get_state      = function(game)
+    get_state   = function(game)
         if game.Stock[1].IsEmpty and game.Waste[1].IsEmpty then
             --check rank and suit
             local tableau = game.Tableau

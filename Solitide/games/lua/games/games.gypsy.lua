@@ -25,7 +25,7 @@ local gypsy                              = {
         }
     },
     on_init    = Sol.Layout.gypsy,
-    do_deal    = Sol.Ops.Deal.stock_to_tableau
+    deal       = Sol.Ops.Deal.stock_to_tableau
 }
 
 ------
@@ -123,7 +123,7 @@ churchill.Tableau                        = {
         }
     end
 }
-churchill.do_deal                        = function(game)
+churchill.deal                           = function(game)
     -- don't deal card on sequence with king as first card in pile
     local stock = game.Stock[1]
     local tableau = game.Tableau
@@ -147,7 +147,7 @@ churchill.do_deal                        = function(game)
     end
     return true
 end
-churchill.check_playable                 = function(game, targetPile, targetCardIndex, card, numCards)
+churchill.can_play                       = function(game, targetPile, targetCardIndex, card, numCards)
     -- reserve only to foundation
     if game:find_pile(card).Type == "Reserve" and targetPile.Type ~= "Foundation" then return false end
 
@@ -364,7 +364,7 @@ local cone                        = {
             }
         end
     },
-    do_deal    = function(game)
+    deal       = function(game)
         --check if tableau is empty
         local tableau = game.Tableau
         for _, tab in ipairs(tableau) do
@@ -428,7 +428,7 @@ local leprechaun                  = {
             game.Reserve[idx]:flip_up_top_card()
         end
     end,
-    do_deal    = Sol.Ops.Deal.stock_to_tableau
+    deal       = Sol.Ops.Deal.stock_to_tableau
 }
 
 ------
@@ -472,29 +472,29 @@ local milligan_cell               = {
             }
         end
     },
-    do_deal    = Sol.Ops.Deal.stock_to_tableau
+    deal       = Sol.Ops.Deal.stock_to_tableau
 }
 
 ------
 
 local miss_milligan               = {
-    Info           = {
+    Info       = {
         Name      = "Miss Milligan",
         Family    = "Gypsy",
         DeckCount = 2
     },
-    Stock          = {
+    Stock      = {
         Initial = Sol.Initial.face_down(96)
     },
-    FreeCell       = {
+    FreeCell   = {
         Layout = "Column",
         Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.FaceUp() }
     },
-    Foundation     = {
+    Foundation = {
         Size = 8,
         Pile = { Rule = Sol.Rules.ace_upsuit_none }
     },
-    Tableau        = {
+    Tableau    = {
         Size = 8,
         Pile = {
             Initial = Sol.Initial.top_face_up(1),
@@ -502,7 +502,7 @@ local miss_milligan               = {
             Rule = Sol.Rules.king_downac_inseq
         }
     },
-    check_playable = function(game, targetPile, targetCardIndex, card, numCards)
+    can_play   = function(game, targetPile, targetCardIndex, card, numCards)
         -- FreeCell is usable if Stock is empty
         if targetPile.Type == "FreeCell" and not game.Stock[1].IsEmpty then
             return false
@@ -510,8 +510,8 @@ local miss_milligan               = {
 
         return game:can_play(targetPile, targetCardIndex, card, numCards)
     end,
-    on_init        = Sol.Layout.canfield,
-    do_deal        = Sol.Ops.Deal.stock_to_tableau
+    on_init    = Sol.Layout.canfield,
+    deal       = Sol.Ops.Deal.stock_to_tableau
 }
 
 ------
@@ -548,7 +548,7 @@ local nomad                       = {
             }
         end
     },
-    do_deal    = Sol.Ops.Deal.stock_to_tableau,
+    deal       = Sol.Ops.Deal.stock_to_tableau,
     on_init    = Sol.Layout.canfield
 }
 
