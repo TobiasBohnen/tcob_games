@@ -117,20 +117,6 @@ big_courtyard.Foundation.Size       = 12
 
 ------
 
-local deuces                        = Sol.copy(forty_thieves)
-deuces.Info.Name                    = "Deuces"
-deuces.Stock.Initial                = Sol.Initial.face_down(86)
-deuces.Foundation.Pile.Rule         = { Base = Sol.Rules.Base.Ranks({ "Two" }), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top(), Limit = 13 }
-deuces.Tableau.Pile.Initial         = Sol.Initial.face_up(1)
-deuces.on_before_shuffle            = function(game, card)
-    if card.Rank == "Two" then
-        return game.PlaceTop(card, game.Foundation, true)
-    end
-    return false
-end
-
-------
-
 local delivery                      = Sol.copy(forty_thieves)
 delivery.Info.Name                  = "Delivery"
 delivery.Info.DeckCount             = 4
@@ -495,30 +481,51 @@ napoleons_square.Tableau          = {
     }
 }
 
-------
 
-local pluto                       = Sol.copy(forty_thieves)
-pluto.Info.Name                   = "Pluto"
-pluto.Stock.Initial               = Sol.Initial.face_down(92)
-pluto.Foundation.Pile.Rule        = { Base = Sol.Rules.Base.Ranks({ "Two" }), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top(), Limit = 13 }
-pluto.Tableau.Size                = 12
-pluto.Tableau.Pile.Initial        = Sol.Initial.face_up(1)
 
 ------
 
-local rows_of_four                = Sol.copy(forty_thieves)
-rows_of_four.Info.Name            = "Rows of Four"
-rows_of_four.Info.Redeals         = 2
-rows_of_four.Stock.Initial        = Sol.Initial.face_down(72)
-rows_of_four.Tableau.Size         = 8
-rows_of_four.Tableau.Rule         = Sol.Rules.any_downrank_top
+local pluto                     = Sol.copy(forty_thieves)
+pluto.Info.Name                 = "Pluto"
+pluto.Stock.Initial             = Sol.Initial.face_down(92)
+pluto.Foundation.Pile.Rule      = { Base = Sol.Rules.Base.Ranks({ "Two" }), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top(), Limit = 13 }
+pluto.Tableau                   = {
+    Size = 12,
+    Pile = {
+        Initial = Sol.Initial.face_up(1),
+        Layout = "Column",
+        Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownInSuit(true), Move = Sol.Rules.Move.Top() }
+    }
+}
 
 ------
 
-local san_juan_hill               = Sol.copy(forty_thieves)
-san_juan_hill.Info.Name           = "San Juan Hill"
-san_juan_hill.Stock.Initial       = Sol.Initial.face_down(56)
-san_juan_hill.on_before_shuffle   = Sol.Ops.Shuffle.ace_to_foundation
+local deuces                    = Sol.copy(pluto)
+deuces.Info.Name                = "Deuces"
+deuces.Stock.Initial            = Sol.Initial.face_down(86)
+deuces.Tableau.Size             = 10
+deuces.on_before_shuffle        = function(game, card)
+    if card.Rank == "Two" then
+        return game.PlaceTop(card, game.Foundation, true)
+    end
+    return false
+end
+
+------
+
+local rows_of_four              = Sol.copy(forty_thieves)
+rows_of_four.Info.Name          = "Rows of Four"
+rows_of_four.Info.Redeals       = 2
+rows_of_four.Stock.Initial      = Sol.Initial.face_down(72)
+rows_of_four.Tableau.Size       = 8
+rows_of_four.Tableau.Rule       = Sol.Rules.any_downrank_top
+
+------
+
+local san_juan_hill             = Sol.copy(forty_thieves)
+san_juan_hill.Info.Name         = "San Juan Hill"
+san_juan_hill.Stock.Initial     = Sol.Initial.face_down(56)
+san_juan_hill.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
 
 
 ------
