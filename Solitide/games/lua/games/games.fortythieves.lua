@@ -9,9 +9,7 @@ local forty_thieves                 = {
         Family    = "FortyThieves",
         DeckCount = 2
     },
-    Stock = {
-        Initial = Sol.Initial.face_down(64)
-    },
+    Stock = { Initial = Sol.Initial.face_down(64) },
     Waste = {},
     Foundation = {
         Size = 8,
@@ -122,7 +120,7 @@ big_courtyard.Foundation.Size       = 12
 local deuces                        = Sol.copy(forty_thieves)
 deuces.Info.Name                    = "Deuces"
 deuces.Stock.Initial                = Sol.Initial.face_down(86)
-deuces.Foundation.Pile.Rule         = { Base = Sol.Rules.Base.Ranks({ "Two" }), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top() }
+deuces.Foundation.Pile.Rule         = { Base = Sol.Rules.Base.Ranks({ "Two" }), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top(), Limit = 13 }
 deuces.Tableau.Pile.Initial         = Sol.Initial.face_up(1)
 deuces.on_before_shuffle            = function(game, card)
     if card.Rank == "Two" then
@@ -502,7 +500,7 @@ napoleons_square.Tableau          = {
 local pluto                       = Sol.copy(forty_thieves)
 pluto.Info.Name                   = "Pluto"
 pluto.Stock.Initial               = Sol.Initial.face_down(92)
-pluto.Foundation.Pile.Rule        = { Base = Sol.Rules.Base.Ranks({ "Two" }), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top() }
+pluto.Foundation.Pile.Rule        = { Base = Sol.Rules.Base.Ranks({ "Two" }), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top(), Limit = 13 }
 pluto.Tableau.Size                = 12
 pluto.Tableau.Pile.Initial        = Sol.Initial.face_up(1)
 
@@ -548,6 +546,7 @@ triple_line.Tableau                     = {
 triple_line.on_end_turn                 = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
 
 ------
+------
 
 local double_rail                       = Sol.copy(forty_thieves)
 double_rail.Info.Name                   = "Double Rail"
@@ -561,7 +560,6 @@ double_rail.Tableau                     = {
     }
 }
 
-------
 ------
 
 local single_rail                       = Sol.copy(double_rail)
@@ -704,6 +702,8 @@ unlimited.Info.Redeals                  = -1
 local forty_nine                        = Sol.copy(interchange)
 forty_nine.Info.Name                    = "Forty Nine"
 forty_nine.Tableau.Pile.Initial         = Sol.Initial.face_up(7)
+
+------
 
 ------------------------
 

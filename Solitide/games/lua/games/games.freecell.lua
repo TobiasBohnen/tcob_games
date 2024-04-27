@@ -116,7 +116,7 @@ local double_free_cell_2                    = Sol.copy(free_cell)
 double_free_cell_2.Info.Name                = "Double FreeCell II"
 double_free_cell_2.Info.DeckCount           = 2
 double_free_cell_2.FreeCell.Size            = 6
-double_free_cell_2.Foundation.Pile          = { Rule = { Base = Sol.Rules.Base.Ace(), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top() } }
+double_free_cell_2.Foundation.Pile          = { Rule = { Base = Sol.Rules.Base.Ace(), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top(), Limit = 13 } }
 double_free_cell_2.Tableau                  = {
     Size = 10,
     Pile = {

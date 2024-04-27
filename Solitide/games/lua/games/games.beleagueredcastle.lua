@@ -443,7 +443,7 @@ local zerline                  = {
         Pile = function(i)
             return {
                 Position = { x = i % 2 + 3.5, y = i // 2 + 1 },
-                Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top() }
+                Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top(), Limit = 13 }
             }
         end
     },
@@ -498,7 +498,7 @@ zerline_3_decks.Foundation     = {
     Pile = function(i)
         return {
             Position = { x = i % 3 + 3, y = i // 3 + 1 },
-            Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top() }
+            Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top(), Limit = 13 }
         }
     end
 }
