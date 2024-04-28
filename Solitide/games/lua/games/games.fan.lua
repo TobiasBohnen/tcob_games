@@ -410,7 +410,7 @@ local crescent                    = {
     redeal            = function(game)
         for _, tableau in ipairs(game.Tableau) do
             if tableau.CardCount > 1 then
-                tableau:move_card(1, tableau.CardCount)
+                tableau:shift_card(1, tableau.CardCount)
             end
         end
         return true

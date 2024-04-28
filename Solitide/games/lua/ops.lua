@@ -33,7 +33,7 @@ local shuffle = {
     -- after shuffle
     kings_to_bottom = function(game)
         for _, v in ipairs(game.Tableau) do
-            v:move_rank_to_bottom("King")
+            v:shift_rank_to_bottom("King")
         end
     end
 }

@@ -9,10 +9,10 @@ local rules = {
     end,
 
     in_color = function(card0, card1)
-        return Sol.SuitColors[card0.Suit] == Sol.SuitColors[card1.Suit]
+        return card0.Color == card1.Color
     end,
     alternate_color = function(card0, card1)
-        return Sol.SuitColors[card0.Suit] ~= Sol.SuitColors[card1.Suit]
+        return card0.Color ~= card1.Color
     end,
 
     in_rank = function(card0, card1)
@@ -316,9 +316,9 @@ local move = {
                 if cards[idx].IsFaceDown then return false end
 
                 for i = idx, #cards - 1 do
-                    local targetColor = Sol.SuitColors[cards[i].Suit]
+                    local targetColor = cards[i].Color
                     if not game:can_play(pile, i, cards[i + 1], 1)
-                        or Sol.SuitColors[cards[i + 1].Suit] == targetColor
+                        or cards[i + 1].Color == targetColor
                     then
                         return false
                     end
@@ -454,7 +454,7 @@ local base = {
         return {
             Hint = color .. " " .. rank,
             Func = function(_, card, _)
-                return card.Rank == rank and Sol.SuitColors[card.Suit] == color
+                return card.Rank == rank and card.Color == color
             end
         }
     end,

@@ -24,7 +24,7 @@ local montana_base <const>    = {
                     inOrder = inOrder and (tab.Cards[1].Rank == ranks[x])
                     if not inOrder then
                         cards[#cards + 1] = tab.Cards[1]
-                        tab:clear()
+                        tab:clear_cards()
                     end
                 end
             end

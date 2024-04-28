@@ -60,7 +60,7 @@ function Sol.shuffle_piles(game, pileGroups)
             for j = 1, #pileCards do
                 cards[#cards + 1] = pileCards[j]
             end
-            pile:clear()
+            pile:clear_cards()
         end
     end
 

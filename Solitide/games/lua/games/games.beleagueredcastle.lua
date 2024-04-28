@@ -321,10 +321,10 @@ local rittenhouse              = {
         while true do
             local check = false
             if dropIdx ~= 5 then
-                check = pile:play_card(foundation[dropIdx > 5 and dropIdx - 1 or dropIdx], game) or check
+                check = game:play_top_card(pile, foundation[dropIdx > 5 and dropIdx - 1 or dropIdx]) or check
             else
                 for _, fou in ipairs(foundation) do
-                    check = tableau[5]:play_card(fou, game) or check
+                    check = game:play_top_card(tableau[5], fou) or check
                 end
             end
             if not check then break end
@@ -335,11 +335,11 @@ local rittenhouse              = {
             local check = false
             for idx, tab in ipairs(tableau) do
                 if idx ~= 5 then
-                    check = tab:play_card(foundation[idx > 5 and idx - 1 or idx], game) or check
+                    check = game:play_top_card(tab, foundation[idx > 5 and idx - 1 or idx]) or check
                 end
             end
             for _, fou in ipairs(foundation) do
-                check = tableau[5]:play_card(fou, game) or check
+                check = game:play_top_card(tableau[5], fou, game) or check
             end
             if not check then break end
         end

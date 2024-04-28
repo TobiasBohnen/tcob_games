@@ -58,7 +58,7 @@ acquaintance.redeal                 = function(game)
         for j = #tabCards, 1, -1 do
             cards[#cards + 1] = tabCards[j]
         end
-        tab:clear()
+        tab:clear_cards()
     end
     if #cards == 0 then return false end
 

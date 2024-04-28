@@ -69,7 +69,7 @@ function Sol::shuffle_tableau(game) {
         foreach(card in tab.Cards) {
             cards.append(card)
         }
-        tab.clear()
+        tab.clear_cards()
     }
 
     return game.shuffle_cards(cards)

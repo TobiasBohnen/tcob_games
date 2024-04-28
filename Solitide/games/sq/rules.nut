@@ -9,11 +9,11 @@ local rules = {
     },
 
     in_color = function(card0, card1) {
-        return Sol.SuitColors[card0.Suit] == Sol.SuitColors[card1.Suit];
+        return card0.Color == card1.Color;
     },
 
     alternate_color = function(card0, card1) {
-        return Sol.SuitColors[card0.Suit] != Sol.SuitColors[card1.Suit];
+        return card0.Color != card1.Color;
     },
 
     in_rank = function(card0, card1) {
@@ -190,7 +190,7 @@ local move = {
                     return false
                 }
                 for (local i = idx; i < cards.len() - 1; ++i) {
-                    local targetColor = Sol.SuitColors[cards[i].Suit]
+                    local targetColor = cards[i].Color
                     if (cards[i + 1].Suit == targetColor ||
                         !game.can_play(pile, i, cards[i + 1], 1)) {
                         return false
@@ -315,7 +315,7 @@ local base_tab = {
     CardColor = function(color, rank) {
         return {
             Hint = color + " " + rank,
-            Func = @(game, card, numCards) card.Rank == rank && Sol.SuitColors[card.Suit] == color
+            Func = @(game, card, numCards) card.Rank == rank && card.Color == color
         }
     },
     Suits = function(s) {

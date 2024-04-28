@@ -199,6 +199,8 @@ The Info table contains basic information about the game.
 
 - play_card
 
+- play_top_card
+
 - shuffle_cards
 
 - PlaceTop
@@ -225,15 +227,13 @@ The Info table contains basic information about the game.
 
 - flip_cards
 
-- move_rank_to_bottom
+- shift_rank_to_bottom
 
-- move_card
+- shift_card
 
 - move_cards
 
-- play_card
-
-- clear
+- clear_cards
 
 - get_card_index
 

@@ -59,9 +59,8 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     gameWrapper["find_pile"] = [](base_game* game, card& card) -> pile* {
         for (auto const& piles : game->piles()) {
             for (auto* pile : piles.second) {
-                for (auto const& c : pile->Cards) {
-                    if (c == card) { return pile; }
-                }
+                auto it {std::find(pile->Cards.begin(), pile->Cards.end(), card)};
+                if (it != pile->Cards.end()) { return pile; }
             }
         }
 
@@ -77,6 +76,16 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
             return true;
         }
 
+        return false;
+    };
+    gameWrapper["play_top_card"] = [](base_game* game, pile* from, pile* to) {
+        if (from->empty()) { return false; }
+        isize const toIdx {std::ssize(to->Cards) - 1};
+        isize const pIdx {std::ssize(from->Cards) - 1};
+        if (game->can_play(*to, toIdx, from->Cards[pIdx], 1)) {
+            from->move_cards(*to, pIdx, 1, false);
+            return true;
+        }
         return false;
     };
 
@@ -148,10 +157,10 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     pileWrapper["flip_up_top_card"]   = [](pile* p) { p->flip_up_top_card(); };
     pileWrapper["flip_down_cards"]    = [](pile* p) { p->flip_down_cards(); };
     pileWrapper["flip_down_top_card"] = [](pile* p) { p->flip_down_top_card(); };
-    pileWrapper["clear"]              = [](pile* p) { p->Cards.clear(); };
+    pileWrapper["clear_cards"]        = [](pile* p) { p->Cards.clear(); };
 
-    pileWrapper["move_rank_to_bottom"] = [](pile* p, rank r) { std::ranges::stable_partition(p->Cards, [r](card const& c) { return c.get_rank() == r; }); };
-    pileWrapper["move_card"]           = [](pile* p, isize from, isize to) {
+    pileWrapper["shift_rank_to_bottom"] = [](pile* p, rank r) { std::ranges::stable_partition(p->Cards, [r](card const& c) { return c.get_rank() == r; }); };
+    pileWrapper["shift_card"]           = [](pile* p, isize from, isize to) {
         from += IndexOffset;
         to += IndexOffset;
         isize const count {std::ssize(p->Cards)};
@@ -164,23 +173,12 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
         }
         return true;
     };
-    pileWrapper["move_cards"] = [](pile* p, pile* to, isize startIndex, isize numCards, bool reverse) { p->move_cards(*to, startIndex + IndexOffset, numCards, reverse); };
-
-    pileWrapper["play_card"] = [](pile* p, pile* to, base_game* game) {
-        if (p->empty()) { return false; }
-        isize const toIdx {std::ssize(to->Cards) - 1};
-        isize const pIdx {std::ssize(p->Cards) - 1};
-        if (game->can_play(*to, toIdx, p->Cards[pIdx], 1)) {
-            p->move_cards(*to, pIdx, 1, false);
-            return true;
-        }
-        return false;
-    };
-    pileWrapper["check_bounds"] = [](pile* p, isize i, point_i pos) { return p->Cards[i - 1].Bounds.contains(pos); };
-
+    pileWrapper["move_cards"]     = [](pile* p, pile* to, isize startIndex, isize numCards, bool reverse) { p->move_cards(*to, startIndex + IndexOffset, numCards, reverse); };
     pileWrapper["get_card_index"] = [](pile* p, card const& c) -> isize {
         auto const& cards {p->Cards};
-        return std::distance(cards.begin(), std::find(cards.begin(), cards.end(), c)) - IndexOffset;
+        auto const  it {std::find(cards.begin(), cards.end(), c)};
+        if (it == cards.end()) { return -1 - IndexOffset; }
+        return std::distance(cards.begin(), it) - IndexOffset;
     };
 
     // object

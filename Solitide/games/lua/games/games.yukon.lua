@@ -384,7 +384,7 @@ local yukon_kings = {
                 local card0 = cards[#cards - i]
                 local card1 = cards[#cards - i - 1]
                 if card0.IsFaceDown or card1.IsFaceDown then return false end
-                if Sol.SuitColors[card0.Suit] == Sol.SuitColors[card1.Suit] then return false end
+                if card0.Color == card1.Color then return false end
                 if Sol.get_rank(card0.Rank, 1, false) ~= card1.Rank then return false end
             end
 
