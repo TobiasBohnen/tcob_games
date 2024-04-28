@@ -178,6 +178,11 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     };
     pileWrapper["check_bounds"] = [](pile* p, isize i, point_i pos) { return p->Cards[i - 1].Bounds.contains(pos); };
 
+    pileWrapper["get_card_index"] = [](pile* p, card const& c) -> isize {
+        auto const& cards {p->Cards};
+        return std::distance(cards.begin(), std::find(cards.begin(), cards.end(), c)) - IndexOffset;
+    };
+
     // object
     auto& objWrap {*script.template create_wrapper<data::config::object>("object")};
     objWrap.UnknownGet.connect([](auto&& ev) {
@@ -394,8 +399,8 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
                 buildTable.try_get(pile.Rule.BuildHint, "Hint");
 
                 if (Function<bool> func; buildTable.try_get(func, "Func")) {
-                    pile.Rule.Build = {[this, func](card const& target, card const& card) {
-                        return func(static_cast<base_game*>(this), target, card);
+                    pile.Rule.Build = {[this, func](card const& dst, card const& src) {
+                        return func(static_cast<base_game*>(this), dst, src);
                     }};
                 }
             }

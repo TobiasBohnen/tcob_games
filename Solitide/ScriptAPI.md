@@ -235,6 +235,8 @@ The Info table contains basic information about the game.
 
 - clear
 
+- get_card_index
+
 ## _card_ members
 
 - Suit

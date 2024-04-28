@@ -3,49 +3,39 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local function spider_check_and_move(game)
-    local function check(tableau)
-        local cards = tableau.Cards
+local spider_rule <const>           = {
+    Base = {
+        Hint = "King to Ace",
+        Func = function(game, card, numCards)
+            if numCards ~= 13 or card.Rank ~= "King" then return false end
 
-        -- look for completed stack
-        local targetSuit = cards[#cards].Suit
-        local startRank = cards[#cards].Rank
-
-        for i = 0, 12 do
-            local card = cards[#cards - i]
-            local targetRank = Sol.get_rank(startRank, i, true)
-            if card.IsFaceDown or card.Suit ~= targetSuit or card.Rank ~= targetRank then return end
-        end
-
-        -- move to foundation
-        for _, foundation in ipairs(game.Foundation) do
-            if foundation.IsEmpty then
-                tableau:move_cards(foundation, tableau.CardCount - 12, 13, false)
-                tableau:flip_up_top_card()
-                return
+            local srcPile = game:find_pile(card)
+            local cards = srcPile.Cards
+            local srcIdx = srcPile:get_card_index(card)
+            for i = srcIdx, #cards do
+                if cards[i].Suit ~= card.Suit then return false end
             end
+            return true
         end
-    end
-
-    for _, tableau in ipairs(game.Tableau) do
-        if tableau.CardCount >= 13 then check(tableau) end
-    end
-end
+    },
+    Build = Sol.Rules.Build.None(),
+    Move = { Hint = "None", IsPlayable = false, IsSequence = true }
+}
 
 local spider                        = {
-    Info        = {
+    Info       = {
         Name      = "Spider",
         Family    = "Spider",
         DeckCount = 2
     },
-    Stock       = {
+    Stock      = {
         Initial = Sol.Initial.face_down(50)
     },
-    Foundation  = {
+    Foundation = {
         Size = 8,
-        Pile = { Rule = Sol.Rules.none_none_none }
+        Pile = { Rule = spider_rule }
     },
-    Tableau     = {
+    Tableau    = {
         Size = 10,
         Pile = function(i)
             return {
@@ -55,15 +45,14 @@ local spider                        = {
             }
         end
     },
-    on_end_turn = spider_check_and_move,
-    deal     = function(game)
+    deal       = function(game)
         for _, tableau in ipairs(game.Tableau) do
             if tableau.IsEmpty then return false end
         end
 
         return Sol.Ops.Deal.stock_to_tableau(game)
     end,
-    on_init     = Sol.Layout.klondike
+    on_init    = Sol.Layout.klondike
 }
 
 ------
@@ -178,7 +167,7 @@ grounds_for_a_divorce.Tableau.Pile  = {
     Layout  = "Column",
     Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.InSeqInSuit() }
 }
-grounds_for_a_divorce.deal       = function(game)
+grounds_for_a_divorce.deal          = function(game)
     local stock = game.Stock[1]
     if stock.IsEmpty then return false end
 
@@ -241,7 +230,7 @@ end
 
 local relaxed_spider            = Sol.copy(spider)
 relaxed_spider.Info.Name        = "Relaxed Spider"
-relaxed_spider.deal          = Sol.Ops.Deal.stock_to_tableau
+relaxed_spider.deal             = Sol.Ops.Deal.stock_to_tableau
 
 ------
 
@@ -382,16 +371,16 @@ fair_maids.Tableau.Pile         = {
 ------
 
 local simple_simon               = {
-    Info        = {
+    Info       = {
         Name      = "Simple Simon",
         Family    = "Spider",
         DeckCount = 1
     },
-    Foundation  = {
+    Foundation = {
         Size = 4,
-        Pile = { Rule = Sol.Rules.none_none_none }
+        Pile = { Rule = spider_rule }
     },
-    Tableau     = {
+    Tableau    = {
         Size = 10,
         Pile = function(i)
             return {
@@ -401,8 +390,7 @@ local simple_simon               = {
             }
         end
     },
-    on_end_turn = spider_check_and_move,
-    on_init     = Sol.Layout.klondike
+    on_init    = Sol.Layout.klondike
 }
 
 ------
@@ -472,24 +460,24 @@ local ten_across_initial <const> = {
 }
 
 local ten_across                 = {
-    Info        = {
+    Info       = {
         Name      = "Ten Across",
         Family    = "Spider",
         --Family = "Yukon/Spider"
         DeckCount = 1
     },
-    FreeCell    = {
+    FreeCell   = {
         Size = 2,
         Pile = {
             Initial = Sol.Initial.face_up(1),
             Rule = Sol.Rules.any_none_top
         }
     },
-    Foundation  = {
+    Foundation = {
         Size = 4,
-        Pile = { Rule = Sol.Rules.none_none_none }
+        Pile = { Rule = spider_rule }
     },
-    Tableau     = {
+    Tableau    = {
         Size = 10,
         Pile = function(i)
             return {
@@ -499,8 +487,7 @@ local ten_across                 = {
             }
         end
     },
-    on_init     = Sol.Layout.free_cell,
-    on_end_turn = spider_check_and_move
+    on_init    = Sol.Layout.free_cell
 }
 
 ------
@@ -533,26 +520,25 @@ panopticon.Tableau               = {
 ------
 
 local scorpion_head              = {
-    Info        = {
+    Info       = {
         Name      = "Scorpion Head",
         Family    = "Spider",
         DeckCount = 1
     },
-    FreeCell    = {
+    FreeCell   = {
         Size = 4,
         Pile = { Rule = Sol.Rules.any_none_top }
     },
-    Foundation  = {
+    Foundation = {
         Size = 4,
-        Pile = { Rule = Sol.Rules.none_none_none }
+        Pile = { Rule = spider_rule }
     },
-    Tableau     = {
+    Tableau    = {
         Size = 7,
         Pile = function(i)
             local initial = {}
             if i > 2 then
-                initial = Sol.Initial.face_up(7)
-                initial[1], initial[2], initial[3] = false, false, false
+                initial = { false, false, false, true, true, true, true }
             else
                 initial = Sol.Initial.face_up(8)
             end
@@ -563,8 +549,7 @@ local scorpion_head              = {
             }
         end
     },
-    on_end_turn = spider_check_and_move,
-    on_init     = Sol.Layout.free_cell
+    on_init    = Sol.Layout.free_cell
 }
 
 ------
