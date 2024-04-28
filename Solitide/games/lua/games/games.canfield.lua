@@ -267,11 +267,7 @@ lafayette.Tableau                   = {
     Pile = {
         Initial = Sol.Initial.face_up(1),
         Layout = "Column",
-        Rule = {
-            Base = Sol.Rules.Base.Ranks({ "Seven" }),
-            Build = Sol.Rules.Build.DownAlternateColors(),
-            Move = Sol.Rules.Move.InSeq()
-        }
+        Rule = { Base = Sol.Rules.Base.Ranks({ "Seven" }), Build = Sol.Rules.Build.DownAlternateColors(), Move = Sol.Rules.Move.InSeq() }
     }
 }
 
@@ -285,7 +281,7 @@ minerva.Reserve.Pile                = {
     Initial = Sol.Initial.top_face_up(11),
     Layout = "Column"
 }
-minerva.Foundation.Pile             = { Rule = { Base = Sol.Rules.Base.Ace(), Build = Sol.Rules.Build.UpInSuit(), Move = Sol.Rules.Move.None() } }
+minerva.Foundation.Pile             = { Rule = Sol.Rules.ace_upsuit_none }
 minerva.Tableau                     = {
     Size = 7,
     Pile = {

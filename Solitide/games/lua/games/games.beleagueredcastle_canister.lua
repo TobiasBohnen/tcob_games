@@ -19,7 +19,7 @@ local canister                 = {
             return {
                 Initial = Sol.Initial.face_up((i < 2 or i >= 6) and 6 or 7),
                 Layout = "Column",
-                Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.InSeq() }
+                Rule = Sol.Rules.any_downrank_inseq
             }
         end
     },

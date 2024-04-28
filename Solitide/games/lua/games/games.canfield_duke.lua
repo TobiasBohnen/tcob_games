@@ -66,7 +66,7 @@ dutchess.Tableau.Pile    = function(i)
         Position = { x = i + 4, y = 1 },
         Initial = Sol.Initial.face_up(1),
         Layout = "Column",
-        Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAlternateColors(), Move = Sol.Rules.Move.InSeq() }
+        Rule = Sol.Rules.any_downac_inseq
     }
 end
 dutchess.can_play        = function(game, targetPile, targetCardIndex, card, numCards)

@@ -691,11 +691,7 @@ local penguin                               = {
             return {
                 Initial = Sol.Initial.face_up(i > 0 and 7 or 6),
                 Layout = "Column",
-                Rule = {
-                    Base = Sol.Rules.Base.FirstFoundation(-1),
-                    Build = Sol.Rules.Build.DownInSuit(true),
-                    Move = Sol.Rules.Move.InSeq()
-                }
+                Rule = { Base = Sol.Rules.Base.FirstFoundation(-1), Build = Sol.Rules.Build.DownInSuit(true), Move = Sol.Rules.Move.InSeq() }
             }
         end
     },

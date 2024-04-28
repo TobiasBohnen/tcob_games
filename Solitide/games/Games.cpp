@@ -421,6 +421,7 @@ void lua_script_game::CreateAPI(start_scene* scene, scripting::lua::script& scri
     env["tostring"]     = global["tostring"];
     env["setmetatable"] = global["setmetatable"];
     env["getmetatable"] = global["getmetatable"];
+    // env["collectgarbage"] = global["collectgarbage"];
 
     script.set_environment(env);
 

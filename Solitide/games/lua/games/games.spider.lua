@@ -136,7 +136,7 @@ black_widow.Tableau.Pile            = function(i)
     return {
         Initial = Sol.Initial.top_face_up(i % 3 == 0 and 6 or 5),
         Layout  = "Column",
-        Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.InSeq() }
+        Rule    = Sol.Rules.any_downrank_inseq
     }
 end
 
@@ -339,7 +339,7 @@ baby_spiderette.Tableau.Pile    = function(i)
     return {
         Initial = Sol.Initial.top_face_up(i + 1),
         Layout  = "Column",
-        Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.InSeq() }
+        Rule    = Sol.Rules.any_downrank_inseq
     }
 end
 

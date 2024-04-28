@@ -632,22 +632,24 @@ moving_left.Info.Redeals           = 0
 moving_left.Stock.Initial          = Sol.Initial.face_down(49)
 moving_left.Tableau.Size           = 10
 moving_left.on_end_turn            = function(game)
-    local tableau = game.Tableau
-    for i = 1, #tableau - 1 do
-        local to = tableau[i]
-        local from = tableau[i + 1]
-        if to.IsEmpty then
-            local cards = from.Cards
-            for j = 1, #cards do
-                if cards[j].IsFaceUp then
-                    from:move_cards(to, j, #cards - j + 1, false)
-                    from:flip_up_top_card()
-                    break
-                end
+    local function move_cards(from, to)
+        local cards = from.Cards
+        for j = 1, #cards do
+            if cards[j].IsFaceUp then
+                from:move_cards(to, j, #cards - j + 1, false)
+                from:flip_up_top_card()
+                break
             end
         end
     end
+
+    local tableau = game.Tableau
+    for i = 1, #tableau - 1 do
+        local to = tableau[i]
+        if to.IsEmpty then move_cards(tableau[i + 1], to) end
+    end
 end
+moving_left.on_init                = Sol.Layout.klondike
 
 ------
 
@@ -725,7 +727,7 @@ smokey.Tableau.Pile                = function(i)
     return {
         Initial = Sol.Initial.face_up(i + 1),
         Layout = "Column",
-        Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownInColor(), Move = Sol.Rules.Move.InSeqInSuit() }
+        Rule = Sol.Rules.any_downcolor_inseqsuit
     }
 end
 
@@ -825,16 +827,12 @@ local thirty_six                   = Sol.copy(klondike)
 thirty_six.Info.Name               = "Thirty Six"
 thirty_six.Info.Redeals            = 0
 thirty_six.Stock.Initial           = Sol.Initial.face_down(16)
-thirty_six.Foundation              = {
-    Size = 4,
-    Pile = { Rule = { Base = Sol.Rules.Base.Ace(), Build = Sol.Rules.Build.UpInColor(), Move = Sol.Rules.Move.Top() } }
-}
 thirty_six.Tableau                 = {
     Size = 6,
     Pile = {
         Initial = Sol.Initial.face_up(6),
         Layout  = "Column",
-        Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.InSeq() }
+        Rule    = Sol.Rules.any_downrank_inseq
     }
 }
 thirty_six.on_shuffle              = function(game, card, pile)
@@ -982,7 +980,7 @@ whitehead.Tableau.Pile      = function(i)
     return {
         Initial = Sol.Initial.face_up(i + 1),
         Layout = "Column",
-        Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownInColor(), Move = Sol.Rules.Move.InSeqInSuit() }
+        Rule = Sol.Rules.any_downcolor_inseqsuit
     }
 end
 
@@ -992,11 +990,6 @@ local whitehorse            = Sol.copy(klondike_by_3s)
 whitehorse.Info.Name        = "Whitehorse"
 whitehorse.Info.Redeals     = 0
 whitehorse.Stock.Initial    = Sol.Initial.face_down(45)
-whitehorse.Waste.Layout     = "Fan"
-whitehorse.Foundation       = {
-    Size = 4,
-    Pile = { Rule = { Base = Sol.Rules.Base.Ace(), Build = Sol.Rules.Build.UpInColor(), Move = Sol.Rules.Move.Top() } }
-}
 whitehorse.Tableau          = {
     Size = 7,
     Pile = {

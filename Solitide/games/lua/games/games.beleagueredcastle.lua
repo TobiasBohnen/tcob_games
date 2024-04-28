@@ -197,7 +197,7 @@ lightweight.Tableau            = {
     Pile = {
         Initial = Sol.Initial.face_up(8),
         Layout = "Column",
-        Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.InSeq() }
+        Rule = Sol.Rules.king_downrank_inseq
     }
 }
 lightweight.on_init            = Sol.Layout.canister
@@ -220,7 +220,7 @@ local morehead                 = {
             return {
                 Initial = Sol.Initial.face_up(i < 7 and i + 1 or 8),
                 Layout = "Column",
-                Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAnyButOwnSuit(), Move = Sol.Rules.Move.Top() }
+                Rule = Sol.Rules.any_downabos_top
             }
         end
     },

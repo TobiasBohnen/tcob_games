@@ -209,16 +209,12 @@ local agnes_bernauer            = {
             return {
                 Initial = Sol.Initial.face_up(i + 1),
                 Layout = "Column",
-                Rule = {
-                    Base = Sol.Rules.Base.FirstFoundation(-1),
-                    Build = Sol.Rules.Build.DownAlternateColors(true),
-                    Move = Sol.Rules.Move.InSeq()
-                }
+                Rule = { Base = Sol.Rules.Base.FirstFoundation(-1), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.InSeq() }
             }
         end
     },
     on_init    = function(game) Sol.Layout.raglan(game, 2) end,
-    deal    = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Reserve, false) end
+    deal       = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Reserve, false) end
 }
 
 ------
