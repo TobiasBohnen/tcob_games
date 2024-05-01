@@ -66,7 +66,7 @@ local aces_up = {
 
         return false
     },
-    get_state = function(game) {
+    get_status = function(game) {
         if (game.Foundation[0].CardCount == 48) {
             return "Success"
         }
@@ -169,7 +169,7 @@ local aces_square = {
 
         return false
     },
-    get_state = function(game) {
+    get_status = function(game) {
         if (game.Foundation[0].CardCount == 48) {
             return "Success"
         }
@@ -209,7 +209,7 @@ local cover = {
                 }
         }
     },
-    get_state = function(game) {
+    get_status = function(game) {
         if (game.Foundation[0].CardCount == 48) {
             return "Success"
         }
@@ -232,7 +232,7 @@ local cover = {
 local deck = Sol.copy(cover)
 deck.Info.Name = "Deck"
 deck.deal <- @(game) Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, false)
-deck.get_state = function(game) {
+deck.get_status = function(game) {
     if (game.Foundation[0].CardCount == 48) {
         return "Success"
     }

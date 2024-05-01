@@ -38,8 +38,11 @@ public:
     std::shared_ptr<label> LblCardCount;
     std::shared_ptr<label> LblCardCountLabel;
 
-    std::shared_ptr<label> LblTurn;
-    std::shared_ptr<label> LblTurnLabel;
+    std::shared_ptr<label> LblTurns;
+    std::shared_ptr<label> LblTurnsLabel;
+
+    std::shared_ptr<label> LblScore;
+    std::shared_ptr<label> LblScoreLabel;
 
     std::shared_ptr<label> LblTime;
     std::shared_ptr<label> LblTimeLabel;

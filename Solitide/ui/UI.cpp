@@ -68,8 +68,11 @@ form_controls::form_controls(gfx::window* window, assets::group& resGrp)
         LblMove             = create({12, 3, 3, 3});
         LblMoveLabel        = create({12, 0, 3, 3});
 
-        LblTurn      = create({18, 3, 1, 3});
-        LblTurnLabel = create({18, 0, 1, 3}, "Turns");
+        LblTurns      = create({17, 3, 1, 3});
+        LblTurnsLabel = create({17, 0, 1, 3}, "Turns");
+
+        LblScore      = create({18, 3, 1, 3});
+        LblScoreLabel = create({18, 0, 1, 3}, "Score");
 
         LblTime      = create({19, 3, 1, 3});
         LblTimeLabel = create({19, 0, 1, 3}, "Time");
@@ -107,11 +110,15 @@ void form_menu::submit_settings(data::config::object& obj)
 void form_menu::set_game_stats(game_history const& stats)
 {
     _gvWL->clear_rows();
-    _gvWL->add_row({std::to_string(stats.Won), std::to_string(stats.Lost), std::to_string(stats.Lost + stats.Won)});
+    _gvWL->add_row(
+        {std::to_string(stats.Won),
+         std::to_string(stats.Lost),
+         stats.Lost + stats.Won > 0 ? std::format("{:.2f}%", static_cast<f32>(stats.Won) / (stats.Lost + stats.Won) * 100) : "-"});
     _gvTT->clear_rows();
 
     std::optional<i64> bestTime;
     std::optional<i64> bestTurns;
+    std::optional<i64> bestScore;
 
     _gvHistory->clear_rows();
     for (auto const& entry : stats.Entries) {
@@ -119,16 +126,18 @@ void form_menu::set_game_stats(game_history const& stats)
             bestTime  = !bestTime ? entry.Time : std::min(entry.Time, *bestTime);
             bestTurns = !bestTurns ? entry.Turns : std::min(entry.Turns, *bestTurns);
         }
+        bestScore = !bestScore ? entry.Score : std::max(entry.Score, *bestScore);
 
         _gvHistory->add_row(
             {std::to_string(entry.ID),
+             std::to_string(entry.Score),
              std::to_string(entry.Turns),
              std::format("{:%M:%S}", seconds {entry.Time / 1000.f}),
              entry.Won ? "X" : "-"});
     }
-    if (bestTime && bestTurns) {
-        _gvTT->add_row({std::to_string(*bestTurns), std::format("{:%M:%S}", seconds {*bestTime / 1000.f})});
-    }
+    _gvTT->add_row({bestScore ? std::to_string(*bestScore) : "-",
+                    bestTurns ? std::to_string(*bestTurns) : "-",
+                    bestTime ? std::format("{:%M:%S}", seconds {*bestTime / 1000.f}) : "--:--"});
 }
 
 void form_menu::create_section_games(std::vector<game_info> const& games)
@@ -237,13 +246,13 @@ void form_menu::create_section_games(std::vector<game_info> const& games)
 
         _gvWL        = panelGameStatsLayout->create_widget<grid_view>({0, 1, 20, 4}, "gvWinLose");
         _gvWL->Class = "grid_view2";
-        _gvWL->set_columns({"Won", "Lost", "Total"});
+        _gvWL->set_columns({"Won", "Lost", "W/L"});
         _gvTT        = panelGameStatsLayout->create_widget<grid_view>({20, 1, 20, 4}, "gvBest");
         _gvTT->Class = "grid_view2";
-        _gvTT->set_columns({"Least Turns", "Fastest Time"});
+        _gvTT->set_columns({"Highscore", "Least Turns", "Fastest Time"});
 
         _gvHistory = panelGameStatsLayout->create_widget<grid_view>({1, 6, 38, 25}, "gvHistory");
-        _gvHistory->set_columns({"ID", "Turns", "Time", "Won"});
+        _gvHistory->set_columns({"ID", "Score", "Turns", "Time", "Won"});
     }
 }
 
@@ -379,5 +388,4 @@ void form_menu::create_menubar(assets::group& resGrp)
     btnBack->Icon = resGrp.get<gfx::texture>("back");
     btnBack->Click.connect([&](auto&) { hide(); });
 }
-
 }

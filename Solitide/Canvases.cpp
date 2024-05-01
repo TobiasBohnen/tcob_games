@@ -58,8 +58,8 @@ void foreground_canvas::draw(gfx::render_target& target)
 
 void foreground_canvas::update(milliseconds)
 {
-    if (_parent.game()->State != _lastState) {
-        _lastState = _parent.game()->State;
+    if (_parent.game()->Status != _lastStatus) {
+        _lastStatus = _parent.game()->Status;
         mark_dirty();
     }
 }
@@ -154,7 +154,7 @@ void foreground_canvas::draw_hint(gfx::render_target& target)
 
 void foreground_canvas::draw_state()
 {
-    if (_lastState != game_state::Success && _lastState != game_state::Failure) { return; }
+    if (_lastStatus != game_status::Success && _lastStatus != game_status::Failure) { return; }
 
     auto const& pBounds {_parent.Bounds};
     f32 const   size {pBounds->get_size().Width / 5};
@@ -169,7 +169,7 @@ void foreground_canvas::draw_state()
     _canvas->stroke();
 
     bounds = bounds.as_padded(bounds.get_size() / 5);
-    if (_lastState == game_state::Success) {
+    if (_lastStatus == game_status::Success) {
         f32 const width {bounds.Width / 15};
         _canvas->begin_path();
         _canvas->move_to({bounds.left(), bounds.get_center().Y});
@@ -184,7 +184,7 @@ void foreground_canvas::draw_state()
         _canvas->set_stroke_width(width);
         _canvas->set_stroke_style(colors::Green);
         _canvas->stroke();
-    } else if (_lastState == game_state::Failure) {
+    } else if (_lastStatus == game_status::Failure) {
         f32 const width {bounds.Width / 10};
 
         _canvas->begin_path();

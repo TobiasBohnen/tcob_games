@@ -27,7 +27,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     // game
     auto& gameWrapper {*script.template create_wrapper<base_game>("script_game")};
     // properties
-    gameWrapper["RedealsLeft"] = getter {[](base_game* game) { return game->info().RemainingRedeals; }};
+    gameWrapper["RedealsLeft"] = getter {[](base_game* game) { return game->state().Redeals; }};
     gameWrapper["DeckCount"]   = getter {[](base_game* game) { return game->info().DeckCount; }};
 
     auto static const returnPile {[](base_game* game, pile_type type) {
@@ -281,7 +281,7 @@ inline script_game<Table, Function, IndexOffset>::script_game(game_info info, Ta
     _table.try_get(_callbacks.OnDrop, "on_drop");
     _table.try_get(_callbacks.OnEndTurn, "on_end_turn");
     _table.try_get(_callbacks.CanPlay, "can_play");
-    _table.try_get(_callbacks.GetState, "get_state");
+    _table.try_get(_callbacks.GetStatus, "get_status");
     _table.try_get(_callbacks.GetShuffled, "get_shuffled");
 }
 
@@ -363,19 +363,19 @@ inline void script_game<Table, Function, IndexOffset>::on_end_turn()
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>
-inline auto script_game<Table, Function, IndexOffset>::get_state() const -> game_state
+inline auto script_game<Table, Function, IndexOffset>::get_status() const -> game_status
 {
-    if (_callbacks.GetState) {
-        return (*_callbacks.GetState)(static_cast<base_game const*>(this));
+    if (_callbacks.GetStatus) {
+        return (*_callbacks.GetStatus)(static_cast<base_game const*>(this));
     }
-    return base_game::get_state();
+    return base_game::get_status();
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>
 inline auto script_game<Table, Function, IndexOffset>::get_shuffled() -> std::vector<card>
 {
     if (_callbacks.GetShuffled) {
-        auto const retValue {(*_callbacks.GetShuffled)(static_cast<base_game const*>(this), info().InitialSeed)};
+        auto const retValue {(*_callbacks.GetShuffled)(static_cast<base_game const*>(this), state().Seed)};
         return retValue.empty() ? base_game::get_shuffled() : retValue;
     }
     return base_game::get_shuffled();

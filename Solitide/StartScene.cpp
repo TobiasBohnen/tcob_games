@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2023 Tobias Bohnen
+﻿// Copyright (c) 2024 Tobias Bohnen
 //
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
@@ -7,10 +7,7 @@
 
 namespace solitaire {
 
-namespace db = tcob::data::sqlite;
-
 static char const* SAVE_NAME {"save.ini"};
-static char const* DB_NAME {"profile.db"};
 
 auto static get_size(string_view str) -> size_i
 {
@@ -23,44 +20,16 @@ auto static get_size(string_view str) -> size_i
     return {width, height};
 }
 
-auto static state_to_string(std::array<u64, 4> const& state) -> std::string // NOLINT
-{
-    std::vector<ubyte> bytes;
-    bytes.reserve(state.size() * sizeof(u64));
-    for (auto const& elem : state) {
-        auto const* ptr = reinterpret_cast<ubyte const*>(&elem);
-        bytes.insert(bytes.end(), ptr, ptr + sizeof(u64));
-    }
-    auto base64 {io::base64_filter {}.to(bytes)};
-    return {reinterpret_cast<byte*>(base64->data()), base64->size()};
-}
-
 start_scene::start_scene(game& game)
     : scene {game}
-    , _database {*data::sqlite::database::Open(DB_NAME)}
 {
-    _dbGames   = _database.create_table("games",
-                                        db::column {"ID", db::type::Integer, false, db::primary_key {}},
-                                        db::column {"Name", db::type::Text, true, db::unique {}},
-                                        db::column {"Family", db::type::Text},
-                                        db::column {"DeckCount", db::type::Integer});
-    _dbHistory = _database.create_table("history",
-                                        db::column {"ID", db::type::Integer, false, db::primary_key {}},
-                                        db::column {"GameID", db::type::Integer},
-                                        db::column {"Seed", db::type::Text, true},
-                                        db::column {"Won", db::type::Integer},
-                                        db::column {"Turns", db::type::Integer},
-                                        db::column {"Time", db::type::Real},
-                                        db::unique {"GameID", "Seed"});
-    assert(_dbGames && _dbHistory);
-
     _saveGame.load(SAVE_NAME);
     _saveGame["version"] = "1.0.0"; // TODO: check version
 }
 
 start_scene::~start_scene() = default;
 
-void start_scene::register_game(game_info const& info, func&& game)
+void start_scene::register_game(game_info const& info, reg_game_func&& game)
 {
     _games[info.Name] = {info, std::move(game)};
 }
@@ -88,7 +57,7 @@ auto start_scene::get_themes() const -> std::vector<std::string>
 {
     std::vector<std::string> retValue;
     retValue.reserve(_themes.size());
-    for (auto const& gi : _themes) { retValue.push_back(gi.first); }
+    for (auto const& t : _themes) { retValue.push_back(t.first); }
     return retValue;
 }
 
@@ -96,7 +65,7 @@ auto start_scene::get_cardsets() const -> std::vector<std::string>
 {
     std::vector<std::string> retValue;
     retValue.reserve(_cardSets.size());
-    for (auto const& gi : _cardSets) { retValue.push_back(gi.first); }
+    for (auto const& cs : _cardSets) { retValue.push_back(cs.first); }
     return retValue;
 }
 
@@ -117,12 +86,7 @@ void start_scene::on_start()
     load_scripts();
 
     // games
-    std::vector<std::tuple<string, family, u8>> dbvalues;
-    dbvalues.reserve(_games.size());
-    for (auto const& gi : _games) {
-        dbvalues.emplace_back(gi.first, gi.second.first.Family, gi.second.first.DeckCount);
-    }
-    std::ignore = _dbGames->insert_into(db::ignore, "Name", "Family", "DeckCount")(dbvalues);
+    _db.insert_games(_games);
 
     // themes
     _themes = load_themes();
@@ -177,24 +141,14 @@ void start_scene::connect_ui_events()
 {
     _formControls->BtnNewGame->Click.connect([&](auto const&) {
         auto game {_cardTable->game()};
-        if (game && game->State != game_state::Success) {
-            game->State = game_state::Failure;
-        }
+        if (game && game->Status != game_status::Success) { game->Status = game_status::Failure; }
 
         start_game(_formMenu->SelectedGame(), start_reason::Restart);
     });
 
-    _formControls->BtnMenu->Click.connect([&](auto const&) {
-        _formMenu->show();
-    });
-
-    _formControls->BtnHint->Click.connect([&](auto const&) {
-        _cardTable->show_next_hint();
-    });
-
-    _formControls->BtnUndo->Click.connect([&](auto const&) {
-        if (auto game {_cardTable->game()}) { game->undo(); }
-    });
+    _formControls->BtnMenu->Click.connect([&](auto const&) { _formMenu->show(); });
+    _formControls->BtnHint->Click.connect([&](auto const&) { _cardTable->show_next_hint(); });
+    _formControls->BtnUndo->Click.connect([&](auto const&) { _cardTable->undo(); });
 
     _formControls->BtnQuit->Click.connect([&](auto const&) {
         if (auto game {_cardTable->game()}) {
@@ -283,8 +237,10 @@ void start_scene::on_fixed_update(milliseconds deltaTime)
 
         auto const& info {game->info()};
         _formControls->LblGameName->Label = info.Name;
-        _formControls->LblTurn->Label     = std::to_string(info.Turn);
-        _formControls->LblTime->Label     = std::format("{:%M:%S}", seconds {info.Time.count() / 1000});
+        auto const& state {game->state()};
+        _formControls->LblTurns->Label = std::to_string(state.Turns);
+        _formControls->LblScore->Label = std::to_string(state.Score);
+        _formControls->LblTime->Label  = std::format("{:%M:%S}", seconds {state.Time.count() / 1000});
     }
 #if defined(TCOB_DEBUG)
     auto stat {locate_service<stats>()};
@@ -295,9 +251,7 @@ void start_scene::on_fixed_update(milliseconds deltaTime)
 
 void start_scene::on_key_down(input::keyboard::event& ev)
 {
-    if (_formMenu->get_focus_widget() != nullptr) {
-        return;
-    }
+    if (_formMenu->get_focus_widget() != nullptr) { return; }
 
     switch (ev.ScanCode) {
     case input::scan_code::BACKSPACE:
@@ -332,19 +286,15 @@ void start_scene::start_game(string const& name, start_reason reason)
     if (!_games.contains(name)) { return; }
 
     auto newGame {_games[name].second()};
-    newGame->State.Changed.connect([&](auto val) {
-        using tupInsert = std::tuple<i64, string, bool, i64, f64>;
-
+    newGame->Status.Changed.connect([&](auto val) {
         switch (val) {
-        case game_state::Success:
-        case game_state::Failure: {
+        case game_status::Success:
+        case game_status::Failure: {
             auto const  current {_cardTable->game()};
-            auto const& info {current->info()};
-            if (info.Turn == 0) { return; } // don't save unplayed games
+            auto const& state {current->state()};
+            if (state.Turns == 0) { return; } // don't save unplayed games
 
-            auto const id {_dbGames->select_from<i64>("ID").where("Name = ?")(info.Name)};
-            std::ignore = _dbHistory->insert_into(db::replace, "GameID", "Seed", "Won", "Turns", "Time")(
-                tupInsert {id[0], state_to_string(info.InitialSeed), current->State == game_state::Success, info.Turn, info.Time.count()});
+            _db.insert_history_entry(current->info().Name, state, current->Status);
 
             update_stats(name);
         } break;
@@ -369,11 +319,7 @@ void start_scene::start_game(string const& name, start_reason reason)
 
 void start_scene::update_stats(string const& name) const
 {
-    auto const  id {_dbGames->select_from<i64>("ID").where("Name = ?")(name)};
-    usize const lost {_dbHistory->select_from<i64>("ID").where("GameID = ? and Won = 0")(id).size()};
-    usize const won {_dbHistory->select_from<i64>("ID").where("GameID = ? and Won = 1")(id).size()};
-    auto const  entries {_dbHistory->select_from<i64, i64, i64, bool>("ID", "Turns", "Time", "Won").where("GameID = ?").order_by("ID").exec<game_history::entry>(id)};
-    _formMenu->set_game_stats({.Won = won, .Lost = lost, .Entries = entries});
+    _formMenu->set_game_stats(_db.get_history(name));
 }
 
 void start_scene::generate_rule(base_game const& game) const

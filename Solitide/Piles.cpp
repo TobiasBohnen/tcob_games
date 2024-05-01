@@ -131,7 +131,7 @@ auto pile::get_description(base_game const& game) const -> pile_description
 
     switch (Type) {
     case pile_type::Stock: {
-        retValue.Description      = game.info().RemainingRedeals < 0 ? "∞" : std::to_string(game.info().RemainingRedeals);
+        retValue.Description      = game.state().Redeals < 0 ? "∞" : std::to_string(game.state().Redeals);
         retValue.DescriptionLabel = "Redeals";
     } break;
     case pile_type::Waste:

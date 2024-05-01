@@ -54,7 +54,7 @@ local golf                                = {
     deal       = function(game)
         return Sol.Ops.Deal.to_pile(game.Stock[1], game.Foundation[1], 1)
     end,
-    get_state  = golf_check_state,
+    get_status = golf_check_state,
     on_init    = Sol.Layout.golf
 }
 

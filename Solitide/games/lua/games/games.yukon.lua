@@ -360,12 +360,12 @@ local yukon_cells = {
 ------
 
 local yukon_kings = {
-    Info      = {
+    Info       = {
         Name      = "Yukon Kings",
         Family    = "Yukon",
         DeckCount = 1
     },
-    Tableau   = {
+    Tableau    = {
         Size = 7,
         Pile = function(i)
             return {
@@ -375,8 +375,8 @@ local yukon_kings = {
             }
         end
     },
-    on_init   = Sol.Layout.yukon,
-    get_state = function(game)
+    on_init    = Sol.Layout.yukon,
+    get_status = function(game)
         local function check(tableau)
             local cards = tableau.Cards
 

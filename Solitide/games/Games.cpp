@@ -12,15 +12,18 @@
 
 namespace solitaire {
 
+constexpr i32 SCORE_FOUNDATION = 10;
+constexpr i32 SCORE_TABLEAU    = 1;
+
 base_game::base_game(game_info info)
     : _info {std::move(info)}
 {
-    _info.RemainingRedeals = _info.Redeals;
+    _state.Redeals = _info.Redeals;
 }
 
 void base_game::start(std::optional<data::config::object> const& loadObj)
 {
-    State = game_state::Initial;
+    Status = game_status::Initial;
 
     if (!load(loadObj)) { new_game(); }
 
@@ -31,7 +34,7 @@ void base_game::new_game()
 {
     clear_piles();
 
-    _info.InitialSeed = _rand.get_state();
+    _state.Seed = _rand.get_state();
 
     // create decks
     std::vector<card> cards {get_shuffled()};
@@ -86,13 +89,14 @@ auto base_game::load(std::optional<data::config::object> const& loadObj) -> bool
     if (!loadObj->has(_info.Name)) { return false; }
 
     object const obj {loadObj->get<object>(_info.Name).value()};
-    if (!obj.has("Redeals") || !obj.has("Turn") || !obj.has("RNGSeed") || !obj.has("RNGState") || !obj.has("Time")) { return false; }
+    if (!obj.has("Redeals") || !obj.has("Turns") || !obj.has("Score") || !obj.has("RNGSeed") || !obj.has("RNGState") || !obj.has("Time")) { return false; }
 
-    _info.RemainingRedeals = obj["Redeals"].as<i32>();
-    _info.Turn             = obj["Turn"].as<i32>();
-    _info.Time             = milliseconds {obj["Time"].as<f64>()};
-    _info.InitialSeed      = obj["RNGSeed"].as<rng::state_type>();
-    _rand                  = rng {obj["RNGState"].as<rng::state_type>()};
+    _state.Redeals = obj["Redeals"].as<i32>();
+    _state.Turns   = obj["Turns"].as<i32>();
+    _state.Score   = obj["Score"].as<i32>();
+    _state.Time    = milliseconds {obj["Time"].as<f64>()};
+    _state.Seed    = obj["RNGSeed"].as<rng::state_type>();
+    _rand          = rng {obj["RNGState"].as<rng::state_type>()};
 
     _storage.clear();
     if (object storage; obj.try_get(storage, "Storage")) { _storage = storage.clone(true); }
@@ -138,11 +142,12 @@ void base_game::save(tcob::data::config::object& saveObj)
         obj[get_pile_type_name(type)] = pilesArr;
     }
 
-    obj["Redeals"]  = _info.RemainingRedeals;
-    obj["RNGSeed"]  = _info.InitialSeed;
+    obj["Redeals"]  = _state.Redeals;
+    obj["RNGSeed"]  = _state.Seed;
     obj["RNGState"] = _rand.get_state();
-    obj["Turn"]     = _info.Turn;
-    obj["Time"]     = _info.Time.count();
+    obj["Turns"]    = _state.Turns;
+    obj["Score"]    = _state.Score;
+    obj["Time"]     = _state.Time.count();
     if (!_storage.empty()) { obj["Storage"] = _storage.clone(true); }
 
     saveObj[_info.Name] = obj;
@@ -153,30 +158,31 @@ void base_game::init()
     on_init();
     refresh();
 
-    _saveState = {};
-    save(_saveState);
+    _saveObj = {};
+    save(_saveObj);
 }
 
 void base_game::refresh()
 {
     _movableCache.clear();
     calc_hints();
-    State = get_state();
+    Status = get_status();
     Layout();
 }
 
 void base_game::undo()
 {
     if (can_undo()) {
-        i32 const oldTurn {_info.Turn};
-        f64 const oldTime {_info.Time.count()};
+        i32 const oldTurns {_state.Turns};
+        f64 const oldTime {_state.Time.count()};
 
         load(_undoStack.top());
         _undoStack.pop();
 
         init();
-        _info.Turn = oldTurn + 1;
-        _info.Time = milliseconds {oldTime};
+
+        _state.Turns = oldTurns + 1;
+        _state.Time  = milliseconds {oldTime};
     }
 }
 
@@ -187,15 +193,15 @@ auto base_game::can_undo() const -> bool
 
 void base_game::end_turn(bool deal)
 {
-    ++_info.Turn;
+    ++_state.Turns;
 
     on_end_turn();
 
     refresh();
 
-    _undoStack.push(_saveState);
-    _saveState = {};
-    save(_saveState);
+    _undoStack.push(_saveObj);
+    _saveObj = {};
+    save(_saveObj);
 
     if (deal // if all Waste piles are empty
         && !Waste.empty()
@@ -207,8 +213,8 @@ void base_game::end_turn(bool deal)
 void base_game::update(milliseconds delta)
 {
     // TODO: pause
-    if (State == game_state::Running) {
-        _info.Time += delta;
+    if (Status == game_status::Running) {
+        _state.Time += delta;
     }
 }
 
@@ -228,6 +234,15 @@ void base_game::auto_play_cards(pile& from)
 void base_game::play_cards(pile& from, pile& to, isize startIndex, isize numCards)
 {
     from.move_cards(to, startIndex, numCards, false);
+
+    if (to.Type == pile_type::Foundation && from.Type != pile_type::Foundation) {
+        _state.Score += SCORE_FOUNDATION;
+    } else if (to.Type != pile_type::Foundation && from.Type == pile_type::Foundation) {
+        _state.Score += -SCORE_FOUNDATION;
+    } else if (to.Type == pile_type::Tableau && from.Type == pile_type::Waste) {
+        _state.Score += SCORE_TABLEAU;
+    }
+
     on_drop(&to);
     end_turn(true);
 }
@@ -263,11 +278,11 @@ auto base_game::check_movable(pile const& targetPile, isize idx) const -> bool
 
 auto base_game::deal_cards() -> bool
 {
-    if (_info.RemainingRedeals != 0) {
+    if (_state.Redeals != 0) {
         // e.g. Waste -> Stock
         if (do_redeal()) {
-            if (_info.RemainingRedeals > 0) {
-                --_info.RemainingRedeals;
+            if (_state.Redeals > 0) {
+                --_state.Redeals;
             }
 
             end_turn(false);
@@ -282,7 +297,7 @@ auto base_game::deal_cards() -> bool
     return false;
 }
 
-auto base_game::get_state() const -> game_state
+auto base_game::get_status() const -> game_status
 {
     // success if cards only on foundation piles
     bool success {true};
@@ -293,15 +308,15 @@ auto base_game::get_state() const -> game_state
             }
         }
     }
-    if (success) { return game_state::Success; }
+    if (success) { return game_status::Success; }
 
-    if (Stock.empty() || (Stock[0].empty() && _info.RemainingRedeals == 0)) {
+    if (Stock.empty() || (Stock[0].empty() && _state.Redeals == 0)) {
         if (_hints.empty()) {
-            return game_state::Failure;
+            return game_status::Failure;
         }
     }
 
-    return game_state::Running;
+    return game_status::Running;
 }
 
 auto base_game::get_shuffled() -> std::vector<card>
@@ -380,6 +395,11 @@ auto base_game::rand() -> rng&
 auto base_game::piles() const -> std::unordered_map<pile_type, std::vector<pile*>> const&
 {
     return _piles;
+}
+
+auto base_game::state() const -> game_state const&
+{
+    return _state;
 }
 
 auto base_game::info() const -> game_info const&

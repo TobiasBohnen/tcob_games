@@ -158,7 +158,7 @@ The Info table contains basic information about the game.
   - _Signature_: function(game)
   - _Return value_: **true** if deal was successful, **false** otherwise.
 
-- get_state
+- get_status
 
   - _Signature_: function(game)
   - _Return value_: Running, Failure, Success

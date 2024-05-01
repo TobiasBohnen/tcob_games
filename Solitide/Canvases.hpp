@@ -7,6 +7,8 @@
 
 #include "Common.hpp" // IWYU pragma: keep
 
+#include "games/Games.hpp"
+
 namespace solitaire {
 
 ////////////////////////////////////////////////////////////
@@ -31,11 +33,11 @@ private:
     gfx::ui::canvas_widget* _canvas;
     assets::group&          _resGrp;
 
-    isize      _currentHint {-1};
-    bool       _showHint {false};
-    timer      _hintTimer;
-    bool       _canvasDirty {true};
-    game_state _lastState {game_state::Initial};
+    isize       _currentHint {-1};
+    bool        _showHint {false};
+    timer       _hintTimer;
+    bool        _canvasDirty {true};
+    game_status _lastStatus {game_status::Initial};
 };
 
 ////////////////////////////////////////////////////////////

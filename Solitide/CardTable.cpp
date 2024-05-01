@@ -142,6 +142,13 @@ void card_table::show_next_hint()
     _fgCanvas.show_hint();
 }
 
+void card_table::undo()
+{
+    if (!_currentGame) { return; }
+
+    _currentGame->undo();
+}
+
 void card_table::set_theme(color_themes const& theme)
 {
     _bgCanvas.set_background_colors(theme.TableBackgroundA, theme.TableBackgroundB);
@@ -150,7 +157,7 @@ void card_table::set_theme(color_themes const& theme)
 void card_table::on_update(milliseconds deltaTime)
 {
     if (!_currentGame) { return; }
-    if (_currentGame->State != game_state::Running) {
+    if (_currentGame->Status != game_status::Running) {
         reset();
     }
 
@@ -236,7 +243,7 @@ void card_table::on_key_down(input::keyboard::event& ev)
 
 void card_table::on_mouse_motion(input::mouse::motion_event& ev)
 {
-    if (!_currentGame || _currentGame->State != game_state::Running) { return; }
+    if (!_currentGame || _currentGame->Status != game_status::Running) { return; }
 
     if (_buttonDown) {
         if (_hovered.Pile) { drag_cards(ev); }
@@ -252,7 +259,7 @@ void card_table::on_mouse_motion(input::mouse::motion_event& ev)
 
 void card_table::on_mouse_button_down(input::mouse::button_event& ev)
 {
-    if (!_currentGame || _currentGame->State != game_state::Running) { return; }
+    if (!_currentGame || _currentGame->Status != game_status::Running) { return; }
 
     if (ev.Button == input::mouse::button::Left) {
         _buttonDown = true;
@@ -274,7 +281,7 @@ void card_table::on_mouse_button_down(input::mouse::button_event& ev)
 
 void card_table::on_mouse_button_up(input::mouse::button_event& ev)
 {
-    if (!_currentGame || _currentGame->State != game_state::Running) { return; }
+    if (!_currentGame || _currentGame->Status != game_status::Running) { return; }
 
     if (ev.Button == input::mouse::button::Left) {
         _buttonDown = false;

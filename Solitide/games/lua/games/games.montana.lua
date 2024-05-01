@@ -88,7 +88,7 @@ local montana_base <const>    = {
         return false
     end,
 
-    get_state = function(game, ranks)
+    get_status = function(game, ranks)
         local columns = #ranks + 1
         local tableau = game.Tableau
 
@@ -137,8 +137,8 @@ local montana                 = {
     redeal     = function(game)
         return montana_base.redeal(game, montana_ranks)
     end,
-    get_state  = function(game)
-        return montana_base.get_state(game, montana_ranks)
+    get_status = function(game)
+        return montana_base.get_status(game, montana_ranks)
     end,
     can_play   = function(game, targetPile, _, card, _)
         return montana_base.can_play(game, targetPile, card, montana_ranks, "l")
@@ -203,8 +203,8 @@ local blue_moon                   = {
     redeal     = function(game)
         return montana_base.redeal(game, blue_moon_ranks)
     end,
-    get_state  = function(game)
-        return montana_base.get_state(game, blue_moon_ranks)
+    get_status = function(game)
+        return montana_base.get_status(game, blue_moon_ranks)
     end,
     on_init    = function(game) Sol.Layout.montana(game, 14) end
 }
@@ -301,8 +301,8 @@ local paganini                    = {
     redeal     = function(game)
         return montana_base.redeal(game, paganini_ranks)
     end,
-    get_state  = function(game)
-        return montana_base.get_state(game, paganini_ranks)
+    get_status = function(game)
+        return montana_base.get_status(game, paganini_ranks)
     end,
     on_init    = function(game) Sol.Layout.montana(game, 10) end
 }
@@ -389,7 +389,7 @@ local spoilt                      = {
 
         return false
     end,
-    get_state   = function(game)
+    get_status  = function(game)
         if game.Stock[1].IsEmpty and game.Waste[1].IsEmpty then
             --check rank and suit
             local tableau = game.Tableau

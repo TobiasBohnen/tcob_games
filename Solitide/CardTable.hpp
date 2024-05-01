@@ -30,6 +30,7 @@ public:
     auto game() const -> std::shared_ptr<base_game>;
 
     void show_next_hint();
+    void undo();
 
     void set_theme(color_themes const& theme);
     void set_cardset(std::shared_ptr<cardset> const& cardset);

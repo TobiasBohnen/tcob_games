@@ -32,6 +32,15 @@ enum class family {
 
 ////////////////////////////////////////////////////////////
 
+enum class game_status {
+    Initial,
+    Running,
+    Failure,
+    Success
+};
+
+////////////////////////////////////////////////////////////
+
 struct game_info {
     std::string Name;
     family      Family {};
@@ -44,11 +53,15 @@ struct game_info {
 
     // TODO: replace with script function 'get_hints'
     bool DisableHints {false};
+};
 
-    // load/save
-    i32             RemainingRedeals {};
-    rng::state_type InitialSeed {};
-    i32             Turn {0};
+////////////////////////////////////////////////////////////
+
+struct game_state {
+    i32             Redeals {};
+    rng::state_type Seed {};
+    i32             Turns {0};
+    i32             Score {0};
     milliseconds    Time {0};
 };
 
@@ -61,6 +74,7 @@ struct game_history {
     struct entry {
         i64  ID {0};
         i64  Turns {0};
+        i64  Score {0};
         i64  Time {0};
         bool Won {false};
     };
@@ -81,10 +95,12 @@ public:
     std::vector<tableau>    Tableau;
     std::vector<foundation> Foundation;
 
-    prop<game_state> State;
-    signal<>         Layout;
+    prop<game_status> Status;
+    signal<>          Layout;
 
+    auto state() const -> game_state const&;
     auto info() const -> game_info const&;
+
     auto piles() const -> std::unordered_map<pile_type, std::vector<pile*>> const&;
     auto rand() -> rng&;
     auto storage() -> data::config::object*;
@@ -118,7 +134,7 @@ protected:
     void virtual on_drop(pile* pile) = 0;
     void virtual on_end_turn()       = 0;
 
-    auto virtual get_state() const -> game_state;
+    auto virtual get_status() const -> game_status;
     auto virtual get_shuffled() -> std::vector<card>;
 
     void create_piles(auto&& piles, isize size, std::function<void(pile&, i32)> const& func);
@@ -139,9 +155,10 @@ private:
     mutable flat_map<std::pair<pile const*, isize>, bool> _movableCache;
     std::vector<move>                                     _hints;
 
-    game_info _info;
+    game_info  _info;
+    game_state _state;
 
-    data::config::object             _saveState;
+    data::config::object             _saveObj;
     std::stack<data::config::object> _undoStack;
     data::config::object             _storage;
 
@@ -174,7 +191,7 @@ protected:
     void on_drop(pile* pile) override;
     void on_end_turn() override;
 
-    auto get_state() const -> game_state override;
+    auto get_status() const -> game_status override;
     auto get_shuffled() -> std::vector<card> override;
 
 private:
@@ -190,7 +207,7 @@ private:
         std::optional<Function<void>>              OnDrop;
         std::optional<Function<void>>              OnEndTurn;
         std::optional<Function<bool>>              CanPlay;
-        std::optional<Function<game_state>>        GetState;
+        std::optional<Function<game_status>>       GetStatus;
         std::optional<Function<std::vector<card>>> GetShuffled;
     };
 
