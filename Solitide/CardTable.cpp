@@ -130,9 +130,9 @@ void card_table::mark_dirty()
     _fgCanvas.mark_dirty();
 }
 
-auto card_table::game() const -> std::shared_ptr<base_game>
+auto card_table::game() const -> base_game*
 {
-    return _currentGame;
+    return _currentGame.get();
 }
 
 void card_table::show_next_hint()
@@ -140,13 +140,6 @@ void card_table::show_next_hint()
     if (!_currentGame) { return; }
 
     _fgCanvas.show_hint();
-}
-
-void card_table::undo()
-{
-    if (!_currentGame) { return; }
-
-    _currentGame->undo();
 }
 
 void card_table::set_theme(color_themes const& theme)

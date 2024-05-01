@@ -140,7 +140,7 @@ void start_scene::on_start()
 void start_scene::connect_ui_events()
 {
     _formControls->BtnNewGame->Click.connect([&](auto const&) {
-        auto game {_cardTable->game()};
+        auto* game {_cardTable->game()};
         if (game && game->Status != game_status::Success) { game->Status = game_status::Failure; }
 
         start_game(_formMenu->SelectedGame(), start_reason::Restart);
@@ -148,10 +148,15 @@ void start_scene::connect_ui_events()
 
     _formControls->BtnMenu->Click.connect([&](auto const&) { _formMenu->show(); });
     _formControls->BtnHint->Click.connect([&](auto const&) { _cardTable->show_next_hint(); });
-    _formControls->BtnUndo->Click.connect([&](auto const&) { _cardTable->undo(); });
+    _formControls->BtnCollect->Click.connect([&](auto const&) {
+        if (auto* game {_cardTable->game()}) { game->collect_all(); }
+    });
+    _formControls->BtnUndo->Click.connect([&](auto const&) {
+        if (auto* game {_cardTable->game()}) { game->undo(); }
+    });
 
     _formControls->BtnQuit->Click.connect([&](auto const&) {
-        if (auto game {_cardTable->game()}) {
+        if (auto* game {_cardTable->game()}) {
             game->save(_saveGame);
             _saveGame.save(SAVE_NAME);
         }
@@ -211,12 +216,12 @@ void start_scene::connect_ui_events()
 
         auto& window {get_window()};
 
+        window.FullScreen = obj["chkFullScreen"]["checked"].as<bool>();
+        window.VSync      = obj["chkVSync"]["checked"].as<bool>();
+
         auto const res {get_size(obj["ddlResolution"]["selected"].as<string>())};
         window.Size = res;
         set_children_bounds(res);
-
-        window.FullScreen = obj["chkFullScreen"]["checked"].as<bool>();
-        window.VSync      = obj["chkVSync"]["checked"].as<bool>();
 
         start_game(_formMenu->SelectedGame(), start_reason::Resume);
     });
@@ -232,7 +237,7 @@ void start_scene::on_update(milliseconds)
 
 void start_scene::on_fixed_update(milliseconds deltaTime)
 {
-    if (auto game {_cardTable->game()}) {
+    if (auto* game {_cardTable->game()}) {
         game->update(deltaTime);
 
         auto const& info {game->info()};
@@ -278,7 +283,7 @@ void start_scene::set_children_bounds(size_i size)
 void start_scene::start_game(string const& name, start_reason reason)
 {
     if (reason == start_reason::Resume) {
-        if (auto game {_cardTable->game()}) {
+        if (auto* game {_cardTable->game()}) {
             game->save(_saveGame);
         }
     }
@@ -290,7 +295,7 @@ void start_scene::start_game(string const& name, start_reason reason)
         switch (val) {
         case game_status::Success:
         case game_status::Failure: {
-            auto const  current {_cardTable->game()};
+            auto const* current {_cardTable->game()};
             auto const& state {current->state()};
             if (state.Turns == 0) { return; } // don't save unplayed games
 
@@ -304,10 +309,12 @@ void start_scene::start_game(string const& name, start_reason reason)
 
     switch (reason) {
     case start_reason::Restart:
-        generate_rule(*newGame);
         _cardTable->start(newGame);
         break;
     case start_reason::Resume:
+#if defined(TCOB_DEBUG)
+        generate_rule(*newGame);
+#endif
         _cardTable->resume(newGame, _saveGame);
         break;
     }
@@ -324,37 +331,48 @@ void start_scene::update_stats(string const& name) const
 
 void start_scene::generate_rule(base_game const& game) const
 {
-    // generate rules     // TODO: translate
-    io::create_folder("/rules/");
-    auto         file {std::format("/rules/rule-{}.txt", game.info().Name)};
-    //   if (io::exists(file)) { return; }
-    io::ofstream fs {file};
+    auto const& info {game.info()};
 
+    io::create_folder("/rules/");
+    auto         file {std::format("/rules/{}.html", info.Name)};
+    io::ofstream fs {file};
+    fs.write("<!DOCTYPE html>\n<html>\n<body>\n");
+
+    fs.write(std::format("<h1>{}</h1>", info.Name));
+    fs.write(std::format("<p>Number of decks: {}</p>", info.DeckCount));
+    // fs.write(std::format("<p>Family: {}</p><br>\n", info.Family));
+
+    fs.write("<h1>Piles</h1>");
     auto writePileType {
         [&](pile_type pt, std::vector<pile*> const& piles) {
             if (piles.empty()) { return; }
 
-            fs.write(std::format("{} ({})\n", get_pile_type_name(pt), piles.size()));
+            fs.write(std::format("<h2>{} ({})</h2>", get_pile_type_name(pt), piles.size()));
+
+            fs.write("<p>");
             pile_description last;
             for (auto const* pile : piles) {
                 auto const desc {pile->get_description(game)};
                 if (!desc.equal(last)) {
-                    fs.write(std::format("{}: {}\n", desc.DescriptionLabel, desc.Description));
-                    if (!desc.MoveLabel.empty()) { fs.write(std::format("{}: {}\n", desc.MoveLabel, desc.Move)); }
-                    if (!desc.MoveLabel.empty()) { fs.write(std::format("{}: {}\n", desc.BaseLabel, desc.Base)); }
+                    fs.write(std::format("{}: {}<br>", desc.DescriptionLabel, desc.Description));
+                    if (!desc.MoveLabel.empty()) { fs.write(std::format("{}: {}<br>", desc.MoveLabel, desc.Move)); }
+                    if (!desc.MoveLabel.empty()) { fs.write(std::format("{}: {}<br>", desc.BaseLabel, desc.Base)); }
                     last = desc;
-                    fs.write("\n");
                 }
             }
+            fs.write("</p>");
         }};
 
     auto const&                    piles {game.piles()};
-    std::array<pile_type, 6> const pileOrder {pile_type::Foundation, pile_type::Tableau, pile_type::Stock,
-                                              pile_type::Waste, pile_type::Reserve, pile_type::FreeCell};
+    std::array<pile_type, 6> const pileOrder {pile_type::Stock, pile_type::Waste,
+                                              pile_type::Foundation, pile_type::Tableau,
+                                              pile_type::Reserve, pile_type::FreeCell};
     for (auto pt : pileOrder) {
         if (!piles.contains(pt)) { continue; }
         writePileType(pt, piles.at(pt));
     }
+
+    fs.write("\n</body>\n</html>\n");
 }
 
 void start_scene::load_scripts()

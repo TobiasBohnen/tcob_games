@@ -27,11 +27,14 @@ form_controls::form_controls(gfx::window* window, assets::group& resGrp)
         BtnMenu       = menuPanelLayout->create_widget<button>({0, 0, 1, 1}, "btnMenu");
         BtnMenu->Icon = resGrp.get<gfx::texture>("burger");
 
+        BtnNewGame       = menuPanelLayout->create_widget<button>({2, 0, 1, 1}, "BtnNewGame");
+        BtnNewGame->Icon = resGrp.get<gfx::texture>("newgame");
+
         BtnHint       = menuPanelLayout->create_widget<button>({14, 0, 1, 1}, "btnHint");
         BtnHint->Icon = resGrp.get<gfx::texture>("hint");
 
-        BtnNewGame       = menuPanelLayout->create_widget<button>({15, 0, 1, 1}, "BtnNewGame");
-        BtnNewGame->Icon = resGrp.get<gfx::texture>("newgame");
+        BtnCollect       = menuPanelLayout->create_widget<button>({15, 0, 1, 1}, "ntnCollect");
+        BtnCollect->Icon = resGrp.get<gfx::texture>("collect");
 
         BtnUndo       = menuPanelLayout->create_widget<button>({16, 0, 1, 1}, "btnUndo");
         BtnUndo->Icon = resGrp.get<gfx::texture>("undo");

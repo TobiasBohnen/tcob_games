@@ -113,7 +113,8 @@ public:
 
     auto deal_cards() -> bool;
     void play_cards(pile& from, pile& to, isize startIndex, isize numCards);
-    void auto_play_cards(pile& from);
+    auto auto_play_cards(pile& from) -> bool;
+    void collect_all();
     auto virtual can_play(pile const& targetPile, isize targetCardIndex, card const& card, isize numCards) const -> bool;
 
     auto get_available_hints() const -> std::vector<move> const&;

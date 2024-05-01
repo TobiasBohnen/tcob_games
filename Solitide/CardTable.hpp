@@ -27,10 +27,9 @@ public:
     void start(std::shared_ptr<base_game> const& game);
     void resume(std::shared_ptr<base_game> const& game, data::config::object& savegame);
 
-    auto game() const -> std::shared_ptr<base_game>;
+    auto game() const -> base_game*;
 
     void show_next_hint();
-    void undo();
 
     void set_theme(color_themes const& theme);
     void set_cardset(std::shared_ptr<cardset> const& cardset);

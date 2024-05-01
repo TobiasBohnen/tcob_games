@@ -15,10 +15,13 @@ class form_controls : public form {
 public:
     form_controls(gfx::window* window, assets::group& resGrp);
 
-    std::shared_ptr<button> BtnNewGame;
     std::shared_ptr<button> BtnMenu;
+    std::shared_ptr<button> BtnNewGame;
+
     std::shared_ptr<button> BtnHint;
+    std::shared_ptr<button> BtnCollect;
     std::shared_ptr<button> BtnUndo;
+
     std::shared_ptr<button> BtnQuit;
 
     std::shared_ptr<label> LblPile;
