@@ -38,6 +38,7 @@ struct color_theme {
     void apply(std::shared_ptr<panel::style> const& style) const;
     void apply(std::shared_ptr<tab_container::style> const& style) const;
     void apply(std::shared_ptr<accordion::style> const& style) const;
+    void apply(std::shared_ptr<tooltip::style> const& style) const;
 
     void apply(std::shared_ptr<thumb_style> const& style) const;
     void apply(std::shared_ptr<item_style> const& style) const;

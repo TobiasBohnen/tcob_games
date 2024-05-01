@@ -12,9 +12,35 @@ namespace solitaire {
 
 using namespace tcob::literals;
 
+// TODO: translation
+
+auto static translate(string const& name) -> string // NOLINT
+{
+    if (name == "btnMenu") { return "Menu"; }
+    if (name == "BtnNewGame") { return "New Game"; }
+    if (name == "btnHint") { return "Hint"; }
+    if (name == "btnCollect") { return "Collect All"; }
+    if (name == "btnUndo") { return "Undo"; }
+    if (name == "btnQuit") { return "Quit"; }
+
+    return "";
+}
+
 form_controls::form_controls(gfx::window* window, assets::group& resGrp)
     : form {"MainMenu", window}
 {
+    // tooltip
+    auto tooltip0 {create_tooltip<tooltip>("tooltip")};
+    auto tooltipLayout {tooltip0->create_layout<dock_layout>()};
+
+    auto tooltipLabel0 {tooltipLayout->create_widget<label>(dock_style::Fill, "TTLabel0")};
+    tooltipLabel0->Class = "tooltip-label";
+    tooltip0->Popup.connect([lbl = tooltipLabel0.get(), tt = tooltip0.get()](auto const& event) {
+        auto const widget {event.Widget};
+        lbl->Label = translate(widget->get_name());
+        tt->Bounds = {0, 0, widget->Bounds().Width * 1.5f, widget->Bounds().Height * 0.75f};
+    });
+
     auto mainPanel {create_container<glass>(dock_style::Fill, "main")};
     auto mainPanelLayout {mainPanel->create_layout<dock_layout>()};
 
@@ -24,23 +50,19 @@ form_controls::form_controls(gfx::window* window, assets::group& resGrp)
         menuPanel->Flex = {100_pct, 5_pct};
         auto menuPanelLayout {menuPanel->create_layout<grid_layout>(size_i {20, 1})};
 
-        BtnMenu       = menuPanelLayout->create_widget<button>({0, 0, 1, 1}, "btnMenu");
-        BtnMenu->Icon = resGrp.get<gfx::texture>("burger");
+        auto const create {[&](rect_i const& bounds, string const& name, string const& tex) {
+            auto retValue {menuPanelLayout->create_widget<button>(bounds, name)};
+            retValue->Icon    = resGrp.get<gfx::texture>(tex);
+            retValue->Tooltip = tooltip0;
+            return retValue;
+        }};
 
-        BtnNewGame       = menuPanelLayout->create_widget<button>({2, 0, 1, 1}, "BtnNewGame");
-        BtnNewGame->Icon = resGrp.get<gfx::texture>("newgame");
-
-        BtnHint       = menuPanelLayout->create_widget<button>({14, 0, 1, 1}, "btnHint");
-        BtnHint->Icon = resGrp.get<gfx::texture>("hint");
-
-        BtnCollect       = menuPanelLayout->create_widget<button>({15, 0, 1, 1}, "ntnCollect");
-        BtnCollect->Icon = resGrp.get<gfx::texture>("collect");
-
-        BtnUndo       = menuPanelLayout->create_widget<button>({16, 0, 1, 1}, "btnUndo");
-        BtnUndo->Icon = resGrp.get<gfx::texture>("undo");
-
-        BtnQuit       = menuPanelLayout->create_widget<button>({19, 0, 1, 1}, "btnQuit");
-        BtnQuit->Icon = resGrp.get<gfx::texture>("exit");
+        BtnMenu    = create({0, 0, 1, 1}, "btnMenu", "burger");
+        BtnNewGame = create({2, 0, 1, 1}, "BtnNewGame", "newgame");
+        BtnHint    = create({14, 0, 1, 1}, "btnHint", "hint");
+        BtnCollect = create({15, 0, 1, 1}, "btnCollect", "collect");
+        BtnUndo    = create({16, 0, 1, 1}, "btnUndo", "undo");
+        BtnQuit    = create({19, 0, 1, 1}, "btnQuit", "exit");
     }
 
     // status
@@ -49,8 +71,8 @@ form_controls::form_controls(gfx::window* window, assets::group& resGrp)
         statusPanel->Flex = {100_pct, 10_pct};
         auto statusPanelLayout {statusPanel->create_layout<grid_layout>(size_i {20, 6})};
 
-        i32  i {0};
-        auto create {[&](rect_i const& rect, string const& text = "") {
+        i32        i {0};
+        auto const create {[&](rect_i const& rect, string const& text = "") {
             auto l {statusPanelLayout->create_widget<label>(rect, "lblInfo" + std::to_string(i))};
             l->Class = "label-small";
             l->Label = text;
@@ -155,7 +177,7 @@ void form_menu::create_section_games(std::vector<game_info> const& games)
         tabGames->Flex    = {50_pct, 100_pct};
         tabGames->MaxTabs = 5;
 
-        auto createListBox {[&](std::shared_ptr<dock_layout>& tabPanelLayout, std::string const& name, auto&& pred) -> std::shared_ptr<list_box> {
+        auto const createListBox {[&](std::shared_ptr<dock_layout>& tabPanelLayout, std::string const& name, auto&& pred) -> std::shared_ptr<list_box> {
             auto listBox {tabPanelLayout->create_widget<list_box>(dock_style::Fill, "lbxGames" + name)};
             bool check {false};
             for (auto const& game : games) {
@@ -192,7 +214,7 @@ void form_menu::create_section_games(std::vector<game_info> const& games)
             auto tabContainer {tabGames->create_tab<tab_container>("byFamily", "By Family")};
             tabContainer->MaxTabs = 5;
 
-            auto createTab {[&](family family, std::string const& name) {
+            auto const createTab {[&](family family, std::string const& name) {
                 auto tabPanel {tabContainer->create_tab<panel>(name)};
                 auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
                 createListBox(tabPanelLayout, name, [family](auto const& game) { return game.Family == family; });
@@ -218,7 +240,7 @@ void form_menu::create_section_games(std::vector<game_info> const& games)
             auto tabContainer {tabGames->create_tab<tab_container>("byDeckCount", "By Deck Count")};
             tabContainer->MaxTabs = 5;
 
-            auto createTab {[&](isize count, std::string const& name) {
+            auto const createTab {[&](isize count, std::string const& name) {
                 auto tabPanel {tabContainer->create_tab<panel>(name)};
                 auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
                 createListBox(tabPanelLayout, name, [count](auto const& game) { return game.DeckCount == count; });
@@ -270,23 +292,25 @@ void form_menu::create_section_settings(assets::group& resGrp)
 
         // resolution
         {
-            auto const& renderSystem {locate_service<gfx::render_system>()};
-            auto const  displayModes {renderSystem.get_displays()};
-            auto        ddlRes {panelLayout->create_widget<drop_down_list>({6, 1, 6, 4}, "ddlResolution")}; // TODO: change to drop-down-list
+            auto const displayModes {locate_service<gfx::render_system>().get_displays()};
+            auto       ddlRes {panelLayout->create_widget<drop_down_list>({6, 1, 6, 4}, "ddlResolution")};
+            ddlRes->ZOrder = 1;
             for (auto const& dm : displayModes.at(0).Modes) {
                 ddlRes->add_item(std::format("{}x{}", dm.Size.Width, dm.Size.Height));
             }
+
             auto const res {config[Cfg::Video::Name][Cfg::Video::resolution].as<size_i>()};
             ddlRes->select_item(std::format("{}x{}", res.Width, res.Height));
+
             auto lbl {panelLayout->create_widget<label>({1, 2, 4, 2}, "lblResolution")};
-            lbl->Label     = "Resolution";
-            ddlRes->ZOrder = 1;
+            lbl->Label = "Resolution";
         }
 
         // fullscreen
         {
             auto chkFullScreen {panelLayout->create_widget<checkbox>({6, 5, 3, 4}, "chkFullScreen")};
             chkFullScreen->Checked = config[Cfg::Video::Name][Cfg::Video::fullscreen].as<bool>();
+
             auto lbl {panelLayout->create_widget<label>({1, 6, 4, 2}, "lblFullScreen")};
             lbl->Label = "Fullscreen";
         }
@@ -295,6 +319,7 @@ void form_menu::create_section_settings(assets::group& resGrp)
         {
             auto chkFullScreen {panelLayout->create_widget<checkbox>({6, 9, 3, 4}, "chkVSync")};
             chkFullScreen->Checked = config[Cfg::Video::Name][Cfg::Video::vsync].as<bool>();
+
             auto lbl {panelLayout->create_widget<label>({1, 10, 4, 2}, "lblVSync")};
             lbl->Label = "VSync";
         }
@@ -358,7 +383,7 @@ void form_menu::create_menubar(assets::group& resGrp)
     }};
 
     rect_i     btnRect {1, 1, 1, 2};
-    auto const createMenuButton {[&](string const& text) {
+    auto const create {[&](string const& text) {
         auto btn {menuLayout->create_widget<radio_button>(btnRect, "btn" + text)};
 
         auto lbl {menuLayout->create_widget<label>({btnRect.Width + 2, btnRect.Y, btnRect.Width + 2, btnRect.Height}, "lblBtn" + text)};
@@ -370,20 +395,20 @@ void form_menu::create_menubar(assets::group& resGrp)
     }};
 
     {
-        auto btn {createMenuButton("Games")};
+        auto btn {create("Games")};
         btn->Checked = true;
         btn->Click.connect([enableContainer](auto const& ev) { enableContainer(ev.Sender->get_form(), TabGamesName); });
     }
     {
-        auto btn {createMenuButton("Settings")};
+        auto btn {create("Settings")};
         btn->Click.connect([enableContainer](auto const& ev) { enableContainer(ev.Sender->get_form(), TabSettingsName); });
     }
     {
-        auto btn {createMenuButton("Themes")};
+        auto btn {create("Themes")};
         btn->Click.connect([enableContainer](auto const& ev) { enableContainer(ev.Sender->get_form(), TabThemesName); });
     }
     {
-        auto btn {createMenuButton("Cardsets")};
+        auto btn {create("Cardsets")};
         btn->Click.connect([enableContainer](auto const& ev) { enableContainer(ev.Sender->get_form(), TabCardsetsName); });
     }
 

@@ -139,6 +139,12 @@ void color_theme::apply(std::shared_ptr<accordion::style> const& style) const
     style->Border.Background = Border;
 }
 
+void color_theme::apply(std::shared_ptr<tooltip::style> const& style) const
+{
+    style->Background        = Background;
+    style->Border.Background = Border;
+}
+
 void color_theme::apply(std::shared_ptr<thumb_style> const& style) const
 {
     style->Thumb.Background        = List;
@@ -235,6 +241,17 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->Border.Size    = 5_px;
         style->Border.Radius  = 2_px;
         style->Text.Style     = {false, gfx::font::weight::Normal};
+        style->Text.Font      = fntFam;
+        style->Text.Size      = 32_px;
+        style->Text.Alignment = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
+        style->Text.AutoSize  = element::text::auto_size_mode::Always;
+        theme.Normal.apply(style);
+    }
+    {
+        auto style {styles.create<label>("tooltip-label", {})};
+        style->Border.Type    = element::border::type::Solid;
+        style->Border.Size    = 5_px;
+        style->Text.Style     = {false, gfx::font::weight::Light};
         style->Text.Font      = fntFam;
         style->Text.Size      = 32_px;
         style->Text.Alignment = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
@@ -377,7 +394,12 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         theme.Normal.apply(style2);
         theme.Hover.apply(hoverStyle2);
     }
-
+    {
+        auto style {styles.create<tooltip>("tooltip", {})};
+        style->Delay  = 500ms;
+        style->FadeIn = 150ms;
+        //   theme.Normal.apply(style);
+    }
     // items
     {
         auto style {styles.create<thumb_style>("slider_thumb", {}, {})};
