@@ -94,20 +94,6 @@ deck::deck(u8 num, std::unordered_set<suit> const& suits, std::unordered_set<ran
 
 ////////////////////////////////////////////////////////////
 
-auto get_next_rank(rank r, i32 interval, bool wrap) -> std::optional<rank>
-{
-    i32 target {static_cast<i32>(r) + interval};
-    if (wrap) {
-        target = ((target - 1) % 13 + 13) % 13 + 1;
-    }
-
-    if (target == 0 || target > 13) {
-        return std::nullopt;
-    }
-
-    return static_cast<rank>(target);
-}
-
 auto get_suit_color(suit s) -> suit_color
 {
     switch (s) {

@@ -168,10 +168,15 @@ void form_menu::set_game_stats(game_history const& stats)
 void form_menu::create_section_games(std::vector<game_info> const& games)
 {
     // Games
-    auto panelGames  = create_container<panel>(dock_style::Left, TabGamesName);
+    auto panelGames {create_container<panel>(dock_style::Left, TabGamesName)};
     panelGames->Flex = {85_pct, 100_pct};
     auto panelLayout {panelGames->create_layout<dock_layout>()};
 
+    auto txbFilter {panelLayout->create_widget<text_box>(dock_style::Top, "txbFilter")};
+    txbFilter->Flex      = {100_pct, 5_pct};
+    txbFilter->MaxLength = 30;
+
+    std::vector<list_box*> listBoxes;
     {
         auto tabGames {panelLayout->create_widget<tab_container>(dock_style::Left, "tabGames")};
         tabGames->Flex    = {50_pct, 100_pct};
@@ -179,6 +184,8 @@ void form_menu::create_section_games(std::vector<game_info> const& games)
 
         auto const createListBox {[&](std::shared_ptr<dock_layout>& tabPanelLayout, std::string const& name, auto&& pred) -> std::shared_ptr<list_box> {
             auto listBox {tabPanelLayout->create_widget<list_box>(dock_style::Fill, "lbxGames" + name)};
+            listBoxes.push_back(listBox.get());
+
             bool check {false};
             for (auto const& game : games) {
                 if (pred(game)) {
@@ -199,7 +206,9 @@ void form_menu::create_section_games(std::vector<game_info> const& games)
                 }
             });
 
-            listBox->DoubleClick.connect([&] { hide(); });
+            listBox->DoubleClick.connect([&, lb = listBox.get()] {
+                if (lb->SelectedItemIndex >= 0) { hide(); }
+            });
             return listBox;
         }};
 
@@ -264,9 +273,17 @@ void form_menu::create_section_games(std::vector<game_info> const& games)
                 }
             }
         }
+
+        txbFilter->Text.Changed.connect([listBoxes](auto const& val) {
+            for (auto* lb : listBoxes) {
+                lb->Filter = val;
+            }
+        });
     }
     {
-        auto panelGameStats {panelLayout->create_widget<panel>(dock_style::Fill, "panelGameStats")};
+        auto panelGameStats {panelLayout->create_widget<panel>(dock_style::Right, "panelGameStats")};
+        panelGameStats->Flex   = {50_pct, 100_pct};
+        panelGameStats->ZOrder = 1;
         auto panelGameStatsLayout {panelGameStats->create_layout<grid_layout>(size_i {40, 40})};
 
         _gvWL        = panelGameStatsLayout->create_widget<grid_view>({0, 1, 20, 4}, "gvWinLose");

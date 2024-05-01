@@ -400,6 +400,24 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->FadeIn = 150ms;
         //   theme.Normal.apply(style);
     }
+    {
+        auto style {styles.create<text_box>("text_box", {})};
+        style->Border.Type     = element::border::type::Solid;
+        style->Border.Size     = 3_px;
+        style->Border.Radius   = 5_px;
+        style->Text.Style      = {false, gfx::font::weight::Normal};
+        style->Text.Font       = resGrp.get<gfx::font_family>("Poppins");
+        style->Text.Size       = 50_pct;
+        style->Text.Alignment  = {gfx::horizontal_alignment::Left, gfx::vertical_alignment::Middle};
+        style->Padding         = {2_px};
+        style->Caret.BlinkRate = 500ms;
+
+        auto hoverStyle {styles.create<text_box>("text_box", {.Hover = true})};
+        *hoverStyle = *style;
+
+        theme.Normal.apply(style);
+        theme.Hover.apply(hoverStyle);
+    }
     // items
     {
         auto style {styles.create<thumb_style>("slider_thumb", {}, {})};

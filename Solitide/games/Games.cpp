@@ -56,7 +56,7 @@ void base_game::new_game()
         auto const& piles {_piles.at(pileType)};
         for (auto* pile : piles) {
             for (isize i {0}; i < std::ssize(pile->Initial); ++i) {
-                assert(!cards.empty());
+                assert(!cards.empty()); // TODO: log error
                 auto& card {cards.back()};
                 if (!on_shuffle(card, pile)) {
                     if (pile->Initial[i]) {
@@ -72,7 +72,7 @@ void base_game::new_game()
     }
 
     after_shuffle();
-    assert(cards.empty());
+    assert(cards.empty()); // TODO: log error
 
     // deal cards if game contains Waste pile
     if (_piles.contains(pile_type::Waste)) { do_deal(); }

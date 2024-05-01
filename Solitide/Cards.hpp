@@ -44,8 +44,6 @@ enum class rank : u8 {
 auto get_rank_symbol(rank r) -> std::string;
 auto get_rank_name(rank r) -> std::string;
 
-auto get_next_rank(rank r, i32 interval, bool wrap) -> std::optional<rank>;
-
 ////////////////////////////////////////////////////////////
 
 class card {
@@ -63,7 +61,6 @@ public:
     void flip_face_down();
     auto is_face_down() const -> bool;
 
-    auto get_name() const -> std::string;
     auto get_texture_name() const -> std::string;
 
     auto to_value() const -> u16;
@@ -94,6 +91,8 @@ public:
     }
 
 private:
+    auto get_name() const -> std::string;
+
     suit _suit {};
     rank _rank {};
     u8   _deck {};
