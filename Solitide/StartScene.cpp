@@ -342,12 +342,12 @@ void start_scene::generate_rule(base_game const& game) const
     fs.write(std::format("<p>Number of decks: {}</p>", info.DeckCount));
     // fs.write(std::format("<p>Family: {}</p><br>\n", info.Family));
 
-    fs.write("<h1>Piles</h1>");
+    fs.write("<h2>Piles</h2>");
     auto writePileType {
         [&](pile_type pt, std::vector<pile*> const& piles) {
             if (piles.empty()) { return; }
 
-            fs.write(std::format("<h2>{} ({})</h2>", get_pile_type_name(pt), piles.size()));
+            fs.write(std::format("<h3>{} ({})</h3>", get_pile_type_name(pt), piles.size()));
 
             fs.write("<p>");
             pile_description last;
