@@ -120,7 +120,7 @@ static string const TabCardsetsName {"conCardsets"};
 form_menu::form_menu(gfx::window* window, assets::group& resGrp, start_scene const& scene)
     : form {"Games", window}
 {
-    create_section_games(scene.get_games());
+    create_section_games(resGrp, scene.get_games());
     create_section_settings(resGrp);
     create_section_themes(scene.get_themes());
     create_section_cardset(scene.get_cardsets());
@@ -165,16 +165,22 @@ void form_menu::set_game_stats(game_history const& stats)
                     bestTime ? std::format("{:%M:%S}", seconds {*bestTime / 1000.f}) : "--:--"});
 }
 
-void form_menu::create_section_games(std::vector<game_info> const& games)
+void form_menu::create_section_games(assets::group& resGrp, std::vector<game_info> const& games)
 {
     // Games
     auto panelGames {create_container<panel>(dock_style::Left, TabGamesName)};
     panelGames->Flex = {85_pct, 100_pct};
     auto panelLayout {panelGames->create_layout<dock_layout>()};
 
-    auto txbFilter {panelLayout->create_widget<text_box>(dock_style::Top, "txbFilter")};
-    txbFilter->Flex      = {100_pct, 5_pct};
+    // Filter
+    auto pnlFilter {panelLayout->create_widget<panel>(dock_style::Top, "pnlFilter")};
+    pnlFilter->Flex = {100_pct, 5_pct};
+    auto pnlFilterLayout {pnlFilter->create_layout<grid_layout>(size_i {10, 1})};
+    auto txbFilter {pnlFilterLayout->create_widget<text_box>({0, 0, 9, 1}, "txbFilter")};
     txbFilter->MaxLength = 30;
+    auto btnFilter {pnlFilterLayout->create_widget<button>({9, 0, 1, 1}, "btnFilter")};
+    btnFilter->Icon = resGrp.get<gfx::texture>("lens");
+    btnFilter->Click.connect([tb = txbFilter.get()]() { tb->Text = ""; });
 
     std::vector<list_box*> listBoxes;
     {
