@@ -51,9 +51,7 @@ void card_table::set_cardset(std::shared_ptr<cardset> const& cardset)
 {
     _cardSize = cardset->get_card_size();
     _cardRenderer.set_cardset(cardset);
-    if (_currentGame) {
-        layout();
-    }
+    if (_currentGame) { layout(); }
 }
 
 void card_table::layout()
@@ -61,6 +59,7 @@ void card_table::layout()
     _descriptionCache.clear();
 
     auto const& cardSize {_cardSize};
+    rect_f      tableBounds;
     rect_f      pileBounds;
     for (auto const& [_, piles] : _currentGame->piles()) {
         for (auto* pile : piles) {
@@ -73,13 +72,13 @@ void card_table::layout()
                 for (auto& card : pile->Cards) {
                     card.Bounds = bounds;
                 }
-                pile->Bounds = bounds;
+                pileBounds = bounds;
             } break;
             case layout_type::Column: { // TODO: break large columns
-                pile->Bounds = {pos, cardSize};
+                pileBounds = {pos, cardSize};
                 for (auto& card : pile->Cards) {
-                    card.Bounds  = {pos, cardSize};
-                    pile->Bounds = pile->Bounds.as_merged(card.Bounds);
+                    card.Bounds = {pos, cardSize};
+                    pileBounds  = pileBounds.as_merged(card.Bounds);
                     if (card.is_face_down()) {
                         pos.Y += cardSize.Height / (FACE_DOWN_OFFSET + offsetMod);
                     } else {
@@ -88,10 +87,10 @@ void card_table::layout()
                 }
             } break;
             case layout_type::Row: {
-                pile->Bounds = {pos, cardSize};
+                pileBounds = {pos, cardSize};
                 for (auto& card : pile->Cards) {
-                    card.Bounds  = {pos, cardSize};
-                    pile->Bounds = pile->Bounds.as_merged(card.Bounds);
+                    card.Bounds = {pos, cardSize};
+                    pileBounds  = pileBounds.as_merged(card.Bounds);
                     if (card.is_face_down()) {
                         pos.X += cardSize.Width / (FACE_DOWN_OFFSET + offsetMod);
                     } else {
@@ -100,7 +99,7 @@ void card_table::layout()
                 }
             } break;
             case layout_type::Fan: {
-                pile->Bounds = {pos, cardSize};
+                pileBounds = {pos, cardSize};
                 if (pile->empty()) { break; }
                 for (isize i {0}; i < std::ssize(pile->Cards); ++i) {
                     auto& card {pile->Cards[i]};
@@ -110,16 +109,16 @@ void card_table::layout()
                         card.Bounds = {pos, cardSize};
                         pos.X += cardSize.Height / FACE_UP_OFFSET;
                     }
-                    pile->Bounds = pile->Bounds.as_merged(card.Bounds);
+                    pileBounds = pileBounds.as_merged(card.Bounds);
                 }
             } break;
             }
 
-            pileBounds = pileBounds == rect_f::Zero ? pile->Bounds : pileBounds.as_merged(pile->Bounds);
+            tableBounds = tableBounds == rect_f::Zero ? pileBounds : tableBounds.as_merged(pileBounds);
         }
     }
 
-    move_camera(pileBounds.get_size());
+    move_camera(tableBounds);
     mark_dirty();
 }
 
@@ -171,7 +170,7 @@ void card_table::on_draw_to(gfx::render_target& target)
     _fgCanvas.draw(target);
 }
 
-void card_table::move_camera(size_f cardBounds)
+void card_table::move_camera(rect_f const& cardBounds)
 {
     using namespace tcob::tweening;
 
@@ -180,7 +179,7 @@ void card_table::move_camera(size_f cardBounds)
 
     f32 const     hDiff {static_cast<f32>(winSize.Height - Bounds->Height)};
     f32 const     zoom {std::min(winSize.Width / cardBounds.Width, (winSize.Height - hDiff) / cardBounds.Height)};
-    point_f const pos {cardBounds.Width / 2, (cardBounds.Height + (Bounds->Y / zoom)) / 2};
+    point_f const pos {cardBounds.get_center() + point_f {0, (Bounds->Y / zoom) / 2}};
 
     if (_camInstant) {
         camera.look_at(pos);

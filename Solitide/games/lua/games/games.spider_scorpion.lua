@@ -1,0 +1,116 @@
+-- Copyright (c) 2024 Tobias Bohnen
+--
+-- This software is released under the MIT License.
+-- https://opensource.org/licenses/MIT
+
+local scorpion                  = {
+    Info       = {
+        Name      = "Scorpion",
+        Family    = "Spider",
+        DeckCount = 1
+    },
+    Stock      = {
+        Initial = Sol.Initial.face_down(3)
+    },
+    Foundation = {
+        Size = 4,
+        Pile = { Rule = Sol.Rules.spider_foundation }
+    },
+    Tableau    = {
+        Size = 7,
+        Pile = function(i)
+            return {
+                Initial = i < 4 and { false, false, false, true, true, true, true } or Sol.Initial.face_up(7),
+                Layout  = "Column",
+                Rule    = Sol.Rules.king_downsuit_faceup
+            }
+        end
+    },
+    deal       = function(game)
+        for _, tableau in ipairs(game.Tableau) do
+            if tableau.IsEmpty then return false end
+        end
+
+        return Sol.Ops.Deal.stock_to_tableau(game)
+    end,
+    on_init    = Sol.Layout.klondike
+}
+
+------
+
+local double_scorpion           = Sol.copy(scorpion)
+double_scorpion.Info.Name       = "Double Scorpion"
+double_scorpion.Info.DeckCount  = 2
+double_scorpion.Stock           = nil
+double_scorpion.Foundation.Size = 8
+double_scorpion.Tableau         = {
+    Size = 10,
+    Pile = function(i)
+        local initial = Sol.Initial.face_up(i < 4 and 11 or 10)
+        if i < 5 then
+            initial[1], initial[2], initial[3], initial[4] = false, false, false, false
+        end
+        return {
+            Initial = initial,
+            Layout  = "Column",
+            Rule    = Sol.Rules.king_downsuit_faceup
+        }
+    end
+}
+
+------
+
+local triple_scorpion           = Sol.copy(scorpion)
+triple_scorpion.Info.Name       = "Triple Scorpion"
+triple_scorpion.Info.DeckCount  = 3
+triple_scorpion.Stock           = nil
+triple_scorpion.Foundation.Size = 12
+triple_scorpion.Tableau         = {
+    Size = 13,
+    Pile = function(i)
+        local initial = Sol.Initial.face_up(12)
+        if i < 5 then
+            initial[1], initial[2], initial[3], initial[4], initial[5] = false, false, false, false, false
+        end
+        return {
+            Initial = initial,
+            Layout  = "Column",
+            Rule    = Sol.Rules.king_downsuit_faceup
+        }
+    end
+}
+triple_scorpion.on_init         = Sol.Layout.canister
+
+------
+
+local scorpion_2                = Sol.copy(scorpion)
+scorpion_2.Info.Name            = "Scorpion II"
+scorpion_2.Tableau.Pile         = function(i)
+    return {
+        Initial = i < 3 and { false, false, false, true, true, true, true } or Sol.Initial.face_up(7),
+        Layout  = "Column",
+        Rule    = Sol.Rules.king_downsuit_faceup
+    }
+end
+
+------
+
+local scorpion_tail             = Sol.copy(scorpion)
+scorpion_tail.Info.Name         = "Scorpion Tail"
+scorpion_tail.Tableau.Pile      = function(i)
+    return {
+        Initial = i < 3 and { false, false, false, true, true, true, true } or Sol.Initial.face_up(7),
+        Layout  = "Column",
+        Rule    = Sol.Rules.king_downac_faceup
+    }
+end
+
+------
+
+------------------------
+
+Sol.register_game(scorpion)
+Sol.register_game(double_scorpion)
+Sol.register_game(scorpion_2)
+Sol.register_game(scorpion_tail)
+Sol.register_game(triple_scorpion)

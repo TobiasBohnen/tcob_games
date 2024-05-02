@@ -190,7 +190,7 @@ lady_jane.Tableau.Pile             = function(i)
     return {
         Initial = Sol.Initial.face_up(i + 1),
         Layout = "Column",
-        Rule = Sol.Rules.spider
+        Rule = Sol.Rules.spider_tableau
     }
 end
 lady_jane.deal                     = Sol.Ops.Deal.stock_to_waste_by_3

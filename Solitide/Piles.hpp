@@ -91,7 +91,6 @@ public:
     std::vector<bool> Initial; // true -> faceup
 
     point_f Position {};       // in grid coordinates
-    rect_f  Bounds;            // in world coordinates
 
     bool HasMarker {true};
 

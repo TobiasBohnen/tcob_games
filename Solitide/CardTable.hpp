@@ -34,9 +34,6 @@ public:
     void set_theme(color_themes const& theme);
     void set_cardset(std::shared_ptr<cardset> const& cardset);
 
-    void layout();
-    void mark_dirty();
-
 protected:
     void on_update(milliseconds deltaTime) override;
 
@@ -49,11 +46,14 @@ protected:
     void on_mouse_button_up(input::mouse::button_event& ev) override;
 
 private:
+    void layout();
+    void mark_dirty();
+
     void reset();
 
     auto get_description(pile const* pile) -> pile_description;
 
-    void move_camera(size_f cardBounds);
+    void move_camera(rect_f const& cardBounds);
 
     void start_game(std::shared_ptr<base_game> const& game, std::optional<data::config::object> const& savegame);
 

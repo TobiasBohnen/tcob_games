@@ -128,7 +128,7 @@ stonewall.Tableau.Pile          = {
 
 local wildflower                = Sol.copy(flower_garden)
 wildflower.Info.Name            = "Wildflower"
-wildflower.Tableau.Pile.Rule    = Sol.Rules.spider
+wildflower.Tableau.Pile.Rule    = Sol.Rules.spider_tableau
 
 ------
 

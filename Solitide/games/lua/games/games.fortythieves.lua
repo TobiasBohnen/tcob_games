@@ -334,7 +334,7 @@ express.Tableau.Size              = 14
 local little_forty                = Sol.copy(forty_thieves)
 little_forty.Info.Name            = "Little Forty"
 little_forty.Info.Redeals         = 3
-little_forty.Tableau.Pile.Rule    = Sol.Rules.spider
+little_forty.Tableau.Pile.Rule    = Sol.Rules.spider_tableau
 little_forty.on_end_turn          = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
 little_forty.deal                 = Sol.Ops.Deal.stock_to_waste_by_3
 
@@ -348,7 +348,7 @@ little_napoleon.Tableau           = {
     Pile = {
         Initial = Sol.Initial.top_face_up(4),
         Layout = "Column",
-        Rule = Sol.Rules.spider
+        Rule = Sol.Rules.spider_tableau
     }
 }
 

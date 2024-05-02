@@ -3,37 +3,16 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local spider_rule <const>           = {
-    Base = {
-        Hint = "King to Ace",
-        Func = function(game, card, numCards)
-            if numCards ~= 13 or card.Rank ~= "King" then return false end
-
-            local srcPile = game:find_pile(card)
-            local cards = srcPile.Cards
-            local srcIdx = srcPile:get_card_index(card)
-            for i = srcIdx, #cards do
-                if cards[i].Suit ~= card.Suit then return false end
-            end
-            return true
-        end
-    },
-    Build = Sol.Rules.Build.None(),
-    Move = { Hint = "None", IsPlayable = false, IsSequence = true }
-}
-
 local spider                        = {
     Info       = {
         Name      = "Spider",
         Family    = "Spider",
         DeckCount = 2
     },
-    Stock      = {
-        Initial = Sol.Initial.face_down(50)
-    },
+    Stock      = { Initial = Sol.Initial.face_down(50) },
     Foundation = {
         Size = 8,
-        Pile = { Rule = spider_rule }
+        Pile = { Rule = Sol.Rules.spider_foundation }
     },
     Tableau    = {
         Size = 10,
@@ -41,7 +20,7 @@ local spider                        = {
             return {
                 Initial = Sol.Initial.top_face_up(i % 3 == 0 and 6 or 5),
                 Layout  = "Column",
-                Rule    = Sol.Rules.spider
+                Rule    = Sol.Rules.spider_tableau
             }
         end
     },
@@ -81,7 +60,7 @@ spider_4_decks.Tableau              = {
     Pile = {
         Initial = Sol.Initial.top_face_up(6),
         Layout  = "Column",
-        Rule    = Sol.Rules.spider
+        Rule    = Sol.Rules.spider_tableau
     }
 }
 
@@ -97,7 +76,7 @@ big_spider.Tableau                  = {
     Pile = {
         Initial = Sol.Initial.top_face_up(6),
         Layout  = "Column",
-        Rule    = Sol.Rules.spider
+        Rule    = Sol.Rules.spider_tableau
     }
 }
 
@@ -153,7 +132,7 @@ chinese_spider.Tableau              = {
     Pile = {
         Initial = Sol.Initial.top_face_up(6),
         Layout  = "Column",
-        Rule    = Sol.Rules.spider
+        Rule    = Sol.Rules.spider_tableau
     }
 }
 
@@ -216,126 +195,84 @@ very_big_divorce.Tableau            = {
 
 ------
 
-local open_spider               = Sol.copy(spider)
-open_spider.Info.Name           = "Open Spider"
-open_spider.Tableau.Pile        = function(i)
+local open_spider                          = Sol.copy(spider)
+open_spider.Info.Name                      = "Open Spider"
+open_spider.Tableau.Pile                   = function(i)
     return {
         Initial = Sol.Initial.face_up(i % 3 == 0 and 6 or 5),
         Layout  = "Column",
-        Rule    = Sol.Rules.spider
+        Rule    = Sol.Rules.spider_tableau
     }
 end
 
 ------
 
-local relaxed_spider            = Sol.copy(spider)
-relaxed_spider.Info.Name        = "Relaxed Spider"
-relaxed_spider.deal             = Sol.Ops.Deal.stock_to_tableau
+local relaxed_spider                       = Sol.copy(spider)
+relaxed_spider.Info.Name                   = "Relaxed Spider"
+relaxed_spider.deal                        = Sol.Ops.Deal.stock_to_tableau
 
 ------
 
-local scorpion                  = Sol.copy(spider)
-scorpion.Info.Name              = "Scorpion"
-scorpion.Info.DeckCount         = 1
-scorpion.Stock.Initial          = Sol.Initial.face_down(3)
-scorpion.Foundation.Size        = 4
-scorpion.Tableau                = {
-    Size = 7,
-    Pile = function(i)
-        return {
-            Initial = i < 4 and { false, false, false, true, true, true, true } or Sol.Initial.face_up(7),
-            Layout  = "Column",
-            Rule    = Sol.Rules.king_downsuit_faceup
-        }
-    end
-}
-
-------
-
-local double_scorpion           = Sol.copy(scorpion)
-double_scorpion.Info.Name       = "Double Scorpion"
-double_scorpion.Info.DeckCount  = 2
-double_scorpion.Stock           = nil
-double_scorpion.Foundation.Size = 8
-double_scorpion.Tableau         = {
-    Size = 10,
-    Pile = function(i)
-        local initial = Sol.Initial.face_up(i < 4 and 11 or 10)
-        if i < 5 then
-            initial[1], initial[2], initial[3], initial[4] = false, false, false, false
-        end
-        return {
-            Initial = initial,
-            Layout  = "Column",
-            Rule    = Sol.Rules.king_downsuit_faceup
-        }
-    end
-}
-
-------
-
-local scorpion_2                = Sol.copy(scorpion)
-scorpion_2.Info.Name            = "Scorpion II"
-scorpion_2.Tableau.Pile         = function(i)
-    return {
-        Initial = i < 3 and { false, false, false, true, true, true, true } or Sol.Initial.face_up(7),
-        Layout  = "Column",
-        Rule    = Sol.Rules.king_downsuit_faceup
-    }
-end
-
-------
-
-local scorpion_tail             = Sol.copy(scorpion)
-scorpion_tail.Info.Name         = "Scorpion Tail"
-scorpion_tail.Tableau.Pile      = function(i)
-    return {
-        Initial = i < 3 and { false, false, false, true, true, true, true } or Sol.Initial.face_up(7),
-        Layout  = "Column",
-        Rule    = Sol.Rules.king_downac_faceup
-    }
-end
-
-------
-
-local spider_3x3                = Sol.copy(spider)
-spider_3x3.Info.Name            = "Spider 3x3"
-spider_3x3.Info.DeckCount       = 3
-spider_3x3.Info.DeckSuits       = { "Clubs", "Spades", "Hearts" }
-spider_3x3.Stock.Initial        = Sol.Initial.face_down(52)
-spider_3x3.Foundation.Size      = 9
-spider_3x3.Tableau              = {
+local spider_3x3                           = Sol.copy(spider)
+spider_3x3.Info.Name                       = "Spider 3x3"
+spider_3x3.Info.DeckCount                  = 3
+spider_3x3.Info.DeckSuits                  = { "Clubs", "Spades", "Hearts" }
+spider_3x3.Stock.Initial                   = Sol.Initial.face_down(52)
+spider_3x3.Foundation.Size                 = 9
+spider_3x3.Tableau                         = {
     Size = 13,
     Pile = {
         Initial = Sol.Initial.top_face_up(5),
         Layout  = "Column",
-        Rule    = Sol.Rules.spider
+        Rule    = Sol.Rules.spider_tableau
     }
 }
 
 ------
 
-local spiderette                = Sol.copy(spider)
-spiderette.Info.Name            = "Spiderette"
-spiderette.Info.DeckCount       = 1
-spiderette.Stock.Initial        = Sol.Initial.face_down(24)
-spiderette.Foundation.Size      = 4
-spiderette.Tableau              = {
+local kiev                                 = Sol.copy(spider)
+kiev.Info.Name                             = "Kiev"
+kiev.Info.DeckCount                        = 1
+kiev.Stock.Initial                         = Sol.Initial.face_down(24)
+kiev.Foundation.Size                       = 4
+kiev.Tableau                               = {
+    Size = 7,
+    Pile = {
+        Initial = Sol.Initial.top_face_up(4),
+        Layout  = "Column",
+        Rule    = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownInSuit(), Move = Sol.Rules.Move.FaceUp() }
+    }
+}
+
+------
+
+local dnieper                              = Sol.copy(kiev)
+dnieper.Info.Name                          = "Dnieper"
+dnieper.Tableau.Pile.Rule                  = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownInSuit(true), Move = Sol.Rules.Move.FaceUp() }
+
+------
+
+local spiderette                           = Sol.copy(spider)
+spiderette.Info.Name                       = "Spiderette"
+spiderette.Info.DeckCount                  = 1
+spiderette.Stock.Initial                   = Sol.Initial.face_down(24)
+spiderette.Foundation.Size                 = 4
+spiderette.Tableau                         = {
     Size = 7,
     Pile = function(i)
         return {
             Initial = Sol.Initial.top_face_up(i + 1),
             Layout  = "Column",
-            Rule    = Sol.Rules.spider
+            Rule    = Sol.Rules.spider_tableau
         }
     end
 }
 
 ------
 
-local baby_spiderette           = Sol.copy(spiderette)
-baby_spiderette.Info.Name       = "Baby Spiderette"
-baby_spiderette.Tableau.Pile    = function(i)
+local baby_spiderette                      = Sol.copy(spiderette)
+baby_spiderette.Info.Name                  = "Baby Spiderette"
+baby_spiderette.Tableau.Pile               = function(i)
     return {
         Initial = Sol.Initial.top_face_up(i + 1),
         Layout  = "Column",
@@ -345,108 +282,31 @@ end
 
 ------
 
-local will_o_the_wisp           = Sol.copy(spiderette)
-will_o_the_wisp.Info.Name       = "Will o' the Wisp"
-will_o_the_wisp.Stock.Initial   = Sol.Initial.face_down(31)
-will_o_the_wisp.Tableau.Pile    = function(i)
+local will_o_the_wisp                      = Sol.copy(spiderette)
+will_o_the_wisp.Info.Name                  = "Will o' the Wisp"
+will_o_the_wisp.Stock.Initial              = Sol.Initial.face_down(31)
+will_o_the_wisp.Tableau.Pile               = function(i)
     return {
         Initial = Sol.Initial.top_face_up(3),
         Layout  = "Column",
-        Rule    = Sol.Rules.spider
+        Rule    = Sol.Rules.spider_tableau
     }
 end
 
 ------
 
-local fair_maids                = Sol.copy(will_o_the_wisp)
-fair_maids.Info.Name            = "Fair Maids"
-fair_maids.Stock.Initial        = Sol.Initial.face_down(24)
-fair_maids.Tableau.Pile         = {
+local fair_maids                           = Sol.copy(will_o_the_wisp)
+fair_maids.Info.Name                       = "Fair Maids"
+fair_maids.Stock.Initial                   = Sol.Initial.face_down(24)
+fair_maids.Tableau.Pile                    = {
     Initial = Sol.Initial.top_face_up(4),
     Layout  = "Column",
     Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.InSeqAlternateColors() }
 }
 
-
 ------
 
-local simple_simon               = {
-    Info       = {
-        Name      = "Simple Simon",
-        Family    = "Spider",
-        DeckCount = 1
-    },
-    Foundation = {
-        Size = 4,
-        Pile = { Rule = spider_rule }
-    },
-    Tableau    = {
-        Size = 10,
-        Pile = function(i)
-            return {
-                Initial = Sol.Initial.face_up(i < 3 and 8 or 10 - i),
-                Layout  = "Column",
-                Rule    = Sol.Rules.spider
-            }
-        end
-    },
-    on_init    = Sol.Layout.klondike
-}
-
-------
-
-local simon_jester               = Sol.copy(simple_simon)
-simon_jester.Info.Name           = "Simon Jester"
-simon_jester.Info.DeckCount      = 2
-simon_jester.Foundation.Size     = 8
-simon_jester.Tableau             = {
-    Size = 14,
-    Pile = function(i)
-        return {
-            Initial = Sol.Initial.face_up(i < 2 and 13 or 14 - i),
-            Layout  = "Column",
-            Rule    = Sol.Rules.spider
-        }
-    end
-}
-
-------
-
-local york                       = Sol.copy(simple_simon)
-york.Info.Name                   = "York"
-york.Info.DeckCount              = 2
-york.Foundation.Size             = 8
-york.Tableau                     = {
-    Size = 12,
-    Pile = function(i)
-        return {
-            Initial = Sol.Initial.face_up((i < 2 or i > 9) and 8 or 9),
-            Layout  = "Column",
-            Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.InSeqInSuit() }
-        }
-    end
-}
-
-------
-
-local big_york                   = Sol.copy(york)
-big_york.Info.Name               = "Big York"
-big_york.Info.DeckCount          = 3
-big_york.Foundation.Size         = 12
-big_york.Tableau                 = {
-    Size = 14,
-    Pile = function(i)
-        return {
-            Initial = Sol.Initial.face_up((i < 1 or i > 12) and 12 or 11),
-            Layout  = "Column",
-            Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.InSeqInSuit() }
-        }
-    end
-}
-
-------
-
-local ten_across_initial <const> = {
+local ten_across_initial <const>           = {
     { true,  true,  true,  true,  true },
     { false, true,  true,  true,  true },
     { false, false, true,  true,  true },
@@ -459,7 +319,7 @@ local ten_across_initial <const> = {
     { true,  true,  true,  true,  true }
 }
 
-local ten_across                 = {
+local ten_across                           = {
     Info       = {
         Name      = "Ten Across",
         Family    = "Spider",
@@ -475,7 +335,7 @@ local ten_across                 = {
     },
     Foundation = {
         Size = 4,
-        Pile = { Rule = spider_rule }
+        Pile = { Rule = Sol.Rules.spider_foundation }
     },
     Tableau    = {
         Size = 10,
@@ -492,7 +352,7 @@ local ten_across                 = {
 
 ------
 
-local panopticon_initial <const> = {
+local panopticon_initial <const>           = {
     { false, true,  true,  true,  true, true },
     { false, false, true,  true,  true, true },
     { false, false, false, true,  true, true },
@@ -503,10 +363,10 @@ local panopticon_initial <const> = {
     { false, true,  true,  true,  true, true }
 }
 
-local panopticon                 = Sol.copy(ten_across)
-panopticon.Info.Name             = "Panopticon"
-panopticon.FreeCell.Size         = 4
-panopticon.Tableau               = {
+local panopticon                           = Sol.copy(ten_across)
+panopticon.Info.Name                       = "Panopticon"
+panopticon.FreeCell.Size                   = 4
+panopticon.Tableau                         = {
     Size = 8,
     Pile = function(i)
         return {
@@ -519,7 +379,77 @@ panopticon.Tableau               = {
 
 ------
 
-local scorpion_head              = {
+local astrocyte                            = {
+    Info = {
+        Name      = "Astrocyte",
+        Family    = "Spider",
+        DeckCount = 2
+    },
+    Stock = {
+        Position = { x = 0, y = 0 },
+        Initial = Sol.Initial.face_down(40)
+    },
+    FreeCell = {
+        Size = 4,
+        Pile = function(i)
+            return {
+                Position = { x = i + 1.5, y = 0 },
+                Rule = Sol.Rules.any_none_top
+            }
+        end
+    },
+    Foundation = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Position = { x = i + 6, y = 0 },
+                Rule = Sol.Rules.spider_foundation
+            }
+        end
+    },
+    Tableau = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Position = { x = i + 3, y = 1 },
+                Initial = Sol.Initial.top_face_up(8),
+                Layout = "Column",
+                Rule = Sol.Rules.spider_tableau
+            }
+        end
+    },
+    deal = Sol.Ops.Deal.stock_to_tableau
+}
+
+------
+
+local brush                                = {
+    Info = {
+        Name      = "Brush",
+        Family    = "Spider",
+        DeckCount = 2
+    },
+    Stock = { Initial = Sol.Initial.face_down(64) },
+    Waste = {},
+    Foundation = {
+        Size = 8,
+        Pile = { Rule = Sol.Rules.spider_foundation }
+    },
+    Tableau = {
+        Size = 10,
+        Pile = {
+            Initial = Sol.Initial.face_up(4),
+            Layout = "Column",
+            Rule = Sol.Rules.spider_tableau
+        }
+    },
+    deal = Sol.Ops.Deal.stock_to_waste,
+    on_init = Sol.Layout.klondike
+}
+
+------
+
+local scorpion_head                        = {
     Info       = {
         Name      = "Scorpion Head",
         Family    = "Spider",
@@ -531,7 +461,7 @@ local scorpion_head              = {
     },
     Foundation = {
         Size = 4,
-        Pile = { Rule = spider_rule }
+        Pile = { Rule = Sol.Rules.spider_foundation }
     },
     Tableau    = {
         Size = 7,
@@ -554,36 +484,121 @@ local scorpion_head              = {
 
 ------
 
+local spidike                              = {
+    Info       = {
+        Name      = "Spidike",
+        Family    = "Spider",
+        DeckCount = 1
+    },
+    Stock      = {
+        Initial = Sol.Initial.face_down(24)
+    },
+    Foundation = {
+        Size = 4,
+        Pile = { Rule = Sol.Rules.ace_upsuit_top }
+    },
+    Tableau    = {
+        Size = 7,
+        Pile = function(i)
+            return {
+                Initial = Sol.Initial.face_up(i + 1),
+                Layout  = "Column",
+                Rule    = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.InSeqInSuit() }
+            }
+        end
+    },
+    deal       = Sol.Ops.Deal.stock_to_tableau,
+    on_init    = Sol.Layout.klondike
+}
+
+------
+
+local ukrainian_solitaire                  = {
+    Info       = {
+        Name      = "Ukrainian Solitaire",
+        Family    = "Spider",
+        DeckCount = 1
+    },
+    Foundation = {
+        Size = 4,
+        Pile = { Rule = Sol.Rules.spider_foundation }
+    },
+    Tableau    = {
+        Size = 7,
+        Pile = function(i)
+            local initial = {}
+            if i == 0 then
+                initial[1] = true
+            else
+                for j = 1, i + 5 do
+                    initial[j] = j > i
+                end
+            end
+
+            return {
+                Initial = initial,
+                Layout  = "Column",
+                Rule    = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownInSuit(), Move = Sol.Rules.Move.FaceUp() }
+            }
+        end
+    },
+    on_init    = Sol.Layout.klondike
+}
+
+------
+
+local double_ukrainian_solitaire           = Sol.copy(ukrainian_solitaire)
+double_ukrainian_solitaire.Info.Name       = "Double Ukrainian Solitaire"
+double_ukrainian_solitaire.Info.DeckCount  = 2
+double_ukrainian_solitaire.Foundation.Size = 8
+double_ukrainian_solitaire.Tableau         = {
+    Size = 10,
+    Pile = function(i)
+        local initial = Sol.Initial.face_down(math.min(i + 6, 14))
+        for j = #initial - 5, #initial do
+            initial[j] = true
+        end
+
+        return {
+            Initial = initial,
+            Layout  = "Column",
+            Rule    = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownInSuit(), Move = Sol.Rules.Move.FaceUp() }
+        }
+    end
+}
+
+
+------
+
 ------------------------
 
 Sol.register_game(spider)
 Sol.register_game(arachnida)
+Sol.register_game(astrocyte)
 Sol.register_game(baby_spiderette)
 Sol.register_game(big_divorce)
 Sol.register_game(big_spider)
 Sol.register_game(big_spider_1_suit)
 Sol.register_game(big_spider_2_suits)
-Sol.register_game(big_york)
 Sol.register_game(black_widow)
+Sol.register_game(brush)
 Sol.register_game(chinese_spider)
-Sol.register_game(double_scorpion)
+Sol.register_game(dnieper)
+Sol.register_game(double_ukrainian_solitaire)
 Sol.register_game(fair_maids)
 Sol.register_game(grounds_for_a_divorce)
+Sol.register_game(kiev)
 Sol.register_game(open_spider)
 Sol.register_game(panopticon)
 Sol.register_game(relaxed_spider)
-Sol.register_game(scorpion)
-Sol.register_game(scorpion_2)
 Sol.register_game(scorpion_head)
-Sol.register_game(scorpion_tail)
 Sol.register_game(spider_1_suit)
 Sol.register_game(spider_2_suits)
 Sol.register_game(spider_4_decks)
 Sol.register_game(spider_3x3)
 Sol.register_game(spiderette)
-Sol.register_game(simon_jester)
-Sol.register_game(simple_simon)
+Sol.register_game(spidike)
 Sol.register_game(ten_across)
+Sol.register_game(ukrainian_solitaire)
 Sol.register_game(very_big_divorce)
 Sol.register_game(will_o_the_wisp)
-Sol.register_game(york)

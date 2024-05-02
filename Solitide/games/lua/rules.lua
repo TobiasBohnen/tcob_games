@@ -529,5 +529,23 @@ return {
     none_none_none = { Base = base.None(), Build = build.None(), Move = move.None() },
     ff_upsuit_top_l13 = { Base = base.FirstFoundation(), Build = build.UpInSuit(true), Move = move.Top(), Limit = 13 },
     ff_upsuit_none_l13 = { Base = base.FirstFoundation(), Build = build.UpInSuit(true), Move = move.None(), Limit = 13 },
-    spider = { Base = base.Any(), Build = build.DownByRank(), Move = move.InSeqInSuit() },
+    spider_tableau = { Base = base.Any(), Build = build.DownByRank(), Move = move.InSeqInSuit() },
+    spider_foundation = {
+        Base = {
+            Hint = "King to Ace",
+            Func = function(game, card, numCards)
+                if numCards ~= 13 or card.Rank ~= "King" then return false end
+
+                local srcPile = game:find_pile(card)
+                local cards = srcPile.Cards
+                local srcIdx = srcPile:get_card_index(card)
+                for i = srcIdx, #cards do
+                    if cards[i].Suit ~= card.Suit then return false end
+                end
+                return true
+            end
+        },
+        Build = build.None(),
+        Move = { Hint = "None", IsPlayable = false, IsSequence = true }
+    }
 }
