@@ -45,30 +45,6 @@ auto start_scene::call_lua(std::vector<std::string> const& funcs, lua_params con
     return tab[funcs.back()].as<function<lua_return>>()(args);
 }
 
-auto start_scene::get_games() const -> std::vector<game_info>
-{
-    std::vector<game_info> retValue;
-    retValue.reserve(_games.size());
-    for (auto const& gi : _games) { retValue.emplace_back(gi.second.first); }
-    return retValue;
-}
-
-auto start_scene::get_themes() const -> std::vector<std::string>
-{
-    std::vector<std::string> retValue;
-    retValue.reserve(_themes.size());
-    for (auto const& t : _themes) { retValue.push_back(t.first); }
-    return retValue;
-}
-
-auto start_scene::get_cardsets() const -> std::vector<std::string>
-{
-    std::vector<std::string> retValue;
-    retValue.reserve(_cardSets.size());
-    for (auto const& cs : _cardSets) { retValue.push_back(cs.first); }
-    return retValue;
-}
-
 void start_scene::on_start()
 {
     auto& resMgr {locate_service<assets::library>()};
@@ -96,7 +72,16 @@ void start_scene::on_start()
 
     // ui
     _formControls = std::make_shared<form_controls>(&window, resGrp);
-    _formMenu     = std::make_shared<form_menu>(&window, resGrp, *this);
+
+    menu_sources source;
+    source.Games.reserve(_games.size());
+    for (auto const& x : _games) { source.Games.emplace_back(x.second.first); }
+    source.Themes.reserve(_themes.size());
+    for (auto const& x : _themes) { source.Themes.push_back(x.first); }
+    source.Cardsets.reserve(_cardSets.size());
+    for (auto const& x : _cardSets) { source.Cardsets.push_back(x.first); }
+
+    _formMenu = std::make_shared<form_menu>(&window, resGrp, source);
     _formMenu->hide();
     connect_ui_events();
 
@@ -134,15 +119,13 @@ void start_scene::on_start()
     // load config
     if (_saveGame.has("game")) {
         _formMenu->SelectedGame = _saveGame["game"].as<std::string>();
+        start_game(_formMenu->SelectedGame(), start_reason::Resume);
     }
 }
 
 void start_scene::connect_ui_events()
 {
     _formControls->BtnNewGame->Click.connect([&](auto const&) {
-        auto* game {_cardTable->game()};
-        if (game && game->Status != game_status::Success) { game->Status = game_status::Failure; }
-
         start_game(_formMenu->SelectedGame(), start_reason::Restart);
     });
 
@@ -164,11 +147,11 @@ void start_scene::connect_ui_events()
     });
 
     _formMenu->SelectedGame.Changed.connect([&](auto const& game) {
-        auto& camera {*get_window().Camera};
-        camera.set_position(point_f::Zero);
-        camera.set_zoom(size_f::One);
+        update_stats(game);
+    });
 
-        start_game(game, start_reason::Resume);
+    _formMenu->BtnStartGame->Click.connect([&]() {
+        start_game(_formMenu->SelectedGame, start_reason::Resume);
     });
 
     _formMenu->SelectedTheme.Changed.connect([&](auto const& theme) {
@@ -282,26 +265,31 @@ void start_scene::set_children_bounds(size_i size)
 
 void start_scene::start_game(string const& name, start_reason reason)
 {
-    if (reason == start_reason::Resume) {
-        if (auto* game {_cardTable->game()}) {
-            game->save(_saveGame);
-        }
-    }
-
     if (!_games.contains(name)) { return; }
 
+    auto& camera {*get_window().Camera};
+    camera.set_position(point_f::Zero);
+    camera.set_zoom(size_f::One);
+
+    auto* game {_cardTable->game()};
+    if (reason == start_reason::Resume) {         // save current game
+        update_recent(name);
+        if (game) { game->save(_saveGame); }
+    } else if (reason == start_reason::Restart) { // fail current game
+        if (game && game->Status != game_status::Success) { game->Status = game_status::Failure; }
+    }
+
     auto newGame {_games[name].second()};
-    newGame->Status.Changed.connect([&](auto val) {
+    newGame->Status.Changed.connect([&, current = newGame.get()](auto val) {
         switch (val) {
         case game_status::Success:
         case game_status::Failure: {
-            auto const* current {_cardTable->game()};
             auto const& state {current->state()};
             if (state.Turns == 0) { return; } // don't save unplayed games
 
-            _db.insert_history_entry(current->info().Name, state, current->Status);
-
-            update_stats(name);
+            auto const& gameName {current->info().Name};
+            _db.insert_history_entry(gameName, state, current->Status);
+            update_stats(gameName);
         } break;
         default: break;
         }
@@ -311,22 +299,35 @@ void start_scene::start_game(string const& name, start_reason reason)
     case start_reason::Restart:
         _cardTable->start(newGame);
         break;
-    case start_reason::Resume:
-#if defined(TCOB_DEBUG)
-        generate_rule(*newGame);
-#endif
+    case start_reason::Resume: {
         _cardTable->resume(newGame, _saveGame);
-        break;
+    } break;
     }
 
+#if defined(TCOB_DEBUG)
+    generate_rule(*newGame);
+#endif
     locate_service<stats>().reset();
     _saveGame["game"] = name;
-    update_stats(name);
 }
 
 void start_scene::update_stats(string const& name) const
 {
     _formMenu->set_game_stats(_db.get_history(name));
+}
+
+void start_scene::update_recent(string const& name)
+{
+    std::deque<string> recent;
+    _saveGame.try_get(recent, "recent");
+
+    auto it {std::find(recent.begin(), recent.end(), name)};
+    if (it != recent.end()) { recent.erase(it); }
+    if (recent.size() >= 5) { recent.pop_back(); }
+    recent.push_front(name);
+
+    _saveGame["recent"]    = recent;
+    _formMenu->RecentGames = recent;
 }
 
 void start_scene::generate_rule(base_game const& game) const

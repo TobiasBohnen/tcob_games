@@ -253,7 +253,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->Border.Size    = 5_px;
         style->Text.Style     = {false, gfx::font::weight::Light};
         style->Text.Font      = fntFam;
-        style->Text.Size      = 32_px;
+        style->Text.Size      = 24_px;
         style->Text.Alignment = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
         style->Text.AutoSize  = element::text::auto_size_mode::Always;
         theme.Normal.apply(style);

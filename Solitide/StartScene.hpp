@@ -29,10 +29,6 @@ public:
     void register_game(game_info const& info, reg_game_func&& game);
     auto call_lua(std::vector<std::string> const& funcs, lua_params const& args) -> lua_return;
 
-    auto get_games() const -> std::vector<game_info>;
-    auto get_themes() const -> std::vector<std::string>;
-    auto get_cardsets() const -> std::vector<std::string>;
-
 protected:
     void on_start() override;
 
@@ -46,7 +42,10 @@ protected:
 private:
     void set_children_bounds(size_i size);
     void start_game(string const& name, start_reason reason);
+
     void update_stats(string const& name) const;
+    void update_recent(string const& name);
+
     void generate_rule(base_game const& game) const;
 
     void load_scripts();

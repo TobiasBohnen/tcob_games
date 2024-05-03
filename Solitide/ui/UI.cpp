@@ -6,40 +6,55 @@
 #include "UI.hpp"
 
 #include "Games.hpp"
-#include "StartScene.hpp"
 
 namespace solitaire {
 
 using namespace tcob::literals;
 
-// TODO: translation
-
 auto static translate(string const& name) -> string // NOLINT
 {
+    // TODO: translation
     if (name == "btnMenu") { return "Menu"; }
     if (name == "BtnNewGame") { return "New Game"; }
     if (name == "btnHint") { return "Hint"; }
     if (name == "btnCollect") { return "Collect All"; }
     if (name == "btnUndo") { return "Undo"; }
     if (name == "btnQuit") { return "Quit"; }
+    if (name == "btnFilter") { return "Clear Filter"; }
+    if (name == "btnStartGame") { return "Start Game"; }
+    if (name == "btnApply") { return "Apply"; }
+    if (name == "btnBack") { return "Back"; }
 
     return "";
 }
 
-form_controls::form_controls(gfx::window* window, assets::group& resGrp)
-    : form {"MainMenu", window}
+auto static make_tooltip(form* form) -> std::shared_ptr<tooltip>
 {
-    // tooltip
-    auto tooltip0 {create_tooltip<tooltip>("tooltip")};
-    auto tooltipLayout {tooltip0->create_layout<dock_layout>()};
-
-    auto tooltipLabel0 {tooltipLayout->create_widget<label>(dock_style::Fill, "TTLabel0")};
-    tooltipLabel0->Class = "tooltip-label";
-    tooltip0->Popup.connect([lbl = tooltipLabel0.get(), tt = tooltip0.get()](auto const& event) {
+    auto retValue {form->create_tooltip<tooltip>("tooltip")};
+    auto tooltipLayout {retValue->create_layout<dock_layout>()};
+    auto tooltipLabel {tooltipLayout->create_widget<label>(dock_style::Fill, "TTLabel0")};
+    tooltipLabel->Class = "tooltip-label";
+    retValue->Popup.connect([form, lbl = tooltipLabel.get(), tt = retValue.get()](auto const& event) {
         auto const widget {event.Widget};
         lbl->Label = translate(widget->get_name());
-        tt->Bounds = {0, 0, widget->Bounds().Width * 1.5f, widget->Bounds().Height * 0.75f};
+
+        auto const  wBounds {widget->Bounds()};
+        auto const* lStyle {lbl->get_style<label::style>()};
+
+        auto size {form->measure_text(
+            lStyle->Text,
+            lStyle->Text.calc_font_size({0, 0, wBounds.Width * 1.5f, wBounds.Height * 0.75f}),
+            lbl->Label())};
+        tt->Bounds = {point_f::Zero, size};
     });
+    return retValue;
+}
+
+form_controls::form_controls(gfx::window* window, assets::group& resGrp)
+    : form {"Controls", window}
+{
+    // tooltip
+    auto tooltip0 {make_tooltip(this)};
 
     auto mainPanel {create_container<glass>(dock_style::Fill, "main")};
     auto mainPanelLayout {mainPanel->create_layout<dock_layout>()};
@@ -117,13 +132,16 @@ static string const TabSettingsName {"conSettings"};
 static string const TabThemesName {"conThemes"};
 static string const TabCardsetsName {"conCardsets"};
 
-form_menu::form_menu(gfx::window* window, assets::group& resGrp, start_scene const& scene)
-    : form {"Games", window}
+form_menu::form_menu(gfx::window* window, assets::group& resGrp, menu_sources const& source)
+    : form {"Menu", window}
 {
-    create_section_games(resGrp, scene.get_games());
+    // tooltip
+    _tooltip = make_tooltip(this);
+
+    create_section_games(resGrp, source.Games);
     create_section_settings(resGrp);
-    create_section_themes(scene.get_themes());
-    create_section_cardset(scene.get_cardsets());
+    create_section_themes(source.Themes);
+    create_section_cardset(source.Cardsets);
     create_menubar(resGrp);
 }
 
@@ -181,6 +199,7 @@ void form_menu::create_section_games(assets::group& resGrp, std::vector<game_inf
     auto btnFilter {pnlFilterLayout->create_widget<button>({9, 0, 1, 1}, "btnFilter")};
     btnFilter->Icon = resGrp.get<gfx::texture>("lens");
     btnFilter->Click.connect([tb = txbFilter.get()]() { tb->Text = ""; });
+    btnFilter->Tooltip = _tooltip;
 
     std::vector<list_box*> listBoxes;
     {
@@ -192,18 +211,14 @@ void form_menu::create_section_games(assets::group& resGrp, std::vector<game_inf
             auto listBox {tabPanelLayout->create_widget<list_box>(dock_style::Fill, "lbxGames" + name)};
             listBoxes.push_back(listBox.get());
 
-            bool check {false};
             for (auto const& game : games) {
-                if (pred(game)) {
-                    listBox->add_item(game.Name);
-                    check = true;
-                }
+                if (pred(game)) { listBox->add_item(game.Name); }
             }
-            if (!check) { return nullptr; }
 
             listBox->SelectedItemIndex.Changed.connect([&, lb = listBox.get()](auto val) {
                 if (val != -1) { SelectedGame = lb->get_selected_item(); }
             });
+
             SelectedGame.Changed.connect([&, lb = listBox.get()](auto const& val) {
                 if (lb->select_item(val)) {
                     if (!lb->is_focused()) { lb->scroll_to_selected(); }
@@ -213,7 +228,7 @@ void form_menu::create_section_games(assets::group& resGrp, std::vector<game_inf
             });
 
             listBox->DoubleClick.connect([&, lb = listBox.get()] {
-                if (lb->SelectedItemIndex >= 0) { hide(); }
+                if (lb->SelectedItemIndex >= 0) { BtnStartGame->Click({lb}); }
             });
             return listBox;
         }};
@@ -222,7 +237,17 @@ void form_menu::create_section_games(assets::group& resGrp, std::vector<game_inf
         {
             auto tabPanel {tabGames->create_tab<panel>("byName", "By Name")};
             auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-            _lbxGamesByName = createListBox(tabPanelLayout, "0", [](auto const&) { return true; });
+            createListBox(tabPanelLayout, "0", [](auto const&) { return true; });
+        }
+        // Recent
+        {
+            auto tabPanel {tabGames->create_tab<panel>("recent", "Recent")};
+            auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
+            auto lbxRecent {createListBox(tabPanelLayout, "1", [](auto const&) { return false; })};
+            RecentGames.Changed.connect([lb = lbxRecent.get()](auto const& val) {
+                lb->clear_items();
+                for (auto const& g : val) { lb->add_item(g); }
+            });
         }
         // By Family
         {
@@ -267,16 +292,12 @@ void form_menu::create_section_games(assets::group& resGrp, std::vector<game_inf
             {
                 auto tabPanel {tabContainer->create_tab<panel>(">= 4")};
                 auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-                if (!createListBox(tabPanelLayout, "4+", [](auto const& game) { return game.DeckCount >= 4; })) {
-                    tabContainer->remove_tab(tabPanel.get());
-                }
+                createListBox(tabPanelLayout, "4+", [](auto const& game) { return game.DeckCount >= 4; });
             }
             {
                 auto tabPanel {tabContainer->create_tab<panel>("stripped")};
                 auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-                if (!createListBox(tabPanelLayout, "stripped", [](auto const& game) { return game.DeckRanks.size() < 13 || game.DeckSuits.size() < 4; })) {
-                    tabContainer->remove_tab(tabPanel.get());
-                }
+                createListBox(tabPanelLayout, "stripped", [](auto const& game) { return game.DeckRanks.size() < 13 || game.DeckSuits.size() < 4; });
             }
         }
 
@@ -290,17 +311,22 @@ void form_menu::create_section_games(assets::group& resGrp, std::vector<game_inf
         auto panelGameStats {panelLayout->create_widget<panel>(dock_style::Right, "panelGameStats")};
         panelGameStats->Flex   = {50_pct, 100_pct};
         panelGameStats->ZOrder = 1;
-        auto panelGameStatsLayout {panelGameStats->create_layout<grid_layout>(size_i {40, 40})};
+        auto panelGameStatsLayout {panelGameStats->create_layout<grid_layout>(size_i {20, 40})};
 
-        _gvWL        = panelGameStatsLayout->create_widget<grid_view>({0, 1, 20, 4}, "gvWinLose");
+        _gvWL        = panelGameStatsLayout->create_widget<grid_view>({0, 1, 10, 4}, "gvWinLose");
         _gvWL->Class = "grid_view2";
         _gvWL->set_columns({"Won", "Lost", "W/L"});
-        _gvTT        = panelGameStatsLayout->create_widget<grid_view>({20, 1, 20, 4}, "gvBest");
+        _gvTT        = panelGameStatsLayout->create_widget<grid_view>({10, 1, 10, 4}, "gvBest");
         _gvTT->Class = "grid_view2";
         _gvTT->set_columns({"Highscore", "Least Turns", "Fastest Time"});
 
-        _gvHistory = panelGameStatsLayout->create_widget<grid_view>({1, 6, 38, 25}, "gvHistory");
+        _gvHistory = panelGameStatsLayout->create_widget<grid_view>({1, 6, 18, 25}, "gvHistory");
         _gvHistory->set_columns({"ID", "Score", "Turns", "Time", "Won"});
+
+        BtnStartGame       = panelGameStatsLayout->create_widget<button>({1, 36, 4, 3}, {"btnStartGame"});
+        BtnStartGame->Icon = resGrp.get<gfx::texture>("play");
+        BtnStartGame->Click.connect([&]() { hide(); });
+        BtnStartGame->Tooltip = _tooltip;
     }
 }
 
@@ -347,8 +373,9 @@ void form_menu::create_section_settings(assets::group& resGrp)
             lbl->Label = "VSync";
         }
 
-        BtnApplySettings       = panelLayout->create_widget<button>({34, 36, 5, 2}, "btnApply");
-        BtnApplySettings->Icon = resGrp.get<gfx::texture>("apply");
+        BtnApplySettings          = panelLayout->create_widget<button>({34, 36, 4, 3}, "btnApply");
+        BtnApplySettings->Icon    = resGrp.get<gfx::texture>("apply");
+        BtnApplySettings->Tooltip = _tooltip;
     }
 }
 
@@ -359,15 +386,13 @@ void form_menu::create_section_themes(std::vector<std::string> const& colorTheme
     panelThemes->Flex = {0_pct, 0_pct};
     {
         auto panelLayout {panelThemes->create_layout<dock_layout>()};
-        _lbxThemes = panelLayout->create_widget<list_box>(dock_style::Fill, "lbxThemes");
-        for (auto const& colorTheme : colorThemes) { _lbxThemes->add_item(colorTheme); }
-        _lbxThemes->SelectedItemIndex.Changed.connect([&, lb = _lbxThemes.get()](auto val) {
+        auto lbxThemes {panelLayout->create_widget<list_box>(dock_style::Fill, "lbxThemes")};
+        for (auto const& colorTheme : colorThemes) { lbxThemes->add_item(colorTheme); }
+        lbxThemes->SelectedItemIndex.Changed.connect([&, lb = lbxThemes.get()](auto val) {
             if (val != -1) { SelectedTheme = lb->get_selected_item(); }
         });
-        _lbxThemes->DoubleClick.connect([&] { hide(); });
-        SelectedTheme.Changed.connect([&](auto const& val) {
-            _lbxThemes->select_item(val);
-        });
+        lbxThemes->DoubleClick.connect([&] { hide(); });
+        SelectedTheme.Changed.connect([lb = lbxThemes.get()](auto const& val) { lb->select_item(val); });
     }
 }
 
@@ -378,15 +403,13 @@ void form_menu::create_section_cardset(std::vector<std::string> const& cardSets)
     panelCardsets->Flex = {0_pct, 0_pct};
     {
         auto panelLayout {panelCardsets->create_layout<dock_layout>()};
-        _lbxCardsets = panelLayout->create_widget<list_box>(dock_style::Fill, "lbxCardsets");
-        for (auto const& cardSet : cardSets) { _lbxCardsets->add_item(cardSet); }
-        _lbxCardsets->SelectedItemIndex.Changed.connect([&, lb = _lbxCardsets.get()](auto val) {
+        auto lbxCardsets {panelLayout->create_widget<list_box>(dock_style::Fill, "lbxCardsets")};
+        for (auto const& cardSet : cardSets) { lbxCardsets->add_item(cardSet); }
+        lbxCardsets->SelectedItemIndex.Changed.connect([&, lb = lbxCardsets.get()](auto val) {
             if (val != -1) { SelectedCardset = lb->get_selected_item(); }
         });
-        _lbxCardsets->DoubleClick.connect([&] { hide(); });
-        SelectedCardset.Changed.connect([&](auto const& val) {
-            _lbxCardsets->select_item(val);
-        });
+        lbxCardsets->DoubleClick.connect([&] { hide(); });
+        SelectedCardset.Changed.connect([lb = lbxCardsets.get()](auto const& val) { lb->select_item(val); });
     }
 }
 
@@ -435,8 +458,9 @@ void form_menu::create_menubar(assets::group& resGrp)
         btn->Click.connect([enableContainer](auto const& ev) { enableContainer(ev.Sender->get_form(), TabCardsetsName); });
     }
 
-    auto btnBack {menuLayout->create_widget<button>({2, 37, 3, 2}, "btnBack")};
+    auto btnBack {menuLayout->create_widget<button>({1, 35, 5, 3}, "btnBack")};
     btnBack->Icon = resGrp.get<gfx::texture>("back");
     btnBack->Click.connect([&](auto&) { hide(); });
+    btnBack->Tooltip = _tooltip;
 }
 }

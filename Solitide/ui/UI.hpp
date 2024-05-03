@@ -55,14 +55,23 @@ public:
 
 ////////////////////////////////////////////////////////////
 
+struct menu_sources {
+    std::vector<game_info>   Games;
+    std::vector<std::string> Themes;
+    std::vector<std::string> Cardsets;
+};
+
 class form_menu : public form {
 public:
-    form_menu(gfx::window* window, assets::group& resGrp, start_scene const& scene);
+    form_menu(gfx::window* window, assets::group& resGrp, menu_sources const& source);
 
     prop<std::string> SelectedGame;
     prop<std::string> SelectedTheme;
     prop<std::string> SelectedCardset;
 
+    prop<std::deque<std::string>> RecentGames;
+
+    std::shared_ptr<button> BtnStartGame;
     std::shared_ptr<button> BtnApplySettings;
 
     void submit_settings(data::config::object& obj);
@@ -78,13 +87,11 @@ private:
 
     std::shared_ptr<panel> _panelSettings;
 
-    std::shared_ptr<list_box> _lbxGamesByName;
-    std::shared_ptr<list_box> _lbxThemes;
-    std::shared_ptr<list_box> _lbxCardsets;
-
     std::shared_ptr<grid_view> _gvWL;
     std::shared_ptr<grid_view> _gvTT;
     std::shared_ptr<grid_view> _gvHistory;
+
+    std::shared_ptr<tooltip> _tooltip;
 };
 
 }
