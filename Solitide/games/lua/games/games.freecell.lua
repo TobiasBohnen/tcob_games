@@ -3,9 +3,6 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-
-
-
 local free_cell                             = {
     Info         = {
         Name      = "FreeCell",
@@ -71,15 +68,21 @@ local free_cell                             = {
 
 ------
 
-local free_cell_0                           = Sol.copy(free_cell)
-free_cell_0.Info.Name                       = "FreeCell (0 cells)"
-free_cell_0.FreeCell                        = nil
+local zero_cell                             = Sol.copy(free_cell)
+zero_cell.Info.Name                         = "ZeroCell"
+zero_cell.FreeCell                          = nil
 
 ------
 
-local free_cell_2                           = Sol.copy(free_cell)
-free_cell_2.Info.Name                       = "FreeCell (2 cells)"
-free_cell_2.FreeCell.Size                   = 2
+local two_cell                              = Sol.copy(free_cell)
+two_cell.Info.Name                          = "TwoCell"
+two_cell.FreeCell.Size                      = 2
+
+------
+
+local three_cell                            = Sol.copy(free_cell)
+three_cell.Info.Name                        = "ThreeCell"
+three_cell.FreeCell.Size                    = 3
 
 ------
 
@@ -731,8 +734,8 @@ Sol.register_game(flipper)
 Sol.register_game(footling)
 Sol.register_game(fore_cell)
 Sol.register_game(four_colours)
-Sol.register_game(free_cell_0)
-Sol.register_game(free_cell_2)
+Sol.register_game(zero_cell)
+Sol.register_game(two_cell)
 Sol.register_game(german_free_cell)
 Sol.register_game(king_cell)
 Sol.register_game(penguin)
@@ -744,4 +747,5 @@ Sol.register_game(seahaven_towers)
 Sol.register_game(seven_x_five)
 Sol.register_game(seven_x_four)
 Sol.register_game(super_challenge_free_cell)
+Sol.register_game(three_cell)
 Sol.register_game(triple_free_cell)

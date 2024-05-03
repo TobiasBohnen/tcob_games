@@ -308,6 +308,25 @@ local move = {
             end
         }
     end,
+    InSeqInColor = function() -- in sequence and in color
+        return {
+            Hint = "Sequence of cards in the same color",
+            Func = function(game, pile, idx)
+                local cards = pile.Cards
+                if cards[idx].IsFaceDown then return false end
+
+                local targetColor = cards[idx].Color
+                for i = idx, #cards - 1 do
+                    if not game:can_play(pile, i, cards[i + 1], 1)
+                        or cards[i + 1].Color ~= targetColor
+                    then
+                        return false
+                    end
+                end
+                return true
+            end
+        }
+    end,
     InSeqAlternateColors = function() -- in sequence and alternate colors
         return {
             Hint = "Color-alternating card sequence",
@@ -483,6 +502,22 @@ local base = {
                 return false
             end
         }
+    end,
+    SuitStack = function()
+        return {
+            Hint = "King to Ace",
+            Func = function(game, card, numCards)
+                if numCards ~= 13 or card.Rank ~= "King" then return false end
+
+                local srcPile = game:find_pile(card)
+                local cards = srcPile.Cards
+                local srcIdx = srcPile:get_card_index(card)
+                for i = srcIdx, #cards do
+                    if cards[i].Suit ~= card.Suit then return false end
+                end
+                return true
+            end
+        }
     end
 }
 
@@ -496,6 +531,7 @@ return {
     ace_uprank_none = { Base = base.Ace(), Build = build.UpByRank(), Move = move.None() },
     ace_upsuit_top = { Base = base.Ace(), Build = build.UpInSuit(), Move = move.Top() },
     ace_upsuit_none = { Base = base.Ace(), Build = build.UpInSuit(), Move = move.None() },
+    any_any_top = { Base = base.Any(), Build = build.Any(), Move = move.Top() },
     any_downac_top = { Base = base.Any(), Build = build.DownAlternateColors(), Move = move.Top() },
     any_downac_inseq = { Base = base.Any(), Build = build.DownAlternateColors(), Move = move.InSeq() },
     any_downac_faceup = { Base = base.Any(), Build = build.DownAlternateColors(), Move = move.FaceUp() },
@@ -530,22 +566,5 @@ return {
     ff_upsuit_top_l13 = { Base = base.FirstFoundation(), Build = build.UpInSuit(true), Move = move.Top(), Limit = 13 },
     ff_upsuit_none_l13 = { Base = base.FirstFoundation(), Build = build.UpInSuit(true), Move = move.None(), Limit = 13 },
     spider_tableau = { Base = base.Any(), Build = build.DownByRank(), Move = move.InSeqInSuit() },
-    spider_foundation = {
-        Base = {
-            Hint = "King to Ace",
-            Func = function(game, card, numCards)
-                if numCards ~= 13 or card.Rank ~= "King" then return false end
-
-                local srcPile = game:find_pile(card)
-                local cards = srcPile.Cards
-                local srcIdx = srcPile:get_card_index(card)
-                for i = srcIdx, #cards do
-                    if cards[i].Suit ~= card.Suit then return false end
-                end
-                return true
-            end
-        },
-        Build = build.None(),
-        Move = { Hint = "None", IsPlayable = false, IsSequence = true }
-    }
+    spider_foundation = { Base = base.SuitStack(), Build = build.None(), Move = { Hint = "None", IsPlayable = false, IsSequence = true } }
 }

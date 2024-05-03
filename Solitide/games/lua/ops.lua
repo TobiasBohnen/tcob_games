@@ -62,11 +62,23 @@ local function deal_func(from, to, count)
     return true
 end
 
-local function deal_group_func(from, to, ifEmpty)
+local function deal_group_func(from, to, onlyIfEmpty)
     if from.IsEmpty then return false end
     for _, toPile in ipairs(to) do
         if from.IsEmpty then break end
-        if not ifEmpty or ifEmpty == toPile.IsEmpty then
+        if not onlyIfEmpty or toPile.IsEmpty then
+            from:move_cards(toPile, #from.Cards, 1, false)
+            toPile:flip_up_top_card()
+        end
+    end
+    return true
+end
+
+local function deal_nonempty_group_func(from, to)
+    if from.IsEmpty then return false end
+    for _, toPile in ipairs(to) do
+        if from.IsEmpty then break end
+        if not toPile.IsEmpty then
             from:move_cards(toPile, #from.Cards, 1, false)
             toPile:flip_up_top_card()
         end
@@ -77,6 +89,8 @@ end
 local deal = {
     to_pile = deal_func,
     to_group = deal_group_func,
+    to_nonempty_group = deal_nonempty_group_func,
+
     stock_to_waste = function(game) return deal_func(game.Stock[1], game.Waste[1], 1) end,
     stock_to_waste_by_3 = function(game) return deal_func(game.Stock[1], game.Waste[1], 3) end,
     stock_to_waste_by_redeals_left = function(game) return deal_func(game.Stock[1], game.Waste[1], game.RedealsLeft + 1) end,

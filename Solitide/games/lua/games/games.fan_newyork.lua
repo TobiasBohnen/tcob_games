@@ -19,7 +19,7 @@ local new_york         = {
         Pile = function(i)
             return {
                 Position = { x = 0, y = i + 1 },
-                Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.Any(), Move = Sol.Rules.Move.Top() }
+                Rule = Sol.Rules.any_any_top
             }
         end
     },

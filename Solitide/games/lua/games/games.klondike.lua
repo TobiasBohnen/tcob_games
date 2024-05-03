@@ -329,6 +329,21 @@ blind_alleys.on_before_shuffle     = Sol.Ops.Shuffle.ace_to_foundation
 
 ------
 
+local pas_seul                     = Sol.copy(klondike)
+pas_seul.Info.Name                 = "Pas Seul"
+pas_seul.Info.Redeals              = 0
+pas_seul.Stock.Initial             = Sol.Initial.face_down(46)
+pas_seul.Tableau                   = {
+    Size = 6,
+    Pile = {
+        Initial = Sol.Initial.face_up(1),
+        Layout = "Column",
+        Rule = Sol.Rules.any_downac_inseq
+    }
+}
+
+------
+
 local boost                        = Sol.copy(klondike)
 boost.Info.Name                    = "Boost"
 boost.Info.Redeals                 = 2
@@ -656,6 +671,36 @@ moving_left.on_init                = Sol.Layout.klondike
 local souter                       = Sol.copy(moving_left)
 souter.Info.Name                   = "Souter"
 souter.Info.Redeals                = 1
+
+------
+
+local nine_across                  = Sol.copy(klondike)
+nine_across.Info.Name              = "Nine Across"
+nine_across.Stock.Initial          = Sol.Initial.face_down(7)
+nine_across.Foundation             = {
+    Size = 4,
+    Pile = {
+        Rule = Sol.Rules.ff_upsuit_none_l13
+    }
+}
+nine_across.Tableau                = {
+    Size = 9,
+    Pile = function(i)
+        return {
+            Initial = Sol.Initial.face_up(i + 1),
+            Layout = "Column",
+            Rule = { Base = Sol.Rules.Base.FirstFoundation(-1), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.InSeq() }
+        }
+    end
+}
+nine_across.can_play               = function(game, targetPile, targetCardIndex, card, numCards)
+    local foundation1 = game.Foundation[1]
+    if foundation1.IsEmpty and targetPile == foundation1 then -- allow any card on first foundation
+        return true
+    end
+
+    return game:can_play(targetPile, targetCardIndex, card, numCards)
+end
 
 ------
 
@@ -1116,9 +1161,11 @@ Sol.register_game(klondike_by_3s)
 Sol.register_game(lady_jane)
 Sol.register_game(lanes)
 Sol.register_game(legion)
+Sol.register_game(nine_across)
 Sol.register_game(moving_left)
 Sol.register_game(open_gargantua)
 Sol.register_game(pantagruel)
+Sol.register_game(pas_seul)
 Sol.register_game(qc)
 Sol.register_game(quadruple_klondike)
 Sol.register_game(quadruple_klondike_by_3s)

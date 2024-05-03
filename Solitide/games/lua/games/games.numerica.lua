@@ -23,7 +23,7 @@ local numerica                   = {
         Size = 4,
         Pile = {
             Layout = "Column",
-            Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.Any(), Move = Sol.Rules.Move.Top() }
+            Rule = Sol.Rules.any_any_top
         }
     },
     can_play    = function(game, targetPile, targetCardIndex, card, numCards)

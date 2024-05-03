@@ -98,11 +98,14 @@ return {
     canfield = function(game)
         local piles = get_piles(game)
 
+        local offsetX = 3
         if piles.HasStock then
             piles.Stock[1].Position = { x = 0, y = 0 }
         end
         if piles.HasWaste then
             piles.Waste[1].Position = { x = 1, y = 0 }
+        else
+            offsetX = 2
         end
         if piles.ReserveSize > 0 then
             piles.Reserve[1].Position = { x = 0, y = 1 }
@@ -111,11 +114,11 @@ return {
         end
 
         for i = 0, piles.FoundationSize - 1 do
-            piles.Foundation[i + 1].Position = { x = i + 3, y = 0 }
+            piles.Foundation[i + 1].Position = { x = i + offsetX, y = 0 }
         end
 
         for i = 0, piles.TableauSize - 1 do
-            piles.Tableau[i + 1].Position = { x = i + 3, y = 1 }
+            piles.Tableau[i + 1].Position = { x = i + offsetX, y = 1 }
         end
     end,
     -- Foundation       -> top right

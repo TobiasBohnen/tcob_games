@@ -325,6 +325,45 @@ millie.Tableau.Pile.Initial       = Sol.Initial.face_up(1)
 
 ------
 
+local phantom_blockade            = Sol.copy(gypsy)
+phantom_blockade.Info.Name        = "Phantom Blockade"
+phantom_blockade.Stock.Initial    = Sol.Initial.face_down(65)
+phantom_blockade.Tableau          = {
+    Size = 13,
+    Pile = {
+        Initial = Sol.Initial.face_up(3),
+        Layout = "Column",
+        Rule = Sol.Rules.king_downac_inseq
+    }
+}
+
+------
+
+local scarp                       = Sol.copy(gypsy)
+scarp.Info.Name                   = "Scarp"
+scarp.Info.DeckCount              = 3
+scarp.Stock.Initial               = Sol.Initial.face_down(65)
+scarp.Foundation.Size             = 12
+scarp.Tableau                     = {
+    Size = 13,
+    Pile = function(i)
+        return {
+            Initial = Sol.Initial.face_up(i + 1),
+            Layout = "Column",
+            Rule = Sol.Rules.any_downac_inseq
+        }
+    end
+}
+scarp.on_init                     = Sol.Layout.big_harp
+
+------
+
+local yeast_dough                 = Sol.copy(gypsy)
+yeast_dough.Info.Name             = "Yeast Dough"
+yeast_dough.Tableau.Pile.Initial  = Sol.Initial.face_up(3)
+
+------
+
 local cone                        = {
     Info       = {
         Name      = "Cone",
@@ -554,19 +593,44 @@ local nomad                       = {
 
 ------
 
-local phantom_blockade            = Sol.copy(gypsy)
-phantom_blockade.Info.Name        = "Phantom Blockade"
-phantom_blockade.Stock.Initial    = Sol.Initial.face_down(65)
-phantom_blockade.Tableau          = {
-    Size = 13,
-    Pile = {
-        Initial = Sol.Initial.face_up(3),
-        Layout = "Column",
-        Rule = Sol.Rules.king_downac_inseq
-    }
+local right_triangle              = {
+    Info       = {
+        Name      = "Right Triangle",
+        Family    = "Gypsy",
+        DeckCount = 2
+    },
+    Stock      = {
+        Initial = Sol.Initial.face_down(49)
+    },
+    FreeCell   = {
+        Rule = Sol.Rules.any_any_top,
+        Layout = "Column"
+    },
+    Foundation = {
+        Size = 8,
+        Pile = { Rule = Sol.Rules.ace_upsuit_top }
+    },
+    Tableau    = {
+        Size = 10,
+        Pile = function(i)
+            return {
+                Initial = Sol.Initial.top_face_up(i + 1),
+                Layout = "Column",
+                Rule = Sol.Rules.king_downac_inseq
+            }
+        end
+    },
+    on_init    = Sol.Layout.canfield,
+    deal       = Sol.Ops.Deal.stock_to_tableau,
+    can_play   = function(game, targetPile, targetCardIndex, card, numCards)
+        if targetPile.Type == "FreeCell" and not game.Stock[1].IsEmpty then -- block FreeCell until Stock is empty
+            return false
+        end
+
+        return game:can_play(targetPile, targetCardIndex, card, numCards)
+    end
 }
 
-------
 
 ------------------------
 
@@ -591,4 +655,7 @@ Sol.register_game(miss_milligan)
 Sol.register_game(nomad)
 Sol.register_game(phantom_blockade)
 Sol.register_game(pitt_the_younger)
+Sol.register_game(right_triangle)
+Sol.register_game(scarp)
 Sol.register_game(small_triangle)
+Sol.register_game(yeast_dough)

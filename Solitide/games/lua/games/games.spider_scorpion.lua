@@ -3,6 +3,10 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
+local scorpion_initial          = function(x, i)
+    return i < x and { false, false, false, true, true, true, true } or Sol.Initial.face_up(7)
+end
+
 local scorpion                  = {
     Info       = {
         Name      = "Scorpion",
@@ -20,7 +24,7 @@ local scorpion                  = {
         Size = 7,
         Pile = function(i)
             return {
-                Initial = i < 4 and { false, false, false, true, true, true, true } or Sol.Initial.face_up(7),
+                Initial = scorpion_initial(4, i),
                 Layout  = "Column",
                 Rule    = Sol.Rules.king_downsuit_faceup
             }
@@ -87,7 +91,7 @@ local scorpion_2                = Sol.copy(scorpion)
 scorpion_2.Info.Name            = "Scorpion II"
 scorpion_2.Tableau.Pile         = function(i)
     return {
-        Initial = i < 3 and { false, false, false, true, true, true, true } or Sol.Initial.face_up(7),
+        Initial = scorpion_initial(3, i),
         Layout  = "Column",
         Rule    = Sol.Rules.king_downsuit_faceup
     }
@@ -99,11 +103,24 @@ local scorpion_tail             = Sol.copy(scorpion)
 scorpion_tail.Info.Name         = "Scorpion Tail"
 scorpion_tail.Tableau.Pile      = function(i)
     return {
-        Initial = i < 3 and { false, false, false, true, true, true, true } or Sol.Initial.face_up(7),
+        Initial = scorpion_initial(3, i),
         Layout  = "Column",
         Rule    = Sol.Rules.king_downac_faceup
     }
 end
+
+------
+
+local wasp                      = Sol.copy(scorpion)
+wasp.Info.Name                  = "Wasp"
+wasp.Tableau.Pile               = function(i)
+    return {
+        Initial = scorpion_initial(4, i),
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downsuit_faceup
+    }
+end
+
 
 ------
 
@@ -114,3 +131,4 @@ Sol.register_game(double_scorpion)
 Sol.register_game(scorpion_2)
 Sol.register_game(scorpion_tail)
 Sol.register_game(triple_scorpion)
+Sol.register_game(wasp)

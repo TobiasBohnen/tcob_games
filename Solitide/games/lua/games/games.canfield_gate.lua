@@ -49,14 +49,14 @@ local gate                = {
         if reserve[1].IsEmpty and reserve[2].IsEmpty then
             Sol.Ops.Deal.to_group(game.Waste[1], game.Tableau, true)
         else
-            if reserve[1].CardCount > reserve[2].CardCount then
+            if reserve[1].CardCount >= reserve[2].CardCount then
                 Sol.Ops.Deal.to_group(game.Reserve[1], game.Tableau, true)
             else
                 Sol.Ops.Deal.to_group(game.Reserve[2], game.Tableau, true)
             end
         end
     end,
-    deal     = Sol.Ops.Deal.stock_to_waste
+    deal        = Sol.Ops.Deal.stock_to_waste
 }
 
 ------
