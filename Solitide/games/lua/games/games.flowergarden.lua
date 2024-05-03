@@ -34,6 +34,12 @@ local flower_garden             = {
 
 ------
 
+local arizona                   = Sol.copy(flower_garden)
+arizona.Info.Name               = "Arizona"
+arizona.Tableau.Rule            = Sol.Rules.any_downrank_inseq
+
+------
+
 local can_can                   = Sol.copy(flower_garden)
 can_can.Info.Name               = "Can Can"
 can_can.Reserve.Size            = 3
@@ -129,6 +135,12 @@ stonewall.Tableau.Pile          = {
 local wildflower                = Sol.copy(flower_garden)
 wildflower.Info.Name            = "Wildflower"
 wildflower.Tableau.Pile.Rule    = Sol.Rules.spider_tableau
+
+------
+
+local phoenix                   = Sol.copy(flower_garden)
+phoenix.Info.Name               = "Phoenix"
+phoenix.Tableau.Rule            = Sol.Rules.any_downac_inseq
 
 ------
 
@@ -283,6 +295,7 @@ local big_bertha                = {
 Sol.register_game(flower_garden)
 Sol.register_game(agnes_bernauer)
 Sol.register_game(agnes_two)
+Sol.register_game(arizona)
 Sol.register_game(artic_garden)
 Sol.register_game(big_bertha)
 Sol.register_game(brigade)
@@ -290,6 +303,7 @@ Sol.register_game(can_can)
 Sol.register_game(northwest_territory)
 Sol.register_game(king_albert)
 Sol.register_game(klondike_territory)
+Sol.register_game(phoenix)
 Sol.register_game(queen_victoria)
 Sol.register_game(raglan)
 Sol.register_game(relaxed_raglan)
