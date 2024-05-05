@@ -436,6 +436,7 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
         if (Table pileTypeTable; gameRef.try_get(pileTypeTable, name)) {
             isize size {1};
             pileTypeTable.try_get(size, "Size");
+            if (size == 0) { return; }
             if (size == 1 && !pileTypeTable.has("Pile")) {                              // pile table is definition
                 create_piles(piles, 1, [&](auto& pile, i32) { createPile(pile, pileTypeTable); });
             } else if (Table createTable; pileTypeTable.try_get(createTable, "Pile")) { // use 'Pile' table

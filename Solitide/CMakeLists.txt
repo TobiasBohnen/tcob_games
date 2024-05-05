@@ -12,6 +12,8 @@ target_sources(Solitide PRIVATE
     main.cpp
     ./ui/UI.cpp
     ./ui/UIHelper.cpp
+    ./wizard/Wizard.cpp
+    ./wizard/WizardScene.cpp
     ./games/Games.cpp
 )
 

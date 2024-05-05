@@ -17,6 +17,7 @@ public:
 
     std::shared_ptr<button> BtnMenu;
     std::shared_ptr<button> BtnNewGame;
+    std::shared_ptr<button> BtnWizard;
 
     std::shared_ptr<button> BtnHint;
     std::shared_ptr<button> BtnCollect;
@@ -24,33 +25,37 @@ public:
 
     std::shared_ptr<button> BtnQuit;
 
-    std::shared_ptr<label> LblPile;
-    std::shared_ptr<label> LblPileLabel;
-
-    std::shared_ptr<label> LblGameName;
-
-    std::shared_ptr<label> LblDescription;
-    std::shared_ptr<label> LblDescriptionLabel;
-
-    std::shared_ptr<label> LblMove;
-    std::shared_ptr<label> LblMoveLabel;
-
-    std::shared_ptr<label> LblBase;
-    std::shared_ptr<label> LblBaseLabel;
-
-    std::shared_ptr<label> LblCardCount;
-    std::shared_ptr<label> LblCardCountLabel;
-
-    std::shared_ptr<label> LblTurns;
-    std::shared_ptr<label> LblTurnsLabel;
-
-    std::shared_ptr<label> LblScore;
-    std::shared_ptr<label> LblScoreLabel;
-
-    std::shared_ptr<label> LblTime;
-    std::shared_ptr<label> LblTimeLabel;
-
     std::shared_ptr<canvas_widget> Canvas;
+
+    void set_pile_labels(pile_description const& str);
+    void set_game_labels(base_game* game);
+
+private:
+    std::shared_ptr<label> _lblPile;
+    std::shared_ptr<label> _lblPileLabel;
+
+    std::shared_ptr<label> _lblGameName;
+
+    std::shared_ptr<label> _lblDescription;
+    std::shared_ptr<label> _lblDescriptionLabel;
+
+    std::shared_ptr<label> _lblMove;
+    std::shared_ptr<label> _lblMoveLabel;
+
+    std::shared_ptr<label> _lblBase;
+    std::shared_ptr<label> _lblBaseLabel;
+
+    std::shared_ptr<label> _lblCardCount;
+    std::shared_ptr<label> _lblCardCountLabel;
+
+    std::shared_ptr<label> _lblTurns;
+    std::shared_ptr<label> _lblTurnsLabel;
+
+    std::shared_ptr<label> _lblScore;
+    std::shared_ptr<label> _lblScoreLabel;
+
+    std::shared_ptr<label> _lblTime;
+    std::shared_ptr<label> _lblTimeLabel;
 };
 
 ////////////////////////////////////////////////////////////
@@ -76,6 +81,8 @@ public:
 
     void submit_settings(data::config::object& obj);
     void set_game_stats(game_history const& stats);
+
+    void update_games(std::vector<game_info> const& games);
 
 private:
     void create_section_games(assets::group& resGrp, std::vector<game_info> const& games);

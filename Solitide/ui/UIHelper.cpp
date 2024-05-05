@@ -206,7 +206,29 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         theme.Hover.apply(hoverStyle);
         theme.Active.apply(activeStyle);
     }
+    {
+        auto style {styles.create<cycle_button>("cycle_button", {})};
+        style->Border.Size          = 3_px;
+        style->Border.Radius        = 5_px;
+        style->Text.Style           = {false, gfx::font::weight::Normal};
+        style->Text.Font            = fntFam;
+        style->Text.Size            = 32_px;
+        style->Text.Alignment       = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
+        style->Text.Decoration.Size = {3_px};
+        style->Text.AutoSize        = element::text::auto_size_mode::Always;
+        style->Margin               = {5_px};
+        style->Padding              = {1_px};
 
+        auto hoverStyle {styles.create<cycle_button>("cycle_button", {.Hover = true})};
+        *hoverStyle = *style;
+
+        auto activeStyle {styles.create<cycle_button>("cycle_button", {.Active = true})};
+        *activeStyle = *style;
+
+        theme.Normal.apply(style);
+        theme.Hover.apply(hoverStyle);
+        theme.Active.apply(activeStyle);
+    }
     {
         auto style {styles.create<slider>("slider", {})};
         style->Margin            = {2_px};
@@ -220,6 +242,28 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
 
         theme.Normal.apply(style);
         theme.Hover.apply(style);
+    }
+    {
+        auto style {styles.create<spinner>("spinner", {})};
+        style->Border.Size    = 3_px;
+        style->Border.Radius  = 5_px;
+        style->Text.Style     = {false, gfx::font::weight::Normal};
+        style->Text.Font      = fntFam;
+        style->Text.Size      = 50_pct;
+        style->Text.Alignment = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
+        style->Margin         = {5_px};
+        style->Padding        = {1_px};
+        style->NavArrowClass  = "nav_arrows";
+
+        auto hoverStyle {styles.create<spinner>("spinner", {.Hover = true})};
+        *hoverStyle = *style;
+
+        auto activeStyle {styles.create<spinner>("spinner", {.Active = true})};
+        *activeStyle = *style;
+
+        theme.Normal.apply(style);
+        theme.Hover.apply(hoverStyle);
+        theme.Active.apply(activeStyle);
     }
     {
         auto style {styles.create<label>("label", {})};
@@ -406,7 +450,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->Border.Size     = 3_px;
         style->Border.Radius   = 5_px;
         style->Text.Style      = {false, gfx::font::weight::Normal};
-        style->Text.Font       = resGrp.get<gfx::font_family>("Poppins");
+        style->Text.Font       = fntFam;
         style->Text.Size       = 50_pct;
         style->Text.Alignment  = {gfx::horizontal_alignment::Left, gfx::vertical_alignment::Middle};
         style->Padding         = {2_px};
@@ -498,7 +542,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         auto style {styles.create<item_style>("section_items", {}, {})};
         style->Item.Padding        = {2_px};
         style->Item.Text.Style     = {false, gfx::font::weight::Normal};
-        style->Item.Text.Font      = resGrp.get<gfx::font_family>("Poppins");
+        style->Item.Text.Font      = fntFam;
         style->Item.Text.Size      = 32_px;
         style->Item.Text.Alignment = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
         style->Item.Text.AutoSize  = element::text::auto_size_mode::Always;
@@ -535,7 +579,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         auto style {styles.create<item_style>("header_items", {}, {})};
         style->Item.Padding        = {5_px};
         style->Item.Text.Style     = {false, gfx::font::weight::Bold};
-        style->Item.Text.Font      = resGrp.get<gfx::font_family>("Poppins");
+        style->Item.Text.Font      = fntFam;
         style->Item.Text.AutoSize  = element::text::auto_size_mode::Always;
         style->Item.Text.Size      = 32_px;
         style->Item.Text.Alignment = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
@@ -555,7 +599,7 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         auto style {styles.create<item_style>("row_items", {}, {})};
         style->Item.Padding        = {5_px};
         style->Item.Text.Style     = {false, gfx::font::weight::Normal};
-        style->Item.Text.Font      = resGrp.get<gfx::font_family>("Poppins");
+        style->Item.Text.Font      = fntFam;
         style->Item.Text.AutoSize  = element::text::auto_size_mode::Always;
         style->Item.Text.Size      = 32_px;
         style->Item.Text.Alignment = {gfx::horizontal_alignment::Right, gfx::vertical_alignment::Middle};

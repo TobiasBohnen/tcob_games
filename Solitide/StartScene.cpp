@@ -5,6 +5,8 @@
 
 #include "StartScene.hpp"
 
+#include "wizard/WizardScene.hpp"
+
 namespace solitaire {
 
 static char const* SAVE_NAME {"save.ini"};
@@ -61,17 +63,11 @@ void start_scene::on_start()
 
     load_scripts();
 
-    // games
-    _db.insert_games(_games);
-
     // themes
     _themes = load_themes();
 
     // cardsets
     _cardSets = load_cardsets();
-
-    // ui
-    _formControls = std::make_shared<form_controls>(&window, resGrp);
 
     menu_sources source;
     source.Games.reserve(_games.size());
@@ -81,6 +77,12 @@ void start_scene::on_start()
     source.Cardsets.reserve(_cardSets.size());
     for (auto const& x : _cardSets) { source.Cardsets.push_back(x.first); }
 
+    // games
+    _db.insert_games(source.Games);
+
+    // ui
+    _formControls = std::make_shared<form_controls>(&window, resGrp);
+
     _formMenu = std::make_shared<form_menu>(&window, resGrp, source);
     _formMenu->hide();
     connect_ui_events();
@@ -88,17 +90,7 @@ void start_scene::on_start()
     // card table
     _cardTable = std::make_shared<card_table>(&window, _formControls->Canvas.get(), resGrp);
 
-    _cardTable->HoverChange.connect([&](pile_description const& str) {
-        _formControls->LblPile->Label      = str.Pile;
-        _formControls->LblCardCount->Label = str.CardCount;
-
-        _formControls->LblDescription->Label      = str.Description;
-        _formControls->LblDescriptionLabel->Label = str.DescriptionLabel;
-        _formControls->LblMove->Label             = str.Move;
-        _formControls->LblMoveLabel->Label        = str.MoveLabel;
-        _formControls->LblBase->Label             = str.Base;
-        _formControls->LblBaseLabel->Label        = str.BaseLabel;
-    });
+    _cardTable->HoverChange.connect([&](pile_description const& str) { _formControls->set_pile_labels(str); });
 
     set_children_bounds(windowSize);
 
@@ -125,11 +117,10 @@ void start_scene::on_start()
 
 void start_scene::connect_ui_events()
 {
-    _formControls->BtnNewGame->Click.connect([&](auto const&) {
-        start_game(_formMenu->SelectedGame(), start_reason::Restart);
-    });
-
+    _formControls->BtnNewGame->Click.connect([&](auto const&) { start_game(_formMenu->SelectedGame(), start_reason::Restart); });
+    _formControls->BtnWizard->Click.connect([&](auto const&) { start_wizard(); });
     _formControls->BtnMenu->Click.connect([&](auto const&) { _formMenu->show(); });
+
     _formControls->BtnHint->Click.connect([&](auto const&) { _cardTable->show_next_hint(); });
     _formControls->BtnCollect->Click.connect([&](auto const&) {
         if (auto* game {_cardTable->game()}) { game->collect_all(); }
@@ -181,14 +172,6 @@ void start_scene::connect_ui_events()
         start_game(_formMenu->SelectedGame(), start_reason::Resume);
     });
 
-    _formMenu->VisibilityChanged.connect([&](bool val) {
-        if (val) {
-            _formControls->hide();
-        } else {
-            _formControls->show();
-        }
-    });
-
     _formMenu->BtnApplySettings->Click.connect([&]() {
         data::config::object obj;
         _formMenu->submit_settings(obj);
@@ -222,13 +205,7 @@ void start_scene::on_fixed_update(milliseconds deltaTime)
 {
     if (auto* game {_cardTable->game()}) {
         game->update(deltaTime);
-
-        auto const& info {game->info()};
-        _formControls->LblGameName->Label = info.Name;
-        auto const& state {game->state()};
-        _formControls->LblTurns->Label = std::to_string(state.Turns);
-        _formControls->LblScore->Label = std::to_string(state.Score);
-        _formControls->LblTime->Label  = std::format("{:%M:%S}", seconds {state.Time.count() / 1000});
+        _formControls->set_game_labels(game);
     }
 #if defined(TCOB_DEBUG)
     auto stat {locate_service<stats>()};
@@ -237,17 +214,9 @@ void start_scene::on_fixed_update(milliseconds deltaTime)
 #endif
 }
 
-void start_scene::on_key_down(input::keyboard::event& ev)
+void start_scene::on_key_down(input::keyboard::event& /* ev */)
 {
     if (_formMenu->get_focus_widget() != nullptr) { return; }
-
-    switch (ev.ScanCode) {
-    case input::scan_code::BACKSPACE:
-        get_game().pop_current_scene();
-        break;
-    default:
-        break;
-    }
 }
 
 void start_scene::set_children_bounds(size_i size)
@@ -309,6 +278,24 @@ void start_scene::start_game(string const& name, start_reason reason)
 #endif
     locate_service<stats>().reset();
     _saveGame["game"] = name;
+}
+
+void start_scene::start_wizard()
+{
+    auto wizard {std::make_shared<wizard_scene>(get_game(), _themes[_formMenu->SelectedTheme])};
+    wizard->GameGenerated.connect([&](auto const& val) {
+        if (_luaScript.run_file(val.Path)) {
+            std::vector<game_info> games;
+            games.reserve(_games.size());
+            for (auto const& x : _games) { games.emplace_back(x.second.first); }
+
+            _formMenu->update_games(games);
+            _db.insert_games(games);
+
+            start_game(val.Name, start_reason::Resume);
+        }
+    });
+    get_game().push_scene(wizard);
 }
 
 void start_scene::update_stats(string const& name) const

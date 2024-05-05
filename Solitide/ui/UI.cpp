@@ -15,7 +15,8 @@ auto static translate(string const& name) -> string // NOLINT
 {
     // TODO: translation
     if (name == "btnMenu") { return "Menu"; }
-    if (name == "BtnNewGame") { return "New Game"; }
+    if (name == "btnNewGame") { return "New Game"; }
+    if (name == "btnWizard") { return "Solitaire Wizard"; }
     if (name == "btnHint") { return "Hint"; }
     if (name == "btnCollect") { return "Collect All"; }
     if (name == "btnUndo") { return "Undo"; }
@@ -73,7 +74,8 @@ form_controls::form_controls(gfx::window* window, assets::group& resGrp)
         }};
 
         BtnMenu    = create({0, 0, 1, 1}, "btnMenu", "burger");
-        BtnNewGame = create({2, 0, 1, 1}, "BtnNewGame", "newgame");
+        BtnNewGame = create({2, 0, 1, 1}, "btnNewGame", "newgame");
+        BtnWizard  = create({4, 0, 1, 1}, "btnWizard", "wand");
         BtnHint    = create({14, 0, 1, 1}, "btnHint", "hint");
         BtnCollect = create({15, 0, 1, 1}, "btnCollect", "collect");
         BtnUndo    = create({16, 0, 1, 1}, "btnUndo", "undo");
@@ -94,28 +96,28 @@ form_controls::form_controls(gfx::window* window, assets::group& resGrp)
             return l;
         }};
 
-        LblGameName = create({0, 0, 2, 6});
+        _lblGameName = create({0, 0, 2, 6});
 
-        LblPile           = create({2, 3, 2, 3});
-        LblPileLabel      = create({2, 0, 2, 3}, "Pile");
-        LblCardCount      = create({4, 3, 1, 3});
-        LblCardCountLabel = create({4, 0, 1, 3}, "Cards");
+        _lblPile           = create({2, 3, 2, 3});
+        _lblPileLabel      = create({2, 0, 2, 3}, "Pile");
+        _lblCardCount      = create({4, 3, 1, 3});
+        _lblCardCountLabel = create({4, 0, 1, 3}, "Cards");
 
-        LblBase             = create({6, 3, 3, 3});
-        LblBaseLabel        = create({6, 0, 3, 3});
-        LblDescription      = create({9, 3, 3, 3});
-        LblDescriptionLabel = create({9, 0, 3, 3});
-        LblMove             = create({12, 3, 3, 3});
-        LblMoveLabel        = create({12, 0, 3, 3});
+        _lblBase             = create({6, 3, 3, 3});
+        _lblBaseLabel        = create({6, 0, 3, 3});
+        _lblDescription      = create({9, 3, 3, 3});
+        _lblDescriptionLabel = create({9, 0, 3, 3});
+        _lblMove             = create({12, 3, 3, 3});
+        _lblMoveLabel        = create({12, 0, 3, 3});
 
-        LblTurns      = create({17, 3, 1, 3});
-        LblTurnsLabel = create({17, 0, 1, 3}, "Turns");
+        _lblTurns      = create({17, 3, 1, 3});
+        _lblTurnsLabel = create({17, 0, 1, 3}, "Turns");
 
-        LblScore      = create({18, 3, 1, 3});
-        LblScoreLabel = create({18, 0, 1, 3}, "Score");
+        _lblScore      = create({18, 3, 1, 3});
+        _lblScoreLabel = create({18, 0, 1, 3}, "Score");
 
-        LblTime      = create({19, 3, 1, 3});
-        LblTimeLabel = create({19, 0, 1, 3}, "Time");
+        _lblTime      = create({19, 3, 1, 3});
+        _lblTimeLabel = create({19, 0, 1, 3}, "Time");
     }
 
     auto overlayPanel {mainPanelLayout->create_widget<glass>(dock_style::Fill, "overlay")};
@@ -125,12 +127,36 @@ form_controls::form_controls(gfx::window* window, assets::group& resGrp)
     Canvas = overlayPanelLayout->create_widget<canvas_widget>(dock_style::Fill, "canvas");
 }
 
+void form_controls::set_pile_labels(pile_description const& str)
+{
+    _lblPile->Label      = str.Pile;
+    _lblCardCount->Label = str.CardCount;
+
+    _lblDescription->Label      = str.Description;
+    _lblDescriptionLabel->Label = str.DescriptionLabel;
+    _lblMove->Label             = str.Move;
+    _lblMoveLabel->Label        = str.MoveLabel;
+    _lblBase->Label             = str.Base;
+    _lblBaseLabel->Label        = str.BaseLabel;
+}
+
+void form_controls::set_game_labels(base_game* game)
+{
+    auto const& info {game->info()};
+    _lblGameName->Label = info.Name;
+    auto const& state {game->state()};
+    _lblTurns->Label = std::to_string(state.Turns);
+    _lblScore->Label = std::to_string(state.Score);
+    _lblTime->Label  = std::format("{:%M:%S}", seconds {state.Time.count() / 1000});
+}
+
 ////////////////////////////////////////////////////////////
 
 static string const TabGamesName {"conGames"};
 static string const TabSettingsName {"conSettings"};
 static string const TabThemesName {"conThemes"};
 static string const TabCardsetsName {"conCardsets"};
+static string const MenuName {"menu"};
 
 form_menu::form_menu(gfx::window* window, assets::group& resGrp, menu_sources const& source)
     : form {"Menu", window}
@@ -183,11 +209,23 @@ void form_menu::set_game_stats(game_history const& stats)
                     bestTime ? std::format("{:%M:%S}", seconds {*bestTime / 1000.f}) : "--:--"});
 }
 
+void form_menu::update_games(std::vector<game_info> const& games)
+{
+    // TODO: update all listboxes
+    auto lb {std::static_pointer_cast<list_box>(find_widget_by_name("lbxGames0"))};
+
+    lb->clear_items();
+    for (auto const& game : games) {
+        lb->add_item(game.Name);
+    }
+}
+
 void form_menu::create_section_games(assets::group& resGrp, std::vector<game_info> const& games)
 {
     // Games
     auto panelGames {create_container<panel>(dock_style::Left, TabGamesName)};
-    panelGames->Flex = {85_pct, 100_pct};
+    panelGames->Flex   = {85_pct, 100_pct};
+    panelGames->ZOrder = 5;
     auto panelLayout {panelGames->create_layout<dock_layout>()};
 
     // Filter
@@ -333,8 +371,9 @@ void form_menu::create_section_games(assets::group& resGrp, std::vector<game_inf
 void form_menu::create_section_settings(assets::group& resGrp)
 {
     // Setting
-    _panelSettings       = create_container<panel>(dock_style::Left, TabSettingsName);
-    _panelSettings->Flex = {0_pct, 0_pct};
+    _panelSettings         = create_container<panel>(dock_style::Left, TabSettingsName);
+    _panelSettings->ZOrder = 4;
+    _panelSettings->Flex   = {0_pct, 0_pct};
     {
         auto        panelLayout {_panelSettings->create_layout<grid_layout>(size_i {40, 40})};
         auto const& config {locate_service<data::config_file>()};
@@ -383,7 +422,8 @@ void form_menu::create_section_themes(std::vector<std::string> const& colorTheme
 {
     // Themes
     auto panelThemes {create_container<panel>(dock_style::Left, TabThemesName)};
-    panelThemes->Flex = {0_pct, 0_pct};
+    panelThemes->ZOrder = 3;
+    panelThemes->Flex   = {0_pct, 0_pct};
     {
         auto panelLayout {panelThemes->create_layout<dock_layout>()};
         auto lbxThemes {panelLayout->create_widget<list_box>(dock_style::Fill, "lbxThemes")};
@@ -400,7 +440,8 @@ void form_menu::create_section_cardset(std::vector<std::string> const& cardSets)
 {
     // Cardsets
     auto panelCardsets {create_container<panel>(dock_style::Left, TabCardsetsName)};
-    panelCardsets->Flex = {0_pct, 0_pct};
+    panelCardsets->ZOrder = 2;
+    panelCardsets->Flex   = {0_pct, 0_pct};
     {
         auto panelLayout {panelCardsets->create_layout<dock_layout>()};
         auto lbxCardsets {panelLayout->create_widget<list_box>(dock_style::Fill, "lbxCardsets")};
@@ -415,8 +456,6 @@ void form_menu::create_section_cardset(std::vector<std::string> const& cardSets)
 
 void form_menu::create_menubar(assets::group& resGrp)
 {
-    static string const MenuName {"menu"};
-
     auto menu {create_container<panel>(dock_style::Fill, MenuName)};
     auto menuLayout {menu->create_layout<grid_layout>(size_i {7, 40})};
 
