@@ -3,7 +3,18 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local function get_initial(orient, count)
+local function get_initial(orient, cards, piles)
+    local count = "0"
+    if piles > 0 then
+        local breakPile = cards % piles
+        if breakPile == 0 then
+            count = tostring(cards // piles)
+        else
+            local cardCount = cards // piles
+            count = "i < " .. breakPile .. " and " .. tostring(cardCount + 1) .. " or " .. tostring(cardCount)
+        end
+    end
+
     local str = "Sol.Initial."
     if orient == "Face Down" then
         str = str .. "face_down(" .. count .. ")"
@@ -32,7 +43,7 @@ local function get_deal(target)
     elseif target == "To Tableau" then
         str = str .. "stock_to_tableau"
     end
-    return str
+    return str .. ",\n"
 end
 
 local function check_layout(layout, log, hasReserve, hasFreeCell, hasWaste, hasStock)
@@ -67,37 +78,47 @@ return function(obj)
     local strWaste = [[
     Waste = {
         Size  = ]] .. obj.WasteSize.value .. [[,
-        Pile  = { Layout = ]] .. obj.WasteLayout.selected .. [[ },
+        Pile = function(i)
+            return {
+                Layout  = "]] .. obj.WasteLayout.selected .. [[",
+            }
+        end,
     }]]
 
     local strReserve = [[
     Reserve = {
         Size = ]] .. obj.ReserveSize.value .. [[,
-        Pile = {
-            Initial = ]] .. get_initial(obj.ReserveOrientation.selected, obj.ReserveCardCount.value) .. [[,
-            Layout  = "]] .. obj.ReserveLayout.selected .. [[",
-        },
+        Pile = function(i)
+            return {
+                Initial = ]] .. get_initial(obj.ReserveOrientation.selected, obj.ReserveCardCount.value, obj.ReserveSize.value) .. [[,
+                Layout  = "]] .. obj.ReserveLayout.selected .. [[",
+            }
+        end,
     }]]
-    numCards = numCards - obj.ReserveSize.value * obj.ReserveCardCount.value
+    numCards = numCards - obj.ReserveCardCount.value
 
     local strFreeCell = [[
     FreeCell = {
         Size = ]] .. obj.FreeCellSize.value .. [[,
-        Pile = {
-            Initial = ]] .. get_initial("Face Up", obj.FreeCellCardCount.value) .. [[,
-            Rule    = { ]] .. get_rule(obj.FreeCellBase.selected, obj.FreeCellBuild.selected, obj.FreeCellMove.selected) .. [[ },
-            Layout  = "]] .. obj.FreeCellLayout.selected .. [[",
-        },
+        Pile = function(i)
+            return {
+                Initial = ]] .. get_initial("Face Up", obj.FreeCellCardCount.value, obj.FreeCellSize.value) .. [[,
+                Rule    = { ]] .. get_rule(obj.FreeCellBase.selected, obj.FreeCellBuild.selected, obj.FreeCellMove.selected) .. [[ },
+                Layout  = "]] .. obj.FreeCellLayout.selected .. [[",
+            }
+        end,
     }]]
-    numCards = numCards - obj.FreeCellSize.value * obj.FreeCellCardCount.value
+    numCards = numCards - obj.FreeCellCardCount.value
 
     local strFoundation = [[
     Foundation = {
         Size = ]] .. obj.spnDecks.value * 4 .. [[,
-        Pile = {
-            Rule    = { ]] .. get_rule(obj.FoundationBase.selected, obj.FoundationBuild.selected, obj.FoundationMove.selected) .. [[ },
-            Layout  = "]] .. obj.FoundationLayout.selected .. [[",
-        },
+        Pile = function(i)
+            return {
+                Rule    = { ]] .. get_rule(obj.FoundationBase.selected, obj.FoundationBuild.selected, obj.FoundationMove.selected) .. [[ },
+                Layout  = "]] .. obj.FoundationLayout.selected .. [[",
+            }
+        end,
     }]]
 
     local strTableau = [[
@@ -105,27 +126,27 @@ return function(obj)
         Size = ]] .. obj.TableauSize.value .. [[,
         Pile = function(i)
             return {
-                Initial = ]] .. get_initial(obj.TableauOrientation.selected, obj.TableauCardCount.value) .. [[,
+                Initial = ]] .. get_initial(obj.TableauOrientation.selected, obj.TableauCardCount.value, obj.TableauSize.value) .. [[,
                 Rule    = { ]] .. get_rule(obj.TableauBase.selected, obj.TableauBuild.selected, obj.TableauMove.selected) .. [[ },
                 Layout  = "]] .. obj.TableauLayout.selected .. [[",
             }
         end,
     }]]
-    numCards = numCards - obj.TableauSize.value * obj.TableauCardCount.value
+    numCards = numCards - obj.TableauCardCount.value
 
     local stockSize = numCards > 0 and 1 or 0
     local strStock = [[
     Stock = {
         Size = ]] .. stockSize .. [[,
-        Pile = { Initial = ]] .. get_initial("Face Down", numCards) .. [[ },
+        Pile = { Initial = ]] .. get_initial("Face Down", numCards, 1) .. [[ },
     }]]
 
     local strDeal = ""
-    local strRedeal = ""
+    local strRedeal = "\n"
     if numCards > 0 then
         strDeal = get_deal(obj.StockTarget.selected)
         if obj.WasteSize.value > 0 then
-            strRedeal = "redeal = Sol.Ops.Redeal.waste_to_stock"
+            strRedeal = "redeal = Sol.Ops.Redeal.waste_to_stock,\n"
         end
     end
 
@@ -139,8 +160,8 @@ local game = {
 ]] .. strFoundation .. [[,
 ]] .. strTableau .. [[,
     on_init = Sol.Layout.]] .. obj.cybLayout.selected .. [[,
-    ]] .. strDeal .. [[,
-    ]] .. strRedeal .. [[,
+    ]] .. strDeal .. [[
+    ]] .. strRedeal .. [[
 }
 
 Sol.register_game(game)

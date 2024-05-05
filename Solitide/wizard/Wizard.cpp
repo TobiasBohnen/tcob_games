@@ -39,6 +39,7 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
 
         createLabel(layout, "Layout"); // TODO: replace with pile position
         auto cybLayout {layout->create_widget<cycle_button>("cybLayout")};
+        cybLayout->add_item("klondike");
         cybLayout->add_item("bakers_dozen");
         cybLayout->add_item("beleaguered_castle");
         cybLayout->add_item("big_harp");
@@ -52,12 +53,11 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
         cybLayout->add_item("free_cell");
         cybLayout->add_item("golf");
         cybLayout->add_item("gypsy");
-        cybLayout->add_item("klondike");
         cybLayout->add_item("yukon");
         cybLayout->SelectedItemIndex = 0;
     }
 
-    _lbxLog        = mainLayout->create_widget<list_box>({0, 20, 39, 50}, "Log");
+    _lbxLog        = mainLayout->create_widget<list_box>({0, 20, 39, 30}, "Log");
     _lbxLog->Class = "list_box_log";
 
     BtnGenerate       = mainLayout->create_widget<button>({20, 72, 9, 5}, "btnGenerate");
@@ -81,7 +81,7 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
             auto spn {layout->template create_widget<spinner>(name + "CardCount")};
             spn->Flex   = {30_pct, 100_pct};
             spn->Min    = 0;
-            spn->Max    = 10;
+            spn->Max    = 200;
             spn->Step   = 1;
             spn->Value  = 0;
             spn->ZOrder = 17;
@@ -89,11 +89,11 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
         auto const createCardFace {[&](auto&& layout, string const& name) {
             createLabel(layout, "Orientation", 16);
             auto base {layout->template create_widget<drop_down_list>(name + "Orientation")};
-            base->add_item("Face Down");
             base->add_item("Face Up");
             base->add_item("Top Card Face Up");
             base->add_item("Alternate - First Face Up");
             base->add_item("Alternate - First Face Down");
+            base->add_item("Face Down");
             base->SelectedItemIndex = 0;
             base->ZOrder            = 15;
         }};
@@ -119,7 +119,6 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
 
             createLabel(layout, "Build", 10);
             auto build {layout->template create_widget<drop_down_list>(name + "Build")};
-            build->add_item("None");
             build->add_item("Any");
             build->add_item("InRank");
             build->add_item("InRankOrDownByRank");
@@ -139,16 +138,17 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
             build->add_item("UpOrDownAlternateColors");
             build->add_item("DownAlternateColors");
             build->add_item("UpAlternateColors");
+            build->add_item("None");
             build->SelectedItemIndex = 0;
             build->ZOrder            = 9;
 
             createLabel(layout, "Move", 8);
             auto move {layout->template create_widget<drop_down_list>(name + "Move")};
-            move->add_item("None");
             move->add_item("Top");
             move->add_item("FaceUp");
             move->add_item("InSeq");
             move->add_item("InSeqInSuit");
+            move->add_item("None");
             move->SelectedItemIndex = 0;
             move->ZOrder            = 7;
         }};
