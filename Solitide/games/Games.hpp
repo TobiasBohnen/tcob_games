@@ -222,6 +222,7 @@ class lua_script_game : public script_game<scripting::lua::table, scripting::lua
 public:
     lua_script_game(game_info info, scripting::lua::table tab);
 
+    auto static CreateENV(scripting::lua::script& script) -> scripting::lua::table;
     void static CreateAPI(start_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs);
 };
 

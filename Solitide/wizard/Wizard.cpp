@@ -37,7 +37,7 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
         spnDecks->Step  = 1;
         spnDecks->Value = 1;
 
-        createLabel(layout, "Layout");
+        createLabel(layout, "Layout"); // TODO: replace with pile position
         auto cybLayout {layout->create_widget<cycle_button>("cybLayout")};
         cybLayout->add_item("bakers_dozen");
         cybLayout->add_item("beleaguered_castle");
@@ -57,10 +57,13 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
         cybLayout->SelectedItemIndex = 0;
     }
 
-    BtnBack            = mainLayout->create_widget<button>({30, 72, 9, 5}, "btnBack");
-    BtnBack->Icon      = resGrp.get<gfx::texture>("back");
-    BtnGenerate        = mainLayout->create_widget<button>({20, 72, 9, 5}, "btnGenerate");
-    BtnGenerate->Label = "Generate";
+    _lbxLog        = mainLayout->create_widget<list_box>({0, 20, 39, 50}, "Log");
+    _lbxLog->Class = "list_box_log";
+
+    BtnGenerate       = mainLayout->create_widget<button>({20, 72, 9, 5}, "btnGenerate");
+    BtnGenerate->Icon = resGrp.get<gfx::texture>("apply");
+    BtnBack           = mainLayout->create_widget<button>({30, 72, 9, 5}, "btnBack");
+    BtnBack->Icon     = resGrp.get<gfx::texture>("back");
 
     {
         auto const createPileSize {[&](auto&& layout, string const& name) {
@@ -212,6 +215,14 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
             createPileLayout(layout, "Tableau");
             createPileRule(layout, "Tableau");
         }
+    }
+}
+
+void form_wizard::set_log_messages(std::vector<string> const& messages)
+{
+    _lbxLog->clear_items();
+    for (auto const& m : messages) {
+        _lbxLog->add_item(m);
     }
 }
 

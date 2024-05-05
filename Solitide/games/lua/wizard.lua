@@ -32,11 +32,28 @@ local function get_deal(target)
     elseif target == "To Tableau" then
         str = str .. "stock_to_tableau"
     end
-    str = str .. ",\n"
     return str
 end
 
+local function check_layout(layout, log, hasReserve, hasFreeCell, hasWaste, hasStock)
+    local function contains(tab, val)
+        for _, value in ipairs(tab) do if value == val then return true end end
+        return false
+    end
+
+    local noReserve = { "bakers_dozen", "beleaguered_castle", "big_harp", "canister", "capricieuse", "double_free_cell", "fastness", "flipper", "forty_thieves", "free_cell", "golf", "gypsy", "klondike", "yukon" }
+    if contains(noReserve, layout) then if hasReserve then log[#log + 1] = "ERROR: layout does not support reserve piles" end end
+    local noFreeCell = { "bakers_dozen", "beleaguered_castle", "big_harp", "canister", "capricieuse", "flipper", "golf", "gypsy", "klondike", "yukon" }
+    if contains(noFreeCell, layout) then if hasFreeCell then log[#log + 1] = "ERROR: layout does not support freecell piles" end end
+    local noWaste = { "bakers_dozen", "beleaguered_castle", "canister", "capricieuse", "double_free_cell", "fastness", "flipper", "free_cell", "gypsy", "yukon" }
+    if contains(noWaste, layout) then if hasWaste then log[#log + 1] = "ERROR: layout does not support waste piles" end end
+    local noStock = { "beleaguered_castle", "canister", "double_free_cell", "fastness", "flipper", "yukon" }
+    if contains(noStock, layout) then if hasStock then log[#log + 1] = "ERROR: layout does not support stock piles" end end
+end
+
 return function(obj)
+    local log = {}
+
     local numCards = obj.spnDecks.value * 52
 
     local strInfo = [[
@@ -49,7 +66,7 @@ return function(obj)
 
     local strWaste = [[
     Waste = {
-        Size  = "]] .. obj.WasteSize.value .. [[",
+        Size  = ]] .. obj.WasteSize.value .. [[,
         Pile  = { Layout = ]] .. obj.WasteLayout.selected .. [[ },
     }]]
 
@@ -86,22 +103,21 @@ return function(obj)
     local strTableau = [[
     Tableau = {
         Size = ]] .. obj.TableauSize.value .. [[,
-        Pile = {
-            Initial = ]] .. get_initial(obj.TableauOrientation.selected, obj.TableauCardCount.value) .. [[,
-            Rule    = { ]] .. get_rule(obj.TableauBase.selected, obj.TableauBuild.selected, obj.TableauMove.selected) .. [[ },
-            Layout  = "]] .. obj.TableauLayout.selected .. [[",
-        },
+        Pile = function(i)
+            return {
+                Initial = ]] .. get_initial(obj.TableauOrientation.selected, obj.TableauCardCount.value) .. [[,
+                Rule    = { ]] .. get_rule(obj.TableauBase.selected, obj.TableauBuild.selected, obj.TableauMove.selected) .. [[ },
+                Layout  = "]] .. obj.TableauLayout.selected .. [[",
+            }
+        end,
     }]]
     numCards = numCards - obj.TableauSize.value * obj.TableauCardCount.value
 
-    if numCards < 0 then return "" end -- ERROR - used more cards than available
     local stockSize = numCards > 0 and 1 or 0
     local strStock = [[
     Stock = {
         Size = ]] .. stockSize .. [[,
-        Pile = {
-            Initial = ]] .. get_initial("Face Down", numCards) .. [[,
-        },
+        Pile = { Initial = ]] .. get_initial("Face Down", numCards) .. [[ },
     }]]
 
     local strDeal = ""
@@ -109,7 +125,7 @@ return function(obj)
     if numCards > 0 then
         strDeal = get_deal(obj.StockTarget.selected)
         if obj.WasteSize.value > 0 then
-            strRedeal = "redeal = Sol.Ops.Redeal.waste_to_stock,\n"
+            strRedeal = "redeal = Sol.Ops.Redeal.waste_to_stock"
         end
     end
 
@@ -123,12 +139,29 @@ local game = {
 ]] .. strFoundation .. [[,
 ]] .. strTableau .. [[,
     on_init = Sol.Layout.]] .. obj.cybLayout.selected .. [[,
-    ]] .. strDeal .. strRedeal .. [[
+    ]] .. strDeal .. [[,
+    ]] .. strRedeal .. [[,
 }
 
 Sol.register_game(game)
 ]]
 
+    -- error checking
+    if numCards < 0 then
+        log[#log + 1] = "ERROR: insufficient amount of cards"
+    end
+    if numCards > 0 and obj.WasteSize.value == 0 and string.find(obj.StockTarget.selected, "Waste") then
+        log[#log + 1] = "ERROR: stock deals to waste, but no waste available"
+    end
+    if numCards > 0 and obj.TableauSize.value == 0 and string.find(obj.StockTarget.selected, "Tableau") then
+        log[#log + 1] = "ERROR: stock deals to tableau, but no tableau available"
+    end
 
-    return game
+    local hasReserve = obj.ReserveSize.value > 0
+    local hasFreeCell = obj.FreeCellSize.value > 0
+    local hasWaste = obj.WasteSize.value > 0
+    local hasStock = numCards > 0
+    check_layout(obj.cybLayout.selected, log, hasReserve, hasFreeCell, hasWaste, hasStock)
+
+    return game, log
 end

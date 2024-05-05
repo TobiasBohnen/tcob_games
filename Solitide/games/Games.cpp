@@ -440,12 +440,11 @@ lua_script_game::lua_script_game(game_info info, lua::table tab)
 {
 }
 
-void lua_script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs)
+auto lua_script_game::CreateENV(scripting::lua::script& script) -> scripting::lua::table
 {
     using namespace scripting::lua;
     script.open_libraries(library::Table, library::String, library::Math, library::Coroutine);
     auto& global {script.get_global_table()};
-
     table env {script.create_table()};
     env["table"]     = global["table"];
     env["string"]    = global["string"];
@@ -463,6 +462,13 @@ void lua_script_game::CreateAPI(start_scene* scene, scripting::lua::script& scri
     // env["collectgarbage"] = global["collectgarbage"];
 
     script.set_environment(env);
+    return env;
+}
+
+void lua_script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs)
+{
+    using namespace scripting::lua;
+    auto env {CreateENV(script)};
 
     auto make_func {[&](auto&& func) {
         auto ptr {make_shared_closure(std::function {func})};
@@ -475,6 +481,7 @@ void lua_script_game::CreateAPI(start_scene* scene, scripting::lua::script& scri
 
     std::ignore = script.run_file("main.lua");
 
+    auto& global {script.get_global_table()};
     global["Sol"]["Layout"] = env["Sol"]["Layout"];
 }
 

@@ -5,6 +5,8 @@
 
 #include "WizardScene.hpp"
 
+#include "games/Games.hpp"
+
 namespace solitaire {
 
 wizard_scene::wizard_scene(game& game, color_themes const& currentTheme)
@@ -28,27 +30,32 @@ void wizard_scene::on_start()
 
     _formWizard->BtnGenerate->Click.connect([&]() {
         using namespace tcob::scripting::lua;
+
         script script;
-        auto   func {script.run_file<function<string>>("wizard.lua")};
+        lua_script_game::CreateENV(script);
+
+        auto func {script.run_file<function<std::pair<string, std::vector<string>>>>("wizard.lua")};
         if (!func) { return; } // ERROR loading wizard func
 
         table obj {script.create_table()};
         _formWizard->submit(obj);
-        auto game {(*func)(obj)};
+        auto const name {obj["txtName"]["text"].as<string>()};
+        auto const game {(*func)(obj)};
 
-        if (game.empty()) { return; } // ERROR generating game
+        _formWizard->set_log_messages(game.second);
 
-        auto name {obj["txtName"]["text"].as<string>()};
+        if (game.second.empty()) {
+            io::create_folder("custom");
+            auto const file {"custom/games.wizard_" + name + ".lua"};
+            {
+                io::ofstream str {file};
+                str.write(game.first);
+            }
 
-        io::create_folder("custom");
-        auto const file {"custom/games.wizard_" + name + ".lua"};
-        {
-            io::ofstream str {file};
-            str.write(game);
+            GameGenerated({.Name = "Wizard_" + name, .Path = file});
         }
-        GameGenerated({.Name = "Wizard_" + name, .Path = file});
 
-        get_game().pop_current_scene();
+        // get_game().pop_current_scene();
     });
 }
 

@@ -314,7 +314,25 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->VScrollBar.Bar.Border.Size = 2_px;
         style->VScrollBar.Bar.Delay       = 250ms;
 
-        auto hoverStyle {styles.create<list_box>("list_box_games", {.Hover = true})};
+        auto hoverStyle {styles.create<list_box>("list_box", {.Hover = true})};
+        *hoverStyle = *style;
+
+        theme.Normal.apply(style);
+        theme.Hover.apply(hoverStyle);
+    }
+    {
+        auto style {styles.create<list_box>("list_box_log", {})};
+        style->Border.Size                = 2_px;
+        style->Border.Radius              = 5_px;
+        style->ItemHeight                 = 20_pct;
+        style->ItemClass                  = "list_items";
+        style->VScrollBar.ThumbClass      = "scrollbar_thumb";
+        style->VScrollBar.Bar.Type        = element::bar::type::Continuous;
+        style->VScrollBar.Bar.Size        = 25_px;
+        style->VScrollBar.Bar.Border.Size = 2_px;
+        style->VScrollBar.Bar.Delay       = 250ms;
+
+        auto hoverStyle {styles.create<list_box>("list_box_log", {.Hover = true})};
         *hoverStyle = *style;
 
         theme.Normal.apply(style);
