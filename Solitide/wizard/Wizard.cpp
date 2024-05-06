@@ -60,10 +60,11 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
     _lbxLog        = mainLayout->create_widget<list_box>({0, 20, 39, 30}, "Log");
     _lbxLog->Class = "list_box_log";
 
-    BtnGenerate       = mainLayout->create_widget<button>({20, 72, 9, 5}, "btnGenerate");
+    BtnGenerate       = mainLayout->create_widget<button>({5, 72, 9, 5}, "btnGenerate");
     BtnGenerate->Icon = resGrp.get<gfx::texture>("apply");
-    BtnBack           = mainLayout->create_widget<button>({30, 72, 9, 5}, "btnBack");
-    BtnBack->Icon     = resGrp.get<gfx::texture>("back");
+
+    BtnBack       = mainLayout->create_widget<button>({30, 72, 9, 5}, "btnBack");
+    BtnBack->Icon = resGrp.get<gfx::texture>("back");
 
     {
         auto const createPileSize {[&](auto&& layout, string const& name) {
@@ -88,14 +89,15 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
         }};
         auto const createCardFace {[&](auto&& layout, string const& name) {
             createLabel(layout, "Orientation", 16);
-            auto base {layout->template create_widget<drop_down_list>(name + "Orientation")};
-            base->add_item("Face Up");
-            base->add_item("Top Card Face Up");
-            base->add_item("Alternate - First Face Up");
-            base->add_item("Alternate - First Face Down");
-            base->add_item("Face Down");
-            base->SelectedItemIndex = 0;
-            base->ZOrder            = 15;
+            auto face {layout->template create_widget<drop_down_list>(name + "Orientation")};
+            face->add_item("Face Up");
+            face->add_item("Top Card Face Up");
+            face->add_item("Alternate - First Face Up");
+            face->add_item("Alternate - First Face Down");
+            face->add_item("Face Down");
+            face->SelectedItemIndex = 0;
+            face->ZOrder            = 15;
+            face->Class             = "drop_down_list_wizard";
         }};
         auto const createPileLayout {[&](auto&& layout, string const& name) {
             createLabel(layout, "Layout", 14);
@@ -116,6 +118,7 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
             base->add_item("None");
             base->SelectedItemIndex = 0;
             base->ZOrder            = 11;
+            base->Class             = "drop_down_list_wizard";
 
             createLabel(layout, "Build", 10);
             auto build {layout->template create_widget<drop_down_list>(name + "Build")};
@@ -141,6 +144,7 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
             build->add_item("None");
             build->SelectedItemIndex = 0;
             build->ZOrder            = 9;
+            build->Class             = "drop_down_list_wizard";
 
             createLabel(layout, "Move", 8);
             auto move {layout->template create_widget<drop_down_list>(name + "Move")};
@@ -151,12 +155,14 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
             move->add_item("None");
             move->SelectedItemIndex = 0;
             move->ZOrder            = 7;
+            move->Class             = "drop_down_list_wizard";
         }};
 
-        auto tab {mainLayout->create_widget<tab_container>({41, 0, 39, 80}, "Piles")};
+        auto         tab {mainLayout->create_widget<tab_container>({41, 0, 39, 80}, "Piles")};
+        size_i const boxSize {2, 15};
         {
             auto pnl {tab->create_tab<panel>("Stock", "Stock")};
-            auto layout {pnl->create_layout<box_layout>(size_i {2, 10})};
+            auto layout {pnl->create_layout<box_layout>(boxSize)};
 
             createLabel(layout, "Deal");
             auto cybStockTarget {layout->create_widget<cycle_button>("StockTarget")};
@@ -175,14 +181,14 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
         }
         {
             auto pnl {tab->create_tab<panel>("Waste", "Waste")};
-            auto layout {pnl->create_layout<box_layout>(size_i {2, 10})};
+            auto layout {pnl->create_layout<box_layout>(boxSize)};
 
             createPileSize(layout, "Waste");
             createPileLayout(layout, "Waste");
         }
         {
             auto pnl {tab->create_tab<panel>("Reserve", "Reserve")};
-            auto layout {pnl->create_layout<box_layout>(size_i {2, 10})};
+            auto layout {pnl->create_layout<box_layout>(boxSize)};
 
             createPileSize(layout, "Reserve");
             createCardCount(layout, "Reserve");
@@ -191,7 +197,7 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
         }
         {
             auto pnl {tab->create_tab<panel>("FreeCell", "FreeCell")};
-            auto layout {pnl->create_layout<box_layout>(size_i {2, 10})};
+            auto layout {pnl->create_layout<box_layout>(boxSize)};
 
             createPileSize(layout, "FreeCell");
             createCardCount(layout, "FreeCell");
@@ -200,14 +206,14 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
         }
         {
             auto pnl {tab->create_tab<panel>("Foundation", "Foundation")};
-            auto layout {pnl->create_layout<box_layout>(size_i {2, 10})};
+            auto layout {pnl->create_layout<box_layout>(boxSize)};
 
             createPileLayout(layout, "Foundation");
             createPileRule(layout, "Foundation");
         }
         {
             auto pnl {tab->create_tab<panel>("Tableau", "Tableau")};
-            auto layout {pnl->create_layout<box_layout>(size_i {2, 10})};
+            auto layout {pnl->create_layout<box_layout>(boxSize)};
 
             createPileSize(layout, "Tableau");
             createCardCount(layout, "Tableau");

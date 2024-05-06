@@ -174,7 +174,6 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
 
     styles.clear();
     auto fntFam {resGrp.get<gfx::font_family>(FONT)};
-
     {
         auto style {styles.create<panel>("panel", {})};
         // style->Padding       = 2_px;
@@ -354,6 +353,32 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         style->VScrollBar.ThumbClass      = "scrollbar_thumb";
         style->VScrollBar.Bar.Type        = element::bar::type::Continuous;
         style->VScrollBar.Bar.Size        = 20_pct;
+        style->VScrollBar.Bar.Border.Size = 2_px;
+        style->VScrollBar.Bar.Delay       = 250ms;
+
+        auto hoverStyle {styles.create<drop_down_list>("drop_down_list", {.Hover = true})};
+        *hoverStyle = *style;
+
+        theme.Normal.apply(style);
+        theme.Hover.apply(hoverStyle);
+    }
+    {
+        auto style {styles.create<drop_down_list>("drop_down_list_wizard", {})};
+        style->Border.Size                = 2_px;
+        style->Border.Radius              = 5_px;
+        style->Margin                     = {5_px};
+        style->Padding                    = {5_px};
+        style->DropShadow.Color           = color {0, 0, 0, 128};
+        style->Text.Font                  = fntFam;
+        style->Text.Size                  = 50_pct;
+        style->Text.Alignment             = {gfx::horizontal_alignment::Left, gfx::vertical_alignment::Middle};
+        style->Text.AutoSize              = element::text::auto_size_mode::Always;
+        style->ItemClass                  = "list_items";
+        style->ItemHeight                 = 120_pct;
+        style->ArrowClass                 = "nav_arrows_wizard";
+        style->VScrollBar.ThumbClass      = "scrollbar_thumb";
+        style->VScrollBar.Bar.Type        = element::bar::type::Continuous;
+        style->VScrollBar.Bar.Size        = 10_pct;
         style->VScrollBar.Bar.Border.Size = 2_px;
         style->VScrollBar.Bar.Delay       = 250ms;
 
@@ -587,6 +612,23 @@ void create_styles(color_themes const& theme, assets::group& resGrp, style_colle
         hoverStyle->NavArrow = style->NavArrow;
 
         auto activeStyle {styles.create<nav_arrows_style>("nav_arrows", {.Active = true})};
+        activeStyle->NavArrow = style->NavArrow;
+
+        theme.Normal.apply(style);
+        theme.Hover.apply(hoverStyle);
+        theme.Active.apply(activeStyle);
+    }
+    {
+        auto style {styles.create<nav_arrows_style>("nav_arrows_wizard", {}, {})};
+        style->NavArrow.Height        = {0.75f, length::type::Relative};
+        style->NavArrow.Width         = {0.10f, length::type::Relative};
+        style->NavArrow.Border.Size   = 3_px;
+        style->NavArrow.Border.Radius = 0_px;
+
+        auto hoverStyle {styles.create<nav_arrows_style>("nav_arrows_wizard", {.Hover = true})};
+        hoverStyle->NavArrow = style->NavArrow;
+
+        auto activeStyle {styles.create<nav_arrows_style>("nav_arrows_wizard", {.Active = true})};
         activeStyle->NavArrow = style->NavArrow;
 
         theme.Normal.apply(style);

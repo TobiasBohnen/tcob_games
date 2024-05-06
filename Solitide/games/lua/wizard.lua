@@ -168,6 +168,9 @@ Sol.register_game(game)
 ]]
 
     -- error checking
+    if obj.txtName.text == "" or string.find(obj.txtName.text, "[\\/:*?\"<>|]") ~= nil then
+        log[#log + 1] = "ERROR: invalid name"
+    end
     if numCards < 0 then
         log[#log + 1] = "ERROR: insufficient amount of cards"
     end
