@@ -14,9 +14,7 @@ static auto parse_unit_value(tcob::utf8_string_view input) -> std::pair<std::str
             } else {
                 unit += ch;
             }
-            if (ch == '.') {
-                decimalFound = true;
-            }
+            if (ch == '.') { decimalFound = true; }
         } else {
             parsingValue = false;
             unit += ch;
@@ -42,7 +40,7 @@ struct converter<gfx::ui::thickness> {
             f32 const valueF {std::stof(valueStr)};
 
             gfx::ui::length l;
-            // TODO: more than one length
+            // TODO: 2 or 4
             if (unit == "px") {
                 l = {valueF, gfx::ui::length::type::Absolute};
             } else if (unit == "pct") {
@@ -87,6 +85,26 @@ struct converter<gfx::ui::length> {
     }
 };
 
+template <>
+struct converter<gfx::ui::ui_paint> {
+    auto static IsType(cfg_value const& config) -> bool
+    {
+        return std::holds_alternative<utf8_string>(config);
+    }
+
+    auto static From(cfg_value const& config, gfx::ui::ui_paint& value) -> bool
+    {
+        // Xcolor, linear_gradient, radial_gradient, box_gradient, nope->image_pattern,nope->nine_patch
+        if (std::holds_alternative<utf8_string>(config)) {
+            auto const str {std::get<utf8_string>(config)};
+            value = color::FromString(str);
+            return true;
+        }
+
+        return false;
+    }
+};
+
 }
 
 using namespace tcob::data::config;
@@ -118,16 +136,12 @@ auto styles::load(color_themes const& theme) -> style_collection
         auto  names {helper::split(entry.first, ':')};
         flags flags {};
         if (names.size() > 1) {
-            if (names[1] == "hover") { flags = {.Hover = true}; }
-            if (names[1] == "active") { flags = {.Active = true}; }
+            flags.Hover  = std::find(names.begin() + 1, names.end(), "hover") != names.end();
+            flags.Active = std::find(names.begin() + 1, names.end(), "active") != names.end();
         }
 
-        string type;
-        if (!styleObj.try_get(type, "style_type")) {
-            type = typeMap[names[0]];
-        } else {
-            typeMap[names[0]] = type;
-        }
+        string& type {typeMap[names[0]]};
+        styleObj.try_get(type, "style_type");
 
         auto applyTheme([&](auto&& style) {
             if (flags.Active) {
@@ -332,8 +346,8 @@ void styles::parse(data::config::object const& obj, tooltip::style* style)
 void styles::parse(data::config::object const& obj, nav_arrows_style* style)
 {
     obj.try_get(style->NavArrow.Type, "type");
-    //   obj.try_get(style->NavArrow.IncBackground, "inc_ackground");
-    //  obj.try_get(style->NavArrow.DecBackground, "dec_background");
+    obj.try_get(style->NavArrow.IncBackground, "inc_background");
+    obj.try_get(style->NavArrow.DecBackground, "dec_background");
     obj.try_get(style->NavArrow.Foreground, "foreground");
     obj.try_get(style->NavArrow.Width, "width");
     obj.try_get(style->NavArrow.Height, "height");
@@ -343,7 +357,7 @@ void styles::parse(data::config::object const& obj, nav_arrows_style* style)
 void styles::parse(data::config::object const& obj, thumb_style* style)
 {
     obj.try_get(style->Thumb.Type, "type");
-    // obj.try_get(style->Thumb.Background, "background");
+    obj.try_get(style->Thumb.Background, "background");
     obj.try_get(style->Thumb.LongSide, "long_side");
     obj.try_get(style->Thumb.ShortSide, "short_side");
     if (object el; obj.try_get(el, "border")) { parse_element(el, &style->Thumb.Border); }
@@ -352,7 +366,7 @@ void styles::parse(data::config::object const& obj, thumb_style* style)
 void styles::parse(data::config::object const& obj, item_style* style)
 {
     if (object el; obj.try_get(el, "text")) { parse_element(el, &style->Item.Text); }
-    // obj.try_get(style->Thumb.Background, "background");
+    obj.try_get(style->Item.Background, "background");
     if (object el; obj.try_get(el, "border")) { parse_element(el, &style->Item.Border); }
     obj.try_get(style->Item.Padding, "padding");
 }
@@ -360,7 +374,7 @@ void styles::parse(data::config::object const& obj, item_style* style)
 void styles::parse_element(object const& obj, element::border* border)
 {
     obj.try_get(border->Radius, "radius");
-    // obj.try_get(border->Background, "background");
+    obj.try_get(border->Background, "background");
     obj.try_get(border->Size, "size");
     obj.try_get(border->Type, "type");
 }
@@ -388,7 +402,7 @@ void styles::parse_element(object const& obj, element::text* text)
 void styles::parse_element(object const& obj, element::tick* tick)
 {
     obj.try_get(tick->Type, "type");
-    // obj.try_get(tick->Foreground, "foreground");
+    obj.try_get(tick->Foreground, "foreground");
     obj.try_get(tick->Size, "size");
 }
 
@@ -401,8 +415,8 @@ void styles::parse_element(object const& obj, element::scrollbar* scrollbar)
 void styles::parse_element(data::config::object const& obj, element::bar* bar)
 {
     obj.try_get(bar->Type, "type");
-    // obj.try_get(bar->LowerBackground, "lower_background");
-    // obj.try_get(bar->HigherBackground, "higher_background");
+    obj.try_get(bar->LowerBackground, "lower_background");
+    obj.try_get(bar->HigherBackground, "higher_background");
     obj.try_get(bar->Size, "size");
     if (object el; obj.try_get(el, "border")) { parse_element(el, &bar->Border); }
     obj.try_get(bar->Delay, "delay");
@@ -425,6 +439,7 @@ void styles::parse_style(object const& obj, style* style)
 void styles::parse_background_style(object const& obj, background_style* style)
 {
     parse_style(obj, style);
+    obj.try_get(style->Background, "background");
     if (object el; obj.try_get(el, "border")) { parse_element(el, &style->Border); }
     if (object el; obj.try_get(el, "drop_shadow")) { parse_element(el, &style->DropShadow); }
 }

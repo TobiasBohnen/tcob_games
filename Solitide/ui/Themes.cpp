@@ -168,12 +168,29 @@ void color_theme::apply(std::shared_ptr<nav_arrows_style> const& style) const
 
 auto load_themes() -> std::map<std::string, color_themes>
 {
+    using namespace tcob::data::config;
+
     std::map<std::string, color_themes> retValue;
 
-    data::config::object themes {};
+    object themes {};
     if (themes.load("themes.json") != load_status::Ok) { return retValue; }
 
+    object     customThemes {};
+    auto const files {io::enumerate("/", {"themes.*.json", false}, true)};
+    for (auto const& file : files) {
+        if (customThemes.load(file) == load_status::Ok) { themes.merge(customThemes, true); }
+    }
+
+    auto const getColor {[](object const& theme, color& target, std::string const& group, std::string const& name) {
+        if (!theme.has(group, name)) { return; }
+        target = theme[group][name].is<std::string>()
+            ? color::FromString(theme[group][name].as<std::string>())
+            : theme[group][name].as<color>();
+    }};
+
     for (auto const& [k, v] : themes) {
+        if (!v.is<object>()) { continue; }
+
         color_theme normal;
         normal.Background = colors::LightSkyBlue;
         normal.Border     = colors::MidnightBlue;
@@ -199,46 +216,36 @@ auto load_themes() -> std::map<std::string, color_themes>
         active.List       = normal.Background;
         active.Container  = normal.Container;
 
-        data::config::object theme {v.as<data::config::object>()};
+        object theme {v.as<object>()};
 
-        auto getColor {[&](color& target, std::string const& group, std::string const& name) {
-            if (!theme.has(group, name)) { return; }
+        getColor(theme, normal.Background, "normal", "background");
+        getColor(theme, normal.Border, "normal", "border");
+        getColor(theme, normal.Shadow, "normal", "shadow");
+        getColor(theme, normal.Foreground, "normal", "foreground");
+        getColor(theme, normal.List, "normal", "list");
+        getColor(theme, normal.Container, "normal", "container");
+        getColor(theme, normal.Label, "normal", "label");
 
-            if (theme[group][name].is<std::string>()) {
-                target = color::FromString(theme[group][name].as<std::string>());
-            } else {
-                target = theme[group][name].as<color>();
-            }
-        }};
+        getColor(theme, hover.Background, "hover", "background");
+        getColor(theme, hover.Border, "hover", "border");
+        getColor(theme, hover.Shadow, "hover", "shadow");
+        getColor(theme, hover.Foreground, "hover", "foreground");
+        getColor(theme, hover.List, "hover", "list");
+        getColor(theme, hover.Container, "hover", "container");
 
-        getColor(normal.Background, "normal", "background");
-        getColor(normal.Border, "normal", "border");
-        getColor(normal.Shadow, "normal", "shadow");
-        getColor(normal.Foreground, "normal", "foreground");
-        getColor(normal.List, "normal", "list");
-        getColor(normal.Container, "normal", "container");
-        getColor(normal.Label, "normal", "label");
-
-        getColor(hover.Background, "hover", "background");
-        getColor(hover.Border, "hover", "border");
-        getColor(hover.Shadow, "hover", "shadow");
-        getColor(hover.Foreground, "hover", "foreground");
-        getColor(hover.List, "hover", "list");
-        getColor(hover.Container, "hover", "container");
-
-        getColor(active.Background, "active", "background");
-        getColor(active.Border, "active", "border");
-        getColor(active.Shadow, "active", "shadow");
-        getColor(active.Foreground, "active", "foreground");
-        getColor(active.List, "active", "list");
-        getColor(active.Container, "active", "container");
+        getColor(theme, active.Background, "active", "background");
+        getColor(theme, active.Border, "active", "border");
+        getColor(theme, active.Shadow, "active", "shadow");
+        getColor(theme, active.Foreground, "active", "foreground");
+        getColor(theme, active.List, "active", "list");
+        getColor(theme, active.Container, "active", "container");
 
         color_themes ct;
         ct.TableBackgroundA = colors::OliveDrab;
         ct.TableBackgroundB = colors::DarkGreen;
 
-        getColor(ct.TableBackgroundA, "table", "A");
-        getColor(ct.TableBackgroundB, "table", "B");
+        getColor(theme, ct.TableBackgroundA, "table", "A");
+        getColor(theme, ct.TableBackgroundB, "table", "B");
 
         ct.Normal   = normal;
         ct.Hover    = hover;
