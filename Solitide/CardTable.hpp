@@ -11,7 +11,7 @@
 #include "CardRenderer.hpp"
 #include "Cardset.hpp"
 #include "Piles.hpp"
-#include "ui/UIHelper.hpp"
+#include "ui/Themes.hpp"
 
 namespace solitaire {
 

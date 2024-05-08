@@ -6,6 +6,7 @@
 #include "WizardScene.hpp"
 
 #include "games/Games.hpp"
+#include "ui/Styles.hpp"
 
 namespace solitaire {
 
@@ -22,7 +23,10 @@ void wizard_scene::on_start()
 
     _formWizard = std::make_shared<form_wizard>(&get_window(), resGrp);
     get_root_node()->create_child()->attach_entity(_formWizard);
-    create_styles(_currentTheme, resGrp, *_formWizard->Styles);
+
+    styles     styles {resGrp};
+    auto const styleCollection {styles.load(_currentTheme)};
+    _formWizard->Styles = styleCollection;
 
     _formWizard->BtnBack->Click.connect([&]() {
         get_game().pop_current_scene();

@@ -11,8 +11,9 @@
 #include "Cardset.hpp"
 #include "Database.hpp"
 #include "Games.hpp"
+#include "ui/Themes.hpp"
 #include "ui/UI.hpp"
-#include "ui/UIHelper.hpp"
+
 
 namespace solitaire {
 

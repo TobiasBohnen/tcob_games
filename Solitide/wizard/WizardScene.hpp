@@ -8,7 +8,7 @@
 #include "Common.hpp" // IWYU pragma: keep
 
 #include "Wizard.hpp"
-#include "ui/UIHelper.hpp"
+#include "ui/Themes.hpp"
 
 namespace solitaire {
 

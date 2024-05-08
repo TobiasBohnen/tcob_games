@@ -5,6 +5,7 @@
 
 #include "StartScene.hpp"
 
+#include "ui/Styles.hpp"
 #include "wizard/WizardScene.hpp"
 
 namespace solitaire {
@@ -153,11 +154,14 @@ void start_scene::connect_ui_events()
         if (!_themes.contains(theme)) { themeName = "default"; }
         auto const& newTheme {_themes[themeName]};
 
-        create_styles(newTheme, resGrp, *_formMenu->Styles);
-        create_styles(newTheme, resGrp, *_formControls->Styles);
+        styles     styles {resGrp};
+        auto const styleCollection {styles.load(newTheme)};
+        _formMenu->Styles = styleCollection;
+        _formMenu->fixed_update(milliseconds {0});
 
-        _formMenu->force_redraw("");
-        _formControls->force_redraw("");
+        _formControls->Styles = styleCollection;
+        _formControls->fixed_update(milliseconds {0});
+
         _cardTable->set_theme(newTheme);
         _saveGame["theme"] = themeName;
     });

@@ -631,7 +631,7 @@ mini_h_cardset::mini_h_cardset(assets::group& resGrp)
     : mini_cardset {"mini_h"}
 {
     if (!is_loaded()) {
-        create(resGrp, {120, 60});
+        create(resGrp, {360, 180});
     }
 }
 
@@ -639,7 +639,7 @@ mini_v_cardset::mini_v_cardset(assets::group& resGrp)
     : mini_cardset {"mini_v"}
 {
     if (!is_loaded()) {
-        create(resGrp, {60, 120});
+        create(resGrp, {180, 360});
     }
 }
 

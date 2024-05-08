@@ -1,29 +1,29 @@
 {
   "Alien": {
     "active": {
-      "Background": "#228b22",
-      "Border": "#00ff00",
-      "Container": "#228b22",
-      "Foreground": "#ffffff",
-      "List": "#006400",
-      "Shadow": "#006400"
+      "background": "#228b22",
+      "border": "#00ff00",
+      "container": "#228b22",
+      "foreground": "#ffffff",
+      "list": "#006400",
+      "shadow": "#006400"
     },
     "hover": {
-      "Background": "#3cb371",
-      "Border": "#00fa9a",
-      "Container": "#3cb371",
-      "Foreground": "#00ff00",
-      "List": "#008b45",
-      "Shadow": "#008b45"
+      "background": "#3cb371",
+      "border": "#00fa9a",
+      "container": "#3cb371",
+      "foreground": "#00ff00",
+      "list": "#008b45",
+      "shadow": "#008b45"
     },
     "normal": {
-      "Background": "#2E8b57",
-      "Border": "#32cd32",
-      "Container": "#2E8b57",
-      "Foreground": "#00ff00",
-      "Label": "#006400",
-      "List": "#006400",
-      "Shadow": "#006400"
+      "background": "#2E8b57",
+      "border": "#32cd32",
+      "container": "#2E8b57",
+      "foreground": "#00ff00",
+      "label": "#006400",
+      "list": "#006400",
+      "shadow": "#006400"
     },
     "table": {
       "A": "#2E8b57",
@@ -32,29 +32,29 @@
   },
   "Bubblegum": {
     "active": {
-      "Background": "#ff1493",
-      "Border": "#ff69b4",
-      "Container": "#ff1493",
-      "Foreground": "#000000",
-      "List": "#c71585",
-      "Shadow": "#c71585"
+      "background": "#ff1493",
+      "border": "#ff69b4",
+      "container": "#ff1493",
+      "foreground": "#000000",
+      "list": "#c71585",
+      "shadow": "#c71585"
     },
     "hover": {
-      "Background": "#ffc0cb",
-      "Border": "#ff69b4",
-      "Container": "#ffc0cb",
-      "Foreground": "#000000",
-      "List": "#db7093",
-      "Shadow": "#db7093"
+      "background": "#ffc0cb",
+      "border": "#ff69b4",
+      "container": "#ffc0cb",
+      "foreground": "#000000",
+      "list": "#db7093",
+      "shadow": "#db7093"
     },
     "normal": {
-      "Background": "#ffb6c1",
-      "Border": "#ff69b4",
-      "Container": "#ffb6c1",
-      "Foreground": "#000000",
-      "Label": "#ff6347",
-      "List": "#ff6347",
-      "Shadow": "#ff6347"
+      "background": "#ffb6c1",
+      "border": "#ff69b4",
+      "container": "#ffb6c1",
+      "foreground": "#000000",
+      "label": "#ff6347",
+      "list": "#ff6347",
+      "shadow": "#ff6347"
     },
     "table": {
       "A": "#ffb6c1",
@@ -62,30 +62,30 @@
     }
   },
   "Canary Yellow": {
-    "Active": {
-      "Background": "#ffff99",
-      "Border": "#333333",
-      "Container": "#ffffcc",
-      "Foreground": "#333333",
-      "List": "#ffff99",
-      "Shadow": "#333333"
+    "active": {
+      "background": "#ffff99",
+      "border": "#333333",
+      "container": "#ffffcc",
+      "foreground": "#333333",
+      "list": "#ffff99",
+      "shadow": "#333333"
     },
-    "Hover": {
-      "Background": "#ffee66",
-      "Border": "#333333",
-      "Container": "#ffee99",
-      "Foreground": "#333333",
-      "List": "#ffee66",
-      "Shadow": "#333333"
+    "hover": {
+      "background": "#ffee66",
+      "border": "#333333",
+      "container": "#ffee99",
+      "foreground": "#333333",
+      "list": "#ffee66",
+      "shadow": "#333333"
     },
-    "Normal": {
-      "Background": "#ffdd33",
-      "Border": "#333333",
-      "Container": "#ffdd66",
-      "Foreground": "#ffffcc",
-      "Label": "#333333",
-      "List": "#333333",
-      "Shadow": "#333333"
+    "normal": {
+      "background": "#ffdd33",
+      "border": "#333333",
+      "container": "#ffdd66",
+      "foreground": "#ffffcc",
+      "label": "#333333",
+      "list": "#333333",
+      "shadow": "#333333"
     },
     "table": {
       "A": "#ffdd33",
@@ -94,29 +94,29 @@
   },
   "Chocolate Brown": {
     "active": {
-      "Background": "#d2691e",
-      "Border": "#4c2f1e",
-      "Container": "#d2691e",
-      "Foreground": "#ffffff",
-      "List": "#4c2f1e",
-      "Shadow": "#d2691e"
+      "background": "#d2691e",
+      "border": "#4c2f1e",
+      "container": "#d2691e",
+      "foreground": "#ffffff",
+      "list": "#4c2f1e",
+      "shadow": "#d2691e"
     },
     "hover": {
-      "Background": "#8b4513",
-      "Border": "#4c2f1e",
-      "Container": "#8b4513",
-      "Foreground": "#ffffff",
-      "List": "#4c2f1e",
-      "Shadow": "#8b4513"
+      "background": "#8b4513",
+      "border": "#4c2f1e",
+      "container": "#8b4513",
+      "foreground": "#ffffff",
+      "list": "#4c2f1e",
+      "shadow": "#8b4513"
     },
     "normal": {
-      "Background": "#4c2f1e",
-      "Border": "#8b4513",
-      "Container": "#4c2f1e",
-      "Foreground": "#ffffff",
-      "Label": "#8b4513",
-      "List": "#8b4513",
-      "Shadow": "#4c2f1e"
+      "background": "#4c2f1e",
+      "border": "#8b4513",
+      "container": "#4c2f1e",
+      "foreground": "#ffffff",
+      "label": "#8b4513",
+      "list": "#8b4513",
+      "shadow": "#4c2f1e"
     },
     "table": {
       "A": "#4c2f1e",
@@ -125,29 +125,29 @@
   },
   "Cool Blue": {
     "active": {
-      "Background": "#4682b4",
-      "Border": "#87ceeb",
-      "Container": "#4682b4",
-      "Foreground": "#ffffff",
-      "List": "#556b2f",
-      "Shadow": "#556b2f"
+      "background": "#4682b4",
+      "border": "#87ceeb",
+      "container": "#4682b4",
+      "foreground": "#ffffff",
+      "list": "#556b2f",
+      "shadow": "#556b2f"
     },
     "hover": {
-      "Background": "#87ceeb",
-      "Border": "#00bfff",
-      "Container": "#87ceeb",
-      "Foreground": "#ffffff",
-      "List": "#6495ed",
-      "Shadow": "#6495ed"
+      "background": "#87ceeb",
+      "border": "#00bfff",
+      "container": "#87ceeb",
+      "foreground": "#ffffff",
+      "list": "#6495ed",
+      "shadow": "#6495ed"
     },
     "normal": {
-      "Background": "#add8e6",
-      "Border": "#87ceeb",
-      "Container": "#add8e6",
-      "Foreground": "#ffffff",
-      "Label": "#4682b4",
-      "List": "#4682b4",
-      "Shadow": "#4682b4"
+      "background": "#add8e6",
+      "border": "#87ceeb",
+      "container": "#add8e6",
+      "foreground": "#ffffff",
+      "label": "#4682b4",
+      "list": "#4682b4",
+      "shadow": "#4682b4"
     },
     "table": {
       "A": "#add8e6",
@@ -156,29 +156,29 @@
   },
   "Coral Reef": {
     "active": {
-      "Background": "#ff6347",
-      "Border": "#fffacd",
-      "Container": "#ff6347",
-      "Foreground": "#ffffff",
-      "List": "#556b2f",
-      "Shadow": "#556b2f"
+      "background": "#ff6347",
+      "border": "#fffacd",
+      "container": "#ff6347",
+      "foreground": "#ffffff",
+      "list": "#556b2f",
+      "shadow": "#556b2f"
     },
     "hover": {
-      "Background": "#ffb6c1",
-      "Border": "#fffacd",
-      "Container": "#ffb6c1",
-      "Foreground": "#ffffff",
-      "List": "#87ceeb",
-      "Shadow": "#87ceeb"
+      "background": "#ffb6c1",
+      "border": "#fffacd",
+      "container": "#ffb6c1",
+      "foreground": "#ffffff",
+      "list": "#87ceeb",
+      "shadow": "#87ceeb"
     },
     "normal": {
-      "Background": "#f08080",
-      "Border": "#ffe4e1",
-      "Container": "#f08080",
-      "Foreground": "#ffffff",
-      "Label": "#20b2aa",
-      "List": "#20b2aa",
-      "Shadow": "#20b2aa"
+      "background": "#f08080",
+      "border": "#ffe4e1",
+      "container": "#f08080",
+      "foreground": "#ffffff",
+      "label": "#20b2aa",
+      "list": "#20b2aa",
+      "shadow": "#20b2aa"
     },
     "table": {
       "A": "#87ceeb",
@@ -187,29 +187,29 @@
   },
   "Dark Reddish Brown": {
     "active": {
-      "Background": "#6f4e4e",
-      "Border": "#4e3636",
-      "Container": "#6f4e4e",
-      "Foreground": "#ffffff",
-      "List": "#4e3636",
-      "Shadow": "#4e3636"
+      "background": "#6f4e4e",
+      "border": "#4e3636",
+      "container": "#6f4e4e",
+      "foreground": "#ffffff",
+      "list": "#4e3636",
+      "shadow": "#4e3636"
     },
     "hover": {
-      "Background": "#4e3636",
-      "Border": "#3b2929",
-      "Container": "#4e3636",
-      "Foreground": "#ffffff",
-      "List": "#3b2929",
-      "Shadow": "#3b2929"
+      "background": "#4e3636",
+      "border": "#3b2929",
+      "container": "#4e3636",
+      "foreground": "#ffffff",
+      "list": "#3b2929",
+      "shadow": "#3b2929"
     },
     "normal": {
-      "Background": "#3b2929",
-      "Border": "#2c1e1e",
-      "Container": "#3b2929",
-      "Foreground": "#ffffff",
-      "Label": "#2c1e1e",
-      "List": "#2c1e1e",
-      "Shadow": "#2c1e1e"
+      "background": "#3b2929",
+      "border": "#2c1e1e",
+      "container": "#3b2929",
+      "foreground": "#ffffff",
+      "label": "#2c1e1e",
+      "list": "#2c1e1e",
+      "shadow": "#2c1e1e"
     },
     "table": {
       "A": "#3b2929",
@@ -218,29 +218,29 @@
   },
   "Dracula": {
     "active": {
-      "Background": "#282a36",
-      "Border": "#8be9fd",
-      "Container": "#44475a",
-      "Foreground": "#f8f8f2",
-      "List": "#44475a",
-      "Shadow": "#8be9fd"
+      "background": "#282a36",
+      "border": "#8be9fd",
+      "container": "#44475a",
+      "foreground": "#f8f8f2",
+      "list": "#44475a",
+      "shadow": "#8be9fd"
     },
     "hover": {
-      "Background": "#6272a4",
-      "Border": "#bd93f9",
-      "Container": "#6272a4",
-      "Foreground": "#f8f8f2",
-      "List": "#44475a",
-      "Shadow": "#a4accb"
+      "background": "#6272a4",
+      "border": "#bd93f9",
+      "container": "#6272a4",
+      "foreground": "#f8f8f2",
+      "list": "#44475a",
+      "shadow": "#a4accb"
     },
     "normal": {
-      "Background": "#282a36",
-      "Border": "#ff5555",
-      "Container": "#44475a",
-      "Foreground": "#f8f8f2",
-      "Label": "#6272a4",
-      "List": "#44475a",
-      "Shadow": "#6272a4"
+      "background": "#282a36",
+      "border": "#ff5555",
+      "container": "#44475a",
+      "foreground": "#f8f8f2",
+      "label": "#6272a4",
+      "list": "#44475a",
+      "shadow": "#6272a4"
     },
     "table": {
       "A": "#a4accb",
@@ -249,28 +249,28 @@
   },
   "Earthy Tones": {
     "active": {
-      "Background": "#cd853f",
-      "Border": "#f5deb3",
-      "Container": "#cd853f",
-      "Foreground": "#ffffff",
-      "List": "#808000",
-      "Shadow": "#808000"
+      "background": "#cd853f",
+      "border": "#f5deb3",
+      "container": "#cd853f",
+      "foreground": "#ffffff",
+      "list": "#808000",
+      "shadow": "#808000"
     },
     "hover": {
-      "Background": "#a0522d",
-      "Border": "#deb887",
-      "Container": "#a0522d",
-      "Foreground": "#ffffff",
-      "List": "#8fbc8f",
-      "Shadow": "#8fbc8f"
+      "background": "#a0522d",
+      "border": "#deb887",
+      "container": "#a0522d",
+      "foreground": "#ffffff",
+      "list": "#8fbc8f",
+      "shadow": "#8fbc8f"
     },
     "normal": {
-      "Background": "#8b4513",
-      "Border": "#d2b48c",
-      "Container": "#8b4513",
-      "Foreground": "#ffffff",
-      "List": "#556b2f",
-      "Shadow": "#556b2f"
+      "background": "#8b4513",
+      "border": "#d2b48c",
+      "container": "#8b4513",
+      "foreground": "#ffffff",
+      "list": "#556b2f",
+      "shadow": "#556b2f"
     },
     "table": {
       "A": "#556b2f",
@@ -278,30 +278,30 @@
     }
   },
   "Fantasy Forest": {
-    "Active": {
-      "Background": "#008000",
-      "Border": "#004000",
-      "Container": "#008000",
-      "Foreground": "#ffffff",
-      "List": "#004000",
-      "Shadow": "#004000"
+    "active": {
+      "background": "#008000",
+      "border": "#004000",
+      "container": "#008000",
+      "foreground": "#ffffff",
+      "list": "#004000",
+      "shadow": "#004000"
     },
-    "Hover": {
-      "Background": "#ffcc00",
-      "Border": "#806600",
-      "Container": "#ffcc00",
-      "Foreground": "#ffffff",
-      "List": "#806600",
-      "Shadow": "#806600"
+    "hover": {
+      "background": "#ffcc00",
+      "border": "#806600",
+      "container": "#ffcc00",
+      "foreground": "#ffffff",
+      "list": "#806600",
+      "shadow": "#806600"
     },
-    "Normal": {
-      "Background": "#00ff00",
-      "Border": "#008000",
-      "Container": "#00ff00",
-      "Foreground": "#ffffff",
-      "Label": "#008000",
-      "List": "#008000",
-      "Shadow": "#008000"
+    "normal": {
+      "background": "#00ff00",
+      "border": "#008000",
+      "container": "#00ff00",
+      "foreground": "#ffffff",
+      "label": "#008000",
+      "list": "#008000",
+      "shadow": "#008000"
     },
     "table": {
       "A": "#00ff00",
@@ -310,29 +310,29 @@
   },
   "Forest Green": {
     "active": {
-      "Background": "#008000",
-      "Border": "#00ff00",
-      "Container": "#008000",
-      "Foreground": "#ffffff",
-      "List": "#556b2f",
-      "Shadow": "#556b2f"
+      "background": "#008000",
+      "border": "#00ff00",
+      "container": "#008000",
+      "foreground": "#ffffff",
+      "list": "#556b2f",
+      "shadow": "#556b2f"
     },
     "hover": {
-      "Background": "#20b2aa",
-      "Border": "#00ced1",
-      "Container": "#20b2aa",
-      "Foreground": "#ffffff",
-      "List": "#008080",
-      "Shadow": "#008080"
+      "background": "#20b2aa",
+      "border": "#00ced1",
+      "container": "#20b2aa",
+      "foreground": "#ffffff",
+      "list": "#008080",
+      "shadow": "#008080"
     },
     "normal": {
-      "Background": "#228b22",
-      "Border": "#32cd32",
-      "Container": "#228b22",
-      "Foreground": "#ffffff",
-      "Label": "#006400",
-      "List": "#006400",
-      "Shadow": "#006400"
+      "background": "#228b22",
+      "border": "#32cd32",
+      "container": "#228b22",
+      "foreground": "#ffffff",
+      "label": "#006400",
+      "list": "#006400",
+      "shadow": "#006400"
     },
     "table": {
       "A": "#228b22",
@@ -341,29 +341,29 @@
   },
   "Galactic Blue": {
     "active": {
-      "Background": "#004080",
-      "Border": "#0077cc",
-      "Container": "#004080",
-      "Foreground": "#ffffff",
-      "List": "#0088ff",
-      "Shadow": "#0088ff"
+      "background": "#004080",
+      "border": "#0077cc",
+      "container": "#004080",
+      "foreground": "#ffffff",
+      "list": "#0088ff",
+      "shadow": "#0088ff"
     },
     "hover": {
-      "Background": "#003366",
-      "Border": "#00509e",
-      "Container": "#003366",
-      "Foreground": "#ffffff",
-      "List": "#0066cc",
-      "Shadow": "#0066cc"
+      "background": "#003366",
+      "border": "#00509e",
+      "container": "#003366",
+      "foreground": "#ffffff",
+      "list": "#0066cc",
+      "shadow": "#0066cc"
     },
     "normal": {
-      "Background": "#001f3f",
-      "Border": "#003366",
-      "Container": "#001f3f",
-      "Foreground": "#ffffff",
-      "Label": "#004080",
-      "List": "#004080",
-      "Shadow": "#004080"
+      "background": "#001f3f",
+      "border": "#003366",
+      "container": "#001f3f",
+      "foreground": "#ffffff",
+      "label": "#004080",
+      "list": "#004080",
+      "shadow": "#004080"
     },
     "table": {
       "A": "#001f3f",
@@ -372,29 +372,29 @@
   },
   "GameBrick": {
     "active": {
-      "Background": "#8bac0f",
-      "Border": "#f79422",
-      "Container": "#215b25",
-      "Foreground": "#fefea2",
-      "List": "#215b25",
-      "Shadow": "#f79422"
+      "background": "#8bac0f",
+      "border": "#f79422",
+      "container": "#215b25",
+      "foreground": "#fefea2",
+      "list": "#215b25",
+      "shadow": "#f79422"
     },
     "hover": {
-      "Background": "#5fa916",
-      "Border": "#71ab45",
-      "Container": "#5fa916",
-      "Foreground": "#fefea2",
-      "List": "#215b25",
-      "Shadow": "#4c584d"
+      "background": "#5fa916",
+      "border": "#71ab45",
+      "container": "#5fa916",
+      "foreground": "#fefea2",
+      "list": "#215b25",
+      "shadow": "#4c584d"
     },
     "normal": {
-      "Background": "#8bac0f",
-      "Border": "#635c14",
-      "Container": "#215b25",
-      "Foreground": "#fefea2",
-      "Label": "#394439",
-      "List": "#215b25",
-      "Shadow": "#394439"
+      "background": "#8bac0f",
+      "border": "#635c14",
+      "container": "#215b25",
+      "foreground": "#fefea2",
+      "label": "#394439",
+      "list": "#215b25",
+      "shadow": "#394439"
     },
     "table": {
       "A": "#8bac0f",
@@ -403,29 +403,29 @@
   },
   "Golden Meadow": {
     "active": {
-      "Background": "#a0522d",
-      "Border": "#deb887",
-      "Container": "#a0522d",
-      "Foreground": "#ffffff",
-      "List": "#8fbc8f",
-      "Shadow": "#8fbc8f"
+      "background": "#a0522d",
+      "border": "#deb887",
+      "container": "#a0522d",
+      "foreground": "#ffffff",
+      "list": "#8fbc8f",
+      "shadow": "#8fbc8f"
     },
     "hover": {
-      "Background": "#8fbc8f",
-      "Border": "#a0522d",
-      "Container": "#8fbc8f",
-      "Foreground": "#ffffff",
-      "List": "#deb887",
-      "Shadow": "#deb887"
+      "background": "#8fbc8f",
+      "border": "#a0522d",
+      "container": "#8fbc8f",
+      "foreground": "#ffffff",
+      "list": "#deb887",
+      "shadow": "#deb887"
     },
     "normal": {
-      "Background": "#deb887",
-      "Border": "#8fbc8f",
-      "Container": "#deb887",
-      "Foreground": "#ffffff",
-      "Label": "#a0522d",
-      "List": "#a0522d",
-      "Shadow": "#a0522d"
+      "background": "#deb887",
+      "border": "#8fbc8f",
+      "container": "#deb887",
+      "foreground": "#ffffff",
+      "label": "#a0522d",
+      "list": "#a0522d",
+      "shadow": "#a0522d"
     },
     "table": {
       "A": "#deb887",
@@ -434,29 +434,29 @@
   },
   "Greyscale": {
     "active": {
-      "Background": "#696969",
-      "Border": "#c0c0c0",
-      "Container": "#c0c0c0",
-      "Foreground": "#ffffff",
-      "List": "#808080",
-      "Shadow": "#808080"
+      "background": "#696969",
+      "border": "#c0c0c0",
+      "container": "#c0c0c0",
+      "foreground": "#ffffff",
+      "list": "#808080",
+      "shadow": "#808080"
     },
     "hover": {
-      "Background": "#a9a9a9",
-      "Border": "#d3d3d3",
-      "Container": "#d3d3d3",
-      "Foreground": "#ffffff",
-      "List": "#c0c0c0",
-      "Shadow": "#c0c0c0"
+      "background": "#a9a9a9",
+      "border": "#d3d3d3",
+      "container": "#d3d3d3",
+      "foreground": "#ffffff",
+      "list": "#c0c0c0",
+      "shadow": "#c0c0c0"
     },
     "normal": {
-      "Background": "#808080",
-      "Border": "#a9a9a9",
-      "Container": "#a9a9a9",
-      "Foreground": "#ffffff",
-      "Label": "#696969",
-      "List": "#696969",
-      "Shadow": "#696969"
+      "background": "#808080",
+      "border": "#a9a9a9",
+      "container": "#a9a9a9",
+      "foreground": "#ffffff",
+      "label": "#696969",
+      "list": "#696969",
+      "shadow": "#696969"
     },
     "table": {
       "A": "#808080",
@@ -465,29 +465,29 @@
   },
   "Greyscale Dark": {
     "active": {
-      "Background": "#aaaaaa",
-      "Border": "#aaaaaa",
-      "Container": "#aaaaaa",
-      "Foreground": "#000000",
-      "List": "#aaaaaa",
-      "Shadow": "#000000"
+      "background": "#aaaaaa",
+      "border": "#aaaaaa",
+      "container": "#aaaaaa",
+      "foreground": "#000000",
+      "list": "#aaaaaa",
+      "shadow": "#000000"
     },
     "hover": {
-      "Background": "#555555",
-      "Border": "#aaaaaa",
-      "Container": "#555555",
-      "Foreground": "#aaaaaa",
-      "List": "#555555",
-      "Shadow": "#000000"
+      "background": "#555555",
+      "border": "#aaaaaa",
+      "container": "#555555",
+      "foreground": "#aaaaaa",
+      "list": "#555555",
+      "shadow": "#000000"
     },
     "normal": {
-      "Background": "#000000",
-      "Border": "#aaaaaa",
-      "Container": "#000000",
-      "Foreground": "#aaaaaa",
-      "Label": "#000000",
-      "List": "#000000",
-      "Shadow": "#000000"
+      "background": "#000000",
+      "border": "#aaaaaa",
+      "container": "#000000",
+      "foreground": "#aaaaaa",
+      "label": "#000000",
+      "list": "#000000",
+      "shadow": "#000000"
     },
     "table": {
       "A": "#000000",
@@ -496,29 +496,29 @@
   },
   "Harvest Moon": {
     "active": {
-      "Background": "#deb887",
-      "Border": "#8fbc8f",
-      "Container": "#deb887",
-      "Foreground": "#ffffff",
-      "List": "#a0522d",
-      "Shadow": "#a0522d"
+      "background": "#deb887",
+      "border": "#8fbc8f",
+      "container": "#deb887",
+      "foreground": "#ffffff",
+      "list": "#a0522d",
+      "shadow": "#a0522d"
     },
     "hover": {
-      "Background": "#a0522d",
-      "Border": "#deb887",
-      "Container": "#a0522d",
-      "Foreground": "#ffffff",
-      "List": "#8fbc8f",
-      "Shadow": "#8fbc8f"
+      "background": "#a0522d",
+      "border": "#deb887",
+      "container": "#a0522d",
+      "foreground": "#ffffff",
+      "list": "#8fbc8f",
+      "shadow": "#8fbc8f"
     },
     "normal": {
-      "Background": "#8fbc8f",
-      "Border": "#a0522d",
-      "Container": "#8fbc8f",
-      "Foreground": "#ffffff",
-      "Label": "#deb887",
-      "List": "#deb887",
-      "Shadow": "#deb887"
+      "background": "#8fbc8f",
+      "border": "#a0522d",
+      "container": "#8fbc8f",
+      "foreground": "#ffffff",
+      "label": "#deb887",
+      "list": "#deb887",
+      "shadow": "#deb887"
     },
     "table": {
       "A": "#8fbc8f",
@@ -527,29 +527,29 @@
   },
   "Midnight": {
     "active": {
-      "Background": "#8b0000",
-      "Border": "#ff0000",
-      "Container": "#8b0000",
-      "Foreground": "#ffffff",
-      "List": "#ff0000",
-      "Shadow": "#b22222"
+      "background": "#8b0000",
+      "border": "#ff0000",
+      "container": "#8b0000",
+      "foreground": "#ffffff",
+      "list": "#ff0000",
+      "shadow": "#b22222"
     },
     "hover": {
-      "Background": "#000080",
-      "Border": "#0000cd",
-      "Container": "#000080",
-      "Foreground": "#ff0000",
-      "List": "#0000cd",
-      "Shadow": "#8b0000"
+      "background": "#000080",
+      "border": "#0000cd",
+      "container": "#000080",
+      "foreground": "#ff0000",
+      "list": "#0000cd",
+      "shadow": "#8b0000"
     },
     "normal": {
-      "Background": "#191970",
-      "Border": "#4169e1",
-      "Container": "#191970",
-      "Foreground": "#ffffff",
-      "Label": "#4169e1",
-      "List": "#4169e1",
-      "Shadow": "#800000"
+      "background": "#191970",
+      "border": "#4169e1",
+      "container": "#191970",
+      "foreground": "#ffffff",
+      "label": "#4169e1",
+      "list": "#4169e1",
+      "shadow": "#800000"
     },
     "table": {
       "A": "#191970",
@@ -558,29 +558,29 @@
   },
   "Minty Fresh": {
     "active": {
-      "Background": "#00ff00",
-      "Border": "#f5fff5",
-      "Container": "#00ff00",
-      "Foreground": "#000000",
-      "List": "#228b22",
-      "Shadow": "#228b22"
+      "background": "#00ff00",
+      "border": "#f5fff5",
+      "container": "#00ff00",
+      "foreground": "#000000",
+      "list": "#228b22",
+      "shadow": "#228b22"
     },
     "hover": {
-      "Background": "#c0ffc0",
-      "Border": "#f5fff5",
-      "Container": "#c0ffc0",
-      "Foreground": "#000000",
-      "List": "#00ff00",
-      "Shadow": "#00ff00"
+      "background": "#c0ffc0",
+      "border": "#f5fff5",
+      "container": "#c0ffc0",
+      "foreground": "#000000",
+      "list": "#00ff00",
+      "shadow": "#00ff00"
     },
     "normal": {
-      "Background": "#98fb98",
-      "Border": "#f0fff0",
-      "Container": "#98fb98",
-      "Foreground": "#000000",
-      "Label": "#008000",
-      "List": "#008000",
-      "Shadow": "#008000"
+      "background": "#98fb98",
+      "border": "#f0fff0",
+      "container": "#98fb98",
+      "foreground": "#000000",
+      "label": "#008000",
+      "list": "#008000",
+      "shadow": "#008000"
     },
     "table": {
       "A": "#98fb98",
@@ -589,29 +589,29 @@
   },
   "Nebula Purple": {
     "active": {
-      "Background": "#6a0dad",
-      "Border": "#8a12c1",
-      "Container": "#6a0dad",
-      "Foreground": "#ffffff",
-      "List": "#a71ad2",
-      "Shadow": "#a71ad2"
+      "background": "#6a0dad",
+      "border": "#8a12c1",
+      "container": "#6a0dad",
+      "foreground": "#ffffff",
+      "list": "#a71ad2",
+      "shadow": "#a71ad2"
     },
     "hover": {
-      "Background": "#4b0082",
-      "Border": "#640096",
-      "Container": "#4b0082",
-      "Foreground": "#ffffff",
-      "List": "#8a12c1",
-      "Shadow": "#8a12c1"
+      "background": "#4b0082",
+      "border": "#640096",
+      "container": "#4b0082",
+      "foreground": "#ffffff",
+      "list": "#8a12c1",
+      "shadow": "#8a12c1"
     },
     "normal": {
-      "Background": "#330033",
-      "Border": "#4b0082",
-      "Container": "#330033",
-      "Foreground": "#ffffff",
-      "Label": "#6a0dad",
-      "List": "#6a0dad",
-      "Shadow": "#6a0dad"
+      "background": "#330033",
+      "border": "#4b0082",
+      "container": "#330033",
+      "foreground": "#ffffff",
+      "label": "#6a0dad",
+      "list": "#6a0dad",
+      "shadow": "#6a0dad"
     },
     "table": {
       "A": "#330033",
@@ -620,29 +620,29 @@
   },
   "Orchid Dreams": {
     "active": {
-      "Background": "#9932cc",
-      "Border": "#ffe4f3",
-      "Container": "#9932cc",
-      "Foreground": "#000000",
-      "List": "#8a2be2",
-      "Shadow": "#8a2be2"
+      "background": "#9932cc",
+      "border": "#ffe4f3",
+      "container": "#9932cc",
+      "foreground": "#000000",
+      "list": "#8a2be2",
+      "shadow": "#8a2be2"
     },
     "hover": {
-      "Background": "#e066ff",
-      "Border": "#ffe4f3",
-      "Container": "#e066ff",
-      "Foreground": "#000000",
-      "List": "#ba55d3",
-      "Shadow": "#ba55d3"
+      "background": "#e066ff",
+      "border": "#ffe4f3",
+      "container": "#e066ff",
+      "foreground": "#000000",
+      "list": "#ba55d3",
+      "shadow": "#ba55d3"
     },
     "normal": {
-      "Background": "#da70d6",
-      "Border": "#ffe4f3",
-      "Container": "#da70d6",
-      "Foreground": "#000000",
-      "Label": "#9932cc",
-      "List": "#9932cc",
-      "Shadow": "#9932cc"
+      "background": "#da70d6",
+      "border": "#ffe4f3",
+      "container": "#da70d6",
+      "foreground": "#000000",
+      "label": "#9932cc",
+      "list": "#9932cc",
+      "shadow": "#9932cc"
     },
     "table": {
       "A": "#da70d6",
@@ -651,29 +651,29 @@
   },
   "Original Mint": {
     "active": {
-      "Background": "#009999",
-      "Border": "#006666",
-      "Container": "#009999",
-      "Foreground": "#ffffff",
-      "List": "#004d4d",
-      "Shadow": "#004d4d"
+      "background": "#009999",
+      "border": "#006666",
+      "container": "#009999",
+      "foreground": "#ffffff",
+      "list": "#004d4d",
+      "shadow": "#004d4d"
     },
     "hover": {
-      "Background": "#00e6cc",
-      "Border": "#00b3b3",
-      "Container": "#00e6cc",
-      "Foreground": "#ffffff",
-      "List": "#008080",
-      "Shadow": "#008080"
+      "background": "#00e6cc",
+      "border": "#00b3b3",
+      "container": "#00e6cc",
+      "foreground": "#ffffff",
+      "list": "#008080",
+      "shadow": "#008080"
     },
     "normal": {
-      "Background": "#00ffbf",
-      "Border": "#008080",
-      "Container": "#00ffbf",
-      "Foreground": "#ffffff",
-      "Label": "#005959",
-      "List": "#005959",
-      "Shadow": "#005959"
+      "background": "#00ffbf",
+      "border": "#008080",
+      "container": "#00ffbf",
+      "foreground": "#ffffff",
+      "label": "#005959",
+      "list": "#005959",
+      "shadow": "#005959"
     },
     "table": {
       "A": "#00ffbf",
@@ -682,29 +682,29 @@
   },
   "Pixel Pop": {
     "active": {
-      "Background": "#ffcc00",
-      "Border": "#ff0000",
-      "Container": "#ffcc00",
-      "Foreground": "#000000",
-      "List": "#ff0000",
-      "Shadow": "#ff0000"
+      "background": "#ffcc00",
+      "border": "#ff0000",
+      "container": "#ffcc00",
+      "foreground": "#000000",
+      "list": "#ff0000",
+      "shadow": "#ff0000"
     },
     "hover": {
-      "Background": "#00ffcc",
-      "Border": "#00ff00",
-      "Container": "#00ffcc",
-      "Foreground": "#000000",
-      "List": "#00ff00",
-      "Shadow": "#00ff00"
+      "background": "#00ffcc",
+      "border": "#00ff00",
+      "container": "#00ffcc",
+      "foreground": "#000000",
+      "list": "#00ff00",
+      "shadow": "#00ff00"
     },
     "normal": {
-      "Background": "#ffff00",
-      "Border": "#008000",
-      "Container": "#ffff00",
-      "Foreground": "#000000",
-      "Label": "#008000",
-      "List": "#008000",
-      "Shadow": "#008000"
+      "background": "#ffff00",
+      "border": "#008000",
+      "container": "#ffff00",
+      "foreground": "#000000",
+      "label": "#008000",
+      "list": "#008000",
+      "shadow": "#008000"
     },
     "table": {
       "A": "#ffff00",
@@ -713,29 +713,29 @@
   },
   "Retro Neon": {
     "active": {
-      "Background": "#ff00ff",
-      "Border": "#800080",
-      "Container": "#ff00ff",
-      "Foreground": "#ffffff",
-      "List": "#800080",
-      "Shadow": "#800080"
+      "background": "#ff00ff",
+      "border": "#800080",
+      "container": "#ff00ff",
+      "foreground": "#ffffff",
+      "list": "#800080",
+      "shadow": "#800080"
     },
     "hover": {
-      "Background": "#00ffff",
-      "Border": "#008080",
-      "Container": "#00ffff",
-      "Foreground": "#ffffff",
-      "List": "#008080",
-      "Shadow": "#008080"
+      "background": "#00ffff",
+      "border": "#008080",
+      "container": "#00ffff",
+      "foreground": "#ffffff",
+      "list": "#008080",
+      "shadow": "#008080"
     },
     "normal": {
-      "Background": "#00ff00",
-      "Border": "#008000",
-      "Container": "#00ff00",
-      "Foreground": "#ffffff",
-      "Label": "#008000",
-      "List": "#008000",
-      "Shadow": "#008000"
+      "background": "#00ff00",
+      "border": "#008000",
+      "container": "#00ff00",
+      "foreground": "#ffffff",
+      "label": "#008000",
+      "list": "#008000",
+      "shadow": "#008000"
     },
     "table": {
       "A": "#00ff00",
@@ -744,29 +744,29 @@
   },
   "Rose Gold": {
     "active": {
-      "Background": "#ff1493",
-      "Border": "#ff69b4",
-      "Container": "#ff1493",
-      "Foreground": "#000000",
-      "List": "#c71585",
-      "Shadow": "#c71585"
+      "background": "#ff1493",
+      "border": "#ff69b4",
+      "container": "#ff1493",
+      "foreground": "#000000",
+      "list": "#c71585",
+      "shadow": "#c71585"
     },
     "hover": {
-      "Background": "#ffc0cb",
-      "Border": "#ff69b4",
-      "Container": "#ffc0cb",
-      "Foreground": "#000000",
-      "List": "#db7093",
-      "Shadow": "#db7093"
+      "background": "#ffc0cb",
+      "border": "#ff69b4",
+      "container": "#ffc0cb",
+      "foreground": "#000000",
+      "list": "#db7093",
+      "shadow": "#db7093"
     },
     "normal": {
-      "Background": "#ffdab9",
-      "Border": "#ffc0cb",
-      "Container": "#ffdab9",
-      "Foreground": "#000000",
-      "Label": "#ff69b4",
-      "List": "#ff69b4",
-      "Shadow": "#ff69b4"
+      "background": "#ffdab9",
+      "border": "#ffc0cb",
+      "container": "#ffdab9",
+      "foreground": "#000000",
+      "label": "#ff69b4",
+      "list": "#ff69b4",
+      "shadow": "#ff69b4"
     },
     "table": {
       "A": "#ffdab9",
@@ -775,29 +775,29 @@
   },
   "Space Age": {
     "active": {
-      "Background": "#0000ff",
-      "Border": "#000080",
-      "Container": "#0000ff",
-      "Foreground": "#ffffff",
-      "List": "#000080",
-      "Shadow": "#000080"
+      "background": "#0000ff",
+      "border": "#000080",
+      "container": "#0000ff",
+      "foreground": "#ffffff",
+      "list": "#000080",
+      "shadow": "#000080"
     },
     "hover": {
-      "Background": "#ffff00",
-      "Border": "#808000",
-      "Container": "#ffff00",
-      "Foreground": "#ffffff",
-      "List": "#808000",
-      "Shadow": "#808000"
+      "background": "#ffff00",
+      "border": "#808000",
+      "container": "#ffff00",
+      "foreground": "#ffffff",
+      "list": "#808000",
+      "shadow": "#808000"
     },
     "normal": {
-      "Background": "#00ffff",
-      "Border": "#008080",
-      "Container": "#00ffff",
-      "Foreground": "#ffffff",
-      "Label": "#008080",
-      "List": "#008080",
-      "Shadow": "#008080"
+      "background": "#00ffff",
+      "border": "#008080",
+      "container": "#00ffff",
+      "foreground": "#ffffff",
+      "label": "#008080",
+      "list": "#008080",
+      "shadow": "#008080"
     },
     "table": {
       "A": "#00ffff",
@@ -806,29 +806,29 @@
   },
   "Sunset Beach": {
     "active": {
-      "Background": "#ff6600",
-      "Border": "#ff9900",
-      "Container": "#ff6600",
-      "Foreground": "#ffffff",
-      "List": "#ff3300",
-      "Shadow": "#ff3300"
+      "background": "#ff6600",
+      "border": "#ff9900",
+      "container": "#ff6600",
+      "foreground": "#ffffff",
+      "list": "#ff3300",
+      "shadow": "#ff3300"
     },
     "hover": {
-      "Background": "#ff9900",
-      "Border": "#ff6600",
-      "Container": "#ff9900",
-      "Foreground": "#ffffff",
-      "List": "#ff6600",
-      "Shadow": "#ff6600"
+      "background": "#ff9900",
+      "border": "#ff6600",
+      "container": "#ff9900",
+      "foreground": "#ffffff",
+      "list": "#ff6600",
+      "shadow": "#ff6600"
     },
     "normal": {
-      "Background": "#ffcc66",
-      "Border": "#ff9933",
-      "Container": "#ffcc66",
-      "Foreground": "#ffffff",
-      "Label": "#ff9933",
-      "List": "#ff9933",
-      "Shadow": "#ff9933"
+      "background": "#ffcc66",
+      "border": "#ff9933",
+      "container": "#ffcc66",
+      "foreground": "#ffffff",
+      "label": "#ff9933",
+      "list": "#ff9933",
+      "shadow": "#ff9933"
     },
     "table": {
       "A": "#ffcc66",
@@ -837,29 +837,29 @@
   },
   "Teal Blue": {
     "active": {
-      "Background": "#006666",
-      "Border": "#009999",
-      "Container": "#006666",
-      "Foreground": "#333333",
-      "List": "#009999",
-      "Shadow": "#80ced7"
+      "background": "#006666",
+      "border": "#009999",
+      "container": "#006666",
+      "foreground": "#333333",
+      "list": "#009999",
+      "shadow": "#80ced7"
     },
     "hover": {
-      "Background": "#007b7f",
-      "Border": "#00b2b3",
-      "Container": "#007b7f",
-      "Foreground": "#333333",
-      "List": "#00b2b3",
-      "Shadow": "#a4c3d4"
+      "background": "#007b7f",
+      "border": "#00b2b3",
+      "container": "#007b7f",
+      "foreground": "#333333",
+      "list": "#00b2b3",
+      "shadow": "#a4c3d4"
     },
     "normal": {
-      "Background": "#008080",
-      "Border": "#00ced1",
-      "Container": "#008080",
-      "Foreground": "#333333",
-      "Label": "#b0c4de",
-      "List": "#00ced1",
-      "Shadow": "#b0c4de"
+      "background": "#008080",
+      "border": "#00ced1",
+      "container": "#008080",
+      "foreground": "#333333",
+      "label": "#b0c4de",
+      "list": "#00ced1",
+      "shadow": "#b0c4de"
     },
     "table": {
       "A": "#008080",
@@ -868,29 +868,29 @@
   },
   "Terracotta": {
     "active": {
-      "Background": "#8b4513",
-      "Border": "#fff8dc",
-      "Container": "#8b4513",
-      "Foreground": "#ffffff",
-      "List": "#556b2f",
-      "Shadow": "#556b2f"
+      "background": "#8b4513",
+      "border": "#fff8dc",
+      "container": "#8b4513",
+      "foreground": "#ffffff",
+      "list": "#556b2f",
+      "shadow": "#556b2f"
     },
     "hover": {
-      "Background": "#cd853f",
-      "Border": "#fafad2",
-      "Container": "#cd853f",
-      "Foreground": "#ffffff",
-      "List": "#6495ed",
-      "Shadow": "#6495ed"
+      "background": "#cd853f",
+      "border": "#fafad2",
+      "container": "#cd853f",
+      "foreground": "#ffffff",
+      "list": "#6495ed",
+      "shadow": "#6495ed"
     },
     "normal": {
-      "Background": "#d2691e",
-      "Border": "#f5f5dc",
-      "Container": "#d2691e",
-      "Foreground": "#ffffff",
-      "Label": "#4682b4",
-      "List": "#4682b4",
-      "Shadow": "#4682b4"
+      "background": "#d2691e",
+      "border": "#f5f5dc",
+      "container": "#d2691e",
+      "foreground": "#ffffff",
+      "label": "#4682b4",
+      "list": "#4682b4",
+      "shadow": "#4682b4"
     },
     "table": {
       "A": "#d2691e",

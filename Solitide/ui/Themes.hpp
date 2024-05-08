@@ -54,8 +54,6 @@ struct color_themes {
     color_theme Active;
 };
 
-void create_styles(color_themes const& theme, assets::group& resGrp, style_collection& styles);
-
 auto load_themes() -> std::map<std::string, color_themes>;
 
 }
