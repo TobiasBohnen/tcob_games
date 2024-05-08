@@ -362,6 +362,8 @@ double_uintah.on_before_shuffle           = function(game, card)
     return false
 end
 
+------
+
 ------------------------
 
 Sol.register_game(golf)

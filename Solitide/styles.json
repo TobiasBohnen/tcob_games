@@ -179,7 +179,6 @@
             }
         }
     },
-    "list_box:hover": {},
     "list_box_log": {
         "style_type": "list_box",
         "item_height": "20pct",
@@ -200,7 +199,6 @@
             }
         }
     },
-    "list_box_log:hover": {},
     "drop_down_list": {
         "style_type": "drop_down_list",
         "margin": "5px",
