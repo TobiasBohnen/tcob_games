@@ -17,7 +17,7 @@ auto static state_to_string(std::array<u64, 4> const& state) -> std::string // N
     std::vector<ubyte> bytes;
     bytes.reserve(state.size() * sizeof(u64));
     for (auto const& elem : state) {
-        auto const* ptr = reinterpret_cast<ubyte const*>(&elem);
+        auto const* ptr {reinterpret_cast<ubyte const*>(&elem)};
         bytes.insert(bytes.end(), ptr, ptr + sizeof(u64));
     }
     auto base64 {io::base64_filter {}.to(bytes)};
@@ -27,21 +27,25 @@ auto static state_to_string(std::array<u64, 4> const& state) -> std::string // N
 database::database()
     : _database {*data::sqlite::database::Open(DB_NAME)}
 {
-    _dbGames   = _database.create_table("games",
-                                        db::column {"ID", db::type::Integer, false, db::primary_key {}},
-                                        db::column {"Name", db::type::Text, true, db::unique {}},
-                                        db::column {"Family", db::type::Text},
-                                        db::column {"DeckCount", db::type::Integer});
-    _dbHistory = _database.create_table("history",
-                                        db::column {"ID", db::type::Integer, false, db::primary_key {}},
-                                        db::column {"GameID", db::type::Integer},
-                                        db::column {"Seed", db::type::Text, true},
-                                        db::column {"Won", db::type::Integer},
-                                        db::column {"Turns", db::type::Integer},
-                                        db::column {"Score", db::type::Integer},
-                                        db::column {"Time", db::type::Real},
-                                        db::unique {"GameID", "Seed"});
-    assert(_dbGames && _dbHistory);
+    _database.set_journal_mode(data::sqlite::journal_mode::Off);
+
+    _tabGames   = _database.create_table("games",
+                                         db::column {"ID", db::type::Integer, false, db::primary_key {}},
+                                         db::column {"Name", db::type::Text, true, db::unique {}},
+                                         db::column {"Family", db::type::Text},
+                                         db::column {"DeckCount", db::type::Integer});
+    _tabHistory = _database.create_table("history",
+                                         db::column {"ID", db::type::Integer, false, db::primary_key {}},
+                                         db::column {"GameID", db::type::Integer},
+                                         db::column {"Seed", db::type::Text, true},
+                                         db::column {"Won", db::type::Integer},
+                                         db::column {"Turns", db::type::Integer},
+                                         db::column {"Score", db::type::Integer},
+                                         db::column {"Undos", db::type::Integer},
+                                         db::column {"Hints", db::type::Integer},
+                                         db::column {"Time", db::type::Real},
+                                         db::unique {"GameID", "Seed"});
+    assert(_tabGames && _tabHistory);
 }
 
 void database::insert_games(std::vector<game_info> const& games) const
@@ -52,24 +56,35 @@ void database::insert_games(std::vector<game_info> const& games) const
         dbvalues.emplace_back(gi.Name, gi.Family, gi.DeckCount);
     }
 
-    std::ignore = _dbGames->insert_into(db::ignore, "Name", "Family", "DeckCount")(dbvalues);
+    auto sp {_database.create_savepoint("sp1")};
+    std::ignore = _tabGames->insert_into(db::ignore, "Name", "Family", "DeckCount")(dbvalues);
+    sp.release();
 }
 
 void database::insert_history_entry(string const& name, game_state const& state, game_status status) const
 {
-    auto const id {_dbGames->select_from<i64>("ID").where("Name = ?")(name)};
+    auto sp {_database.create_savepoint("sp1")};
+
+    auto const id {_tabGames->select_from<i64>("ID").where("Name = ?")(name)};
     auto const seed {state_to_string(state.Seed)};
-    std::ignore = _dbHistory->insert_into(db::ignore, "GameID", "Seed")(std::tuple<i64, string> {id[0], seed});
-    std::ignore = _dbHistory->update("Won", "Turns", "Score", "Time").where("GameID = ? and Seed = ?")(status == game_status::Success, state.Turns, state.Score, state.Time.count(), id[0], seed);
+
+    std::ignore = _tabHistory->insert_into(db::ignore, "GameID", "Seed")(std::tuple<i64, string> {id[0], seed});
+    std::ignore = _tabHistory->update("Won", "Turns", "Score", "Undos", "Hints", "Time")
+                      .where("GameID = ? and Seed = ?")(status == game_status::Success, state.Turns, state.Score, state.Undos, state.Hints, state.Time.count(), id[0], seed);
+
+    sp.release();
 }
 
 auto database::get_history(string const& name) const -> game_history
 {
-    auto const  id {_dbGames->select_from<i64>("ID").where("Name = ?")(name)};
-    usize const lost {_dbHistory->select_from<i64>("ID").where("GameID = ? and Won = 0")(id).size()};
-    usize const won {_dbHistory->select_from<i64>("ID").where("GameID = ? and Won = 1")(id).size()};
-    auto const  entries {_dbHistory->select_from<i64, i64, i64, i64, bool>("ID", "Turns", "Score", "Time", "Won").where("GameID = ?").order_by("ID").exec<game_history::entry>(id)};
-    return {.Won = won, .Lost = lost, .Entries = entries};
+    auto const id {_tabGames->select_from<i64>("ID").where("Name = ?")(name)};
+    auto const entries {
+        _tabHistory->select_from<i64, i64, i64, i64, i64, i64, bool>("ID", "Turns", "Score", "Undos", "Hints", "Time", "Won")
+            .where("GameID = ?")
+            .order_by("ID")
+            .exec<game_history::entry>(id)};
+    isize const won {std::ranges::count_if(entries, [](auto const& entry) { return entry.Won; })};
+    return {.Won = won, .Lost = std::ssize(entries) - won, .Entries = entries};
 }
 
 }

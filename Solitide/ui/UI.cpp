@@ -54,6 +54,8 @@ auto static make_tooltip(form* form) -> std::shared_ptr<tooltip>
 form_controls::form_controls(gfx::window* window, assets::group& resGrp)
     : form {"Controls", window}
 {
+    (*Controls).ActivateKey = input::key_code::UNKNOWN;
+
     // tooltip
     auto tooltip0 {make_tooltip(this)};
 

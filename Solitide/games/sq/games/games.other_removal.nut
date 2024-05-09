@@ -20,7 +20,8 @@ local aces_up = {
     Info = {
         Name = "Aces Up",
         Family = "Other",
-        DeckCount = 1
+        DeckCount = 1,
+        Objective = "AllCardsButFourToFoundation"
     },
     Stock = {
         Initial = Sol.Initial.face_down(48)
@@ -101,7 +102,8 @@ local aces_square = {
     Info = {
         Name = "Aces Square",
         Family = "Other",
-        DeckCount = 1
+        DeckCount = 1,
+        Objective = "AllCardsButFourToFoundation"
     },
     Stock = {
         Position = {
@@ -184,7 +186,8 @@ local cover = {
     Info = {
         Name = "Cover",
         Family = "Other",
-        DeckCount = 1
+        DeckCount = 1,
+        Objective = "AllCardsButFourToFoundation"
     },
     Stock = {
         Initial = Sol.Initial.face_down(48)

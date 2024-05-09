@@ -138,6 +138,7 @@ void card_table::show_next_hint()
 {
     if (!_currentGame) { return; }
 
+    _currentGame->hint();
     _fgCanvas.show_hint();
 }
 
@@ -228,6 +229,12 @@ void card_table::on_key_down(input::keyboard::event& ev)
             ev.Handled = true;
         } else if (ev.KeyCode == input::key_code::z && (ev.KeyMods & input::key_mod::LeftControl) == input::key_mod::LeftControl) {
             _currentGame->undo();
+            ev.Handled = true;
+        } else if (ev.KeyCode == input::key_code::h && (ev.KeyMods & input::key_mod::LeftControl) == input::key_mod::LeftControl) {
+            show_next_hint();
+            ev.Handled = true;
+        } else if (ev.KeyCode == input::key_code::c && (ev.KeyMods & input::key_mod::LeftControl) == input::key_mod::LeftControl) {
+            _currentGame->collect_all();
             ev.Handled = true;
         }
     }

@@ -41,9 +41,18 @@ enum class game_status {
 
 ////////////////////////////////////////////////////////////
 
+enum class objective {
+    AllCardsToFoundation,
+    AllCardsButFourToFoundation
+};
+
+////////////////////////////////////////////////////////////
+
 struct game_info {
     std::string Name;
     family      Family {};
+
+    objective Objective {objective::AllCardsToFoundation};
 
     i32 DeckCount {0};
     i32 Redeals {0};
@@ -58,23 +67,50 @@ struct game_info {
 ////////////////////////////////////////////////////////////
 
 struct game_state {
-    i32             Redeals {};
     rng::state_type Seed {};
-    i32             Turns {0};
-    i32             Score {0};
-    milliseconds    Time {0};
+
+    i32          Redeals {};
+    i32          Score {0};
+    i32          Turns {0};
+    milliseconds Time {0};
+    i32          Undos {0};
+    i32          Hints {0};
+
+    void static Serialize(game_state const& v, auto&& s)
+    {
+        s["Redeals"] = v.Redeals;
+        s["Seed"]    = v.Seed;
+        s["Turns"]   = v.Turns;
+        s["Score"]   = v.Score;
+        s["Hints"]   = v.Hints;
+        s["Undos"]   = v.Undos;
+        s["Time"]    = v.Time.count();
+    }
+
+    auto static Deserialize(game_state& v, auto&& s) -> bool
+    {
+        return s.try_get(v.Redeals, "Redeals")
+            && s.try_get(v.Seed, "Seed")
+            && s.try_get(v.Turns, "Turns")
+            && s.try_get(v.Score, "Score")
+            && s.try_get(v.Hints, "Hints")
+            && s.try_get(v.Undos, "Undos")
+            && s.try_get(v.Time, "Time");
+    }
 };
 
 ////////////////////////////////////////////////////////////
 
 struct game_history {
-    usize Won {0};
-    usize Lost {0};
+    isize Won {0};
+    isize Lost {0};
 
     struct entry {
         i64  ID {0};
         i64  Turns {0};
         i64  Score {0};
+        i64  Undos {0};
+        i64  Hints {0};
         i64  Time {0};
         bool Won {false};
     };
@@ -110,6 +146,8 @@ public:
 
     void undo();
     auto can_undo() const -> bool;
+
+    void hint();
 
     auto deal_cards() -> bool;
     void play_cards(pile& from, pile& to, isize startIndex, isize numCards);

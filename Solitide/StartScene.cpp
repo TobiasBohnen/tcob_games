@@ -218,9 +218,16 @@ void start_scene::on_fixed_update(milliseconds deltaTime)
 #endif
 }
 
-void start_scene::on_key_down(input::keyboard::event& /* ev */)
+void start_scene::on_key_down(input::keyboard::event& ev)
 {
     if (_formMenu->get_focus_widget() != nullptr) { return; }
+
+    using namespace tcob::enum_ops;
+
+    if (ev.KeyCode == input::key_code::n && (ev.KeyMods & input::key_mod::LeftControl) == input::key_mod::LeftControl) {
+        start_game(_formMenu->SelectedGame(), start_reason::Restart);
+        ev.Handled = true;
+    }
 }
 
 void start_scene::set_children_bounds(size_i size)

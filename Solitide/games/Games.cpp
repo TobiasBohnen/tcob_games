@@ -89,14 +89,10 @@ auto base_game::load(std::optional<data::config::object> const& loadObj) -> bool
     if (!loadObj->has(_info.Name)) { return false; }
 
     object const obj {loadObj->get<object>(_info.Name).value()};
-    if (!obj.has("Redeals") || !obj.has("Turns") || !obj.has("Score") || !obj.has("RNGSeed") || !obj.has("RNGState") || !obj.has("Time")) { return false; }
+    if (!obj.has("State") || !obj.has("RNG")) { return false; }
 
-    _state.Redeals = obj["Redeals"].as<i32>();
-    _state.Turns   = obj["Turns"].as<i32>();
-    _state.Score   = obj["Score"].as<i32>();
-    _state.Time    = milliseconds {obj["Time"].as<f64>()};
-    _state.Seed    = obj["RNGSeed"].as<rng::state_type>();
-    _rand          = rng {obj["RNGState"].as<rng::state_type>()};
+    _state = obj["State"].as<game_state>();
+    _rand  = rng {obj["RNG"].as<rng::state_type>()};
 
     _storage.clear();
     if (object storage; obj.try_get(storage, "Storage")) { _storage = storage.clone(true); }
@@ -142,12 +138,8 @@ void base_game::save(tcob::data::config::object& saveObj)
         obj[get_pile_type_name(type)] = pilesArr;
     }
 
-    obj["Redeals"]  = _state.Redeals;
-    obj["RNGSeed"]  = _state.Seed;
-    obj["RNGState"] = _rand.get_state();
-    obj["Turns"]    = _state.Turns;
-    obj["Score"]    = _state.Score;
-    obj["Time"]     = _state.Time.count();
+    obj["State"] = _state;
+    obj["RNG"]   = _rand.get_state();
     if (!_storage.empty()) { obj["Storage"] = _storage.clone(true); }
 
     saveObj[_info.Name] = obj;
@@ -175,6 +167,8 @@ void base_game::undo()
     if (can_undo()) {
         i32 const oldTurns {_state.Turns};
         f64 const oldTime {_state.Time.count()};
+        i32 const oldHints {_state.Hints};
+        i32 const oldUndos {_state.Undos};
 
         load(_undoStack.top());
         _undoStack.pop();
@@ -183,12 +177,21 @@ void base_game::undo()
 
         _state.Turns = oldTurns + 1;
         _state.Time  = milliseconds {oldTime};
+        _state.Hints = oldHints;
+        _state.Undos = oldUndos + 1;
     }
 }
 
 auto base_game::can_undo() const -> bool
 {
     return !_undoStack.empty();
+}
+
+void base_game::hint()
+{
+    if (!_hints.empty()) {
+        ++_state.Hints;
+    }
 }
 
 void base_game::end_turn(bool deal)
@@ -220,7 +223,7 @@ void base_game::update(milliseconds delta)
 
 auto base_game::auto_play_cards(pile& from) -> bool
 {
-    if (from.Type != pile_type::Foundation && !from.empty()) {
+    if (from.Type != pile_type::Foundation && from.is_playable()) {
         auto& card {from.Cards.back()};
 
         for (auto& fou : Foundation) {
@@ -242,7 +245,7 @@ void base_game::collect_all()
             if (type == pile_type::Foundation) { continue; }
 
             for (auto* pile : piles) {
-                if (pile->is_playable() && auto_play_cards(*pile)) {
+                if (auto_play_cards(*pile)) {
                     check = true;
                 }
             }
@@ -318,16 +321,22 @@ auto base_game::deal_cards() -> bool
 
 auto base_game::get_status() const -> game_status
 {
-    // success if cards only on foundation piles
-    bool success {true};
+    isize foundationCards {0};
     for (auto const& [type, piles] : _piles) {
-        if (type != pile_type::Foundation) {
-            for (auto const& pile : piles) {
-                if (!pile->empty()) { success = false; }
-            }
+        if (type != pile_type::Foundation) { continue; }
+
+        for (auto const& pile : piles) {
+            foundationCards += std::ssize(pile->Cards);
         }
     }
-    if (success) { return game_status::Success; }
+    switch (_info.Objective) {
+    case objective::AllCardsToFoundation:
+        if (foundationCards == _info.DeckCount * 52) { return game_status::Success; }
+        break;
+    case objective::AllCardsButFourToFoundation:
+        if (foundationCards == (_info.DeckCount * 52) - 4) { return game_status::Success; }
+        break;
+    }
 
     if (Stock.empty() || (Stock[0].empty() && _state.Redeals == 0)) {
         if (_hints.empty()) {

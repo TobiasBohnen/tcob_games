@@ -29,6 +29,8 @@ The Info table contains basic information about the game.
   - Yukon
   - Other
 
+- Objective (**string**)
+
 - DeckCount (**integer**)
 
     The number of decks used.

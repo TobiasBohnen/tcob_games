@@ -67,12 +67,37 @@ auto cardset::load() const -> bool
     _texture->create(texSize, static_cast<u32>(files.size()), gfx::texture::format::RGBA8);
     _texture->Filtering = gfx::texture::filtering::Linear;
 
-    u32  level {0};
-    auto tempImg {gfx::image::CreateEmpty(texSize, gfx::image::format::RGBA)};
+    struct image_ftr {
+        u32                      Depth {};
+        path                     Path {};
+        gfx::image               Image {};
+        std::future<load_status> Future {};
+    };
+
+    u32                    level {0};
+    std::vector<image_ftr> images;
+    images.reserve(files.size());
     for (auto const& file : files) {
-        if (tempImg.load(file) != load_status::Ok) { return false; }
-        _texture->update_data(tempImg.get_data(), level);
-        _texture->add_region(io::get_stem(file), {{0, 0, 1, 1}, level++});
+        image_ftr& ftr {images.emplace_back()};
+        ftr.Depth  = level++;
+        ftr.Path   = file;
+        ftr.Future = ftr.Image.load_async(file);
+    }
+
+    bool assetLoadingDone {false};
+    while (!assetLoadingDone) {
+        assetLoadingDone = true;
+        for (auto imgIt {images.begin()}; imgIt != images.end(); ++imgIt) {
+            if (auto& statusFuture {imgIt->Future}; statusFuture.valid()) {
+                if (statusFuture.wait_for(0s) != std::future_status::ready) {
+                    assetLoadingDone = false;
+                    continue;
+                }
+                if (statusFuture.get() != load_status::Ok) { return false; }
+                _texture->update_data(imgIt->Image.get_data(), imgIt->Depth);
+                _texture->add_region(io::get_stem(imgIt->Path), {{0, 0, 1, 1}, imgIt->Depth});
+            }
+        }
     }
 
     return true;

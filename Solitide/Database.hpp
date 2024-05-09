@@ -22,8 +22,8 @@ public:
 
 private:
     data::sqlite::database             _database;
-    std::optional<data::sqlite::table> _dbGames;
-    std::optional<data::sqlite::table> _dbHistory;
+    std::optional<data::sqlite::table> _tabGames;
+    std::optional<data::sqlite::table> _tabHistory;
 };
 
 }

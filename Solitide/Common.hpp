@@ -6,7 +6,7 @@
 #pragma once
 
 #include <functional>
-
+#include <iostream> // IWYU pragma: keep
 #include <tcob/tcob.hpp>
 
 namespace solitaire {

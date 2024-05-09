@@ -3,7 +3,7 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local function golf_check_state(game)
+local function golf_check_status(game)
     local foundation = game.Foundation
     if foundation[1].IsEmpty then return "Running" end
 
@@ -54,7 +54,7 @@ local golf                                = {
     deal       = function(game)
         return Sol.Ops.Deal.to_pile(game.Stock[1], game.Foundation[1], 1)
     end,
-    get_status = golf_check_state,
+    get_status = golf_check_status,
     on_init    = Sol.Layout.golf
 }
 

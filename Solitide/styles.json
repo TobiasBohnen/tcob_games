@@ -362,7 +362,7 @@
             "thumb_class": "scrollbar_thumb",
             "bar": {
                 "type": "Continuous",
-                "size": "25pct",
+                "size": "5pct",
                 "delay": 250,
                 "border": {
                     "size": "3px"
