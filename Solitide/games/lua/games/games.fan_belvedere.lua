@@ -3,7 +3,7 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local belvedere           = {
+local belvedere = {
     Info              = {
         Name      = "Belvedere",
         Family    = "Fan",
@@ -39,8 +39,9 @@ local belvedere           = {
         return false
     end,
     on_init           = function(game) Sol.Layout.fan(game, 4) end,
-    deal           = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Waste, false) end
+    deal              = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Waste, false) end
 }
+
 
 ------
 
@@ -50,12 +51,13 @@ bristol.Stock.Initial     = Sol.Initial.face_down(28)
 bristol.on_before_shuffle = nil
 bristol.on_after_shuffle  = Sol.Ops.Shuffle.kings_to_bottom
 
+
 ------
 
-local dover               = Sol.copy(bristol)
-dover.Info.Name           = "Dover"
-dover.Info.DeckCount      = 2
-dover.Stock.Initial       = Sol.Initial.face_down(80)
+local dover          = Sol.copy(bristol)
+dover.Info.Name      = "Dover"
+dover.Info.DeckCount = 2
+dover.Stock.Initial  = Sol.Initial.face_down(80)
 
 ------
 

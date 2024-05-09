@@ -3,7 +3,7 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local lexington_harp       = {
+local lexington_harp = {
     Info       = {
         Name      = "Lexington Harp",
         Family    = "Gypsy",
@@ -31,11 +31,12 @@ local lexington_harp       = {
     deal       = Sol.Ops.Deal.stock_to_tableau
 }
 
+
 ------
 
-local brunswick            = Sol.copy(lexington_harp)
-brunswick.Info.Name        = "Brunswick"
-brunswick.Tableau.Pile     = function(i)
+local brunswick        = Sol.copy(lexington_harp)
+brunswick.Info.Name    = "Brunswick"
+brunswick.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up(i + 1),
         Layout = "Column",
@@ -43,12 +44,14 @@ brunswick.Tableau.Pile     = function(i)
     }
 end
 
+
 ------
 
-local griffon              = Sol.copy(brunswick)
-griffon.Info.Name          = "Griffon"
-griffon.Stock.Initial      = Sol.Initial.face_down(76)
-griffon.Tableau.Size       = 7
+local griffon         = Sol.copy(brunswick)
+griffon.Info.Name     = "Griffon"
+griffon.Stock.Initial = Sol.Initial.face_down(76)
+griffon.Tableau.Size  = 7
+
 
 ------
 
@@ -62,11 +65,12 @@ milligan_harp.Tableau.Pile = function(i)
     }
 end
 
+
 ------
 
-local steve                = Sol.copy(lexington_harp)
-steve.Info.Name            = "Steve"
-steve.Tableau.Pile         = function(i)
+local steve        = Sol.copy(lexington_harp)
+steve.Info.Name    = "Steve"
+steve.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.top_face_up(i + 1),
         Layout = "Column",
@@ -74,11 +78,12 @@ steve.Tableau.Pile         = function(i)
     }
 end
 
+
 ------
 
-local carlton              = Sol.copy(lexington_harp)
-carlton.Info.Name          = "Carlton"
-carlton.Tableau.Pile       = function(i)
+local carlton        = Sol.copy(lexington_harp)
+carlton.Info.Name    = "Carlton"
+carlton.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up(i + 1),
         Layout = "Column",
@@ -86,12 +91,13 @@ carlton.Tableau.Pile       = function(i)
     }
 end
 
+
 ------
 
-local mississippi          = Sol.copy(lexington_harp)
-mississippi.Info.Name      = "Mississippi"
-mississippi.Stock.Initial  = Sol.Initial.face_down(76)
-mississippi.Tableau        = {
+local mississippi         = Sol.copy(lexington_harp)
+mississippi.Info.Name     = "Mississippi"
+mississippi.Stock.Initial = Sol.Initial.face_down(76)
+mississippi.Tableau       = {
     Size = 7,
     Pile = function(i)
         return {
@@ -101,6 +107,7 @@ mississippi.Tableau        = {
         }
     end
 }
+
 
 ------
 

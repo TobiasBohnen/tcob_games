@@ -3,11 +3,11 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local scorpion_initial          = function(x, i)
+local scorpion_initial = function(x, i)
     return i < x and { false, false, false, true, true, true, true } or Sol.Initial.face_up(7)
 end
 
-local scorpion                  = {
+local scorpion         = {
     Info       = {
         Name      = "Scorpion",
         Family    = "Spider",
@@ -40,6 +40,7 @@ local scorpion                  = {
     on_init    = Sol.Layout.klondike
 }
 
+
 ------
 
 local double_scorpion           = Sol.copy(scorpion)
@@ -61,6 +62,7 @@ double_scorpion.Tableau         = {
         }
     end
 }
+
 
 ------
 
@@ -85,11 +87,12 @@ triple_scorpion.Tableau         = {
 }
 triple_scorpion.on_init         = Sol.Layout.canister
 
+
 ------
 
-local scorpion_2                = Sol.copy(scorpion)
-scorpion_2.Info.Name            = "Scorpion II"
-scorpion_2.Tableau.Pile         = function(i)
+local scorpion_2        = Sol.copy(scorpion)
+scorpion_2.Info.Name    = "Scorpion II"
+scorpion_2.Tableau.Pile = function(i)
     return {
         Initial = scorpion_initial(3, i),
         Layout  = "Column",
@@ -97,11 +100,12 @@ scorpion_2.Tableau.Pile         = function(i)
     }
 end
 
+
 ------
 
-local scorpion_tail             = Sol.copy(scorpion)
-scorpion_tail.Info.Name         = "Scorpion Tail"
-scorpion_tail.Tableau.Pile      = function(i)
+local scorpion_tail        = Sol.copy(scorpion)
+scorpion_tail.Info.Name    = "Scorpion Tail"
+scorpion_tail.Tableau.Pile = function(i)
     return {
         Initial = scorpion_initial(3, i),
         Layout  = "Column",
@@ -109,11 +113,12 @@ scorpion_tail.Tableau.Pile      = function(i)
     }
 end
 
+
 ------
 
-local wasp                      = Sol.copy(scorpion)
-wasp.Info.Name                  = "Wasp"
-wasp.Tableau.Pile               = function(i)
+local wasp        = Sol.copy(scorpion)
+wasp.Info.Name    = "Wasp"
+wasp.Tableau.Pile = function(i)
     return {
         Initial = scorpion_initial(4, i),
         Layout  = "Column",

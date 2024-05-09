@@ -3,7 +3,7 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local bastion               = {
+local bastion = {
     Info       = {
         Name      = "Bastion",
         Family    = "BeleagueredCastle",
@@ -31,6 +31,7 @@ local bastion               = {
     on_init    = Sol.Layout.free_cell
 }
 
+
 ------
 
 local castles_end           = Sol.copy(bastion)
@@ -50,18 +51,20 @@ castles_end.can_play        = function(game, targetPile, targetCardIndex, card, 
     return game:can_play(targetPile, targetCardIndex, card, numCards)
 end
 
+
 ------
 
-local ten_by_one            = Sol.copy(bastion)
-ten_by_one.Info.Name        = "Ten by One"
-ten_by_one.FreeCell         = { Rule = Sol.Rules.any_none_top }
-ten_by_one.Tableau.Pile     = function(i)
+local ten_by_one        = Sol.copy(bastion)
+ten_by_one.Info.Name    = "Ten by One"
+ten_by_one.FreeCell     = { Rule = Sol.Rules.any_none_top }
+ten_by_one.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up(i < 2 and 6 or 5),
         Layout = "Column",
         Rule = Sol.Rules.any_updownsuit_top
     }
 end
+
 
 ------
 

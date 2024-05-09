@@ -3,7 +3,7 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local initial <const>                    = {
+local initial <const> = {
     yukon           = function(i)
         if i == 0 then
             return { true }
@@ -51,7 +51,7 @@ local initial <const>                    = {
 
 ------
 
-local yukon                              = {
+local yukon           = {
     Info       = {
         Name      = "Yukon",
         Family    = "Yukon",
@@ -74,13 +74,14 @@ local yukon                              = {
     on_init    = Sol.Layout.yukon
 }
 
+
 ------
 
-local double_yukon                       = Sol.copy(yukon)
-double_yukon.Info.Name                   = "Double Yukon"
-double_yukon.Info.DeckCount              = 2
-double_yukon.Foundation.Size             = 8
-double_yukon.Tableau                     = {
+local double_yukon           = Sol.copy(yukon)
+double_yukon.Info.Name       = "Double Yukon"
+double_yukon.Info.DeckCount  = 2
+double_yukon.Foundation.Size = 8
+double_yukon.Tableau         = {
     Size = 10,
     Pile = function(i)
         return {
@@ -91,13 +92,14 @@ double_yukon.Tableau                     = {
     end
 }
 
+
 ------
 
-local triple_yukon                       = Sol.copy(yukon)
-triple_yukon.Info.Name                   = "Triple Yukon"
-triple_yukon.Info.DeckCount              = 3
-triple_yukon.Foundation.Size             = 12
-triple_yukon.Tableau                     = {
+local triple_yukon           = Sol.copy(yukon)
+triple_yukon.Info.Name       = "Triple Yukon"
+triple_yukon.Info.DeckCount  = 3
+triple_yukon.Foundation.Size = 12
+triple_yukon.Tableau         = {
     Size = 13,
     Pile = function(i)
         return {
@@ -108,13 +110,14 @@ triple_yukon.Tableau                     = {
     end
 }
 
+
 ------
 
-local quadruple_yukon                    = Sol.copy(yukon)
-quadruple_yukon.Info.Name                = "Quadruple Yukon"
-quadruple_yukon.Info.DeckCount           = 4
-quadruple_yukon.Foundation.Size          = 16
-quadruple_yukon.Tableau                  = {
+local quadruple_yukon           = Sol.copy(yukon)
+quadruple_yukon.Info.Name       = "Quadruple Yukon"
+quadruple_yukon.Info.DeckCount  = 4
+quadruple_yukon.Foundation.Size = 16
+quadruple_yukon.Tableau         = {
     Size = 16,
     Pile = function(i)
         return {
@@ -125,11 +128,12 @@ quadruple_yukon.Tableau                  = {
     end
 }
 
+
 ------
 
-local alaska                             = Sol.copy(yukon)
-alaska.Info.Name                         = "Alaska"
-alaska.Tableau.Pile                      = function(i)
+local alaska        = Sol.copy(yukon)
+alaska.Info.Name    = "Alaska"
+alaska.Tableau.Pile = function(i)
     return {
         Initial = initial.yukon(i),
         Layout = "Column",
@@ -137,9 +141,10 @@ alaska.Tableau.Pile                      = function(i)
     }
 end
 
+
 ------
 
-local brisbane_initial                   = {
+local brisbane_initial = {
     { true,  true,  true,  true,  true },
     { false, true,  true,  true,  true,  true },
     { false, false, true,  true,  true,  true,  true },
@@ -149,9 +154,9 @@ local brisbane_initial                   = {
     { false, false, false, false, false, false, true, true, true, true }
 }
 
-local brisbane                           = Sol.copy(yukon)
-brisbane.Info.Name                       = "Brisbane"
-brisbane.Tableau.Pile                    = function(i)
+local brisbane         = Sol.copy(yukon)
+brisbane.Info.Name     = "Brisbane"
+brisbane.Tableau.Pile  = function(i)
     return {
         Initial = brisbane_initial[i + 1],
         Layout = "Column",
@@ -159,11 +164,12 @@ brisbane.Tableau.Pile                    = function(i)
     }
 end
 
+
 ------
 
-local geoffrey                           = Sol.copy(yukon)
-geoffrey.Info.Name                       = "Geoffrey"
-geoffrey.Tableau                         = {
+local geoffrey     = Sol.copy(yukon)
+geoffrey.Info.Name = "Geoffrey"
+geoffrey.Tableau   = {
     Size = 8,
     Pile = function(i)
         return {
@@ -173,13 +179,14 @@ geoffrey.Tableau                         = {
         }
     end
 }
-geoffrey.on_init                         = Sol.Layout.forty_thieves
+geoffrey.on_init   = Sol.Layout.forty_thieves
+
 
 ------
 
-local queensland                         = Sol.copy(yukon)
-queensland.Info.Name                     = "Queensland"
-queensland.Tableau.Pile                  = function(i)
+local queensland        = Sol.copy(yukon)
+queensland.Info.Name    = "Queensland"
+queensland.Tableau.Pile = function(i)
     return {
         Initial = brisbane_initial[i + 1],
         Layout = "Column",
@@ -187,11 +194,12 @@ queensland.Tableau.Pile                  = function(i)
     }
 end
 
+
 ------
 
-local roslin                             = Sol.copy(yukon)
-roslin.Info.Name                         = "Roslin"
-roslin.Tableau.Pile                      = function(i)
+local roslin        = Sol.copy(yukon)
+roslin.Info.Name    = "Roslin"
+roslin.Tableau.Pile = function(i)
     return {
         Initial = initial.yukon(i),
         Layout = "Column",
@@ -199,11 +207,12 @@ roslin.Tableau.Pile                      = function(i)
     }
 end
 
+
 ------
 
-local moosehide                          = Sol.copy(yukon)
-moosehide.Info.Name                      = "Moosehide"
-moosehide.Tableau.Pile                   = function(i)
+local moosehide        = Sol.copy(yukon)
+moosehide.Info.Name    = "Moosehide"
+moosehide.Tableau.Pile = function(i)
     return {
         Initial = initial.yukon(i),
         Layout = "Column",
@@ -211,17 +220,19 @@ moosehide.Tableau.Pile                   = function(i)
     }
 end
 
+
 ------
 
-local russian_solitaire                  = Sol.copy(yukon)
-russian_solitaire.Info.Name              = "Russian Solitaire"
-russian_solitaire.Tableau.Pile           = function(i)
+local russian_solitaire        = Sol.copy(yukon)
+russian_solitaire.Info.Name    = "Russian Solitaire"
+russian_solitaire.Tableau.Pile = function(i)
     return {
         Initial = initial.yukon(i),
         Layout = "Column",
         Rule = Sol.Rules.king_downsuit_faceup
     }
 end
+
 
 ------
 
@@ -240,6 +251,7 @@ double_russian_solitaire.Tableau         = {
     end
 }
 
+
 ------
 
 local triple_russian_solitaire           = Sol.copy(russian_solitaire)
@@ -257,9 +269,10 @@ triple_russian_solitaire.Tableau         = {
     end
 }
 
+
 ------
 
-local hawaiian                           = {
+local hawaiian = {
     Info       = {
         Name      = "Hawaiian",
         Family    = "Yukon",
@@ -292,9 +305,10 @@ local hawaiian                           = {
     }
 }
 
+
 ------
 
-local wave                               = {
+local wave = {
     Info = {
         Name      = "Wave",
         Family    = "Yukon",
@@ -356,6 +370,7 @@ local yukon_cells = {
     },
     on_init    = Sol.Layout.free_cell
 }
+
 
 ------
 
@@ -443,6 +458,8 @@ local yukonic_plaque = {
         end
     }
 }
+
+
 ------
 
 ------------------------

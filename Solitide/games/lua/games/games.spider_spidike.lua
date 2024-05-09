@@ -3,7 +3,7 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local spidike                   = {
+local spidike = {
     Info       = {
         Name      = "Spidike",
         Family    = "Spider",
@@ -30,6 +30,7 @@ local spidike                   = {
     on_init    = Sol.Layout.klondike
 }
 
+
 ------
 
 local incompatibility           = Sol.copy(spidike)
@@ -48,6 +49,7 @@ incompatibility.Tableau         = {
 incompatibility.deal            = function(game)
     return Sol.Ops.Deal.to_nonempty_group(game.Stock[1], game.Tableau)
 end
+
 
 ------
 

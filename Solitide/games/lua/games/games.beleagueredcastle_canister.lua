@@ -3,7 +3,7 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local canister                 = {
+local canister = {
     Info       = {
         Name      = "Canister",
         Family    = "BeleagueredCastle",
@@ -26,6 +26,7 @@ local canister                 = {
     on_init    = Sol.Layout.canister
 }
 
+
 ------
 
 local american_canister        = Sol.copy(canister)
@@ -38,17 +39,19 @@ american_canister.Tableau.Pile = function(i)
     }
 end
 
+
 ------
 
-local british_canister         = Sol.copy(canister)
-british_canister.Info.Name     = "British Canister"
-british_canister.Tableau.Pile  = function(i)
+local british_canister        = Sol.copy(canister)
+british_canister.Info.Name    = "British Canister"
+british_canister.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up((i < 2 or i >= 6) and 6 or 7),
         Layout = "Column",
         Rule = Sol.Rules.king_downac_top
     }
 end
+
 
 ------
 

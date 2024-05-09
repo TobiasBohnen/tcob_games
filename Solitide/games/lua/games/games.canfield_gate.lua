@@ -3,7 +3,7 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local gate                = {
+local gate = {
     Info        = {
         Name      = "Gate",
         Family    = "Canfield",
@@ -59,6 +59,7 @@ local gate                = {
     deal        = Sol.Ops.Deal.stock_to_waste
 }
 
+
 ------
 
 local little_gate         = Sol.copy(gate)
@@ -72,6 +73,7 @@ little_gate.Reserve.Pile  = function(i)
     }
 end
 little_gate.Tableau.Size  = 4
+
 
 ------
 

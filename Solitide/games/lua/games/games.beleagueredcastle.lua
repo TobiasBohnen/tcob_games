@@ -3,7 +3,7 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local beleaguered_castle       = {
+local beleaguered_castle = {
     Info              = {
         Name      = "Beleaguered Castle",
         Family    = "BeleagueredCastle",
@@ -25,16 +25,17 @@ local beleaguered_castle       = {
     on_init           = Sol.Layout.beleaguered_castle
 }
 
+
 ------
 
-local castle_mount             = Sol.copy(beleaguered_castle)
-castle_mount.Info.Name         = "Castle Mount"
-castle_mount.Info.DeckCount    = 3
-castle_mount.Foundation        = {
+local castle_mount          = Sol.copy(beleaguered_castle)
+castle_mount.Info.Name      = "Castle Mount"
+castle_mount.Info.DeckCount = 3
+castle_mount.Foundation     = {
     Size = 12,
     Pile = { Rule = Sol.Rules.ace_upsuit_none }
 }
-castle_mount.Tableau           = {
+castle_mount.Tableau        = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(12),
@@ -42,27 +43,30 @@ castle_mount.Tableau           = {
         Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.InSeqInSuit() }
     }
 }
-castle_mount.on_init           = Sol.Layout.canister
+castle_mount.on_init        = Sol.Layout.canister
+
 
 ------
 
-local citadel                  = Sol.copy(beleaguered_castle)
-citadel.Info.Name              = "Citadel"
-citadel.on_shuffle             = Sol.Ops.Shuffle.play_to_foundation
+local citadel      = Sol.copy(beleaguered_castle)
+citadel.Info.Name  = "Citadel"
+citadel.on_shuffle = Sol.Ops.Shuffle.play_to_foundation
+
 
 ------
 
-local exiled_kings             = Sol.copy(citadel)
-exiled_kings.Info.Name         = "Exiled Kings"
-exiled_kings.Tableau.Pile      = {
+local exiled_kings        = Sol.copy(citadel)
+exiled_kings.Info.Name    = "Exiled Kings"
+exiled_kings.Tableau.Pile = {
     Initial = Sol.Initial.face_up(6),
     Layout = "Row",
     Rule = Sol.Rules.king_downrank_top
 }
 
+
 ------
 
-local castle_of_indolence      = {
+local castle_of_indolence = {
     Info       = {
         Name      = "Castle of Indolence",
         Family    = "BeleagueredCastle",
@@ -109,9 +113,10 @@ local castle_of_indolence      = {
     }
 }
 
+
 ------
 
-local chequers                 = {
+local chequers = {
     Info        = {
         Name      = "Chequers",
         Family    = "BeleagueredCastle",
@@ -158,9 +163,10 @@ local chequers                 = {
     end
 }
 
+
 ------
 
-local fortress                 = {
+local fortress = {
     Info       = {
         Name      = "Fortress",
         Family    = "BeleagueredCastle",
@@ -183,16 +189,17 @@ local fortress                 = {
     on_init    = Sol.Layout.canister
 }
 
+
 ------
 
-local lightweight              = Sol.copy(beleaguered_castle)
-lightweight.Info.Name          = "Lightweight"
-lightweight.Info.DeckCount     = 2
-lightweight.Foundation         = {
+local lightweight          = Sol.copy(beleaguered_castle)
+lightweight.Info.Name      = "Lightweight"
+lightweight.Info.DeckCount = 2
+lightweight.Foundation     = {
     Size = 8,
     Pile = { Rule = Sol.Rules.ace_upsuit_none }
 }
-lightweight.Tableau            = {
+lightweight.Tableau        = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(8),
@@ -200,11 +207,12 @@ lightweight.Tableau            = {
         Rule = Sol.Rules.king_downrank_inseq
     }
 }
-lightweight.on_init            = Sol.Layout.canister
+lightweight.on_init        = Sol.Layout.canister
+
 
 ------
 
-local morehead                 = {
+local morehead = {
     Info = {
         Name      = "Morehead",
         Family    = "BeleagueredCastle",
@@ -227,9 +235,10 @@ local morehead                 = {
     on_init = Sol.Layout.canister
 }
 
+
 ------
 
-local penelopes_web            = {
+local penelopes_web = {
     Info       = {
         Name      = "Penelope's Web",
         Family    = "BeleagueredCastle",
@@ -252,9 +261,10 @@ local penelopes_web            = {
     on_init    = Sol.Layout.beleaguered_castle
 }
 
+
 ------
 
-local rittenhouse              = {
+local rittenhouse = {
     Info              = {
         Name      = "Rittenhouse",
         Family    = "BeleagueredCastle",
@@ -360,9 +370,10 @@ local rittenhouse              = {
     end,
 }
 
+
 ------
 
-local selective_castle         = {
+local selective_castle = {
     Info       = {
         Name      = "Selective Castle",
         Family    = "BeleagueredCastle",
@@ -393,9 +404,10 @@ local selective_castle         = {
     on_init    = Sol.Layout.beleaguered_castle
 }
 
+
 ------
 
-local streets_and_alleys       = {
+local streets_and_alleys = {
     Info       = {
         Name      = "Streets and Alleys",
         Family    = "BeleagueredCastle",
@@ -418,9 +430,10 @@ local streets_and_alleys       = {
     on_init    = Sol.Layout.beleaguered_castle
 }
 
+
 ------
 
-local zerline                  = {
+local zerline = {
     Info       = {
         Name      = "Zerline",
         Family    = "BeleagueredCastle",
@@ -482,6 +495,7 @@ local zerline                  = {
     end
 }
 
+
 ------
 
 local zerline_3_decks          = Sol.copy(zerline)
@@ -523,6 +537,7 @@ zerline_3_decks.Tableau        = {
         end
     end
 }
+
 
 ------
 

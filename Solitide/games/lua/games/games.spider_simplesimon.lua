@@ -4,7 +4,7 @@
 -- https://opensource.org/licenses/MIT
 
 
-local simple_simon           = {
+local simple_simon = {
     Info       = {
         Name      = "Simple Simon",
         Family    = "Spider",
@@ -27,6 +27,7 @@ local simple_simon           = {
     on_init    = Sol.Layout.klondike
 }
 
+
 ------
 
 local simon_jester           = Sol.copy(simple_simon)
@@ -44,13 +45,14 @@ simon_jester.Tableau         = {
     end
 }
 
+
 ------
 
-local york                   = Sol.copy(simple_simon)
-york.Info.Name               = "York"
-york.Info.DeckCount          = 2
-york.Foundation.Size         = 8
-york.Tableau                 = {
+local york           = Sol.copy(simple_simon)
+york.Info.Name       = "York"
+york.Info.DeckCount  = 2
+york.Foundation.Size = 8
+york.Tableau         = {
     Size = 12,
     Pile = function(i)
         return {
@@ -61,13 +63,14 @@ york.Tableau                 = {
     end
 }
 
+
 ------
 
-local big_york               = Sol.copy(york)
-big_york.Info.Name           = "Big York"
-big_york.Info.DeckCount      = 3
-big_york.Foundation.Size     = 12
-big_york.Tableau             = {
+local big_york           = Sol.copy(york)
+big_york.Info.Name       = "Big York"
+big_york.Info.DeckCount  = 3
+big_york.Foundation.Size = 12
+big_york.Tableau         = {
     Size = 14,
     Pile = function(i)
         return {
@@ -77,6 +80,7 @@ big_york.Tableau             = {
         }
     end
 }
+
 
 ------
 

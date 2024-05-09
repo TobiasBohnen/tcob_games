@@ -42,11 +42,13 @@ local four_seasons = {
     deal = Sol.Ops.Deal.stock_to_waste
 }
 
+
 ------
 
 local czarina = Sol.copy(four_seasons)
 czarina.Info.Name = "Czarina"
 czarina.on_end_turn = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
+
 
 ------
 
@@ -95,6 +97,7 @@ local corners = {
     on_end_turn = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
 }
 
+
 ------
 
 local simplicity_fou_pos <const> = { { x = 0, y = 0 }, { x = 0, y = 3 }, { x = 7, y = 0 }, { x = 7, y = 3 } }
@@ -135,6 +138,9 @@ local simplicity = {
     },
     deal = Sol.Ops.Deal.stock_to_waste
 }
+
+
+------
 
 ------------------------
 

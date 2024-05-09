@@ -3,7 +3,7 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local flower_garden             = {
+local flower_garden = {
     Info       = {
         Name      = "Flower Garden",
         Family    = "FlowerGarden",
@@ -32,18 +32,20 @@ local flower_garden             = {
     on_init    = function(game) Sol.Layout.raglan(game, 4) end
 }
 
-------
-
-local arizona                   = Sol.copy(flower_garden)
-arizona.Info.Name               = "Arizona"
-arizona.Tableau.Rule            = Sol.Rules.any_downrank_inseq
 
 ------
 
-local can_can                   = Sol.copy(flower_garden)
-can_can.Info.Name               = "Can Can"
-can_can.Reserve.Size            = 3
-can_can.Tableau                 = {
+local arizona        = Sol.copy(flower_garden)
+arizona.Info.Name    = "Arizona"
+arizona.Tableau.Rule = Sol.Rules.any_downrank_inseq
+
+
+------
+
+local can_can        = Sol.copy(flower_garden)
+can_can.Info.Name    = "Can Can"
+can_can.Reserve.Size = 3
+can_can.Tableau      = {
     Size = 13,
     Pile = function(i)
         return {
@@ -53,14 +55,15 @@ can_can.Tableau                 = {
         }
     end
 }
-can_can.on_init                 = function(game) Sol.Layout.raglan(game, 1) end
+can_can.on_init      = function(game) Sol.Layout.raglan(game, 1) end
+
 
 ------
 
-local king_albert               = Sol.copy(flower_garden)
-king_albert.Info.Name           = "King Albert"
-king_albert.Reserve.Size        = 7
-king_albert.Tableau             = {
+local king_albert        = Sol.copy(flower_garden)
+king_albert.Info.Name    = "King Albert"
+king_albert.Reserve.Size = 7
+king_albert.Tableau      = {
     Size = 9,
     Pile = function(i)
         return {
@@ -70,13 +73,14 @@ king_albert.Tableau             = {
         }
     end
 }
-king_albert.on_init             = function(game) Sol.Layout.raglan(game, 2) end
+king_albert.on_init      = function(game) Sol.Layout.raglan(game, 2) end
+
 
 ------
 
-local northwest_territory       = Sol.copy(flower_garden)
-northwest_territory.Info.Name   = "Northwest Territory"
-northwest_territory.Tableau     = {
+local northwest_territory     = Sol.copy(flower_garden)
+northwest_territory.Info.Name = "Northwest Territory"
+northwest_territory.Tableau   = {
     Size = 8,
     Pile = function(i)
         return {
@@ -87,11 +91,12 @@ northwest_territory.Tableau     = {
     end
 }
 
+
 ------
 
-local artic_garden              = Sol.copy(northwest_territory)
-artic_garden.Info.Name          = "Artic Garden"
-artic_garden.Tableau.Pile       =
+local artic_garden        = Sol.copy(northwest_territory)
+artic_garden.Info.Name    = "Artic Garden"
+artic_garden.Tableau.Pile =
     function(i)
         return {
             Initial = Sol.Initial.face_up(i + 1),
@@ -100,17 +105,19 @@ artic_garden.Tableau.Pile       =
         }
     end
 
+
 ------
 
-local queen_victoria            = Sol.copy(king_albert)
-queen_victoria.Info.Name        = "Queen Victoria"
-queen_victoria.Tableau.Pile     = function(i)
+local queen_victoria        = Sol.copy(king_albert)
+queen_victoria.Info.Name    = "Queen Victoria"
+queen_victoria.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up(i + 1),
         Layout = "Column",
         Rule = Sol.Rules.any_downac_inseq
     }
 end
+
 
 ------
 
@@ -120,34 +127,38 @@ klondike_territory.Reserve.Size = 24
 klondike_territory.Tableau.Size = 7
 klondike_territory.on_init      = function(game) Sol.Layout.raglan(game, 6) end
 
+
 ------
 
-local stonewall                 = Sol.copy(flower_garden)
-stonewall.Info.Name             = "Stonewall"
-stonewall.Tableau.Pile          = {
+local stonewall        = Sol.copy(flower_garden)
+stonewall.Info.Name    = "Stonewall"
+stonewall.Tableau.Pile = {
     Initial = Sol.Initial.alternate(6, false),
     Layout = "Column",
     Rule = Sol.Rules.any_downac_inseq
 }
 
-------
-
-local wildflower                = Sol.copy(flower_garden)
-wildflower.Info.Name            = "Wildflower"
-wildflower.Tableau.Pile.Rule    = Sol.Rules.spider_tableau
 
 ------
 
-local phoenix                   = Sol.copy(flower_garden)
-phoenix.Info.Name               = "Phoenix"
-phoenix.Tableau.Rule            = Sol.Rules.any_downac_inseq
+local wildflower             = Sol.copy(flower_garden)
+wildflower.Info.Name         = "Wildflower"
+wildflower.Tableau.Pile.Rule = Sol.Rules.spider_tableau
+
 
 ------
 
-local raglan                    = Sol.copy(flower_garden)
-raglan.Info.Name                = "Raglan"
-raglan.Reserve.Size             = 6
-raglan.Tableau                  = {
+local phoenix        = Sol.copy(flower_garden)
+phoenix.Info.Name    = "Phoenix"
+phoenix.Tableau.Rule = Sol.Rules.any_downac_inseq
+
+
+------
+
+local raglan             = Sol.copy(flower_garden)
+raglan.Info.Name         = "Raglan"
+raglan.Reserve.Size      = 6
+raglan.Tableau           = {
     Size = 9,
     Pile = function(i)
         return {
@@ -157,14 +168,15 @@ raglan.Tableau                  = {
         }
     end
 }
-raglan.on_before_shuffle        = Sol.Ops.Shuffle.ace_to_foundation
-raglan.on_init                  = function(game) Sol.Layout.raglan(game, 2) end
+raglan.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
+raglan.on_init           = function(game) Sol.Layout.raglan(game, 2) end
+
 
 ------
 
-local relaxed_raglan            = Sol.copy(raglan)
-relaxed_raglan.Info.Name        = "Relaxed Raglan"
-relaxed_raglan.Tableau.Pile     = function(i)
+local relaxed_raglan        = Sol.copy(raglan)
+relaxed_raglan.Info.Name    = "Relaxed Raglan"
+relaxed_raglan.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up(i < 7 and i + 1 or 7),
         Layout = "Column",
@@ -172,12 +184,13 @@ relaxed_raglan.Tableau.Pile     = function(i)
     }
 end
 
+
 ------
 
-local brigade                   = Sol.copy(raglan)
-brigade.Info.Name               = "Brigade"
-brigade.Reserve.Size            = 13
-brigade.Tableau                 = {
+local brigade        = Sol.copy(raglan)
+brigade.Info.Name    = "Brigade"
+brigade.Reserve.Size = 13
+brigade.Tableau      = {
     Size = 7,
     Pile = {
         Initial = Sol.Initial.face_up(5),
@@ -185,11 +198,12 @@ brigade.Tableau                 = {
         Rule = Sol.Rules.any_downac_top
     }
 }
-brigade.on_init                 = function(game) Sol.Layout.raglan(game, 4) end
+brigade.on_init      = function(game) Sol.Layout.raglan(game, 4) end
+
 
 ------
 
-local agnes_bernauer            = {
+local agnes_bernauer = {
     Info       = {
         Name      = "Agnes Bernauer",
         Family    = "FlowerGarden",
@@ -229,20 +243,22 @@ local agnes_bernauer            = {
     deal       = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Reserve, false) end
 }
 
-------
-
-local agnes_two                 = Sol.copy(agnes_bernauer)
-agnes_two.Info.Name             = "Agnes Two"
-agnes_two.Info.DeckCount        = 2
-agnes_two.Stock.Initial         = Sol.Initial.face_down(38)
-agnes_two.Reserve.Size          = 10
-agnes_two.Foundation.Size       = 8
-agnes_two.Tableau.Size          = 10
-agnes_two.on_init               = function(game) Sol.Layout.raglan(game, 3) end
 
 ------
 
-local big_bertha                = {
+local agnes_two           = Sol.copy(agnes_bernauer)
+agnes_two.Info.Name       = "Agnes Two"
+agnes_two.Info.DeckCount  = 2
+agnes_two.Stock.Initial   = Sol.Initial.face_down(38)
+agnes_two.Reserve.Size    = 10
+agnes_two.Foundation.Size = 8
+agnes_two.Tableau.Size    = 10
+agnes_two.on_init         = function(game) Sol.Layout.raglan(game, 3) end
+
+
+------
+
+local big_bertha = {
     Info       = {
         Name      = "Big Bertha",
         Family    = "FlowerGarden",
@@ -287,6 +303,7 @@ local big_bertha                = {
         end
     }
 }
+
 
 ------
 

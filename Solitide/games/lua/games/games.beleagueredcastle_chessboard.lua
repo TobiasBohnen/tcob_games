@@ -3,7 +3,7 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local chessboard       = {
+local chessboard = {
     Info       = {
         Name      = "Chessboard",
         Family    = "BeleagueredCastle",
@@ -34,6 +34,7 @@ local chessboard       = {
     on_init    = Sol.Layout.canister
 }
 
+
 ------
 
 local lasker           = Sol.copy(chessboard)
@@ -47,17 +48,19 @@ lasker.Tableau.Pile    = function(i)
     }
 end
 
+
 ------
 
-local morphy           = Sol.copy(chessboard)
-morphy.Info.Name       = "Morphy"
-morphy.Tableau.Pile    = function(i)
+local morphy        = Sol.copy(chessboard)
+morphy.Info.Name    = "Morphy"
+morphy.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up(i < 2 and 6 or 5),
         Layout = "Column",
         Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpOrDownAlternateColors(true), Move = Sol.Rules.Move.Top() }
     }
 end
+
 
 ------
 

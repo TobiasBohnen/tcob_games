@@ -316,7 +316,7 @@ return {
             piles.Tableau[i + 1].Position = { x = i + tableauOffsetX, y = 1 }
         end
     end,
-    -- Stock and Waste  -> bottom center
+    -- single Stock and Foundation  -> bottom center
     -- Tableau          -> top
     golf = function(game)
         local piles = get_piles(game)

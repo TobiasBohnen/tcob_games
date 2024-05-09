@@ -3,7 +3,7 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local new_york         = {
+local new_york = {
     Info       = {
         Name      = "New York",
         Family    = "Fan",
@@ -53,6 +53,7 @@ local new_york         = {
     end
 }
 
+
 ------
 
 local gotham           = Sol.copy(new_york)
@@ -79,6 +80,7 @@ gotham.can_play        = function(game, targetPile, targetCardIndex, card, numCa
 
     return game:can_play(targetPile, targetCardIndex, card, numCards)
 end
+
 
 ------
 

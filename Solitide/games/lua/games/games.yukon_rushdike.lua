@@ -5,7 +5,7 @@
 
 -- Yukon games with Stock
 
-local initial <const>            = {
+local initial <const> = {
     chinese_discipline = function(i)
         if i < 3 then
             return Sol.Initial.face_up(7)
@@ -19,7 +19,7 @@ local initial <const>            = {
     end
 }
 
-local rushdike                   = {
+local rushdike        = {
     Info = {
         Name      = "Rushdike",
         Family    = "Yukon",
@@ -45,6 +45,7 @@ local rushdike                   = {
     deal = Sol.Ops.Deal.stock_to_tableau
 }
 
+
 ------
 
 local chinese_discipline         = Sol.copy(rushdike)
@@ -58,11 +59,12 @@ chinese_discipline.Tableau.Pile  = function(i)
     }
 end
 
+
 ------
 
-local chinese_solitaire          = Sol.copy(chinese_discipline)
-chinese_solitaire.Info.Name      = "Chinese Solitaire"
-chinese_solitaire.Tableau.Pile   = function(i)
+local chinese_solitaire        = Sol.copy(chinese_discipline)
+chinese_solitaire.Info.Name    = "Chinese Solitaire"
+chinese_solitaire.Tableau.Pile = function(i)
     return {
         Initial = initial.chinese_discipline(i),
         Layout = "Column",
@@ -73,15 +75,16 @@ end
 
 ------
 
-local queenie               = Sol.copy(rushdike)
-queenie.Info.Name           = "Queenie"
-queenie.Tableau.Pile        = function(i)
+local queenie        = Sol.copy(rushdike)
+queenie.Info.Name    = "Queenie"
+queenie.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up(i + 1),
         Layout = "Column",
         Rule = Sol.Rules.king_downac_faceup
     }
 end
+
 
 ------
 
@@ -95,6 +98,7 @@ russian_point.Tableau.Pile  = function(i)
         Rule = Sol.Rules.king_downsuit_faceup
     }
 end
+
 
 ------
 

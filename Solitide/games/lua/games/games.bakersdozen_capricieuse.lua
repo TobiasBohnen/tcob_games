@@ -3,7 +3,7 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local capricieuse              = {
+local capricieuse = {
     Info              = {
         Name      = "Capricieuse",
         Family    = "BakersDozen",
@@ -52,13 +52,14 @@ local capricieuse              = {
     on_init           = Sol.Layout.capricieuse
 }
 
+
 ------
 
-local strata                   = Sol.copy(capricieuse)
-strata.Info.Name               = "Strata"
-strata.Foundation.Pile         = { Rule = Sol.Rules.ace_upsuit_top }
-strata.Info.DeckRanks          = { "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace" }
-strata.Tableau                 = {
+local strata             = Sol.copy(capricieuse)
+strata.Info.Name         = "Strata"
+strata.Foundation.Pile   = { Rule = Sol.Rules.ace_upsuit_top }
+strata.Info.DeckRanks    = { "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace" }
+strata.Tableau           = {
     Size = 8,
     Pile = {
         Initial = Sol.Initial.face_up(8),
@@ -66,19 +67,20 @@ strata.Tableau                 = {
         Rule = Sol.Rules.any_downac_top
     }
 }
-strata.on_before_shuffle       = nil
+strata.on_before_shuffle = nil
+
 
 ------
 
-local cruel                    = Sol.copy(capricieuse)
-cruel.Info.Name                = "Cruel"
-cruel.Info.DeckCount           = 1
-cruel.Info.Redeals             = -1
-cruel.Foundation               = {
+local cruel             = Sol.copy(capricieuse)
+cruel.Info.Name         = "Cruel"
+cruel.Info.DeckCount    = 1
+cruel.Info.Redeals      = -1
+cruel.Foundation        = {
     Size = 4,
     Pile = { Rule = Sol.Rules.ace_upsuit_top }
 }
-cruel.Tableau                  = {
+cruel.Tableau           = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(4),
@@ -86,8 +88,8 @@ cruel.Tableau                  = {
         Rule = Sol.Rules.none_downsuit_top
     }
 }
-cruel.on_before_shuffle        = Sol.Ops.Shuffle.ace_to_foundation
-cruel.redeal                   = function(game)
+cruel.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
+cruel.redeal            = function(game)
     local cards = {}
 
     local tableau = game.Tableau
@@ -110,29 +112,32 @@ cruel.redeal                   = function(game)
 
     return true
 end
-cruel.on_init                  = Sol.Layout.bakers_dozen
+cruel.on_init           = Sol.Layout.bakers_dozen
+
 
 ------
 
-local indefatigable            = Sol.copy(cruel)
-indefatigable.Info.Name        = "Indefatigable"
-indefatigable.Info.Redeals     = 2
-indefatigable.Tableau.Pile     = {
+local indefatigable        = Sol.copy(cruel)
+indefatigable.Info.Name    = "Indefatigable"
+indefatigable.Info.Redeals = 2
+indefatigable.Tableau.Pile = {
     Initial = Sol.Initial.face_up(4),
     Layout = "Column",
     Rule = Sol.Rules.any_updownsuit_top
 }
 
+
 ------
 
-local perseverance             = Sol.copy(cruel)
-perseverance.Info.Name         = "Perseverance"
-perseverance.Info.Redeals      = 2
-perseverance.Tableau.Pile      = {
+local perseverance        = Sol.copy(cruel)
+perseverance.Info.Name    = "Perseverance"
+perseverance.Info.Redeals = 2
+perseverance.Tableau.Pile = {
     Initial = Sol.Initial.face_up(4),
     Layout = "Column",
     Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.DownInSuit(), Move = Sol.Rules.Move.InSeq() }
 }
+
 
 ------
 
@@ -147,20 +152,23 @@ royal_family.Tableau.Pile      = {
 }
 royal_family.on_before_shuffle = Sol.Ops.Shuffle.king_to_foundation
 
-------
-
-local ripple_fan               = Sol.copy(cruel)
-ripple_fan.Info.Name           = "Ripple Fan"
-ripple_fan.Tableau.Size        = 13
-ripple_fan.on_before_shuffle   = nil
 
 ------
 
-local unusual                  = Sol.copy(cruel)
-unusual.Info.Name              = "Unusual"
-unusual.Info.DeckCount         = 2
-unusual.Foundation.Size        = 8
-unusual.Tableau.Size           = 24
+local ripple_fan             = Sol.copy(cruel)
+ripple_fan.Info.Name         = "Ripple Fan"
+ripple_fan.Tableau.Size      = 13
+ripple_fan.on_before_shuffle = nil
+
+
+------
+
+local unusual           = Sol.copy(cruel)
+unusual.Info.Name       = "Unusual"
+unusual.Info.DeckCount  = 2
+unusual.Foundation.Size = 8
+unusual.Tableau.Size    = 24
+
 
 ------
 

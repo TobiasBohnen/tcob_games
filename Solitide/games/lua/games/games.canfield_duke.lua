@@ -3,7 +3,7 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local duke               = {
+local duke = {
     Info       = {
         Name      = "Duke",
         Family    = "Canfield",
@@ -50,6 +50,7 @@ local duke               = {
     deal       = Sol.Ops.Deal.stock_to_waste
 }
 
+
 ------
 
 local dutchess           = Sol.copy(duke)
@@ -94,6 +95,9 @@ dutchess.deal            = function(game)
     if game.Foundation[1].IsEmpty then return false end
     return Sol.Ops.Deal.stock_to_waste(game)
 end
+
+
+------
 
 ------------------------
 

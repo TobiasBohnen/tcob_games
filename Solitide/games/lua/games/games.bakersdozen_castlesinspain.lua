@@ -3,7 +3,7 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local castles_in_spain            = {
+local castles_in_spain = {
     Info       = {
         Name      = "Castles In Spain",
         Family    = "BakersDozen",
@@ -24,11 +24,12 @@ local castles_in_spain            = {
     on_init    = Sol.Layout.bakers_dozen
 }
 
+
 ------
 
-local martha                      = Sol.copy(castles_in_spain)
-martha.Info.Name                  = "Martha"
-martha.Tableau                    = {
+local martha             = Sol.copy(castles_in_spain)
+martha.Info.Name         = "Martha"
+martha.Tableau           = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.alternate(4, false),
@@ -36,13 +37,15 @@ martha.Tableau                    = {
         Rule = { Base = Sol.Rules.Base.AnySingle(), Build = Sol.Rules.Build.DownAlternateColors(), Move = Sol.Rules.Move.InSeq() }
     }
 }
-martha.on_before_shuffle          = Sol.Ops.Shuffle.ace_to_foundation
+martha.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
+
 
 ------
 
-local stewart                     = Sol.copy(martha)
-stewart.Info.Name                 = "Stewart"
-stewart.Tableau.Pile.Rule         = { Base = Sol.Rules.Base.AnySingle(), Build = Sol.Rules.Build.DownAlternateColors(), Move = Sol.Rules.Move.Top() }
+local stewart             = Sol.copy(martha)
+stewart.Info.Name         = "Stewart"
+stewart.Tableau.Pile.Rule = { Base = Sol.Rules.Base.AnySingle(), Build = Sol.Rules.Build.DownAlternateColors(), Move = Sol.Rules.Move.Top() }
+
 
 ------
 
@@ -54,32 +57,35 @@ portuguese_solitaire.Tableau.Pile = {
     Rule = Sol.Rules.king_downrank_top
 }
 
+
 ------
 
-local spanish_patience            = Sol.copy(castles_in_spain)
-spanish_patience.Info.Name        = "Spanish Patience"
-spanish_patience.Foundation.Pile  = { Rule = Sol.Rules.ace_upac_top }
-spanish_patience.Tableau.Pile     = {
+local spanish_patience           = Sol.copy(castles_in_spain)
+spanish_patience.Info.Name       = "Spanish Patience"
+spanish_patience.Foundation.Pile = { Rule = Sol.Rules.ace_upac_top }
+spanish_patience.Tableau.Pile    = {
     Initial = Sol.Initial.face_up(4),
     Layout = "Column",
     Rule = Sol.Rules.none_downrank_top
 }
 
+
 ------
 
-local spanish_patience_2          = Sol.copy(castles_in_spain)
-spanish_patience_2.Info.Name      = "Spanish Patience II"
-spanish_patience_2.Tableau.Pile   = {
+local spanish_patience_2        = Sol.copy(castles_in_spain)
+spanish_patience_2.Info.Name    = "Spanish Patience II"
+spanish_patience_2.Tableau.Pile = {
     Initial = Sol.Initial.face_up(4),
     Layout = "Column",
     Rule = Sol.Rules.any_downrank_top
 }
 
+
 ------
 
-local vineyard                    = Sol.copy(castles_in_spain)
-vineyard.Info.Name                = "Vineyard"
-vineyard.Tableau                  = {
+local vineyard     = Sol.copy(castles_in_spain)
+vineyard.Info.Name = "Vineyard"
+vineyard.Tableau   = {
     Size = 10,
     Pile = function(i)
         return {
@@ -89,6 +95,7 @@ vineyard.Tableau                  = {
         }
     end
 }
+
 
 ------
 

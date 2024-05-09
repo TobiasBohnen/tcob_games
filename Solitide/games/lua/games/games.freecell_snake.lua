@@ -3,7 +3,7 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local snake                 = {
+local snake = {
     Info              = {
         Name      = "Snake",
         Family    = "FreeCell",
@@ -54,6 +54,7 @@ local snake                 = {
     end
 }
 
+
 ------
 
 local cats_tail             = Sol.copy(snake)
@@ -67,6 +68,7 @@ cats_tail.Tableau.Pile      = function(i)
     }
 end
 cats_tail.on_before_shuffle = nil
+
 
 ------
 

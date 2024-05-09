@@ -3,7 +3,7 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local easthaven                  = {
+local easthaven = {
     Info       = {
         Name      = "Easthaven",
         Family    = "Gypsy",
@@ -25,8 +25,9 @@ local easthaven                  = {
         }
     },
     on_init    = Sol.Layout.klondike,
-    deal    = Sol.Ops.Deal.stock_to_tableau
+    deal       = Sol.Ops.Deal.stock_to_tableau
 }
+
 
 ------
 
@@ -37,6 +38,7 @@ double_easthaven.Stock.Initial   = Sol.Initial.face_down(80)
 double_easthaven.Foundation.Size = 8
 double_easthaven.Tableau.Size    = 8
 
+
 ------
 
 local triple_easthaven           = Sol.copy(easthaven)
@@ -46,13 +48,15 @@ triple_easthaven.Stock.Initial   = Sol.Initial.face_down(120)
 triple_easthaven.Foundation.Size = 12
 triple_easthaven.Tableau.Size    = 12
 
+
 ------
 
-local westhaven                  = Sol.copy(easthaven)
-westhaven.Info.Name              = "Westhaven"
-westhaven.Stock.Initial          = Sol.Initial.face_down(22)
-westhaven.Foundation.Pile.Rule   = Sol.Rules.ace_upsuit_none
-westhaven.Tableau.Size           = 10
+local westhaven                = Sol.copy(easthaven)
+westhaven.Info.Name            = "Westhaven"
+westhaven.Stock.Initial        = Sol.Initial.face_down(22)
+westhaven.Foundation.Pile.Rule = Sol.Rules.ace_upsuit_none
+westhaven.Tableau.Size         = 10
+
 
 ------
 

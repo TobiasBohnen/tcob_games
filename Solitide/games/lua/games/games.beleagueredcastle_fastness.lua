@@ -3,7 +3,7 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local fastness               = {
+local fastness = {
     Info       = {
         Name      = "Fastness",
         Family    = "BeleagueredCastle",
@@ -30,6 +30,7 @@ local fastness               = {
     on_init    = Sol.Layout.fastness
 }
 
+
 ------
 
 local siegecraft             = Sol.copy(fastness)
@@ -42,11 +43,15 @@ siegecraft.Tableau.Pile      = {
 }
 siegecraft.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
 
+
 ------
 
-local stronghold             = Sol.copy(fastness)
-stronghold.Info.Name         = "Stronghold"
-stronghold.FreeCell          = { Rule = Sol.Rules.any_none_top }
+local stronghold     = Sol.copy(fastness)
+stronghold.Info.Name = "Stronghold"
+stronghold.FreeCell  = { Rule = Sol.Rules.any_none_top }
+
+
+------
 
 ------------
 

@@ -3,7 +3,7 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local numerica                   = {
+local numerica = {
     Info        = {
         Name      = "Numerica",
         Family    = "Numerica",
@@ -44,6 +44,7 @@ local numerica                   = {
     on_init     = Sol.Layout.klondike
 }
 
+
 ------
 
 local numerica_2_decks           = Sol.copy(numerica)
@@ -52,6 +53,7 @@ numerica_2_decks.Info.DeckCount  = 2
 numerica_2_decks.Stock.Initial   = Sol.Initial.face_down(103)
 numerica_2_decks.Foundation.Size = 8
 numerica_2_decks.Tableau.Size    = 6
+
 
 ------
 

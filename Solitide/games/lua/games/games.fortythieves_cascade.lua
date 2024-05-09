@@ -47,6 +47,7 @@ local cascade = {
     redeal = Sol.Ops.Redeal.waste_to_stock
 }
 
+
 ------
 
 local jacks_in_the_box = {
@@ -99,6 +100,7 @@ local jacks_in_the_box = {
     end
 }
 
+
 ------
 
 local squadron = {
@@ -145,6 +147,9 @@ local squadron = {
     deal = Sol.Ops.Deal.stock_to_waste,
     redeal = Sol.Ops.Redeal.waste_to_stock
 }
+
+
+------
 
 ------------------------
 

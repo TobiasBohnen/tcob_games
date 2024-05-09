@@ -3,7 +3,7 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local montana_base <const>    = {
+local montana_base <const> = {
     redeal = function(game, ranks)
         local columns = #ranks + 1
         local tableau = game.Tableau
@@ -109,10 +109,11 @@ local montana_base <const>    = {
     end
 }
 
-------
-local montana_ranks <const>   = { table.unpack(Sol.Ranks, 2, 13) }
 
-local montana                 = {
+------
+local montana_ranks <const> = { table.unpack(Sol.Ranks, 2, 13) }
+
+local montana               = {
     Info       = {
         Name         = "Montana",
         Family       = "Montana",
@@ -145,6 +146,7 @@ local montana                 = {
     end
 }
 
+
 ------
 
 local double_montana          = Sol.copy(montana)
@@ -152,13 +154,15 @@ double_montana.Info.Name      = "Double Montana"
 double_montana.Info.DeckCount = 2
 double_montana.Tableau.Size   = 104
 
+
 ------
 
-local moonlight               = Sol.copy(montana)
-moonlight.Info.Name           = "Moonlight"
-moonlight.can_play            = function(game, targetPile, _, card, _)
+local moonlight     = Sol.copy(montana)
+moonlight.Info.Name = "Moonlight"
+moonlight.can_play  = function(game, targetPile, _, card, _)
     return montana_base.can_play(game, targetPile, card, montana_ranks, "rl")
 end
+
 
 ------
 local blue_moon_ranks <const> = Sol.Ranks
@@ -175,7 +179,7 @@ local function blue_moon_shuffle(game, card, rows)
     return false
 end
 
-local blue_moon                   = {
+local blue_moon = {
     Info       = {
         Name         = "Blue Moon",
         Family       = "Montana",
@@ -209,29 +213,32 @@ local blue_moon                   = {
     on_init    = function(game) Sol.Layout.montana(game, 14) end
 }
 
+
 ------
 
-local double_blue_moon            = Sol.copy(blue_moon)
-double_blue_moon.Info.Name        = "Double Blue Moon"
-double_blue_moon.Info.DeckCount   = 2
-double_blue_moon.Tableau.Size     = 112
-double_blue_moon.on_shuffle       = function(game, card, _)
+local double_blue_moon          = Sol.copy(blue_moon)
+double_blue_moon.Info.Name      = "Double Blue Moon"
+double_blue_moon.Info.DeckCount = 2
+double_blue_moon.Tableau.Size   = 112
+double_blue_moon.on_shuffle     = function(game, card, _)
     return blue_moon_shuffle(game, card, 8)
 end
 
+
 ------
 
-local red_moon                    = Sol.copy(blue_moon)
-red_moon.Info.Name                = "Red Moon"
-red_moon.Tableau.Pile             = function(i)
+local red_moon             = Sol.copy(blue_moon)
+red_moon.Info.Name         = "Red Moon"
+red_moon.Tableau.Pile      = function(i)
     return {
         Initial = Sol.Initial.face_up((i % 14 < 2) and 0 or 1),
         Layout = "Squared",
         Rule = Sol.Rules.none_none_top
     }
 end
-red_moon.on_before_shuffle        = blue_moon.on_shuffle
-red_moon.on_shuffle               = nil
+red_moon.on_before_shuffle = blue_moon.on_shuffle
+red_moon.on_shuffle        = nil
+
 
 ------
 
@@ -243,29 +250,31 @@ double_red_moon.on_before_shuffle = function(game, card, _)
     return blue_moon_shuffle(game, card, 8)
 end
 
+
 ------
 
-local galary                      = Sol.copy(blue_moon)
-galary.Info.Name                  = "Galary"
-galary.Tableau.Pile               = function(i)
+local galary             = Sol.copy(blue_moon)
+galary.Info.Name         = "Galary"
+galary.Tableau.Pile      = function(i)
     return {
         Initial = Sol.Initial.face_up((i % 14 == 0 or i % 14 == 1) and 0 or 1),
         Layout = "Squared",
         Rule = Sol.Rules.none_none_top
     }
 end
-galary.on_before_shuffle          = function(game, card)
+galary.on_before_shuffle = function(game, card)
     return blue_moon.on_shuffle(game, card)
 end
-galary.on_shuffle                 = nil
-galary.can_play                   = function(game, targetPile, _, card, _)
+galary.on_shuffle        = nil
+galary.can_play          = function(game, targetPile, _, card, _)
     return montana_base.can_play(game, targetPile, card, blue_moon_ranks, "rl")
 end
 
-------
-local paganini_ranks <const>      = { "Ace", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
 
-local paganini                    = {
+------
+local paganini_ranks <const> = { "Ace", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
+
+local paganini               = {
     Info       = {
         Name         = "Paganini",
         Family       = "Montana",
@@ -307,10 +316,11 @@ local paganini                    = {
     on_init    = function(game) Sol.Layout.montana(game, 10) end
 }
 
-------
-local spoilt_ranks <const>        = { "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace" }
 
-local spoilt                      = {
+------
+local spoilt_ranks <const> = { "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace" }
+
+local spoilt               = {
     Info        = {
         Name      = "Spoilt",
         Family    = "Montana",
@@ -407,6 +417,9 @@ local spoilt                      = {
         return "Running"
     end
 }
+
+
+------
 
 ------------------------
 

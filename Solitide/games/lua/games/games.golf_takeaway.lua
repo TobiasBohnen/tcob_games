@@ -5,7 +5,7 @@
 
 ------
 
-local take_away             = {
+local take_away = {
     Info       = {
         Name      = "Take Away",
         Family    = "Golf",
@@ -29,15 +29,17 @@ local take_away             = {
     on_init    = Sol.Layout.canister
 }
 
+
 ------
 
 local take_away_8           = Sol.copy(take_away)
 take_away_8.Info.Name       = "Take Away 8"
 take_away_8.Foundation.Size = 8
 
+
 ------
 
-local striptease            = {
+local striptease = {
     Info              = {
         Name      = "Striptease",
         Family    = "Golf",
@@ -92,6 +94,7 @@ local striptease            = {
     end,
     on_init           = Sol.Layout.canister
 }
+
 
 ------
 

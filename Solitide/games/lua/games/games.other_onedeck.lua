@@ -32,6 +32,7 @@ local four_by_four = {
     deal = Sol.Ops.Deal.stock_to_waste
 }
 
+
 ------
 
 local lucky_thirteen_pos <const> = {
@@ -67,6 +68,7 @@ local lucky_thirteen = {
         end
     }
 }
+
 
 ------
 

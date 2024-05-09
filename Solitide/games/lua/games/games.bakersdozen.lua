@@ -3,7 +3,7 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local bakers_dozen                     = {
+local bakers_dozen = {
     Info             = {
         Name      = "Baker's Dozen",
         Family    = "BakersDozen",
@@ -25,6 +25,7 @@ local bakers_dozen                     = {
     on_init          = Sol.Layout.bakers_dozen
 }
 
+
 ------
 
 local bakers_dozen_two_decks           = Sol.copy(bakers_dozen)
@@ -33,11 +34,12 @@ bakers_dozen_two_decks.Info.DeckCount  = 2
 bakers_dozen_two_decks.Foundation.Size = 8
 bakers_dozen_two_decks.Tableau.Size    = 26
 
+
 ------
 
-local good_measure                     = Sol.copy(bakers_dozen)
-good_measure.Info.Name                 = "Good Measure"
-good_measure.Tableau                   = {
+local good_measure             = Sol.copy(bakers_dozen)
+good_measure.Info.Name         = "Good Measure"
+good_measure.Tableau           = {
     Size = 10,
     Pile = {
         Initial = Sol.Initial.face_up(5),
@@ -45,7 +47,7 @@ good_measure.Tableau                   = {
         Rule = Sol.Rules.none_downrank_top
     }
 }
-good_measure.on_before_shuffle         = function(game, card)
+good_measure.on_before_shuffle = function(game, card)
     if card.Rank == "Ace" then
         return game.PlaceTop(card, game.Foundation, 1, 2, true)
     end
@@ -53,9 +55,10 @@ good_measure.on_before_shuffle         = function(game, card)
     return false
 end
 
+
 ------
 
-local fifteen                          = {
+local fifteen = {
     Info       = {
         Name      = "Fifteen",
         Family    = "BakersDozen",
@@ -78,9 +81,10 @@ local fifteen                          = {
     on_init    = Sol.Layout.canister
 }
 
+
 ------
 
-local nationale                        = {
+local nationale = {
     Info              = {
         Name      = "Nationale",
         Family    = "BakersDozen",
@@ -112,6 +116,7 @@ local nationale                        = {
     end,
     on_init           = Sol.Layout.canister
 }
+
 
 ------
 

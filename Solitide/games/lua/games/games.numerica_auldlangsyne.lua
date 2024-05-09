@@ -3,7 +3,7 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local auld_lang_syne                = {
+local auld_lang_syne = {
     Info              = {
         Name      = "Auld Lang Syne",
         Family    = "Numerica",
@@ -28,25 +28,28 @@ local auld_lang_syne                = {
     on_init           = Sol.Layout.klondike
 }
 
-------
-
-local old_fashioned                 = Sol.copy(auld_lang_syne)
-old_fashioned.Info.Name             = "Old Fashioned"
-old_fashioned.Tableau.Size          = 6
 
 ------
 
-local tam_o_shanter                 = Sol.copy(auld_lang_syne)
-tam_o_shanter.Info.Name             = "Tam O'Shanter"
-tam_o_shanter.Stock.Initial         = Sol.Initial.face_down(52)
-tam_o_shanter.on_before_shuffle     = nil
+local old_fashioned        = Sol.copy(auld_lang_syne)
+old_fashioned.Info.Name    = "Old Fashioned"
+old_fashioned.Tableau.Size = 6
+
 
 ------
 
-local acquaintance                  = Sol.copy(auld_lang_syne)
-acquaintance.Info.Name              = "Acquaintance"
-acquaintance.Info.Redeals           = 2
-acquaintance.redeal                 = function(game)
+local tam_o_shanter             = Sol.copy(auld_lang_syne)
+tam_o_shanter.Info.Name         = "Tam O'Shanter"
+tam_o_shanter.Stock.Initial     = Sol.Initial.face_down(52)
+tam_o_shanter.on_before_shuffle = nil
+
+
+------
+
+local acquaintance        = Sol.copy(auld_lang_syne)
+acquaintance.Info.Name    = "Acquaintance"
+acquaintance.Info.Redeals = 2
+acquaintance.redeal       = function(game)
     local stock = game.Stock[1]
     if not stock.IsEmpty then return false end
 
@@ -71,6 +74,7 @@ acquaintance.redeal                 = function(game)
     return true
 end
 
+
 ------
 
 local double_acquaintance           = Sol.copy(acquaintance)
@@ -80,11 +84,15 @@ double_acquaintance.Stock.Initial   = Sol.Initial.face_down(96)
 double_acquaintance.Foundation.Size = 8
 double_acquaintance.Tableau.Size    = 8
 
+
 ------
 
-local scuffle                       = Sol.copy(acquaintance)
-scuffle.Info.Name                   = "Scuffle"
-scuffle.Tableau.Pile.Layout         = "Squared"
+local scuffle               = Sol.copy(acquaintance)
+scuffle.Info.Name           = "Scuffle"
+scuffle.Tableau.Pile.Layout = "Squared"
+
+
+------
 
 ------------------------
 

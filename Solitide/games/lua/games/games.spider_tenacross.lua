@@ -47,6 +47,7 @@ local ten_across                 = {
     on_init    = Sol.Layout.free_cell
 }
 
+
 ------
 
 local panopticon_initial <const> = {
@@ -73,6 +74,9 @@ panopticon.Tableau               = {
         }
     end
 }
+
+
+------
 
 ------------------------
 
