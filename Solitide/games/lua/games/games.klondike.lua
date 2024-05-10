@@ -573,41 +573,14 @@ local guardian = {
     Tableau     = {
         Size = 12,
         Pile = function(i)
-            local tab = {
-                HasMarker = i < 3,
-                Layout    = "Column", --TODO: pyramid
-                Rule      = Sol.Rules.any_downac_inseq
-            }
-            if i < 7 then
-                tab.Initial = Sol.Initial.face_down(1)
-            else
-                tab.Initial = Sol.Initial.face_up(1)
-            end
-            if i < 3 then
-                tab.Position = { x = i + 2, y = 1 }
-            elseif (i < 7) then
-                tab.Position = { x = i - 1.5, y = 1.5 }
-            else
-                tab.Position = { x = i - 6, y = 2 }
-            end
-
-            return tab
+            local pile = Sol.Pyramid.pile(12, 3, { x = 1, y = 0.5 }, i)
+            pile.Rule = Sol.Rules.any_downac_inseq
+            return pile
         end
     },
     redeal      = Sol.Ops.Redeal.waste_to_stock,
     deal        = Sol.Ops.Deal.stock_to_waste_by_3,
-    on_end_turn = function(game)
-        for tabIdx = 1, 7 do
-            local pile = game.Tableau[tabIdx]
-            if not pile.IsEmpty then
-                local pileL = game.Tableau[tabIdx + 4]
-                local pileR = game.Tableau[tabIdx + 5]
-                if pileL.IsEmpty and pileR.IsEmpty then
-                    pile:flip_up_top_card()
-                end
-            end
-        end
-    end
+    on_end_turn = function(game) Sol.Pyramid.flip(12, 3, game.Tableau) end
 }
 
 

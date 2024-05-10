@@ -8,7 +8,7 @@
     },
     "button": {
         "style_type": "button",
-        "margin": "5px",
+        "margin": "6px",
         "padding": "1px",
         "border": {
             "type": "Solid",

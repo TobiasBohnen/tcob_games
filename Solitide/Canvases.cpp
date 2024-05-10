@@ -91,8 +91,12 @@ void foreground_canvas::draw_hint(gfx::render_target& target)
     rect_f dstBounds;
     if (hint.DstCardIdx >= 0) {
         dstBounds = hint.Dst->Cards[hint.DstCardIdx].Bounds;
-    } else if (hint.Dst->Marker) {
-        dstBounds = hint.Dst->Marker->Bounds();
+    } else {
+        if (hint.Dst->HasMarker && hint.Dst->Marker) {
+            dstBounds = hint.Dst->Marker->Bounds();
+        } else if (!hint.Dst->Cards.empty()) {
+            dstBounds = hint.Dst->Cards[0].Bounds;
+        }
     }
 
     auto& camera {*target.Camera};

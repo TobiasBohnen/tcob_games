@@ -389,6 +389,7 @@ void base_game::calc_hints()
                 if (src.Src->Type == pile_type::Foundation && dst->Type == pile_type::FreeCell) { continue; }                    // ignore Foundation to FreeCell
                 if (src.Src->Type == pile_type::FreeCell && dst->Type == pile_type::FreeCell) { continue; }                      // ignore FreeCell to FreeCell
                 if (dst->Type == pile_type::Foundation && src.HasFoundation) { continue; }                                       // limit foundation destinations to 1
+                if (!dst->HasMarker && dst->Cards.empty()) { continue; }                                                         // ignore markerless pile without cards
 
                 if (can_play(*dst,
                              dst->empty() ? -1 : dst->Cards.size() - 1,
