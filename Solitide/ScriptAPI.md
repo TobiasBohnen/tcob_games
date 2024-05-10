@@ -33,7 +33,7 @@ The Info table contains basic information about the game.
 
 - DeckCount (**integer**)
 
-    The number of decks used.
+    The number of decks used. Max: 24
 
 - DeckRanks (**array**)
 

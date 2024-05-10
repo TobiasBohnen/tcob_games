@@ -34,6 +34,10 @@ start_scene::~start_scene() = default;
 
 void start_scene::register_game(game_info const& info, reg_game_func&& game)
 {
+    if (info.DeckCount > 24) { return; }                                                   // TODO: error
+    if (info.DeckCount * info.DeckSuits.size() * info.DeckSuits.size() > 1500) { return; } // TODO: error
+    if (_games.size() > 2500) { return; }                                                  // TODO: error
+
     _games[info.Name] = {info, std::move(game)};
 }
 
