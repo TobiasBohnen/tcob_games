@@ -410,7 +410,7 @@ return {
         end
 
         local foundationOffsetX = (piles.TableauSize - piles.FoundationSize) / 2
-        foundationOffsetX = math.max(0, foundationOffsetX)
+        foundationOffsetX = math.max(piles.HasStock and 2 or 0, foundationOffsetX)
 
         for i = 0, piles.FoundationSize - 1 do
             piles.Foundation[i + 1].Position = { x = foundationOffsetX + i, y = 0 }

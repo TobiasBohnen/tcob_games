@@ -51,9 +51,7 @@ local golf = {
             Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
         }
     },
-    deal       = function(game)
-        return Sol.Ops.Deal.to_pile(game.Stock[1], game.Foundation[1], 1)
-    end,
+    deal       = function(game) return Sol.Ops.Deal.to_pile(game.Stock[1], game.Foundation[1], 1) end,
     get_status = golf_check_status,
     on_init    = Sol.Layout.golf
 }
@@ -272,6 +270,70 @@ double_dolphin.Tableau        = {
 
 ------
 
+local elevator = {
+    Info        = {
+        Name      = "Elevator",
+        Family    = "Golf",
+        DeckCount = 1,
+        Redeals   = 0
+    },
+    Stock       = {
+        Position = { x = 0, y = 0 },
+        Initial = Sol.Initial.face_down(23)
+    },
+    Foundation  = {
+        Position = { x = 1, y = 0 },
+        Initial  = Sol.Initial.face_up(1),
+        Layout   = "Squared",
+        Rule     = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.None() }
+    },
+    Tableau     = {
+        Size = 28,
+        Pile = function(i)
+            local pile = Sol.Pyramid.pile(28, 1, { x = 0, y = -0.5 }, i)
+            pile.Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
+            return pile
+        end
+    },
+    deal        = function(game) return Sol.Ops.Deal.to_pile(game.Stock[1], game.Foundation[1], 1) end,
+    on_end_turn = function(game) Sol.Pyramid.flip(28, 1, game.Tableau) end
+}
+
+
+------
+local function escalator_flip(game)
+    local last <const> = 21
+    local tableau = game.Tableau
+    for tabIdx = 1, last do
+        local pile = tableau[tabIdx]
+        if pile.IsEmpty then goto continue end
+
+        local rowSize <const> = math.ceil((-1 + math.sqrt((8 * tabIdx) + 1)) / 2)
+        pile.IsPlayable = tableau[tabIdx + rowSize + 0].IsEmpty and tableau[tabIdx + rowSize + 1].IsEmpty
+
+        ::continue::
+    end
+end
+
+local escalator = Sol.copy(elevator)
+escalator.Info.Name = "Escalator"
+escalator.Tableau.Pile = function(i)
+    local pile = Sol.Pyramid.pile(28, 1, { x = 0, y = -0.5 }, i)
+    --all cards visible
+    pile.Initial = Sol.Initial.face_up(1)
+    --only bottom row playable
+    local move = Sol.Rules.Move.Top()
+    if i < 21 then move.IsPlayable = false end
+
+    pile.Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.None(), Move = move }
+    return pile
+end
+escalator.on_init = escalator_flip
+escalator.on_end_turn = escalator_flip
+
+
+------
+
 local flake = {
     Info = {
         Name      = "Flake",
@@ -308,58 +370,6 @@ flake_2_decks.Tableau        = {
         Layout = "Column",
         Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.Top() }
     }
-}
-
-
-------
-
-local robert = {
-    Info       = {
-        Name      = "Robert",
-        Family    = "Golf",
-        DeckCount = 1,
-        Redeals   = 2
-    },
-    Stock      = {
-        Position = { x = 0, y = 1 },
-        Initial = Sol.Initial.face_down(51)
-    },
-    Waste      = {
-        Position = { x = 1, y = 1 }
-    },
-    Foundation = {
-        Position = { x = 0.5, y = 0 },
-        Initial  = Sol.Initial.face_up(1),
-        Layout   = "Squared",
-        Rule     = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.None() }
-    },
-    deal       = Sol.Ops.Deal.stock_to_waste,
-    redeal     = Sol.Ops.Redeal.waste_to_stock
-}
-
-
-------
-
-local wasatch        = Sol.copy(robert)
-wasatch.Info.Name    = "Wasatch"
-wasatch.Info.Redeals = -1
-wasatch.deal         = Sol.Ops.Deal.stock_to_waste_by_3
-
-
-------
-
-local bobby      = Sol.copy(robert)
-bobby.Info.Name  = "Bobby"
-bobby.Foundation = {
-    Size = 2,
-    Pile = function(i)
-        return {
-            Position = { x = i, y = 0 },
-            Initial  = Sol.Initial.face_up(1 - i),
-            Layout   = "Squared",
-            Rule     = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.None() }
-        }
-    end
 }
 
 
@@ -456,16 +466,15 @@ Sol.register_game(ants)
 Sol.register_game(all_in_a_row)
 Sol.register_game(binary_star)
 Sol.register_game(black_hole)
-Sol.register_game(bobby)
 Sol.register_game(dead_king_golf)
 Sol.register_game(dolphin)
 Sol.register_game(double_dolphin)
 Sol.register_game(double_golf)
 Sol.register_game(double_putt)
 Sol.register_game(double_uintah)
+Sol.register_game(elevator)
+Sol.register_game(escalator)
 Sol.register_game(flake)
 Sol.register_game(flake_2_decks)
 Sol.register_game(putt_putt)
-Sol.register_game(robert)
 Sol.register_game(uintah)
-Sol.register_game(wasatch)

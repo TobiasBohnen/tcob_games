@@ -446,7 +446,7 @@
     "scrollbar_thumb": {
         "style_type": "thumb",
         "type": "Rect",
-        "long_side": "25pct",
+        "long_side": "10pct",
         "short_side": "80pct",
         "border": {
             "size": "2px"

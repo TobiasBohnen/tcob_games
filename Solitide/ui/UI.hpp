@@ -16,8 +16,9 @@ public:
     form_controls(gfx::window* window, assets::group& resGrp);
 
     std::shared_ptr<button> BtnMenu;
-    std::shared_ptr<button> BtnNewGame;
     std::shared_ptr<button> BtnWizard;
+
+    std::shared_ptr<button> BtnNewGame;
 
     std::shared_ptr<button> BtnHint;
     std::shared_ptr<button> BtnCollect;

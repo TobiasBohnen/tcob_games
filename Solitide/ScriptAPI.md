@@ -109,6 +109,8 @@ The Info table contains basic information about the game.
   - Move
     - Hint
     - Func
+    - IsPlayable
+    - IsSequence
 
   - Limit
 
@@ -182,6 +184,8 @@ The Info table contains basic information about the game.
 - copy
 
 - get_rank
+
+- shuffle_piles
 
 ## _game_ members
 

@@ -38,10 +38,10 @@ local shuffle = {
     end
 }
 
-local function redeal_func(from, to)
-    if to.IsEmpty and not from.IsEmpty then
-        from:move_cards(to, 1, #from.Cards, true)
-        to:flip_down_cards()
+local function redeal_func(fromPile, toPile)
+    if toPile.IsEmpty and not fromPile.IsEmpty then
+        fromPile:move_cards(toPile, 1, #fromPile.Cards, true)
+        toPile:flip_down_cards()
         return true
     end
 
@@ -53,33 +53,33 @@ local redeal = {
     waste_to_stock = function(game) return redeal_func(game.Waste[1], game.Stock[1]) end
 }
 
-local function deal_func(from, to, count)
-    if from.IsEmpty then return false end
+local function deal_func(fromPile, toPile, count)
+    if fromPile.IsEmpty then return false end
     for _ = 1, count do
-        from:move_cards(to, #from.Cards, 1, false)
+        fromPile:move_cards(toPile, #fromPile.Cards, 1, false)
     end
-    to:flip_up_cards()
+    toPile:flip_up_cards()
     return true
 end
 
-local function deal_group_func(from, to, onlyIfEmpty)
-    if from.IsEmpty then return false end
-    for _, toPile in ipairs(to) do
-        if from.IsEmpty then break end
+local function deal_group_func(fromPile, toGroup, onlyIfEmpty)
+    if fromPile.IsEmpty then return false end
+    for _, toPile in ipairs(toGroup) do
+        if fromPile.IsEmpty then break end
         if not onlyIfEmpty or toPile.IsEmpty then
-            from:move_cards(toPile, #from.Cards, 1, false)
+            fromPile:move_cards(toPile, #fromPile.Cards, 1, false)
             toPile:flip_up_top_card()
         end
     end
     return true
 end
 
-local function deal_nonempty_group_func(from, to)
-    if from.IsEmpty then return false end
-    for _, toPile in ipairs(to) do
-        if from.IsEmpty then break end
+local function deal_nonempty_group_func(fromPile, toGroup)
+    if fromPile.IsEmpty then return false end
+    for _, toPile in ipairs(toGroup) do
+        if fromPile.IsEmpty then break end
         if not toPile.IsEmpty then
-            from:move_cards(toPile, #from.Cards, 1, false)
+            fromPile:move_cards(toPile, #fromPile.Cards, 1, false)
             toPile:flip_up_top_card()
         end
     end

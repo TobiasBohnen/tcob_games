@@ -61,15 +61,14 @@ function Sol::get_rank(r, interval, wrap) {
     return Sol.Ranks[target]
 }
 
-function Sol::shuffle_tableau(game) {
+function Sol::shuffle_piles(game) {
     local cards = []
 
-    local tableau = game.Tableau
-    foreach(tab in tableau) {
-        foreach(card in tab.Cards) {
+    foreach(pile in pileGroups) {
+        foreach(card in pile.Cards) {
             cards.append(card)
         }
-        tab.clear_cards()
+        pile.clear_cards()
     }
 
     return game.shuffle_cards(cards)

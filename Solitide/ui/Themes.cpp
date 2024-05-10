@@ -30,21 +30,23 @@ void color_theme::apply(std::shared_ptr<cycle_button::style> const& style) const
 
 void color_theme::apply(std::shared_ptr<drop_down_list::style> const& style) const
 {
-    style->Background                      = Background;
-    style->Border.Background               = Border;
-    style->DropShadow.Color                = Shadow;
-    style->Text.Color                      = Foreground;
-    style->VScrollBar.Bar.HigherBackground = Background;
-    style->VScrollBar.Bar.LowerBackground  = Background;
+    style->Background                       = Background;
+    style->Border.Background                = Border;
+    style->DropShadow.Color                 = Shadow;
+    style->Text.Color                       = Foreground;
+    style->VScrollBar.Bar.HigherBackground  = Background;
+    style->VScrollBar.Bar.LowerBackground   = Background;
+    style->VScrollBar.Bar.Border.Background = Border;
 }
 
 void color_theme::apply(std::shared_ptr<grid_view::style> const& style) const
 {
-    style->Background                      = Background;
-    style->Border.Background               = Border;
-    style->DropShadow.Color                = Shadow;
-    style->VScrollBar.Bar.HigherBackground = Background;
-    style->VScrollBar.Bar.LowerBackground  = Background;
+    style->Background                       = Background;
+    style->Border.Background                = Border;
+    style->DropShadow.Color                 = Shadow;
+    style->VScrollBar.Bar.HigherBackground  = Background;
+    style->VScrollBar.Bar.LowerBackground   = Background;
+    style->VScrollBar.Bar.Border.Background = Border;
 }
 
 void color_theme::apply(std::shared_ptr<image_box::style> const& style) const
@@ -63,19 +65,21 @@ void color_theme::apply(std::shared_ptr<label::style> const& style) const
 
 void color_theme::apply(std::shared_ptr<list_box::style> const& style) const
 {
-    style->Background                      = Background;
-    style->Border.Background               = Border;
-    style->VScrollBar.Bar.HigherBackground = Background;
-    style->VScrollBar.Bar.LowerBackground  = Background;
+    style->Background                       = Background;
+    style->Border.Background                = Border;
+    style->VScrollBar.Bar.HigherBackground  = Background;
+    style->VScrollBar.Bar.LowerBackground   = Background;
+    style->VScrollBar.Bar.Border.Background = Border;
 }
 
 void color_theme::apply(std::shared_ptr<progress_bar::style> const& style) const
 {
-    style->Background           = Background;
-    style->Border.Background    = Border;
-    style->DropShadow.Color     = Shadow;
-    style->Bar.HigherBackground = Background;
-    style->Bar.LowerBackground  = Background;
+    style->Background            = Background;
+    style->Border.Background     = Border;
+    style->DropShadow.Color      = Shadow;
+    style->Bar.HigherBackground  = Background;
+    style->Bar.LowerBackground   = Background;
+    style->Bar.Border.Background = Border;
 }
 
 void color_theme::apply(std::shared_ptr<radio_button::style> const& style) const
@@ -88,8 +92,9 @@ void color_theme::apply(std::shared_ptr<radio_button::style> const& style) const
 
 void color_theme::apply(std::shared_ptr<slider::style> const& style) const
 {
-    style->Bar.HigherBackground = Background;
-    style->Bar.LowerBackground  = Background;
+    style->Bar.HigherBackground  = Background;
+    style->Bar.LowerBackground   = Background;
+    style->Bar.Border.Background = Border;
 }
 
 void color_theme::apply(std::shared_ptr<spinner::style> const& style) const
@@ -119,12 +124,14 @@ void color_theme::apply(std::shared_ptr<toggle::style> const& style) const
 
 void color_theme::apply(std::shared_ptr<panel::style> const& style) const
 {
-    style->Background                      = Container;
-    style->Border.Background               = Border;
-    style->VScrollBar.Bar.HigherBackground = Background;
-    style->VScrollBar.Bar.LowerBackground  = Background;
-    style->HScrollBar.Bar.HigherBackground = Background;
-    style->HScrollBar.Bar.LowerBackground  = Background;
+    style->Background                       = Container;
+    style->Border.Background                = Border;
+    style->VScrollBar.Bar.HigherBackground  = Background;
+    style->VScrollBar.Bar.LowerBackground   = Background;
+    style->VScrollBar.Bar.Border.Background = Border;
+    style->HScrollBar.Bar.HigherBackground  = Background;
+    style->HScrollBar.Bar.LowerBackground   = Background;
+    style->HScrollBar.Bar.Border.Background = Border;
 }
 
 void color_theme::apply(std::shared_ptr<tab_container::style> const& style) const

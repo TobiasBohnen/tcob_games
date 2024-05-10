@@ -6,6 +6,9 @@
 #pragma once
 #include "Games.hpp"
 
+#include <chrono>
+#include <format>
+
 namespace solitaire {
 ////////////////////////////////////////////////////////////
 
@@ -239,6 +242,9 @@ template <typename Table, template <typename> typename Function, isize IndexOffs
 template <typename T>
 inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& scene, auto&& script, auto&& globalTable, auto&& makeFunc, string const& ext)
 {
+    auto const now {std::chrono::system_clock::now()};
+    globalTable["Sol"]["Year"] = std::format("{:%Y}", now);
+
     globalTable["Sol"]["register_game"] = makeFunc([scene](Table& tab) {
         auto      infoTab {tab["Info"].template as<Table>()};
         game_info info;

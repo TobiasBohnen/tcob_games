@@ -76,8 +76,8 @@ form_controls::form_controls(gfx::window* window, assets::group& resGrp)
         }};
 
         BtnMenu    = create({0, 0, 1, 1}, "btnMenu", "burger");
-        BtnNewGame = create({2, 0, 1, 1}, "btnNewGame", "newgame");
-        BtnWizard  = create({4, 0, 1, 1}, "btnWizard", "wand");
+        BtnWizard  = create({2, 0, 1, 1}, "btnWizard", "wand");
+        BtnNewGame = create({12, 0, 1, 1}, "btnNewGame", "newgame");
         BtnHint    = create({14, 0, 1, 1}, "btnHint", "hint");
         BtnCollect = create({15, 0, 1, 1}, "btnCollect", "collect");
         BtnUndo    = create({16, 0, 1, 1}, "btnUndo", "undo");

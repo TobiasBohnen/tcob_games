@@ -331,10 +331,10 @@ auto base_game::get_status() const -> game_status
     }
     switch (_info.Objective) {
     case objective::AllCardsToFoundation:
-        if (foundationCards == _info.DeckCount * 52) { return game_status::Success; }
+        if (foundationCards == _info.DeckCount * std::ssize(_info.DeckRanks) * std::ssize(_info.DeckSuits)) { return game_status::Success; }
         break;
     case objective::AllCardsButFourToFoundation:
-        if (foundationCards == (_info.DeckCount * 52) - 4) { return game_status::Success; }
+        if (foundationCards == (_info.DeckCount * std::ssize(_info.DeckRanks) * std::ssize(_info.DeckSuits)) - 4) { return game_status::Success; }
         break;
     }
 
