@@ -502,12 +502,11 @@ german_free_cell.FreeCell    = {
     end
 }
 
-
 ------
 
-local king_cell     = Sol.copy(free_cell)
-king_cell.Info.Name = "KingCell"
-king_cell.Tableau   = {
+local king_cell              = Sol.copy(free_cell)
+king_cell.Info.Name          = "KingCell"
+king_cell.Tableau            = {
     Size = 8,
     Pile = function(i)
         return {
@@ -516,6 +515,25 @@ king_cell.Tableau   = {
             Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownAlternateColors(), Move = Sol.Rules.Move.SuperMove() }
         }
     end
+}
+
+
+------
+
+local limpopo           = Sol.copy(free_cell)
+limpopo.Info.Name       = "Limpopo"
+limpopo.Info.DeckCount  = 2
+limpopo.Foundation.Size = 8
+limpopo.FreeCell        = {
+    Size = 2,
+    Pile = {
+        Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.Any(), Move = Sol.Rules.Move.Top(), Limit = 4 }
+    }
+}
+limpopo.Tableau.Pile    = {
+    Initial = Sol.Initial.face_up(13),
+    Layout = "Column",
+    Rule = Sol.Rules.any_downac_inseq
 }
 
 
@@ -707,42 +725,73 @@ local flipper = {
 
 ------
 
-local penguin = {
-    Info              = {
-        Name      = "Penguin",
+local headquarters = {
+    Info       = {
+        Name      = "Headquarters",
         Family    = "FreeCell",
-        DeckCount = 1
+        DeckCount = 2
     },
-    FreeCell          = {
-        Size = 7,
-        Pile = { Rule = Sol.Rules.any_none_top }
-    },
-    Foundation        = {
-        Size = 4,
-        Pile = { Rule = Sol.Rules.ff_upsuit_none_l13 }
-    },
-    Tableau           = {
-        Size = 7,
+    FreeCell   = {
+        Size = 6,
         Pile = function(i)
             return {
-                Initial = Sol.Initial.face_up(i > 0 and 7 or 6),
+                Position = { x = i, y = 1 },
                 Layout = "Column",
-                Rule = { Base = Sol.Rules.Base.FirstFoundation(-1), Build = Sol.Rules.Build.DownInSuit(true), Move = Sol.Rules.Move.InSeq() }
+                Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.FaceUp() }
             }
         end
     },
-    on_before_shuffle = function(game, card)
-        local tableau1 = game.Tableau[1]
-        if tableau1.IsEmpty then
-            return game.PlaceTop(card, game.Tableau, true)
-        else
-            if card.Rank == tableau1.Cards[1].Rank then
-                return game.PlaceTop(card, game.Foundation, true)
-            end
+    Foundation = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Position = { x = i + 3.5, y = 0 },
+                Rule = Sol.Rules.ace_upsuit_top
+            }
         end
-        return false
-    end,
-    on_init           = Sol.Layout.flipper
+    },
+    Tableau    = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Position = { x = i + 7, y = 1 },
+                Initial = Sol.Initial.face_up(13),
+                Layout = "Column",
+                Rule = Sol.Rules.none_downac_inseq
+            }
+        end
+    }
+}
+
+
+------
+
+local stalactites = {
+    Info       = {
+        Name      = "Stalactites",
+        Family    = "FreeCell",
+        DeckCount = 1
+    },
+    FreeCell   = {
+        Size = 2,
+        Pile = { Rule = Sol.Rules.any_none_top }
+    },
+    Foundation = {
+        Size = 4,
+        Pile = {
+            Initial = Sol.Initial.face_up(1),
+            Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpByRank(true), Move = Sol.Rules.Move.None(), Limit = 13 }
+        },
+    },
+    Tableau    = {
+        Size = 8,
+        Pile = {
+            Initial = Sol.Initial.face_up(6),
+            Layout = "Column",
+            Rule = Sol.Rules.none_none_top
+        }
+    },
+    on_init    = Sol.Layout.free_cell
 }
 
 
@@ -771,8 +820,9 @@ Sol.register_game(four_colours)
 Sol.register_game(zero_cell)
 Sol.register_game(two_cell)
 Sol.register_game(german_free_cell)
+Sol.register_game(headquarters)
 Sol.register_game(king_cell)
-Sol.register_game(penguin)
+Sol.register_game(limpopo)
 Sol.register_game(petal)
 Sol.register_game(relaxed_free_cell)
 Sol.register_game(relaxed_seahaven_towers)
@@ -780,6 +830,7 @@ Sol.register_game(repair)
 Sol.register_game(seahaven_towers)
 Sol.register_game(seven_x_five)
 Sol.register_game(seven_x_four)
+Sol.register_game(stalactites)
 Sol.register_game(super_challenge_free_cell)
 Sol.register_game(three_cell)
 Sol.register_game(triple_free_cell)

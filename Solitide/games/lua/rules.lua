@@ -251,6 +251,7 @@ local move = {
     Top = function()
         return {
             Hint = "Top card",
+            IsPlayable = true,
             IsSequence = false,
             Func = function(_, pile, idx)
                 return idx == pile.CardCount
@@ -260,6 +261,8 @@ local move = {
     TopOrPile = function()
         return {
             Hint = "Top card or whole pile",
+            IsPlayable = true,
+            IsSequence = true,
             Func = function(_, pile, idx)
                 return idx == pile.CardCount or idx == 1
             end
@@ -268,6 +271,8 @@ local move = {
     FaceUp = function()
         return {
             Hint = "Face-up cards",
+            IsPlayable = true,
+            IsSequence = true,
             Func = function(_, pile, idx)
                 for i = idx, pile.CardCount do
                     if not pile.Cards[i].IsFaceUp then return false end
@@ -279,6 +284,8 @@ local move = {
     InSeq = function()
         return {
             Hint = "Sequence of cards",
+            IsPlayable = true,
+            IsSequence = true,
             Func = function(game, pile, idx)
                 local cards = pile.Cards
                 if cards[idx].IsFaceDown then return false end
@@ -292,6 +299,8 @@ local move = {
     InSeqInSuit = function() -- in sequence and in suit
         return {
             Hint = "Sequence of cards in the same suit",
+            IsPlayable = true,
+            IsSequence = true,
             Func = function(game, pile, idx)
                 local cards = pile.Cards
                 if cards[idx].IsFaceDown then return false end
@@ -311,6 +320,8 @@ local move = {
     InSeqInColor = function() -- in sequence and in color
         return {
             Hint = "Sequence of cards in the same color",
+            IsPlayable = true,
+            IsSequence = true,
             Func = function(game, pile, idx)
                 local cards = pile.Cards
                 if cards[idx].IsFaceDown then return false end
@@ -330,6 +341,8 @@ local move = {
     InSeqAlternateColors = function() -- in sequence and alternate colors
         return {
             Hint = "Color-alternating card sequence",
+            IsPlayable = true,
+            IsSequence = true,
             Func = function(game, pile, idx)
                 local cards = pile.Cards
                 if cards[idx].IsFaceDown then return false end
@@ -349,6 +362,8 @@ local move = {
     InSeqInSuitOrSameRank = function() -- in sequence and (in suit or same rank)
         return {
             Hint = "Sequence of cards in the same suit or rank",
+            IsPlayable = true,
+            IsSequence = true,
             Func = function(game, pile, idx)
                 local cards = pile.Cards
                 if cards[idx].IsFaceDown then return false end
@@ -379,6 +394,8 @@ local move = {
     SuperMove = function()
         return {
             Hint = "Top card (SuperMove)",
+            IsPlayable = true,
+            IsSequence = true,
             Func = function(game, pile, idx)
                 local cards = pile.Cards
                 if cards[idx].IsFaceDown then return false end

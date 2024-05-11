@@ -254,11 +254,11 @@ return {
         local piles = get_piles(game)
 
         for i = 0, piles.FreeCellSize - 1 do
-            piles.FreeCell[i + 1].Position = { x = i, y = 3 }
+            piles.FreeCell[i + 1].Position = { x = i + (piles.TableauSize - piles.FreeCellSize) / 2, y = 3 }
         end
 
         for i = 0, piles.FoundationSize - 1 do
-            piles.Foundation[i + 1].Position = { x = piles.FreeCellSize, y = i }
+            piles.Foundation[i + 1].Position = { x = math.max(piles.FreeCellSize, piles.TableauSize), y = i }
         end
 
         for i = 0, piles.TableauSize - 1 do
@@ -303,7 +303,7 @@ return {
         end
 
         local foundationOffsetX = (piles.TableauSize - piles.FreeCellSize - piles.FoundationSize) / 2 + 1
-        foundationOffsetX = math.max(0, foundationOffsetX)
+        foundationOffsetX = math.max(1, foundationOffsetX)
 
         for i = 0, piles.FoundationSize - 1 do
             piles.Foundation[i + 1].Position = { x = i + piles.FreeCellSize + foundationOffsetX, y = 0 }
