@@ -157,7 +157,7 @@ grounds_for_a_divorce.Tableau.Pile  = {
     Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.InSeqInSuit() }
 }
 grounds_for_a_divorce.deal          = function(game)
-    return Sol.Ops.Deal.to_nonempty_group(game.Stock[1], game.Tableau)
+    return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, "IfNotEmpty")
 end
 
 
@@ -345,7 +345,7 @@ local astrocyte = {
         Pile = function(i)
             return {
                 Position = { x = i + 1.5, y = 0 },
-                Rule = Sol.Rules.any_none_top
+                Rule     = Sol.Rules.any_none_top
             }
         end
     },
@@ -354,7 +354,7 @@ local astrocyte = {
         Pile = function(i)
             return {
                 Position = { x = i + 6, y = 0 },
-                Rule = Sol.Rules.spider_foundation
+                Rule     = Sol.Rules.spider_foundation
             }
         end
     },
@@ -363,9 +363,9 @@ local astrocyte = {
         Pile = function(i)
             return {
                 Position = { x = i + 3, y = 1 },
-                Initial = Sol.Initial.top_face_up(8),
-                Layout = "Column",
-                Rule = Sol.Rules.spider_tableau
+                Initial  = Sol.Initial.top_face_up(8),
+                Layout   = "Column",
+                Rule     = Sol.Rules.spider_tableau
             }
         end
     },
@@ -387,16 +387,16 @@ local long_tail = {
     },
     FreeCell = {
         Position = { x = 0, y = 1 },
-        Initial = Sol.Initial.face_up(2),
-        Rule = Sol.Rules.any_any_top,
-        Layout = "Column"
+        Initial  = Sol.Initial.face_up(2),
+        Rule     = Sol.Rules.any_any_top,
+        Layout   = "Column"
     },
     Foundation = {
         Size = 4,
         Pile = function(i)
             return {
                 Position = { x = i + 2, y = 0 },
-                Rule = Sol.Rules.spider_foundation
+                Rule     = Sol.Rules.spider_foundation
             }
         end
     },
@@ -405,9 +405,9 @@ local long_tail = {
         Pile = function(i)
             return {
                 Position = { x = i + 2, y = 1 },
-                Initial = Sol.Initial.face_up(1),
-                Layout = "Column",
-                Rule = Sol.Rules.spider_tableau
+                Initial  = Sol.Initial.face_up(1),
+                Layout   = "Column",
+                Rule     = Sol.Rules.spider_tableau
             }
         end
     },
@@ -443,8 +443,8 @@ local brush = {
         Size = 10,
         Pile = {
             Initial = Sol.Initial.face_up(4),
-            Layout = "Column",
-            Rule = Sol.Rules.spider_tableau
+            Layout  = "Column",
+            Rule    = Sol.Rules.spider_tableau
         }
     },
     deal = Sol.Ops.Deal.stock_to_waste,

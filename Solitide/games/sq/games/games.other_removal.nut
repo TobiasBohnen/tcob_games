@@ -11,7 +11,7 @@ local function move_multiple(game) {
         }
     }
 
-    Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, true)
+    Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, "IfEmpty")
 }
 
 //////
@@ -27,7 +27,7 @@ local aces_up = {
         Initial = Sol.Initial.face_down(48)
     },
     Foundation = {
-        Rule = {
+        Rule  = {
             Move = Sol.Rules.Move.None()
         }
     },
@@ -36,7 +36,7 @@ local aces_up = {
         Pile = @(i) {
             Initial = Sol.Initial.face_up(1),
                 Layout = "Column",
-                Rule = {
+                Rule  = {
                     Base = Sol.Rules.Base.Any(),
                     Build = Sol.Rules.Build.None(),
                     Move = Sol.Rules.Move.Top()
@@ -85,7 +85,7 @@ local aces_up = {
 
         return "Running"
     },
-    deal = @(game) Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, false),
+    deal = @(game) Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, "Always"),
     on_init = @(game) Lua.Sol.Layout.klondike(game)
 }
 
@@ -117,7 +117,7 @@ local aces_square = {
             x = 4.5,
             y = 0
         }
-        Rule = {
+        Rule  = {
             Move = Sol.Rules.Move.None()
         }
     },
@@ -130,7 +130,7 @@ local aces_square = {
             }
             Initial = Sol.Initial.face_up(1)
             Layout = "Column"
-            Rule = {
+            Rule  = {
                 Base = Sol.Rules.Base.None(),
                 Build = Sol.Rules.Build.None(),
                 Move = Sol.Rules.Move.Top()
@@ -193,7 +193,7 @@ local cover = {
         Initial = Sol.Initial.face_down(48)
     },
     Foundation = {
-        Rule = {
+        Rule  = {
             Move = Sol.Rules.Move.None()
         }
     },
@@ -202,7 +202,7 @@ local cover = {
         Pile = @(i) {
             Initial = Sol.Initial.face_up(1),
                 Layout = "Column",
-                Rule = {
+                Rule  = {
                     Base = Sol.Rules.Base.None(),
                     Build = {
                         Hint = "Same suit",
@@ -234,7 +234,7 @@ local cover = {
 
 local deck = Sol.copy(cover)
 deck.Info.Name = "Deck"
-deck.deal <- @(game) Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, false)
+deck.deal <- @(game) Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, "Always")
 deck.get_status = function(game) {
     if (game.Foundation[0].CardCount == 48) {
         return "Success"

@@ -23,7 +23,7 @@ local snake = {
         Pile = function(i)
             return {
                 Position = { x = i % 2 + 9, y = i // 2 },
-                Rule = Sol.Rules.ace_upsuit_top
+                Rule     = Sol.Rules.ace_upsuit_top
             }
         end
     },
@@ -32,17 +32,17 @@ local snake = {
         Pile = function(i)
             return {
                 Position = { x = i, y = 1 },
-                Initial = Sol.Initial.face_up(i == 0 and 96 or 0),
-                Layout = "Column",
-                Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.DownAlternateColors(), Move = Sol.Rules.Move.SuperMove() }
+                Initial  = Sol.Initial.face_up(i == 0 and 96 or 0),
+                Layout   = "Column",
+                Rule     = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.DownAlternateColors(), Move = Sol.Rules.Move.SuperMove() }
             }
         end
     },
     on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation,
     on_after_shuffle  = function(game)
         -- kings start new pile
-        local tableau = game.Tableau
-        local tabIdx = 2
+        local tableau  = game.Tableau
+        local tabIdx   = 2
         local tableau1 = tableau[1]
         for cardIdx = tableau1.CardCount, 2, -1 do
             local card = tableau1.Cards[cardIdx]
@@ -62,9 +62,9 @@ cats_tail.Info.Name         = "Cat's Tail"
 cats_tail.Tableau.Pile      = function(i)
     return {
         Position = { x = i, y = 1 },
-        Initial = Sol.Initial.face_up(i == 0 and 104 or 0),
-        Layout = "Column",
-        Rule = Sol.Rules.none_downac_inseq
+        Initial  = Sol.Initial.face_up(i == 0 and 104 or 0),
+        Layout   = "Column",
+        Rule     = Sol.Rules.none_downac_inseq
     }
 end
 cats_tail.on_before_shuffle = nil

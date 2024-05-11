@@ -29,8 +29,8 @@ local terrace = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i < 4 and 1 or 0),
-                Layout = "Column",
-                Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.Top() }
+                Layout  = "Column",
+                Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.Top() }
             }
         end
     },
@@ -56,13 +56,13 @@ local terrace = {
     on_drop = function(game, pile)
         -- fill tableau after first turn
         if pile.Type == "Foundation" and pile.CardCount == 1 and pile.Index == 1 then
-            Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, true)
+            Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, "IfEmpty")
             Sol.Ops.Deal.stock_to_waste(game)
         end
     end,
     on_end_turn = function(game)
-        Sol.Ops.Deal.to_group(game.Waste[1], game.Tableau, true)
-        Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, true)
+        Sol.Ops.Deal.to_group(game.Waste[1], game.Tableau, "IfEmpty")
+        Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, "IfEmpty")
     end,
     on_init = Sol.Layout.terrace
 }
@@ -81,8 +81,8 @@ big_terrace.Tableau = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i < 5 and 1 or 0),
-            Layout = "Column",
-            Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.Top() }
+            Layout  = "Column",
+            Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.Top() }
         }
     end
 }

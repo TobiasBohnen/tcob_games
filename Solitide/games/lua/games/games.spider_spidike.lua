@@ -47,7 +47,7 @@ incompatibility.Tableau         = {
     }
 }
 incompatibility.deal            = function(game)
-    return Sol.Ops.Deal.to_nonempty_group(game.Stock[1], game.Tableau)
+    return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, "IfNotEmpty")
 end
 
 

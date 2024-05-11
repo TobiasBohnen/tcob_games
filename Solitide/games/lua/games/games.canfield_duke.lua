@@ -31,7 +31,7 @@ local duke = {
         Pile = function(i)
             return {
                 Position = { x = i + 3, y = 0 },
-                Rule = Sol.Rules.ace_upsuit_top
+                Rule     = Sol.Rules.ace_upsuit_top
             }
         end
     },
@@ -40,9 +40,9 @@ local duke = {
         Pile = function(i)
             return {
                 Position = { x = i + 4, y = 1 },
-                Initial = Sol.Initial.face_up(1),
-                Layout = "Column",
-                Rule = Sol.Rules.any_downac_inseq
+                Initial  = Sol.Initial.face_up(1),
+                Layout   = "Column",
+                Rule     = Sol.Rules.any_downac_inseq
             }
         end
     },
@@ -59,15 +59,15 @@ dutchess.Info.Redeals    = 1
 dutchess.Foundation.Pile = function(i)
     return {
         Position = { x = i + 3, y = 0 },
-        Rule = Sol.Rules.ff_upsuit_none_l13
+        Rule     = Sol.Rules.ff_upsuit_none_l13
     }
 end
 dutchess.Tableau.Pile    = function(i)
     return {
         Position = { x = i + 4, y = 1 },
-        Initial = Sol.Initial.face_up(1),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downac_inseq
+        Initial  = Sol.Initial.face_up(1),
+        Layout   = "Column",
+        Rule     = Sol.Rules.any_downac_inseq
     }
 end
 dutchess.can_play        = function(game, targetPile, targetCardIndex, card, numCards)

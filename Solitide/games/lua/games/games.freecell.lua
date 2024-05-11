@@ -22,8 +22,8 @@ local free_cell = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i < 4 and 7 or 6),
-                Layout = "Column",
-                Rule = Sol.Rules.any_downac_sm
+                Layout  = "Column",
+                Rule    = Sol.Rules.any_downac_sm
             }
         end
     },
@@ -109,8 +109,8 @@ local double_free_cell = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i < 4 and 11 or 10),
-                Layout = "Column",
-                Rule = Sol.Rules.any_downac_sm
+                Layout  = "Column",
+                Rule    = Sol.Rules.any_downac_sm
             }
         end
     },
@@ -129,8 +129,8 @@ double_free_cell_2.Tableau           = {
     Size = 10,
     Pile = {
         Initial = Sol.Initial.face_up(10),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downac_sm
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downac_sm
     }
 }
 double_free_cell_2.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
@@ -156,8 +156,8 @@ local triple_free_cell = {
         Size = 13,
         Pile = {
             Initial = Sol.Initial.face_up(12),
-            Layout = "Column",
-            Rule = Sol.Rules.any_downac_sm
+            Layout  = "Column",
+            Rule    = Sol.Rules.any_downac_sm
         }
     },
     on_init    = Sol.Layout.double_free_cell
@@ -171,8 +171,8 @@ bakers_game.Info.Name    = "Baker's Game"
 bakers_game.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up(i < 4 and 7 or 6),
-        Layout = "Column",
-        Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownInSuit(), Move = Sol.Rules.Move.SuperMove() }
+        Layout  = "Column",
+        Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownInSuit(), Move = Sol.Rules.Move.SuperMove() }
     }
 end
 
@@ -184,8 +184,8 @@ bakers_game_ko.Info.Name    = "King Only Baker's Game"
 bakers_game_ko.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up(i < 4 and 7 or 6),
-        Layout = "Column",
-        Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownInSuit(), Move = Sol.Rules.Move.SuperMove() }
+        Layout  = "Column",
+        Rule    = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownInSuit(), Move = Sol.Rules.Move.SuperMove() }
     }
 end
 
@@ -200,8 +200,8 @@ bath.Tableau       = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(math.min(i + 1, 8)),
-            Layout = "Column",
-            Rule = Sol.Rules.any_downac_sm
+            Layout  = "Column",
+            Rule    = Sol.Rules.any_downac_sm
         }
     end
 }
@@ -227,8 +227,8 @@ local big_cell = {
         Size = 13,
         Pile = {
             Initial = Sol.Initial.face_up(12),
-            Layout = "Column",
-            Rule = Sol.Rules.any_downac_sm
+            Layout  = "Column",
+            Rule    = Sol.Rules.any_downac_sm
         }
     },
     on_init    = Sol.Layout.double_free_cell
@@ -248,7 +248,7 @@ local cell_11 = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up((i == 0 or i == 10) and 1 or 0),
-                Rule = Sol.Rules.any_none_top
+                Rule    = Sol.Rules.any_none_top
             }
         end
     },
@@ -261,8 +261,8 @@ local cell_11 = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up((i == 0 or i == 12) and 11 or 12),
-                Layout = "Column",
-                Rule = Sol.Rules.any_downac_sm
+                Layout  = "Column",
+                Rule    = Sol.Rules.any_downac_sm
             }
         end
     },
@@ -279,8 +279,8 @@ challenge_free_cell.Tableau           = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i < 4 and 6 or 5),
-            Layout = "Column",
-            Rule = Sol.Rules.any_downac_sm
+            Layout  = "Column",
+            Rule    = Sol.Rules.any_downac_sm
         }
     end
 }
@@ -305,8 +305,8 @@ super_challenge_free_cell.Tableau   = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i < 4 and 6 or 5),
-            Layout = "Column",
-            Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownAlternateColors(), Move = Sol.Rules.Move.SuperMove() }
+            Layout  = "Column",
+            Rule    = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownAlternateColors(), Move = Sol.Rules.Move.SuperMove() }
         }
     end
 }
@@ -320,7 +320,7 @@ clink.FreeCell          = {
     Size = 2,
     Pile = {
         Initial = Sol.Initial.face_up(1),
-        Rule = Sol.Rules.any_none_top
+        Rule    = Sol.Rules.any_none_top
     }
 }
 clink.Foundation        = {
@@ -357,7 +357,7 @@ local deep = {
         Pile = function(i)
             return {
                 Position = { x = i, y = 0 },
-                Rule = Sol.Rules.any_none_top
+                Rule     = Sol.Rules.any_none_top
             }
         end
     },
@@ -366,7 +366,7 @@ local deep = {
         Pile = function(i)
             return {
                 Position = { x = i % 2 + 8, y = i // 2 },
-                Rule = Sol.Rules.ace_upsuit_top
+                Rule     = Sol.Rules.ace_upsuit_top
             }
         end
     },
@@ -375,9 +375,9 @@ local deep = {
         Pile = function(i)
             return {
                 Position = { x = i, y = 1 },
-                Initial = Sol.Initial.face_up(13),
-                Layout = "Column",
-                Rule = Sol.Rules.any_downac_inseq
+                Initial  = Sol.Initial.face_up(13),
+                Layout   = "Column",
+                Rule     = Sol.Rules.any_downac_inseq
             }
         end
     }
@@ -409,8 +409,8 @@ local eight_off = {
         Size = 8,
         Pile = {
             Initial = Sol.Initial.face_up(6),
-            Layout = "Column",
-            Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownInSuit(), Move = Sol.Rules.Move.SuperMove() }
+            Layout  = "Column",
+            Rule    = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownInSuit(), Move = Sol.Rules.Move.SuperMove() }
         }
     },
     on_init    = Sol.Layout.double_free_cell
@@ -427,8 +427,8 @@ footling.Tableau    = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i < 4 and 7 or 6),
-            Layout = "Column",
-            Rule = Sol.Rules.any_downac_inseq
+            Layout  = "Column",
+            Rule    = Sol.Rules.any_downac_inseq
         }
     end
 }
@@ -445,8 +445,8 @@ double_footling.Tableau        = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i < 4 and 11 or 10),
-            Layout = "Column",
-            Rule = Sol.Rules.any_downac_inseq
+            Layout  = "Column",
+            Rule    = Sol.Rules.any_downac_inseq
         }
     end
 }
@@ -458,14 +458,14 @@ local fore_cell         = Sol.copy(free_cell)
 fore_cell.Info.Name     = "ForeCell"
 fore_cell.FreeCell.Pile = {
     Initial = Sol.Initial.face_up(1),
-    Rule = Sol.Rules.any_none_top
+    Rule    = Sol.Rules.any_none_top
 }
 fore_cell.Tableau       = {
     Size = 8,
     Pile = {
         Initial = Sol.Initial.face_up(6),
-        Layout = "Column",
-        Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownAlternateColors(), Move = Sol.Rules.Move.SuperMove() }
+        Layout  = "Column",
+        Rule    = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownAlternateColors(), Move = Sol.Rules.Move.SuperMove() }
     }
 }
 
@@ -479,8 +479,8 @@ four_colours.Tableau   = {
     Pile = function(i)
         return {
             Initial = i < 4 and Sol.Initial.face_up(13) or {},
-            Layout = "Column",
-            Rule = Sol.Rules.any_downac_inseq
+            Layout  = "Column",
+            Rule    = Sol.Rules.any_downac_inseq
         }
     end
 }
@@ -497,7 +497,7 @@ german_free_cell.FreeCell    = {
     Pile = function(i)
         return {
             Layout = "Column",
-            Rule = { Base = Sol.Rules.Base.Suits({ german_free_cell_empty[i + 1] }), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
+            Rule   = { Base = Sol.Rules.Base.Suits({ german_free_cell_empty[i + 1] }), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
         }
     end
 }
@@ -511,8 +511,8 @@ king_cell.Tableau            = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i < 4 and 7 or 6),
-            Layout = "Column",
-            Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownAlternateColors(), Move = Sol.Rules.Move.SuperMove() }
+            Layout  = "Column",
+            Rule    = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownAlternateColors(), Move = Sol.Rules.Move.SuperMove() }
         }
     end
 }
@@ -532,8 +532,8 @@ limpopo.FreeCell        = {
 }
 limpopo.Tableau.Pile    = {
     Initial = Sol.Initial.face_up(13),
-    Layout = "Column",
-    Rule = Sol.Rules.any_downac_inseq
+    Layout  = "Column",
+    Rule    = Sol.Rules.any_downac_inseq
 }
 
 
@@ -546,8 +546,8 @@ petal.Foundation.Pile.Rule  = Sol.Rules.ff_upsuit_none_l13
 petal.Tableau.Pile          = function(i)
     return {
         Initial = Sol.Initial.face_up(i < 4 and 6 or 5),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downac_sm
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downac_sm
     }
 end
 petal.on_before_shuffle     = function(game, card)
@@ -574,8 +574,8 @@ relaxed_free_cell.Tableau   = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i < 4 and 7 or 6),
-            Layout = "Column",
-            Rule = Sol.Rules.any_downac_inseq
+            Layout  = "Column",
+            Rule    = Sol.Rules.any_downac_inseq
         }
     end
 }
@@ -592,8 +592,8 @@ repair.Tableau               = {
     Size = 10,
     Pile = {
         Initial = Sol.Initial.face_up(10),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downac_inseq
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downac_inseq
     }
 }
 
@@ -608,8 +608,8 @@ seven_x_five.Tableau       = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i < 3 and 8 or 7),
-            Layout = "Column",
-            Rule = Sol.Rules.any_downac_sm
+            Layout  = "Column",
+            Rule    = Sol.Rules.any_downac_sm
         }
     end
 }
@@ -624,8 +624,8 @@ seven_x_four.Tableau   = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i < 3 and 8 or 7),
-            Layout = "Column",
-            Rule = Sol.Rules.any_downac_sm
+            Layout  = "Column",
+            Rule    = Sol.Rules.any_downac_sm
         }
     end
 }
@@ -640,7 +640,7 @@ seahaven_towers.FreeCell  = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up((i == 1 or i == 2) and 1 or 0),
-            Rule = Sol.Rules.any_none_top
+            Rule    = Sol.Rules.any_none_top
         }
     end
 }
@@ -648,8 +648,8 @@ seahaven_towers.Tableau   = {
     Size = 10,
     Pile = {
         Initial = Sol.Initial.face_up(5),
-        Layout = "Column",
-        Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownInSuit(), Move = Sol.Rules.Move.SuperMove() }
+        Layout  = "Column",
+        Rule    = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownInSuit(), Move = Sol.Rules.Move.SuperMove() }
     }
 }
 
@@ -664,7 +664,7 @@ double_seahaven_towers.FreeCell             = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up((i > 0 and i < 7) and 1 or 0),
-            Rule = Sol.Rules.any_none_top
+            Rule    = Sol.Rules.any_none_top
         }
     end
 }
@@ -701,8 +701,8 @@ local flipper = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i % 3 == 0 and 8 or 7),
-                Layout = "Column",
-                Rule = Sol.Rules.any_downac_inseq
+                Layout  = "Column",
+                Rule    = Sol.Rules.any_downac_inseq
             }
         end
     },
@@ -736,8 +736,8 @@ local headquarters = {
         Pile = function(i)
             return {
                 Position = { x = i, y = 1 },
-                Layout = "Column",
-                Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.FaceUp() }
+                Layout   = "Column",
+                Rule     = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.FaceUp() }
             }
         end
     },
@@ -746,7 +746,7 @@ local headquarters = {
         Pile = function(i)
             return {
                 Position = { x = i + 3.5, y = 0 },
-                Rule = Sol.Rules.ace_upsuit_top
+                Rule     = Sol.Rules.ace_upsuit_top
             }
         end
     },
@@ -755,9 +755,9 @@ local headquarters = {
         Pile = function(i)
             return {
                 Position = { x = i + 7, y = 1 },
-                Initial = Sol.Initial.face_up(13),
-                Layout = "Column",
-                Rule = Sol.Rules.none_downac_inseq
+                Initial  = Sol.Initial.face_up(13),
+                Layout   = "Column",
+                Rule     = Sol.Rules.none_downac_inseq
             }
         end
     }
@@ -780,15 +780,15 @@ local stalactites = {
         Size = 4,
         Pile = {
             Initial = Sol.Initial.face_up(1),
-            Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpByRank(true), Move = Sol.Rules.Move.None(), Limit = 13 }
+            Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpByRank(true), Move = Sol.Rules.Move.None(), Limit = 13 }
         },
     },
     Tableau    = {
         Size = 8,
         Pile = {
             Initial = Sol.Initial.face_up(6),
-            Layout = "Column",
-            Rule = Sol.Rules.none_none_top
+            Layout  = "Column",
+            Rule    = Sol.Rules.none_none_top
         }
     },
     on_init    = Sol.Layout.free_cell

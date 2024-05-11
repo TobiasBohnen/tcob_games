@@ -11,8 +11,8 @@ local needle = {
     },
     FreeCell   = {
         Initial = Sol.Initial.face_up(8),
-        Layout = "Row",
-        Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.Any(), Move = Sol.Rules.Move.Top(), Limit = 18 }
+        Layout  = "Row",
+        Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.Any(), Move = Sol.Rules.Move.Top(), Limit = 18 }
     },
     Foundation = {
         Size = 4,
@@ -32,8 +32,8 @@ local needle = {
 
             return {
                 Initial = Sol.Initial.face_up(count),
-                Layout = "Column",
-                Rule = Sol.Rules.any_downac_top
+                Layout  = "Column",
+                Rule    = Sol.Rules.any_downac_top
             }
         end
     },
@@ -50,8 +50,8 @@ haystack.FreeCell.Rule.Limit = 8
 
 ------
 
-local pitchfork = Sol.copy(needle)
-pitchfork.Info.Name = "Pitchfork"
+local pitchfork         = Sol.copy(needle)
+pitchfork.Info.Name     = "Pitchfork"
 pitchfork.FreeCell.Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
 
 

@@ -11,15 +11,15 @@ local new_york = {
     },
     Reserve    = {
         Position = { x = 0, y = 0 },
-        Initial = Sol.Initial.top_face_up(95),
-        Rule = Sol.Rules.none_none_top
+        Initial  = Sol.Initial.top_face_up(95),
+        Rule     = Sol.Rules.none_none_top
     },
     FreeCell   = {
         Size = 3,
         Pile = function(i)
             return {
                 Position = { x = 0, y = i + 1 },
-                Rule = Sol.Rules.any_any_top
+                Rule     = Sol.Rules.any_any_top
             }
         end
     },
@@ -28,8 +28,8 @@ local new_york = {
         Pile = function(i)
             return {
                 Position = { x = i + 2, y = 0 },
-                Initial = Sol.Initial.face_up(i == 0 and 1 or 0),
-                Rule = Sol.Rules.ff_upsuit_none_l13
+                Initial  = Sol.Initial.face_up(i == 0 and 1 or 0),
+                Rule     = Sol.Rules.ff_upsuit_none_l13
             }
         end
     },
@@ -38,9 +38,9 @@ local new_york = {
         Pile = function(i)
             return {
                 Position = { x = i + 2, y = 1 },
-                Initial = Sol.Initial.face_up(1),
-                Layout = "Column",
-                Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.Top() }
+                Initial  = Sol.Initial.face_up(1),
+                Layout   = "Column",
+                Rule     = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.Top() }
             }
         end
     },
@@ -62,9 +62,9 @@ gotham.Reserve.Initial = Sol.Initial.top_face_up(79)
 gotham.Tableau.Pile    = function(i)
     return {
         Position = { x = i + 2, y = 1 },
-        Initial = Sol.Initial.face_up(3),
-        Layout = "Column",
-        Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.InSeq() }
+        Initial  = Sol.Initial.face_up(3),
+        Layout   = "Column",
+        Rule     = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.InSeq() }
     }
 end
 gotham.can_play        = function(game, targetPile, targetCardIndex, card, numCards)

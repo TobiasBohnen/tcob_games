@@ -18,7 +18,7 @@ local pyramid = {
     Waste       = { Position = { x = 0, y = 1 } },
     Foundation  = {
         Position = { x = 6, y = 0 },
-        Rule = Sol.Rules.none_none_none
+        Rule     = Sol.Rules.none_none_none
     },
     Tableau     = {
         Size = 28,

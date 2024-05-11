@@ -20,8 +20,8 @@ local gypsy = {
         Size = 8,
         Pile = {
             Initial = Sol.Initial.top_face_up(3),
-            Layout = "Column",
-            Rule = Sol.Rules.any_downac_inseq
+            Layout  = "Column",
+            Rule    = Sol.Rules.any_downac_inseq
         }
     },
     on_init    = Sol.Layout.gypsy,
@@ -40,7 +40,7 @@ agnes_sorel.Foundation     = {
     Pile = function(i)
         return {
             Initial = i == 0 and Sol.Initial.face_up(1) or {},
-            Rule = Sol.Rules.ff_upsuit_none_l13
+            Rule    = Sol.Rules.ff_upsuit_none_l13
         }
     end
 }
@@ -49,8 +49,8 @@ agnes_sorel.Tableau        = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i + 1),
-            Layout = "Column",
-            Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.DownInColor(), Move = Sol.Rules.Move.InSeq() }
+            Layout  = "Column",
+            Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.DownInColor(), Move = Sol.Rules.Move.InSeq() }
         }
     end
 }
@@ -66,12 +66,12 @@ blockade.Tableau       = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(1),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downsuit_inseq
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downsuit_inseq
     }
 }
 blockade.on_init       = Sol.Layout.klondike
-blockade.on_end_turn   = function(game) Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, true) end
+blockade.on_end_turn   = function(game) Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, "IfEmpty") end
 
 
 ------
@@ -114,16 +114,16 @@ churchill.Info.Name     = "Churchill"
 churchill.Stock.Initial = Sol.Initial.face_down(68)
 churchill.Reserve       = {
     Initial = Sol.Initial.face_up(6),
-    Layout = "Column",
-    Rule = Sol.Rules.none_none_top
+    Layout  = "Column",
+    Rule    = Sol.Rules.none_none_top
 }
 churchill.Tableau       = {
     Size = 10,
     Pile = function(i)
         return {
             Initial = Sol.Initial.top_face_up(i < 5 and i + 1 or 10 - i),
-            Layout = "Column",
-            Rule = Sol.Rules.king_downac_inseq
+            Layout  = "Column",
+            Rule    = Sol.Rules.king_downac_inseq
         }
     end
 }
@@ -177,8 +177,8 @@ elba.Tableau       = {
     Size = 10,
     Pile = {
         Initial = Sol.Initial.top_face_up(5),
-        Layout = "Column",
-        Rule = Sol.Rules.king_downac_inseq
+        Layout  = "Column",
+        Rule    = Sol.Rules.king_downac_inseq
     }
 }
 elba.on_init       = Sol.Layout.klondike
@@ -193,8 +193,8 @@ eclipse.Tableau       = {
     Size = 13,
     Pile = {
         Initial = Sol.Initial.face_up(4),
-        Layout = "Column",
-        Rule = Sol.Rules.king_downsuit_inseq
+        Layout  = "Column",
+        Rule    = Sol.Rules.king_downsuit_inseq
     }
 }
 eclipse.on_init       = Sol.Layout.klondike
@@ -210,8 +210,8 @@ hypotenuse.Tableau       = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.top_face_up(10 - i),
-            Layout = "Column",
-            Rule = Sol.Rules.king_downac_inseq
+            Layout  = "Column",
+            Rule    = Sol.Rules.king_downac_inseq
         }
     end
 }
@@ -230,8 +230,8 @@ small_triangle.Tableau         = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.top_face_up(i + 1),
-            Layout = "Column",
-            Rule = Sol.Rules.king_downac_inseq
+            Layout  = "Column",
+            Rule    = Sol.Rules.king_downac_inseq
         }
     end
 }
@@ -245,8 +245,8 @@ eternal_triangle.Info.Name    = "Eternal Triangle"
 eternal_triangle.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up(10 - i),
-        Layout = "Column",
-        Rule = Sol.Rules.king_downac_inseq
+        Layout  = "Column",
+        Rule    = Sol.Rules.king_downac_inseq
     }
 end
 
@@ -258,8 +258,8 @@ flamenco.Info.Name         = "Flamenco"
 flamenco.Stock.Initial     = Sol.Initial.face_down(72)
 flamenco.Tableau.Pile      = {
     Initial = Sol.Initial.face_up(3),
-    Layout = "Column",
-    Rule = Sol.Rules.any_downac_inseq
+    Layout  = "Column",
+    Rule    = Sol.Rules.any_downac_inseq
 }
 flamenco.Foundation.Pile   = function(i)
     return { Rule = i < 4 and Sol.Rules.ace_upsuit_top or Sol.Rules.king_downsuit_top }
@@ -322,8 +322,8 @@ irmgard.Tableau       = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.top_face_up(i < 5 and i + 1 or 9 - i),
-            Layout = "Column",
-            Rule = Sol.Rules.king_downac_inseq
+            Layout  = "Column",
+            Rule    = Sol.Rules.king_downac_inseq
         }
     end
 }
@@ -347,8 +347,8 @@ phantom_blockade.Tableau       = {
     Size = 13,
     Pile = {
         Initial = Sol.Initial.face_up(3),
-        Layout = "Column",
-        Rule = Sol.Rules.king_downac_inseq
+        Layout  = "Column",
+        Rule    = Sol.Rules.king_downac_inseq
     }
 }
 
@@ -365,8 +365,8 @@ scarp.Tableau         = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i + 1),
-            Layout = "Column",
-            Rule = Sol.Rules.any_downac_inseq
+            Layout  = "Column",
+            Rule    = Sol.Rules.any_downac_inseq
         }
     end
 }
@@ -397,7 +397,7 @@ local cone = {
         Pile = function(i)
             return {
                 Position = { x = 0, y = i + 1 },
-                Rule = Sol.Rules.none_none_top
+                Rule     = Sol.Rules.none_none_top
             }
         end
     },
@@ -406,7 +406,7 @@ local cone = {
         Pile = function(i)
             return {
                 Position = { x = 8, y = i + 1 },
-                Rule = { Base = Sol.Rules.Base.Ace(), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top() }
+                Rule     = { Base = Sol.Rules.Base.Ace(), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top() }
             }
         end
     },
@@ -415,9 +415,9 @@ local cone = {
         Pile = function(i)
             return {
                 Position = { x = i + 1, y = 0 },
-                Initial = Sol.Initial.top_face_up(i < 4 and i + 1 or 7 - i),
-                Layout = "Column",
-                Rule = Sol.Rules.any_downac_inseq
+                Initial  = Sol.Initial.top_face_up(i < 4 and i + 1 or 7 - i),
+                Layout   = "Column",
+                Rule     = Sol.Rules.any_downac_inseq
             }
         end
     },
@@ -429,7 +429,7 @@ local cone = {
         end
         --deal last 4 cards to reserve
         if game.Stock[1].CardCount == 4 then
-            return Sol.Ops.Deal.to_group(game.Stock[1], game.Reserve, false)
+            return Sol.Ops.Deal.to_group(game.Stock[1], game.Reserve)
         end
 
         return Sol.Ops.Deal.stock_to_tableau(game)
@@ -454,9 +454,9 @@ local leprechaun = {
         Pile = function(i)
             return {
                 Position = { x = 2 + i, y = 0 },
-                Initial = Sol.Initial.face_down(4),
-                Layout = "Column",
-                Rule = Sol.Rules.none_none_top
+                Initial  = Sol.Initial.face_down(4),
+                Layout   = "Column",
+                Rule     = Sol.Rules.none_none_top
             }
         end
     },
@@ -465,7 +465,7 @@ local leprechaun = {
         Pile = function(i)
             return {
                 Position = { x = 2 + i, y = 1.5 },
-                Rule = Sol.Rules.ace_upsuit_none
+                Rule     = Sol.Rules.ace_upsuit_none
             }
         end
     },
@@ -474,9 +474,9 @@ local leprechaun = {
         Pile = function(i)
             return {
                 Position = { x = 2 + i, y = 2.5 },
-                Initial = Sol.Initial.top_face_up(3),
-                Layout = "Column",
-                Rule = Sol.Rules.any_downac_inseq
+                Initial  = Sol.Initial.top_face_up(3),
+                Layout   = "Column",
+                Rule     = Sol.Rules.any_downac_inseq
             }
         end
     },
@@ -506,7 +506,7 @@ local milligan_cell = {
         Pile = function(i)
             return {
                 Position = { x = 0, y = i + 1 },
-                Rule = Sol.Rules.any_none_top
+                Rule     = Sol.Rules.any_none_top
             }
         end
     },
@@ -515,7 +515,7 @@ local milligan_cell = {
         Pile = function(i)
             return {
                 Position = { x = 2 + i, y = 0 },
-                Rule = Sol.Rules.ace_upsuit_none
+                Rule     = Sol.Rules.ace_upsuit_none
             }
         end
     },
@@ -524,9 +524,9 @@ local milligan_cell = {
         Pile = function(i)
             return {
                 Position = { x = 2 + i, y = 1 },
-                Initial = Sol.Initial.top_face_up(1),
-                Layout = "Column",
-                Rule = Sol.Rules.king_downac_inseq
+                Initial  = Sol.Initial.top_face_up(1),
+                Layout   = "Column",
+                Rule     = Sol.Rules.king_downac_inseq
             }
         end
     },
@@ -547,7 +547,7 @@ local miss_milligan = {
     },
     FreeCell   = {
         Layout = "Column",
-        Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.FaceUp() }
+        Rule   = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.FaceUp() }
     },
     Foundation = {
         Size = 8,
@@ -557,8 +557,8 @@ local miss_milligan = {
         Size = 8,
         Pile = {
             Initial = Sol.Initial.top_face_up(1),
-            Layout = "Column",
-            Rule = Sol.Rules.king_downac_inseq
+            Layout  = "Column",
+            Rule    = Sol.Rules.king_downac_inseq
         }
     },
     can_play   = function(game, targetPile, targetCardIndex, card, numCards)
@@ -604,8 +604,8 @@ local nomad = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(4),
-                Layout = "Column",
-                Rule = Sol.Rules.any_downac_inseq
+                Layout  = "Column",
+                Rule    = Sol.Rules.any_downac_inseq
             }
         end
     },
@@ -626,7 +626,7 @@ local right_triangle = {
         Initial = Sol.Initial.face_down(49)
     },
     FreeCell   = {
-        Rule = Sol.Rules.any_any_top,
+        Rule   = Sol.Rules.any_any_top,
         Layout = "Column"
     },
     Foundation = {
@@ -638,8 +638,8 @@ local right_triangle = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.top_face_up(i + 1),
-                Layout = "Column",
-                Rule = Sol.Rules.king_downac_inseq
+                Layout  = "Column",
+                Rule    = Sol.Rules.king_downac_inseq
             }
         end
     },

@@ -29,7 +29,7 @@ local gate = {
         Pile = function(i)
             return {
                 Position = { x = i + 2.5, y = 0 },
-                Rule = Sol.Rules.ace_upsuit_top
+                Rule     = Sol.Rules.ace_upsuit_top
             }
         end
     },
@@ -38,21 +38,21 @@ local gate = {
         Pile = function(i)
             return {
                 Position = { x = i + 1.5, y = 1 },
-                Initial = Sol.Initial.face_up(1),
-                Layout = "Column",
-                Rule = Sol.Rules.any_downac_inseq
+                Initial  = Sol.Initial.face_up(1),
+                Layout   = "Column",
+                Rule     = Sol.Rules.any_downac_inseq
             }
         end
     },
     on_end_turn = function(game)
         local reserve = game.Reserve
         if reserve[1].IsEmpty and reserve[2].IsEmpty then
-            Sol.Ops.Deal.to_group(game.Waste[1], game.Tableau, true)
+            Sol.Ops.Deal.to_group(game.Waste[1], game.Tableau, "IfEmpty")
         else
             if reserve[1].CardCount >= reserve[2].CardCount then
-                Sol.Ops.Deal.to_group(game.Reserve[1], game.Tableau, true)
+                Sol.Ops.Deal.to_group(game.Reserve[1], game.Tableau, "IfEmpty")
             else
-                Sol.Ops.Deal.to_group(game.Reserve[2], game.Tableau, true)
+                Sol.Ops.Deal.to_group(game.Reserve[2], game.Tableau, "IfEmpty")
             end
         end
     end,

@@ -27,7 +27,7 @@ local ten_across                 = {
         Size = 2,
         Pile = {
             Initial = Sol.Initial.face_up(1),
-            Rule = Sol.Rules.any_none_top
+            Rule    = Sol.Rules.any_none_top
         }
     },
     Foundation = {
@@ -39,8 +39,8 @@ local ten_across                 = {
         Pile = function(i)
             return {
                 Initial = ten_across_initial[i + 1],
-                Layout = "Column",
-                Rule = Sol.Rules.king_downsuit_faceup
+                Layout  = "Column",
+                Rule    = Sol.Rules.king_downsuit_faceup
             }
         end
     },
@@ -69,8 +69,8 @@ panopticon.Tableau               = {
     Pile = function(i)
         return {
             Initial = panopticon_initial[i + 1],
-            Layout = "Column",
-            Rule = Sol.Rules.king_downsuit_faceup
+            Layout  = "Column",
+            Rule    = Sol.Rules.king_downsuit_faceup
         }
     end
 }

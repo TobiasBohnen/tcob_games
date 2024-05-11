@@ -23,7 +23,7 @@ local numerica = {
         Size = 4,
         Pile = {
             Layout = "Column",
-            Rule = Sol.Rules.any_any_top
+            Rule   = Sol.Rules.any_any_top
         }
     },
     can_play    = function(game, targetPile, targetCardIndex, card, numCards)
@@ -63,8 +63,8 @@ assembly.Info.Name     = "Assembly"
 assembly.Stock.Initial = Sol.Initial.face_down(47)
 assembly.Tableau.Pile  = {
     Initial = Sol.Initial.face_up(1),
-    Layout = "Column",
-    Rule = Sol.Rules.any_downrank_top
+    Layout  = "Column",
+    Rule    = Sol.Rules.any_downrank_top
 }
 assembly.can_play      = function(game, targetPile, targetCardIndex, card, numCards)
     -- empty Tableau piles can only be filled from the Waste
@@ -107,7 +107,7 @@ local amazons                    = {
         Pile = function(i)
             return {
                 Position = { x = i + 1, y = 0 },
-                Rule = {
+                Rule     = {
                     Base = Sol.Rules.Base.Ace(),
                     Build = {
                         Hint = "Up by rank",
@@ -127,9 +127,9 @@ local amazons                    = {
         Pile = function(i)
             return {
                 Position = { x = i + 1, y = 1 },
-                Initial = Sol.Initial.face_up(1),
-                Layout = "Column",
-                Rule = Sol.Rules.none_none_top
+                Initial  = Sol.Initial.face_up(1),
+                Layout   = "Column",
+                Rule     = Sol.Rules.none_none_top
             }
         end
     },
@@ -145,8 +145,8 @@ local amazons                    = {
         return game:can_play(targetPile, targetCardIndex, card, numCards)
     end,
     deal       = function(game)
-        local from = game.Stock[1]
-        local to = game.Tableau
+        local from       = game.Stock[1]
+        local to         = game.Tableau
         local foundation = game.Foundation
 
         if from.IsEmpty then return false end
@@ -205,7 +205,7 @@ local toad = {
         Pile = function(i)
             return {
                 Position = { x = i + 4, y = 0 },
-                Rule = Sol.Rules.ace_upsuit_none
+                Rule     = Sol.Rules.ace_upsuit_none
             }
         end
     },
@@ -214,8 +214,8 @@ local toad = {
         Pile = function(i)
             return {
                 Position = { x = i + 5.5, y = 1 },
-                Layout = "Column",
-                Rule = Sol.Rules.any_any_top
+                Layout   = "Column",
+                Rule     = Sol.Rules.any_any_top
             }
         end
     },
@@ -232,7 +232,7 @@ local toad = {
             if not rev.IsEmpty then return false end
         end
 
-        return Sol.Ops.Deal.to_group(game.Stock[1], reserve, false)
+        return Sol.Ops.Deal.to_group(game.Stock[1], reserve)
     end
 }
 
@@ -245,7 +245,7 @@ amphibian.Reserve.Size    = 4
 amphibian.Foundation.Pile = function(i)
     return {
         Position = { x = i + 4, y = 0 },
-        Rule = Sol.Rules.ace_uprank_none
+        Rule     = Sol.Rules.ace_uprank_none
     }
 end
 
@@ -278,8 +278,8 @@ local anno_domini = {
         Size = 4,
         Pile = {
             Initial = Sol.Initial.face_up(1),
-            Layout = "Column",
-            Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.InSeq() }
+            Layout  = "Column",
+            Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.InSeq() }
         }
     },
     can_play   = function(game, targetPile, targetCardIndex, card, numCards)

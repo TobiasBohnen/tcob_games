@@ -22,8 +22,8 @@ local take_away = {
         Size = 4,
         Pile = {
             Initial = Sol.Initial.face_up(13),
-            Layout = "Column",
-            Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
+            Layout  = "Column",
+            Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
         }
     },
     on_init    = Sol.Layout.canister
@@ -69,8 +69,8 @@ local striptease = {
         Size = 4,
         Pile = {
             Initial = { false, true, true, true, true, true, true, true, true, true, true, true },
-            Layout = "Column",
-            Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
+            Layout  = "Column",
+            Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
         }
     },
     on_before_shuffle = function(game, card)

@@ -18,8 +18,8 @@ local chessboard = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i < 2 and 6 or 5),
-                Layout = "Column",
-                Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpOrDownInSuit(true), Move = Sol.Rules.Move.Top() }
+                Layout  = "Column",
+                Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpOrDownInSuit(true), Move = Sol.Rules.Move.Top() }
             }
         end
     },
@@ -43,8 +43,8 @@ lasker.Foundation.Pile = { Rule = Sol.Rules.ff_upsuit_top_l13 }
 lasker.Tableau.Pile    = function(i)
     return {
         Initial = Sol.Initial.face_up(i < 2 and 6 or 5),
-        Layout = "Column",
-        Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpOrDownInSuit(true), Move = Sol.Rules.Move.InSeq() }
+        Layout  = "Column",
+        Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpOrDownInSuit(true), Move = Sol.Rules.Move.InSeq() }
     }
 end
 
@@ -56,8 +56,8 @@ morphy.Info.Name    = "Morphy"
 morphy.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up(i < 2 and 6 or 5),
-        Layout = "Column",
-        Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpOrDownAlternateColors(true), Move = Sol.Rules.Move.Top() }
+        Layout  = "Column",
+        Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpOrDownAlternateColors(true), Move = Sol.Rules.Move.Top() }
     }
 end
 

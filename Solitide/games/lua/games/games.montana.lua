@@ -126,9 +126,9 @@ local montana               = {
         Size = 52,
         Pile = {
             Position = {},
-            Initial = Sol.Initial.face_up(1),
-            Layout = "Squared",
-            Rule = Sol.Rules.none_none_top
+            Initial  = Sol.Initial.face_up(1),
+            Layout   = "Squared",
+            Rule     = Sol.Rules.none_none_top
         }
     },
     on_shuffle = function(_, card, _)
@@ -193,8 +193,8 @@ local blue_moon = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i % 14 == 0 and 0 or 1),
-                Layout = "Squared",
-                Rule = Sol.Rules.none_none_top
+                Layout  = "Squared",
+                Rule    = Sol.Rules.none_none_top
             }
         end
     },
@@ -232,8 +232,8 @@ red_moon.Info.Name         = "Red Moon"
 red_moon.Tableau.Pile      = function(i)
     return {
         Initial = Sol.Initial.face_up((i % 14 < 2) and 0 or 1),
-        Layout = "Squared",
-        Rule = Sol.Rules.none_none_top
+        Layout  = "Squared",
+        Rule    = Sol.Rules.none_none_top
     }
 end
 red_moon.on_before_shuffle = blue_moon.on_shuffle
@@ -258,8 +258,8 @@ galary.Info.Name         = "Galary"
 galary.Tableau.Pile      = function(i)
     return {
         Initial = Sol.Initial.face_up((i % 14 == 0 or i % 14 == 1) and 0 or 1),
-        Layout = "Squared",
-        Rule = Sol.Rules.none_none_top
+        Layout  = "Squared",
+        Rule    = Sol.Rules.none_none_top
     }
 end
 galary.on_before_shuffle = function(game, card)
@@ -289,8 +289,8 @@ local paganini               = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i % 10 == 0 and 0 or 1),
-                Layout = "Squared",
-                Rule = Sol.Rules.none_none_top
+                Layout  = "Squared",
+                Rule    = Sol.Rules.none_none_top
             }
         end
     },
@@ -340,9 +340,9 @@ local spoilt               = {
         Pile = function(i)
             return {
                 Position = { x = i % 8 + 1, y = i // 8 },
-                Initial = Sol.Initial.face_down(i % 8 == 0 and 0 or 1),
-                Layout = "Squared",
-                Rule = Sol.Rules.none_none_none
+                Initial  = Sol.Initial.face_down(i % 8 == 0 and 0 or 1),
+                Layout   = "Squared",
+                Rule     = Sol.Rules.none_none_none
             }
         end
     },

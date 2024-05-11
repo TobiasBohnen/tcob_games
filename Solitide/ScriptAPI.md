@@ -67,7 +67,7 @@ The Info table contains basic information about the game.
   ```lua
   Foundation = {
      Size   = 8,
-     Pile = { Rule = Sol.Rules.ace_upsuit_top }
+     Pile = { Rule  = Sol.Rules.ace_upsuit_top }
   }
   ```
 
@@ -82,7 +82,7 @@ The Info table contains basic information about the game.
       Pile = function(i)
         return {
               Initial = Sol.Initial.face_up(i + 1),
-              Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.DownInColor(), Move = Sol.Rules.Move.InSeq() }
+              Rule  = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.DownInColor(), Move = Sol.Rules.Move.InSeq() }
         }
       end
   }

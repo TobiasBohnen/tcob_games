@@ -16,16 +16,16 @@ local four_by_four = {
     Waste = { Position = { x = 1, y = 0 } },
     Foundation = {
         Position = { x = 4.5, y = 0 },
-        Initial = Sol.Initial.face_up(1),
-        Rule = { Base = Sol.Rules.Base.FirstFoundation(), Build = Sol.Rules.Build.RankPack(true), Move = Sol.Rules.Move.None() }
+        Initial  = Sol.Initial.face_up(1),
+        Rule     = { Base = Sol.Rules.Base.FirstFoundation(), Build = Sol.Rules.Build.RankPack(true), Move = Sol.Rules.Move.None() }
     },
     Tableau = {
         Size = 4,
         Pile = function(i)
             return {
                 Position = { x = i + 3, y = 1 },
-                Layout = "Column",
-                Rule = Sol.Rules.any_updownrank_top
+                Layout   = "Column",
+                Rule     = Sol.Rules.any_updownrank_top
             }
         end
     },
@@ -52,7 +52,7 @@ local lucky_thirteen = {
         Pile = function(i)
             return {
                 Position = { x = i + 0.5, y = 0 },
-                Rule = Sol.Rules.ace_uprank_top
+                Rule     = Sol.Rules.ace_uprank_top
             }
         end
     },
@@ -61,9 +61,9 @@ local lucky_thirteen = {
         Pile = function(i)
             return {
                 Position = { x = lucky_thirteen_pos[i + 1][1], y = lucky_thirteen_pos[i + 1][2] },
-                Initial = Sol.Initial.face_up(4),
-                Layout = "Squared",
-                Rule = Sol.Rules.none_downrank_top
+                Initial  = Sol.Initial.face_up(4),
+                Layout   = "Squared",
+                Rule     = Sol.Rules.none_downrank_top
             }
         end
     }

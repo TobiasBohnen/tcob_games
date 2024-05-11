@@ -21,8 +21,8 @@ local klondike = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.top_face_up(i + 1),
-                Layout = "Column",
-                Rule = Sol.Rules.king_downac_inseq
+                Layout  = "Column",
+                Rule    = Sol.Rules.king_downac_inseq
             }
         end
     },
@@ -123,7 +123,7 @@ local big_deal = {
         Pile = function(i)
             return {
                 Position = { x = i % 2 + 12, y = i // 2 },
-                Rule = Sol.Rules.ace_upsuit_top
+                Rule     = Sol.Rules.ace_upsuit_top
             }
         end
     },
@@ -152,8 +152,8 @@ big_forty.Tableau       = {
     Size = 10,
     Pile = {
         Initial = Sol.Initial.top_face_up(4),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downsuit_inseq
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downsuit_inseq
     }
 }
 
@@ -171,8 +171,8 @@ big_harp.Tableau         = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.top_face_up(10 - i),
-            Layout = "Column",
-            Rule = Sol.Rules.any_downac_inseq
+            Layout  = "Column",
+            Rule    = Sol.Rules.any_downac_inseq
         }
     end
 }
@@ -187,8 +187,8 @@ inquisitor.Info.Redeals = 2
 inquisitor.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up(i + 1),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downsuit_inseq
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downsuit_inseq
     }
 end
 inquisitor.deal         = Sol.Ops.Deal.stock_to_waste_by_3
@@ -202,8 +202,8 @@ lady_jane.Info.Redeals = 1
 lady_jane.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up(i + 1),
-        Layout = "Column",
-        Rule = Sol.Rules.spider_tableau
+        Layout  = "Column",
+        Rule    = Sol.Rules.spider_tableau
     }
 end
 lady_jane.deal         = Sol.Ops.Deal.stock_to_waste_by_3
@@ -218,8 +218,8 @@ ali_baba.Tableau           = {
     Size = 10,
     Pile = {
         Initial = Sol.Initial.top_face_up(4),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downsuit_inseq
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downsuit_inseq
     }
 }
 ali_baba.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
@@ -279,8 +279,8 @@ arabella.Tableau         = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.top_face_up(i + 1),
-            Layout = "Column",
-            Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.InSeqInSuit() }
+            Layout  = "Column",
+            Rule    = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.InSeqInSuit() }
         }
     end
 }
@@ -293,8 +293,8 @@ local athena        = Sol.copy(klondike)
 athena.Info.Name    = "Athena"
 athena.Tableau.Pile = {
     Initial = Sol.Initial.alternate(4, false),
-    Layout = "Column",
-    Rule = Sol.Rules.any_downac_inseq
+    Layout  = "Column",
+    Rule    = Sol.Rules.any_downac_inseq
 }
 
 
@@ -309,8 +309,8 @@ aunt_mary.Tableau       = {
     Pile = function(i)
         return {
             Initial = { i < 1, i < 2, i < 3, i < 4, i < 5, i < 6 },
-            Layout = "Column",
-            Rule = Sol.Rules.any_downac_inseq
+            Layout  = "Column",
+            Rule    = Sol.Rules.any_downac_inseq
         }
     end
 }
@@ -344,8 +344,8 @@ blind_alleys.Tableau           = {
     Size = 6,
     Pile = {
         Initial = Sol.Initial.top_face_up(3),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downac_inseq
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downac_inseq
     }
 }
 blind_alleys.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
@@ -361,8 +361,8 @@ pas_seul.Tableau       = {
     Size = 6,
     Pile = {
         Initial = Sol.Initial.face_up(1),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downac_inseq
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downac_inseq
     }
 }
 
@@ -383,8 +383,8 @@ cassim.Info.Name         = "Cassim"
 cassim.Stock.Initial     = Sol.Initial.face_down(20)
 cassim.Tableau.Pile      = {
     Initial = Sol.Initial.top_face_up(4),
-    Layout = "Column",
-    Rule = Sol.Rules.any_downsuit_inseq
+    Layout  = "Column",
+    Rule    = Sol.Rules.any_downsuit_inseq
 }
 cassim.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
 
@@ -399,8 +399,8 @@ chinaman.Tableau      = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.top_face_up(i + 1),
-            Layout = "Column",
-            Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownAnyButOwnSuit(), Move = Sol.Rules.Move.InSeq() }
+            Layout  = "Column",
+            Rule    = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownAnyButOwnSuit(), Move = Sol.Rules.Move.InSeq() }
         }
     end
 }
@@ -428,8 +428,8 @@ eastcliff.Tableau       = {
     Size = 7,
     Pile = {
         Initial = Sol.Initial.top_face_up(3),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downac_inseq
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downac_inseq
     }
 }
 
@@ -477,8 +477,8 @@ eight_by_eight2.Tableau         = {
     Size = 8,
     Pile = {
         Initial = Sol.Initial.face_up(8),
-        Layout = "Column",
-        Rule = { Base = Sol.Rules.Base.AnySingle(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.InSeq() }
+        Layout  = "Column",
+        Rule    = { Base = Sol.Rules.Base.AnySingle(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.InSeq() }
     }
 }
 eight_by_eight2.deal            = Sol.Ops.Deal.stock_to_waste_by_redeals_left
@@ -491,8 +491,8 @@ eight_by_eight3.Info.Name    = "Eight Times Eight"
 eight_by_eight3.Info.Redeals = 2
 eight_by_eight3.Tableau.Pile = {
     Initial = Sol.Initial.face_up(8),
-    Layout = "Column",
-    Rule = Sol.Rules.any_downac_inseq
+    Layout  = "Column",
+    Rule    = Sol.Rules.any_downac_inseq
 }
 
 
@@ -508,8 +508,8 @@ eight_sages.Tableau         = {
     Size = 8,
     Pile = {
         Initial = Sol.Initial.face_up(1),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downac_top
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downac_top
     }
 }
 eight_sages.can_play        = function(game, targetPile, targetCardIndex, card, numCards)
@@ -538,8 +538,8 @@ open_gargantua.Info.Name    = "Open Gargantua"
 open_gargantua.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up(i + 1),
-        Layout = "Column",
-        Rule = Sol.Rules.king_downac_inseq
+        Layout  = "Column",
+        Rule    = Sol.Rules.king_downac_inseq
     }
 end
 
@@ -566,7 +566,7 @@ local guardian = {
         Pile = function(i)
             return {
                 Position = { x = i + 3, y = 0 },
-                Rule = Sol.Rules.ace_upsuit_top
+                Rule     = Sol.Rules.ace_upsuit_top
             }
         end
     },
@@ -574,7 +574,7 @@ local guardian = {
         Size = 12,
         Pile = function(i)
             local pile = Sol.Pyramid.pile(12, 3, { x = 1, y = 0.5 }, i)
-            pile.Rule = Sol.Rules.any_downac_inseq
+            pile.Rule  = Sol.Rules.any_downac_inseq
             return pile
         end
     },
@@ -601,8 +601,8 @@ kingsley.Foundation.Pile = { Rule = Sol.Rules.king_downsuit_top }
 kingsley.Tableau.Pile    = function(i)
     return {
         Initial = Sol.Initial.top_face_up(i + 1),
-        Layout = "Column",
-        Rule = { Base = Sol.Rules.Base.Ace(), Build = Sol.Rules.Build.UpAlternateColors(), Move = Sol.Rules.Move.InSeq() }
+        Layout  = "Column",
+        Rule    = { Base = Sol.Rules.Base.Ace(), Build = Sol.Rules.Build.UpAlternateColors(), Move = Sol.Rules.Move.InSeq() }
     }
 end
 
@@ -629,8 +629,8 @@ lanes.Tableau           = {
     Size = 6,
     Pile = {
         Initial = Sol.Initial.face_up(3),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downac_top
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downac_top
     }
 }
 lanes.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
@@ -647,8 +647,8 @@ legion.Tableau       = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.alternate(i < 4 and i * 2 + 1 or (7 - i) * 2 + 1, true),
-            Layout = "Column",
-            Rule = Sol.Rules.king_downac_top
+            Layout  = "Column",
+            Rule    = Sol.Rules.king_downac_top
         }
     end
 }
@@ -705,8 +705,8 @@ nine_across.Tableau       = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i + 1),
-            Layout = "Column",
-            Rule = { Base = Sol.Rules.Base.FirstFoundation(-1), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.InSeq() }
+            Layout  = "Column",
+            Rule    = { Base = Sol.Rules.Base.FirstFoundation(-1), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.InSeq() }
         }
     end
 }
@@ -728,8 +728,8 @@ pantagruel.Info.Redeals = 0
 pantagruel.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.top_face_up(i + 1),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downac_inseq
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downac_inseq
     }
 end
 
@@ -744,8 +744,8 @@ pas_seul.Tableau       = {
     Size = 6,
     Pile = {
         Initial = Sol.Initial.top_face_up(1),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downac_inseq
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downac_inseq
     }
 }
 
@@ -779,8 +779,8 @@ saratoga.Info.Name    = "Saratoga"
 saratoga.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up(i + 1),
-        Layout = "Column",
-        Rule = Sol.Rules.king_downac_inseq
+        Layout  = "Column",
+        Rule    = Sol.Rules.king_downac_inseq
     }
 end
 
@@ -793,8 +793,8 @@ smokey.Info.Redeals = 2
 smokey.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up(i + 1),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downcolor_inseqsuit
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downcolor_inseqsuit
     }
 end
 
@@ -816,8 +816,8 @@ local somerset = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i < 7 and i + 1 or 8),
-                Layout = "Column",
-                Rule = Sol.Rules.any_downac_top
+                Layout  = "Column",
+                Rule    = Sol.Rules.any_downac_top
             }
         end
     },
@@ -838,8 +838,8 @@ steps.Tableau         = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.top_face_up(i + 1),
-            Layout = "Column",
-            Rule = Sol.Rules.any_downac_inseq
+            Layout  = "Column",
+            Rule    = Sol.Rules.any_downac_inseq
         }
     end
 }
@@ -863,8 +863,8 @@ local spike = {
         Pile = function(i)
             return {
                 Position = { x = 0, y = i + 1 },
-                Layout = "Squared",
-                Rule = Sol.Rules.none_none_top
+                Layout   = "Squared",
+                Rule     = Sol.Rules.none_none_top
             }
         end
     },
@@ -873,7 +873,7 @@ local spike = {
         Pile = function(i)
             return {
                 Position = { x = 3.5 + i, y = 0 },
-                Rule = Sol.Rules.ace_upsuit_top
+                Rule     = Sol.Rules.ace_upsuit_top
             }
         end
     },
@@ -882,13 +882,13 @@ local spike = {
         Pile = function(i)
             return {
                 Position = { x = 1.5 + i, y = 1 },
-                Initial = Sol.Initial.top_face_up(i + 1),
-                Layout = "Column",
-                Rule = Sol.Rules.king_downac_inseq
+                Initial  = Sol.Initial.top_face_up(i + 1),
+                Layout   = "Column",
+                Rule     = Sol.Rules.king_downac_inseq
             }
         end
     },
-    deal       = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Waste, false) end
+    deal       = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Waste) end
 }
 
 
@@ -938,8 +938,8 @@ thieves_of_egypt.Tableau         = {
         local cardCount <const> = { 1, 3, 5, 7, 9, 10, 8, 6, 4, 2 }
         return {
             Initial = Sol.Initial.face_up(cardCount[i + 1]),
-            Layout = "Column",
-            Rule = Sol.Rules.king_downac_inseq
+            Layout  = "Column",
+            Rule    = Sol.Rules.king_downac_inseq
         }
     end
 }
@@ -953,8 +953,8 @@ thumb_and_pouch.Info.Redeals = 0
 thumb_and_pouch.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.top_face_up(i + 1),
-        Layout = "Column",
-        Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAnyButOwnSuit(), Move = Sol.Rules.Move.InSeq() }
+        Layout  = "Column",
+        Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAnyButOwnSuit(), Move = Sol.Rules.Move.InSeq() }
     }
 end
 
@@ -966,8 +966,8 @@ trigon.Info.Name    = "Trigon"
 trigon.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.top_face_up(i + 1),
-        Layout = "Column",
-        Rule = Sol.Rules.king_downsuit_inseq
+        Layout  = "Column",
+        Rule    = Sol.Rules.king_downsuit_inseq
     }
 end
 
@@ -1022,8 +1022,8 @@ local usk = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i < 7 and i + 1 or 8),
-                Layout = "Column",
-                Rule = Sol.Rules.king_downac_inseq
+                Layout  = "Column",
+                Rule    = Sol.Rules.king_downac_inseq
             }
         end
     },
@@ -1057,8 +1057,8 @@ whitehead.Info.Redeals = 0
 whitehead.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up(i + 1),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downcolor_inseqsuit
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downcolor_inseqsuit
     }
 end
 
@@ -1089,8 +1089,8 @@ batsford.Info.Redeals  = 0
 batsford.Stock.Initial = Sol.Initial.face_down(49)
 batsford.FreeCell      = {
     Position = { x = 0, y = 3 },
-    Layout = "Squared",
-    Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.InRank(), Move = Sol.Rules.Move.Top(), Limit = 3 }
+    Layout   = "Squared",
+    Rule     = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.InRank(), Move = Sol.Rules.Move.Top(), Limit = 3 }
 }
 batsford.Tableau.Size  = 10
 
@@ -1121,12 +1121,12 @@ local doorway = {
             if i == 0 then
                 return {
                     Position = { x = 0, y = 1 },
-                    Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Base.None(), Move = Sol.Rules.Move.Top() }
+                    Rule     = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Base.None(), Move = Sol.Rules.Move.Top() }
                 }
             else
                 return {
                     Position = { x = 7, y = 1 },
-                    Rule = {
+                    Rule     = {
                         Base = Sol.Rules.Base.Ranks({ "Queen" }), Build = Sol.Rules.Base.None(), Move = Sol.Rules.Move.Top()
                     }
                 }
@@ -1138,7 +1138,7 @@ local doorway = {
         Pile = function(i)
             return {
                 Position = { x = i + 4, y = 0 },
-                Rule = Sol.Rules.ace_upsuit_top
+                Rule     = Sol.Rules.ace_upsuit_top
             }
         end
     },
@@ -1147,9 +1147,9 @@ local doorway = {
         Pile = function(i)
             return {
                 Position = { x = i + 1.5, y = 1 },
-                Initial = Sol.Initial.top_face_up(1),
-                Layout = "Column",
-                Rule = Sol.Rules.any_downrank_top
+                Initial  = Sol.Initial.top_face_up(1),
+                Layout   = "Column",
+                Rule     = Sol.Rules.any_downrank_top
             }
         end
     },

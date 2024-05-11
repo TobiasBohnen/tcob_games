@@ -13,8 +13,8 @@ local flower_garden = {
         Size = 16,
         Pile = {
             Initial = Sol.Initial.face_up(1),
-            Layout = "Squared",
-            Rule = Sol.Rules.none_none_top
+            Layout  = "Squared",
+            Rule    = Sol.Rules.none_none_top
         }
     },
     Foundation = {
@@ -25,8 +25,8 @@ local flower_garden = {
         Size = 6,
         Pile = {
             Initial = Sol.Initial.face_up(6),
-            Layout = "Column",
-            Rule = Sol.Rules.any_downrank_top
+            Layout  = "Column",
+            Rule    = Sol.Rules.any_downrank_top
         }
     },
     on_init    = function(game) Sol.Layout.raglan(game, 4) end
@@ -50,8 +50,8 @@ can_can.Tableau      = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i < 10 and 4 or 3),
-            Layout = "Column",
-            Rule = Sol.Rules.king_downac_inseq
+            Layout  = "Column",
+            Rule    = Sol.Rules.king_downac_inseq
         }
     end
 }
@@ -68,8 +68,8 @@ king_albert.Tableau      = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i + 1),
-            Layout = "Column",
-            Rule = Sol.Rules.any_downac_top
+            Layout  = "Column",
+            Rule    = Sol.Rules.any_downac_top
         }
     end
 }
@@ -85,8 +85,8 @@ northwest_territory.Tableau   = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.top_face_up(i + 1),
-            Layout = "Column",
-            Rule = Sol.Rules.king_downac_inseq
+            Layout  = "Column",
+            Rule    = Sol.Rules.king_downac_inseq
         }
     end
 }
@@ -100,8 +100,8 @@ artic_garden.Tableau.Pile =
     function(i)
         return {
             Initial = Sol.Initial.face_up(i + 1),
-            Layout = "Column",
-            Rule = Sol.Rules.king_downac_inseq
+            Layout  = "Column",
+            Rule    = Sol.Rules.king_downac_inseq
         }
     end
 
@@ -113,8 +113,8 @@ queen_victoria.Info.Name    = "Queen Victoria"
 queen_victoria.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up(i + 1),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downac_inseq
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downac_inseq
     }
 end
 
@@ -134,8 +134,8 @@ local stonewall        = Sol.copy(flower_garden)
 stonewall.Info.Name    = "Stonewall"
 stonewall.Tableau.Pile = {
     Initial = Sol.Initial.alternate(6, false),
-    Layout = "Column",
-    Rule = Sol.Rules.any_downac_inseq
+    Layout  = "Column",
+    Rule    = Sol.Rules.any_downac_inseq
 }
 
 
@@ -163,8 +163,8 @@ raglan.Tableau           = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i < 7 and i + 1 or 7),
-            Layout = "Column",
-            Rule = Sol.Rules.any_downac_top
+            Layout  = "Column",
+            Rule    = Sol.Rules.any_downac_top
         }
     end
 }
@@ -179,8 +179,8 @@ relaxed_raglan.Info.Name    = "Relaxed Raglan"
 relaxed_raglan.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up(i < 7 and i + 1 or 7),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downac_inseq
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downac_inseq
     }
 end
 
@@ -194,8 +194,8 @@ brigade.Tableau      = {
     Size = 7,
     Pile = {
         Initial = Sol.Initial.face_up(5),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downac_top
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downac_top
     }
 }
 brigade.on_init      = function(game) Sol.Layout.raglan(game, 4) end
@@ -216,8 +216,8 @@ local agnes_bernauer = {
         Size = 7,
         Pile = {
             Initial = Sol.Initial.face_up(1),
-            Layout = "Squared",
-            Rule = Sol.Rules.none_none_top
+            Layout  = "Squared",
+            Rule    = Sol.Rules.none_none_top
         }
     },
     Foundation = {
@@ -225,7 +225,7 @@ local agnes_bernauer = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i == 0 and 1 or 0),
-                Rule = Sol.Rules.ff_upsuit_none_l13
+                Rule    = Sol.Rules.ff_upsuit_none_l13
             }
         end
     },
@@ -234,13 +234,13 @@ local agnes_bernauer = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i + 1),
-                Layout = "Column",
-                Rule = { Base = Sol.Rules.Base.FirstFoundation(-1), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.InSeq() }
+                Layout  = "Column",
+                Rule    = { Base = Sol.Rules.Base.FirstFoundation(-1), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.InSeq() }
             }
         end
     },
     on_init    = function(game) Sol.Layout.raglan(game, 2) end,
-    deal       = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Reserve, false) end
+    deal       = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Reserve, "IfEmpty") end
 }
 
 
@@ -269,9 +269,9 @@ local big_bertha = {
         Pile = function(i)
             return {
                 Position = { x = i, y = 4 },
-                Initial = Sol.Initial.face_up(1),
-                Layout = "Squared",
-                Rule = Sol.Rules.none_none_top
+                Initial  = Sol.Initial.face_up(1),
+                Layout   = "Squared",
+                Rule     = Sol.Rules.none_none_top
             }
         end
     },
@@ -281,12 +281,12 @@ local big_bertha = {
             if i < 8 then
                 return {
                     Position = { x = i + 3, y = 0 },
-                    Rule = { Base = Sol.Rules.Base.Ace(), Build = Sol.Rules.Build.UpInSuit(), Move = Sol.Rules.Move.Top(), Limit = 12 }
+                    Rule     = { Base = Sol.Rules.Base.Ace(), Build = Sol.Rules.Build.UpInSuit(), Move = Sol.Rules.Move.Top(), Limit = 12 }
                 }
             else
                 return {
                     Position = { x = 14, y = 4 },
-                    Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.InRank(), Move = Sol.Rules.Move.Top() }
+                    Rule     = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.InRank(), Move = Sol.Rules.Move.Top() }
                 }
             end
         end
@@ -296,9 +296,9 @@ local big_bertha = {
         Pile = function(i)
             return {
                 Position = { x = i, y = 1 },
-                Initial = Sol.Initial.face_up(6),
-                Layout = "Column",
-                Rule = Sol.Rules.any_downac_inseq
+                Initial  = Sol.Initial.face_up(6),
+                Layout   = "Column",
+                Rule     = Sol.Rules.any_downac_inseq
             }
         end
     }

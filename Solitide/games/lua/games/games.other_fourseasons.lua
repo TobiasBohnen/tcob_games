@@ -23,8 +23,8 @@ local four_seasons = {
         Pile = function(i)
             return {
                 Position = four_seasons_fou_pos[i + 1],
-                Initial = Sol.Initial.face_up(i == 0 and 1 or 0),
-                Rule = { Base = Sol.Rules.Base.FirstFoundation(0), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.None() }
+                Initial  = Sol.Initial.face_up(i == 0 and 1 or 0),
+                Rule     = { Base = Sol.Rules.Base.FirstFoundation(0), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.None() }
             }
         end
     },
@@ -33,9 +33,9 @@ local four_seasons = {
         Pile = function(i)
             return {
                 Position = four_seasons_tab_pos[i + 1],
-                Initial = Sol.Initial.face_up(1),
-                Layout = "Squared",
-                Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.Top() }
+                Initial  = Sol.Initial.face_up(1),
+                Layout   = "Squared",
+                Rule     = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.Top() }
             }
         end
     },
@@ -69,7 +69,7 @@ local corners = {
         Pile = function(i)
             return {
                 Position = four_seasons_fou_pos[i + 1],
-                Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.None() }
+                Rule     = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.None() }
             }
         end
     },
@@ -78,9 +78,9 @@ local corners = {
         Pile = function(i)
             return {
                 Position = four_seasons_tab_pos[i + 1],
-                Initial = Sol.Initial.face_up(1),
-                Layout = "Squared",
-                Rule = Sol.Rules.any_none_top
+                Initial  = Sol.Initial.face_up(1),
+                Layout   = "Squared",
+                Rule     = Sol.Rules.any_none_top
             }
         end
     },
@@ -118,8 +118,8 @@ local simplicity = {
         Pile = function(i)
             return {
                 Position = simplicity_fou_pos[i + 1],
-                Initial = Sol.Initial.face_up(i == 0 and 1 or 0),
-                Rule = { Base = Sol.Rules.Base.FirstFoundation(0), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.None() }
+                Initial  = Sol.Initial.face_up(i == 0 and 1 or 0),
+                Rule     = { Base = Sol.Rules.Base.FirstFoundation(0), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.None() }
             }
         end
     },
@@ -128,9 +128,9 @@ local simplicity = {
         Pile = function(i)
             return {
                 Position = { x = i % 6 + 1, y = i // 6 + 1 },
-                Initial = Sol.Initial.face_up(1),
-                Layout = "Squared",
-                Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.Top() }
+                Initial  = Sol.Initial.face_up(1),
+                Layout   = "Squared",
+                Rule     = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.Top() }
             }
         end
     },

@@ -19,7 +19,7 @@ local cascade = {
         Pile = function(i)
             return {
                 Position = { x = 0, y = i + 1 },
-                Rule = Sol.Rules.any_none_top
+                Rule     = Sol.Rules.any_none_top
             }
         end
     },
@@ -28,7 +28,7 @@ local cascade = {
         Pile = function(i)
             return {
                 Position = { x = i + 3, y = 0 },
-                Rule = Sol.Rules.ace_upac_top
+                Rule     = Sol.Rules.ace_upac_top
             }
         end
     },
@@ -37,9 +37,9 @@ local cascade = {
         Pile = function(i)
             return {
                 Position = { x = i + 2, y = 1 },
-                Initial = Sol.Initial.face_up(5),
-                Layout = "Column",
-                Rule = Sol.Rules.any_downac_top
+                Initial  = Sol.Initial.face_up(5),
+                Layout   = "Column",
+                Rule     = Sol.Rules.any_downac_top
             }
         end
     },
@@ -66,7 +66,7 @@ local jacks_in_the_box = {
         Pile = function(i)
             return {
                 Position = { x = 0, y = i + 1 },
-                Rule = Sol.Rules.any_none_top
+                Rule     = Sol.Rules.any_none_top
             }
         end
     },
@@ -75,7 +75,7 @@ local jacks_in_the_box = {
         Pile = function(i)
             return {
                 Position = { x = i + 3, y = 0 },
-                Rule = { Base = Sol.Rules.Base.Ranks({ "Jack" }), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top(), Limit = 13 }
+                Rule     = { Base = Sol.Rules.Base.Ranks({ "Jack" }), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top(), Limit = 13 }
             }
         end
     },
@@ -84,9 +84,9 @@ local jacks_in_the_box = {
         Pile = function(i)
             return {
                 Position = { x = i + 4, y = 1 },
-                Initial = Sol.Initial.face_up(1),
-                Layout = "Column",
-                Rule = Sol.Rules.any_downsuit_top
+                Initial  = Sol.Initial.face_up(1),
+                Layout   = "Column",
+                Rule     = Sol.Rules.any_downsuit_top
             }
         end
     },
@@ -119,8 +119,8 @@ local squadron = {
         Pile = function(i)
             return {
                 Position = { x = 0, y = i + 1 },
-                Initial = Sol.Initial.face_up(1),
-                Rule = Sol.Rules.any_none_top
+                Initial  = Sol.Initial.face_up(1),
+                Rule     = Sol.Rules.any_none_top
             }
         end
     },
@@ -129,7 +129,7 @@ local squadron = {
         Pile = function(i)
             return {
                 Position = { x = i + 3, y = 0 },
-                Rule = Sol.Rules.ace_upsuit_top
+                Rule     = Sol.Rules.ace_upsuit_top
             }
         end
     },
@@ -138,9 +138,9 @@ local squadron = {
         Pile = function(i)
             return {
                 Position = { x = i + 2, y = 1 },
-                Initial = Sol.Initial.face_up(4),
-                Layout = "Column",
-                Rule = Sol.Rules.any_downsuit_top
+                Initial  = Sol.Initial.face_up(4),
+                Layout   = "Column",
+                Rule     = Sol.Rules.any_downsuit_top
             }
         end
     },

@@ -8,7 +8,7 @@ local picture_gallery_base <const> = {
         if i == columns * 3 then
             return {
                 Position = { x = columns + 0.5, y = 0 },
-                Rule = { Base = Sol.Rules.Base.Ace(), Build = Sol.Rules.Build.InRank(), Move = Sol.Rules.Move.None() },
+                Rule     = { Base = Sol.Rules.Base.Ace(), Build = Sol.Rules.Build.InRank(), Move = Sol.Rules.Move.None() },
             }
         end
 
@@ -29,9 +29,9 @@ local picture_gallery_base <const> = {
     tableau = function(i, columns)
         return {
             Position = { x = i % columns, y = 3.25 },
-            Initial = Sol.Initial.face_up(1),
-            Layout = "Column",
-            Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
+            Initial  = Sol.Initial.face_up(1),
+            Layout   = "Column",
+            Rule     = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
         }
     end,
     can_play = function(targetPile, columns)
@@ -77,7 +77,7 @@ local picture_gallery = { --TODO: enable "Foundation to Foundation" hints
     end,
     deal        = Sol.Ops.Deal.stock_to_tableau,
     on_end_turn = function(game)
-        Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, true)
+        Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, "IfEmpty")
     end
 }
 

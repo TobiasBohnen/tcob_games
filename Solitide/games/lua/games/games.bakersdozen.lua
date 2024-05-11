@@ -17,8 +17,8 @@ local bakers_dozen = {
         Size = 13,
         Pile = {
             Initial = Sol.Initial.face_up(4),
-            Layout = "Column",
-            Rule = Sol.Rules.none_downrank_top
+            Layout  = "Column",
+            Rule    = Sol.Rules.none_downrank_top
         }
     },
     on_after_shuffle = Sol.Ops.Shuffle.kings_to_bottom,
@@ -43,8 +43,8 @@ good_measure.Tableau           = {
     Size = 10,
     Pile = {
         Initial = Sol.Initial.face_up(5),
-        Layout = "Column",
-        Rule = Sol.Rules.none_downrank_top
+        Layout  = "Column",
+        Rule    = Sol.Rules.none_downrank_top
     }
 }
 good_measure.on_before_shuffle = function(game, card)
@@ -73,8 +73,8 @@ local fifteen = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i ~= 14 and 7 or 6),
-                Layout = "Column",
-                Rule = Sol.Rules.any_updownsuit_top
+                Layout  = "Column",
+                Rule    = Sol.Rules.any_updownsuit_top
             }
         end
     },
@@ -100,8 +100,8 @@ local nationale = {
         Size = 12,
         Pile = {
             Initial = Sol.Initial.face_up(8),
-            Layout = "Column",
-            Rule = Sol.Rules.any_updownsuit_top
+            Layout  = "Column",
+            Rule    = Sol.Rules.any_updownsuit_top
         }
     },
     on_before_shuffle = function(game, card)

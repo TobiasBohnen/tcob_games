@@ -20,8 +20,8 @@ local easthaven = {
         Size = 7,
         Pile = {
             Initial = Sol.Initial.top_face_up(3),
-            Layout = "Column",
-            Rule = Sol.Rules.any_downac_inseq
+            Layout  = "Column",
+            Rule    = Sol.Rules.any_downac_inseq
         }
     },
     on_init    = Sol.Layout.klondike,

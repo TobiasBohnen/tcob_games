@@ -21,13 +21,13 @@ local capricieuse = {
         Size = 12,
         Pile = {
             Initial = Sol.Initial.face_up(8),
-            Layout = "Column",
-            Rule = Sol.Rules.any_updownsuit_top
+            Layout  = "Column",
+            Rule    = Sol.Rules.any_updownsuit_top
         }
     },
     redeal            = function(game)
         local tableau = game.Tableau
-        local cards = Sol.shuffle_piles(game, { tableau })
+        local cards   = Sol.shuffle_piles(game, { tableau })
         if #cards == 0 then return false end
 
         local tabIdx = 1
@@ -63,8 +63,8 @@ strata.Tableau           = {
     Size = 8,
     Pile = {
         Initial = Sol.Initial.face_up(8),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downac_top
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downac_top
     }
 }
 strata.on_before_shuffle = nil
@@ -84,8 +84,8 @@ cruel.Tableau           = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(4),
-        Layout = "Column",
-        Rule = Sol.Rules.none_downsuit_top
+        Layout  = "Column",
+        Rule    = Sol.Rules.none_downsuit_top
     }
 }
 cruel.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
@@ -122,8 +122,8 @@ indefatigable.Info.Name    = "Indefatigable"
 indefatigable.Info.Redeals = 2
 indefatigable.Tableau.Pile = {
     Initial = Sol.Initial.face_up(4),
-    Layout = "Column",
-    Rule = Sol.Rules.any_updownsuit_top
+    Layout  = "Column",
+    Rule    = Sol.Rules.any_updownsuit_top
 }
 
 
@@ -134,8 +134,8 @@ perseverance.Info.Name    = "Perseverance"
 perseverance.Info.Redeals = 2
 perseverance.Tableau.Pile = {
     Initial = Sol.Initial.face_up(4),
-    Layout = "Column",
-    Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.DownInSuit(), Move = Sol.Rules.Move.InSeq() }
+    Layout  = "Column",
+    Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.DownInSuit(), Move = Sol.Rules.Move.InSeq() }
 }
 
 
@@ -147,8 +147,8 @@ royal_family.Info.Redeals      = 1
 royal_family.Foundation.Pile   = { Rule = Sol.Rules.king_downsuit_top }
 royal_family.Tableau.Pile      = {
     Initial = Sol.Initial.face_up(4),
-    Layout = "Column",
-    Rule = Sol.Rules.any_updownac_top
+    Layout  = "Column",
+    Rule    = Sol.Rules.any_updownac_top
 }
 royal_family.on_before_shuffle = Sol.Ops.Shuffle.king_to_foundation
 

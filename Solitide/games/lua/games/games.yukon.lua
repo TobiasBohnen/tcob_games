@@ -66,8 +66,8 @@ local yukon           = {
         Pile = function(i)
             return {
                 Initial = initial.yukon(i),
-                Layout = "Column",
-                Rule = Sol.Rules.king_downac_faceup
+                Layout  = "Column",
+                Rule    = Sol.Rules.king_downac_faceup
             }
         end
     },
@@ -86,8 +86,8 @@ double_yukon.Tableau         = {
     Pile = function(i)
         return {
             Initial = initial.double_yukon(i),
-            Layout = "Column",
-            Rule = Sol.Rules.king_downac_faceup
+            Layout  = "Column",
+            Rule    = Sol.Rules.king_downac_faceup
         }
     end
 }
@@ -104,8 +104,8 @@ triple_yukon.Tableau         = {
     Pile = function(i)
         return {
             Initial = initial.triple_yukon(i),
-            Layout = "Column",
-            Rule = Sol.Rules.king_downac_faceup
+            Layout  = "Column",
+            Rule    = Sol.Rules.king_downac_faceup
         }
     end
 }
@@ -122,8 +122,8 @@ quadruple_yukon.Tableau         = {
     Pile = function(i)
         return {
             Initial = initial.quadruple_yukon(i),
-            Layout = "Column",
-            Rule = Sol.Rules.king_downac_faceup
+            Layout  = "Column",
+            Rule    = Sol.Rules.king_downac_faceup
         }
     end
 }
@@ -136,8 +136,8 @@ alaska.Info.Name    = "Alaska"
 alaska.Tableau.Pile = function(i)
     return {
         Initial = initial.yukon(i),
-        Layout = "Column",
-        Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.UpOrDownInSuit(), Move = Sol.Rules.Move.FaceUp() }
+        Layout  = "Column",
+        Rule    = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.UpOrDownInSuit(), Move = Sol.Rules.Move.FaceUp() }
     }
 end
 
@@ -159,8 +159,8 @@ brisbane.Info.Name     = "Brisbane"
 brisbane.Tableau.Pile  = function(i)
     return {
         Initial = brisbane_initial[i + 1],
-        Layout = "Column",
-        Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.FaceUp() }
+        Layout  = "Column",
+        Rule    = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.FaceUp() }
     }
 end
 
@@ -174,8 +174,8 @@ geoffrey.Tableau   = {
     Pile = function(i)
         return {
             Initial = i < 4 and Sol.Initial.face_up(7) or { false, false, false, false, true, true },
-            Layout = "Column",
-            Rule = Sol.Rules.king_downsuit_faceup
+            Layout  = "Column",
+            Rule    = Sol.Rules.king_downsuit_faceup
         }
     end
 }
@@ -189,8 +189,8 @@ queensland.Info.Name    = "Queensland"
 queensland.Tableau.Pile = function(i)
     return {
         Initial = brisbane_initial[i + 1],
-        Layout = "Column",
-        Rule = Sol.Rules.any_downsuit_faceup
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downsuit_faceup
     }
 end
 
@@ -202,8 +202,8 @@ roslin.Info.Name    = "Roslin"
 roslin.Tableau.Pile = function(i)
     return {
         Initial = initial.yukon(i),
-        Layout = "Column",
-        Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.UpOrDownAlternateColors(), Move = Sol.Rules.Move.FaceUp() }
+        Layout  = "Column",
+        Rule    = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.UpOrDownAlternateColors(), Move = Sol.Rules.Move.FaceUp() }
     }
 end
 
@@ -215,8 +215,8 @@ moosehide.Info.Name    = "Moosehide"
 moosehide.Tableau.Pile = function(i)
     return {
         Initial = initial.yukon(i),
-        Layout = "Column",
-        Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownAnyButOwnSuit(), Move = Sol.Rules.Move.FaceUp() }
+        Layout  = "Column",
+        Rule    = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownAnyButOwnSuit(), Move = Sol.Rules.Move.FaceUp() }
     }
 end
 
@@ -228,8 +228,8 @@ russian_solitaire.Info.Name    = "Russian Solitaire"
 russian_solitaire.Tableau.Pile = function(i)
     return {
         Initial = initial.yukon(i),
-        Layout = "Column",
-        Rule = Sol.Rules.king_downsuit_faceup
+        Layout  = "Column",
+        Rule    = Sol.Rules.king_downsuit_faceup
     }
 end
 
@@ -245,8 +245,8 @@ double_russian_solitaire.Tableau         = {
     Pile = function(i)
         return {
             Initial = initial.double_yukon(i),
-            Layout = "Column",
-            Rule = Sol.Rules.king_downsuit_faceup
+            Layout  = "Column",
+            Rule    = Sol.Rules.king_downsuit_faceup
         }
     end
 }
@@ -263,8 +263,8 @@ triple_russian_solitaire.Tableau         = {
     Pile = function(i)
         return {
             Initial = initial.triple_yukon(i),
-            Layout = "Column",
-            Rule = Sol.Rules.king_downsuit_faceup
+            Layout  = "Column",
+            Rule    = Sol.Rules.king_downsuit_faceup
         }
     end
 }
@@ -288,7 +288,7 @@ local hawaiian = {
         Pile = function(i)
             return {
                 Position = { x = i + 2, y = 0 },
-                Rule = Sol.Rules.ace_upsuit_none
+                Rule     = Sol.Rules.ace_upsuit_none
             }
         end
     },
@@ -297,9 +297,9 @@ local hawaiian = {
         Pile = function(i)
             return {
                 Position = { x = i, y = 1 },
-                Initial = Sol.Initial.face_up(5),
-                Layout = "Column",
-                Rule = Sol.Rules.any_downac_faceup
+                Initial  = Sol.Initial.face_up(5),
+                Layout   = "Column",
+                Rule     = Sol.Rules.any_downac_faceup
             }
         end
     }
@@ -324,8 +324,8 @@ local wave = {
         Size = 8,
         Pile = {
             Initial = Sol.Initial.alternate(3, true),
-            Layout = "Column",
-            Rule = Sol.Rules.any_downac_faceup
+            Layout  = "Column",
+            Rule    = Sol.Rules.any_downac_faceup
         }
     },
     on_init = Sol.Layout.klondike,
@@ -363,8 +363,8 @@ local yukon_cells = {
         Pile = function(i)
             return {
                 Initial = initial.yukon(i),
-                Layout = "Column",
-                Rule = Sol.Rules.king_downac_faceup
+                Layout  = "Column",
+                Rule    = Sol.Rules.king_downac_faceup
             }
         end
     },
@@ -385,8 +385,8 @@ local yukon_kings = {
         Pile = function(i)
             return {
                 Initial = initial.yukon(i),
-                Layout = "Column",
-                Rule = Sol.Rules.king_downac_faceup
+                Layout  = "Column",
+                Rule    = Sol.Rules.king_downac_faceup
             }
         end
     },
@@ -435,7 +435,7 @@ local yukonic_plaque = {
         Pile = function(i)
             return {
                 Position = { x = i + 2, y = 0 },
-                Rule = Sol.Rules.ace_upsuit_none
+                Rule     = Sol.Rules.ace_upsuit_none
             }
         end
     },
@@ -451,9 +451,9 @@ local yukonic_plaque = {
             end
             return {
                 Position = { x = i, y = 1 },
-                Initial = ini,
-                Layout = "Column",
-                Rule = Sol.Rules.king_downac_faceup
+                Initial  = ini,
+                Layout   = "Column",
+                Rule     = Sol.Rules.king_downac_faceup
             }
         end
     }

@@ -69,7 +69,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     gameWrapper["can_play"] = [](base_game* game, pile* targetPile, isize targetIndex, card const& card, isize numCards) {
         return game->base_game::can_play(*targetPile, targetIndex + IndexOffset, card, numCards);
     };
-    gameWrapper["play_card"] = [](base_game* game, pile* to, card& card) {
+    gameWrapper["play_card"] = [](base_game* game, card& card, pile* to) {
         if (game->base_game::can_play(*to, std::ssize(to->Cards) - 1, card, 1)) { // skip script can_play here
             card.flip_face_up();
             to->Cards.emplace_back(card);

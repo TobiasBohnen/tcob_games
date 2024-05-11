@@ -20,7 +20,7 @@ local auld_lang_syne = {
         Size = 4,
         Pile = {
             Layout = "Column",
-            Rule = Sol.Rules.none_none_top
+            Rule   = Sol.Rules.none_none_top
         }
     },
     on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation,
@@ -54,8 +54,7 @@ acquaintance.redeal       = function(game)
     if not stock.IsEmpty then return false end
 
     local tableau = game.Tableau
-
-    local cards = {}
+    local cards   = {}
     for _, tab in ipairs(tableau) do
         local tabCards = tab.Cards
         for j = #tabCards, 1, -1 do

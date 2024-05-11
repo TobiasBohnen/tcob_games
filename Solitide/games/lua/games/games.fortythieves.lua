@@ -19,8 +19,8 @@ local forty_thieves = {
         Size = 10,
         Pile = {
             Initial = Sol.Initial.face_up(4),
-            Layout = "Column",
-            Rule = Sol.Rules.any_downsuit_top
+            Layout  = "Column",
+            Rule    = Sol.Rules.any_downsuit_top
         }
     },
     deal = Sol.Ops.Deal.stock_to_waste,
@@ -59,8 +59,8 @@ busy_aces.Tableau       = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(1),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downsuit_top
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downsuit_top
     }
 }
 
@@ -74,8 +74,8 @@ carre_napoleon.Tableau           = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(4),
-        Layout = "Column",
-        Rule = Sol.Rules.king_downsuit_top
+        Layout  = "Column",
+        Rule    = Sol.Rules.king_downsuit_top
     }
 }
 carre_napoleon.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
@@ -91,8 +91,8 @@ corona.Tableau       = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(3),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downsuit_top
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downsuit_top
     }
 }
 corona.on_end_turn   = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
@@ -107,8 +107,8 @@ courtyard.Tableau       = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(1),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downsuit_inseq
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downsuit_inseq
     }
 }
 courtyard.on_end_turn   = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
@@ -134,8 +134,8 @@ delivery.Tableau         = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(3),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downsuit_top
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downsuit_top
     }
 }
 
@@ -149,8 +149,8 @@ dieppe.Tableau          = {
     Size = 8,
     Pile = {
         Initial = Sol.Initial.face_up(3),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downrank_top
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downrank_top
     }
 }
 dieppe.on_shuffle       = Sol.Ops.Shuffle.play_to_foundation
@@ -180,8 +180,8 @@ diplomat.Tableau       = {
     Size = 8,
     Pile = {
         Initial = Sol.Initial.face_up(4),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downrank_top
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downrank_top
     }
 }
 
@@ -227,8 +227,8 @@ following.Tableau        = {
     Size = 6,
     Pile = {
         Initial = Sol.Initial.face_up(1),
-        Layout = "Column",
-        Rule = {
+        Layout  = "Column",
+        Rule    = {
             Base = Sol.Rules.Base.Any(),
             Build = {
                 Hint = "Down by rank (H, C, D, S)",
@@ -248,8 +248,8 @@ foothold.Tableau   = {
     Size = 8,
     Pile = {
         Initial = Sol.Initial.face_up(5),
-        Layout = "Column",
-        Rule = Sol.Rules.any_updownac_top
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_updownac_top
     }
 }
 
@@ -370,8 +370,8 @@ little_napoleon.Tableau       = {
     Size = 8,
     Pile = {
         Initial = Sol.Initial.top_face_up(4),
-        Layout = "Column",
-        Rule = Sol.Rules.spider_tableau
+        Layout  = "Column",
+        Rule    = Sol.Rules.spider_tableau
     }
 }
 
@@ -385,8 +385,8 @@ malmaison.Stock.Initial   = Sol.Initial.face_down(128)
 malmaison.Foundation.Size = 16
 malmaison.Tableau.Pile    = {
     Initial = Sol.Initial.face_up(8),
-    Layout = "Column",
-    Rule = Sol.Rules.any_downsuit_inseq
+    Layout  = "Column",
+    Rule    = Sol.Rules.any_downsuit_inseq
 }
 
 
@@ -399,8 +399,8 @@ maria.Tableau       = {
     Size = 9,
     Pile = {
         Initial = Sol.Initial.face_up(4),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downac_top
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downac_top
     }
 }
 
@@ -416,8 +416,8 @@ marie_rose.Tableau         = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(5),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downsuit_inseq
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downsuit_inseq
     }
 }
 
@@ -431,8 +431,8 @@ mc_clellan.Tableau       = {
     Size = 8,
     Pile = {
         Initial = Sol.Initial.top_face_up(4),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downsuit_inseq
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downsuit_inseq
     }
 }
 
@@ -446,8 +446,8 @@ midshipman.Tableau       = {
     Size = 9,
     Pile = {
         Initial = { false, false, true, true },
-        Layout = "Column",
-        Rule = Sol.Rules.any_downabos_top
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downabos_top
     }
 }
 
@@ -463,8 +463,8 @@ mumbai.Tableau         = {
     Size = 13,
     Pile = {
         Initial = indian_initial,
-        Layout = "Column",
-        Rule = Sol.Rules.any_downabos_top
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downabos_top
     }
 }
 
@@ -485,8 +485,8 @@ napoleons_shoulder.Tableau       = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(4),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downrank_top
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downrank_top
     }
 }
 napoleons_shoulder.can_play      = function(game, targetPile, targetCardIndex, card, numCards)
@@ -508,8 +508,8 @@ napoleons_square.Tableau       = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(4),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downsuit_inseq
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downsuit_inseq
     }
 }
 
@@ -524,8 +524,8 @@ pluto.Tableau              = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(1),
-        Layout = "Column",
-        Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownInSuit(true), Move = Sol.Rules.Move.Top() }
+        Layout  = "Column",
+        Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownInSuit(true), Move = Sol.Rules.Move.Top() }
     }
 }
 
@@ -581,8 +581,8 @@ triple_line.Tableau       = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(3),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downac_inseq
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downac_inseq
     }
 }
 triple_line.on_end_turn   = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
@@ -598,8 +598,8 @@ double_rail.Tableau       = {
     Size = 5,
     Pile = {
         Initial = Sol.Initial.face_up(1),
-        Layout = "Column",
-        Rule = Sol.Rules.any_downrank_inseq
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downrank_inseq
     }
 }
 
@@ -655,8 +655,8 @@ local number_ten        = Sol.copy(forty_thieves)
 number_ten.Info.Name    = "Number Ten"
 number_ten.Tableau.Pile = {
     Initial = { false, false, true, true },
-    Layout = "Column",
-    Rule = Sol.Rules.any_downac_inseq
+    Layout  = "Column",
+    Rule    = Sol.Rules.any_downac_inseq
 }
 
 
@@ -720,8 +720,8 @@ alternation.Tableau       = {
     Size = 7,
     Pile = {
         Initial = Sol.Initial.alternate(7, true),
-        Layout = "Column",
-        Rule = Sol.Rules.king_downac_inseq
+        Layout  = "Column",
+        Rule    = Sol.Rules.king_downac_inseq
     }
 }
 

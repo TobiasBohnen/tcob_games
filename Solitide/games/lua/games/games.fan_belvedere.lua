@@ -16,7 +16,7 @@ local belvedere = {
         Size = 3,
         Pile = {
             Layout = "Squared",
-            Rule = Sol.Rules.none_none_top
+            Rule   = Sol.Rules.none_none_top
         }
     },
     Foundation        = {
@@ -27,8 +27,8 @@ local belvedere = {
         Size = 8,
         Pile = {
             Initial = Sol.Initial.face_up(3),
-            Layout = "Row",
-            Rule = Sol.Rules.none_downrank_top
+            Layout  = "Row",
+            Rule    = Sol.Rules.none_downrank_top
         }
     },
     on_before_shuffle = function(game, card)
@@ -39,7 +39,7 @@ local belvedere = {
         return false
     end,
     on_init           = function(game) Sol.Layout.fan(game, 4) end,
-    deal              = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Waste, false) end
+    deal              = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Waste) end
 }
 
 

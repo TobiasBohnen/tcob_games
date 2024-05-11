@@ -25,7 +25,7 @@ local shuffle = {
 
         local foundation = game.Foundation
         for _, v in ipairs(foundation) do
-            if game:play_card(v, card) then return true end
+            if game:play_card(card, v) then return true end
         end
 
         return false
@@ -62,25 +62,20 @@ local function deal_func(fromPile, toPile, count)
     return true
 end
 
---TODO: deal_pred: only_empty, only_non_empty, always
+local function deal_group_func(fromPile, toGroup, emptyMode)
+    emptyMode = emptyMode or "Always"
 
-local function deal_group_func(fromPile, toGroup, onlyIfEmpty)
     if fromPile.IsEmpty then return false end
     for _, toPile in ipairs(toGroup) do
         if fromPile.IsEmpty then break end
-        if not onlyIfEmpty or toPile.IsEmpty then
-            fromPile:move_cards(toPile, #fromPile.Cards, 1, false)
-            toPile:flip_up_top_card()
+        local check = true
+        if emptyMode == "IfEmpty" then
+            check = toPile.IsEmpty
+        elseif emptyMode == "IfNotEmpty" then
+            check = not toPile.IsEmpty
         end
-    end
-    return true
-end
 
-local function deal_nonempty_group_func(fromPile, toGroup)
-    if fromPile.IsEmpty then return false end
-    for _, toPile in ipairs(toGroup) do
-        if fromPile.IsEmpty then break end
-        if not toPile.IsEmpty then
+        if check then
             fromPile:move_cards(toPile, #fromPile.Cards, 1, false)
             toPile:flip_up_top_card()
         end
@@ -91,13 +86,12 @@ end
 local deal = {
     to_pile = deal_func,
     to_group = deal_group_func,
-    to_nonempty_group = deal_nonempty_group_func,
 
     stock_to_waste = function(game) return deal_func(game.Stock[1], game.Waste[1], 1) end,
     stock_to_waste_by_3 = function(game) return deal_func(game.Stock[1], game.Waste[1], 3) end,
     stock_to_waste_by_redeals_left = function(game) return deal_func(game.Stock[1], game.Waste[1], game.RedealsLeft + 1) end,
-    stock_to_tableau = function(game) return deal_group_func(game.Stock[1], game.Tableau, false) end,
-    waste_or_stock_to_empty_tableau = function(game) return deal_group_func(game.Waste[1], game.Tableau, true) or deal_group_func(game.Stock[1], game.Tableau, true) end
+    stock_to_tableau = function(game) return deal_group_func(game.Stock[1], game.Tableau) end,
+    waste_or_stock_to_empty_tableau = function(game) return deal_group_func(game.Waste[1], game.Tableau, "IfEmpty") or deal_group_func(game.Stock[1], game.Tableau, true) end
 }
 
 return {
