@@ -301,35 +301,12 @@ local elevator = {
 
 
 ------
-local function escalator_flip(game)
-    local last <const> = 21
-    local tableau = game.Tableau
-    for tabIdx = 1, last do
-        local pile = tableau[tabIdx]
-        if pile.IsEmpty then goto continue end
-
-        local rowSize <const> = math.ceil((-1 + math.sqrt((8 * tabIdx) + 1)) / 2)
-        pile.IsPlayable = tableau[tabIdx + rowSize + 0].IsEmpty and tableau[tabIdx + rowSize + 1].IsEmpty
-
-        ::continue::
-    end
-end
 
 local escalator = Sol.copy(elevator)
 escalator.Info.Name = "Escalator"
-escalator.Tableau.Pile = function(i)
-    local pile = Sol.Pyramid.pile(28, 1, { x = 0, y = -0.5 }, i)
-    --all cards visible
-    pile.Initial = Sol.Initial.face_up(1)
-    --only bottom row playable
-    local move = Sol.Rules.Move.Top()
-    if i < 21 then move.IsPlayable = false end
-
-    pile.Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.None(), Move = move }
-    return pile
-end
-escalator.on_init = escalator_flip
-escalator.on_end_turn = escalator_flip
+escalator.Tableau.Pile = function(i) return Sol.Pyramid.face_up_pile(28, 1, { x = 0, y = -0.5 }, i) end
+escalator.on_init = function(game) Sol.Pyramid.face_up_flip(28, 1, game.Tableau) end
+escalator.on_end_turn = function(game) Sol.Pyramid.face_up_flip(28, 1, game.Tableau) end
 
 
 ------

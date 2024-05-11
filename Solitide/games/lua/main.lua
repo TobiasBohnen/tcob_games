@@ -141,5 +141,32 @@ Sol.Pyramid = {
 
             ::continue::
         end
-    end
+    end,
+    face_up_pile = function(size, base, offset, i)
+        local pile = Sol.Pyramid.pile(size, base, offset, i)
+        --all cards visible
+        pile.Initial = Sol.Initial.face_up(1)
+        --only bottom row playable
+        local move = Sol.Rules.Move.Top()
+        if i < 21 then move.IsPlayable = false end
+
+        pile.Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.None(), Move = move }
+
+        return pile
+    end,
+    face_up_flip = function(size, base, tableau)
+        local dummyCells <const> = get_py_cells(base - 1)
+        local totalRows <const>  = get_py_row(size + dummyCells)
+        local last <const>       = get_py_cells(totalRows - 1) - dummyCells
+
+        for tabIdx = 1, last do
+            local pile = tableau[tabIdx]
+            if pile.IsEmpty then goto continue end
+
+            local rowSize <const> = math.ceil((-1 + math.sqrt((8 * tabIdx) + 1)) / 2)
+            pile.IsPlayable = tableau[tabIdx + rowSize + 0].IsEmpty and tableau[tabIdx + rowSize + 1].IsEmpty
+
+            ::continue::
+        end
+    end,
 }

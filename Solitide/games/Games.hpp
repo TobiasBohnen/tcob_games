@@ -26,7 +26,9 @@ enum class family {
     Klondike,
     Montana,
     Numerica,
+    PictureGallery,
     Spider,
+    Terrace,
     Yukon
 };
 

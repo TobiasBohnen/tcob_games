@@ -112,9 +112,7 @@ local simplicity = {
         Position = { x = 3, y = 0 },
         Initial = Sol.Initial.face_down(39)
     },
-    Waste = {
-        Position = { x = 4, y = 0 }
-    },
+    Waste = { Position = { x = 4, y = 0 } },
     Foundation = {
         Size = 4,
         Pile = function(i)

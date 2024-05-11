@@ -311,8 +311,11 @@ void form_menu::create_section_games(assets::group& resGrp, std::vector<game_inf
             createTab(family::Klondike, "Klondike");
             createTab(family::Montana, "Montana");
             createTab(family::Numerica, "Numerica");
+            createTab(family::PictureGallery, "Picture Gallery");
             createTab(family::Spider, "Spider");
+            createTab(family::Terrace, "Terrace");
             createTab(family::Yukon, "Yukon");
+
             createTab(family::Other, "Other");
         }
         // By Deck Count

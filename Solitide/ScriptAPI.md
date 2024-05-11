@@ -25,7 +25,9 @@ The Info table contains basic information about the game.
   - Klondike
   - Montana
   - Numerica
+  - PictureGallery
   - Spider
+  - Terrace
   - Yukon
   - Other
 

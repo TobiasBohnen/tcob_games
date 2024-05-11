@@ -420,6 +420,39 @@ return {
             piles.Tableau[i + 1].Position = { x = i, y = 1 }
         end
     end,
+    -- Stock,Waste      -> top left
+    -- Reserve          -> top
+    -- Foundation       -> second row
+    -- Tableau          -> third row
+    terrace = function(game)
+        local piles = get_piles(game)
+
+        local foundationOffsetX = (piles.TableauSize - piles.FoundationSize) / 2
+        foundationOffsetX = math.max(0, foundationOffsetX)
+
+        if piles.HasStock then
+            piles.Stock[1].Position = { x = foundationOffsetX, y = 0 }
+        end
+
+        if piles.HasWaste then
+            piles.Waste[1].Position = { x = foundationOffsetX + 1, y = 0 }
+        end
+
+        if piles.ReserveSize > 0 then
+            piles.Reserve[1].Position = { x = foundationOffsetX + 3, y = 0 }
+        end
+
+        for i = 0, piles.FoundationSize - 1 do
+            piles.Foundation[i + 1].Position = { x = foundationOffsetX + i, y = 1 }
+        end
+
+        local tableauOffsetX = (piles.FoundationSize - piles.TableauSize) / 2
+        tableauOffsetX = math.max(0, tableauOffsetX)
+
+        for i = 0, piles.TableauSize - 1 do
+            piles.Tableau[i + 1].Position = { x = tableauOffsetX + i, y = 2 }
+        end
+    end,
     -- Foundation       -> right
     -- Tableau          -> top
     yukon = function(game)

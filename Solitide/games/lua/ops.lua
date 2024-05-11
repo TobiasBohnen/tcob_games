@@ -62,6 +62,8 @@ local function deal_func(fromPile, toPile, count)
     return true
 end
 
+--TODO: deal_pred: only_empty, only_non_empty, always
+
 local function deal_group_func(fromPile, toGroup, onlyIfEmpty)
     if fromPile.IsEmpty then return false end
     for _, toPile in ipairs(toGroup) do
