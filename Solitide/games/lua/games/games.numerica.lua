@@ -137,7 +137,7 @@ local amazons                    = {
         -- seven to jack can only be played on the foundation pile above the tableau pile
         if targetPile.Type == "Foundation" and card.Rank ~= "Queen" and card.Rank ~= "Ace" then
             local srcPile = game:find_pile(card)
-            if srcPile.Type == "Tableau" and game:get_pile_index(srcPile) ~= game:get_pile_index(targetPile) then
+            if srcPile.Type == "Tableau" and srcPile.Index ~= targetPile.Index then
                 return false
             end
         end

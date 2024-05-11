@@ -371,7 +371,7 @@ local club = {
         if targetPile.Type == "Tableau" then
             -- first tableau row can't be played to row 2 and 3 tableau piles
             local srcPile = game:find_pile(card)
-            if srcPile.Type == "Tableau" and game:get_pile_index(srcPile) < 4 and game:get_pile_index(targetPile) >= 4 then
+            if srcPile.Type == "Tableau" and srcPile.Index < 4 and targetPile.Index >= 4 then
                 return false
             end
         end

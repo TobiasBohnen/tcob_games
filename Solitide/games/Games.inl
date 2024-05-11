@@ -17,6 +17,7 @@ inline void base_game::create_piles(auto&& piles, isize size, std::function<void
     piles.reserve(size);
     for (i32 i {0}; i < size; ++i) {
         auto& pile {piles.emplace_back()};
+        pile.Index = i;
         func(pile, i);
         _piles[pile.Type].push_back(&pile);
     }
@@ -54,10 +55,6 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
         std::vector<card> shuffled {cards};
         game->rand().template shuffle<card>(shuffled);
         return shuffled;
-    };
-    gameWrapper["get_pile_index"] = [](base_game* game, pile* p) -> isize {
-        auto const& piles {game->piles().at(p->Type)};
-        return std::distance(piles.begin(), std::find(piles.begin(), piles.end(), p)) - IndexOffset;
     };
     gameWrapper["find_pile"] = [](base_game* game, card& card) -> pile* {
         for (auto const& piles : game->piles()) {
@@ -147,6 +144,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
 
     // properties
     pileWrapper["Type"]      = getter {[](pile* p) { return p->Type; }};
+    pileWrapper["Index"]     = getter {[](pile* p) { return p->Index - IndexOffset; }};
     pileWrapper["IsEmpty"]   = getter {[](pile* p) { return p->empty(); }};
     pileWrapper["CardCount"] = getter {[](pile* p) { return p->Cards.size(); }};
     pileWrapper["Cards"]     = getter {[](pile* p) { return p->Cards; }};

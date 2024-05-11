@@ -482,8 +482,7 @@ local leprechaun = {
     },
     on_drop    = function(game, pile)
         if pile.Type == "Foundation" then
-            local idx = game:get_pile_index(pile)
-            game.Reserve[idx]:flip_up_top_card()
+            game.Reserve[pile.Index]:flip_up_top_card()
         end
     end,
     deal       = Sol.Ops.Deal.stock_to_tableau

@@ -308,7 +308,7 @@ local rittenhouse = {
         return false
     end,
     on_shuffle        = function(game, card, pile)
-        local idx = game:get_pile_index(pile)
+        local idx = pile.Index
         local foundation = game.Foundation
 
         if idx ~= 5 then
@@ -327,7 +327,7 @@ local rittenhouse = {
         local tableau = game.Tableau
 
         -- check droppile first
-        local dropIdx = game:get_pile_index(pile)
+        local dropIdx = pile.Index
         while true do
             local check = false
             if dropIdx ~= 5 then
@@ -356,8 +356,8 @@ local rittenhouse = {
     end,
     can_play          = function(game, targetPile, targetCardIndex, card, numCards)
         if targetPile.Type == "Foundation" then
-            local dstPileIdx = game:get_pile_index(targetPile)
-            local srcPileIdx = game:get_pile_index(game:find_pile(card))
+            local dstPileIdx = targetPile.Index
+            local srcPileIdx = game:find_pile(card).Index
 
             if srcPileIdx > 5 then
                 if dstPileIdx ~= srcPileIdx - 1 then return false end

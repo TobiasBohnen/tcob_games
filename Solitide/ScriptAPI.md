@@ -199,8 +199,6 @@ The Info table contains basic information about the game.
 
 - Storage
 
-- get_pile_index
-
 - find_pile
 
 - can_play
@@ -218,6 +216,8 @@ The Info table contains basic information about the game.
 ## _pile_ members
 
 - Type
+
+- Index
 
 - CardCount
 

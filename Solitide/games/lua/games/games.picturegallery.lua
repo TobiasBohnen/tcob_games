@@ -34,9 +34,9 @@ local picture_gallery_base <const> = {
             Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
         }
     end,
-    can_play = function(game, targetPile, columns)
+    can_play = function(targetPile, columns)
         if targetPile.Type == "Foundation" and not targetPile.IsEmpty then
-            local i = game:get_pile_index(targetPile)
+            local i = targetPile.Index
             local firstCard = targetPile.Cards[1]
             if i >= 1 and i <= columns and firstCard.Rank ~= "Four" then
                 return false
@@ -72,7 +72,7 @@ local picture_gallery = { --TODO: enable "Foundation to Foundation" hints
         Pile = function(i) return picture_gallery_base.tableau(i, 8) end
     },
     can_play    = function(game, targetPile, targetCardIndex, card, numCards)
-        if not picture_gallery_base.can_play(game, targetPile, 8) then return false end
+        if not picture_gallery_base.can_play(targetPile, 8) then return false end
         return game:can_play(targetPile, targetCardIndex, card, numCards)
     end,
     deal        = Sol.Ops.Deal.stock_to_tableau,
@@ -100,7 +100,7 @@ big_picture_gallery.Tableau        = {
     Pile = function(i) return picture_gallery_base.tableau(i, 12) end
 }
 big_picture_gallery.can_play       = function(game, targetPile, targetCardIndex, card, numCards)
-    if not picture_gallery_base.can_play(game, targetPile, 12) then return false end
+    if not picture_gallery_base.can_play(targetPile, 12) then return false end
     return game:can_play(targetPile, targetCardIndex, card, numCards)
 end
 

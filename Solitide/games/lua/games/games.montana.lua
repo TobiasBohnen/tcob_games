@@ -80,7 +80,7 @@ local montana_base <const> = {
         local checkLeft = string.find(mode, "l")
         local checkRight = string.find(mode, "r")
 
-        local i = game:get_pile_index(targetPile)
+        local i = targetPile.Index
         if i % columns == 1 then return card.Rank == ranks[1] end --leftmost column
         if checkLeft and check_left(tableau[i - 1]) then return true end
         if checkRight and i % columns ~= 0 and check_right(tableau[i + 1]) then return true end

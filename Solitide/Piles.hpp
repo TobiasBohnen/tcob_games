@@ -91,6 +91,7 @@ public:
     std::vector<bool> Initial; // true -> faceup
 
     point_f Position {};       // in grid coordinates
+    i32     Index {};
 
     bool HasMarker {true};
 

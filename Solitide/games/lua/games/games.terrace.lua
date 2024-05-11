@@ -55,7 +55,7 @@ local terrace = {
     end,
     on_drop = function(game, pile)
         -- fill tableau after first turn
-        if pile.Type == "Foundation" and pile.CardCount == 1 and game:get_pile_index(pile) == 1 then
+        if pile.Type == "Foundation" and pile.CardCount == 1 and pile.Index == 1 then
             Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, true)
             Sol.Ops.Deal.stock_to_waste(game)
         end
