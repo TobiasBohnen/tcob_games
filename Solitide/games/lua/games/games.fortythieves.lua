@@ -24,7 +24,6 @@ local forty_thieves = {
         }
     },
     deal = Sol.Ops.Deal.stock_to_waste,
-    redeal = Sol.Ops.Redeal.waste_to_stock,
     on_init = Sol.Layout.forty_thieves
 }
 
@@ -261,6 +260,7 @@ forty_and_eight.Info.Name     = "Forty and Eight"
 forty_and_eight.Info.Redeal   = 1
 forty_and_eight.Stock.Initial = Sol.Initial.face_down(72)
 forty_and_eight.Tableau.Size  = 8
+forty_and_eight.redeal        = Sol.Ops.Redeal.waste_to_stock
 
 
 ------

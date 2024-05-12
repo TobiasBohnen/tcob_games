@@ -7,17 +7,19 @@ static auto parse_unit_value(tcob::utf8_string_view input) -> std::pair<std::str
     bool        parsingValue {true};
     bool        decimalFound {false};
 
-    for (char ch : input) {
-        if (std::isdigit(ch) || (ch == '.' && !decimalFound)) {
+    for (char c : input) {
+        if (std::isspace(c)) { continue; }
+
+        if (std::isdigit(c) || (c == '.' && !decimalFound)) {
             if (parsingValue) {
-                value += ch;
+                value += c;
             } else {
-                unit += ch;
+                unit += c;
             }
-            if (ch == '.') { decimalFound = true; }
+            if (c == '.') { decimalFound = true; }
         } else {
             parsingValue = false;
-            unit += ch;
+            unit += c;
         }
     }
 
@@ -35,22 +37,33 @@ struct converter<gfx::ui::thickness> {
     auto static From(cfg_value const& config, gfx::ui::thickness& value) -> bool
     {
         if (std::holds_alternative<utf8_string>(config)) {
-            auto const str {std::get<utf8_string>(config)};
-            auto const [valueStr, unit] {parse_unit_value(str)};
-            f32 const valueF {std::stof(valueStr)};
+            std::vector<gfx::ui::length> l;
 
-            gfx::ui::length l;
-            // TODO: 2 or 4
-            if (unit == "px") {
-                l = {valueF, gfx::ui::length::type::Absolute};
-            } else if (unit == "pct") {
-                l = {valueF / 100.0f, gfx::ui::length::type::Relative};
-            } else {
+            auto const strings {helper::split(std::get<utf8_string>(config), ',')};
+            for (auto const& str : strings) {
+                auto const [valueStr, unit] {parse_unit_value(str)};
+                f32 const valueF {std::stof(valueStr)};
+                if (unit == "px") {
+                    l.emplace_back(valueF, gfx::ui::length::type::Absolute);
+                } else if (unit == "pct") {
+                    l.emplace_back(valueF / 100.0f, gfx::ui::length::type::Relative);
+                } else {
+                    return false;
+                }
+            }
+            switch (l.size()) {
+            case 1:
+                value = {l[0]};
+                return true;
+            case 2:
+                value = {l[0], l[1]};
+                return true;
+            case 4:
+                value = {l[0], l[1], l[2], l[3]};
+                return true;
+            default:
                 return false;
             }
-
-            value = {l};
-            return true;
         }
 
         return false;

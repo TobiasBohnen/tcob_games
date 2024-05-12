@@ -29,8 +29,12 @@
             "auto_size": "Always"
         }
     },
-    "button:hover": {},
-    "button:active": {},
+    "button:hover": {
+        "margin": "5px"
+    },
+    "button:active": {
+        "margin": "5x, 6px, 5px, 6px"
+    },
     "cycle_button": {
         "style_type": "cycle_button",
         "margin": "5px",
