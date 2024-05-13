@@ -233,7 +233,9 @@ void background_canvas::draw(gfx::render_target& target)
             rect.top_left() + point_f {0, _bounds.Height * 0.25f},
             rect.bottom_left() - point_f {0, _bounds.Height * 0.25f},
             {_colorA, _colorB}));
-        _canvas.fill_rect(rect);
+        _canvas.begin_path();
+        _canvas.rect(rect);
+        _canvas.fill();
 
         _canvas.end_frame();
 

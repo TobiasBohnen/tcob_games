@@ -484,7 +484,9 @@ void default_cardset::draw_back(gfx::canvas& canvas, rect_f const& rect)
 
     canvas.set_stroke_style(colors::White);
     canvas.set_stroke_width(3);
-    canvas.stroke_rect(backRect);
+    canvas.begin_path();
+    canvas.rect(backRect);
+    canvas.stroke();
 
     canvas.restore();
 }
