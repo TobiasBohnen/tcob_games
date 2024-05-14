@@ -324,35 +324,6 @@ lady_palk.Tableau.Pile.Rule = Sol.Rules.any_downrank_inseq
 
 ------
 
-local limited                = Sol.copy(forty_thieves)
-limited.Info.Name            = "Limited"
-limited.Stock.Initial        = Sol.Initial.face_down(68)
-limited.Tableau.Size         = 12
-limited.Tableau.Pile.Initial = Sol.Initial.face_up(3)
-
-
-------
-
-local carnation           = Sol.copy(limited)
-carnation.Info.Name       = "Carnation"
-carnation.Info.DeckCount  = 4
-carnation.Stock.Initial   = Sol.Initial.face_down(160)
-carnation.Foundation.Size = 16
-carnation.Tableau.Size    = 16
-
-
-------
-
-local express           = Sol.copy(limited)
-express.Info.Name       = "Express"
-express.Info.DeckCount  = 3
-express.Stock.Initial   = Sol.Initial.face_down(114)
-express.Foundation.Size = 12
-express.Tableau.Size    = 14
-
-
-------
-
 local little_forty             = Sol.copy(forty_thieves)
 little_forty.Info.Name         = "Little Forty"
 little_forty.Info.Redeals      = 3
@@ -564,6 +535,22 @@ san_juan_hill.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
 
 ------
 
+local red_and_black                    = Sol.copy(forty_thieves)
+red_and_black.Info.Name                = "Red and Black"
+red_and_black.Stock.Initial            = Sol.Initial.face_down(88)
+red_and_black.Foundation.Pile.Rule     = Sol.Rules.ace_upac_top
+red_and_black.Tableau                  = {
+    Size = 8,
+    Pile = {
+        Initial = Sol.Initial.face_up(1),
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downac_inseq
+    }
+}
+red_and_black.on_before_shuffle        = Sol.Ops.Shuffle.ace_to_foundation
+
+------
+
 local thirty_nine_steps                = Sol.copy(forty_thieves)
 thirty_nine_steps.Info.Name            = "Thirty-Nine Steps"
 thirty_nine_steps.Stock.Initial        = Sol.Initial.face_down(65)
@@ -586,6 +573,70 @@ triple_line.Tableau       = {
     }
 }
 triple_line.on_end_turn   = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
+
+
+------
+
+local waterloo             = Sol.copy(forty_thieves)
+waterloo.Info.Name         = "Waterloo"
+waterloo.Stock.Initial     = Sol.Initial.face_down(90)
+waterloo.Tableau           = {
+    Size = 6,
+    Pile = {
+        Initial = Sol.Initial.face_up(1),
+        Layout  = "Column",
+        Rule    = Sol.Rules.spider_tableau
+    }
+}
+waterloo.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
+
+
+------
+
+local zebra             = Sol.copy(forty_thieves)
+zebra.Info.Name         = "Zebra"
+zebra.Info.Redeal       = 1
+zebra.Stock.Initial     = Sol.Initial.face_down(88)
+zebra.Tableau           = {
+    Size = 8,
+    Pile = {
+        Initial = Sol.Initial.face_up(1),
+        Layout  = "Column",
+        Rule    = Sol.Rules.any_downac_top
+    }
+}
+zebra.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
+zebra.on_end_turn       = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
+
+
+------
+------
+
+local limited                = Sol.copy(forty_thieves)
+limited.Info.Name            = "Limited"
+limited.Stock.Initial        = Sol.Initial.face_down(68)
+limited.Tableau.Size         = 12
+limited.Tableau.Pile.Initial = Sol.Initial.face_up(3)
+
+
+------
+
+local carnation           = Sol.copy(limited)
+carnation.Info.Name       = "Carnation"
+carnation.Info.DeckCount  = 4
+carnation.Stock.Initial   = Sol.Initial.face_down(160)
+carnation.Foundation.Size = 16
+carnation.Tableau.Size    = 16
+
+
+------
+
+local express           = Sol.copy(limited)
+express.Info.Name       = "Express"
+express.Info.DeckCount  = 3
+express.Stock.Initial   = Sol.Initial.face_down(114)
+express.Foundation.Size = 12
+express.Tableau.Size    = 14
 
 
 ------
@@ -815,6 +866,7 @@ Sol.register_game(number_ten)
 Sol.register_game(number_twelve)
 Sol.register_game(pluto)
 Sol.register_game(rank_and_file)
+Sol.register_game(red_and_black)
 Sol.register_game(roosevelt)
 Sol.register_game(rows_of_four)
 Sol.register_game(san_juan_hill)
@@ -827,3 +879,5 @@ Sol.register_game(triple_rail)
 Sol.register_game(thirty_nine_steps)
 Sol.register_game(unlimited)
 Sol.register_game(waning_moon)
+Sol.register_game(waterloo)
+Sol.register_game(zebra)

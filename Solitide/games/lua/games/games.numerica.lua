@@ -267,7 +267,7 @@ local anno_domini = {
     Foundation = {
         Size = 4,
         Pile = function(i)
-            local base = tonumber(string.sub(Sol.Year, i + 1, i + 1)) + 1
+            local base = tonumber(string.sub(Sol.Date, i + 1, i + 1)) + 1
             local ranks = { "Jack", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", }
             return {
                 Rule = { Base = Sol.Rules.Base.Ranks({ ranks[base] }), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top() }

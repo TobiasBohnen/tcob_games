@@ -36,10 +36,7 @@ local fortunes_favor = {
     },
     on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation,
     deal              = Sol.Ops.Deal.stock_to_waste,
-    on_end_turn       = function(game)
-        Sol.Ops.Deal.to_group(game.Waste[1], game.Tableau, "IfEmpty")
-        Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, "IfEmpty")
-    end
+    on_end_turn       = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
 }
 
 

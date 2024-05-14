@@ -790,6 +790,55 @@ local la_belle_lucie = {
 
 ------
 
+local roaming_proils = {
+    Info = {
+        Name      = "Roaming Proils",
+        Family    = "Fan",
+        DeckCount = 1
+    },
+    FreeCell = {
+        Initial = Sol.Initial.face_up(1),
+        Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
+    },
+    Foundation = {
+        Size = 4,
+        Pile = { Rule = Sol.Rules.ace_upsuit_top }
+    },
+    Tableau = {
+        Size = 17,
+        Pile = {
+            Initial = Sol.Initial.top_face_up(3),
+            Layout  = "Row",
+            Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.InRank(), Move = Sol.Rules.Move.Top() }
+        }
+    },
+    can_play = function(game, targetPile, targetCardIndex, card, numCards)
+        if targetPile.Type == "Tableau" and targetCardIndex >= 3 then
+            -- only three consecutive cards of the same rank
+            local cards = targetPile.Cards
+            if cards[targetCardIndex].IsFaceUp and cards[targetCardIndex].Rank == card.Rank
+                and cards[targetCardIndex - 1].IsFaceUp and cards[targetCardIndex - 1].Rank == card.Rank
+                and cards[targetCardIndex - 2].IsFaceUp and cards[targetCardIndex - 2].Rank == card.Rank
+            then
+                return false
+            end
+        end
+
+        return game:can_play(targetPile, targetCardIndex, card, numCards)
+    end,
+    on_init = function(game) Sol.Layout.fan(game, 5) end
+}
+
+
+------
+
+local open_proils = Sol.copy(roaming_proils)
+open_proils.Info.Name = "Open Proils"
+open_proils.Tableau.Pile.Initial = Sol.Initial.face_up(3)
+
+
+------
+
 ------------------------
 
 Sol.register_game(fan)
@@ -811,6 +860,8 @@ Sol.register_game(la_belle_lucie)
 Sol.register_game(quads)
 Sol.register_game(quads_plus)
 Sol.register_game(lucky_piles)
+Sol.register_game(open_proils)
+Sol.register_game(roaming_proils)
 Sol.register_game(scotch_patience)
 Sol.register_game(shamrocks)
 Sol.register_game(shamrocks_2)

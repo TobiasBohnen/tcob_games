@@ -60,10 +60,7 @@ local terrace = {
             Sol.Ops.Deal.stock_to_waste(game)
         end
     end,
-    on_end_turn = function(game)
-        Sol.Ops.Deal.to_group(game.Waste[1], game.Tableau, "IfEmpty")
-        Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, "IfEmpty")
-    end,
+    on_end_turn = Sol.Ops.Deal.waste_or_stock_to_empty_tableau,
     on_init = Sol.Layout.terrace
 }
 

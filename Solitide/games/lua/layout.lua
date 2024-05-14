@@ -183,9 +183,9 @@ return {
             piles.Tableau[i + 1].Position = { x = i, y = 2 }
         end
     end,
-    -- Foundation       -> right or top
-    -- Tableau          -> in columns
-    -- Stock and Waste  -> bottom
+    -- Foundation                         -> right or top
+    -- Tableau                            -> in columns
+    -- Stock and Waste / single FreeCell  -> bottom
     fan = function(game, columns)
         local piles = get_piles(game)
         local maxY = 0
@@ -222,6 +222,10 @@ return {
             for i = 1, piles.WasteSize do
                 piles.Waste[i].Position = { x = stockOffsetX + i, y = stockOffsetY }
             end
+        elseif piles.FreeCellSize == 1 then
+            local stockOffsetX = math.max(0, ((columns * 2) - (piles.WasteSize + 1)) / 2)
+            local stockOffsetY = maxY + 1
+            piles.FreeCell[1].Position = { x = stockOffsetX, y = stockOffsetY }
         end
     end,
     -- FreeCell         -> top
