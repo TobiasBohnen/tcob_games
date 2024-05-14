@@ -150,7 +150,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     pileWrapper["Cards"]     = getter {[](pile* p) { return p->Cards; }};
 
     pileWrapper["Position"]   = property {[](pile* p) { return p->Position; }, [](pile* p, point_f pos) { p->Position = pos; }};
-    pileWrapper["IsPlayable"] = property {[](pile* p) { return p->Rule.IsPlayable; }, [](pile* p, bool val) { p->Rule.IsPlayable = val; }};
+    pileWrapper["IsPlayable"] = property {[](pile* p) { return p->Rule.IsPlayable; }, [](pile* p, bool val) { p->Rule.IsPlayable = val; }}; // TODO: save?
 
     // methods
     pileWrapper["flip_cards"]         = [](pile* p, std::vector<bool> const& val) { p->flip_cards(val); };
@@ -255,6 +255,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& scen
         infoTab.try_get(info.DeckSuits, "DeckSuits");
         infoTab.try_get(info.Redeals, "Redeals");
         infoTab.try_get(info.DisableHints, "DisableHints");
+        infoTab.try_get(info.DisableAutoPlay, "DisableAutoPlay");
 
         auto func {[tab, info]() { return std::make_shared<T>(info, tab); }};
         scene->register_game(info, func);

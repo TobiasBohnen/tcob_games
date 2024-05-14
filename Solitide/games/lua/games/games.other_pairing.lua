@@ -34,7 +34,7 @@ local pyramid = {
         if targetPile.Type == "Foundation" then
             if card.Rank == "King" then return true end
         end
-        if targetPile.Type == "Tableau" or targetPile.Type == "Stock" or targetPile.Type == "Waste" then
+        if not targetPile.IsEmpty and (targetPile.Type == "Tableau" or targetPile.Type == "Stock" or targetPile.Type == "Waste") then
             if Sol.RankValues[card.Rank] + Sol.RankValues[targetPile.Cards[targetCardIndex].Rank] == 13 then
                 return true
             end

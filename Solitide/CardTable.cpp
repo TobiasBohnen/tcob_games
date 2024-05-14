@@ -63,6 +63,8 @@ void card_table::layout()
     rect_f      pileBounds;
     for (auto const& [_, piles] : _currentGame->piles()) {
         for (auto* pile : piles) {
+            if (pile->Cards.empty() && !pile->HasMarker) { continue; }
+
             point_f   pos {multiply(pile->Position, cardSize)};
             f32 const offsetMod {static_cast<f32>(pile->Cards.size() / 5)};
 

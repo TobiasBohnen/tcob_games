@@ -223,14 +223,14 @@ void base_game::update(milliseconds delta)
 
 auto base_game::auto_play_cards(pile& from) -> bool
 {
-    if (from.Type != pile_type::Foundation && from.is_playable()) {
-        auto& card {from.Cards.back()};
+    if (from.Type == pile_type::Foundation || !from.is_playable() || _info.DisableAutoPlay) { return false; }
 
-        for (auto& fou : Foundation) {
-            if (!can_play(fou, std::ssize(fou.Cards) - 1, card, 1)) { continue; }
-            play_cards(from, fou, std::ssize(from.Cards) - 1, 1);
-            return true;
-        }
+    auto& card {from.Cards.back()};
+
+    for (auto& fou : Foundation) {
+        if (!can_play(fou, std::ssize(fou.Cards) - 1, card, 1)) { continue; }
+        play_cards(from, fou, std::ssize(from.Cards) - 1, 1);
+        return true;
     }
 
     return false;
@@ -245,9 +245,7 @@ void base_game::collect_all()
             if (type == pile_type::Foundation) { continue; }
 
             for (auto* pile : piles) {
-                if (auto_play_cards(*pile)) {
-                    check = true;
-                }
+                if (auto_play_cards(*pile)) { check = true; }
             }
         }
     }

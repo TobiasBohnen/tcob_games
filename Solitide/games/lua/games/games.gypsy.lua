@@ -657,6 +657,67 @@ local right_triangle = {
 
 ------
 
+local surprise         = Sol.copy(right_triangle)
+surprise.Info.Name     = "Surprise"
+surprise.Stock.Initial = Sol.Initial.face_down(68)
+surprise.FreeCell.Rule = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.Any(), Move = Sol.Rules.Move.Top(), Limit = 3 }
+surprise.Tableau       = {
+    Size = 11,
+    Pile = function(i)
+        return {
+            Initial = Sol.Initial.top_face_up(i < 6 and i + 1 or 11 - i),
+            Layout  = "Column",
+            Rule    = Sol.Rules.king_downac_inseq
+        }
+    end
+}
+
+
+------
+local function swiss_patience_get_rank(card)
+    local rank_values <const> = { Two = 1, Three = 2, Four = 3, Five = 4, Six = 5, Seven = 6, Eight = 7, Nine = 8, Ten = 9, Jack = 10, Queen = 11, King = 12, Ace = 13 }
+    local rank <const> = { "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace" }
+    return rank[rank_values[card.Rank] - 1]
+end
+
+local swiss_patience = {
+    Info       = {
+        Name      = "Swiss Patience",
+        Family    = "Gypsy",
+        DeckCount = 1
+    },
+    Stock      = {
+        Initial = Sol.Initial.face_down(27)
+    },
+    Foundation = {
+        Size = 4,
+        Pile = { Rule = { Base = Sol.Rules.Base.Ranks({ "Two" }), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top(), Limit = 13 } }
+    },
+    Tableau    = {
+        Size = 9,
+        Pile = function(i)
+            return {
+                Initial = Sol.Initial.top_face_up(i < 5 and i + 1 or 9 - i),
+                Layout  = "Column",
+                Rule    = {
+                    Base = Sol.Rules.Base.Ace(),
+                    Build = {
+                        Hint = "Down by alternate color",
+                        Func = function(_, dst, src)
+                            return dst.Color ~= src.Color and swiss_patience_get_rank(dst) == src.Rank
+                        end
+                    },
+                    Move = Sol.Rules.Move.InSeq()
+                }
+            }
+        end
+    },
+    on_init    = Sol.Layout.canfield,
+    deal       = Sol.Ops.Deal.stock_to_tableau
+}
+
+------
+
 ------------------------
 
 Sol.register_game(gypsy)
@@ -683,4 +744,6 @@ Sol.register_game(pitt_the_younger)
 Sol.register_game(right_triangle)
 Sol.register_game(scarp)
 Sol.register_game(small_triangle)
+Sol.register_game(surprise)
+Sol.register_game(swiss_patience)
 Sol.register_game(yeast_dough)

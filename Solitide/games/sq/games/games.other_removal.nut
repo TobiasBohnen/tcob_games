@@ -27,7 +27,7 @@ local aces_up = {
         Initial = Sol.Initial.face_down(48)
     },
     Foundation = {
-        Rule  = {
+        Rule = {
             Move = Sol.Rules.Move.None()
         }
     },
@@ -36,7 +36,7 @@ local aces_up = {
         Pile = @(i) {
             Initial = Sol.Initial.face_up(1),
                 Layout = "Column",
-                Rule  = {
+                Rule = {
                     Base = Sol.Rules.Base.Any(),
                     Build = Sol.Rules.Build.None(),
                     Move = Sol.Rules.Move.Top()
@@ -117,7 +117,7 @@ local aces_square = {
             x = 4.5,
             y = 0
         }
-        Rule  = {
+        Rule = {
             Move = Sol.Rules.Move.None()
         }
     },
@@ -130,7 +130,7 @@ local aces_square = {
             }
             Initial = Sol.Initial.face_up(1)
             Layout = "Column"
-            Rule  = {
+            Rule = {
                 Base = Sol.Rules.Base.None(),
                 Build = Sol.Rules.Build.None(),
                 Move = Sol.Rules.Move.Top()
@@ -193,23 +193,23 @@ local cover = {
         Initial = Sol.Initial.face_down(48)
     },
     Foundation = {
-        Rule  = {
+        Rule = {
             Move = Sol.Rules.Move.None()
         }
     },
     Tableau = {
         Size = 4,
         Pile = @(i) {
-            Initial = Sol.Initial.face_up(1),
-                Layout = "Column",
-                Rule  = {
-                    Base = Sol.Rules.Base.None(),
-                    Build = {
-                        Hint = "Same suit",
-                        Func = @(game, dst, src) dst.Suit == src.Suit
-                    }
-                    Move = Sol.Rules.Move.Top()
+            Initial = Sol.Initial.face_up(1)
+            Layout = "Column"
+            Rule = {
+                Base = Sol.Rules.Base.None(),
+                Build = {
+                    Hint = "Same suit",
+                    Func = @(game, dst, src) dst.Suit == src.Suit
                 }
+                Move = Sol.Rules.Move.Top()
+            }
         }
     },
     get_status = function(game) {
@@ -258,6 +258,8 @@ deck.get_status = function(game) {
 }
 deck.on_drop <- @(game, pile) pile.move_cards(game.Foundation[0], pile.CardCount - 2, 2, false)
 deck.on_end_turn = null
+
+//////
 
 ////////////////////////
 

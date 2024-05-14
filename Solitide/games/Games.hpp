@@ -62,8 +62,8 @@ struct game_info {
     std::unordered_set<rank> DeckRanks {rank::Ace, rank::Two, rank::Three, rank::Four, rank::Five, rank::Six, rank::Seven, rank::Eight, rank::Nine, rank::Ten, rank::Jack, rank::Queen, rank::King};
     std::unordered_set<suit> DeckSuits {suit::Clubs, suit::Diamonds, suit::Hearts, suit::Spades};
 
-    // TODO: replace with script function 'get_hints'
-    bool DisableHints {false};
+    bool DisableHints {false}; // TODO: replace with script function 'get_hints'
+    bool DisableAutoPlay {false};
 };
 
 ////////////////////////////////////////////////////////////

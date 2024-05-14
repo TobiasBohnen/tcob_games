@@ -17,22 +17,7 @@ function Sol.copy(obj, seen)
     return res
 end
 
-Sol.RankValues = {
-    Ace = 1,
-    Two = 2,
-    Three = 3,
-    Four = 4,
-    Five = 5,
-    Six = 6,
-    Seven = 7,
-    Eight = 8,
-    Nine = 9,
-    Ten = 10,
-    Jack = 11,
-    Queen = 12,
-    King = 13
-}
-
+Sol.RankValues = { Ace = 1, Two = 2, Three = 3, Four = 4, Five = 5, Six = 6, Seven = 7, Eight = 8, Nine = 9, Ten = 10, Jack = 11, Queen = 12, King = 13 }
 Sol.Ranks = { "Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
 Sol.Suits = { "Hearts", "Diamonds", "Spades", "Clubs" }
 Sol.SuitColors = { Hearts = "Red", Diamonds = "Red", Spades = "Black", Clubs = "Black" }
