@@ -244,7 +244,9 @@ inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& scen
     globalTable["Sol"]["Date"] = std::format("{:%Y%m%d}", now);
 
     globalTable["Sol"]["register_game"] = makeFunc([scene](Table& tab) {
-        auto      infoTab {tab["Info"].template as<Table>()};
+        Table infoTab;
+        if (!tab.is_valid() || !tab.try_get(infoTab, "Info")) { return; } // TODO: error
+
         game_info info;
 
         infoTab.try_get(info.Name, "Name");
