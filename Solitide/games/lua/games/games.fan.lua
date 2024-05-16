@@ -98,9 +98,9 @@ local clover_leaf = {
         Size = 4,
         Pile = function(i)
             if i < 2 then
-                return { Rule = { Base = Sol.Rules.Base.CardColor("Black", "Ace"), Build = Sol.Rules.Build.UpInSuit(), Move = Sol.Rules.Move.Top() } }
+                return { Rule = { Base = Sol.Rules.Base.ColorRank("Black", "Ace"), Build = Sol.Rules.Build.UpInSuit(), Move = Sol.Rules.Move.Top() } }
             else
-                return { Rule = { Base = Sol.Rules.Base.CardColor("Red", "King"), Build = Sol.Rules.Build.DownInSuit(), Move = Sol.Rules.Move.Top() } }
+                return { Rule = { Base = Sol.Rules.Base.ColorRank("Red", "King"), Build = Sol.Rules.Build.DownInSuit(), Move = Sol.Rules.Move.Top() } }
             end
         end
     },

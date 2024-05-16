@@ -486,7 +486,7 @@ local base = {
             end
         }
     end,
-    CardColor = function(color, rank)
+    ColorRank = function(color, rank)
         return {
             Hint = color .. " " .. rank,
             Func = function(_, card, _)

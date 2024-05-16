@@ -4,34 +4,16 @@
 // https://opensource.org/licenses/MIT
 
 local rules = {
-    in_suit = function(card0, card1) {
-        return card0.Suit == card1.Suit;
-    },
-
-    in_color = function(card0, card1) {
-        return card0.Color == card1.Color;
-    },
-
-    alternate_color = function(card0, card1) {
-        return card0.Color != card1.Color;
-    },
-
-    in_rank = function(card0, card1) {
-        return card0.Rank == card1.Rank;
-    },
-
-    build_up = function(card0, card1, wrap, interval) {
-        return Sol.get_rank(card0.Rank, interval, wrap) == card1.Rank;
-    },
-
-    build_down = function(card0, card1, wrap, interval) {
-        return Sol.get_rank(card0.Rank, -interval, wrap) == card1.Rank;
-    }
-
+    in_suit = @(card0, card1) card0.Suit == card1.Suit
+    in_color = @(card0, card1) card0.Color == card1.Color
+    alternate_color = @(card0, card1) card0.Color != card1.Color
+    in_rank = @(card0, card1) card0.Rank == card1.Rank
+    build_up = @(card0, card1, wrap, interval) Sol.get_rank(card0.Rank, interval, wrap) == card1.Rank
+    build_down = @(card0, card1, wrap, interval) Sol.get_rank(card0.Rank, -interval, wrap) == card1.Rank
     build_up_or_down = function(card0, card1, wrap, interval) {
         return Sol.get_rank(card0.Rank, interval, wrap) == card1.Rank || Sol.get_rank(card0.Rank, -interval, wrap) == card1.Rank;
     }
-};
+}
 
 local build = {
     None = @(wrap = false, interval = 1) {
@@ -50,16 +32,14 @@ local build = {
         Hint = "Down by rank or by same rank", Func = @(game, dst, src) rules.in_rank(dst, src) || rules.build_down(dst, src, wrap, interval)
     },
 
-    RankPack = function(wrap = false, interval = 1) {
-        return {
-            Hint = "By same rank, then up by rank",
-            Func = function(game, dst, src) {
-                local count = game.find_pile(dst).CardCount
-                if (count > 0 && count % (game.DeckCount * 4) == 0) {
-                    return rules.build_up(dst, src, wrap, interval)
-                }
-                return rules.in_rank(dst, src)
+    RankPack = @(wrap = false, interval = 1) {
+        Hint = "By same rank, then up by rank"
+        Func = function(game, dst, src) {
+            local count = game.find_pile(dst).CardCount
+            if (count > 0 && count % (game.DeckCount * 4) == 0) {
+                return rules.build_up(dst, src, wrap, interval)
             }
+            return rules.in_rank(dst, src)
         }
     },
 
@@ -148,135 +128,125 @@ local move = {
             return true
         }
     },
-    InSeq = function() {
-        return {
-            Hint = "Sequence of cards"
-            IsPlayable = true
-            IsSequence = true
-            Func = function(game, pile, idx) {
-                local cards = pile.Cards
-                if (cards[idx].IsFaceDown) {
+    InSeq = @() {
+        Hint = "Sequence of cards"
+        IsPlayable = true
+        IsSequence = true
+        Func = function(game, pile, idx) {
+            local cards = pile.Cards
+            if (cards[idx].IsFaceDown) {
+                return false
+            }
+            for (local i = idx; i < cards.len() - 1; ++i) {
+                if (!game.can_play(pile, i, cards[i + 1], 1)) {
                     return false
                 }
-                for (local i = idx; i < cards.len() - 1; ++i) {
-                    if (!game.can_play(pile, i, cards[i + 1], 1)) {
-                        return false
-                    }
-                }
-                return true
             }
+            return true
         }
     },
-    InSeqInSuit = function() {
-        return {
-            Hint = "Sequence of cards in the same suit"
-            IsPlayable = true
-            IsSequence = true
-            Func = function(game, pile, idx) {
-                local cards = pile.Cards
-                if (cards[idx].IsFaceDown) {
+    InSeqInSuit = @() {
+        Hint = "Sequence of cards in the same suit"
+        IsPlayable = true
+        IsSequence = true
+        Func = function(game, pile, idx) {
+            local cards = pile.Cards
+            if (cards[idx].IsFaceDown) {
+                return false
+            }
+            local targetSuit = cards[idx].Suit
+            for (local i = idx; i < cards.len() - 1; ++i) {
+                if (cards[i + 1].Suit != targetSuit ||
+                    !game.can_play(pile, i, cards[i + 1], 1)) {
                     return false
                 }
-                local targetSuit = cards[idx].Suit
-                for (local i = idx; i < cards.len() - 1; ++i) {
-                    if (cards[i + 1].Suit != targetSuit ||
-                        !game.can_play(pile, i, cards[i + 1], 1)) {
-                        return false
-                    }
-                }
-                return true
             }
+            return true
         }
     },
-    InSeqAlternateColors = function() {
-        return {
-            Hint = "Color-alternating card sequence"
-            IsPlayable = true
-            IsSequence = true
-            Func = function(game, pile, idx) {
-                local cards = pile.Cards
-                if (cards[idx].IsFaceDown) {
+    InSeqAlternateColors = @() {
+        Hint = "Color-alternating card sequence"
+        IsPlayable = true
+        IsSequence = true
+        Func = function(game, pile, idx) {
+            local cards = pile.Cards
+            if (cards[idx].IsFaceDown) {
+                return false
+            }
+            for (local i = idx; i < cards.len() - 1; ++i) {
+                local targetColor = cards[i].Color
+                if (cards[i + 1].Suit == targetColor ||
+                    !game.can_play(pile, i, cards[i + 1], 1)) {
                     return false
                 }
-                for (local i = idx; i < cards.len() - 1; ++i) {
-                    local targetColor = cards[i].Color
-                    if (cards[i + 1].Suit == targetColor ||
-                        !game.can_play(pile, i, cards[i + 1], 1)) {
-                        return false
-                    }
-                }
-                return true
             }
+            return true
         }
     },
-    InSeqInSuitOrSameRank = function() {
-        return {
-            Hint = "Sequence of cards in the same suit or rank"
-            IsPlayable = true
-            IsSequence = true
-            Func = function(game, pile, idx) {
-                local cards = pile.Cards
-                if (cards[idx].IsFaceDown) {
-                    return false
-                }
-                local targetSuit = cards[idx].Suit
+    InSeqInSuitOrSameRank = @() {
+        Hint = "Sequence of cards in the same suit or rank"
+        IsPlayable = true
+        IsSequence = true
+        Func = function(game, pile, idx) {
+            local cards = pile.Cards
+            if (cards[idx].IsFaceDown) {
+                return false
+            }
+            local targetSuit = cards[idx].Suit
 
-                local result = true
-                for (local i = idx; i < cards.len() - 1; ++i) {
-                    if (cards[i + 1].Suit != targetSuit ||
-                        !game.can_play(pile, i, cards[i + 1], 1)) {
-                        result = false
-                        break
-                    }
+            local result = true
+            for (local i = idx; i < cards.len() - 1; ++i) {
+                if (cards[i + 1].Suit != targetSuit ||
+                    !game.can_play(pile, i, cards[i + 1], 1)) {
+                    result = false
+                    break
                 }
-                if (result) {
-                    return true
-                }
-
-                local targetRank = cards[cards.len() - 1].Rank
-                for (local i = idx; i < cards.len() - 1; ++i) {
-                    if (cards[i].Rank != targetRank) {
-                        return false
-                    }
-                }
+            }
+            if (result) {
                 return true
             }
+
+            local targetRank = cards[cards.len() - 1].Rank
+            for (local i = idx; i < cards.len() - 1; ++i) {
+                if (cards[i].Rank != targetRank) {
+                    return false
+                }
+            }
+            return true
         }
     },
-    SuperMove = function() {
-        return {
-            Hint = "Top card (SuperMove)"
-            IsPlayable = true
-            IsSequence = true
-            Func = function(game, pile, idx) {
-                local cards = pile.Cards
-                if (cards[idx].IsFaceDown) {
-                    return false
-                }
-
-                local freeCell = game.FreeCell
-                if (freeCell.len() == 0) {
-                    return idx == pile.CardCount - 1
-                }
-
-                local movableCards = 0
-                foreach(fc in freeCell) {
-                    if (fc.IsEmpty) {
-                        movableCards++
-                    }
-                }
-
-                if (idx + movableCards < cards.len()) {
-                    return false
-                }
-
-                for (local i = idx; i < cards.len() - 1; ++i) {
-                    if (!game.can_play(pile, i, cards[i + 1], 1)) {
-                        return false
-                    }
-                }
-                return true
+    SuperMove = @() {
+        Hint = "Top card (SuperMove)"
+        IsPlayable = true
+        IsSequence = true
+        Func = function(game, pile, idx) {
+            local cards = pile.Cards
+            if (cards[idx].IsFaceDown) {
+                return false
             }
+
+            local freeCell = game.FreeCell
+            if (freeCell.len() == 0) {
+                return idx == pile.CardCount - 1
+            }
+
+            local movableCards = 0
+            foreach(fc in freeCell) {
+                if (fc.IsEmpty) {
+                    movableCards++
+                }
+            }
+
+            if (idx + movableCards < cards.len()) {
+                return false
+            }
+
+            for (local i = idx; i < cards.len() - 1; ++i) {
+                if (!game.can_play(pile, i, cards[i + 1], 1)) {
+                    return false
+                }
+            }
+            return true
         }
     }
 }
@@ -319,17 +289,13 @@ local base_tab = {
             }
         }
     },
-    Card = function(suit, rank) {
-        return {
-            Hint = rank + " of " + suit,
-            Func = @(game, card, numCards) card.Rank == rank && card.Suit == suit
-        }
+    Card = @(suit, rank) {
+        Hint = rank + " of " + suit
+        Func = @(game, card, numCards) card.Rank == rank && card.Suit == suit
     },
-    CardColor = function(color, rank) {
-        return {
-            Hint = color + " " + rank,
-            Func = @(game, card, numCards) card.Rank == rank && card.Color == color
-        }
+    ColorRank = @(color, rank) {
+        Hint = color + " " + rank
+        Func = @(game, card, numCards) card.Rank == rank && card.Color == color
     },
     Suits = function(s) {
         local suits = "";
@@ -349,10 +315,15 @@ local base_tab = {
         }
     },
     Ranks = function(r) {
-        local ranks = "";
-        foreach(str in r) {
-            ranks += str;
+        local ranks = ""
+
+        for (local i = 0; i < suits.len(); i++) {
+            ranks += suits[i]
+            if (i < suits.len() - 1) {
+                ranks += "/"
+            }
         }
+
         return {
             Hint = ranks,
             Func = function(game, card, numCards) {
@@ -363,6 +334,24 @@ local base_tab = {
                 }
                 return false
             }
+        }
+    },
+    SuitStack = @() {
+        Hint = "King to Ace"
+        Func = function(game, card, numCards) {
+            if (numCards != 13 || card.Rank != "King") {
+                return false
+            }
+
+            local srcPile = game.find_pile(card)
+            local cards = srcPile.Cards
+            local srcIdx = srcPile.get_card_index(card)
+            for (local i = srcIdx; i < cards.len() - 1; ++i) {
+                if (cards[i].Suit != card.Suit) {
+                    return false
+                }
+            }
+            return true
         }
     }
 }

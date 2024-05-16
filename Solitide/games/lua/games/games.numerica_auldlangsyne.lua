@@ -53,8 +53,9 @@ acquaintance.redeal       = function(game)
     local stock = game.Stock[1]
     if not stock.IsEmpty then return false end
 
-    local tableau = game.Tableau
     local cards   = {}
+
+    local tableau = game.Tableau
     for _, tab in ipairs(tableau) do
         local tabCards = tab.Cards
         for j = #tabCards, 1, -1 do
@@ -62,6 +63,7 @@ acquaintance.redeal       = function(game)
         end
         tab:clear_cards()
     end
+
     if #cards == 0 then return false end
 
     while #cards > 0 do
