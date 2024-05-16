@@ -206,7 +206,7 @@ local cover = {
                 Base = Sol.Rules.Base.None(),
                 Build = {
                     Hint = "Same suit",
-                    Func = @(game, dst, src) dst.Suit == src.Suit
+                    Func = @(game, cbase, drop) cbase.Suit == drop.Suit
                 }
                 Move = Sol.Rules.Move.Top()
             }

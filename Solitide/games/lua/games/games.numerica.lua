@@ -111,9 +111,9 @@ local amazons                    = {
                     Base = Sol.Rules.Base.Ace(),
                     Build = {
                         Hint = "Up by rank",
-                        Func = function(_, dst, src)
-                            local target = amazons_rankvalues[dst.Rank] + 1
-                            return amazons_ranks[target] == src.Rank
+                        Func = function(_, base, drop)
+                            local target = amazons_rankvalues[base.Rank] + 1
+                            return amazons_ranks[target] == drop.Rank
                         end
                     },
                     Move = Sol.Rules.Move.None(),

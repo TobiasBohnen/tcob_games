@@ -703,8 +703,8 @@ local swiss_patience = {
                     Base = Sol.Rules.Base.Ace(),
                     Build = {
                         Hint = "Down by alternate color",
-                        Func = function(_, dst, src)
-                            return dst.Color ~= src.Color and swiss_patience_get_rank(dst) == src.Rank
+                        Func = function(_, base, drop)
+                            return base.Color ~= drop.Color and swiss_patience_get_rank(base) == drop.Rank
                         end
                     },
                     Move = Sol.Rules.Move.InSeq()

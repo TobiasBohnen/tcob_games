@@ -26,7 +26,7 @@ function Sol.get_rank(r, interval, wrap)
     local target = Sol.RankValues[r] + interval
 
     if wrap then
-        target = ((target - 1) % 13 + 13) % 13 + 1
+        target = ((target - 1) % 13 + 13) % 13 + 1 --0->13
     end
 
     if target == 0 or target > 13 then

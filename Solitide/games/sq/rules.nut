@@ -17,91 +17,91 @@ local rules = {
 
 local build = {
     None = @(wrap = false, interval = 1) {
-        Hint = "No building", Func = @(game, dst, src) false
+        Hint = "No building", Func = @(game, cbase, drop) false
     },
 
     Any = @(wrap = false, interval = 1) {
-        Hint = "Any card", Func = @(game, dst, src) true
+        Hint = "Any card", Func = @(game, cbase, drop) true
     },
 
     InRank = @(wrap = false, interval = 1) {
-        Hint = "By same rank", Func = @(game, dst, src) rules.in_rank(dst, src)
+        Hint = "By same rank", Func = @(game, cbase, drop) rules.in_rank(cbase, drop)
     },
 
     InRankOrDownByRank = @(wrap = false, interval = 1) {
-        Hint = "Down by rank or by same rank", Func = @(game, dst, src) rules.in_rank(dst, src) || rules.build_down(dst, src, wrap, interval)
+        Hint = "Down by rank or by same rank", Func = @(game, cbase, drop) rules.in_rank(cbase, drop) || rules.build_down(cbase, drop, wrap, interval)
     },
 
     RankPack = @(wrap = false, interval = 1) {
         Hint = "By same rank, then up by rank"
-        Func = function(game, dst, src) {
-            local count = game.find_pile(dst).CardCount
+        Func = function(game, cbase, drop) {
+            local count = game.find_pile(cbase).CardCount
             if (count > 0 && count % (game.DeckCount * 4) == 0) {
-                return rules.build_up(dst, src, wrap, interval)
+                return rules.build_up(cbase, drop, wrap, interval)
             }
-            return rules.in_rank(dst, src)
+            return rules.in_rank(cbase, drop)
         }
     },
 
     UpOrDownByRank = @(wrap = false, interval = 1) {
-        Hint = "Up or down by rank", Func = @(game, dst, src) rules.build_up_or_down(dst, src, wrap, interval)
+        Hint = "Up or down by rank", Func = @(game, cbase, drop) rules.build_up_or_down(cbase, drop, wrap, interval)
     },
 
     DownByRank = @(wrap = false, interval = 1) {
-        Hint = "Down by rank", Func = @(game, dst, src) rules.build_down(dst, src, wrap, interval)
+        Hint = "Down by rank", Func = @(game, cbase, drop) rules.build_down(cbase, drop, wrap, interval)
     },
 
     UpByRank = @(wrap = false, interval = 1) {
-        Hint = "Up by rank", Func = @(game, dst, src) rules.build_up(dst, src, wrap, interval)
+        Hint = "Up by rank", Func = @(game, cbase, drop) rules.build_up(cbase, drop, wrap, interval)
     },
 
     UpOrDownAnyButOwnSuit = @(wrap = false, interval = 1) {
-        Hint = "Up or down by any suit but own", Func = @(game, dst, src) !rules.in_suit(dst, src) && rules.build_up_or_down(dst, src, wrap, interval)
+        Hint = "Up or down by any suit but own", Func = @(game, cbase, drop) !rules.in_suit(cbase, drop) && rules.build_up_or_down(cbase, drop, wrap, interval)
     },
 
     DownAnyButOwnSuit = @(wrap = false, interval = 1) {
-        Hint = "Down by any suit but own", Func = @(game, dst, src) !rules.in_suit(dst, src) && rules.build_down(dst, src, wrap, interval)
+        Hint = "Down by any suit but own", Func = @(game, cbase, drop) !rules.in_suit(cbase, drop) && rules.build_down(cbase, drop, wrap, interval)
     },
 
     UpAnyButOwnSuit = @(wrap = false, interval = 1) {
-        Hint = "Up by any suit but own", Func = @(game, dst, src) !rules.in_suit(dst, src) && rules.build_up(dst, src, wrap, interval)
+        Hint = "Up by any suit but own", Func = @(game, cbase, drop) !rules.in_suit(cbase, drop) && rules.build_up(cbase, drop, wrap, interval)
     },
 
     UpOrDownInSuit = @(wrap = false, interval = 1) {
-        Hint = "Up or down by suit", Func = @(game, dst, src) rules.in_suit(dst, src) && rules.build_up_or_down(dst, src, wrap, interval)
+        Hint = "Up or down by suit", Func = @(game, cbase, drop) rules.in_suit(cbase, drop) && rules.build_up_or_down(cbase, drop, wrap, interval)
     },
 
     DownInSuit = @(wrap = false, interval = 1) {
-        Hint = "Down by suit", Func = @(game, dst, src) rules.in_suit(dst, src) && rules.build_down(dst, src, wrap, interval)
+        Hint = "Down by suit", Func = @(game, cbase, drop) rules.in_suit(cbase, drop) && rules.build_down(cbase, drop, wrap, interval)
     },
 
     UpInSuit = @(wrap = false, interval = 1) {
-        Hint = "Up by suit", Func = @(game, dst, src) rules.in_suit(dst, src) && rules.build_up(dst, src, wrap, interval)
+        Hint = "Up by suit", Func = @(game, cbase, drop) rules.in_suit(cbase, drop) && rules.build_up(cbase, drop, wrap, interval)
     },
 
     UpOrDownInColor = {
         Hint = "Up or down by color",
-        Func = @(dst, src) rules.in_color(game, dst, src) && rules.build_up_or_down(dst, src, wrap, interval)
+        Func = @(cbase, drop) rules.in_color(game, cbase, drop) && rules.build_up_or_down(cbase, drop, wrap, interval)
     },
 
     DownInColor = @(wrap = false, interval = 1) {
-        Hint = "Down by color", Func = @(game, dst, src) rules.in_color(dst, src) && rules.build_down(dst, src, wrap, interval)
+        Hint = "Down by color", Func = @(game, cbase, drop) rules.in_color(cbase, drop) && rules.build_down(cbase, drop, wrap, interval)
     },
 
     UpInColor = @(wrap = false, interval = 1) {
-        Hint = "Up by color", Func = @(game, dst, src) rules.in_color(dst, src) && rules.build_up(dst, src, wrap, interval)
+        Hint = "Up by color", Func = @(game, cbase, drop) rules.in_color(cbase, drop) && rules.build_up(cbase, drop, wrap, interval)
     },
 
     UpOrDownAlternateColors = @(wrap = false, interval = 1) {
-        Hint = "Up or down by alternate color", Func = @(game, dst, src) rules.alternate_color(dst, src) && rules.build_up_or_down(dst, src, wrap, interval)
+        Hint = "Up or down by alternate color", Func = @(game, cbase, drop) rules.alternate_color(cbase, drop) && rules.build_up_or_down(cbase, drop, wrap, interval)
     },
 
     DownAlternateColors = @(wrap = false, interval = 1) {
-        Hint = "Down by alternate color", Func = @(game, dst, src) rules.alternate_color(dst, src) && rules.build_down(dst, src, wrap, interval)
+        Hint = "Down by alternate color", Func = @(game, cbase, drop) rules.alternate_color(cbase, drop) && rules.build_down(cbase, drop, wrap, interval)
     },
 
     UpAlternateColors = @(wrap = false, interval = 1) {
-        Hint = "Up by alternate color", Func = @(game, dst, src) rules.alternate_color(dst, src) && rules.build_up(dst, src, wrap, interval)
+        Hint = "Up by alternate color", Func = @(game, cbase, drop) rules.alternate_color(cbase, drop) && rules.build_up(cbase, drop, wrap, interval)
     }
 };
 

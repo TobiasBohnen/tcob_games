@@ -46,13 +46,15 @@ Sol.SuitColors <- {
 }
 
 function Sol::get_rank(r, interval, wrap) {
-    local target = Sol.RankValues[r] - 1 + interval
+    local target = Sol.RankValues[r] + interval
 
     if (wrap) {
-        target = target % 13
+        target = ((target - 1) % 13 + 13) % 13
+    } else {
+        target--
     }
 
-    if (target < 0 || target > 13) {
+    if (target < 0 || target > 12) {
         return ""
     }
 

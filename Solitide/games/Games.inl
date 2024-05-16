@@ -403,8 +403,8 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
                 buildTable.try_get(pile.Rule.BuildHint, "Hint");
 
                 if (Function<bool> func; buildTable.try_get(func, "Func")) {
-                    pile.Rule.Build = {[this, func](card const& dst, card const& src) {
-                        return func(static_cast<base_game*>(this), dst, src);
+                    pile.Rule.Build = {[this, func](card const& base, card const& drop) {
+                        return func(static_cast<base_game*>(this), base, drop);
                     }};
                 }
             }
