@@ -290,13 +290,13 @@ local elevator = {
     Tableau     = {
         Size = 28,
         Pile = function(i)
-            local pile = Sol.Pyramid.pile(28, 1, { x = 0, y = -0.5 }, i)
+            local pile = Sol.Ops.Pyramid.pile(28, 1, { x = 0, y = -0.5 }, i)
             pile.Rule  = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
             return pile
         end
     },
     deal        = function(game) return Sol.Ops.Deal.to_pile(game.Stock[1], game.Foundation[1], 1) end,
-    on_end_turn = function(game) Sol.Pyramid.flip(28, 1, game.Tableau) end
+    on_end_turn = function(game) Sol.Ops.Pyramid.flip(28, 1, game.Tableau) end
 }
 
 
@@ -304,9 +304,9 @@ local elevator = {
 
 local escalator = Sol.copy(elevator)
 escalator.Info.Name = "Escalator"
-escalator.Tableau.Pile = function(i) return Sol.Pyramid.face_up_pile(28, 1, { x = 0, y = -0.5 }, i) end
-escalator.on_init = function(game) Sol.Pyramid.face_up_flip(28, 1, game.Tableau) end
-escalator.on_end_turn = function(game) Sol.Pyramid.face_up_flip(28, 1, game.Tableau) end
+escalator.Tableau.Pile = function(i) return Sol.Ops.Pyramid.face_up_pile(28, 1, { x = 0, y = -0.5 }, i) end
+escalator.on_init = function(game) Sol.Ops.Pyramid.face_up_flip(28, 1, game.Tableau) end
+escalator.on_end_turn = function(game) Sol.Ops.Pyramid.face_up_flip(28, 1, game.Tableau) end
 
 
 ------

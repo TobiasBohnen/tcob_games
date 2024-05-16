@@ -11,7 +11,7 @@ local function move_multiple(game) {
         }
     }
 
-    Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, "IfEmpty")
+    Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, empty_mode.IfEmpty)
 }
 
 //////
@@ -85,7 +85,7 @@ local aces_up = {
 
         return "Running"
     },
-    deal = @(game) Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, "Always"),
+    deal = @(game) Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, empty_mode.Always),
     on_init = @(game) Lua.Sol.Layout.klondike(game)
 }
 
@@ -234,7 +234,7 @@ local cover = {
 
 local deck = Sol.copy(cover)
 deck.Info.Name = "Deck"
-deck.deal <- @(game) Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, "Always")
+deck.deal <- @(game) Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, empty_mode.Always)
 deck.get_status = function(game) {
     if (game.Foundation[0].CardCount == 48) {
         return "Success"

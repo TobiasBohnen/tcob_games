@@ -36,10 +36,8 @@ Sol.RankValues <- {
     Queen = 12,
     King = 13
 }
-
-Sol.Suits <- ["Hearts", "Diamonds", "Spades", "Clubs"]
 Sol.Ranks <- ["Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King"]
-
+Sol.Suits <- ["Hearts", "Diamonds", "Spades", "Clubs"]
 Sol.SuitColors <- {
     Hearts = "Red",
     Diamonds = "Red",
@@ -105,4 +103,10 @@ Sol.Initial <- {
         }
         return retValue
     }
+}
+
+enum empty_mode {
+    IfEmpty,
+    IfNotEmpty,
+    Always
 }

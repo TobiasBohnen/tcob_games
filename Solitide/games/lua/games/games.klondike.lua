@@ -573,14 +573,14 @@ local guardian = {
     Tableau     = {
         Size = 12,
         Pile = function(i)
-            local pile = Sol.Pyramid.pile(12, 3, { x = 1, y = 0.5 }, i)
+            local pile = Sol.Ops.Pyramid.pile(12, 3, { x = 1, y = 0.5 }, i)
             pile.Rule  = Sol.Rules.any_downac_inseq
             return pile
         end
     },
     redeal      = Sol.Ops.Redeal.waste_to_stock,
     deal        = Sol.Ops.Deal.stock_to_waste_by_3,
-    on_end_turn = function(game) Sol.Pyramid.flip(12, 3, game.Tableau) end
+    on_end_turn = function(game) Sol.Ops.Pyramid.flip(12, 3, game.Tableau) end
 }
 
 
