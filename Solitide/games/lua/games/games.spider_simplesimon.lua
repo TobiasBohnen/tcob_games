@@ -19,7 +19,7 @@ local simple_simon = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i < 3 and 8 or 10 - i),
-                Layout  = "Column",
+                Layout  = Sol.Pile.Layout.Column,
                 Rule    = Sol.Rules.spider_tableau
             }
         end
@@ -39,7 +39,7 @@ simon_jester.Tableau         = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i < 2 and 13 or 14 - i),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = Sol.Rules.spider_tableau
         }
     end
@@ -57,7 +57,7 @@ york.Tableau         = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up((i < 2 or i > 9) and 8 or 9),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.InSeqInSuit() }
         }
     end
@@ -75,7 +75,7 @@ big_york.Tableau         = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up((i < 1 or i > 12) and 12 or 11),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.InSeqInSuit() }
         }
     end

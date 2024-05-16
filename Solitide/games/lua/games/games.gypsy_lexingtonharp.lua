@@ -22,7 +22,7 @@ local lexington_harp = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.top_face_up(i + 1),
-                Layout  = "Column",
+                Layout  = Sol.Pile.Layout.Column,
                 Rule    = Sol.Rules.any_downac_faceup
             }
         end
@@ -39,7 +39,7 @@ brunswick.Info.Name    = "Brunswick"
 brunswick.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up(i + 1),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.any_downac_faceup
     }
 end
@@ -60,7 +60,7 @@ milligan_harp.Info.Name    = "Milligan Harp"
 milligan_harp.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.top_face_up(i + 1),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.any_downac_inseq
     }
 end
@@ -73,7 +73,7 @@ steve.Info.Name    = "Steve"
 steve.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.top_face_up(i + 1),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.spider_tableau
     }
 end
@@ -86,7 +86,7 @@ carlton.Info.Name    = "Carlton"
 carlton.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up(i + 1),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.any_downac_inseq
     }
 end
@@ -102,7 +102,7 @@ mississippi.Tableau       = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.top_face_up(i + 1),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = Sol.Rules.any_downac_faceup
         }
     end

@@ -18,7 +18,7 @@ local canister = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up((i < 2 or i >= 6) and 6 or 7),
-                Layout  = "Column",
+                Layout  = Sol.Pile.Layout.Column,
                 Rule    = Sol.Rules.any_downrank_inseq
             }
         end
@@ -34,7 +34,7 @@ american_canister.Info.Name    = "American Canister"
 american_canister.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up((i < 2 or i >= 6) and 6 or 7),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.any_downac_inseq
     }
 end
@@ -47,7 +47,7 @@ british_canister.Info.Name    = "British Canister"
 british_canister.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up((i < 2 or i >= 6) and 6 or 7),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.king_downac_top
     }
 end

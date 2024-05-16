@@ -20,7 +20,7 @@ local gypsy = {
         Size = 8,
         Pile = {
             Initial = Sol.Initial.top_face_up(3),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = Sol.Rules.any_downac_inseq
         }
     },
@@ -49,7 +49,7 @@ agnes_sorel.Tableau        = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i + 1),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.DownInColor(), Move = Sol.Rules.Move.InSeq() }
         }
     end
@@ -66,12 +66,12 @@ blockade.Tableau       = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(1),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.any_downsuit_inseq
     }
 }
 blockade.on_init       = Sol.Layout.klondike
-blockade.on_end_turn   = function(game) Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, "IfEmpty") end
+blockade.on_end_turn   = function(game) Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, Sol.DealMode.IfEmpty) end
 
 
 ------
@@ -81,7 +81,7 @@ die_koenigsbergerin.Info.Name            = "Die Königsbergerin"
 die_koenigsbergerin.Foundation.Pile.Rule = Sol.Rules.ace_upsuit_none
 die_koenigsbergerin.Tableau.Pile.Initial = Sol.Initial.face_up(3)
 die_koenigsbergerin.on_shuffle           = function(game, card, pile)
-    if pile.Type == "Tableau" and card.Rank == "Ace" then
+    if pile.Type == Sol.Pile.Type.Tableau and card.Rank == "Ace" then
         return game.PlaceTop(card, game.Foundation, true)
     end
 
@@ -114,7 +114,7 @@ churchill.Info.Name     = "Churchill"
 churchill.Stock.Initial = Sol.Initial.face_down(68)
 churchill.Reserve       = {
     Initial = Sol.Initial.face_up(6),
-    Layout  = "Column",
+    Layout  = Sol.Pile.Layout.Column,
     Rule    = Sol.Rules.none_none_top
 }
 churchill.Tableau       = {
@@ -122,7 +122,7 @@ churchill.Tableau       = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.top_face_up(i < 5 and i + 1 or 10 - i),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = Sol.Rules.king_downac_inseq
         }
     end
@@ -153,7 +153,7 @@ churchill.deal          = function(game)
 end
 churchill.can_play      = function(game, targetPile, targetCardIndex, card, numCards)
     -- reserve only to foundation
-    if game:find_pile(card).Type == "Reserve" and targetPile.Type ~= "Foundation" then return false end
+    if game:find_pile(card).Type == Sol.Pile.Type.Reserve and targetPile.Type ~= Sol.Pile.Type.Foundation then return false end
 
     return game:can_play(targetPile, targetCardIndex, card, numCards)
 end
@@ -177,7 +177,7 @@ elba.Tableau       = {
     Size = 10,
     Pile = {
         Initial = Sol.Initial.top_face_up(5),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.king_downac_inseq
     }
 }
@@ -193,7 +193,7 @@ eclipse.Tableau       = {
     Size = 13,
     Pile = {
         Initial = Sol.Initial.face_up(4),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.king_downsuit_inseq
     }
 }
@@ -210,7 +210,7 @@ hypotenuse.Tableau       = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.top_face_up(10 - i),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = Sol.Rules.king_downac_inseq
         }
     end
@@ -230,7 +230,7 @@ small_triangle.Tableau         = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.top_face_up(i + 1),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = Sol.Rules.king_downac_inseq
         }
     end
@@ -245,7 +245,7 @@ eternal_triangle.Info.Name    = "Eternal Triangle"
 eternal_triangle.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up(10 - i),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.king_downac_inseq
     }
 end
@@ -258,7 +258,7 @@ flamenco.Info.Name         = "Flamenco"
 flamenco.Stock.Initial     = Sol.Initial.face_down(72)
 flamenco.Tableau.Pile      = {
     Initial = Sol.Initial.face_up(3),
-    Layout  = "Column",
+    Layout  = Sol.Pile.Layout.Column,
     Rule    = Sol.Rules.any_downac_inseq
 }
 flamenco.Foundation.Pile   = function(i)
@@ -322,7 +322,7 @@ irmgard.Tableau       = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.top_face_up(i < 5 and i + 1 or 9 - i),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = Sol.Rules.king_downac_inseq
         }
     end
@@ -347,7 +347,7 @@ phantom_blockade.Tableau       = {
     Size = 13,
     Pile = {
         Initial = Sol.Initial.face_up(3),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.king_downac_inseq
     }
 }
@@ -365,7 +365,7 @@ scarp.Tableau         = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i + 1),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = Sol.Rules.any_downac_inseq
         }
     end
@@ -416,7 +416,7 @@ local cone = {
             return {
                 Position = { x = i + 1, y = 0 },
                 Initial  = Sol.Initial.top_face_up(i < 4 and i + 1 or 7 - i),
-                Layout   = "Column",
+                Layout   = Sol.Pile.Layout.Column,
                 Rule     = Sol.Rules.any_downac_inseq
             }
         end
@@ -455,7 +455,7 @@ local leprechaun = {
             return {
                 Position = { x = 2 + i, y = 0 },
                 Initial  = Sol.Initial.face_down(4),
-                Layout   = "Column",
+                Layout   = Sol.Pile.Layout.Column,
                 Rule     = Sol.Rules.none_none_top
             }
         end
@@ -475,13 +475,13 @@ local leprechaun = {
             return {
                 Position = { x = 2 + i, y = 2.5 },
                 Initial  = Sol.Initial.top_face_up(3),
-                Layout   = "Column",
+                Layout   = Sol.Pile.Layout.Column,
                 Rule     = Sol.Rules.any_downac_inseq
             }
         end
     },
     on_drop    = function(game, pile)
-        if pile.Type == "Foundation" then
+        if pile.Type == Sol.Pile.Type.Foundation then
             game.Reserve[pile.Index]:flip_up_top_card()
         end
     end,
@@ -525,7 +525,7 @@ local milligan_cell = {
             return {
                 Position = { x = 2 + i, y = 1 },
                 Initial  = Sol.Initial.top_face_up(1),
-                Layout   = "Column",
+                Layout   = Sol.Pile.Layout.Column,
                 Rule     = Sol.Rules.king_downac_inseq
             }
         end
@@ -546,7 +546,7 @@ local miss_milligan = {
         Initial = Sol.Initial.face_down(96)
     },
     FreeCell   = {
-        Layout = "Column",
+        Layout = Sol.Pile.Layout.Column,
         Rule   = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.FaceUp() }
     },
     Foundation = {
@@ -557,13 +557,13 @@ local miss_milligan = {
         Size = 8,
         Pile = {
             Initial = Sol.Initial.top_face_up(1),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = Sol.Rules.king_downac_inseq
         }
     },
     can_play   = function(game, targetPile, targetCardIndex, card, numCards)
         -- FreeCell is usable if Stock is empty
-        if targetPile.Type == "FreeCell" and not game.Stock[1].IsEmpty then
+        if targetPile.Type == Sol.Pile.Type.FreeCell and not game.Stock[1].IsEmpty then
             return false
         end
 
@@ -604,7 +604,7 @@ local nomad = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(4),
-                Layout  = "Column",
+                Layout  = Sol.Pile.Layout.Column,
                 Rule    = Sol.Rules.any_downac_inseq
             }
         end
@@ -627,7 +627,7 @@ local right_triangle = {
     },
     FreeCell   = {
         Rule   = Sol.Rules.any_any_top,
-        Layout = "Column"
+        Layout = Sol.Pile.Layout.Column
     },
     Foundation = {
         Size = 8,
@@ -638,7 +638,7 @@ local right_triangle = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.top_face_up(i + 1),
-                Layout  = "Column",
+                Layout  = Sol.Pile.Layout.Column,
                 Rule    = Sol.Rules.king_downac_inseq
             }
         end
@@ -646,7 +646,7 @@ local right_triangle = {
     on_init    = Sol.Layout.canfield,
     deal       = Sol.Ops.Deal.stock_to_tableau,
     can_play   = function(game, targetPile, targetCardIndex, card, numCards)
-        if targetPile.Type == "FreeCell" and not game.Stock[1].IsEmpty then -- block FreeCell until Stock is empty
+        if targetPile.Type == Sol.Pile.Type.FreeCell and not game.Stock[1].IsEmpty then -- block FreeCell until Stock is empty
             return false
         end
 
@@ -666,7 +666,7 @@ surprise.Tableau       = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.top_face_up(i < 6 and i + 1 or 11 - i),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = Sol.Rules.king_downac_inseq
         }
     end
@@ -698,7 +698,7 @@ local swiss_patience = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.top_face_up(i < 5 and i + 1 or 9 - i),
-                Layout  = "Column",
+                Layout  = Sol.Pile.Layout.Column,
                 Rule    = {
                     Base = Sol.Rules.Base.Ace(),
                     Build = {

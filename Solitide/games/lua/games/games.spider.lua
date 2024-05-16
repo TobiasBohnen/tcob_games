@@ -19,7 +19,7 @@ local spider = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.top_face_up(i % 3 == 0 and 6 or 5),
-                Layout  = "Column",
+                Layout  = Sol.Pile.Layout.Column,
                 Rule    = Sol.Rules.spider_tableau
             }
         end
@@ -62,7 +62,7 @@ spider_4_decks.Tableau         = {
     Size = 13,
     Pile = {
         Initial = Sol.Initial.top_face_up(6),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.spider_tableau
     }
 }
@@ -79,7 +79,7 @@ big_spider.Tableau         = {
     Size = 13,
     Pile = {
         Initial = Sol.Initial.top_face_up(6),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.spider_tableau
     }
 }
@@ -109,7 +109,7 @@ arachnida.Foundation   = { Rule = Sol.Rules.none_none_none }
 arachnida.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.top_face_up(i < 4 and 6 or 5),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.InRankOrDownByRank(), Move = Sol.Rules.Move.InSeqInSuitOrSameRank() }
     }
 end
@@ -122,7 +122,7 @@ black_widow.Info.Name    = "Black Widow"
 black_widow.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.top_face_up(i % 3 == 0 and 6 or 5),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.any_downrank_inseq
     }
 end
@@ -140,7 +140,7 @@ chinese_spider.Tableau         = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.top_face_up(6),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.spider_tableau
     }
 }
@@ -153,11 +153,11 @@ grounds_for_a_divorce.Info.Name     = "Grounds for a Divorce"
 grounds_for_a_divorce.Stock.Initial = Sol.Initial.face_down(54)
 grounds_for_a_divorce.Tableau.Pile  = {
     Initial = Sol.Initial.face_up(5),
-    Layout  = "Column",
+    Layout  = Sol.Pile.Layout.Column,
     Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.InSeqInSuit() }
 }
 grounds_for_a_divorce.deal          = function(game)
-    return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, "IfNotEmpty")
+    return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, Sol.DealMode.IfNotEmpty)
 end
 
 
@@ -172,7 +172,7 @@ big_divorce.Tableau         = {
     Size = 13,
     Pile = {
         Initial = Sol.Initial.face_up(6),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.InSeqInSuit() }
     }
 }
@@ -189,7 +189,7 @@ very_big_divorce.Tableau         = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(6),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.InSeqInSuit() }
     }
 }
@@ -202,7 +202,7 @@ open_spider.Info.Name    = "Open Spider"
 open_spider.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up(i % 3 == 0 and 6 or 5),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.spider_tableau
     }
 end
@@ -227,7 +227,7 @@ spider_3x3.Tableau         = {
     Size = 13,
     Pile = {
         Initial = Sol.Initial.top_face_up(5),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.spider_tableau
     }
 }
@@ -240,7 +240,7 @@ tarantula.Info.Name    = "Tarantula"
 tarantula.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.top_face_up(i % 3 == 0 and 6 or 5),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.InSeqInColor() }
     }
 end
@@ -257,7 +257,7 @@ kiev.Tableau         = {
     Size = 7,
     Pile = {
         Initial = Sol.Initial.top_face_up(4),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownInSuit(), Move = Sol.Rules.Move.FaceUp() }
     }
 }
@@ -282,7 +282,7 @@ spiderette.Tableau         = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.top_face_up(i + 1),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = Sol.Rules.spider_tableau
         }
     end
@@ -296,7 +296,7 @@ baby_spiderette.Info.Name    = "Baby Spiderette"
 baby_spiderette.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.top_face_up(i + 1),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.any_downrank_inseq
     }
 end
@@ -310,7 +310,7 @@ will_o_the_wisp.Stock.Initial = Sol.Initial.face_down(31)
 will_o_the_wisp.Tableau.Pile  = function(i)
     return {
         Initial = Sol.Initial.top_face_up(3),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.spider_tableau
     }
 end
@@ -323,7 +323,7 @@ fair_maids.Info.Name     = "Fair Maids"
 fair_maids.Stock.Initial = Sol.Initial.face_down(24)
 fair_maids.Tableau.Pile  = {
     Initial = Sol.Initial.top_face_up(4),
-    Layout  = "Column",
+    Layout  = Sol.Pile.Layout.Column,
     Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.InSeqAlternateColors() }
 }
 
@@ -364,7 +364,7 @@ local astrocyte = {
             return {
                 Position = { x = i + 3, y = 1 },
                 Initial  = Sol.Initial.top_face_up(8),
-                Layout   = "Column",
+                Layout   = Sol.Pile.Layout.Column,
                 Rule     = Sol.Rules.spider_tableau
             }
         end
@@ -389,7 +389,7 @@ local long_tail = {
         Position = { x = 0, y = 1 },
         Initial  = Sol.Initial.face_up(2),
         Rule     = Sol.Rules.any_any_top,
-        Layout   = "Column"
+        Layout   = Sol.Pile.Layout.Column
     },
     Foundation = {
         Size = 4,
@@ -406,7 +406,7 @@ local long_tail = {
             return {
                 Position = { x = i + 2, y = 1 },
                 Initial  = Sol.Initial.face_up(1),
-                Layout   = "Column",
+                Layout   = Sol.Pile.Layout.Column,
                 Rule     = Sol.Rules.spider_tableau
             }
         end
@@ -443,7 +443,7 @@ local brush = {
         Size = 10,
         Pile = {
             Initial = Sol.Initial.face_up(4),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = Sol.Rules.spider_tableau
         }
     },
@@ -479,7 +479,7 @@ local scorpion_head = {
             end
             return {
                 Initial = initial,
-                Layout  = "Column",
+                Layout  = Sol.Pile.Layout.Column,
                 Rule    = Sol.Rules.king_downsuit_faceup
             }
         end
@@ -514,7 +514,7 @@ local ukrainian_solitaire = {
 
             return {
                 Initial = initial,
-                Layout  = "Column",
+                Layout  = Sol.Pile.Layout.Column,
                 Rule    = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownInSuit(), Move = Sol.Rules.Move.FaceUp() }
             }
         end
@@ -539,7 +539,7 @@ double_ukrainian_solitaire.Tableau         = {
 
         return {
             Initial = initial,
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownInSuit(), Move = Sol.Rules.Move.FaceUp() }
         }
     end

@@ -38,7 +38,7 @@ local cascade = {
             return {
                 Position = { x = i + 2, y = 1 },
                 Initial  = Sol.Initial.face_up(5),
-                Layout   = "Column",
+                Layout   = Sol.Pile.Layout.Column,
                 Rule     = Sol.Rules.any_downac_top
             }
         end
@@ -85,7 +85,7 @@ local jacks_in_the_box = {
             return {
                 Position = { x = i + 4, y = 1 },
                 Initial  = Sol.Initial.face_up(1),
-                Layout   = "Column",
+                Layout   = Sol.Pile.Layout.Column,
                 Rule     = Sol.Rules.any_downsuit_top
             }
         end
@@ -139,7 +139,7 @@ local squadron = {
             return {
                 Position = { x = i + 2, y = 1 },
                 Initial  = Sol.Initial.face_up(4),
-                Layout   = "Column",
+                Layout   = Sol.Pile.Layout.Column,
                 Rule     = Sol.Rules.any_downsuit_top
             }
         end

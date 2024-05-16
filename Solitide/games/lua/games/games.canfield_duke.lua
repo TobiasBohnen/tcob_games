@@ -21,7 +21,7 @@ local duke = {
             return {
                 Position = { x = i % 2 * 2, y = i // 2 + 1 },
                 Initial  = Sol.Initial.face_up(3),
-                Layout   = "Row",
+                Layout   = Sol.Pile.Layout.Row,
                 Rule     = Sol.Rules.none_none_top,
             }
         end
@@ -41,7 +41,7 @@ local duke = {
             return {
                 Position = { x = i + 4, y = 1 },
                 Initial  = Sol.Initial.face_up(1),
-                Layout   = "Column",
+                Layout   = Sol.Pile.Layout.Column,
                 Rule     = Sol.Rules.any_downac_inseq
             }
         end
@@ -66,16 +66,16 @@ dutchess.Tableau.Pile    = function(i)
     return {
         Position = { x = i + 4, y = 1 },
         Initial  = Sol.Initial.face_up(1),
-        Layout   = "Column",
+        Layout   = Sol.Pile.Layout.Column,
         Rule     = Sol.Rules.any_downac_inseq
     }
 end
 dutchess.can_play        = function(game, targetPile, targetCardIndex, card, numCards)
     local srcPile = game:find_pile(card)
     if game.Foundation[1].IsEmpty then
-        return srcPile.Type == "Reserve" and targetPile == game.Foundation[1]
+        return srcPile.Type == Sol.Pile.Type.Reserve and targetPile == game.Foundation[1]
     end
-    if targetPile.Type == "Tableau" and targetPile.IsEmpty then
+    if targetPile.Type == Sol.Pile.Type.Tableau and targetPile.IsEmpty then
         local reserveEmpty = true
         for _, v in ipairs(game.Reserve) do
             if v.IsEmpty then
@@ -83,8 +83,8 @@ dutchess.can_play        = function(game, targetPile, targetCardIndex, card, num
                 break
             end
         end
-        if (reserveEmpty and srcPile.Type ~= "Waste")
-            or (not reserveEmpty and srcPile.Type ~= "Reserve") then
+        if (reserveEmpty and srcPile.Type ~= Sol.Pile.Type.Waste)
+            or (not reserveEmpty and srcPile.Type ~= Sol.Pile.Type.Reserve) then
             return false
         end
     end

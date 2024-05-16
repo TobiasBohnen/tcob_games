@@ -21,7 +21,7 @@ local shuffle = {
     end,
     -- shuffle
     play_to_foundation = function(game, card, pile)
-        if pile.Type ~= "Tableau" then return false end
+        if pile.Type ~= Sol.Pile.Type.Tableau then return false end
 
         local foundation = game.Foundation
         for _, v in ipairs(foundation) do
@@ -62,16 +62,16 @@ local function deal_func(fromPile, toPile, count)
     return true
 end
 
-local function deal_group_func(fromPile, toGroup, emptyMode)
-    emptyMode = emptyMode or "Always"
+local function deal_group_func(fromPile, toGroup, mode)
+    mode = mode or Sol.DealMode.Always
 
     if fromPile.IsEmpty then return false end
     for _, toPile in ipairs(toGroup) do
         if fromPile.IsEmpty then break end
         local check = true
-        if emptyMode == "IfEmpty" then
+        if mode == Sol.DealMode.IfEmpty then
             check = toPile.IsEmpty
-        elseif emptyMode == "IfNotEmpty" then
+        elseif mode == Sol.DealMode.IfNotEmpty then
             check = not toPile.IsEmpty
         end
 
@@ -91,7 +91,11 @@ local deal = {
     stock_to_waste_by_3 = function(game) return deal_func(game.Stock[1], game.Waste[1], 3) end,
     stock_to_waste_by_redeals_left = function(game) return deal_func(game.Stock[1], game.Waste[1], game.RedealsLeft + 1) end,
     stock_to_tableau = function(game) return deal_group_func(game.Stock[1], game.Tableau) end,
-    waste_or_stock_to_empty_tableau = function(game) return deal_group_func(game.Waste[1], game.Tableau, "IfEmpty") or deal_group_func(game.Stock[1], game.Tableau, "IfEmpty") end
+    waste_or_stock_to_empty_tableau = function(game)
+        return
+            deal_group_func(game.Waste[1], game.Tableau, Sol.DealMode.IfEmpty)
+            or deal_group_func(game.Stock[1], game.Tableau, Sol.DealMode.IfEmpty)
+    end
 }
 
 local function get_py_cells(n) return (n * (n + 1)) / 2 end
@@ -111,7 +115,7 @@ local pyramid = {
 
         return {
             HasMarker = idx < base,
-            Layout    = "Column",
+            Layout    = Sol.Pile.Layout.Column,
             Initial   = idx <= lastRowStart and Sol.Initial.face_down(1) or Sol.Initial.face_up(1),
             Position  = {
                 x = (lastRowSize - currentRowSize) / 2 + currentColumn + offset.x,

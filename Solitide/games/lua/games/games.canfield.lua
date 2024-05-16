@@ -14,7 +14,7 @@ local canfield = {
     Waste       = {},
     Reserve     = {
         Initial = Sol.Initial.top_face_up(13),
-        Layout = "Column"
+        Layout = Sol.Pile.Layout.Column
     },
     Foundation  = {
         Size = 4,
@@ -29,11 +29,11 @@ local canfield = {
         Size = 4,
         Pile = {
             Initial = Sol.Initial.face_up(1),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.TopOrPile() }
         }
     },
-    on_end_turn = function(game) Sol.Ops.Deal.to_group(game.Reserve[1], game.Tableau, "IfEmpty") end,
+    on_end_turn = function(game) Sol.Ops.Deal.to_group(game.Reserve[1], game.Tableau, Sol.DealMode.IfEmpty) end,
     redeal      = Sol.Ops.Redeal.waste_to_stock,
     deal        = Sol.Ops.Deal.stock_to_waste_by_3,
     on_init     = Sol.Layout.canfield
@@ -105,7 +105,7 @@ acme.Stock.Initial     = Sol.Initial.face_down(31)
 acme.Foundation.Pile   = { Rule = Sol.Rules.ace_upsuit_none }
 acme.Tableau.Pile      = {
     Initial = Sol.Initial.face_up(1),
-    Layout  = "Column",
+    Layout  = Sol.Pile.Layout.Column,
     Rule    = Sol.Rules.any_downsuit_top
 }
 acme.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
@@ -121,14 +121,14 @@ american_toad.Info.Redeals    = 1
 american_toad.Stock.Initial   = Sol.Initial.face_down(75)
 american_toad.Reserve         = {
     Initial = Sol.Initial.face_up(20),
-    Layout = "Column"
+    Layout = Sol.Pile.Layout.Column
 }
 american_toad.Foundation.Size = 8
 american_toad.Tableau         = {
     Size = 8,
     Pile = {
         Initial = Sol.Initial.face_up(1),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownInSuit(true), Move = Sol.Rules.Move.TopOrPile() }
     }
 }
@@ -145,7 +145,7 @@ beehive.Tableau       = {
     Size = 6,
     Pile = {
         Initial = Sol.Initial.face_up(1),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.InRank(), Move = Sol.Rules.Move.InSeq() }
     }
 }
@@ -157,7 +157,7 @@ beehive.on_end_turn   = function(game)
         end
     end
 
-    Sol.Ops.Deal.to_group(game.Reserve[1], tableau, "IfEmpty")
+    Sol.Ops.Deal.to_group(game.Reserve[1], tableau, Sol.DealMode.IfEmpty)
 end
 
 
@@ -169,13 +169,13 @@ chameleon.Info.Redeals  = 0
 chameleon.Stock.Initial = Sol.Initial.face_down(36)
 chameleon.Reserve.Pile  = {
     Initial = Sol.Initial.top_face_up(12),
-    Layout = "Column"
+    Layout = Sol.Pile.Layout.Column
 }
 chameleon.Tableau       = {
     Size = 3,
     Pile = {
         Initial = Sol.Initial.face_up(1),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.TopOrPile() }
     }
 }
@@ -190,14 +190,14 @@ demon.Info.DeckCount  = 2
 demon.Stock.Initial   = Sol.Initial.face_down(55)
 demon.Reserve.Pile    = {
     Initial = Sol.Initial.top_face_up(40),
-    Layout = "Column"
+    Layout = Sol.Pile.Layout.Column
 }
 demon.Foundation.Size = 8
 demon.Tableau         = {
     Size = 8,
     Pile = {
         Initial = Sol.Initial.face_up(1),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.InSeq() }
     }
 }
@@ -224,7 +224,7 @@ local eagle_wing     = {
     Reserve     = {
         Position = { x = 4, y = 2 },
         Initial = Sol.Initial.face_down(13),
-        Layout = "Squared"
+        Layout = Sol.Pile.Layout.Squared
     },
     Foundation  = {
         Size = 4,
@@ -242,13 +242,13 @@ local eagle_wing     = {
             return {
                 Position = { x = eagle_wing_pos[i + 1][1], y = eagle_wing_pos[i + 1][2] },
                 Initial  = Sol.Initial.face_up(1),
-                Layout   = "Column",
+                Layout   = Sol.Pile.Layout.Column,
                 Rule     = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.DownInSuit(true), Move = Sol.Rules.Move.Top(), Limit = 3 }
             }
         end
     },
     on_end_turn = function(game)
-        Sol.Ops.Deal.to_group(game.Reserve[1], game.Tableau, "IfEmpty")
+        Sol.Ops.Deal.to_group(game.Reserve[1], game.Tableau, Sol.DealMode.IfEmpty)
         game.Reserve[1]:flip_down_top_card()
     end,
     redeal      = Sol.Ops.Redeal.waste_to_stock,
@@ -279,7 +279,7 @@ lafayette.Tableau       = {
     Size = 4,
     Pile = {
         Initial = Sol.Initial.face_up(1),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = { Base = Sol.Rules.Base.Ranks({ "Seven" }), Build = Sol.Rules.Build.DownAlternateColors(), Move = Sol.Rules.Move.InSeq() }
     }
 }
@@ -293,14 +293,14 @@ minerva.Info.Redeals    = 1
 minerva.Stock.Initial   = Sol.Initial.face_down(13)
 minerva.Reserve.Pile    = {
     Initial = Sol.Initial.top_face_up(11),
-    Layout = "Column"
+    Layout = Sol.Pile.Layout.Column
 }
 minerva.Foundation.Pile = { Rule = Sol.Rules.ace_upsuit_none }
 minerva.Tableau         = {
     Size = 7,
     Pile = {
         Initial = Sol.Initial.alternate(4, false),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.king_downac_inseq
     }
 }
@@ -316,7 +316,7 @@ munger.Info.Redeals  = 0
 munger.Stock.Initial = Sol.Initial.face_down(17)
 munger.Reserve.Pile  = {
     Initial = Sol.Initial.top_face_up(7),
-    Layout = "Column"
+    Layout = Sol.Pile.Layout.Column
 }
 
 
@@ -328,13 +328,13 @@ mystique.Info.Redeals  = 0
 mystique.Stock.Initial = Sol.Initial.face_down(15)
 mystique.Reserve.Pile  = {
     Initial = Sol.Initial.top_face_up(9),
-    Layout = "Column"
+    Layout = Sol.Pile.Layout.Column
 }
 mystique.Tableau       = {
     Size = 7,
     Pile = {
         Initial = Sol.Initial.alternate(4, false),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.any_downac_inseq
     }
 }
@@ -347,7 +347,7 @@ rainbow.Info.Name    = "Rainbow"
 rainbow.Info.Redeals = 0
 rainbow.Tableau.Pile = {
     Initial = Sol.Initial.face_up(1),
-    Layout  = "Column",
+    Layout  = Sol.Pile.Layout.Column,
     Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.TopOrPile() }
 }
 rainbow.deal         = Sol.Ops.Deal.stock_to_waste
@@ -368,7 +368,7 @@ storehouse.Info.Name    = "Storehouse"
 storehouse.Info.Redeals = 2
 storehouse.Tableau.Pile = {
     Initial = Sol.Initial.face_up(1),
-    Layout  = "Column",
+    Layout  = Sol.Pile.Layout.Column,
     Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownInSuit(true), Move = Sol.Rules.Move.TopOrPile() }
 }
 storehouse.deal         = Sol.Ops.Deal.stock_to_waste

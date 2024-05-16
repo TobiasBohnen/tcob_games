@@ -5,7 +5,7 @@
 
 local function golf_check_status(game)
     local foundation = game.Foundation
-    if foundation[1].IsEmpty then return "Running" end
+    if foundation[1].IsEmpty then return Sol.GameStatus.Running end
 
     local dead    = true -- detect dead game
     local success = true -- detect win state
@@ -20,11 +20,11 @@ local function golf_check_status(game)
     end
 
 
-    if success then return "Success" end
-    if not game.Stock[1].IsEmpty then return "Running" end
-    if dead then return "Failure" end
+    if success then return Sol.GameStatus.Success end
+    if not game.Stock[1].IsEmpty then return Sol.GameStatus.Running end
+    if dead then return Sol.GameStatus.Failure end
 
-    return "Running"
+    return Sol.GameStatus.Running
 end
 
 ------
@@ -40,14 +40,14 @@ local golf = {
     },
     Foundation = {
         Initial = Sol.Initial.face_up(1),
-        Layout  = "Squared",
+        Layout  = Sol.Pile.Layout.Squared,
         Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpOrDownByRank(), Move = Sol.Rules.Move.None() }
     },
     Tableau    = {
         Size = 7,
         Pile = {
             Initial = Sol.Initial.face_up(5),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
         }
     },
@@ -73,7 +73,7 @@ local putt_putt      = Sol.copy(golf)
 putt_putt.Info.Name  = "Putt Putt"
 putt_putt.Foundation = {
     Initial = Sol.Initial.face_up(1),
-    Layout  = "Squared",
+    Layout  = Sol.Pile.Layout.Squared,
     Rule    = { Base = Sol.Rules.Base.None, Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.None() }
 }
 
@@ -97,14 +97,14 @@ local all_in_a_row = {
         DeckCount = 1
     },
     Foundation = {
-        Layout = "Squared",
+        Layout = Sol.Pile.Layout.Squared,
         Rule   = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.None() }
     },
     Tableau    = {
         Size = 13,
         Pile = {
             Initial = Sol.Initial.face_up(4),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
         }
     },
@@ -127,7 +127,7 @@ local ants = {
         Size = 4,
         Pile = {
             Initial = Sol.Initial.face_up(1),
-            Layout  = "Squared",
+            Layout  = Sol.Pile.Layout.Squared,
             Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpOrDownByRank(), Move = Sol.Rules.Move.None() }
         }
     },
@@ -135,7 +135,7 @@ local ants = {
         Size = 4,
         Pile = {
             Initial = Sol.Initial.face_up(1),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
         }
     },
@@ -169,7 +169,7 @@ local black_hole     = {
             return {
                 Position = { x = black_hole_pos[i + 1][1], y = black_hole_pos[i + 1][2] },
                 Initial  = Sol.Initial.face_up(3),
-                Layout   = "Row",
+                Layout   = Sol.Pile.Layout.Row,
                 Rule     = { Build = Sol.Rules.Build.None() }
             }
         end
@@ -204,7 +204,7 @@ binary_star.Tableau           = {
         return {
             Position = { x = black_hole_pos[i + 1][1], y = black_hole_pos[i + 1][2] },
             Initial  = Sol.Initial.face_up(6),
-            Layout   = "Row",
+            Layout   = Sol.Pile.Layout.Row,
             Rule     = { Build = Sol.Rules.Build.None() }
         }
     end
@@ -233,7 +233,7 @@ local dolphin = {
         Pile = { Rule = Sol.Rules.any_none_top }
     },
     Foundation = {
-        Layout = "Squared",
+        Layout = Sol.Pile.Layout.Squared,
         Rule   = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.Top() }
     },
     Tableau = {
@@ -241,7 +241,7 @@ local dolphin = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i < 4 and 7 or 6),
-                Layout  = "Column",
+                Layout  = Sol.Pile.Layout.Column,
                 Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
             }
         end
@@ -261,7 +261,7 @@ double_dolphin.Tableau        = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i < 4 and 11 or 10),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
         }
     end
@@ -284,7 +284,7 @@ local elevator = {
     Foundation  = {
         Position = { x = 1, y = 0 },
         Initial  = Sol.Initial.face_up(1),
-        Layout   = "Squared",
+        Layout   = Sol.Pile.Layout.Squared,
         Rule     = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.None() }
     },
     Tableau     = {
@@ -318,7 +318,7 @@ local flake = {
         DeckCount = 1
     },
     Foundation = {
-        Layout = "Squared",
+        Layout = Sol.Pile.Layout.Squared,
         Rule   = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.None() }
     },
     Tableau = {
@@ -326,7 +326,7 @@ local flake = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i < 4 and 9 or 8),
-                Layout  = "Column",
+                Layout  = Sol.Pile.Layout.Column,
                 Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.Top() }
             }
         end
@@ -344,7 +344,7 @@ flake_2_decks.Tableau        = {
     Size = 8,
     Pile = {
         Initial = Sol.Initial.face_up(13),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.Top() }
     }
 }
@@ -381,7 +381,7 @@ local uintah = {
         Pile = function(i)
             return {
                 Position = { x = i, y = 0 },
-                Layout   = "Squared",
+                Layout   = Sol.Pile.Layout.Squared,
                 Rule     = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpOrDownInColor(true), Move = Sol.Rules.Move.None() }
             }
         end

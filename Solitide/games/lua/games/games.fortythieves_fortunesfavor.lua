@@ -29,7 +29,7 @@ local fortunes_favor = {
             return {
                 Position = { x = i % 4 + 2, y = i // 4 + 1 },
                 Initial  = Sol.Initial.face_up(1),
-                Layout   = "Squared",
+                Layout   = Sol.Pile.Layout.Squared,
                 Rule     = Sol.Rules.any_downsuit_top
             }
         end

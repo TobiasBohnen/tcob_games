@@ -24,7 +24,7 @@ local bastion = {
         Size = 10,
         Pile = {
             Initial = Sol.Initial.face_up(5),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = Sol.Rules.any_updownsuit_top
         }
     },
@@ -39,7 +39,7 @@ castles_end.Info.Name       = "Castles End"
 castles_end.Foundation.Pile = { Rule = Sol.Rules.ff_upsuit_top_l13 }
 castles_end.Tableau.Pile    = {
     Initial = Sol.Initial.face_up(5),
-    Layout  = "Column",
+    Layout  = Sol.Pile.Layout.Column,
     Rule    = Sol.Rules.any_updownac_top
 }
 castles_end.can_play        = function(game, targetPile, targetCardIndex, card, numCards)
@@ -60,7 +60,7 @@ ten_by_one.FreeCell     = { Rule = Sol.Rules.any_none_top }
 ten_by_one.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up(i < 2 and 6 or 5),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.any_updownsuit_top
     }
 end

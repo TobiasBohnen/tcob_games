@@ -17,7 +17,7 @@ local bakers_dozen = {
         Size = 13,
         Pile = {
             Initial = Sol.Initial.face_up(4),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = Sol.Rules.none_downrank_top
         }
     },
@@ -43,7 +43,7 @@ good_measure.Tableau           = {
     Size = 10,
     Pile = {
         Initial = Sol.Initial.face_up(5),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.none_downrank_top
     }
 }
@@ -73,7 +73,7 @@ local fifteen = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i ~= 14 and 7 or 6),
-                Layout  = "Column",
+                Layout  = Sol.Pile.Layout.Column,
                 Rule    = Sol.Rules.any_updownsuit_top
             }
         end
@@ -100,7 +100,7 @@ local nationale = {
         Size = 12,
         Pile = {
             Initial = Sol.Initial.face_up(8),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = Sol.Rules.any_updownsuit_top
         }
     },

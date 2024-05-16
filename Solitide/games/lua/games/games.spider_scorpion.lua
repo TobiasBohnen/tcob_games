@@ -25,7 +25,7 @@ local scorpion         = {
         Pile = function(i)
             return {
                 Initial = scorpion_initial(4, i),
-                Layout  = "Column",
+                Layout  = Sol.Pile.Layout.Column,
                 Rule    = Sol.Rules.king_downsuit_faceup
             }
         end
@@ -57,7 +57,7 @@ double_scorpion.Tableau         = {
         end
         return {
             Initial = initial,
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = Sol.Rules.king_downsuit_faceup
         }
     end
@@ -80,7 +80,7 @@ triple_scorpion.Tableau         = {
         end
         return {
             Initial = initial,
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = Sol.Rules.king_downsuit_faceup
         }
     end
@@ -95,7 +95,7 @@ scorpion_2.Info.Name    = "Scorpion II"
 scorpion_2.Tableau.Pile = function(i)
     return {
         Initial = scorpion_initial(3, i),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.king_downsuit_faceup
     }
 end
@@ -108,7 +108,7 @@ scorpion_tail.Info.Name    = "Scorpion Tail"
 scorpion_tail.Tableau.Pile = function(i)
     return {
         Initial = scorpion_initial(3, i),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.king_downac_faceup
     }
 end
@@ -121,7 +121,7 @@ wasp.Info.Name    = "Wasp"
 wasp.Tableau.Pile = function(i)
     return {
         Initial = scorpion_initial(4, i),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.any_downsuit_faceup
     }
 end

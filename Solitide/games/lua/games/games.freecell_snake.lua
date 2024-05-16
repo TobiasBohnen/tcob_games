@@ -33,7 +33,7 @@ local snake = {
             return {
                 Position = { x = i, y = 1 },
                 Initial  = Sol.Initial.face_up(i == 0 and 96 or 0),
-                Layout   = "Column",
+                Layout   = Sol.Pile.Layout.Column,
                 Rule     = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.DownAlternateColors(), Move = Sol.Rules.Move.SuperMove() }
             }
         end
@@ -63,7 +63,7 @@ cats_tail.Tableau.Pile      = function(i)
     return {
         Position = { x = i, y = 1 },
         Initial  = Sol.Initial.face_up(i == 0 and 104 or 0),
-        Layout   = "Column",
+        Layout   = Sol.Pile.Layout.Column,
         Rule     = Sol.Rules.none_downac_inseq
     }
 end

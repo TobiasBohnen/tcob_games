@@ -39,14 +39,14 @@ local new_york = {
             return {
                 Position = { x = i + 2, y = 1 },
                 Initial  = Sol.Initial.face_up(1),
-                Layout   = "Column",
+                Layout   = Sol.Pile.Layout.Column,
                 Rule     = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.Top() }
             }
         end
     },
     can_play   = function(game, targetPile, targetCardIndex, card, numCards)
-        if targetPile.Type == "FreeCell" then -- freecells only accept reserve cards
-            if game:find_pile(card).Type ~= "Reserve" then return false end
+        if targetPile.Type == Sol.Pile.Type.FreeCell then -- freecells only accept reserve cards
+            if game:find_pile(card).Type ~= Sol.Pile.Type.Reserve then return false end
         end
 
         return game:can_play(targetPile, targetCardIndex, card, numCards)
@@ -63,19 +63,19 @@ gotham.Tableau.Pile    = function(i)
     return {
         Position = { x = i + 2, y = 1 },
         Initial  = Sol.Initial.face_up(3),
-        Layout   = "Column",
+        Layout   = Sol.Pile.Layout.Column,
         Rule     = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.InSeq() }
     }
 end
 gotham.can_play        = function(game, targetPile, targetCardIndex, card, numCards)
     local srcPile = game:find_pile(card)
 
-    if targetPile.Type == "FreeCell" then -- freecells only accept reserve cards
-        if srcPile.Type ~= "Reserve" then return false end
+    if targetPile.Type == Sol.Pile.Type.FreeCell then -- freecells only accept reserve cards
+        if srcPile.Type ~= Sol.Pile.Type.Reserve then return false end
     end
 
-    if targetPile.Type == "Tableau" and targetPile.IsEmpty then -- empty piles can only be filled from reserve or freecell
-        if srcPile.Type ~= "Reserve" and srcPile.Type ~= "FreeCell" then return false end
+    if targetPile.Type == Sol.Pile.Type.Tableau and targetPile.IsEmpty then -- empty piles can only be filled from reserve or freecell
+        if srcPile.Type ~= Sol.Pile.Type.Reserve and srcPile.Type ~= Sol.Pile.Type.FreeCell then return false end
     end
 
     return game:can_play(targetPile, targetCardIndex, card, numCards)

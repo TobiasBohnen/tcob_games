@@ -94,18 +94,18 @@ local montana_base <const> = {
 
         for y = 1, 4 do
             local firstTab = tableau[1 + (y - 1) * columns]
-            if firstTab.IsEmpty or firstTab.Cards[1].Rank ~= ranks[1] then return "Running" end
+            if firstTab.IsEmpty or firstTab.Cards[1].Rank ~= ranks[1] then return Sol.GameStatus.Running end
             local suit = firstTab.Cards[1].Suit
 
             for x = 2, #ranks do
                 local tab = tableau[x + (y - 1) * columns]
-                if tab.IsEmpty then return "Running" end
+                if tab.IsEmpty then return Sol.GameStatus.Running end
                 local card = tab.Cards[1]
-                if card.Rank ~= ranks[x] or card.Suit ~= suit then return "Running" end
+                if card.Rank ~= ranks[x] or card.Suit ~= suit then return Sol.GameStatus.Running end
             end
         end
 
-        return "Success"
+        return Sol.GameStatus.Success
     end
 }
 
@@ -127,7 +127,7 @@ local montana               = {
         Pile = {
             Position = {},
             Initial  = Sol.Initial.face_up(1),
-            Layout   = "Squared",
+            Layout   = Sol.Pile.Layout.Squared,
             Rule     = Sol.Rules.none_none_top
         }
     },
@@ -193,7 +193,7 @@ local blue_moon = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i % 14 == 0 and 0 or 1),
-                Layout  = "Squared",
+                Layout  = Sol.Pile.Layout.Squared,
                 Rule    = Sol.Rules.none_none_top
             }
         end
@@ -232,7 +232,7 @@ red_moon.Info.Name         = "Red Moon"
 red_moon.Tableau.Pile      = function(i)
     return {
         Initial = Sol.Initial.face_up((i % 14 < 2) and 0 or 1),
-        Layout  = "Squared",
+        Layout  = Sol.Pile.Layout.Squared,
         Rule    = Sol.Rules.none_none_top
     }
 end
@@ -258,7 +258,7 @@ galary.Info.Name         = "Galary"
 galary.Tableau.Pile      = function(i)
     return {
         Initial = Sol.Initial.face_up((i % 14 == 0 or i % 14 == 1) and 0 or 1),
-        Layout  = "Squared",
+        Layout  = Sol.Pile.Layout.Squared,
         Rule    = Sol.Rules.none_none_top
     }
 end
@@ -289,7 +289,7 @@ local paganini               = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i % 10 == 0 and 0 or 1),
-                Layout  = "Squared",
+                Layout  = Sol.Pile.Layout.Squared,
                 Rule    = Sol.Rules.none_none_top
             }
         end
@@ -341,7 +341,7 @@ local spoilt               = {
             return {
                 Position = { x = i % 8 + 1, y = i // 8 },
                 Initial  = Sol.Initial.face_down(i % 8 == 0 and 0 or 1),
-                Layout   = "Squared",
+                Layout   = Sol.Pile.Layout.Squared,
                 Rule     = Sol.Rules.none_none_none
             }
         end
@@ -408,13 +408,13 @@ local spoilt               = {
                 local y = (i - 1) // 8 + 1
                 local card = tab.Cards[1]
                 if card.Rank ~= spoilt_ranks[x] or card.Suit ~= tableau[y * 7].Cards[1].Suit then
-                    return "Failure"
+                    return Sol.GameStatus.Failure
                 end
             end
-            return "Success"
+            return Sol.GameStatus.Success
         end
 
-        return "Running"
+        return Sol.GameStatus.Running
     end
 }
 

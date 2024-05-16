@@ -17,7 +17,7 @@ local beleaguered_castle = {
         Size = 8,
         Pile = {
             Initial = Sol.Initial.face_up(6),
-            Layout  = "Row",
+            Layout  = Sol.Pile.Layout.Row,
             Rule    = Sol.Rules.any_downrank_top
         }
     },
@@ -39,7 +39,7 @@ castle_mount.Tableau        = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(12),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.InSeqInSuit() }
     }
 }
@@ -59,7 +59,7 @@ local exiled_kings        = Sol.copy(citadel)
 exiled_kings.Info.Name    = "Exiled Kings"
 exiled_kings.Tableau.Pile = {
     Initial = Sol.Initial.face_up(6),
-    Layout  = "Row",
+    Layout  = Sol.Pile.Layout.Row,
     Rule    = Sol.Rules.king_downrank_top
 }
 
@@ -98,14 +98,14 @@ local castle_of_indolence = {
                 return {
                     Position = { x = 0, y = i },
                     Initial  = Sol.Initial.face_up(7),
-                    Layout   = "Row",
+                    Layout   = Sol.Pile.Layout.Row,
                     Rule     = Sol.Rules.any_downrank_top
                 }
             else
                 return {
                     Position = { x = 5, y = i - 4 },
                     Initial  = Sol.Initial.face_up(6),
-                    Layout   = "Row",
+                    Layout   = Sol.Pile.Layout.Row,
                     Rule     = Sol.Rules.any_downrank_top
                 }
             end
@@ -149,14 +149,14 @@ local chequers = {
             return {
                 Position = { x = i % 5 * 2.5, y = i // 5 + 1 },
                 Initial  = Sol.Initial.face_up(4),
-                Layout   = "Row",
+                Layout   = Sol.Pile.Layout.Row,
                 Rule     = Sol.Rules.any_updownsuit_top
             }
         end
     },
     on_end_turn = function(game)
         local reserve1 = game.Reserve[1]
-        Sol.Ops.Deal.to_group(reserve1, game.Tableau, "IfEmpty")
+        Sol.Ops.Deal.to_group(reserve1, game.Tableau, Sol.DealMode.IfEmpty)
         if not reserve1.IsEmpty then
             reserve1:flip_down_top_card()
         end
@@ -181,7 +181,7 @@ local fortress = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i < 2 and 6 or 5),
-                Layout  = "Column",
+                Layout  = Sol.Pile.Layout.Column,
                 Rule    = Sol.Rules.any_updownsuit_top
             }
         end
@@ -203,7 +203,7 @@ lightweight.Tableau        = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(8),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.king_downrank_inseq
     }
 }
@@ -227,7 +227,7 @@ local morehead = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i < 7 and i + 1 or 8),
-                Layout  = "Column",
+                Layout  = Sol.Pile.Layout.Column,
                 Rule    = Sol.Rules.any_downabos_top
             }
         end
@@ -253,7 +253,7 @@ local penelopes_web = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i < 4 and 7 or 6),
-                Layout  = "Row",
+                Layout  = Sol.Pile.Layout.Row,
                 Rule    = Sol.Rules.king_downrank_top
             }
         end
@@ -292,7 +292,7 @@ local rittenhouse = {
             return {
                 Position = { x = i, y = 1 },
                 Initial  = Sol.Initial.face_up(i < 6 and 11 or 10),
-                Layout   = "Column",
+                Layout   = Sol.Pile.Layout.Column,
                 Rule     = Sol.Rules.any_updownrank_top
             }
         end
@@ -355,7 +355,7 @@ local rittenhouse = {
         end
     end,
     can_play          = function(game, targetPile, targetCardIndex, card, numCards)
-        if targetPile.Type == "Foundation" then
+        if targetPile.Type == Sol.Pile.Type.Foundation then
             local dstPileIdx = targetPile.Index
             local srcPileIdx = game:find_pile(card).Index
 
@@ -388,7 +388,7 @@ local selective_castle = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i < 4 and 7 or 6),
-                Layout  = "Row",
+                Layout  = Sol.Pile.Layout.Row,
                 Rule    = Sol.Rules.any_downrank_top
             }
         end
@@ -422,7 +422,7 @@ local streets_and_alleys = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i < 4 and 7 or 6),
-                Layout  = "Row",
+                Layout  = Sol.Pile.Layout.Row,
                 Rule    = Sol.Rules.any_downrank_top
             }
         end
@@ -448,7 +448,7 @@ local zerline = {
     },
     FreeCell   = {
         Position = { x = 5, y = 0 },
-        Layout   = "Row",
+        Layout   = Sol.Pile.Layout.Row,
         Rule     = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.Any(), Move = Sol.Rules.Move.Top(), Limit = 4 }
     },
     Foundation = {
@@ -468,14 +468,14 @@ local zerline = {
                 return {
                     Position = { x = 0, y = i + 1 },
                     Initial  = Sol.Initial.face_up(5),
-                    Layout   = "Row",
+                    Layout   = Sol.Pile.Layout.Row,
                     Rule     = rule
                 }
             else
                 return {
                     Position = { x = 6, y = i - 3 },
                     Initial  = Sol.Initial.face_up(5),
-                    Layout   = "Row",
+                    Layout   = Sol.Pile.Layout.Row,
                     Rule     = rule
                 }
             end
@@ -483,9 +483,9 @@ local zerline = {
     },
     deal       = Sol.Ops.Deal.stock_to_waste,
     can_play   = function(game, targetPile, targetCardIndex, card, numCards)
-        if targetPile.Type == "FreeCell" then
+        if targetPile.Type == Sol.Pile.Type.FreeCell then
             local srcPile = game:find_pile(card)
-            if srcPile.Type == "Tableau" then
+            if srcPile.Type == Sol.Pile.Type.Tableau then
                 return game:can_play(targetPile, targetCardIndex, card, numCards)
             end
             return false
@@ -504,7 +504,7 @@ zerline_3_decks.Info.DeckCount = 3
 zerline_3_decks.Stock.Initial  = Sol.Initial.face_down(116)
 zerline_3_decks.FreeCell       = {
     Position = { x = 5, y = 0 },
-    Layout   = "Row",
+    Layout   = Sol.Pile.Layout.Row,
     Rule     = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.Any(), Move = Sol.Rules.Move.Top(), Limit = 6 }
 }
 zerline_3_decks.Foundation     = {
@@ -524,14 +524,14 @@ zerline_3_decks.Tableau        = {
             return {
                 Position = { x = 0, y = i + 1 },
                 Initial  = Sol.Initial.face_up(5),
-                Layout   = "Row",
+                Layout   = Sol.Pile.Layout.Row,
                 Rule     = rule
             }
         else
             return {
                 Position = { x = 7, y = i - 3 },
                 Initial  = Sol.Initial.face_up(5),
-                Layout   = "Row",
+                Layout   = Sol.Pile.Layout.Row,
                 Rule     = rule
             }
         end

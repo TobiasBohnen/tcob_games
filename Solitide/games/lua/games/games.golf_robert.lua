@@ -20,7 +20,7 @@ local robert = {
     Foundation = {
         Position = { x = 0.5, y = 0 },
         Initial  = Sol.Initial.face_up(1),
-        Layout   = "Squared",
+        Layout   = Sol.Pile.Layout.Squared,
         Rule     = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.None() }
     },
     deal       = Sol.Ops.Deal.stock_to_waste,
@@ -46,7 +46,7 @@ bobby.Foundation = {
         return {
             Position = { x = i, y = 0 },
             Initial  = Sol.Initial.face_up(1 - i),
-            Layout   = "Squared",
+            Layout   = Sol.Pile.Layout.Squared,
             Rule     = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.None() }
         }
     end

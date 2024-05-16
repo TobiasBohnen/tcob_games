@@ -15,7 +15,7 @@ local belvedere = {
     Waste             = {
         Size = 3,
         Pile = {
-            Layout = "Squared",
+            Layout = Sol.Pile.Layout.Squared,
             Rule   = Sol.Rules.none_none_top
         }
     },
@@ -27,7 +27,7 @@ local belvedere = {
         Size = 8,
         Pile = {
             Initial = Sol.Initial.face_up(3),
-            Layout  = "Row",
+            Layout  = Sol.Pile.Layout.Row,
             Rule    = Sol.Rules.none_downrank_top
         }
     },

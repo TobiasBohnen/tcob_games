@@ -16,7 +16,7 @@ local terrace = {
     Waste = {},
     Reserve = {
         Initial = Sol.Initial.top_face_up(11),
-        Layout = "Row"
+        Layout = Sol.Pile.Layout.Row
     },
     Foundation = {
         Size = 8,
@@ -29,7 +29,7 @@ local terrace = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i < 4 and 1 or 0),
-                Layout  = "Column",
+                Layout  = Sol.Pile.Layout.Column,
                 Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.Top() }
             }
         end
@@ -43,11 +43,11 @@ local terrace = {
         -- must play tableau card to foundation as first turn
         local foundation1 = game.Foundation[1]
         if foundation1.IsEmpty then
-            return targetPile == foundation1 and game:find_pile(card).Type == "Tableau"
+            return targetPile == foundation1 and game:find_pile(card).Type == Sol.Pile.Type.Tableau
         end
 
         -- reserve must be played to foundation
-        if targetPile.Type ~= "Foundation" and game:find_pile(card).Type == "Reserve" then
+        if targetPile.Type ~= Sol.Pile.Type.Foundation and game:find_pile(card).Type == Sol.Pile.Type.Reserve then
             return false
         end
 
@@ -55,8 +55,8 @@ local terrace = {
     end,
     on_drop = function(game, pile)
         -- fill tableau after first turn
-        if pile.Type == "Foundation" and pile.CardCount == 1 and pile.Index == 1 then
-            Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, "IfEmpty")
+        if pile.Type == Sol.Pile.Type.Foundation and pile.CardCount == 1 and pile.Index == 1 then
+            Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, Sol.DealMode.IfEmpty)
             Sol.Ops.Deal.stock_to_waste(game)
         end
     end,
@@ -78,7 +78,7 @@ big_terrace.Tableau = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i < 5 and 1 or 0),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.Top() }
         }
     end

@@ -17,7 +17,7 @@ local castles_in_spain = {
         Size = 13,
         Pile = {
             Initial = Sol.Initial.top_face_up(4),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = Sol.Rules.any_downac_top
         }
     },
@@ -33,7 +33,7 @@ martha.Tableau           = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.alternate(4, false),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = { Base = Sol.Rules.Base.AnySingle(), Build = Sol.Rules.Build.DownAlternateColors(), Move = Sol.Rules.Move.InSeq() }
     }
 }
@@ -53,7 +53,7 @@ local portuguese_solitaire        = Sol.copy(castles_in_spain)
 portuguese_solitaire.Info.Name    = "Portuguese Solitaire"
 portuguese_solitaire.Tableau.Pile = {
     Initial = Sol.Initial.face_up(4),
-    Layout  = "Column",
+    Layout  = Sol.Pile.Layout.Column,
     Rule    = Sol.Rules.king_downrank_top
 }
 
@@ -65,7 +65,7 @@ spanish_patience.Info.Name       = "Spanish Patience"
 spanish_patience.Foundation.Pile = { Rule = Sol.Rules.ace_upac_top }
 spanish_patience.Tableau.Pile    = {
     Initial = Sol.Initial.face_up(4),
-    Layout  = "Column",
+    Layout  = Sol.Pile.Layout.Column,
     Rule    = Sol.Rules.none_downrank_top
 }
 
@@ -76,7 +76,7 @@ local spanish_patience_2        = Sol.copy(castles_in_spain)
 spanish_patience_2.Info.Name    = "Spanish Patience II"
 spanish_patience_2.Tableau.Pile = {
     Initial = Sol.Initial.face_up(4),
-    Layout  = "Column",
+    Layout  = Sol.Pile.Layout.Column,
     Rule    = Sol.Rules.any_downrank_top
 }
 
@@ -90,7 +90,7 @@ vineyard.Tableau   = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i < 2 and 6 or 5),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = Sol.Rules.any_downac_top
         }
     end

@@ -29,7 +29,7 @@ local fifty_two_pickup = {
                 y = 1 + (rand() % 50) / 10.0
             }
             Initial = Sol.Initial.face_up(1)
-            Layout = "Column"
+            Layout = Sol.Pile.Layout.Column
             HasMarker = false
             Rule = {
                 Base = Sol.Rules.Base.None()

@@ -22,7 +22,7 @@ local penguin = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i > 0 and 7 or 6),
-                Layout  = "Column",
+                Layout  = Sol.Pile.Layout.Column,
                 Rule    = { Base = Sol.Rules.Base.FirstFoundation(-1), Build = Sol.Rules.Build.DownInSuit(true), Move = Sol.Rules.Move.InSeq() }
             }
         end
@@ -57,7 +57,7 @@ tuxedo.Foundation.Pile   = { Rule = Sol.Rules.ace_upsuit_none }
 tuxedo.Tableau.Pile      = function(i)
     return {
         Initial = Sol.Initial.face_up(i % 3 == 0 and 8 or 7),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.any_downsuit_inseq
     }
 end

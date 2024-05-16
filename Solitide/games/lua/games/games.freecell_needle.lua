@@ -11,7 +11,7 @@ local needle = {
     },
     FreeCell   = {
         Initial = Sol.Initial.face_up(8),
-        Layout  = "Row",
+        Layout  = Sol.Pile.Layout.Row,
         Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.Any(), Move = Sol.Rules.Move.Top(), Limit = 18 }
     },
     Foundation = {
@@ -32,7 +32,7 @@ local needle = {
 
             return {
                 Initial = Sol.Initial.face_up(count),
-                Layout  = "Column",
+                Layout  = Sol.Pile.Layout.Column,
                 Rule    = Sol.Rules.any_downac_top
             }
         end

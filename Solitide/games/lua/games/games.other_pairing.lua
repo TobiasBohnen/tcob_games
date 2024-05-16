@@ -29,12 +29,12 @@ local pyramid = {
         pile:move_cards(game.Foundation[1], pile.CardCount - 1, 2, false)
     end,
     can_play    = function(game, targetPile, targetCardIndex, card, numCards)
-        if targetPile.Type == "Tableau" and not targetPile.IsPlayable then return false end
+        if targetPile.Type == Sol.Pile.Type.Tableau and not targetPile.IsPlayable then return false end
 
-        if targetPile.Type == "Foundation" then
+        if targetPile.Type == Sol.Pile.Type.Foundation then
             if card.Rank == "King" then return true end
         end
-        if not targetPile.IsEmpty and (targetPile.Type == "Tableau" or targetPile.Type == "Stock" or targetPile.Type == "Waste") then
+        if not targetPile.IsEmpty and (targetPile.Type == Sol.Pile.Type.Tableau or targetPile.Type == Sol.Pile.Type.Stock or targetPile.Type == Sol.Pile.Type.Waste) then
             if Sol.RankValues[card.Rank] + Sol.RankValues[targetPile.Cards[targetCardIndex].Rank] == 13 then
                 return true
             end

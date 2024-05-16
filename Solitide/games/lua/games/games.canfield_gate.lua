@@ -20,7 +20,7 @@ local gate = {
             return {
                 Position = { x = i == 0 and 0 or 10, y = 1 },
                 Initial = Sol.Initial.face_up(5),
-                Layout = "Column"
+                Layout = Sol.Pile.Layout.Column
             }
         end
     },
@@ -39,7 +39,7 @@ local gate = {
             return {
                 Position = { x = i + 1.5, y = 1 },
                 Initial  = Sol.Initial.face_up(1),
-                Layout   = "Column",
+                Layout   = Sol.Pile.Layout.Column,
                 Rule     = Sol.Rules.any_downac_inseq
             }
         end
@@ -47,12 +47,12 @@ local gate = {
     on_end_turn = function(game)
         local reserve = game.Reserve
         if reserve[1].IsEmpty and reserve[2].IsEmpty then
-            Sol.Ops.Deal.to_group(game.Waste[1], game.Tableau, "IfEmpty")
+            Sol.Ops.Deal.to_group(game.Waste[1], game.Tableau, Sol.DealMode.IfEmpty)
         else
             if reserve[1].CardCount >= reserve[2].CardCount then
-                Sol.Ops.Deal.to_group(game.Reserve[1], game.Tableau, "IfEmpty")
+                Sol.Ops.Deal.to_group(game.Reserve[1], game.Tableau, Sol.DealMode.IfEmpty)
             else
-                Sol.Ops.Deal.to_group(game.Reserve[2], game.Tableau, "IfEmpty")
+                Sol.Ops.Deal.to_group(game.Reserve[2], game.Tableau, Sol.DealMode.IfEmpty)
             end
         end
     end,
@@ -69,7 +69,7 @@ little_gate.Reserve.Pile  = function(i)
     return {
         Position = { x = i == 0 and 0 or 6, y = 1 },
         Initial = Sol.Initial.face_up(5),
-        Layout = "Column"
+        Layout = Sol.Pile.Layout.Column
     }
 end
 little_gate.Tableau.Size  = 4

@@ -105,8 +105,30 @@ Sol.Initial <- {
     }
 }
 
-enum empty_mode {
+enum deal_mode {
     IfEmpty,
     IfNotEmpty,
     Always
+}
+
+Sol.Pile <- {
+    Type = {
+        Stock = "Stock",
+        Waste = "Waste",
+        FreeCell = "FreeCell",
+        Reserve = "Reserve",
+        Foundation = "Foundation",
+        Tableau = "Tableau"
+    },
+    Layout = {
+        Squared = "Squared",
+        Column = "Column",
+        Row = "Row",
+        Fan = "Fan"
+    }
+}
+Sol.GameStatus <- {
+    Running = "Running",
+    Failure = "Failure",
+    Success = "Success"
 }

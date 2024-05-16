@@ -19,7 +19,7 @@ local auld_lang_syne = {
     Tableau           = {
         Size = 4,
         Pile = {
-            Layout = "Column",
+            Layout = Sol.Pile.Layout.Column,
             Rule   = Sol.Rules.none_none_top
         }
     },
@@ -88,7 +88,7 @@ double_acquaintance.Tableau.Size    = 8
 
 local scuffle               = Sol.copy(acquaintance)
 scuffle.Info.Name           = "Scuffle"
-scuffle.Tableau.Pile.Layout = "Squared"
+scuffle.Tableau.Pile.Layout = Sol.Pile.Layout.Squared
 
 
 ------

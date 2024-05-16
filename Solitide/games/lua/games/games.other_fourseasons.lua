@@ -34,7 +34,7 @@ local four_seasons = {
             return {
                 Position = four_seasons_tab_pos[i + 1],
                 Initial  = Sol.Initial.face_up(1),
-                Layout   = "Squared",
+                Layout   = Sol.Pile.Layout.Squared,
                 Rule     = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true), Move = Sol.Rules.Move.Top() }
             }
         end
@@ -79,7 +79,7 @@ local corners = {
             return {
                 Position = four_seasons_tab_pos[i + 1],
                 Initial  = Sol.Initial.face_up(1),
-                Layout   = "Squared",
+                Layout   = Sol.Pile.Layout.Squared,
                 Rule     = Sol.Rules.any_none_top
             }
         end
@@ -129,7 +129,7 @@ local simplicity = {
             return {
                 Position = { x = i % 6 + 1, y = i // 6 + 1 },
                 Initial  = Sol.Initial.face_up(1),
-                Layout   = "Squared",
+                Layout   = Sol.Pile.Layout.Squared,
                 Rule     = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownAlternateColors(true), Move = Sol.Rules.Move.Top() }
             }
         end

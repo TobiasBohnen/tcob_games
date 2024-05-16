@@ -62,9 +62,9 @@ local function deal_group_func(from, to, emptyMode) {
             break
         }
         local check = true
-        if (emptyMode == empty_mode.IfEmpty) {
+        if (emptyMode == deal_mode.IfEmpty) {
             check = toPile.IsEmpty
-        } else if (emptyMode == empty_mode.IfNotEmpty) {
+        } else if (emptyMode == deal_mode.IfNotEmpty) {
             check = !toPile.IsEmpty
         }
 
@@ -82,7 +82,7 @@ local deal = {
     stock_to_waste = @(game) deal_func(game.Stock[0], game.Waste[0], 1),
     stock_to_waste_by_3 = @(game) deal_func(game.Stock[0], game.Waste[0], 3),
     stock_to_waste_by_redeals_left = @(game) deal_func(game.Stock[0], game.Waste[0], game.RedealsLeft + 1),
-    waste_or_stock_to_empty_tableau = @(game) deal_group_func(game.Waste[1], game.Tableau, empty_mode.IfEmpty) || deal_group_func(game.Stock[1], game.Tableau, empty_mode.IfEmpty)
+    waste_or_stock_to_empty_tableau = @(game) deal_group_func(game.Waste[1], game.Tableau, deal_mode.IfEmpty) || deal_group_func(game.Stock[1], game.Tableau, deal_mode.IfEmpty)
 }
 
 function get_py_cells(n) {
@@ -108,7 +108,7 @@ local pyramid = {
 
         return {
             HasMarker = idx < baseSize,
-            Layout = "Column",
+            Layout = Sol.Pile.Layout.Column,
             Initial = idx <= lastRowStart ? Sol.Initial.face_down(1) : Sol.Initial.face_up(1),
             Position = {
                 x = (lastRowSize - currentRowSize) / 2 + currentColumn + offset.x,

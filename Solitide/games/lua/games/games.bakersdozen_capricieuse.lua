@@ -21,7 +21,7 @@ local capricieuse = {
         Size = 12,
         Pile = {
             Initial = Sol.Initial.face_up(8),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = Sol.Rules.any_updownsuit_top
         }
     },
@@ -63,7 +63,7 @@ strata.Tableau           = {
     Size = 8,
     Pile = {
         Initial = Sol.Initial.face_up(8),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.any_downac_top
     }
 }
@@ -84,7 +84,7 @@ cruel.Tableau           = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(4),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.none_downsuit_top
     }
 }
@@ -122,7 +122,7 @@ indefatigable.Info.Name    = "Indefatigable"
 indefatigable.Info.Redeals = 2
 indefatigable.Tableau.Pile = {
     Initial = Sol.Initial.face_up(4),
-    Layout  = "Column",
+    Layout  = Sol.Pile.Layout.Column,
     Rule    = Sol.Rules.any_updownsuit_top
 }
 
@@ -134,7 +134,7 @@ perseverance.Info.Name    = "Perseverance"
 perseverance.Info.Redeals = 2
 perseverance.Tableau.Pile = {
     Initial = Sol.Initial.face_up(4),
-    Layout  = "Column",
+    Layout  = Sol.Pile.Layout.Column,
     Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.DownInSuit(), Move = Sol.Rules.Move.InSeq() }
 }
 
@@ -147,7 +147,7 @@ royal_family.Info.Redeals      = 1
 royal_family.Foundation.Pile   = { Rule = Sol.Rules.king_downsuit_top }
 royal_family.Tableau.Pile      = {
     Initial = Sol.Initial.face_up(4),
-    Layout  = "Column",
+    Layout  = Sol.Pile.Layout.Column,
     Rule    = Sol.Rules.any_updownac_top
 }
 royal_family.on_before_shuffle = Sol.Ops.Shuffle.king_to_foundation

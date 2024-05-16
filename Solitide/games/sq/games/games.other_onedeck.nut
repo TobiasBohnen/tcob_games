@@ -15,8 +15,8 @@ local aglet = {
                 x = 0,
                 y = 0
             }
-            Layout = "Column"
-            Rule  = {
+            Layout = Sol.Pile.Layout.Column
+            Rule = {
                 Base = Sol.Rules.Base.Any(),
                 Build = Sol.Rules.Build.Any(),
                 Move = Sol.Rules.Move.Top()
@@ -30,7 +30,7 @@ local aglet = {
                 x = i + 3,
                 y = 0
             }
-            Rule  = {
+            Rule = {
                 Base = Sol.Rules.Base.Ace(),
                 Build = Sol.Rules.Build.UpByRank(),
                 Move = Sol.Rules.Move.Top()
@@ -45,8 +45,8 @@ local aglet = {
                 y = 1
             }
             Initial = Sol.Initial.face_up(6)
-            Layout = "Column"
-            Rule  = {
+            Layout = Sol.Pile.Layout.Column
+            Rule = {
                 Base = Sol.Rules.Base.None(),
                 Build = Sol.Rules.Build.None(),
                 Move = Sol.Rules.Move.Top()
@@ -92,8 +92,8 @@ local carpet = {
                 y = i / 5
             }
             Initial = Sol.Initial.face_up(1)
-            Layout = "Column"
-            Rule  = {
+            Layout = Sol.Pile.Layout.Column
+            Rule = {
                 Base = Sol.Rules.Base.Any(),
                 Build = Sol.Rules.Build.None(),
                 Move = Sol.Rules.Move.Top()
@@ -107,7 +107,7 @@ local carpet = {
                 x = carpet_fou_pos[i][0],
                 y = carpet_fou_pos[i][1]
             }
-            Rule  = Sol.Rules.ace_upsuit_top
+            Rule = Sol.Rules.ace_upsuit_top
         }
     },
     on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation,

@@ -18,7 +18,7 @@ local fan = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i < 17 and 3 or 1),
-                Layout  = "Row",
+                Layout  = Sol.Pile.Layout.Row,
                 Rule    = Sol.Rules.king_downsuit_top
             }
         end
@@ -46,7 +46,7 @@ bear_river.Tableau    = {
         local lastInRow = i % 6 == 5
         return {
             Initial = Sol.Initial.face_up(lastInRow and 2 or 3),
-            Layout  = "Row",
+            Layout  = Sol.Pile.Layout.Row,
             Rule    = { Base = lastInRow and Sol.Rules.Base.Any() or Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpOrDownInSuit(true), Move = Sol.Rules.Move.Top(), Limit = 3 }
         }
     end
@@ -62,7 +62,7 @@ box_fan.Tableau           = {
     Size = 16,
     Pile = {
         Initial = Sol.Initial.face_up(3),
-        Layout  = "Row",
+        Layout  = Sol.Pile.Layout.Row,
         Rule    = Sol.Rules.king_downac_top
     }
 }
@@ -79,7 +79,7 @@ ceiling_fan.Tableau   = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i < 17 and 3 or 1),
-            Layout  = "Row",
+            Layout  = Sol.Pile.Layout.Row,
             Rule    = Sol.Rules.king_downac_top
         }
     end
@@ -108,7 +108,7 @@ local clover_leaf = {
         Size = 16,
         Pile = {
             Initial = Sol.Initial.face_up(3),
-            Layout  = "Row",
+            Layout  = Sol.Pile.Layout.Row,
             Rule    = { Base = Sol.Rules.Base.Ranks({ "Ace", "King" }), Build = Sol.Rules.Build.UpOrDownInSuit(), Move = Sol.Rules.Move.Top() }
         }
     },
@@ -134,7 +134,7 @@ alexander_the_great.Tableau   = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(4),
-        Layout  = "Row",
+        Layout  = Sol.Pile.Layout.Row,
         Rule    = { Base = Sol.Rules.Base.Ranks({ "Ace", "King" }), Build = Sol.Rules.Build.UpOrDownInSuit(), Move = Sol.Rules.Move.Top() }
     }
 }
@@ -152,7 +152,7 @@ house_in_the_wood.Tableau         = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i < 34 and 3 or 2),
-            Layout  = "Row",
+            Layout  = Sol.Pile.Layout.Row,
             Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpOrDownInSuit(), Move = Sol.Rules.Move.Top() }
         }
     end
@@ -185,12 +185,12 @@ quads.Tableau    = {
     Size = 13,
     Pile = {
         Initial = Sol.Initial.face_up(4),
-        Layout  = "Row",
+        Layout  = Sol.Pile.Layout.Row,
         Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.InRank(), Move = Sol.Rules.Move.Top(), Limit = 4 }
     }
 }
 quads.on_shuffle = function(game, card, pile)
-    if pile.Type == "Tableau" and card.Rank == "Ace" then
+    if pile.Type == Sol.Pile.Type.Tableau and card.Rank == "Ace" then
         return game.PlaceTop(card, game.Foundation, true)
     end
 
@@ -207,7 +207,7 @@ quads_plus.Tableau           = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i < 12 and 4 or 0),
-            Layout  = "Row",
+            Layout  = Sol.Pile.Layout.Row,
             Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.InRank(), Move = Sol.Rules.Move.Top(), Limit = 4 }
         }
     end
@@ -244,7 +244,7 @@ local lucky_piles             = {
             return {
                 Position = { x = lucky_piles_pos[i + 1][1], y = lucky_piles_pos[i + 1][2] },
                 Initial  = Sol.Initial.face_up(4),
-                Layout   = "Row",
+                Layout   = Sol.Pile.Layout.Row,
                 Rule     = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.UpOrDownInSuit(), Move = Sol.Rules.Move.Top() }
             }
         end
@@ -265,7 +265,7 @@ scotch_patience.Tableau    = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i < 17 and 3 or 1),
-            Layout  = "Row",
+            Layout  = Sol.Pile.Layout.Row,
             Rule    = Sol.Rules.none_downrank_top
         }
     end
@@ -281,7 +281,7 @@ shamrocks.Tableau   = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i < 17 and 3 or 1),
-            Layout  = "Row",
+            Layout  = Sol.Pile.Layout.Row,
             Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpOrDownByRank(), Move = Sol.Rules.Move.Top(), Limit = 3 }
         }
     end
@@ -297,7 +297,7 @@ shamrocks_2.Tableau          = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i < 17 and 3 or 1),
-            Layout  = "Row",
+            Layout  = Sol.Pile.Layout.Row,
             Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpOrDownByRank(), Move = Sol.Rules.Move.Top(), Limit = 3 }
         }
     end
@@ -314,13 +314,13 @@ troika.Tableau    = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i < 17 and 3 or 1),
-            Layout  = "Row",
+            Layout  = Sol.Pile.Layout.Row,
             Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.InRank(), Move = Sol.Rules.Move.Top(), Limit = 3 }
         }
     end
 }
 troika.on_shuffle = function(game, card, pile)
-    if pile.Type == "Tableau" and card.Rank == "Ace" then
+    if pile.Type == Sol.Pile.Type.Tableau and card.Rank == "Ace" then
         return game.PlaceTop(card, game.Foundation, true)
     end
 
@@ -362,16 +362,16 @@ local club = {
             return {
                 Position = pos,
                 Initial  = { false, true, true },
-                Layout   = "Row",
+                Layout   = Sol.Pile.Layout.Row,
                 Rule     = Sol.Rules.any_downac_top
             }
         end
     },
     can_play   = function(game, targetPile, targetCardIndex, card, numCards)
-        if targetPile.Type == "Tableau" then
+        if targetPile.Type == Sol.Pile.Type.Tableau then
             -- first tableau row can't be played to row 2 and 3 tableau piles
             local srcPile = game:find_pile(card)
-            if srcPile.Type == "Tableau" and srcPile.Index < 4 and targetPile.Index >= 4 then
+            if srcPile.Type == Sol.Pile.Type.Tableau and srcPile.Index < 4 and targetPile.Index >= 4 then
                 return false
             end
         end
@@ -407,7 +407,7 @@ local crescent = {
             return {
                 Position = { x = (i % 4) * 3, y = i // 4 + 1 },
                 Initial  = Sol.Initial.face_up(6),
-                Layout   = "Row",
+                Layout   = Sol.Pile.Layout.Row,
                 Rule     = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpOrDownInSuit(true), Move = Sol.Rules.Move.Top() }
             }
         end
@@ -458,7 +458,7 @@ local fascination_fan = {
             return {
                 Position = { x = (i % 5) * 2, y = i // 5 + 1 },
                 Initial  = Sol.Initial.top_face_up(i == 17 and 1 or 3),
-                Layout   = "Row",
+                Layout   = Sol.Pile.Layout.Row,
                 Rule     = Sol.Rules.none_downac_top
             }
         end
@@ -527,7 +527,7 @@ local forest_glade = {
             return {
                 Position = pos,
                 Initial  = Sol.Initial.face_up(3),
-                Layout   = "Row",
+                Layout   = Sol.Pile.Layout.Row,
                 Rule     = Sol.Rules.king_downsuit_top
             }
         end
@@ -614,7 +614,7 @@ local free_fan = {
             return {
                 Position = { x = (i % 5) * 2, y = i // 5 },
                 Initial  = Sol.Initial.face_up(i < 17 and 3 or 1),
-                Layout   = "Row",
+                Layout   = Sol.Pile.Layout.Row,
                 Rule     = Sol.Rules.king_downsuit_top
             }
         end
@@ -642,12 +642,12 @@ local intelligence = {
         Size = 18,
         Pile = {
             Initial = Sol.Initial.face_up(3),
-            Layout  = "Row",
+            Layout  = Sol.Pile.Layout.Row,
             Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpOrDownInSuit(), Move = Sol.Rules.Move.Top() }
         }
     },
     on_shuffle       = function(game, card, pile)
-        if pile.Type == "Tableau" and card.Rank == "Ace" then
+        if pile.Type == Sol.Pile.Type.Tableau and card.Rank == "Ace" then
             return game.PlaceTop(card, game.Foundation, true)
         end
 
@@ -757,7 +757,7 @@ local la_belle_lucie = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i == 17 and 1 or 3),
-                Layout  = "Row",
+                Layout  = Sol.Pile.Layout.Row,
                 Rule    = Sol.Rules.none_downsuit_top
             }
         end
@@ -808,12 +808,12 @@ local roaming_proils = {
         Size = 17,
         Pile = {
             Initial = Sol.Initial.top_face_up(3),
-            Layout  = "Row",
+            Layout  = Sol.Pile.Layout.Row,
             Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.InRank(), Move = Sol.Rules.Move.Top() }
         }
     },
     can_play = function(game, targetPile, targetCardIndex, card, numCards)
-        if targetPile.Type == "Tableau" and targetCardIndex >= 3 then
+        if targetPile.Type == Sol.Pile.Type.Tableau and targetCardIndex >= 3 then
             -- only three consecutive cards of the same rank
             local cards = targetPile.Cards
             if cards[targetCardIndex].IsFaceUp and cards[targetCardIndex].Rank == card.Rank

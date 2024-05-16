@@ -14,7 +14,7 @@ local take_away = {
     Foundation = {
         Size = 6,
         Pile = {
-            Layout = "Squared",
+            Layout = Sol.Pile.Layout.Squared,
             Rule   = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.None() }
         }
     },
@@ -22,7 +22,7 @@ local take_away = {
         Size = 4,
         Pile = {
             Initial = Sol.Initial.face_up(13),
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
         }
     },
@@ -49,7 +49,7 @@ local striptease = {
     Foundation        = {
         Size = 6,
         Pile = {
-            Layout = "Squared",
+            Layout = Sol.Pile.Layout.Squared,
             Rule   = {
                 Base = Sol.Rules.Base.Any(),
                 Build = {
@@ -69,7 +69,7 @@ local striptease = {
         Size = 4,
         Pile = {
             Initial = { false, true, true, true, true, true, true, true, true, true, true, true },
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
         }
     },

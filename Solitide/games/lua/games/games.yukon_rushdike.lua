@@ -36,7 +36,7 @@ local rushdike        = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.top_face_up(i + 1),
-                Layout  = "Column",
+                Layout  = Sol.Pile.Layout.Column,
                 Rule    = Sol.Rules.king_downsuit_faceup
             }
         end
@@ -54,7 +54,7 @@ chinese_discipline.Stock.Initial = Sol.Initial.face_down(3)
 chinese_discipline.Tableau.Pile  = function(i)
     return {
         Initial = initial.chinese_discipline(i),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.king_downac_faceup
     }
 end
@@ -67,7 +67,7 @@ chinese_solitaire.Info.Name    = "Chinese Solitaire"
 chinese_solitaire.Tableau.Pile = function(i)
     return {
         Initial = initial.chinese_discipline(i),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.any_downac_faceup
     }
 end
@@ -80,7 +80,7 @@ queenie.Info.Name    = "Queenie"
 queenie.Tableau.Pile = function(i)
     return {
         Initial = Sol.Initial.face_up(i + 1),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.king_downac_faceup
     }
 end
@@ -94,7 +94,7 @@ russian_point.Stock.Initial = Sol.Initial.face_down(27)
 russian_point.Tableau.Pile  = function(i)
     return {
         Initial = Sol.Initial.top_face_up(i < 4 and i * 2 + 1 or (6 - i) * 2 + 1),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.king_downsuit_faceup
     }
 end

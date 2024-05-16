@@ -21,7 +21,7 @@ local spidike = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i + 1),
-                Layout  = "Column",
+                Layout  = Sol.Pile.Layout.Column,
                 Rule    = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.InSeqInSuit() }
             }
         end
@@ -42,12 +42,12 @@ incompatibility.Tableau         = {
     Size = 10,
     Pile = {
         Initial = Sol.Initial.face_up(5),
-        Layout  = "Column",
+        Layout  = Sol.Pile.Layout.Column,
         Rule    = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.InSeqInSuit() }
     }
 }
 incompatibility.deal            = function(game)
-    return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, "IfNotEmpty")
+    return Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, Sol.DealMode.IfNotEmpty)
 end
 
 

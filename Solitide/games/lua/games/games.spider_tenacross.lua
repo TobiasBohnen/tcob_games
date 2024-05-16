@@ -39,7 +39,7 @@ local ten_across                 = {
         Pile = function(i)
             return {
                 Initial = ten_across_initial[i + 1],
-                Layout  = "Column",
+                Layout  = Sol.Pile.Layout.Column,
                 Rule    = Sol.Rules.king_downsuit_faceup
             }
         end
@@ -69,7 +69,7 @@ panopticon.Tableau               = {
     Pile = function(i)
         return {
             Initial = panopticon_initial[i + 1],
-            Layout  = "Column",
+            Layout  = Sol.Pile.Layout.Column,
             Rule    = Sol.Rules.king_downsuit_faceup
         }
     end

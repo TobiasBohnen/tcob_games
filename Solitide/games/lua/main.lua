@@ -84,3 +84,10 @@ Sol.Initial = {
         return retValue
     end
 }
+
+Sol.Pile = {
+    Type = { Stock = "Stock", Waste = "Waste", FreeCell = "FreeCell", Reserve = "Reserve", Foundation = "Foundation", Tableau = "Tableau" },
+    Layout = { Squared = "Squared", Column = "Column", Row = "Row", Fan = "Fan" }
+}
+Sol.GameStatus = { Running = "Running", Failure = "Failure", Success = "Success" }
+Sol.DealMode = { Always = "Always", IfEmpty = "IfEmpty", IfNotEmpty = "IfNotEmpty" }

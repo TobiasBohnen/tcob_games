@@ -24,7 +24,7 @@ local four_by_four = {
         Pile = function(i)
             return {
                 Position = { x = i + 3, y = 1 },
-                Layout   = "Column",
+                Layout   = Sol.Pile.Layout.Column,
                 Rule     = Sol.Rules.any_updownrank_top
             }
         end
@@ -62,7 +62,7 @@ local lucky_thirteen = {
             return {
                 Position = { x = lucky_thirteen_pos[i + 1][1], y = lucky_thirteen_pos[i + 1][2] },
                 Initial  = Sol.Initial.face_up(4),
-                Layout   = "Squared",
+                Layout   = Sol.Pile.Layout.Squared,
                 Rule     = Sol.Rules.none_downrank_top
             }
         end

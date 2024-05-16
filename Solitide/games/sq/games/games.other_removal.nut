@@ -11,7 +11,7 @@ local function move_multiple(game) {
         }
     }
 
-    Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, empty_mode.IfEmpty)
+    Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, deal_mode.IfEmpty)
 }
 
 //////
@@ -35,7 +35,7 @@ local aces_up = {
         Size = 4,
         Pile = @(i) {
             Initial = Sol.Initial.face_up(1),
-                Layout = "Column",
+                Layout = Sol.Pile.Layout.Column,
                 Rule = {
                     Base = Sol.Rules.Base.Any(),
                     Build = Sol.Rules.Build.None(),
@@ -48,7 +48,7 @@ local aces_up = {
             return false
         }
 
-        if (targetPile.Type == "Foundation") {
+        if (targetPile.Type == Sol.Pile.Type.Foundation) {
             if (card.Rank == "Ace") {
                 return false
             }
@@ -61,7 +61,7 @@ local aces_up = {
                     }
                 }
             }
-        } else if (targetPile.Type == "Tableau") {
+        } else if (targetPile.Type == Sol.Pile.Type.Tableau) {
             return targetPile.IsEmpty
         }
 
@@ -69,23 +69,23 @@ local aces_up = {
     },
     get_status = function(game) {
         if (game.Foundation[0].CardCount == 48) {
-            return "Success"
+            return Sol.GameStatus.Success
         }
 
         if (game.Stock[0].IsEmpty) {
             local suits = {}
             foreach(tab in game.Tableau) {
                 if (tab.IsEmpty || suits.keys().find(tab.Cards[tab.CardCount - 1].Suit) != null) {
-                    return "Running"
+                    return Sol.GameStatus.Running
                 }
                 suits[tab.Cards[tab.CardCount - 1].Suit] <- true
             }
-            return "Failure"
+            return Sol.GameStatus.Failure
         }
 
-        return "Running"
+        return Sol.GameStatus.Running
     },
-    deal = @(game) Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, empty_mode.Always),
+    deal = @(game) Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, deal_mode.Always),
     on_init = @(game) Lua.Sol.Layout.klondike(game)
 }
 
@@ -129,7 +129,7 @@ local aces_square = {
                 y = i / 4
             }
             Initial = Sol.Initial.face_up(1)
-            Layout = "Column"
+            Layout = Sol.Pile.Layout.Column
             Rule = {
                 Base = Sol.Rules.Base.None(),
                 Build = Sol.Rules.Build.None(),
@@ -142,7 +142,7 @@ local aces_square = {
             return false
         }
 
-        if (targetPile.Type == "Tableau") {
+        if (targetPile.Type == Sol.Pile.Type.Tableau) {
             local targetCard = targetPile.Cards[0]
             if (targetCard.Rank == "Ace" || targetCard.Suit != card.Suit) {
                 return false
@@ -173,9 +173,9 @@ local aces_square = {
     },
     get_status = function(game) {
         if (game.Foundation[0].CardCount == 48) {
-            return "Success"
+            return Sol.GameStatus.Success
         }
-        return "Running"
+        return Sol.GameStatus.Running
     },
     on_end_turn = move_multiple
 }
@@ -201,7 +201,7 @@ local cover = {
         Size = 4,
         Pile = @(i) {
             Initial = Sol.Initial.face_up(1)
-            Layout = "Column"
+            Layout = Sol.Pile.Type.Column
             Rule = {
                 Base = Sol.Rules.Base.None(),
                 Build = {
@@ -214,17 +214,17 @@ local cover = {
     },
     get_status = function(game) {
         if (game.Foundation[0].CardCount == 48) {
-            return "Success"
+            return Sol.GameStatus.Success
         }
 
         local suits = {}
         foreach(tab in game.Tableau) {
             if (suits.keys().find(tab.Cards[tab.CardCount - 1].Suit) != null) {
-                return "Running"
+                return Sol.GameStatus.Running
             }
             suits[tab.Cards[tab.CardCount - 1].Suit] <- true
         }
-        return "Failure"
+        return Sol.GameStatus.Failure
     },
     on_end_turn = move_multiple
     on_init = @(game) Lua.Sol.Layout.klondike(game)
@@ -234,10 +234,10 @@ local cover = {
 
 local deck = Sol.copy(cover)
 deck.Info.Name = "Deck"
-deck.deal <- @(game) Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, empty_mode.Always)
+deck.deal <- @(game) Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, deal_mode.Always)
 deck.get_status = function(game) {
     if (game.Foundation[0].CardCount == 48) {
-        return "Success"
+        return Sol.GameStatus.Success
     }
 
     if (game.Stock[0].IsEmpty) {
@@ -247,14 +247,14 @@ deck.get_status = function(game) {
                 continue
             }
             if (suits.keys().find(tab.Cards[tab.CardCount - 1].Suit) != null) {
-                return "Running"
+                return Sol.GameStatus.Running
             }
             suits[tab.Cards[tab.CardCount - 1].Suit] <- true
         }
-        return "Failure"
+        return Sol.GameStatus.Failure
     }
 
-    return "Running"
+    return Sol.GameStatus.Running
 }
 deck.on_drop <- @(game, pile) pile.move_cards(game.Foundation[0], pile.CardCount - 2, 2, false)
 deck.on_end_turn = null
