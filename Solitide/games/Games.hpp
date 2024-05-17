@@ -45,7 +45,8 @@ enum class game_status {
 
 enum class objective {
     AllCardsToFoundation,
-    AllCardsButFourToFoundation
+    AllCardsButFourToFoundation,
+    ClearTableau
 };
 
 ////////////////////////////////////////////////////////////

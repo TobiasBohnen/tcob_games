@@ -320,11 +320,23 @@ auto base_game::deal_cards() -> bool
 auto base_game::get_status() const -> game_status
 {
     isize foundationCards {0};
+    isize tableauCards {0};
     for (auto const& [type, piles] : _piles) {
-        if (type != pile_type::Foundation) { continue; }
-
-        for (auto const& pile : piles) {
-            foundationCards += std::ssize(pile->Cards);
+        switch (type) {
+        case pile_type::Foundation:
+            for (auto const& pile : piles) {
+                foundationCards += std::ssize(pile->Cards);
+            }
+            break;
+        case pile_type::Tableau:
+            for (auto const& pile : piles) {
+                tableauCards += std::ssize(pile->Cards);
+            }
+            break;
+        case pile_type::Stock:
+        case pile_type::Waste:
+        case pile_type::Reserve:
+        case pile_type::FreeCell: break;
         }
     }
     switch (_info.Objective) {
@@ -333,6 +345,9 @@ auto base_game::get_status() const -> game_status
         break;
     case objective::AllCardsButFourToFoundation:
         if (foundationCards == (_info.DeckCount * std::ssize(_info.DeckRanks) * std::ssize(_info.DeckSuits)) - 4) { return game_status::Success; }
+        break;
+    case objective::ClearTableau:
+        if (tableauCards == 0) { return game_status::Success; }
         break;
     }
 

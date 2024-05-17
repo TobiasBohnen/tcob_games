@@ -394,8 +394,7 @@ local selective_castle = {
         end
     },
     can_play   = function(game, targetPile, targetCardIndex, card, numCards)
-        local foundation1 = game.Foundation[1]
-        if foundation1.IsEmpty and targetPile == foundation1 then -- allow any card on first foundation
+        if targetPile.Type == Sol.Pile.Type.Foundation and targetPile.Index == 1 and targetPile.IsEmpty then -- allow any card on first foundation
             return true
         end
 

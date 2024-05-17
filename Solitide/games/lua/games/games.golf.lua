@@ -33,7 +33,8 @@ local golf = {
     Info       = {
         Name      = "Golf",
         Family    = "Golf",
-        DeckCount = 1
+        DeckCount = 1,
+        Objective = "ClearTableau"
     },
     Stock      = {
         Initial = Sol.Initial.face_down(16)
