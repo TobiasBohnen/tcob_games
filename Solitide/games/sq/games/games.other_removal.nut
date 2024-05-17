@@ -98,6 +98,21 @@ aces_up_5.Tableau.Size = 5
 
 //////
 
+local russian_aces = Sol.copy(aces_up)
+russian_aces.Info.Name = "Russian Aces"
+russian_aces.deal = function(game) {
+    local mode = deal_mode.Always
+    foreach(tab in game.Tableau) {
+        if (tab.IsEmpty) {
+            mode = deal_mode.IfEmpty
+            break
+        }
+    }
+    return Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, mode)
+}
+
+//////
+
 local aces_square = {
     Info = {
         Name = "Aces Square",
@@ -268,3 +283,4 @@ Sol.register_game(aces_up_5)
 Sol.register_game(aces_square)
 Sol.register_game(cover)
 Sol.register_game(deck)
+Sol.register_game(russian_aces)

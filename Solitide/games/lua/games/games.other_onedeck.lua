@@ -35,6 +35,69 @@ local board_patience = {
 
 ------
 
+local dumfries = {
+    Info = {
+        Name      = "Dumfries",
+        Family    = "Other",
+        DeckCount = 1
+    },
+    Reserve = {
+        Position = { x = 0, y = 0 },
+        Initial = Sol.Initial.top_face_up(44),
+        Rule = Sol.Rules.none_none_top
+    },
+    Foundation = {
+        Size = 4,
+        Pile = function(i)
+            return {
+                Position = { x = i + 2, y = 0 },
+                Rule     = { Base = Sol.Rules.Base.Ace(), Build = Sol.Rules.Build.UpInSuit(), Move = Sol.Rules.Move.Top() }
+            }
+        end
+    },
+    Tableau = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Position = { x = i, y = 1 },
+                Initial  = Sol.Initial.face_up(1),
+                Layout   = Sol.Pile.Layout.Column,
+                Rule     = {
+                    Base = Sol.Rules.Base.Any(),
+                    Build = {
+                        Hint = "Same rank or down by alternate color",
+                        Func = function(_, base, drop)
+                            return base.Color ~= drop.Color and (base.Rank == drop.Rank or Sol.get_rank(base.Rank, -1, false) == drop.Rank)
+                        end
+                    },
+                    Move = Sol.Rules.Move.TopOrPile()
+                }
+            }
+        end
+    }
+}
+
+
+------
+
+local galloway = Sol.copy(dumfries)
+galloway.Info.Name = "Galloway"
+galloway.Reserve.Initial = Sol.Initial.top_face_up(45)
+galloway.Tableau.Size = 7
+
+
+------
+
+local robin = Sol.copy(dumfries)
+robin.Info.Name = "Robin"
+robin.Info.DeckCount = 2
+robin.Reserve.Initial = Sol.Initial.top_face_up(92)
+robin.Foundation.Size = 8
+robin.Tableau.Size = 12
+
+
+------
+
 local four_by_four = {
     Info = {
         Name      = "Four by Four",
@@ -104,8 +167,50 @@ local lucky_thirteen = {
 
 ------
 
+local turncoats = {
+    Info = {
+        Name      = "Turncoats",
+        Family    = "Other",
+        DeckCount = 1
+    },
+    Stock = {
+        Position = { x = 0, y = 0 },
+        Initial = Sol.Initial.face_down(40)
+    },
+    Foundation = {
+        Size = 4,
+        Pile = function(i)
+            return {
+                Position = { x = i + 2, y = 0 },
+                Rule     = Sol.Rules.ace_upsuit_top
+            }
+        end
+    },
+    Tableau = {
+        Size = 12,
+        Pile = function(i)
+            return {
+                Position = { x = i % 6, y = i // 6 + 1 },
+                Initial  = Sol.Initial.face_up(1),
+                Layout   = Sol.Pile.Layout.Squared,
+                Rule     = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpOrDownAlternateColors(), Move = Sol.Rules.Move.Top() }
+            }
+        end
+    },
+    on_end_turn = function(game)
+        Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, Sol.DealMode.IfEmpty)
+    end
+}
+
+
+------
+
 ------------------------
 
 Sol.register_game(board_patience)
+Sol.register_game(dumfries)
 Sol.register_game(four_by_four)
+Sol.register_game(galloway)
 Sol.register_game(lucky_thirteen)
+Sol.register_game(robin)
+Sol.register_game(turncoats)
