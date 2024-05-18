@@ -213,8 +213,7 @@ binary_star.Tableau           = {
 binary_star.on_before_shuffle = function(game, card)
     if card.Rank == "Ace" and card.Suit == "Spades" then
         return game.PlaceTop(card, game.Foundation, 1, 1, true)
-    end
-    if card.Rank == "King" and card.Suit == "Hearts" then
+    elseif card.Rank == "King" and card.Suit == "Hearts" then
         return game.PlaceTop(card, game.Foundation, 2, 1, true)
     end
     return false
@@ -421,14 +420,11 @@ double_uintah.Foundation.Size   = 8
 double_uintah.on_before_shuffle = function(game, card)
     if card.Suit == "Clubs" then
         return game.PlaceTop(card, game.Foundation[1], true) or game.PlaceTop(card, game.Foundation[2], true)
-    end
-    if card.Suit == "Spades" then
+    elseif card.Suit == "Spades" then
         return game.PlaceTop(card, game.Foundation[3], true) or game.PlaceTop(card, game.Foundation[4], true)
-    end
-    if card.Suit == "Hearts" then
+    elseif card.Suit == "Hearts" then
         return game.PlaceTop(card, game.Foundation[5], true) or game.PlaceTop(card, game.Foundation[6], true)
-    end
-    if card.Suit == "Diamonds" then
+    elseif card.Suit == "Diamonds" then
         return game.PlaceTop(card, game.Foundation[7], true) or game.PlaceTop(card, game.Foundation[8], true)
     end
     return false

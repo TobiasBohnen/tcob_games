@@ -35,23 +35,89 @@ local board_patience = {
 
 ------
 
-local dumfries = {
+local diamond_mine = {
     Info = {
-        Name      = "Dumfries",
+        Name      = "Diamond Mine",
         Family    = "Other",
         DeckCount = 1
     },
-    Reserve = {
+    Foundation = {
+        Position = { x = 6, y = 0 },
+        Rule     = { Base = Sol.Rules.Base.Suits({ "Diamonds" }), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.None() }
+    },
+    Tableau = {
+        Size = 13,
+        Pile = function(i)
+            return {
+                Position = { x = i, y = 1 },
+                Initial  = Sol.Initial.top_face_up(4),
+                Layout   = Sol.Pile.Layout.Column,
+                Rule     = Sol.Rules.any_downrank_inseq
+            }
+        end
+    },
+    get_status = function(game)
+        -- all diamonds in foundation; sort remaining suits
+        local foundation = game.Foundation
+        if foundation[1].CardCount == 13 then
+            for _, tableau in ipairs(game.Tableau) do
+                if tableau.IsEmpty then goto continue end
+                if tableau.CardCount ~= 13 then return Sol.GameStatus.Running end
+
+                local cards = tableau.Cards
+                local targetSuit = cards[1].Suit
+                for i = 1, 13 do
+                    if cards[i].Rank ~= Sol.Ranks[14 - i] or cards[i].Suit ~= targetSuit then
+                        return Sol.GameStatus.Running
+                    end
+                end
+
+                ::continue::
+            end
+            return Sol.GameStatus.Success
+        end
+        --TODO check dead
+        return Sol.GameStatus.Running
+    end,
+    can_play = function(game, targetPile, targetCardIndex, card, numCards)
+        if targetPile.Type ~= Sol.Pile.Type.Foundation and not targetPile.IsEmpty then
+            local targetCard = targetPile.Cards[targetCardIndex]
+            if targetCard.Suit == "Diamonds" or card.Suit == "Diamonds" then
+                return false
+            end
+        elseif targetPile.Type == Sol.Pile.Type.Tableau and targetPile.IsEmpty then
+            if card.Suit == "Diamonds" then
+                return false
+            end
+        end
+
+        return game:can_play(targetPile, targetCardIndex, card, numCards)
+    end
+}
+
+
+------
+
+local double_dot = {
+    Info = {
+        Name      = "Double Dot",
+        Family    = "Other",
+        DeckCount = 1
+    },
+    Stock = {
         Position = { x = 0, y = 0 },
-        Initial = Sol.Initial.top_face_up(44),
-        Rule = Sol.Rules.none_none_top
+        Initial = Sol.Initial.face_down(40)
     },
     Foundation = {
         Size = 4,
         Pile = function(i)
             return {
                 Position = { x = i + 2, y = 0 },
-                Rule     = { Base = Sol.Rules.Base.Ace(), Build = Sol.Rules.Build.UpInSuit(), Move = Sol.Rules.Move.Top() }
+                Rule     = {
+                    Base = i < 2 and Sol.Rules.Base.Ace() or Sol.Rules.Base.Ranks({ "Two" }),
+                    Build = Sol.Rules.Build.UpInSuit(true, 2),
+                    Move = Sol.Rules.Move.Top()
+                }
             }
         end
     },
@@ -62,38 +128,21 @@ local dumfries = {
                 Position = { x = i, y = 1 },
                 Initial  = Sol.Initial.face_up(1),
                 Layout   = Sol.Pile.Layout.Column,
-                Rule     = {
-                    Base = Sol.Rules.Base.Any(),
-                    Build = {
-                        Hint = "Same rank or down by alternate color",
-                        Func = function(_, base, drop)
-                            return base.Color ~= drop.Color and (base.Rank == drop.Rank or Sol.get_rank(base.Rank, -1, false) == drop.Rank)
-                        end
-                    },
-                    Move = Sol.Rules.Move.TopOrPile()
-                }
+                Rule     = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(true, 2), Move = Sol.Rules.Move.Top() }
             }
         end
-    }
+    },
+    on_before_shuffle = function(game, card)
+        if card.Rank == "Ace" and card.Color == "Black" then
+            return game.PlaceTop(card, game.Foundation, 1, 2, true)
+        elseif card.Rank == "Two" and card.Color == "Red" then
+            return game.PlaceTop(card, game.Foundation, 3, 2, true)
+        end
+
+        return false
+    end,
+    deal = Sol.Ops.Deal.stock_to_tableau
 }
-
-
-------
-
-local galloway = Sol.copy(dumfries)
-galloway.Info.Name = "Galloway"
-galloway.Reserve.Initial = Sol.Initial.top_face_up(45)
-galloway.Tableau.Size = 7
-
-
-------
-
-local robin = Sol.copy(dumfries)
-robin.Info.Name = "Robin"
-robin.Info.DeckCount = 2
-robin.Reserve.Initial = Sol.Initial.top_face_up(92)
-robin.Foundation.Size = 8
-robin.Tableau.Size = 12
 
 
 ------
@@ -208,9 +257,8 @@ local turncoats = {
 ------------------------
 
 Sol.register_game(board_patience)
-Sol.register_game(dumfries)
+Sol.register_game(diamond_mine)
+Sol.register_game(double_dot)
 Sol.register_game(four_by_four)
-Sol.register_game(galloway)
 Sol.register_game(lucky_thirteen)
-Sol.register_game(robin)
 Sol.register_game(turncoats)

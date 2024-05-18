@@ -287,8 +287,7 @@ challenge_free_cell.Tableau           = {
 challenge_free_cell.on_before_shuffle = function(game, card)
     if card.Rank == "Two" then
         return game.PlaceTop(card, game.Tableau, 1, 4, true)
-    end
-    if card.Rank == "Ace" then
+    elseif card.Rank == "Ace" then
         return game.PlaceTop(card, game.Tableau, 5, 4, true)
     end
 

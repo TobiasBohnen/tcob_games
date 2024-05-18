@@ -109,67 +109,6 @@ end
 
 ------
 
-local churchill         = Sol.copy(gypsy)
-churchill.Info.Name     = "Churchill"
-churchill.Stock.Initial = Sol.Initial.face_down(68)
-churchill.Reserve       = {
-    Initial = Sol.Initial.face_up(6),
-    Layout  = Sol.Pile.Layout.Column,
-    Rule    = Sol.Rules.none_none_top
-}
-churchill.Tableau       = {
-    Size = 10,
-    Pile = function(i)
-        return {
-            Initial = Sol.Initial.top_face_up(i < 5 and i + 1 or 10 - i),
-            Layout  = Sol.Pile.Layout.Column,
-            Rule    = Sol.Rules.king_downac_inseq
-        }
-    end
-}
-churchill.deal          = function(game)
-    -- don't deal card on sequence with king as first card in pile
-    local stock = game.Stock[1]
-    local tableau = game.Tableau
-
-    if stock.IsEmpty then return false end
-    for _, toPile in ipairs(tableau) do
-        if stock.IsEmpty then break end
-        local inSeq = true
-        local cards = toPile.Cards
-        for index, card in ipairs(cards) do
-            if index > 13 or card.IsFaceDown or card.Rank ~= Sol.Ranks[14 - index] then
-                inSeq = false
-                break
-            end
-        end
-
-        if not inSeq then
-            stock:move_cards(toPile, #stock.Cards, 1, false)
-            toPile:flip_up_top_card()
-        end
-    end
-    return true
-end
-churchill.can_play      = function(game, targetPile, targetCardIndex, card, numCards)
-    -- reserve only to foundation
-    if game:find_pile(card).Type == Sol.Pile.Type.Reserve and targetPile.Type ~= Sol.Pile.Type.Foundation then return false end
-
-    return game:can_play(targetPile, targetCardIndex, card, numCards)
-end
-churchill.on_init       = Sol.Layout.canfield
-
-
-------
-
-local pitt_the_younger           = Sol.copy(churchill)
-pitt_the_younger.Info.Name       = "Pitt the Younger"
-pitt_the_younger.Stock.Initial   = Sol.Initial.face_down(63)
-pitt_the_younger.Reserve.Initial = Sol.Initial.face_up(11)
-
-
-------
-
 local elba         = Sol.copy(gypsy)
 elba.Info.Name     = "Elba"
 elba.Stock.Initial = Sol.Initial.face_down(54)
@@ -267,8 +206,7 @@ end
 flamenco.on_before_shuffle = function(game, card)
     if card.Rank == "Ace" then
         return game.PlaceTop(card, game.Foundation, 1, 4, true)
-    end
-    if card.Rank == "King" then
+    elseif card.Rank == "King" then
         return game.PlaceTop(card, game.Foundation, 5, 4, true)
     end
 
@@ -716,14 +654,76 @@ local swiss_patience = {
     deal       = Sol.Ops.Deal.stock_to_tableau
 }
 
+
 ------
+
+local trapdoor = {
+    Info       = {
+        Name      = "Trapdoor",
+        Family    = "Gypsy",
+        DeckCount = 2
+    },
+    Stock      = {
+        Position = { x = 8.5, y = 4 },
+        Initial = Sol.Initial.face_down(72)
+    },
+    Foundation = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Position = { x = i % 2 + 8, y = i // 2 },
+                Rule = Sol.Rules.ace_upsuit_top
+            }
+        end
+    },
+    Reserve    = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Position = { x = i, y = 4 },
+                Initial = Sol.Initial.face_up(1),
+                Rule = Sol.Rules.none_none_top
+            }
+        end
+    },
+    Tableau    = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Position = { x = i, y = 0 },
+                Initial  = Sol.Initial.top_face_up(3),
+                Layout   = Sol.Pile.Layout.Column,
+                Rule     = Sol.Rules.any_downac_inseq
+            }
+        end
+    },
+    deal       = function(game)
+        local stock = game.Stock[1]
+        if stock.IsEmpty then return false end
+
+        --move reserve to tableau
+        local tableau = game.Tableau
+        for _, res in ipairs(game.Reserve) do
+            if not res.IsEmpty then
+                res:move_cards(tableau[res.Index], 1, 1, false)
+            end
+        end
+
+        return Sol.Ops.Deal.to_group(stock, game.Reserve)
+    end
+
+
+}
+
+
+------
+
 
 ------------------------
 
 Sol.register_game(gypsy)
 Sol.register_game(agnes_sorel)
 Sol.register_game(blockade)
-Sol.register_game(churchill)
 Sol.register_game(cone)
 Sol.register_game(die_koenigsbergerin)
 Sol.register_game(eclipse)
@@ -740,10 +740,10 @@ Sol.register_game(milligan_cell)
 Sol.register_game(miss_milligan)
 Sol.register_game(nomad)
 Sol.register_game(phantom_blockade)
-Sol.register_game(pitt_the_younger)
 Sol.register_game(right_triangle)
 Sol.register_game(scarp)
 Sol.register_game(small_triangle)
 Sol.register_game(surprise)
 Sol.register_game(swiss_patience)
+Sol.register_game(trapdoor)
 Sol.register_game(yeast_dough)

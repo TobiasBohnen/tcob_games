@@ -115,8 +115,7 @@ local clover_leaf = {
     on_before_shuffle = function(game, card)
         if card.Rank == "Ace" and card.Color == "Black" then
             return game.PlaceTop(card, game.Foundation, 1, 2, true)
-        end
-        if card.Rank == "King" and card.Color == "Red" then
+        elseif card.Rank == "King" and card.Color == "Red" then
             return game.PlaceTop(card, game.Foundation, 3, 2, true)
         end
 
@@ -415,8 +414,7 @@ local crescent = {
     on_before_shuffle = function(game, card)
         if card.Rank == "Ace" then
             return game.PlaceTop(card, game.Foundation, 1, 4, true)
-        end
-        if card.Rank == "King" then
+        elseif card.Rank == "King" then
             return game.PlaceTop(card, game.Foundation, 5, 4, true)
         end
 

@@ -65,16 +65,16 @@ end
 ------
 
 local osmosis = {
-    Info = {
+    Info       = {
         Name      = "Osmosis",
         Family    = "Other",
         DeckCount = 1,
         Redeals   = -1
     },
-    Stock = {
+    Stock      = {
         Initial = Sol.Initial.face_down(35)
     },
-    Waste = {},
+    Waste      = {},
     Foundation = {
         Size = 4,
         Pile = function(i)
@@ -94,7 +94,7 @@ local osmosis = {
             }
         end
     },
-    Tableau = {
+    Tableau    = {
         Size = 4,
         Pile = {
             Initial = Sol.Initial.top_face_up(4),
@@ -102,10 +102,10 @@ local osmosis = {
             Rule    = Sol.Rules.none_none_top
         }
     },
-    on_init = osmosis_layout,
-    deal = Sol.Ops.Deal.stock_to_waste_by_3,
-    redeal = Sol.Ops.Redeal.waste_to_stock,
-    can_play = function(game, targetPile, targetCardIndex, card, numCards)
+    on_init    = osmosis_layout,
+    deal       = Sol.Ops.Deal.stock_to_waste_by_3,
+    redeal     = Sol.Ops.Redeal.waste_to_stock,
+    can_play   = function(game, targetPile, targetCardIndex, card, numCards)
         if targetPile.Type == Sol.Pile.Type.Foundation and targetPile.IsEmpty then -- disallow gaps in the foundation column
             if game.Foundation[targetPile.Index - 1].IsEmpty then return false end
         end
@@ -117,23 +117,23 @@ local osmosis = {
 
 ------
 
-local bridesmaids = Sol.copy(osmosis)
-bridesmaids.Info.Name = "Bridesmaids"
-bridesmaids.Tableau = nil
+local bridesmaids         = Sol.copy(osmosis)
+bridesmaids.Info.Name     = "Bridesmaids"
+bridesmaids.Tableau       = nil
 bridesmaids.Stock.Initial = Sol.Initial.face_down(51)
 
 
 ------
 
-local peek = Sol.copy(osmosis)
-peek.Info.Name = "Peek"
+local peek                = Sol.copy(osmosis)
+peek.Info.Name            = "Peek"
 peek.Tableau.Pile.Initial = Sol.Initial.face_up(4)
 
 
 ------
 
-local osmium = Sol.copy(osmosis)
-osmium.Info.Name = "Osmium"
+local osmium      = Sol.copy(osmosis)
+osmium.Info.Name  = "Osmium"
 osmium.Foundation = {
     Size = 4,
     Pile = function(i)
@@ -148,27 +148,27 @@ osmium.Foundation = {
         }
     end
 }
-osmium.deal = Sol.Ops.Deal.stock_to_waste
-osmium.can_play = nil
+osmium.deal       = Sol.Ops.Deal.stock_to_waste
+osmium.can_play   = nil
 
 
 ------
 
-local osmium_2 = Sol.copy(osmium)
-osmium_2.Info.Name = "Osmium II"
+local osmium_2                = Sol.copy(osmium)
+osmium_2.Info.Name            = "Osmium II"
 osmium_2.Tableau.Pile.Initial = Sol.Initial.face_up(4)
 
 
 ------
 
 local open_peek = {
-    Info = {
+    Info       = {
         Name      = "Open Peek",
         Family    = "Other",
         DeckCount = 1,
         Redeals   = -1
     },
-    Reserve = {
+    Reserve    = {
         Size = 32,
         Pile = {
             Initial = Sol.Initial.face_up(1),
@@ -189,7 +189,7 @@ local open_peek = {
             }
         }
     },
-    Tableau = {
+    Tableau    = {
         Size = 4,
         Pile = {
             Initial = Sol.Initial.face_up(5),
@@ -197,8 +197,8 @@ local open_peek = {
             Rule    = Sol.Rules.none_none_top
         }
     },
-    on_init = osmosis_layout,
-    can_play = function(game, targetPile, targetCardIndex, card, numCards)
+    on_init    = osmosis_layout,
+    can_play   = function(game, targetPile, targetCardIndex, card, numCards)
         if targetPile.Type == Sol.Pile.Type.Foundation and targetPile.IsEmpty then -- disallow gaps in the foundation column
             if targetPile.Index == 1 then return true end
             if game.Foundation[targetPile.Index - 1].IsEmpty then return false end
@@ -211,8 +211,8 @@ local open_peek = {
 
 ------
 
-local open_osmium = Sol.copy(open_peek)
-open_osmium.Info.Name = "Open Osmium"
+local open_osmium           = Sol.copy(open_peek)
+open_osmium.Info.Name       = "Open Osmium"
 open_osmium.Foundation.Pile = {
     Layout = Sol.Pile.Layout.Row,
     Rule   = {
@@ -221,7 +221,7 @@ open_osmium.Foundation.Pile = {
         Move = Sol.Rules.Move.None()
     }
 }
-open_osmium.can_play = function(game, targetPile, targetCardIndex, card, numCards)
+open_osmium.can_play        = function(game, targetPile, targetCardIndex, card, numCards)
     if targetPile.Type == Sol.Pile.Type.Foundation and targetPile.Index == 1 and targetPile.IsEmpty then -- allow any card on first foundation
         return true
     end

@@ -24,9 +24,17 @@ local aces_up = {
         Objective = "AllCardsButFourToFoundation"
     },
     Stock = {
+        Position = {
+            x = 0,
+            y = 0
+        }
         Initial = Sol.Initial.face_down(48)
     },
     Foundation = {
+        Position = {
+            x = 2,
+            y = 0
+        }
         Rule = {
             Move = Sol.Rules.Move.None()
         }
@@ -34,8 +42,12 @@ local aces_up = {
     Tableau = {
         Size = 4,
         Pile = @(i) {
-            Initial = Sol.Initial.face_up(1),
-                Layout = Sol.Pile.Layout.Column,
+            Position = {
+                x = i + 1,
+                y = 1
+            }
+            Initial = Sol.Initial.face_up(1)
+            Layout = Sol.Pile.Layout.Column,
                 Rule = {
                     Base = Sol.Rules.Base.Any(),
                     Build = Sol.Rules.Build.None(),
@@ -52,6 +64,9 @@ local aces_up = {
             if (card.Rank == "Ace") {
                 return false
             }
+            if (game.find_pile(card).Type != Sol.Pile.Type.Tableau) {
+                return false
+            }
             local cardRank = Sol.RankValues[card.Rank]
             foreach(tab in game.Tableau) {
                 if (!tab.IsEmpty) {
@@ -61,7 +76,7 @@ local aces_up = {
                     }
                 }
             }
-        } else if (targetPile.Type == Sol.Pile.Type.Tableau) {
+        } else if (targetPile.Type == Sol.Pile.Type.Tableau || targetPile.Type == Sol.Pile.Type.FreeCell) {
             return targetPile.IsEmpty
         }
 
@@ -86,7 +101,6 @@ local aces_up = {
         return Sol.GameStatus.Running
     },
     deal = @(game) Sol.Ops.Deal.to_group(game.Stock[0], game.Tableau, deal_mode.Always),
-    on_init = @(game) Lua.Sol.Layout.klondike(game)
 }
 
 //////
@@ -95,6 +109,23 @@ local aces_up_5 = Sol.copy(aces_up)
 aces_up_5.Info.Name = "Aces Up 5"
 aces_up_5.Stock.Initial = Sol.Initial.face_down(47)
 aces_up_5.Tableau.Size = 5
+
+//////
+
+local firing_squad = Sol.copy(aces_up)
+firing_squad.Info.Name = "Firing Squad"
+firing_squad.FreeCell <- {
+    Position = {
+        x = 0,
+        y = 1
+    }
+    Layout = Sol.Pile.Layout.Column,
+    Rule = {
+        Base = Sol.Rules.Base.Any(),
+        Build = Sol.Rules.Build.None(),
+        Move = Sol.Rules.Move.Top()
+    }
+}
 
 //////
 
@@ -283,4 +314,5 @@ Sol.register_game(aces_up_5)
 Sol.register_game(aces_square)
 Sol.register_game(cover)
 Sol.register_game(deck)
+Sol.register_game(firing_squad)
 Sol.register_game(russian_aces)
