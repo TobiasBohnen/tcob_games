@@ -108,14 +108,14 @@ half_klondike.Tableau.Size    = 4
 
 local big_deal = {
     Info       = {
-        Name = "Big Deal",
-        Family = "Klondike",
+        Name      = "Big Deal",
+        Family    = "Klondike",
         DeckCount = 4,
-        Redeals = 1
+        Redeals   = 1
     },
     Stock      = {
         Position = { x = 0, y = 7 },
-        Initial = Sol.Initial.face_down(130)
+        Initial  = Sol.Initial.face_down(130)
     },
     Waste      = { Position = { x = 1, y = 7 } },
     Foundation = {
@@ -548,18 +548,18 @@ end
 
 local guardian = {
     Info        = {
-        Name = "Guardian",
-        Family = "Klondike",
+        Name      = "Guardian",
+        Family    = "Klondike",
         DeckCount = 1,
-        Redeals = -1
+        Redeals   = -1
     },
     Stock       = {
         Position = { x = 0, y = 0 },
-        Initial = Sol.Initial.face_down(40)
+        Initial  = Sol.Initial.face_down(40)
     },
     Waste       = {
         Position = { x = 1, y = 0 },
-        Layout = Sol.Pile.Layout.Fan
+        Layout   = Sol.Pile.Layout.Fan
     },
     Foundation  = {
         Size = 4,

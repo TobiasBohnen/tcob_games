@@ -302,11 +302,11 @@ local elevator = {
 
 ------
 
-local escalator = Sol.copy(elevator)
-escalator.Info.Name = "Escalator"
+local escalator        = Sol.copy(elevator)
+escalator.Info.Name    = "Escalator"
 escalator.Tableau.Pile = function(i) return Sol.Ops.Pyramid.face_up_pile(28, 1, { x = 0, y = -0.5 }, i) end
-escalator.on_init = function(game) Sol.Ops.Pyramid.face_up_flip(28, 1, game.Tableau) end
-escalator.on_end_turn = function(game) Sol.Ops.Pyramid.face_up_flip(28, 1, game.Tableau) end
+escalator.on_init      = function(game) Sol.Ops.Pyramid.face_up_flip(28, 1, game.Tableau) end
+escalator.on_end_turn  = function(game) Sol.Ops.Pyramid.face_up_flip(28, 1, game.Tableau) end
 
 
 ------

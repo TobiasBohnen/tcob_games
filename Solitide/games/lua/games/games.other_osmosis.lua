@@ -36,7 +36,7 @@ local function osmosis_build(game, base, drop)
     local pile = game:find_pile(base)
     if pile.Index == 1 then return true end
     local foundation = game.Foundation[pile.Index - 1]
-    local cards = foundation.Cards
+    local cards      = foundation.Cards
     for _, card in ipairs(cards) do
         if card.Rank == drop.Rank then return true end
     end
@@ -48,9 +48,8 @@ local function osmium_build(game, base, drop)
     if base.Suit ~= drop.Suit then return false end
 
     -- foundations have to be in the same sequence
-    local pile = game:find_pile(base)
-
-    local foundation = game.Foundation
+    local pile              = game:find_pile(base)
+    local foundation        = game.Foundation
     local largestFoundation = pile
     for _, fou in ipairs(foundation) do
         if fou.CardCount > largestFoundation.CardCount then
@@ -172,7 +171,7 @@ local open_peek = {
         Size = 32,
         Pile = {
             Initial = Sol.Initial.face_up(1),
-            Rule = Sol.Rules.none_none_top
+            Rule    = Sol.Rules.none_none_top
         }
     },
     Foundation = {
