@@ -480,9 +480,14 @@ local base = {
         return {
             Hint = "Rank" .. intervalStr .. " of first foundation card",
             Func = function(game, card, _)
-                local pile = game.Foundation[1]
-                if pile.IsEmpty then return false end
-                local rank = pile.Cards[1].Rank
+                local rank = game.Storage["foundation_base"]
+                if rank == nil then
+                    local pile = game.Foundation[1]
+                    if pile.IsEmpty then return false end
+                    rank = pile.Cards[1].Rank
+                    game.Storage["foundation_base"] = rank
+                end
+
                 return card.Rank == Sol.get_rank(rank, interval, true)
             end
         }

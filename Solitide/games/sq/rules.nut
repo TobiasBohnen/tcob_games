@@ -268,23 +268,28 @@ local base_tab = {
     AnySingle = @() {
         Hint = "Any; no sequences", Func = @(_, _, numCards) numCards == 1
     },
-    FirstFoundation = function(interval) {
+    FirstFoundation = function(interval = 1) {
         local intervalStr = ""
         if (interval != 0) {
-            intervalStr = interval.tostring()
             if (interval > 0) {
                 intervalStr += "+"
             }
+            intervalStr += interval.tostring()
         }
 
         return {
-            Hint = "Rank" + intervalStr + " of first foundation card",
+            Hint = "Rank " + intervalStr + " of first foundation card",
             Func = function(game, card, numCards) {
-                local pile = game.Foundation[0]
-                if (pile.IsEmpty) {
-                    return false
+                local rank = game.Storage["foundation_base"]
+                if (rank == null) {
+                    local pile = game.Foundation[0]
+                    if (pile.IsEmpty) {
+                        return false
+                    }
+                    rank = pile.Cards[1].Rank
+                    game.Storage["foundation_base"] = rank
                 }
-                local rank = pile.Cards[0].Rank
+
                 return card.Rank == Sol.get_rank(rank, interval, true)
             }
         }

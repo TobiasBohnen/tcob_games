@@ -15,7 +15,7 @@ local board_patience = {
             return {
                 Position = { x = i + 3, y = 0 },
                 Initial  = Sol.Initial.face_up(i == 0 and 1 or 0),
-                Rule     = Sol.Rules.ff_upsuit_none_l13
+                Rule     = Sol.Rules.ff_upsuit_top_l13
             }
         end
     },
