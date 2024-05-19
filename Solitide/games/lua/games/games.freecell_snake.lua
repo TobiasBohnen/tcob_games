@@ -13,7 +13,7 @@ local snake = {
         Size = 7,
         Pile = function(i)
             return {
-                Position = { x = i + 1, y = 0 },
+                Position = { x = i, y = 0 },
                 Rule     = Sol.Rules.any_none_top
             }
         end
@@ -72,7 +72,51 @@ cats_tail.on_before_shuffle = nil
 
 ------
 
+local kings             = Sol.copy(snake)
+kings.Info.Name         = "Kings"
+kings.FreeCell.Size     = 8
+kings.Tableau           = {
+    Size = 8,
+    Pile = function(i)
+        return {
+            Position = { x = i, y = 1 },
+            Initial  = Sol.Initial.face_up(i == 0 and 103 or 0),
+            Layout   = Sol.Pile.Layout.Column,
+            Rule     = Sol.Rules.none_downac_inseq
+        }
+    end
+}
+kings.on_before_shuffle = function(game, card)
+    if card.Rank == "King" then
+        return game.PlaceTop(card, game.Tableau[1], true)
+    end
+
+    return false
+end
+
+
+------
+
+local retinue             = Sol.copy(kings)
+retinue.Info.Name         = "Retinue"
+retinue.Tableau.Pile      = function(i)
+    return {
+        Position = { x = i, y = 1 },
+        Initial  = Sol.Initial.face_up(i == 0 and 95 or 0),
+        Layout   = Sol.Pile.Layout.Column,
+        Rule     = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.DownAlternateColors(), Move = Sol.Rules.Move.SuperMove() }
+    }
+end
+retinue.on_before_shuffle = function(game, card)
+    return kings.on_before_shuffle(game, card) or Sol.Ops.Shuffle.ace_to_foundation(game, card)
+end
+
+
+------
+
 ------------------------
 
 Sol.register_game(snake)
 Sol.register_game(cats_tail)
+Sol.register_game(kings)
+Sol.register_game(retinue)
