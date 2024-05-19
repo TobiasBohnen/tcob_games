@@ -10,7 +10,7 @@
 
 namespace solitaire {
 
-static string const    CardsetFolder {"/cardsets/"};
+static string const    UserFolder {"/cardsets/"};
 static constexpr isize CardsetCardCount {68};
 
 auto load_cardsets() -> std::map<std::string, std::shared_ptr<cardset>>
@@ -19,15 +19,22 @@ auto load_cardsets() -> std::map<std::string, std::shared_ptr<cardset>>
 
     auto& resMgr {locate_service<assets::library>()};
     auto& resGrp {resMgr.create_or_get_group("solitaire")};
+    auto  resFolder {resGrp.get_mount_point() + "cardsets/"};
 
-    retValue["default"] = std::make_shared<default_cardset>(resGrp);
-    retValue["mini_h"]  = std::make_shared<mini_h_cardset>(resGrp);
-    retValue["mini_v"]  = std::make_shared<mini_v_cardset>(resGrp);
+    retValue["gen_0"]  = std::make_shared<gen_cardset>(resGrp);
+    retValue["mini_h"] = std::make_shared<mini_h_cardset>(resGrp);
+    retValue["mini_v"] = std::make_shared<mini_v_cardset>(resGrp);
 
-    for (auto const& gi : io::get_sub_folders(CardsetFolder)) {
-        auto const name {io::get_stem(gi)};
-        if (retValue.contains(name)) { continue; }
-        retValue[name] = std::make_shared<cardset>(name);
+    std::unordered_map<std::string, std::unordered_set<string>> folders;
+    folders[UserFolder] = io::get_sub_folders(UserFolder);
+    folders[resFolder]  = io::get_sub_folders(resFolder);
+
+    for (auto const& [folder, subfolders] : folders) {
+        for (auto const& gi : subfolders) {
+            auto const name {io::get_stem(gi)};
+            if (retValue.contains(name)) { continue; }
+            retValue[name] = std::make_shared<cardset>(folder, name);
+        }
     }
 
     return retValue;
@@ -35,8 +42,9 @@ auto load_cardsets() -> std::map<std::string, std::shared_ptr<cardset>>
 
 ////////////////////////////////////////////////////////////
 
-cardset::cardset(std::string folder)
-    : _name {std::move(folder)}
+cardset::cardset(std::string folder, std::string name)
+    : _name {std::move(name)}
+    , _folder {std::move(folder)}
     , _loaded {load()}
 {
     _material->Texture = _texture;
@@ -105,7 +113,7 @@ auto cardset::load() const -> bool
 
 auto cardset::get_folder() const -> std::string
 {
-    return CardsetFolder + _name + "/";
+    return _folder + _name + "/";
 }
 
 auto cardset::get_texture() const -> gfx::texture*
@@ -212,15 +220,15 @@ void cardset::save_textures(assets::asset_ptr<gfx::texture> const& canvasTex, si
 
 static constexpr color CardsetBackColorDefault {colors::SeaShell};
 
-default_cardset::default_cardset(assets::group& resGrp)
-    : cardset {"default"}
+gen_cardset::gen_cardset(assets::group& resGrp)
+    : cardset {UserFolder, "gen_0"}
 {
     if (!is_loaded()) {
         create(resGrp);
     }
 }
 
-void default_cardset::create(assets::group& resGrp)
+void gen_cardset::create(assets::group& resGrp)
 {
     size_f const texSize {240, 360};
     i32 const    columns {10};
@@ -302,7 +310,7 @@ void default_cardset::create(assets::group& resGrp)
     save_textures(tempTex, texSize);
 }
 
-void default_cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, rank r, rect_f const& rect)
+void gen_cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, rank r, rect_f const& rect)
 {
     canvas.save();
 
@@ -430,7 +438,7 @@ void default_cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s,
     canvas.restore();
 }
 
-void default_cardset::draw_marker(gfx::canvas& canvas, fonts const& fonts, rank r, rect_f const& rect)
+void gen_cardset::draw_marker(gfx::canvas& canvas, fonts const& fonts, rank r, rect_f const& rect)
 {
     canvas.save();
 
@@ -443,7 +451,7 @@ void default_cardset::draw_marker(gfx::canvas& canvas, fonts const& fonts, rank 
     canvas.restore();
 }
 
-void default_cardset::draw_back(gfx::canvas& canvas, rect_f const& rect)
+void gen_cardset::draw_back(gfx::canvas& canvas, rect_f const& rect)
 {
     canvas.save();
     draw_shape(canvas, pad_rect(rect), colors::LightSteelBlue, colors::White);
@@ -491,7 +499,7 @@ void default_cardset::draw_back(gfx::canvas& canvas, rect_f const& rect)
     canvas.restore();
 }
 
-void default_cardset::draw_shape(gfx::canvas& canvas, rect_f const& bounds, color fill, color stroke)
+void gen_cardset::draw_shape(gfx::canvas& canvas, rect_f const& bounds, color fill, color stroke)
 {
     canvas.set_fill_style(fill);
     canvas.set_stroke_style(stroke);
@@ -507,7 +515,7 @@ void default_cardset::draw_shape(gfx::canvas& canvas, rect_f const& bounds, colo
 static constexpr color CardsetBackColorMini {colors::LightGray};
 
 mini_cardset::mini_cardset(std::string folder)
-    : cardset {std::move(folder)}
+    : cardset {UserFolder, std::move(folder)}
 {
 }
 

@@ -15,7 +15,7 @@ namespace solitaire {
 class cardset {
 public:
     virtual ~cardset() = default;
-    cardset(std::string folder);
+    cardset(std::string folder, std::string name);
 
     auto get_card_size() -> size_f;
 
@@ -40,6 +40,7 @@ private:
     assets::manual_asset_ptr<gfx::material> _material;
     assets::manual_asset_ptr<gfx::texture>  _texture;
     std::string                             _name;
+    std::string                             _folder;
     bool                                    _loaded;
 };
 
@@ -47,14 +48,14 @@ auto load_cardsets() -> std::map<std::string, std::shared_ptr<cardset>>;
 
 ////////////////////////////////////////////////////////////
 
-class default_cardset : public cardset {
+class gen_cardset : public cardset {
     struct fonts {
         gfx::font* NormalFont {nullptr};
         gfx::font* LargeFont {nullptr};
     };
 
 public:
-    default_cardset(assets::group& resGrp);
+    gen_cardset(assets::group& resGrp);
 
     void create(assets::group& resGrp);
 
