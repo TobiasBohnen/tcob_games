@@ -7,9 +7,11 @@
 
 #include "Common.hpp" // IWYU pragma: keep
 
-#include "games/Games.hpp"
+#include "GameInfo.hpp"
 
 namespace solitaire {
+
+////////////////////////////////////////////////////////////
 
 class database {
 public:

@@ -11,6 +11,7 @@
 namespace solitaire {
 
 static char const* SAVE_NAME {"save.ini"};
+static char const* SETTINGS_NAME {"settings"};
 
 auto static get_size(string_view str) -> size_i
 {
@@ -27,7 +28,9 @@ start_scene::start_scene(game& game)
     : scene {game}
 {
     _saveGame.load(SAVE_NAME);
-    _saveGame["version"] = "1.0.0"; // TODO: check version
+
+    auto& config {locate_service<data::config_file>()};
+    config.try_get(_settings, SETTINGS_NAME); // TODO: check version
 }
 
 start_scene::~start_scene() = default;
@@ -107,15 +110,14 @@ void start_scene::on_start()
     locate_service<stats>().reset();
 
     // config
-    _formMenu->SelectedTheme   = _saveGame.get<std::string>("theme").value_or("default");
-    _formMenu->SelectedCardset = _saveGame.get<std::string>("cardset").value_or("default");
+    _formMenu->SelectedTheme   = _settings.Theme;
+    _formMenu->SelectedCardset = _settings.Cardset;
 
     _formMenu->fixed_update(0s);     // updates style
     _formControls->fixed_update(0s); // updates style
 
-    // load config
-    if (_saveGame.has("game")) {
-        _formMenu->SelectedGame = _saveGame["game"].as<std::string>();
+    if (!_settings.Game.empty()) {
+        _formMenu->SelectedGame = _settings.Game;
         start_game(_formMenu->SelectedGame(), start_reason::Resume);
     }
 }
@@ -138,6 +140,8 @@ void start_scene::connect_ui_events()
         if (auto* game {_cardTable->game()}) {
             game->save(_saveGame);
             _saveGame.save(SAVE_NAME);
+            auto& config {locate_service<data::config_file>()};
+            config[SETTINGS_NAME] = _settings;
         }
         get_game().pop_current_scene();
     });
@@ -167,14 +171,14 @@ void start_scene::connect_ui_events()
         _formControls->fixed_update(milliseconds {0});
 
         _cardTable->set_theme(newTheme);
-        _saveGame["theme"] = themeName;
+        _settings.Theme = themeName;
     });
 
     _formMenu->SelectedCardset.Changed.connect([&](auto const& cardset) {
         auto newCardset {cardset};
         if (!_cardSets.contains(cardset)) { newCardset = "default"; }
 
-        _saveGame["cardset"] = newCardset;
+        _settings.Cardset = newCardset;
 
         _cardTable->set_cardset(_cardSets[newCardset]);
         start_game(_formMenu->SelectedGame(), start_reason::Resume);
@@ -292,7 +296,7 @@ void start_scene::start_game(string const& name, start_reason reason)
     generate_rule(*newGame);
 #endif
     locate_service<stats>().reset();
-    _saveGame["game"] = name;
+    _settings.Game = name;
 }
 
 void start_scene::start_wizard()
@@ -320,15 +324,14 @@ void start_scene::update_stats(string const& name) const
 
 void start_scene::update_recent(string const& name)
 {
-    std::deque<string> recent;
-    _saveGame.try_get(recent, "recent");
+    std::deque<string>& recent {_settings.Recent};
 
     auto it {std::find(recent.begin(), recent.end(), name)};
     if (it != recent.end()) { recent.erase(it); }
     if (recent.size() >= 5) { recent.pop_back(); }
     recent.push_front(name);
 
-    _saveGame["recent"]    = recent;
+    _settings.Recent       = recent;
     _formMenu->RecentGames = recent;
 }
 

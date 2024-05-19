@@ -5,7 +5,7 @@
 
 #include "UI.hpp"
 
-#include "Games.hpp"
+#include "GameInfo.hpp"
 
 namespace solitaire {
 

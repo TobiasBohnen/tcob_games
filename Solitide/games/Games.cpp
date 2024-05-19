@@ -12,17 +12,6 @@
 
 namespace solitaire {
 
-game_rng::game_rng(rng::seed_type seed)
-    : Gen {seed}
-    , _seed {seed}
-{
-}
-
-auto game_rng::get_seed() const -> rng::seed_type const&
-{
-    return _seed;
-}
-
 constexpr i32 SCORE_FOUNDATION = 10;
 constexpr i32 SCORE_TABLEAU    = 1;
 

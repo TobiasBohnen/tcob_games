@@ -22,7 +22,6 @@ constexpr std::string FONT {"Poppins"};
 class card_table;
 class pile;
 class start_scene;
-struct game_history;
 struct game_info;
 class base_game;
 

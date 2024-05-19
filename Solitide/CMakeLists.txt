@@ -16,6 +16,7 @@ target_sources(Solitide PRIVATE
     ./wizard/Wizard.cpp
     ./wizard/WizardScene.cpp
     ./games/Games.cpp
+    ./games/GameInfo.cpp
 )
 
 set_target_properties(Solitide PROPERTIES
