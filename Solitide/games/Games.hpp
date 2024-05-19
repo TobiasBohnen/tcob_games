@@ -70,8 +70,6 @@ struct game_info {
 ////////////////////////////////////////////////////////////
 
 struct game_state {
-    rng::state_type Seed {};
-
     i32          Redeals {};
     i32          Score {0};
     i32          Turns {0};
@@ -82,7 +80,6 @@ struct game_state {
     void static Serialize(game_state const& v, auto&& s)
     {
         s["Redeals"] = v.Redeals;
-        s["Seed"]    = v.Seed;
         s["Turns"]   = v.Turns;
         s["Score"]   = v.Score;
         s["Hints"]   = v.Hints;
@@ -93,13 +90,41 @@ struct game_state {
     auto static Deserialize(game_state& v, auto&& s) -> bool
     {
         return s.try_get(v.Redeals, "Redeals")
-            && s.try_get(v.Seed, "Seed")
             && s.try_get(v.Turns, "Turns")
             && s.try_get(v.Score, "Score")
             && s.try_get(v.Hints, "Hints")
             && s.try_get(v.Undos, "Undos")
             && s.try_get(v.Time, "Time");
     }
+};
+
+class game_rng {
+public:
+    game_rng(rng::seed_type seed = clock::now().time_since_epoch().count());
+
+    rng  Gen {};
+    auto get_seed() const -> rng::seed_type const&;
+
+    void static Serialize(game_rng const& v, auto&& s)
+    {
+        s["Seed"]  = v._seed;
+        s["State"] = v.Gen.get_state();
+    }
+
+    auto static Deserialize(game_rng& v, auto&& s) -> bool
+    {
+        rng::state_type state;
+        if (s.try_get(v._seed, "Seed")
+            && s.try_get(state, "State")) {
+            v.Gen = rng {state};
+            return true;
+        }
+
+        return false;
+    }
+
+private:
+    rng::seed_type _seed {};
 };
 
 ////////////////////////////////////////////////////////////
@@ -141,7 +166,7 @@ public:
     auto info() const -> game_info const&;
 
     auto piles() const -> std::unordered_map<pile_type, std::vector<pile*>> const&;
-    auto rand() -> rng&;
+    auto rng() -> game_rng&;
     auto storage() -> data::config::object*;
 
     void start(std::optional<data::config::object> const& loadObj);
@@ -199,12 +224,11 @@ private:
 
     game_info  _info;
     game_state _state;
+    game_rng   _rng;
 
     data::config::object             _saveObj;
     std::stack<data::config::object> _undoStack;
     data::config::object             _storage;
-
-    rng _rand {}; // TODO: custom state
 };
 
 ////////////////////////////////////////////////////////////

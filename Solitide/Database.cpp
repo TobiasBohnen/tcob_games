@@ -12,18 +12,6 @@ namespace solitaire {
 static char const* DB_NAME {"profile.db"};
 namespace db = tcob::data::sqlite;
 
-auto static state_to_string(std::array<u64, 4> const& state) -> std::string // NOLINT
-{
-    std::vector<ubyte> bytes;
-    bytes.reserve(state.size() * sizeof(u64));
-    for (auto const& elem : state) {
-        auto const* ptr {reinterpret_cast<ubyte const*>(&elem)};
-        bytes.insert(bytes.end(), ptr, ptr + sizeof(u64));
-    }
-    auto base64 {io::base64_filter {}.to(bytes)};
-    return {reinterpret_cast<byte*>(base64->data()), base64->size()};
-}
-
 database::database()
     : _database {*data::sqlite::database::Open(DB_NAME)}
 {
@@ -61,12 +49,12 @@ void database::insert_games(std::vector<game_info> const& games) const
     sp.release();
 }
 
-void database::insert_history_entry(string const& name, game_state const& state, game_status status) const
+void database::insert_history_entry(string const& name, game_state const& state, game_rng const& rng, game_status status) const
 {
     auto sp {_database.create_savepoint("sp1")};
 
     auto const id {_tabGames->select_from<i64>("ID").where("Name = ?")(name)};
-    auto const seed {state_to_string(state.Seed)};
+    auto const seed {std::to_string(rng.get_seed())};
 
     std::ignore = _tabHistory->insert_into(db::ignore, "GameID", "Seed")(std::tuple<i64, string> {id[0], seed});
     std::ignore = _tabHistory->update("Won", "Turns", "Score", "Undos", "Hints", "Time")

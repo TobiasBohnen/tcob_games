@@ -53,7 +53,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     // methods
     gameWrapper["shuffle_cards"] = [](base_game* game, std::vector<card> const& cards) {
         std::vector<card> shuffled {cards};
-        game->rand().template shuffle<card>(shuffled);
+        game->rng().Gen.template shuffle<card>(shuffled);
         return shuffled;
     };
     gameWrapper["find_pile"] = [](base_game* game, card& card) -> pile* {
@@ -185,28 +185,28 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     // object
     auto& objWrap {*script.template create_wrapper<data::config::object>("object")};
     objWrap.UnknownGet.connect([](auto&& ev) {
+        ev.Handled = true;
+
         if (ev.Instance) {
             auto const proxy {(*ev.Instance)[ev.Name]};
             if (i64 val {0}; proxy.try_get(val)) {
                 ev.return_value(val);
-                ev.Handled = true;
                 return;
             }
             if (f64 val {0}; proxy.try_get(val)) {
                 ev.return_value(val);
-                ev.Handled = true;
                 return;
             }
             if (bool val {}; proxy.try_get(val)) {
                 ev.return_value(val);
-                ev.Handled = true;
                 return;
             }
             if (std::string val {}; proxy.try_get(val)) {
                 ev.return_value(val);
-                ev.Handled = true;
                 return;
             }
+
+            ev.return_value(nullptr);
         }
     });
 
@@ -383,7 +383,7 @@ template <typename Table, template <typename> typename Function, isize IndexOffs
 inline auto script_game<Table, Function, IndexOffset>::get_shuffled() -> std::vector<card>
 {
     if (_callbacks.GetShuffled) {
-        auto const retValue {(*_callbacks.GetShuffled)(static_cast<base_game const*>(this), state().Seed)};
+        auto const retValue {(*_callbacks.GetShuffled)(static_cast<base_game const*>(this), rng().get_seed())};
         return retValue.empty() ? base_game::get_shuffled() : retValue;
     }
     return base_game::get_shuffled();

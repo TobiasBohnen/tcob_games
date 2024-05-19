@@ -12,6 +12,17 @@
 
 namespace solitaire {
 
+game_rng::game_rng(rng::seed_type seed)
+    : Gen {seed}
+    , _seed {seed}
+{
+}
+
+auto game_rng::get_seed() const -> rng::seed_type const&
+{
+    return _seed;
+}
+
 constexpr i32 SCORE_FOUNDATION = 10;
 constexpr i32 SCORE_TABLEAU    = 1;
 
@@ -33,8 +44,6 @@ void base_game::start(std::optional<data::config::object> const& loadObj)
 void base_game::new_game()
 {
     clear_piles();
-
-    _state.Seed = _rand.get_state();
 
     // create decks
     std::vector<card> cards {get_shuffled()};
@@ -92,7 +101,7 @@ auto base_game::load(std::optional<data::config::object> const& loadObj) -> bool
     if (!obj.has("State") || !obj.has("RNG")) { return false; }
 
     _state = obj["State"].as<game_state>();
-    _rand  = rng {obj["RNG"].as<rng::state_type>()};
+    _rng   = obj["RNG"].as<game_rng>();
 
     _storage.clear();
     if (object storage; obj.try_get(storage, "Storage")) { _storage = storage.clone(true); }
@@ -139,7 +148,7 @@ void base_game::save(tcob::data::config::object& saveObj)
     }
 
     obj["State"] = _state;
-    obj["RNG"]   = _rand.get_state();
+    obj["RNG"]   = _rng;
     if (!_storage.empty()) { obj["Storage"] = _storage.clone(true); }
 
     saveObj[_info.Name] = obj;
@@ -362,7 +371,7 @@ auto base_game::get_status() const -> game_status
 
 auto base_game::get_shuffled() -> std::vector<card>
 {
-    return deck::GetShuffled(_rand, _info.DeckCount, _info.DeckSuits, _info.DeckRanks);
+    return deck::GetShuffled(_rng.Gen, _info.DeckCount, _info.DeckSuits, _info.DeckRanks);
 }
 
 void base_game::calc_hints()
@@ -429,9 +438,9 @@ auto base_game::get_available_hints() const -> std::vector<move> const&
     return _hints;
 }
 
-auto base_game::rand() -> rng&
+auto base_game::rng() -> game_rng&
 {
-    return _rand;
+    return _rng;
 }
 
 auto base_game::piles() const -> std::unordered_map<pile_type, std::vector<pile*>> const&

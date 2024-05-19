@@ -29,7 +29,7 @@ local free_cell = {
     },
     get_shuffled = function(game, seed)
         if game.Name ~= "FreeCell" then return {} end
-        if seed[1] > 1000000 or (seed[2] + seed[3] + seed[4]) ~= 0 then return {} end
+        if seed > 1000000 then return {} end
 
         --MS FreeCell shuffle:
         local suit <const> = { "Clubs", "Diamonds", "Hearts", "Spades" }
@@ -40,7 +40,6 @@ local free_cell = {
             end
         end
 
-        seed = seed[1]
         local function rng()
             seed = (214013 * seed + 2531011) % (1 << 31)
             return seed >> 16

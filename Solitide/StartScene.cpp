@@ -269,10 +269,10 @@ void start_scene::start_game(string const& name, start_reason reason)
         case game_status::Success:
         case game_status::Failure: {
             auto const& state {current->state()};
-            if (state.Turns == 0) { return; } // don't save unplayed games
+            if (state.Turns == 0) { return; } // don't store unplayed games in history
 
             auto const& gameName {current->info().Name};
-            _db.insert_history_entry(gameName, state, current->Status);
+            _db.insert_history_entry(gameName, state, current->rng(), current->Status);
             update_stats(gameName);
         } break;
         default: break;
