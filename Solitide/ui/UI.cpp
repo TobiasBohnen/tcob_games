@@ -35,18 +35,14 @@ auto static make_tooltip(form* form) -> std::shared_ptr<tooltip>
     auto tooltipLayout {retValue->create_layout<dock_layout>()};
     auto tooltipLabel {tooltipLayout->create_widget<label>(dock_style::Fill, "TTLabel0")};
     tooltipLabel->Class = "tooltip-label";
-    retValue->Popup.connect([form, lbl = tooltipLabel.get(), tt = retValue.get()](auto const& event) {
+    retValue->Popup.connect([lbl = tooltipLabel.get(), tt = retValue.get()](auto const& event) {
         auto const widget {event.Widget};
         lbl->Label = translate(widget->get_name());
 
         auto const  wBounds {widget->Bounds()};
-        auto const* lStyle {lbl->get_style<label::style>()};
-
-        auto size {form->measure_text(
-            lStyle->Text,
-            lStyle->Text.calc_font_size({0, 0, wBounds.Width * 1.5f, wBounds.Height * 0.75f}),
-            lbl->Label())};
-        tt->Bounds = {point_f::Zero, size};
+        auto const& lStyle {lbl->get_style<label::style>()->Text};
+        auto* const font {lStyle.Font->get_font(lStyle.Style, lStyle.calc_font_size({0, 0, wBounds.Width * 1.5f, wBounds.Height * 0.75f})).get_obj()};
+        tt->Bounds = {point_f::Zero, gfx::text_formatter::measure(lbl->Label(), *font, -1, true)};
     });
     return retValue;
 }
