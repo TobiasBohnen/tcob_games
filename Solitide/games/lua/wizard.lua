@@ -174,10 +174,10 @@ Sol.register_game(game)
     if numCards < 0 then
         log[#log + 1] = "ERROR: insufficient amount of cards"
     end
-    if numCards > 0 and obj.WasteSize.value == 0 and string.find(obj.StockTarget.selected, Sol.Pile.Type.Waste) then
+    if numCards > 0 and obj.WasteSize.value == 0 and string.find(obj.StockTarget.selected, "Waste") then
         log[#log + 1] = "ERROR: stock deals to waste, but no waste available"
     end
-    if numCards > 0 and obj.TableauSize.value == 0 and string.find(obj.StockTarget.selected, Sol.Pile.Type.Tableau) then
+    if numCards > 0 and obj.TableauSize.value == 0 and string.find(obj.StockTarget.selected, "Tableau") then
         log[#log + 1] = "ERROR: stock deals to tableau, but no tableau available"
     end
 
