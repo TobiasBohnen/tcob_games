@@ -36,25 +36,6 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
         spnDecks->Max   = 4;
         spnDecks->Step  = 1;
         spnDecks->Value = 1;
-
-        createLabel(layout, "Layout"); // TODO: replace with pile position
-        auto cybLayout {layout->create_widget<cycle_button>("cybLayout")};
-        cybLayout->add_item("klondike");
-        cybLayout->add_item("bakers_dozen");
-        cybLayout->add_item("beleaguered_castle");
-        cybLayout->add_item("big_harp");
-        cybLayout->add_item("canfield");
-        cybLayout->add_item("canister");
-        cybLayout->add_item("capricieuse");
-        cybLayout->add_item("double_free_cell");
-        cybLayout->add_item("fastness");
-        cybLayout->add_item("flipper");
-        cybLayout->add_item("forty_thieves");
-        cybLayout->add_item("free_cell");
-        cybLayout->add_item("golf");
-        cybLayout->add_item("gypsy");
-        cybLayout->add_item("yukon");
-        cybLayout->SelectedItemIndex = 0;
     }
 
     _lbxLog        = mainLayout->create_widget<list_box>({0, 20, 39, 30}, "Log");
@@ -109,16 +90,21 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
             cyb->SelectedItemIndex = 0;
             cyb->ZOrder            = 13;
         }};
-        auto const createPileRule {[&](auto&& layout, string const& name) {
+        struct rule {
+            string base;
+            string build;
+            string move;
+        };
+        auto const createPileRule {[&](auto&& layout, string const& name, rule const& select) {
             createLabel(layout, "Base", 12);
             auto base {layout->template create_widget<drop_down_list>(name + "Base")};
             base->add_item("Ace");
             base->add_item("King");
             base->add_item("Any");
             base->add_item("None");
-            base->SelectedItemIndex = 0;
-            base->ZOrder            = 11;
-            base->Class             = "drop_down_list_wizard";
+            base->select_item(select.base);
+            base->ZOrder = 11;
+            base->Class  = "drop_down_list_wizard";
 
             createLabel(layout, "Build", 10);
             auto build {layout->template create_widget<drop_down_list>(name + "Build")};
@@ -142,9 +128,9 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
             build->add_item("DownAlternateColors");
             build->add_item("UpAlternateColors");
             build->add_item("None");
-            build->SelectedItemIndex = 0;
-            build->ZOrder            = 9;
-            build->Class             = "drop_down_list_wizard";
+            build->select_item(select.build);
+            build->ZOrder = 9;
+            build->Class  = "drop_down_list_wizard";
 
             createLabel(layout, "Move", 8);
             auto move {layout->template create_widget<drop_down_list>(name + "Move")};
@@ -153,9 +139,9 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
             move->add_item("InSeq");
             move->add_item("InSeqInSuit");
             move->add_item("None");
-            move->SelectedItemIndex = 0;
-            move->ZOrder            = 7;
-            move->Class             = "drop_down_list_wizard";
+            move->select_item(select.move);
+            move->ZOrder = 7;
+            move->Class  = "drop_down_list_wizard";
         }};
 
         auto         tab {mainLayout->create_widget<tab_container>({41, 0, 39, 80}, "Piles")};
@@ -202,14 +188,14 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
             createPileSize(layout, "FreeCell");
             createCardCount(layout, "FreeCell");
             createPileLayout(layout, "FreeCell");
-            createPileRule(layout, "FreeCell");
+            createPileRule(layout, "FreeCell", {.base = "Any", .build = "None", .move = "Top"});
         }
         {
             auto pnl {tab->create_tab<panel>("Foundation", "Foundation")};
             auto layout {pnl->create_layout<box_layout>(boxSize)};
 
             createPileLayout(layout, "Foundation");
-            createPileRule(layout, "Foundation");
+            createPileRule(layout, "Foundation", {.base = "Ace", .build = "UpInSuit", .move = "Top"});
         }
         {
             auto pnl {tab->create_tab<panel>("Tableau", "Tableau")};
@@ -219,7 +205,7 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
             createCardCount(layout, "Tableau");
             createCardFace(layout, "Tableau");
             createPileLayout(layout, "Tableau");
-            createPileRule(layout, "Tableau");
+            createPileRule(layout, "Tableau", {.base = "Any", .build = "Any", .move = "Top"});
         }
     }
 }

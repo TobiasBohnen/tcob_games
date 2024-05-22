@@ -57,9 +57,9 @@ void wizard_scene::on_start()
             }
 
             GameGenerated({.Name = "Wizard_" + name, .Path = file});
+            // TODO: save settings
+            get_game().pop_current_scene();
         }
-
-        // get_game().pop_current_scene();
     });
 }
 

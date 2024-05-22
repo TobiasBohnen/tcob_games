@@ -117,8 +117,7 @@ void start_scene::on_start()
     _formControls->fixed_update(0s); // updates style
 
     if (!_settings.Game.empty()) {
-        _formMenu->SelectedGame = _settings.Game;
-        start_game(_formMenu->SelectedGame(), start_reason::Resume);
+        start_game(_settings.Game, start_reason::Resume);
     }
 }
 
@@ -264,6 +263,7 @@ void start_scene::set_children_bounds(size_i size)
 void start_scene::start_game(string const& name, start_reason reason)
 {
     if (!_games.contains(name)) { return; }
+    _formMenu->SelectedGame = name;
 
     auto& camera {*get_window().Camera};
     camera.set_position(point_f::Zero);
@@ -320,7 +320,6 @@ void start_scene::start_wizard()
 
             _formMenu->update_games(games);
             _db.insert_games(games);
-
             start_game(val.Name, start_reason::Resume);
         }
     });

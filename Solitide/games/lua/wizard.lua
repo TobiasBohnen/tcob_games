@@ -35,131 +35,171 @@ local function get_rule(base, build, move)
 end
 
 local function get_deal(target)
-    local str = "deal = Sol.Ops.Deal."
+    local str = ""
     if target == "To Waste" then
-        str = str .. "stock_to_waste"
+        str = "function (game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Waste) end"
     elseif target == "To Waste by Threes" then
-        str = str .. "stock_to_waste_by_3"
+        str = [[
+function(game)
+        local check = true
+        for i = 1, 3 do
+            check = check and Sol.Ops.Deal.to_group(game.Stock[1], game.Waste)
+        end
+        return check
+    end]]
     elseif target == "To Tableau" then
-        str = str .. "stock_to_tableau"
+        str = "Sol.Ops.Deal.stock_to_tableau"
     end
-    return str .. ",\n"
+    return "deal = " .. str .. ",\n"
 end
 
-local function check_layout(layout, log, hasReserve, hasFreeCell, hasWaste, hasStock)
-    local function contains(tab, val)
-        for _, value in ipairs(tab) do if value == val then return true end end
-        return false
-    end
+local function get_layout(obj)
+    local hasReserve <const>    = obj.ReserveSize.value > 0
+    local hasFreeCell <const>   = obj.FreeCellSize.value > 0
+    local hasWaste <const>      = obj.WasteSize.value > 0
+    local numStockCards <const> = obj.spnDecks.value * 52 - obj.ReserveCardCount.value - obj.FreeCellCardCount.value - obj.TableauCardCount.value
+    local hasStock <const>      = numStockCards > 0
+    local hasTableau <const>    = obj.TableauSize.value > 0
 
-    local noReserve = { "bakers_dozen", "beleaguered_castle", "big_harp", "canister", "capricieuse", "double_free_cell", "fastness", "flipper", "forty_thieves", "free_cell", "golf", "gypsy", "klondike", "yukon" }
-    if contains(noReserve, layout) then if hasReserve then log[#log + 1] = "ERROR: layout does not support reserve piles" end end
-    local noFreeCell = { "bakers_dozen", "beleaguered_castle", "big_harp", "canister", "capricieuse", "flipper", "golf", "gypsy", "klondike", "yukon" }
-    if contains(noFreeCell, layout) then if hasFreeCell then log[#log + 1] = "ERROR: layout does not support freecell piles" end end
-    local noWaste = { "bakers_dozen", "beleaguered_castle", "canister", "capricieuse", "double_free_cell", "fastness", "flipper", "free_cell", "gypsy", "yukon" }
-    if contains(noWaste, layout) then if hasWaste then log[#log + 1] = "ERROR: layout does not support waste piles" end end
-    local noStock = { "beleaguered_castle", "canister", "double_free_cell", "fastness", "flipper", "yukon" }
-    if contains(noStock, layout) then if hasStock then log[#log + 1] = "ERROR: layout does not support stock piles" end end
+    local posStock              = "{ x = 0, y = 0 }"
+
+    local posWaste              = "{ x = 1, y = i }"
+    local posReserve            = "{ x = 0, y = i + 1 }"
+
+    local posFoundationXOff     = 0
+    if hasStock then posFoundationXOff = posFoundationXOff + 2 end
+    if hasWaste then posFoundationXOff = posFoundationXOff + 1 end
+    local posTableauXOff = posFoundationXOff
+    if hasReserve then posTableauXOff = posTableauXOff + 1 end
+
+    local posFreeCell = "{ x = i + " .. posFoundationXOff .. ", y = 0 }"
+    posFoundationXOff = posFoundationXOff + obj.FreeCellSize.value
+    if hasFreeCell then posFoundationXOff = posFoundationXOff + 1 end
+
+    local posFoundation = "{ x = i + " .. posFoundationXOff .. ", y = 0 }"
+
+    local posTableau    = "{ x = i + " .. posTableauXOff .. ", y = 1 }"
+
+    return {
+        Waste       = posWaste,
+        HasWaste    = hasWaste,
+
+        Reserve     = posReserve,
+        HasReserve  = hasReserve,
+
+        FreeCell    = posFreeCell,
+        HasFreeCell = hasFreeCell,
+
+        Foundation  = posFoundation,
+
+        Tableau     = posTableau,
+        HasTableau  = hasTableau,
+
+        Stock       = posStock,
+        HasStock    = hasStock,
+        StockCards  = numStockCards
+    }
 end
+
 
 return function(obj)
-    local log = {}
+    local log           = {}
+    local layout        = get_layout(obj)
 
-    local numCards = obj.spnDecks.value * 52
-
-    local strInfo = [[
+    local strInfo       = [[
     Info = {
         Name      = "Wizard_]] .. obj.txtName.text .. [[",
         Family    = "]] .. "Other" .. [[",
         DeckCount = ]] .. obj.spnDecks.value .. [[,
         Redeals   = ]] .. obj.Redeals.value .. [[,
-    }]]
+    },]] .. "\n"
 
-    local strWaste = [[
+    local strWaste      = [[
     Waste = {
-        Size  = ]] .. obj.WasteSize.value .. [[,
-        Pile = function(i)
+        Size     = ]] .. obj.WasteSize.value .. [[,
+        Pile     = function(i)
             return {
-                Layout  = "]] .. obj.WasteLayout.selected .. [[",
+                Position = ]] .. layout.Waste .. [[,
+                Layout   = "]] .. obj.WasteLayout.selected .. [[",
             }
         end,
-    }]]
+    },]] .. "\n"
 
-    local strReserve = [[
+    local strReserve    = [[
     Reserve = {
         Size = ]] .. obj.ReserveSize.value .. [[,
         Pile = function(i)
             return {
-                Initial = ]] .. get_initial(obj.ReserveOrientation.selected, obj.ReserveCardCount.value, obj.ReserveSize.value) .. [[,
-                Layout  = "]] .. obj.ReserveLayout.selected .. [[",
+                Position = ]] .. layout.Reserve .. [[,
+                Initial  = ]] .. get_initial(obj.ReserveOrientation.selected, obj.ReserveCardCount.value, obj.ReserveSize.value) .. [[,
+                Layout   = "]] .. obj.ReserveLayout.selected .. [[",
             }
         end,
-    }]]
-    numCards = numCards - obj.ReserveCardCount.value
+    },]] .. "\n"
 
-    local strFreeCell = [[
+    local strFreeCell   = [[
     FreeCell = {
         Size = ]] .. obj.FreeCellSize.value .. [[,
         Pile = function(i)
             return {
-                Initial = ]] .. get_initial("Face Up", obj.FreeCellCardCount.value, obj.FreeCellSize.value) .. [[,
-                Rule    = { ]] .. get_rule(obj.FreeCellBase.selected, obj.FreeCellBuild.selected, obj.FreeCellMove.selected) .. [[ },
-                Layout  = "]] .. obj.FreeCellLayout.selected .. [[",
+                Position = ]] .. layout.FreeCell .. [[,
+                Initial  = ]] .. get_initial("Face Up", obj.FreeCellCardCount.value, obj.FreeCellSize.value) .. [[,
+                Rule     = { ]] .. get_rule(obj.FreeCellBase.selected, obj.FreeCellBuild.selected, obj.FreeCellMove.selected) .. [[ },
+                Layout   = "]] .. obj.FreeCellLayout.selected .. [[",
             }
         end,
-    }]]
-    numCards = numCards - obj.FreeCellCardCount.value
+    },]] .. "\n"
 
     local strFoundation = [[
     Foundation = {
         Size = ]] .. obj.spnDecks.value * 4 .. [[,
         Pile = function(i)
             return {
-                Rule    = { ]] .. get_rule(obj.FoundationBase.selected, obj.FoundationBuild.selected, obj.FoundationMove.selected) .. [[ },
-                Layout  = "]] .. obj.FoundationLayout.selected .. [[",
+                Position = ]] .. layout.Foundation .. [[,
+                Rule     = { ]] .. get_rule(obj.FoundationBase.selected, obj.FoundationBuild.selected, obj.FoundationMove.selected) .. [[ },
+                Layout   = "]] .. obj.FoundationLayout.selected .. [[",
             }
         end,
-    }]]
+    },]] .. "\n"
 
-    local strTableau = [[
+    local strTableau    = [[
     Tableau = {
         Size = ]] .. obj.TableauSize.value .. [[,
         Pile = function(i)
             return {
-                Initial = ]] .. get_initial(obj.TableauOrientation.selected, obj.TableauCardCount.value, obj.TableauSize.value) .. [[,
-                Rule    = { ]] .. get_rule(obj.TableauBase.selected, obj.TableauBuild.selected, obj.TableauMove.selected) .. [[ },
-                Layout  = "]] .. obj.TableauLayout.selected .. [[",
+                Position = ]] .. layout.Tableau .. [[,
+                Initial  = ]] .. get_initial(obj.TableauOrientation.selected, obj.TableauCardCount.value, obj.TableauSize.value) .. [[,
+                Rule     = { ]] .. get_rule(obj.TableauBase.selected, obj.TableauBuild.selected, obj.TableauMove.selected) .. [[ },
+                Layout   = "]] .. obj.TableauLayout.selected .. [[",
             }
         end,
-    }]]
-    numCards = numCards - obj.TableauCardCount.value
+    },]] .. "\n"
 
-    local stockSize = numCards > 0 and 1 or 0
-    local strStock = [[
+    local strStock      = [[
     Stock = {
-        Size = ]] .. stockSize .. [[,
-        Pile = { Initial = ]] .. get_initial("Face Down", numCards, 1) .. [[ },
-    }]]
+        Position = ]] .. layout.Stock .. [[,
+        Size = ]] .. (layout.HasStock and 1 or 0) .. [[,
+        Pile = { Initial = ]] .. get_initial("Face Down", layout.StockCards, 1) .. [[ },
+    },]] .. "\n"
 
-    local strDeal = ""
-    local strRedeal = "\n"
-    if numCards > 0 then
+    local strDeal       = ""
+    local strRedeal     = "\n"
+    if layout.HasStock then
         strDeal = get_deal(obj.StockTarget.selected)
-        if obj.WasteSize.value > 0 then
+        if layout.HasWaste then
             strRedeal = "redeal = Sol.Ops.Redeal.waste_to_stock,\n"
         end
     end
 
     local game = [[
 local game = {
-]] .. strInfo .. [[,
-]] .. strStock .. [[,
-]] .. strWaste .. [[,
-]] .. strReserve .. [[,
-]] .. strFreeCell .. [[,
-]] .. strFoundation .. [[,
-]] .. strTableau .. [[,
-    on_init = Sol.Layout.]] .. obj.cybLayout.selected .. [[,
+]] .. strInfo .. [[
+]] .. strStock .. [[
+]] .. strWaste .. [[
+]] .. strReserve .. [[
+]] .. strFreeCell .. [[
+]] .. strFoundation .. [[
+]] .. strTableau .. [[
     ]] .. strDeal .. [[
     ]] .. strRedeal .. [[
 }
@@ -171,21 +211,18 @@ Sol.register_game(game)
     if obj.txtName.text == "" or string.find(obj.txtName.text, "[\\/:*?\"<>|]") ~= nil then
         log[#log + 1] = "ERROR: invalid name"
     end
-    if numCards < 0 then
+    if layout.StockCards < 0 then
         log[#log + 1] = "ERROR: insufficient amount of cards"
     end
-    if numCards > 0 and obj.WasteSize.value == 0 and string.find(obj.StockTarget.selected, "Waste") then
-        log[#log + 1] = "ERROR: stock deals to waste, but no waste available"
+    if layout.HasStock and not layout.HasWaste and string.find(obj.StockTarget.selected, "Waste") then
+        log[#log + 1] = "ERROR: invalid deal target (waste)"
     end
-    if numCards > 0 and obj.TableauSize.value == 0 and string.find(obj.StockTarget.selected, "Tableau") then
-        log[#log + 1] = "ERROR: stock deals to tableau, but no tableau available"
+    if layout.HasStock and not layout.HasTableau and string.find(obj.StockTarget.selected, "Tableau") then
+        log[#log + 1] = "ERROR: invalid deal target (tableau)"
     end
-
-    local hasReserve = obj.ReserveSize.value > 0
-    local hasFreeCell = obj.FreeCellSize.value > 0
-    local hasWaste = obj.WasteSize.value > 0
-    local hasStock = numCards > 0
-    check_layout(obj.cybLayout.selected, log, hasReserve, hasFreeCell, hasWaste, hasStock)
+    if not layout.HasStock and layout.HasWaste then
+        log[#log + 1] = "ERROR: waste without stock"
+    end
 
     return game, log
 end
