@@ -84,6 +84,7 @@ private:
     void load_scripts();
 
     void connect_ui_events();
+    void save();
 
     scripting::lua::script                                      _luaScript;
     std::vector<scripting::lua::native_closure_shared_ptr>      _luaFunctions;

@@ -137,13 +137,13 @@ void start_scene::connect_ui_events()
     });
 
     _formControls->BtnQuit->Click.connect([&](auto const&) {
-        if (auto* game {_cardTable->game()}) {
-            game->save(_saveGame);
-            _saveGame.save(SAVE_NAME);
-            auto& config {locate_service<data::config_file>()};
-            config[SETTINGS_NAME] = _settings;
-        }
+        save();
         get_game().pop_current_scene();
+    });
+    get_game().get_window().Close.connect([&](auto const&) {
+#if !defined(TCOB_DEBUG)
+        save();
+#endif
     });
 
     _formMenu->SelectedGame.Changed.connect([&](auto const& game) {
@@ -203,6 +203,16 @@ void start_scene::connect_ui_events()
 
         start_game(_formMenu->SelectedGame(), start_reason::Resume);
     });
+}
+
+void start_scene::save()
+{
+    if (auto* game {_cardTable->game()}) {
+        game->save(_saveGame);
+        _saveGame.save(SAVE_NAME);
+        auto& config {locate_service<data::config_file>()};
+        config[SETTINGS_NAME] = _settings;
+    }
 }
 
 void start_scene::on_draw_to(gfx::render_target&)
