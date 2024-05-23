@@ -31,6 +31,8 @@ start_scene::start_scene(game& game)
     auto& config {locate_service<data::config_file>()};
     config.try_get(_settings, SETTINGS_NAME); // TODO: check version
 
+    io::mount("./scripts/", "/");
+
     auto& resMgr {locate_service<assets::library>()};
     auto& resGrp {resMgr.create_or_get_group("solitaire")};
     resGrp.mount("./assets.zip");
