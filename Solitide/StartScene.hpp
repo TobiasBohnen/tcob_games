@@ -13,6 +13,7 @@
 #include "Games.hpp"
 #include "ui/Themes.hpp"
 #include "ui/UI.hpp"
+#include "wizard/WizardScene.hpp"
 
 namespace solitaire {
 
@@ -104,6 +105,8 @@ private:
     data::config::object _saveGame;
 
     database _db;
+
+    std::shared_ptr<wizard_scene> _wizard;
 };
 
 }

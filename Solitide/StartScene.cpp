@@ -6,7 +6,6 @@
 #include "StartScene.hpp"
 
 #include "ui/Styles.hpp"
-#include "wizard/WizardScene.hpp"
 
 namespace solitaire {
 
@@ -31,32 +30,7 @@ start_scene::start_scene(game& game)
 
     auto& config {locate_service<data::config_file>()};
     config.try_get(_settings, SETTINGS_NAME); // TODO: check version
-}
 
-start_scene::~start_scene() = default;
-
-void start_scene::register_game(game_info const& info, reg_game_func&& game)
-{
-    if (info.DeckCount > 24) { return; }                                                   // TODO: error
-    if (info.DeckCount * info.DeckSuits.size() * info.DeckSuits.size() > 1500) { return; } // TODO: error
-    if (_games.size() > 2500) { return; }                                                  // TODO: error
-
-    _games[info.Name] = {info, std::move(game)};
-}
-
-auto start_scene::call_lua(std::vector<std::string> const& funcs, lua_params const& args) -> lua_return
-{
-    using namespace scripting::lua;
-    table tab {_luaScript.get_global_table()};
-    for (isize i {0}; i < std::ssize(funcs) - 1; ++i) {
-        tab = tab[funcs[i]].as<table>();
-    }
-
-    return tab[funcs.back()].as<function<lua_return>>()(args);
-}
-
-void start_scene::on_start()
-{
     auto& resMgr {locate_service<assets::library>()};
     auto& resGrp {resMgr.create_or_get_group("solitaire")};
     resGrp.mount("./assets.zip");
@@ -101,7 +75,32 @@ void start_scene::on_start()
     _cardTable->HoverChange.connect([&](pile_description const& str) { _formControls->set_pile_labels(str); });
 
     set_children_bounds(windowSize);
+}
 
+start_scene::~start_scene() = default;
+
+void start_scene::register_game(game_info const& info, reg_game_func&& game)
+{
+    if (info.DeckCount > 24) { return; }                                                   // TODO: error
+    if (info.DeckCount * info.DeckSuits.size() * info.DeckSuits.size() > 1500) { return; } // TODO: error
+    if (_games.size() > 2500) { return; }                                                  // TODO: error
+
+    _games[info.Name] = {info, std::move(game)};
+}
+
+auto start_scene::call_lua(std::vector<std::string> const& funcs, lua_params const& args) -> lua_return
+{
+    using namespace scripting::lua;
+    table tab {_luaScript.get_global_table()};
+    for (isize i {0}; i < std::ssize(funcs) - 1; ++i) {
+        tab = tab[funcs[i]].as<table>();
+    }
+
+    return tab[funcs.back()].as<function<lua_return>>()(args);
+}
+
+void start_scene::on_start()
+{
     // render queues
     get_root_node()->create_child()->attach_entity(_cardTable);
     get_root_node()->create_child()->attach_entity(_formControls);
@@ -311,8 +310,11 @@ void start_scene::start_game(string const& name, start_reason reason)
 
 void start_scene::start_wizard()
 {
-    auto wizard {std::make_shared<wizard_scene>(get_game(), _themes[_formMenu->SelectedTheme])};
-    wizard->GameGenerated.connect([&](auto const& val) {
+    if (!_wizard) {
+        _wizard = std::make_shared<wizard_scene>(get_game(), _themes[_formMenu->SelectedTheme]);
+    }
+
+    _wizard->GameGenerated.connect([&](auto const& val) {
         if (_luaScript.run_file(val.Path)) {
             std::vector<game_info> games;
             games.reserve(_games.size());
@@ -323,7 +325,7 @@ void start_scene::start_wizard()
             start_game(val.Name, start_reason::Resume);
         }
     });
-    get_game().push_scene(wizard);
+    get_game().push_scene(_wizard);
 }
 
 void start_scene::update_stats(string const& name) const
@@ -408,5 +410,4 @@ void start_scene::load_scripts()
         }
     }
 }
-
 }

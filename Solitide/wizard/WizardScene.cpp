@@ -14,15 +14,10 @@ wizard_scene::wizard_scene(game& game, color_themes const& currentTheme)
     : scene {game}
     , _currentTheme {currentTheme}
 {
-}
-
-void wizard_scene::on_start()
-{
     auto& resMgr {locate_service<assets::library>()};
     auto& resGrp {resMgr.create_or_get_group("solitaire")};
 
     _formWizard = std::make_shared<form_wizard>(&get_window(), resGrp);
-    get_root_node()->create_child()->attach_entity(_formWizard);
 
     styles     styles {resGrp};
     auto const styleCollection {styles.load(_currentTheme)};
@@ -44,16 +39,16 @@ void wizard_scene::on_start()
         table obj {script.create_table()};
         _formWizard->submit(obj);
         auto const name {obj["txtName"]["text"].as<string>()};
-        auto const game {(*func)(obj)};
+        auto const wizgame {(*func)(obj)};
 
-        _formWizard->set_log_messages(game.second);
+        _formWizard->set_log_messages(wizgame.second);
 
-        if (game.second.empty()) {
+        if (wizgame.second.empty()) {
             io::create_folder("custom");
             auto const file {"custom/games.wizard_" + name + ".lua"};
             {
                 io::ofstream str {file};
-                str.write(game.first);
+                str.write(wizgame.first);
             }
 
             GameGenerated({.Name = "Wizard_" + name, .Path = file});
@@ -61,6 +56,11 @@ void wizard_scene::on_start()
             get_game().pop_current_scene();
         }
     });
+}
+
+void wizard_scene::on_start()
+{
+    get_root_node()->create_child()->attach_entity(_formWizard);
 }
 
 void wizard_scene::on_draw_to(gfx::render_target&)
