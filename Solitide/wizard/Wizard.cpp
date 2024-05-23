@@ -27,10 +27,10 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
         auto layout {pnl->create_layout<box_layout>(size_i {2, 3})};
 
         createLabel(layout, "Name");
-        auto tbxName {layout->create_widget<text_box>("txtName")};
+        auto tbxName {layout->create_widget<text_box>("Name")};
 
         createLabel(layout, "Deck Count");
-        auto spnDecks {layout->create_widget<spinner>("spnDecks")};
+        auto spnDecks {layout->create_widget<spinner>("Decks")};
         spnDecks->Flex  = {30_pct, 100_pct};
         spnDecks->Min   = 1;
         spnDecks->Max   = 4;
@@ -76,6 +76,7 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
             face->add_item("Alternate - First Face Up");
             face->add_item("Alternate - First Face Down");
             face->add_item("Face Down");
+
             face->SelectedItemIndex = 0;
             face->ZOrder            = 15;
             face->Class             = "drop_down_list_wizard";

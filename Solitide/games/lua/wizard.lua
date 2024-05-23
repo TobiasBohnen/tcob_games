@@ -35,29 +35,31 @@ local function get_rule(base, build, move)
 end
 
 local function get_deal(target)
-    local str = ""
+    local body = ""
     if target == "To Waste" then
-        str = "function (game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Waste) end"
+        body = "return Sol.Ops.Deal.to_group(game.Stock[1], game.Waste)"
     elseif target == "To Waste by Threes" then
-        str = [[
-function(game)
-        local check = true
+        body = [[
+local check = true
         for i = 1, 3 do
             check = check and Sol.Ops.Deal.to_group(game.Stock[1], game.Waste)
         end
-        return check
-    end]]
+        return check]]
     elseif target == "To Tableau" then
-        str = "Sol.Ops.Deal.stock_to_tableau"
+        body = "return Sol.Ops.Deal.stock_to_tableau(game)"
     end
-    return "deal = " .. str .. ",\n"
+
+    return [[
+    deal = function(game)
+        ]] .. body .. "\n" .. [[
+    end,]] .. "\n"
 end
 
 local function get_layout(obj)
     local hasReserve <const>    = obj.ReserveSize.value > 0
     local hasFreeCell <const>   = obj.FreeCellSize.value > 0
     local hasWaste <const>      = obj.WasteSize.value > 0
-    local numStockCards <const> = obj.spnDecks.value * 52 - obj.ReserveCardCount.value - obj.FreeCellCardCount.value - obj.TableauCardCount.value
+    local numStockCards <const> = obj.Decks.value * 52 - obj.ReserveCardCount.value - obj.FreeCellCardCount.value - obj.TableauCardCount.value
     local hasStock <const>      = numStockCards > 0
     local hasTableau <const>    = obj.TableauSize.value > 0
 
@@ -101,16 +103,35 @@ local function get_layout(obj)
     }
 end
 
+local function check_error(obj, layout)
+    local log = {}
+    -- error checking
+    if obj.Name.text == "" or string.find(obj.Name.text, "[\\/:*?\"<>|]") ~= nil then
+        log[#log + 1] = "ERROR: invalid name"
+    end
+    if layout.StockCards < 0 then
+        log[#log + 1] = "ERROR: insufficient amount of cards"
+    end
+    if layout.HasStock and not layout.HasWaste and string.find(obj.StockTarget.selected, "Waste") then
+        log[#log + 1] = "ERROR: invalid deal target (waste)"
+    end
+    if layout.HasStock and not layout.HasTableau and string.find(obj.StockTarget.selected, "Tableau") then
+        log[#log + 1] = "ERROR: invalid deal target (tableau)"
+    end
+    if not layout.HasStock and layout.HasWaste then
+        log[#log + 1] = "ERROR: waste without stock"
+    end
+    return log
+end
 
 return function(obj)
-    local log           = {}
     local layout        = get_layout(obj)
 
     local strInfo       = [[
     Info = {
-        Name      = "Wizard_]] .. obj.txtName.text .. [[",
+        Name      = "Wizard_]] .. obj.Name.text .. [[",
         Family    = "]] .. "Other" .. [[",
-        DeckCount = ]] .. obj.spnDecks.value .. [[,
+        DeckCount = ]] .. obj.Decks.value .. [[,
         Redeals   = ]] .. obj.Redeals.value .. [[,
     },]] .. "\n"
 
@@ -152,7 +173,7 @@ return function(obj)
 
     local strFoundation = [[
     Foundation = {
-        Size = ]] .. obj.spnDecks.value * 4 .. [[,
+        Size = ]] .. obj.Decks.value * 4 .. [[,
         Pile = function(i)
             return {
                 Position = ]] .. layout.Foundation .. [[,
@@ -187,42 +208,17 @@ return function(obj)
     if layout.HasStock then
         strDeal = get_deal(obj.StockTarget.selected)
         if layout.HasWaste then
-            strRedeal = "redeal = Sol.Ops.Redeal.waste_to_stock,\n"
+            strRedeal = "    redeal = Sol.Ops.Redeal.waste_to_stock,\n"
         end
     end
 
     local game = [[
 local game = {
-]] .. strInfo .. [[
-]] .. strStock .. [[
-]] .. strWaste .. [[
-]] .. strReserve .. [[
-]] .. strFreeCell .. [[
-]] .. strFoundation .. [[
-]] .. strTableau .. [[
-    ]] .. strDeal .. [[
-    ]] .. strRedeal .. [[
+]] .. strInfo .. strStock .. strWaste .. strReserve .. strFreeCell .. strFoundation .. strTableau .. strDeal .. strRedeal .. [[
 }
 
 Sol.register_game(game)
 ]]
 
-    -- error checking
-    if obj.txtName.text == "" or string.find(obj.txtName.text, "[\\/:*?\"<>|]") ~= nil then
-        log[#log + 1] = "ERROR: invalid name"
-    end
-    if layout.StockCards < 0 then
-        log[#log + 1] = "ERROR: insufficient amount of cards"
-    end
-    if layout.HasStock and not layout.HasWaste and string.find(obj.StockTarget.selected, "Waste") then
-        log[#log + 1] = "ERROR: invalid deal target (waste)"
-    end
-    if layout.HasStock and not layout.HasTableau and string.find(obj.StockTarget.selected, "Tableau") then
-        log[#log + 1] = "ERROR: invalid deal target (tableau)"
-    end
-    if not layout.HasStock and layout.HasWaste then
-        log[#log + 1] = "ERROR: waste without stock"
-    end
-
-    return game, log
+    return game, check_error(obj, layout)
 end

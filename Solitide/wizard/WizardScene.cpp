@@ -38,7 +38,8 @@ wizard_scene::wizard_scene(game& game, color_themes const& currentTheme)
 
         table obj {script.create_table()};
         _formWizard->submit(obj);
-        auto const name {obj["txtName"]["text"].as<string>()};
+
+        auto const name {obj["Name"]["text"].as<string>()};
         auto const wizgame {(*func)(obj)};
 
         _formWizard->set_log_messages(wizgame.second);
