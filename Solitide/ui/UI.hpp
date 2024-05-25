@@ -65,6 +65,7 @@ struct menu_sources {
     std::vector<game_info>   Games;
     std::vector<std::string> Themes;
     std::vector<std::string> Cardsets;
+    settings*                Settings;
 };
 
 class form_menu : public form {
@@ -75,25 +76,24 @@ public:
     prop<std::string> SelectedTheme;
     prop<std::string> SelectedCardset;
 
-    prop<std::deque<std::string>> RecentGames;
-
-    std::shared_ptr<button> BtnStartGame;
-    std::shared_ptr<button> BtnApplySettings;
+    signal<> StartGameRequested;
+    signal<> VideoSettingsChanged;
 
     void submit_settings(data::config::object& obj);
-    void set_game_stats(game_history const& stats);
 
-    void update_games(std::vector<game_info> const& games);
+    void set_game_stats(game_history const& stats);
+    void set_games(std::vector<game_info> const& games);
+    void set_recent_games(std::deque<string> const& games);
 
 private:
     void create_section_games(assets::group& resGrp, std::vector<game_info> const& games);
-    void create_section_settings(assets::group& resGrp);
+    void create_section_settings(assets::group& resGrp, settings* settings);
     void create_section_themes(std::vector<std::string> const& colorThemes);
     void create_section_cardset(std::vector<std::string> const& cardSets);
 
     void create_menubar(assets::group& resGrp);
 
-    std::shared_ptr<panel> _panelSettings;
+    std::shared_ptr<tab_container> _tabSettings;
 
     std::shared_ptr<grid_view> _gvWL;
     std::shared_ptr<grid_view> _gvTT;

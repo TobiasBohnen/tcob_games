@@ -163,7 +163,7 @@ form_menu::form_menu(gfx::window* window, assets::group& resGrp, menu_sources co
     _tooltip = make_tooltip(this);
 
     create_section_games(resGrp, source.Games);
-    create_section_settings(resGrp);
+    create_section_settings(resGrp, source.Settings);
     create_section_themes(source.Themes);
     create_section_cardset(source.Cardsets);
     create_menubar(resGrp);
@@ -171,7 +171,7 @@ form_menu::form_menu(gfx::window* window, assets::group& resGrp, menu_sources co
 
 void form_menu::submit_settings(data::config::object& obj)
 {
-    _panelSettings->submit(obj);
+    _tabSettings->submit(obj);
 }
 
 void form_menu::set_game_stats(game_history const& stats)
@@ -207,15 +207,21 @@ void form_menu::set_game_stats(game_history const& stats)
                     bestTime ? std::format("{:%M:%S}", seconds {*bestTime / 1000.f}) : "--:--"});
 }
 
-void form_menu::update_games(std::vector<game_info> const& games)
+void form_menu::set_games(std::vector<game_info> const& games)
 {
     // TODO: update all listboxes
     auto lb {std::static_pointer_cast<list_box>(find_widget_by_name("lbxGames0"))};
 
     lb->clear_items();
-    for (auto const& game : games) {
-        lb->add_item(game.Name);
-    }
+    for (auto const& game : games) { lb->add_item(game.Name); }
+}
+
+void form_menu::set_recent_games(std::deque<string> const& games)
+{
+    auto lb {std::static_pointer_cast<list_box>(find_widget_by_name("lbxGames1"))};
+
+    lb->clear_items();
+    for (auto const& game : games) { lb->add_item(game); }
 }
 
 void form_menu::create_section_games(assets::group& resGrp, std::vector<game_info> const& games)
@@ -227,12 +233,12 @@ void form_menu::create_section_games(assets::group& resGrp, std::vector<game_inf
     auto panelLayout {panelGames->create_layout<dock_layout>()};
 
     // Filter
-    auto pnlFilter {panelLayout->create_widget<panel>(dock_style::Top, "pnlFilter")};
-    pnlFilter->Flex = {100_pct, 5_pct};
-    auto pnlFilterLayout {pnlFilter->create_layout<grid_layout>(size_i {10, 1})};
-    auto txbFilter {pnlFilterLayout->create_widget<text_box>({0, 0, 9, 1}, "txbFilter")};
+    auto panelFilter {panelLayout->create_widget<panel>(dock_style::Top, "pnlFilter")};
+    panelFilter->Flex = {100_pct, 5_pct};
+    auto panelFilterLayout {panelFilter->create_layout<grid_layout>(size_i {10, 1})};
+    auto txbFilter {panelFilterLayout->create_widget<text_box>({0, 0, 9, 1}, "txbFilter")};
     txbFilter->MaxLength = 30;
-    auto btnFilter {pnlFilterLayout->create_widget<button>({9, 0, 1, 1}, "btnFilter")};
+    auto btnFilter {panelFilterLayout->create_widget<button>({9, 0, 1, 1}, "btnFilter")};
     btnFilter->Icon = resGrp.get<gfx::texture>("lens");
     btnFilter->Click.connect([tb = txbFilter.get()]() { tb->Text = ""; });
     btnFilter->Tooltip = _tooltip;
@@ -264,7 +270,10 @@ void form_menu::create_section_games(assets::group& resGrp, std::vector<game_inf
             });
 
             listBox->DoubleClick.connect([&, lb = listBox.get()] {
-                if (lb->SelectedItemIndex >= 0) { BtnStartGame->Click({lb}); }
+                if (lb->SelectedItemIndex >= 0) {
+                    StartGameRequested();
+                    hide();
+                }
             });
             return listBox;
         }};
@@ -279,11 +288,7 @@ void form_menu::create_section_games(assets::group& resGrp, std::vector<game_inf
         {
             auto tabPanel {tabGames->create_tab<panel>("recent", "Recent")};
             auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-            auto lbxRecent {createListBox(tabPanelLayout, "1", [](auto const&) { return false; })};
-            RecentGames.Changed.connect([lb = lbxRecent.get()](auto const& val) {
-                lb->clear_items();
-                for (auto const& g : val) { lb->add_item(g); }
-            });
+            createListBox(tabPanelLayout, "1", [](auto const&) { return false; });
         }
         // By Family
         {
@@ -362,27 +367,32 @@ void form_menu::create_section_games(assets::group& resGrp, std::vector<game_inf
         _gvHistory = panelGameStatsLayout->create_widget<grid_view>({1, 6, 18, 25}, "gvHistory");
         _gvHistory->set_columns({"ID", "Score", "Turns", "Time", "Won"});
 
-        BtnStartGame       = panelGameStatsLayout->create_widget<button>({1, 36, 4, 3}, {"btnStartGame"});
-        BtnStartGame->Icon = resGrp.get<gfx::texture>("play");
-        BtnStartGame->Click.connect([&]() { hide(); });
-        BtnStartGame->Tooltip = _tooltip;
+        auto btnStartGame {panelGameStatsLayout->create_widget<button>({1, 36, 4, 3}, {"btnStartGame"})};
+        btnStartGame->Icon = resGrp.get<gfx::texture>("play");
+        btnStartGame->Click.connect([&]() {
+            StartGameRequested();
+            hide();
+        });
+        btnStartGame->Tooltip = _tooltip;
     }
 }
 
-void form_menu::create_section_settings(assets::group& resGrp)
+void form_menu::create_section_settings(assets::group& resGrp, settings* settings)
 {
     // Setting
-    _panelSettings         = create_container<panel>(dock_style::Left, TabSettingsName);
-    _panelSettings->ZOrder = 4;
-    _panelSettings->Flex   = {0_pct, 0_pct};
+    _tabSettings         = create_container<tab_container>(dock_style::Top, TabSettingsName);
+    _tabSettings->ZOrder = 4;
+    _tabSettings->Flex   = {0_pct, 0_pct};
+
     {
-        auto        panelLayout {_panelSettings->create_layout<grid_layout>(size_i {40, 40})};
         auto const& config {locate_service<data::config_file>()};
+        auto        tabPanel {_tabSettings->create_tab<panel>("Video")};
+        auto        tabPanelLayout {tabPanel->create_layout<grid_layout>(size_i {40, 40})};
 
         // resolution
         {
             auto const displayModes {locate_service<gfx::render_system>().get_displays()};
-            auto       ddlRes {panelLayout->create_widget<drop_down_list>({6, 1, 6, 4}, "ddlResolution")};
+            auto       ddlRes {tabPanelLayout->create_widget<drop_down_list>({6, 1, 6, 4}, "ddlResolution")};
             ddlRes->ZOrder = 1;
             for (auto const& dm : displayModes.at(0).Modes) {
                 ddlRes->add_item(std::format("{}x{}", dm.Size.Width, dm.Size.Height));
@@ -391,31 +401,56 @@ void form_menu::create_section_settings(assets::group& resGrp)
             auto const res {config[Cfg::Video::Name][Cfg::Video::resolution].as<size_i>()};
             ddlRes->select_item(std::format("{}x{}", res.Width, res.Height));
 
-            auto lbl {panelLayout->create_widget<label>({1, 2, 4, 2}, "lblResolution")};
+            auto lbl {tabPanelLayout->create_widget<label>({1, 2, 4, 2}, "lblResolution")};
             lbl->Label = "Resolution";
         }
 
         // fullscreen
         {
-            auto chkFullScreen {panelLayout->create_widget<checkbox>({6, 5, 3, 4}, "chkFullScreen")};
-            chkFullScreen->Checked = config[Cfg::Video::Name][Cfg::Video::fullscreen].as<bool>();
+            auto chk {tabPanelLayout->create_widget<checkbox>({6, 5, 3, 4}, "chkFullScreen")};
+            chk->Checked = config[Cfg::Video::Name][Cfg::Video::fullscreen].as<bool>();
 
-            auto lbl {panelLayout->create_widget<label>({1, 6, 4, 2}, "lblFullScreen")};
+            auto lbl {tabPanelLayout->create_widget<label>({1, 6, 4, 2}, "lblFullScreen")};
             lbl->Label = "Fullscreen";
         }
 
         // vsync
         {
-            auto chkFullScreen {panelLayout->create_widget<checkbox>({6, 9, 3, 4}, "chkVSync")};
-            chkFullScreen->Checked = config[Cfg::Video::Name][Cfg::Video::vsync].as<bool>();
+            auto chk {tabPanelLayout->create_widget<checkbox>({6, 9, 3, 4}, "chkVSync")};
+            chk->Checked = config[Cfg::Video::Name][Cfg::Video::vsync].as<bool>();
 
-            auto lbl {panelLayout->create_widget<label>({1, 10, 4, 2}, "lblVSync")};
+            auto lbl {tabPanelLayout->create_widget<label>({1, 10, 4, 2}, "lblVSync")};
             lbl->Label = "VSync";
         }
 
-        BtnApplySettings          = panelLayout->create_widget<button>({34, 36, 4, 3}, "btnApply");
-        BtnApplySettings->Icon    = resGrp.get<gfx::texture>("apply");
-        BtnApplySettings->Tooltip = _tooltip;
+        auto btnApplyVideoSettings {tabPanelLayout->create_widget<button>({9, 16, 6, 4}, "btnApply")};
+        btnApplyVideoSettings->Icon    = resGrp.get<gfx::texture>("apply");
+        btnApplyVideoSettings->Tooltip = _tooltip;
+        btnApplyVideoSettings->Click.connect([&]() {
+            VideoSettingsChanged();
+        });
+    }
+    {
+        auto tabPanel {_tabSettings->create_tab<panel>("Hints")};
+        auto tabPanelLayout {tabPanel->create_layout<grid_layout>(size_i {40, 40})};
+        // highlight movable
+        {
+            auto chk {tabPanelLayout->create_widget<checkbox>({10, 1, 3, 4}, "chkHintMovable")};
+            chk->Checked = settings->HintMovable;
+            chk->Checked.Changed.connect([settings](auto val) { settings->HintMovable = val; });
+
+            auto lbl {tabPanelLayout->create_widget<label>({1, 2, 8, 2}, "lblHintMovable")};
+            lbl->Label = "Highlight valid moves";
+        }
+        // highlight drops
+        {
+            auto chk {tabPanelLayout->create_widget<checkbox>({10, 5, 3, 4}, "chkHintDrops")};
+            chk->Checked = settings->HintTarget;
+            chk->Checked.Changed.connect([settings](auto val) { settings->HintTarget = val; });
+
+            auto lbl {tabPanelLayout->create_widget<label>({1, 6, 8, 2}, "lblHintDrops")};
+            lbl->Label = "Highlight valid targets";
+        }
     }
 }
 

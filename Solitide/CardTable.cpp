@@ -13,9 +13,10 @@ namespace solitaire {
 constexpr f32 FACE_DOWN_OFFSET {15.0f};
 constexpr f32 FACE_UP_OFFSET {6.0f};
 
-card_table::card_table(gfx::window* window, gfx::ui::canvas_widget* canvas, assets::group& resGrp)
+card_table::card_table(gfx::window* window, gfx::ui::canvas_widget* canvas, assets::group& resGrp, settings* settings)
     : _window {window}
     , _resGrp {resGrp}
+    , _settings {settings}
     , _cardRenderer {*this}
     , _bgCanvas {*this, resGrp}
     , _fgCanvas {*this, canvas, resGrp}
@@ -365,7 +366,9 @@ void card_table::get_drop_target()
             mark_dirty();
         }
         if (_dropTarget.Pile) {
-            _dropTarget.Pile->tint_cards(get_drop_color(), _dropTarget.Index);
+            if (_settings->HintTarget) {
+                _dropTarget.Pile->tint_cards(get_drop_color(), _dropTarget.Index);
+            }
             mark_dirty();
         }
     }
@@ -452,10 +455,12 @@ auto card_table::get_pile_at(point_i pos, bool ignoreHoveredPile) const -> hit_t
 
 auto card_table::get_hover_color(pile* pile, isize idx) const -> color
 {
-    auto const& moves {_currentGame->get_available_hints()};
-    for (auto const& move : moves) {
-        if (move.Src == pile && move.SrcCardIdx == idx) {
-            return colors::LightGreen; // TODO: add option to disable
+    if (_settings->HintMovable) {
+        auto const& moves {_currentGame->get_available_hints()};
+        for (auto const& move : moves) {
+            if (move.Src == pile && move.SrcCardIdx == idx) {
+                return colors::LightGreen;
+            }
         }
     }
 

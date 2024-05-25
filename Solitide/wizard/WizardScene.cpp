@@ -53,7 +53,6 @@ wizard_scene::wizard_scene(game& game, color_themes const& currentTheme)
             }
 
             GameGenerated({.Name = "Wizard_" + name, .Path = file});
-            // TODO: save settings
             get_game().pop_current_scene();
         }
     });

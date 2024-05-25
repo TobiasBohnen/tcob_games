@@ -41,7 +41,7 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
     _lbxLog        = mainLayout->create_widget<list_box>({0, 20, 39, 30}, "Log");
     _lbxLog->Class = "list_box_log";
 
-    BtnGenerate       = mainLayout->create_widget<button>({5, 72, 9, 5}, "btnGenerate");
+    BtnGenerate       = mainLayout->create_widget<button>({20, 72, 9, 5}, "btnGenerate");
     BtnGenerate->Icon = resGrp.get<gfx::texture>("apply");
 
     BtnBack       = mainLayout->create_widget<button>({30, 72, 9, 5}, "btnBack");
@@ -63,7 +63,7 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
             auto spn {layout->template create_widget<spinner>(name + "CardCount")};
             spn->Flex   = {30_pct, 100_pct};
             spn->Min    = 0;
-            spn->Max    = 200;
+            spn->Max    = 208;
             spn->Step   = 1;
             spn->Value  = 0;
             spn->ZOrder = 17;

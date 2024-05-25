@@ -60,6 +60,7 @@ start_scene::start_scene(game& game)
     for (auto const& x : _themes) { source.Themes.push_back(x.first); }
     source.Cardsets.reserve(_cardSets.size());
     for (auto const& x : _cardSets) { source.Cardsets.push_back(x.first); }
+    source.Settings = &_settings;
 
     // games
     _db.insert_games(source.Games);
@@ -72,7 +73,7 @@ start_scene::start_scene(game& game)
     connect_ui_events();
 
     // card table
-    _cardTable = std::make_shared<card_table>(&window, _formControls->Canvas.get(), resGrp);
+    _cardTable = std::make_shared<card_table>(&window, _formControls->Canvas.get(), resGrp, &_settings);
 
     _cardTable->HoverChange.connect([&](pile_description const& str) { _formControls->set_pile_labels(str); });
 
@@ -124,7 +125,7 @@ void start_scene::on_start()
 
 void start_scene::connect_ui_events()
 {
-    _formControls->BtnNewGame->Click.connect([&](auto const&) { start_game(_formMenu->SelectedGame(), start_reason::Restart); });
+    _formControls->BtnNewGame->Click.connect([&](auto const&) { start_game(_formMenu->SelectedGame, start_reason::Restart); });
     _formControls->BtnWizard->Click.connect([&](auto const&) { start_wizard(); });
     _formControls->BtnMenu->Click.connect([&](auto const&) { _formMenu->show(); });
 
@@ -150,7 +151,7 @@ void start_scene::connect_ui_events()
         update_stats(game);
     });
 
-    _formMenu->BtnStartGame->Click.connect([&]() {
+    _formMenu->StartGameRequested.connect([&]() {
         start_game(_formMenu->SelectedGame, start_reason::Resume);
     });
 
@@ -181,10 +182,10 @@ void start_scene::connect_ui_events()
         _settings.Cardset = newCardset;
 
         _cardTable->set_cardset(_cardSets[newCardset]);
-        start_game(_formMenu->SelectedGame(), start_reason::Resume);
+        start_game(_formMenu->SelectedGame, start_reason::Resume);
     });
 
-    _formMenu->BtnApplySettings->Click.connect([&]() {
+    _formMenu->VideoSettingsChanged.connect([&]() {
         data::config::object obj;
         _formMenu->submit_settings(obj);
 
@@ -201,7 +202,7 @@ void start_scene::connect_ui_events()
         window.Size = res;
         set_children_bounds(res);
 
-        start_game(_formMenu->SelectedGame(), start_reason::Resume);
+        start_game(_formMenu->SelectedGame, start_reason::Resume);
     });
 }
 
@@ -243,7 +244,7 @@ void start_scene::on_key_down(input::keyboard::event& ev)
     using namespace tcob::enum_ops;
 
     if (ev.KeyCode == input::key_code::n && (ev.KeyMods & input::key_mod::LeftControl) == input::key_mod::LeftControl) {
-        start_game(_formMenu->SelectedGame(), start_reason::Restart);
+        start_game(_formMenu->SelectedGame, start_reason::Restart);
         ev.Handled = true;
     }
 }
@@ -322,7 +323,7 @@ void start_scene::start_wizard()
             games.reserve(_games.size());
             for (auto const& x : _games) { games.emplace_back(x.second.first); }
 
-            _formMenu->update_games(games);
+            _formMenu->set_games(games);
             _db.insert_games(games);
             start_game(val.Name, start_reason::Resume);
         }
@@ -344,8 +345,8 @@ void start_scene::update_recent(string const& name)
     if (recent.size() >= 5) { recent.pop_back(); }
     recent.push_front(name);
 
-    _settings.Recent       = recent;
-    _formMenu->RecentGames = recent;
+    _settings.Recent = recent;
+    _formMenu->set_recent_games(recent);
 }
 
 void start_scene::generate_rule(base_game const& game) const
