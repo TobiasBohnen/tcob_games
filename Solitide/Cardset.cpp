@@ -62,10 +62,11 @@ auto cardset::get_material() const -> assets::asset_ptr<gfx::material>
 
 auto cardset::load() const -> bool
 {
-    // TODO: use cardset.json for region mapping
+    string const         folder {get_folder()};
+    data::config::object json;
+    json.load(folder + "cardset.json");
 
-    std::string const folder {get_folder()};
-    auto              files {io::enumerate(folder, {"*card*.png"}, false)};
+    auto files {io::enumerate(folder, {"*card*.png"}, false)};
     if (files.size() < CardsetCardCount) { return false; }
 
     auto const info {gfx::image::LoadInfo(*files.begin())};
@@ -73,7 +74,7 @@ auto cardset::load() const -> bool
     auto const texSize {gfx::image::LoadInfo(*files.begin())->Size};
 
     _texture->create(texSize, static_cast<u32>(files.size()), gfx::texture::format::RGBA8);
-    _texture->Filtering = gfx::texture::filtering::Linear;
+    _texture->Filtering = json.get<gfx::texture::filtering>("filtering").value_or(gfx::texture::filtering::Linear);
 
     struct image_ftr {
         u32                      Depth {};
@@ -103,7 +104,9 @@ auto cardset::load() const -> bool
                 }
                 if (statusFuture.get() != load_status::Ok) { return false; }
                 _texture->update_data(imgIt->Image.get_data(), imgIt->Depth);
-                _texture->add_region(io::get_stem(imgIt->Path), {{0, 0, 1, 1}, imgIt->Depth});
+                _texture->add_region(
+                    json.get<string>("cards", io::get_filename(imgIt->Path)).value_or(io::get_stem(imgIt->Path)),
+                    {{0, 0, 1, 1}, imgIt->Depth});
             }
         }
     }
@@ -207,12 +210,13 @@ void cardset::save_textures(assets::asset_ptr<gfx::texture> const& canvasTex, si
         gfx::image cardimg {gfx::image::Create(size_i {texSize}, gfx::image::format::RGBA, data)};
 
         string const file {k + ".png"};
-        cardsetObj["cards"][k] = file;
-        std::ignore            = cardimg.save(folder + file);
+        cardsetObj["cards"][file] = k;
+        std::ignore               = cardimg.save(folder + file);
         tex->update_data(data, level);
         tex->add_region(k, gfx::texture_region {{0, 0, 1, 1}, level++});
     }
-    cardsetObj["version"] = "1.0";
+    cardsetObj["version"]   = "1.0";
+    cardsetObj["filtering"] = "Linear";
     cardsetObj.save(folder + "cardset.json");
 }
 
