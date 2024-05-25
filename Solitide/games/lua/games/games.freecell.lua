@@ -705,9 +705,8 @@ local flipper = {
         end
     },
     on_end_turn = function(game)
-        local tableau = game.Tableau
         local freeCell = game.FreeCell
-        for i, tab in ipairs(tableau) do
+        for i, tab in ipairs(game.Tableau) do
             if not tab.IsEmpty then
                 if freeCell[i].IsEmpty then
                     tab:flip_up_top_card()

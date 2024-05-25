@@ -41,7 +41,7 @@ public:
     void undo();
     auto can_undo() const -> bool;
 
-    void hint();
+    void use_hint();
 
     auto deal_cards() -> bool;
     void play_cards(pile& from, pile& to, isize startIndex, isize numCards);
@@ -49,7 +49,7 @@ public:
     void collect_all();
     auto virtual can_play(pile const& targetPile, isize targetCardIndex, card const& card, isize numCards) const -> bool;
 
-    auto get_available_hints() const -> std::vector<move> const&;
+    auto get_available_hints() const -> std::vector<hint> const&;
     auto check_movable(pile const& targetPile, isize idx) const -> bool;
 
     void update(milliseconds delta);
@@ -86,7 +86,7 @@ private:
 
     std::unordered_map<pile_type, std::vector<pile*>>     _piles;
     mutable flat_map<std::pair<pile const*, isize>, bool> _movableCache;
-    std::vector<move>                                     _hints;
+    std::vector<hint>                                     _hints;
 
     game_info  _info;
     game_state _state;

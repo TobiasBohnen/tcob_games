@@ -8,10 +8,8 @@
 #include "Common.hpp" // IWYU pragma: keep
 
 #include "CardTable.hpp"
-#include "Cardset.hpp"
 #include "Database.hpp"
 #include "Games.hpp"
-#include "ui/Themes.hpp"
 #include "ui/UI.hpp"
 #include "wizard/WizardScene.hpp"
 
@@ -69,9 +67,9 @@ private:
     std::shared_ptr<form_controls> _formControls {};
     std::shared_ptr<form_menu>     _formMenu {};
 
-    game_map                                        _games {};
-    std::map<std::string, color_themes>             _themes {};
-    std::map<std::string, std::shared_ptr<cardset>> _cardSets;
+    game_map    _games {};
+    theme_map   _themes {};
+    cardset_map _cardSets;
 
     settings             _settings;
     data::config::object _saveGame;

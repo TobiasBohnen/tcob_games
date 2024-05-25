@@ -62,10 +62,10 @@ private:
 ////////////////////////////////////////////////////////////
 
 struct menu_sources {
-    std::vector<game_info>   Games;
-    std::vector<std::string> Themes;
-    std::vector<std::string> Cardsets;
-    settings*                Settings;
+    game_map*    Games;
+    theme_map*   Themes;
+    cardset_map* Cardsets;
+    settings*    Settings;
 };
 
 class form_menu : public form {
@@ -82,14 +82,14 @@ public:
     void submit_settings(data::config::object& obj);
 
     void set_game_stats(game_history const& stats);
-    void set_games(std::vector<game_info> const& games);
-    void set_recent_games(std::deque<string> const& games);
+    void update_games();
+    void update_recent_games();
 
 private:
-    void create_section_games(assets::group& resGrp, std::vector<game_info> const& games);
-    void create_section_settings(assets::group& resGrp, settings* settings);
-    void create_section_themes(std::vector<std::string> const& colorThemes);
-    void create_section_cardset(std::vector<std::string> const& cardSets);
+    void create_section_games(assets::group& resGrp);
+    void create_section_settings(assets::group& resGrp);
+    void create_section_themes();
+    void create_section_cardset();
 
     void create_menubar(assets::group& resGrp);
 
@@ -100,6 +100,8 @@ private:
     std::shared_ptr<grid_view> _gvHistory;
 
     std::shared_ptr<tooltip> _tooltip;
+
+    menu_sources _source;
 };
 
 }

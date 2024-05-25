@@ -5,8 +5,6 @@
 
 #include "Database.hpp"
 
-#include "games/Games.hpp"
-
 namespace solitaire {
 
 static char const* DB_NAME {"profile.db"};
@@ -36,12 +34,12 @@ database::database()
     assert(_tabGames && _tabHistory);
 }
 
-void database::insert_games(std::vector<game_info> const& games) const
+void database::insert_games(game_map const& games) const
 {
     std::vector<std::tuple<string, family, u8>> dbvalues;
     dbvalues.reserve(games.size());
     for (auto const& gi : games) {
-        dbvalues.emplace_back(gi.Name, gi.Family, gi.DeckCount);
+        dbvalues.emplace_back(gi.second.first.Name, gi.second.first.Family, gi.second.first.DeckCount);
     }
 
     auto sp {_database.create_savepoint("sp1")};

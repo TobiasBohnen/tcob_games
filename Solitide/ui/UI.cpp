@@ -6,6 +6,7 @@
 #include "UI.hpp"
 
 #include "GameInfo.hpp"
+#include "Themes.hpp" // IWYU pragma: keep
 
 namespace solitaire {
 
@@ -25,7 +26,11 @@ auto static translate(string const& name) -> string // NOLINT
     if (name == "btnStartGame") { return "Start Game"; }
     if (name == "btnApply") { return "Apply"; }
     if (name == "btnBack") { return "Back"; }
-
+    if (name == "lblResolution") { return "Resolution"; }
+    if (name == "lblFullScreen") { return "Fullscreen"; }
+    if (name == "lblVSync") { return "VSync"; }
+    if (name == "lblHintMovable") { return "Highlight valid moves"; }
+    if (name == "lblHintDrops") { return "Highlight valid targets"; }
     return "";
 }
 
@@ -97,9 +102,9 @@ form_controls::form_controls(gfx::window* window, assets::group& resGrp)
         _lblGameName = create({0, 0, 2, 6});
 
         _lblPile           = create({2, 3, 2, 3});
-        _lblPileLabel      = create({2, 0, 2, 3}, "Pile");
+        _lblPileLabel      = create({2, 0, 2, 3}, "Pile");  // translate
         _lblCardCount      = create({4, 3, 1, 3});
-        _lblCardCountLabel = create({4, 0, 1, 3}, "Cards");
+        _lblCardCountLabel = create({4, 0, 1, 3}, "Cards"); // translate
 
         _lblBase             = create({6, 3, 3, 3});
         _lblBaseLabel        = create({6, 0, 3, 3});
@@ -109,13 +114,13 @@ form_controls::form_controls(gfx::window* window, assets::group& resGrp)
         _lblMoveLabel        = create({12, 0, 3, 3});
 
         _lblTurns      = create({17, 3, 1, 3});
-        _lblTurnsLabel = create({17, 0, 1, 3}, "Turns");
+        _lblTurnsLabel = create({17, 0, 1, 3}, "Turns"); // translate
 
         _lblScore      = create({18, 3, 1, 3});
-        _lblScoreLabel = create({18, 0, 1, 3}, "Score");
+        _lblScoreLabel = create({18, 0, 1, 3}, "Score"); // translate
 
         _lblTime      = create({19, 3, 1, 3});
-        _lblTimeLabel = create({19, 0, 1, 3}, "Time");
+        _lblTimeLabel = create({19, 0, 1, 3}, "Time");   // translate
     }
 
     auto overlayPanel {mainPanelLayout->create_widget<glass>(dock_style::Fill, "overlay")};
@@ -158,14 +163,15 @@ static string const MenuName {"menu"};
 
 form_menu::form_menu(gfx::window* window, assets::group& resGrp, menu_sources const& source)
     : form {"Menu", window}
+    , _source {source}
 {
     // tooltip
     _tooltip = make_tooltip(this);
 
-    create_section_games(resGrp, source.Games);
-    create_section_settings(resGrp, source.Settings);
-    create_section_themes(source.Themes);
-    create_section_cardset(source.Cardsets);
+    create_section_games(resGrp);
+    create_section_settings(resGrp);
+    create_section_themes();
+    create_section_cardset();
     create_menubar(resGrp);
 }
 
@@ -207,24 +213,23 @@ void form_menu::set_game_stats(game_history const& stats)
                     bestTime ? std::format("{:%M:%S}", seconds {*bestTime / 1000.f}) : "--:--"});
 }
 
-void form_menu::set_games(std::vector<game_info> const& games)
-{
-    // TODO: update all listboxes
+void form_menu::update_games()
+{ // TODO: update all listboxes
     auto lb {std::static_pointer_cast<list_box>(find_widget_by_name("lbxGames0"))};
 
     lb->clear_items();
-    for (auto const& game : games) { lb->add_item(game.Name); }
+    for (auto const& game : *_source.Games) { lb->add_item(game.first); }
 }
 
-void form_menu::set_recent_games(std::deque<string> const& games)
+void form_menu::update_recent_games()
 {
     auto lb {std::static_pointer_cast<list_box>(find_widget_by_name("lbxGames1"))};
 
     lb->clear_items();
-    for (auto const& game : games) { lb->add_item(game); }
+    for (auto const& game : _source.Settings->Recent) { lb->add_item(game); }
 }
 
-void form_menu::create_section_games(assets::group& resGrp, std::vector<game_info> const& games)
+void form_menu::create_section_games(assets::group& resGrp)
 {
     // Games
     auto panelGames {create_container<panel>(dock_style::Left, TabGamesName)};
@@ -253,8 +258,8 @@ void form_menu::create_section_games(assets::group& resGrp, std::vector<game_inf
             auto listBox {tabPanelLayout->create_widget<list_box>(dock_style::Fill, "lbxGames" + name)};
             listBoxes.push_back(listBox.get());
 
-            for (auto const& game : games) {
-                if (pred(game)) { listBox->add_item(game.Name); }
+            for (auto const& game : *_source.Games) {
+                if (pred(game.second.first)) { listBox->add_item(game.first); }
             }
 
             listBox->SelectedItemIndex.Changed.connect([&, lb = listBox.get()](auto val) {
@@ -280,25 +285,25 @@ void form_menu::create_section_games(assets::group& resGrp, std::vector<game_inf
 
         // By Name
         {
-            auto tabPanel {tabGames->create_tab<panel>("byName", "By Name")};
+            auto tabPanel {tabGames->create_tab<panel>("byName", "By Name")}; // translate
             auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
             createListBox(tabPanelLayout, "0", [](auto const&) { return true; });
         }
         // Recent
         {
-            auto tabPanel {tabGames->create_tab<panel>("recent", "Recent")};
+            auto tabPanel {tabGames->create_tab<panel>("recent", "Recent")}; // translate
             auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
             createListBox(tabPanelLayout, "1", [](auto const&) { return false; });
         }
         // By Family
         {
-            auto tabContainer {tabGames->create_tab<tab_container>("byFamily", "By Family")};
+            auto tabContainer {tabGames->create_tab<tab_container>("byFamily", "By Family")}; // translate
             tabContainer->MaxTabs = 5;
 
             auto const createTab {[&](family family, std::string const& name) {
                 auto tabPanel {tabContainer->create_tab<panel>(name)};
                 auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-                createListBox(tabPanelLayout, name, [family](auto const& game) { return game.Family == family; });
+                createListBox(tabPanelLayout, name, [family](auto const& gameInfo) { return gameInfo.Family == family; });
             }};
             createTab(family::BakersDozen, "Baker's Dozen");
             createTab(family::BeleagueredCastle, "Beleaguered Castle");
@@ -321,27 +326,27 @@ void form_menu::create_section_games(assets::group& resGrp, std::vector<game_inf
         }
         // By Deck Count
         {
-            auto tabContainer {tabGames->create_tab<tab_container>("byDeckCount", "By Deck Count")};
+            auto tabContainer {tabGames->create_tab<tab_container>("byDeckCount", "By Deck Count")}; // translate
             tabContainer->MaxTabs = 5;
 
             auto const createTab {[&](isize count, std::string const& name) {
                 auto tabPanel {tabContainer->create_tab<panel>(name)};
                 auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-                createListBox(tabPanelLayout, name, [count](auto const& game) { return game.DeckCount == count; });
+                createListBox(tabPanelLayout, name, [count](auto const& gameInfo) { return gameInfo.DeckCount == count; });
             }};
             createTab(1, "1");
             createTab(2, "2");
             createTab(3, "3");
 
             {
-                auto tabPanel {tabContainer->create_tab<panel>(">= 4")};
+                auto tabPanel {tabContainer->create_tab<panel>(">= 4")}; // translate
                 auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-                createListBox(tabPanelLayout, "4+", [](auto const& game) { return game.DeckCount >= 4; });
+                createListBox(tabPanelLayout, "4+", [](auto const& gameInfo) { return gameInfo.DeckCount >= 4; });
             }
             {
-                auto tabPanel {tabContainer->create_tab<panel>("stripped")};
+                auto tabPanel {tabContainer->create_tab<panel>("stripped")}; // translate
                 auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-                createListBox(tabPanelLayout, "stripped", [](auto const& game) { return game.DeckRanks.size() < 13 || game.DeckSuits.size() < 4; });
+                createListBox(tabPanelLayout, "stripped", [](auto const& gameInfo) { return gameInfo.DeckRanks.size() < 13 || gameInfo.DeckSuits.size() < 4; });
             }
         }
 
@@ -357,15 +362,15 @@ void form_menu::create_section_games(assets::group& resGrp, std::vector<game_inf
         panelGameStats->ZOrder = 1;
         auto panelGameStatsLayout {panelGameStats->create_layout<grid_layout>(size_i {20, 40})};
 
-        _gvWL        = panelGameStatsLayout->create_widget<grid_view>({0, 1, 10, 4}, "gvWinLose");
+        _gvWL        = panelGameStatsLayout->create_widget<grid_view>({1, 1, 9, 4}, "gvWinLose");
         _gvWL->Class = "grid_view2";
-        _gvWL->set_columns({"Won", "Lost", "W/L"});
-        _gvTT        = panelGameStatsLayout->create_widget<grid_view>({10, 1, 10, 4}, "gvBest");
+        _gvWL->set_columns({"Won", "Lost", "W/L"});                       // translate
+        _gvTT        = panelGameStatsLayout->create_widget<grid_view>({10, 1, 9, 4}, "gvBest");
         _gvTT->Class = "grid_view2";
-        _gvTT->set_columns({"Highscore", "Least Turns", "Fastest Time"});
+        _gvTT->set_columns({"Highscore", "Least Turns", "Fastest Time"}); // translate
 
         _gvHistory = panelGameStatsLayout->create_widget<grid_view>({1, 6, 18, 25}, "gvHistory");
-        _gvHistory->set_columns({"ID", "Score", "Turns", "Time", "Won"});
+        _gvHistory->set_columns({"ID", "Score", "Turns", "Time", "Won"}); // translate
 
         auto btnStartGame {panelGameStatsLayout->create_widget<button>({1, 36, 4, 3}, {"btnStartGame"})};
         btnStartGame->Icon = resGrp.get<gfx::texture>("play");
@@ -377,7 +382,7 @@ void form_menu::create_section_games(assets::group& resGrp, std::vector<game_inf
     }
 }
 
-void form_menu::create_section_settings(assets::group& resGrp, settings* settings)
+void form_menu::create_section_settings(assets::group& resGrp)
 {
     // Setting
     _tabSettings         = create_container<tab_container>(dock_style::Top, TabSettingsName);
@@ -402,7 +407,7 @@ void form_menu::create_section_settings(assets::group& resGrp, settings* setting
             ddlRes->select_item(std::format("{}x{}", res.Width, res.Height));
 
             auto lbl {tabPanelLayout->create_widget<label>({1, 2, 4, 2}, "lblResolution")};
-            lbl->Label = "Resolution";
+            lbl->Label = translate(lbl->get_name());
         }
 
         // fullscreen
@@ -411,7 +416,7 @@ void form_menu::create_section_settings(assets::group& resGrp, settings* setting
             chk->Checked = config[Cfg::Video::Name][Cfg::Video::fullscreen].as<bool>();
 
             auto lbl {tabPanelLayout->create_widget<label>({1, 6, 4, 2}, "lblFullScreen")};
-            lbl->Label = "Fullscreen";
+            lbl->Label = translate(lbl->get_name());
         }
 
         // vsync
@@ -420,15 +425,13 @@ void form_menu::create_section_settings(assets::group& resGrp, settings* setting
             chk->Checked = config[Cfg::Video::Name][Cfg::Video::vsync].as<bool>();
 
             auto lbl {tabPanelLayout->create_widget<label>({1, 10, 4, 2}, "lblVSync")};
-            lbl->Label = "VSync";
+            lbl->Label = translate(lbl->get_name());
         }
 
         auto btnApplyVideoSettings {tabPanelLayout->create_widget<button>({9, 16, 6, 4}, "btnApply")};
         btnApplyVideoSettings->Icon    = resGrp.get<gfx::texture>("apply");
         btnApplyVideoSettings->Tooltip = _tooltip;
-        btnApplyVideoSettings->Click.connect([&]() {
-            VideoSettingsChanged();
-        });
+        btnApplyVideoSettings->Click.connect([&]() { VideoSettingsChanged(); });
     }
     {
         auto tabPanel {_tabSettings->create_tab<panel>("Hints")};
@@ -436,25 +439,25 @@ void form_menu::create_section_settings(assets::group& resGrp, settings* setting
         // highlight movable
         {
             auto chk {tabPanelLayout->create_widget<checkbox>({10, 1, 3, 4}, "chkHintMovable")};
-            chk->Checked = settings->HintMovable;
-            chk->Checked.Changed.connect([settings](auto val) { settings->HintMovable = val; });
+            chk->Checked = _source.Settings->HintMovable;
+            chk->Checked.Changed.connect([this](auto val) { _source.Settings->HintMovable = val; });
 
             auto lbl {tabPanelLayout->create_widget<label>({1, 2, 8, 2}, "lblHintMovable")};
-            lbl->Label = "Highlight valid moves";
+            lbl->Label = translate(lbl->get_name());
         }
         // highlight drops
         {
             auto chk {tabPanelLayout->create_widget<checkbox>({10, 5, 3, 4}, "chkHintDrops")};
-            chk->Checked = settings->HintTarget;
-            chk->Checked.Changed.connect([settings](auto val) { settings->HintTarget = val; });
+            chk->Checked = _source.Settings->HintTarget;
+            chk->Checked.Changed.connect([this](auto val) { _source.Settings->HintTarget = val; });
 
             auto lbl {tabPanelLayout->create_widget<label>({1, 6, 8, 2}, "lblHintDrops")};
-            lbl->Label = "Highlight valid targets";
+            lbl->Label = translate(lbl->get_name());
         }
     }
 }
 
-void form_menu::create_section_themes(std::vector<std::string> const& colorThemes)
+void form_menu::create_section_themes()
 {
     // Themes
     auto panelThemes {create_container<panel>(dock_style::Left, TabThemesName)};
@@ -463,7 +466,7 @@ void form_menu::create_section_themes(std::vector<std::string> const& colorTheme
     {
         auto panelLayout {panelThemes->create_layout<dock_layout>()};
         auto lbxThemes {panelLayout->create_widget<list_box>(dock_style::Fill, "lbxThemes")};
-        for (auto const& colorTheme : colorThemes) { lbxThemes->add_item(colorTheme); }
+        for (auto const& colorTheme : *_source.Themes) { lbxThemes->add_item(colorTheme.first); }
         lbxThemes->SelectedItemIndex.Changed.connect([&, lb = lbxThemes.get()](auto val) {
             if (val != -1) { SelectedTheme = lb->get_selected_item(); }
         });
@@ -472,7 +475,7 @@ void form_menu::create_section_themes(std::vector<std::string> const& colorTheme
     }
 }
 
-void form_menu::create_section_cardset(std::vector<std::string> const& cardSets)
+void form_menu::create_section_cardset()
 {
     // Cardsets
     auto panelCardsets {create_container<panel>(dock_style::Left, TabCardsetsName)};
@@ -481,7 +484,7 @@ void form_menu::create_section_cardset(std::vector<std::string> const& cardSets)
     {
         auto panelLayout {panelCardsets->create_layout<dock_layout>()};
         auto lbxCardsets {panelLayout->create_widget<list_box>(dock_style::Fill, "lbxCardsets")};
-        for (auto const& cardSet : cardSets) { lbxCardsets->add_item(cardSet); }
+        for (auto const& cardSet : *_source.Cardsets) { lbxCardsets->add_item(cardSet.first); }
         lbxCardsets->SelectedItemIndex.Changed.connect([&, lb = lbxCardsets.get()](auto val) {
             if (val != -1) { SelectedCardset = lb->get_selected_item(); }
         });

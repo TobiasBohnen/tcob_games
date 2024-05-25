@@ -17,7 +17,7 @@ class database {
 public:
     database();
 
-    void insert_games(std::vector<game_info> const& games) const;
+    void insert_games(game_map const& games) const;
 
     void insert_history_entry(string const& name, game_state const& state, game_rng const& rng, game_status status) const;
     auto get_history(string const& name) const -> game_history;

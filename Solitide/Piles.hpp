@@ -125,13 +125,13 @@ public:
 
 ////////////////////////////////////////////////////////////
 
-struct move {
+struct hint {
     pile* Src {nullptr};
-    isize SrcIdx {0};
+    isize SrcPileIdx {0};
     isize SrcCardIdx {0};
 
     pile* Dst {nullptr};
-    isize DstIdx {0};
+    isize DstPileIdx {0};
     isize DstCardIdx {0};
 
     bool HasFoundation {false};

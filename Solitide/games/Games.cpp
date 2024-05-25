@@ -185,7 +185,7 @@ auto base_game::can_undo() const -> bool
     return !_undoStack.empty();
 }
 
-void base_game::hint()
+void base_game::use_hint()
 {
     if (!_hints.empty()) {
         ++_state.Hints;
@@ -370,9 +370,19 @@ void base_game::calc_hints()
         return;
     }
 
-    std::vector<move> movable;
+    auto const validHint {[&](auto const& src, auto const& dst) {
+        if (src.Src == dst) { return false; }
+        if (src.Src->Type == pile_type::Foundation && dst->Type == pile_type::Foundation) { return false; }                                  // ignore Foundation to Foundation
+        if (src.Src->Type == pile_type::Foundation && dst->Type == pile_type::FreeCell) { return false; }                                    // ignore Foundation to FreeCell
+        if (src.Src->Type == pile_type::FreeCell && dst->Type == pile_type::FreeCell) { return false; }                                      // ignore FreeCell to FreeCell
+        if (src.Src->Type == pile_type::Tableau && src.SrcCardIdx == 0 && dst->Type == pile_type::Tableau && dst->empty()) { return false; } // ignore first card Tableau to empty Tableau
+        if (dst->Type == pile_type::Foundation && src.HasFoundation) { return false; }                                                       // limit foundation destinations to 1
+        if (!dst->HasMarker && dst->Cards.empty()) { return false; }                                                                         // ignore markerless pile without cards
+        return true;
+    }};
+
+    std::vector<hint> movable;
     for (auto const& [_, piles] : _piles) {
-        isize srcIdx {0};
         for (auto* pile : piles) {
             if (!pile->is_playable()) { continue; }
 
@@ -381,26 +391,19 @@ void base_game::calc_hints()
 
                 auto& m {movable.emplace_back()};
                 m.Src        = pile;
-                m.SrcIdx     = srcIdx;
+                m.SrcPileIdx = pile->Index;
                 m.SrcCardIdx = srcCardIdx;
             }
-            srcIdx++;
         }
     }
 
     _hints.clear();
     _hints.reserve(movable.size());
     for (auto const& [_, piles] : _piles) {
-        isize dstIdx {0};
         for (auto* dst : piles) {
             if (dst->Type == pile_type::Stock || dst->Type == pile_type::Waste || dst->Type == pile_type::Reserve) { continue; } // skip Stock/Waste/Reserve destination
             for (auto& src : movable) {
-                if (src.Src == dst) { continue; }
-                if (src.Src->Type == pile_type::Foundation && dst->Type == pile_type::Foundation) { continue; }                  // ignore Foundation to Foundation
-                if (src.Src->Type == pile_type::Foundation && dst->Type == pile_type::FreeCell) { continue; }                    // ignore Foundation to FreeCell
-                if (src.Src->Type == pile_type::FreeCell && dst->Type == pile_type::FreeCell) { continue; }                      // ignore FreeCell to FreeCell
-                if (dst->Type == pile_type::Foundation && src.HasFoundation) { continue; }                                       // limit foundation destinations to 1
-                if (!dst->HasMarker && dst->Cards.empty()) { continue; }                                                         // ignore markerless pile without cards
+                if (!validHint(src, dst)) { continue; }
 
                 if (can_play(*dst,
                              dst->empty() ? -1 : dst->Cards.size() - 1,
@@ -410,19 +413,18 @@ void base_game::calc_hints()
 
                     auto& m {_hints.emplace_back()};
                     m.Src        = src.Src;
-                    m.SrcIdx     = src.SrcIdx;
+                    m.SrcPileIdx = src.SrcPileIdx;
                     m.SrcCardIdx = src.SrcCardIdx;
                     m.Dst        = dst;
-                    m.DstIdx     = dstIdx;
+                    m.DstPileIdx = dst->Index;
                     m.DstCardIdx = std::ssize(dst->Cards) - 1;
                 }
             }
-            dstIdx++;
         }
     }
 }
 
-auto base_game::get_available_hints() const -> std::vector<move> const&
+auto base_game::get_available_hints() const -> std::vector<hint> const&
 {
     return _hints;
 }

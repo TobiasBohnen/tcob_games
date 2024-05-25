@@ -53,17 +53,15 @@ start_scene::start_scene(game& game)
     // cardsets
     _cardSets = load_cardsets();
 
-    menu_sources source;
-    source.Games.reserve(_games.size());
-    for (auto const& x : _games) { source.Games.emplace_back(x.second.first); }
-    source.Themes.reserve(_themes.size());
-    for (auto const& x : _themes) { source.Themes.push_back(x.first); }
-    source.Cardsets.reserve(_cardSets.size());
-    for (auto const& x : _cardSets) { source.Cardsets.push_back(x.first); }
-    source.Settings = &_settings;
+    menu_sources source {
+        .Games    = &_games,
+        .Themes   = &_themes,
+        .Cardsets = &_cardSets,
+        .Settings = &_settings,
+    };
 
     // games
-    _db.insert_games(source.Games);
+    _db.insert_games(_games);
 
     // ui
     _formControls = std::make_shared<form_controls>(&window, resGrp);
@@ -319,12 +317,8 @@ void start_scene::start_wizard()
 
     _wizard->GameGenerated.connect([&](auto const& val) {
         if (_luaScript.run_file(val.Path)) {
-            std::vector<game_info> games;
-            games.reserve(_games.size());
-            for (auto const& x : _games) { games.emplace_back(x.second.first); }
-
-            _formMenu->set_games(games);
-            _db.insert_games(games);
+            _formMenu->update_games();
+            _db.insert_games(_games);
             start_game(val.Name, start_reason::Resume);
         }
     });
@@ -346,7 +340,7 @@ void start_scene::update_recent(string const& name)
     recent.push_front(name);
 
     _settings.Recent = recent;
-    _formMenu->set_recent_games(recent);
+    _formMenu->update_recent_games();
 }
 
 void start_scene::generate_rule(base_game const& game) const

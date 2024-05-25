@@ -141,7 +141,7 @@ void card_table::show_next_hint()
 {
     if (!_currentGame) { return; }
 
-    _currentGame->hint();
+    _currentGame->use_hint();
     _fgCanvas.show_hint();
 }
 
