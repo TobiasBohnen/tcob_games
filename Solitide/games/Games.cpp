@@ -21,11 +21,14 @@ base_game::base_game(game_info info)
     _state.Redeals = _info.Redeals;
 }
 
-void base_game::start(std::optional<data::config::object> const& loadObj)
+void base_game::start(std::optional<data::config::object> const& loadObj, std::optional<u64> seed)
 {
     Status = game_status::Initial;
 
-    if (!load(loadObj)) { new_game(); }
+    if (!load(loadObj)) {
+        if (seed) { _rng = {*seed}; }
+        new_game();
+    }
 
     init();
 }
@@ -360,7 +363,7 @@ auto base_game::get_status() const -> game_status
 
 auto base_game::get_shuffled() -> std::vector<card>
 {
-    return deck::GetShuffled(_rng.Gen, _info.DeckCount, _info.DeckSuits, _info.DeckRanks);
+    return deck::GetShuffled(_rng.gen(), _info.DeckCount, _info.DeckSuits, _info.DeckRanks);
 }
 
 void base_game::calc_hints()

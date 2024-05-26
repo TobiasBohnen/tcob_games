@@ -12,7 +12,7 @@ namespace solitaire {
 static char const* SAVE_NAME {"save.ini"};
 static char const* SETTINGS_NAME {"settings"};
 
-auto static get_size(string_view str) -> size_i
+auto static get_size(std::string_view str) -> size_i
 {
     i32                    width {}, height {};
     size_t const           xPos {str.find('x')};
@@ -21,6 +21,12 @@ auto static get_size(string_view str) -> size_i
     std::from_chars(widthStrView.data(), widthStrView.data() + widthStrView.size(), width);
     std::from_chars(heightStrView.data(), heightStrView.data() + heightStrView.size(), height);
     return {width, height};
+}
+auto static to_int(std::string_view str) -> u64
+{
+    u64 retValue {};
+    std::from_chars(str.data(), str.data() + str.size(), retValue);
+    return retValue;
 }
 
 start_scene::start_scene(game& game)
@@ -117,13 +123,13 @@ void start_scene::on_start()
     _formControls->fixed_update(0s); // updates style
 
     if (!_settings.Game.empty()) {
-        start_game(_settings.Game, start_reason::Resume);
+        start_game(_settings.Game, start_reason::Resume, std::nullopt);
     }
 }
 
 void start_scene::connect_ui_events()
 {
-    _formControls->BtnNewGame->Click.connect([&](auto const&) { start_game(_formMenu->SelectedGame, start_reason::Restart); });
+    _formControls->BtnNewGame->Click.connect([&](auto const&) { start_game(_formMenu->SelectedGame, start_reason::Restart, std::nullopt); });
     _formControls->BtnWizard->Click.connect([&](auto const&) { start_wizard(); });
     _formControls->BtnMenu->Click.connect([&](auto const&) { _formMenu->show(); });
 
@@ -149,8 +155,8 @@ void start_scene::connect_ui_events()
         update_stats(game);
     });
 
-    _formMenu->StartGameRequested.connect([&]() {
-        start_game(_formMenu->SelectedGame, start_reason::Resume);
+    _formMenu->StartGameRequested.connect([&](std::string const& seed) {
+        start_game(_formMenu->SelectedGame, start_reason::Resume, to_int(seed));
     });
 
     _formMenu->SelectedTheme.Changed.connect([&](auto const& theme) {
@@ -180,7 +186,7 @@ void start_scene::connect_ui_events()
         _settings.Cardset = newCardset;
 
         _cardTable->set_cardset(_cardSets[newCardset]);
-        start_game(_formMenu->SelectedGame, start_reason::Resume);
+        start_game(_formMenu->SelectedGame, start_reason::Resume, std::nullopt);
     });
 
     _formMenu->VideoSettingsChanged.connect([&]() {
@@ -196,11 +202,11 @@ void start_scene::connect_ui_events()
         window.FullScreen = obj["chkFullScreen"]["checked"].as<bool>();
         window.VSync      = obj["chkVSync"]["checked"].as<bool>();
 
-        auto const res {get_size(obj["ddlResolution"]["selected"].as<string>())};
+        auto const res {get_size(obj["ddlResolution"]["selected"].as<std::string>())};
         window.Size = res;
         set_children_bounds(res);
 
-        start_game(_formMenu->SelectedGame, start_reason::Resume);
+        start_game(_formMenu->SelectedGame, start_reason::Resume, std::nullopt);
     });
 }
 
@@ -242,7 +248,7 @@ void start_scene::on_key_down(input::keyboard::event& ev)
     using namespace tcob::enum_ops;
 
     if (ev.KeyCode == input::key_code::n && (ev.KeyMods & input::key_mod::LeftControl) == input::key_mod::LeftControl) {
-        start_game(_formMenu->SelectedGame, start_reason::Restart);
+        start_game(_formMenu->SelectedGame, start_reason::Restart, std::nullopt);
         ev.Handled = true;
     }
 }
@@ -260,8 +266,10 @@ void start_scene::set_children_bounds(size_i size)
     _cardTable->Bounds = rect_f {{tableX, tableY}, {tableWidth, tableHeight}};
 }
 
-void start_scene::start_game(string const& name, start_reason reason)
+void start_scene::start_game(std::string const& name, start_reason reason, std::optional<u64> seed)
 {
+    if (seed) { reason = start_reason::Restart; } // force restart if seed is set
+
     if (!_games.contains(name)) { return; }
     _formMenu->SelectedGame = name;
 
@@ -295,7 +303,7 @@ void start_scene::start_game(string const& name, start_reason reason)
 
     switch (reason) {
     case start_reason::Restart:
-        _cardTable->start(newGame);
+        _cardTable->start(newGame, seed);
         break;
     case start_reason::Resume: {
         _cardTable->resume(newGame, _saveGame);
@@ -319,20 +327,20 @@ void start_scene::start_wizard()
         if (_luaScript.run_file(val.Path)) {
             _formMenu->update_games();
             _db.insert_games(_games);
-            start_game(val.Name, start_reason::Resume);
+            start_game(val.Name, start_reason::Resume, std::nullopt);
         }
     });
     get_game().push_scene(_wizard);
 }
 
-void start_scene::update_stats(string const& name) const
+void start_scene::update_stats(std::string const& name) const
 {
     _formMenu->set_game_stats(_db.get_history(name));
 }
 
-void start_scene::update_recent(string const& name)
+void start_scene::update_recent(std::string const& name)
 {
-    std::deque<string>& recent {_settings.Recent};
+    std::deque<std::string>& recent {_settings.Recent};
 
     auto it {std::find(recent.begin(), recent.end(), name)};
     if (it != recent.end()) { recent.erase(it); }

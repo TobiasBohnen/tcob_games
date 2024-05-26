@@ -47,12 +47,12 @@ void database::insert_games(game_map const& games) const
     sp.release();
 }
 
-void database::insert_history_entry(string const& name, game_state const& state, game_rng const& rng, game_status status) const
+void database::insert_history_entry(std::string const& name, game_state const& state, game_rng const& rng, game_status status) const
 {
     auto sp {_database.create_savepoint("sp1")};
 
     auto const id {_tabGames->select_from<i64>("ID").where("Name = ?")(name)};
-    auto const seed {std::to_string(rng.get_seed())};
+    auto const seed {std::to_string(rng.seed())};
 
     std::ignore = _tabHistory->insert_into(db::ignore, "GameID", "Seed")(std::tuple<i64, string> {id[0], seed});
     std::ignore = _tabHistory->update("Won", "Turns", "Score", "Undos", "Hints", "Time")
@@ -61,13 +61,13 @@ void database::insert_history_entry(string const& name, game_state const& state,
     sp.release();
 }
 
-auto database::get_history(string const& name) const -> game_history
+auto database::get_history(std::string const& name) const -> game_history
 {
     auto const id {_tabGames->select_from<i64>("ID").where("Name = ?")(name)};
     auto const entries {
-        _tabHistory->select_from<i64, i64, i64, i64, i64, i64, bool>("ID", "Turns", "Score", "Undos", "Hints", "Time", "Won")
+        _tabHistory->select_from<i64, rng::seed_type, i64, i64, i64, i64, i64, bool>("ID", "Seed", "Turns", "Score", "Undos", "Hints", "Time", "Won")
             .where("GameID = ?")
-            .order_by("ID")
+            .order_by("Seed")
             .exec<game_history::entry>(id)};
     isize const won {std::ranges::count_if(entries, [](auto const& entry) { return entry.Won; })};
     return {.Won = won, .Lost = std::ssize(entries) - won, .Entries = entries};

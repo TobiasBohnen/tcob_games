@@ -103,13 +103,13 @@ class game_rng {
 public:
     game_rng(rng::seed_type seed = clock::now().time_since_epoch().count());
 
-    rng  Gen {};
-    auto get_seed() const -> rng::seed_type const&;
+    auto gen() -> rng&;
+    auto seed() const -> rng::seed_type const&;
 
     void static Serialize(game_rng const& v, auto&& s)
     {
         s["Seed"]  = v._seed;
-        s["State"] = v.Gen.get_state();
+        s["State"] = v._gen.get_state();
     }
 
     auto static Deserialize(game_rng& v, auto&& s) -> bool
@@ -117,7 +117,7 @@ public:
         rng::state_type state;
         if (s.try_get(v._seed, "Seed")
             && s.try_get(state, "State")) {
-            v.Gen = rng {state};
+            v._gen = rng {state};
             return true;
         }
 
@@ -126,6 +126,7 @@ public:
 
 private:
     rng::seed_type _seed {};
+    rng            _gen {};
 };
 
 ////////////////////////////////////////////////////////////
@@ -136,6 +137,7 @@ struct game_history {
 
     struct entry {
         i64  ID {0};
+        u64  Seed {0};
         i64  Turns {0};
         i64  Score {0};
         i64  Undos {0};

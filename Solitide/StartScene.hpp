@@ -44,11 +44,11 @@ protected:
 
 private:
     void set_children_bounds(size_i size);
-    void start_game(string const& name, start_reason reason);
+    void start_game(std::string const& name, start_reason reason, std::optional<u64> seed);
     void start_wizard();
 
-    void update_stats(string const& name) const;
-    void update_recent(string const& name);
+    void update_stats(std::string const& name) const;
+    void update_recent(std::string const& name);
 
     void generate_rule(base_game const& game) const;
 

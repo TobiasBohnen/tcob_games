@@ -8,12 +8,17 @@
 namespace solitaire {
 
 game_rng::game_rng(rng::seed_type seed)
-    : Gen {seed}
-    , _seed {seed}
+    : _seed {seed}
+    , _gen {seed}
 {
 }
 
-auto game_rng::get_seed() const -> rng::seed_type const&
+auto game_rng::gen() -> rng&
+{
+    return _gen;
+}
+
+auto game_rng::seed() const -> rng::seed_type const&
 {
     return _seed;
 }

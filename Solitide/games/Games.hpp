@@ -35,7 +35,7 @@ public:
     auto rng() -> game_rng&;
     auto storage() -> data::config::object*;
 
-    void start(std::optional<data::config::object> const& loadObj);
+    void start(std::optional<data::config::object> const& loadObj, std::optional<u64> seed);
     void save(data::config::object& saveObj);
 
     void undo();
@@ -108,7 +108,7 @@ public:
 
     void static CreateWrapper(auto&& script);
     template <typename T>
-    void static CreateGlobals(auto&& scene, auto&& script, auto&& globalTable, auto&& makeFunc, string const& ext);
+    void static CreateGlobals(auto&& scene, auto&& script, auto&& globalTable, auto&& makeFunc, std::string const& ext);
 
 protected:
     auto do_redeal() -> bool override;

@@ -53,7 +53,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     // methods
     gameWrapper["shuffle_cards"] = [](base_game* game, std::vector<card> const& cards) {
         std::vector<card> shuffled {cards};
-        game->rng().Gen.template shuffle<card>(shuffled);
+        game->rng().gen().template shuffle<card>(shuffled);
         return shuffled;
     };
     gameWrapper["find_pile"] = [](base_game* game, card& card) -> pile* {
@@ -238,7 +238,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>
 template <typename T>
-inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& scene, auto&& script, auto&& globalTable, auto&& makeFunc, string const& ext)
+inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& scene, auto&& script, auto&& globalTable, auto&& makeFunc, std::string const& ext)
 {
     auto const now {std::chrono::system_clock::now()};
     globalTable["Sol"]["Date"] = std::format("{:%Y%m%d}", now);
@@ -383,7 +383,7 @@ template <typename Table, template <typename> typename Function, isize IndexOffs
 inline auto script_game<Table, Function, IndexOffset>::get_shuffled() -> std::vector<card>
 {
     if (_callbacks.GetShuffled) {
-        auto const retValue {(*_callbacks.GetShuffled)(static_cast<base_game const*>(this), rng().get_seed())};
+        auto const retValue {(*_callbacks.GetShuffled)(static_cast<base_game const*>(this), rng().seed())};
         return retValue.empty() ? base_game::get_shuffled() : retValue;
     }
     return base_game::get_shuffled();
