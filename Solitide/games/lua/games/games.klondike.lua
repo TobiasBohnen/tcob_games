@@ -1171,7 +1171,16 @@ local sawayama = { --from Last Call BBS
     },
     FreeCell   = {
         Position = { x = 1, y = 0 },
-        Rule     = Sol.Rules.any_none_top
+        Rule     = {
+            Base = {
+                Hint = "Any",
+                Func = function(game, _, _)
+                    return game.Stock[1].IsEmpty
+                end
+            },
+            Build = Sol.Rules.Base.None(),
+            Move = Sol.Rules.Move.Top()
+        }
     },
     Waste      = {
         Position = { x = 2, y = 0 },
