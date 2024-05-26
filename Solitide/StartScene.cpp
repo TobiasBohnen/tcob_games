@@ -58,10 +58,10 @@ start_scene::start_scene(game& game)
     load_scripts();
 
     // themes
-    _themes = load_themes();
+    load_themes(_themes);
 
     // cardsets
-    _cardSets = load_cardsets();
+    load_cardsets(_cardSets);
 
     menu_sources source {
         .Games    = &_games,
@@ -164,23 +164,7 @@ void start_scene::connect_ui_events()
     });
 
     _formMenu->SelectedTheme.Changed.connect([&](auto const& theme) {
-        auto& resMgr {locate_service<assets::library>()};
-        auto& resGrp {resMgr.create_or_get_group("solitaire")};
-
-        auto themeName {theme};
-        if (!_themes.contains(theme)) { themeName = "default"; }
-        auto const& newTheme {_themes[themeName]};
-
-        styles     styles {resGrp};
-        auto const styleCollection {styles.load(newTheme)};
-        _formMenu->Styles = styleCollection;
-        _formMenu->fixed_update(milliseconds {0});
-
-        _formControls->Styles = styleCollection;
-        _formControls->fixed_update(milliseconds {0});
-
-        _cardTable->set_theme(newTheme);
-        _settings.Theme = themeName;
+        set_theme(theme);
     });
 
     _formMenu->SelectedCardset.Changed.connect([&](auto const& cardset) {
@@ -255,6 +239,11 @@ void start_scene::on_key_down(input::keyboard::event& ev)
         start_game(_formMenu->SelectedGame, start_reason::Restart, std::nullopt);
         ev.Handled = true;
     }
+    if (ev.KeyCode == input::key_code::t && (ev.KeyMods & input::key_mod::LeftAlt) == input::key_mod::LeftAlt) {
+        load_themes(_themes);
+        set_theme(_formMenu->SelectedTheme);
+        ev.Handled = true;
+    }
 }
 
 void start_scene::set_children_bounds(size_i size)
@@ -268,6 +257,26 @@ void start_scene::set_children_bounds(size_i size)
     f32 const tableWidth {menuBounds.Width};
     f32 const tableHeight {menuBounds.Height * 0.85f};
     _cardTable->Bounds = rect_f {{tableX, tableY}, {tableWidth, tableHeight}};
+}
+
+void start_scene::set_theme(std::string const& theme)
+{
+    auto themeName {theme};
+    if (!_themes.contains(theme)) { themeName = "default"; }
+    auto const& newTheme {_themes[themeName]};
+
+    auto&      resMgr {locate_service<assets::library>()};
+    auto&      resGrp {resMgr.create_or_get_group("solitaire")};
+    styles     styles {resGrp};
+    auto const styleCollection {styles.load(newTheme)};
+    _formMenu->Styles = styleCollection;
+    _formMenu->fixed_update(milliseconds {0});
+
+    _formControls->Styles = styleCollection;
+    _formControls->fixed_update(milliseconds {0});
+
+    _cardTable->set_theme(newTheme);
+    _settings.Theme = themeName;
 }
 
 void start_scene::start_game(std::string const& name, start_reason reason, std::optional<u64> seed)

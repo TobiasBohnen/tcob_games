@@ -173,14 +173,13 @@ void color_theme::apply(std::shared_ptr<nav_arrows_style> const& style) const
     style->NavArrow.Border.Background = Border;
 }
 
-auto load_themes() -> std::map<std::string, color_themes>
+void load_themes(std::map<std::string, color_themes>& themeMap)
 {
+    themeMap.clear();
     using namespace tcob::data::config;
 
-    std::map<std::string, color_themes> retValue;
-
     object themes {};
-    if (themes.load("themes.json") != load_status::Ok) { return retValue; }
+    if (themes.load("themes.json") != load_status::Ok) { return; }
 
     object     customThemes {};
     auto const files {io::enumerate("/", {"themes.*.json", false}, true)};
@@ -257,9 +256,7 @@ auto load_themes() -> std::map<std::string, color_themes>
         ct.Normal   = normal;
         ct.Hover    = hover;
         ct.Active   = active;
-        retValue[k] = ct;
+        themeMap[k] = ct;
     }
-
-    return retValue;
 }
 }

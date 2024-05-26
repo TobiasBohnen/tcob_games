@@ -27,7 +27,7 @@
     },
     "table": {
       "A": "#2E8b57",
-      "B": "#006400"
+      "B": "#2E8b57"
     }
   },
   "Bubblegum": {
@@ -52,9 +52,9 @@
       "border": "#ff69b4",
       "container": "#ffb6c1",
       "foreground": "#000000",
-      "label": "#ff6347",
-      "list": "#ff6347",
-      "shadow": "#ff6347"
+      "label": "#c71585",
+      "list": "#c71585",
+      "shadow": "#ffc0cb"
     },
     "table": {
       "A": "#ffb6c1",
@@ -79,7 +79,7 @@
       "shadow": "#333333"
     },
     "normal": {
-      "background": "#ffdd33",
+      "background": "#333333",
       "border": "#333333",
       "container": "#ffdd66",
       "foreground": "#ffffcc",
@@ -89,7 +89,7 @@
     },
     "table": {
       "A": "#ffdd33",
-      "B": "#ffdd66"
+      "B": "#ffdd33"
     }
   },
   "Chocolate Brown": {
@@ -151,7 +151,7 @@
     },
     "table": {
       "A": "#add8e6",
-      "B": "#4682b4"
+      "B": "#add8e6"
     }
   },
   "Coral Reef": {
@@ -274,7 +274,7 @@
     },
     "table": {
       "A": "#556b2f",
-      "B": "#8b4513"
+      "B": "#556b2f"
     }
   },
   "Fantasy Forest": {
@@ -366,7 +366,7 @@
       "shadow": "#004080"
     },
     "table": {
-      "A": "#001f3f",
+      "A": "#004080",
       "B": "#004080"
     }
   },
@@ -404,7 +404,7 @@
   "Golden Meadow": {
     "active": {
       "background": "#a0522d",
-      "border": "#deb887",
+      "border": "#ffb887",
       "container": "#a0522d",
       "foreground": "#ffffff",
       "list": "#8fbc8f",
@@ -415,21 +415,21 @@
       "border": "#a0522d",
       "container": "#8fbc8f",
       "foreground": "#ffffff",
-      "list": "#deb887",
-      "shadow": "#deb887"
+      "list": "#ffb887",
+      "shadow": "#ffb887"
     },
     "normal": {
-      "background": "#deb887",
+      "background": "#ffb887",
       "border": "#8fbc8f",
-      "container": "#deb887",
+      "container": "#ffb887",
       "foreground": "#ffffff",
       "label": "#a0522d",
       "list": "#a0522d",
       "shadow": "#a0522d"
     },
     "table": {
-      "A": "#deb887",
-      "B": "#a0522d"
+      "A": "#ffb887",
+      "B": "#ffb887"
     }
   },
   "Greyscale": {
@@ -522,7 +522,7 @@
     },
     "table": {
       "A": "#8fbc8f",
-      "B": "#deb887"
+      "B": "#8fbc8f"
     }
   },
   "Midnight": {
@@ -574,17 +574,17 @@
       "shadow": "#00ff00"
     },
     "normal": {
-      "background": "#98fb98",
+      "background": "#008000",
       "border": "#f0fff0",
-      "container": "#98fb98",
+      "container": "#008000",
       "foreground": "#000000",
-      "label": "#008000",
-      "list": "#008000",
-      "shadow": "#008000"
+      "label": "#98fb98",
+      "list": "#98fb98",
+      "shadow": "#98fb98"
     },
     "table": {
       "A": "#98fb98",
-      "B": "#008000"
+      "B": "#98fb98"
     }
   },
   "Nebula Purple": {
@@ -729,17 +729,17 @@
       "shadow": "#008080"
     },
     "normal": {
-      "background": "#00ff00",
-      "border": "#008000",
-      "container": "#00ff00",
+      "background": "#1685f8",
+      "border": "#3d144c",
+      "container": "#1685f8",
       "foreground": "#ffffff",
-      "label": "#008000",
-      "list": "#008000",
-      "shadow": "#008000"
+      "label": "#3d144c",
+      "list": "#3d144c",
+      "shadow": "#3d144c"
     },
     "table": {
-      "A": "#00ff00",
-      "B": "#008000"
+      "A": "#f52789",
+      "B": "#f52789"
     }
   },
   "Rose Gold": {
@@ -791,16 +791,16 @@
       "shadow": "#808000"
     },
     "normal": {
-      "background": "#00ffff",
+      "background": "#008080",
       "border": "#008080",
-      "container": "#00ffff",
+      "container": "#000080",
       "foreground": "#ffffff",
       "label": "#008080",
       "list": "#008080",
-      "shadow": "#008080"
+      "shadow": "#000080"
     },
     "table": {
-      "A": "#00ffff",
+      "A": "#008080",
       "B": "#008080"
     }
   },

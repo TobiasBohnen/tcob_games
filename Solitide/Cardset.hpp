@@ -44,7 +44,7 @@ private:
     bool                                    _loaded;
 };
 
-auto load_cardsets() -> std::map<std::string, std::shared_ptr<cardset>>;
+void load_cardsets(std::map<std::string, std::shared_ptr<cardset>>& cardsetMap);
 
 ////////////////////////////////////////////////////////////
 

@@ -44,6 +44,8 @@ protected:
 
 private:
     void set_children_bounds(size_i size);
+    void set_theme(std::string const& theme);
+
     void start_game(std::string const& name, start_reason reason, std::optional<u64> seed);
     void start_wizard();
 

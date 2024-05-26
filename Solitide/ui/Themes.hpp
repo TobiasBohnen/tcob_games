@@ -54,6 +54,6 @@ struct color_themes {
     color_theme Active;
 };
 
-auto load_themes() -> std::map<std::string, color_themes>;
+void load_themes(std::map<std::string, color_themes>& themeMap);
 
 }

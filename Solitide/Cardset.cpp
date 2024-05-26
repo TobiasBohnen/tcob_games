@@ -13,17 +13,17 @@ namespace solitaire {
 static std::string const UserFolder {"/cardsets/"};
 static constexpr isize   CardsetCardCount {68};
 
-auto load_cardsets() -> std::map<std::string, std::shared_ptr<cardset>>
+void load_cardsets(std::map<std::string, std::shared_ptr<cardset>>& cardsetMap)
 {
-    std::map<std::string, std::shared_ptr<cardset>> retValue;
+    cardsetMap.clear();
 
     auto& resMgr {locate_service<assets::library>()};
     auto& resGrp {resMgr.create_or_get_group("solitaire")};
     auto  resFolder {resGrp.get_mount_point() + "cardsets/"};
 
-    retValue["gen_0"]  = std::make_shared<gen_cardset>(resGrp);
-    retValue["mini_h"] = std::make_shared<mini_h_cardset>(resGrp);
-    retValue["mini_v"] = std::make_shared<mini_v_cardset>(resGrp);
+    cardsetMap["gen_0"]  = std::make_shared<gen_cardset>(resGrp);
+    cardsetMap["mini_h"] = std::make_shared<mini_h_cardset>(resGrp);
+    cardsetMap["mini_v"] = std::make_shared<mini_v_cardset>(resGrp);
 
     std::unordered_map<std::string, std::unordered_set<std::string>> folders;
     folders[UserFolder] = io::get_sub_folders(UserFolder);
@@ -32,12 +32,10 @@ auto load_cardsets() -> std::map<std::string, std::shared_ptr<cardset>>
     for (auto const& [folder, subfolders] : folders) {
         for (auto const& gi : subfolders) {
             auto const name {io::get_stem(gi)};
-            if (retValue.contains(name)) { continue; }
-            retValue[name] = std::make_shared<cardset>(folder, name);
+            if (cardsetMap.contains(name)) { continue; }
+            cardsetMap[name] = std::make_shared<cardset>(folder, name);
         }
     }
-
-    return retValue;
 }
 
 ////////////////////////////////////////////////////////////
