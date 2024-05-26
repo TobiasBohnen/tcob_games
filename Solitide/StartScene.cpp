@@ -275,6 +275,10 @@ void start_scene::set_theme(std::string const& theme)
     _formControls->Styles = styleCollection;
     _formControls->fixed_update(milliseconds {0});
 
+    if (_wizard) {
+        _wizard->update_theme(newTheme);
+    }
+
     _cardTable->set_theme(newTheme);
     _settings.Theme = themeName;
 }
@@ -333,7 +337,8 @@ void start_scene::start_game(std::string const& name, start_reason reason, std::
 void start_scene::start_wizard()
 {
     if (!_wizard) {
-        _wizard = std::make_shared<wizard_scene>(get_game(), _themes[_formMenu->SelectedTheme]);
+        _wizard = std::make_shared<wizard_scene>(get_game());
+        _wizard->update_theme(_themes[_formMenu->SelectedTheme]);
     }
 
     _wizard->GameGenerated.connect([&](auto const& val) {

@@ -63,25 +63,25 @@
   },
   "Canary Yellow": {
     "active": {
-      "background": "#ffff99",
+      "background": "#ffffcc",
       "border": "#333333",
       "container": "#ffffcc",
       "foreground": "#333333",
-      "list": "#ffff99",
+      "list": "#ffee66",
       "shadow": "#333333"
     },
     "hover": {
       "background": "#ffee66",
       "border": "#333333",
-      "container": "#ffee99",
+      "container": "#ffee66",
       "foreground": "#333333",
       "list": "#ffee66",
       "shadow": "#333333"
     },
     "normal": {
       "background": "#333333",
-      "border": "#333333",
-      "container": "#ffdd66",
+      "border": "#ffee66",
+      "container": "#ffee66",
       "foreground": "#ffffcc",
       "label": "#333333",
       "list": "#333333",
@@ -339,6 +339,37 @@
       "B": "#006400"
     }
   },
+  "Forest Night": {
+    "active": {
+      "background": "#013220",
+      "border": "#228b22",
+      "container": "#013220",
+      "foreground": "#ffffff",
+      "list": "#006400",
+      "shadow": "#006400"
+    },
+    "hover": {
+      "background": "#228b22",
+      "border": "#013220",
+      "container": "#228b22",
+      "foreground": "#ffffff",
+      "list": "#00ff00",
+      "shadow": "#00ff00"
+    },
+    "normal": {
+      "background": "#006400",
+      "border": "#013220",
+      "container": "#006400",
+      "foreground": "#ffffff",
+      "label": "#013220",
+      "list": "#013220",
+      "shadow": "#013220"
+    },
+    "table": {
+      "A": "#006400",
+      "B": "#013220"
+    }
+  },
   "Galactic Blue": {
     "active": {
       "background": "#004080",
@@ -587,6 +618,37 @@
       "B": "#98fb98"
     }
   },
+  "Mystic Purple": {
+    "active": {
+      "background": "#800080",
+      "border": "#9932cc",
+      "container": "#800080",
+      "foreground": "#ffffff",
+      "list": "#8a2be2",
+      "shadow": "#8a2be2"
+    },
+    "hover": {
+      "background": "#ba55d3",
+      "border": "#9370db",
+      "container": "#ba55d3",
+      "foreground": "#ffffff",
+      "list": "#dda0dd",
+      "shadow": "#dda0dd"
+    },
+    "normal": {
+      "background": "#dda0dd",
+      "border": "#9932cc",
+      "container": "#dda0dd",
+      "foreground": "#ffffff",
+      "label": "#800080",
+      "list": "#800080",
+      "shadow": "#800080"
+    },
+    "table": {
+      "A": "#dda0dd",
+      "B": "#9932cc"
+    }
+  },
   "Nebula Purple": {
     "active": {
       "background": "#6a0dad",
@@ -616,6 +678,37 @@
     "table": {
       "A": "#330033",
       "B": "#6a0dad"
+    }
+  },
+  "Ocean Breeze": {
+    "active": {
+      "background": "#00ced1",
+      "border": "#20b2aa",
+      "container": "#00ced1",
+      "foreground": "#ffffff",
+      "list": "#008b8b",
+      "shadow": "#008b8b"
+    },
+    "hover": {
+      "background": "#40e0d0",
+      "border": "#20b2aa",
+      "container": "#40e0d0",
+      "foreground": "#ffffff",
+      "list": "#48d1cc",
+      "shadow": "#48d1cc"
+    },
+    "normal": {
+      "background": "#afeeee",
+      "border": "#20b2aa",
+      "container": "#afeeee",
+      "foreground": "#ffffff",
+      "label": "#00ced1",
+      "list": "#00ced1",
+      "shadow": "#00ced1"
+    },
+    "table": {
+      "A": "#afeeee",
+      "B": "#20b2aa"
     }
   },
   "Orchid Dreams": {
@@ -792,7 +885,7 @@
     },
     "normal": {
       "background": "#008080",
-      "border": "#008080",
+      "border": "#000080",
       "container": "#000080",
       "foreground": "#ffffff",
       "label": "#008080",
@@ -802,6 +895,68 @@
     "table": {
       "A": "#008080",
       "B": "#008080"
+    }
+  },
+  "Summer Sunset": {
+    "active": {
+      "background": "#ff4500",
+      "border": "#ff6347",
+      "container": "#ff4500",
+      "foreground": "#ffffff",
+      "list": "#cd5c5c",
+      "shadow": "#cd5c5c"
+    },
+    "hover": {
+      "background": "#ff7f50",
+      "border": "#ff4500",
+      "container": "#ff7f50",
+      "foreground": "#ffffff",
+      "list": "#fa8072",
+      "shadow": "#fa8072"
+    },
+    "normal": {
+      "background": "#ffa07a",
+      "border": "#ff6347",
+      "container": "#ffa07a",
+      "foreground": "#ffffff",
+      "label": "#cd5c5c",
+      "list": "#cd5c5c",
+      "shadow": "#cd5c5c"
+    },
+    "table": {
+      "A": "#ffa07a",
+      "B": "#ff6347"
+    }
+  },
+  "Sunny Yellow": {
+    "active": {
+      "background": "#ffd700",
+      "border": "#ffec8b",
+      "container": "#ffd700",
+      "foreground": "#000000",
+      "list": "#ffec8b",
+      "shadow": "#ffec8b"
+    },
+    "hover": {
+      "background": "#ffeb3b",
+      "border": "#ffd700",
+      "container": "#ffeb3b",
+      "foreground": "#000000",
+      "list": "#fffacd",
+      "shadow": "#fffacd"
+    },
+    "normal": {
+      "background": "#fffacd",
+      "border": "#ffd700",
+      "container": "#fffacd",
+      "foreground": "#000000",
+      "label": "#ffd700",
+      "list": "#ffd700",
+      "shadow": "#ffd700"
+    },
+    "table": {
+      "A": "#fffacd",
+      "B": "#ffd700"
     }
   },
   "Sunset Beach": {

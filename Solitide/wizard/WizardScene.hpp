@@ -19,9 +19,11 @@ class wizard_scene : public scene {
     };
 
 public:
-    wizard_scene(game& game, color_themes const& currentTheme);
+    wizard_scene(game& game);
 
     signal<ev_args const> GameGenerated;
+
+    void update_theme(color_themes const& currentTheme);
 
 protected:
     void on_start() override;
@@ -35,7 +37,6 @@ protected:
 
 private:
     std::shared_ptr<form_wizard> _formWizard {};
-    color_themes                 _currentTheme;
 };
 
 }
