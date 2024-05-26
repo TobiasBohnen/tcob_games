@@ -26,9 +26,9 @@ auto empty_none(card const&, isize) -> bool
 
 auto pile::is_playable() const -> bool
 {
-    return Rule.IsPlayable
-        && !empty()
-        && !Cards.back().is_face_down();
+    return !empty()
+        && !Cards.back().is_face_down()
+        && Rule.IsPlayable();
 }
 
 auto pile::empty() const -> bool
@@ -230,7 +230,7 @@ auto pile::build(isize targetIndex, card const& card, isize numCards) const -> b
 stock::stock()
 {
     Type            = pile_type::Stock;
-    Rule.IsPlayable = false;
+    Rule.IsPlayable = [] { return false; };
 }
 
 waste::waste()

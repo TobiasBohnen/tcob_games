@@ -107,17 +107,17 @@ local build = {
 
 local move = {
     None = @() {
-        Hint = "None", IsPlayable = false, IsSequence = false
+        Hint = "None", IsPlayable = @(game) false, IsSequence = false
     },
     Top = @() {
-        Hint = "Top card", IsPlayable = true, IsSequence = false, Func = @(_, pile, idx) idx == pile.CardCount - 1
+        Hint = "Top card", IsPlayable = @(game) true, IsSequence = false, Func = @(_, pile, idx) idx == pile.CardCount - 1
     },
     TopOrPile = @() {
-        Hint = "Top card or whole pile", IsPlayable = true, IsSequence = true, Func = @(_, pile, idx) idx == pile.CardCount - 1 || idx == 0
+        Hint = "Top card or whole pile", IsPlayable = @(game) true, IsSequence = true, Func = @(_, pile, idx) idx == pile.CardCount - 1 || idx == 0
     },
     FaceUp = @() {
         Hint = "Face-up cards"
-        IsPlayable = true
+        IsPlayable = @(game) true
         IsSequence = true
         Func = function(_, pile, idx) {
             for (local i = idx; i < pile.CardCount - 1; ++i) {
@@ -130,7 +130,7 @@ local move = {
     },
     InSeq = @() {
         Hint = "Sequence of cards"
-        IsPlayable = true
+        IsPlayable = @(game) true
         IsSequence = true
         Func = function(game, pile, idx) {
             local cards = pile.Cards
@@ -147,7 +147,7 @@ local move = {
     },
     InSeqInSuit = @() {
         Hint = "Sequence of cards in the same suit"
-        IsPlayable = true
+        IsPlayable = @(game) true
         IsSequence = true
         Func = function(game, pile, idx) {
             local cards = pile.Cards
@@ -166,7 +166,7 @@ local move = {
     },
     InSeqAlternateColors = @() {
         Hint = "Color-alternating card sequence"
-        IsPlayable = true
+        IsPlayable = @(game) true
         IsSequence = true
         Func = function(game, pile, idx) {
             local cards = pile.Cards
@@ -185,7 +185,7 @@ local move = {
     },
     InSeqInSuitOrSameRank = @() {
         Hint = "Sequence of cards in the same suit or rank"
-        IsPlayable = true
+        IsPlayable = @(game) true
         IsSequence = true
         Func = function(game, pile, idx) {
             local cards = pile.Cards
@@ -217,7 +217,7 @@ local move = {
     },
     SuperMove = @() {
         Hint = "Top card (SuperMove)"
-        IsPlayable = true
+        IsPlayable = @(game) true
         IsSequence = true
         Func = function(game, pile, idx) {
             local cards = pile.Cards

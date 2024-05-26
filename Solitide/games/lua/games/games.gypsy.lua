@@ -216,15 +216,6 @@ end
 
 ------
 
-local giant_check          = function(game)
-    if game.Stock[1].IsEmpty then
-        local foundation = game.Foundation
-        for _, fou in ipairs(foundation) do
-            fou.IsPlayable = true
-        end
-    end
-end
-
 local giant                = Sol.copy(gypsy)
 giant.Info.Name            = "Giant"
 giant.Stock.Initial        = Sol.Initial.face_down(96)
@@ -235,19 +226,11 @@ giant.Foundation.Pile.Rule = {
     Move = {
         Hint = "Top card (if Stock is empty)",
         IsSequence = false,
-        IsPlayable = false,
-        Func = function(_, target, idx)
-            return idx == target.CardCount
-        end
+        IsPlayable = function(game) return game.Stock[1].IsEmpty end,
+        Func = function(_, target, idx) return idx == target.CardCount end
     }
 }
-giant.on_init              = function(game)
-    Sol.Layout.gypsy(game)
-    giant_check(game)
-end
-giant.on_end_turn          = function(game)
-    giant_check(game)
-end
+giant.on_init              = Sol.Layout.gypsy
 
 
 ------

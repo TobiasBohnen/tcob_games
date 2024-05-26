@@ -5,29 +5,27 @@
 
 
 local pyramid = {
-    Info        = {
+    Info       = {
         Name      = "Pyramid",
         Family    = "Other",
         DeckCount = 1,
         Redeals   = 2
     },
-    Stock       = {
+    Stock      = {
         Position = { x = 0, y = 0 },
         Initial  = Sol.Initial.face_up(24)
     },
-    Waste       = { Position = { x = 0, y = 1 } },
-    Foundation  = {
+    Waste      = { Position = { x = 0, y = 1 } },
+    Foundation = {
         Position = { x = 6, y = 0 },
         Rule     = Sol.Rules.none_none_none
     },
-    Tableau     = {
+    Tableau    = {
         Size = 28,
         Pile = function(i) return Sol.Ops.Pyramid.face_up_pile(28, 1, { x = 1, y = -0.5 }, i) end
     },
-    on_init     = function(game) Sol.Ops.Pyramid.face_up_flip(28, 1, game.Tableau) end,
-    on_end_turn = function(game) Sol.Ops.Pyramid.face_up_flip(28, 1, game.Tableau) end,
-    on_drop     = function(game, pile) pile:move_cards(game.Foundation[1], pile.CardCount - 1, 2, false) end,
-    can_play    = function(game, targetPile, targetCardIndex, card, numCards)
+    on_drop    = function(game, pile) pile:move_cards(game.Foundation[1], pile.CardCount - 1, 2, false) end,
+    can_play   = function(game, targetPile, targetCardIndex, card, numCards)
         if targetPile.Type == Sol.Pile.Type.Tableau and not targetPile.IsPlayable then return false end
         if not targetPile.IsEmpty and targetPile.Cards[targetPile.CardCount].IsFaceDown then return false end
 
@@ -42,8 +40,8 @@ local pyramid = {
 
         return game:can_play(targetPile, targetCardIndex, card, numCards)
     end,
-    deal        = Sol.Ops.Deal.stock_to_waste,
-    redeal      = function(game)
+    deal       = Sol.Ops.Deal.stock_to_waste,
+    redeal     = function(game)
         if Sol.Ops.Redeal.waste_to_stock(game) then
             game.Stock[1]:flip_up_cards()
             return true
@@ -63,8 +61,6 @@ double_pyramid.Tableau        = {
     Size = 45,
     Pile = function(i) return Sol.Ops.Pyramid.face_up_pile(45, 1, { x = 0, y = -0.5 }, i) end
 }
-double_pyramid.on_init        = function(game) Sol.Ops.Pyramid.face_up_flip(45, 1, game.Tableau) end
-double_pyramid.on_end_turn    = function(game) Sol.Ops.Pyramid.face_up_flip(45, 1, game.Tableau) end
 
 
 ------
@@ -138,12 +134,12 @@ king_tut.redeal         = Sol.Ops.Redeal.waste_to_stock
 ------
 
 local giza = {
-    Info        = {
+    Info       = {
         Name      = "Giza",
         Family    = "Other",
         DeckCount = 1
     },
-    Reserve     = {
+    Reserve    = {
         Size = 8,
         Pile = function(i)
             return {
@@ -154,18 +150,16 @@ local giza = {
             }
         end
     },
-    Foundation  = {
+    Foundation = {
         Position = { x = 6, y = 0 },
         Rule     = Sol.Rules.none_none_none
     },
-    Tableau     = {
+    Tableau    = {
         Size = 28,
         Pile = function(i) return Sol.Ops.Pyramid.face_up_pile(28, 1, { x = 0.5, y = -0.5 }, i) end
     },
-    on_init     = function(game) Sol.Ops.Pyramid.face_up_flip(28, 1, game.Tableau) end,
-    on_end_turn = function(game) Sol.Ops.Pyramid.face_up_flip(28, 1, game.Tableau) end,
-    on_drop     = function(game, pile) pile:move_cards(game.Foundation[1], pile.CardCount - 1, 2, false) end,
-    can_play    = function(game, targetPile, targetCardIndex, card, numCards)
+    on_drop    = function(game, pile) pile:move_cards(game.Foundation[1], pile.CardCount - 1, 2, false) end,
+    can_play   = function(game, targetPile, targetCardIndex, card, numCards)
         return pyramid.can_play(game, targetPile, targetCardIndex, card, numCards)
     end
 }
@@ -174,12 +168,12 @@ local giza = {
 ------
 
 local pyramid_dozen = {
-    Info        = {
+    Info       = {
         Name      = "Pyramid Dozen",
         Family    = "Other",
         DeckCount = 1
     },
-    Reserve     = {
+    Reserve    = {
         Size = 6,
         Pile = function(i)
             return {
@@ -190,18 +184,16 @@ local pyramid_dozen = {
             }
         end
     },
-    Foundation  = {
+    Foundation = {
         Position = { x = 6, y = 0 },
         Rule     = Sol.Rules.none_none_none
     },
-    Tableau     = {
+    Tableau    = {
         Size = 28,
         Pile = function(i) return Sol.Ops.Pyramid.face_up_pile(28, 1, { x = 0, y = -0.5 }, i) end
     },
-    on_init     = function(game) Sol.Ops.Pyramid.face_up_flip(28, 1, game.Tableau) end,
-    on_end_turn = function(game) Sol.Ops.Pyramid.face_up_flip(28, 1, game.Tableau) end,
-    on_drop     = function(game, pile) pile:move_cards(game.Foundation[1], pile.CardCount - 1, 2, false) end,
-    can_play    = function(game, targetPile, targetCardIndex, card, numCards)
+    on_drop    = function(game, pile) pile:move_cards(game.Foundation[1], pile.CardCount - 1, 2, false) end,
+    can_play   = function(game, targetPile, targetCardIndex, card, numCards)
         if targetPile.Type == Sol.Pile.Type.Foundation then return false end
         if targetPile.Type == Sol.Pile.Type.Tableau and not targetPile.IsPlayable then return false end
         if not targetPile.IsEmpty and targetPile.Cards[targetPile.CardCount].IsFaceDown then return false end

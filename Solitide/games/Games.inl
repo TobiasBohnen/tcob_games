@@ -143,14 +143,14 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     auto& pileWrapper {*script.template create_wrapper<pile>("pile")};
 
     // properties
-    pileWrapper["Type"]      = getter {[](pile* p) { return p->Type; }};
-    pileWrapper["Index"]     = getter {[](pile* p) { return p->Index - IndexOffset; }};
-    pileWrapper["IsEmpty"]   = getter {[](pile* p) { return p->empty(); }};
-    pileWrapper["CardCount"] = getter {[](pile* p) { return p->Cards.size(); }};
-    pileWrapper["Cards"]     = getter {[](pile* p) { return p->Cards; }};
+    pileWrapper["Type"]       = getter {[](pile* p) { return p->Type; }};
+    pileWrapper["Index"]      = getter {[](pile* p) { return p->Index - IndexOffset; }};
+    pileWrapper["IsEmpty"]    = getter {[](pile* p) { return p->empty(); }};
+    pileWrapper["CardCount"]  = getter {[](pile* p) { return p->Cards.size(); }};
+    pileWrapper["Cards"]      = getter {[](pile* p) { return p->Cards; }};
+    pileWrapper["IsPlayable"] = getter {[](pile* p) { return p->Rule.IsPlayable(); }};
 
-    pileWrapper["Position"]   = property {[](pile* p) { return p->Position; }, [](pile* p, point_f pos) { p->Position = pos; }};
-    pileWrapper["IsPlayable"] = property {[](pile* p) { return p->Rule.IsPlayable; }, [](pile* p, bool val) { p->Rule.IsPlayable = val; }}; // TODO: save?
+    pileWrapper["Position"] = property {[](pile* p) { return p->Position; }, [](pile* p, point_f pos) { p->Position = pos; }};
 
     // methods
     pileWrapper["flip_cards"]         = [](pile* p, std::vector<bool> const& val) { p->flip_cards(val); };
@@ -414,9 +414,12 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
             if (Table moveTable; ruleTable.try_get(moveTable, "Move")) {
                 moveTable.try_get(pile.Rule.MoveHint, "Hint");
 
-                if (!moveTable.try_get(pile.Rule.IsPlayable, "IsPlayable")) {
-                    pile.Rule.IsPlayable = true;
+                if (Function<bool> func; moveTable.try_get(func, "IsPlayable")) {
+                    pile.Rule.IsPlayable = {[this, func]() {
+                        return func(static_cast<base_game*>(this));
+                    }};
                 }
+
                 if (!moveTable.try_get(pile.Rule.IsSequence, "IsSequence")) {
                     pile.Rule.IsSequence = true;
                 }

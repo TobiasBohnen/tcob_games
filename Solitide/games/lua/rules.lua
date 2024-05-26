@@ -253,14 +253,14 @@ local move = {
     None = function()
         return {
             Hint = "None",
-            IsPlayable = false,
+            IsPlayable = function(_) return false end,
             IsSequence = false
         }
     end,
     Top = function()
         return {
             Hint = "Top card",
-            IsPlayable = true,
+            IsPlayable = function(_) return true end,
             IsSequence = false,
             Func = function(_, pile, idx)
                 return idx == pile.CardCount
@@ -270,7 +270,7 @@ local move = {
     TopOrPile = function()
         return {
             Hint = "Top card or whole pile",
-            IsPlayable = true,
+            IsPlayable = function(_) return true end,
             IsSequence = true,
             Func = function(_, pile, idx)
                 return idx == pile.CardCount or idx == 1
@@ -280,7 +280,7 @@ local move = {
     FaceUp = function()
         return {
             Hint = "Face-up cards",
-            IsPlayable = true,
+            IsPlayable = function(_) return true end,
             IsSequence = true,
             Func = function(_, pile, idx)
                 for i = idx, pile.CardCount do
@@ -293,7 +293,7 @@ local move = {
     InSeq = function()
         return {
             Hint = "Sequence of cards",
-            IsPlayable = true,
+            IsPlayable = function(_) return true end,
             IsSequence = true,
             Func = function(game, pile, idx)
                 local cards = pile.Cards
@@ -308,7 +308,7 @@ local move = {
     InSeqInSuit = function() -- in sequence and in suit
         return {
             Hint = "Sequence of cards in the same suit",
-            IsPlayable = true,
+            IsPlayable = function(_) return true end,
             IsSequence = true,
             Func = function(game, pile, idx)
                 local cards = pile.Cards
@@ -329,7 +329,7 @@ local move = {
     InSeqInColor = function() -- in sequence and in color
         return {
             Hint = "Sequence of cards in the same color",
-            IsPlayable = true,
+            IsPlayable = function(_) return true end,
             IsSequence = true,
             Func = function(game, pile, idx)
                 local cards = pile.Cards
@@ -350,7 +350,7 @@ local move = {
     InSeqAlternateColors = function() -- in sequence and alternate colors
         return {
             Hint = "Color-alternating card sequence",
-            IsPlayable = true,
+            IsPlayable = function(_) return true end,
             IsSequence = true,
             Func = function(game, pile, idx)
                 local cards = pile.Cards
@@ -371,7 +371,7 @@ local move = {
     InSeqInSuitOrSameRank = function() -- in sequence and (in suit or same rank)
         return {
             Hint = "Sequence of cards in the same suit or rank",
-            IsPlayable = true,
+            IsPlayable = function(_) return true end,
             IsSequence = true,
             Func = function(game, pile, idx)
                 local cards = pile.Cards
@@ -403,7 +403,7 @@ local move = {
     SuperMove = function()
         return {
             Hint = "Top card (SuperMove)",
-            IsPlayable = true,
+            IsPlayable = function(_) return true end,
             IsSequence = true,
             Func = function(game, pile, idx)
                 local cards = pile.Cards
@@ -597,5 +597,5 @@ return {
     ff_upsuit_top_l13 = { Base = base.FirstFoundation(), Build = build.UpInSuit(true), Move = move.Top(), Limit = 13 },
     ff_upsuit_none_l13 = { Base = base.FirstFoundation(), Build = build.UpInSuit(true), Move = move.None(), Limit = 13 },
     spider_tableau = { Base = base.Any(), Build = build.DownByRank(), Move = move.InSeqInSuit() },
-    spider_foundation = { Base = base.SuitStack(), Build = build.None(), Move = { Hint = "None", IsPlayable = false, IsSequence = true } }
+    spider_foundation = { Base = base.SuitStack(), Build = build.None(), Move = { Hint = "None", IsPlayable = function(_) return false end, IsSequence = true } }
 }

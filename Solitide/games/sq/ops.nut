@@ -138,14 +138,21 @@ local pyramid = {
     face_up_pile = function(size, baseSize, offset, i) {
         local dummyCells = get_py_cells(baseSize - 1)
         local totalRows = get_py_row(size + dummyCells)
-        local last = get_py_cells(totalRows - 1) - dummyCells
 
         local pile = Sol.Ops.Pyramid.pile(size, baseSize, offset, i)
         // all cards visible
         pile.Initial = Sol.Initial.face_up(1)
         // only bottom row playable
         local move = Sol.Rules.Move.Top()
-        move.IsPlayable = i >= last
+
+        local last = get_py_cells(totalRows - 1) - dummyCells
+        local rowSize = math.ceil((-1 + math.sqrt((8 * i) + 1)) / 2)
+        move.IsPlayable = function(game) {
+            if (i >= last) return true
+
+            local tableau = game.Tableau
+            return tableau[tabIdx + rowSize + 0].IsEmpty && tableau[tabIdx + rowSize + 1].IsEmpty
+        }
 
         pile.Rule = {
             Base = Sol.Rules.Base.None(),
@@ -154,22 +161,6 @@ local pyramid = {
         }
 
         return pile
-    },
-
-    face_up_flip = function(size, baseSize, tableau) {
-        local dummyCells = get_py_cells(baseSize - 1)
-        local totalRows = get_py_row(size + dummyCells)
-        local last = get_py_cells(totalRows - 1) - dummyCells
-
-        for (local tabIdx = 1; tabIdx <= last; tabIdx++) {
-            local pile = tableau[tabIdx]
-            if (pile.IsEmpty) {
-                continue
-            }
-
-            local rowSize = math.ceil((-1 + math.sqrt((8 * tabIdx) + 1)) / 2)
-            pile.IsPlayable = tableau[tabIdx + rowSize + 0].IsEmpty && tableau[tabIdx + rowSize + 1].IsEmpty
-        }
     }
 }
 
