@@ -5,9 +5,9 @@
 
 #pragma once
 
-#include "Common.hpp" // IWYU pragma: keep
+#include "Common.hpp"      // IWYU pragma: keep
 
-#include "games/Games.hpp"
+#include "games/Games.hpp" // IWYU pragma: keep
 
 namespace solitaire {
 

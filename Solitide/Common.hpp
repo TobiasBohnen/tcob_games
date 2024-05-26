@@ -49,13 +49,13 @@ struct hit_test_result {
 };
 
 struct settings {
-    std::string        Version {"1.0.0"};
-    std::string        Theme {"default"};
-    std::string        Cardset {"default"};
-    std::deque<string> Recent;
-    std::string        Game;
-    bool               HintMovable {true};
-    bool               HintTarget {true};
+    std::string             Version {"1.0.0"};
+    std::string             Theme {"default"};
+    std::string             Cardset {"default"};
+    std::deque<std::string> Recent;
+    std::string             Game;
+    bool                    HintMovable {true};
+    bool                    HintTarget {true};
 
     void static Serialize(settings const& v, auto&& s)
     {

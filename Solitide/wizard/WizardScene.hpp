@@ -14,8 +14,8 @@ namespace solitaire {
 
 class wizard_scene : public scene {
     struct ev_args {
-        string Name;
-        string Path;
+        std::string Name;
+        std::string Path;
     };
 
 public:

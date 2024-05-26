@@ -10,8 +10,8 @@
 
 namespace solitaire {
 
-static string const    UserFolder {"/cardsets/"};
-static constexpr isize CardsetCardCount {68};
+static std::string const UserFolder {"/cardsets/"};
+static constexpr isize   CardsetCardCount {68};
 
 auto load_cardsets() -> std::map<std::string, std::shared_ptr<cardset>>
 {
@@ -25,7 +25,7 @@ auto load_cardsets() -> std::map<std::string, std::shared_ptr<cardset>>
     retValue["mini_h"] = std::make_shared<mini_h_cardset>(resGrp);
     retValue["mini_v"] = std::make_shared<mini_v_cardset>(resGrp);
 
-    std::unordered_map<std::string, std::unordered_set<string>> folders;
+    std::unordered_map<std::string, std::unordered_set<std::string>> folders;
     folders[UserFolder] = io::get_sub_folders(UserFolder);
     folders[resFolder]  = io::get_sub_folders(resFolder);
 
@@ -62,7 +62,7 @@ auto cardset::get_material() const -> assets::asset_ptr<gfx::material>
 
 auto cardset::load() const -> bool
 {
-    string const         folder {get_folder()};
+    std::string const    folder {get_folder()};
     data::config::object json;
     json.load(folder + "cardset.json");
 
@@ -105,7 +105,7 @@ auto cardset::load() const -> bool
                 if (statusFuture.get() != load_status::Ok) { return false; }
                 _texture->update_data(imgIt->Image.get_data(), imgIt->Depth);
                 _texture->add_region(
-                    json.get<string>("cards", io::get_filename(imgIt->Path)).value_or(io::get_stem(imgIt->Path)),
+                    json.get<std::string>("cards", io::get_filename(imgIt->Path)).value_or(io::get_stem(imgIt->Path)),
                     {{0, 0, 1, 1}, imgIt->Depth});
             }
         }
@@ -153,7 +153,7 @@ void cardset::draw_suit(gfx::canvas& canvas, suit s, point_f center, f32 size)
 {
     center -= point_f {size / 2, size / 2};
 
-    auto draw {[&](string const& path) {
+    auto draw {[&](std::string_view path) {
         canvas.save();
         canvas.translate(center);
         canvas.scale({size, size});

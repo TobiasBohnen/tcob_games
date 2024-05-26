@@ -17,7 +17,7 @@ public:
     std::shared_ptr<button> BtnGenerate;
     std::shared_ptr<button> BtnBack;
 
-    void set_log_messages(std::vector<string> const& messages);
+    void set_log_messages(std::vector<std::string> const& messages);
 
 private:
     std::shared_ptr<list_box> _lbxLog;

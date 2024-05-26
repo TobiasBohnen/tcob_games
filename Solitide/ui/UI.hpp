@@ -76,8 +76,8 @@ public:
     prop<std::string> SelectedTheme;
     prop<std::string> SelectedCardset;
 
-    signal<> StartGameRequested;
-    signal<> VideoSettingsChanged;
+    signal<std::string const> StartGameRequested;
+    signal<>                  VideoSettingsChanged;
 
     void submit_settings(data::config::object& obj);
 
@@ -94,10 +94,10 @@ private:
     void create_menubar(assets::group& resGrp);
 
     std::shared_ptr<tab_container> _tabSettings;
-
-    std::shared_ptr<grid_view> _gvWL;
-    std::shared_ptr<grid_view> _gvTT;
-    std::shared_ptr<grid_view> _gvHistory;
+    std::shared_ptr<text_box>      _txbSeed;
+    std::shared_ptr<grid_view>     _gvWL;
+    std::shared_ptr<grid_view>     _gvTT;
+    std::shared_ptr<grid_view>     _gvHistory;
 
     std::shared_ptr<tooltip> _tooltip;
 

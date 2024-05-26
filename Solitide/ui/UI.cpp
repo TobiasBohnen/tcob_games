@@ -12,7 +12,7 @@ namespace solitaire {
 
 using namespace tcob::literals;
 
-auto static translate(string const& name) -> string // NOLINT
+auto static translate(std::string_view name) -> std::string // NOLINT
 {
     // TODO: translation
     if (name == "btnMenu") { return "Menu"; }
@@ -69,7 +69,7 @@ form_controls::form_controls(gfx::window* window, assets::group& resGrp)
         menuPanel->Flex = {100_pct, 5_pct};
         auto menuPanelLayout {menuPanel->create_layout<grid_layout>(size_i {20, 1})};
 
-        auto const create {[&](rect_i const& bounds, string const& name, string const& tex) {
+        auto const create {[&](rect_i const& bounds, std::string const& name, std::string const& tex) {
             auto retValue {menuPanelLayout->create_widget<button>(bounds, name)};
             retValue->Icon    = resGrp.get<gfx::texture>(tex);
             retValue->Tooltip = tooltip0;
@@ -92,7 +92,7 @@ form_controls::form_controls(gfx::window* window, assets::group& resGrp)
         auto statusPanelLayout {statusPanel->create_layout<grid_layout>(size_i {20, 6})};
 
         i32        i {0};
-        auto const create {[&](rect_i const& rect, string const& text = "") {
+        auto const create {[&](rect_i const& rect, std::string const& text = "") {
             auto l {statusPanelLayout->create_widget<label>(rect, "lblInfo" + std::to_string(i))};
             l->Class = "label-small";
             l->Label = text;
@@ -155,11 +155,11 @@ void form_controls::set_game_labels(base_game* game)
 
 ////////////////////////////////////////////////////////////
 
-static string const TabGamesName {"conGames"};
-static string const TabSettingsName {"conSettings"};
-static string const TabThemesName {"conThemes"};
-static string const TabCardsetsName {"conCardsets"};
-static string const MenuName {"menu"};
+static std::string const TabGamesName {"conGames"};
+static std::string const TabSettingsName {"conSettings"};
+static std::string const TabThemesName {"conThemes"};
+static std::string const TabCardsetsName {"conCardsets"};
+static std::string const MenuName {"menu"};
 
 form_menu::form_menu(gfx::window* window, assets::group& resGrp, menu_sources const& source)
     : form {"Menu", window}
@@ -202,7 +202,7 @@ void form_menu::set_game_stats(game_history const& stats)
         bestScore = !bestScore ? entry.Score : std::max(entry.Score, *bestScore);
 
         _gvHistory->add_row(
-            {std::to_string(entry.ID),
+            {std::to_string(entry.Seed),
              std::to_string(entry.Score),
              std::to_string(entry.Turns),
              std::format("{:%M:%S}", seconds {entry.Time / 1000.f}),
@@ -276,7 +276,8 @@ void form_menu::create_section_games(assets::group& resGrp)
 
             listBox->DoubleClick.connect([&, lb = listBox.get()] {
                 if (lb->SelectedItemIndex >= 0) {
-                    StartGameRequested();
+                    StartGameRequested(_txbSeed->Text());
+                    _txbSeed->Text = "";
                     hide();
                 }
             });
@@ -364,18 +365,28 @@ void form_menu::create_section_games(assets::group& resGrp)
 
         _gvWL        = panelGameStatsLayout->create_widget<grid_view>({1, 1, 9, 4}, "gvWinLose");
         _gvWL->Class = "grid_view2";
-        _gvWL->set_columns({"Won", "Lost", "W/L"});                       // translate
+        _gvWL->set_columns({"Won", "Lost", "W/L"});                         // translate
         _gvTT        = panelGameStatsLayout->create_widget<grid_view>({10, 1, 9, 4}, "gvBest");
         _gvTT->Class = "grid_view2";
-        _gvTT->set_columns({"Highscore", "Least Turns", "Fastest Time"}); // translate
+        _gvTT->set_columns({"Highscore", "Least Turns", "Fastest Time"});   // translate
 
         _gvHistory = panelGameStatsLayout->create_widget<grid_view>({1, 6, 18, 25}, "gvHistory");
-        _gvHistory->set_columns({"ID", "Score", "Turns", "Time", "Won"}); // translate
+        _gvHistory->set_columns({"Seed", "Score", "Turns", "Time", "Won"}); // translate
 
-        auto btnStartGame {panelGameStatsLayout->create_widget<button>({1, 36, 4, 3}, {"btnStartGame"})};
+        auto lblSeed {panelGameStatsLayout->create_widget<label>({1, 33, 4, 2}, "lblSeed")};
+        lblSeed->Label = "Seed";
+        _txbSeed       = panelGameStatsLayout->create_widget<text_box>({6, 33, 8, 2}, "txbSeed");
+        _txbSeed->BeforeTextInserted.connect([](text_event& ev) {
+            if (ev.Text.empty()) { return; }
+            if (ev.Text.size() != 1 || !std::isdigit(ev.Text[0])) {
+                ev.Text = "";
+            }
+        });
+        auto btnStartGame {panelGameStatsLayout->create_widget<button>({1, 36, 4, 3}, "btnStartGame")};
         btnStartGame->Icon = resGrp.get<gfx::texture>("play");
         btnStartGame->Click.connect([&]() {
-            StartGameRequested();
+            StartGameRequested(_txbSeed->Text());
+            _txbSeed->Text = "";
             hide();
         });
         btnStartGame->Tooltip = _tooltip;
@@ -498,7 +509,7 @@ void form_menu::create_menubar(assets::group& resGrp)
     auto menu {create_container<panel>(dock_style::Fill, MenuName)};
     auto menuLayout {menu->create_layout<grid_layout>(size_i {7, 40})};
 
-    auto const enableContainer {[](form const* f, string const& enable) {
+    auto const enableContainer {[](form const* f, std::string const& enable) {
         for (auto const& w : f->get_widgets()) {
             if (w->get_name() != MenuName) {
                 w->Flex = w->get_name() == enable ? dimensions {85_pct, 100_pct} : dimensions {0_pct, 0_pct};
@@ -507,7 +518,7 @@ void form_menu::create_menubar(assets::group& resGrp)
     }};
 
     rect_i     btnRect {1, 1, 1, 2};
-    auto const create {[&](string const& text) {
+    auto const create {[&](std::string const& text) {
         auto btn {menuLayout->create_widget<radio_button>(btnRect, "btn" + text)};
 
         auto lbl {menuLayout->create_widget<label>({btnRect.Width + 2, btnRect.Y, btnRect.Width + 2, btnRect.Height}, "lblBtn" + text)};

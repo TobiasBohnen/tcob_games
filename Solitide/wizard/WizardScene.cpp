@@ -33,13 +33,13 @@ wizard_scene::wizard_scene(game& game, color_themes const& currentTheme)
         script script;
         lua_script_game::CreateENV(script);
 
-        auto func {script.run_file<function<std::pair<string, std::vector<string>>>>("wizard.lua")};
+        auto func {script.run_file<function<std::pair<std::string, std::vector<std::string>>>>("wizard.lua")};
         if (!func) { return; } // ERROR loading wizard func
 
         table obj {script.create_table()};
         _formWizard->submit(obj);
 
-        auto const name {obj["Name"]["text"].as<string>()};
+        auto const name {obj["Name"]["text"].as<std::string>()};
         auto const wizgame {(*func)(obj)};
 
         _formWizard->set_log_messages(wizgame.second);

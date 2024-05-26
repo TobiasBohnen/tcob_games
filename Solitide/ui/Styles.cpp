@@ -140,7 +140,7 @@ auto styles::load(color_themes const& theme) -> style_collection
 
     object styleFile {};
     if (styleFile.load("styles.json") != load_status::Ok) { return retValue; }
-    std::unordered_map<string, string> typeMap;
+    std::unordered_map<std::string, std::string> typeMap;
 
     for (auto const& entry : styleFile) {
         object styleObj;
@@ -153,7 +153,7 @@ auto styles::load(color_themes const& theme) -> style_collection
             flags.Active = std::find(names.begin() + 1, names.end(), "active") != names.end();
         }
 
-        string& type {typeMap[names[0]]};
+        std::string& type {typeMap[names[0]]};
         styleObj.try_get(type, "style_type");
 
         auto applyTheme([&](auto&& style) {
@@ -405,7 +405,7 @@ void styles::parse_element(object const& obj, element::text* text)
     obj.try_get(text->Alignment, "alignment");
     obj.try_get(text->AutoSize, "auto_size");
     obj.try_get(text->Size, "size");
-    if (string fontName; obj.try_get(fontName, "font")) { text->Font = _resGrp.get<gfx::font_family>(fontName); }
+    if (std::string fontName; obj.try_get(fontName, "font")) { text->Font = _resGrp.get<gfx::font_family>(fontName); }
     // obj.try_get(text->Decoration, "decoration");
     obj.try_get(text->Style, "style");
     if (object el; obj.try_get(el, "shadow")) { parse_element(el, &text->Shadow); }

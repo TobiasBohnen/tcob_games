@@ -15,7 +15,7 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
     auto main {create_container<panel>(dock_style::Fill, "Wizard")};
     auto mainLayout {main->create_layout<grid_layout>(size_i {80, 80})};
 
-    auto const createLabel {[](auto&& layout, string const& text, isize zorder = 0) {
+    auto const createLabel {[](auto&& layout, std::string const& text, isize zorder = 0) {
         auto lbl {layout->template create_widget<label>("lbl" + text)};
         lbl->Class  = "label-small";
         lbl->Label  = text;
@@ -48,7 +48,7 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
     BtnBack->Icon = resGrp.get<gfx::texture>("back");
 
     {
-        auto const createPileSize {[&](auto&& layout, string const& name) {
+        auto const createPileSize {[&](auto&& layout, std::string const& name) {
             createLabel(layout, "# of Piles", 20);
             auto spn {layout->template create_widget<spinner>(name + "Size")};
             spn->Flex   = {30_pct, 100_pct};
@@ -58,7 +58,7 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
             spn->Value  = 0;
             spn->ZOrder = 19;
         }};
-        auto const createCardCount {[&](auto&& layout, string const& name) {
+        auto const createCardCount {[&](auto&& layout, std::string const& name) {
             createLabel(layout, "# of Cards", 18);
             auto spn {layout->template create_widget<spinner>(name + "CardCount")};
             spn->Flex   = {30_pct, 100_pct};
@@ -68,7 +68,7 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
             spn->Value  = 0;
             spn->ZOrder = 17;
         }};
-        auto const createCardFace {[&](auto&& layout, string const& name) {
+        auto const createCardFace {[&](auto&& layout, std::string const& name) {
             createLabel(layout, "Orientation", 16);
             auto face {layout->template create_widget<drop_down_list>(name + "Orientation")};
             face->add_item("Face Up");
@@ -81,7 +81,7 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
             face->ZOrder            = 15;
             face->Class             = "drop_down_list_wizard";
         }};
-        auto const createPileLayout {[&](auto&& layout, string const& name) {
+        auto const createPileLayout {[&](auto&& layout, std::string const& name) {
             createLabel(layout, "Layout", 14);
             auto cyb {layout->template create_widget<cycle_button>(name + "Layout")};
             cyb->add_item("Squared");
@@ -92,11 +92,11 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
             cyb->ZOrder            = 13;
         }};
         struct rule {
-            string base;
-            string build;
-            string move;
+            std::string base;
+            std::string build;
+            std::string move;
         };
-        auto const createPileRule {[&](auto&& layout, string const& name, rule const& select) {
+        auto const createPileRule {[&](auto&& layout, std::string const& name, rule const& select) {
             createLabel(layout, "Base", 12);
             auto base {layout->template create_widget<drop_down_list>(name + "Base")};
             base->add_item("Ace");
@@ -211,7 +211,7 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
     }
 }
 
-void form_wizard::set_log_messages(std::vector<string> const& messages)
+void form_wizard::set_log_messages(std::vector<std::string> const& messages)
 {
     _lbxLog->clear_items();
     for (auto const& m : messages) {
