@@ -396,7 +396,7 @@ void form_menu::create_section_games(assets::group& resGrp)
 void form_menu::create_section_settings(assets::group& resGrp)
 {
     // Setting
-    _tabSettings         = create_container<tab_container>(dock_style::Top, TabSettingsName);
+    _tabSettings         = create_container<tab_container>(dock_style::Left, TabSettingsName);
     _tabSettings->ZOrder = 4;
     _tabSettings->Flex   = {0_pct, 0_pct};
 
