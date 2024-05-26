@@ -101,7 +101,7 @@ struct game_state {
 
 class game_rng {
 public:
-    game_rng(rng::seed_type seed = clock::now().time_since_epoch().count());
+    game_rng(rng::seed_type seed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count());
 
     auto gen() -> rng&;
     auto seed() const -> rng::seed_type const&;
