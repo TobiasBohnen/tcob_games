@@ -560,36 +560,35 @@ local right_triangle = {
         Family    = "Gypsy",
         DeckCount = 2
     },
-    Stock      = {
+    Stock      = { --Stock turns into FreeCell when empty
+        Position = { x = 0, y = 0 },
         Initial = Sol.Initial.face_down(49)
     },
     FreeCell   = {
-        Rule   = Sol.Rules.any_any_top,
-        Layout = Sol.Pile.Layout.Column
+        Position = { x = 0, y = 0 },
+        Rule     = Sol.Rules.any_any_top
     },
     Foundation = {
         Size = 8,
-        Pile = { Rule = Sol.Rules.ace_upsuit_top }
+        Pile = function(i)
+            return {
+                Position = { x = i + 2, y = 0 },
+                Rule = Sol.Rules.ace_upsuit_top
+            }
+        end
     },
     Tableau    = {
         Size = 10,
         Pile = function(i)
             return {
-                Initial = Sol.Initial.top_face_up(i + 1),
-                Layout  = Sol.Pile.Layout.Column,
-                Rule    = Sol.Rules.king_downac_inseq
+                Position = { x = i, y = 1 },
+                Initial  = Sol.Initial.top_face_up(i + 1),
+                Layout   = Sol.Pile.Layout.Column,
+                Rule     = Sol.Rules.king_downac_inseq
             }
         end
     },
-    on_init    = Sol.Layout.canfield,
-    deal       = Sol.Ops.Deal.stock_to_tableau,
-    can_play   = function(game, targetPile, targetCardIndex, card, numCards)
-        if targetPile.Type == Sol.Pile.Type.FreeCell and not game.Stock[1].IsEmpty then -- block FreeCell until Stock is empty
-            return false
-        end
-
-        return game:can_play(targetPile, targetCardIndex, card, numCards)
-    end
+    deal       = Sol.Ops.Deal.stock_to_tableau
 }
 
 

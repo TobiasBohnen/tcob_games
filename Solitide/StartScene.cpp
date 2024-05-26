@@ -22,11 +22,15 @@ auto static get_size(std::string_view str) -> size_i
     std::from_chars(heightStrView.data(), heightStrView.data() + heightStrView.size(), height);
     return {width, height};
 }
-auto static to_int(std::string_view str) -> u64
+auto static to_int(std::string_view str) -> std::optional<u64>
 {
-    u64 retValue {};
-    std::from_chars(str.data(), str.data() + str.size(), retValue);
-    return retValue;
+    u64 retValue {0};
+    auto [p, ec] {std::from_chars(str.data(), str.data() + str.size(), retValue)};
+    if (ec == std::errc {} && p == str.data() + str.size()) {
+        return retValue;
+    }
+
+    return std::nullopt;
 }
 
 start_scene::start_scene(game& game)
@@ -272,6 +276,7 @@ void start_scene::start_game(std::string const& name, start_reason reason, std::
 
     if (!_games.contains(name)) { return; }
     _formMenu->SelectedGame = name;
+    update_recent(name);
 
     auto& camera {*get_window().Camera};
     camera.set_position(point_f::Zero);
@@ -279,7 +284,6 @@ void start_scene::start_game(std::string const& name, start_reason reason, std::
 
     auto* game {_cardTable->game()};
     if (reason == start_reason::Resume) {         // save current game
-        update_recent(name);
         if (game) { game->save(_saveGame); }
     } else if (reason == start_reason::Restart) { // fail current game
         if (game && game->Status != game_status::Success) { game->Status = game_status::Failure; }

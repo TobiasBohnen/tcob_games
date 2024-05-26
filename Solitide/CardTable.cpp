@@ -431,6 +431,7 @@ auto card_table::get_pile_at(point_i pos, bool ignoreHoveredPile) const -> hit_t
         auto const top {std::ssize(p.Cards) - 1};
 
         if (ignoreHoveredPile && p.IsHovering) { return INDEX_INVALID; }
+        if (p.Type == pile_type::Stock && p.empty() && _currentGame->state().Redeals == 0) { return INDEX_INVALID; }
         if (p.empty() && p.Marker && p.Marker->Bounds->contains(pos)) { return INDEX_MARKER; }
         if (!p.is_playable() && !p.empty() && p.Cards[top].Bounds.contains(pos)) { return top; }
 

@@ -1159,6 +1159,50 @@ local doorway = {
 
 ------
 
+local sawayama = { --from Last Call BBS
+    Info       = {
+        Name      = "Sawayama",
+        Family    = "Klondike",
+        DeckCount = 1
+    },
+    Stock      = { --Stock turns into FreeCell when empty
+        Position = { x = 1, y = 0 },
+        Initial  = Sol.Initial.face_down(24)
+    },
+    FreeCell   = {
+        Position = { x = 1, y = 0 },
+        Rule     = Sol.Rules.any_none_top
+    },
+    Waste      = {
+        Position = { x = 2, y = 0 },
+        Layout   = Sol.Pile.Layout.Row
+    },
+    Foundation = {
+        Size = 4,
+        Pile = function(i)
+            return {
+                Position = { x = 0, y = i },
+                Rule     = Sol.Rules.ace_upsuit_none
+            }
+        end
+    },
+    Tableau    = {
+        Size = 7,
+        Pile = function(i)
+            return {
+                Position = { x = i + 1, y = 1 },
+                Initial  = Sol.Initial.face_up(i + 1),
+                Layout   = Sol.Pile.Layout.Column,
+                Rule     = Sol.Rules.any_downac_inseq
+            }
+        end
+    },
+    deal       = Sol.Ops.Deal.stock_to_waste_by_3
+}
+
+
+------
+
 ------------------------
 
 Sol.register_game(klondike)
@@ -1209,6 +1253,7 @@ Sol.register_game(quadruple_klondike)
 Sol.register_game(quadruple_klondike_by_3s)
 Sol.register_game(raw_prawn)
 Sol.register_game(saratoga)
+Sol.register_game(sawayama)
 Sol.register_game(somerset)
 Sol.register_game(smokey)
 Sol.register_game(souter)
