@@ -19,7 +19,7 @@ inline void base_game::create_piles(auto&& piles, isize size, std::function<void
         auto& pile {piles.emplace_back()};
         pile.Index = i;
         func(pile, i);
-        _piles[pile.Type].push_back(&pile);
+        _pileMap[pile.Type].push_back(&pile);
     }
 }
 

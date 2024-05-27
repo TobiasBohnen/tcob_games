@@ -179,6 +179,39 @@ local four_by_four = {
 
 ------
 
+local six_by_six = {
+    Info       = {
+        Name      = "Six by Six",
+        Family    = "Other",
+        DeckCount = 1,
+    },
+    Stock      = { Initial = Sol.Initial.face_down(16) },
+    Foundation = {
+        Size = 4,
+        Pile = { Rule = Sol.Rules.ace_upsuit_top }
+    },
+    Tableau    = {
+        Size = 6,
+        Pile = {
+            Initial = Sol.Initial.face_up(6),
+            Layout  = Sol.Pile.Layout.Column,
+            Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.InSeqInSuit() }
+        }
+    },
+    on_shuffle = function(game, card, pile)
+        if pile.Type == Sol.Pile.Type.Tableau and card.Rank == "Ace" then
+            return game.PlaceTop(card, game.Foundation, true)
+        end
+
+        return false
+    end,
+    deal       = function(game) return Sol.Ops.Deal.to_pile(game.Stock[1], game.Tableau[1], 1) end,
+    on_init    = Sol.Layout.klondike
+}
+
+
+------
+
 local lucky_thirteen_pos <const> = {
     { 0, 1 }, { 1, 1 }, { 2, 1 }, { 3, 1 }, { 4, 1 },
     --[[ --]] { 1, 2 }, { 2, 2 }, { 3, 2 }, --[[ --]]
@@ -261,4 +294,5 @@ Sol.register_game(diamond_mine)
 Sol.register_game(double_dot)
 Sol.register_game(four_by_four)
 Sol.register_game(lucky_thirteen)
+Sol.register_game(six_by_six)
 Sol.register_game(turncoats)

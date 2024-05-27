@@ -266,7 +266,7 @@ void card_table::on_mouse_button_down(input::mouse::button_event& ev)
     if (ev.Button == input::mouse::button::Left) {
         _buttonDown = true;
         if (_hovered.Pile) {
-            if (_hovered.Pile->Type == pile_type::Stock) {
+            if (_hovered.Pile->Type == pile_type::Stock && (_hovered.Pile->empty() || _hovered.Pile->Cards[_hovered.Pile->Cards.size() - 1].is_face_down())) {
                 // deal card
                 _hovered.Pile->remove_tint();
                 _currentGame->deal_cards();

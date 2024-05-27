@@ -84,7 +84,7 @@ private:
     void refresh();
     void clear_piles();
 
-    std::unordered_map<pile_type, std::vector<pile*>>     _piles;
+    std::unordered_map<pile_type, std::vector<pile*>>     _pileMap;
     mutable flat_map<std::pair<pile const*, isize>, bool> _movableCache;
     std::vector<hint>                                     _hints;
 

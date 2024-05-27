@@ -18,12 +18,12 @@ constexpr i32 SCORE_TABLEAU    = 1;
 base_game::base_game(game_info info)
     : _info {std::move(info)}
 {
-    _state.Redeals = _info.Redeals;
 }
 
 void base_game::start(std::optional<data::config::object> const& loadObj, std::optional<u64> seed)
 {
-    Status = game_status::Initial;
+    Status         = game_status::Initial;
+    _state.Redeals = _info.Redeals;
 
     if (!load(loadObj)) {
         if (seed) { _rng = {*seed}; }
@@ -52,9 +52,9 @@ void base_game::new_game()
     static constexpr std::array<pile_type, 6> shuffleOrder {pile_type::Tableau, pile_type::Foundation, pile_type::Reserve, pile_type::FreeCell, pile_type::Waste, pile_type::Stock};
 
     for (auto const pileType : shuffleOrder) {
-        if (!_piles.contains(pileType)) { continue; }
+        if (!_pileMap.contains(pileType)) { continue; }
 
-        auto const& piles {_piles.at(pileType)};
+        auto const& piles {_pileMap.at(pileType)};
         for (auto* pile : piles) {
             for (isize i {0}; i < std::ssize(pile->Initial); ++i) {
                 assert(!cards.empty()); // TODO: log error
@@ -76,7 +76,7 @@ void base_game::new_game()
     assert(cards.empty()); // TODO: log error
 
     // deal cards if game contains Waste pile
-    if (_piles.contains(pile_type::Waste)) { do_deal(); }
+    if (_pileMap.contains(pile_type::Waste)) { do_deal(); }
 }
 
 auto base_game::load(std::optional<data::config::object> const& loadObj) -> bool
@@ -99,7 +99,7 @@ auto base_game::load(std::optional<data::config::object> const& loadObj) -> bool
     if (object storage; obj.try_get(storage, "Storage")) { _storage = storage.clone(true); }
 
     auto const createCard {[&](entry const& entry) { return card::FromValue(entry.as<u16>()); }};
-    for (auto const& [type, piles] : _piles) {
+    for (auto const& [type, piles] : _pileMap) {
         auto const pileType {get_pile_type_name(type)};
         if (!obj.has(pileType)) { return false; }
 
@@ -127,7 +127,7 @@ void base_game::save(tcob::data::config::object& saveObj)
 
     object obj;
 
-    for (auto const& [type, piles] : _piles) {
+    for (auto const& [type, piles] : _pileMap) {
         array pilesArr;
         for (auto const& pile : piles) {
             array pileArr;
@@ -201,6 +201,15 @@ void base_game::end_turn(bool deal)
 
     on_end_turn();
 
+    // update marker texture
+    for (auto const& [_, piles] : _pileMap) {
+        for (auto const* pile : piles) {
+            if (pile->HasMarker) {
+                pile->Marker->TextureRegion = pile->get_marker_texture_name();
+            }
+        }
+    }
+
     refresh();
 
     _undoStack.push(_saveObj);
@@ -242,7 +251,7 @@ void base_game::collect_all()
     bool check {true};
     while (check) {
         check = false;
-        for (auto const& [type, piles] : _piles) {
+        for (auto const& [type, piles] : _pileMap) {
             if (type == pile_type::Foundation) { continue; }
 
             for (auto* pile : piles) {
@@ -270,7 +279,7 @@ void base_game::play_cards(pile& from, pile& to, isize startIndex, isize numCard
 
 void base_game::clear_piles()
 {
-    for (auto const& [_, piles] : _piles) {
+    for (auto const& [_, piles] : _pileMap) {
         for (auto* pile : piles) {
             pile->Cards.clear();
             pile->IsHovering = false;
@@ -322,7 +331,7 @@ auto base_game::get_status() const -> game_status
 {
     isize foundationCards {0};
     isize tableauCards {0};
-    for (auto const& [type, piles] : _piles) {
+    for (auto const& [type, piles] : _pileMap) {
         switch (type) {
         case pile_type::Foundation:
             for (auto const& pile : piles) {
@@ -385,7 +394,7 @@ void base_game::calc_hints()
     }};
 
     std::vector<hint> movable;
-    for (auto const& [_, piles] : _piles) {
+    for (auto const& [_, piles] : _pileMap) {
         for (auto* pile : piles) {
             if (!pile->is_playable()) { continue; }
 
@@ -402,7 +411,7 @@ void base_game::calc_hints()
 
     _hints.clear();
     _hints.reserve(movable.size());
-    for (auto const& [_, piles] : _piles) {
+    for (auto const& [_, piles] : _pileMap) {
         for (auto* dst : piles) {
             if (dst->Type == pile_type::Stock || dst->Type == pile_type::Waste || dst->Type == pile_type::Reserve) { continue; } // skip Stock/Waste/Reserve destination
             for (auto& src : movable) {
@@ -439,7 +448,7 @@ auto base_game::rng() -> game_rng&
 
 auto base_game::piles() const -> std::unordered_map<pile_type, std::vector<pile*>> const&
 {
-    return _piles;
+    return _pileMap;
 }
 
 auto base_game::state() const -> game_state const&

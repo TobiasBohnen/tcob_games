@@ -11,7 +11,8 @@
 
 - **Ctrl + Z:** Undo the last move.
 - **Ctrl + H:** Show next hint.
-- **Ctrl + H:** Collect all cards.
+- **Ctrl + C:** Collect all cards.
+- **Ctrl + N:** Start new game.
 - **Spacebar:** Deal new card.
 
 ## Credits

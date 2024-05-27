@@ -376,6 +376,78 @@ storehouse.deal         = Sol.Ops.Deal.stock_to_waste
 
 ------
 
+local the_plot = {
+    Info = {
+        Name      = "The Plot",
+        Family    = "Canfield",
+        DeckCount = 2,
+        Redeals   = 0
+    },
+    Stock = { Initial = Sol.Initial.face_down(78) },
+    Waste = {},
+    Reserve = {
+        Initial = Sol.Initial.top_face_up(13),
+        Layout = Sol.Pile.Layout.Column
+    },
+    Foundation = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Initial = Sol.Initial.face_up(i == 0 and 1 or 0),
+                Rule    = {
+                    Base = Sol.Rules.Base.FirstFoundation(),
+                    Build = Sol.Rules.Build.UpByRank(true),
+                    Move = Sol.Rules.Move.None(),
+                    Limit = 13
+                }
+            }
+        end
+    },
+    Tableau = {
+        Size = 12,
+        Pile = {
+            Initial = Sol.Initial.face_up(1),
+            Layout  = Sol.Pile.Layout.Column,
+            Rule    = {
+                Base = {
+                    Hint = "Any",
+                    Func = function(game, card, numCards)
+                        if numCards > 1 then return false end
+                        -- base is first foundation card until first pile is complete
+                        if game.Foundation[1].CardCount ~= 13 then
+                            return card.Rank == game.Foundation[1].Cards[1].Rank
+                        end
+                        return true
+                    end
+                },
+                Build = Sol.Rules.Build.DownByRank(true),
+                Move = Sol.Rules.Move.Top()
+            }
+        }
+    },
+    deal = Sol.Ops.Deal.stock_to_waste,
+    on_init = Sol.Layout.canfield,
+    can_play = function(game, targetPile, targetCardIndex, card, numCards)
+        -- block other foundation piles until first pile is complete
+        if targetPile.Type == Sol.Pile.Type.Foundation and targetPile.Index ~= 1 then
+            if game.Foundation[1].CardCount ~= 13 then return false end
+        end
+        --empty tableau piles can only be filled from the waste pile
+        if targetPile.Type == Sol.Pile.Type.Tableau and targetPile.IsEmpty then
+            if game:find_pile(card).Type ~= Sol.Pile.Type.Waste then return false end
+        end
+        --reserve only to foundation pile
+        if targetPile.Type == Sol.Pile.Type.Reserve then
+            if game:find_pile(card).Type ~= Sol.Pile.Type.Foundation then return false end
+        end
+
+        return game:can_play(targetPile, targetCardIndex, card, numCards)
+    end
+}
+
+
+------
+
 ------------------------
 
 Sol.register_game(canfield)
@@ -396,5 +468,6 @@ Sol.register_game(rainbow)
 Sol.register_game(rainfall)
 Sol.register_game(storehouse)
 Sol.register_game(superior_canfield)
+Sol.register_game(the_plot)
 Sol.register_game(triple_canfield)
 Sol.register_game(variegated_canfield)

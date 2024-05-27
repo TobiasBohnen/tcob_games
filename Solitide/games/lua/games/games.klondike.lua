@@ -894,7 +894,7 @@ local spike = {
 ------
 
 local thirty_six         = Sol.copy(klondike)
-thirty_six.Info.Name     = "Thirty Six"
+thirty_six.Info.Name     = "Thirty-Six"
 thirty_six.Info.Redeals  = 0
 thirty_six.Stock.Initial = Sol.Initial.face_down(16)
 thirty_six.Tableau       = {
