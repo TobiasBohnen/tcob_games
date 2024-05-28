@@ -514,7 +514,7 @@ void lua_script_game::CreateAPI(start_scene* scene, scripting::lua::script& scri
     CreateGlobals<lua_script_game>(scene, script, env, make_func, "lua");
     CreateWrapper(script);
 
-    std::ignore = script.run_file("main.lua");
+    std::ignore = script.run_file("scripts/main.lua");
 
     auto& global {script.get_global_table()};
     global["Sol"]["Layout"] = env["Sol"]["Layout"];
@@ -586,7 +586,7 @@ void squirrel_script_game::CreateAPI(start_scene* scene, scripting::squirrel::sc
 
     root["Lua"] = lua;
 
-    std::ignore = script.run_file("main.nut");
+    std::ignore = script.run_file("scripts/main.nut");
 }
 
 } // namespace solitaire

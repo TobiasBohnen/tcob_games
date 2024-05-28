@@ -738,7 +738,7 @@ intelligence_plus.Tableau.Size  = 19
 
 ------
 
-local la_belle_lucie = {
+local la_belle_lucie             = {
     Info       = {
         Name      = "La Belle Lucie",
         Family    = "Fan",
@@ -782,8 +782,20 @@ local la_belle_lucie = {
 
         return true
     end,
-    on_init    = function(game) Sol.Layout.fan(game, 4) end,
+    on_init    = function(game) Sol.Layout.fan(game, 5) end,
 }
+
+------
+
+local super_flower_garden        = Sol.copy(la_belle_lucie)
+super_flower_garden.Info.Name    = "Super Flower Garden"
+super_flower_garden.Tableau.Pile = function(i)
+    return {
+        Initial = Sol.Initial.face_up(i == 17 and 1 or 3),
+        Layout  = Sol.Pile.Layout.Row,
+        Rule    = Sol.Rules.none_downrank_top
+    }
+end
 
 
 ------
@@ -863,4 +875,5 @@ Sol.register_game(roaming_proils)
 Sol.register_game(scotch_patience)
 Sol.register_game(shamrocks)
 Sol.register_game(shamrocks_2)
+Sol.register_game(super_flower_garden)
 Sol.register_game(troika)

@@ -148,6 +148,30 @@ chinese_spider.Tableau         = {
 
 ------
 
+local freds_spider           = Sol.copy(spider)
+freds_spider.Info.Name       = "Fred's Spider"
+freds_spider.Stock.Initial   = Sol.Initial.face_down(54)
+freds_spider.Foundation.Pile = { Rule = Sol.Rules.ace_upsuit_top }
+freds_spider.Tableau.Pile    = {
+    Initial = Sol.Initial.face_up(5),
+    Layout  = Sol.Pile.Layout.Column,
+    Rule    = Sol.Rules.spider_tableau
+}
+freds_spider.deal            = Sol.Ops.Deal.stock_to_tableau
+
+
+------
+
+local freds_spider_3_decks           = Sol.copy(freds_spider)
+freds_spider_3_decks.Info.Name       = "Fred's Spider (3 Decks)"
+freds_spider_3_decks.Info.DeckCount  = 3
+freds_spider_3_decks.Stock.Initial   = Sol.Initial.face_down(91)
+freds_spider_3_decks.Foundation.Size = 12
+freds_spider_3_decks.Tableau.Size    = 13
+
+
+------
+
 local grounds_for_a_divorce         = Sol.copy(spider)
 grounds_for_a_divorce.Info.Name     = "Grounds for a Divorce"
 grounds_for_a_divorce.Stock.Initial = Sol.Initial.face_down(54)
@@ -548,6 +572,7 @@ double_ukrainian_solitaire.Tableau         = {
 
 ------
 
+
 ------------------------
 
 Sol.register_game(spider)
@@ -564,6 +589,8 @@ Sol.register_game(chinese_spider)
 Sol.register_game(dnieper)
 Sol.register_game(double_ukrainian_solitaire)
 Sol.register_game(fair_maids)
+Sol.register_game(freds_spider)
+Sol.register_game(freds_spider_3_decks)
 Sol.register_game(grounds_for_a_divorce)
 Sol.register_game(kiev)
 Sol.register_game(long_tail)

@@ -3,9 +3,9 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-Sol.Layout = require "layout"
-Sol.Rules = require "rules"
-Sol.Ops = require "ops"
+Sol.Layout = require "scripts/layout"
+Sol.Rules = require "scripts/rules"
+Sol.Ops = require "scripts/ops"
 
 function Sol.copy(obj, seen)
     if type(obj) ~= 'table' then return obj end
