@@ -120,6 +120,7 @@ void start_scene::on_start()
     // config
     _formMenu->SelectedTheme   = _settings.Theme;
     _formMenu->SelectedCardset = _settings.Cardset;
+    set_cardset();
 
     _formMenu->fixed_update(0s);     // updates style
     _formControls->fixed_update(0s); // updates style
@@ -157,22 +158,16 @@ void start_scene::connect_ui_events()
         update_stats(game);
     });
 
-    _formMenu->StartGameRequested.connect([&](std::string const& seed) {
+    _formMenu->SelectedTheme.Changed.connect([&](auto const&) {
+        set_theme();
+    });
+
+    _formMenu->StartGame.connect([&](std::string const& seed) {
         start_game(_formMenu->SelectedGame, start_reason::Resume, to_int(seed));
     });
 
-    _formMenu->SelectedTheme.Changed.connect([&](auto const& theme) {
-        set_theme(theme);
-    });
-
-    _formMenu->SelectedCardset.Changed.connect([&](auto const& cardset) {
-        auto newCardset {cardset};
-        if (!_cardSets.contains(cardset)) { newCardset = "default"; }
-
-        _settings.Cardset = newCardset;
-
-        _cardTable->set_cardset(_cardSets[newCardset]);
-        start_game(_formMenu->SelectedGame, start_reason::Resume, std::nullopt);
+    _formMenu->ChangeCardset.connect([&]() {
+        set_cardset();
     });
 
     _formMenu->VideoSettingsChanged.connect([&]() {
@@ -239,7 +234,7 @@ void start_scene::on_key_down(input::keyboard::event& ev)
     }
     if (ev.KeyCode == input::key_code::t && (ev.KeyMods & input::key_mod::LeftAlt) == input::key_mod::LeftAlt) {
         load_themes(_themes);
-        set_theme(_formMenu->SelectedTheme);
+        set_theme();
         ev.Handled = true;
     }
 }
@@ -257,10 +252,10 @@ void start_scene::set_children_bounds(size_i size)
     _cardTable->Bounds = rect_f {{tableX, tableY}, {tableWidth, tableHeight}};
 }
 
-void start_scene::set_theme(std::string const& theme)
+void start_scene::set_theme()
 {
-    auto themeName {theme};
-    if (!_themes.contains(theme)) { themeName = "default"; }
+    auto themeName {_formMenu->SelectedTheme()};
+    if (!_themes.contains(themeName)) { themeName = "default"; }
     auto const& newTheme {_themes[themeName]};
 
     auto&      resMgr {locate_service<assets::library>()};
@@ -279,6 +274,17 @@ void start_scene::set_theme(std::string const& theme)
 
     _cardTable->set_theme(newTheme);
     _settings.Theme = themeName;
+}
+
+void start_scene::set_cardset()
+{
+    auto newCardset {_formMenu->SelectedCardset()};
+    if (!_cardSets.contains(newCardset)) { newCardset = "default"; }
+
+    _settings.Cardset = newCardset;
+
+    _cardTable->set_cardset(_cardSets[newCardset]);
+    start_game(_formMenu->SelectedGame, start_reason::Resume, std::nullopt);
 }
 
 void start_scene::start_game(std::string const& name, start_reason reason, std::optional<u64> seed)

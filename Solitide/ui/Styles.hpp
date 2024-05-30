@@ -28,6 +28,7 @@ private:
     void parse(data::config::object const& obj, cycle_button::style* style);
     void parse(data::config::object const& obj, drop_down_list::style* style);
     void parse(data::config::object const& obj, grid_view::style* style);
+    void parse(data::config::object const& obj, image_box::style* style);
     void parse(data::config::object const& obj, label::style* style);
     void parse(data::config::object const& obj, list_box::style* style);
     void parse(data::config::object const& obj, panel::style* style);

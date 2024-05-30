@@ -72,12 +72,15 @@ class form_menu : public form {
 public:
     form_menu(gfx::window* window, assets::group& resGrp, menu_sources const& source);
 
-    prop<std::string> SelectedGame;
-    prop<std::string> SelectedTheme;
-    prop<std::string> SelectedCardset;
+    prop<std::string>         SelectedGame;
+    signal<std::string const> StartGame;
 
-    signal<std::string const> StartGameRequested;
-    signal<>                  VideoSettingsChanged;
+    prop<std::string> SelectedCardset;
+    signal<>          ChangeCardset;
+
+    prop<std::string> SelectedTheme;
+
+    signal<> VideoSettingsChanged;
 
     void submit_settings(data::config::object& obj);
 
@@ -89,7 +92,7 @@ private:
     void create_section_games(assets::group& resGrp);
     void create_section_settings(assets::group& resGrp);
     void create_section_themes();
-    void create_section_cardset();
+    void create_section_cardset(assets::group& resGrp);
 
     void create_menubar(assets::group& resGrp);
 

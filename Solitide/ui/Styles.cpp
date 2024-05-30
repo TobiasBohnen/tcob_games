@@ -184,6 +184,9 @@ auto styles::load(color_themes const& theme) -> style_collection
         } else if (type == "grid_view") {
             auto style {create<grid_view::style>(styleObj, retValue, names, flags)};
             applyTheme(style);
+        } else if (type == "image_box") {
+            auto style {create<image_box::style>(styleObj, retValue, names, flags)};
+            applyTheme(style);
         } else if (type == "label") {
             auto style {create<label::style>(styleObj, retValue, names, flags)};
             applyTheme(style);
@@ -276,6 +279,13 @@ void styles::parse(data::config::object const& obj, grid_view::style* style)
     obj.try_get(style->HeaderClass, "header_class");
     obj.try_get(style->RowClass, "row_class");
     obj.try_get(style->RowHeight, "row_height");
+}
+
+void styles::parse(data::config::object const& obj, image_box::style* style)
+{
+    parse_background_style(obj, style);
+    obj.try_get(style->Fit, "fit");
+    obj.try_get(style->Alignment, "alignment");
 }
 
 void styles::parse(data::config::object const& obj, label::style* style)

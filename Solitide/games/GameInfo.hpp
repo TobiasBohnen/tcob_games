@@ -11,6 +11,8 @@
 
 namespace solitaire {
 
+////////////////////////////////////////////////////////////
+
 enum class family {
     Other,
     BakersDozen,

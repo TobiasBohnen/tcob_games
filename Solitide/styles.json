@@ -405,6 +405,9 @@
             }
         }
     },
+    "image_box": {
+        "style_type": "image_box"
+    },
     "tooltip": {
         "style_type": "tooltip",
         "delay": 500,
