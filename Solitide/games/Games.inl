@@ -66,6 +66,9 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
 
         return nullptr;
     };
+    gameWrapper["give_score"] = [](base_game* game, i32 score) {
+        game->give_score(score);
+    };
     gameWrapper["can_play"] = [](base_game* game, pile* targetPile, isize targetIndex, card const& card, isize numCards) {
         return game->base_game::can_play(*targetPile, targetIndex + IndexOffset, card, numCards);
     };
@@ -268,7 +271,10 @@ inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& scen
             return globalTable["package"]["loaded"][package].template as<Table>();
         }
 
-        auto pkg {script.template run_file<Table>(package + "." + ext).value()};
+        string file {package + "." + ext};
+        if (!io::exists(file)) { file = "scripts/" + file; }
+
+        auto pkg {script.template run_file<Table>(file).value()};
         globalTable["package"]["loaded"][package] = pkg;
         return pkg;
     });

@@ -43,6 +43,8 @@ public:
 
     void use_hint();
 
+    void give_score(i32 value);
+
     auto deal_cards() -> bool;
     void play_cards(pile& from, pile& to, isize startIndex, isize numCards);
     auto auto_play_cards(pile& from) -> bool;

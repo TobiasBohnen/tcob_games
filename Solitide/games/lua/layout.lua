@@ -424,6 +424,30 @@ return {
             piles.Tableau[i + 1].Position = { x = i, y = 1 }
         end
     end,
+    -- Stock            -> second row
+    -- Waste            -> under stock
+    -- Foundation       -> top
+    -- Tableau          -> in rows
+    spark = function(game)
+        local piles = get_piles(game)
+
+        if piles.HasStock then
+            piles.Stock[1].Position = { x = 0, y = 1 }
+        end
+
+        for i = 1, piles.WasteSize do
+            piles.Waste[i].Position = { x = 0, y = i + 1 }
+        end
+
+        for i = 0, piles.FoundationSize - 1 do
+            piles.Foundation[i + 1].Position = { x = i, y = 0 }
+        end
+
+        local columns = piles.TableauSize / 2
+        for i = 0, piles.TableauSize - 1 do
+            piles.Tableau[i + 1].Position = { x = i % columns + 2, y = i // columns + 1.5 }
+        end
+    end,
     -- Stock,Waste      -> top left
     -- Reserve          -> top
     -- Foundation       -> second row

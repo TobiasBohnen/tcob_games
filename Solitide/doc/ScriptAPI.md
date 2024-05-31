@@ -209,6 +209,8 @@ The Info table contains basic information about the game.
 
 - shuffle_cards
 
+- give_score
+
 - PlaceTop
 
 - PlaceBottom

@@ -577,6 +577,7 @@ return {
     any_updownrank_top = { Base = base.Any(), Build = build.UpOrDownByRank(), Move = move.Top() },
     any_updownsuit_top = { Base = base.Any(), Build = build.UpOrDownInSuit(), Move = move.Top() },
     any_updownac_top = { Base = base.Any(), Build = build.UpOrDownAlternateColors(), Move = move.Top() },
+    any_upsuit_top = { Base = base.Any(), Build = build.UpInSuit(), Move = move.Top() },
     any_none_top = { Base = base.Any(), Build = build.None(), Move = move.Top() },
     king_downac_top = { Base = base.King(), Build = build.DownAlternateColors(), Move = move.Top() },
     king_downac_faceup = { Base = base.King(), Build = build.DownAlternateColors(), Move = move.FaceUp() },

@@ -266,11 +266,11 @@ void base_game::play_cards(pile& from, pile& to, isize startIndex, isize numCard
     from.move_cards(to, startIndex, numCards, false);
 
     if (to.Type == pile_type::Foundation && from.Type != pile_type::Foundation) {
-        _state.Score += SCORE_FOUNDATION;
+        give_score(SCORE_FOUNDATION);
     } else if (to.Type != pile_type::Foundation && from.Type == pile_type::Foundation) {
-        _state.Score += -SCORE_FOUNDATION;
+        give_score(-SCORE_FOUNDATION);
     } else if (to.Type == pile_type::Tableau && from.Type == pile_type::Waste) {
-        _state.Score += SCORE_TABLEAU;
+        give_score(SCORE_TABLEAU);
     }
 
     on_drop(&to);
@@ -286,6 +286,11 @@ void base_game::clear_piles()
             pile->remove_tint();
         }
     }
+}
+
+void base_game::give_score(i32 value)
+{
+    _state.Score += value;
 }
 
 auto base_game::can_play(pile const& targetPile, isize targetCardIndex, card const& card, isize numCards) const -> bool
@@ -352,6 +357,12 @@ auto base_game::get_status() const -> game_status
     switch (_info.Objective) {
     case objective::AllCardsToFoundation:
         if (foundationCards == _info.DeckCount * std::ssize(_info.DeckRanks) * std::ssize(_info.DeckSuits)) { return game_status::Success; }
+        break;
+    case objective::AllCardsButOneToFoundation:
+        if (foundationCards == (_info.DeckCount * std::ssize(_info.DeckRanks) * std::ssize(_info.DeckSuits)) - 1) { return game_status::Success; }
+        break;
+    case objective::AllCardsButTwoToFoundation:
+        if (foundationCards == (_info.DeckCount * std::ssize(_info.DeckRanks) * std::ssize(_info.DeckSuits)) - 2) { return game_status::Success; }
         break;
     case objective::AllCardsButFourToFoundation:
         if (foundationCards == (_info.DeckCount * std::ssize(_info.DeckRanks) * std::ssize(_info.DeckSuits)) - 4) { return game_status::Success; }

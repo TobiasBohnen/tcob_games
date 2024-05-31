@@ -3,8 +3,8 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-Sol.Rules <- require("scripts/rules")
-Sol.Ops <- require("scripts/ops")
+Sol.Rules <- require("rules")
+Sol.Ops <- require("ops")
 
 function Sol::copy(obj) {
     switch (typeof(obj)) {
