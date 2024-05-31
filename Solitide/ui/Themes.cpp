@@ -34,8 +34,8 @@ void color_theme::apply(std::shared_ptr<drop_down_list::style> const& style) con
     style->Border.Background                = Border;
     style->DropShadow.Color                 = Shadow;
     style->Text.Color                       = Foreground;
-    style->VScrollBar.Bar.HigherBackground  = Background;
-    style->VScrollBar.Bar.LowerBackground   = Background;
+    style->VScrollBar.Bar.HigherBackground  = Foreground;
+    style->VScrollBar.Bar.LowerBackground   = Foreground;
     style->VScrollBar.Bar.Border.Background = Border;
 }
 
@@ -44,8 +44,8 @@ void color_theme::apply(std::shared_ptr<grid_view::style> const& style) const
     style->Background                       = Background;
     style->Border.Background                = Border;
     style->DropShadow.Color                 = Shadow;
-    style->VScrollBar.Bar.HigherBackground  = Background;
-    style->VScrollBar.Bar.LowerBackground   = Background;
+    style->VScrollBar.Bar.HigherBackground  = Foreground;
+    style->VScrollBar.Bar.LowerBackground   = Foreground;
     style->VScrollBar.Bar.Border.Background = Border;
 }
 
@@ -67,8 +67,8 @@ void color_theme::apply(std::shared_ptr<list_box::style> const& style) const
 {
     style->Background                       = Background;
     style->Border.Background                = Border;
-    style->VScrollBar.Bar.HigherBackground  = Background;
-    style->VScrollBar.Bar.LowerBackground   = Background;
+    style->VScrollBar.Bar.HigherBackground  = Foreground;
+    style->VScrollBar.Bar.LowerBackground   = Foreground;
     style->VScrollBar.Bar.Border.Background = Border;
 }
 
@@ -126,11 +126,11 @@ void color_theme::apply(std::shared_ptr<panel::style> const& style) const
 {
     style->Background                       = Container;
     style->Border.Background                = Border;
-    style->VScrollBar.Bar.HigherBackground  = Background;
-    style->VScrollBar.Bar.LowerBackground   = Background;
+    style->VScrollBar.Bar.HigherBackground  = Foreground;
+    style->VScrollBar.Bar.LowerBackground   = Foreground;
     style->VScrollBar.Bar.Border.Background = Border;
-    style->HScrollBar.Bar.HigherBackground  = Background;
-    style->HScrollBar.Bar.LowerBackground   = Background;
+    style->HScrollBar.Bar.HigherBackground  = Foreground;
+    style->HScrollBar.Bar.LowerBackground   = Foreground;
     style->HScrollBar.Bar.Border.Background = Border;
 }
 
@@ -154,7 +154,7 @@ void color_theme::apply(std::shared_ptr<tooltip::style> const& style) const
 
 void color_theme::apply(std::shared_ptr<thumb_style> const& style) const
 {
-    style->Thumb.Background        = List;
+    style->Thumb.Background        = Background;
     style->Thumb.Border.Background = Border;
 }
 
@@ -199,9 +199,9 @@ void load_themes(std::map<std::string, color_themes>& themeMap)
 
         color_theme normal;
         normal.Background = colors::LightSkyBlue;
-        normal.Border     = colors::MidnightBlue;
+        normal.Border     = colors::DodgerBlue;
         normal.Shadow     = color {0, 0, 0, 128};
-        normal.Foreground = colors::Black;
+        normal.Foreground = colors::MidnightBlue;
         normal.List       = colors::LightGray;
         normal.Container  = colors::LavenderBlush;
         normal.Label      = colors::Gray;
@@ -216,7 +216,7 @@ void load_themes(std::map<std::string, color_themes>& themeMap)
 
         color_theme active;
         active.Background = hover.Border;
-        active.Border     = colors::ForestGreen;
+        active.Border     = hover.Background;
         active.Shadow     = color {0, 0, 0, 128};
         active.Foreground = colors::White;
         active.List       = normal.Background;
