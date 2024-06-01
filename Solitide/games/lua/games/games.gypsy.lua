@@ -201,17 +201,9 @@ flamenco.Tableau.Pile      = {
     Rule    = Sol.Rules.any_downac_inseq
 }
 flamenco.Foundation.Pile   = function(i)
-    return { Rule = i < 4 and Sol.Rules.ace_upsuit_top or Sol.Rules.king_downsuit_top }
+    return { Rule = i < 4 and Sol.Rules.ace_upsuit_top_l13 or Sol.Rules.king_downsuit_top_l13 }
 end
-flamenco.on_before_shuffle = function(game, card)
-    if card.Rank == "Ace" then
-        return game.PlaceTop(card, game.Foundation, 1, 4, true)
-    elseif card.Rank == "King" then
-        return game.PlaceTop(card, game.Foundation, 5, 4, true)
-    end
-
-    return false
-end
+flamenco.on_before_shuffle = Sol.Ops.Shuffle.ace_and_king_to_foundation
 
 
 ------

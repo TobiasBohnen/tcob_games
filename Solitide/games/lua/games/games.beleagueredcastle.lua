@@ -276,7 +276,7 @@ local rittenhouse = {
             if i < 4 then
                 return {
                     Position = { x = i, y = 0 },
-                    Rule     = Sol.Rules.ace_uprank_none
+                    Rule     = Sol.Rules.ace_uprank_none_l13
                 }
             else
                 return {
@@ -297,15 +297,7 @@ local rittenhouse = {
             }
         end
     },
-    on_before_shuffle = function(game, card)
-        if card.Rank == "Ace" then
-            return game.PlaceTop(card, game.Foundation, 1, 4, true)
-        elseif card.Rank == "King" then
-            return game.PlaceTop(card, game.Foundation, 5, 4, true)
-        end
-
-        return false
-    end,
+    on_before_shuffle = Sol.Ops.Shuffle.ace_and_king_to_foundation,
     on_shuffle        = function(game, card, pile)
         local idx = pile.Index
         local foundation = game.Foundation
@@ -461,7 +453,7 @@ local zerline = {
     Tableau    = {
         Size = 8,
         Pile = function(i)
-            local Rule = { Base = Sol.Rules.Base.Ranks({ "Queen" }), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.Top() }
+            local rule = { Base = Sol.Rules.Base.Ranks({ "Queen" }), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.Top() }
             if i < 4 then
                 return {
                     Position = { x = 0, y = i + 1 },
@@ -517,7 +509,7 @@ zerline_3_decks.Foundation     = {
 zerline_3_decks.Tableau        = {
     Size = 8,
     Pile = function(i)
-        local Rule = { Base = Sol.Rules.Base.Ranks({ "Queen" }), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.Top() }
+        local rule = { Base = Sol.Rules.Base.Ranks({ "Queen" }), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.Top() }
         if i < 4 then
             return {
                 Position = { x = 0, y = i + 1 },

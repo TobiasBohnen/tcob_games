@@ -14,7 +14,7 @@ local capricieuse = {
     Foundation        = {
         Size = 8,
         Pile = function(i)
-            return { Rule = i < 4 and Sol.Rules.ace_upsuit_top or Sol.Rules.king_downsuit_top }
+            return { Rule = i < 4 and Sol.Rules.ace_upsuit_top_l13 or Sol.Rules.king_downsuit_top_l13 }
         end
     },
     Tableau           = {
@@ -39,15 +39,7 @@ local capricieuse = {
 
         return true
     end,
-    on_before_shuffle = function(game, card)
-        if card.Rank == "Ace" then
-            return game.PlaceTop(card, game.Foundation, 1, 4, true)
-        elseif card.Rank == "King" then
-            return game.PlaceTop(card, game.Foundation, 5, 4, true)
-        end
-
-        return false
-    end,
+    on_before_shuffle = Sol.Ops.Shuffle.ace_and_king_to_foundation,
     on_init           = Sol.Layout.capricieuse
 }
 

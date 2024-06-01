@@ -396,7 +396,7 @@ local crescent = {
         Pile = function(i)
             return {
                 Position = { x = i + 3, y = 0 },
-                Rule     = i < 4 and Sol.Rules.ace_upsuit_top or Sol.Rules.king_downsuit_top
+                Rule     = i < 4 and Sol.Rules.ace_upsuit_top_l13 or Sol.Rules.king_downsuit_top_l13
             }
         end
     },
@@ -411,15 +411,7 @@ local crescent = {
             }
         end
     },
-    on_before_shuffle = function(game, card)
-        if card.Rank == "Ace" then
-            return game.PlaceTop(card, game.Foundation, 1, 4, true)
-        elseif card.Rank == "King" then
-            return game.PlaceTop(card, game.Foundation, 5, 4, true)
-        end
-
-        return false
-    end,
+    on_before_shuffle = Sol.Ops.Shuffle.ace_and_king_to_foundation,
     redeal            = function(game)
         for _, tableau in ipairs(game.Tableau) do
             if tableau.CardCount > 1 then
@@ -428,6 +420,60 @@ local crescent = {
         end
         return true
     end
+}
+
+
+------
+
+local rainbow_fan = {
+    Info              = {
+        Name      = "Rainbow Fan",
+        Family    = "Fan",
+        DeckCount = 2,
+        Redeals   = 3
+    },
+    Stock             = {
+        Initial = Sol.Initial.face_down(36)
+    },
+    Foundation        = {
+        Size = 8,
+        Pile = function(i)
+            return { Rule = i < 4 and Sol.Rules.ace_upsuit_top_l13 or Sol.Rules.king_downsuit_top_l13 }
+        end
+    },
+    Tableau           = {
+        Size = 20,
+        Pile = {
+            Initial = Sol.Initial.face_up(3),
+            Layout  = Sol.Pile.Layout.Row,
+            Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpOrDownInSuit(true), Move = Sol.Rules.Move.Top() }
+        }
+    },
+    on_init           = function(game) Sol.Layout.fan(game, 5) end,
+    on_before_shuffle = Sol.Ops.Shuffle.ace_and_king_to_foundation,
+    on_end_turn       = function(game)
+        local stock = game.Stock[1]
+        if stock.IsEmpty then return end
+        local tableau = game.Tableau
+        for _, tab in ipairs(tableau) do
+            if tab.IsEmpty then
+                stock:move_cards(tab, #stock.Cards - 2, 3, false)
+                tab:flip_up_cards()
+                return
+            end
+        end
+    end,
+    redeal            = function(game)
+        local tableau = game.Tableau
+        for _, tab in ipairs(tableau) do
+            if tab.CardCount > 1 then
+                tab:shift_card(1, tab.CardCount)
+            end
+        end
+
+        return true
+    end
+
 }
 
 
@@ -871,6 +917,7 @@ Sol.register_game(quads)
 Sol.register_game(quads_plus)
 Sol.register_game(lucky_piles)
 Sol.register_game(open_proils)
+Sol.register_game(rainbow_fan)
 Sol.register_game(roaming_proils)
 Sol.register_game(scotch_patience)
 Sol.register_game(shamrocks)

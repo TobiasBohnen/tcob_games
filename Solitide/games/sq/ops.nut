@@ -19,6 +19,26 @@ local shuffle = {
 
         return false
     },
+    ace_and_king_to_foundation = function(game, card) {
+        local foundation = game.Foundation
+        if (card.Rank == "Ace") {
+            for (i = 0; i < 4; i++) {
+                if (!foundation[i].IsEmpty && foundation[i].Cards[0].Suit == card.Suit) {
+                    return false
+                }
+            }
+            return game.PlaceTop(card, foundation, 0, 4, true)
+        } else if (card.Rank == "King") {
+            for (i = 4; i < 8; i++) {
+                if (!foundation[i].IsEmpty && foundation[i].Cards[0].Suit == card.Suit) {
+                    return false
+                }
+            }
+            return game.PlaceTop(card, foundation, 4, 4, true)
+        }
+
+        return false
+    },
     // after shuffle
     kings_to_bottom = function(game) {
         foreach(v in game.Tableau) {

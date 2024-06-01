@@ -61,6 +61,8 @@ kilowatt.Tableau.Pile.Rule    = Sol.Rules.any_downsuit_top
 kilowatt.on_before_shuffle    = Sol.Ops.Shuffle.king_to_foundation
 
 
+------
+
 ------------------------
 
 Sol.register_game(the_spark)

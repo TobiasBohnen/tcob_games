@@ -19,6 +19,22 @@ local shuffle = {
 
         return false
     end,
+    ace_and_king_to_foundation = function(game, card)
+        local foundation = game.Foundation
+        if card.Rank == "Ace" then
+            for i = 1, 4 do
+                if not foundation[i].IsEmpty and foundation[i].Cards[1].Suit == card.Suit then return false end
+            end
+            return game.PlaceTop(card, foundation, 1, 4, true)
+        elseif card.Rank == "King" then
+            for i = 5, 8 do
+                if not foundation[i].IsEmpty and foundation[i].Cards[1].Suit == card.Suit then return false end
+            end
+            return game.PlaceTop(card, foundation, 5, 4, true)
+        end
+
+        return false
+    end,
     -- shuffle
     play_to_foundation = function(game, card, pile)
         if pile.Type ~= Sol.Pile.Type.Tableau then return false end
