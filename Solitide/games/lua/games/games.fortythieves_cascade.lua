@@ -75,7 +75,7 @@ local jacks_in_the_box = {
         Pile = function(i)
             return {
                 Position = { x = i + 3, y = 0 },
-                Rule     = { Base = Sol.Rules.Base.Ranks({ "Jack" }), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top(), Limit = 13 }
+                Rule     = { Base = Sol.Rules.Base.Ranks({ "Jack" }), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top() }
             }
         end
     },

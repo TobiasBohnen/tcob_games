@@ -59,7 +59,7 @@ dutchess.Info.Redeals    = 1
 dutchess.Foundation.Pile = function(i)
     return {
         Position = { x = i + 3, y = 0 },
-        Rule     = Sol.Rules.ff_upsuit_none_l13
+        Rule     = Sol.Rules.ff_upsuit_none
     }
 end
 dutchess.Tableau.Pile    = function(i)

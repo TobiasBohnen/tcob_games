@@ -36,7 +36,7 @@ bear_river.Foundation = {
     Pile = function(i)
         return {
             Initial = Sol.Initial.face_up(i == 0 and 1 or 0),
-            Rule    = Sol.Rules.ff_upsuit_none_l13
+            Rule    = Sol.Rules.ff_upsuit_none
         }
     end
 }
@@ -396,7 +396,7 @@ local crescent = {
         Pile = function(i)
             return {
                 Position = { x = i + 3, y = 0 },
-                Rule     = i < 4 and Sol.Rules.ace_upsuit_top_l13 or Sol.Rules.king_downsuit_top_l13
+                Rule     = i < 4 and Sol.Rules.ace_upsuit_top or Sol.Rules.king_downsuit_top
             }
         end
     },
@@ -438,7 +438,7 @@ local rainbow_fan = {
     Foundation        = {
         Size = 8,
         Pile = function(i)
-            return { Rule = i < 4 and Sol.Rules.ace_upsuit_top_l13 or Sol.Rules.king_downsuit_top_l13 }
+            return { Rule = i < 4 and Sol.Rules.ace_upsuit_top or Sol.Rules.king_downsuit_top }
         end
     },
     Tableau           = {

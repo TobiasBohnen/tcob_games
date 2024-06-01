@@ -93,7 +93,7 @@ local nationale = {
     Foundation        = {
         Size = 8,
         Pile = function(i)
-            return { Rule = i < 4 and Sol.Rules.ace_upsuit_top_l13 or Sol.Rules.king_downsuit_top_l13 }
+            return { Rule = i < 4 and Sol.Rules.ace_upsuit_top or Sol.Rules.king_downsuit_top }
         end
     },
     Tableau           = {

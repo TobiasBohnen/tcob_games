@@ -276,7 +276,7 @@ local rittenhouse = {
             if i < 4 then
                 return {
                     Position = { x = i, y = 0 },
-                    Rule     = Sol.Rules.ace_uprank_none_l13
+                    Rule     = Sol.Rules.ace_uprank_none
                 }
             else
                 return {
@@ -372,7 +372,7 @@ local selective_castle = {
     },
     Foundation = {
         Size = 4,
-        Pile = { Rule = Sol.Rules.ff_upsuit_none_l13 }
+        Pile = { Rule = Sol.Rules.ff_upsuit_none }
     },
     Tableau    = {
         Size = 8,
@@ -446,7 +446,7 @@ local zerline = {
         Pile = function(i)
             return {
                 Position = { x = i % 2 + 3.5, y = i // 2 + 1 },
-                Rule     = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top(), Limit = 13 }
+                Rule     = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top() }
             }
         end
     },
@@ -502,7 +502,7 @@ zerline_3_decks.Foundation     = {
     Pile = function(i)
         return {
             Position = { x = i % 3 + 3, y = i // 3 + 1 },
-            Rule     = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top(), Limit = 13 }
+            Rule     = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top() }
         }
     end
 }

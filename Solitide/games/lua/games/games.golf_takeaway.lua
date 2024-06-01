@@ -15,7 +15,7 @@ local take_away = {
         Size = 6,
         Pile = {
             Layout = Sol.Pile.Layout.Squared,
-            Rule   = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.None() }
+            Rule   = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.None(), Limit = -1 }
         }
     },
     Tableau    = {
@@ -61,7 +61,8 @@ local striptease = {
                         return Sol.get_rank(base.Rank, 1, true) == drop.Rank or Sol.get_rank(base.Rank, -1, true) == drop.Rank
                     end
                 },
-                Move = Sol.Rules.Move.None()
+                Move = Sol.Rules.Move.None(),
+                Limit = -1
             }
         }
     },

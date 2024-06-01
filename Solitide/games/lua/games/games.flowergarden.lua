@@ -225,7 +225,7 @@ local agnes_bernauer = {
         Pile = function(i)
             return {
                 Initial = Sol.Initial.face_up(i == 0 and 1 or 0),
-                Rule    = Sol.Rules.ff_upsuit_none_l13
+                Rule    = Sol.Rules.ff_upsuit_none
             }
         end
     },
@@ -286,7 +286,7 @@ local big_bertha = {
             else
                 return {
                     Position = { x = 14, y = 4 },
-                    Rule     = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.InRank(), Move = Sol.Rules.Move.Top() }
+                    Rule     = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.InRank(), Move = Sol.Rules.Move.Top(), Limit = 8 }
                 }
             end
         end

@@ -116,8 +116,7 @@ local amazons                    = {
                             return amazons_ranks[target] == drop.Rank
                         end
                     },
-                    Move = Sol.Rules.Move.None(),
-                    Limit = 13
+                    Move = Sol.Rules.Move.None()
                 }
             }
         end

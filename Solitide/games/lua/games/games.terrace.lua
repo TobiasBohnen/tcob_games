@@ -23,7 +23,7 @@ local terrace = {
     Foundation = {
         Size = 8,
         Pile = {
-            Rule = { Base = Sol.Rules.Base.FirstFoundation(), Build = Sol.Rules.Build.UpAlternateColors(true), Move = Sol.Rules.Move.None(), Limit = 13 }
+            Rule = { Base = Sol.Rules.Base.FirstFoundation(), Build = Sol.Rules.Build.UpAlternateColors(true), Move = Sol.Rules.Move.None() }
         }
     },
     Tableau = {
@@ -96,7 +96,7 @@ generals_patience.Reserve.Initial = Sol.Initial.face_up(13)
 generals_patience.Foundation = {
     Size = 8,
     Pile = {
-        Rule = { Base = Sol.Rules.Base.FirstFoundation(), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.None(), Limit = 13 }
+        Rule = { Base = Sol.Rules.Base.FirstFoundation(), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.None() }
     }
 }
 

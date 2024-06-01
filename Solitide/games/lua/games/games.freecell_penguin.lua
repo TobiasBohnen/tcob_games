@@ -15,7 +15,7 @@ local penguin = {
     },
     Foundation        = {
         Size = 4,
-        Pile = { Rule = Sol.Rules.ff_upsuit_none_l13 }
+        Pile = { Rule = Sol.Rules.ff_upsuit_none }
     },
     Tableau           = {
         Size = 7,

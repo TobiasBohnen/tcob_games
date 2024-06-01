@@ -490,7 +490,7 @@ napoleons_square.Tableau       = {
 local pluto                = Sol.copy(forty_thieves)
 pluto.Info.Name            = "Pluto"
 pluto.Stock.Initial        = Sol.Initial.face_down(92)
-pluto.Foundation.Pile.Rule = { Base = Sol.Rules.Base.Ranks({ "Two" }), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top(), Limit = 13 }
+pluto.Foundation.Pile.Rule = { Base = Sol.Rules.Base.Ranks({ "Two" }), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top() }
 pluto.Tableau              = {
     Size = 12,
     Pile = {

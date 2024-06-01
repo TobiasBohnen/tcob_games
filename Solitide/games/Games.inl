@@ -472,5 +472,16 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
     createPiles(FreeCell, "FreeCell");
     createPiles(Foundation, "Foundation");
     createPiles(Tableau, "Tableau");
+
+    if (!Foundation.empty()) {
+        auto const& gameinfo {info()};
+        i32 const   limit {static_cast<i32>(gameinfo.DeckCount * gameinfo.DeckRanks.size() * gameinfo.DeckSuits.size() / Foundation.size())};
+
+        for (auto& foundation : Foundation) {
+            if (foundation.Rule.Limit == -2) {
+                foundation.Rule.Limit = limit;
+            }
+        }
+    }
 }
 }

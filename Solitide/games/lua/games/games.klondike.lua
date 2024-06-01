@@ -697,7 +697,7 @@ nine_across.Stock.Initial = Sol.Initial.face_down(7)
 nine_across.Foundation    = {
     Size = 4,
     Pile = {
-        Rule = Sol.Rules.ff_upsuit_none_l13
+        Rule = Sol.Rules.ff_upsuit_none
     }
 }
 nine_across.Tableau       = {

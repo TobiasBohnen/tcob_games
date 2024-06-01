@@ -15,7 +15,7 @@ local board_patience = {
             return {
                 Position = { x = i + 3, y = 0 },
                 Initial  = Sol.Initial.face_up(i == 0 and 1 or 0),
-                Rule     = Sol.Rules.ff_upsuit_top_l13
+                Rule     = Sol.Rules.ff_upsuit_top
             }
         end
     },
@@ -188,7 +188,9 @@ local six_by_six = {
     Stock      = { Initial = Sol.Initial.face_down(16) },
     Foundation = {
         Size = 4,
-        Pile = { Rule = Sol.Rules.ace_upsuit_top }
+        Pile = {
+            Rule = { Base = Sol.Rules.Base.Ace(), Build = Sol.Rules.Build.UpInSuit(), Move = Sol.Rules.Move.Top() }
+        }
     },
     Tableau    = {
         Size = 6,

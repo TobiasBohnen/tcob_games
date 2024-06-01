@@ -11,7 +11,7 @@ local chessboard = {
     },
     Foundation = {
         Size = 4,
-        Pile = { Rule = Sol.Rules.ff_upsuit_none_l13 }
+        Pile = { Rule = Sol.Rules.ff_upsuit_none }
     },
     Tableau    = {
         Size = 10,
@@ -38,7 +38,7 @@ local chessboard = {
 
 local lasker           = Sol.copy(chessboard)
 lasker.Info.Name       = "Lasker"
-lasker.Foundation.Pile = { Rule = Sol.Rules.ff_upsuit_top_l13 }
+lasker.Foundation.Pile = { Rule = Sol.Rules.ff_upsuit_top }
 lasker.Tableau.Pile    = function(i)
     return {
         Initial = Sol.Initial.face_up(i < 2 and 6 or 5),

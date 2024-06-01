@@ -245,7 +245,8 @@ tableau::tableau()
 
 foundation::foundation()
 {
-    Type = pile_type::Foundation;
+    Type       = pile_type::Foundation;
+    Rule.Limit = -2;
 }
 
 reserve::reserve()

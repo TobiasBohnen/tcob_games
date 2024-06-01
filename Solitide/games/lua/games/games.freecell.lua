@@ -123,7 +123,7 @@ local double_free_cell_2             = Sol.copy(free_cell)
 double_free_cell_2.Info.Name         = "Double FreeCell II"
 double_free_cell_2.Info.DeckCount    = 2
 double_free_cell_2.FreeCell.Size     = 6
-double_free_cell_2.Foundation.Pile   = { Rule = { Base = Sol.Rules.Base.Ace(), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top(), Limit = 13 } }
+double_free_cell_2.Foundation.Pile   = { Rule = { Base = Sol.Rules.Base.Ace(), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top() } }
 double_free_cell_2.Tableau           = {
     Size = 10,
     Pile = {
@@ -540,7 +540,7 @@ limpopo.Tableau.Pile    = {
 local petal                 = Sol.copy(free_cell)
 petal.Info.Name             = "Petal"
 petal.FreeCell.Pile.Initial = Sol.Initial.face_up(1)
-petal.Foundation.Pile.Rule  = Sol.Rules.ff_upsuit_none_l13
+petal.Foundation.Pile.Rule  = Sol.Rules.ff_upsuit_none
 petal.Tableau.Pile          = function(i)
     return {
         Initial = Sol.Initial.face_up(i < 4 and 6 or 5),
@@ -777,7 +777,7 @@ local stalactites = {
         Size = 4,
         Pile = {
             Initial = Sol.Initial.face_up(1),
-            Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpByRank(true), Move = Sol.Rules.Move.None(), Limit = 13 }
+            Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpByRank(true), Move = Sol.Rules.Move.None() }
         },
     },
     Tableau    = {

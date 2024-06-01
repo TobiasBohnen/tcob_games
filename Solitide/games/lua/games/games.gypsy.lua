@@ -40,7 +40,7 @@ agnes_sorel.Foundation     = {
     Pile = function(i)
         return {
             Initial = i == 0 and Sol.Initial.face_up(1) or {},
-            Rule    = Sol.Rules.ff_upsuit_none_l13
+            Rule    = Sol.Rules.ff_upsuit_none
         }
     end
 }
@@ -201,7 +201,7 @@ flamenco.Tableau.Pile      = {
     Rule    = Sol.Rules.any_downac_inseq
 }
 flamenco.Foundation.Pile   = function(i)
-    return { Rule = i < 4 and Sol.Rules.ace_upsuit_top_l13 or Sol.Rules.king_downsuit_top_l13 }
+    return { Rule = i < 4 and Sol.Rules.ace_upsuit_top or Sol.Rules.king_downsuit_top }
 end
 flamenco.on_before_shuffle = Sol.Ops.Shuffle.ace_and_king_to_foundation
 
@@ -603,7 +603,7 @@ local swiss_patience = {
     },
     Foundation = {
         Size = 4,
-        Pile = { Rule = { Base = Sol.Rules.Base.Ranks({ "Two" }), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top(), Limit = 13 } }
+        Pile = { Rule = { Base = Sol.Rules.Base.Ranks({ "Two" }), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top() } }
     },
     Tableau    = {
         Size = 9,
