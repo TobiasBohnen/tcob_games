@@ -80,15 +80,7 @@ assembly.deal          = Sol.Ops.Deal.stock_to_waste
 
 ------
 local amazons_ranks <const>      = { "Ace", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen" }
-local amazons_rankvalues <const> = {
-    Ace = 1,
-    Seven = 2,
-    Eight = 3,
-    Nine = 4,
-    Ten = 5,
-    Jack = 6,
-    Queen = 7
-}
+local amazons_rankvalues <const> = { Ace = 1, Seven = 2, Eight = 3, Nine = 4, Ten = 5, Jack = 6, Queen = 7 }
 
 local amazons                    = {
     Info       = {

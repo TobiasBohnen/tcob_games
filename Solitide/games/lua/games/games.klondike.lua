@@ -1212,6 +1212,70 @@ local sawayama = { --from Last Call BBS
 
 ------
 
+local russian_patience_ranks <const> = { "Ace", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
+local russian_patience_rankvalues <const> = { Ace = 1, Seven = 2, Eight = 3, Nine = 4, Ten = 5, Jack = 6, Queen = 7, King = 8 }
+
+local russian_patience = {
+    Info              = {
+        Name      = "Russian Patience",
+        Family    = "Klondike",
+        DeckCount = 2,
+        DeckRanks = russian_patience_ranks
+    },
+    Foundation        = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Position = { x = i % 2 + 7, y = i // 2 },
+                Rule     = {
+                    Base = Sol.Rules.Base.Ace(),
+                    Build = {
+                        Hint = "Up by suit",
+                        Func = function(_, base, drop)
+                            if base.Suit ~= drop.Suit then return false end
+                            local target = russian_patience_rankvalues[base.Rank] + 1
+                            return russian_patience_ranks[target] == drop.Rank
+                        end
+                    },
+                    Move = Sol.Rules.Move.None()
+                }
+            }
+        end
+    },
+    Tableau           = {
+        Size = 7,
+        Pile = function(i)
+            return {
+                Position = { x = i, y = 0 },
+                Initial  = Sol.Initial.face_up(9),
+                Layout   = Sol.Pile.Layout.Column,
+                Rule     = {
+                    Base = Sol.Rules.Base.AnySingle(),
+                    Build = {
+                        Hint = "Down by alternate color",
+                        Func = function(_, base, drop)
+                            if base.Color == drop.Color then return false end
+                            local target = russian_patience_rankvalues[base.Rank] - 1
+                            return russian_patience_ranks[target] == drop.Rank
+                        end
+                    },
+                    Move = Sol.Rules.Move.InSeq()
+                }
+            }
+        end
+    },
+    on_before_shuffle = function(game, card)
+        if card.Rank == "Ace" then
+            return game.PlaceTop(card, game.Foundation[1], true)
+        end
+
+        return false
+    end
+}
+
+
+------
+
 ------------------------
 
 Sol.register_game(klondike)
@@ -1261,6 +1325,7 @@ Sol.register_game(qc)
 Sol.register_game(quadruple_klondike)
 Sol.register_game(quadruple_klondike_by_3s)
 Sol.register_game(raw_prawn)
+Sol.register_game(russian_patience)
 Sol.register_game(saratoga)
 Sol.register_game(sawayama)
 Sol.register_game(somerset)

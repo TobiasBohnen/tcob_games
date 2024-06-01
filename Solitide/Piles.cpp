@@ -206,7 +206,7 @@ static auto fill(pile const& pile, card const& card0, isize numCards) -> bool
 
 static auto limit_size(pile const& pile, isize numCards) -> bool
 {
-    if (pile.Rule.Limit < 0) { return true; }
+    if (pile.Rule.Limit == UNLIMITED) { return true; }
     return std::ssize(pile.Cards) + numCards <= pile.Rule.Limit;
 }
 
@@ -246,7 +246,7 @@ tableau::tableau()
 foundation::foundation()
 {
     Type       = pile_type::Foundation;
-    Rule.Limit = -2;
+    Rule.Limit = AUTO_LIMIT;
 }
 
 reserve::reserve()

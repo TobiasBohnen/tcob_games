@@ -179,7 +179,7 @@ geoffrey.Tableau   = {
         }
     end
 }
-geoffrey.on_init   = Sol.Layout.forty_thieves
+geoffrey.on_init   = Sol.Layout.klondike
 
 
 ------

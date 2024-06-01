@@ -474,11 +474,10 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
     createPiles(Tableau, "Tableau");
 
     if (!Foundation.empty()) {
-        auto const& gameinfo {info()};
-        i32 const   limit {static_cast<i32>(gameinfo.DeckCount * gameinfo.DeckRanks.size() * gameinfo.DeckSuits.size() / Foundation.size())};
+        i32 const limit {static_cast<i32>(info().DeckCount * info().DeckRanks.size() * info().DeckSuits.size() / Foundation.size())};
 
         for (auto& foundation : Foundation) {
-            if (foundation.Rule.Limit == -2) {
+            if (foundation.Rule.Limit == AUTO_LIMIT) {
                 foundation.Rule.Limit = limit;
             }
         }

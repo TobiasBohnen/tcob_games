@@ -10,8 +10,8 @@
 
 namespace solitaire {
 
-constexpr f32 FACE_DOWN_OFFSET {15.0f};
-constexpr f32 FACE_UP_OFFSET {6.0f};
+constexpr f32 FACE_DOWN_OFFSET {0.10f};
+constexpr f32 FACE_UP_OFFSET {0.20f};
 
 card_table::card_table(gfx::window* window, gfx::ui::canvas_widget* canvas, assets::group& resGrp, settings* settings)
     : _window {window}
@@ -66,8 +66,7 @@ void card_table::layout()
         for (auto* pile : piles) {
             if (pile->Cards.empty() && !pile->HasMarker) { continue; }
 
-            point_f   pos {multiply(pile->Position, cardSize)};
-            f32 const offsetMod {static_cast<f32>(pile->Cards.size() / 5)};
+            point_f pos {multiply(pile->Position, cardSize)};
 
             switch (pile->Layout) {
             case layout_type::Squared: {
@@ -83,9 +82,9 @@ void card_table::layout()
                     card.Bounds = {pos, cardSize};
                     pileBounds  = pileBounds.as_merged(card.Bounds);
                     if (card.is_face_down()) {
-                        pos.Y += cardSize.Height / (FACE_DOWN_OFFSET + offsetMod);
+                        pos.Y += cardSize.Height * FACE_DOWN_OFFSET;
                     } else {
-                        pos.Y += cardSize.Height / (FACE_UP_OFFSET + offsetMod);
+                        pos.Y += cardSize.Height * FACE_UP_OFFSET;
                     }
                 }
             } break;
@@ -95,9 +94,9 @@ void card_table::layout()
                     card.Bounds = {pos, cardSize};
                     pileBounds  = pileBounds.as_merged(card.Bounds);
                     if (card.is_face_down()) {
-                        pos.X += cardSize.Width / (FACE_DOWN_OFFSET + offsetMod);
+                        pos.X += cardSize.Width * FACE_DOWN_OFFSET;
                     } else {
-                        pos.X += cardSize.Height / (FACE_UP_OFFSET + offsetMod);
+                        pos.X += cardSize.Width * FACE_UP_OFFSET;
                     }
                 }
             } break;
@@ -110,7 +109,7 @@ void card_table::layout()
                         card.Bounds = {pos, cardSize};
                     } else {
                         card.Bounds = {pos, cardSize};
-                        pos.X += cardSize.Height / FACE_UP_OFFSET;
+                        pos.X += cardSize.Width * FACE_UP_OFFSET;
                     }
                     pileBounds = pileBounds.as_merged(card.Bounds);
                 }

@@ -188,7 +188,7 @@ return {
     -- Stock and Waste / single FreeCell  -> bottom
     fan = function(game, columns)
         local piles = get_piles(game)
-        local maxY = 0
+        local offsetY = 0
 
         if piles.FoundationSize <= 4 then
             --foundation right
@@ -197,8 +197,12 @@ return {
             end
 
             for i = 0, piles.TableauSize - 1 do
-                maxY = math.max(maxY, i // columns)
+                offsetY = math.max(offsetY, i // columns)
                 piles.Tableau[i + 1].Position = { x = (i % columns) * 2, y = i // columns }
+            end
+
+            if offsetY < piles.FoundationSize - 1 then
+                offsetY = piles.FoundationSize - 2
             end
         else
             --foundation top
@@ -209,23 +213,23 @@ return {
             end
 
             for i = 0, piles.TableauSize - 1 do
-                maxY = math.max(maxY, i // columns + 1)
+                offsetY = math.max(offsetY, i // columns + 1)
                 piles.Tableau[i + 1].Position = { x = (i % columns) * 2, y = i // columns + 1 }
             end
         end
 
         if piles.HasStock then
             local stockOffsetX = math.max(0, ((columns * 2) - (piles.WasteSize + 1)) / 2)
-            local stockOffsetY = maxY + 1
+            local stockOffsetY = offsetY + 1
             piles.Stock[1].Position = { x = stockOffsetX, y = stockOffsetY }
 
             for i = 1, piles.WasteSize do
                 piles.Waste[i].Position = { x = stockOffsetX + i, y = stockOffsetY }
             end
         elseif piles.FreeCellSize == 1 then
-            local stockOffsetX = math.max(0, ((columns * 2) - (piles.WasteSize + 1)) / 2)
-            local stockOffsetY = maxY + 1
-            piles.FreeCell[1].Position = { x = stockOffsetX, y = stockOffsetY }
+            local fcOffsetX = math.max(0, ((columns * 2) - (piles.WasteSize + 1)) / 2)
+            local fcOffsetY = offsetY + 1
+            piles.FreeCell[1].Position = { x = fcOffsetX, y = fcOffsetY }
         end
     end,
     -- FreeCell         -> top
@@ -267,33 +271,6 @@ return {
 
         for i = 0, piles.TableauSize - 1 do
             piles.Tableau[i + 1].Position = { x = i, y = 0 }
-        end
-    end,
-    -- Stock and Waste  -> bottom right
-    -- Foundation       -> top
-    -- Tableau          -> second row
-    forty_thieves = function(game)
-        local piles = get_piles(game)
-
-        local foundationOffsetX = math.max(0, (piles.TableauSize - piles.FoundationSize) / 2)
-
-        for i = 0, piles.FoundationSize - 1 do
-            piles.Foundation[i + 1].Position = { x = i + foundationOffsetX, y = 0 }
-        end
-
-        local tableauOffsetX = (piles.FoundationSize - piles.TableauSize) / 2
-        tableauOffsetX = math.max(0, tableauOffsetX)
-
-        for i = 0, piles.TableauSize - 1 do
-            piles.Tableau[i + 1].Position = { x = i + tableauOffsetX, y = 1 }
-        end
-
-        local bottomRow = 3
-        if piles.HasStock then
-            piles.Stock[1].Position = { x = foundationOffsetX + piles.FoundationSize - 1, y = bottomRow }
-        end
-        if piles.HasWaste then
-            piles.Waste[1].Position = { x = foundationOffsetX + piles.FoundationSize - 2, y = bottomRow }
         end
     end,
     -- FreeCells        -> top left
@@ -360,27 +337,23 @@ return {
     klondike = function(game)
         local piles = get_piles(game)
 
-        local offX  = 3
+        local offX  = 0
         if piles.HasStock then
             piles.Stock[1].Position = { x = 0, y = 0 }
+            offX = offX + 2
+
+            if piles.HasWaste then
+                piles.Waste[1].Position = { x = 1, y = 0 }
+                offX = offX + 1
+            end
         end
 
-        if piles.HasWaste then
-            piles.Waste[1].Position = { x = 1, y = 0 }
-        else
-            offX = offX - 1
-        end
-
-        local foundationOffsetX = piles.TableauSize - piles.FoundationSize - offX
-        foundationOffsetX = math.max(0, foundationOffsetX)
-
+        local foundationOffsetX <const> = math.max(offX, (piles.TableauSize - piles.FoundationSize) / 2)
         for i = 0, piles.FoundationSize - 1 do
-            piles.Foundation[i + 1].Position = { x = i + offX + foundationOffsetX, y = 0 }
+            piles.Foundation[i + 1].Position = { x = i + foundationOffsetX, y = 0 }
         end
 
-        local tableauOffsetX = (piles.FoundationSize + offX + foundationOffsetX - piles.TableauSize) / 2
-        tableauOffsetX = math.max(0, tableauOffsetX)
-
+        local tableauOffsetX <const> = math.max(0, (piles.FoundationSize + offX - piles.TableauSize) / 2)
         for i = 0, piles.TableauSize - 1 do
             piles.Tableau[i + 1].Position = { x = i + tableauOffsetX, y = 1 }
         end

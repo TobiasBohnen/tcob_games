@@ -24,7 +24,7 @@ local forty_thieves = {
         }
     },
     deal = Sol.Ops.Deal.stock_to_waste,
-    on_init = Sol.Layout.forty_thieves
+    on_init = Sol.Layout.klondike
 }
 
 
@@ -265,13 +265,11 @@ forty_and_eight.redeal        = Sol.Ops.Redeal.waste_to_stock
 
 ------
 
-local indian_initial <const> = { false, true, true }
-
-local indian                 = Sol.copy(forty_thieves)
-indian.Info.Name             = "Indian"
-indian.Stock.Initial         = Sol.Initial.face_down(74)
-indian.Tableau.Pile.Initial  = indian_initial
-indian.Tableau.Pile.Rule     = Sol.Rules.any_downabos_top
+local indian                = Sol.copy(forty_thieves)
+indian.Info.Name            = "Indian"
+indian.Stock.Initial        = Sol.Initial.face_down(74)
+indian.Tableau.Pile.Initial = { false, true, true }
+indian.Tableau.Pile.Rule    = Sol.Rules.any_downabos_top
 
 
 ------
@@ -517,6 +515,23 @@ end
 
 ------
 
+local red_and_black                = Sol.copy(forty_thieves)
+red_and_black.Info.Name            = "Red and Black"
+red_and_black.Stock.Initial        = Sol.Initial.face_down(88)
+red_and_black.Foundation.Pile.Rule = Sol.Rules.ace_upac_top
+red_and_black.Tableau              = {
+    Size = 8,
+    Pile = {
+        Initial = Sol.Initial.face_up(1),
+        Layout  = Sol.Pile.Layout.Column,
+        Rule    = Sol.Rules.any_downac_inseq
+    }
+}
+red_and_black.on_before_shuffle    = Sol.Ops.Shuffle.ace_to_foundation
+
+
+------
+
 local rows_of_four         = Sol.copy(forty_thieves)
 rows_of_four.Info.Name     = "Rows of Four"
 rows_of_four.Info.Redeals  = 2
@@ -535,19 +550,16 @@ san_juan_hill.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
 
 ------
 
-local red_and_black                    = Sol.copy(forty_thieves)
-red_and_black.Info.Name                = "Red and Black"
-red_and_black.Stock.Initial            = Sol.Initial.face_down(88)
-red_and_black.Foundation.Pile.Rule     = Sol.Rules.ace_upac_top
-red_and_black.Tableau                  = {
-    Size = 8,
-    Pile = {
-        Initial = Sol.Initial.face_up(1),
-        Layout  = Sol.Pile.Layout.Column,
-        Rule    = Sol.Rules.any_downac_inseq
-    }
+local sanibel                = Sol.copy(forty_thieves)
+sanibel.Info.Name            = "Sanibel"
+sanibel.Stock.Initial        = Sol.Initial.face_down(4)
+sanibel.Foundation.Pile.Rule = Sol.Rules.ace_upsuit_none
+sanibel.Tableau.Pile         = {
+    Initial = { false, false, false, true, true, true, true, true, true, true },
+    Layout  = Sol.Pile.Layout.Column,
+    Rule    = Sol.Rules.any_downac_faceup
 }
-red_and_black.on_before_shuffle        = Sol.Ops.Shuffle.ace_to_foundation
+
 
 ------
 
@@ -870,6 +882,7 @@ Sol.register_game(red_and_black)
 Sol.register_game(roosevelt)
 Sol.register_game(rows_of_four)
 Sol.register_game(san_juan_hill)
+Sol.register_game(sanibel)
 Sol.register_game(single_rail)
 Sol.register_game(sixty_thieves)
 Sol.register_game(streets)

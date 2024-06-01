@@ -394,13 +394,29 @@ void base_game::calc_hints()
     }
 
     auto const validHint {[&](auto const& src, auto const& dst) {
-        if (src.Src == dst) { return false; }
-        if (src.Src->Type == pile_type::Foundation && dst->Type == pile_type::Foundation) { return false; }                                  // ignore Foundation to Foundation
-        if (src.Src->Type == pile_type::Foundation && dst->Type == pile_type::FreeCell) { return false; }                                    // ignore Foundation to FreeCell
-        if (src.Src->Type == pile_type::FreeCell && dst->Type == pile_type::FreeCell) { return false; }                                      // ignore FreeCell to FreeCell
-        if (src.Src->Type == pile_type::Tableau && src.SrcCardIdx == 0 && dst->Type == pile_type::Tableau && dst->empty()) { return false; } // ignore first card Tableau to empty Tableau
-        if (dst->Type == pile_type::Foundation && src.HasFoundation) { return false; }                                                       // limit foundation destinations to 1
-        if (!dst->HasMarker && dst->Cards.empty()) { return false; }                                                                         // ignore markerless pile without cards
+        switch (src.Src->Type) {
+        case pile_type::Foundation:
+            // ignore Foundation to Foundation or FreeCell
+            if (dst->Type == pile_type::Foundation || dst->Type == pile_type::FreeCell) { return false; }
+            break;
+        case pile_type::FreeCell: {
+            // ignore FreeCell to FreeCell type
+            if (dst->Type == pile_type::FreeCell) { return false; }
+        } break;
+        case pile_type::Tableau: {
+            // ignore first card Tableau to empty Tableau
+            if (src.SrcCardIdx == 0 && dst->Type == pile_type::Tableau && dst->empty()) { return false; }
+        } break;
+        case pile_type::Stock:
+        case pile_type::Waste:
+        case pile_type::Reserve:
+            break;
+        }
+
+        // limit foundation destinations to 1
+        if (dst->Type == pile_type::Foundation && src.HasFoundation) { return false; }
+        // ignore markerless pile without cards
+        if (!dst->HasMarker && dst->Cards.empty()) { return false; }
         return true;
     }};
 
@@ -422,26 +438,28 @@ void base_game::calc_hints()
 
     _hints.clear();
     _hints.reserve(movable.size());
-    for (auto const& [_, piles] : _pileMap) {
+    for (auto const& [type, piles] : _pileMap) {
+        if (type == pile_type::Stock || type == pile_type::Waste || type == pile_type::Reserve) { continue; } // skip Stock/Waste/Reserve destination
         for (auto* dst : piles) {
-            if (dst->Type == pile_type::Stock || dst->Type == pile_type::Waste || dst->Type == pile_type::Reserve) { continue; } // skip Stock/Waste/Reserve destination
             for (auto& src : movable) {
+                if (src.Src == dst) { continue; }
+
                 if (!validHint(src, dst)) { continue; }
 
-                if (can_play(*dst,
-                             dst->empty() ? -1 : dst->Cards.size() - 1,
-                             src.Src->Cards[src.SrcCardIdx],
-                             std::ssize(src.Src->Cards) - src.SrcCardIdx)) {
-                    if (dst->Type == pile_type::Foundation) { src.HasFoundation = true; }
+                if (!can_play(*dst,
+                              std::ssize(dst->Cards) - 1,
+                              src.Src->Cards[src.SrcCardIdx],
+                              std::ssize(src.Src->Cards) - src.SrcCardIdx)) { continue; }
 
-                    auto& m {_hints.emplace_back()};
-                    m.Src        = src.Src;
-                    m.SrcPileIdx = src.SrcPileIdx;
-                    m.SrcCardIdx = src.SrcCardIdx;
-                    m.Dst        = dst;
-                    m.DstPileIdx = dst->Index;
-                    m.DstCardIdx = std::ssize(dst->Cards) - 1;
-                }
+                auto& m {_hints.emplace_back()};
+                m.Src        = src.Src;
+                m.SrcPileIdx = src.SrcPileIdx;
+                m.SrcCardIdx = src.SrcCardIdx;
+                m.Dst        = dst;
+                m.DstPileIdx = dst->Index;
+                m.DstCardIdx = std::ssize(dst->Cards) - 1;
+
+                if (dst->Type == pile_type::Foundation) { src.HasFoundation = true; }
             }
         }
     }

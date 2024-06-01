@@ -54,10 +54,19 @@ bristol.on_after_shuffle  = Sol.Ops.Shuffle.kings_to_bottom
 
 ------
 
+local vincent                = Sol.copy(bristol)
+vincent.Info.Name            = "Vincent"
+vincent.Foundation.Pile.Rule = Sol.Rules.ace_upsuit_top
+vincent.Tableau.Pile.Rule    = Sol.Rules.king_downsuit_inseq
+
+
+------
+
 local dover          = Sol.copy(bristol)
 dover.Info.Name      = "Dover"
 dover.Info.DeckCount = 2
 dover.Stock.Initial  = Sol.Initial.face_down(80)
+
 
 ------
 
@@ -66,3 +75,4 @@ dover.Stock.Initial  = Sol.Initial.face_down(80)
 Sol.register_game(belvedere)
 Sol.register_game(bristol)
 Sol.register_game(dover)
+Sol.register_game(vincent)

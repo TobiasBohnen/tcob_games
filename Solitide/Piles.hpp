@@ -56,7 +56,7 @@ struct rule {
     std::string BaseHint {"None"};
     empty_func  Base {empty_none};
 
-    i32 Limit {-1};
+    i32 Limit {UNLIMITED};
 };
 
 ////////////////////////////////////////////////////////////
