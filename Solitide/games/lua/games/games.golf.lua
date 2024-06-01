@@ -75,7 +75,7 @@ putt_putt.Info.Name  = "Putt Putt"
 putt_putt.Foundation = {
     Initial = Sol.Initial.face_up(1),
     Layout  = Sol.Pile.Layout.Squared,
-    Rule    = { Base = Sol.Rules.Base.None, Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.None() }
+    Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.None() }
 }
 
 

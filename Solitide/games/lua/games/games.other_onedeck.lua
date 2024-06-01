@@ -35,6 +35,131 @@ local board_patience = {
 
 ------
 
+local captive_queens = {
+    Info = {
+        Name      = "Captive Queens",
+        Family    = "Other",
+        DeckCount = 1,
+        Redeals   = 2
+    },
+    Stock = {
+        Position = { x = 0, y = 0.5 },
+        Initial  = Sol.Initial.face_down(52)
+    },
+    Waste = {
+        Position = { x = 0, y = 1.5 }
+    },
+    Foundation = {
+        Size = 12,
+        Pile = function(i)
+            local rule = {}
+            if i < 4 then
+                rule = { Base = Sol.Rules.Base.Ranks({ "Five" }), Build = Sol.Rules.Build.DownInSuit(true), Move = Sol.Rules.Move.Top(), Limit = 6 }
+            elseif i < 8 then
+                rule = { Base = Sol.Rules.Base.Ranks({ "Queen" }), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.None() }
+            else
+                rule = { Base = Sol.Rules.Base.Ranks({ "Six" }), Build = Sol.Rules.Build.UpInSuit(), Move = Sol.Rules.Move.Top(), Limit = 6 }
+            end
+            return {
+                Position = { x = i % 4 + 1, y = i // 4 },
+                Rule     = rule
+            }
+        end
+    },
+    deal = Sol.Ops.Deal.stock_to_waste,
+    redeal = Sol.Ops.Redeal.waste_to_stock
+}
+
+
+------
+
+local circle_eight_pos = {
+    --[[ --]] { 1, 0 }, { 2, 0 }, { 3, 0 }, --[[ --]]
+    { 0, 1 }, --[[ --]] --[[ --]] --[[ --]] { 4, 1 },
+    --[[ --]] { 1, 2 }, { 2, 2 }, { 3, 2 }, --[[ --]]
+}
+
+local circle_eight = {
+    Info = {
+        Name      = "Circle Eight",
+        Family    = "Other",
+        DeckCount = 1,
+        Redeals   = 1,
+        Objective = "AllCardsToTableau"
+    },
+    Stock = {
+        Position = { x = 1.5, y = 1 },
+        Initial  = Sol.Initial.face_down(44)
+    },
+    Waste = {
+        Position = { x = 2.5, y = 1 }
+    },
+    Tableau = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Position = { x = circle_eight_pos[i + 1][1], y = circle_eight_pos[i + 1][2] },
+                Initial  = Sol.Initial.face_up(1),
+                Rule     = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpByRank(true), Move = Sol.Rules.Move.None() }
+            }
+        end
+    },
+    deal = Sol.Ops.Deal.stock_to_waste,
+    redeal = Sol.Ops.Redeal.waste_to_stock
+}
+
+
+------
+
+local corner_suit = {
+    Info = {
+        Name      = "Corner Suite",
+        Family    = "Other",
+        DeckCount = 1
+    },
+    Stock = {
+        Position = { x = 1.5, y = 0 },
+        Initial  = Sol.Initial.face_down(52)
+    },
+    Waste = {
+        Position = { x = 2.5, y = 0 }
+    },
+    Foundation = {
+        Size = 4,
+        Pile = function(i)
+            return {
+                Position = { x = (i % 2) * 4, y = (i // 2) * 4 },
+                Rule     = Sol.Rules.ace_upsuit_top
+            }
+        end
+    },
+    Tableau = {
+        Size = 9,
+        Pile = function(i)
+            return {
+                Position = { x = i % 3 + 1, y = i // 3 + 1 },
+                Layout   = Sol.Pile.Layout.Squared,
+                Rule     = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.Top() }
+            }
+        end
+    },
+    deal = Sol.Ops.Deal.stock_to_waste,
+    redeal = Sol.Ops.Redeal.waste_to_stock,
+    can_play = function(game, targetPile, targetCardIndex, card, numCards)
+        -- empty tableau can only be filled from the waste
+        if targetPile.Type == Sol.Pile.Type.Tableau and targetPile.IsEmpty then
+            if game:find_pile(card).Type ~= Sol.Pile.Type.Waste then
+                return false
+            end
+        end
+
+        return game:can_play(targetPile, targetCardIndex, card, numCards)
+    end
+}
+
+
+------
+
 local diamond_mine = {
     Info = {
         Name      = "Diamond Mine",
@@ -98,6 +223,45 @@ local diamond_mine = {
 
 ------
 
+local dimensions = {
+    Info = {
+        Name      = "Dimensions",
+        Family    = "Other",
+        DeckCount = 1
+    },
+    Stock = {
+        Position = { x = 0, y = 0 },
+        Initial  = Sol.Initial.face_down(52)
+    },
+    Waste = {
+        Position = { x = 0, y = 1 }
+    },
+    Foundation = {
+        Size = 3,
+        Pile = function(i)
+            return {
+                Position = { x = 1, y = i },
+                Layout   = Sol.Pile.Layout.Row,
+                Rule     = {
+                    Base = Sol.Rules.Base.Any(),
+                    Build = {
+                        Hint = "By same suit or same rank",
+                        Func = function(_, base, drop)
+                            return base.Suit == drop.Suit or base.Rank == drop.Rank
+                        end
+                    },
+                    Move = Sol.Rules.Move.None(),
+                    Limit = -1
+                }
+            }
+        end
+    },
+    deal = Sol.Ops.Deal.stock_to_waste
+}
+
+
+------
+
 local double_dot = {
     Info = {
         Name      = "Double Dot",
@@ -106,7 +270,7 @@ local double_dot = {
     },
     Stock = {
         Position = { x = 0, y = 0 },
-        Initial = Sol.Initial.face_down(40)
+        Initial  = Sol.Initial.face_down(40)
     },
     Foundation = {
         Size = 4,
@@ -155,7 +319,7 @@ local four_by_four = {
     },
     Stock = {
         Position = { x = 0, y = 0 },
-        Initial = Sol.Initial.face_down(51)
+        Initial  = Sol.Initial.face_down(51)
     },
     Waste = { Position = { x = 1, y = 0 } },
     Foundation = {
@@ -259,7 +423,7 @@ local turncoats = {
     },
     Stock = {
         Position = { x = 0, y = 0 },
-        Initial = Sol.Initial.face_down(40)
+        Initial  = Sol.Initial.face_down(40)
     },
     Foundation = {
         Size = 4,
@@ -289,12 +453,56 @@ local turncoats = {
 
 ------
 
+local trusty_twelve = {
+    Info = {
+        Name      = "Trusty Twelve",
+        Family    = "Other",
+        DeckCount = 1,
+        Objective = "AllCardsToTableau"
+    },
+    Reserve = {
+        Position = { x = 0, y = 0 },
+        Initial  = Sol.Initial.face_down(40)
+    },
+    Tableau = {
+        Size = 12,
+        Pile = function(i)
+            return {
+                Position = { x = i + 1, y = 0 },
+                Initial  = Sol.Initial.face_up(1),
+                Layout   = Sol.Pile.Layout.Column,
+                Rule     = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.Top() }
+            }
+        end
+    },
+    on_end_turn = function(game)
+        local reserve = game.Reserve[1]
+        Sol.Ops.Deal.to_group(reserve, game.Tableau, Sol.DealMode.IfEmpty)
+        reserve:flip_down_cards()
+    end,
+    can_play = function(game, targetPile, targetCardIndex, card, numCards)
+        if targetPile.Type == Sol.Pile.Type.Tableau and game:find_pile(card).CardCount > 1 then
+            return false
+        end
+
+        return game:can_play(targetPile, targetCardIndex, card, numCards)
+    end
+}
+
+
+------
+
 ------------------------
 
 Sol.register_game(board_patience)
+Sol.register_game(captive_queens)
+Sol.register_game(circle_eight)
+Sol.register_game(corner_suit)
 Sol.register_game(diamond_mine)
+Sol.register_game(dimensions)
 Sol.register_game(double_dot)
 Sol.register_game(four_by_four)
 Sol.register_game(lucky_thirteen)
 Sol.register_game(six_by_six)
 Sol.register_game(turncoats)
+Sol.register_game(trusty_twelve)

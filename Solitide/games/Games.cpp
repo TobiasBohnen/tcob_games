@@ -354,21 +354,26 @@ auto base_game::get_status() const -> game_status
         case pile_type::FreeCell: break;
         }
     }
+
+    isize const maxCards {_info.DeckCount * std::ssize(_info.DeckRanks) * std::ssize(_info.DeckSuits)};
     switch (_info.Objective) {
     case objective::AllCardsToFoundation:
-        if (foundationCards == _info.DeckCount * std::ssize(_info.DeckRanks) * std::ssize(_info.DeckSuits)) { return game_status::Success; }
+        if (foundationCards == maxCards) { return game_status::Success; }
         break;
     case objective::AllCardsButOneToFoundation:
-        if (foundationCards == (_info.DeckCount * std::ssize(_info.DeckRanks) * std::ssize(_info.DeckSuits)) - 1) { return game_status::Success; }
+        if (foundationCards == maxCards - 1) { return game_status::Success; }
         break;
     case objective::AllCardsButTwoToFoundation:
-        if (foundationCards == (_info.DeckCount * std::ssize(_info.DeckRanks) * std::ssize(_info.DeckSuits)) - 2) { return game_status::Success; }
+        if (foundationCards == maxCards - 2) { return game_status::Success; }
         break;
     case objective::AllCardsButFourToFoundation:
-        if (foundationCards == (_info.DeckCount * std::ssize(_info.DeckRanks) * std::ssize(_info.DeckSuits)) - 4) { return game_status::Success; }
+        if (foundationCards == maxCards - 4) { return game_status::Success; }
         break;
     case objective::ClearTableau:
         if (tableauCards == 0) { return game_status::Success; }
+        break;
+    case objective::AllCardsToTableau:
+        if (tableauCards == maxCards) { return game_status::Success; }
         break;
     }
 
@@ -393,7 +398,7 @@ void base_game::calc_hints()
         return;
     }
 
-    auto const validHint {[&](auto const& src, auto const& dst) {
+    auto static const validHint {[](auto const& src, auto const& dst) {
         switch (src.Src->Type) {
         case pile_type::Foundation:
             // ignore Foundation to Foundation or FreeCell

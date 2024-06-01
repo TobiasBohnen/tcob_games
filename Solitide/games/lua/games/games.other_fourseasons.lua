@@ -45,9 +45,17 @@ local four_seasons = {
 
 ------
 
-local czarina = Sol.copy(four_seasons)
-czarina.Info.Name = "Czarina"
+local czarina       = Sol.copy(four_seasons)
+czarina.Info.Name   = "Czarina"
 czarina.on_end_turn = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
+
+
+------
+
+local florentine_patience        = Sol.copy(four_seasons)
+florentine_patience.Info.Name    = "Florentine Patience"
+florentine_patience.Info.Redeals = 1
+florentine_patience.redeal       = Sol.Ops.Redeal.waste_to_stock
 
 
 ------
@@ -145,4 +153,5 @@ local simplicity = {
 Sol.register_game(four_seasons)
 Sol.register_game(corners)
 Sol.register_game(czarina)
+Sol.register_game(florentine_patience)
 Sol.register_game(simplicity)

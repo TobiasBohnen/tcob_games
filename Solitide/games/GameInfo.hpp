@@ -49,6 +49,7 @@ enum class objective {
     AllCardsButOneToFoundation,
     AllCardsButTwoToFoundation,
     AllCardsButFourToFoundation,
+    AllCardsToTableau,
     ClearTableau
 };
 
