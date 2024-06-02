@@ -145,7 +145,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     // pile
     auto& pileWrapper {*script.template create_wrapper<pile>("pile")};
 
-    // properties
+    // getter
     pileWrapper["Type"]       = getter {[](pile* p) { return p->Type; }};
     pileWrapper["Index"]      = getter {[](pile* p) { return p->Index - IndexOffset; }};
     pileWrapper["IsEmpty"]    = getter {[](pile* p) { return p->empty(); }};
@@ -153,6 +153,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     pileWrapper["Cards"]      = getter {[](pile* p) { return p->Cards; }};
     pileWrapper["IsPlayable"] = getter {[](pile* p) { return p->Rule.IsPlayable(); }};
 
+    // properties -- not saved
     pileWrapper["Position"] = property {[](pile* p) { return p->Position; }, [](pile* p, point_f pos) { p->Position = pos; }};
 
     // methods

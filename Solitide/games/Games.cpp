@@ -157,6 +157,19 @@ void base_game::init()
 
 void base_game::refresh()
 {
+    // update marker texture
+    for (auto const& [_, piles] : _pileMap) {
+        for (auto const* pile : piles) {
+            if (pile->HasMarker) {
+                if (pile->Marker) {
+                    pile->Marker->TextureRegion = pile->get_marker_texture_name();
+                } else {
+                    // TODO: create marker
+                }
+            }
+        }
+    }
+
     _movableCache.clear();
     calc_hints();
     Status = get_status();
@@ -200,15 +213,6 @@ void base_game::end_turn(bool deal)
     ++_state.Turns;
 
     on_end_turn();
-
-    // update marker texture
-    for (auto const& [_, piles] : _pileMap) {
-        for (auto const* pile : piles) {
-            if (pile->HasMarker) {
-                pile->Marker->TextureRegion = pile->get_marker_texture_name();
-            }
-        }
-    }
 
     refresh();
 

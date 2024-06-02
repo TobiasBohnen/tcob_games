@@ -829,6 +829,239 @@ forty_nine.Tableau.Pile.Initial = Sol.Initial.face_up(7)
 
 
 ------
+------
+
+local floradora = {
+    Info       = {
+        Name      = "Floradora",
+        Family    = "FortyThieves",
+        DeckCount = 2
+    },
+    Stock      = { Initial = Sol.Initial.face_down(68) },
+    Waste      = {},
+    Foundation = {
+        Size = 9,
+        Pile = function(i)
+            if i > 0 then
+                return {
+                    Rule = { Base = Sol.Rules.Base.Ace(), Build = Sol.Rules.Build.UpInSuit(), Move = Sol.Rules.Move.Top(), Limit = 12 }
+                }
+            else
+                return {
+                    Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.InRank(), Move = Sol.Rules.Move.Top(), Limit = 8 }
+                }
+            end
+        end
+    },
+    Tableau    = {
+        Size = 6,
+        Pile = {
+            Initial = Sol.Initial.face_up(6),
+            Layout  = Sol.Pile.Layout.Column,
+            Rule    = Sol.Rules.any_downrank_top
+        }
+    },
+    deal       = Sol.Ops.Deal.stock_to_waste,
+    on_init    = Sol.Layout.klondike
+}
+
+
+------
+
+local octagon_foundation_pos <const> = {
+    --[[     --]] --[[     --]] { 2.5, 0.0 }, { 3.5, 0.0 }, --[[     --]] --[[     --]]
+    { 0.0, 1.5 }, { 1.0, 1.5 }, --[[     --]] --[[     --]] { 5.0, 1.5 }, { 6.0, 1.5 },
+    --[[     --]] --[[     --]] { 2.5, 3.0 }, { 3.5, 3.0 }, --[[     --]] --[[     --]]
+}
+
+local octagon_tableau_pos <const>    = {
+    { 0.25, 0.25 }, --[[ --]] --[[ --]] --[[ --]] --[[ --]] { 4.75, 0.25 },
+    --[[ --]] --[[ --]] --[[ --]] --[[ --]] --[[ --]] --[[ --]]
+    { 0.25, 2.75 }, --[[ --]] --[[ --]] --[[ --]] --[[ --]] { 4.75, 2.75 },
+}
+
+local octagon                        = {
+    Info = {
+        Name      = "Octagon",
+        Family    = "FortyThieves",
+        DeckCount = 2,
+        Redeals   = 3
+    },
+    Stock = {
+        Position = { x = 2.5, y = 1.5 },
+        Initial  = Sol.Initial.face_down(76)
+    },
+    Waste = {
+        Position = { x = 3.5, y = 1.5 }
+    },
+    Foundation = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Position = { x = octagon_foundation_pos[i + 1][1], y = octagon_foundation_pos[i + 1][2] },
+                Rule     = Sol.Rules.ace_upsuit_top
+            }
+        end
+    },
+    Tableau = {
+        Size = 4,
+        Pile = function(i)
+            return {
+                Position = { x = octagon_tableau_pos[i + 1][1], y = octagon_tableau_pos[i + 1][2] },
+                Initial  = Sol.Initial.face_up(5),
+                Layout   = Sol.Pile.Layout.Row,
+                Rule     = Sol.Rules.any_downsuit_top
+            }
+        end
+    },
+    on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation,
+    deal = Sol.Ops.Deal.stock_to_waste,
+    redeal = Sol.Ops.Redeal.waste_to_stock
+}
+
+
+------
+
+local octave = {
+    Info = {
+        Name      = "Octave",
+        Family    = "FortyThieves",
+        DeckCount = 2,
+        Redeals   = 1
+    },
+    Stock = {
+        Position = { x = 0, y = 0 },
+        Initial = Sol.Initial.face_down(72)
+    },
+    Waste = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Position = { x = i + 1, y = 0 }
+            }
+        end
+    },
+    Foundation = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Position = { x = i + 1, y = 1 },
+                Rule = Sol.Rules.ace_upsuit_top
+            }
+        end
+    },
+    Tableau = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Position = { x = i + 1, y = 2 },
+                Initial  = Sol.Initial.face_up(3),
+                Layout   = Sol.Pile.Layout.Column,
+                Rule     = Sol.Rules.any_downac_top
+            }
+        end
+    },
+    on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation,
+    deal = function(game)
+        -- first round: deal to first waste
+        return game.RedealsLeft == 1 and Sol.Ops.Deal.stock_to_waste(game)
+    end,
+    redeal = function(game)
+        -- second round: deal to all waste piles and auto refill in on_end_turn
+        return Sol.Ops.Redeal.waste_to_stock(game) and Sol.Ops.Deal.to_group(game.Stock[1], game.Waste, Sol.DealMode.IfEmpty)
+    end,
+    on_end_turn = function(game)
+        if game.RedealsLeft == 0 then
+            Sol.Ops.Deal.to_group(game.Stock[1], game.Waste, Sol.DealMode.IfEmpty)
+        end
+    end
+}
+
+
+------
+
+local quadrangle = {
+    Info        = {
+        Name      = "Quadrangle",
+        Family    = "FortyThieves",
+        DeckCount = 2
+    },
+    Stock       = { Initial = Sol.Initial.face_down(67) },
+    Waste       = {},
+    Foundation  = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Initial = Sol.Initial.face_up(i == 0 and 1 or 0),
+                Rule    = Sol.Rules.ff_upsuit_none
+            }
+        end
+    },
+    Tableau     = {
+        Size = 12,
+        Pile = {
+            Initial = Sol.Initial.face_up(3),
+            Layout  = Sol.Pile.Layout.Column,
+            Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownInSuit(true), Move = Sol.Rules.Move.Top() }
+        }
+    },
+    deal        = Sol.Ops.Deal.stock_to_waste,
+    on_end_turn = function(game)
+        if not Sol.Ops.Deal.to_group(game.Waste[1], game.Tableau, Sol.DealMode.IfEmpty) then
+            Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, Sol.DealMode.IfEmpty)
+        end
+    end,
+    on_init     = Sol.Layout.klondike
+}
+
+
+------
+
+local twin_queens = {
+    Info = {
+        Name      = "Twin Queens",
+        Family    = "FortyThieves",
+        DeckCount = 2,
+        Redeals   = 1
+    },
+    Stock = {
+        Position = { x = 0, y = 0 },
+        Initial  = Sol.Initial.face_down(96)
+    },
+    Waste = {
+        Position = { x = 1, y = 0 }
+    },
+    Foundation = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Position = { x = (i % 2) + 4, y = i // 2 },
+                Rule     = { Base = Sol.Rules.Base.Ranks({ "King" }), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top() }
+            }
+        end
+    },
+    Tableau = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Position = { x = (i % 2) * 3 + 3, y = i // 2 },
+                Initial  = Sol.Initial.face_up(1),
+                Layout   = Sol.Pile.Layout.Squared,
+                Rule     = Sol.Rules.any_downsuit_top
+            }
+        end
+    },
+    redeal = Sol.Ops.Redeal.waste_to_stock,
+    deal = Sol.Ops.Deal.stock_to_waste,
+    on_end_turn = function(game)
+        if not Sol.Ops.Deal.to_group(game.Waste[1], game.Tableau, Sol.DealMode.IfEmpty) then
+            Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, Sol.DealMode.IfEmpty)
+        end
+    end
+}
+
+
+------
 
 ------------------------
 
@@ -852,6 +1085,7 @@ Sol.register_game(emperor)
 Sol.register_game(express)
 Sol.register_game(famous_fifty)
 Sol.register_game(final_battle)
+Sol.register_game(floradora)
 Sol.register_game(following)
 Sol.register_game(foothold)
 Sol.register_game(forty_and_eight)
@@ -876,7 +1110,10 @@ Sol.register_game(napoleons_shoulder)
 Sol.register_game(napoleons_square)
 Sol.register_game(number_ten)
 Sol.register_game(number_twelve)
+Sol.register_game(octagon)
+Sol.register_game(octave)
 Sol.register_game(pluto)
+Sol.register_game(quadrangle)
 Sol.register_game(rank_and_file)
 Sol.register_game(red_and_black)
 Sol.register_game(roosevelt)
@@ -890,6 +1127,7 @@ Sol.register_game(triple_interchange)
 Sol.register_game(triple_line)
 Sol.register_game(triple_rail)
 Sol.register_game(thirty_nine_steps)
+Sol.register_game(twin_queens)
 Sol.register_game(unlimited)
 Sol.register_game(waning_moon)
 Sol.register_game(waterloo)

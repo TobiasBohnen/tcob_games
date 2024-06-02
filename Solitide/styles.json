@@ -407,6 +407,7 @@
     },
     "image_box": {
         "style_type": "image_box",
+        "padding": "2px",
         "fit": "Contain",
         "alignment": {
             "horizontal": "Centered",
