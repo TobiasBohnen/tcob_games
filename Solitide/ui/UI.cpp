@@ -165,16 +165,17 @@ static std::string const MenuName {"menu"};
 
 form_menu::form_menu(gfx::window* window, assets::group& resGrp, menu_sources const& source)
     : form {"Menu", window}
+    , _resGrp {resGrp}
     , _source {source}
 {
     // tooltip
     _tooltip = make_tooltip(this);
 
-    create_section_games(resGrp);
-    create_section_settings(resGrp);
+    create_section_games();
+    create_section_settings();
     create_section_themes();
-    create_section_cardset(resGrp);
-    create_menubar(resGrp);
+    create_section_cardset();
+    create_menubar();
 }
 
 void form_menu::submit_settings(data::config::object& obj)
@@ -231,7 +232,7 @@ void form_menu::update_recent_games()
     for (auto const& game : _source.Settings->Recent) { lb->add_item(game); }
 }
 
-void form_menu::create_section_games(assets::group& resGrp)
+void form_menu::create_section_games()
 {
     // Games
     auto panelGames {create_container<panel>(dock_style::Left, TabGamesName)};
@@ -246,7 +247,7 @@ void form_menu::create_section_games(assets::group& resGrp)
     auto txbFilter {panelFilterLayout->create_widget<text_box>({0, 0, 9, 1}, "txbFilter")};
     txbFilter->MaxLength = 30;
     auto btnFilter {panelFilterLayout->create_widget<button>({9, 0, 1, 1}, "btnFilter")};
-    btnFilter->Icon = resGrp.get<gfx::texture>("lens");
+    btnFilter->Icon = _resGrp.get<gfx::texture>("lens");
     btnFilter->Click.connect([tb = txbFilter.get()]() { tb->Text = ""; });
     btnFilter->Tooltip = _tooltip;
 
@@ -385,7 +386,7 @@ void form_menu::create_section_games(assets::group& resGrp)
             }
         });
         auto btnStartGame {panelGameStatsLayout->create_widget<button>({1, 36, 4, 3}, "btnStartGame")};
-        btnStartGame->Icon = resGrp.get<gfx::texture>("play");
+        btnStartGame->Icon = _resGrp.get<gfx::texture>("play");
         btnStartGame->Click.connect([&]() {
             StartGame(_txbSeed->Text());
             _txbSeed->Text = "";
@@ -395,7 +396,7 @@ void form_menu::create_section_games(assets::group& resGrp)
     }
 }
 
-void form_menu::create_section_settings(assets::group& resGrp)
+void form_menu::create_section_settings()
 {
     // Setting
     _tabSettings         = create_container<tab_container>(dock_style::Left, TabSettingsName);
@@ -442,7 +443,7 @@ void form_menu::create_section_settings(assets::group& resGrp)
         }
 
         auto btnApplyVideoSettings {tabPanelLayout->create_widget<button>({9, 16, 6, 4}, "btnApplyVideoSettings")};
-        btnApplyVideoSettings->Icon    = resGrp.get<gfx::texture>("apply");
+        btnApplyVideoSettings->Icon    = _resGrp.get<gfx::texture>("apply");
         btnApplyVideoSettings->Tooltip = _tooltip;
         btnApplyVideoSettings->Click.connect([&]() { VideoSettingsChanged(); });
     }
@@ -488,7 +489,7 @@ void form_menu::create_section_themes()
     }
 }
 
-void form_menu::create_section_cardset(assets::group& resGrp)
+void form_menu::create_section_cardset()
 {
     // Cardsets
     auto panelCardsets {create_container<panel>(dock_style::Left, TabCardsetsName)};
@@ -497,60 +498,44 @@ void form_menu::create_section_cardset(assets::group& resGrp)
     auto panelLayout {panelCardsets->create_layout<dock_layout>()};
 
     {
-        auto lbxCardsets {panelLayout->create_widget<list_box>(dock_style::Left, "lbxCardsets")};
-        lbxCardsets->Flex = {50_pct, 100_pct};
+        auto lbxCardsets {panelLayout->create_widget<list_box>(dock_style::Top, "lbxCardsets")};
+        lbxCardsets->Class = "list_box_log";
+        lbxCardsets->Flex  = {50_pct, 25_pct};
         for (auto const& cardSet : *_source.Cardsets) { lbxCardsets->add_item(cardSet.first); }
         lbxCardsets->SelectedItemIndex.Changed.connect([&, lb = lbxCardsets.get()](auto val) {
             if (val != -1) { SelectedCardset = lb->get_selected_item(); }
         });
         lbxCardsets->DoubleClick.connect([&, lb = lbxCardsets.get()] {
-            if (lb->SelectedItemIndex >= 0) {
-                ChangeCardset();
-                hide();
-            }
+            if (lb->SelectedItemIndex >= 0) { hide(); }
         });
         SelectedCardset.Changed.connect([lb = lbxCardsets.get()](auto const& val) { lb->select_item(val); });
     }
     {
-        auto panelCards {panelLayout->create_widget<panel>(dock_style::Right, "panelCardsets")};
-        panelCards->Flex   = {50_pct, 100_pct};
+        auto panelCards {panelLayout->create_widget<panel>(dock_style::Bottom, "panelCardsets")};
+        panelCards->Flex   = {100_pct, 75_pct};
         panelCards->ZOrder = 1;
         auto panelCardsLayout {panelCards->create_layout<grid_layout>(size_i {20, 40})};
 
-        auto panelCardPreview {panelCardsLayout->create_widget<panel>({0, 0, 20, 35}, "panelCardPreview")};
-
-        SelectedCardset.Changed.connect([cardsets = _source.Cardsets, panel = panelCardPreview.get()](auto const& val) {
+        SelectedCardset.Changed.connect([cardsets = _source.Cardsets, panel = panelCards.get()](auto const& val) {
             if (!cardsets->contains(val)) { return; }
+
+            auto layout {panel->create_layout<box_layout>(size_i {13, 4})};
 
             auto const& cards {cardsets->at(val)};
             auto const& tex {cards->get_material()->Texture};
 
-            auto const [width, height] {tex->get_size()};
-            auto layout {panel->create_layout<grid_layout>(size_i {width * 6, width * 6})};
-            auto createImgBox {[&](i32 x, i32 y) {
-                return layout->create_widget<image_box>({width * x, height * y, width, height}, "", false);
-            }};
-
-            std::array<rank, 6> ranks {rank::Ace, rank::Five, rank::Eight, rank::Jack, rank::Queen, rank::King};
+            //   std::array<rank, 6> const ranks {rank::Ace, rank::Five, rank::Eight, rank::Jack, rank::Queen, rank::King};
             for (u8 s {static_cast<u8>(suit::Hearts)}; s <= static_cast<u8>(suit::Spades); ++s) {
-                for (u8 r {0}; r < 6; r++) {
-                    auto imgBox {createImgBox(r, s)};
-                    imgBox->Image = {tex, card {static_cast<suit>(s), ranks[r], 0, false}.get_texture_name()};
+                for (u8 r {static_cast<u8>(rank::Ace)}; r <= static_cast<u8>(rank::King); ++r) {
+                    auto imgBox {layout->create_widget<image_box>("")};
+                    imgBox->Image = {tex, card {static_cast<suit>(s), static_cast<rank>(r), 0, false}.get_texture_name()};
                 }
             }
         });
-
-        auto btnApplyCardset {panelCardsLayout->create_widget<button>({1, 36, 4, 3}, "btnApplyCardset")};
-        btnApplyCardset->Icon = resGrp.get<gfx::texture>("apply");
-        btnApplyCardset->Click.connect([&]() {
-            ChangeCardset();
-            hide();
-        });
-        btnApplyCardset->Tooltip = _tooltip;
     }
 }
 
-void form_menu::create_menubar(assets::group& resGrp)
+void form_menu::create_menubar()
 {
     auto menu {create_container<panel>(dock_style::Fill, MenuName)};
     auto menuLayout {menu->create_layout<grid_layout>(size_i {7, 40})};
@@ -594,7 +579,7 @@ void form_menu::create_menubar(assets::group& resGrp)
     }
 
     auto btnBack {menuLayout->create_widget<button>({1, 35, 5, 3}, "btnBack")};
-    btnBack->Icon = resGrp.get<gfx::texture>("back");
+    btnBack->Icon = _resGrp.get<gfx::texture>("back");
     btnBack->Click.connect([&](auto&) { hide(); });
     btnBack->Tooltip = _tooltip;
 }

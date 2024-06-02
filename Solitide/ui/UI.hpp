@@ -72,15 +72,12 @@ class form_menu : public form {
 public:
     form_menu(gfx::window* window, assets::group& resGrp, menu_sources const& source);
 
-    prop<std::string>         SelectedGame;
-    signal<std::string const> StartGame;
-
+    prop<std::string> SelectedGame;
     prop<std::string> SelectedCardset;
-    signal<>          ChangeCardset;
-
     prop<std::string> SelectedTheme;
 
-    signal<> VideoSettingsChanged;
+    signal<std::string const> StartGame;
+    signal<>                  VideoSettingsChanged;
 
     void submit_settings(data::config::object& obj);
 
@@ -89,12 +86,12 @@ public:
     void update_recent_games();
 
 private:
-    void create_section_games(assets::group& resGrp);
-    void create_section_settings(assets::group& resGrp);
+    void create_section_games();
+    void create_section_settings();
     void create_section_themes();
-    void create_section_cardset(assets::group& resGrp);
+    void create_section_cardset();
 
-    void create_menubar(assets::group& resGrp);
+    void create_menubar();
 
     std::shared_ptr<tab_container> _tabSettings;
     std::shared_ptr<text_box>      _txbSeed;
@@ -104,7 +101,8 @@ private:
 
     std::shared_ptr<tooltip> _tooltip;
 
-    menu_sources _source;
+    assets::group& _resGrp;
+    menu_sources   _source;
 };
 
 }

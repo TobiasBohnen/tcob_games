@@ -162,12 +162,12 @@ void start_scene::connect_ui_events()
         set_theme();
     });
 
-    _formMenu->StartGame.connect([&](std::string const& seed) {
-        start_game(_formMenu->SelectedGame, start_reason::Resume, to_int(seed));
+    _formMenu->SelectedCardset.Changed.connect([&]() {
+        set_cardset();
     });
 
-    _formMenu->ChangeCardset.connect([&]() {
-        set_cardset();
+    _formMenu->StartGame.connect([&](std::string const& seed) {
+        start_game(_formMenu->SelectedGame, start_reason::Resume, to_int(seed));
     });
 
     _formMenu->VideoSettingsChanged.connect([&]() {
@@ -362,11 +362,13 @@ void start_scene::update_stats(std::string const& name) const
 
 void start_scene::update_recent(std::string const& name)
 {
+    usize constexpr static maxEntries {10};
+
     std::deque<std::string>& recent {_settings.Recent};
 
     auto it {std::find(recent.begin(), recent.end(), name)};
     if (it != recent.end()) { recent.erase(it); }
-    if (recent.size() >= 5) { recent.pop_back(); }
+    if (recent.size() >= maxEntries) { recent.pop_back(); }
     recent.push_front(name);
 
     _settings.Recent = recent;

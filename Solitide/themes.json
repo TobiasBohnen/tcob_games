@@ -36,8 +36,8 @@
       "border": "#ff69b4",
       "container": "#ff1493",
       "foreground": "#000000",
-      "list": "#c71585",
-      "shadow": "#c71585"
+      "list": "#ffc0cb",
+      "shadow": "#c715857F"
     },
     "hover": {
       "background": "#ffc0cb",
@@ -45,7 +45,7 @@
       "container": "#ffc0cb",
       "foreground": "#000000",
       "list": "#db7093",
-      "shadow": "#db7093"
+      "shadow": "#db70937F"
     },
     "normal": {
       "background": "#ffb6c1",
@@ -54,7 +54,7 @@
       "foreground": "#000000",
       "label": "#c71585",
       "list": "#c71585",
-      "shadow": "#ffc0cb"
+      "shadow": "#ffc0cb7F"
     },
     "table": {
       "A": "#ffb6c1",

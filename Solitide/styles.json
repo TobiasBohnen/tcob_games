@@ -406,7 +406,12 @@
         }
     },
     "image_box": {
-        "style_type": "image_box"
+        "style_type": "image_box",
+        "fit": "Contain",
+        "alignment": {
+            "horizontal": "Centered",
+            "vertical": "Middle"
+        }
     },
     "tooltip": {
         "style_type": "tooltip",
