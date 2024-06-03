@@ -45,27 +45,37 @@ auto inline multiply(point_f pos, size_f size) -> point_f
     return {pos.X * CARD_MARGIN * size.Width, pos.Y * CARD_MARGIN * size.Height};
 }
 
+////////////////////////////////////////////////////////////
+
 struct hit_test_result {
     pile* Pile {nullptr};
     isize Index {INDEX_INVALID};
 };
 
-struct settings {
-    std::string             Version {"1.0.0"};
-    std::string             Theme {"default"};
-    std::string             Cardset {"default"};
-    std::deque<std::string> Recent;
-    std::string             Game;
-    bool                    HintMovable {true};
-    bool                    HintTarget {true};
+////////////////////////////////////////////////////////////
+
+class settings {
+public:
+    settings() = default;
+
+    std::string Version {"1.0.0"};
+
+    prop<std::string> Theme {"default"};
+    prop<std::string> Cardset {"default"};
+    prop<std::string> Game;
+
+    prop<std::deque<std::string>> Recent;
+
+    bool HintMovable {true};
+    bool HintTarget {true};
 
     void static Serialize(settings const& v, auto&& s)
     {
         s["version"]      = v.Version;
-        s["theme"]        = v.Theme;
-        s["cardset"]      = v.Cardset;
-        s["recent"]       = v.Recent;
-        s["last_game"]    = v.Game;
+        s["theme"]        = v.Theme();
+        s["cardset"]      = v.Cardset();
+        s["last_game"]    = v.Game();
+        s["recent"]       = v.Recent();
         s["hint_movable"] = v.HintMovable;
         s["hint_target"]  = v.HintTarget;
     }
@@ -73,10 +83,10 @@ struct settings {
     auto static Deserialize(settings& v, auto&& s) -> bool
     {
         return s.try_get(v.Version, "version")
-            && s.try_get(v.Theme, "theme")
-            && s.try_get(v.Cardset, "cardset")
-            && s.try_get(v.Recent, "recent")
-            && s.try_get(v.Game, "last_game")
+            && s.try_get(*v.Theme, "theme")
+            && s.try_get(*v.Cardset, "cardset")
+            && s.try_get(*v.Game, "last_game")
+            && s.try_get(*v.Recent, "recent")
             && s.try_get(v.HintMovable, "hint_movable")
             && s.try_get(v.HintTarget, "hint_target");
     }

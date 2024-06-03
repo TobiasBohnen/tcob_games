@@ -60,30 +60,27 @@ private:
 };
 
 ////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 
 struct menu_sources {
-    game_map*    Games;
-    theme_map*   Themes;
-    cardset_map* Cardsets;
-    settings*    Settings;
+    settings Settings;
+
+    game_map           Games;
+    signal<>           GameAdded; // wizard
+    prop<game_history> CurrentHistory;
+
+    theme_map   Themes;
+    cardset_map Cardsets;
 };
 
 class form_menu : public form {
 public:
-    form_menu(gfx::window* window, assets::group& resGrp, menu_sources const& source);
-
-    prop<std::string> SelectedGame;
-    prop<std::string> SelectedCardset;
-    prop<std::string> SelectedTheme;
+    form_menu(gfx::window* window, assets::group& resGrp, std::shared_ptr<menu_sources> sources);
 
     signal<std::string const> StartGame;
     signal<>                  VideoSettingsChanged;
 
     void submit_settings(data::config::object& obj);
-
-    void set_game_stats(game_history const& stats);
-    void update_games();
-    void update_recent_games();
 
 private:
     void create_section_games();
@@ -95,14 +92,11 @@ private:
 
     std::shared_ptr<tab_container> _tabSettings;
     std::shared_ptr<text_box>      _txbSeed;
-    std::shared_ptr<grid_view>     _gvWL;
-    std::shared_ptr<grid_view>     _gvTT;
-    std::shared_ptr<grid_view>     _gvHistory;
 
     std::shared_ptr<tooltip> _tooltip;
 
-    assets::group& _resGrp;
-    menu_sources   _source;
+    assets::group&                _resGrp;
+    std::shared_ptr<menu_sources> _sources;
 };
 
 }

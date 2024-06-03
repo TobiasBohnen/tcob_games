@@ -57,7 +57,7 @@ private:
 
     void load_scripts();
 
-    void connect_ui_events();
+    void connect_events();
     void save();
 
     scripting::lua::script                                      _luaScript;
@@ -70,16 +70,12 @@ private:
     std::shared_ptr<form_controls> _formControls {};
     std::shared_ptr<form_menu>     _formMenu {};
 
-    game_map    _games {};
-    theme_map   _themes {};
-    cardset_map _cardSets;
-
-    settings             _settings;
     data::config::object _saveGame;
 
     database _db;
 
     std::shared_ptr<wizard_scene> _wizard;
+    std::shared_ptr<menu_sources> _sources;
 };
 
 }

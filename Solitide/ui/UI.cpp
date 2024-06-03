@@ -5,6 +5,8 @@
 
 #include "UI.hpp"
 
+#include <utility>
+
 #include "Cardset.hpp" // IWYU pragma: keep
 #include "GameInfo.hpp"
 #include "Themes.hpp"  // IWYU pragma: keep
@@ -163,10 +165,10 @@ static std::string const TabThemesName {"conThemes"};
 static std::string const TabCardsetsName {"conCardsets"};
 static std::string const MenuName {"menu"};
 
-form_menu::form_menu(gfx::window* window, assets::group& resGrp, menu_sources const& source)
+form_menu::form_menu(gfx::window* window, assets::group& resGrp, std::shared_ptr<menu_sources> sources)
     : form {"Menu", window}
     , _resGrp {resGrp}
-    , _source {source}
+    , _sources {std::move(sources)}
 {
     // tooltip
     _tooltip = make_tooltip(this);
@@ -181,55 +183,6 @@ form_menu::form_menu(gfx::window* window, assets::group& resGrp, menu_sources co
 void form_menu::submit_settings(data::config::object& obj)
 {
     _tabSettings->submit(obj);
-}
-
-void form_menu::set_game_stats(game_history const& stats)
-{
-    _gvWL->clear_rows();
-    _gvWL->add_row(
-        {std::to_string(stats.Won),
-         std::to_string(stats.Lost),
-         stats.Lost + stats.Won > 0 ? std::format("{:.2f}%", static_cast<f32>(stats.Won) / (stats.Lost + stats.Won) * 100) : "-"});
-    _gvTT->clear_rows();
-
-    std::optional<i64> bestTime;
-    std::optional<i64> bestTurns;
-    std::optional<i64> bestScore;
-
-    _gvHistory->clear_rows();
-    for (auto const& entry : stats.Entries) {
-        if (entry.Won) {
-            bestTime  = !bestTime ? entry.Time : std::min(entry.Time, *bestTime);
-            bestTurns = !bestTurns ? entry.Turns : std::min(entry.Turns, *bestTurns);
-        }
-        bestScore = !bestScore ? entry.Score : std::max(entry.Score, *bestScore);
-
-        _gvHistory->add_row(
-            {std::to_string(entry.Seed),
-             std::to_string(entry.Score),
-             std::to_string(entry.Turns),
-             std::format("{:%M:%S}", seconds {entry.Time / 1000.f}),
-             entry.Won ? "X" : "-"});
-    }
-    _gvTT->add_row({bestScore ? std::to_string(*bestScore) : "-",
-                    bestTurns ? std::to_string(*bestTurns) : "-",
-                    bestTime ? std::format("{:%M:%S}", seconds {*bestTime / 1000.f}) : "--:--"});
-}
-
-void form_menu::update_games()
-{ // TODO: update all listboxes
-    auto lb {std::static_pointer_cast<list_box>(find_widget_by_name("lbxGames0"))};
-
-    lb->clear_items();
-    for (auto const& game : *_source.Games) { lb->add_item(game.first); }
-}
-
-void form_menu::update_recent_games()
-{
-    auto lb {std::static_pointer_cast<list_box>(find_widget_by_name("lbxGames1"))};
-
-    lb->clear_items();
-    for (auto const& game : _source.Settings->Recent) { lb->add_item(game); }
 }
 
 void form_menu::create_section_games()
@@ -261,15 +214,15 @@ void form_menu::create_section_games()
             auto listBox {tabPanelLayout->create_widget<list_box>(dock_style::Fill, "lbxGames" + name)};
             listBoxes.push_back(listBox.get());
 
-            for (auto const& game : *_source.Games) {
+            for (auto const& game : _sources->Games) {
                 if (pred(game.second.first)) { listBox->add_item(game.first); }
             }
 
             listBox->SelectedItemIndex.Changed.connect([&, lb = listBox.get()](auto val) {
-                if (val != -1) { SelectedGame = lb->get_selected_item(); }
+                if (val != -1) { _sources->Settings.Game = lb->get_selected_item(); }
             });
-
-            SelectedGame.Changed.connect([&, lb = listBox.get()](auto const& val) {
+            listBox->select_item(_sources->Settings.Game);
+            _sources->Settings.Game.Changed.connect([&, lb = listBox.get()](auto const& val) {
                 if (lb->select_item(val)) {
                     if (!lb->is_focused()) { lb->scroll_to_selected(); }
                 } else {
@@ -291,13 +244,23 @@ void form_menu::create_section_games()
         {
             auto tabPanel {tabGames->create_tab<panel>("byName", "By Name")}; // translate
             auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-            createListBox(tabPanelLayout, "0", [](auto const&) { return true; });
+            auto listBox {createListBox(tabPanelLayout, "0", [](auto const&) { return true; })};
+            _sources->GameAdded.connect([&, lb = listBox.get()] {
+                // TODO: update all listboxes
+                lb->clear_items();
+                for (auto const& game : _sources->Games) { lb->add_item(game.first); }
+            });
         }
         // Recent
         {
             auto tabPanel {tabGames->create_tab<panel>("recent", "Recent")}; // translate
             auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-            createListBox(tabPanelLayout, "1", [](auto const&) { return false; });
+            auto listBox {createListBox(tabPanelLayout, "Recent", [](auto const&) { return false; })};
+            for (auto const& game : _sources->Settings.Recent()) { listBox->add_item(game); }
+            _sources->Settings.Recent.Changed.connect([&, lb = listBox.get()] {
+                lb->clear_items();
+                for (auto const& game : _sources->Settings.Recent()) { lb->add_item(game); }
+            });
         }
         // By Family
         {
@@ -366,18 +329,51 @@ void form_menu::create_section_games()
         panelGameStats->ZOrder = 1;
         auto panelGameStatsLayout {panelGameStats->create_layout<grid_layout>(size_i {20, 40})};
 
-        _gvWL        = panelGameStatsLayout->create_widget<grid_view>({1, 1, 9, 4}, "gvWinLose");
-        _gvWL->Class = "grid_view2";
-        _gvWL->set_columns({"Won", "Lost", "W/L"});                         // translate
-        _gvTT        = panelGameStatsLayout->create_widget<grid_view>({10, 1, 9, 4}, "gvBest");
-        _gvTT->Class = "grid_view2";
-        _gvTT->set_columns({"Highscore", "Least Turns", "Fastest Time"});   // translate
+        auto gvWL {panelGameStatsLayout->create_widget<grid_view>({1, 1, 9, 4}, "gvWinLose")};
+        gvWL->Class = "grid_view2";
+        gvWL->set_columns({"Won", "Lost", "W/L"});                         // translate
+        auto gvTT {panelGameStatsLayout->create_widget<grid_view>({10, 1, 9, 4}, "gvBest")};
+        gvTT->Class = "grid_view2";
+        gvTT->set_columns({"Highscore", "Least Turns", "Fastest Time"});   // translate
 
-        _gvHistory = panelGameStatsLayout->create_widget<grid_view>({1, 6, 18, 25}, "gvHistory");
-        _gvHistory->set_columns({"Seed", "Score", "Turns", "Time", "Won"}); // translate
+        auto gvHistory {panelGameStatsLayout->create_widget<grid_view>({1, 6, 18, 25}, "gvHistory")};
+        gvHistory->set_columns({"Seed", "Score", "Turns", "Time", "Won"}); // translate
+
+        _sources->CurrentHistory.Changed.connect([wl = gvWL.get(), tt = gvTT.get(), history = gvHistory.get()](auto const& stats) {
+            wl->clear_rows();
+            wl->add_row(
+                {std::to_string(stats.Won),
+                 std::to_string(stats.Lost),
+                 stats.Lost + stats.Won > 0 ? std::format("{:.2f}%", static_cast<f32>(stats.Won) / (stats.Lost + stats.Won) * 100) : "-"});
+            tt->clear_rows();
+
+            std::optional<i64> bestTime;
+            std::optional<i64> bestTurns;
+            std::optional<i64> bestScore;
+
+            history->clear_rows();
+            for (auto const& entry : stats.Entries) {
+                if (entry.Won) {
+                    bestTime  = !bestTime ? entry.Time : std::min(entry.Time, *bestTime);
+                    bestTurns = !bestTurns ? entry.Turns : std::min(entry.Turns, *bestTurns);
+                }
+                bestScore = !bestScore ? entry.Score : std::max(entry.Score, *bestScore);
+
+                history->add_row(
+                    {std::to_string(entry.Seed),
+                     std::to_string(entry.Score),
+                     std::to_string(entry.Turns),
+                     std::format("{:%M:%S}", seconds {entry.Time / 1000.f}),
+                     entry.Won ? "X" : "-"});
+            }
+            tt->add_row({bestScore ? std::to_string(*bestScore) : "-",
+                         bestTurns ? std::to_string(*bestTurns) : "-",
+                         bestTime ? std::format("{:%M:%S}", seconds {*bestTime / 1000.f}) : "--:--"});
+        });
 
         auto lblSeed {panelGameStatsLayout->create_widget<label>({1, 33, 4, 2}, "lblSeed")};
         lblSeed->Label = "Seed";
+        lblSeed->Class = "label-small";
         _txbSeed       = panelGameStatsLayout->create_widget<text_box>({6, 33, 8, 2}, "txbSeed");
         _txbSeed->BeforeTextInserted.connect([](text_event& ev) {
             if (ev.Text.empty()) { return; }
@@ -385,6 +381,7 @@ void form_menu::create_section_games()
                 ev.Text = "";
             }
         });
+
         auto btnStartGame {panelGameStatsLayout->create_widget<button>({1, 36, 4, 3}, "btnStartGame")};
         btnStartGame->Icon = _resGrp.get<gfx::texture>("play");
         btnStartGame->Click.connect([&]() {
@@ -453,8 +450,8 @@ void form_menu::create_section_settings()
         // highlight movable
         {
             auto chk {tabPanelLayout->create_widget<checkbox>({10, 1, 3, 4}, "chkHintMovable")};
-            chk->Checked = _source.Settings->HintMovable;
-            chk->Checked.Changed.connect([this](auto val) { _source.Settings->HintMovable = val; });
+            chk->Checked = _sources->Settings.HintMovable;
+            chk->Checked.Changed.connect([this](auto val) { _sources->Settings.HintMovable = val; });
 
             auto lbl {tabPanelLayout->create_widget<label>({1, 2, 8, 2}, "lblHintMovable")};
             lbl->Label = translate(lbl->get_name());
@@ -462,8 +459,8 @@ void form_menu::create_section_settings()
         // highlight drops
         {
             auto chk {tabPanelLayout->create_widget<checkbox>({10, 5, 3, 4}, "chkHintDrops")};
-            chk->Checked = _source.Settings->HintTarget;
-            chk->Checked.Changed.connect([this](auto val) { _source.Settings->HintTarget = val; });
+            chk->Checked = _sources->Settings.HintTarget;
+            chk->Checked.Changed.connect([this](auto val) { _sources->Settings.HintTarget = val; });
 
             auto lbl {tabPanelLayout->create_widget<label>({1, 6, 8, 2}, "lblHintDrops")};
             lbl->Label = translate(lbl->get_name());
@@ -480,12 +477,13 @@ void form_menu::create_section_themes()
     {
         auto panelLayout {panelThemes->create_layout<dock_layout>()};
         auto lbxThemes {panelLayout->create_widget<list_box>(dock_style::Fill, "lbxThemes")};
-        for (auto const& colorTheme : *_source.Themes) { lbxThemes->add_item(colorTheme.first); }
+        for (auto const& colorTheme : _sources->Themes) { lbxThemes->add_item(colorTheme.first); }
         lbxThemes->SelectedItemIndex.Changed.connect([&, lb = lbxThemes.get()](auto val) {
-            if (val != -1) { SelectedTheme = lb->get_selected_item(); }
+            if (val != -1) { _sources->Settings.Theme = lb->get_selected_item(); }
         });
         lbxThemes->DoubleClick.connect([&] { hide(); });
-        SelectedTheme.Changed.connect([lb = lbxThemes.get()](auto const& val) { lb->select_item(val); });
+        _sources->Settings.Theme.Changed.connect([lb = lbxThemes.get()](auto const& val) { lb->select_item(val); });
+        lbxThemes->select_item(_sources->Settings.Theme);
     }
 }
 
@@ -497,42 +495,41 @@ void form_menu::create_section_cardset()
     panelCardsets->Flex   = {0_pct, 0_pct};
     auto panelLayout {panelCardsets->create_layout<dock_layout>()};
 
-    {
-        auto lbxCardsets {panelLayout->create_widget<list_box>(dock_style::Top, "lbxCardsets")};
-        lbxCardsets->Class = "list_box_log";
-        lbxCardsets->Flex  = {50_pct, 25_pct};
-        for (auto const& cardSet : *_source.Cardsets) { lbxCardsets->add_item(cardSet.first); }
-        lbxCardsets->SelectedItemIndex.Changed.connect([&, lb = lbxCardsets.get()](auto val) {
-            if (val != -1) { SelectedCardset = lb->get_selected_item(); }
-        });
-        lbxCardsets->DoubleClick.connect([&, lb = lbxCardsets.get()] {
-            if (lb->SelectedItemIndex >= 0) { hide(); }
-        });
-        SelectedCardset.Changed.connect([lb = lbxCardsets.get()](auto const& val) { lb->select_item(val); });
-    }
-    {
-        auto panelCards {panelLayout->create_widget<panel>(dock_style::Bottom, "panelCardsets")};
-        panelCards->Flex   = {100_pct, 75_pct};
-        panelCards->ZOrder = 1;
-        auto panelCardsLayout {panelCards->create_layout<grid_layout>(size_i {20, 40})};
+    // listbox
+    auto lbxCardsets {panelLayout->create_widget<list_box>(dock_style::Top, "lbxCardsets")};
+    lbxCardsets->Class = "list_box_log";
+    lbxCardsets->Flex  = {50_pct, 25_pct};
+    for (auto const& cardSet : _sources->Cardsets) { lbxCardsets->add_item(cardSet.first); }
+    lbxCardsets->SelectedItemIndex.Changed.connect([&, lb = lbxCardsets.get()](auto val) {
+        if (val != -1) { _sources->Settings.Cardset = lb->get_selected_item(); }
+    });
+    lbxCardsets->DoubleClick.connect([&, lb = lbxCardsets.get()] {
+        if (lb->SelectedItemIndex >= 0) { hide(); }
+    });
 
-        SelectedCardset.Changed.connect([cardsets = _source.Cardsets, panel = panelCards.get()](auto const& val) {
-            if (!cardsets->contains(val)) { return; }
+    // preview
+    auto panelCards {panelLayout->create_widget<panel>(dock_style::Bottom, "panelCardsets")};
+    panelCards->Flex   = {100_pct, 75_pct};
+    panelCards->ZOrder = 1;
+    auto panelCardsLayout {panelCards->create_layout<grid_layout>(size_i {20, 40})};
 
-            auto layout {panel->create_layout<box_layout>(size_i {13, 4})};
+    auto const cardsetChanged {[&, lb = lbxCardsets.get(), panel = panelCards.get()](auto const& val) {
+        lb->select_item(val);
 
-            auto const& cards {cardsets->at(val)};
-            auto const& tex {cards->get_material()->Texture};
+        auto layout {panel->create_layout<box_layout>(size_i {13, 4})};
 
-            //   std::array<rank, 6> const ranks {rank::Ace, rank::Five, rank::Eight, rank::Jack, rank::Queen, rank::King};
-            for (u8 s {static_cast<u8>(suit::Hearts)}; s <= static_cast<u8>(suit::Spades); ++s) {
-                for (u8 r {static_cast<u8>(rank::Ace)}; r <= static_cast<u8>(rank::King); ++r) {
-                    auto imgBox {layout->create_widget<image_box>("")};
-                    imgBox->Image = {tex, card {static_cast<suit>(s), static_cast<rank>(r), 0, false}.get_texture_name()};
-                }
+        auto const& cards {_sources->Cardsets.at(val)};
+        auto const& tex {cards->get_material()->Texture};
+
+        for (u8 s {static_cast<u8>(suit::Hearts)}; s <= static_cast<u8>(suit::Spades); ++s) {
+            for (u8 r {static_cast<u8>(rank::Ace)}; r <= static_cast<u8>(rank::King); ++r) {
+                auto imgBox {layout->create_widget<image_box>("")};
+                imgBox->Image = {tex, card {static_cast<suit>(s), static_cast<rank>(r), 0, false}.get_texture_name()};
             }
-        });
-    }
+        }
+    }};
+    _sources->Settings.Cardset.Changed.connect([cardsetChanged](auto const& val) { cardsetChanged(val); });
+    cardsetChanged(_sources->Settings.Cardset);
 }
 
 void form_menu::create_menubar()
