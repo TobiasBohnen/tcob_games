@@ -23,8 +23,8 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
     }};
 
     {
-        auto pnl {mainLayout->create_widget<panel>({0, 0, 39, 20}, "GameInfo")};
-        auto layout {pnl->create_layout<box_layout>(size_i {2, 3})};
+        auto pnl {mainLayout->create_widget<panel>({0, 0, 40, 10}, "GameInfo")};
+        auto layout {pnl->create_layout<box_layout>(size_i {2, 2})};
 
         createLabel(layout, "Name");
         auto tbxName {layout->create_widget<text_box>("Name")};
@@ -37,15 +37,6 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
         spnDecks->Step  = 1;
         spnDecks->Value = 1;
     }
-
-    _lbxLog        = mainLayout->create_widget<list_box>({0, 20, 39, 30}, "Log");
-    _lbxLog->Class = "list_box_log";
-
-    BtnGenerate       = mainLayout->create_widget<button>({20, 72, 9, 5}, "btnGenerate");
-    BtnGenerate->Icon = resGrp.get<gfx::texture>("apply");
-
-    BtnBack       = mainLayout->create_widget<button>({30, 72, 9, 5}, "btnBack");
-    BtnBack->Icon = resGrp.get<gfx::texture>("back");
 
     {
         auto const createPileSize {[&](auto&& layout, std::string const& name) {
@@ -145,8 +136,8 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
             move->Class  = "drop_down_list_wizard";
         }};
 
-        auto         tab {mainLayout->create_widget<tab_container>({41, 0, 39, 80}, "Piles")};
-        size_i const boxSize {2, 15};
+        auto         tab {mainLayout->create_widget<tab_container>({0, 10, 40, 70}, "Piles")};
+        size_i const boxSize {2, 10};
         {
             auto pnl {tab->create_tab<panel>("Stock", "Stock")};
             auto layout {pnl->create_layout<box_layout>(boxSize)};
@@ -209,6 +200,18 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
             createPileRule(layout, "Tableau", {.base = "Any", .build = "Any", .move = "Top"});
         }
     }
+
+    _lbxLog        = mainLayout->create_widget<list_box>({42, 2, 36, 30}, "Log");
+    _lbxLog->Class = "list_box_log";
+    _lbxLog->HoveredItemIndex.Changed.connect([lb = _lbxLog.get()] {
+        lb->HoveredItemIndex = -1;
+    });
+
+    BtnGenerate       = mainLayout->create_widget<button>({60, 72, 9, 5}, "btnGenerate");
+    BtnGenerate->Icon = resGrp.get<gfx::texture>("apply");
+
+    BtnBack       = mainLayout->create_widget<button>({70, 72, 9, 5}, "btnBack");
+    BtnBack->Icon = resGrp.get<gfx::texture>("back");
 }
 
 void form_wizard::set_log_messages(std::vector<std::string> const& messages)

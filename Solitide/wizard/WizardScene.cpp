@@ -28,26 +28,26 @@ wizard_scene::wizard_scene(game& game)
         script script;
         lua_script_game::CreateENV(script);
 
-        auto func {script.run_file<function<std::pair<std::string, std::vector<std::string>>>>("scripts/wizard.lua")};
+        auto func {script.run_file<function<std::tuple<std::string, std::vector<std::string>, std::string>>>("scripts/wizard.lua")};
         if (!func) { return; } // ERROR loading wizard func
 
         table obj {script.create_table()};
         _formWizard->submit(obj);
 
         auto const name {obj["Name"]["text"].as<std::string>()};
-        auto const wizgame {(*func)(obj)};
+        auto const [gameStr, log, gameName] {(*func)(obj)};
 
-        _formWizard->set_log_messages(wizgame.second);
+        _formWizard->set_log_messages(log);
 
-        if (wizgame.second.empty()) {
+        if (log.empty()) {
             io::create_folder("custom");
             auto const file {"custom/games.wizard_" + name + ".lua"};
             {
                 io::ofstream str {file};
-                str.write(wizgame.first);
+                str.write(gameStr);
             }
 
-            GameGenerated({.Name = "Wizard_" + name, .Path = file});
+            GameGenerated({.Name = gameName, .Path = file});
             get_game().pop_current_scene();
         }
     });

@@ -55,7 +55,7 @@ local check = true
     end,]] .. "\n"
 end
 
-local function get_layout(obj)
+local function get_options(obj)
     local hasReserve <const>    = obj.ReserveSize.value > 0
     local hasFreeCell <const>   = obj.FreeCellSize.value > 0
     local hasWaste <const>      = obj.WasteSize.value > 0
@@ -83,131 +83,185 @@ local function get_layout(obj)
     local posTableau    = "{ x = i + " .. posTableauXOff .. ", y = 1 }"
 
     return {
-        Waste       = posWaste,
-        HasWaste    = hasWaste,
-
-        Reserve     = posReserve,
-        HasReserve  = hasReserve,
-
-        FreeCell    = posFreeCell,
-        HasFreeCell = hasFreeCell,
-
-        Foundation  = posFoundation,
-
-        Tableau     = posTableau,
-        HasTableau  = hasTableau,
-
-        Stock       = posStock,
-        HasStock    = hasStock,
-        StockCards  = numStockCards
+        Info       = {
+            Name      = "(Wizard) " .. obj.Name.text,
+            DeckCount = obj.Decks.value,
+            Redeals   = obj.Redeals.value
+        },
+        Waste      = {
+            IsPresent = hasWaste,
+            Position  = posWaste,
+            Size      = obj.WasteSize.value,
+            Layout    = obj.WasteLayout.selected
+        },
+        Reserve    = {
+            IsPresent   = hasReserve,
+            Position    = posReserve,
+            Size        = obj.ReserveSize.value,
+            CardCount   = obj.ReserveCardCount.value,
+            Orientation = obj.ReserveOrientation.selected,
+            Layout      = obj.ReserveLayout.selected
+        },
+        FreeCell   = {
+            IsPresent = hasFreeCell,
+            Position  = posFreeCell,
+            Size      = obj.FreeCellSize.value,
+            CardCount = obj.FreeCellCardCount.value,
+            Layout    = obj.FreeCellLayout.selected,
+            Rule      = {
+                Base = obj.FreeCellBase.selected,
+                Build = obj.FreeCellBuild.selected,
+                Move = obj.FreeCellMove.selected
+            }
+        },
+        Foundation = {
+            Position = posFoundation,
+            Size     = obj.Decks.value * 4,
+            Layout   = obj.FoundationLayout.selected,
+            Rule     = {
+                Base = obj.FoundationBase.selected,
+                Build = obj.FoundationBuild.selected,
+                Move = obj.FoundationMove.selected
+            }
+        },
+        Tableau    = {
+            IsPresent   = hasTableau,
+            Position    = posTableau,
+            Size        = obj.TableauSize.value,
+            CardCount   = obj.TableauCardCount.value,
+            Orientation = obj.TableauOrientation.selected,
+            Layout      = obj.TableauLayout.selected,
+            Rule        = {
+                Base = obj.TableauBase.selected,
+                Build = obj.TableauBuild.selected,
+                Move = obj.TableauMove.selected
+            }
+        },
+        Stock      = {
+            IsPresent = hasStock,
+            Position  = posStock,
+            CardCount = numStockCards,
+            Target    = obj.StockTarget.selected
+        }
     }
 end
 
-local function check_error(obj, layout)
+local function check_error(options)
     local log = {}
     -- error checking
-    if obj.Name.text == "" or string.find(obj.Name.text, "[\\/:*?\"<>|]") ~= nil then
-        log[#log + 1] = "ERROR: invalid name"
+    if options.Info.Name == "" or string.find(options.Info.Name, "[\\/:*?\"<>|]") ~= nil then
+        log[#log + 1] = "Invalid name: The name is either empty or contains invalid characters."
     end
-    if layout.StockCards < 0 then
-        log[#log + 1] = "ERROR: insufficient amount of cards"
+    if options.Stock.CardCount < 0 then
+        log[#log + 1] = "Insufficient amount of cards."
     end
-    if layout.HasStock and not layout.HasWaste and string.find(obj.StockTarget.selected, "Waste") then
-        log[#log + 1] = "ERROR: invalid deal target (waste)"
+    if options.Stock.IsPresent and not options.Waste.IsPresent and string.find(options.Stock.Target, "Waste") then
+        log[#log + 1] = "Invalid deal target: Stock is present but attempting to deal to waste which is not present."
     end
-    if layout.HasStock and not layout.HasTableau and string.find(obj.StockTarget.selected, "Tableau") then
-        log[#log + 1] = "ERROR: invalid deal target (tableau)"
+    if options.Stock.IsPresent and not options.Tableau.IsPresent and string.find(options.Stock.Target, "Tableau") then
+        log[#log + 1] = "Invalid deal target: Stock is present but attempting to deal to tableau which is not present."
     end
-    if not layout.HasStock and layout.HasWaste then
-        log[#log + 1] = "ERROR: waste without stock"
+    if not options.Stock.IsPresent and options.Waste.IsPresent then
+        log[#log + 1] = "Waste is present without stock."
+    end
+    if not options.Tableau.IsPresent and options.Tableau.CardCount > 0 then
+        log[#log + 1] = "Tableau is not present, but there are " .. options.Tableau.CardCount .. " tableau cards."
+    end
+    if not options.Reserve.IsPresent and options.Reserve.CardCount > 0 then
+        log[#log + 1] = "Reserve is not present, but there are " .. options.Reserve.CardCount .. " reserve cards."
+    end
+    if not options.FreeCell.IsPresent and options.FreeCell.CardCount > 0 then
+        log[#log + 1] = "FreeCell is not present, but there are " .. options.FreeCell.CardCount .. " freecell cards."
     end
     return log
 end
 
 return function(obj)
-    local layout        = get_layout(obj)
+    local options <const> = get_options(obj)
 
-    local strInfo       = [[
+    local strInfo         = [[
     Info = {
-        Name      = "Wizard_]] .. obj.Name.text .. [[",
+        Name      = "]] .. options.Info.Name .. [[",
         Family    = "]] .. "Other" .. [[",
-        DeckCount = ]] .. obj.Decks.value .. [[,
-        Redeals   = ]] .. obj.Redeals.value .. [[,
+        DeckCount = ]] .. options.Info.DeckCount .. [[,
+        Redeals   = ]] .. options.Info.Redeals .. [[,
     },]] .. "\n"
 
-    local strWaste      = [[
+    local strWaste        = [[
     Waste = {
-        Size     = ]] .. obj.WasteSize.value .. [[,
-        Pile     = function(i)
+        Size = ]] .. options.Waste.Size .. [[,
+        Pile = function(i)
             return {
-                Position = ]] .. layout.Waste .. [[,
-                Layout   = "]] .. obj.WasteLayout.selected .. [[",
+                Position = ]] .. options.Waste.Position .. [[,
+                Layout   = Sol.Pile.Layout.]] .. options.Waste.Layout .. [[,
             }
         end,
     },]] .. "\n"
 
-    local strReserve    = [[
+    local strReserve      = [[
     Reserve = {
-        Size = ]] .. obj.ReserveSize.value .. [[,
+        Size = ]] .. options.Reserve.Size .. [[,
         Pile = function(i)
             return {
-                Position = ]] .. layout.Reserve .. [[,
-                Initial  = ]] .. get_initial(obj.ReserveOrientation.selected, obj.ReserveCardCount.value, obj.ReserveSize.value) .. [[,
-                Layout   = "]] .. obj.ReserveLayout.selected .. [[",
+                Position = ]] .. options.Reserve.Position .. [[,
+                Initial  = ]] .. get_initial(options.Reserve.Orientation, options.Reserve.CardCount, options.Reserve.Size) .. [[,
+                Layout   = Sol.Pile.Layout.]] .. options.Reserve.Layout .. [[,
             }
         end,
     },]] .. "\n"
 
-    local strFreeCell   = [[
+    local strFreeCell     = [[
     FreeCell = {
-        Size = ]] .. obj.FreeCellSize.value .. [[,
+        Size = ]] .. options.FreeCell.Size .. [[,
         Pile = function(i)
             return {
-                Position = ]] .. layout.FreeCell .. [[,
-                Initial  = ]] .. get_initial("Face Up", obj.FreeCellCardCount.value, obj.FreeCellSize.value) .. [[,
-                Rule     = { ]] .. get_rule(obj.FreeCellBase.selected, obj.FreeCellBuild.selected, obj.FreeCellMove.selected) .. [[ },
-                Layout   = "]] .. obj.FreeCellLayout.selected .. [[",
+                Position = ]] .. options.FreeCell.Position .. [[,
+                Initial  = ]] .. get_initial("Face Up", options.FreeCell.CardCount, options.FreeCell.Size) .. [[,
+                Rule     = { ]] .. get_rule(options.FreeCell.Rule.Base, options.FreeCell.Rule.Build, options.FreeCell.Rule.Move) .. [[ },
+                Layout   = Sol.Pile.Layout.]] .. options.FreeCell.Layout .. [[,
             }
         end,
     },]] .. "\n"
 
-    local strFoundation = [[
+    local strFoundation   = [[
     Foundation = {
-        Size = ]] .. obj.Decks.value * 4 .. [[,
+        Size = ]] .. options.Foundation.Size .. [[,
         Pile = function(i)
             return {
-                Position = ]] .. layout.Foundation .. [[,
-                Rule     = { ]] .. get_rule(obj.FoundationBase.selected, obj.FoundationBuild.selected, obj.FoundationMove.selected) .. [[ },
-                Layout   = "]] .. obj.FoundationLayout.selected .. [[",
+                Position = ]] .. options.Foundation.Position .. [[,
+                Rule     = { ]] .. get_rule(options.Foundation.Rule.Base, options.Foundation.Rule.Build, options.Foundation.Rule.Move) .. [[ },
+                Layout   = Sol.Pile.Layout.]] .. options.Foundation.Layout .. [[,
             }
         end,
     },]] .. "\n"
 
-    local strTableau    = [[
+    local strTableau      = [[
     Tableau = {
-        Size = ]] .. obj.TableauSize.value .. [[,
+        Size = ]] .. options.Tableau.Size .. [[,
         Pile = function(i)
             return {
-                Position = ]] .. layout.Tableau .. [[,
-                Initial  = ]] .. get_initial(obj.TableauOrientation.selected, obj.TableauCardCount.value, obj.TableauSize.value) .. [[,
-                Rule     = { ]] .. get_rule(obj.TableauBase.selected, obj.TableauBuild.selected, obj.TableauMove.selected) .. [[ },
-                Layout   = "]] .. obj.TableauLayout.selected .. [[",
+                Position = ]] .. options.Tableau.Position .. [[,
+                Initial  = ]] .. get_initial(options.Tableau.Orientation, options.Tableau.CardCount, options.Tableau.Size) .. [[,
+                Rule     = { ]] .. get_rule(options.Tableau.Rule.Base, options.Tableau.Rule.Build, options.Tableau.Rule.Move) .. [[ },
+                Layout   = Sol.Pile.Layout.]] .. options.Tableau.Layout .. [[,
             }
         end,
     },]] .. "\n"
 
-    local strStock      = [[
+    local strStock        = [[
     Stock = {
-        Position = ]] .. layout.Stock .. [[,
-        Size = ]] .. (layout.HasStock and 1 or 0) .. [[,
-        Pile = { Initial = ]] .. get_initial("Face Down", layout.StockCards, 1) .. [[ },
+        Size = ]] .. (options.Stock.IsPresent and 1 or 0) .. [[,
+        Pile = {
+            Position = ]] .. options.Stock.Position .. [[,
+            Initial  = ]] .. get_initial("Face Down", options.Stock.CardCount, 1) .. [[,
+        },
     },]] .. "\n"
 
-    local strDeal       = ""
-    local strRedeal     = "\n"
-    if layout.HasStock then
-        strDeal = get_deal(obj.StockTarget.selected)
-        if layout.HasWaste then
+    local strDeal         = ""
+    local strRedeal       = "\n"
+    if options.Stock.IsPresent then
+        strDeal = get_deal(options.Stock.Target)
+        if options.Waste.IsPresent then
             strRedeal = "    redeal = Sol.Ops.Redeal.waste_to_stock,\n"
         end
     end
@@ -220,5 +274,5 @@ local game = {
 Sol.register_game(game)
 ]]
 
-    return game, check_error(obj, layout)
+    return game, check_error(options), options.Info.Name
 end

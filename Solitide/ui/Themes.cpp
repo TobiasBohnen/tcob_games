@@ -204,7 +204,7 @@ void load_themes(std::map<std::string, color_themes>& themeMap)
         normal.Foreground = colors::MidnightBlue;
         normal.List       = colors::LightGray;
         normal.Container  = colors::LavenderBlush;
-        normal.Label      = colors::Gray;
+        normal.Label      = colors::LightSlateGray;
 
         color_theme hover;
         hover.Background = normal.Background;
