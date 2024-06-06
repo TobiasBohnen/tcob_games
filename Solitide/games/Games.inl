@@ -73,7 +73,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
         return game->base_game::can_play(*targetPile, targetIndex + IndexOffset, card, numCards);
     };
     gameWrapper["play_card"] = [](base_game* game, card& card, pile* to) {
-        if (game->base_game::can_play(*to, std::ssize(to->Cards) - 1, card, 1)) { // skip script can_play here
+        if (game->base_game::can_play(*to, to->size() - 1, card, 1)) { // skip script can_play here
             card.flip_face_up();
             to->Cards.emplace_back(card);
             return true;
@@ -83,8 +83,8 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     };
     gameWrapper["play_top_card"] = [](base_game* game, pile* from, pile* to) {
         if (from->empty()) { return false; }
-        isize const toIdx {std::ssize(to->Cards) - 1};
-        isize const pIdx {std::ssize(from->Cards) - 1};
+        isize const toIdx {to->size() - 1};
+        isize const pIdx {from->size() - 1};
         if (game->can_play(*to, toIdx, from->Cards[pIdx], 1)) {
             from->move_cards(*to, pIdx, 1, false);
             return true;
@@ -149,7 +149,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     pileWrapper["Type"]       = getter {[](pile* p) { return p->Type; }};
     pileWrapper["Index"]      = getter {[](pile* p) { return p->Index - IndexOffset; }};
     pileWrapper["IsEmpty"]    = getter {[](pile* p) { return p->empty(); }};
-    pileWrapper["CardCount"]  = getter {[](pile* p) { return p->Cards.size(); }};
+    pileWrapper["CardCount"]  = getter {[](pile* p) { return p->size(); }};
     pileWrapper["Cards"]      = getter {[](pile* p) { return p->Cards; }};
     pileWrapper["IsPlayable"] = getter {[](pile* p) { return p->Rule.IsPlayable(); }};
 
@@ -168,7 +168,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     pileWrapper["shift_card"]           = [](pile* p, isize from, isize to) {
         from += IndexOffset;
         to += IndexOffset;
-        isize const count {std::ssize(p->Cards)};
+        isize const count {p->size()};
         if (from < 0 || from >= count || to < 0 || to > count) { return false; }
 
         if (from > to) {

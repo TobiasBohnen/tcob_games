@@ -16,7 +16,7 @@ auto build_none(card const&, card const&) -> bool
 
 auto move_top(pile const* target, isize idx) -> bool
 {
-    return idx == std::ssize(target->Cards) - 1;
+    return idx == target->size() - 1;
 }
 
 auto empty_none(card const&, isize) -> bool
@@ -36,6 +36,11 @@ auto pile::empty() const -> bool
     return Cards.empty();
 }
 
+auto pile::size() const -> isize
+{
+    return std::ssize(Cards);
+}
+
 void pile::remove_tint()
 {
     constexpr color COLOR_DEFAULT {colors::White};
@@ -53,7 +58,7 @@ void pile::tint_cards(color color, isize idx)
     if (idx == INDEX_MARKER) {
         Marker->Color = color;
     } else {
-        for (; idx < std::ssize(Cards); ++idx) {
+        for (; idx < size(); ++idx) {
             Cards[idx].Color = color;
         }
     }
@@ -61,8 +66,8 @@ void pile::tint_cards(color color, isize idx)
 
 void pile::flip_cards(std::vector<bool> const& val)
 {
-    for (usize i {0}; i < val.size(); ++i) {
-        if (i >= Cards.size()) { return; }
+    for (isize i {0}; i < std::ssize(val); ++i) {
+        if (i >= size()) { return; }
         if (val[i]) {
             Cards[i].flip_face_up();
         } else {
@@ -123,7 +128,7 @@ auto get_pile_type_name(pile_type pt) -> std::string
 
 auto pile::get_description(base_game const& game) const -> pile_description
 {
-    auto const cardCount {Cards.size()};
+    auto const cardCount {size()};
 
     pile_description retValue;
     retValue.Pile      = get_pile_type_name(Type);
@@ -207,7 +212,7 @@ static auto fill(pile const& pile, card const& card0, isize numCards) -> bool
 static auto limit_size(pile const& pile, isize numCards) -> bool
 {
     if (pile.Rule.Limit == UNLIMITED) { return true; }
-    return std::ssize(pile.Cards) + numCards <= pile.Rule.Limit;
+    return pile.size() + numCards <= pile.Rule.Limit;
 }
 
 auto pile::build(isize targetIndex, card const& card, isize numCards) const -> bool

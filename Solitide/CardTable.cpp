@@ -265,7 +265,7 @@ void card_table::on_mouse_button_down(input::mouse::button_event& ev)
     if (ev.Button == input::mouse::button::Left) {
         _buttonDown = true;
         if (_hovered.Pile) {
-            if (_hovered.Pile->Type == pile_type::Stock && (_hovered.Pile->empty() || _hovered.Pile->Cards[_hovered.Pile->Cards.size() - 1].is_face_down())) {
+            if (_hovered.Pile->Type == pile_type::Stock && (_hovered.Pile->empty() || _hovered.Pile->Cards[_hovered.Pile->size() - 1].is_face_down())) {
                 // deal card
                 _hovered.Pile->remove_tint();
                 _currentGame->deal_cards();
@@ -427,7 +427,7 @@ void card_table::get_hovered(point_i pos)
 auto card_table::get_pile_at(point_i pos, bool ignoreHoveredPile) const -> hit_test_result
 {
     auto const checkPile {[&](pile const& p) -> isize {
-        auto const top {std::ssize(p.Cards) - 1};
+        auto const top {p.size() - 1};
 
         if (ignoreHoveredPile && p.IsHovering) { return INDEX_INVALID; }
         if (p.Type == pile_type::Stock && p.empty() && _currentGame->state().Redeals == 0) { return INDEX_INVALID; }

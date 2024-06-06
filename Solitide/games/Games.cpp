@@ -242,8 +242,8 @@ auto base_game::auto_play_cards(pile& from) -> bool
     auto& card {from.Cards.back()};
 
     for (auto& fou : Foundation) {
-        if (!can_play(fou, std::ssize(fou.Cards) - 1, card, 1)) { continue; }
-        play_cards(from, fou, std::ssize(from.Cards) - 1, 1);
+        if (!can_play(fou, fou.size() - 1, card, 1)) { continue; }
+        play_cards(from, fou, from.size() - 1, 1);
         return true;
     }
 
@@ -344,12 +344,12 @@ auto base_game::get_status() const -> game_status
         switch (type) {
         case pile_type::Foundation:
             for (auto const& pile : piles) {
-                foundationCards += std::ssize(pile->Cards);
+                foundationCards += pile->size();
             }
             break;
         case pile_type::Tableau:
             for (auto const& pile : piles) {
-                tableauCards += std::ssize(pile->Cards);
+                tableauCards += pile->size();
             }
             break;
         case pile_type::Stock:
@@ -434,7 +434,7 @@ void base_game::calc_hints()
         for (auto* pile : piles) {
             if (!pile->is_playable()) { continue; }
 
-            for (isize srcCardIdx {0}; srcCardIdx < std::ssize(pile->Cards); ++srcCardIdx) {
+            for (isize srcCardIdx {0}; srcCardIdx < pile->size(); ++srcCardIdx) {
                 if (!check_movable(*pile, srcCardIdx)) { continue; }
 
                 auto& m {movable.emplace_back()};
@@ -456,9 +456,9 @@ void base_game::calc_hints()
                 if (!validHint(src, dst)) { continue; }
 
                 if (!can_play(*dst,
-                              std::ssize(dst->Cards) - 1,
+                              dst->size() - 1,
                               src.Src->Cards[src.SrcCardIdx],
-                              std::ssize(src.Src->Cards) - src.SrcCardIdx)) { continue; }
+                              src.Src->size() - src.SrcCardIdx)) { continue; }
 
                 auto& m {_hints.emplace_back()};
                 m.Src        = src.Src;
@@ -466,7 +466,7 @@ void base_game::calc_hints()
                 m.SrcCardIdx = src.SrcCardIdx;
                 m.Dst        = dst;
                 m.DstPileIdx = dst->Index;
-                m.DstCardIdx = std::ssize(dst->Cards) - 1;
+                m.DstCardIdx = dst->size() - 1;
 
                 if (dst->Type == pile_type::Foundation) { src.HasFoundation = true; }
             }

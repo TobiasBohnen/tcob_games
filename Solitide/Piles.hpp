@@ -101,6 +101,7 @@ public:
 
     auto is_playable() const -> bool;
     auto empty() const -> bool;
+    auto size() const -> isize;
 
     void remove_tint();
     void tint_cards(color color, isize idx);
