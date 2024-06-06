@@ -35,7 +35,7 @@ void base_game::start(std::optional<data::config::object> const& loadObj, std::o
 
 void base_game::new_game()
 {
-    clear_piles();
+    reset_piles();
 
     // create decks
     std::vector<card> cards {get_shuffled()};
@@ -85,7 +85,7 @@ auto base_game::load(std::optional<data::config::object> const& loadObj) -> bool
 
     if (!loadObj) { return false; }
 
-    clear_piles();
+    reset_piles();
 
     if (!loadObj->has(_info.Name)) { return false; }
 
@@ -281,13 +281,11 @@ void base_game::play_cards(pile& from, pile& to, isize startIndex, isize numCard
     end_turn(true);
 }
 
-void base_game::clear_piles()
+void base_game::reset_piles()
 {
     for (auto const& [_, piles] : _pileMap) {
         for (auto* pile : piles) {
-            pile->Cards.clear();
-            pile->IsHovering = false;
-            pile->remove_tint();
+            pile->reset();
         }
     }
 }

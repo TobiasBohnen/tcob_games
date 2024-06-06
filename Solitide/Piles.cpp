@@ -230,6 +230,14 @@ auto pile::build(isize targetIndex, card const& card, isize numCards) const -> b
     return Rule.Build(target, card);
 }
 
+void pile::reset()
+{
+    Cards.clear();
+    IsHovering = false;
+    IsDragging = false;
+    remove_tint();
+}
+
 ////////////////////////////////////////////////////////////
 
 stock::stock()

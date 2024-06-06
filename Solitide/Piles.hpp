@@ -119,6 +119,8 @@ public:
 
     auto build(isize targetIndex, card const& card, isize numCards) const -> bool;
 
+    void reset();
+
     auto operator==(pile const& other) const -> bool
     {
         return this == &other;
