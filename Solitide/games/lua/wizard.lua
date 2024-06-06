@@ -84,7 +84,7 @@ local function get_options(obj)
 
     return {
         Info       = {
-            Name      = "(Wizard) " .. obj.Name.text,
+            Name      = obj.Name.text,
             DeckCount = obj.Decks.value,
             Redeals   = obj.Redeals.value
         },
@@ -178,10 +178,11 @@ end
 
 return function(obj)
     local options <const> = get_options(obj)
+    local name <const>    = "(Wizard) " .. options.Info.Name;
 
     local strInfo         = [[
     Info = {
-        Name      = "]] .. options.Info.Name .. [[",
+        Name      = "]] .. name .. [[",
         Family    = "]] .. "Other" .. [[",
         DeckCount = ]] .. options.Info.DeckCount .. [[,
         Redeals   = ]] .. options.Info.Redeals .. [[,
@@ -274,5 +275,5 @@ local game = {
 Sol.register_game(game)
 ]]
 
-    return game, check_error(options), options.Info.Name
+    return game, check_error(options), name
 end

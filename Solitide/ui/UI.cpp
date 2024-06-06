@@ -439,7 +439,7 @@ void form_menu::create_section_settings()
             lbl->Label = translate(lbl->get_name());
         }
 
-        auto btnApplyVideoSettings {tabPanelLayout->create_widget<button>({9, 16, 6, 4}, "btnApplyVideoSettings")};
+        auto btnApplyVideoSettings {tabPanelLayout->create_widget<button>({33, 35, 6, 4}, "btnApplyVideoSettings")};
         btnApplyVideoSettings->Icon    = _resGrp.get<gfx::texture>("apply");
         btnApplyVideoSettings->Tooltip = _tooltip;
         btnApplyVideoSettings->Click.connect([&]() { VideoSettingsChanged(); });
