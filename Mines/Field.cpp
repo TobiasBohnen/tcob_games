@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Tobias Bohnen
+// Copyright (c) 2024 Tobias Bohnen
 //
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
@@ -28,22 +28,22 @@ constexpr gfx::tile_index_t LY_FRONT {1};
 
 field::field(assets::asset_ptr<gfx::material> const& material)
     : _map {{{
-        {1, {"clear"}},
-        {2, {"1"}},
-        {3, {"2"}},
-        {4, {"3"}},
-        {5, {"4"}},
-        {6, {"5"}},
-        {7, {"6"}},
-        {8, {"7"}},
-        {9, {"8"}},
-        {TS_MINE, {"mine"}},
-        {TS_CONCEALED, {"concealed"}},
-        {TS_SELECTED, {"selected"}},
-        {TS_FLAG, {"flag"}},
-        {TS_MAYBE, {"maybe"}},
-        {TS_MINE_EXP, {"mine-exp"}},
-    }}}
+          {1, {"clear"}},
+          {2, {"1"}},
+          {3, {"2"}},
+          {4, {"3"}},
+          {5, {"4"}},
+          {6, {"5"}},
+          {7, {"6"}},
+          {8, {"7"}},
+          {9, {"8"}},
+          {TS_MINE, {"mine"}},
+          {TS_CONCEALED, {"concealed"}},
+          {TS_SELECTED, {"selected"}},
+          {TS_FLAG, {"flag"}},
+          {TS_MAYBE, {"maybe"}},
+          {TS_MINE_EXP, {"mine-exp"}},
+      }}}
 {
     _map.Material = material;
 }
