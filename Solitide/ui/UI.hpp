@@ -65,9 +65,12 @@ private:
 struct menu_sources {
     settings Settings;
 
-    game_map           Games;
-    signal<>           GameAdded; // wizard
-    prop<game_history> CurrentHistory;
+    game_map Games;
+    signal<> GameAdded; // wizard
+
+    prop<std::string>          SelectedGame;
+    prop<game_history>         SelectedHistory;
+    prop<data::config::object> SelectedRules;
 
     theme_map   Themes;
     cardset_map Cardsets;
@@ -77,8 +80,8 @@ class form_menu : public form {
 public:
     form_menu(gfx::window* window, assets::group& resGrp, std::shared_ptr<menu_sources> sources);
 
-    signal<std::string const> StartGame;
-    signal<>                  VideoSettingsChanged;
+    signal<std::optional<u64> const> StartGame;
+    signal<>                         VideoSettingsChanged;
 
     void submit_settings(data::config::object& obj);
 
@@ -89,6 +92,8 @@ private:
     void create_section_cardset();
 
     void create_menubar();
+
+    void start_game();
 
     std::shared_ptr<tab_container> _tabSettings;
     std::shared_ptr<text_box>      _txbSeed;

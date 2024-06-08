@@ -9,7 +9,6 @@
 
 #include "CardTable.hpp"
 #include "Database.hpp"
-#include "Games.hpp"
 #include "ui/UI.hpp"
 #include "wizard/WizardScene.hpp"
 
@@ -53,7 +52,7 @@ private:
     void update_stats(std::string const& name) const;
     void update_recent(std::string const& name);
 
-    void generate_rule(base_game const& game) const;
+    void generate_rules() const;
 
     void load_scripts();
 
@@ -71,6 +70,7 @@ private:
     std::shared_ptr<form_menu>     _formMenu {};
 
     data::config::object _saveGame;
+    data::config::object _gameRules;
 
     database _db;
 

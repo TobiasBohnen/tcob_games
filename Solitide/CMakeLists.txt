@@ -54,6 +54,7 @@ endif()
 add_custom_target(Solitide_copyFiles ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/games/lua/ ${CMAKE_BINARY_DIR}/../../x64/scripts/
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/games/sq/ ${CMAKE_BINARY_DIR}/../../x64/scripts/
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/rules.json ${CMAKE_BINARY_DIR}/../../x64/
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/styles.json ${CMAKE_BINARY_DIR}/../../x64/
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/themes.json ${CMAKE_BINARY_DIR}/../../x64/
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/assets.zip ${CMAKE_BINARY_DIR}/../../x64/

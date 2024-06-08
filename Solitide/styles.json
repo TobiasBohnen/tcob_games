@@ -18,7 +18,7 @@
         "text": {
             "font": "Poppins",
             "style": {
-                "italic": false,
+                "is_italic": false,
                 "weight": "Normal"
             },
             "size": "32px",
@@ -46,7 +46,7 @@
         "text": {
             "font": "Poppins",
             "style": {
-                "italic": false,
+                "is_italic": false,
                 "weight": "Normal"
             },
             "size": "32px",
@@ -86,7 +86,7 @@
         "text": {
             "font": "Poppins",
             "style": {
-                "italic": false,
+                "is_italic": false,
                 "weight": "Normal"
             },
             "size": "50pct",
@@ -110,7 +110,7 @@
         "text": {
             "font": "Poppins",
             "style": {
-                "italic": false,
+                "is_italic": false,
                 "weight": "Normal"
             },
             "size": "32px",
@@ -132,7 +132,7 @@
         "text": {
             "font": "Poppins",
             "style": {
-                "italic": false,
+                "is_italic": false,
                 "weight": "Normal"
             },
             "size": "32px",
@@ -152,7 +152,7 @@
         "text": {
             "font": "Poppins",
             "style": {
-                "italic": false,
+                "is_italic": false,
                 "weight": "Light"
             },
             "size": "24px",
@@ -218,7 +218,7 @@
         "text": {
             "font": "Poppins",
             "style": {
-                "italic": false,
+                "is_italic": false,
                 "weight": "Normal"
             },
             "size": "50pct",
@@ -263,7 +263,7 @@
         "text": {
             "font": "Poppins",
             "style": {
-                "italic": false,
+                "is_italic": false,
                 "weight": "Normal"
             },
             "size": "50pct",
@@ -309,7 +309,7 @@
             "size": "3px",
             "radius": "5px"
         },
-        "section_bar_height": "5pct",
+        "section_bar_height": "10pct",
         "section_item_class": "section_items"
     },
     "checkbox": {
@@ -429,7 +429,7 @@
         "text": {
             "font": "Poppins",
             "style": {
-                "italic": false,
+                "is_italic": false,
                 "weight": "Normal"
             },
             "size": "50pct",
@@ -473,7 +473,7 @@
         "text": {
             "font": "Poppins",
             "style": {
-                "italic": false,
+                "is_italic": false,
                 "weight": "Normal"
             },
             "size": "24px",
@@ -495,7 +495,7 @@
         "text": {
             "font": "Poppins",
             "style": {
-                "italic": false,
+                "is_italic": false,
                 "weight": "Bold"
             },
             "size": "32px",
@@ -517,7 +517,7 @@
         "text": {
             "font": "Poppins",
             "style": {
-                "italic": false,
+                "is_italic": false,
                 "weight": "Bold"
             },
             "size": "32px",
@@ -561,7 +561,7 @@
         "text": {
             "font": "Poppins",
             "style": {
-                "italic": false,
+                "is_italic": false,
                 "weight": "Bold"
             },
             "size": "32px",
@@ -583,12 +583,12 @@
         "text": {
             "font": "Poppins",
             "style": {
-                "italic": false,
+                "is_italic": false,
                 "weight": "Normal"
             },
             "size": "32px",
             "alignment": {
-                "horizontal": "Right",
+                "horizontal": "Centered",
                 "vertical": "Middle"
             },
             "auto_size": "Always"

@@ -62,8 +62,8 @@ public:
 
     prop<std::string> Theme {"default"};
     prop<std::string> Cardset {"default"};
-    prop<std::string> Game;
 
+    std::string                   LastGame;
     prop<std::deque<std::string>> Recent;
 
     bool HintMovable {true};
@@ -74,7 +74,7 @@ public:
         s["version"]      = v.Version;
         s["theme"]        = v.Theme();
         s["cardset"]      = v.Cardset();
-        s["last_game"]    = v.Game();
+        s["last_game"]    = v.LastGame;
         s["recent"]       = v.Recent();
         s["hint_movable"] = v.HintMovable;
         s["hint_target"]  = v.HintTarget;
@@ -85,7 +85,7 @@ public:
         return s.try_get(v.Version, "version")
             && s.try_get(*v.Theme, "theme")
             && s.try_get(*v.Cardset, "cardset")
-            && s.try_get(*v.Game, "last_game")
+            && s.try_get(v.LastGame, "last_game")
             && s.try_get(*v.Recent, "recent")
             && s.try_get(v.HintMovable, "hint_movable")
             && s.try_get(v.HintTarget, "hint_target");

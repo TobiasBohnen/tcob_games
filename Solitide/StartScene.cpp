@@ -7,9 +7,26 @@
 
 #include "ui/Styles.hpp"
 
+template <>
+struct std::hash<solitaire::game_rule> {
+    auto operator()(solitaire::game_rule const& rd) const -> std::size_t
+    {
+        using std::hash;
+        using std::size_t;
+        using std::string;
+
+        size_t h1 = hash<string> {}(rd.Build);
+        size_t h2 = hash<string> {}(rd.Move);
+        size_t h3 = hash<string> {}(rd.Base);
+
+        return h1 ^ (h2 << 1) ^ (h3 << 2);
+    }
+};
+
 namespace solitaire {
 
 static char const* SAVE_NAME {"save.ini"};
+static char const* RULES_NAME {"rules.json"};
 static char const* SETTINGS_NAME {"settings"};
 
 auto static get_size(std::string_view str) -> size_i
@@ -21,16 +38,6 @@ auto static get_size(std::string_view str) -> size_i
     std::from_chars(widthStrView.data(), widthStrView.data() + widthStrView.size(), width);
     std::from_chars(heightStrView.data(), heightStrView.data() + heightStrView.size(), height);
     return {width, height};
-}
-auto static to_int(std::string_view str) -> std::optional<u64>
-{
-    u64 retValue {0};
-    auto [p, ec] {std::from_chars(str.data(), str.data() + str.size(), retValue)};
-    if (ec == std::errc {} && p == str.data() + str.size()) {
-        return retValue;
-    }
-
-    return std::nullopt;
 }
 
 start_scene::start_scene(game& game)
@@ -55,6 +62,10 @@ start_scene::start_scene(game& game)
     defaultCursor->ActiveMode = "cursor32";
 
     load_scripts();
+#if defined(TCOB_DEBUG)
+    generate_rules();
+#endif
+    _gameRules.load(RULES_NAME);
 
     // themes
     load_themes(_sources->Themes);
@@ -119,14 +130,14 @@ void start_scene::on_start()
     _formMenu->fixed_update(0s);     // updates style
     _formControls->fixed_update(0s); // updates style
 
-    if (!_sources->Settings.Game->empty()) {
-        start_game(_sources->Settings.Game, start_reason::Resume, std::nullopt);
+    if (!_sources->Settings.LastGame.empty()) {
+        start_game(_sources->Settings.LastGame, start_reason::Resume, std::nullopt);
     }
 }
 
 void start_scene::connect_events()
 {
-    _formControls->BtnNewGame->Click.connect([&](auto const&) { start_game(_sources->Settings.Game, start_reason::Restart, std::nullopt); });
+    _formControls->BtnNewGame->Click.connect([&](auto const&) { start_game(_sources->Settings.LastGame, start_reason::Restart, std::nullopt); });
     _formControls->BtnWizard->Click.connect([&](auto const&) { start_wizard(); });
     _formControls->BtnMenu->Click.connect([&](auto const&) { _formMenu->show(); });
 
@@ -148,12 +159,12 @@ void start_scene::connect_events()
 #endif
     });
 
-    _sources->Settings.Game.Changed.connect([&](auto const& game) { update_stats(game); });
+    _sources->SelectedGame.Changed.connect([&](auto const& game) { update_stats(game); });
     _sources->Settings.Theme.Changed.connect([&](auto const&) { set_theme(); });
     _sources->Settings.Cardset.Changed.connect([&]() { set_cardset(); });
 
-    _formMenu->StartGame.connect([&](std::string const& seed) {
-        start_game(_sources->Settings.Game, start_reason::Resume, to_int(seed));
+    _formMenu->StartGame.connect([&](auto const& seed) {
+        start_game(_sources->SelectedGame, start_reason::Resume, seed);
     });
 
     _formMenu->VideoSettingsChanged.connect([&]() {
@@ -173,7 +184,7 @@ void start_scene::connect_events()
         window.Size = res;
         set_children_bounds(res);
 
-        start_game(_sources->Settings.Game, start_reason::Resume, std::nullopt);
+        start_game(_sources->Settings.LastGame, start_reason::Resume, std::nullopt);
     });
 }
 
@@ -215,7 +226,7 @@ void start_scene::on_key_down(input::keyboard::event& ev)
     using namespace tcob::enum_ops;
 
     if (ev.KeyCode == input::key_code::n && (ev.KeyMods & input::key_mod::LeftControl) == input::key_mod::LeftControl) {
-        start_game(_sources->Settings.Game, start_reason::Restart, std::nullopt);
+        start_game(_sources->Settings.LastGame, start_reason::Restart, std::nullopt);
         ev.Handled = true;
     }
     if (ev.KeyCode == input::key_code::t && (ev.KeyMods & input::key_mod::LeftAlt) == input::key_mod::LeftAlt) {
@@ -270,7 +281,7 @@ void start_scene::set_cardset()
     _sources->Settings.Cardset = newCardset;
 
     _cardTable->set_cardset(_sources->Cardsets[newCardset]);
-    start_game(_sources->Settings.Game, start_reason::Resume, std::nullopt);
+    start_game(_sources->Settings.LastGame, start_reason::Resume, std::nullopt);
 }
 
 void start_scene::start_game(std::string const& name, start_reason reason, std::optional<u64> seed)
@@ -278,7 +289,7 @@ void start_scene::start_game(std::string const& name, start_reason reason, std::
     if (seed) { reason = start_reason::Restart; } // force restart if seed is set
 
     if (!_sources->Games.contains(name)) { return; }
-    _sources->Settings.Game = name;
+    _sources->SelectedGame = name;
     update_recent(name);
 
     auto& camera {*get_window().Camera};
@@ -317,11 +328,7 @@ void start_scene::start_game(std::string const& name, start_reason reason, std::
     } break;
     }
 
-#if defined(TCOB_DEBUG)
-    generate_rule(*newGame);
-#endif
     locate_service<stats>().reset();
-    _sources->Settings.Game = name;
 }
 
 void start_scene::start_wizard()
@@ -343,11 +350,14 @@ void start_scene::start_wizard()
 
 void start_scene::update_stats(std::string const& name) const
 {
-    _sources->CurrentHistory = _db.get_history(name);
+    _sources->SelectedHistory = _db.get_history(name);
+    _sources->SelectedRules   = _gameRules[name].as<data::config::object>();
 }
 
 void start_scene::update_recent(std::string const& name)
 {
+    _sources->Settings.LastGame = name;
+
     usize constexpr static maxEntries {10};
 
     std::deque<std::string> recent {_sources->Settings.Recent()};
@@ -360,50 +370,53 @@ void start_scene::update_recent(std::string const& name)
     _sources->Settings.Recent = recent;
 }
 
-void start_scene::generate_rule(base_game const& game) const
+void start_scene::generate_rules() const
 {
-    auto const& info {game.info()};
+    data::config::object rulesObj;
 
-    io::create_folder("/rules/");
-    auto         file {std::format("/rules/{}.html", info.Name)};
-    io::ofstream fs {file};
-    fs.write("<!DOCTYPE html>\n<html>\n<body>\n");
+    for (auto const& [_, g] : _sources->Games) {
+        auto                 game {g.second()};
+        data::config::object gameObj;
 
-    fs.write(std::format("<h1>{}</h1>", info.Name));
-    fs.write(std::format("<p>Number of decks: {}</p>", info.DeckCount));
-    // fs.write(std::format("<p>Family: {}</p><br>\n", info.Family));
+        auto writePileType {
+            [&](pile_type pt, std::vector<pile*> const& piles) {
+                if (piles.empty()) { return; }
 
-    fs.write("<h2>Piles</h2>");
-    auto writePileType {
-        [&](pile_type pt, std::vector<pile*> const& piles) {
-            if (piles.empty()) { return; }
+                data::config::array  pileRulesArr;
+                data::config::object pileObj;
+                gameObj[get_pile_type_name(pt)] = pileObj;
+                pileObj["count"]                = piles.size();
+                pileObj["rules"]                = pileRulesArr;
 
-            fs.write(std::format("<h3>{} ({})</h3>", get_pile_type_name(pt), piles.size()));
-
-            fs.write("<p>");
-            pile_description last;
-            for (auto const* pile : piles) {
-                auto const desc {pile->get_description(game)};
-                if (!desc.equal(last)) {
-                    fs.write(std::format("{}: {}<br>", desc.DescriptionLabel, desc.Description));
-                    if (!desc.MoveLabel.empty()) { fs.write(std::format("{}: {}<br>", desc.MoveLabel, desc.Move)); }
-                    if (!desc.MoveLabel.empty()) { fs.write(std::format("{}: {}<br>", desc.BaseLabel, desc.Base)); }
-                    last = desc;
+                std::unordered_map<game_rule, std::vector<i32>> pileRules;
+                for (auto const* pile : piles) {
+                    game_rule desc;
+                    desc.Base  = pile->Rule.BaseHint;
+                    desc.Build = pile->Rule.BuildHint;
+                    desc.Move  = pile->Rule.MoveHint;
+                    pileRules[desc].push_back(pile->Index);
                 }
-            }
-            fs.write("</p>");
-        }};
+                for (auto const& [k, v] : pileRules) {
+                    data::config::object rule;
+                    rule["piles"] = v;
+                    rule["base"]  = k.Base;
+                    rule["build"] = k.Build;
+                    rule["move"]  = k.Move;
+                    pileRulesArr.add(rule);
+                }
+            }};
 
-    auto const&                    piles {game.piles()};
-    std::array<pile_type, 6> const pileOrder {pile_type::Stock, pile_type::Waste,
-                                              pile_type::Foundation, pile_type::Tableau,
-                                              pile_type::Reserve, pile_type::FreeCell};
-    for (auto pt : pileOrder) {
-        if (!piles.contains(pt)) { continue; }
-        writePileType(pt, piles.at(pt));
+        auto const&                    piles {game->piles()};
+        std::array<pile_type, 4> const pileOrder {pile_type::Foundation, pile_type::Tableau, pile_type::Reserve, pile_type::FreeCell};
+        for (auto pt : pileOrder) {
+            if (!piles.contains(pt)) { continue; }
+            writePileType(pt, piles.at(pt));
+        }
+
+        rulesObj[game->info().Name] = gameObj;
     }
 
-    fs.write("\n</body>\n</html>\n");
+    rulesObj.save(RULES_NAME);
 }
 
 void start_scene::load_scripts()

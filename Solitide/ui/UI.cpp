@@ -37,6 +37,30 @@ auto static translate(std::string_view name) -> std::string // NOLINT
     if (name == "btnApplyCardset") { return "Apply"; }
     return "";
 }
+auto static translate(family fam) -> std::string // NOLINT
+{
+    // TODO: translation
+    switch (fam) {
+    case family::Other: return "Other";
+    case family::BakersDozen: return "Baker's Dozen";
+    case family::BeleagueredCastle: return "Beleaguered Castle";
+    case family::Canfield: return "Canfield";
+    case family::Fan: return "Fan";
+    case family::FlowerGarden: return "Flower Garden";
+    case family::FortyThieves: return "Forty Thieves";
+    case family::FreeCell: return "FreeCell";
+    case family::Golf: return "Golf";
+    case family::Gypsy: return "Gypsy";
+    case family::Klondike: return "Klondike";
+    case family::Montana: return "Montana";
+    case family::Numerica: return "Numerica";
+    case family::PictureGallery: return "Picture Gallery";
+    case family::Spider: return "Spider";
+    case family::Terrace: return "Terrace";
+    case family::Yukon: return "Yukon";
+    }
+    return "";
+}
 
 auto static make_tooltip(form* form) -> std::shared_ptr<tooltip>
 {
@@ -95,9 +119,8 @@ form_controls::form_controls(gfx::window* window, assets::group& resGrp)
         statusPanel->Flex = {100_pct, 10_pct};
         auto statusPanelLayout {statusPanel->create_layout<grid_layout>(size_i {20, 6})};
 
-        i32        i {0};
         auto const create {[&](rect_i const& rect, std::string const& text = "") {
-            auto l {statusPanelLayout->create_widget<label>(rect, "lblInfo" + std::to_string(i))};
+            auto l {statusPanelLayout->create_widget<label>(rect, "")};
             l->Class = "label-small";
             l->Label = text;
             return l;
@@ -136,6 +159,7 @@ form_controls::form_controls(gfx::window* window, assets::group& resGrp)
 
 void form_controls::set_pile_labels(pile_description const& str)
 {
+    // translate
     _lblPile->Label      = str.Pile;
     _lblCardCount->Label = str.CardCount;
 
@@ -199,10 +223,10 @@ void form_menu::create_section_games()
     auto panelFilterLayout {panelFilter->create_layout<grid_layout>(size_i {10, 1})};
     auto txbFilter {panelFilterLayout->create_widget<text_box>({0, 0, 9, 1}, "txbFilter")};
     txbFilter->MaxLength = 30;
-    auto btnFilter {panelFilterLayout->create_widget<button>({9, 0, 1, 1}, "btnFilter")};
-    btnFilter->Icon = _resGrp.get<gfx::texture>("lens");
-    btnFilter->Click.connect([tb = txbFilter.get()]() { tb->Text = ""; });
-    btnFilter->Tooltip = _tooltip;
+    auto btnClearFilter {panelFilterLayout->create_widget<button>({9, 0, 1, 1}, "btnClearFilter")};
+    btnClearFilter->Icon = _resGrp.get<gfx::texture>("cross");
+    btnClearFilter->Click.connect([tb = txbFilter.get()]() { tb->Text = ""; });
+    btnClearFilter->Tooltip = _tooltip;
 
     std::vector<list_box*> listBoxes;
     {
@@ -219,23 +243,17 @@ void form_menu::create_section_games()
             }
 
             listBox->SelectedItemIndex.Changed.connect([&, lb = listBox.get()](auto val) {
-                if (val != -1) { _sources->Settings.Game = lb->get_selected_item(); }
+                if (val != -1) { _sources->SelectedGame = lb->get_selected_item(); }
             });
-            listBox->select_item(_sources->Settings.Game);
-            _sources->Settings.Game.Changed.connect([&, lb = listBox.get()](auto const& val) {
+            _sources->SelectedGame.Changed.connect([&, lb = listBox.get()](auto const& val) {
                 if (lb->select_item(val)) {
                     if (!lb->is_focused()) { lb->scroll_to_selected(); }
                 } else {
                     lb->SelectedItemIndex = -1;
                 }
             });
-
             listBox->DoubleClick.connect([&, lb = listBox.get()] {
-                if (lb->SelectedItemIndex >= 0) {
-                    StartGame(_txbSeed->Text());
-                    _txbSeed->Text = "";
-                    hide();
-                }
+                if (lb->SelectedItemIndex >= 0) { start_game(); }
             });
             return listBox;
         }};
@@ -267,29 +285,30 @@ void form_menu::create_section_games()
             auto tabContainer {tabGames->create_tab<tab_container>("byFamily", "By Family")}; // translate
             tabContainer->MaxTabs = 5;
 
-            auto const createTab {[&](family family, std::string const& name) {
+            auto const createTab {[&](family family) {
+                auto name {translate(family)};
                 auto tabPanel {tabContainer->create_tab<panel>(name)};
                 auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
                 createListBox(tabPanelLayout, name, [family](auto const& gameInfo) { return gameInfo.Family == family; });
             }};
-            createTab(family::BakersDozen, "Baker's Dozen");
-            createTab(family::BeleagueredCastle, "Beleaguered Castle");
-            createTab(family::Canfield, "Canfield");
-            createTab(family::Fan, "Fan");
-            createTab(family::FlowerGarden, "Flower Garden");
-            createTab(family::FortyThieves, "Forty Thieves");
-            createTab(family::FreeCell, "FreeCell");
-            createTab(family::Golf, "Golf");
-            createTab(family::Gypsy, "Gypsy");
-            createTab(family::Klondike, "Klondike");
-            createTab(family::Montana, "Montana");
-            createTab(family::Numerica, "Numerica");
-            createTab(family::PictureGallery, "Picture Gallery");
-            createTab(family::Spider, "Spider");
-            createTab(family::Terrace, "Terrace");
-            createTab(family::Yukon, "Yukon");
+            createTab(family::BakersDozen);
+            createTab(family::BeleagueredCastle);
+            createTab(family::Canfield);
+            createTab(family::Fan);
+            createTab(family::FlowerGarden);
+            createTab(family::FortyThieves);
+            createTab(family::FreeCell);
+            createTab(family::Golf);
+            createTab(family::Gypsy);
+            createTab(family::Klondike);
+            createTab(family::Montana);
+            createTab(family::Numerica);
+            createTab(family::PictureGallery);
+            createTab(family::Spider);
+            createTab(family::Terrace);
+            createTab(family::Yukon);
 
-            createTab(family::Other, "Other");
+            createTab(family::Other);
         }
         // By Deck Count
         {
@@ -324,52 +343,10 @@ void form_menu::create_section_games()
         });
     }
     {
-        auto panelGameStats {panelLayout->create_widget<panel>(dock_style::Right, "panelGameStats")};
-        panelGameStats->Flex   = {50_pct, 100_pct};
-        panelGameStats->ZOrder = 1;
-        auto panelGameStatsLayout {panelGameStats->create_layout<grid_layout>(size_i {20, 40})};
-
-        auto gvWL {panelGameStatsLayout->create_widget<grid_view>({1, 1, 9, 4}, "gvWinLose")};
-        gvWL->Class = "grid_view2";
-        gvWL->set_columns({"Won", "Lost", "W/L"});                         // translate
-        auto gvTT {panelGameStatsLayout->create_widget<grid_view>({10, 1, 9, 4}, "gvBest")};
-        gvTT->Class = "grid_view2";
-        gvTT->set_columns({"Highscore", "Least Turns", "Fastest Time"});   // translate
-
-        auto gvHistory {panelGameStatsLayout->create_widget<grid_view>({1, 6, 18, 25}, "gvHistory")};
-        gvHistory->set_columns({"Seed", "Score", "Turns", "Time", "Won"}); // translate
-
-        _sources->CurrentHistory.Changed.connect([wl = gvWL.get(), tt = gvTT.get(), history = gvHistory.get()](auto const& stats) {
-            wl->clear_rows();
-            wl->add_row(
-                {std::to_string(stats.Won),
-                 std::to_string(stats.Lost),
-                 stats.Lost + stats.Won > 0 ? std::format("{:.2f}%", static_cast<f32>(stats.Won) / (stats.Lost + stats.Won) * 100) : "-"});
-            tt->clear_rows();
-
-            std::optional<i64> bestTime;
-            std::optional<i64> bestTurns;
-            std::optional<i64> bestScore;
-
-            history->clear_rows();
-            for (auto const& entry : stats.Entries) {
-                if (entry.Won) {
-                    bestTime  = !bestTime ? entry.Time : std::min(entry.Time, *bestTime);
-                    bestTurns = !bestTurns ? entry.Turns : std::min(entry.Turns, *bestTurns);
-                }
-                bestScore = !bestScore ? entry.Score : std::max(entry.Score, *bestScore);
-
-                history->add_row(
-                    {std::to_string(entry.Seed),
-                     std::to_string(entry.Score),
-                     std::to_string(entry.Turns),
-                     std::format("{:%M:%S}", seconds {entry.Time / 1000.f}),
-                     entry.Won ? "X" : "-"});
-            }
-            tt->add_row({bestScore ? std::to_string(*bestScore) : "-",
-                         bestTurns ? std::to_string(*bestTurns) : "-",
-                         bestTime ? std::format("{:%M:%S}", seconds {*bestTime / 1000.f}) : "--:--"});
-        });
+        auto panelGameDetails {panelLayout->create_widget<panel>(dock_style::Right, "panelGameStats")};
+        panelGameDetails->Flex   = {50_pct, 100_pct};
+        panelGameDetails->ZOrder = 1;
+        auto panelGameStatsLayout {panelGameDetails->create_layout<grid_layout>(size_i {20, 40})};
 
         auto lblSeed {panelGameStatsLayout->create_widget<label>({1, 33, 4, 2}, "lblSeed")};
         lblSeed->Label = "Seed";
@@ -384,12 +361,110 @@ void form_menu::create_section_games()
 
         auto btnStartGame {panelGameStatsLayout->create_widget<button>({1, 36, 4, 3}, "btnStartGame")};
         btnStartGame->Icon = _resGrp.get<gfx::texture>("play");
-        btnStartGame->Click.connect([&]() {
-            StartGame(_txbSeed->Text());
-            _txbSeed->Text = "";
-            hide();
-        });
+        btnStartGame->Click.connect([&]() { start_game(); });
         btnStartGame->Tooltip = _tooltip;
+
+        auto tabGameDetails {panelGameStatsLayout->create_widget<tab_container>({0, 0, 20, 32}, "tabGameDetails")};
+        tabGameDetails->MaxTabs = 5;
+
+        // info tab
+        {
+            auto tabPanel {tabGameDetails->create_tab<panel>("Info")}; // translate
+            auto tabPanelLayout {tabPanel->create_layout<grid_layout>(size_i {40, 30})};
+
+            auto gvInfo {tabPanelLayout->create_widget<grid_view>({2, 1, 36, 5}, "gvInfo")};
+            gvInfo->Class = "grid_view2";
+            gvInfo->set_columns({"Family", "Decks", "Redeals"}); // translate
+
+            _sources->SelectedGame.Changed.connect([&, infoGV = gvInfo.get()](auto const& game) {
+                infoGV->clear_rows();
+                auto gameInfo {_sources->Games[game].first};
+                infoGV->add_row(
+                    {translate(gameInfo.Family),
+                     std::to_string(gameInfo.DeckCount),
+                     gameInfo.Redeals < 0 ? "∞" : std::to_string(gameInfo.Redeals)});
+            });
+
+            auto accRules {tabPanelLayout->create_widget<accordion>({1, 7, 38, 20}, "gvRules")};
+
+            _sources->SelectedRules.Changed.connect([rulesGV = accRules.get()](data::config::object const& piles) {
+                rulesGV->clear_sections();
+
+                for (auto const& pile : piles) {
+                    auto const& name {pile.first};
+
+                    auto const& pileObj {pile.second.as<data::config::object>()};
+                    auto const  count {pileObj["count"].as<std::string>()};
+                    auto const& rulesArr {pileObj["rules"].as<data::config::array>()};
+                    for (auto const& rule : rulesArr) {
+
+                        auto        pilePanel {rulesGV->create_section<panel>(name)};
+                        auto        pilePanelLayout {pilePanel->create_layout<grid_layout>(size_i {30, 40})};
+                        // TODO: long description
+                        auto const  create {[&](rect_i const& rect, std::string const& text) {
+                            auto l {pilePanelLayout->create_widget<label>(rect, "")};
+                            l->Class = "label-small";
+                            l->Label = text;
+                            return l;
+                        }};
+                        auto const& ruleObj {rule.as<data::config::object>()};
+                        create({1, 1, 10, 5}, "Base");
+                        create({12, 1, 17, 5}, ruleObj["base"].as<std::string>());
+                        create({1, 7, 10, 5}, "Build");
+                        create({12, 7, 17, 5}, ruleObj["build"].as<std::string>());
+                        create({1, 13, 10, 5}, "Move");
+                        create({12, 13, 17, 5}, ruleObj["move"].as<std::string>());
+                    }
+                }
+            });
+        }
+        // stats tab
+        {
+            auto tabPanel {tabGameDetails->create_tab<panel>("Stats")}; // translate
+            auto tabPanelLayout {tabPanel->create_layout<grid_layout>(size_i {40, 30})};
+
+            auto gvWL {tabPanelLayout->create_widget<grid_view>({1, 1, 18, 5}, "gvWinLose")};
+            gvWL->Class = "grid_view2";
+            gvWL->set_columns({"Won", "Lost", "W/L"});                         // translate
+            auto gvTT {tabPanelLayout->create_widget<grid_view>({21, 1, 18, 5}, "gvBest")};
+            gvTT->Class = "grid_view2";
+            gvTT->set_columns({"Highscore", "Least Turns", "Fastest Time"});   // translate
+
+            auto gvHistory {tabPanelLayout->create_widget<grid_view>({1, 7, 38, 22}, "gvHistory")};
+            gvHistory->set_columns({"Seed", "Score", "Turns", "Time", "Won"}); // translate
+
+            _sources->SelectedHistory.Changed.connect([wl = gvWL.get(), tt = gvTT.get(), history = gvHistory.get()](auto const& stats) {
+                wl->clear_rows();
+                wl->add_row(
+                    {std::to_string(stats.Won),
+                     std::to_string(stats.Lost),
+                     stats.Lost + stats.Won > 0 ? std::format("{:.2f}%", static_cast<f32>(stats.Won) / (stats.Lost + stats.Won) * 100) : "-"});
+                tt->clear_rows();
+
+                std::optional<i64> bestTime;
+                std::optional<i64> bestTurns;
+                std::optional<i64> bestScore;
+
+                history->clear_rows();
+                for (auto const& entry : stats.Entries) {
+                    if (entry.Won) {
+                        bestTime  = !bestTime ? entry.Time : std::min(entry.Time, *bestTime);
+                        bestTurns = !bestTurns ? entry.Turns : std::min(entry.Turns, *bestTurns);
+                    }
+                    bestScore = !bestScore ? entry.Score : std::max(entry.Score, *bestScore);
+
+                    history->add_row(
+                        {std::to_string(entry.Seed),
+                         std::to_string(entry.Score),
+                         std::to_string(entry.Turns),
+                         std::format("{:%M:%S}", seconds {entry.Time / 1000.f}),
+                         entry.Won ? "X" : "-"});
+                }
+                tt->add_row({bestScore ? std::to_string(*bestScore) : "-",
+                             bestTurns ? std::to_string(*bestTurns) : "-",
+                             bestTime ? std::format("{:%M:%S}", seconds {*bestTime / 1000.f}) : "--:--"});
+            });
+        }
     }
 }
 
@@ -579,5 +654,12 @@ void form_menu::create_menubar()
     btnBack->Icon = _resGrp.get<gfx::texture>("back");
     btnBack->Click.connect([&](auto&) { hide(); });
     btnBack->Tooltip = _tooltip;
+}
+
+void form_menu::start_game()
+{
+    StartGame(helper::to_number<u64>(_txbSeed->Text()));
+    _txbSeed->Text = "";
+    hide();
 }
 }

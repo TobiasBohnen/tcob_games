@@ -153,4 +153,14 @@ struct game_history {
     std::vector<entry> Entries;
 };
 
+////////////////////////////////////////////////////////////
+
+struct game_rule {
+    std::string Build;
+    std::string Move;
+    std::string Base;
+
+    auto operator==(game_rule const& right) const -> bool = default;
+};
+
 }
