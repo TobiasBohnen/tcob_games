@@ -53,7 +53,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     // methods
     gameWrapper["shuffle_cards"] = [](base_game* game, std::vector<card> const& cards) {
         std::vector<card> shuffled {cards};
-        game->rng().gen().template shuffle<card>(shuffled);
+        game->rng().gen()(shuffled);
         return shuffled;
     };
     gameWrapper["find_pile"] = [](base_game* game, card& card) -> pile* {

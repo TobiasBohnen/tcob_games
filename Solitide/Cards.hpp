@@ -114,7 +114,7 @@ struct deck {
             retValue.insert(retValue.end(), deck.Cards.begin(), deck.Cards.end());
         }
 
-        rand.template shuffle<card>(retValue);
+        rand(retValue);
         return retValue;
     }
 };

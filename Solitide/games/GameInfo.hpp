@@ -103,6 +103,7 @@ struct game_state {
 };
 
 ////////////////////////////////////////////////////////////
+using rng = random::shuffle<card, random::xoshiro_256_plus_plus>;
 
 class game_rng {
 public:
