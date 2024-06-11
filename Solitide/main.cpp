@@ -27,6 +27,7 @@ public:
 
 auto main(int /* argc */, char* argv[]) -> int
 {
-    my_game m {argv[0]};
+    tcob::single_instance inst {"Solitide"};
+    if (inst) { my_game m {argv[0]}; }
     return 0;
 }
