@@ -144,9 +144,12 @@ auto styles::load(color_themes const& theme) -> style_collection
 
     for (auto const& entry : styleFile) {
         object styleObj;
-        if (!entry.second.try_get(styleObj)) { continue; }
+        if (!entry.second.try_get(styleObj)) { continue; } // ERROR
+        if (entry.first.empty()) { continue; }             // ERROR
 
-        auto  names {helper::split(entry.first, ':')};
+        auto typeSplit {helper::split(entry.first, '#')};
+
+        auto  names {helper::split(typeSplit[0], ':')};
         flags flags {};
         if (names.size() > 1) {
             flags.Hover  = std::find(names.begin() + 1, names.end(), "hover") != names.end();
@@ -154,7 +157,9 @@ auto styles::load(color_themes const& theme) -> style_collection
         }
 
         std::string& type {typeMap[names[0]]};
-        styleObj.try_get(type, "style_type");
+        if (type.empty()) {
+            type = typeSplit.size() > 1 ? typeSplit[1] : typeSplit[0];
+        }
 
         auto applyTheme([&](auto&& style) {
             if (flags.Active) {
@@ -229,6 +234,8 @@ auto styles::load(color_themes const& theme) -> style_collection
         } else if (type == "item") {
             auto style {create<item_style>(styleObj, retValue, names, flags)};
             applyTheme(style);
+        } else {
+            continue; // ERROR
         }
     }
 

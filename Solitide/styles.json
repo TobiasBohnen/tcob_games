@@ -1,13 +1,11 @@
 {
     "panel": {
-        "style_type": "panel",
         "border": {
             "size": "2px",
             "radius": "5px"
         }
     },
     "button": {
-        "style_type": "button",
         "margin": "6px",
         "padding": "1px",
         "border": {
@@ -36,7 +34,6 @@
         "margin": "5x, 6px, 5px, 6px"
     },
     "cycle_button": {
-        "style_type": "cycle_button",
         "margin": "5px",
         "padding": "1px",
         "border": {
@@ -60,7 +57,6 @@
     "cycle_button:hover": {},
     "cycle_button:active": {},
     "slider": {
-        "style_type": "slider",
         "margin": "2px",
         "padding": "2px",
         "thumb_class": "slider_thumb",
@@ -76,7 +72,6 @@
     },
     "slider:hover": {},
     "spinner": {
-        "style_type": "spinner",
         "margin": "5px",
         "padding": "1px",
         "border": {
@@ -101,7 +96,6 @@
     "spinner:hover": {},
     "spinner:active": {},
     "label": {
-        "style_type": "label",
         "border": {
             "type": "Double",
             "size": "5px",
@@ -121,8 +115,7 @@
             "auto_size": "OnlyShrink"
         }
     },
-    "label-small": {
-        "style_type": "label",
+    "label-small#label": {
         "margin": "3px",
         "border": {
             "type": "Double",
@@ -143,8 +136,7 @@
             "auto_size": "Always"
         }
     },
-    "tooltip-label": {
-        "style_type": "label",
+    "tooltip-label#label": {
         "border": {
             "type": "Solid",
             "size": "5px"
@@ -164,7 +156,6 @@
         }
     },
     "list_box": {
-        "style_type": "list_box",
         "item_height": "5pct",
         "item_class": "list_items",
         "border": {
@@ -183,8 +174,7 @@
             }
         }
     },
-    "list_box_log": {
-        "style_type": "list_box",
+    "list_box_log#list_box": {
         "item_height": "20pct",
         "item_class": "list_items",
         "border": {
@@ -204,7 +194,6 @@
         }
     },
     "drop_down_list": {
-        "style_type": "drop_down_list",
         "margin": "5px",
         "padding": "5px",
         "drop_shadow": {
@@ -247,8 +236,7 @@
         }
     },
     "drop_down_list:hover": {},
-    "drop_down_list_wizard": {
-        "style_type": "drop_down_list",
+    "drop_down_list_wizard#drop_down_list": {
         "margin": "5px",
         "padding": "5px",
         "arrow_class": "nav_arrows_wizard",
@@ -293,7 +281,6 @@
     },
     "drop_down_list_wizard:hover": {},
     "tab_container": {
-        "style_type": "tab_container",
         "padding": "2px",
         "border": {
             "size": "2px",
@@ -304,7 +291,6 @@
         "tab_bar_position": "Top"
     },
     "accordion": {
-        "style_type": "accordion",
         "border": {
             "size": "3px",
             "radius": "5px"
@@ -313,7 +299,6 @@
         "section_item_class": "section_items"
     },
     "checkbox": {
-        "style_type": "checkbox",
         "margin": "5px",
         "padding": "2px",
         "border": {
@@ -328,7 +313,6 @@
     "checkbox:hover": {},
     "checkbox:active": {},
     "radio_button": {
-        "style_type": "radio_button",
         "margin": "5px",
         "padding": "5px",
         "border": {
@@ -344,7 +328,6 @@
     "radio_button:hover": {},
     "radio_button:active": {},
     "grid_view": {
-        "style_type": "grid_view",
         "padding": "2px",
         "border": {
             "size": "3px",
@@ -374,8 +357,7 @@
             }
         }
     },
-    "grid_view2": {
-        "style_type": "grid_view",
+    "grid_view2#grid_view": {
         "padding": "2px",
         "border": {
             "size": "3px",
@@ -406,7 +388,6 @@
         }
     },
     "image_box": {
-        "style_type": "image_box",
         "padding": "2px",
         "fit": "Contain",
         "alignment": {
@@ -415,12 +396,10 @@
         }
     },
     "tooltip": {
-        "style_type": "tooltip",
         "delay": 500,
         "fade_in": 150
     },
     "text_box": {
-        "style_type": "text_box",
         "padding": "2px",
         "border": {
             "size": "3px",
@@ -444,8 +423,7 @@
         }
     },
     "text_box:hover": {},
-    "slider_thumb": {
-        "style_type": "thumb",
+    "slider_thumb#thumb": {
         "type": "Rect",
         "long_side": "25pct",
         "short_side": "80pct",
@@ -456,8 +434,7 @@
     },
     "slider_thumb:hover": {},
     "slider_thumb:active": {},
-    "scrollbar_thumb": {
-        "style_type": "thumb",
+    "scrollbar_thumb#thumb": {
         "type": "Rect",
         "long_side": "10pct",
         "short_side": "80pct",
@@ -467,8 +444,7 @@
     },
     "scrollbar_thumb:hover": {},
     "scrollbar_thumb:active": {},
-    "list_items": {
-        "style_type": "item",
+    "list_items#item": {
         "padding": "2px",
         "text": {
             "font": "Poppins",
@@ -489,8 +465,7 @@
     },
     "list_items:hover": {},
     "list_items:active": {},
-    "tab_items": {
-        "style_type": "item",
+    "tab_items#item": {
         "padding": "2px",
         "text": {
             "font": "Poppins",
@@ -511,8 +486,7 @@
     },
     "tab_items:hover": {},
     "tab_items:active": {},
-    "section_items": {
-        "style_type": "item",
+    "section_items#item": {
         "padding": "2px",
         "text": {
             "font": "Poppins",
@@ -533,8 +507,7 @@
     },
     "section_items:hover": {},
     "section_items:active": {},
-    "nav_arrows": {
-        "style_type": "nav_arrow",
+    "nav_arrows#nav_arrow": {
         "height": "75pct",
         "width": "25pct",
         "border": {
@@ -544,8 +517,7 @@
     },
     "nav_arrows:hover": {},
     "nav_arrows:active": {},
-    "nav_arrows_wizard": {
-        "style_type": "nav_arrow",
+    "nav_arrows_wizard#nav_arrow": {
         "height": "75pct",
         "width": "10pct",
         "border": {
@@ -555,8 +527,7 @@
     },
     "nav_arrows_wizard:hover": {},
     "nav_arrows_wizard:active": {},
-    "header_items": {
-        "style_type": "item",
+    "header_items#item": {
         "padding": "5px",
         "text": {
             "font": "Poppins",
@@ -577,8 +548,7 @@
     },
     "header_items:hover": {},
     "header_items:active": {},
-    "row_items": {
-        "style_type": "item",
+    "row_items#item": {
         "padding": "5px",
         "text": {
             "font": "Poppins",
