@@ -257,8 +257,12 @@ inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& scen
         infoTab.try_get(info.Family, "Family");
         infoTab.try_get(info.Objective, "Objective");
         infoTab.try_get(info.DeckCount, "DeckCount");
-        infoTab.try_get(info.DeckRanks, "DeckRanks");
-        infoTab.try_get(info.DeckSuits, "DeckSuits");
+        if (!infoTab.try_get(info.DeckRanks, "DeckRanks")) {
+            info.DeckRanks = {rank::Ace, rank::Two, rank::Three, rank::Four, rank::Five, rank::Six, rank::Seven, rank::Eight, rank::Nine, rank::Ten, rank::Jack, rank::Queen, rank::King};
+        }
+        if (!infoTab.try_get(info.DeckSuits, "DeckSuits")) {
+            info.DeckSuits = {suit::Clubs, suit::Diamonds, suit::Hearts, suit::Spades};
+        }
         infoTab.try_get(info.Redeals, "Redeals");
         infoTab.try_get(info.DisableHints, "DisableHints");
         infoTab.try_get(info.DisableAutoPlay, "DisableAutoPlay");
