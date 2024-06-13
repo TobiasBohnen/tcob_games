@@ -21,8 +21,8 @@ class card_table : public gfx::entity {
 public:
     card_table(gfx::window* window, gfx::ui::canvas_widget* canvas, assets::group& resGrp, settings* settings);
 
-    signal<pile_description const> HoverChange;
-    prop<rect_f>                   Bounds;
+    signal<pile* const> HoverChange;
+    prop<rect_f>        Bounds;
 
     void start(std::shared_ptr<base_game> const& game, std::optional<u64> seed);
     void resume(std::shared_ptr<base_game> const& game, data::config::object& savegame);
@@ -71,9 +71,8 @@ private:
     assets::group& _resGrp;
     settings*      _settings;
 
-    std::shared_ptr<base_game>                        _currentGame;
-    std::unordered_map<pile const*, pile_description> _descriptionCache;
-    size_f                                            _cardSize;
+    std::shared_ptr<base_game> _currentGame;
+    size_f                     _cardSize;
 
     // render
     card_renderer     _cardRenderer;

@@ -52,7 +52,7 @@ private:
     void update_stats(std::string const& name) const;
     void update_recent(std::string const& name);
 
-    void generate_rules() const;
+    void generate_rules();
 
     void load_scripts();
 

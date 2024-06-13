@@ -5,6 +5,8 @@
 
 #include "CardTable.hpp"
 
+#include <utility>
+
 #include "Cards.hpp"
 #include "Games.hpp"
 
@@ -57,8 +59,6 @@ void card_table::set_cardset(std::shared_ptr<cardset> const& cardset)
 
 void card_table::layout()
 {
-    _descriptionCache.clear();
-
     auto const& cardSize {_cardSize};
     rect_f      tableBounds;
     rect_f      pileBounds;
@@ -253,7 +253,7 @@ void card_table::on_mouse_motion(input::mouse::motion_event& ev)
         get_hovered(ev.Position);
     }
 
-    HoverChange(get_description(_hovered.Pile));
+    HoverChange(_hovered.Pile);
 
     ev.Handled = true;
 }
@@ -276,7 +276,7 @@ void card_table::on_mouse_button_down(input::mouse::button_event& ev)
         }
 
         if (ev.Clicks > 1) { get_hovered(ev.Position); }
-        HoverChange(get_description(_hovered.Pile));
+        HoverChange(_hovered.Pile);
     }
 }
 
@@ -301,7 +301,7 @@ void card_table::on_mouse_button_up(input::mouse::button_event& ev)
         }
 
         get_hovered(ev.Position);
-        HoverChange(get_description(_hovered.Pile));
+        HoverChange(_hovered.Pile);
     }
 }
 
@@ -314,19 +314,6 @@ void card_table::reset()
     _camZoomTween = nullptr;
     _isDragging   = false;
     _buttonDown   = false;
-}
-
-auto card_table::get_description(pile const* pile) -> pile_description
-{
-    if (!pile || !_currentGame) { return {}; }
-
-    if (auto it {_descriptionCache.find(pile)}; it != _descriptionCache.end()) {
-        return it->second;
-    }
-
-    auto const retValue {pile->get_description(*_currentGame)};
-    _descriptionCache[pile] = retValue;
-    return retValue;
 }
 
 void card_table::drag_cards(input::mouse::motion_event const& ev)

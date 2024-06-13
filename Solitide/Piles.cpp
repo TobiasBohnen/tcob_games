@@ -5,8 +5,6 @@
 
 #include "Piles.hpp"
 
-#include "Games.hpp"
-
 namespace solitaire {
 
 auto build_none(card const&, card const&) -> bool
@@ -124,38 +122,6 @@ auto get_pile_type_name(pile_type pt) -> std::string
 
     // TODO: translate
     return "";
-}
-
-auto pile::get_description(base_game const& game) const -> pile_description
-{
-    auto const cardCount {size()};
-
-    pile_description retValue;
-    retValue.Pile      = get_pile_type_name(Type);
-    retValue.CardCount = std::to_string(cardCount);
-
-    switch (Type) {
-    case pile_type::Stock: {
-        retValue.Description      = game.state().Redeals < 0 ? "∞" : std::to_string(game.state().Redeals);
-        retValue.DescriptionLabel = "Redeals";
-    } break;
-    case pile_type::Waste:
-    case pile_type::Reserve:
-    case pile_type::FreeCell:
-    case pile_type::Foundation:
-    case pile_type::Tableau: {
-        retValue.Description      = Rule.BuildHint;
-        retValue.DescriptionLabel = "Build";
-        retValue.Move             = Rule.MoveHint;
-        retValue.MoveLabel        = "Move";
-        retValue.Base             = Rule.BaseHint;
-        retValue.BaseLabel        = "Base";
-        break;
-    }
-    }
-
-    // TODO: translate
-    return retValue;
 }
 
 auto pile::get_marker_texture_name() const -> std::string

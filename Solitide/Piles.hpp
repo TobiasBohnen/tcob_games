@@ -105,7 +105,6 @@ public:
     void flip_down_cards();
     void flip_down_top_card();
 
-    auto get_description(base_game const& game) const -> pile_description;
     auto get_marker_texture_name() const -> std::string;
 
     void move_cards(pile& to, isize startIndex, isize numCards, bool reverse);

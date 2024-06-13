@@ -25,7 +25,7 @@ auto static translate(std::string_view name) -> std::string // NOLINT
     if (name == "btnCollect") { return "Collect All"; }
     if (name == "btnUndo") { return "Undo"; }
     if (name == "btnQuit") { return "Quit"; }
-    if (name == "btnFilter") { return "Clear Filter"; }
+    if (name == "btnClearFilter") { return "Clear Filter"; }
     if (name == "btnStartGame") { return "Start Game"; }
     if (name == "btnApplyVideoSettings") { return "Apply"; }
     if (name == "btnBack") { return "Back"; }
@@ -78,6 +78,39 @@ auto static make_tooltip(form* form) -> std::shared_ptr<tooltip>
         tt->Bounds = {point_f::Zero, gfx::text_formatter::measure(lbl->Label(), *font, -1, true)};
     });
     return retValue;
+}
+
+static auto set_to_string(std::set<i32> const& numbers) -> std::string
+{
+    if (numbers.empty()) { return ""; }
+
+    std::ostringstream oss;
+    auto               it {numbers.begin()};
+    i32                start {*it}, end {*it};
+    ++it;
+
+    while (it != numbers.end()) {
+        if (*it == end + 1) {
+            end = *it;
+        } else {
+            if (start == end) {
+                oss << (start + 1);
+            } else {
+                oss << (start + 1) << "-" << (end + 1);
+            }
+            oss << ",";
+            start = end = *it;
+        }
+        ++it;
+    }
+
+    if (start == end) {
+        oss << (start + 1);
+    } else {
+        oss << (start + 1) << "-" << (end + 1);
+    }
+
+    return oss.str();
 }
 
 form_controls::form_controls(gfx::window* window, assets::group& resGrp)
@@ -385,35 +418,47 @@ void form_menu::create_section_games()
                      gameInfo.Redeals < 0 ? "∞" : std::to_string(gameInfo.Redeals)});
             });
 
-            auto accRules {tabPanelLayout->create_widget<accordion>({1, 7, 38, 20}, "gvRules")};
+            auto accRules {tabPanelLayout->create_widget<accordion>({1, 7, 38, 22}, "gvRules")};
 
-            _sources->SelectedRules.Changed.connect([rulesGV = accRules.get()](data::config::object const& piles) {
-                rulesGV->clear_sections();
+            _sources->SelectedRules.Changed.connect([rulesAcc = accRules.get()](data::config::object const& piles) {
+                rulesAcc->clear_sections();
 
                 for (auto const& pile : piles) {
                     auto const& name {pile.first};
-
+                    auto        pilePanel {rulesAcc->create_section<panel>(name)};
                     auto const& pileObj {pile.second.as<data::config::object>()};
-                    auto const  count {pileObj["count"].as<std::string>()};
+                    //    auto const  count {pileObj["count"].as<std::string>()};
                     auto const& rulesArr {pileObj["rules"].as<data::config::array>()};
-                    for (auto const& rule : rulesArr) {
 
-                        auto        pilePanel {rulesGV->create_section<panel>(name)};
-                        auto        pilePanelLayout {pilePanel->create_layout<grid_layout>(size_i {30, 40})};
-                        // TODO: long description
-                        auto const  create {[&](rect_i const& rect, std::string const& text) {
-                            auto l {pilePanelLayout->create_widget<label>(rect, "")};
+                    auto createRule {[&](grid_layout& layout, data::config::object const& rule) {
+                        auto const create {[&](rect_i const& rect, std::string const& text) {
+                            auto l {layout.create_widget<label>(rect, "")};
                             l->Class = "label-small";
                             l->Label = text;
                             return l;
                         }};
-                        auto const& ruleObj {rule.as<data::config::object>()};
+
                         create({1, 1, 10, 5}, "Base");
-                        create({12, 1, 17, 5}, ruleObj["base"].as<std::string>());
+                        create({12, 1, 17, 5}, rule["base"].as<std::string>());
                         create({1, 7, 10, 5}, "Build");
-                        create({12, 7, 17, 5}, ruleObj["build"].as<std::string>());
+                        create({12, 7, 17, 5}, rule["build"].as<std::string>());
                         create({1, 13, 10, 5}, "Move");
-                        create({12, 13, 17, 5}, ruleObj["move"].as<std::string>());
+                        create({12, 13, 17, 5}, rule["move"].as<std::string>());
+                    }};
+
+                    if (rulesArr.get_size() == 1) {
+                        auto pilePanelLayout {pilePanel->create_layout<grid_layout>(size_i {30, 25})};
+                        createRule(*pilePanelLayout, rulesArr[0].as<data::config::object>());
+                    } else {
+                        auto pilePanelLayout {pilePanel->create_layout<dock_layout>()};
+                        auto tabRules {pilePanelLayout->create_widget<tab_container>(dock_style::Fill, "")};
+                        tabRules->Class = "tab_container_small";
+                        for (auto const& rule : rulesArr) {
+                            auto const& ruleObj {rule.as<data::config::object>()};
+                            auto        panelRule {tabRules->create_tab<panel>(set_to_string(ruleObj["piles"].as<std::set<i32>>()))};
+                            auto        panelRuleLayout {panelRule->create_layout<grid_layout>(size_i {30, 25})};
+                            createRule(*panelRuleLayout, ruleObj);
+                        }
                     }
                 }
             });

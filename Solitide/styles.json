@@ -290,6 +290,16 @@
         "tab_item_class": "tab_items",
         "tab_bar_position": "Top"
     },
+    "tab_container_small#tab_container": {
+        "padding": "2px",
+        "border": {
+            "size": "2px",
+            "radius": "5px"
+        },
+        "tab_bar_height": "20pct",
+        "tab_item_class": "tab_items",
+        "tab_bar_position": "Top"
+    },
     "accordion": {
         "border": {
             "size": "3px",

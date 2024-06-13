@@ -62,20 +62,6 @@ private:
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 
-struct menu_sources {
-    settings Settings;
-
-    game_map Games;
-    signal<> GameAdded; // wizard
-
-    prop<std::string>          SelectedGame;
-    prop<game_history>         SelectedHistory;
-    prop<data::config::object> SelectedRules;
-
-    theme_map   Themes;
-    cardset_map Cardsets;
-};
-
 class form_menu : public form {
 public:
     form_menu(gfx::window* window, assets::group& resGrp, std::shared_ptr<menu_sources> sources);

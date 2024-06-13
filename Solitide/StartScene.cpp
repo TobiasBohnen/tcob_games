@@ -7,22 +7,6 @@
 
 #include "ui/Styles.hpp"
 
-template <>
-struct std::hash<solitaire::game_rule> {
-    auto operator()(solitaire::game_rule const& rd) const -> std::size_t
-    {
-        using std::hash;
-        using std::size_t;
-        using std::string;
-
-        size_t h1 = hash<string> {}(rd.Build);
-        size_t h2 = hash<string> {}(rd.Move);
-        size_t h3 = hash<string> {}(rd.Base);
-
-        return h1 ^ (h2 << 1) ^ (h3 << 2);
-    }
-};
-
 namespace solitaire {
 
 static char const* SAVE_NAME {"save.ini"};
@@ -62,10 +46,7 @@ start_scene::start_scene(game& game)
     defaultCursor->ActiveMode = "cursor32";
 
     load_scripts();
-#if defined(TCOB_DEBUG)
     generate_rules();
-#endif
-    _gameRules.load(RULES_NAME);
 
     // themes
     load_themes(_sources->Themes);
@@ -85,7 +66,48 @@ start_scene::start_scene(game& game)
     // card table
     _cardTable = std::make_shared<card_table>(&window, _formControls->Canvas.get(), resGrp, &_sources->Settings);
 
-    _cardTable->HoverChange.connect([&](pile_description const& str) { _formControls->set_pile_labels(str); });
+    _cardTable->HoverChange.connect([&](pile* const pile) {
+        if (!pile) { return; }
+
+        pile_description str;
+        str.Pile      = get_pile_type_name(pile->Type);
+        str.CardCount = std::to_string(pile->size());
+
+        // TODO: translate
+        data::config::array rules;
+        if (!_sources->SelectedRules().try_get(rules, str.Pile, "rules")) { return; }
+
+        for (auto const& rule : rules) {
+            auto const ruleObj {rule.as<data::config::object>()};
+            if (std::unordered_set<i32> piles; ruleObj.try_get(piles, "piles")) {
+                if (!piles.contains(pile->Index)) { continue; }
+
+                switch (pile->Type) {
+                case pile_type::Stock: {
+                    auto const& state {_cardTable->game()->state()};
+                    str.Description      = state.Redeals < 0 ? "∞" : std::to_string(state.Redeals);
+                    str.DescriptionLabel = "Redeals";
+                } break;
+                case pile_type::Waste:
+                case pile_type::Reserve:
+                case pile_type::FreeCell:
+                case pile_type::Foundation:
+                case pile_type::Tableau: {
+                    str.Description      = ruleObj["build"].as<std::string>();
+                    str.DescriptionLabel = "Build";
+                    str.Move             = ruleObj["move"].as<std::string>();
+                    str.MoveLabel        = "Move";
+                    str.Base             = ruleObj["base"].as<std::string>();
+                    str.BaseLabel        = "Base";
+                    break;
+                }
+                }
+
+                _formControls->set_pile_labels(str);
+                return;
+            }
+        }
+    });
 
     connect_events();
     set_children_bounds(windowSize);
@@ -370,11 +392,16 @@ void start_scene::update_recent(std::string const& name)
     _sources->Settings.Recent = recent;
 }
 
-void start_scene::generate_rules() const
+void start_scene::generate_rules()
 {
-    data::config::object rulesObj;
+    _gameRules.load(RULES_NAME);
+    bool check {false};
 
-    for (auto const& [_, g] : _sources->Games) {
+    for (auto const& [name, g] : _sources->Games) {
+        // TODO: add 'always generate rule' in game_info (for Anno Domini)
+        if (_gameRules.has(name)) { continue; }
+        check = true;
+
         auto                 game {g.second()};
         data::config::object gameObj;
 
@@ -388,7 +415,7 @@ void start_scene::generate_rules() const
                 pileObj["count"]                = piles.size();
                 pileObj["rules"]                = pileRulesArr;
 
-                std::unordered_map<game_rule, std::vector<i32>> pileRules;
+                flat_map<game_rule, std::vector<i32>> pileRules;
                 for (auto const* pile : piles) {
                     game_rule desc;
                     desc.Base  = pile->Rule.BaseHint;
@@ -398,7 +425,7 @@ void start_scene::generate_rules() const
                 }
                 for (auto const& [k, v] : pileRules) {
                     data::config::object rule;
-                    rule["piles"] = v;
+                    if (pileRules.size() > 1) { rule["piles"] = v; }
                     rule["base"]  = k.Base;
                     rule["build"] = k.Build;
                     rule["move"]  = k.Move;
@@ -406,17 +433,17 @@ void start_scene::generate_rules() const
                 }
             }};
 
-        auto const&                    piles {game->piles()};
-        std::array<pile_type, 4> const pileOrder {pile_type::Foundation, pile_type::Tableau, pile_type::Reserve, pile_type::FreeCell};
-        for (auto pt : pileOrder) {
+        auto const& piles {game->piles()};
+        for (auto pt : {pile_type::Stock, pile_type::Waste, pile_type::Foundation, pile_type::Tableau, pile_type::Reserve, pile_type::FreeCell}) {
             if (!piles.contains(pt)) { continue; }
             writePileType(pt, piles.at(pt));
         }
 
-        rulesObj[game->info().Name] = gameObj;
+        _gameRules[name] = gameObj;
     }
-
-    rulesObj.save(RULES_NAME);
+    if (check) {
+        _gameRules.save(RULES_NAME);
+    }
 }
 
 void start_scene::load_scripts()

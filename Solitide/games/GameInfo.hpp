@@ -164,4 +164,20 @@ struct game_rule {
     auto operator==(game_rule const& right) const -> bool = default;
 };
 
+////////////////////////////////////////////////////////////
+
+struct menu_sources {
+    settings Settings;
+
+    game_map Games;
+    signal<> GameAdded; // wizard
+
+    prop<std::string>          SelectedGame;
+    prop<game_history>         SelectedHistory;
+    prop<data::config::object> SelectedRules;
+
+    theme_map   Themes;
+    cardset_map Cardsets;
+};
+
 }
