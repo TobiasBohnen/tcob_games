@@ -70,6 +70,7 @@ private:
     std::shared_ptr<form_menu>     _formMenu {};
 
     data::config::object _saveGame;
+    data::config::object _currentRules;
 
     database _db;
 

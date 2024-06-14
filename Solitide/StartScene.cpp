@@ -73,7 +73,7 @@ start_scene::start_scene(game& game)
 
         // TODO: translate
         data::config::array rules;
-        auto const&         gameObj {_sources->CurrentRules};
+        auto const&         gameObj {_currentRules};
         if (!gameObj.try_get(rules, str.Pile, "rules")) { return; }
 
         for (auto const& rule : rules) {
@@ -184,9 +184,7 @@ void start_scene::connect_events()
     _sources->Settings.Theme.Changed.connect([&](auto const&) { set_theme(); });
     _sources->Settings.Cardset.Changed.connect([&]() { set_cardset(); });
 
-    _formMenu->StartGame.connect([&](auto const& seed) {
-        start_game(_sources->SelectedGame, start_reason::Resume, seed);
-    });
+    _formMenu->StartGame.connect([&](auto const& seed) { start_game(_sources->SelectedGame, start_reason::Resume, seed); });
 
     _formMenu->VideoSettingsChanged.connect([&]() {
         data::config::object obj;
@@ -312,17 +310,17 @@ void start_scene::start_game(std::string const& name, start_reason reason, std::
     if (!_sources->Games.contains(name)) { return; }
     _sources->SelectedGame = name;
     update_recent(name);
-    _sources->CurrentRules = generate_rule(name);
+    _currentRules = generate_rule(name);
 
     auto& camera {*get_window().Camera};
     camera.set_position(point_f::Zero);
     camera.set_zoom(size_f::One);
 
-    auto* game {_cardTable->game()};
+    auto* currentGame {_cardTable->game()};
     if (reason == start_reason::Resume) {         // save current game
-        if (game) { game->save(_saveGame); }
+        if (currentGame) { currentGame->save(_saveGame); }
     } else if (reason == start_reason::Restart) { // fail current game
-        if (game && game->Status != game_status::Success) { game->Status = game_status::Failure; }
+        if (currentGame && currentGame->Status != game_status::Success) { currentGame->Status = game_status::Failure; }
     }
 
     auto newGame {_sources->Games[name].second()};
