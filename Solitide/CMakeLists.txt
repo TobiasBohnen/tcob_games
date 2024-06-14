@@ -9,6 +9,7 @@ target_sources(Solitide PRIVATE
     Database.cpp
     Piles.cpp
     StartScene.cpp
+    Translator.cpp
     main.cpp
     ./ui/UI.cpp
     ./ui/Themes.cpp

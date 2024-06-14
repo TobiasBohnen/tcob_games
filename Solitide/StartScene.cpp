@@ -56,7 +56,7 @@ start_scene::start_scene(game& game)
     _db.insert_games(_sources->Games);
 
     // ui
-    _formControls = std::make_shared<form_controls>(&window, resGrp);
+    _formControls = std::make_shared<form_controls>(&window, resGrp, _sources);
 
     _formMenu = std::make_shared<form_menu>(&window, resGrp, _sources);
     _formMenu->hide();
@@ -251,6 +251,15 @@ void start_scene::on_key_down(input::keyboard::event& ev)
     if (ev.KeyCode == input::key_code::t && (ev.KeyMods & input::key_mod::LeftAlt) == input::key_mod::LeftAlt) {
         load_themes(_sources->Themes);
         set_theme();
+        ev.Handled = true;
+    }
+
+    if (ev.KeyCode == input::key_code::g) {
+        _sources->Translator.set_language("de-DE");
+        ev.Handled = true;
+    }
+    if (ev.KeyCode == input::key_code::e) {
+        _sources->Translator.set_language("en-US");
         ev.Handled = true;
     }
 }

@@ -8,6 +8,7 @@
 #include "Common.hpp" // IWYU pragma: keep
 
 #include "Cards.hpp"
+#include "Translator.hpp"
 
 namespace solitaire {
 
@@ -178,6 +179,8 @@ struct menu_sources {
 
     theme_map    Themes;
     card_set_map CardSets;
+
+    translator Translator;
 };
 
 }

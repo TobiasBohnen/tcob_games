@@ -15,28 +15,6 @@ namespace solitaire {
 
 using namespace tcob::literals;
 
-auto static translate(std::string_view name) -> std::string // NOLINT
-{
-    // TODO: translation
-    if (name == "btnMenu") { return "Menu"; }
-    if (name == "btnNewGame") { return "New Game"; }
-    if (name == "btnWizard") { return "Solitaire Wizard"; }
-    if (name == "btnHint") { return "Hint"; }
-    if (name == "btnCollect") { return "Collect All"; }
-    if (name == "btnUndo") { return "Undo"; }
-    if (name == "btnQuit") { return "Quit"; }
-    if (name == "btnClearFilter") { return "Clear Filter"; }
-    if (name == "btnStartGame") { return "Start Game"; }
-    if (name == "btnApplyVideoSettings") { return "Apply"; }
-    if (name == "btnBack") { return "Back"; }
-    if (name == "lblResolution") { return "Resolution"; }
-    if (name == "lblFullScreen") { return "Fullscreen"; }
-    if (name == "lblVSync") { return "VSync"; }
-    if (name == "lblHintMovable") { return "Highlight valid moves"; }
-    if (name == "lblHintDrops") { return "Highlight valid targets"; }
-    if (name == "btnApplyCardset") { return "Apply"; }
-    return "";
-}
 auto static translate(family fam) -> std::string // NOLINT
 {
     // TODO: translation
@@ -62,15 +40,15 @@ auto static translate(family fam) -> std::string // NOLINT
     return "";
 }
 
-auto static make_tooltip(form* form) -> std::shared_ptr<tooltip>
+auto static make_tooltip(menu_sources& sources, form* form) -> std::shared_ptr<tooltip>
 {
     auto retValue {form->create_tooltip<tooltip>("tooltip")};
     auto tooltipLayout {retValue->create_layout<dock_layout>()};
     auto tooltipLabel {tooltipLayout->create_widget<label>(dock_style::Fill, "TTLabel0")};
     tooltipLabel->Class = "tooltip-label";
-    retValue->Popup.connect([lbl = tooltipLabel.get(), tt = retValue.get()](auto const& event) {
+    retValue->Popup.connect([&, lbl = tooltipLabel.get(), tt = retValue.get()](auto const& event) {
         auto const widget {event.Widget};
-        lbl->Label = translate(widget->get_name());
+        sources.Translator.bind(lbl->Label, "ux", widget->get_name());
 
         auto const  wBounds {widget->Bounds()};
         auto const& lStyle {lbl->get_style<label::style>()->Text};
@@ -113,13 +91,14 @@ static auto set_to_string(std::set<i32> const& numbers) -> std::string
     return oss.str();
 }
 
-form_controls::form_controls(gfx::window* window, assets::group& resGrp)
+form_controls::form_controls(gfx::window* window, assets::group& resGrp, std::shared_ptr<menu_sources> sources)
     : form {"Controls", window}
+    , _sources {std::move(sources)}
 {
     (*Controls).ActivateKey = input::key_code::UNKNOWN;
 
     // tooltip
-    auto tooltip0 {make_tooltip(this)};
+    auto tooltip0 {make_tooltip(*_sources, this)};
 
     auto mainPanel {create_container<glass>(dock_style::Fill, "main")};
     auto mainPanelLayout {mainPanel->create_layout<dock_layout>()};
@@ -155,16 +134,18 @@ form_controls::form_controls(gfx::window* window, assets::group& resGrp)
         auto const create {[&](rect_i const& rect, std::string const& text = "") {
             auto l {statusPanelLayout->create_widget<label>(rect, "")};
             l->Class = "label-small";
-            l->Label = text;
+            if (!text.empty()) {
+                _sources->Translator.bind(l->Label, "status", text);
+            }
             return l;
         }};
 
         _lblGameName = create({0, 0, 2, 6});
 
         _lblPile           = create({2, 3, 2, 3});
-        _lblPileLabel      = create({2, 0, 2, 3}, "Pile");  // translate
+        _lblPileLabel      = create({2, 0, 2, 3}, "Pile");
         _lblCardCount      = create({4, 3, 1, 3});
-        _lblCardCountLabel = create({4, 0, 1, 3}, "Cards"); // translate
+        _lblCardCountLabel = create({4, 0, 1, 3}, "Cards");
 
         _lblBase             = create({6, 3, 3, 3});
         _lblBaseLabel        = create({6, 0, 3, 3});
@@ -174,13 +155,13 @@ form_controls::form_controls(gfx::window* window, assets::group& resGrp)
         _lblMoveLabel        = create({12, 0, 3, 3});
 
         _lblTurns      = create({17, 3, 1, 3});
-        _lblTurnsLabel = create({17, 0, 1, 3}, "Turns"); // translate
+        _lblTurnsLabel = create({17, 0, 1, 3}, "Turns");
 
         _lblScore      = create({18, 3, 1, 3});
-        _lblScoreLabel = create({18, 0, 1, 3}, "Score"); // translate
+        _lblScoreLabel = create({18, 0, 1, 3}, "Score");
 
         _lblTime      = create({19, 3, 1, 3});
-        _lblTimeLabel = create({19, 0, 1, 3}, "Time");   // translate
+        _lblTimeLabel = create({19, 0, 1, 3}, "Time");
     }
 
     auto overlayPanel {mainPanelLayout->create_widget<glass>(dock_style::Fill, "overlay")};
@@ -196,12 +177,12 @@ void form_controls::set_pile_labels(pile_description const& str)
     _lblPile->Label      = str.Pile;
     _lblCardCount->Label = str.CardCount;
 
-    _lblDescription->Label      = str.Description;
-    _lblDescriptionLabel->Label = str.DescriptionLabel;
-    _lblMove->Label             = str.Move;
-    _lblMoveLabel->Label        = str.MoveLabel;
-    _lblBase->Label             = str.Base;
-    _lblBaseLabel->Label        = str.BaseLabel;
+    _lblDescription->Label = str.Description;
+    _sources->Translator.bind(_lblDescriptionLabel->Label, "status", str.DescriptionLabel);
+    _lblMove->Label = str.Move;
+    if (!str.MoveLabel.empty()) { _sources->Translator.bind(_lblMoveLabel->Label, "status", str.MoveLabel); }
+    _lblBase->Label = str.Base;
+    if (!str.BaseLabel.empty()) { _sources->Translator.bind(_lblBaseLabel->Label, "status", str.BaseLabel); }
 }
 
 void form_controls::set_game_labels(base_game* game)
@@ -228,7 +209,7 @@ form_menu::form_menu(gfx::window* window, assets::group& resGrp, std::shared_ptr
     , _sources {std::move(sources)}
 {
     // tooltip
-    _tooltip = make_tooltip(this);
+    _tooltip = make_tooltip(*_sources, this);
 
     create_section_games();
     create_section_settings();
@@ -251,7 +232,7 @@ void form_menu::create_section_games()
     auto panelLayout {panelGames->create_layout<dock_layout>()};
 
     // Filter
-    auto panelFilter {panelLayout->create_widget<panel>(dock_style::Top, "pnlFilter")};
+    auto panelFilter {panelLayout->create_widget<panel>(dock_style::Top, "panelFilter")};
     panelFilter->Flex = {100_pct, 5_pct};
     auto panelFilterLayout {panelFilter->create_layout<grid_layout>(size_i {10, 1})};
     auto txbFilter {panelFilterLayout->create_widget<text_box>({0, 0, 9, 1}, "txbFilter")};
@@ -267,8 +248,9 @@ void form_menu::create_section_games()
         tabGames->Flex    = {50_pct, 100_pct};
         tabGames->MaxTabs = 5;
 
-        auto const createListBox {[&](std::shared_ptr<dock_layout>& tabPanelLayout, std::string const& name, auto&& pred) -> std::shared_ptr<list_box> {
-            auto listBox {tabPanelLayout->create_widget<list_box>(dock_style::Fill, "lbxGames" + name)};
+        i32        lbID {0};
+        auto const createListBox {[&](std::shared_ptr<dock_layout>& tabPanelLayout, auto&& pred) -> std::shared_ptr<list_box> {
+            auto listBox {tabPanelLayout->create_widget<list_box>(dock_style::Fill, "lbxGames" + std::to_string(lbID++))};
             listBoxes.push_back(listBox.get());
 
             for (auto const& game : _sources->Games) {
@@ -295,7 +277,7 @@ void form_menu::create_section_games()
         {
             auto tabPanel {tabGames->create_tab<panel>("byName", "By Name")}; // translate
             auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-            auto listBox {createListBox(tabPanelLayout, "0", [](auto const&) { return true; })};
+            auto listBox {createListBox(tabPanelLayout, [](auto const&) { return true; })};
             _sources->GameAdded.connect([&, lb = listBox.get()] {
                 // TODO: update all listboxes
                 lb->clear_items();
@@ -306,7 +288,7 @@ void form_menu::create_section_games()
         {
             auto tabPanel {tabGames->create_tab<panel>("recent", "Recent")}; // translate
             auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-            auto listBox {createListBox(tabPanelLayout, "Recent", [](auto const&) { return false; })};
+            auto listBox {createListBox(tabPanelLayout, [](auto const&) { return false; })};
             for (auto const& game : _sources->Settings.Recent()) { listBox->add_item(game); }
             _sources->Settings.Recent.Changed.connect([&, lb = listBox.get()] {
                 lb->clear_items();
@@ -319,10 +301,12 @@ void form_menu::create_section_games()
             tabContainer->MaxTabs = 5;
 
             auto const createTab {[&](family family) {
-                auto name {translate(family)};
-                auto tabPanel {tabContainer->create_tab<panel>(name)};
+                auto tabPanel {tabContainer->create_tab<panel>("")};
                 auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-                createListBox(tabPanelLayout, name, [family](auto const& gameInfo) { return gameInfo.Family == family; });
+                _sources->Translator.bind(
+                    [tabC = tabContainer.get(), tabP = tabPanel.get()](std::string const& val) { tabC->change_tab_label(tabP, val); },
+                    "family", family);
+                createListBox(tabPanelLayout, [family](auto const& gameInfo) { return gameInfo.Family == family; });
             }};
             createTab(family::BakersDozen);
             createTab(family::BeleagueredCastle);
@@ -351,21 +335,21 @@ void form_menu::create_section_games()
             auto const createTab {[&](isize count, std::string const& name) {
                 auto tabPanel {tabContainer->create_tab<panel>(name)};
                 auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-                createListBox(tabPanelLayout, name, [count](auto const& gameInfo) { return gameInfo.DeckCount == count; });
+                createListBox(tabPanelLayout, [count](auto const& gameInfo) { return gameInfo.DeckCount == count; });
             }};
             createTab(1, "1");
             createTab(2, "2");
             createTab(3, "3");
 
             {
-                auto tabPanel {tabContainer->create_tab<panel>(">= 4")}; // translate
+                auto tabPanel {tabContainer->create_tab<panel>(">= 4")};
                 auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-                createListBox(tabPanelLayout, "4+", [](auto const& gameInfo) { return gameInfo.DeckCount >= 4; });
+                createListBox(tabPanelLayout, [](auto const& gameInfo) { return gameInfo.DeckCount >= 4; });
             }
             {
                 auto tabPanel {tabContainer->create_tab<panel>("stripped")}; // translate
                 auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-                createListBox(tabPanelLayout, "stripped", [](auto const& gameInfo) { return gameInfo.DeckRanks.size() < 13 || gameInfo.DeckSuits.size() < 4; });
+                createListBox(tabPanelLayout, [](auto const& gameInfo) { return gameInfo.DeckRanks.size() < 13 || gameInfo.DeckSuits.size() < 4; });
             }
         }
 
@@ -382,7 +366,7 @@ void form_menu::create_section_games()
         auto panelGameStatsLayout {panelGameDetails->create_layout<grid_layout>(size_i {20, 40})};
 
         auto lblSeed {panelGameStatsLayout->create_widget<label>({1, 33, 4, 2}, "lblSeed")};
-        lblSeed->Label = "Seed";
+        _sources->Translator.bind(lblSeed->Label, "ux", lblSeed->get_name());
         lblSeed->Class = "label-small";
         _txbSeed       = panelGameStatsLayout->create_widget<text_box>({6, 33, 8, 2}, "txbSeed");
         _txbSeed->BeforeTextInserted.connect([](text_event& ev) {
@@ -470,20 +454,21 @@ void form_menu::create_section_games()
 
             auto gvWL {tabPanelLayout->create_widget<grid_view>({1, 1, 18, 5}, "gvWinLose")};
             gvWL->Class = "grid_view2";
-            gvWL->set_columns({"Won", "Lost", "W/L"});                         // translate
-            auto gvTT {tabPanelLayout->create_widget<grid_view>({21, 1, 18, 5}, "gvBest")};
-            gvTT->Class = "grid_view2";
-            gvTT->set_columns({"Highscore", "Least Turns", "Fastest Time"});   // translate
+            _sources->Translator.bind([tt = gvWL.get()](std::vector<std::string> const& val) { tt->set_columns(val, false); },
+                                      "stat", "wl");
+            auto gvScore {tabPanelLayout->create_widget<grid_view>({21, 1, 18, 5}, "gvBest")};
+            gvScore->Class = "grid_view2";
+            _sources->Translator.bind([tt = gvScore.get()](std::vector<std::string> const& val) { tt->set_columns(val, false); },
+                                      "stat", "score");
 
             auto gvHistory {tabPanelLayout->create_widget<grid_view>({1, 7, 38, 22}, "gvHistory")};
             gvHistory->set_columns({"Seed", "Score", "Turns", "Time", "Won"}); // translate
-
-            _sources->SelectedHistory.Changed.connect([wl = gvWL.get(), tt = gvTT.get(), history = gvHistory.get()](auto const& stats) {
+            _sources->Translator.bind([tt = gvHistory.get()](std::vector<std::string> const& val) { tt->set_columns(val, false); },
+                                      "stat", "history");
+            _sources->SelectedHistory.Changed.connect([wl = gvWL.get(), tt = gvScore.get(), history = gvHistory.get()](auto const& stats) {
                 wl->clear_rows();
-                wl->add_row(
-                    {std::to_string(stats.Won),
-                     std::to_string(stats.Lost),
-                     stats.Lost + stats.Won > 0 ? std::format("{:.2f}%", static_cast<f32>(stats.Won) / (stats.Lost + stats.Won) * 100) : "-"});
+                wl->add_row({std::to_string(stats.Won), std::to_string(stats.Lost),
+                             stats.Lost + stats.Won > 0 ? std::format("{:.2f}%", static_cast<f32>(stats.Won) / (stats.Lost + stats.Won) * 100) : "-"});
                 tt->clear_rows();
 
                 std::optional<i64> bestTime;
@@ -538,7 +523,7 @@ void form_menu::create_section_settings()
             ddlRes->select_item(std::format("{}x{}", res.Width, res.Height));
 
             auto lbl {tabPanelLayout->create_widget<label>({1, 2, 4, 2}, "lblResolution")};
-            lbl->Label = translate(lbl->get_name());
+            _sources->Translator.bind(lbl->Label, "ux", lbl->get_name());
         }
 
         // fullscreen
@@ -547,7 +532,7 @@ void form_menu::create_section_settings()
             chk->Checked = config[Cfg::Video::Name][Cfg::Video::fullscreen].as<bool>();
 
             auto lbl {tabPanelLayout->create_widget<label>({1, 6, 4, 2}, "lblFullScreen")};
-            lbl->Label = translate(lbl->get_name());
+            _sources->Translator.bind(lbl->Label, "ux", lbl->get_name());
         }
 
         // vsync
@@ -556,7 +541,7 @@ void form_menu::create_section_settings()
             chk->Checked = config[Cfg::Video::Name][Cfg::Video::vsync].as<bool>();
 
             auto lbl {tabPanelLayout->create_widget<label>({1, 10, 4, 2}, "lblVSync")};
-            lbl->Label = translate(lbl->get_name());
+            _sources->Translator.bind(lbl->Label, "ux", lbl->get_name());
         }
 
         auto btnApplyVideoSettings {tabPanelLayout->create_widget<button>({33, 35, 6, 4}, "btnApplyVideoSettings")};
@@ -574,7 +559,7 @@ void form_menu::create_section_settings()
             chk->Checked.Changed.connect([this](auto val) { _sources->Settings.HintMovable = val; });
 
             auto lbl {tabPanelLayout->create_widget<label>({1, 2, 8, 2}, "lblHintMovable")};
-            lbl->Label = translate(lbl->get_name());
+            _sources->Translator.bind(lbl->Label, "ux", lbl->get_name());
         }
         // highlight drops
         {
@@ -583,7 +568,7 @@ void form_menu::create_section_settings()
             chk->Checked.Changed.connect([this](auto val) { _sources->Settings.HintTarget = val; });
 
             auto lbl {tabPanelLayout->create_widget<label>({1, 6, 8, 2}, "lblHintDrops")};
-            lbl->Label = translate(lbl->get_name());
+            _sources->Translator.bind(lbl->Label, "ux", lbl->get_name());
         }
     }
 }
@@ -670,8 +655,8 @@ void form_menu::create_menubar()
         auto btn {menuLayout->create_widget<radio_button>(btnRect, "btn" + text)};
 
         auto lbl {menuLayout->create_widget<label>({btnRect.Width + 2, btnRect.Y, btnRect.Width + 2, btnRect.Height}, "lblBtn" + text)};
-        lbl->Label = text;
-        lbl->For   = btn;
+        _sources->Translator.bind(lbl->Label, "ux", lbl->get_name());
+        lbl->For = btn;
 
         btnRect.Y += btnRect.Height + 1;
         return btn;
@@ -691,7 +676,7 @@ void form_menu::create_menubar()
         btn->Click.connect([enableContainer](auto const& ev) { enableContainer(ev.Sender->get_form(), TabThemesName); });
     }
     {
-        auto btn {create("Card Sets")};
+        auto btn {create("CardSets")};
         btn->Click.connect([enableContainer](auto const& ev) { enableContainer(ev.Sender->get_form(), TabCardsetsName); });
     }
 

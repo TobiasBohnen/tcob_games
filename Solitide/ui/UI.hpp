@@ -13,7 +13,7 @@ namespace solitaire {
 
 class form_controls : public form {
 public:
-    form_controls(gfx::window* window, assets::group& resGrp);
+    form_controls(gfx::window* window, assets::group& resGrp, std::shared_ptr<menu_sources> sources);
 
     std::shared_ptr<button> BtnMenu;
     std::shared_ptr<button> BtnWizard;
@@ -57,6 +57,8 @@ private:
 
     std::shared_ptr<label> _lblTime;
     std::shared_ptr<label> _lblTimeLabel;
+
+    std::shared_ptr<menu_sources> _sources;
 };
 
 ////////////////////////////////////////////////////////////
