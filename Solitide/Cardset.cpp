@@ -13,13 +13,11 @@ namespace solitaire {
 static std::string const UserFolder {"/cardsets/"};
 static constexpr isize   CardsetCardCount {68};
 
-void load_cardsets(std::map<std::string, std::shared_ptr<cardset>>& cardsetMap)
+void load_cardsets(std::map<std::string, std::shared_ptr<cardset>>& cardsetMap, assets::group& resGrp)
 {
     cardsetMap.clear();
 
-    auto& resMgr {locate_service<assets::library>()};
-    auto& resGrp {resMgr.create_or_get_group("solitaire")};
-    auto  resFolder {resGrp.get_mount_point() + "cardsets/"};
+    auto resFolder {resGrp.get_mount_point() + "cardsets/"};
 
     cardsetMap["gen_0"]  = std::make_shared<gen_cardset>(resGrp);
     cardsetMap["mini_h"] = std::make_shared<mini_h_cardset>(resGrp);

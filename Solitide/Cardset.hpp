@@ -44,7 +44,7 @@ private:
     bool                                    _loaded;
 };
 
-void load_cardsets(std::map<std::string, std::shared_ptr<cardset>>& cardsetMap);
+void load_cardsets(std::map<std::string, std::shared_ptr<cardset>>& cardsetMap, assets::group& resGrp);
 
 ////////////////////////////////////////////////////////////
 

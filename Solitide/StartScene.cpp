@@ -50,7 +50,7 @@ start_scene::start_scene(game& game)
     load_themes(_sources->Themes);
 
     // cardsets
-    load_cardsets(_sources->Cardsets);
+    load_cardsets(_sources->Cardsets, resGrp);
 
     // games
     _db.insert_games(_sources->Games);
@@ -274,9 +274,7 @@ void start_scene::set_theme()
     if (!_sources->Themes.contains(themeName)) { themeName = "default"; }
     auto const& newTheme {_sources->Themes[themeName]};
 
-    auto&      resMgr {locate_service<assets::library>()};
-    auto&      resGrp {resMgr.create_or_get_group("solitaire")};
-    styles     styles {resGrp};
+    styles     styles {*locate_service<assets::library>().get_group("solitaire")};
     auto const styleCollection {styles.load(newTheme)};
     _formMenu->Styles = styleCollection;
     _formMenu->fixed_update(milliseconds {0});
