@@ -49,10 +49,10 @@ private:
     void start_game(std::string const& name, start_reason reason, std::optional<u64> seed);
     void start_wizard();
 
-    void update_stats(std::string const& name) const;
+    void update_game_ui(std::string const& name) const;
     void update_recent(std::string const& name);
 
-    void generate_rules();
+    auto generate_rule(std::string const& name) const -> data::config::object;
 
     void load_scripts();
 
@@ -70,7 +70,6 @@ private:
     std::shared_ptr<form_menu>     _formMenu {};
 
     data::config::object _saveGame;
-    data::config::object _gameRules;
 
     database _db;
 
