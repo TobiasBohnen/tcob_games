@@ -5,8 +5,6 @@
 
 #include "CardTable.hpp"
 
-#include <utility>
-
 #include "Cards.hpp"
 #include "Games.hpp"
 
@@ -50,10 +48,10 @@ void card_table::start_game(std::shared_ptr<base_game> const& game, std::optiona
     _cardRenderer.start();
 }
 
-void card_table::set_cardset(std::shared_ptr<cardset> const& cardset)
+void card_table::set_card_set(std::shared_ptr<card_set> const& cardset)
 {
     _cardSize = cardset->get_card_size();
-    _cardRenderer.set_cardset(cardset);
+    _cardRenderer.set_card_set(cardset);
     if (_currentGame) { layout(); }
 }
 

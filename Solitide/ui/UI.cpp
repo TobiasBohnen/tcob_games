@@ -7,7 +7,7 @@
 
 #include <utility>
 
-#include "Cardset.hpp" // IWYU pragma: keep
+#include "CardSet.hpp" // IWYU pragma: keep
 #include "GameInfo.hpp"
 #include "Themes.hpp"  // IWYU pragma: keep
 
@@ -619,7 +619,7 @@ void form_menu::create_section_cardset()
     auto lbxCardsets {panelLayout->create_widget<list_box>(dock_style::Top, "lbxCardsets")};
     lbxCardsets->Class = "list_box_log";
     lbxCardsets->Flex  = {50_pct, 25_pct};
-    for (auto const& cardSet : _sources->Cardsets) { lbxCardsets->add_item(cardSet.first); }
+    for (auto const& cardSet : _sources->CardSets) { lbxCardsets->add_item(cardSet.first); }
     lbxCardsets->SelectedItemIndex.Changed.connect([&, lb = lbxCardsets.get()](auto val) {
         if (val != -1) { _sources->Settings.Cardset = lb->get_selected_item(); }
     });
@@ -638,7 +638,7 @@ void form_menu::create_section_cardset()
 
         auto layout {panel->create_layout<box_layout>(size_i {13, 4})};
 
-        auto const& cards {_sources->Cardsets.at(val)};
+        auto const& cards {_sources->CardSets.at(val)};
         auto const& tex {cards->get_material()->Texture};
 
         for (u8 s {static_cast<u8>(suit::Hearts)}; s <= static_cast<u8>(suit::Spades); ++s) {
@@ -691,7 +691,7 @@ void form_menu::create_menubar()
         btn->Click.connect([enableContainer](auto const& ev) { enableContainer(ev.Sender->get_form(), TabThemesName); });
     }
     {
-        auto btn {create("Cardsets")};
+        auto btn {create("Card Sets")};
         btn->Click.connect([enableContainer](auto const& ev) { enableContainer(ev.Sender->get_form(), TabCardsetsName); });
     }
 

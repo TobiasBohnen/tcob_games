@@ -22,7 +22,7 @@ constexpr f32         CARD_MARGIN {1.05f};
 constexpr std::string FONT {"Poppins"};
 
 class base_game;
-class cardset;
+class card_set;
 class card_table;
 struct color_themes;
 struct game_info;
@@ -35,7 +35,7 @@ using lua_params    = scripting::parameter_pack<std::variant<base_game*, i64, f6
 using reg_game_func = std::function<std::shared_ptr<base_game>()>;
 using game_map      = std::map<std::string, std::pair<game_info, reg_game_func>>;
 using theme_map     = std::map<std::string, color_themes>;
-using cardset_map   = std::map<std::string, std::shared_ptr<cardset>>;
+using card_set_map  = std::map<std::string, std::shared_ptr<card_set>>;
 
 ////////////////////////////////////////////////////////////
 
@@ -43,13 +43,6 @@ auto inline multiply(point_f pos, size_f size) -> point_f
 {
     return {pos.X * CARD_MARGIN * size.Width, pos.Y * CARD_MARGIN * size.Height};
 }
-
-////////////////////////////////////////////////////////////
-
-struct hit_test_result {
-    pile* Pile {nullptr};
-    isize Index {INDEX_INVALID};
-};
 
 ////////////////////////////////////////////////////////////
 

@@ -9,11 +9,18 @@
 
 #include "Canvases.hpp"
 #include "CardRenderer.hpp"
-#include "Cardset.hpp"
+#include "CardSet.hpp"
 #include "Piles.hpp"
 #include "ui/Themes.hpp"
 
 namespace solitaire {
+
+////////////////////////////////////////////////////////////
+
+struct hit_test_result {
+    pile* Pile {nullptr};
+    isize Index {INDEX_INVALID};
+};
 
 ////////////////////////////////////////////////////////////
 
@@ -32,7 +39,7 @@ public:
     void show_next_hint();
 
     void set_theme(color_themes const& theme);
-    void set_cardset(std::shared_ptr<cardset> const& cardset);
+    void set_card_set(std::shared_ptr<card_set> const& cardset);
 
 protected:
     void on_update(milliseconds deltaTime) override;

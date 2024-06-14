@@ -3,7 +3,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-#include "Cardset.hpp"
+#include "CardSet.hpp"
 
 #include <ranges>
 #include <utility>
@@ -13,7 +13,7 @@ namespace solitaire {
 static std::string const UserFolder {"/cardsets/"};
 static constexpr isize   CardsetCardCount {68};
 
-void load_cardsets(std::map<std::string, std::shared_ptr<cardset>>& cardsetMap, assets::group& resGrp)
+void load_card_sets(std::map<std::string, std::shared_ptr<card_set>>& cardsetMap, assets::group& resGrp)
 {
     cardsetMap.clear();
 
@@ -31,14 +31,14 @@ void load_cardsets(std::map<std::string, std::shared_ptr<cardset>>& cardsetMap, 
         for (auto const& gi : subfolders) {
             auto const name {io::get_stem(gi)};
             if (cardsetMap.contains(name)) { continue; }
-            cardsetMap[name] = std::make_shared<cardset>(folder, name);
+            cardsetMap[name] = std::make_shared<card_set>(folder, name);
         }
     }
 }
 
 ////////////////////////////////////////////////////////////
 
-cardset::cardset(std::string folder, std::string name)
+card_set::card_set(std::string folder, std::string name)
     : _name {std::move(name)}
     , _folder {std::move(folder)}
     , _loaded {load()}
@@ -46,17 +46,17 @@ cardset::cardset(std::string folder, std::string name)
     _material->Texture = _texture;
 }
 
-auto cardset::get_card_size() -> size_f
+auto card_set::get_card_size() -> size_f
 {
     return size_f {_texture->get_size()};
 }
 
-auto cardset::get_material() const -> assets::asset_ptr<gfx::material>
+auto card_set::get_material() const -> assets::asset_ptr<gfx::material>
 {
     return _material;
 }
 
-auto cardset::load() const -> bool
+auto card_set::load() const -> bool
 {
     std::string const    folder {get_folder()};
     data::config::object json;
@@ -110,28 +110,28 @@ auto cardset::load() const -> bool
     return true;
 }
 
-auto cardset::get_folder() const -> std::string
+auto card_set::get_folder() const -> std::string
 {
     return _folder + _name + "/";
 }
 
-auto cardset::get_texture() const -> gfx::texture*
+auto card_set::get_texture() const -> gfx::texture*
 {
     return _texture.get_obj();
 }
 
-auto cardset::is_loaded() const -> bool
+auto card_set::is_loaded() const -> bool
 {
     return _loaded;
 }
 
-auto cardset::pad_rect(rect_f const& rect) -> rect_f
+auto card_set::pad_rect(rect_f const& rect) -> rect_f
 {
     auto const cardPad {rect.get_size() / 50};
     return rect.as_padded(cardPad);
 }
 
-void cardset::set_suit_color(gfx::canvas& canvas, suit s)
+void card_set::set_suit_color(gfx::canvas& canvas, suit s)
 {
     switch (s) {
     case suit::Diamonds:
@@ -145,7 +145,7 @@ void cardset::set_suit_color(gfx::canvas& canvas, suit s)
     }
 }
 
-void cardset::draw_suit(gfx::canvas& canvas, suit s, point_f center, f32 size)
+void card_set::draw_suit(gfx::canvas& canvas, suit s, point_f center, f32 size)
 {
     center -= point_f {size / 2, size / 2};
 
@@ -183,7 +183,7 @@ void cardset::draw_suit(gfx::canvas& canvas, suit s, point_f center, f32 size)
     }
 }
 
-void cardset::save_textures(assets::asset_ptr<gfx::texture> const& canvasTex, size_f texSize) const
+void card_set::save_textures(assets::asset_ptr<gfx::texture> const& canvasTex, size_f texSize) const
 {
     auto* tex {get_texture()};
 
@@ -221,7 +221,7 @@ void cardset::save_textures(assets::asset_ptr<gfx::texture> const& canvasTex, si
 static constexpr color CardsetBackColorDefault {colors::SeaShell};
 
 gen_cardset::gen_cardset(assets::group& resGrp)
-    : cardset {UserFolder, "gen_0"}
+    : card_set {UserFolder, "gen_0"}
 {
     if (!is_loaded()) {
         create(resGrp);
@@ -515,7 +515,7 @@ void gen_cardset::draw_shape(gfx::canvas& canvas, rect_f const& bounds, color fi
 static constexpr color CardsetBackColorMini {colors::LightGray};
 
 mini_cardset::mini_cardset(std::string folder)
-    : cardset {UserFolder, std::move(folder)}
+    : card_set {UserFolder, std::move(folder)}
 {
 }
 

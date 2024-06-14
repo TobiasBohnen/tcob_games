@@ -12,10 +12,10 @@ namespace solitaire {
 
 ////////////////////////////////////////////////////////////
 
-class cardset {
+class card_set {
 public:
-    virtual ~cardset() = default;
-    cardset(std::string folder, std::string name);
+    virtual ~card_set() = default;
+    card_set(std::string folder, std::string name);
 
     auto get_card_size() -> size_f;
 
@@ -44,11 +44,11 @@ private:
     bool                                    _loaded;
 };
 
-void load_cardsets(std::map<std::string, std::shared_ptr<cardset>>& cardsetMap, assets::group& resGrp);
+void load_card_sets(std::map<std::string, std::shared_ptr<card_set>>& cardsetMap, assets::group& resGrp);
 
 ////////////////////////////////////////////////////////////
 
-class gen_cardset : public cardset {
+class gen_cardset : public card_set {
     struct fonts {
         gfx::font* NormalFont {nullptr};
         gfx::font* LargeFont {nullptr};
@@ -70,7 +70,7 @@ private:
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 
-class mini_cardset : public cardset {
+class mini_cardset : public card_set {
 public:
     mini_cardset(std::string folder);
 

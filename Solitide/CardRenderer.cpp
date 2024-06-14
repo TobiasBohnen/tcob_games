@@ -41,9 +41,9 @@ void card_renderer::mark_dirty()
     _renderDirty = true;
 }
 
-void card_renderer::set_cardset(std::shared_ptr<cardset> cardset)
+void card_renderer::set_card_set(std::shared_ptr<card_set> cardset)
 {
-    _cardset = std::move(cardset);
+    _cardSet = std::move(cardset);
     if (_parent.game()) {
         if (_markerSprites.get_sprite_count() > 0) {
             create_markers();
@@ -54,7 +54,7 @@ void card_renderer::set_cardset(std::shared_ptr<cardset> cardset)
 void card_renderer::draw_cards(gfx::render_target& target)
 {
     if (_renderDirty) {
-        _cardRenderer.set_material(_cardset->get_material());
+        _cardRenderer.set_material(_cardSet->get_material());
 
         pile const* dragPile {nullptr};
         {
@@ -89,7 +89,7 @@ void card_renderer::draw_cards(gfx::render_target& target)
 
 void card_renderer::get_pile_quads(std::vector<gfx::quad>::iterator& quadIt, pile const* pile) const
 {
-    auto const mat {_cardset->get_material()};
+    auto const mat {_cardSet->get_material()};
     for (auto const& card : pile->Cards) {
         auto& quad {*quadIt};
         gfx::geometry::set_color(quad, card.Color);
@@ -101,14 +101,14 @@ void card_renderer::get_pile_quads(std::vector<gfx::quad>::iterator& quadIt, pil
 
 void card_renderer::create_markers()
 {
-    auto const& cardSize {_cardset->get_card_size()};
+    auto const& cardSize {_cardSet->get_card_size()};
     _markerSprites.clear();
     for (auto const& [_, piles] : _parent.game()->piles()) {
         for (auto* pile : piles) {
             if (!pile->HasMarker) { continue; }
 
             pile->Marker                = _markerSprites.create_sprite();
-            pile->Marker->Material      = _cardset->get_material();
+            pile->Marker->Material      = _cardSet->get_material();
             pile->Marker->TextureRegion = pile->get_marker_texture_name();
             pile->Marker->Bounds        = {multiply(pile->Position, cardSize), cardSize};
         }

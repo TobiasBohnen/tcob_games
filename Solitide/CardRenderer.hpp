@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "Cardset.hpp"
+#include "CardSet.hpp"
 #include "Common.hpp" // IWYU pragma: keep
 #include "Piles.hpp"
 
@@ -31,7 +31,7 @@ public:
 
     void mark_dirty();
 
-    void set_cardset(std::shared_ptr<cardset> cardset);
+    void set_card_set(std::shared_ptr<card_set> cardset);
 
 private:
     void get_pile_quads(std::vector<gfx::quad>::iterator& quadIt, pile const* pile) const;
@@ -39,11 +39,11 @@ private:
 
     card_table& _parent;
 
-    std::shared_ptr<cardset> _cardset;
-    gfx::sprite_batch        _markerSprites;
-    gfx::quad_renderer       _cardRenderer;
-    std::vector<gfx::quad>   _cardQuads;
-    bool                     _renderDirty {true};
+    std::shared_ptr<card_set> _cardSet;
+    gfx::sprite_batch         _markerSprites;
+    gfx::quad_renderer        _cardRenderer;
+    std::vector<gfx::quad>    _cardQuads;
+    bool                      _renderDirty {true};
 };
 
 }

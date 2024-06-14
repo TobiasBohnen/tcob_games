@@ -4,7 +4,7 @@ target_sources(Solitide PRIVATE
     Canvases.cpp
     CardRenderer.cpp
     Cards.cpp
-    Cardset.cpp
+    CardSet.cpp
     CardTable.cpp
     Database.cpp
     Piles.cpp

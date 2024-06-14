@@ -50,7 +50,7 @@ start_scene::start_scene(game& game)
     load_themes(_sources->Themes);
 
     // cardsets
-    load_cardsets(_sources->Cardsets, resGrp);
+    load_card_sets(_sources->CardSets, resGrp);
 
     // games
     _db.insert_games(_sources->Games);
@@ -293,11 +293,11 @@ void start_scene::set_theme()
 void start_scene::set_cardset()
 {
     auto newCardset {_sources->Settings.Cardset()};
-    if (!_sources->Cardsets.contains(newCardset)) { newCardset = "default"; }
+    if (!_sources->CardSets.contains(newCardset)) { newCardset = "default"; }
 
     _sources->Settings.Cardset = newCardset;
 
-    _cardTable->set_cardset(_sources->Cardsets[newCardset]);
+    _cardTable->set_card_set(_sources->CardSets[newCardset]);
     start_game(_sources->Settings.LastGame, start_reason::Resume, std::nullopt);
 }
 

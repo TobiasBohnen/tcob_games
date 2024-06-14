@@ -176,8 +176,8 @@ struct menu_sources {
     prop<game_history>         SelectedHistory;
     prop<data::config::object> SelectedRules;
 
-    theme_map   Themes;
-    cardset_map Cardsets;
+    theme_map    Themes;
+    card_set_map CardSets;
 };
 
 }
