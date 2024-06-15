@@ -75,7 +75,13 @@ public:
 
 private:
     void create_section_games();
+    void create_game_lists(dock_layout& panelLayout);
+    void create_game_details(dock_layout& panelLayout);
+
     void create_section_settings();
+    void create_settings_video(tab_container& tabContainer);
+    void create_settings_hints(tab_container& tabContainer);
+
     void create_section_themes();
     void create_section_cardset();
 
@@ -83,8 +89,7 @@ private:
 
     void start_game();
 
-    std::shared_ptr<tab_container> _tabSettings;
-    std::shared_ptr<text_box>      _txbSeed;
+    std::shared_ptr<text_box> _txbSeed;
 
     std::shared_ptr<tooltip> _tooltip;
 

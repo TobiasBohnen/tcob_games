@@ -43,52 +43,21 @@ auto static translate(family fam) -> std::string // NOLINT
 auto static make_tooltip(menu_sources& sources, form* form) -> std::shared_ptr<tooltip>
 {
     auto retValue {form->create_tooltip<tooltip>("tooltip")};
+
     auto tooltipLayout {retValue->create_layout<dock_layout>()};
     auto tooltipLabel {tooltipLayout->create_widget<label>(dock_style::Fill, "TTLabel0")};
     tooltipLabel->Class = "tooltip-label";
+
     retValue->Popup.connect([&, lbl = tooltipLabel.get(), tt = retValue.get()](auto const& event) {
         auto const widget {event.Widget};
         sources.Translator.bind(lbl->Label, "ux", widget->get_name());
 
-        auto const  wBounds {widget->Bounds()};
-        auto const& lStyle {lbl->get_style<label::style>()->Text};
-        auto* const font {lStyle.Font->get_font(lStyle.Style, lStyle.calc_font_size({0, 0, wBounds.Width * 1.5f, wBounds.Height * 0.75f})).get_obj()};
+        auto const  bounds {widget->Bounds()};
+        auto const& style {lbl->get_style<label::style>()->Text};
+        auto* const font {style.Font->get_font(style.Style, style.calc_font_size({0, 0, bounds.Width * 1.5f, bounds.Height * 0.75f})).get_obj()};
         tt->Bounds = {point_f::Zero, gfx::text_formatter::measure(lbl->Label(), *font, -1, true)};
     });
     return retValue;
-}
-
-static auto set_to_string(std::set<i32> const& numbers) -> std::string
-{
-    if (numbers.empty()) { return ""; }
-
-    std::ostringstream oss;
-    auto               it {numbers.begin()};
-    i32                start {*it}, end {*it};
-    ++it;
-
-    while (it != numbers.end()) {
-        if (*it == end + 1) {
-            end = *it;
-        } else {
-            if (start == end) {
-                oss << (start + 1);
-            } else {
-                oss << (start + 1) << "-" << (end + 1);
-            }
-            oss << ",";
-            start = end = *it;
-        }
-        ++it;
-    }
-
-    if (start == end) {
-        oss << (start + 1);
-    } else {
-        oss << (start + 1) << "-" << (end + 1);
-    }
-
-    return oss.str();
 }
 
 form_controls::form_controls(gfx::window* window, assets::group& resGrp, std::shared_ptr<menu_sources> sources)
@@ -97,7 +66,6 @@ form_controls::form_controls(gfx::window* window, assets::group& resGrp, std::sh
 {
     (*Controls).ActivateKey = input::key_code::UNKNOWN;
 
-    // tooltip
     auto tooltip0 {make_tooltip(*_sources, this)};
 
     auto mainPanel {create_container<glass>(dock_style::Fill, "main")};
@@ -131,11 +99,12 @@ form_controls::form_controls(gfx::window* window, assets::group& resGrp, std::sh
         statusPanel->Flex = {100_pct, 10_pct};
         auto statusPanelLayout {statusPanel->create_layout<grid_layout>(size_i {20, 6})};
 
-        auto const create {[&](rect_i const& rect, std::string const& text = "") {
-            auto l {statusPanelLayout->create_widget<label>(rect, "")};
+        i32        lbID {0};
+        auto const create {[&](rect_i const& rect, std::string const& id = "") {
+            auto l {statusPanelLayout->create_widget<label>(rect, "lblStatus" + std::to_string(lbID++))};
             l->Class = "label-small";
-            if (!text.empty()) {
-                _sources->Translator.bind(l->Label, "status", text);
+            if (!id.empty()) {
+                _sources->Translator.bind(l->Label, "status", id);
             }
             return l;
         }};
@@ -173,14 +142,15 @@ form_controls::form_controls(gfx::window* window, assets::group& resGrp, std::sh
 
 void form_controls::set_pile_labels(pile_description const& str)
 {
-    // translate
     _lblPile->Label      = str.Pile;
     _lblCardCount->Label = str.CardCount;
 
     _lblDescription->Label = str.Description;
-    _sources->Translator.bind(_lblDescriptionLabel->Label, "status", str.DescriptionLabel);
+    if (!str.DescriptionLabel.empty()) { _sources->Translator.bind(_lblDescriptionLabel->Label, "status", str.DescriptionLabel); }
+
     _lblMove->Label = str.Move;
     if (!str.MoveLabel.empty()) { _sources->Translator.bind(_lblMoveLabel->Label, "status", str.MoveLabel); }
+
     _lblBase->Label = str.Base;
     if (!str.BaseLabel.empty()) { _sources->Translator.bind(_lblBaseLabel->Label, "status", str.BaseLabel); }
 }
@@ -208,7 +178,6 @@ form_menu::form_menu(gfx::window* window, assets::group& resGrp, std::shared_ptr
     , _resGrp {resGrp}
     , _sources {std::move(sources)}
 {
-    // tooltip
     _tooltip = make_tooltip(*_sources, this);
 
     create_section_games();
@@ -220,20 +189,25 @@ form_menu::form_menu(gfx::window* window, assets::group& resGrp, std::shared_ptr
 
 void form_menu::submit_settings(data::config::object& obj)
 {
-    _tabSettings->submit(obj);
+    dynamic_cast<tab_container*>(find_widget_by_name(TabSettingsName).get())->submit(obj);
 }
 
 void form_menu::create_section_games()
 {
-    // Games
     auto panelGames {create_container<panel>(dock_style::Left, TabGamesName)};
     panelGames->Flex   = {85_pct, 100_pct};
     panelGames->ZOrder = 5;
     auto panelLayout {panelGames->create_layout<dock_layout>()};
 
-    // Filter
-    auto panelFilter {panelLayout->create_widget<panel>(dock_style::Top, "panelFilter")};
+    create_game_lists(*panelLayout);
+    create_game_details(*panelLayout);
+}
+
+void form_menu::create_game_lists(dock_layout& panelLayout)
+{
+    auto panelFilter {panelLayout.create_widget<panel>(dock_style::Top, "panelFilter")};
     panelFilter->Flex = {100_pct, 5_pct};
+
     auto panelFilterLayout {panelFilter->create_layout<grid_layout>(size_i {10, 1})};
     auto txbFilter {panelFilterLayout->create_widget<text_box>({0, 0, 9, 1}, "txbFilter")};
     txbFilter->MaxLength = 30;
@@ -243,333 +217,377 @@ void form_menu::create_section_games()
     btnClearFilter->Tooltip = _tooltip;
 
     std::vector<list_box*> listBoxes;
+    auto                   tabGames {panelLayout.create_widget<tab_container>(dock_style::Left, "tabGames")};
+    tabGames->Flex    = {50_pct, 100_pct};
+    tabGames->MaxTabs = 5;
+
+    i32        lbID {0};
+    auto const createListBox {[&](std::shared_ptr<dock_layout>& tabPanelLayout, auto&& pred) -> std::shared_ptr<list_box> {
+        auto listBox {tabPanelLayout->create_widget<list_box>(dock_style::Fill, "lbxGames" + std::to_string(lbID++))};
+        listBoxes.push_back(listBox.get());
+
+        for (auto const& game : _sources->Games) {
+            if (pred(game.second.first)) { listBox->add_item(game.first); }
+        }
+
+        listBox->SelectedItemIndex.Changed.connect([&, lb = listBox.get()](auto val) {
+            if (val != -1) { _sources->SelectedGame = lb->get_selected_item(); }
+        });
+        _sources->SelectedGame.Changed.connect([&, lb = listBox.get()](auto const& val) {
+            if (lb->select_item(val)) {
+                if (!lb->is_focused()) { lb->scroll_to_selected(); }
+            } else {
+                lb->SelectedItemIndex = -1;
+            }
+        });
+        listBox->DoubleClick.connect([&, lb = listBox.get()] {
+            if (lb->SelectedItemIndex >= 0) { start_game(); }
+        });
+        return listBox;
+    }};
+
+    // By Name
     {
-        auto tabGames {panelLayout->create_widget<tab_container>(dock_style::Left, "tabGames")};
-        tabGames->Flex    = {50_pct, 100_pct};
-        tabGames->MaxTabs = 5;
+        auto tabPanel {tabGames->create_tab<panel>("tabByName")};
+        _sources->Translator.bind(
+            [tabC = tabGames.get(), tabP = tabPanel.get()](std::string const& val) { tabC->change_tab_label(tabP, val); },
+            "ux", tabPanel->get_name());
 
-        i32        lbID {0};
-        auto const createListBox {[&](std::shared_ptr<dock_layout>& tabPanelLayout, auto&& pred) -> std::shared_ptr<list_box> {
-            auto listBox {tabPanelLayout->create_widget<list_box>(dock_style::Fill, "lbxGames" + std::to_string(lbID++))};
-            listBoxes.push_back(listBox.get());
+        auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
+        auto listBox {createListBox(tabPanelLayout, [](auto const&) { return true; })};
+        _sources->GameAdded.connect([&, lb = listBox.get()] {
+            // TODO: update all listboxes
+            lb->clear_items();
+            for (auto const& game : _sources->Games) { lb->add_item(game.first); }
+        });
+    }
+    // Recent
+    {
+        auto tabPanel {tabGames->create_tab<panel>("tabRecent")};
+        _sources->Translator.bind(
+            [tabC = tabGames.get(), tabP = tabPanel.get()](std::string const& val) { tabC->change_tab_label(tabP, val); },
+            "ux", tabPanel->get_name());
 
-            for (auto const& game : _sources->Games) {
-                if (pred(game.second.first)) { listBox->add_item(game.first); }
-            }
+        auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
+        auto listBox {createListBox(tabPanelLayout, [](auto const&) { return false; })};
+        for (auto const& game : _sources->Settings.Recent()) { listBox->add_item(game); }
+        _sources->Settings.Recent.Changed.connect([&, lb = listBox.get()] {
+            lb->clear_items();
+            for (auto const& game : _sources->Settings.Recent()) { lb->add_item(game); }
+        });
+    }
+    // By Family
+    {
+        auto tabContainer {tabGames->create_tab<tab_container>("tabByFamily")};
+        _sources->Translator.bind(
+            [tabC = tabGames.get(), tabP = tabContainer.get()](std::string const& val) { tabC->change_tab_label(tabP, val); },
+            "ux", tabContainer->get_name());
 
-            listBox->SelectedItemIndex.Changed.connect([&, lb = listBox.get()](auto val) {
-                if (val != -1) { _sources->SelectedGame = lb->get_selected_item(); }
-            });
-            _sources->SelectedGame.Changed.connect([&, lb = listBox.get()](auto const& val) {
-                if (lb->select_item(val)) {
-                    if (!lb->is_focused()) { lb->scroll_to_selected(); }
-                } else {
-                    lb->SelectedItemIndex = -1;
-                }
-            });
-            listBox->DoubleClick.connect([&, lb = listBox.get()] {
-                if (lb->SelectedItemIndex >= 0) { start_game(); }
-            });
-            return listBox;
+        tabContainer->MaxTabs = 5;
+
+        auto const createTab {[&](family family) {
+            auto tabPanel {tabContainer->create_tab<panel>("")};
+            auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
+            _sources->Translator.bind(
+                [tabC = tabContainer.get(), tabP = tabPanel.get()](std::string const& val) { tabC->change_tab_label(tabP, val); },
+                "family", family);
+            createListBox(tabPanelLayout, [family](auto const& gameInfo) { return gameInfo.Family == family; });
         }};
+        createTab(family::BakersDozen);
+        createTab(family::BeleagueredCastle);
+        createTab(family::Canfield);
+        createTab(family::Fan);
+        createTab(family::FlowerGarden);
+        createTab(family::FortyThieves);
+        createTab(family::FreeCell);
+        createTab(family::Golf);
+        createTab(family::Gypsy);
+        createTab(family::Klondike);
+        createTab(family::Montana);
+        createTab(family::Numerica);
+        createTab(family::PictureGallery);
+        createTab(family::Spider);
+        createTab(family::Terrace);
+        createTab(family::Yukon);
 
-        // By Name
-        {
-            auto tabPanel {tabGames->create_tab<panel>("byName", "By Name")}; // translate
+        createTab(family::Other);
+    }
+    // By Deck Count
+    {
+        auto tabContainer {tabGames->create_tab<tab_container>("tabByDeckCount")};
+        _sources->Translator.bind(
+            [tabC = tabGames.get(), tabP = tabContainer.get()](std::string const& val) { tabC->change_tab_label(tabP, val); },
+            "ux", tabContainer->get_name());
+        tabContainer->MaxTabs = 5;
+
+        auto const createTab {[&](isize count, std::string const& name) {
+            auto tabPanel {tabContainer->create_tab<panel>(name)};
             auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-            auto listBox {createListBox(tabPanelLayout, [](auto const&) { return true; })};
-            _sources->GameAdded.connect([&, lb = listBox.get()] {
-                // TODO: update all listboxes
-                lb->clear_items();
-                for (auto const& game : _sources->Games) { lb->add_item(game.first); }
-            });
-        }
-        // Recent
+            createListBox(tabPanelLayout, [count](auto const& gameInfo) { return gameInfo.DeckCount == count; });
+        }};
+        createTab(1, "1");
+        createTab(2, "2");
+        createTab(3, "3");
+
         {
-            auto tabPanel {tabGames->create_tab<panel>("recent", "Recent")}; // translate
+            auto tabPanel {tabContainer->create_tab<panel>(">= 4")};
             auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-            auto listBox {createListBox(tabPanelLayout, [](auto const&) { return false; })};
-            for (auto const& game : _sources->Settings.Recent()) { listBox->add_item(game); }
-            _sources->Settings.Recent.Changed.connect([&, lb = listBox.get()] {
-                lb->clear_items();
-                for (auto const& game : _sources->Settings.Recent()) { lb->add_item(game); }
-            });
+            createListBox(tabPanelLayout, [](auto const& gameInfo) { return gameInfo.DeckCount >= 4; });
         }
-        // By Family
         {
-            auto tabContainer {tabGames->create_tab<tab_container>("byFamily", "By Family")}; // translate
-            tabContainer->MaxTabs = 5;
+            auto tabPanel {tabContainer->create_tab<panel>("tabStripped")};
+            _sources->Translator.bind(
+                [tabC = tabContainer.get(), tabP = tabPanel.get()](std::string const& val) { tabC->change_tab_label(tabP, val); },
+                "ux", tabPanel->get_name());
 
-            auto const createTab {[&](family family) {
-                auto tabPanel {tabContainer->create_tab<panel>("")};
-                auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-                _sources->Translator.bind(
-                    [tabC = tabContainer.get(), tabP = tabPanel.get()](std::string const& val) { tabC->change_tab_label(tabP, val); },
-                    "family", family);
-                createListBox(tabPanelLayout, [family](auto const& gameInfo) { return gameInfo.Family == family; });
-            }};
-            createTab(family::BakersDozen);
-            createTab(family::BeleagueredCastle);
-            createTab(family::Canfield);
-            createTab(family::Fan);
-            createTab(family::FlowerGarden);
-            createTab(family::FortyThieves);
-            createTab(family::FreeCell);
-            createTab(family::Golf);
-            createTab(family::Gypsy);
-            createTab(family::Klondike);
-            createTab(family::Montana);
-            createTab(family::Numerica);
-            createTab(family::PictureGallery);
-            createTab(family::Spider);
-            createTab(family::Terrace);
-            createTab(family::Yukon);
-
-            createTab(family::Other);
+            auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
+            createListBox(tabPanelLayout, [](auto const& gameInfo) { return gameInfo.DeckRanks.size() < 13 || gameInfo.DeckSuits.size() < 4; });
         }
-        // By Deck Count
-        {
-            auto tabContainer {tabGames->create_tab<tab_container>("byDeckCount", "By Deck Count")}; // translate
-            tabContainer->MaxTabs = 5;
+    }
 
-            auto const createTab {[&](isize count, std::string const& name) {
-                auto tabPanel {tabContainer->create_tab<panel>(name)};
-                auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-                createListBox(tabPanelLayout, [count](auto const& gameInfo) { return gameInfo.DeckCount == count; });
-            }};
-            createTab(1, "1");
-            createTab(2, "2");
-            createTab(3, "3");
-
-            {
-                auto tabPanel {tabContainer->create_tab<panel>(">= 4")};
-                auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-                createListBox(tabPanelLayout, [](auto const& gameInfo) { return gameInfo.DeckCount >= 4; });
-            }
-            {
-                auto tabPanel {tabContainer->create_tab<panel>("stripped")}; // translate
-                auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
-                createListBox(tabPanelLayout, [](auto const& gameInfo) { return gameInfo.DeckRanks.size() < 13 || gameInfo.DeckSuits.size() < 4; });
-            }
+    txbFilter->Text.Changed.connect([listBoxes](auto const& val) {
+        for (auto* lb : listBoxes) {
+            lb->Filter = val;
         }
+    });
+}
 
-        txbFilter->Text.Changed.connect([listBoxes](auto const& val) {
-            for (auto* lb : listBoxes) {
-                lb->Filter = val;
+void form_menu::create_game_details(dock_layout& panelLayout)
+{
+    auto panelGameDetails {panelLayout.create_widget<panel>(dock_style::Right, "panelGameDetails")};
+    panelGameDetails->Flex   = {50_pct, 100_pct};
+    panelGameDetails->ZOrder = 1;
+    auto panelGameStatsLayout {panelGameDetails->create_layout<grid_layout>(size_i {20, 40})};
+
+    auto lblSeed {panelGameStatsLayout->create_widget<label>({1, 33, 4, 2}, "lblSeed")};
+    _sources->Translator.bind(lblSeed->Label, "ux", lblSeed->get_name());
+    lblSeed->Class = "label-small";
+    _txbSeed       = panelGameStatsLayout->create_widget<text_box>({6, 33, 8, 2}, "txbSeed");
+    _txbSeed->BeforeTextInserted.connect([](text_event& ev) {
+        if (ev.Text.empty()) { return; }
+        if (ev.Text.size() != 1 || !std::isdigit(ev.Text[0])) {
+            ev.Text = "";
+        }
+    });
+
+    auto btnStartGame {panelGameStatsLayout->create_widget<button>({1, 36, 4, 3}, "btnStartGame")};
+    btnStartGame->Icon = _resGrp.get<gfx::texture>("play");
+    btnStartGame->Click.connect([&]() { start_game(); });
+    btnStartGame->Tooltip = _tooltip;
+
+    auto tabGameDetails {panelGameStatsLayout->create_widget<tab_container>({0, 0, 20, 32}, "tabGameDetails")};
+    tabGameDetails->MaxTabs = 5;
+
+    // info tab
+    {
+        auto tabPanel {tabGameDetails->create_tab<panel>("tabInfo")};
+        _sources->Translator.bind(
+            [tabC = tabGameDetails.get(), tabP = tabPanel.get()](std::string const& val) { tabC->change_tab_label(tabP, val); },
+            "ux", tabPanel->get_name());
+
+        auto tabPanelLayout {tabPanel->create_layout<grid_layout>(size_i {40, 30})};
+
+        auto gvInfo {tabPanelLayout->create_widget<grid_view>({2, 1, 36, 5}, "gvInfo")};
+        gvInfo->Class = "grid_view2";
+        _sources->Translator.bind([tt = gvInfo.get()](std::vector<std::string> const& val) { tt->set_columns(val, false); },
+                                  "columns", "info");
+
+        _sources->SelectedGame.Changed.connect([&, infoGV = gvInfo.get()](auto const& game) {
+            infoGV->clear_rows();
+            auto gameInfo {_sources->Games[game].first};
+            infoGV->add_row(
+                {translate(gameInfo.Family),
+                 std::to_string(gameInfo.DeckCount),
+                 gameInfo.Redeals < 0 ? "∞" : std::to_string(gameInfo.Redeals)});
+        });
+
+        auto accRules {tabPanelLayout->create_widget<accordion>({1, 7, 38, 22}, "gvRules")};
+
+        _sources->SelectedRules.Changed.connect([rulesAcc = accRules.get()](data::config::object const& piles) {
+            rulesAcc->clear_sections();
+
+            for (auto const& pile : piles) {
+                auto const& name {pile.first};
+                auto        pilePanel {rulesAcc->create_section<panel>(name)};
+                auto const& pileObj {pile.second.as<data::config::object>()};
+                //    auto const  count {pileObj["count"].as<std::string>()};
+                auto const& rulesArr {pileObj["rules"].as<data::config::array>()};
+
+                auto createRule {[&](grid_layout& layout, data::config::object const& rule) {
+                    auto const create {[&](rect_i const& rect, std::string const& text) {
+                        auto l {layout.create_widget<label>(rect, "")};
+                        l->Class = "label-small";
+                        l->Label = text;
+                        return l;
+                    }};
+
+                    create({1, 1, 10, 5}, "Base");
+                    create({12, 1, 17, 5}, rule["base"].as<std::string>());
+                    create({1, 7, 10, 5}, "Build");
+                    create({12, 7, 17, 5}, rule["build"].as<std::string>());
+                    create({1, 13, 10, 5}, "Move");
+                    create({12, 13, 17, 5}, rule["move"].as<std::string>());
+                }};
+
+                if (rulesArr.get_size() == 1) {
+                    auto pilePanelLayout {pilePanel->create_layout<grid_layout>(size_i {30, 25})};
+                    createRule(*pilePanelLayout, rulesArr[0].as<data::config::object>());
+                } else {
+                    auto pilePanelLayout {pilePanel->create_layout<dock_layout>()};
+                    auto tabRules {pilePanelLayout->create_widget<tab_container>(dock_style::Fill, "")};
+                    tabRules->Class = "tab_container_small";
+                    for (auto const& rule : rulesArr) {
+                        auto const& ruleObj {rule.as<data::config::object>()};
+                        auto        panelRule {tabRules->create_tab<panel>(set_to_string(ruleObj["piles"].as<std::set<i32>>()))};
+                        auto        panelRuleLayout {panelRule->create_layout<grid_layout>(size_i {30, 25})};
+                        createRule(*panelRuleLayout, ruleObj);
+                    }
+                }
             }
         });
     }
+    // stats tab
     {
-        auto panelGameDetails {panelLayout->create_widget<panel>(dock_style::Right, "panelGameStats")};
-        panelGameDetails->Flex   = {50_pct, 100_pct};
-        panelGameDetails->ZOrder = 1;
-        auto panelGameStatsLayout {panelGameDetails->create_layout<grid_layout>(size_i {20, 40})};
+        auto tabPanel {tabGameDetails->create_tab<panel>("tabStats")};
+        _sources->Translator.bind(
+            [tabC = tabGameDetails.get(), tabP = tabPanel.get()](std::string const& val) { tabC->change_tab_label(tabP, val); },
+            "ux", tabPanel->get_name());
 
-        auto lblSeed {panelGameStatsLayout->create_widget<label>({1, 33, 4, 2}, "lblSeed")};
-        _sources->Translator.bind(lblSeed->Label, "ux", lblSeed->get_name());
-        lblSeed->Class = "label-small";
-        _txbSeed       = panelGameStatsLayout->create_widget<text_box>({6, 33, 8, 2}, "txbSeed");
-        _txbSeed->BeforeTextInserted.connect([](text_event& ev) {
-            if (ev.Text.empty()) { return; }
-            if (ev.Text.size() != 1 || !std::isdigit(ev.Text[0])) {
-                ev.Text = "";
+        auto tabPanelLayout {tabPanel->create_layout<grid_layout>(size_i {40, 30})};
+
+        auto gvWL {tabPanelLayout->create_widget<grid_view>({1, 1, 18, 5}, "gvWinLose")};
+        gvWL->Class = "grid_view2";
+        _sources->Translator.bind([tt = gvWL.get()](std::vector<std::string> const& val) { tt->set_columns(val, false); },
+                                  "columns", "wl");
+
+        auto gvScore {tabPanelLayout->create_widget<grid_view>({21, 1, 18, 5}, "gvBest")};
+        gvScore->Class = "grid_view2";
+        _sources->Translator.bind([tt = gvScore.get()](std::vector<std::string> const& val) { tt->set_columns(val, false); },
+                                  "columns", "score");
+
+        auto gvHistory {tabPanelLayout->create_widget<grid_view>({1, 7, 38, 22}, "gvHistory")};
+        _sources->Translator.bind([tt = gvHistory.get()](std::vector<std::string> const& val) { tt->set_columns(val, false); },
+                                  "columns", "history");
+
+        _sources->SelectedHistory.Changed.connect([wl = gvWL.get(), tt = gvScore.get(), history = gvHistory.get()](auto const& stats) {
+            wl->clear_rows();
+            wl->add_row({std::to_string(stats.Won), std::to_string(stats.Lost),
+                         stats.Lost + stats.Won > 0 ? std::format("{:.2f}%", static_cast<f32>(stats.Won) / (stats.Lost + stats.Won) * 100) : "-"});
+            tt->clear_rows();
+
+            std::optional<i64> bestTime;
+            std::optional<i64> bestTurns;
+            std::optional<i64> bestScore;
+
+            history->clear_rows();
+            for (auto const& entry : stats.Entries) {
+                if (entry.Won) {
+                    bestTime  = !bestTime ? entry.Time : std::min(entry.Time, *bestTime);
+                    bestTurns = !bestTurns ? entry.Turns : std::min(entry.Turns, *bestTurns);
+                }
+                bestScore = !bestScore ? entry.Score : std::max(entry.Score, *bestScore);
+
+                history->add_row(
+                    {std::to_string(entry.Seed),
+                     std::to_string(entry.Score),
+                     std::to_string(entry.Turns),
+                     std::format("{:%M:%S}", seconds {entry.Time / 1000.f}),
+                     entry.Won ? "X" : "-"});
             }
+            tt->add_row({bestScore ? std::to_string(*bestScore) : "-",
+                         bestTurns ? std::to_string(*bestTurns) : "-",
+                         bestTime ? std::format("{:%M:%S}", seconds {*bestTime / 1000.f}) : "--:--"});
         });
-
-        auto btnStartGame {panelGameStatsLayout->create_widget<button>({1, 36, 4, 3}, "btnStartGame")};
-        btnStartGame->Icon = _resGrp.get<gfx::texture>("play");
-        btnStartGame->Click.connect([&]() { start_game(); });
-        btnStartGame->Tooltip = _tooltip;
-
-        auto tabGameDetails {panelGameStatsLayout->create_widget<tab_container>({0, 0, 20, 32}, "tabGameDetails")};
-        tabGameDetails->MaxTabs = 5;
-
-        // info tab
-        {
-            auto tabPanel {tabGameDetails->create_tab<panel>("Info")}; // translate
-            auto tabPanelLayout {tabPanel->create_layout<grid_layout>(size_i {40, 30})};
-
-            auto gvInfo {tabPanelLayout->create_widget<grid_view>({2, 1, 36, 5}, "gvInfo")};
-            gvInfo->Class = "grid_view2";
-            gvInfo->set_columns({"Family", "Decks", "Redeals"}); // translate
-
-            _sources->SelectedGame.Changed.connect([&, infoGV = gvInfo.get()](auto const& game) {
-                infoGV->clear_rows();
-                auto gameInfo {_sources->Games[game].first};
-                infoGV->add_row(
-                    {translate(gameInfo.Family),
-                     std::to_string(gameInfo.DeckCount),
-                     gameInfo.Redeals < 0 ? "∞" : std::to_string(gameInfo.Redeals)});
-            });
-
-            auto accRules {tabPanelLayout->create_widget<accordion>({1, 7, 38, 22}, "gvRules")};
-
-            _sources->SelectedRules.Changed.connect([rulesAcc = accRules.get()](data::config::object const& piles) {
-                rulesAcc->clear_sections();
-
-                for (auto const& pile : piles) {
-                    auto const& name {pile.first};
-                    auto        pilePanel {rulesAcc->create_section<panel>(name)};
-                    auto const& pileObj {pile.second.as<data::config::object>()};
-                    //    auto const  count {pileObj["count"].as<std::string>()};
-                    auto const& rulesArr {pileObj["rules"].as<data::config::array>()};
-
-                    auto createRule {[&](grid_layout& layout, data::config::object const& rule) {
-                        auto const create {[&](rect_i const& rect, std::string const& text) {
-                            auto l {layout.create_widget<label>(rect, "")};
-                            l->Class = "label-small";
-                            l->Label = text;
-                            return l;
-                        }};
-
-                        create({1, 1, 10, 5}, "Base");
-                        create({12, 1, 17, 5}, rule["base"].as<std::string>());
-                        create({1, 7, 10, 5}, "Build");
-                        create({12, 7, 17, 5}, rule["build"].as<std::string>());
-                        create({1, 13, 10, 5}, "Move");
-                        create({12, 13, 17, 5}, rule["move"].as<std::string>());
-                    }};
-
-                    if (rulesArr.get_size() == 1) {
-                        auto pilePanelLayout {pilePanel->create_layout<grid_layout>(size_i {30, 25})};
-                        createRule(*pilePanelLayout, rulesArr[0].as<data::config::object>());
-                    } else {
-                        auto pilePanelLayout {pilePanel->create_layout<dock_layout>()};
-                        auto tabRules {pilePanelLayout->create_widget<tab_container>(dock_style::Fill, "")};
-                        tabRules->Class = "tab_container_small";
-                        for (auto const& rule : rulesArr) {
-                            auto const& ruleObj {rule.as<data::config::object>()};
-                            auto        panelRule {tabRules->create_tab<panel>(set_to_string(ruleObj["piles"].as<std::set<i32>>()))};
-                            auto        panelRuleLayout {panelRule->create_layout<grid_layout>(size_i {30, 25})};
-                            createRule(*panelRuleLayout, ruleObj);
-                        }
-                    }
-                }
-            });
-        }
-        // stats tab
-        {
-            auto tabPanel {tabGameDetails->create_tab<panel>("Stats")}; // translate
-            auto tabPanelLayout {tabPanel->create_layout<grid_layout>(size_i {40, 30})};
-
-            auto gvWL {tabPanelLayout->create_widget<grid_view>({1, 1, 18, 5}, "gvWinLose")};
-            gvWL->Class = "grid_view2";
-            _sources->Translator.bind([tt = gvWL.get()](std::vector<std::string> const& val) { tt->set_columns(val, false); },
-                                      "stat", "wl");
-            auto gvScore {tabPanelLayout->create_widget<grid_view>({21, 1, 18, 5}, "gvBest")};
-            gvScore->Class = "grid_view2";
-            _sources->Translator.bind([tt = gvScore.get()](std::vector<std::string> const& val) { tt->set_columns(val, false); },
-                                      "stat", "score");
-
-            auto gvHistory {tabPanelLayout->create_widget<grid_view>({1, 7, 38, 22}, "gvHistory")};
-            gvHistory->set_columns({"Seed", "Score", "Turns", "Time", "Won"}); // translate
-            _sources->Translator.bind([tt = gvHistory.get()](std::vector<std::string> const& val) { tt->set_columns(val, false); },
-                                      "stat", "history");
-            _sources->SelectedHistory.Changed.connect([wl = gvWL.get(), tt = gvScore.get(), history = gvHistory.get()](auto const& stats) {
-                wl->clear_rows();
-                wl->add_row({std::to_string(stats.Won), std::to_string(stats.Lost),
-                             stats.Lost + stats.Won > 0 ? std::format("{:.2f}%", static_cast<f32>(stats.Won) / (stats.Lost + stats.Won) * 100) : "-"});
-                tt->clear_rows();
-
-                std::optional<i64> bestTime;
-                std::optional<i64> bestTurns;
-                std::optional<i64> bestScore;
-
-                history->clear_rows();
-                for (auto const& entry : stats.Entries) {
-                    if (entry.Won) {
-                        bestTime  = !bestTime ? entry.Time : std::min(entry.Time, *bestTime);
-                        bestTurns = !bestTurns ? entry.Turns : std::min(entry.Turns, *bestTurns);
-                    }
-                    bestScore = !bestScore ? entry.Score : std::max(entry.Score, *bestScore);
-
-                    history->add_row(
-                        {std::to_string(entry.Seed),
-                         std::to_string(entry.Score),
-                         std::to_string(entry.Turns),
-                         std::format("{:%M:%S}", seconds {entry.Time / 1000.f}),
-                         entry.Won ? "X" : "-"});
-                }
-                tt->add_row({bestScore ? std::to_string(*bestScore) : "-",
-                             bestTurns ? std::to_string(*bestTurns) : "-",
-                             bestTime ? std::format("{:%M:%S}", seconds {*bestTime / 1000.f}) : "--:--"});
-            });
-        }
     }
 }
 
 void form_menu::create_section_settings()
 {
     // Setting
-    _tabSettings         = create_container<tab_container>(dock_style::Left, TabSettingsName);
-    _tabSettings->ZOrder = 4;
-    _tabSettings->Flex   = {0_pct, 0_pct};
+    auto tabSettings {create_container<tab_container>(dock_style::Left, TabSettingsName)};
+    tabSettings->ZOrder = 4;
+    tabSettings->Flex   = {0_pct, 0_pct};
 
+    create_settings_video(*tabSettings);
+    create_settings_hints(*tabSettings);
+}
+
+void form_menu::create_settings_video(tab_container& tabContainer)
+{
+    auto const& config {locate_service<data::config_file>()};
+    auto        tabPanel {tabContainer.create_tab<panel>("tabVideo")};
+    _sources->Translator.bind(
+        [tabC = &tabContainer, tabP = tabPanel.get()](std::string const& val) { tabC->change_tab_label(tabP, val); },
+        "ux", tabPanel->get_name());
+
+    auto tabPanelLayout {tabPanel->create_layout<grid_layout>(size_i {40, 40})};
+
+    // resolution
     {
-        auto const& config {locate_service<data::config_file>()};
-        auto        tabPanel {_tabSettings->create_tab<panel>("Video")};
-        auto        tabPanelLayout {tabPanel->create_layout<grid_layout>(size_i {40, 40})};
-
-        // resolution
-        {
-            auto const displayModes {locate_service<gfx::render_system>().get_displays()};
-            auto       ddlRes {tabPanelLayout->create_widget<drop_down_list>({6, 1, 6, 4}, "ddlResolution")};
-            ddlRes->ZOrder = 1;
-            for (auto const& dm : displayModes.at(0).Modes) {
-                ddlRes->add_item(std::format("{}x{}", dm.Size.Width, dm.Size.Height));
-            }
-
-            auto const res {config[Cfg::Video::Name][Cfg::Video::resolution].as<size_i>()};
-            ddlRes->select_item(std::format("{}x{}", res.Width, res.Height));
-
-            auto lbl {tabPanelLayout->create_widget<label>({1, 2, 4, 2}, "lblResolution")};
-            _sources->Translator.bind(lbl->Label, "ux", lbl->get_name());
+        auto const displayModes {locate_service<gfx::render_system>().get_displays()};
+        auto       ddlRes {tabPanelLayout->create_widget<drop_down_list>({6, 1, 6, 4}, "ddlResolution")};
+        ddlRes->ZOrder = 1;
+        for (auto const& dm : displayModes.at(0).Modes) {
+            ddlRes->add_item(std::format("{}x{}", dm.Size.Width, dm.Size.Height));
         }
 
-        // fullscreen
-        {
-            auto chk {tabPanelLayout->create_widget<checkbox>({6, 5, 3, 4}, "chkFullScreen")};
-            chk->Checked = config[Cfg::Video::Name][Cfg::Video::fullscreen].as<bool>();
+        auto const res {config[Cfg::Video::Name][Cfg::Video::resolution].as<size_i>()};
+        ddlRes->select_item(std::format("{}x{}", res.Width, res.Height));
 
-            auto lbl {tabPanelLayout->create_widget<label>({1, 6, 4, 2}, "lblFullScreen")};
-            _sources->Translator.bind(lbl->Label, "ux", lbl->get_name());
-        }
-
-        // vsync
-        {
-            auto chk {tabPanelLayout->create_widget<checkbox>({6, 9, 3, 4}, "chkVSync")};
-            chk->Checked = config[Cfg::Video::Name][Cfg::Video::vsync].as<bool>();
-
-            auto lbl {tabPanelLayout->create_widget<label>({1, 10, 4, 2}, "lblVSync")};
-            _sources->Translator.bind(lbl->Label, "ux", lbl->get_name());
-        }
-
-        auto btnApplyVideoSettings {tabPanelLayout->create_widget<button>({33, 35, 6, 4}, "btnApplyVideoSettings")};
-        btnApplyVideoSettings->Icon    = _resGrp.get<gfx::texture>("apply");
-        btnApplyVideoSettings->Tooltip = _tooltip;
-        btnApplyVideoSettings->Click.connect([&]() { VideoSettingsChanged(); });
+        auto lbl {tabPanelLayout->create_widget<label>({1, 2, 4, 2}, "lblResolution")};
+        _sources->Translator.bind(lbl->Label, "ux", lbl->get_name());
     }
+
+    // fullscreen
     {
-        auto tabPanel {_tabSettings->create_tab<panel>("Hints")};
-        auto tabPanelLayout {tabPanel->create_layout<grid_layout>(size_i {40, 40})};
-        // highlight movable
-        {
-            auto chk {tabPanelLayout->create_widget<checkbox>({10, 1, 3, 4}, "chkHintMovable")};
-            chk->Checked = _sources->Settings.HintMovable;
-            chk->Checked.Changed.connect([this](auto val) { _sources->Settings.HintMovable = val; });
+        auto chk {tabPanelLayout->create_widget<checkbox>({6, 5, 3, 4}, "chkFullScreen")};
+        chk->Checked = config[Cfg::Video::Name][Cfg::Video::fullscreen].as<bool>();
 
-            auto lbl {tabPanelLayout->create_widget<label>({1, 2, 8, 2}, "lblHintMovable")};
-            _sources->Translator.bind(lbl->Label, "ux", lbl->get_name());
-        }
-        // highlight drops
-        {
-            auto chk {tabPanelLayout->create_widget<checkbox>({10, 5, 3, 4}, "chkHintDrops")};
-            chk->Checked = _sources->Settings.HintTarget;
-            chk->Checked.Changed.connect([this](auto val) { _sources->Settings.HintTarget = val; });
+        auto lbl {tabPanelLayout->create_widget<label>({1, 6, 4, 2}, "lblFullScreen")};
+        _sources->Translator.bind(lbl->Label, "ux", lbl->get_name());
+    }
 
-            auto lbl {tabPanelLayout->create_widget<label>({1, 6, 8, 2}, "lblHintDrops")};
-            _sources->Translator.bind(lbl->Label, "ux", lbl->get_name());
-        }
+    // vsync
+    {
+        auto chk {tabPanelLayout->create_widget<checkbox>({6, 9, 3, 4}, "chkVSync")};
+        chk->Checked = config[Cfg::Video::Name][Cfg::Video::vsync].as<bool>();
+
+        auto lbl {tabPanelLayout->create_widget<label>({1, 10, 4, 2}, "lblVSync")};
+        _sources->Translator.bind(lbl->Label, "ux", lbl->get_name());
+    }
+
+    auto btnApplyVideoSettings {tabPanelLayout->create_widget<button>({33, 35, 6, 4}, "btnApplyVideoSettings")};
+    btnApplyVideoSettings->Icon    = _resGrp.get<gfx::texture>("apply");
+    btnApplyVideoSettings->Tooltip = _tooltip;
+    btnApplyVideoSettings->Click.connect([&]() { VideoSettingsChanged(); });
+}
+
+void form_menu::create_settings_hints(tab_container& tabContainer)
+{
+    auto tabPanel {tabContainer.create_tab<panel>("tabHints")};
+    _sources->Translator.bind(
+        [tabC = &tabContainer, tabP = tabPanel.get()](std::string const& val) { tabC->change_tab_label(tabP, val); },
+        "ux", tabPanel->get_name());
+
+    auto tabPanelLayout {tabPanel->create_layout<grid_layout>(size_i {40, 40})};
+
+    // highlight movable
+    {
+        auto chk {tabPanelLayout->create_widget<checkbox>({10, 1, 3, 4}, "chkHintMovable")};
+        chk->Checked = _sources->Settings.HintMovable;
+        chk->Checked.Changed.connect([this](auto val) { _sources->Settings.HintMovable = val; });
+
+        auto lbl {tabPanelLayout->create_widget<label>({1, 2, 8, 2}, "lblHintMovable")};
+        _sources->Translator.bind(lbl->Label, "ux", lbl->get_name());
+    }
+    // highlight drops
+    {
+        auto chk {tabPanelLayout->create_widget<checkbox>({10, 5, 3, 4}, "chkHintDrops")};
+        chk->Checked = _sources->Settings.HintTarget;
+        chk->Checked.Changed.connect([this](auto val) { _sources->Settings.HintTarget = val; });
+
+        auto lbl {tabPanelLayout->create_widget<label>({1, 6, 8, 2}, "lblHintDrops")};
+        _sources->Translator.bind(lbl->Label, "ux", lbl->get_name());
     }
 }
 

@@ -1,9 +1,4 @@
--- Copyright (c) 2024 Tobias Bohnen
---
--- This software is released under the MIT License.
--- https://opensource.org/licenses/MIT
 return {
-
     ux = {
         btnMenu               = "Menu",
         btnNewGame            = "New Game",
@@ -27,8 +22,16 @@ return {
         lblBtnSettings        = "Settings",
         lblBtnThemes          = "Themes",
         lblBtnCardSets        = "Card Sets",
+        tabVideo              = "Video",
+        tabHints              = "Hints",
+        tabInfo               = "Info",
+        tabStats              = "Stats",
+        tabByName             = "By Name",
+        tabRecent             = "Recent",
+        tabByFamily           = "By Family",
+        tabByDeckCount        = "By Deck Count",
+        tabStripped           = "Stripped"
     },
-
     status = {
         Pile    = "Pile",
         Cards   = "Cards",
@@ -40,7 +43,6 @@ return {
         Move    = "Move",
         Base    = "Base"
     },
-
     family = {
         Other             = "Other",
         BakersDozen       = "Baker's Dozen",
@@ -60,11 +62,10 @@ return {
         Terrace           = "Terrace",
         Yukon             = "Yukon",
     },
-
-    stat = {
+    columns = {
         wl      = { "Won", "Lost", "W/L" },
         score   = { "Highscore", "Least Turns", "Fastest Time" },
-        history = { "Seed", "Score", "Turns", "Time", "Won" }
+        history = { "Seed", "Score", "Turns", "Time", "Won" },
+        info    = { "Family", "Decks", "Redeals" }
     },
-
 }

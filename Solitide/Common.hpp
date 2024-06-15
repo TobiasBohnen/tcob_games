@@ -44,6 +44,39 @@ auto inline multiply(point_f pos, size_f size) -> point_f
     return {pos.X * CARD_MARGIN * size.Width, pos.Y * CARD_MARGIN * size.Height};
 }
 
+auto inline set_to_string(std::set<i32> const& numbers) -> std::string
+{
+    if (numbers.empty()) { return ""; }
+
+    std::ostringstream oss;
+    auto               it {numbers.begin()};
+    i32                start {*it}, end {*it};
+    ++it;
+
+    while (it != numbers.end()) {
+        if (*it == end + 1) {
+            end = *it;
+        } else {
+            if (start == end) {
+                oss << (start + 1);
+            } else {
+                oss << (start + 1) << "-" << (end + 1);
+            }
+            oss << ",";
+            start = end = *it;
+        }
+        ++it;
+    }
+
+    if (start == end) {
+        oss << (start + 1);
+    } else {
+        oss << (start + 1) << "-" << (end + 1);
+    }
+
+    return oss.str();
+}
+
 ////////////////////////////////////////////////////////////
 
 class settings {

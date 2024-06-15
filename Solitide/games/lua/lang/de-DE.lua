@@ -1,9 +1,4 @@
--- Copyright (c) 2024 Tobias Bohnen
---
--- This software is released under the MIT License.
--- https://opensource.org/licenses/MIT
 return {
-
     ux = {
         btnMenu               = "Menü",
         btnNewGame            = "Neues Spiel",
@@ -27,8 +22,16 @@ return {
         lblBtnSettings        = "Einstellungen",
         lblBtnThemes          = "Themes",
         lblBtnCardSets        = "Kartensets",
+        tabVideo              = "Grafik",
+        tabHints              = "Tipps",
+        tabInfo               = "Info",
+        tabStats              = "Statistiken",
+        tabByName             = "Nach Name",
+        tabRecent             = "Zuletzt",
+        tabByFamily           = "Nach Familie",
+        tabByDeckCount        = "Nach Deckanzahl",
+        tabStripped           = "Gekürzt"
     },
-
     status = {
         Pile    = "Stapel",
         Cards   = "Karten",
@@ -40,7 +43,6 @@ return {
         Move    = "Bewegen",
         Base    = "Basis"
     },
-
     family = {
         Other             = "Andere",
         BakersDozen       = "Baker's Dozen",
@@ -60,11 +62,10 @@ return {
         Terrace           = "Terrace",
         Yukon             = "Yukon",
     },
-
-    stat = {
+    columns = {
         wl      = { "Gewonnen", "Verloren", "G/V" },
         score   = { "Höchstpunktzahl", "Wenigste Züge", "Schnellste Zeit" },
-        history = { "Startwert", "Punkte", "Züge", "Zeit", "Gewonnen" }
+        history = { "Startwert", "Punkte", "Züge", "Zeit", "Gewonnen" },
+        info    = { "Familie", "Kartendecks", "Neu Austeilen" }
     },
-
 }
