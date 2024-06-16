@@ -15,31 +15,6 @@ namespace solitaire {
 
 using namespace tcob::literals;
 
-auto static translate(family fam) -> std::string // NOLINT
-{
-    // TODO: translation
-    switch (fam) {
-    case family::Other: return "Other";
-    case family::BakersDozen: return "Baker's Dozen";
-    case family::BeleagueredCastle: return "Beleaguered Castle";
-    case family::Canfield: return "Canfield";
-    case family::Fan: return "Fan";
-    case family::FlowerGarden: return "Flower Garden";
-    case family::FortyThieves: return "Forty Thieves";
-    case family::FreeCell: return "FreeCell";
-    case family::Golf: return "Golf";
-    case family::Gypsy: return "Gypsy";
-    case family::Klondike: return "Klondike";
-    case family::Montana: return "Montana";
-    case family::Numerica: return "Numerica";
-    case family::PictureGallery: return "Picture Gallery";
-    case family::Spider: return "Spider";
-    case family::Terrace: return "Terrace";
-    case family::Yukon: return "Yukon";
-    }
-    return "";
-}
-
 auto static make_tooltip(menu_sources& sources, form* form) -> std::shared_ptr<tooltip>
 {
     auto retValue {form->create_tooltip<tooltip>("tooltip")};
@@ -389,17 +364,24 @@ void form_menu::create_game_details(dock_layout& panelLayout)
 
         auto gvInfo {tabPanelLayout->create_widget<grid_view>({2, 1, 36, 5}, "gvInfo")};
         gvInfo->Class = "grid_view2";
-        _sources->Translator.bind([tt = gvInfo.get()](std::vector<std::string> const& val) { tt->set_columns(val, false); },
-                                  "columns", "info");
+        auto addRow {
+            [&, infoGV = gvInfo.get()](auto const& game) {
+                infoGV->clear_rows();
+                if (!_sources->Games.contains(game)) { return; }
+                auto gameInfo {_sources->Games[game].first};
+                infoGV->add_row(
+                    {_sources->Translator.translate("family", gameInfo.Family),
+                     std::to_string(gameInfo.DeckCount),
+                     gameInfo.Redeals < 0 ? "∞" : std::to_string(gameInfo.Redeals)});
+            }};
+        _sources->Translator.bind(
+            [&, addRow, infoGV = gvInfo.get()](std::vector<std::string> const& val) {
+                infoGV->set_columns(val, false);
+                addRow(_sources->SelectedGame);
+            },
+            "columns", "info");
 
-        _sources->SelectedGame.Changed.connect([&, infoGV = gvInfo.get()](auto const& game) {
-            infoGV->clear_rows();
-            auto gameInfo {_sources->Games[game].first};
-            infoGV->add_row(
-                {translate(gameInfo.Family),
-                 std::to_string(gameInfo.DeckCount),
-                 gameInfo.Redeals < 0 ? "∞" : std::to_string(gameInfo.Redeals)});
-        });
+        _sources->SelectedGame.Changed.connect(addRow);
 
         auto accRules {tabPanelLayout->create_widget<accordion>({1, 7, 38, 22}, "gvRules")};
 

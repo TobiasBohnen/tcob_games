@@ -15,41 +15,16 @@ public:
 
     void set_language(std::string const& langid);
 
-    auto bind(prop<std::string>& target, auto&& category, auto&& id, auto&&... context) -> i32
-    {
-        return bind([&target](std::string const& val) { target = val; }, category, id, context...);
-    }
+    auto translate(auto&& category, auto&& id, auto&&... context) -> std::string;
 
-    auto bind(std::function<void(std::string)>&& target, auto&& category, auto&& id, auto&&... context) -> i32
-    {
-        return bind([=, this]() {
-            auto v {_func(category, id, context...)};
-            if (std::string * item {std::get_if<std::string>(&v)}) {
-                target(*item);
-            }
-        });
-    }
-
-    auto bind(std::function<void(std::vector<std::string>)>&& target, auto&& category, auto&& id, auto&&... context) -> i32
-    {
-        return bind([=, this]() {
-            auto v {_func(category, id, context...)};
-            if (std::vector<std::string> * item {std::get_if<std::vector<std::string>>(&v)}) {
-                target(*item);
-            }
-        });
-    }
+    auto bind(prop<std::string>& target, auto&& category, auto&& id, auto&&... context) -> i32;
+    auto bind(std::function<void(std::string)>&& target, auto&& category, auto&& id, auto&&... context) -> i32;
+    auto bind(std::function<void(std::vector<std::string>)>&& target, auto&& category, auto&& id, auto&&... context) -> i32;
 
     void unbind(i32 id);
 
 private:
-    auto bind(auto&& func) -> i32
-    {
-        func();
-        auto const retValue {++_currentId};
-        _bindings.emplace_back(retValue, func);
-        return retValue;
-    }
+    auto bind(auto&& func) -> i32;
 
     scripting::lua::script _script;
 
@@ -61,4 +36,47 @@ private:
     std::string _langid;
     i32         _currentId {-1};
 };
+
+inline auto translator::translate(auto&& category, auto&& id, auto&&... context) -> std::string
+{
+    auto v {_func(category, id, context...)};
+    if (std::string * item {std::get_if<std::string>(&v)}) {
+        return *item;
+    }
+
+    return "";
+}
+
+inline auto translator::bind(prop<std::string>& target, auto&& category, auto&& id, auto&&... context) -> i32
+{
+    return bind([&target](std::string const& val) { target = val; }, category, id, context...);
+}
+
+inline auto translator::bind(std::function<void(std::string)>&& target, auto&& category, auto&& id, auto&&... context) -> i32
+{
+    return bind([=, this]() {
+        auto v {_func(category, id, context...)};
+        if (std::string * item {std::get_if<std::string>(&v)}) {
+            target(*item);
+        }
+    });
+}
+
+inline auto translator::bind(std::function<void(std::vector<std::string>)>&& target, auto&& category, auto&& id, auto&&... context) -> i32
+{
+    return bind([=, this]() {
+        auto v {_func(category, id, context...)};
+        if (std::vector<std::string> * item {std::get_if<std::vector<std::string>>(&v)}) {
+            target(*item);
+        }
+    });
+}
+
+inline auto translator::bind(auto&& func) -> i32
+{
+    func();
+    auto const retValue {++_currentId};
+    _bindings.emplace_back(retValue, func);
+    return retValue;
+}
 }
