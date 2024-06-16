@@ -224,9 +224,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
     // By Name
     {
         auto tabPanel {tabGames->create_tab<panel>("tabByName")};
-        _sources->Translator.bind(
-            [tabC = tabGames.get(), tabP = tabPanel.get()](std::string const& val) { tabC->change_tab_label(tabP, val); },
-            "ux", tabPanel->get_name());
+        _sources->Translator.bind_tab(tabGames.get(), tabPanel.get());
 
         auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
         auto listBox {createListBox(tabPanelLayout, [](auto const&) { return true; })};
@@ -239,9 +237,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
     // Recent
     {
         auto tabPanel {tabGames->create_tab<panel>("tabRecent")};
-        _sources->Translator.bind(
-            [tabC = tabGames.get(), tabP = tabPanel.get()](std::string const& val) { tabC->change_tab_label(tabP, val); },
-            "ux", tabPanel->get_name());
+        _sources->Translator.bind_tab(tabGames.get(), tabPanel.get());
 
         auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
         auto listBox {createListBox(tabPanelLayout, [](auto const&) { return false; })};
@@ -254,9 +250,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
     // By Family
     {
         auto tabContainer {tabGames->create_tab<tab_container>("tabByFamily")};
-        _sources->Translator.bind(
-            [tabC = tabGames.get(), tabP = tabContainer.get()](std::string const& val) { tabC->change_tab_label(tabP, val); },
-            "ux", tabContainer->get_name());
+        _sources->Translator.bind_tab(tabGames.get(), tabContainer.get());
 
         tabContainer->MaxTabs = 5;
 
@@ -290,9 +284,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
     // By Deck Count
     {
         auto tabContainer {tabGames->create_tab<tab_container>("tabByDeckCount")};
-        _sources->Translator.bind(
-            [tabC = tabGames.get(), tabP = tabContainer.get()](std::string const& val) { tabC->change_tab_label(tabP, val); },
-            "ux", tabContainer->get_name());
+        _sources->Translator.bind_tab(tabGames.get(), tabContainer.get());
         tabContainer->MaxTabs = 5;
 
         auto const createTab {[&](isize count, std::string const& name) {
@@ -311,9 +303,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
         }
         {
             auto tabPanel {tabContainer->create_tab<panel>("tabStripped")};
-            _sources->Translator.bind(
-                [tabC = tabContainer.get(), tabP = tabPanel.get()](std::string const& val) { tabC->change_tab_label(tabP, val); },
-                "ux", tabPanel->get_name());
+            _sources->Translator.bind_tab(tabContainer.get(), tabPanel.get());
 
             auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
             createListBox(tabPanelLayout, [](auto const& gameInfo) { return gameInfo.DeckRanks.size() < 13 || gameInfo.DeckSuits.size() < 4; });
@@ -356,9 +346,7 @@ void form_menu::create_game_details(dock_layout& panelLayout)
     // info tab
     {
         auto tabPanel {tabGameDetails->create_tab<panel>("tabInfo")};
-        _sources->Translator.bind(
-            [tabC = tabGameDetails.get(), tabP = tabPanel.get()](std::string const& val) { tabC->change_tab_label(tabP, val); },
-            "ux", tabPanel->get_name());
+        _sources->Translator.bind_tab(tabGameDetails.get(), tabPanel.get());
 
         auto tabPanelLayout {tabPanel->create_layout<grid_layout>(size_i {40, 30})};
 
@@ -431,25 +419,20 @@ void form_menu::create_game_details(dock_layout& panelLayout)
     // stats tab
     {
         auto tabPanel {tabGameDetails->create_tab<panel>("tabStats")};
-        _sources->Translator.bind(
-            [tabC = tabGameDetails.get(), tabP = tabPanel.get()](std::string const& val) { tabC->change_tab_label(tabP, val); },
-            "ux", tabPanel->get_name());
+        _sources->Translator.bind_tab(tabGameDetails.get(), tabPanel.get());
 
         auto tabPanelLayout {tabPanel->create_layout<grid_layout>(size_i {40, 30})};
 
         auto gvWL {tabPanelLayout->create_widget<grid_view>({1, 1, 18, 5}, "gvWinLose")};
         gvWL->Class = "grid_view2";
-        _sources->Translator.bind([tt = gvWL.get()](std::vector<std::string> const& val) { tt->set_columns(val, false); },
-                                  "columns", "wl");
+        _sources->Translator.bind_grid_header(gvWL.get(), "wl");
 
         auto gvScore {tabPanelLayout->create_widget<grid_view>({21, 1, 18, 5}, "gvBest")};
         gvScore->Class = "grid_view2";
-        _sources->Translator.bind([tt = gvScore.get()](std::vector<std::string> const& val) { tt->set_columns(val, false); },
-                                  "columns", "score");
+        _sources->Translator.bind_grid_header(gvScore.get(), "score");
 
         auto gvHistory {tabPanelLayout->create_widget<grid_view>({1, 7, 38, 22}, "gvHistory")};
-        _sources->Translator.bind([tt = gvHistory.get()](std::vector<std::string> const& val) { tt->set_columns(val, false); },
-                                  "columns", "history");
+        _sources->Translator.bind_grid_header(gvHistory.get(), "history");
 
         _sources->SelectedHistory.Changed.connect([wl = gvWL.get(), tt = gvScore.get(), history = gvHistory.get()](auto const& stats) {
             wl->clear_rows();
@@ -498,9 +481,7 @@ void form_menu::create_settings_video(tab_container& tabContainer)
 {
     auto const& config {locate_service<data::config_file>()};
     auto        tabPanel {tabContainer.create_tab<panel>("tabVideo")};
-    _sources->Translator.bind(
-        [tabC = &tabContainer, tabP = tabPanel.get()](std::string const& val) { tabC->change_tab_label(tabP, val); },
-        "ux", tabPanel->get_name());
+    _sources->Translator.bind_tab(&tabContainer, tabPanel.get());
 
     auto tabPanelLayout {tabPanel->create_layout<grid_layout>(size_i {40, 40})};
 
@@ -547,9 +528,7 @@ void form_menu::create_settings_video(tab_container& tabContainer)
 void form_menu::create_settings_hints(tab_container& tabContainer)
 {
     auto tabPanel {tabContainer.create_tab<panel>("tabHints")};
-    _sources->Translator.bind(
-        [tabC = &tabContainer, tabP = tabPanel.get()](std::string const& val) { tabC->change_tab_label(tabP, val); },
-        "ux", tabPanel->get_name());
+    _sources->Translator.bind_tab(&tabContainer, tabPanel.get());
 
     auto tabPanelLayout {tabPanel->create_layout<grid_layout>(size_i {40, 40})};
 

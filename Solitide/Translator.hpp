@@ -23,6 +23,10 @@ public:
 
     void unbind(i32 id);
 
+    // helper
+    void bind_tab(tab_container* container, widget* tab);
+    void bind_grid_header(grid_view* gv, std::string const& id);
+
 private:
     auto bind(auto&& func) -> i32;
 

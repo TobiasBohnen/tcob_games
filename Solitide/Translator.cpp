@@ -40,4 +40,14 @@ void translator::unbind(i32 id)
     }
 }
 
+void translator::bind_tab(tab_container* container, widget* tab)
+{
+    bind([=](std::string const& val) { container->change_tab_label(tab, val); }, "ux", tab->get_name());
+}
+
+void translator::bind_grid_header(grid_view* gv, std::string const& id)
+{
+    bind([=](std::vector<std::string> const& val) { gv->set_columns(val, false); }, "columns", id);
+}
+
 } // namespace solitaire

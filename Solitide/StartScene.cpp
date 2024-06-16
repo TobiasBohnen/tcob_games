@@ -65,7 +65,10 @@ start_scene::start_scene(game& game)
     _cardTable = std::make_shared<card_table>(&window, _formControls->Canvas.get(), resGrp, &_sources->Settings);
 
     _cardTable->HoverChange.connect([&](pile* const pile) {
-        if (!pile) { return; }
+        if (!pile) {
+            _formControls->set_pile_labels({});
+            return;
+        }
 
         pile_description str;
         str.Pile      = get_pile_type_name(pile->Type);
