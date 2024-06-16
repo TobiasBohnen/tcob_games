@@ -17,7 +17,7 @@ auto move_top(pile const* target, isize idx) -> bool
     return idx == target->size() - 1;
 }
 
-auto empty_none(card const&, isize) -> bool
+auto base_none(card const&, isize) -> bool
 {
     return false;
 }
@@ -94,7 +94,7 @@ void pile::flip_down_top_card()
     if (!empty()) { Cards.back().flip_face_down(); }
 }
 
-auto static get_base_cards(empty_func const& func) -> std::multimap<rank, suit>
+auto static get_base_cards(base_func const& func) -> std::multimap<rank, suit>
 {
     std::multimap<rank, suit> retValue;
 
@@ -120,7 +120,6 @@ auto get_pile_type_name(pile_type pt) -> std::string
     case pile_type::FreeCell: return "FreeCell";
     }
 
-    // TODO: translate
     return "";
 }
 

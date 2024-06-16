@@ -1173,7 +1173,7 @@ local sawayama = { --from Last Call BBS
         Position = { x = 1, y = 0 },
         Rule     = {
             Base = {
-                Hint = "Any",
+                Hint = { "Any" },
                 Func = function(game, _, _)
                     return game.Stock[1].IsEmpty
                 end
@@ -1230,7 +1230,7 @@ local russian_patience = {
                 Rule     = {
                     Base = Sol.Rules.Base.Ace(),
                     Build = {
-                        Hint = "Up by suit",
+                        Hint = { "UpInSuit" },
                         Func = function(_, base, drop)
                             if base.Suit ~= drop.Suit then return false end
                             local target = russian_patience_rankvalues[base.Rank] + 1
@@ -1252,7 +1252,7 @@ local russian_patience = {
                 Rule     = {
                     Base = Sol.Rules.Base.AnySingle(),
                     Build = {
-                        Hint = "Down by alternate color",
+                        Hint = { "DownAlternateColors" },
                         Func = function(_, base, drop)
                             if base.Color == drop.Color then return false end
                             local target = russian_patience_rankvalues[base.Rank] - 1

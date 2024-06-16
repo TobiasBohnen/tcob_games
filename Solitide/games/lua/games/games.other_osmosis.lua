@@ -82,7 +82,7 @@ local osmosis = {
                 build = Sol.Rules.Build.InSuit()
             else
                 build = {
-                    Hint = "By same rank",
+                    Hint = { "InRank" },
                     Func = osmosis_build
                 }
             end
@@ -141,7 +141,7 @@ osmium.Foundation = {
             Layout  = Sol.Pile.Layout.Row,
             Rule    = {
                 Base = Sol.Rules.Base.FirstFoundation(),
-                Build = { Hint = "By same rank", Func = osmium_build },
+                Build = { Hint = { "InRank" }, Func = osmium_build },
                 Move = Sol.Rules.Move.None()
             }
         }
@@ -181,7 +181,7 @@ local open_peek = {
             Rule   = {
                 Base = Sol.Rules.Base.FirstFoundation(),
                 Build = {
-                    Hint = "By same rank",
+                    Hint = { "InRank" },
                     Func = osmosis_build
                 },
                 Move = Sol.Rules.Move.None()
@@ -216,7 +216,7 @@ open_osmium.Foundation.Pile = {
     Layout = Sol.Pile.Layout.Row,
     Rule   = {
         Base = Sol.Rules.Base.FirstFoundation(),
-        Build = { Hint = "By same rank", Func = osmium_build },
+        Build = { Hint = { "InRank" }, Func = osmium_build },
         Move = Sol.Rules.Move.None()
     }
 }

@@ -74,7 +74,6 @@ start_scene::start_scene(game& game)
         str.Pile      = get_pile_type_name(pile->Type);
         str.CardCount = std::to_string(pile->size());
 
-        // TODO: translate
         data::config::array rules;
         auto const&         gameObj {_currentRules};
         if (!gameObj.try_get(rules, str.Pile, "rules")) { return; }
@@ -259,11 +258,13 @@ void start_scene::on_key_down(input::keyboard::event& ev)
 
     if (ev.KeyCode == input::key_code::g) {
         _sources->Translator.set_language("de-DE");
-        ev.Handled = true;
+        _currentRules = generate_rule(_sources->Settings.LastGame);
+        ev.Handled    = true;
     }
     if (ev.KeyCode == input::key_code::e) {
         _sources->Translator.set_language("en-US");
-        ev.Handled = true;
+        _currentRules = generate_rule(_sources->Settings.LastGame);
+        ev.Handled    = true;
     }
 }
 
@@ -420,9 +421,9 @@ auto start_scene::generate_rule(std::string const& name) const -> data::config::
             flat_map<game_rule, std::vector<i32>> pileRules;
             for (auto const* pile : piles) {
                 game_rule desc;
-                desc.Base  = pile->Rule.BaseHint;
-                desc.Build = pile->Rule.BuildHint;
-                desc.Move  = pile->Rule.MoveHint;
+                desc.Base  = _sources->Translator.translate("rule", "base", pile->Rule.BaseHint);
+                desc.Build = _sources->Translator.translate("rule", "build", pile->Rule.BuildHint);
+                desc.Move  = _sources->Translator.translate("rule", "move", pile->Rule.MoveHint);
                 pileRules[desc].push_back(pile->Index);
             }
             for (auto const& [k, v] : pileRules) {
@@ -431,6 +432,7 @@ auto start_scene::generate_rule(std::string const& name) const -> data::config::
                 rule["base"]  = k.Base;
                 rule["build"] = k.Build;
                 rule["move"]  = k.Move;
+                // TODO: create long description
                 pileRulesArr.add(rule);
             }
         }};

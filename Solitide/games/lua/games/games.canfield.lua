@@ -409,7 +409,7 @@ local the_plot = {
             Layout  = Sol.Pile.Layout.Column,
             Rule    = {
                 Base = {
-                    Hint = "Any",
+                    Hint = { "Any" },
                     Func = function(game, card, numCards)
                         if numCards > 1 then return false end
                         -- base is first foundation card until first pile is complete

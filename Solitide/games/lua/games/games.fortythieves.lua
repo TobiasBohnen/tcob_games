@@ -215,7 +215,7 @@ following.Foundation     = {
         Rule = {
             Base = Sol.Rules.Base.Ace(),
             Build = {
-                Hint = "Up by rank (H, C, D, S)",
+                Hint = { "UpByRank" }, --custom (H, C, D, S)
                 Func = following_build(1)
             },
             Move = Sol.Rules.Move.Top()
@@ -230,7 +230,7 @@ following.Tableau        = {
         Rule    = {
             Base = Sol.Rules.Base.Any(),
             Build = {
-                Hint = "Down by rank (H, C, D, S)",
+                Hint = { "DownByRank" }, --custom (H, C, D, S)
                 Func = following_build(-1)
             },
             Move = Sol.Rules.Move.InSeq()

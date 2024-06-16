@@ -216,7 +216,7 @@ giant.Foundation.Pile.Rule = {
     Base = Sol.Rules.Base.Ace(),
     Build = Sol.Rules.Build.UpInSuit(),
     Move = {
-        Hint = "Top card (if Stock is empty)",
+        Hint = { "Top" }, --custom if Stock is empty
         IsSequence = false,
         IsPlayable = function(game) return game.Stock[1].IsEmpty end,
         Func = function(_, target, idx) return idx == target.CardCount end
@@ -614,7 +614,7 @@ local swiss_patience = {
                 Rule    = {
                     Base = Sol.Rules.Base.Ace(),
                     Build = {
-                        Hint = "Down by alternate color",
+                        Hint = { "DownAlternateColors" },
                         Func = function(_, base, drop)
                             return base.Color ~= drop.Color and swiss_patience_get_rank(base) == drop.Rank
                         end

@@ -30,24 +30,24 @@ struct pile_description {
 
 using build_func    = std::function<bool(card const&, card const&)>;
 using move_func     = std::function<bool(pile const*, isize)>;
-using empty_func    = std::function<bool(card const&, isize)>;
+using base_func     = std::function<bool(card const&, isize)>;
 using playable_func = std::function<bool()>;
 
 auto build_none(card const&, card const&) -> bool;
 auto move_top(pile const* target, isize idx) -> bool;
-auto empty_none(card const&, isize) -> bool;
+auto base_none(card const&, isize) -> bool;
 
 struct rule {
-    std::string BuildHint {"No building"};
-    build_func  Build {build_none};
+    std::vector<std::string> BuildHint {"None"};
+    build_func               Build {build_none};
 
-    bool          IsSequence {false};
-    playable_func IsPlayable {[] { return true; }};
-    std::string   MoveHint {"Top"};
-    move_func     Move {move_top};
+    bool                     IsSequence {false};
+    playable_func            IsPlayable {[] { return true; }};
+    std::vector<std::string> MoveHint {"Top"};
+    move_func                Move {move_top};
 
-    std::string BaseHint {"None"};
-    empty_func  Base {empty_none};
+    std::vector<std::string> BaseHint {"None"};
+    base_func                Base {base_none};
 
     i32 Limit {UNLIMITED};
 };

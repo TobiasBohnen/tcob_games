@@ -34,7 +34,7 @@ local rules = {
 local build = {
     None                    = function(_, _)
         return {
-            Hint = "None",
+            Hint = { "None" },
             Func = function(_, _, _)
                 return false
             end
@@ -42,7 +42,7 @@ local build = {
     end,
     Any                     = function(_, _)
         return {
-            Hint = "Any card",
+            Hint = { "Any" },
             Func = function(_, _, _)
                 return true
             end
@@ -51,7 +51,7 @@ local build = {
 
     InRank                  = function(_, _)
         return {
-            Hint = "By same rank",
+            Hint = { "InRank" },
             Func = function(_, base, drop)
                 return rules.in_rank(base, drop)
             end
@@ -62,7 +62,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Down by rank or by same rank",
+            Hint = { "InRankOrDownByRank" },
             Func = function(_, base, drop)
                 return rules.in_rank(base, drop) or rules.build_down(base, drop, wrap, interval)
             end
@@ -73,7 +73,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "By same rank, then up by rank",
+            Hint = { "RankPack" },
             Func = function(game, base, drop)
                 local count = game:find_pile(base).CardCount
                 if count > 0 and count % (game.DeckCount * 4) == 0 then
@@ -88,7 +88,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Up or down by rank",
+            Hint = { "UpOrDownByRank" },
             Func = function(_, base, drop)
                 return rules.build_up_or_down(base, drop, wrap, interval)
             end
@@ -98,7 +98,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Down by rank",
+            Hint = { "DownByRank" },
             Func = function(_, base, drop)
                 return rules.build_down(base, drop, wrap, interval)
             end
@@ -108,7 +108,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Up by rank",
+            Hint = { "UpByRank" },
             Func = function(_, base, drop)
                 return rules.build_up(base, drop, wrap, interval)
             end
@@ -119,7 +119,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Up or down by any suit but own",
+            Hint = { "UpOrDownAnyButOwnSuit" },
             Func = function(_, base, drop)
                 return not rules.in_suit(base, drop) and rules.build_up_or_down(base, drop, wrap, interval)
             end
@@ -129,7 +129,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Down by any suit but own",
+            Hint = { "DownAnyButOwnSuit" },
             Func = function(_, base, drop)
                 return not rules.in_suit(base, drop) and rules.build_down(base, drop, wrap, interval)
             end
@@ -139,7 +139,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Up by any suit but own",
+            Hint = { "UpAnyButOwnSuit" },
             Func = function(_, base, drop)
                 return not rules.in_suit(base, drop) and rules.build_up(base, drop, wrap, interval)
             end
@@ -148,7 +148,7 @@ local build = {
 
     InSuit                  = function(_, _)
         return {
-            Hint = "By same suit",
+            Hint = { "InSuit" },
             Func = function(_, base, drop)
                 return rules.in_suit(base, drop)
             end
@@ -159,7 +159,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Up or down by suit",
+            Hint = { "UpOrDownInSuit" },
             Func = function(_, base, drop)
                 return rules.in_suit(base, drop) and rules.build_up_or_down(base, drop, wrap, interval)
             end
@@ -169,7 +169,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Down by suit",
+            Hint = { "DownInSuit" },
             Func = function(_, base, drop)
                 return rules.in_suit(base, drop) and rules.build_down(base, drop, wrap, interval)
             end
@@ -179,7 +179,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Up by suit",
+            Hint = { "UpInSuit" },
             Func = function(_, base, drop)
                 return rules.in_suit(base, drop) and rules.build_up(base, drop, wrap, interval)
             end
@@ -190,7 +190,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Up or down by color",
+            Hint = { "UpOrDownInColor" },
             Func = function(_, base, drop)
                 return rules.in_color(base, drop) and rules.build_up_or_down(base, drop, wrap, interval)
             end
@@ -200,7 +200,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Down by color",
+            Hint = { "DownInColor" },
             Func = function(_, base, drop)
                 return rules.in_color(base, drop) and rules.build_down(base, drop, wrap, interval)
             end
@@ -210,7 +210,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Up by color",
+            Hint = { "UpInColor" },
             Func = function(_, base, drop)
                 return rules.in_color(base, drop) and rules.build_up(base, drop, wrap, interval)
             end
@@ -221,7 +221,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Up or down by alternate color",
+            Hint = { "UpOrDownAlternateColors" },
             Func = function(_, base, drop)
                 return rules.alternate_color(base, drop) and rules.build_up_or_down(base, drop, wrap, interval)
             end
@@ -231,7 +231,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Down by alternate color",
+            Hint = { "DownAlternateColors" },
             Func = function(_, base, drop)
                 return rules.alternate_color(base, drop) and rules.build_down(base, drop, wrap, interval)
             end
@@ -241,7 +241,7 @@ local build = {
         interval = interval or 1
         wrap = wrap or false
         return {
-            Hint = "Up by alternate color",
+            Hint = { "UpAlternateColors" },
             Func = function(_, base, drop)
                 return rules.alternate_color(base, drop) and rules.build_up(base, drop, wrap, interval)
             end
@@ -252,37 +252,37 @@ local build = {
 local move = {
     None = function()
         return {
-            Hint = "None",
+            Hint       = { "None" },
             IsPlayable = function(_) return false end,
             IsSequence = false
         }
     end,
     Top = function()
         return {
-            Hint = "Top card",
+            Hint       = { "Top" },
             IsPlayable = function(_) return true end,
             IsSequence = false,
-            Func = function(_, pile, idx)
+            Func       = function(_, pile, idx)
                 return idx == pile.CardCount
             end
         }
     end,
     TopOrPile = function()
         return {
-            Hint = "Top card or whole pile",
+            Hint       = { "TopOrPile" },
             IsPlayable = function(_) return true end,
             IsSequence = true,
-            Func = function(_, pile, idx)
+            Func       = function(_, pile, idx)
                 return idx == pile.CardCount or idx == 1
             end
         }
     end,
     FaceUp = function()
         return {
-            Hint = "Face-up cards",
+            Hint       = { "FaceUp" },
             IsPlayable = function(_) return true end,
             IsSequence = true,
-            Func = function(_, pile, idx)
+            Func       = function(_, pile, idx)
                 for i = idx, pile.CardCount do
                     if not pile.Cards[i].IsFaceUp then return false end
                 end
@@ -292,10 +292,10 @@ local move = {
     end,
     InSeq = function()
         return {
-            Hint = "Sequence of cards",
+            Hint       = { "InSeq" },
             IsPlayable = function(_) return true end,
             IsSequence = true,
-            Func = function(game, pile, idx)
+            Func       = function(game, pile, idx)
                 local cards = pile.Cards
                 if cards[idx].IsFaceDown then return false end
                 for i = idx, #cards - 1 do
@@ -307,10 +307,10 @@ local move = {
     end,
     InSeqInSuit = function() -- in sequence and in suit
         return {
-            Hint = "Sequence of cards in the same suit",
+            Hint       = { "InSeqInSuit" },
             IsPlayable = function(_) return true end,
             IsSequence = true,
-            Func = function(game, pile, idx)
+            Func       = function(game, pile, idx)
                 local cards = pile.Cards
                 if cards[idx].IsFaceDown then return false end
 
@@ -328,10 +328,10 @@ local move = {
     end,
     InSeqInColor = function() -- in sequence and in color
         return {
-            Hint = "Sequence of cards in the same color",
+            Hint       = { "InSeqInColor" },
             IsPlayable = function(_) return true end,
             IsSequence = true,
-            Func = function(game, pile, idx)
+            Func       = function(game, pile, idx)
                 local cards = pile.Cards
                 if cards[idx].IsFaceDown then return false end
 
@@ -349,10 +349,10 @@ local move = {
     end,
     InSeqAlternateColors = function() -- in sequence and alternate colors
         return {
-            Hint = "Color-alternating card sequence",
+            Hint       = { "InSeqAlternateColors" },
             IsPlayable = function(_) return true end,
             IsSequence = true,
-            Func = function(game, pile, idx)
+            Func       = function(game, pile, idx)
                 local cards = pile.Cards
                 if cards[idx].IsFaceDown then return false end
 
@@ -370,10 +370,10 @@ local move = {
     end,
     InSeqInSuitOrSameRank = function() -- in sequence and (in suit or same rank)
         return {
-            Hint = "Sequence of cards in the same suit or rank",
+            Hint       = { "InSeqInSuitOrSameRank" },
             IsPlayable = function(_) return true end,
             IsSequence = true,
-            Func = function(game, pile, idx)
+            Func       = function(game, pile, idx)
                 local cards = pile.Cards
                 if cards[idx].IsFaceDown then return false end
                 local targetSuit = cards[idx].Suit
@@ -402,10 +402,10 @@ local move = {
     end,
     SuperMove = function()
         return {
-            Hint = "Top card (SuperMove)",
+            Hint       = { "SuperMove" },
             IsPlayable = function(_) return true end,
             IsSequence = true,
-            Func = function(game, pile, idx)
+            Func       = function(game, pile, idx)
                 local cards = pile.Cards
                 if cards[idx].IsFaceDown then return false end
 
@@ -432,7 +432,7 @@ local move = {
 local base = {
     Ace = function()
         return {
-            Hint = "Ace",
+            Hint = { "Ace" },
             Func = function(_, card, _)
                 return card.Rank == "Ace"
             end
@@ -440,7 +440,7 @@ local base = {
     end,
     King = function()
         return {
-            Hint = "King",
+            Hint = { "King" },
             Func = function(_, card, _)
                 return card.Rank == "King"
             end
@@ -448,15 +448,13 @@ local base = {
     end,
     None = function()
         return {
-            Hint = "None",
-            Func = function(_, _, _)
-                return false
-            end
+            Hint = { "None" },
+            Func = function(_, _, _) return false end
         }
     end,
     Any = function()
         return {
-            Hint = "Any",
+            Hint = { "Any" },
             Func = function(_, _, _)
                 return true
             end
@@ -464,7 +462,7 @@ local base = {
     end,
     AnySingle = function()
         return {
-            Hint = "Any; no sequences",
+            Hint = { "AnySingle" },
             Func = function(_, _, numCards)
                 return numCards == 1
             end
@@ -478,7 +476,7 @@ local base = {
             if interval > 0 then intervalStr = "+" .. intervalStr end
         end
         return {
-            Hint = "Rank" .. intervalStr .. " of first foundation card",
+            Hint = { "FirstFoundation", intervalStr },
             Func = function(game, card, _)
                 local rank = game.Storage["foundation_base"]
                 if rank == nil then
@@ -494,7 +492,7 @@ local base = {
     end,
     Card = function(suit, rank)
         return {
-            Hint = rank .. " of " .. suit,
+            Hint = { "Card", suit, rank },
             Func = function(_, card, _)
                 return card.Rank == rank and card.Suit == suit
             end
@@ -502,7 +500,7 @@ local base = {
     end,
     ColorRank = function(color, rank)
         return {
-            Hint = color .. " " .. rank,
+            Hint = { "ColorRank", color, rank },
             Func = function(_, card, _)
                 return card.Rank == rank and card.Color == color
             end
@@ -510,7 +508,7 @@ local base = {
     end,
     Suits = function(suits)
         return {
-            Hint = table.concat(suits, "/"),
+            Hint = { "Suits", table.unpack(suits) },
             Func = function(_, card, _)
                 for _, value in ipairs(suits) do
                     if value == card.Suit then
@@ -523,7 +521,7 @@ local base = {
     end,
     Ranks = function(ranks)
         return {
-            Hint = table.concat(ranks, "/"),
+            Hint = { "Ranks", table.unpack(ranks) },
             Func = function(_, card, _)
                 for _, value in ipairs(ranks) do
                     if value == card.Rank then
@@ -536,7 +534,7 @@ local base = {
     end,
     SuitStack = function()
         return {
-            Hint = "King to Ace",
+            Hint = { "SuitStack" },
             Func = function(game, card, numCards)
                 if numCards ~= 13 or card.Rank ~= "King" then return false end
 
@@ -598,5 +596,5 @@ return {
     ff_upsuit_top = { Base = base.FirstFoundation(), Build = build.UpInSuit(true), Move = move.Top() },
     ff_upsuit_none = { Base = base.FirstFoundation(), Build = build.UpInSuit(true), Move = move.None() },
     spider_tableau = { Base = base.Any(), Build = build.DownByRank(), Move = move.InSeqInSuit() },
-    spider_foundation = { Base = base.SuitStack(), Build = build.None(), Move = { Hint = "None", IsPlayable = function(_) return false end, IsSequence = true } }
+    spider_foundation = { Base = base.SuitStack(), Build = build.None(), Move = { Hint = { "None" }, IsPlayable = function(_) return false end, IsSequence = true } }
 }

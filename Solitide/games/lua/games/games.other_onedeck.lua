@@ -245,7 +245,7 @@ local dimensions = {
                 Rule     = {
                     Base = Sol.Rules.Base.Any(),
                     Build = {
-                        Hint = "By same suit or same rank",
+                        Hint = { "InSuit" }, --custom By same suit or same rank
                         Func = function(_, base, drop)
                             return base.Suit == drop.Suit or base.Rank == drop.Rank
                         end

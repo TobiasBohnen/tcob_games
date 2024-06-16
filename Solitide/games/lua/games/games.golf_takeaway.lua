@@ -53,7 +53,7 @@ local striptease = {
             Rule   = {
                 Base = Sol.Rules.Base.Any(),
                 Build = {
-                    Hint = "Up or down by rank",
+                    Hint = { "UpOrDownByRank" },
                     Func = function(_, base, drop)
                         if base.Rank == "Queen" or drop.Rank == "Queen" then return false end
                         if base.Rank == "Jack" and drop.Rank == "King" then return true end

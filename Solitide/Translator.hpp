@@ -15,11 +15,11 @@ public:
 
     void set_language(std::string const& langid);
 
-    auto translate(auto&& category, auto&& id, auto&&... context) -> std::string;
+    auto translate(auto&&... args) -> std::string;
 
-    auto bind(prop<std::string>& target, auto&& category, auto&& id, auto&&... context) -> i32;
-    auto bind(std::function<void(std::string)>&& target, auto&& category, auto&& id, auto&&... context) -> i32;
-    auto bind(std::function<void(std::vector<std::string>)>&& target, auto&& category, auto&& id, auto&&... context) -> i32;
+    auto bind(prop<std::string>& target, auto&& category, auto&& id) -> i32;
+    auto bind(std::function<void(std::string)>&& target, auto&& category, auto&& id) -> i32;
+    auto bind(std::function<void(std::vector<std::string>)>&& target, auto&& category, auto&& id) -> i32;
 
     void unbind(i32 id);
 
@@ -41,9 +41,9 @@ private:
     i32         _currentId {-1};
 };
 
-inline auto translator::translate(auto&& category, auto&& id, auto&&... context) -> std::string
+inline auto translator::translate(auto&&... args) -> std::string
 {
-    auto v {_func(category, id, context...)};
+    auto v {_func(args...)};
     if (std::string * item {std::get_if<std::string>(&v)}) {
         return *item;
     }
@@ -51,25 +51,25 @@ inline auto translator::translate(auto&& category, auto&& id, auto&&... context)
     return "";
 }
 
-inline auto translator::bind(prop<std::string>& target, auto&& category, auto&& id, auto&&... context) -> i32
+inline auto translator::bind(prop<std::string>& target, auto&& category, auto&& id) -> i32
 {
-    return bind([&target](std::string const& val) { target = val; }, category, id, context...);
+    return bind([&target](std::string const& val) { target = val; }, category, id);
 }
 
-inline auto translator::bind(std::function<void(std::string)>&& target, auto&& category, auto&& id, auto&&... context) -> i32
+inline auto translator::bind(std::function<void(std::string)>&& target, auto&& category, auto&& id) -> i32
 {
     return bind([=, this]() {
-        auto v {_func(category, id, context...)};
+        auto v {_func(category, id)};
         if (std::string * item {std::get_if<std::string>(&v)}) {
             target(*item);
         }
     });
 }
 
-inline auto translator::bind(std::function<void(std::vector<std::string>)>&& target, auto&& category, auto&& id, auto&&... context) -> i32
+inline auto translator::bind(std::function<void(std::vector<std::string>)>&& target, auto&& category, auto&& id) -> i32
 {
     return bind([=, this]() {
-        auto v {_func(category, id, context...)};
+        auto v {_func(category, id)};
         if (std::vector<std::string> * item {std::get_if<std::vector<std::string>>(&v)}) {
             target(*item);
         }

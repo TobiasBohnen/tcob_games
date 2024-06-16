@@ -33,7 +33,7 @@ local dumfries = {
                 Rule     = {
                     Base = Sol.Rules.Base.Any(),
                     Build = {
-                        Hint = "Same rank or down by alternate color",
+                        Hint = { "DownAlternateColors" }, --custom "Same rank or down by alternate color"
                         Func = function(_, base, drop)
                             return base.Color ~= drop.Color and (base.Rank == drop.Rank or Sol.get_rank(base.Rank, -1, false) == drop.Rank)
                         end
