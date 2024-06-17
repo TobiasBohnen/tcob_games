@@ -249,37 +249,36 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
     }
     // By Family
     {
-        auto tabContainer {tabGames->create_tab<tab_container>("tabByFamily")};
-        _sources->Translator.bind_tab(tabGames.get(), tabContainer.get());
+        auto acc {tabGames->create_tab<accordion>("tabByFamily")};
+        acc->Class                 = "accordion2";
+        acc->MaximizeActiveSection = true;
+        _sources->Translator.bind_tab(tabGames.get(), acc.get());
 
-        tabContainer->MaxTabs = 5;
-
-        auto const createTab {[&](family family) {
-            auto tabPanel {tabContainer->create_tab<panel>("")};
-            auto tabPanelLayout {tabPanel->create_layout<dock_layout>()};
+        auto const createSection {[&](family family) {
+            auto secPanel {acc->create_section<panel>("")};
+            auto secPanelLayout {secPanel->create_layout<dock_layout>()};
             _sources->Translator.bind(
-                [tabC = tabContainer.get(), tabP = tabPanel.get()](std::string const& val) { tabC->change_tab_label(tabP, val); },
+                [tabC = acc.get(), tabP = secPanel.get()](std::string const& val) { tabC->change_section_label(tabP, val); },
                 "family", family);
-            createListBox(tabPanelLayout, [family](auto const& gameInfo) { return gameInfo.Family == family; });
+            createListBox(secPanelLayout, [family](auto const& gameInfo) { return gameInfo.Family == family; });
         }};
-        createTab(family::BakersDozen);
-        createTab(family::BeleagueredCastle);
-        createTab(family::Canfield);
-        createTab(family::Fan);
-        createTab(family::FlowerGarden);
-        createTab(family::FortyThieves);
-        createTab(family::FreeCell);
-        createTab(family::Golf);
-        createTab(family::Gypsy);
-        createTab(family::Klondike);
-        createTab(family::Montana);
-        createTab(family::Numerica);
-        createTab(family::PictureGallery);
-        createTab(family::Spider);
-        createTab(family::Terrace);
-        createTab(family::Yukon);
-
-        createTab(family::Other);
+        createSection(family::BakersDozen);
+        createSection(family::BeleagueredCastle);
+        createSection(family::Canfield);
+        createSection(family::Fan);
+        createSection(family::FlowerGarden);
+        createSection(family::FortyThieves);
+        createSection(family::FreeCell);
+        createSection(family::Golf);
+        createSection(family::Gypsy);
+        createSection(family::Klondike);
+        createSection(family::Montana);
+        createSection(family::Numerica);
+        createSection(family::PictureGallery);
+        createSection(family::Spider);
+        createSection(family::Terrace);
+        createSection(family::Yukon);
+        createSection(family::Other);
     }
     // By Deck Count
     {
