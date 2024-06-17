@@ -72,40 +72,40 @@ form_controls::form_controls(gfx::window* window, assets::group& resGrp, std::sh
     {
         auto statusPanel {mainPanelLayout->create_widget<panel>(dock_style::Bottom, "status")};
         statusPanel->Flex = {100_pct, 10_pct};
-        auto statusPanelLayout {statusPanel->create_layout<grid_layout>(size_i {20, 6})};
+        auto statusPanelLayout {statusPanel->create_layout<grid_layout>(size_i {40, 6})};
 
         i32        lbID {0};
         auto const create {[&](rect_i const& rect, std::string const& id = "") {
             auto l {statusPanelLayout->create_widget<label>(rect, "lblStatus" + std::to_string(lbID++))};
-            l->Class = "label-small";
+            l->Class = "label-margin";
             if (!id.empty()) {
                 _sources->Translator.bind(l->Label, "status", id);
             }
             return l;
         }};
 
-        _lblGameName = create({0, 0, 2, 6});
+        _lblGameName = create({0, 0, 4, 6});
 
-        _lblPile           = create({2, 3, 2, 3});
-        _lblPileLabel      = create({2, 0, 2, 3}, "Pile");
-        _lblCardCount      = create({4, 3, 1, 3});
-        _lblCardCountLabel = create({4, 0, 1, 3}, "Cards");
+        _lblPile           = create({4, 3, 4, 3});
+        _lblPileLabel      = create({4, 0, 4, 3}, "Pile");
+        _lblCardCount      = create({8, 3, 2, 3});
+        _lblCardCountLabel = create({8, 0, 2, 3}, "Cards");
 
-        _lblBase             = create({6, 3, 3, 3});
-        _lblBaseLabel        = create({6, 0, 3, 3});
-        _lblDescription      = create({9, 3, 3, 3});
-        _lblDescriptionLabel = create({9, 0, 3, 3});
-        _lblMove             = create({12, 3, 3, 3});
-        _lblMoveLabel        = create({12, 0, 3, 3});
+        _lblBase             = create({11, 3, 6, 3});
+        _lblBaseLabel        = create({11, 0, 6, 3});
+        _lblDescription      = create({17, 3, 10, 3});
+        _lblDescriptionLabel = create({17, 0, 10, 3});
+        _lblMove             = create({27, 3, 6, 3});
+        _lblMoveLabel        = create({27, 0, 6, 3});
 
-        _lblTurns      = create({17, 3, 1, 3});
-        _lblTurnsLabel = create({17, 0, 1, 3}, "Turns");
+        _lblTurns      = create({34, 3, 2, 3});
+        _lblTurnsLabel = create({34, 0, 2, 3}, "Turns");
 
-        _lblScore      = create({18, 3, 1, 3});
-        _lblScoreLabel = create({18, 0, 1, 3}, "Score");
+        _lblScore      = create({36, 3, 2, 3});
+        _lblScoreLabel = create({36, 0, 2, 3}, "Score");
 
-        _lblTime      = create({19, 3, 1, 3});
-        _lblTimeLabel = create({19, 0, 1, 3}, "Time");
+        _lblTime      = create({38, 3, 2, 3});
+        _lblTimeLabel = create({38, 0, 2, 3}, "Time");
     }
 
     auto overlayPanel {mainPanelLayout->create_widget<glass>(dock_style::Fill, "overlay")};
@@ -326,7 +326,7 @@ void form_menu::create_game_details(dock_layout& panelLayout)
 
     auto lblSeed {panelGameStatsLayout->create_widget<label>({1, 33, 4, 2}, "lblSeed")};
     _sources->Translator.bind(lblSeed->Label, "ux", lblSeed->get_name());
-    lblSeed->Class = "label-small";
+    lblSeed->Class = "label-margin";
     _txbSeed       = panelGameStatsLayout->create_widget<text_box>({6, 33, 8, 2}, "txbSeed");
     _txbSeed->BeforeTextInserted.connect([](text_event& ev) {
         if (ev.Text.empty()) { return; }
@@ -386,7 +386,7 @@ void form_menu::create_game_details(dock_layout& panelLayout)
                 auto createRule {[&](grid_layout& layout, data::config::object const& rule) {
                     auto const create {[&](rect_i const& rect, std::string const& text) {
                         auto l {layout.create_widget<label>(rect, "")};
-                        l->Class = "label-small";
+                        l->Class = "label-margin";
                         l->Label = text;
                         return l;
                     }};

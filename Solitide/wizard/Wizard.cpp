@@ -17,7 +17,7 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
 
     auto const createLabel {[](auto&& layout, std::string const& text, isize zorder = 0) {
         auto lbl {layout->template create_widget<label>("lbl" + text)};
-        lbl->Class  = "label-small";
+        lbl->Class  = "label-margin";
         lbl->Label  = text;
         lbl->ZOrder = zorder;
     }};

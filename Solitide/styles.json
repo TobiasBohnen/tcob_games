@@ -24,7 +24,7 @@
                 "horizontal": "Centered",
                 "vertical": "Middle"
             },
-            "auto_size": "Always"
+            "auto_size": "OnlyShrink"
         }
     },
     "button:hover": {
@@ -97,25 +97,25 @@
     "spinner:active": {},
     "label": {
         "border": {
-            "type": "Double",
+            "type": "Solid",
             "size": "5px",
             "radius": "2px"
         },
         "text": {
             "font": "Poppins",
             "style": {
-                "is_italic": false,
+                "is_italic": true,
                 "weight": "Normal"
             },
             "size": "32px",
             "alignment": {
-                "horizontal": "Left",
+                "horizontal": "Centered",
                 "vertical": "Middle"
             },
             "auto_size": "OnlyShrink"
         }
     },
-    "label-small#label": {
+    "label-margin#label": {
         "margin": "3px",
         "border": {
             "type": "Double",
@@ -133,7 +133,7 @@
                 "horizontal": "Centered",
                 "vertical": "Middle"
             },
-            "auto_size": "Always"
+            "auto_size": "OnlyShrink"
         }
     },
     "tooltip-label#label": {
