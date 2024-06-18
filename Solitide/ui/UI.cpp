@@ -193,8 +193,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
 
     std::vector<list_box*> listBoxes;
     auto                   tabGames {panelLayout.create_widget<tab_container>(dock_style::Left, "tabGames")};
-    tabGames->Flex    = {50_pct, 100_pct};
-    tabGames->MaxTabs = 5;
+    tabGames->Flex = {50_pct, 100_pct};
 
     i32        lbID {0};
     auto const createListBox {[&](std::shared_ptr<dock_layout>& tabPanelLayout, auto&& pred) -> std::shared_ptr<list_box> {
@@ -284,7 +283,6 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
     {
         auto tabContainer {tabGames->create_tab<tab_container>("tabByDeckCount")};
         _sources->Translator.bind_tab(tabGames.get(), tabContainer.get());
-        tabContainer->MaxTabs = 5;
 
         auto const createTab {[&](isize count, std::string const& name) {
             auto tabPanel {tabContainer->create_tab<panel>(name)};
@@ -340,7 +338,6 @@ void form_menu::create_game_details(dock_layout& panelLayout)
     btnStartGame->Tooltip = _tooltip;
 
     auto tabGameDetails {panelGameStatsLayout->create_widget<tab_container>({0, 0, 20, 32}, "tabGameDetails")};
-    tabGameDetails->MaxTabs = 5;
 
     // info tab
     {
@@ -502,7 +499,7 @@ void form_menu::create_settings_video(tab_container& tabContainer)
 
     // fullscreen
     {
-        auto chk {tabPanelLayout->create_widget<checkbox>({6, 5, 3, 4}, "chkFullScreen")};
+        auto chk {tabPanelLayout->create_widget<checkbox>({6, 6, 2, 2}, "chkFullScreen")};
         chk->Checked = config[Cfg::Video::Name][Cfg::Video::fullscreen].as<bool>();
 
         auto lbl {tabPanelLayout->create_widget<label>({1, 6, 4, 2}, "lblFullScreen")};
@@ -511,7 +508,7 @@ void form_menu::create_settings_video(tab_container& tabContainer)
 
     // vsync
     {
-        auto chk {tabPanelLayout->create_widget<checkbox>({6, 9, 3, 4}, "chkVSync")};
+        auto chk {tabPanelLayout->create_widget<checkbox>({6, 10, 2, 2}, "chkVSync")};
         chk->Checked = config[Cfg::Video::Name][Cfg::Video::vsync].as<bool>();
 
         auto lbl {tabPanelLayout->create_widget<label>({1, 10, 4, 2}, "lblVSync")};
@@ -533,7 +530,7 @@ void form_menu::create_settings_hints(tab_container& tabContainer)
 
     // highlight movable
     {
-        auto chk {tabPanelLayout->create_widget<checkbox>({10, 1, 3, 4}, "chkHintMovable")};
+        auto chk {tabPanelLayout->create_widget<toggle>({10, 2, 3, 2}, "chkHintMovable")};
         chk->Checked = _sources->Settings.HintMovable;
         chk->Checked.Changed.connect([this](auto val) { _sources->Settings.HintMovable = val; });
 
@@ -542,7 +539,7 @@ void form_menu::create_settings_hints(tab_container& tabContainer)
     }
     // highlight drops
     {
-        auto chk {tabPanelLayout->create_widget<checkbox>({10, 5, 3, 4}, "chkHintDrops")};
+        auto chk {tabPanelLayout->create_widget<toggle>({10, 6, 3, 2}, "chkHintDrops")};
         chk->Checked = _sources->Settings.HintTarget;
         chk->Checked.Changed.connect([this](auto val) { _sources->Settings.HintTarget = val; });
 

@@ -275,6 +275,7 @@ void styles::parse(object const& obj, drop_down_list::style* style)
     obj.try_get(style->ArrowClass, "arrow_class");
     obj.try_get(style->ItemClass, "item_class");
     obj.try_get(style->ItemHeight, "item_height");
+    obj.try_get(style->VisibleItemCount, "visible_item_count");
     if (object el; obj.try_get(el, "v_scroll_bar")) { parse_element(el, &style->VScrollBar); }
 }
 
@@ -348,6 +349,7 @@ void styles::parse(data::config::object const& obj, tab_container::style* style)
     obj.try_get(style->TabItemClass, "tab_item_class");
     obj.try_get(style->TabBarPosition, "tab_bar_position");
     obj.try_get(style->TabBarHeight, "tab_bar_height");
+    obj.try_get(style->MaxTabsPerRow, "max_tabs_per_row");
 }
 
 void styles::parse(data::config::object const& obj, text_box::style* style)

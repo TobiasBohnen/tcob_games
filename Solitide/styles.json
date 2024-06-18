@@ -165,7 +165,7 @@
         "v_scroll_bar": {
             "thumb_class": "scrollbar_thumb",
             "bar": {
-                "type": "Continuous",
+                "type": "Blocks",
                 "size": "25px",
                 "delay": 250,
                 "border": {
@@ -184,7 +184,7 @@
         "v_scroll_bar": {
             "thumb_class": "scrollbar_thumb",
             "bar": {
-                "type": "Continuous",
+                "type": "Blocks",
                 "size": "25px",
                 "delay": 250,
                 "border": {
@@ -226,8 +226,8 @@
         "v_scroll_bar": {
             "thumb_class": "scrollbar_thumb",
             "bar": {
-                "type": "Continuous",
-                "size": "20pct",
+                "type": "Blocks",
+                "size": "15pct",
                 "delay": 250,
                 "border": {
                     "size": "2px"
@@ -288,7 +288,8 @@
         },
         "tab_bar_height": "5pct",
         "tab_item_class": "tab_items",
-        "tab_bar_position": "Top"
+        "tab_bar_position": "Top",
+        "max_tabs_per_row": 5
     },
     "tab_container_small#tab_container": {
         "padding": "2px",
@@ -298,7 +299,8 @@
         },
         "tab_bar_height": "20pct",
         "tab_item_class": "tab_items",
-        "tab_bar_position": "Top"
+        "tab_bar_position": "Top",
+        "max_tabs_per_row": 5
     },
     "accordion": {
         "border": {
@@ -317,8 +319,8 @@
         "section_item_class": "section_items"
     },
     "checkbox": {
-        "margin": "5px",
-        "padding": "2px",
+        "margin": "2px",
+        "padding": "5px",
         "border": {
             "size": "3px",
             "radius": "5px"
@@ -330,6 +332,21 @@
     },
     "checkbox:hover": {},
     "checkbox:active": {},
+    "toggle": {
+        "margin": "5px",
+        "padding": "2px",
+        "border": {
+            "size": "3px",
+            "radius": "20px"
+        },
+        "tick": {
+            "type": "Disc",
+            "size": "95pct"
+        },
+        "delay": 250
+    },
+    "toggle:hover": {},
+    "toggle:active": {},
     "radio_button": {
         "margin": "5px",
         "padding": "5px",
