@@ -142,10 +142,7 @@ void form_controls::set_game_labels(base_game* game)
 
 ////////////////////////////////////////////////////////////
 
-static std::string const TabGamesName {"conGames"};
 static std::string const TabSettingsName {"conSettings"};
-static std::string const TabThemesName {"conThemes"};
-static std::string const TabCardsetsName {"conCardsets"};
 static std::string const MenuName {"menu"};
 
 form_menu::form_menu(gfx::window* window, assets::group& resGrp, std::shared_ptr<menu_sources> sources)
@@ -155,11 +152,15 @@ form_menu::form_menu(gfx::window* window, assets::group& resGrp, std::shared_ptr
 {
     _tooltip = make_tooltip(*_sources, this);
 
-    create_section_games();
-    create_section_settings();
-    create_section_themes();
-    create_section_cardset();
-    create_menubar();
+    auto tabContainer {create_container<tab_container>(dock_style::Left, "tabMenu")};
+    tabContainer->Class = "tab_container_hidden";
+    tabContainer->Flex  = {90_pct, 100_pct};
+
+    create_section_games(*tabContainer);
+    create_section_settings(*tabContainer);
+    create_section_themes(*tabContainer);
+    create_section_cardset(*tabContainer);
+    create_menubar(*tabContainer);
 }
 
 void form_menu::submit_settings(data::config::object& obj)
@@ -167,11 +168,9 @@ void form_menu::submit_settings(data::config::object& obj)
     dynamic_cast<tab_container*>(find_widget_by_name(TabSettingsName).get())->submit(obj);
 }
 
-void form_menu::create_section_games()
+void form_menu::create_section_games(tab_container& parent)
 {
-    auto panelGames {create_container<panel>(dock_style::Left, TabGamesName)};
-    panelGames->Flex   = {85_pct, 100_pct};
-    panelGames->ZOrder = 5;
+    auto panelGames {parent.create_tab<panel>("tabGames")};
     auto panelLayout {panelGames->create_layout<dock_layout>()};
 
     create_game_lists(*panelLayout);
@@ -462,12 +461,10 @@ void form_menu::create_game_details(dock_layout& panelLayout)
     }
 }
 
-void form_menu::create_section_settings()
+void form_menu::create_section_settings(tab_container& parent)
 {
     // Setting
-    auto tabSettings {create_container<tab_container>(dock_style::Left, TabSettingsName)};
-    tabSettings->ZOrder = 4;
-    tabSettings->Flex   = {0_pct, 0_pct};
+    auto tabSettings {parent.create_tab<tab_container>(TabSettingsName)};
 
     create_settings_video(*tabSettings);
     create_settings_hints(*tabSettings);
@@ -515,7 +512,7 @@ void form_menu::create_settings_video(tab_container& tabContainer)
         _sources->Translator.bind(lbl->Label, "ux", lbl->get_name());
     }
 
-    auto btnApplyVideoSettings {tabPanelLayout->create_widget<button>({33, 35, 6, 4}, "btnApplyVideoSettings")};
+    auto btnApplyVideoSettings {tabPanelLayout->create_widget<button>({33, 34, 4, 4}, "btnApplyVideoSettings")};
     btnApplyVideoSettings->Icon    = _resGrp.get<gfx::texture>("apply");
     btnApplyVideoSettings->Tooltip = _tooltip;
     btnApplyVideoSettings->Click.connect([&]() { VideoSettingsChanged(); });
@@ -548,12 +545,10 @@ void form_menu::create_settings_hints(tab_container& tabContainer)
     }
 }
 
-void form_menu::create_section_themes()
+void form_menu::create_section_themes(tab_container& parent)
 {
     // Themes
-    auto panelThemes {create_container<panel>(dock_style::Left, TabThemesName)};
-    panelThemes->ZOrder = 3;
-    panelThemes->Flex   = {0_pct, 0_pct};
+    auto panelThemes {parent.create_tab<panel>("tabThemes")};
     {
         auto panelLayout {panelThemes->create_layout<dock_layout>()};
         auto lbxThemes {panelLayout->create_widget<list_box>(dock_style::Fill, "lbxThemes")};
@@ -567,12 +562,10 @@ void form_menu::create_section_themes()
     }
 }
 
-void form_menu::create_section_cardset()
+void form_menu::create_section_cardset(tab_container& parent)
 {
     // Cardsets
-    auto panelCardsets {create_container<panel>(dock_style::Left, TabCardsetsName)};
-    panelCardsets->ZOrder = 2;
-    panelCardsets->Flex   = {0_pct, 0_pct};
+    auto panelCardsets {parent.create_tab<panel>("tabCardset")};
     auto panelLayout {panelCardsets->create_layout<dock_layout>()};
 
     // listbox
@@ -612,50 +605,42 @@ void form_menu::create_section_cardset()
     cardsetChanged(_sources->Settings.Cardset);
 }
 
-void form_menu::create_menubar()
+void form_menu::create_menubar(tab_container& parent)
 {
     auto menu {create_container<panel>(dock_style::Fill, MenuName)};
-    auto menuLayout {menu->create_layout<grid_layout>(size_i {7, 40})};
+    auto menuLayout {menu->create_layout<grid_layout>(size_i {12, 20})};
 
-    auto const enableContainer {[](form const* f, std::string const& enable) {
-        for (auto const& w : f->get_widgets()) {
-            if (w->get_name() != MenuName) {
-                w->Flex = w->get_name() == enable ? dimensions {85_pct, 100_pct} : dimensions {0_pct, 0_pct};
-            }
-        }
-    }};
-
-    rect_i     btnRect {1, 1, 1, 2};
+    i32        y {1};
     auto const create {[&](std::string const& text) {
-        auto btn {menuLayout->create_widget<radio_button>(btnRect, "btn" + text)};
+        auto btn {menuLayout->create_widget<radio_button>({9, y, 2, 2}, "btn" + text)};
 
-        auto lbl {menuLayout->create_widget<label>({btnRect.Width + 2, btnRect.Y, btnRect.Width + 2, btnRect.Height}, "lblBtn" + text)};
+        auto lbl {menuLayout->create_widget<label>({1, y, 7, 2}, "lblBtn" + text)};
         _sources->Translator.bind(lbl->Label, "ux", lbl->get_name());
         lbl->For = btn;
 
-        btnRect.Y += btnRect.Height + 1;
+        y += 2;
         return btn;
     }};
 
     {
         auto btn {create("Games")};
         btn->Checked = true;
-        btn->Click.connect([enableContainer](auto const& ev) { enableContainer(ev.Sender->get_form(), TabGamesName); });
+        btn->Click.connect([p = &parent](auto const&) { p->ActiveTabIndex = 0; });
     }
     {
         auto btn {create("Settings")};
-        btn->Click.connect([enableContainer](auto const& ev) { enableContainer(ev.Sender->get_form(), TabSettingsName); });
+        btn->Click.connect([p = &parent](auto const&) { p->ActiveTabIndex = 1; });
     }
     {
         auto btn {create("Themes")};
-        btn->Click.connect([enableContainer](auto const& ev) { enableContainer(ev.Sender->get_form(), TabThemesName); });
+        btn->Click.connect([p = &parent](auto const&) { p->ActiveTabIndex = 2; });
     }
     {
         auto btn {create("CardSets")};
-        btn->Click.connect([enableContainer](auto const& ev) { enableContainer(ev.Sender->get_form(), TabCardsetsName); });
+        btn->Click.connect([p = &parent](auto const&) { p->ActiveTabIndex = 3; });
     }
 
-    auto btnBack {menuLayout->create_widget<button>({1, 35, 5, 3}, "btnBack")};
+    auto btnBack {menuLayout->create_widget<button>({1, 17, 10, 2}, "btnBack")};
     btnBack->Icon = _resGrp.get<gfx::texture>("back");
     btnBack->Click.connect([&](auto&) { hide(); });
     btnBack->Tooltip = _tooltip;

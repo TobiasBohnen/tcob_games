@@ -74,18 +74,18 @@ public:
     void submit_settings(data::config::object& obj);
 
 private:
-    void create_section_games();
+    void create_section_games(tab_container& parent);
     void create_game_lists(dock_layout& panelLayout);
     void create_game_details(dock_layout& panelLayout);
 
-    void create_section_settings();
+    void create_section_settings(tab_container& parent);
     void create_settings_video(tab_container& tabContainer);
     void create_settings_hints(tab_container& tabContainer);
 
-    void create_section_themes();
-    void create_section_cardset();
+    void create_section_themes(tab_container& parent);
+    void create_section_cardset(tab_container& parent);
 
-    void create_menubar();
+    void create_menubar(tab_container& parent);
 
     void start_game();
 

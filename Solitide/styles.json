@@ -289,7 +289,7 @@
         "tab_bar_height": "5pct",
         "tab_item_class": "tab_items",
         "tab_bar_position": "Top",
-        "max_tabs_per_row": 5
+        "max_tabs_per_row": 6
     },
     "tab_container_small#tab_container": {
         "padding": "2px",
@@ -301,6 +301,13 @@
         "tab_item_class": "tab_items",
         "tab_bar_position": "Top",
         "max_tabs_per_row": 5
+    },
+    "tab_container_hidden#tab_container": {
+        "border": {
+            "size": "2px",
+            "radius": "5px"
+        },
+        "tab_bar_position": "Hidden"
     },
     "accordion": {
         "border": {
@@ -348,12 +355,10 @@
     "toggle:hover": {},
     "toggle:active": {},
     "radio_button": {
-        "margin": "5px",
-        "padding": "5px",
+        "margin": "2px",
         "border": {
             "type": "Solid",
-            "size": "3px",
-            "radius": "5px"
+            "size": "3px"
         },
         "tick": {
             "type": "Disc",
