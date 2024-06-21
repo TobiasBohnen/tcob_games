@@ -96,6 +96,7 @@
     "spinner:hover": {},
     "spinner:active": {},
     "label": {
+        "padding": "5px",
         "border": {
             "type": "Solid",
             "size": "5px",

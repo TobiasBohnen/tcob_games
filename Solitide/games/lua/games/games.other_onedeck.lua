@@ -415,6 +415,97 @@ local lucky_thirteen = {
 
 ------
 
+local phalanx = {
+    Info       = {
+        Name      = "Phalanx",
+        Family    = "Other",
+        DeckCount = 1
+    },
+    Stock      = {
+        Position = { x = 0, y = 0 },
+        Initial  = Sol.Initial.face_down(37)
+    },
+    Waste      = {
+        Position = { x = 1, y = 0 }
+    },
+    Foundation = {
+        Size = 4,
+        Pile = function(i)
+            local pos <const> = { { 1.5, 1.5 }, { 6.5, 1.5 }, { 1, 2.5 }, { 7, 2.5 } }
+            return {
+                Position = { x = pos[i + 1][1], y = pos[i + 1][2] },
+                Rule     = Sol.Rules.ace_upsuit_top
+            }
+        end
+    },
+    FreeCell   = {
+        Size = 15,
+        Pile = function(i)
+            local function get_py_cells(n) return (n * (n + 1)) / 2 end
+            local function get_py_row(n) return (-1 + math.sqrt((8 * n) + 1)) / 2 end
+            local lastRowSize <const>   = 15 - get_py_cells(get_py_row(15) - 1)
+            local currentRow <const>    = math.ceil(get_py_row(i + 1))
+            local currentColumn <const> = i - (get_py_cells(currentRow - 1))
+
+            return {
+                Position = {
+                    x = (lastRowSize - currentRow) / 2 + currentColumn + 2,
+                    y = currentRow - 1
+                },
+                Initial  = Sol.Initial.face_up(1),
+                Layout   = Sol.Pile.Layout.Squared,
+                Rule     = Sol.Rules.any_none_top
+            }
+        end
+    },
+    deal       = Sol.Ops.Deal.stock_to_waste
+}
+
+
+------
+
+local simplex = {
+    Info        = {
+        Name      = "Simplex",
+        Family    = "Other",
+        DeckCount = 1
+    },
+    Stock       = {
+        Position = { x = 0, y = 0 },
+        Initial  = Sol.Initial.face_down(43)
+    },
+    Waste       = {
+        Position = { x = 1, y = 0 }
+    },
+    Foundation  = {
+        Position = { x = 2, y = 0 },
+        Rule     = Sol.Rules.none_none_none
+    },
+    Tableau     = {
+        Size = 9,
+        Pile = function(i)
+            return {
+                Position = { x = i, y = 1 },
+                Initial  = Sol.Initial.face_up(1),
+                Layout   = Sol.Pile.Layout.Column,
+                Rule     = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.InRank(), Move = Sol.Rules.Move.InSeq() }
+            }
+        end
+    },
+    on_end_turn = function(game)
+        local tableau = game.Tableau
+        for _, tab in ipairs(tableau) do
+            if tab.CardCount == 4 then
+                tab:move_cards(game.Foundation[1], 1, 4, false)
+            end
+        end
+    end,
+    deal        = Sol.Ops.Deal.stock_to_waste
+}
+
+
+------
+
 local turncoats = {
     Info = {
         Name      = "Turncoats",
@@ -468,10 +559,10 @@ local trusty_twelve = {
         Size = 12,
         Pile = function(i)
             return {
-                Position = { x = i + 1, y = 0 },
+                Position = { x = i % 4 + 1, y = i // 4 },
                 Initial  = Sol.Initial.face_up(1),
-                Layout   = Sol.Pile.Layout.Column,
-                Rule     = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.Top() }
+                Layout   = Sol.Pile.Layout.Squared,
+                Rule     = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.Top() }
             }
         end
     },
@@ -492,6 +583,44 @@ local trusty_twelve = {
 
 ------
 
+local up_and_up = {
+    Info = {
+        Name      = "Up and Up",
+        Family    = "Other",
+        DeckCount = 1,
+        Objective = "AllCardsToTableau"
+    },
+    Reserve = {
+        Position = { x = 0, y = 0 },
+        Initial  = Sol.Initial.face_up(42)
+    },
+    Tableau = {
+        Size = 10,
+        Pile = function(i)
+            return {
+                Position = { x = i % 5 + 1, y = i // 5 },
+                Initial  = Sol.Initial.face_up(1),
+                Layout   = Sol.Pile.Layout.Squared,
+                Rule     = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpByRank(true), Move = Sol.Rules.Move.Top() }
+            }
+        end
+    },
+    on_end_turn = function(game)
+        local reserve = game.Reserve[1]
+        Sol.Ops.Deal.to_group(reserve, game.Tableau, Sol.DealMode.IfEmpty)
+    end,
+    can_play = function(game, targetPile, targetCardIndex, card, numCards)
+        local srcPile = game:find_pile(card)
+        if targetPile.Type == Sol.Pile.Type.Tableau and srcPile.Type == Sol.Pile.Type.Tableau and srcPile.CardCount > 1 then
+            return false
+        end
+
+        return game:can_play(targetPile, targetCardIndex, card, numCards)
+    end
+}
+
+------
+
 ------------------------
 
 Sol.register_game(board_patience)
@@ -503,6 +632,9 @@ Sol.register_game(dimensions)
 Sol.register_game(double_dot)
 Sol.register_game(four_by_four)
 Sol.register_game(lucky_thirteen)
+Sol.register_game(phalanx)
+Sol.register_game(simplex)
 Sol.register_game(six_by_six)
 Sol.register_game(turncoats)
 Sol.register_game(trusty_twelve)
+Sol.register_game(up_and_up)

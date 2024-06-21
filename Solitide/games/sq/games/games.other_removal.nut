@@ -56,11 +56,10 @@ local aces_up = {
         }
     },
     can_play = function(game, targetPile, _, card, numCards) {
-        if (numCards != 1) {
-            return false
-        }
-
         if (targetPile.Type == Sol.Pile.Type.Foundation) {
+            if (numCards != 1) {
+                return false
+            }
             if (card.Rank == "Ace") {
                 return false
             }
@@ -125,6 +124,24 @@ firing_squad.FreeCell <- {
         Build = Sol.Rules.Build.None(),
         Move = Sol.Rules.Move.Top()
     }
+}
+
+//////
+
+local fortunes = Sol.copy(aces_up)
+fortunes.Info.Name = "Fortunes"
+fortunes.Tableau.Pile = @(i) {
+    Position = {
+        x = i + 1,
+        y = 1
+    }
+    Initial = Sol.Initial.face_up(1)
+    Layout = Sol.Pile.Layout.Column,
+        Rule = {
+            Base = Sol.Rules.Base.Any(),
+            Build = Sol.Rules.Build.None(),
+            Move = Sol.Rules.Move.FaceUp()
+        }
 }
 
 //////
@@ -315,4 +332,5 @@ Sol.register_game(aces_square)
 Sol.register_game(cover)
 Sol.register_game(deck)
 Sol.register_game(firing_squad)
+Sol.register_game(fortunes)
 Sol.register_game(russian_aces)

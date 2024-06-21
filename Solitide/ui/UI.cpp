@@ -152,9 +152,9 @@ form_menu::form_menu(gfx::window* window, assets::group& resGrp, std::shared_ptr
 {
     _tooltip = make_tooltip(*_sources, this);
 
-    auto tabContainer {create_container<tab_container>(dock_style::Left, "tabMenu")};
+    auto tabContainer {create_container<tab_container>(dock_style::Right, "tabMenu")};
     tabContainer->Class = "tab_container_hidden";
-    tabContainer->Flex  = {90_pct, 100_pct};
+    tabContainer->Flex  = {85_pct, 100_pct};
 
     create_section_games(*tabContainer);
     create_section_settings(*tabContainer);

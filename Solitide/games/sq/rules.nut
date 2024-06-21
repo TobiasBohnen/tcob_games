@@ -128,7 +128,9 @@ local move = {
     },
     InSeq = @() {
         Hint = ["InSeq"]
-        IsPlayable = @(game) true IsSequence = true Func = function(game, pile, idx) {
+        IsPlayable = @(game) true
+        IsSequence = true
+        Func = function(game, pile, idx) {
             local cards = pile.Cards
             if (cards[idx].IsFaceDown) {
                 return false
@@ -143,7 +145,9 @@ local move = {
     },
     InSeqInSuit = @() {
         Hint = ["InSeqInSuit"]
-        IsPlayable = @(game) true IsSequence = true Func = function(game, pile, idx) {
+        IsPlayable = @(game) true
+        IsSequence = true
+        Func = function(game, pile, idx) {
             local cards = pile.Cards
             if (cards[idx].IsFaceDown) {
                 return false
@@ -160,7 +164,9 @@ local move = {
     },
     InSeqAlternateColors = @() {
         Hint = ["InSeqAlternateColors"]
-        IsPlayable = @(game) true IsSequence = true Func = function(game, pile, idx) {
+        IsPlayable = @(game) true
+        IsSequence = true
+        Func = function(game, pile, idx) {
             local cards = pile.Cards
             if (cards[idx].IsFaceDown) {
                 return false
@@ -177,7 +183,9 @@ local move = {
     },
     InSeqInSuitOrSameRank = @() {
         Hint = ["InSeqInSuitOrSameRank"]
-        IsPlayable = @(game) true IsSequence = true Func = function(game, pile, idx) {
+        IsPlayable = @(game) true
+        IsSequence = true
+        Func = function(game, pile, idx) {
             local cards = pile.Cards
             if (cards[idx].IsFaceDown) {
                 return false
@@ -207,7 +215,9 @@ local move = {
     },
     SuperMove = @() {
         Hint = ["SuperMove"]
-        IsPlayable = @(game) true IsSequence = true Func = function(game, pile, idx) {
+        IsPlayable = @(game) true
+        IsSequence = true
+        Func = function(game, pile, idx) {
             local cards = pile.Cards
             if (cards[idx].IsFaceDown) {
                 return false
