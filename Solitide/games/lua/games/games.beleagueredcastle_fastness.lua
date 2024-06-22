@@ -41,7 +41,7 @@ siegecraft.Tableau.Pile    = {
     Layout  = Sol.Pile.Layout.Row,
     Rule    = Sol.Rules.any_downrank_top
 }
-siegecraft.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
+siegecraft.on_before_setup = Sol.Ops.Setup.ace_to_foundation
 
 
 ------

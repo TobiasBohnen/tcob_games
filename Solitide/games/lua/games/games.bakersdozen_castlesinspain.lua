@@ -37,7 +37,7 @@ martha.Tableau         = {
         Rule    = { Base = Sol.Rules.Base.AnySingle(), Build = Sol.Rules.Build.DownAlternateColors(), Move = Sol.Rules.Move.InSeq() }
     }
 }
-martha.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
+martha.on_before_setup = Sol.Ops.Setup.ace_to_foundation
 
 
 ------

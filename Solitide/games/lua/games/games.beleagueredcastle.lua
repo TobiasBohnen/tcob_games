@@ -21,7 +21,7 @@ local beleaguered_castle = {
             Rule    = Sol.Rules.any_downrank_top
         }
     },
-    on_before_setup = Sol.Ops.Shuffle.ace_to_foundation,
+    on_before_setup = Sol.Ops.Setup.ace_to_foundation,
     on_init         = Sol.Layout.beleaguered_castle
 }
 
@@ -50,7 +50,7 @@ castle_mount.on_init        = Sol.Layout.canister
 
 local citadel     = Sol.copy(beleaguered_castle)
 citadel.Info.Name = "Citadel"
-citadel.on_setup  = Sol.Ops.Shuffle.play_to_foundation
+citadel.on_setup  = Sol.Ops.Setup.play_to_foundation
 
 
 ------
@@ -297,7 +297,7 @@ local rittenhouse = {
             }
         end
     },
-    on_before_setup = Sol.Ops.Shuffle.ace_and_king_to_foundation,
+    on_before_setup = Sol.Ops.Setup.ace_and_king_to_foundation,
     on_setup        = function(game, card, pile)
         local idx        = pile.Index
         local foundation = game.Foundation

@@ -53,7 +53,7 @@ local aglet = {
             }
         }
     },
-    on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
+    on_before_setup = Sol.Ops.Setup.ace_to_foundation
 }
 
 //////
@@ -237,7 +237,7 @@ local carpet = {
             Rule = Sol.Rules.ace_upsuit_top
         }
     },
-    on_before_setup = Sol.Ops.Shuffle.ace_to_foundation,
+    on_before_setup = Sol.Ops.Setup.ace_to_foundation,
     deal = Sol.Ops.Deal.stock_to_waste
 }
 

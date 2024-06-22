@@ -3,8 +3,8 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-local shuffle = {
-    // before shuffle
+local setup = {
+    // before setup
     ace_to_foundation = function(game, card) {
         if (card.Rank == "Ace") {
             return game.PlaceTop(card, game.Foundation, true)
@@ -39,7 +39,7 @@ local shuffle = {
 
         return false
     },
-    // after shuffle
+    // after setup
     kings_to_bottom = function(game) {
         foreach(v in game.Tableau) {
             v.shift_rank_to_bottom("King")
@@ -185,7 +185,7 @@ local pyramid = {
 }
 
 return {
-    Shuffle = shuffle,
+    Setup = setup,
     Redeal = redeal,
     Deal = deal,
     Pyramid = pyramid

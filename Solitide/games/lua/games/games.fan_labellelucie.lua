@@ -75,7 +75,7 @@ trefoil.Tableau         = {
         Rule    = Sol.Rules.none_downsuit_top
     }
 }
-trefoil.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
+trefoil.on_before_setup = Sol.Ops.Setup.ace_to_foundation
 
 ------
 

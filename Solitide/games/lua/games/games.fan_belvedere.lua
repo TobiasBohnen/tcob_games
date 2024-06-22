@@ -49,7 +49,7 @@ local bristol           = Sol.copy(belvedere)
 bristol.Info.Name       = "Bristol"
 bristol.Stock.Initial   = Sol.Initial.face_down(28)
 bristol.on_before_setup = nil
-bristol.on_after_setup  = Sol.Ops.Shuffle.kings_to_bottom
+bristol.on_after_setup  = Sol.Ops.Setup.kings_to_bottom
 
 
 ------

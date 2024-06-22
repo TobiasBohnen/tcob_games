@@ -34,7 +34,7 @@ local fortunes_favor = {
             }
         end
     },
-    on_before_setup = Sol.Ops.Shuffle.ace_to_foundation,
+    on_before_setup = Sol.Ops.Setup.ace_to_foundation,
     deal            = Sol.Ops.Deal.stock_to_waste,
     on_end_turn     = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
 }

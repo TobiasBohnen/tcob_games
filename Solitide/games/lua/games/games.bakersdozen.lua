@@ -21,7 +21,7 @@ local bakers_dozen = {
             Rule    = Sol.Rules.none_downrank_top
         }
     },
-    on_after_setup = Sol.Ops.Shuffle.kings_to_bottom,
+    on_after_setup = Sol.Ops.Setup.kings_to_bottom,
     on_init        = Sol.Layout.bakers_dozen
 }
 
@@ -104,7 +104,7 @@ local nationale = {
             Rule    = Sol.Rules.any_updownsuit_top
         }
     },
-    on_before_setup = Sol.Ops.Shuffle.ace_and_king_to_foundation,
+    on_before_setup = Sol.Ops.Setup.ace_and_king_to_foundation,
     on_init         = Sol.Layout.canister
 }
 

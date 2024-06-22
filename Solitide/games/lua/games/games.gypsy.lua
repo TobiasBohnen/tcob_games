@@ -203,7 +203,7 @@ flamenco.Tableau.Pile    = {
 flamenco.Foundation.Pile = function(i)
     return { Rule = i < 4 and Sol.Rules.ace_upsuit_top or Sol.Rules.king_downsuit_top }
 end
-flamenco.on_before_setup = Sol.Ops.Shuffle.ace_and_king_to_foundation
+flamenco.on_before_setup = Sol.Ops.Setup.ace_and_king_to_foundation
 
 
 ------

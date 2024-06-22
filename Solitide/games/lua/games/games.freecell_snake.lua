@@ -38,7 +38,7 @@ local snake = {
             }
         end
     },
-    on_before_setup = Sol.Ops.Shuffle.ace_to_foundation,
+    on_before_setup = Sol.Ops.Setup.ace_to_foundation,
     on_after_setup  = function(game)
         -- kings start new pile
         local tableau  = game.Tableau
@@ -108,7 +108,7 @@ retinue.Tableau.Pile    = function(i)
     }
 end
 retinue.on_before_setup = function(game, card)
-    return kings.on_before_setup(game, card) or Sol.Ops.Shuffle.ace_to_foundation(game, card)
+    return kings.on_before_setup(game, card) or Sol.Ops.Setup.ace_to_foundation(game, card)
 end
 
 

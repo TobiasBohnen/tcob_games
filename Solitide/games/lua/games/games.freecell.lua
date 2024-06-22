@@ -132,7 +132,7 @@ double_free_cell_2.Tableau         = {
         Rule    = Sol.Rules.any_downac_sm
     }
 }
-double_free_cell_2.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
+double_free_cell_2.on_before_setup = Sol.Ops.Setup.ace_to_foundation
 
 
 ------

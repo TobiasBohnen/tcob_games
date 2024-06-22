@@ -222,7 +222,7 @@ ali_baba.Tableau         = {
         Rule    = Sol.Rules.any_downsuit_inseq
     }
 }
-ali_baba.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
+ali_baba.on_before_setup = Sol.Ops.Setup.ace_to_foundation
 
 
 ------
@@ -348,7 +348,7 @@ blind_alleys.Tableau         = {
         Rule    = Sol.Rules.any_downac_inseq
     }
 }
-blind_alleys.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
+blind_alleys.on_before_setup = Sol.Ops.Setup.ace_to_foundation
 
 
 ------
@@ -386,7 +386,7 @@ cassim.Tableau.Pile    = {
     Layout  = Sol.Pile.Layout.Column,
     Rule    = Sol.Rules.any_downsuit_inseq
 }
-cassim.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
+cassim.on_before_setup = Sol.Ops.Setup.ace_to_foundation
 
 
 ------
@@ -633,7 +633,7 @@ lanes.Tableau         = {
         Rule    = Sol.Rules.any_downac_top
     }
 }
-lanes.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
+lanes.on_before_setup = Sol.Ops.Setup.ace_to_foundation
 
 
 ------

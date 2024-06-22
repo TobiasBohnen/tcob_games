@@ -39,7 +39,7 @@ local capricieuse = {
 
         return true
     end,
-    on_before_setup = Sol.Ops.Shuffle.ace_and_king_to_foundation,
+    on_before_setup = Sol.Ops.Setup.ace_and_king_to_foundation,
     on_init         = Sol.Layout.capricieuse
 }
 
@@ -79,7 +79,7 @@ cruel.Tableau         = {
         Rule    = Sol.Rules.none_downsuit_top
     }
 }
-cruel.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
+cruel.on_before_setup = Sol.Ops.Setup.ace_to_foundation
 cruel.redeal          = function(game)
     local cards = {}
 
@@ -141,7 +141,7 @@ royal_family.Tableau.Pile    = {
     Layout  = Sol.Pile.Layout.Column,
     Rule    = Sol.Rules.any_updownac_top
 }
-royal_family.on_before_setup = Sol.Ops.Shuffle.king_to_foundation
+royal_family.on_before_setup = Sol.Ops.Setup.king_to_foundation
 
 
 ------

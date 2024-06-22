@@ -168,7 +168,7 @@ raglan.Tableau         = {
         }
     end
 }
-raglan.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
+raglan.on_before_setup = Sol.Ops.Setup.ace_to_foundation
 raglan.on_init         = function(game) Sol.Layout.raglan(game, 2) end
 
 

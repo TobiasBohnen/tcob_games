@@ -66,7 +66,7 @@ box_fan.Tableau         = {
         Rule    = Sol.Rules.king_downac_top
     }
 }
-box_fan.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
+box_fan.on_before_setup = Sol.Ops.Setup.ace_to_foundation
 box_fan.on_init         = function(game) Sol.Layout.fan(game, 4) end
 
 
@@ -211,7 +211,7 @@ quads_plus.Tableau         = {
         }
     end
 }
-quads_plus.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
+quads_plus.on_before_setup = Sol.Ops.Setup.ace_to_foundation
 
 
 ------
@@ -301,7 +301,7 @@ shamrocks_2.Tableau        = {
         }
     end
 }
-shamrocks_2.on_after_setup = Sol.Ops.Shuffle.kings_to_bottom
+shamrocks_2.on_after_setup = Sol.Ops.Setup.kings_to_bottom
 
 
 ------
@@ -411,7 +411,7 @@ local crescent = {
             }
         end
     },
-    on_before_setup = Sol.Ops.Shuffle.ace_and_king_to_foundation,
+    on_before_setup = Sol.Ops.Setup.ace_and_king_to_foundation,
     redeal          = function(game)
         for _, tableau in ipairs(game.Tableau) do
             if tableau.CardCount > 1 then
@@ -450,7 +450,7 @@ local rainbow_fan = {
         }
     },
     on_init         = function(game) Sol.Layout.fan(game, 5) end,
-    on_before_setup = Sol.Ops.Shuffle.ace_and_king_to_foundation,
+    on_before_setup = Sol.Ops.Setup.ace_and_king_to_foundation,
     on_end_turn     = function(game)
         local stock = game.Stock[1]
         if stock.IsEmpty then return end

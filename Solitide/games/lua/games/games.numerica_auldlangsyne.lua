@@ -23,7 +23,7 @@ local auld_lang_syne = {
             Rule   = Sol.Rules.none_none_top
         }
     },
-    on_before_setup = Sol.Ops.Shuffle.ace_to_foundation,
+    on_before_setup = Sol.Ops.Setup.ace_to_foundation,
     deal            = Sol.Ops.Deal.stock_to_tableau,
     on_init         = Sol.Layout.klondike
 }

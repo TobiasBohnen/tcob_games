@@ -108,7 +108,7 @@ acme.Tableau.Pile    = {
     Layout  = Sol.Pile.Layout.Column,
     Rule    = Sol.Rules.any_downsuit_top
 }
-acme.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
+acme.on_before_setup = Sol.Ops.Setup.ace_to_foundation
 acme.deal            = Sol.Ops.Deal.stock_to_waste
 
 

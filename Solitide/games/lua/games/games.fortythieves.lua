@@ -77,8 +77,8 @@ carre_napoleon.Tableau         = {
         Rule    = Sol.Rules.king_downsuit_top
     }
 }
-carre_napoleon.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
-carre_napoleon.on_setup        = Sol.Ops.Shuffle.play_to_foundation
+carre_napoleon.on_before_setup = Sol.Ops.Setup.ace_to_foundation
+carre_napoleon.on_setup        = Sol.Ops.Setup.play_to_foundation
 
 
 ------
@@ -152,7 +152,7 @@ dieppe.Tableau        = {
         Rule    = Sol.Rules.any_downrank_top
     }
 }
-dieppe.on_setup       = Sol.Ops.Shuffle.play_to_foundation
+dieppe.on_setup       = Sol.Ops.Setup.play_to_foundation
 dieppe.on_after_setup = function(game)
     -- refill Tableau from Stock back to three cards
     local stock = game.Stock[1]
@@ -527,7 +527,7 @@ red_and_black.Tableau              = {
         Rule    = Sol.Rules.any_downac_inseq
     }
 }
-red_and_black.on_before_setup      = Sol.Ops.Shuffle.ace_to_foundation
+red_and_black.on_before_setup      = Sol.Ops.Setup.ace_to_foundation
 
 
 ------
@@ -545,7 +545,7 @@ rows_of_four.Tableau.Rule  = Sol.Rules.any_downrank_top
 local san_juan_hill           = Sol.copy(forty_thieves)
 san_juan_hill.Info.Name       = "San Juan Hill"
 san_juan_hill.Stock.Initial   = Sol.Initial.face_down(56)
-san_juan_hill.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
+san_juan_hill.on_before_setup = Sol.Ops.Setup.ace_to_foundation
 
 
 ------
@@ -600,7 +600,7 @@ waterloo.Tableau         = {
         Rule    = Sol.Rules.spider_tableau
     }
 }
-waterloo.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
+waterloo.on_before_setup = Sol.Ops.Setup.ace_to_foundation
 
 
 ------
@@ -617,7 +617,7 @@ zebra.Tableau         = {
         Rule    = Sol.Rules.any_downac_top
     }
 }
-zebra.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
+zebra.on_before_setup = Sol.Ops.Setup.ace_to_foundation
 zebra.on_end_turn     = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
 
 
@@ -914,7 +914,7 @@ local octagon                        = {
             }
         end
     },
-    on_before_setup = Sol.Ops.Shuffle.ace_to_foundation,
+    on_before_setup = Sol.Ops.Setup.ace_to_foundation,
     deal = Sol.Ops.Deal.stock_to_waste,
     redeal = Sol.Ops.Redeal.waste_to_stock
 }
@@ -961,7 +961,7 @@ local octave = {
             }
         end
     },
-    on_before_setup = Sol.Ops.Shuffle.ace_to_foundation,
+    on_before_setup = Sol.Ops.Setup.ace_to_foundation,
     deal = function(game)
         -- first round: deal to first waste
         return game.RedealsLeft == 1 and Sol.Ops.Deal.stock_to_waste(game)
@@ -1006,11 +1006,7 @@ local quadrangle = {
         }
     },
     deal        = Sol.Ops.Deal.stock_to_waste,
-    on_end_turn = function(game)
-        if not Sol.Ops.Deal.to_group(game.Waste[1], game.Tableau, Sol.DealMode.IfEmpty) then
-            Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, Sol.DealMode.IfEmpty)
-        end
-    end,
+    on_end_turn = Sol.Ops.Deal.waste_or_stock_to_empty_tableau,
     on_init     = Sol.Layout.klondike
 }
 
@@ -1053,11 +1049,7 @@ local twin_queens = {
     },
     redeal = Sol.Ops.Redeal.waste_to_stock,
     deal = Sol.Ops.Deal.stock_to_waste,
-    on_end_turn = function(game)
-        if not Sol.Ops.Deal.to_group(game.Waste[1], game.Tableau, Sol.DealMode.IfEmpty) then
-            Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, Sol.DealMode.IfEmpty)
-        end
-    end
+    on_end_turn = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
 }
 
 

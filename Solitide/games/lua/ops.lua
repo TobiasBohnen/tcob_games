@@ -3,8 +3,8 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
-local shuffle = {
-    -- before shuffle
+local setup = {
+    -- before setup
     ace_to_foundation = function(game, card)
         if card.Rank == "Ace" then
             return game.PlaceTop(card, game.Foundation, true)
@@ -35,7 +35,7 @@ local shuffle = {
 
         return false
     end,
-    -- shuffle
+    -- setup
     play_to_foundation = function(game, card, pile)
         if pile.Type ~= Sol.Pile.Type.Tableau then return false end
 
@@ -46,7 +46,7 @@ local shuffle = {
 
         return false
     end,
-    -- after shuffle
+    -- after setup
     kings_to_bottom = function(game)
         for _, v in ipairs(game.Tableau) do
             v:shift_rank_to_bottom("King")
@@ -185,7 +185,7 @@ local pyramid = {
 }
 
 return {
-    Shuffle = shuffle,
+    Setup   = setup,
     Redeal  = redeal,
     Deal    = deal,
     Pyramid = pyramid

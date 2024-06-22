@@ -446,7 +446,7 @@ void base_game::calc_hints()
     _hints.clear();
     _hints.reserve(movable.size());
     for (auto const& [type, piles] : _pileMap) {
-        if (type == pile_type::Stock || type == pile_type::Waste || type == pile_type::Reserve) { continue; } // skip Stock/Waste/Reserve destination
+        if (type == pile_type::Stock || type == pile_type::Waste) { continue; } // skip Stock/Waste destination
         for (auto* dst : piles) {
             for (auto& src : movable) {
                 if (src.Src == dst) { continue; }
