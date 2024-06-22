@@ -380,7 +380,7 @@ auto base_game::get_status() const -> game_status
     }
 
     if (Stock.empty() || (Stock[0].empty() && _state.Redeals == 0)) {
-        if (_hints.empty()) {
+        if (_hints.empty() && !_info.DisableHints) {
             return game_status::Failure;
         }
     }
