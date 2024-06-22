@@ -7,7 +7,7 @@
 local pyramid = {
     Info       = {
         Name      = "Pyramid",
-        Family    = "Other",
+        Family    = "Pairing",
         DeckCount = 1,
         Redeals   = 2
     },
@@ -136,7 +136,7 @@ king_tut.redeal         = Sol.Ops.Redeal.waste_to_stock
 local giza = {
     Info       = {
         Name      = "Giza",
-        Family    = "Other",
+        Family    = "Pairing",
         DeckCount = 1
     },
     Reserve    = {
@@ -170,7 +170,7 @@ local giza = {
 local pyramid_dozen = {
     Info       = {
         Name      = "Pyramid Dozen",
-        Family    = "Other",
+        Family    = "Pairing",
         DeckCount = 1
     },
     Reserve    = {

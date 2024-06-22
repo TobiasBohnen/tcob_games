@@ -57,6 +57,7 @@ return {
         Klondike          = "Klondike",
         Montana           = "Montana",
         Numerica          = "Numerica",
+        Pairing           = "Pairing",
         PictureGallery    = "Picture Gallery",
         Spider            = "Spider",
         Terrace           = "Terrace",

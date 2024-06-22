@@ -3,10 +3,58 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
+local eiffel_tower = {
+    Info     = {
+        Name      = "Eiffel Tower",
+        Family    = "Pairing",
+        DeckCount = 2,
+        Objective = "AllCardsToTableau"
+    },
+    Stock    = {
+        Position = { x = 0, y = 0 },
+        Initial = Sol.Initial.face_down(84)
+    },
+    Waste    = {
+        Position = { x = 1, y = 0 }
+    },
+    Tableau  = {
+        Size = 20,
+        Pile = function(i)
+            local off = 0
+            if i > 14 then
+                i = i - 5
+                off = 1
+            end
+            local function get_py_cells(n) return (n * (n + 1)) / 2 end
+            local function get_py_row(n) return (-1 + math.sqrt((8 * n) + 1)) / 2 end
+            local lastRowSize <const>   = 15 - get_py_cells(get_py_row(15) - 1)
+            local currentRow <const>    = math.ceil(get_py_row(i + 1))
+            local currentColumn <const> = i - (get_py_cells(currentRow - 1))
+
+            return {
+                Position = {
+                    x = (lastRowSize - currentRow) / 2 + currentColumn + 2,
+                    y = currentRow - 1 + off
+                },
+                Initial  = Sol.Initial.face_up(1),
+                Layout   = Sol.Pile.Layout.Squared,
+                Rule     = Sol.Rules.none_none_none
+            }
+        end
+    },
+    deal     = Sol.Ops.Deal.stock_to_waste,
+    can_play = function(_, targetPile, targetCardIndex, card, _)
+        return Sol.RankValues[card.Rank] + Sol.RankValues[targetPile.Cards[targetCardIndex].Rank] == 14
+    end,
+}
+
+
+------
+
 local eighteens = {
     Info       = {
         Name         = "Eighteens",
-        Family       = "Other",
+        Family       = "Pairing",
         DeckCount    = 2,
         DisableHints = true
     },
@@ -87,7 +135,7 @@ local eighteens = {
 local fifteens = {
     Info = {
         Name         = "Fifteens",
-        Family       = "Other",
+        Family       = "Pairing",
         DeckCount    = 1,
         DisableHints = true
     },
@@ -157,7 +205,7 @@ local fifteens = {
 local fourteen = {
     Info       = {
         Name      = "Fourteen",
-        Family    = "Other",
+        Family    = "Pairing",
         DeckCount = 1
     },
     Foundation = {
@@ -211,15 +259,235 @@ double_fourteen.Tableau             = {
 
 ------
 
+local function monte_deal(game)
+    local tableau = game.Tableau
+    local numTableau = #tableau
+    local check = false
+    for i = 1, numTableau - 1 do
+        local tab1 = tableau[i]
+        if tab1.IsEmpty then
+            for j = i + 1, numTableau do
+                local tab2 = tableau[j]
+                if not tab2.IsEmpty then
+                    tab2:move_cards(tab1, 1, 1, false)
+                    check = true
+                    break
+                end
+            end
+        end
+    end
+
+    check = Sol.Ops.Deal.to_group(game.Stock[1], tableau, Sol.DealMode.IfEmpty) or check
+    return check
+end
+
+local monte_carlo = {
+    Info       = {
+        Name      = "Monte Carlo",
+        Family    = "Pairing",
+        DeckCount = 1,
+        Redeals   = -1
+    },
+    Stock      = {
+        Position = { x = 5.5, y = 1 },
+        Initial  = Sol.Initial.face_down(27)
+    },
+    Foundation = {
+        Position = { x = 5.5, y = 0 },
+        Rule     = Sol.Rules.none_none_none
+    },
+    Tableau    = {
+        Size = 25,
+        Pile = function(i)
+            return {
+                Position = { x = i % 5, y = i // 5 },
+                Initial = Sol.Initial.face_up(1),
+                Rule = Sol.Rules.none_none_top
+            }
+        end
+    },
+    can_play   = function(game, targetPile, targetCardIndex, card, _)
+        if targetPile.IsEmpty then return false end
+        if targetPile.Type ~= Sol.Pile.Type.Tableau then return false end
+        local targetCard = targetPile.Cards[targetCardIndex]
+        if targetCard.Rank ~= card.Rank then return false end
+
+        local function check(cell1, cell2)
+            local function row_col(index)
+                local row = (index // 5) + 1
+                local col = (index % 5) + 1
+                return row, col
+            end
+
+            local row1, col1 = row_col(cell1 - 1)
+            local row2, col2 = row_col(cell2 - 1)
+
+            return math.abs(row1 - row2) <= 1 and math.abs(col1 - col2) <= 1
+        end
+
+        local srcPile = game:find_pile(card)
+        return check(srcPile.Index, targetPile.Index)
+    end,
+    on_drop    = function(game, pile)
+        game:give_score(20)
+        pile:move_cards(game.Foundation[1], pile.CardCount - 1, 2, false)
+    end,
+    deal       = monte_deal,
+    get_status = function(game)
+        -- TODO
+        local tableau = game.Tableau
+        for _, tab in ipairs(tableau) do
+            if not tab.IsEmpty then return Sol.GameStatus.Running end
+        end
+        if game.Stock[1].IsEmpty then return Sol.GameStatus.Success end
+        return Sol.GameStatus.Running
+    end
+}
+
+
+------
+
+local double_monte_carlo = Sol.copy(monte_carlo)
+double_monte_carlo.Info.Name = "Monte Carlo (2 Decks)"
+double_monte_carlo.Info.DeckCount = 2
+double_monte_carlo.Stock.Initial = Sol.Initial.face_down(79)
+
+
+------
+
+local simple_carlo     = Sol.copy(monte_carlo)
+simple_carlo.Info.Name = "Simple Carlo"
+simple_carlo.can_play  = function(_, targetPile, targetCardIndex, card, _)
+    if targetPile.IsEmpty then return false end
+    local targetCard = targetPile.Cards[targetCardIndex]
+    return targetCard.Rank == card.Rank
+end
+simple_carlo.on_drop   = function(game, pile)
+    game:give_score(20)
+    pile:move_cards(game.Foundation[1], pile.CardCount - 1, 2, false)
+
+    monte_deal(game)
+end
+simple_carlo.deal      = function(_) return false end
+
+
+------
+
+local function nestor_setup(game, card, limit)
+    local tableau = game.Tableau
+    -- no two cards with the same rank
+    for _, tab in ipairs(tableau) do
+        if tab.CardCount < limit then
+            local check = true
+            local cards = tab.Cards
+            for _, c in ipairs(cards) do
+                if c.Rank == card.Rank then
+                    check = false
+                    break
+                end
+            end
+            if check then
+                return game.PlaceTop(card, tab, false)
+            end
+        end
+    end
+
+    return false
+end
+
+local nestor = {
+    Info            = {
+        Name      = "Nestor",
+        Family    = "Pairing",
+        DeckCount = 1
+    },
+    Foundation      = {
+        Position = { x = 7, y = 2 },
+        Rule     = Sol.Rules.none_none_none
+    },
+    Tableau         = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Position = { x = i, y = 0 },
+                Layout   = Sol.Pile.Layout.Column,
+                Rule     = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.InRank(), Move = Sol.Rules.Move.Top() }
+            }
+        end
+    },
+    Reserve         = {
+        Size = 4,
+        Pile = function(i)
+            return {
+                Position = { x = i + 2, y = 2 },
+                Initial  = Sol.Initial.face_up(1),
+                Rule     = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.InRank(), Move = Sol.Rules.Move.Top() }
+            }
+        end
+    },
+    on_before_setup = function(game, card)
+        return nestor_setup(game, card, 6)
+    end,
+    on_drop         = function(game, pile)
+        game:give_score(20)
+        pile:move_cards(game.Foundation[1], pile.CardCount - 1, 2, false)
+    end
+}
+
+
+------
+
+local double_nestor = {
+    Info            = {
+        Name      = "Double Nestor",
+        Family    = "Pairing",
+        DeckCount = 2
+    },
+    Foundation      = {
+        Position = { x = 9, y = 3 },
+        Rule     = Sol.Rules.none_none_none
+    },
+    Tableau         = {
+        Size = 10,
+        Pile = function(i)
+            return {
+                Position = { x = i, y = 0 },
+                Layout   = Sol.Pile.Layout.Column,
+                Rule     = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.InRank(), Move = Sol.Rules.Move.Top() }
+            }
+        end
+    },
+    Reserve         = {
+        Size = 4,
+        Pile = function(i)
+            return {
+                Position = { x = i + 3, y = 3 },
+                Initial  = Sol.Initial.face_up(1),
+                Rule     = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.InRank(), Move = Sol.Rules.Move.Top() }
+            }
+        end
+    },
+    on_before_setup = function(game, card)
+        return nestor_setup(game, card, 10)
+    end,
+    on_drop         = function(game, pile)
+        game:give_score(20)
+        pile:move_cards(game.Foundation[1], pile.CardCount - 1, 2, false)
+    end
+}
+
+
+------
+
 local patient_pairs = {
     Info       = {
         Name      = "Patient Pairs",
-        Family    = "Other",
+        Family    = "Pairing",
         DeckCount = 1
     },
     Foundation = {
         Position = { x = 7.5, y = 0 },
-        Rule = Sol.Rules.none_none_none
+        Rule     = Sol.Rules.none_none_none
     },
     Tableau    = {
         Size = 13,
@@ -233,6 +501,7 @@ local patient_pairs = {
         end
     },
     on_drop    = function(game, pile)
+        game:give_score(20)
         pile:move_cards(game.Foundation[1], pile.CardCount - 1, 2, false)
     end
 }
@@ -260,16 +529,16 @@ patient_pairs_open.Tableau   = {
 local simple_pairs = {
     Info       = {
         Name      = "Simple Pairs",
-        Family    = "Other",
+        Family    = "Pairing",
         DeckCount = 1
     },
     Stock      = {
         Position = { x = 0, y = 0 },
-        Initial = Sol.Initial.face_down(43)
+        Initial  = Sol.Initial.face_down(43)
     },
     Foundation = {
         Position = { x = 1, y = 0 },
-        Rule = Sol.Rules.none_none_none
+        Rule     = Sol.Rules.none_none_none
     },
     Tableau    = {
         Size = 9,
@@ -282,6 +551,7 @@ local simple_pairs = {
         end
     },
     on_drop    = function(game, pile)
+        game:give_score(20)
         pile:move_cards(game.Foundation[1], pile.CardCount - 1, 2, false)
         Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, Sol.DealMode.IfEmpty)
     end
@@ -293,7 +563,7 @@ local simple_pairs = {
 local triple_alliance = {
     Info        = {
         Name      = "Triple Alliance",
-        Family    = "Other",
+        Family    = "Pairing",
         DeckCount = 1,
         Objective = "AllCardsButOneToFoundation"
     },
@@ -312,7 +582,7 @@ local triple_alliance = {
     },
     Foundation  = {
         Position = { x = 10, y = 0 },
-        Rule = Sol.Rules.none_none_none
+        Rule     = Sol.Rules.none_none_none
     },
     Tableau     = {
         Size = 18,
@@ -385,11 +655,17 @@ end
 ------------------------
 
 Sol.register_game(double_fourteen)
+Sol.register_game(double_monte_carlo)
+Sol.register_game(double_nestor)
+Sol.register_game(eiffel_tower)
 Sol.register_game(eighteens)
 Sol.register_game(fifteens)
 Sol.register_game(fourteen)
 Sol.register_game(patient_pairs)
 Sol.register_game(patient_pairs_open)
+Sol.register_game(monte_carlo)
+Sol.register_game(nestor)
+Sol.register_game(simple_carlo)
 Sol.register_game(simple_pairs)
 Sol.register_game(triple_alliance)
 Sol.register_game(triple_alliance_2_decks)

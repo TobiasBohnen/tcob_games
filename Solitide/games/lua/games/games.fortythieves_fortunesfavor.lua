@@ -4,17 +4,17 @@
 -- https://opensource.org/licenses/MIT
 
 local fortunes_favor = {
-    Info              = {
+    Info            = {
         Name      = "Fortune's Favor",
         Family    = "FortyThieves",
         DeckCount = 1
     },
-    Stock             = {
+    Stock           = {
         Position = { x = 0, y = 0 },
         Initial = Sol.Initial.face_down(36)
     },
-    Waste             = { Position = { x = 0, y = 1 } },
-    Foundation        = {
+    Waste           = { Position = { x = 0, y = 1 } },
+    Foundation      = {
         Size = 4,
         Pile = function(i)
             return {
@@ -23,7 +23,7 @@ local fortunes_favor = {
             }
         end
     },
-    Tableau           = {
+    Tableau         = {
         Size = 12,
         Pile = function(i)
             return {
@@ -34,9 +34,9 @@ local fortunes_favor = {
             }
         end
     },
-    on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation,
-    deal              = Sol.Ops.Deal.stock_to_waste,
-    on_end_turn       = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
+    on_before_setup = Sol.Ops.Shuffle.ace_to_foundation,
+    deal            = Sol.Ops.Deal.stock_to_waste,
+    on_end_turn     = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
 }
 
 

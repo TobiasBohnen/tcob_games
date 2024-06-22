@@ -65,9 +65,9 @@ end
 
 ------
 
-local trefoil             = Sol.copy(la_belle_lucie)
-trefoil.Info.Name         = "Trefoil"
-trefoil.Tableau           = {
+local trefoil           = Sol.copy(la_belle_lucie)
+trefoil.Info.Name       = "Trefoil"
+trefoil.Tableau         = {
     Size = 16,
     Pile = {
         Initial = Sol.Initial.face_up(3),
@@ -75,7 +75,7 @@ trefoil.Tableau           = {
         Rule    = Sol.Rules.none_downsuit_top
     }
 }
-trefoil.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
+trefoil.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
 
 ------
 

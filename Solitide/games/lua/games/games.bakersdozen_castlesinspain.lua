@@ -27,9 +27,9 @@ local castles_in_spain = {
 
 ------
 
-local martha             = Sol.copy(castles_in_spain)
-martha.Info.Name         = "Martha"
-martha.Tableau           = {
+local martha           = Sol.copy(castles_in_spain)
+martha.Info.Name       = "Martha"
+martha.Tableau         = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.alternate(4, false),
@@ -37,7 +37,7 @@ martha.Tableau           = {
         Rule    = { Base = Sol.Rules.Base.AnySingle(), Build = Sol.Rules.Build.DownAlternateColors(), Move = Sol.Rules.Move.InSeq() }
     }
 }
-martha.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
+martha.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
 
 
 ------

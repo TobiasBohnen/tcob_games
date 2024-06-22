@@ -131,7 +131,7 @@ local montana               = {
             Rule     = Sol.Rules.none_none_top
         }
     },
-    on_shuffle = function(_, card, _)
+    on_setup = function(_, card, _)
         return card.Rank == "Ace"
     end,
     on_init    = function(game) Sol.Layout.montana(game, 13) end,
@@ -167,7 +167,7 @@ end
 ------
 local blue_moon_ranks <const> = Sol.Ranks
 
-local function blue_moon_shuffle(game, card, rows)
+local function blue_moon_setup(game, card, rows)
     if card.Rank == "Ace" then
         for i = 0, rows - 1 do
             if game.PlaceTop(card, game.Tableau, 1 + i * 14, 1, true) then
@@ -198,8 +198,8 @@ local blue_moon = {
             }
         end
     },
-    on_shuffle = function(game, card, _)
-        return blue_moon_shuffle(game, card, 4)
+    on_setup = function(game, card, _)
+        return blue_moon_setup(game, card, 4)
     end,
     can_play   = function(game, targetPile, _, card, _)
         return montana_base.can_play(game, targetPile, card, blue_moon_ranks, "l")
@@ -220,53 +220,53 @@ local double_blue_moon          = Sol.copy(blue_moon)
 double_blue_moon.Info.Name      = "Double Blue Moon"
 double_blue_moon.Info.DeckCount = 2
 double_blue_moon.Tableau.Size   = 112
-double_blue_moon.on_shuffle     = function(game, card, _)
-    return blue_moon_shuffle(game, card, 8)
+double_blue_moon.on_setup     = function(game, card, _)
+    return blue_moon_setup(game, card, 8)
 end
 
 
 ------
 
-local red_moon             = Sol.copy(blue_moon)
-red_moon.Info.Name         = "Red Moon"
-red_moon.Tableau.Pile      = function(i)
+local red_moon           = Sol.copy(blue_moon)
+red_moon.Info.Name       = "Red Moon"
+red_moon.Tableau.Pile    = function(i)
     return {
         Initial = Sol.Initial.face_up((i % 14 < 2) and 0 or 1),
         Layout  = Sol.Pile.Layout.Squared,
         Rule    = Sol.Rules.none_none_top
     }
 end
-red_moon.on_before_shuffle = blue_moon.on_shuffle
-red_moon.on_shuffle        = nil
+red_moon.on_before_setup = blue_moon.on_setup
+red_moon.on_setup      = nil
 
 
 ------
 
-local double_red_moon             = Sol.copy(red_moon)
-double_red_moon.Info.Name         = "Double Red Moon"
-double_red_moon.Info.DeckCount    = 2
-double_red_moon.Tableau.Size      = 112
-double_red_moon.on_before_shuffle = function(game, card, _)
-    return blue_moon_shuffle(game, card, 8)
+local double_red_moon           = Sol.copy(red_moon)
+double_red_moon.Info.Name       = "Double Red Moon"
+double_red_moon.Info.DeckCount  = 2
+double_red_moon.Tableau.Size    = 112
+double_red_moon.on_before_setup = function(game, card, _)
+    return blue_moon_setup(game, card, 8)
 end
 
 
 ------
 
-local galary             = Sol.copy(blue_moon)
-galary.Info.Name         = "Galary"
-galary.Tableau.Pile      = function(i)
+local galary           = Sol.copy(blue_moon)
+galary.Info.Name       = "Galary"
+galary.Tableau.Pile    = function(i)
     return {
         Initial = Sol.Initial.face_up((i % 14 == 0 or i % 14 == 1) and 0 or 1),
         Layout  = Sol.Pile.Layout.Squared,
         Rule    = Sol.Rules.none_none_top
     }
 end
-galary.on_before_shuffle = function(game, card)
-    return blue_moon.on_shuffle(game, card)
+galary.on_before_setup = function(game, card)
+    return blue_moon.on_setup(game, card)
 end
-galary.on_shuffle        = nil
-galary.can_play          = function(game, targetPile, _, card, _)
+galary.on_setup      = nil
+galary.can_play        = function(game, targetPile, _, card, _)
     return montana_base.can_play(game, targetPile, card, blue_moon_ranks, "rl")
 end
 
@@ -294,7 +294,7 @@ local paganini               = {
             }
         end
     },
-    on_shuffle = function(game, card, _)
+    on_setup = function(game, card, _)
         if card.Rank == "Ace" then
             return game.PlaceTop(card, game.Tableau, 1, 1, true)
                 or game.PlaceTop(card, game.Tableau, 11, 1, true)

@@ -98,18 +98,18 @@ variegated_canfield.Reserve.Initial = Sol.Initial.face_up(13)
 
 ------
 
-local acme             = Sol.copy(canfield)
-acme.Info.Name         = "Acme"
-acme.Info.Redeals      = 1
-acme.Stock.Initial     = Sol.Initial.face_down(31)
-acme.Foundation.Pile   = { Rule = Sol.Rules.ace_upsuit_none }
-acme.Tableau.Pile      = {
+local acme           = Sol.copy(canfield)
+acme.Info.Name       = "Acme"
+acme.Info.Redeals    = 1
+acme.Stock.Initial   = Sol.Initial.face_down(31)
+acme.Foundation.Pile = { Rule = Sol.Rules.ace_upsuit_none }
+acme.Tableau.Pile    = {
     Initial = Sol.Initial.face_up(1),
     Layout  = Sol.Pile.Layout.Column,
     Rule    = Sol.Rules.any_downsuit_top
 }
-acme.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
-acme.deal              = Sol.Ops.Deal.stock_to_waste
+acme.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
+acme.deal            = Sol.Ops.Deal.stock_to_waste
 
 
 ------

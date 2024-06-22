@@ -255,7 +255,6 @@ void start_scene::on_key_down(input::keyboard::event& ev)
         set_theme();
         ev.Handled = true;
     }
-
     if (ev.KeyCode == input::key_code::g) {
         _sources->Translator.set_language("de-DE");
         _currentRules = generate_rule(_sources->Settings.LastGame);

@@ -4,16 +4,16 @@
 -- https://opensource.org/licenses/MIT
 
 local beleaguered_castle = {
-    Info              = {
+    Info            = {
         Name      = "Beleaguered Castle",
         Family    = "BeleagueredCastle",
         DeckCount = 1
     },
-    Foundation        = {
+    Foundation      = {
         Size = 4,
         Pile = { Rule = Sol.Rules.ace_upsuit_none }
     },
-    Tableau           = {
+    Tableau         = {
         Size = 8,
         Pile = {
             Initial = Sol.Initial.face_up(6),
@@ -21,8 +21,8 @@ local beleaguered_castle = {
             Rule    = Sol.Rules.any_downrank_top
         }
     },
-    on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation,
-    on_init           = Sol.Layout.beleaguered_castle
+    on_before_setup = Sol.Ops.Shuffle.ace_to_foundation,
+    on_init         = Sol.Layout.beleaguered_castle
 }
 
 
@@ -48,9 +48,9 @@ castle_mount.on_init        = Sol.Layout.canister
 
 ------
 
-local citadel      = Sol.copy(beleaguered_castle)
-citadel.Info.Name  = "Citadel"
-citadel.on_shuffle = Sol.Ops.Shuffle.play_to_foundation
+local citadel     = Sol.copy(beleaguered_castle)
+citadel.Info.Name = "Citadel"
+citadel.on_setup  = Sol.Ops.Shuffle.play_to_foundation
 
 
 ------
@@ -265,12 +265,12 @@ local penelopes_web = {
 ------
 
 local rittenhouse = {
-    Info              = {
+    Info            = {
         Name      = "Rittenhouse",
         Family    = "BeleagueredCastle",
         DeckCount = 2
     },
-    Foundation        = {
+    Foundation      = {
         Size = 8,
         Pile = function(i)
             if i < 4 then
@@ -286,7 +286,7 @@ local rittenhouse = {
             end
         end
     },
-    Tableau           = {
+    Tableau         = {
         Size = 9,
         Pile = function(i)
             return {
@@ -297,9 +297,9 @@ local rittenhouse = {
             }
         end
     },
-    on_before_shuffle = Sol.Ops.Shuffle.ace_and_king_to_foundation,
-    on_shuffle        = function(game, card, pile)
-        local idx = pile.Index
+    on_before_setup = Sol.Ops.Shuffle.ace_and_king_to_foundation,
+    on_setup        = function(game, card, pile)
+        local idx        = pile.Index
         local foundation = game.Foundation
 
         if idx ~= 5 then
@@ -313,12 +313,12 @@ local rittenhouse = {
 
         return false
     end,
-    on_drop           = function(game, pile)
+    on_drop         = function(game, pile)
         local foundation = game.Foundation
-        local tableau = game.Tableau
+        local tableau    = game.Tableau
 
         -- check droppile first
-        local dropIdx = pile.Index
+        local dropIdx    = pile.Index
         while true do
             local check = false
             if dropIdx ~= 5 then
@@ -345,7 +345,7 @@ local rittenhouse = {
             if not check then break end
         end
     end,
-    can_play          = function(game, targetPile, targetCardIndex, card, numCards)
+    can_play        = function(game, targetPile, targetCardIndex, card, numCards)
         if targetPile.Type == Sol.Pile.Type.Foundation then
             local dstPileIdx = targetPile.Index
             local srcPileIdx = game:find_pile(card).Index

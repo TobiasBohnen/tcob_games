@@ -28,6 +28,7 @@ enum class family {
     Klondike,
     Montana,
     Numerica,
+    Pairing,
     PictureGallery,
     Spider,
     Terrace,

@@ -155,16 +155,16 @@ local black_hole_pos = {
 }
 
 local black_hole     = {
-    Info              = {
+    Info            = {
         Name      = "Black Hole",
         Family    = "Golf",
         DeckCount = 1
     },
-    Foundation        = {
+    Foundation      = {
         Position = { x = 4, y = 1.5 },
         Rule     = { Build = Sol.Rules.Build.UpOrDownByRank(true), Move = Sol.Rules.Move.None() }
     },
-    Tableau           = {
+    Tableau         = {
         Size = 17,
         Pile = function(i)
             return {
@@ -175,7 +175,7 @@ local black_hole     = {
             }
         end
     },
-    on_before_shuffle = function(game, card)
+    on_before_setup = function(game, card)
         if card.Rank == "Ace" and card.Suit == "Spades" then
             return game.PlaceTop(card, game.Foundation, true)
         end
@@ -187,10 +187,10 @@ local black_hole     = {
 
 ------
 
-local binary_star             = Sol.copy(black_hole)
-binary_star.Info.Name         = "Binary Star"
-binary_star.Info.DeckCount    = 2
-binary_star.Foundation        = {
+local binary_star           = Sol.copy(black_hole)
+binary_star.Info.Name       = "Binary Star"
+binary_star.Info.DeckCount  = 2
+binary_star.Foundation      = {
     Size = 2,
     Pile = function(i)
         return {
@@ -199,7 +199,7 @@ binary_star.Foundation        = {
         }
     end
 }
-binary_star.Tableau           = {
+binary_star.Tableau         = {
     Size = 17,
     Pile = function(i)
         return {
@@ -210,7 +210,7 @@ binary_star.Tableau           = {
         }
     end
 }
-binary_star.on_before_shuffle = function(game, card)
+binary_star.on_before_setup = function(game, card)
     if card.Rank == "Ace" and card.Suit == "Spades" then
         return game.PlaceTop(card, game.Foundation, 1, 1, true)
     elseif card.Rank == "King" and card.Suit == "Hearts" then
@@ -361,20 +361,20 @@ end
 ------
 
 local uintah = {
-    Info              = {
+    Info            = {
         Name      = "Uintah",
         Family    = "Golf",
         DeckCount = 1,
         Redeals   = -1
     },
-    Stock             = {
+    Stock           = {
         Position = { x = 1, y = 1 },
         Initial = Sol.Initial.face_down(48)
     },
-    Waste             = {
+    Waste           = {
         Position = { x = 2, y = 1 }
     },
-    Foundation        = {
+    Foundation      = {
         Size = 4,
         Pile = function(i)
             return {
@@ -384,9 +384,9 @@ local uintah = {
             }
         end
     },
-    deal              = Sol.Ops.Deal.stock_to_waste_by_3,
-    redeal            = Sol.Ops.Redeal.waste_to_stock,
-    on_before_shuffle = function(game, card)
+    deal            = Sol.Ops.Deal.stock_to_waste_by_3,
+    redeal          = Sol.Ops.Redeal.waste_to_stock,
+    on_before_setup = function(game, card)
         if card.Suit == "Clubs" then
             return game.PlaceTop(card, game.Foundation[1], true)
         end
@@ -406,16 +406,16 @@ local uintah = {
 
 ------
 
-local double_uintah             = Sol.copy(uintah)
-double_uintah.Info.Name         = "Double Uintah"
-double_uintah.Info.DeckCount    = 2
-double_uintah.Stock             = {
+local double_uintah           = Sol.copy(uintah)
+double_uintah.Info.Name       = "Double Uintah"
+double_uintah.Info.DeckCount  = 2
+double_uintah.Stock           = {
     Position = { x = 3, y = 1 },
     Initial = Sol.Initial.face_down(96)
 }
-double_uintah.Waste             = { Position = { x = 4, y = 1 } }
-double_uintah.Foundation.Size   = 8
-double_uintah.on_before_shuffle = function(game, card)
+double_uintah.Waste           = { Position = { x = 4, y = 1 } }
+double_uintah.Foundation.Size = 8
+double_uintah.on_before_setup = function(game, card)
     if card.Suit == "Clubs" then
         return game.PlaceTop(card, game.Foundation[1], true) or game.PlaceTop(card, game.Foundation[2], true)
     elseif card.Suit == "Spades" then

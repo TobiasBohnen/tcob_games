@@ -60,9 +60,9 @@ protected:
     auto virtual do_redeal() -> bool = 0;
     auto virtual do_deal() -> bool   = 0;
 
-    auto virtual before_shuffle(card& card) -> bool         = 0;
-    auto virtual on_shuffle(card& card, pile* pile) -> bool = 0;
-    void virtual after_shuffle()                            = 0;
+    auto virtual before_setup(card& card) -> bool         = 0;
+    auto virtual on_setup(card& card, pile* pile) -> bool = 0;
+    void virtual after_setup()                            = 0;
 
     void virtual on_init() = 0;
 
@@ -116,9 +116,9 @@ protected:
     auto do_redeal() -> bool override;
     auto do_deal() -> bool override;
 
-    auto before_shuffle(card& card) -> bool override;
-    auto on_shuffle(card& card, pile* pile) -> bool override;
-    void after_shuffle() override;
+    auto before_setup(card& card) -> bool override;
+    auto on_setup(card& card, pile* pile) -> bool override;
+    void after_setup() override;
 
     void on_init() override;
 
@@ -134,9 +134,9 @@ private:
     struct callbacks {
         std::optional<Function<bool>>              Redeal;
         std::optional<Function<bool>>              Deal;
-        std::optional<Function<bool>>              OnBeforeShuffle;
-        std::optional<Function<bool>>              OnShuffle;
-        std::optional<Function<void>>              OnAfterShuffle;
+        std::optional<Function<bool>>              OnBeforeSetup;
+        std::optional<Function<bool>>              OnSetup;
+        std::optional<Function<void>>              OnAfterSetup;
         std::optional<Function<void>>              OnInit;
         std::optional<Function<void>>              OnDrop;
         std::optional<Function<void>>              OnEndTurn;

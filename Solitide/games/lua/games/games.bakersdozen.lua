@@ -4,16 +4,16 @@
 -- https://opensource.org/licenses/MIT
 
 local bakers_dozen = {
-    Info             = {
+    Info           = {
         Name      = "Baker's Dozen",
         Family    = "BakersDozen",
         DeckCount = 1
     },
-    Foundation       = {
+    Foundation     = {
         Size = 4,
         Pile = { Rule = Sol.Rules.ace_upsuit_top }
     },
-    Tableau          = {
+    Tableau        = {
         Size = 13,
         Pile = {
             Initial = Sol.Initial.face_up(4),
@@ -21,8 +21,8 @@ local bakers_dozen = {
             Rule    = Sol.Rules.none_downrank_top
         }
     },
-    on_after_shuffle = Sol.Ops.Shuffle.kings_to_bottom,
-    on_init          = Sol.Layout.bakers_dozen
+    on_after_setup = Sol.Ops.Shuffle.kings_to_bottom,
+    on_init        = Sol.Layout.bakers_dozen
 }
 
 
@@ -37,9 +37,9 @@ bakers_dozen_two_decks.Tableau.Size    = 26
 
 ------
 
-local good_measure             = Sol.copy(bakers_dozen)
-good_measure.Info.Name         = "Good Measure"
-good_measure.Tableau           = {
+local good_measure           = Sol.copy(bakers_dozen)
+good_measure.Info.Name       = "Good Measure"
+good_measure.Tableau         = {
     Size = 10,
     Pile = {
         Initial = Sol.Initial.face_up(5),
@@ -47,7 +47,7 @@ good_measure.Tableau           = {
         Rule    = Sol.Rules.none_downrank_top
     }
 }
-good_measure.on_before_shuffle = function(game, card)
+good_measure.on_before_setup = function(game, card)
     if card.Rank == "Ace" then
         return game.PlaceTop(card, game.Foundation, 1, 2, true)
     end
@@ -85,18 +85,18 @@ local fifteen = {
 ------
 
 local nationale = {
-    Info              = {
+    Info            = {
         Name      = "Nationale",
         Family    = "BakersDozen",
         DeckCount = 2
     },
-    Foundation        = {
+    Foundation      = {
         Size = 8,
         Pile = function(i)
             return { Rule = i < 4 and Sol.Rules.ace_upsuit_top or Sol.Rules.king_downsuit_top }
         end
     },
-    Tableau           = {
+    Tableau         = {
         Size = 12,
         Pile = {
             Initial = Sol.Initial.face_up(8),
@@ -104,8 +104,8 @@ local nationale = {
             Rule    = Sol.Rules.any_updownsuit_top
         }
     },
-    on_before_shuffle = Sol.Ops.Shuffle.ace_and_king_to_foundation,
-    on_init           = Sol.Layout.canister
+    on_before_setup = Sol.Ops.Shuffle.ace_and_king_to_foundation,
+    on_init         = Sol.Layout.canister
 }
 
 

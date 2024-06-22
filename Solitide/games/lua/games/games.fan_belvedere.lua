@@ -4,26 +4,26 @@
 -- https://opensource.org/licenses/MIT
 
 local belvedere = {
-    Info              = {
+    Info            = {
         Name      = "Belvedere",
         Family    = "Fan",
         DeckCount = 1
     },
-    Stock             = {
+    Stock           = {
         Initial = Sol.Initial.face_down(27)
     },
-    Waste             = {
+    Waste           = {
         Size = 3,
         Pile = {
             Layout = Sol.Pile.Layout.Squared,
             Rule   = Sol.Rules.none_none_top
         }
     },
-    Foundation        = {
+    Foundation      = {
         Size = 4,
         Pile = { Rule = Sol.Rules.ace_uprank_none }
     },
-    Tableau           = {
+    Tableau         = {
         Size = 8,
         Pile = {
             Initial = Sol.Initial.face_up(3),
@@ -31,25 +31,25 @@ local belvedere = {
             Rule    = Sol.Rules.none_downrank_top
         }
     },
-    on_before_shuffle = function(game, card)
+    on_before_setup = function(game, card)
         if card.Rank == "Ace" then
             return game.PlaceTop(card, game.Foundation[1], true)
         end
 
         return false
     end,
-    on_init           = function(game) Sol.Layout.fan(game, 4) end,
-    deal              = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Waste) end
+    on_init         = function(game) Sol.Layout.fan(game, 4) end,
+    deal            = function(game) return Sol.Ops.Deal.to_group(game.Stock[1], game.Waste) end
 }
 
 
 ------
 
-local bristol             = Sol.copy(belvedere)
-bristol.Info.Name         = "Bristol"
-bristol.Stock.Initial     = Sol.Initial.face_down(28)
-bristol.on_before_shuffle = nil
-bristol.on_after_shuffle  = Sol.Ops.Shuffle.kings_to_bottom
+local bristol           = Sol.copy(belvedere)
+bristol.Info.Name       = "Bristol"
+bristol.Stock.Initial   = Sol.Initial.face_down(28)
+bristol.on_before_setup = nil
+bristol.on_after_setup  = Sol.Ops.Shuffle.kings_to_bottom
 
 
 ------

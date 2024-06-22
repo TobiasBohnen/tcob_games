@@ -33,15 +33,15 @@ local fastness = {
 
 ------
 
-local siegecraft             = Sol.copy(fastness)
-siegecraft.Info.Name         = "Siegecraft"
-siegecraft.FreeCell          = { Rule = Sol.Rules.any_none_top }
-siegecraft.Tableau.Pile      = {
+local siegecraft           = Sol.copy(fastness)
+siegecraft.Info.Name       = "Siegecraft"
+siegecraft.FreeCell        = { Rule = Sol.Rules.any_none_top }
+siegecraft.Tableau.Pile    = {
     Initial = Sol.Initial.face_up(6),
     Layout  = Sol.Pile.Layout.Row,
     Rule    = Sol.Rules.any_downrank_top
 }
-siegecraft.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
+siegecraft.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
 
 
 ------

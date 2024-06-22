@@ -80,14 +80,14 @@ local die_koenigsbergerin                = Sol.copy(gypsy)
 die_koenigsbergerin.Info.Name            = "Die Königsbergerin"
 die_koenigsbergerin.Foundation.Pile.Rule = Sol.Rules.ace_upsuit_none
 die_koenigsbergerin.Tableau.Pile.Initial = Sol.Initial.face_up(3)
-die_koenigsbergerin.on_shuffle           = function(game, card, pile)
+die_koenigsbergerin.on_setup             = function(game, card, pile)
     if pile.Type == Sol.Pile.Type.Tableau and card.Rank == "Ace" then
         return game.PlaceTop(card, game.Foundation, true)
     end
 
     return false
 end
-die_koenigsbergerin.on_after_shuffle     = function(game)
+die_koenigsbergerin.on_after_setup       = function(game)
     -- refill Tableau from Stock back to three cards
     local tableau = game.Tableau
     local stock = game.Stock[1]
@@ -192,18 +192,18 @@ end
 
 ------
 
-local flamenco             = Sol.copy(gypsy)
-flamenco.Info.Name         = "Flamenco"
-flamenco.Stock.Initial     = Sol.Initial.face_down(72)
-flamenco.Tableau.Pile      = {
+local flamenco           = Sol.copy(gypsy)
+flamenco.Info.Name       = "Flamenco"
+flamenco.Stock.Initial   = Sol.Initial.face_down(72)
+flamenco.Tableau.Pile    = {
     Initial = Sol.Initial.face_up(3),
     Layout  = Sol.Pile.Layout.Column,
     Rule    = Sol.Rules.any_downac_inseq
 }
-flamenco.Foundation.Pile   = function(i)
+flamenco.Foundation.Pile = function(i)
     return { Rule = i < 4 and Sol.Rules.ace_upsuit_top or Sol.Rules.king_downsuit_top }
 end
-flamenco.on_before_shuffle = Sol.Ops.Shuffle.ace_and_king_to_foundation
+flamenco.on_before_setup = Sol.Ops.Shuffle.ace_and_king_to_foundation
 
 
 ------

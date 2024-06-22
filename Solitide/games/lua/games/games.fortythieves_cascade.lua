@@ -92,7 +92,7 @@ local jacks_in_the_box = {
     },
     deal = Sol.Ops.Deal.stock_to_waste,
     redeal = Sol.Ops.Redeal.waste_to_stock,
-    on_before_shuffle = function(game, card)
+    on_before_setup = function(game, card)
         if card.Rank == "Jack" then
             return game.PlaceTop(card, game.Foundation, true)
         end

@@ -40,13 +40,13 @@ take_away_8.Foundation.Size = 8
 ------
 
 local striptease = {
-    Info              = {
+    Info            = {
         Name      = "Striptease",
         Family    = "Golf",
         DeckCount = 1,
         Objective = "AllCardsButFourToFoundation"
     },
-    Foundation        = {
+    Foundation      = {
         Size = 6,
         Pile = {
             Layout = Sol.Pile.Layout.Squared,
@@ -66,7 +66,7 @@ local striptease = {
             }
         }
     },
-    Tableau           = {
+    Tableau         = {
         Size = 4,
         Pile = {
             Initial = { false, true, true, true, true, true, true, true, true, true, true, true },
@@ -74,13 +74,13 @@ local striptease = {
             Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.Top() }
         }
     },
-    on_before_shuffle = function(game, card)
+    on_before_setup = function(game, card)
         if card.Rank == "Queen" then
             return game.PlaceTop(card, game.Tableau, true)
         end
         return false
     end,
-    on_end_turn       = function(game)
+    on_end_turn     = function(game)
         -- Flip face-down cards if there are no other cards on the tableau
         local check = true
         for _, tab in ipairs(game.Tableau) do
@@ -93,7 +93,7 @@ local striptease = {
             tab:flip_cards({ true, check })
         end
     end,
-    on_init           = Sol.Layout.canister
+    on_init         = Sol.Layout.canister
 }
 
 

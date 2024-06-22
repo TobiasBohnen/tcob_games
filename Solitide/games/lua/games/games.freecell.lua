@@ -119,12 +119,12 @@ local double_free_cell = {
 
 ------
 
-local double_free_cell_2             = Sol.copy(free_cell)
-double_free_cell_2.Info.Name         = "Double FreeCell II"
-double_free_cell_2.Info.DeckCount    = 2
-double_free_cell_2.FreeCell.Size     = 6
-double_free_cell_2.Foundation.Pile   = { Rule = { Base = Sol.Rules.Base.Ace(), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top() } }
-double_free_cell_2.Tableau           = {
+local double_free_cell_2           = Sol.copy(free_cell)
+double_free_cell_2.Info.Name       = "Double FreeCell II"
+double_free_cell_2.Info.DeckCount  = 2
+double_free_cell_2.FreeCell.Size   = 6
+double_free_cell_2.Foundation.Pile = { Rule = { Base = Sol.Rules.Base.Ace(), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top() } }
+double_free_cell_2.Tableau         = {
     Size = 10,
     Pile = {
         Initial = Sol.Initial.face_up(10),
@@ -132,7 +132,7 @@ double_free_cell_2.Tableau           = {
         Rule    = Sol.Rules.any_downac_sm
     }
 }
-double_free_cell_2.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
+double_free_cell_2.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
 
 
 ------
@@ -271,9 +271,9 @@ local cell_11 = {
 
 ------
 
-local challenge_free_cell             = Sol.copy(free_cell)
-challenge_free_cell.Info.Name         = "Challenge FreeCell"
-challenge_free_cell.Tableau           = {
+local challenge_free_cell           = Sol.copy(free_cell)
+challenge_free_cell.Info.Name       = "Challenge FreeCell"
+challenge_free_cell.Tableau         = {
     Size = 8,
     Pile = function(i)
         return {
@@ -283,7 +283,7 @@ challenge_free_cell.Tableau           = {
         }
     end
 }
-challenge_free_cell.on_before_shuffle = function(game, card)
+challenge_free_cell.on_before_setup = function(game, card)
     if card.Rank == "Two" then
         return game.PlaceTop(card, game.Tableau, 1, 4, true)
     elseif card.Rank == "Ace" then
@@ -312,20 +312,20 @@ super_challenge_free_cell.Tableau   = {
 
 ------
 
-local clink             = Sol.copy(free_cell)
-clink.Info.Name         = "Clink"
-clink.FreeCell          = {
+local clink           = Sol.copy(free_cell)
+clink.Info.Name       = "Clink"
+clink.FreeCell        = {
     Size = 2,
     Pile = {
         Initial = Sol.Initial.face_up(1),
         Rule    = Sol.Rules.any_none_top
     }
 }
-clink.Foundation        = {
+clink.Foundation      = {
     Size = 2,
     Pile = { Rule = { Base = Sol.Rules.Base.Ace(), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top() } }
 }
-clink.Tableau           = {
+clink.Tableau         = {
     Size = 8,
     Pile = {
         Initial = Sol.Initial.face_up(6),
@@ -333,7 +333,7 @@ clink.Tableau           = {
         Rule    = Sol.Rules.any_downac_inseq
     }
 }
-clink.on_before_shuffle = function(game, card)
+clink.on_before_setup = function(game, card)
     if card.Rank == "Ace" and (card.Suit == "Clubs" or card.Suit == "Hearts") then
         return game.PlaceTop(card, game.Foundation, true)
     end
@@ -548,7 +548,7 @@ petal.Tableau.Pile          = function(i)
         Rule    = Sol.Rules.any_downac_sm
     }
 end
-petal.on_before_shuffle     = function(game, card)
+petal.on_before_setup       = function(game, card)
     local foundation = game.Foundation
     if foundation[1].IsEmpty then
         return game.PlaceTop(card, foundation[1], true)

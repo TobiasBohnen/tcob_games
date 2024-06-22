@@ -56,9 +56,9 @@ bear_river.on_init    = function(game) Sol.Layout.fan(game, 6) end
 
 ------
 
-local box_fan             = Sol.copy(fan)
-box_fan.Info.Name         = "Box Fan"
-box_fan.Tableau           = {
+local box_fan           = Sol.copy(fan)
+box_fan.Info.Name       = "Box Fan"
+box_fan.Tableau         = {
     Size = 16,
     Pile = {
         Initial = Sol.Initial.face_up(3),
@@ -66,8 +66,8 @@ box_fan.Tableau           = {
         Rule    = Sol.Rules.king_downac_top
     }
 }
-box_fan.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
-box_fan.on_init           = function(game) Sol.Layout.fan(game, 4) end
+box_fan.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
+box_fan.on_init         = function(game) Sol.Layout.fan(game, 4) end
 
 
 ------
@@ -89,12 +89,12 @@ ceiling_fan.Tableau   = {
 ------
 
 local clover_leaf = {
-    Info              = {
+    Info            = {
         Name      = "Clover Leaf",
         Family    = "Fan",
         DeckCount = 1
     },
-    Foundation        = {
+    Foundation      = {
         Size = 4,
         Pile = function(i)
             if i < 2 then
@@ -104,7 +104,7 @@ local clover_leaf = {
             end
         end
     },
-    Tableau           = {
+    Tableau         = {
         Size = 16,
         Pile = {
             Initial = Sol.Initial.face_up(3),
@@ -112,7 +112,7 @@ local clover_leaf = {
             Rule    = { Base = Sol.Rules.Base.Ranks({ "Ace", "King" }), Build = Sol.Rules.Build.UpOrDownInSuit(), Move = Sol.Rules.Move.Top() }
         }
     },
-    on_before_shuffle = function(game, card)
+    on_before_setup = function(game, card)
         if card.Rank == "Ace" and card.Color == "Black" then
             return game.PlaceTop(card, game.Foundation, 1, 2, true)
         elseif card.Rank == "King" and card.Color == "Red" then
@@ -121,7 +121,7 @@ local clover_leaf = {
 
         return false
     end,
-    on_init           = function(game) Sol.Layout.fan(game, 4) end
+    on_init         = function(game) Sol.Layout.fan(game, 4) end
 }
 
 
@@ -178,9 +178,9 @@ end
 
 ------
 
-local quads      = Sol.copy(fan)
-quads.Info.Name  = "Quads"
-quads.Tableau    = {
+local quads     = Sol.copy(fan)
+quads.Info.Name = "Quads"
+quads.Tableau   = {
     Size = 13,
     Pile = {
         Initial = Sol.Initial.face_up(4),
@@ -188,7 +188,7 @@ quads.Tableau    = {
         Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.InRank(), Move = Sol.Rules.Move.Top(), Limit = 4 }
     }
 }
-quads.on_shuffle = function(game, card, pile)
+quads.on_setup  = function(game, card, pile)
     if pile.Type == Sol.Pile.Type.Tableau and card.Rank == "Ace" then
         return game.PlaceTop(card, game.Foundation, true)
     end
@@ -199,9 +199,9 @@ end
 
 ------
 
-local quads_plus             = Sol.copy(fan)
-quads_plus.Info.Name         = "Quads+"
-quads_plus.Tableau           = {
+local quads_plus           = Sol.copy(fan)
+quads_plus.Info.Name       = "Quads+"
+quads_plus.Tableau         = {
     Size = 13,
     Pile = function(i)
         return {
@@ -211,7 +211,7 @@ quads_plus.Tableau           = {
         }
     end
 }
-quads_plus.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
+quads_plus.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
 
 
 ------
@@ -289,9 +289,9 @@ shamrocks.Tableau   = {
 
 ------
 
-local shamrocks_2            = Sol.copy(fan)
-shamrocks_2.Info.Name        = "Shamrocks II"
-shamrocks_2.Tableau          = {
+local shamrocks_2          = Sol.copy(fan)
+shamrocks_2.Info.Name      = "Shamrocks II"
+shamrocks_2.Tableau        = {
     Size = 18,
     Pile = function(i)
         return {
@@ -301,14 +301,14 @@ shamrocks_2.Tableau          = {
         }
     end
 }
-shamrocks_2.on_after_shuffle = Sol.Ops.Shuffle.kings_to_bottom
+shamrocks_2.on_after_setup = Sol.Ops.Shuffle.kings_to_bottom
 
 
 ------
 
-local troika      = Sol.copy(fan)
-troika.Info.Name  = "Troika"
-troika.Tableau    = {
+local troika     = Sol.copy(fan)
+troika.Info.Name = "Troika"
+troika.Tableau   = {
     Size = 18,
     Pile = function(i)
         return {
@@ -318,7 +318,7 @@ troika.Tableau    = {
         }
     end
 }
-troika.on_shuffle = function(game, card, pile)
+troika.on_setup  = function(game, card, pile)
     if pile.Type == Sol.Pile.Type.Tableau and card.Rank == "Ace" then
         return game.PlaceTop(card, game.Foundation, true)
     end
@@ -384,14 +384,14 @@ local club = {
 ------
 
 local crescent = {
-    Info              = {
+    Info            = {
         Name      = "Crescent",
         Family    = "Fan",
         DeckCount = 2,
         Redeals   = 3
     },
-    Stock             = { Position = { x = 0, y = 0 } },
-    Foundation        = {
+    Stock           = { Position = { x = 0, y = 0 } },
+    Foundation      = {
         Size = 8,
         Pile = function(i)
             return {
@@ -400,7 +400,7 @@ local crescent = {
             }
         end
     },
-    Tableau           = {
+    Tableau         = {
         Size = 16,
         Pile = function(i)
             return {
@@ -411,8 +411,8 @@ local crescent = {
             }
         end
     },
-    on_before_shuffle = Sol.Ops.Shuffle.ace_and_king_to_foundation,
-    redeal            = function(game)
+    on_before_setup = Sol.Ops.Shuffle.ace_and_king_to_foundation,
+    redeal          = function(game)
         for _, tableau in ipairs(game.Tableau) do
             if tableau.CardCount > 1 then
                 tableau:shift_card(1, tableau.CardCount)
@@ -426,22 +426,22 @@ local crescent = {
 ------
 
 local rainbow_fan = {
-    Info              = {
+    Info            = {
         Name      = "Rainbow Fan",
         Family    = "Fan",
         DeckCount = 2,
         Redeals   = 3
     },
-    Stock             = {
+    Stock           = {
         Initial = Sol.Initial.face_down(36)
     },
-    Foundation        = {
+    Foundation      = {
         Size = 8,
         Pile = function(i)
             return { Rule = i < 4 and Sol.Rules.ace_upsuit_top or Sol.Rules.king_downsuit_top }
         end
     },
-    Tableau           = {
+    Tableau         = {
         Size = 20,
         Pile = {
             Initial = Sol.Initial.face_up(3),
@@ -449,9 +449,9 @@ local rainbow_fan = {
             Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpOrDownInSuit(true), Move = Sol.Rules.Move.Top() }
         }
     },
-    on_init           = function(game) Sol.Layout.fan(game, 5) end,
-    on_before_shuffle = Sol.Ops.Shuffle.ace_and_king_to_foundation,
-    on_end_turn       = function(game)
+    on_init         = function(game) Sol.Layout.fan(game, 5) end,
+    on_before_setup = Sol.Ops.Shuffle.ace_and_king_to_foundation,
+    on_end_turn     = function(game)
         local stock = game.Stock[1]
         if stock.IsEmpty then return end
         local tableau = game.Tableau
@@ -463,7 +463,7 @@ local rainbow_fan = {
             end
         end
     end,
-    redeal            = function(game)
+    redeal          = function(game)
         local tableau = game.Tableau
         for _, tab in ipairs(tableau) do
             if tab.CardCount > 1 then
@@ -669,20 +669,20 @@ local free_fan = {
 ------
 
 local intelligence = {
-    Info             = {
+    Info           = {
         Name      = "Intelligence",
         Family    = "Fan",
         DeckCount = 2,
         Redeals   = 2
     },
-    Stock            = {
+    Stock          = {
         Initial = Sol.Initial.face_down(50)
     },
-    Foundation       = {
+    Foundation     = {
         Size = 8,
         Pile = { Rule = Sol.Rules.ace_upsuit_top }
     },
-    Tableau          = {
+    Tableau        = {
         Size = 18,
         Pile = {
             Initial = Sol.Initial.face_up(3),
@@ -690,14 +690,14 @@ local intelligence = {
             Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.UpOrDownInSuit(), Move = Sol.Rules.Move.Top() }
         }
     },
-    on_shuffle       = function(game, card, pile)
+    on_setup       = function(game, card, pile)
         if pile.Type == Sol.Pile.Type.Tableau and card.Rank == "Ace" then
             return game.PlaceTop(card, game.Foundation, true)
         end
 
         return false
     end,
-    on_after_shuffle = function(game)
+    on_after_setup = function(game)
         -- refill Tableau from Stock back to three cards
         local stock = game.Stock[1]
         local stockCards = stock.Cards
@@ -723,7 +723,7 @@ local intelligence = {
 
         return false
     end,
-    redeal           = function(game)
+    redeal         = function(game)
         local tableau = game.Tableau
         local stock = game.Stock[1]
         local foundation = game.Foundation
@@ -756,7 +756,7 @@ local intelligence = {
 
         return true
     end,
-    on_end_turn      = function(game)
+    on_end_turn    = function(game)
         local tableau = game.Tableau
         local stock = game.Stock[1]
 
@@ -770,7 +770,7 @@ local intelligence = {
             end
         end
     end,
-    on_init          = function(game) Sol.Layout.fan(game, 4) end,
+    on_init        = function(game) Sol.Layout.fan(game, 4) end,
 }
 
 

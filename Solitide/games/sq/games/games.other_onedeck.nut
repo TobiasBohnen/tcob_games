@@ -53,7 +53,7 @@ local aglet = {
             }
         }
     },
-    on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
+    on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
 }
 
 //////
@@ -153,7 +153,7 @@ local bisley = {
             }
         }
     },
-    on_before_shuffle = function(game, card) {
+    on_before_setup = function(game, card) {
         if (card.Rank == "Ace") {
             return game.PlaceTop(card, game.Foundation, 0, 4, true)
         }
@@ -237,7 +237,7 @@ local carpet = {
             Rule = Sol.Rules.ace_upsuit_top
         }
     },
-    on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation,
+    on_before_setup = Sol.Ops.Shuffle.ace_to_foundation,
     deal = Sol.Ops.Deal.stock_to_waste
 }
 

@@ -4,12 +4,12 @@
 -- https://opensource.org/licenses/MIT
 
 local snake = {
-    Info              = {
+    Info            = {
         Name      = "Snake",
         Family    = "FreeCell",
         DeckCount = 2
     },
-    FreeCell          = {
+    FreeCell        = {
         Size = 7,
         Pile = function(i)
             return {
@@ -18,7 +18,7 @@ local snake = {
             }
         end
     },
-    Foundation        = {
+    Foundation      = {
         Size = 8,
         Pile = function(i)
             return {
@@ -27,7 +27,7 @@ local snake = {
             }
         end
     },
-    Tableau           = {
+    Tableau         = {
         Size = 9,
         Pile = function(i)
             return {
@@ -38,8 +38,8 @@ local snake = {
             }
         end
     },
-    on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation,
-    on_after_shuffle  = function(game)
+    on_before_setup = Sol.Ops.Shuffle.ace_to_foundation,
+    on_after_setup  = function(game)
         -- kings start new pile
         local tableau  = game.Tableau
         local tabIdx   = 2
@@ -57,9 +57,9 @@ local snake = {
 
 ------
 
-local cats_tail             = Sol.copy(snake)
-cats_tail.Info.Name         = "Cat's Tail"
-cats_tail.Tableau.Pile      = function(i)
+local cats_tail           = Sol.copy(snake)
+cats_tail.Info.Name       = "Cat's Tail"
+cats_tail.Tableau.Pile    = function(i)
     return {
         Position = { x = i, y = 1 },
         Initial  = Sol.Initial.face_up(i == 0 and 104 or 0),
@@ -67,15 +67,15 @@ cats_tail.Tableau.Pile      = function(i)
         Rule     = Sol.Rules.none_downac_inseq
     }
 end
-cats_tail.on_before_shuffle = nil
+cats_tail.on_before_setup = nil
 
 
 ------
 
-local kings             = Sol.copy(snake)
-kings.Info.Name         = "Kings"
-kings.FreeCell.Size     = 8
-kings.Tableau           = {
+local kings           = Sol.copy(snake)
+kings.Info.Name       = "Kings"
+kings.FreeCell.Size   = 8
+kings.Tableau         = {
     Size = 8,
     Pile = function(i)
         return {
@@ -86,7 +86,7 @@ kings.Tableau           = {
         }
     end
 }
-kings.on_before_shuffle = function(game, card)
+kings.on_before_setup = function(game, card)
     if card.Rank == "King" then
         return game.PlaceTop(card, game.Tableau[1], true)
     end
@@ -97,9 +97,9 @@ end
 
 ------
 
-local retinue             = Sol.copy(kings)
-retinue.Info.Name         = "Retinue"
-retinue.Tableau.Pile      = function(i)
+local retinue           = Sol.copy(kings)
+retinue.Info.Name       = "Retinue"
+retinue.Tableau.Pile    = function(i)
     return {
         Position = { x = i, y = 1 },
         Initial  = Sol.Initial.face_up(i == 0 and 95 or 0),
@@ -107,8 +107,8 @@ retinue.Tableau.Pile      = function(i)
         Rule     = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.DownAlternateColors(), Move = Sol.Rules.Move.SuperMove() }
     }
 end
-retinue.on_before_shuffle = function(game, card)
-    return kings.on_before_shuffle(game, card) or Sol.Ops.Shuffle.ace_to_foundation(game, card)
+retinue.on_before_setup = function(game, card)
+    return kings.on_before_setup(game, card) or Sol.Ops.Shuffle.ace_to_foundation(game, card)
 end
 
 

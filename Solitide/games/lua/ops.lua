@@ -65,7 +65,7 @@ local function redeal_func(fromPile, toPile)
 end
 
 local redeal = {
-    to_pile = redeal_func,
+    to_pile        = redeal_func,
     waste_to_stock = function(game) return redeal_func(game.Waste[1], game.Stock[1]) end
 }
 
@@ -80,10 +80,13 @@ end
 
 local function deal_group_func(fromPile, toGroup, mode)
     mode = mode or Sol.DealMode.Always
+    local ret = false
 
     if fromPile.IsEmpty then return false end
+
     for _, toPile in ipairs(toGroup) do
         if fromPile.IsEmpty then break end
+
         local check = true
         if mode == Sol.DealMode.IfEmpty then
             check = toPile.IsEmpty
@@ -94,19 +97,20 @@ local function deal_group_func(fromPile, toGroup, mode)
         if check then
             fromPile:move_cards(toPile, #fromPile.Cards, 1, false)
             toPile:flip_up_top_card()
+            ret = true
         end
     end
-    return true
+    return ret
 end
 
 local deal = {
-    to_pile = deal_func,
-    to_group = deal_group_func,
+    to_pile                         = deal_func,
+    to_group                        = deal_group_func,
 
-    stock_to_waste = function(game) return deal_func(game.Stock[1], game.Waste[1], 1) end,
-    stock_to_waste_by_3 = function(game) return deal_func(game.Stock[1], game.Waste[1], 3) end,
-    stock_to_waste_by_redeals_left = function(game) return deal_func(game.Stock[1], game.Waste[1], game.RedealsLeft + 1) end,
-    stock_to_tableau = function(game) return deal_group_func(game.Stock[1], game.Tableau) end,
+    stock_to_waste                  = function(game) return deal_func(game.Stock[1], game.Waste[1], 1) end,
+    stock_to_waste_by_3             = function(game) return deal_func(game.Stock[1], game.Waste[1], 3) end,
+    stock_to_waste_by_redeals_left  = function(game) return deal_func(game.Stock[1], game.Waste[1], game.RedealsLeft + 1) end,
+    stock_to_tableau                = function(game) return deal_group_func(game.Stock[1], game.Tableau) end,
     waste_or_stock_to_empty_tableau = function(game)
         return
             deal_group_func(game.Waste[1], game.Tableau, Sol.DealMode.IfEmpty)
@@ -182,7 +186,7 @@ local pyramid = {
 
 return {
     Shuffle = shuffle,
-    Redeal = redeal,
-    Deal = deal,
+    Redeal  = redeal,
+    Deal    = deal,
     Pyramid = pyramid
 }

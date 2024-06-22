@@ -58,7 +58,7 @@ kilowatt.Info.Name            = "Kilowatt"
 kilowatt.Stock.Initial        = Sol.Initial.face_down(84)
 kilowatt.Foundation.Pile.Rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.UpInSuit(true), Move = Sol.Rules.Move.Top() }
 kilowatt.Tableau.Pile.Rule    = Sol.Rules.any_downsuit_top
-kilowatt.on_before_shuffle    = Sol.Ops.Shuffle.king_to_foundation
+kilowatt.on_before_setup      = Sol.Ops.Shuffle.king_to_foundation
 
 
 ------

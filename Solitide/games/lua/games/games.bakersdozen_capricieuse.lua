@@ -4,20 +4,20 @@
 -- https://opensource.org/licenses/MIT
 
 local capricieuse = {
-    Info              = {
+    Info            = {
         Name      = "Capricieuse",
         Family    = "BakersDozen",
         DeckCount = 2,
         Redeals   = 2
     },
-    Stock             = {},
-    Foundation        = {
+    Stock           = {},
+    Foundation      = {
         Size = 8,
         Pile = function(i)
             return { Rule = i < 4 and Sol.Rules.ace_upsuit_top or Sol.Rules.king_downsuit_top }
         end
     },
-    Tableau           = {
+    Tableau         = {
         Size = 12,
         Pile = {
             Initial = Sol.Initial.face_up(8),
@@ -25,7 +25,7 @@ local capricieuse = {
             Rule    = Sol.Rules.any_updownsuit_top
         }
     },
-    redeal            = function(game)
+    redeal          = function(game)
         local tableau = game.Tableau
         local cards   = Sol.shuffle_piles(game, { tableau })
         if #cards == 0 then return false end
@@ -39,18 +39,18 @@ local capricieuse = {
 
         return true
     end,
-    on_before_shuffle = Sol.Ops.Shuffle.ace_and_king_to_foundation,
-    on_init           = Sol.Layout.capricieuse
+    on_before_setup = Sol.Ops.Shuffle.ace_and_king_to_foundation,
+    on_init         = Sol.Layout.capricieuse
 }
 
 
 ------
 
-local strata             = Sol.copy(capricieuse)
-strata.Info.Name         = "Strata"
-strata.Foundation.Pile   = { Rule = Sol.Rules.ace_upsuit_top }
-strata.Info.DeckRanks    = { "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace" }
-strata.Tableau           = {
+local strata           = Sol.copy(capricieuse)
+strata.Info.Name       = "Strata"
+strata.Foundation.Pile = { Rule = Sol.Rules.ace_upsuit_top }
+strata.Info.DeckRanks  = { "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace" }
+strata.Tableau         = {
     Size = 8,
     Pile = {
         Initial = Sol.Initial.face_up(8),
@@ -58,20 +58,20 @@ strata.Tableau           = {
         Rule    = Sol.Rules.any_downac_top
     }
 }
-strata.on_before_shuffle = nil
+strata.on_before_setup = nil
 
 
 ------
 
-local cruel             = Sol.copy(capricieuse)
-cruel.Info.Name         = "Cruel"
-cruel.Info.DeckCount    = 1
-cruel.Info.Redeals      = -1
-cruel.Foundation        = {
+local cruel           = Sol.copy(capricieuse)
+cruel.Info.Name       = "Cruel"
+cruel.Info.DeckCount  = 1
+cruel.Info.Redeals    = -1
+cruel.Foundation      = {
     Size = 4,
     Pile = { Rule = Sol.Rules.ace_upsuit_top }
 }
-cruel.Tableau           = {
+cruel.Tableau         = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(4),
@@ -79,8 +79,8 @@ cruel.Tableau           = {
         Rule    = Sol.Rules.none_downsuit_top
     }
 }
-cruel.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
-cruel.redeal            = function(game)
+cruel.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
+cruel.redeal          = function(game)
     local cards = {}
 
     local tableau = game.Tableau
@@ -103,7 +103,7 @@ cruel.redeal            = function(game)
 
     return true
 end
-cruel.on_init           = Sol.Layout.bakers_dozen
+cruel.on_init         = Sol.Layout.bakers_dozen
 
 
 ------
@@ -132,24 +132,24 @@ perseverance.Tableau.Pile = {
 
 ------
 
-local royal_family             = Sol.copy(cruel)
-royal_family.Info.Name         = "Royal Family"
-royal_family.Info.Redeals      = 1
-royal_family.Foundation.Pile   = { Rule = Sol.Rules.king_downsuit_top }
-royal_family.Tableau.Pile      = {
+local royal_family           = Sol.copy(cruel)
+royal_family.Info.Name       = "Royal Family"
+royal_family.Info.Redeals    = 1
+royal_family.Foundation.Pile = { Rule = Sol.Rules.king_downsuit_top }
+royal_family.Tableau.Pile    = {
     Initial = Sol.Initial.face_up(4),
     Layout  = Sol.Pile.Layout.Column,
     Rule    = Sol.Rules.any_updownac_top
 }
-royal_family.on_before_shuffle = Sol.Ops.Shuffle.king_to_foundation
+royal_family.on_before_setup = Sol.Ops.Shuffle.king_to_foundation
 
 
 ------
 
-local ripple_fan             = Sol.copy(cruel)
-ripple_fan.Info.Name         = "Ripple Fan"
-ripple_fan.Tableau.Size      = 13
-ripple_fan.on_before_shuffle = nil
+local ripple_fan           = Sol.copy(cruel)
+ripple_fan.Info.Name       = "Ripple Fan"
+ripple_fan.Tableau.Size    = 13
+ripple_fan.on_before_setup = nil
 
 
 ------

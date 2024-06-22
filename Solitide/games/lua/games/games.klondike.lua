@@ -211,10 +211,10 @@ lady_jane.deal         = Sol.Ops.Deal.stock_to_waste_by_3
 
 ------
 
-local ali_baba             = Sol.copy(klondike)
-ali_baba.Info.Name         = "Ali Baba"
-ali_baba.Stock.Initial     = Sol.Initial.face_down(8)
-ali_baba.Tableau           = {
+local ali_baba           = Sol.copy(klondike)
+ali_baba.Info.Name       = "Ali Baba"
+ali_baba.Stock.Initial   = Sol.Initial.face_down(8)
+ali_baba.Tableau         = {
     Size = 10,
     Pile = {
         Initial = Sol.Initial.top_face_up(4),
@@ -222,7 +222,7 @@ ali_baba.Tableau           = {
         Rule    = Sol.Rules.any_downsuit_inseq
     }
 }
-ali_baba.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
+ali_baba.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
 
 
 ------
@@ -336,11 +336,11 @@ bim_bom.Tableau         = {
 
 ------
 
-local blind_alleys             = Sol.copy(klondike)
-blind_alleys.Info.Name         = "Blind Alleys"
-blind_alleys.Info.Redeals      = 1
-blind_alleys.Stock.Initial     = Sol.Initial.face_down(30)
-blind_alleys.Tableau           = {
+local blind_alleys           = Sol.copy(klondike)
+blind_alleys.Info.Name       = "Blind Alleys"
+blind_alleys.Info.Redeals    = 1
+blind_alleys.Stock.Initial   = Sol.Initial.face_down(30)
+blind_alleys.Tableau         = {
     Size = 6,
     Pile = {
         Initial = Sol.Initial.top_face_up(3),
@@ -348,7 +348,7 @@ blind_alleys.Tableau           = {
         Rule    = Sol.Rules.any_downac_inseq
     }
 }
-blind_alleys.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
+blind_alleys.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
 
 
 ------
@@ -378,15 +378,15 @@ boost.Tableau.Size  = 4
 
 ------
 
-local cassim             = Sol.copy(klondike)
-cassim.Info.Name         = "Cassim"
-cassim.Stock.Initial     = Sol.Initial.face_down(20)
-cassim.Tableau.Pile      = {
+local cassim           = Sol.copy(klondike)
+cassim.Info.Name       = "Cassim"
+cassim.Stock.Initial   = Sol.Initial.face_down(20)
+cassim.Tableau.Pile    = {
     Initial = Sol.Initial.top_face_up(4),
     Layout  = Sol.Pile.Layout.Column,
     Rule    = Sol.Rules.any_downsuit_inseq
 }
-cassim.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
+cassim.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
 
 
 ------
@@ -620,12 +620,12 @@ double_kingsley.on_init         = Sol.Layout.big_harp
 
 ------
 
-local lanes             = Sol.copy(klondike)
-lanes.Info.Name         = "Lanes"
-lanes.Info.Redeals      = 1
-lanes.Stock.Initial     = Sol.Initial.face_down(30)
-lanes.Foundation.Pile   = { Rule = Sol.Rules.ace_upsuit_none }
-lanes.Tableau           = {
+local lanes           = Sol.copy(klondike)
+lanes.Info.Name       = "Lanes"
+lanes.Info.Redeals    = 1
+lanes.Stock.Initial   = Sol.Initial.face_down(30)
+lanes.Foundation.Pile = { Rule = Sol.Rules.ace_upsuit_none }
+lanes.Tableau         = {
     Size = 6,
     Pile = {
         Initial = Sol.Initial.face_up(3),
@@ -633,7 +633,7 @@ lanes.Tableau           = {
         Rule    = Sol.Rules.any_downac_top
     }
 }
-lanes.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
+lanes.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
 
 
 ------
@@ -905,7 +905,7 @@ thirty_six.Tableau       = {
         Rule    = Sol.Rules.any_downrank_inseq
     }
 }
-thirty_six.on_shuffle    = function(game, card, pile)
+thirty_six.on_setup      = function(game, card, pile)
     if pile.Type == Sol.Pile.Type.Tableau and card.Rank == "Ace" then
         return game.PlaceTop(card, game.Foundation, true)
     end
@@ -1216,13 +1216,13 @@ local russian_patience_ranks <const> = { "Ace", "Seven", "Eight", "Nine", "Ten",
 local russian_patience_rankvalues <const> = { Ace = 1, Seven = 2, Eight = 3, Nine = 4, Ten = 5, Jack = 6, Queen = 7, King = 8 }
 
 local russian_patience = {
-    Info              = {
+    Info            = {
         Name      = "Russian Patience",
         Family    = "Klondike",
         DeckCount = 2,
         DeckRanks = russian_patience_ranks
     },
-    Foundation        = {
+    Foundation      = {
         Size = 8,
         Pile = function(i)
             return {
@@ -1242,7 +1242,7 @@ local russian_patience = {
             }
         end
     },
-    Tableau           = {
+    Tableau         = {
         Size = 7,
         Pile = function(i)
             return {
@@ -1264,7 +1264,7 @@ local russian_patience = {
             }
         end
     },
-    on_before_shuffle = function(game, card)
+    on_before_setup = function(game, card)
         if card.Rank == "Ace" then
             return game.PlaceTop(card, game.Foundation[1], true)
         end

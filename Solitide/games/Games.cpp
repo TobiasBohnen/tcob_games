@@ -40,10 +40,10 @@ void base_game::new_game()
     // create decks
     std::vector<card> cards {get_shuffled()};
 
-    // on_before_shuffle
+    // before setup
     for (isize i {std::ssize(cards) - 1}; i >= 0; --i) {
         auto& card {cards[i]};
-        if (before_shuffle(card)) { // AKA moving specific cards to piles -> TODO: make it a pile property
+        if (before_setup(card)) { // AKA moving specific cards to piles -> TODO: make it a pile property
             cards.erase(cards.begin() + i);
         }
     }
@@ -59,7 +59,7 @@ void base_game::new_game()
             for (isize i {0}; i < std::ssize(pile->Initial); ++i) {
                 assert(!cards.empty()); // TODO: log error
                 auto& card {cards.back()};
-                if (!on_shuffle(card, pile)) {
+                if (!on_setup(card, pile)) {
                     if (pile->Initial[i]) {
                         card.flip_face_up();
                     } else {
@@ -72,7 +72,7 @@ void base_game::new_game()
         }
     }
 
-    after_shuffle();
+    after_setup();
     assert(cards.empty()); // TODO: log error
 
     // deal cards if game contains Waste pile

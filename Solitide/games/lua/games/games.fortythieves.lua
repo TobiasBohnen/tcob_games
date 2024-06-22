@@ -66,10 +66,10 @@ busy_aces.Tableau       = {
 
 ------
 
-local carre_napoleon             = Sol.copy(forty_thieves)
-carre_napoleon.Info.Name         = "Carre Napoleon"
-carre_napoleon.Stock.Initial     = Sol.Initial.face_down(48)
-carre_napoleon.Tableau           = {
+local carre_napoleon           = Sol.copy(forty_thieves)
+carre_napoleon.Info.Name       = "Carre Napoleon"
+carre_napoleon.Stock.Initial   = Sol.Initial.face_down(48)
+carre_napoleon.Tableau         = {
     Size = 12,
     Pile = {
         Initial = Sol.Initial.face_up(4),
@@ -77,8 +77,8 @@ carre_napoleon.Tableau           = {
         Rule    = Sol.Rules.king_downsuit_top
     }
 }
-carre_napoleon.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
-carre_napoleon.on_shuffle        = Sol.Ops.Shuffle.play_to_foundation
+carre_napoleon.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
+carre_napoleon.on_setup        = Sol.Ops.Shuffle.play_to_foundation
 
 
 ------
@@ -141,10 +141,10 @@ delivery.Tableau         = {
 
 ------
 
-local dieppe            = Sol.copy(forty_thieves)
-dieppe.Info.Name        = "Dieppe"
-dieppe.Stock.Initial    = Sol.Initial.face_down(80)
-dieppe.Tableau          = {
+local dieppe          = Sol.copy(forty_thieves)
+dieppe.Info.Name      = "Dieppe"
+dieppe.Stock.Initial  = Sol.Initial.face_down(80)
+dieppe.Tableau        = {
     Size = 8,
     Pile = {
         Initial = Sol.Initial.face_up(3),
@@ -152,8 +152,8 @@ dieppe.Tableau          = {
         Rule    = Sol.Rules.any_downrank_top
     }
 }
-dieppe.on_shuffle       = Sol.Ops.Shuffle.play_to_foundation
-dieppe.on_after_shuffle = function(game)
+dieppe.on_setup       = Sol.Ops.Shuffle.play_to_foundation
+dieppe.on_after_setup = function(game)
     -- refill Tableau from Stock back to three cards
     local stock = game.Stock[1]
     local stockCards = stock.Cards
@@ -501,11 +501,11 @@ pluto.Tableau              = {
 
 ------
 
-local deuces             = Sol.copy(pluto)
-deuces.Info.Name         = "Deuces"
-deuces.Stock.Initial     = Sol.Initial.face_down(86)
-deuces.Tableau.Size      = 10
-deuces.on_before_shuffle = function(game, card)
+local deuces           = Sol.copy(pluto)
+deuces.Info.Name       = "Deuces"
+deuces.Stock.Initial   = Sol.Initial.face_down(86)
+deuces.Tableau.Size    = 10
+deuces.on_before_setup = function(game, card)
     if card.Rank == "Two" then
         return game.PlaceTop(card, game.Foundation, true)
     end
@@ -527,7 +527,7 @@ red_and_black.Tableau              = {
         Rule    = Sol.Rules.any_downac_inseq
     }
 }
-red_and_black.on_before_shuffle    = Sol.Ops.Shuffle.ace_to_foundation
+red_and_black.on_before_setup      = Sol.Ops.Shuffle.ace_to_foundation
 
 
 ------
@@ -542,10 +542,10 @@ rows_of_four.Tableau.Rule  = Sol.Rules.any_downrank_top
 
 ------
 
-local san_juan_hill             = Sol.copy(forty_thieves)
-san_juan_hill.Info.Name         = "San Juan Hill"
-san_juan_hill.Stock.Initial     = Sol.Initial.face_down(56)
-san_juan_hill.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
+local san_juan_hill           = Sol.copy(forty_thieves)
+san_juan_hill.Info.Name       = "San Juan Hill"
+san_juan_hill.Stock.Initial   = Sol.Initial.face_down(56)
+san_juan_hill.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
 
 
 ------
@@ -589,10 +589,10 @@ triple_line.on_end_turn   = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
 
 ------
 
-local waterloo             = Sol.copy(forty_thieves)
-waterloo.Info.Name         = "Waterloo"
-waterloo.Stock.Initial     = Sol.Initial.face_down(90)
-waterloo.Tableau           = {
+local waterloo           = Sol.copy(forty_thieves)
+waterloo.Info.Name       = "Waterloo"
+waterloo.Stock.Initial   = Sol.Initial.face_down(90)
+waterloo.Tableau         = {
     Size = 6,
     Pile = {
         Initial = Sol.Initial.face_up(1),
@@ -600,16 +600,16 @@ waterloo.Tableau           = {
         Rule    = Sol.Rules.spider_tableau
     }
 }
-waterloo.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
+waterloo.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
 
 
 ------
 
-local zebra             = Sol.copy(forty_thieves)
-zebra.Info.Name         = "Zebra"
-zebra.Info.Redeal       = 1
-zebra.Stock.Initial     = Sol.Initial.face_down(88)
-zebra.Tableau           = {
+local zebra           = Sol.copy(forty_thieves)
+zebra.Info.Name       = "Zebra"
+zebra.Info.Redeal     = 1
+zebra.Stock.Initial   = Sol.Initial.face_down(88)
+zebra.Tableau         = {
     Size = 8,
     Pile = {
         Initial = Sol.Initial.face_up(1),
@@ -617,8 +617,8 @@ zebra.Tableau           = {
         Rule    = Sol.Rules.any_downac_top
     }
 }
-zebra.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
-zebra.on_end_turn       = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
+zebra.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
+zebra.on_end_turn     = Sol.Ops.Deal.waste_or_stock_to_empty_tableau
 
 
 ------
@@ -914,7 +914,7 @@ local octagon                        = {
             }
         end
     },
-    on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation,
+    on_before_setup = Sol.Ops.Shuffle.ace_to_foundation,
     deal = Sol.Ops.Deal.stock_to_waste,
     redeal = Sol.Ops.Redeal.waste_to_stock
 }
@@ -961,7 +961,7 @@ local octave = {
             }
         end
     },
-    on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation,
+    on_before_setup = Sol.Ops.Shuffle.ace_to_foundation,
     deal = function(game)
         -- first round: deal to first waste
         return game.RedealsLeft == 1 and Sol.Ops.Deal.stock_to_waste(game)

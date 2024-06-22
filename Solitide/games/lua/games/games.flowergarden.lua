@@ -155,10 +155,10 @@ phoenix.Tableau.Rule = Sol.Rules.any_downac_inseq
 
 ------
 
-local raglan             = Sol.copy(flower_garden)
-raglan.Info.Name         = "Raglan"
-raglan.Reserve.Size      = 6
-raglan.Tableau           = {
+local raglan           = Sol.copy(flower_garden)
+raglan.Info.Name       = "Raglan"
+raglan.Reserve.Size    = 6
+raglan.Tableau         = {
     Size = 9,
     Pile = function(i)
         return {
@@ -168,8 +168,8 @@ raglan.Tableau           = {
         }
     end
 }
-raglan.on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation
-raglan.on_init           = function(game) Sol.Layout.raglan(game, 2) end
+raglan.on_before_setup = Sol.Ops.Shuffle.ace_to_foundation
+raglan.on_init         = function(game) Sol.Layout.raglan(game, 2) end
 
 
 ------

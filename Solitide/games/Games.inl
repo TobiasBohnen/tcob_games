@@ -293,9 +293,9 @@ inline script_game<Table, Function, IndexOffset>::script_game(game_info info, Ta
     make_piles(_table);
     _table.try_get(_callbacks.Redeal, "redeal");
     _table.try_get(_callbacks.Deal, "deal");
-    _table.try_get(_callbacks.OnBeforeShuffle, "on_before_shuffle");
-    _table.try_get(_callbacks.OnShuffle, "on_shuffle");
-    _table.try_get(_callbacks.OnAfterShuffle, "on_after_shuffle");
+    _table.try_get(_callbacks.OnBeforeSetup, "on_before_setup");
+    _table.try_get(_callbacks.OnSetup, "on_setup");
+    _table.try_get(_callbacks.OnAfterSetup, "on_after_setup");
     _table.try_get(_callbacks.OnInit, "on_init");
     _table.try_get(_callbacks.OnDrop, "on_drop");
     _table.try_get(_callbacks.OnEndTurn, "on_end_turn");
@@ -332,28 +332,28 @@ inline auto script_game<Table, Function, IndexOffset>::do_deal() -> bool
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>
-inline auto script_game<Table, Function, IndexOffset>::before_shuffle(card& card) -> bool
+inline auto script_game<Table, Function, IndexOffset>::before_setup(card& card) -> bool
 {
-    if (_callbacks.OnBeforeShuffle) {
-        return (*_callbacks.OnBeforeShuffle)(static_cast<base_game const*>(this), card);
+    if (_callbacks.OnBeforeSetup) {
+        return (*_callbacks.OnBeforeSetup)(static_cast<base_game const*>(this), card);
     }
     return false;
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>
-inline auto script_game<Table, Function, IndexOffset>::on_shuffle(card& card, pile* pile) -> bool
+inline auto script_game<Table, Function, IndexOffset>::on_setup(card& card, pile* pile) -> bool
 {
-    if (_callbacks.OnShuffle) {
-        return (*_callbacks.OnShuffle)(static_cast<base_game const*>(this), card, pile);
+    if (_callbacks.OnSetup) {
+        return (*_callbacks.OnSetup)(static_cast<base_game const*>(this), card, pile);
     }
     return false;
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>
-inline void script_game<Table, Function, IndexOffset>::after_shuffle()
+inline void script_game<Table, Function, IndexOffset>::after_setup()
 {
-    if (_callbacks.OnAfterShuffle) {
-        (*_callbacks.OnAfterShuffle)(static_cast<base_game const*>(this));
+    if (_callbacks.OnAfterSetup) {
+        (*_callbacks.OnAfterSetup)(static_cast<base_game const*>(this));
     }
 }
 

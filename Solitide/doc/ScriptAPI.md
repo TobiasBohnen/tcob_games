@@ -25,6 +25,7 @@ The Info table contains basic information about the game.
   - Klondike
   - Montana
   - Numerica
+  - Pairing
   - PictureGallery
   - Spider
   - Terrace
@@ -118,19 +119,19 @@ The Info table contains basic information about the game.
 
 ### Callbacks
 
-- on_before_shuffle
+- on_before_setup
 
   - _Signature_: function(game, card)
   - _Description_: Called after starting a new game for each card, before it's moved to a pile.
   - _Return value_: **true** if the function handled the card, **false** otherwise.
 
-- on_shuffle
+- on_setup
 
   - _Signature_: function(game, card, pile)
   - _Description_: Called after starting a new game for each card, when it's moved to a pile.
   - _Return value_: **true** if the function handled the card, **false** otherwise.
 
-- on_after_shuffle
+- on_after_setup
 
   - _Signature_: function(game)
   - _Description_: Called after starting a new game, once every card has been moved to a pile.

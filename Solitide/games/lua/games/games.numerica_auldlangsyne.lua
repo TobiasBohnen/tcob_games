@@ -4,28 +4,28 @@
 -- https://opensource.org/licenses/MIT
 
 local auld_lang_syne = {
-    Info              = {
+    Info            = {
         Name      = "Auld Lang Syne",
         Family    = "Numerica",
         DeckCount = 1
     },
-    Stock             = {
+    Stock           = {
         Initial = Sol.Initial.face_down(48)
     },
-    Foundation        = {
+    Foundation      = {
         Size = 4,
         Pile = { Rule = Sol.Rules.ace_uprank_none }
     },
-    Tableau           = {
+    Tableau         = {
         Size = 4,
         Pile = {
             Layout = Sol.Pile.Layout.Column,
             Rule   = Sol.Rules.none_none_top
         }
     },
-    on_before_shuffle = Sol.Ops.Shuffle.ace_to_foundation,
-    deal              = Sol.Ops.Deal.stock_to_tableau,
-    on_init           = Sol.Layout.klondike
+    on_before_setup = Sol.Ops.Shuffle.ace_to_foundation,
+    deal            = Sol.Ops.Deal.stock_to_tableau,
+    on_init         = Sol.Layout.klondike
 }
 
 
@@ -38,10 +38,10 @@ old_fashioned.Tableau.Size = 6
 
 ------
 
-local tam_o_shanter             = Sol.copy(auld_lang_syne)
-tam_o_shanter.Info.Name         = "Tam O'Shanter"
-tam_o_shanter.Stock.Initial     = Sol.Initial.face_down(52)
-tam_o_shanter.on_before_shuffle = nil
+local tam_o_shanter           = Sol.copy(auld_lang_syne)
+tam_o_shanter.Info.Name       = "Tam O'Shanter"
+tam_o_shanter.Stock.Initial   = Sol.Initial.face_down(52)
+tam_o_shanter.on_before_setup = nil
 
 
 ------

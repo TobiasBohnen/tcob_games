@@ -296,7 +296,7 @@ local double_dot = {
             }
         end
     },
-    on_before_shuffle = function(game, card)
+    on_before_setup = function(game, card)
         if card.Rank == "Ace" and card.Color == "Black" then
             return game.PlaceTop(card, game.Foundation, 1, 2, true)
         elseif card.Rank == "Two" and card.Color == "Red" then
@@ -364,7 +364,7 @@ local six_by_six = {
             Rule    = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.DownByRank(), Move = Sol.Rules.Move.InSeqInSuit() }
         }
     },
-    on_shuffle = function(game, card, pile)
+    on_setup   = function(game, card, pile)
         if pile.Type == Sol.Pile.Type.Tableau and card.Rank == "Ace" then
             return game.PlaceTop(card, game.Foundation, true)
         end

@@ -4,20 +4,20 @@
 -- https://opensource.org/licenses/MIT
 
 local penguin = {
-    Info              = {
+    Info            = {
         Name      = "Penguin",
         Family    = "FreeCell",
         DeckCount = 1
     },
-    FreeCell          = {
+    FreeCell        = {
         Size = 7,
         Pile = { Rule = Sol.Rules.any_none_top }
     },
-    Foundation        = {
+    Foundation      = {
         Size = 4,
         Pile = { Rule = Sol.Rules.ff_upsuit_none }
     },
-    Tableau           = {
+    Tableau         = {
         Size = 7,
         Pile = function(i)
             return {
@@ -27,7 +27,7 @@ local penguin = {
             }
         end
     },
-    on_before_shuffle = function(game, card)
+    on_before_setup = function(game, card)
         local tableau1 = game.Tableau[1]
         if tableau1.IsEmpty then
             return game.PlaceTop(card, game.Tableau, true)
@@ -38,7 +38,7 @@ local penguin = {
         end
         return false
     end,
-    on_init           = Sol.Layout.flipper
+    on_init         = Sol.Layout.flipper
 }
 
 
@@ -51,17 +51,17 @@ opus.FreeCell.Size = 5
 
 ------
 
-local tuxedo             = Sol.copy(penguin)
-tuxedo.Info.Name         = "Tuxedo"
-tuxedo.Foundation.Pile   = { Rule = Sol.Rules.ace_upsuit_none }
-tuxedo.Tableau.Pile      = function(i)
+local tuxedo           = Sol.copy(penguin)
+tuxedo.Info.Name       = "Tuxedo"
+tuxedo.Foundation.Pile = { Rule = Sol.Rules.ace_upsuit_none }
+tuxedo.Tableau.Pile    = function(i)
     return {
         Initial = Sol.Initial.face_up(i % 3 == 0 and 8 or 7),
         Layout  = Sol.Pile.Layout.Column,
         Rule    = Sol.Rules.any_downsuit_inseq
     }
 end
-tuxedo.on_before_shuffle = nil
+tuxedo.on_before_setup = nil
 
 
 ------

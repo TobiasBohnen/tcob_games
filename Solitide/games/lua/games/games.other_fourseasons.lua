@@ -92,7 +92,7 @@ local corners = {
             }
         end
     },
-    on_before_shuffle = function(game, card)
+    on_before_setup = function(game, card)
         local dest = { Hearts = 1, Diamonds = 2, Spades = 3, Clubs = 4 }
         local foundation = game.Foundation[dest[card.Suit]]
         if foundation.IsEmpty then

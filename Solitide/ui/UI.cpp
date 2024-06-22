@@ -168,6 +168,16 @@ void form_menu::submit_settings(data::config::object& obj)
     dynamic_cast<tab_container*>(find_widget_by_name(TabSettingsName).get())->submit(obj);
 }
 
+void form_menu::on_key_down(input::keyboard::event& ev)
+{
+    if (ev.KeyCode == input::key_code::ESCAPE) {
+        hide();
+        ev.Handled = true;
+        return;
+    }
+    form::on_key_down(ev);
+}
+
 void form_menu::create_section_games(tab_container& parent)
 {
     auto panelGames {parent.create_tab<panel>("tabGames")};
@@ -272,6 +282,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
         createSection(family::Klondike);
         createSection(family::Montana);
         createSection(family::Numerica);
+        createSection(family::Pairing);
         createSection(family::PictureGallery);
         createSection(family::Spider);
         createSection(family::Terrace);
