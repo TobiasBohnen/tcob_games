@@ -560,6 +560,51 @@ local simple_pairs = {
 
 ------
 
+local the_wish = {
+    Info       = {
+        Name      = "The Wish",
+        Family    = "Pairing",
+        DeckCount = 1,
+        DeckRanks = { "Ace", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King" }
+    },
+    Foundation = {
+        Position = { x = 4.5, y = 2 },
+        Rule     = Sol.Rules.none_none_none
+    },
+    Tableau    = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Position = { x = i % 4, y = (i // 4) * 2 },
+                Initial  = Sol.Initial.top_face_up(4),
+                Layout   = Sol.Pile.Layout.Column,
+                Rule     = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.InRank(), Move = Sol.Rules.Move.Top() }
+            }
+        end
+    },
+    on_drop    = function(game, pile)
+        game:give_score(20)
+        pile:move_cards(game.Foundation[1], pile.CardCount - 1, 2, false)
+        Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, Sol.DealMode.IfEmpty)
+    end
+}
+
+
+------
+
+local the_wish_open = Sol.copy(the_wish)
+the_wish_open.Info.Name = "The Wish (Open)"
+the_wish_open.Tableau.Pile = function(i)
+    return {
+        Position = { x = i % 4, y = (i // 4) * 2 },
+        Initial  = Sol.Initial.face_up(4),
+        Layout   = Sol.Pile.Layout.Column,
+        Rule     = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.InRank(), Move = Sol.Rules.Move.Top() }
+    }
+end
+
+------
+
 local triple_alliance = {
     Info        = {
         Name      = "Triple Alliance",
@@ -667,5 +712,7 @@ Sol.register_game(monte_carlo)
 Sol.register_game(nestor)
 Sol.register_game(simple_carlo)
 Sol.register_game(simple_pairs)
+Sol.register_game(the_wish)
+Sol.register_game(the_wish_open)
 Sol.register_game(triple_alliance)
 Sol.register_game(triple_alliance_2_decks)

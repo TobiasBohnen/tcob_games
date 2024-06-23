@@ -77,10 +77,26 @@ trefoil.Tableau         = {
 }
 trefoil.on_before_setup = Sol.Ops.Setup.ace_to_foundation
 
+
+------
+
+local school     = Sol.copy(trefoil)
+school.Info.Name = "School"
+school.Tableau   = {
+    Size = 16,
+    Pile = {
+        Initial = Sol.Initial.face_up(3),
+        Layout  = Sol.Pile.Layout.Row,
+        Rule    = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.InRank(), Move = Sol.Rules.Move.Top() }
+    }
+}
+
+
 ------
 
 ------------------------
 
 Sol.register_game(la_belle_lucie)
+Sol.register_game(school)
 Sol.register_game(super_flower_garden)
 Sol.register_game(trefoil)
