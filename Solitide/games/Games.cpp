@@ -115,6 +115,7 @@ auto base_game::load(std::optional<data::config::object> const& loadObj) -> bool
                 auto card {createCard(cardEntry)};
                 pile->Cards.emplace_back(card);
             }
+            pile->remove_tint();
         }
     }
 

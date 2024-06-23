@@ -42,23 +42,20 @@ auto pile::size() const -> isize
 void pile::remove_tint()
 {
     constexpr color COLOR_DEFAULT {colors::White};
+    constexpr color COLOR_COMPLETE {colors::Gray};
+    color           c {COLOR_DEFAULT};
+    if (Rule.Limit > 0 && std::ssize(Cards) >= Rule.Limit) { c = COLOR_COMPLETE; }
 
-    if (Marker) {
-        Marker->Color = COLOR_DEFAULT;
-    }
-    for (auto& card : Cards) {
-        card.Color = COLOR_DEFAULT;
-    }
+    if (Marker) { Marker->Color = c; }
+    for (auto& card : Cards) { card.Color = c; }
 }
 
-void pile::tint_cards(color color, isize idx)
+void pile::tint_cards(color color, isize startIdx)
 {
-    if (idx == INDEX_MARKER) {
+    if (startIdx == INDEX_MARKER) {
         Marker->Color = color;
     } else {
-        for (; idx < size(); ++idx) {
-            Cards[idx].Color = color;
-        }
+        for (; startIdx < size(); ++startIdx) { Cards[startIdx].Color = color; }
     }
 }
 
@@ -236,5 +233,4 @@ freecell::freecell()
 {
     Type = pile_type::FreeCell;
 }
-
 }

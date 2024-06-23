@@ -97,7 +97,7 @@ public:
     auto size() const -> isize;
 
     void remove_tint();
-    void tint_cards(color color, isize idx);
+    void tint_cards(color color, isize startIdx);
 
     void flip_cards(std::vector<bool> const& val);
     void flip_up_cards();
