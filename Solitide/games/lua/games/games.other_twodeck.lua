@@ -3,6 +3,101 @@
 -- This software is released under the MIT License.
 -- https://opensource.org/licenses/MIT
 
+local adela = {
+    Info = {
+        Name      = "Adela",
+        Family    = "Other",
+        DeckCount = 2
+    },
+    Stock = {
+        Position = { x = 0, y = 1 },
+        Initial = Sol.Initial.face_down(95)
+    },
+    Foundation = {
+        Size = 24,
+        Pile = function(i)
+            local rule
+            if i < 8 then
+                rule = { Base = Sol.Rules.Base.Ranks({ "Jack" }), Build = Sol.Rules.Build.DownInSuit(), Move = Sol.Rules.Move.None(), Limit = 11 }
+            elseif i < 16 then
+                rule = { Base = Sol.Rules.Base.Ranks({ "Queen" }), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.None(), Limit = 1 }
+            else
+                rule = { Base = Sol.Rules.Base.King(), Build = Sol.Rules.Build.None(), Move = Sol.Rules.Move.None(), Limit = 1 }
+            end
+            return {
+                Position = { x = i % 8 + 1.5, y = i // 8 },
+                Rule     = rule
+            }
+        end
+    },
+    Tableau = {
+        Size = 9,
+        Pile = function(i)
+            return {
+                Position = { x = i + 0.5, y = 3 },
+                Initial  = Sol.Initial.face_up(1),
+                Layout   = Sol.Pile.Layout.Squared,
+                Rule     = Sol.Rules.any_upsuit_top
+            }
+        end
+    },
+    can_play = function(game, targetPile, targetCardIndex, card, numCards)
+        if targetPile.Type == Sol.Pile.Type.Foundation and targetPile.IsEmpty and targetPile.Index > 8 then
+            local fou = game.Foundation[(targetPile.Index - 1) % 8 + 1]
+            if fou.IsEmpty then return false end
+            if fou.Cards[fou.CardCount].Suit ~= card.Suit then return false end
+        end
+
+        return game:can_play(targetPile, targetCardIndex, card, numCards)
+    end,
+    on_end_turn = function(game)
+        Sol.Ops.Deal.to_group(game.Stock[1], game.Tableau, Sol.DealMode.IfEmpty)
+    end,
+    deal = Sol.Ops.Deal.stock_to_tableau
+}
+
+
+------
+
+local german_patience = {
+    Info = {
+        Name      = "German Patience",
+        Family    = "Other",
+        DeckCount = 2,
+        Objective = "AllCardsToTableau"
+    },
+    Stock = {
+        Position = { x = 0, y = 3.25 },
+        Initial = Sol.Initial.face_down(96)
+    },
+    Waste = {
+        Position = { x = 1, y = 3.25 }
+    },
+    Tableau = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Position = { x = i, y = 0 },
+                Initial  = Sol.Initial.face_up(1),
+                Layout   = Sol.Pile.Layout.Column,
+                Rule     = { Base = Sol.Rules.Base.Any(), Build = Sol.Rules.Build.UpByRank(true), Move = Sol.Rules.Move.Top(), Limit = 13 }
+            }
+        end
+    },
+    deal = Sol.Ops.Deal.stock_to_waste
+}
+
+
+------
+
+local bavarian_patience         = Sol.copy(german_patience)
+bavarian_patience.Info.Name     = "Bavarian Patience"
+bavarian_patience.Stock.Initial = Sol.Initial.face_down(94)
+bavarian_patience.Tableau.Size  = 10
+
+
+------
+
 local grandee = {
     Info = {
         Name      = "Grandee",
@@ -182,7 +277,7 @@ local s_patience = {
     },
     Stock      = {
         Position = { x = 5.5, y = 1 },
-        Initial = Sol.Initial.face_down(91)
+        Initial  = Sol.Initial.face_down(91)
     },
     Waste      = {
         Position = { x = 6.5, y = 1 }
@@ -227,6 +322,9 @@ local s_patience = {
 
 ------------------------
 
+Sol.register_game(adela)
+Sol.register_game(bavarian_patience)
+Sol.register_game(german_patience)
 Sol.register_game(grandee)
 Sol.register_game(union_square)
 Sol.register_game(s_patience)
