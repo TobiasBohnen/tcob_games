@@ -74,27 +74,27 @@ return {
             local key = arg[1]
 
             local mapping = {
-                None = "-",
-                Any = "Beliebige Karte",
-                InRank = "Gleicher Rang",
-                InRankOrDownByRank = "Gleicher Rang oder absteigend nach Rang",
-                RankPack = "Nach gleichem Rang, dann aufsteigend nach Rang",
-                UpOrDownByRank = "Auf- oder absteigend nach Rang",
-                DownByRank = "Absteigend nach Rang",
-                UpByRank = "Aufsteigend nach Rang",
-                UpOrDownAnyButOwnSuit = "Auf- oder absteigend, aber nicht in eigener Farbe",
-                DownAnyButOwnSuit = "Absteigend, aber nicht in eigener Farbe",
-                UpAnyButOwnSuit = "Aufsteigend, aber nicht in eigener Farbe",
-                InSuit = "Gleiche Farbe",
-                UpOrDownInSuit = "Auf- oder absteigend nach Farbe",
-                DownInSuit = "Absteigend nach Farbe",
-                UpInSuit = "Aufsteigend nach Farbe",
-                UpOrDownInColor = "Auf- oder absteigend nach Farbe (rot/schwarz)",
-                DownInColor = "Absteigend nach Farbe (rot/schwarz)",
-                UpInColor = "Aufsteigend nach Farbe (rot/schwarz)",
+                None                    = "-",
+                Any                     = "Beliebige Karte",
+                InRank                  = "Gleicher Rang",
+                InRankOrDownByRank      = "Gleicher Rang oder absteigend nach Rang",
+                RankPack                = "Nach gleichem Rang, dann aufsteigend nach Rang",
+                UpOrDownByRank          = "Auf- oder absteigend nach Rang",
+                DownByRank              = "Absteigend nach Rang",
+                UpByRank                = "Aufsteigend nach Rang",
+                UpOrDownAnyButOwnSuit   = "Auf- oder absteigend, aber nicht in eigener Farbe",
+                DownAnyButOwnSuit       = "Absteigend, aber nicht in eigener Farbe",
+                UpAnyButOwnSuit         = "Aufsteigend, aber nicht in eigener Farbe",
+                InSuit                  = "Gleiche Farbe",
+                UpOrDownInSuit          = "Auf- oder absteigend nach Farbe",
+                DownInSuit              = "Absteigend nach Farbe",
+                UpInSuit                = "Aufsteigend nach Farbe",
+                UpOrDownInColor         = "Auf- oder absteigend nach Farbe (rot/schwarz)",
+                DownInColor             = "Absteigend nach Farbe (rot/schwarz)",
+                UpInColor               = "Aufsteigend nach Farbe (rot/schwarz)",
                 UpOrDownAlternateColors = "Auf- oder absteigend Rot/Schwarz",
-                DownAlternateColors = "Absteigend Rot/Schwarz",
-                UpAlternateColors = "Aufsteigend Rot/Schwarz"
+                DownAlternateColors     = "Absteigend Rot/Schwarz",
+                UpAlternateColors       = "Aufsteigend Rot/Schwarz"
             }
             return mapping[key] or ("Ungültiger Bau-Hinweis: " .. key)
         end,
@@ -102,16 +102,16 @@ return {
             local key = arg[1]
 
             local mapping = {
-                None = "-",
-                Top = "Oberste Karte",
-                TopOrPile = "Oberste Karte oder ganzer Stapel",
-                FaceUp = "Aufgedeckte Karten",
-                InSeq = "Kartenfolge",
-                InSeqInSuit = "Kartenfolge in gleicher Farbe",
-                InSeqInColor = "Kartenfolge in gleicher Farbe (rot/schwarz)",
-                InSeqAlternateColors = "Kartenfolge in abwechselnden Farben (rot/schwarz)",
+                None                  = "-",
+                Top                   = "Oberste Karte",
+                TopOrPile             = "Oberste Karte oder ganzer Stapel",
+                FaceUp                = "Aufgedeckte Karten",
+                InSeq                 = "Kartenfolge",
+                InSeqInSuit           = "Kartenfolge in gleicher Farbe",
+                InSeqInColor          = "Kartenfolge in gleicher Farbe (rot/schwarz)",
+                InSeqAlternateColors  = "Kartenfolge in abwechselnden Farben (rot/schwarz)",
                 InSeqInSuitOrSameRank = "Kartenfolge in gleicher Farbe oder Rang",
-                SuperMove = "Oberste Karte (SuperMove)"
+                SuperMove             = "Oberste Karte (SuperMove)"
             }
             return mapping[key] or ("Ungültiger Zug-Hinweis: " .. key)
         end,
@@ -125,17 +125,17 @@ return {
             end
             --TODO: translate rank/suit
             local mapping = {
-                Ace = "Ass",
-                King = "König",
-                None = "-",
-                Any = "Beliebige",
-                AnySingle = "Beliebige; keine Folgen",
+                Ace             = "Ass",
+                King            = "König",
+                None            = "-",
+                Any             = "Beliebige",
+                AnySingle       = "Beliebige; keine Folgen",
                 FirstFoundation = function() return "Rang " .. arg[2] .. " der ersten Foundationkarte" end,
-                Card = function() return arg[3] .. " " .. arg[2] end,
-                ColorRank = function() return arg[2] .. " " .. arg[3] end,
-                Suits = concat(),
-                Ranks = concat(),
-                SuitStack = "Von König bis Ass",
+                Card            = function() return arg[3] .. " " .. arg[2] end,
+                ColorRank       = function() return arg[2] .. " " .. arg[3] end,
+                Suits           = concat(),
+                Ranks           = concat(),
+                SuitStack       = "Von König bis Ass",
             }
 
             if type(mapping[key]) == "function" then

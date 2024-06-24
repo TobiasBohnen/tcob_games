@@ -404,7 +404,7 @@ void base_game::calc_hints()
     auto static const validHint {[](auto const& src, auto const& dst) {
         switch (src.Src->Type) {
         case pile_type::Foundation:
-            // ignore Foundation to Foundation or FreeCell
+            // ignore Foundation to Foundation or to FreeCell
             if (dst->Type == pile_type::Foundation || dst->Type == pile_type::FreeCell) { return false; }
             break;
         case pile_type::FreeCell: {
@@ -421,8 +421,9 @@ void base_game::calc_hints()
             break;
         }
 
-        // limit foundation destinations to 1
+        // limit Foundation/FreeCell destinations to 1
         if (dst->Type == pile_type::Foundation && src.HasFoundation) { return false; }
+        if (dst->Type == pile_type::FreeCell && src.HasFreeCell) { return false; }
         // ignore markerless pile without cards
         if (!dst->HasMarker && dst->Cards.empty()) { return false; }
         return true;
@@ -468,6 +469,7 @@ void base_game::calc_hints()
                 m.DstCardIdx = dst->size() - 1;
 
                 if (dst->Type == pile_type::Foundation) { src.HasFoundation = true; }
+                if (dst->Type == pile_type::FreeCell) { src.HasFreeCell = true; }
             }
         }
     }

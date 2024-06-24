@@ -129,11 +129,85 @@ end
 
 ------
 
+local three_blind_mice = {
+    Info       = {
+        Name      = "Three Blind Mice",
+        Family    = "Spider",
+        DeckCount = 1
+    },
+    Reserve    = {
+        Size = 2,
+        Pile = function(i)
+            return {
+                Position = { x = i, y = 0 },
+                Initial = Sol.Initial.face_up(1)
+            }
+        end
+    },
+    Foundation = {
+        Size = 4,
+        Pile = function(i)
+            return {
+                Position = { x = i + 6, y = 0 },
+                Rule = Sol.Rules.spider_foundation
+            }
+        end
+    },
+    Tableau    = {
+        Size = 10,
+        Pile = function(i)
+            return {
+                Position = { x = i, y = 1 },
+                Initial  = i < 7 and Sol.Initial.face_up(5) or { false, false, false, true, true },
+                Layout   = Sol.Pile.Layout.Column,
+                Rule     = Sol.Rules.king_downsuit_faceup
+            }
+        end
+    }
+}
+
+
+------
+
+local farmers_wife = Sol.copy(three_blind_mice)
+farmers_wife.Info.Name = "Farmer's Wife"
+farmers_wife.Tableau.Pile = function(i)
+    return {
+        Position = { x = i, y = 1 },
+        Initial  = i < 7 and Sol.Initial.face_up(5) or { false, false, false, true, true },
+        Layout   = Sol.Pile.Layout.Column,
+        Rule     = Sol.Rules.king_downac_faceup
+    }
+end
+
+
+------
+
+local how_they_tun     = Sol.copy(three_blind_mice)
+how_they_tun.Info.Name = "How They Run"
+how_they_tun.Reserve   = nil
+how_they_tun.FreeCell  = {
+    Size = 2,
+    Pile = function(i)
+        return {
+            Position = { x = i, y = 0 },
+            Initial = Sol.Initial.face_up(1),
+            Rule = Sol.Rules.any_none_top
+        }
+    end
+}
+
+
+------
+
 ------------------------
 
 Sol.register_game(scorpion)
 Sol.register_game(double_scorpion)
+Sol.register_game(farmers_wife)
+Sol.register_game(how_they_tun)
 Sol.register_game(scorpion_2)
 Sol.register_game(scorpion_tail)
+Sol.register_game(three_blind_mice)
 Sol.register_game(triple_scorpion)
 Sol.register_game(wasp)

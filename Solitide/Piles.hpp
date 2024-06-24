@@ -131,6 +131,7 @@ struct hint {
     isize DstCardIdx {0};
 
     bool HasFoundation {false};
+    bool HasFreeCell {false};
 };
 
 ////////////////////////////////////////////////////////////

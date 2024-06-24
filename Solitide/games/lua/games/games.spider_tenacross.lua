@@ -78,7 +78,38 @@ panopticon.Tableau               = {
 
 ------
 
+local spidercells = {
+    Info       = {
+        Name      = "Spidercells",
+        Family    = "Spider",
+        DeckCount = 1
+    },
+    FreeCell   = {
+        Size = 4,
+        Pile = { Rule = Sol.Rules.any_none_top }
+    },
+    Foundation = {
+        Size = 4,
+        Pile = { Rule = Sol.Rules.spider_foundation }
+    },
+    Tableau    = {
+        Size = 8,
+        Pile = function(i)
+            return {
+                Initial = Sol.Initial.face_up(i < 4 and 7 or 6),
+                Layout  = Sol.Pile.Layout.Column,
+                Rule    = Sol.Rules.any_downac_sm
+            }
+        end
+    },
+    on_init    = Sol.Layout.free_cell
+}
+
+
+------
+
 ------------------------
 
 Sol.register_game(ten_across)
 Sol.register_game(panopticon)
+Sol.register_game(spidercells)
