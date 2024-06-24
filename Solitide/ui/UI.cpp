@@ -268,7 +268,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
             _sources->Translator.bind(
                 [tabC = acc.get(), tabP = secPanel.get()](std::string const& val) { tabC->change_section_label(tabP, val); },
                 "family", family);
-            createListBox(secPanelLayout, [family](auto const& gameInfo) { return gameInfo.Family == family; });
+            createListBox(secPanelLayout, [family](auto const& gameInfo) { return gameInfo.Family.contains(family); });
         }};
         createSection(family::BakersDozen);
         createSection(family::BeleagueredCastle);

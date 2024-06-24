@@ -19,8 +19,7 @@ local ten_across_initial <const> = {
 local ten_across                 = {
     Info       = {
         Name      = "Ten Across",
-        Family    = "Spider",
-        --Family = "Yukon/Spider"
+        Family    = { "Yukon", "Spider" },
         DeckCount = 1
     },
     FreeCell   = {

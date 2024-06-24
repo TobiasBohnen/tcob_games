@@ -229,7 +229,7 @@ ali_baba.on_before_setup = Sol.Ops.Setup.ace_to_foundation
 
 local australian_patience         = Sol.copy(klondike)
 australian_patience.Info.Name     = "Australian Patience"
---australian_patience.Info.Family = "Klondike/Yukon"
+australian_patience.Info.Family   = { "Klondike", "Yukon" }
 australian_patience.Info.Redeals  = 0
 australian_patience.Stock.Initial = Sol.Initial.face_down(24)
 australian_patience.Tableau       = {
@@ -246,7 +246,6 @@ australian_patience.Tableau       = {
 
 local canberra        = Sol.copy(australian_patience)
 canberra.Info.Name    = "Canberra"
---canberra.Info.Family = "Klondike/Yukon"
 canberra.Info.Redeals = 1
 
 
@@ -254,7 +253,6 @@ canberra.Info.Redeals = 1
 
 local raw_prawn             = Sol.copy(australian_patience)
 raw_prawn.Info.Name         = "Raw Prawn"
---raw_prawn.Info.Family = "Klondike/Yukon"
 raw_prawn.Tableau.Pile.Rule = Sol.Rules.any_downsuit_faceup
 
 
@@ -262,7 +260,6 @@ raw_prawn.Tableau.Pile.Rule = Sol.Rules.any_downsuit_faceup
 
 local tasmanian_patience        = Sol.copy(australian_patience)
 tasmanian_patience.Info.Name    = "Tasmanian Patience"
---tasmanian_patience.Info.Family = "Klondike/Yukon"
 tasmanian_patience.Info.Redeals = -1
 tasmanian_patience.deal         = Sol.Ops.Deal.stock_to_waste_by_3
 
@@ -438,10 +435,10 @@ eastcliff.Tableau       = {
 
 local eight_by_eight = {
     Info       = {
-        Name = "8 x 8",
-        Family = "Klondike",
+        Name      = "8 x 8",
+        Family    = "Klondike",
         DeckCount = 2,
-        Redeals = -1
+        Redeals   = -1
     },
     Stock      = { Initial = Sol.Initial.face_down(40) },
     Waste      = {},
@@ -451,13 +448,11 @@ local eight_by_eight = {
     },
     Tableau    = {
         Size = 8,
-        Pile = function(i)
-            return {
-                Initial = Sol.Initial.face_up(8),
-                Layout  = Sol.Pile.Layout.Column,
-                Rule    = Sol.Rules.any_downac_inseq
-            }
-        end
+        Pile = {
+            Initial = Sol.Initial.face_up(8),
+            Layout  = Sol.Pile.Layout.Column,
+            Rule    = Sol.Rules.any_downac_inseq
+        }
     },
     redeal     = Sol.Ops.Redeal.waste_to_stock,
     deal       = Sol.Ops.Deal.stock_to_waste,
@@ -1172,14 +1167,14 @@ local sawayama = { --from Last Call BBS
     FreeCell   = {
         Position = { x = 1, y = 0 },
         Rule     = {
-            Base = {
+            Base  = {
                 Hint = { "Any" },
                 Func = function(game, _, _)
                     return game.Stock[1].IsEmpty
                 end
             },
             Build = Sol.Rules.Base.None(),
-            Move = Sol.Rules.Move.Top()
+            Move  = Sol.Rules.Move.Top()
         }
     },
     Waste      = {

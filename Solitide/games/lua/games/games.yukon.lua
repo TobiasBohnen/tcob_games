@@ -311,8 +311,7 @@ local hawaiian = {
 local wave = {
     Info = {
         Name      = "Wave",
-        Family    = "Yukon",
-        --Family = "Gypsy/Yukon/Klondike"
+        Family    = { "Yukon", "Gypsy", "Klondike" },
         DeckCount = 2
     },
     Stock = { Initial = Sol.Initial.face_down(80) },

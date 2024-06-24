@@ -254,7 +254,16 @@ inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& scen
         game_info info;
 
         infoTab.try_get(info.Name, "Name");
-        infoTab.try_get(info.Family, "Family");
+
+        std::variant<std::unordered_set<family>, family> famVar;
+        infoTab.try_get(famVar, "Family");
+        if (auto* item {std::get_if<family>(&famVar)}) {
+            info.Family = {*item};
+        }
+        if (auto* item {std::get_if<std::unordered_set<family>>(&famVar)}) {
+            info.Family = *item;
+        }
+
         infoTab.try_get(info.Objective, "Objective");
         infoTab.try_get(info.DeckCount, "DeckCount");
         if (!infoTab.try_get(info.DeckRanks, "DeckRanks")) {

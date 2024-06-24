@@ -17,9 +17,7 @@ database::database()
 
     _tabGames   = _database.create_table("games",
                                          db::column {"ID", db::type::Integer, false, db::primary_key {}},
-                                         db::column {"Name", db::type::Text, true, db::unique {}},
-                                         db::column {"Family", db::type::Text},
-                                         db::column {"DeckCount", db::type::Integer});
+                                         db::column {"Name", db::type::Text, true, db::unique {}});
     _tabHistory = _database.create_table("history",
                                          db::column {"ID", db::type::Integer, false, db::primary_key {}},
                                          db::column {"GameID", db::type::Integer},
@@ -36,14 +34,14 @@ database::database()
 
 void database::insert_games(game_map const& games) const
 {
-    std::vector<std::tuple<string, family, u8>> dbvalues;
+    std::vector<std::tuple<string>> dbvalues;
     dbvalues.reserve(games.size());
     for (auto const& gi : games) {
-        dbvalues.emplace_back(gi.second.first.Name, gi.second.first.Family, gi.second.first.DeckCount);
+        dbvalues.emplace_back(gi.first);
     }
 
     auto sp {_database.create_savepoint("sp1")};
-    std::ignore = _tabGames->insert_into(db::ignore, "Name", "Family", "DeckCount")(dbvalues);
+    std::ignore = _tabGames->insert_into(db::ignore, "Name")(dbvalues);
     sp.release();
 }
 

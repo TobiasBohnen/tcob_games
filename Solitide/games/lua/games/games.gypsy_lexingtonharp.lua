@@ -6,8 +6,7 @@
 local lexington_harp = {
     Info       = {
         Name      = "Lexington Harp",
-        Family    = "Gypsy",
-        --Family = "Gypsy/Yukon"
+        Family    = { "Gypsy", "Yukon" },
         DeckCount = 2
     },
     Stock      = {

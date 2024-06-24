@@ -22,8 +22,7 @@ local initial <const> = {
 local rushdike        = {
     Info = {
         Name      = "Rushdike",
-        Family    = "Yukon",
-        --Family = "Gypsy/Yukon/Klondike"
+        Family    = { "Yukon", "Gypsy", "Klondike" },
         DeckCount = 1
     },
     Stock = { Initial = Sol.Initial.face_down(24) },

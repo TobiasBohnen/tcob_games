@@ -7,6 +7,8 @@
 
 #include "Common.hpp" // IWYU pragma: keep
 
+#include <unordered_set>
+
 #include "Cards.hpp"
 #include "Translator.hpp"
 
@@ -58,8 +60,8 @@ enum class objective {
 ////////////////////////////////////////////////////////////
 
 struct game_info {
-    std::string Name;
-    family      Family {};
+    std::string                Name;
+    std::unordered_set<family> Family;
 
     objective Objective {objective::AllCardsToFoundation};
 
