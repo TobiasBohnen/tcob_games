@@ -150,9 +150,7 @@ void card_table::set_theme(color_themes const& theme)
 void card_table::on_update(milliseconds deltaTime)
 {
     if (!_currentGame) { return; }
-    if (_currentGame->Status != game_status::Running) {
-        reset();
-    }
+    if (_currentGame->Status != game_status::Running) { reset(); }
 
     _bgCanvas.update(deltaTime);
     _fgCanvas.update(deltaTime);
@@ -166,7 +164,7 @@ void card_table::on_update(milliseconds deltaTime)
 void card_table::on_draw_to(gfx::render_target& target)
 {
     _bgCanvas.draw(target);
-    if (_isDragging) { _cardRenderer.mark_dirty(); }
+    if (_hovered.Pile && _hovered.Pile->IsDragging) { _cardRenderer.mark_dirty(); }
     _cardRenderer.draw(target);
     _fgCanvas.draw(target);
 }
@@ -190,8 +188,8 @@ void card_table::move_camera(rect_f const& cardBounds)
         _camPosTween = make_unique_tween<linear_tween<point_f>>(0.75s, _camera.get_look_at(), pos);
         _camPosTween->start();
         _camPosTween->Value.Changed.connect([&](auto val) {
-            if (_hovered.Pile && _isDragging) {
-                auto& cards {_hovered.Pile->Cards};
+            if (auto* pile {_hovered.Pile}; pile && pile->IsDragging) {
+                auto& cards {pile->Cards};
                 for (isize i {_hovered.Index}; i < std::ssize(cards); ++i) {
                     cards[i].Bounds.move_by(val - _camera.get_look_at());
                 }
@@ -243,14 +241,17 @@ void card_table::on_mouse_motion(input::mouse::motion_event& ev)
 {
     if (!_currentGame || _currentGame->Status != game_status::Running) { return; }
 
+    auto* pile {_hovered.Pile};
     if (_buttonDown) {
-        if (_hovered.Pile) { drag_cards(ev); }
-        if (_isDragging) { get_drop_target(); }
+        if (pile) {
+            drag_cards(ev);
+            if (pile->IsDragging) { get_drop_target(); }
+        }
     } else {
         get_hovered(ev.Position);
     }
 
-    HoverChange(_hovered.Pile);
+    if (pile != _hovered.Pile) { HoverChange(_hovered.Pile); }
 
     ev.Handled = true;
 }
@@ -261,19 +262,19 @@ void card_table::on_mouse_button_down(input::mouse::button_event& ev)
 
     if (ev.Button == input::mouse::button::Left) {
         _buttonDown = true;
-        if (_hovered.Pile) {
-            if (_hovered.Pile->Type == pile_type::Stock && (_hovered.Pile->empty() || _hovered.Pile->Cards[_hovered.Pile->size() - 1].is_face_down())) {
+        if (auto* pile {_hovered.Pile}) {
+            if (pile->Type == pile_type::Stock && (pile->empty() || pile->Cards[pile->size() - 1].is_face_down())) {
                 // deal card
-                _hovered.Pile->remove_tint();
+                pile->remove_tint();
                 _currentGame->deal_cards();
             } else if (ev.Clicks > 1) {
                 // try move to foundation
-                _currentGame->auto_play_cards(*_hovered.Pile);
+                if (_currentGame->auto_play_cards(*pile)) {
+                    get_hovered(ev.Position);
+                    if (pile != _hovered.Pile) { HoverChange(_hovered.Pile); }
+                }
             }
         }
-
-        if (ev.Clicks > 1) { get_hovered(ev.Position); }
-        HoverChange(_hovered.Pile);
     }
 }
 
@@ -283,39 +284,39 @@ void card_table::on_mouse_button_up(input::mouse::button_event& ev)
 
     if (ev.Button == input::mouse::button::Left) {
         _buttonDown = false;
-        if (_isDragging) {
-            if (_hovered.Pile) {
-                _hovered.Pile->IsDragging = false;
-            }
 
-            if (_dropTarget.Pile && _hovered.Pile) {
-                _currentGame->play_cards(*_hovered.Pile, *_dropTarget.Pile, _hovered.Index, std::ssize(_hovered.Pile->Cards) - _hovered.Index);
-            } else {
-                layout();
+        auto* pile {_hovered.Pile};
+        if (pile) {
+            if (pile->IsDragging) {
+                if (_dropTarget.Pile && pile) {
+                    _currentGame->play_cards(*pile, *_dropTarget.Pile, _hovered.Index, std::ssize(pile->Cards) - _hovered.Index);
+                } else {
+                    layout();
+                }
+                pile->IsDragging = false;
+                _fgCanvas.disable_hint();
             }
-            _isDragging = false;
-            _fgCanvas.disable_hint();
         }
 
         get_hovered(ev.Position);
-        HoverChange(_hovered.Pile);
+        if (pile != _hovered.Pile) { HoverChange(_hovered.Pile); }
     }
 }
 
 void card_table::reset()
 {
-    _dropTarget   = {};
+    _dropTarget = {};
+    if (_hovered.Pile) { _hovered.Pile->IsDragging = false; }
     _hovered      = {};
     _camInstant   = true;
     _camPosTween  = nullptr;
     _camZoomTween = nullptr;
-    _isDragging   = false;
     _buttonDown   = false;
 }
 
 void card_table::drag_cards(input::mouse::motion_event const& ev)
 {
-    _isDragging = false;
+    _hovered.Pile->IsDragging = false;
 
     auto& cards {_hovered.Pile->Cards};
     if (!_hovered.Pile->is_playable() || cards.empty() || _hovered.Index < 0) {
@@ -329,9 +330,7 @@ void card_table::drag_cards(input::mouse::motion_event const& ev)
         cards[i].Bounds.move_by(off);
     }
 
-    _dragRect   = cards[_hovered.Index].Bounds;
-    _isDragging = true;
-
+    _dragRect                 = cards[_hovered.Index].Bounds;
     _hovered.Pile->IsDragging = true;
     mark_dirty();
 }
@@ -455,5 +454,4 @@ auto card_table::get_drop_color() const -> color
 {
     return colors::LightGreen; // TODO: add option to disable
 }
-
 }

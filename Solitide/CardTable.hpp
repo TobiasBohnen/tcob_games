@@ -91,7 +91,6 @@ private:
     hit_test_result _dropTarget {};
     rect_f          _dragRect {rect_f::Zero};
     bool            _buttonDown {false};
-    bool            _isDragging {false};
 
     // camera
     bool                                             _camInstant {true};

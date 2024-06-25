@@ -34,7 +34,7 @@ void foreground_canvas::show_hint()
         _currentHint = 0;
     }
 
-    _hintTimer.start(5s, timer::mode::BusyLoop);
+    _hintTimer.start(5s, timer::mode::Sleep);
     _canvasDirty = true;
     _showHint    = true;
 }
@@ -51,7 +51,6 @@ void foreground_canvas::draw(gfx::render_target& target)
         _canvas.begin_frame(_bounds.get_size(), 1.0f);
 
         _canvas.save();
-        //  _canvas.translate(-_parent.Bounds->get_position());
         _canvas.set_scissor(_parent.Bounds);
 
         draw_hint(target);
