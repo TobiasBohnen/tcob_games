@@ -26,7 +26,7 @@ struct hit_test_result {
 
 class card_table : public gfx::entity {
 public:
-    card_table(gfx::window* window, gfx::ui::canvas_widget* canvas, assets::group& resGrp, settings* settings);
+    card_table(gfx::camera& camera, assets::group& resGrp, settings* settings);
 
     signal<pile* const> HoverChange;
     prop<rect_f>        Bounds;
@@ -74,7 +74,7 @@ private:
 
     auto get_pile_at(point_i pos, bool ignoreHoveredPile) const -> hit_test_result;
 
-    gfx::window*   _window;
+    gfx::camera&   _camera;
     assets::group& _resGrp;
     settings*      _settings;
 

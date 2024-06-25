@@ -26,8 +26,6 @@ public:
 
     std::shared_ptr<button> BtnQuit;
 
-    std::shared_ptr<canvas_widget> Canvas;
-
     void set_pile_labels(pile_description const& str);
     void set_game_labels(base_game* game);
 

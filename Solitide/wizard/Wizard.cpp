@@ -23,7 +23,7 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
     }};
 
     {
-        auto pnl {mainLayout->create_widget<panel>({0, 0, 40, 10}, "GameInfo")};
+        auto pnl {mainLayout->create_widget<panel>({0, 0, 30, 10}, "GameInfo")};
         auto layout {pnl->create_layout<box_layout>(size_i {2, 2})};
 
         createLabel(layout, "Name");
@@ -136,8 +136,8 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
             move->Class  = "drop_down_list_wizard";
         }};
 
-        auto         tab {mainLayout->create_widget<tab_container>({0, 10, 40, 70}, "Piles")};
-        size_i const boxSize {2, 10};
+        auto         tab {mainLayout->create_widget<tab_container>({0, 20, 30, 60}, "Piles")};
+        size_i const boxSize {2, 12};
         {
             auto pnl {tab->create_tab<panel>("Stock", "Stock")};
             auto layout {pnl->create_layout<box_layout>(boxSize)};
@@ -201,7 +201,7 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
         }
     }
 
-    _lbxLog        = mainLayout->create_widget<list_box>({42, 2, 36, 30}, "Log");
+    _lbxLog        = mainLayout->create_widget<list_box>({32, 2, 36, 30}, "Log");
     _lbxLog->Class = "list_box_log";
     _lbxLog->HoveredItemIndex.Changed.connect([lb = _lbxLog.get()] {
         lb->HoveredItemIndex = -1;

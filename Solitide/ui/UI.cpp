@@ -107,12 +107,6 @@ form_controls::form_controls(gfx::window* window, assets::group& resGrp, std::sh
         _lblTime      = create({38, 3, 2, 3});
         _lblTimeLabel = create({38, 0, 2, 3}, "Time");
     }
-
-    auto overlayPanel {mainPanelLayout->create_widget<glass>(dock_style::Fill, "overlay")};
-    overlayPanel->disable();
-    auto overlayPanelLayout {overlayPanel->create_layout<dock_layout>()};
-
-    Canvas = overlayPanelLayout->create_widget<canvas_widget>(dock_style::Fill, "canvas");
 }
 
 void form_controls::set_pile_labels(pile_description const& str)

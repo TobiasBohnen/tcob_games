@@ -12,10 +12,10 @@ namespace solitaire {
 
 ////////////////////////////////////////////////////////////
 
-foreground_canvas::foreground_canvas(card_table& parent, gfx::ui::canvas_widget* canvas, assets::group& resGrp)
+foreground_canvas::foreground_canvas(card_table& parent, assets::group& resGrp)
     : _parent {parent}
-    , _canvas {canvas}
     , _resGrp {resGrp}
+    , _renderer {_canvas}
 {
     _hintTimer.Tick.connect([&](auto&&) {
         _canvasDirty = true;
@@ -41,19 +41,29 @@ void foreground_canvas::show_hint()
 
 void foreground_canvas::draw(gfx::render_target& target)
 {
-    if (_canvasDirty) {
-        _canvas->clear();
+    if (target.Size != _bounds.get_size()) {
+        _bounds      = {point_i::Zero, target.Size()};
+        _canvasDirty = true;
+        _renderer.set_bounds(rect_f {_bounds});
+    }
 
-        _canvas->save();
-        _canvas->translate(-_parent.Bounds->get_position());
-        _canvas->set_scissor(_parent.Bounds);
+    if (_canvasDirty) {
+        _canvas.begin_frame(_bounds.get_size(), 1.0f);
+
+        _canvas.save();
+        //  _canvas.translate(-_parent.Bounds->get_position());
+        _canvas.set_scissor(_parent.Bounds);
 
         draw_hint(target);
         draw_state();
 
-        _canvas->restore();
+        _canvas.end_frame();
+
         _canvasDirty = false;
     }
+
+    _renderer.set_layer(0);
+    _renderer.render_to_target(target);
 }
 
 void foreground_canvas::update(milliseconds)
@@ -102,32 +112,32 @@ void foreground_canvas::draw_hint(gfx::render_target& target)
     auto& camera {*target.Camera};
 
     // Draw bounds
-    _canvas->begin_path();
-    _canvas->rounded_rect(rect_f {camera.convert_world_to_screen(dstBounds)}, 10);
-    _canvas->set_stroke_style(colors::Black);
-    _canvas->set_stroke_width(10);
-    _canvas->stroke();
-    _canvas->set_stroke_style(colors::Red);
-    _canvas->set_stroke_width(6);
-    _canvas->stroke();
+    _canvas.begin_path();
+    _canvas.rounded_rect(rect_f {camera.convert_world_to_screen(dstBounds)}, 10);
+    _canvas.set_stroke_style(colors::Black);
+    _canvas.set_stroke_width(10);
+    _canvas.stroke();
+    _canvas.set_stroke_style(colors::Red);
+    _canvas.set_stroke_width(6);
+    _canvas.stroke();
 
     auto const screenSrcBounds {rect_f {camera.convert_world_to_screen(srcBounds)}};
 
-    _canvas->set_global_composite_blendfunc(gfx::blend_func::One, gfx::blend_func::Zero);
-    _canvas->begin_path();
-    _canvas->rounded_rect(screenSrcBounds, 10);
-    _canvas->set_fill_style(colors::Transparent);
-    _canvas->fill();
-    _canvas->set_global_composite_blendfunc(gfx::blend_func::SrcAlpha, gfx::blend_func::OneMinusSrcAlpha);
+    _canvas.set_global_composite_blendfunc(gfx::blend_func::One, gfx::blend_func::Zero);
+    _canvas.begin_path();
+    _canvas.rounded_rect(screenSrcBounds, 10);
+    _canvas.set_fill_style(colors::Transparent);
+    _canvas.fill();
+    _canvas.set_global_composite_blendfunc(gfx::blend_func::SrcAlpha, gfx::blend_func::OneMinusSrcAlpha);
 
-    _canvas->begin_path();
-    _canvas->rounded_rect(screenSrcBounds, 10);
-    _canvas->set_stroke_style(colors::Black);
-    _canvas->set_stroke_width(10);
-    _canvas->stroke();
-    _canvas->set_stroke_style(colors::Green);
-    _canvas->set_stroke_width(6);
-    _canvas->stroke();
+    _canvas.begin_path();
+    _canvas.rounded_rect(screenSrcBounds, 10);
+    _canvas.set_stroke_style(colors::Black);
+    _canvas.set_stroke_width(10);
+    _canvas.stroke();
+    _canvas.set_stroke_style(colors::Green);
+    _canvas.set_stroke_width(6);
+    _canvas.stroke();
 
     // Draw arrow
     auto from {point_f {camera.convert_world_to_screen(srcBounds.get_center())}};
@@ -137,23 +147,23 @@ void foreground_canvas::draw_hint(gfx::render_target& target)
     f32 const arrowWidth {6};
     f32 const headLength {arrowWidth * 6};
 
-    _canvas->set_line_cap(gfx::line_cap::Round);
-    _canvas->begin_path();
-    _canvas->move_to(from);
-    _canvas->line_to(to);
+    _canvas.set_line_cap(gfx::line_cap::Round);
+    _canvas.begin_path();
+    _canvas.move_to(from);
+    _canvas.line_to(to);
 
     f32 const angle {std::atan2(to.Y - from.Y, to.X - from.X)};
 
-    _canvas->move_to(to);
-    _canvas->line_to({to.X - headLength * std::cos(angle - TAU_F / 12), to.Y - headLength * std::sin(angle - TAU_F / 12)});
-    _canvas->move_to(to);
-    _canvas->line_to({to.X - headLength * std::cos(angle + TAU_F / 12), to.Y - headLength * std::sin(angle + TAU_F / 12)});
-    _canvas->set_stroke_style(colors::Black);
-    _canvas->set_stroke_width(arrowWidth + borderWidth);
-    _canvas->stroke();
-    _canvas->set_stroke_style(colors::Gray);
-    _canvas->set_stroke_width(arrowWidth);
-    _canvas->stroke();
+    _canvas.move_to(to);
+    _canvas.line_to({to.X - headLength * std::cos(angle - TAU_F / 12), to.Y - headLength * std::sin(angle - TAU_F / 12)});
+    _canvas.move_to(to);
+    _canvas.line_to({to.X - headLength * std::cos(angle + TAU_F / 12), to.Y - headLength * std::sin(angle + TAU_F / 12)});
+    _canvas.set_stroke_style(colors::Black);
+    _canvas.set_stroke_width(arrowWidth + borderWidth);
+    _canvas.stroke();
+    _canvas.set_stroke_style(colors::Gray);
+    _canvas.set_stroke_width(arrowWidth);
+    _canvas.stroke();
 }
 
 void foreground_canvas::draw_state()
@@ -164,47 +174,47 @@ void foreground_canvas::draw_state()
     f32 const   size {pBounds->get_size().Width / 5};
     rect_f      bounds {pBounds->get_center() - point_f {size / 2, size / 2}, {size, size}};
 
-    _canvas->set_fill_style(colors::Silver);
-    _canvas->begin_path();
-    _canvas->rounded_rect(bounds, 15);
-    _canvas->fill();
-    _canvas->set_stroke_style(colors::Black);
-    _canvas->set_stroke_width(5);
-    _canvas->stroke();
+    _canvas.set_fill_style(colors::Silver);
+    _canvas.begin_path();
+    _canvas.rounded_rect(bounds, 15);
+    _canvas.fill();
+    _canvas.set_stroke_style(colors::Black);
+    _canvas.set_stroke_width(5);
+    _canvas.stroke();
 
     bounds = bounds.as_padded(bounds.get_size() / 5);
     if (_lastStatus == game_status::Success) {
         f32 const width {bounds.Width / 15};
-        _canvas->begin_path();
-        _canvas->move_to({bounds.left(), bounds.get_center().Y});
-        _canvas->line_to({bounds.get_center().X, bounds.bottom()});
-        _canvas->line_to(bounds.top_right());
+        _canvas.begin_path();
+        _canvas.move_to({bounds.left(), bounds.get_center().Y});
+        _canvas.line_to({bounds.get_center().X, bounds.bottom()});
+        _canvas.line_to(bounds.top_right());
 
-        _canvas->set_stroke_width(width * 1.5f);
-        _canvas->set_stroke_style(colors::Black);
-        _canvas->set_line_cap(gfx::line_cap::Round);
-        _canvas->stroke();
+        _canvas.set_stroke_width(width * 1.5f);
+        _canvas.set_stroke_style(colors::Black);
+        _canvas.set_line_cap(gfx::line_cap::Round);
+        _canvas.stroke();
 
-        _canvas->set_stroke_width(width);
-        _canvas->set_stroke_style(colors::Green);
-        _canvas->stroke();
+        _canvas.set_stroke_width(width);
+        _canvas.set_stroke_style(colors::Green);
+        _canvas.stroke();
     } else if (_lastStatus == game_status::Failure) {
         f32 const width {bounds.Width / 10};
 
-        _canvas->begin_path();
-        _canvas->move_to(bounds.top_left());
-        _canvas->line_to(bounds.bottom_right());
-        _canvas->move_to(bounds.top_right());
-        _canvas->line_to(bounds.bottom_left());
+        _canvas.begin_path();
+        _canvas.move_to(bounds.top_left());
+        _canvas.line_to(bounds.bottom_right());
+        _canvas.move_to(bounds.top_right());
+        _canvas.line_to(bounds.bottom_left());
 
-        _canvas->set_stroke_width(width * 1.5f);
-        _canvas->set_stroke_style(colors::Black);
-        _canvas->set_line_cap(gfx::line_cap::Round);
-        _canvas->stroke();
+        _canvas.set_stroke_width(width * 1.5f);
+        _canvas.set_stroke_style(colors::Black);
+        _canvas.set_line_cap(gfx::line_cap::Round);
+        _canvas.stroke();
 
-        _canvas->set_stroke_width(width);
-        _canvas->set_stroke_style(colors::Red);
-        _canvas->stroke();
+        _canvas.set_stroke_width(width);
+        _canvas.set_stroke_style(colors::Red);
+        _canvas.stroke();
     }
 }
 

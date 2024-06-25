@@ -13,13 +13,13 @@ namespace solitaire {
 constexpr f32 FACE_DOWN_OFFSET {0.10f};
 constexpr f32 FACE_UP_OFFSET {0.20f};
 
-card_table::card_table(gfx::window* window, gfx::ui::canvas_widget* canvas, assets::group& resGrp, settings* settings)
-    : _window {window}
+card_table::card_table(gfx::camera& camera, assets::group& resGrp, settings* settings)
+    : _camera {camera}
     , _resGrp {resGrp}
     , _settings {settings}
     , _cardRenderer {*this}
     , _bgCanvas {*this, resGrp}
-    , _fgCanvas {*this, canvas, resGrp}
+    , _fgCanvas {*this, resGrp}
 {
     Bounds.Changed.connect([&](auto const&) { mark_dirty(); });
 }
@@ -175,38 +175,37 @@ void card_table::move_camera(rect_f const& cardBounds)
 {
     using namespace tcob::tweening;
 
-    auto&      camera {*_window->Camera};
-    auto const winSize {_window->Size()};
+    auto const winSize {_camera.get_size()};
 
     f32 const     hDiff {static_cast<f32>(winSize.Height - Bounds->Height)};
     f32 const     zoom {std::min(winSize.Width / cardBounds.Width, (winSize.Height - hDiff) / cardBounds.Height)};
     point_f const pos {cardBounds.get_center() + point_f {0, (Bounds->Y / zoom) / 2}};
 
     if (_camInstant) {
-        camera.look_at(pos);
-        camera.set_zoom(size_f {zoom, zoom});
+        _camera.look_at(pos);
+        _camera.set_zoom(size_f {zoom, zoom});
         _bgCanvas.mark_dirty();
         _camInstant = false;
     } else {
-        _camPosTween = make_unique_tween<linear_tween<point_f>>(0.75s, camera.get_look_at(), pos);
+        _camPosTween = make_unique_tween<linear_tween<point_f>>(0.75s, _camera.get_look_at(), pos);
         _camPosTween->start();
         _camPosTween->Value.Changed.connect([&](auto val) {
             if (_hovered.Pile && _isDragging) {
                 auto& cards {_hovered.Pile->Cards};
                 for (isize i {_hovered.Index}; i < std::ssize(cards); ++i) {
-                    cards[i].Bounds.move_by(val - camera.get_look_at());
+                    cards[i].Bounds.move_by(val - _camera.get_look_at());
                 }
 
                 _dragRect = cards[_hovered.Index].Bounds;
             }
-            camera.look_at(val);
+            _camera.look_at(val);
             _bgCanvas.mark_dirty();
         });
 
-        _camZoomTween = make_unique_tween<linear_tween<size_f>>(0.75s, camera.get_zoom(), size_f {zoom, zoom});
+        _camZoomTween = make_unique_tween<linear_tween<size_f>>(0.75s, _camera.get_zoom(), size_f {zoom, zoom});
         _camZoomTween->start();
         _camZoomTween->Value.Changed.connect([&](auto val) {
-            camera.set_zoom(val);
+            _camera.set_zoom(val);
             _bgCanvas.mark_dirty();
         });
     }
@@ -324,7 +323,7 @@ void card_table::drag_cards(input::mouse::motion_event const& ev)
         return;
     }
 
-    auto const    zoom {(*_window->Camera).get_zoom()};
+    auto const    zoom {_camera.get_zoom()};
     point_f const off {ev.RelativeMotion.X / zoom.Width, ev.RelativeMotion.Y / zoom.Height};
     for (isize i {_hovered.Index}; i < std::ssize(cards); ++i) {
         cards[i].Bounds.move_by(off);
@@ -394,7 +393,7 @@ auto card_table::get_drop_target_at(rect_f const& rect, card const& card, isize 
 void card_table::get_hovered(point_i pos)
 {
     auto oldPile {_hovered};
-    _hovered = get_pile_at(point_i {(*_window->Camera).convert_screen_to_world(pos)}, false);
+    _hovered = get_pile_at(point_i {_camera.convert_screen_to_world(pos)}, false);
 
     if (oldPile.Pile) {
         oldPile.Pile->IsHovering = false;

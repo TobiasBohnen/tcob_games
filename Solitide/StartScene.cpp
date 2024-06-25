@@ -62,7 +62,7 @@ start_scene::start_scene(game& game)
     _formMenu->hide();
 
     // card table
-    _cardTable = std::make_shared<card_table>(&window, _formControls->Canvas.get(), resGrp, &_sources->Settings);
+    _cardTable = std::make_shared<card_table>(*window.Camera, resGrp, &_sources->Settings);
 
     _cardTable->HoverChange.connect([&](pile* const pile) {
         if (!pile) {
