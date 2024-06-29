@@ -26,6 +26,27 @@ static auto parse_unit_value(tcob::utf8_string_view input) -> std::pair<std::str
     return std::make_pair(value, unit);
 }
 
+auto static get_length_values(tcob::data::config::cfg_value const& config) -> std::vector<tcob::gfx::ui::length>
+{
+    using namespace tcob;
+    std::vector<gfx::ui::length> l;
+
+    auto const strings {helper::split(std::get<utf8_string>(config), ',')};
+    for (auto const& str : strings) {
+        auto const [valueStr, unit] {parse_unit_value(str)};
+        f32 const valueF {std::stof(valueStr)};
+        if (unit == "px") {
+            l.emplace_back(valueF, gfx::ui::length::type::Absolute);
+        } else if (unit == "pct") {
+            l.emplace_back(valueF / 100.0f, gfx::ui::length::type::Relative);
+        } else {
+            return {};
+        }
+    }
+
+    return l;
+}
+
 namespace tcob::data::config {
 template <>
 struct converter<gfx::ui::thickness> {
@@ -37,20 +58,7 @@ struct converter<gfx::ui::thickness> {
     auto static From(cfg_value const& config, gfx::ui::thickness& value) -> bool
     {
         if (std::holds_alternative<utf8_string>(config)) {
-            std::vector<gfx::ui::length> l;
-
-            auto const strings {helper::split(std::get<utf8_string>(config), ',')};
-            for (auto const& str : strings) {
-                auto const [valueStr, unit] {parse_unit_value(str)};
-                f32 const valueF {std::stof(valueStr)};
-                if (unit == "px") {
-                    l.emplace_back(valueF, gfx::ui::length::type::Absolute);
-                } else if (unit == "pct") {
-                    l.emplace_back(valueF / 100.0f, gfx::ui::length::type::Relative);
-                } else {
-                    return false;
-                }
-            }
+            auto l {get_length_values(config)};
             switch (l.size()) {
             case 1:
                 value = {l[0]};
@@ -80,20 +88,7 @@ struct converter<gfx::ui::dimensions> {
     auto static From(cfg_value const& config, gfx::ui::dimensions& value) -> bool
     {
         if (std::holds_alternative<utf8_string>(config)) {
-            std::vector<gfx::ui::length> l;
-
-            auto const strings {helper::split(std::get<utf8_string>(config), ',')};
-            for (auto const& str : strings) {
-                auto const [valueStr, unit] {parse_unit_value(str)};
-                f32 const valueF {std::stof(valueStr)};
-                if (unit == "px") {
-                    l.emplace_back(valueF, gfx::ui::length::type::Absolute);
-                } else if (unit == "pct") {
-                    l.emplace_back(valueF / 100.0f, gfx::ui::length::type::Relative);
-                } else {
-                    return false;
-                }
-            }
+            auto l {get_length_values(config)};
             switch (l.size()) {
             case 1:
                 value = {l[0], l[0]};
@@ -120,18 +115,14 @@ struct converter<gfx::ui::length> {
     auto static From(cfg_value const& config, gfx::ui::length& value) -> bool
     {
         if (std::holds_alternative<utf8_string>(config)) {
-            auto const str {std::get<utf8_string>(config)};
-            auto const [valueStr, unit] {parse_unit_value(str)};
-            f32 const valueF {std::stof(valueStr)};
-            if (unit == "px") {
-                value = {valueF, gfx::ui::length::type::Absolute};
-            } else if (unit == "pct") {
-                value = {valueF / 100.0f, gfx::ui::length::type::Relative};
-            } else {
+            auto l {get_length_values(config)};
+            switch (l.size()) {
+            case 1:
+                value = l[0];
+                return true;
+            default:
                 return false;
             }
-
-            return true;
         }
 
         return false;
@@ -211,71 +202,33 @@ auto styles::load(color_themes const& theme) -> style_collection
             }
         });
 
-        if (type == "accordion") {
-            auto style {create<accordion::style>(styleObj, retValue, names, flags)};
-            applyTheme(style);
-        } else if (type == "button") {
-            auto style {create<button::style>(styleObj, retValue, names, flags)};
-            applyTheme(style);
-        } else if (type == "checkbox") {
-            auto style {create<checkbox::style>(styleObj, retValue, names, flags)};
-            applyTheme(style);
-        } else if (type == "cycle_button") {
-            auto style {create<cycle_button::style>(styleObj, retValue, names, flags)};
-            applyTheme(style);
-        } else if (type == "drop_down_list") {
-            auto style {create<drop_down_list::style>(styleObj, retValue, names, flags)};
-            applyTheme(style);
-        } else if (type == "grid_view") {
-            auto style {create<grid_view::style>(styleObj, retValue, names, flags)};
-            applyTheme(style);
-        } else if (type == "image_box") {
-            auto style {create<image_box::style>(styleObj, retValue, names, flags)};
-            applyTheme(style);
-        } else if (type == "label") {
-            auto style {create<label::style>(styleObj, retValue, names, flags)};
-            applyTheme(style);
-        } else if (type == "list_box") {
-            auto style {create<list_box::style>(styleObj, retValue, names, flags)};
-            applyTheme(style);
-        } else if (type == "panel") {
-            auto style {create<panel::style>(styleObj, retValue, names, flags)};
-            applyTheme(style);
-        } else if (type == "progress_bar") {
-            auto style {create<progress_bar::style>(styleObj, retValue, names, flags)};
-            applyTheme(style);
-        } else if (type == "radio_button") {
-            auto style {create<radio_button::style>(styleObj, retValue, names, flags)};
-            applyTheme(style);
-        } else if (type == "slider") {
-            auto style {create<slider::style>(styleObj, retValue, names, flags)};
-            applyTheme(style);
-        } else if (type == "spinner") {
-            auto style {create<spinner::style>(styleObj, retValue, names, flags)};
-            applyTheme(style);
-        } else if (type == "tab_container") {
-            auto style {create<tab_container::style>(styleObj, retValue, names, flags)};
-            applyTheme(style);
-        } else if (type == "text_box") {
-            auto style {create<text_box::style>(styleObj, retValue, names, flags)};
-            applyTheme(style);
-        } else if (type == "toggle") {
-            auto style {create<toggle::style>(styleObj, retValue, names, flags)};
-            applyTheme(style);
-        } else if (type == "tooltip") {
-            auto style {create<tooltip::style>(styleObj, retValue, names, flags)};
-            applyTheme(style);
-        } else if (type == "thumb") {
-            auto style {create<thumb_style>(styleObj, retValue, names, flags)};
-            applyTheme(style);
-        } else if (type == "nav_arrow") {
-            auto style {create<nav_arrows_style>(styleObj, retValue, names, flags)};
-            applyTheme(style);
-        } else if (type == "item") {
-            auto style {create<item_style>(styleObj, retValue, names, flags)};
-            applyTheme(style);
+        static std::unordered_map<std::string, std::function<void()>> const styleCreators {
+            {"accordion", [&]() { applyTheme(create<accordion::style>(styleObj, retValue, names, flags)); }},
+            {"button", [&]() { applyTheme(create<button::style>(styleObj, retValue, names, flags)); }},
+            {"checkbox", [&]() { applyTheme(create<checkbox::style>(styleObj, retValue, names, flags)); }},
+            {"cycle_button", [&]() { applyTheme(create<cycle_button::style>(styleObj, retValue, names, flags)); }},
+            {"drop_down_list", [&]() { applyTheme(create<drop_down_list::style>(styleObj, retValue, names, flags)); }},
+            {"grid_view", [&]() { applyTheme(create<grid_view::style>(styleObj, retValue, names, flags)); }},
+            {"image_box", [&]() { applyTheme(create<image_box::style>(styleObj, retValue, names, flags)); }},
+            {"label", [&]() { applyTheme(create<label::style>(styleObj, retValue, names, flags)); }},
+            {"list_box", [&]() { applyTheme(create<list_box::style>(styleObj, retValue, names, flags)); }},
+            {"panel", [&]() { applyTheme(create<panel::style>(styleObj, retValue, names, flags)); }},
+            {"progress_bar", [&]() { applyTheme(create<progress_bar::style>(styleObj, retValue, names, flags)); }},
+            {"radio_button", [&]() { applyTheme(create<radio_button::style>(styleObj, retValue, names, flags)); }},
+            {"slider", [&]() { applyTheme(create<slider::style>(styleObj, retValue, names, flags)); }},
+            {"spinner", [&]() { applyTheme(create<spinner::style>(styleObj, retValue, names, flags)); }},
+            {"tab_container", [&]() { applyTheme(create<tab_container::style>(styleObj, retValue, names, flags)); }},
+            {"text_box", [&]() { applyTheme(create<text_box::style>(styleObj, retValue, names, flags)); }},
+            {"toggle", [&]() { applyTheme(create<toggle::style>(styleObj, retValue, names, flags)); }},
+            {"tooltip", [&]() { applyTheme(create<tooltip::style>(styleObj, retValue, names, flags)); }},
+            {"thumb", [&]() { applyTheme(create<thumb_style>(styleObj, retValue, names, flags)); }},
+            {"nav_arrow", [&]() { applyTheme(create<nav_arrows_style>(styleObj, retValue, names, flags)); }},
+            {"item", [&]() { applyTheme(create<item_style>(styleObj, retValue, names, flags)); }}};
+        auto it {styleCreators.find(type)};
+        if (it != styleCreators.end()) {
+            it->second();
         } else {
-            continue; // ERROR
+            // ERROR
         }
     }
 
