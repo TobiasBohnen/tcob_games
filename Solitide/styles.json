@@ -552,8 +552,8 @@
         "height": "75pct",
         "width": "25pct",
         "border": {
-            "size": "3px",
-            "radius": "0px"
+            "size": "1px",
+            "radius": "2px"
         }
     },
     "nav_arrows:hover": {},
@@ -562,8 +562,8 @@
         "height": "75pct",
         "width": "10pct",
         "border": {
-            "size": "3px",
-            "radius": "0px"
+            "size": "1px",
+            "radius": "2px"
         }
     },
     "nav_arrows_wizard:hover": {},

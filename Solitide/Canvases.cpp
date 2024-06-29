@@ -34,7 +34,7 @@ void foreground_canvas::show_hint()
         _currentHint = 0;
     }
 
-    _hintTimer.start(5s, timer::mode::Sleep);
+    _hintTimer.start(5s, timer::mode::BusyLoop); // Sleep blocks
     _canvasDirty = true;
     _showHint    = true;
 }
