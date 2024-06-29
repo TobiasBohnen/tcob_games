@@ -29,7 +29,7 @@ local bakers_dozen = {
 ------
 
 local bakers_dozen_two_decks           = Sol.copy(bakers_dozen)
-bakers_dozen_two_decks.Info.Name       = "Baker's Dozen (2 Decks)"
+bakers_dozen_two_decks.Info.Name       = "Baker's Dozen (2 decks)"
 bakers_dozen_two_decks.Info.DeckCount  = 2
 bakers_dozen_two_decks.Foundation.Size = 8
 bakers_dozen_two_decks.Tableau.Size    = 26

@@ -163,7 +163,7 @@ freds_spider.deal            = Sol.Ops.Deal.stock_to_tableau
 ------
 
 local freds_spider_3_decks           = Sol.copy(freds_spider)
-freds_spider_3_decks.Info.Name       = "Fred's Spider (3 Decks)"
+freds_spider_3_decks.Info.Name       = "Fred's Spider (3 decks)"
 freds_spider_3_decks.Info.DeckCount  = 3
 freds_spider_3_decks.Stock.Initial   = Sol.Initial.face_down(91)
 freds_spider_3_decks.Foundation.Size = 12

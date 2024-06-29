@@ -71,6 +71,46 @@ struct converter<gfx::ui::thickness> {
 };
 
 template <>
+struct converter<gfx::ui::dimensions> {
+    auto static IsType(cfg_value const& config) -> bool
+    {
+        return std::holds_alternative<utf8_string>(config);
+    }
+
+    auto static From(cfg_value const& config, gfx::ui::dimensions& value) -> bool
+    {
+        if (std::holds_alternative<utf8_string>(config)) {
+            std::vector<gfx::ui::length> l;
+
+            auto const strings {helper::split(std::get<utf8_string>(config), ',')};
+            for (auto const& str : strings) {
+                auto const [valueStr, unit] {parse_unit_value(str)};
+                f32 const valueF {std::stof(valueStr)};
+                if (unit == "px") {
+                    l.emplace_back(valueF, gfx::ui::length::type::Absolute);
+                } else if (unit == "pct") {
+                    l.emplace_back(valueF / 100.0f, gfx::ui::length::type::Relative);
+                } else {
+                    return false;
+                }
+            }
+            switch (l.size()) {
+            case 1:
+                value = {l[0], l[0]};
+                return true;
+            case 2:
+                value = {l[0], l[1]};
+                return true;
+            default:
+                return false;
+            }
+        }
+
+        return false;
+    }
+};
+
+template <>
 struct converter<gfx::ui::length> {
     auto static IsType(cfg_value const& config) -> bool
     {
@@ -381,8 +421,8 @@ void styles::parse(data::config::object const& obj, nav_arrows_style* style)
     obj.try_get(style->NavArrow.IncBackground, "inc_background");
     obj.try_get(style->NavArrow.DecBackground, "dec_background");
     obj.try_get(style->NavArrow.Foreground, "foreground");
-    obj.try_get(style->NavArrow.Width, "width");
-    obj.try_get(style->NavArrow.Height, "height");
+    obj.try_get(style->NavArrow.Size, "size");
+    obj.try_get(style->NavArrow.Padding, "padding");
     if (object el; obj.try_get(el, "border")) { parse_element(el, &style->NavArrow.Border); }
 }
 

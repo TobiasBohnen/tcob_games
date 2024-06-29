@@ -489,7 +489,7 @@ local zerline = {
 ------
 
 local zerline_3_decks          = Sol.copy(zerline)
-zerline_3_decks.Info.Name      = "Zerline (3 Decks)"
+zerline_3_decks.Info.Name      = "Zerline (3 decks)"
 zerline_3_decks.Info.DeckCount = 3
 zerline_3_decks.Stock.Initial  = Sol.Initial.face_down(116)
 zerline_3_decks.FreeCell       = {

@@ -348,7 +348,7 @@ local monte_carlo = {
 ------
 
 local double_monte_carlo = Sol.copy(monte_carlo)
-double_monte_carlo.Info.Name = "Monte Carlo (2 Decks)"
+double_monte_carlo.Info.Name = "Monte Carlo (2 decks)"
 double_monte_carlo.Info.DeckCount = 2
 double_monte_carlo.Stock.Initial = Sol.Initial.face_down(79)
 

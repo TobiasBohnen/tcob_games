@@ -549,8 +549,8 @@
     "section_items:hover": {},
     "section_items:active": {},
     "nav_arrows#nav_arrow": {
-        "height": "75pct",
-        "width": "25pct",
+        "size": "25pct, 60pct",
+        "padding": "5px",
         "border": {
             "size": "1px",
             "radius": "2px"
@@ -559,8 +559,7 @@
     "nav_arrows:hover": {},
     "nav_arrows:active": {},
     "nav_arrows_wizard#nav_arrow": {
-        "height": "75pct",
-        "width": "10pct",
+        "size": "10pct, 75pct",
         "border": {
             "size": "1px",
             "radius": "2px"

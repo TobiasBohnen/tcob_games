@@ -49,7 +49,7 @@ local numerica = {
 ------
 
 local numerica_2_decks           = Sol.copy(numerica)
-numerica_2_decks.Info.Name       = "Numerica (2 Decks)"
+numerica_2_decks.Info.Name       = "Numerica (2 decks)"
 numerica_2_decks.Info.DeckCount  = 2
 numerica_2_decks.Stock.Initial   = Sol.Initial.face_down(103)
 numerica_2_decks.Foundation.Size = 8
