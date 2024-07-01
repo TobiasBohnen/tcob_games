@@ -28,7 +28,8 @@ database::database()
                                          db::column {"Undos", db::type::Integer},
                                          db::column {"Hints", db::type::Integer},
                                          db::column {"Time", db::type::Real},
-                                         db::unique {"GameID", "Seed"});
+                                         db::unique {"GameID", "Seed"},
+                                         db::foreign_key {"GameID", "games", "ID"});
     assert(_tabGames && _tabHistory);
 }
 
