@@ -106,7 +106,7 @@ auto base_game::load(std::optional<data::config::object> const& loadObj) -> bool
         array const typeArray {obj[pileType].as<array>()};
         auto const  pileCount {std::ssize(piles)};
 
-        if (typeArray.get_size() != pileCount) { return false; }
+        if (typeArray.size() != pileCount) { return false; }
 
         for (isize i {0}; i < pileCount; ++i) {
             pile*       pile {piles[i]};

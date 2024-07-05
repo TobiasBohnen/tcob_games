@@ -399,7 +399,7 @@ void form_menu::create_game_details(dock_layout& panelLayout)
                     create({12, 13, 17, 5}, rule["move"].as<std::string>());
                 }};
 
-                if (rulesArr.get_size() == 1) {
+                if (rulesArr.size() == 1) {
                     auto pilePanelLayout {pilePanel->create_layout<grid_layout>(size_i {30, 25})};
                     createRule(*pilePanelLayout, rulesArr[0].as<data::config::object>());
                 } else {
