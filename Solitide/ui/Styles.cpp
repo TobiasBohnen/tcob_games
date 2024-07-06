@@ -202,7 +202,7 @@ auto styles::load(color_themes const& theme) -> style_collection
             }
         });
 
-        static std::unordered_map<std::string, std::function<void()>> const styleCreators {
+        std::unordered_map<std::string, std::function<void()>> const styleCreators {
             {"accordion", [&]() { applyTheme(create<accordion::style>(styleObj, retValue, names, flags)); }},
             {"button", [&]() { applyTheme(create<button::style>(styleObj, retValue, names, flags)); }},
             {"checkbox", [&]() { applyTheme(create<checkbox::style>(styleObj, retValue, names, flags)); }},
