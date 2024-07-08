@@ -156,7 +156,7 @@ public:
     lua_script_game(game_info info, scripting::lua::table tab);
 
     auto static CreateENV(scripting::lua::script& script) -> scripting::lua::table;
-    void static CreateAPI(start_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs);
+    void static CreateAPI(main_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs);
 };
 
 ////////////////////////////////////////////////////////////
@@ -165,7 +165,7 @@ class squirrel_script_game : public script_game<scripting::squirrel::table, scri
 public:
     squirrel_script_game(game_info info, scripting::squirrel::table tab);
 
-    void static CreateAPI(start_scene* scene, scripting::squirrel::script& script, std::vector<scripting::squirrel::native_closure_shared_ptr>& funcs);
+    void static CreateAPI(main_scene* scene, scripting::squirrel::script& script, std::vector<scripting::squirrel::native_closure_shared_ptr>& funcs);
 };
 
 }

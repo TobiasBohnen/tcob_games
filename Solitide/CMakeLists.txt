@@ -7,6 +7,7 @@ target_sources(Solitide PRIVATE
     CardSet.cpp
     CardTable.cpp
     Database.cpp
+    MainScene.cpp
     Piles.cpp
     StartScene.cpp
     Translator.cpp

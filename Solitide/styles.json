@@ -549,8 +549,8 @@
     "section_items:hover": {},
     "section_items:active": {},
     "nav_arrows#nav_arrow": {
-        "size": "25pct, 60pct",
-        "padding": "5px",
+        "size": "25pct, 80pct",
+        "padding": "1px",
         "border": {
             "size": "1px",
             "radius": "2px"

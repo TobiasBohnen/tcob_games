@@ -5,7 +5,7 @@
 
 #include "Games.hpp"
 
-#include "StartScene.hpp"
+#include "MainScene.hpp"
 
 #include <ranges>
 #include <utility>
@@ -539,7 +539,7 @@ auto lua_script_game::CreateENV(scripting::lua::script& script) -> scripting::lu
     return env;
 }
 
-void lua_script_game::CreateAPI(start_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs)
+void lua_script_game::CreateAPI(main_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs)
 {
     using namespace scripting::lua;
     auto env {CreateENV(script)};
@@ -566,7 +566,7 @@ squirrel_script_game::squirrel_script_game(game_info info, scripting::squirrel::
 {
 }
 
-void squirrel_script_game::CreateAPI(start_scene* scene, scripting::squirrel::script& script, std::vector<scripting::squirrel::native_closure_shared_ptr>& funcs)
+void squirrel_script_game::CreateAPI(main_scene* scene, scripting::squirrel::script& script, std::vector<scripting::squirrel::native_closure_shared_ptr>& funcs)
 {
     using namespace scripting::squirrel;
 

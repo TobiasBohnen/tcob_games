@@ -27,7 +27,7 @@ class card_table;
 struct color_themes;
 struct game_info;
 class pile;
-class start_scene;
+class main_scene;
 
 using lua_value     = std::variant<i64, f64, bool, std::string>;
 using lua_return    = std::optional<lua_value>;
