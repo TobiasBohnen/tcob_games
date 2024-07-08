@@ -196,11 +196,12 @@ void main_scene::connect_events()
 
         auto& window {get_window()};
 
+        auto const res {get_size(obj["ddlResolution"]["selected"].as<std::string>())};
+        window.Size = res;
+
         window.FullScreen = obj["chkFullScreen"]["checked"].as<bool>();
         window.VSync      = obj["chkVSync"]["checked"].as<bool>();
 
-        auto const res {get_size(obj["ddlResolution"]["selected"].as<std::string>())};
-        window.Size = res;
         set_children_bounds(res);
 
         start_game(_sources->Settings.LastGame, start_reason::Resume, std::nullopt);
