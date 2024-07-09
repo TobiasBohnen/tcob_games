@@ -219,7 +219,7 @@ void load_themes(std::map<std::string, color_themes>& themeMap)
         active.Border     = hover.Background;
         active.Shadow     = color {0, 0, 0, 128};
         active.Foreground = colors::White;
-        active.List       = normal.Background;
+        active.List       = hover.Border;
         active.Container  = normal.Container;
 
         object theme {v.as<object>()};

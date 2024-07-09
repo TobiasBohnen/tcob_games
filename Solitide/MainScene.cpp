@@ -254,6 +254,7 @@ void main_scene::on_key_down(input::keyboard::event& ev)
         set_theme();
         ev.Handled = true;
     }
+#if defined(TCOB_DEBUG)
     if (ev.KeyCode == input::key_code::g) {
         _sources->Translator.set_language("de-DE");
         _currentRules = generate_rule(_sources->Settings.LastGame);
@@ -264,6 +265,12 @@ void main_scene::on_key_down(input::keyboard::event& ev)
         _currentRules = generate_rule(_sources->Settings.LastGame);
         ev.Handled    = true;
     }
+    if (ev.KeyCode == input::key_code::s && (ev.KeyMods & input::key_mod::LeftAlt) == input::key_mod::LeftAlt) {
+        static i32 i {0};
+        std::ignore = get_window().copy_to_image().save(std::format("img{}.png", i++));
+        ev.Handled  = true;
+    }
+#endif
 }
 
 void main_scene::set_children_bounds(size_i size)

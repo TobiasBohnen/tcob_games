@@ -7,7 +7,7 @@
 5) delete stats
 6) reset database
 7) better wizard
-8) cardset preview
+8) ~~cardset preview~~
 9) custom keybindings
 10) achievements
 11) "quests"

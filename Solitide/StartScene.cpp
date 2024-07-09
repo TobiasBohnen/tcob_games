@@ -55,8 +55,10 @@ void start_scene::on_draw_to(gfx::render_target& target)
             auto const         img {gfx::image::Load(istream, ".pnm")};
             auto const         imgSize {img->get_info().Size};
 
-            _canvas.set_fill_style(colors::DarkBlue);
+            _canvas.save();
 
+            _canvas.set_fill_style(colors::DarkBlue);
+            _canvas.set_edge_antialias(false);
             _canvas.begin_path();
             f32 const pixWidth {_windowSize.Width / 3.0f / imgSize.Width};
 
@@ -69,18 +71,25 @@ void start_scene::on_draw_to(gfx::render_target& target)
             }
 
             _canvas.fill();
+            _canvas.set_edge_antialias(true);
+
+            _canvas.restore();
         }
 
         // suits
         {
-            point_f pos {_windowSize.Width / 7.f, _windowSize.Height / 2.f};
-            auto    draw {[&](std::string_view path) {
+
+            f32 const suitWidth {_windowSize.Width / 15.f};
+            f32 const off {(_windowSize.Width - suitWidth * 7) / 2};
+            point_f   pos {off, _windowSize.Height / 2.f};
+
+            auto const draw {[&](std::string_view path) {
                 auto ppath {gfx::canvas::path2d::Parse(path)};
 
                 _canvas.save();
 
                 _canvas.translate(pos);
-                f32 const scale1 {_windowSize.Width / 15.f};
+                f32 const scale1 {suitWidth};
                 _canvas.scale({scale1, scale1});
 
                 _canvas.begin_path();
@@ -91,7 +100,7 @@ void start_scene::on_draw_to(gfx::render_target& target)
 
                 _canvas.restore();
 
-                pos += point_f {_windowSize.Width / 5.f, 0};
+                pos += point_f {suitWidth * 2, 0};
             }};
 
             draw("m 0.483 0.2 c 0 -0.123 -0.095 -0.2 -0.233 -0.2 -0.138 0 -0.25 0.099 -0.25 0.222 0.001 0.011 0 0.021 0 0.031 0 0.081 0.045 0.16 0.083 0.233 0.04 0.076 0.097 0.142 0.151 0.21 0.083 0.105 0.265 0.303 0.265 0.303 0 0 0.182 -0.198 0.265 -0.303 0.054 -0.068 0.111 -0.134 0.151 -0.21 0.039 -0.074 0.083 -0.152 0.083 -0.233 -0 -0.011 -0 -0.021 0 -0.031 0 -0.123 -0.112 -0.222 -0.25 -0.222 -0.138 0 -0.233 0.077 -0.233 0.2 0 0.022 -0.033 0.022 -0.033 0 z");
@@ -113,6 +122,9 @@ void start_scene::on_draw_to(gfx::render_target& target)
 void start_scene::on_update(milliseconds)
 {
     if (_drawn && locate_service<assets::library>().is_loading_complete()) {
+#if defined(TCOB_DEBUG)
+        std::ignore = get_window().copy_to_image().save("title.png");
+#endif
         get_game().pop_current_scene();
         get_game().push_scene<main_scene>();
     }
