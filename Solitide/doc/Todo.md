@@ -1,7 +1,7 @@
 # Todo
 
 1) more games
-2) less bugs
+2) fewer bugs
 3) cardset editor
 4) better hints
 5) delete stats
