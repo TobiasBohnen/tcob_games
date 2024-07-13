@@ -51,6 +51,11 @@ XX   XX  X  X  X     X    X    X  X  X XXX   XX
        X X  X  X     X    X    X  X  X X
     X  X X  X  X  X  X    X    X  X  X X  X
      XX   XX  XXXXX XXX  XXX  XXX XXX  XXXX
+
+
+ XX    XX    XX    XX    XX    XX    XX    XX
+X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X
+    XX    XX    XX    XX    XX    XX    XX   
 )";
             i32 const          imgWidth {47};
             f32 const          width {std::floor(_windowSize.Width / 3.0f)};
