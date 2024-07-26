@@ -12,7 +12,7 @@ namespace solitaire {
 start_scene::start_scene(game& game)
     : scene {game}
     , _renderer {_canvas}
-    , _windowSize {game.get_window().Size}
+    , _windowSize {get_window().Size}
 {
     auto& resMgr {locate_service<assets::library>()};
     auto& resGrp {resMgr.create_or_get_group("solitaire")};

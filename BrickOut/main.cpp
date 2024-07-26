@@ -16,7 +16,6 @@ public:
     my_game(char const* argv)
         : tcob::game {{.Path = argv, .Name = "BrickOut"}}
     {
-        get_window().ClearColor = colors::DimGray;
         start();
     }
 

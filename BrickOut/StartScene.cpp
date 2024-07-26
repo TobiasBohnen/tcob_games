@@ -56,7 +56,7 @@ void start_scene::on_start()
     resGrp.mount("./brickout.zip");
     resMgr.load_all_groups();
 
-    auto& window {get_game().get_window()};
+    auto& window {get_window()};
     auto  windowSize {window.Size()};
 
     i32 const padding {(windowSize.Width / 4 * 3) - windowSize.Height};

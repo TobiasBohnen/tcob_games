@@ -23,7 +23,7 @@ void start_scene::on_start()
     resGrp.mount("./mines.zip");
     resMgr.load_all_groups();
 
-    auto& window {get_game().get_window()};
+    auto& window {get_window()};
     auto  windowSize {window.Size()};
 
     _playField = std::make_shared<field>(resGrp.get<gfx::material>("mat-mines-tiles"));

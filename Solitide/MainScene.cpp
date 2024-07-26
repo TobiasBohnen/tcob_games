@@ -174,7 +174,7 @@ void main_scene::connect_events()
         save();
         get_game().pop_current_scene();
     });
-    get_game().get_window().Close.connect([&](auto const&) {
+    get_window().Close.connect([&](auto const&) {
 #if !defined(TCOB_DEBUG)
         save();
 #endif
