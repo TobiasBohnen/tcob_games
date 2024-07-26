@@ -13,7 +13,7 @@ namespace solitaire {
 wizard_scene::wizard_scene(game& game)
     : scene {game}
 {
-    auto& resGrp {*locate_service<assets::library>().get_group("solitaire")};
+    auto& resGrp {*get_game().get_library().get_group("solitaire")};
 
     _formWizard = std::make_shared<form_wizard>(&get_window(), resGrp);
 
@@ -54,7 +54,7 @@ wizard_scene::wizard_scene(game& game)
 
 void wizard_scene::update_theme(color_themes const& currentTheme)
 {
-    styles     styles {*locate_service<assets::library>().get_group("solitaire")};
+    styles     styles {*get_game().get_library().get_group("solitaire")};
     auto const styleCollection {styles.load(currentTheme)};
     _formWizard->Styles = styleCollection;
 }

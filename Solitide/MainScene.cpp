@@ -32,7 +32,7 @@ main_scene::main_scene(game& game)
     auto const& config {locate_service<platform>().get_config()};
     config.try_get(_sources->Settings, SETTINGS_NAME); // TODO: check version
 
-    auto& resMgr {locate_service<assets::library>()};
+    auto& resMgr {get_game().get_library()};
     auto& resGrp {*resMgr.get_group("solitaire")};
 
     auto& window {get_window()};
@@ -292,7 +292,7 @@ void main_scene::set_theme()
     if (!_sources->Themes.contains(themeName)) { themeName = "default"; }
     auto const& newTheme {_sources->Themes[themeName]};
 
-    styles     styles {*locate_service<assets::library>().get_group("solitaire")};
+    styles     styles {*get_game().get_library().get_group("solitaire")};
     auto const styleCollection {styles.load(newTheme)};
     _formMenu->Styles = styleCollection;
     _formMenu->fixed_update(milliseconds {0});

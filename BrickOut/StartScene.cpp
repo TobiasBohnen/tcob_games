@@ -51,7 +51,7 @@ std::vector<brick_def> level1 {
 
 void start_scene::on_start()
 {
-    auto& resMgr {locate_service<assets::library>()};
+    auto& resMgr {get_game().get_library()};
     auto& resGrp {resMgr.create_or_get_group("brickout")};
     resGrp.mount("./brickout.zip");
     resMgr.load_all_groups();
@@ -67,7 +67,7 @@ void start_scene::on_start()
     });
 
     rect_i const menuBounds {windowSize.Height + padding, 0, windowSize.Width - windowSize.Height - padding, windowSize.Height};
-    _mainForm = std::make_shared<main_menu>(&window, rect_f {menuBounds});
+    _mainForm = std::make_shared<main_menu>(&window, resGrp, rect_f {menuBounds});
     _mainForm->BtnStart->Click.connect([&, windowSize](auto const&) {
         _playField->start(level1);
     });

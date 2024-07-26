@@ -162,7 +162,7 @@ void color_theme::apply(std::shared_ptr<nav_arrows_style> const& style) const
     style->NavArrow.Border.Background = Border;
 }
 
-void create_styles(assets::group& resGrp, style_collection& styles)
+void create_styles(assets::group const& resGrp, style_collection& styles)
 {
     using namespace tcob::literals;
     using namespace std::chrono_literals;

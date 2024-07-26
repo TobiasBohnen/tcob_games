@@ -11,7 +11,7 @@ namespace Snake {
 
 class main_menu : public form {
 public:
-    main_menu(gfx::window* window, rect_f bounds);
+    main_menu(gfx::window* window, assets::group const& resGrp, rect_f bounds);
 
     std::shared_ptr<button> BtnStart;
     std::shared_ptr<button> BtnQuit;

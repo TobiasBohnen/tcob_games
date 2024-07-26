@@ -18,7 +18,7 @@ start_scene::~start_scene() = default;
 
 void start_scene::on_start()
 {
-    auto& resMgr {locate_service<assets::library>()};
+    auto& resMgr {get_game().get_library()};
     auto& resGrp {resMgr.create_or_get_group("mines")};
     resGrp.mount("./mines.zip");
     resMgr.load_all_groups();
@@ -29,7 +29,7 @@ void start_scene::on_start()
     _playField = std::make_shared<field>(resGrp.get<gfx::material>("mat-mines-tiles"));
 
     rect_i const menuBounds {windowSize.Height, 0, windowSize.Width - windowSize.Height, windowSize.Height};
-    _mainForm = std::make_shared<main_menu>(&window, rect_f {menuBounds});
+    _mainForm = std::make_shared<main_menu>(&window, resGrp, rect_f {menuBounds});
     _mainForm->BtnStart->Click.connect([&, windowSize](auto const&) {
         _playField->start({_mainForm->SldWidth->Value, _mainForm->SldHeight->Value}, windowSize.Height, _mainForm->SldMines->Value);
     });

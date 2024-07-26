@@ -9,11 +9,9 @@
 
 namespace BrickOut {
 
-main_menu::main_menu(gfx::window* window, rect_f bounds)
+main_menu::main_menu(gfx::window* window, assets::group const& resGrp, rect_f bounds)
     : form {"MainMenu", window, bounds}
 {
-    auto& resMgr {locate_service<assets::library>()};
-    auto& resGrp {resMgr.create_or_get_group("brickout")};
     create_styles(resGrp, *Styles);
 
     auto mainPanel {create_container<panel>(dock_style::Fill, "main")};

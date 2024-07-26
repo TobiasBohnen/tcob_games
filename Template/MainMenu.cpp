@@ -12,7 +12,7 @@ namespace GAME_NAME {
 main_menu::main_menu(gfx::window* window, rect_f bounds)
     : form {"MainMenu", window, bounds}
 {
-    auto& resMgr {locate_service<assets::library>()};
+    auto& resMgr {get_game().get_library()};
     auto& resGrp {resMgr.create_or_get_group("GAME_NAME_LOWER")};
     create_styles(resGrp, *Styles);
 
