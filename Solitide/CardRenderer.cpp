@@ -45,9 +45,7 @@ void card_renderer::set_card_set(std::shared_ptr<card_set> cardset)
 {
     _cardSet = std::move(cardset);
     if (_parent.game()) {
-        if (_markerSprites.get_sprite_count() > 0) {
-            create_markers();
-        }
+        if (!_markerSprites.is_empty()) { create_markers(); }
     }
 }
 
@@ -107,7 +105,7 @@ void card_renderer::create_markers()
         for (auto* pile : piles) {
             if (!pile->HasMarker) { continue; }
 
-            pile->Marker                = _markerSprites.create_sprite();
+            pile->Marker                = _markerSprites.create_mesh<gfx::sprite>();
             pile->Marker->Material      = _cardSet->get_material();
             pile->Marker->TextureRegion = pile->get_marker_texture_name();
             pile->Marker->Bounds        = {multiply(pile->Position, cardSize), cardSize};

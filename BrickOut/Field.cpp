@@ -85,12 +85,12 @@ auto field::state() const -> game_state
 
 auto field::create_sprite() -> std::shared_ptr<gfx::sprite>
 {
-    return _spriteBatch.create_sprite();
+    return _spriteBatch.create_mesh<gfx::sprite>();
 }
 
 void field::remove_sprite(std::shared_ptr<gfx::sprite> const& sprite)
 {
-    _spriteBatch.remove_sprite(sprite);
+    _spriteBatch.remove_mesh(*sprite);
 }
 
 auto field::create_body(physics::body_settings bodySettings) -> std::shared_ptr<physics::body>

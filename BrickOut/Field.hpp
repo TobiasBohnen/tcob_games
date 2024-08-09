@@ -57,9 +57,9 @@ private:
 
     rect_f _bounds;
 
-    gfx::sprite_batch _spriteBatch;
-    physics::world    _physicsWorld;
-    rect_f            _physicsBounds;
+    gfx::mesh_batch _spriteBatch;
+    physics::world  _physicsWorld;
+    rect_f          _physicsBounds;
 
     paddle                                  _paddle;
     ball                                    _ball;

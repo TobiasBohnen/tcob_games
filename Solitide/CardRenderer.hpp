@@ -40,7 +40,7 @@ private:
     card_table& _parent;
 
     std::shared_ptr<card_set> _cardSet;
-    gfx::sprite_batch         _markerSprites;
+    gfx::mesh_batch           _markerSprites;
     gfx::quad_renderer        _cardRenderer;
     std::vector<gfx::quad>    _cardQuads;
     bool                      _renderDirty {true};
