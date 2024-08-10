@@ -23,8 +23,8 @@ public:
 
     auto state() const -> game_state;
 
-    auto create_sprite() -> std::shared_ptr<gfx::sprite>;
-    void remove_sprite(std::shared_ptr<gfx::sprite> const& sprite);
+    auto create_sprite() -> std::shared_ptr<gfx::rect_shape>;
+    void remove_sprite(std::shared_ptr<gfx::rect_shape> const& rect_shape);
 
     auto create_body(physics::body_settings bodySettings) -> std::shared_ptr<physics::body>;
     void remove_body(std::shared_ptr<physics::body> const& body);
@@ -57,9 +57,9 @@ private:
 
     rect_f _bounds;
 
-    gfx::mesh_batch _spriteBatch;
-    physics::world  _physicsWorld;
-    rect_f          _physicsBounds;
+    gfx::shape_batch _spriteBatch;
+    physics::world   _physicsWorld;
+    rect_f           _physicsBounds;
 
     paddle                                  _paddle;
     ball                                    _ball;

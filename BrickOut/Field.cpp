@@ -83,14 +83,14 @@ auto field::state() const -> game_state
     return _state;
 }
 
-auto field::create_sprite() -> std::shared_ptr<gfx::sprite>
+auto field::create_sprite() -> std::shared_ptr<gfx::rect_shape>
 {
-    return _spriteBatch.create_mesh<gfx::sprite>();
+    return _spriteBatch.create_shape<gfx::rect_shape>();
 }
 
-void field::remove_sprite(std::shared_ptr<gfx::sprite> const& sprite)
+void field::remove_sprite(std::shared_ptr<gfx::rect_shape> const& rect_shape)
 {
-    _spriteBatch.remove_mesh(*sprite);
+    _spriteBatch.remove_shape(*rect_shape);
 }
 
 auto field::create_body(physics::body_settings bodySettings) -> std::shared_ptr<physics::body>

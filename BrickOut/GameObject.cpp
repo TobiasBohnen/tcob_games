@@ -61,7 +61,7 @@ void game_object::set_material(assets::asset_ptr<gfx::material> const& mat)
     _sprite->Material = mat;
 }
 
-auto game_object::get_sprite() -> gfx::sprite&
+auto game_object::get_sprite() -> gfx::rect_shape&
 {
     return *_sprite;
 }
@@ -113,9 +113,9 @@ void paddle::reset()
     body.AngularVelocity = 0;
 
     auto const rect {get_field_bounds()};
-    auto&      sprite {get_sprite()};
-    _size         = size_f {rect.Width / 8.0f, rect.Height / 40.0f};
-    sprite.Bounds = {point_f::Zero, _size};
+    auto&      rect_shape {get_sprite()};
+    _size             = size_f {rect.Width / 8.0f, rect.Height / 40.0f};
+    rect_shape.Bounds = {point_f::Zero, _size};
     rect_f const physRect {convert_to_physics({(rect.Width - _size.Width) / 2,
                                                (rect.Height - _size.Height * 2),
                                                _size.Width,
@@ -209,9 +209,9 @@ void ball::reset()
     body.AngularVelocity = 0;
 
     auto const rect {get_field_bounds()};
-    auto&      sprite {get_sprite()};
-    _size         = size_f {rect.Width / 40.0f, rect.Height / 40.0f};
-    sprite.Bounds = {point_f::Zero, _size};
+    auto&      rect_shape {get_sprite()};
+    _size             = size_f {rect.Width / 40.0f, rect.Height / 40.0f};
+    rect_shape.Bounds = {point_f::Zero, _size};
     rect_f const physRect {convert_to_physics({(rect.Width - _size.Width) / 2,
                                                (rect.Height / 2.0f),
                                                _size.Width,
@@ -295,10 +295,10 @@ void brick::reset()
     auto& body {get_body()};
 
     auto const rect {get_field_bounds()};
-    auto&      sprite {get_sprite()};
+    auto&      rect_shape {get_sprite()};
     f32 const  size {rect.Width / 20.f * _def.Size};
-    _size         = size_f {_def.Shape == brick_def::shape::Square ? size : size * 2, size};
-    sprite.Bounds = {point_f::Zero, _size};
+    _size             = size_f {_def.Shape == brick_def::shape::Square ? size : size * 2, size};
+    rect_shape.Bounds = {point_f::Zero, _size};
     rect_f const physRect {convert_to_physics({rect.X + rect.Width * _def.Position.X,
                                                rect.Y + rect.Height * _def.Position.Y,
                                                _size.Width,

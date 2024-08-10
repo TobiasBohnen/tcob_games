@@ -25,7 +25,7 @@ protected:
 
     void set_material(assets::asset_ptr<gfx::material> const& mat);
 
-    auto get_sprite() -> gfx::sprite&;
+    auto get_sprite() -> gfx::rect_shape&;
     auto get_body() -> physics::body&;
 
     void create_fixture(physics::shape const& shape, physics::fixture_settings const& settings);
@@ -38,7 +38,7 @@ protected:
 
 private:
     field&                            _parent;
-    std::shared_ptr<gfx::sprite>      _sprite;
+    std::shared_ptr<gfx::rect_shape>  _sprite;
     std::shared_ptr<physics::body>    _physicsBody;
     std::shared_ptr<physics::fixture> _physicsFixture;
 };

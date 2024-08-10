@@ -105,7 +105,7 @@ void card_renderer::create_markers()
         for (auto* pile : piles) {
             if (!pile->HasMarker) { continue; }
 
-            pile->Marker                = _markerSprites.create_mesh<gfx::sprite>();
+            pile->Marker                = _markerSprites.create_shape<gfx::rect_shape>();
             pile->Marker->Material      = _cardSet->get_material();
             pile->Marker->TextureRegion = pile->get_marker_texture_name();
             pile->Marker->Bounds        = {multiply(pile->Position, cardSize), cardSize};

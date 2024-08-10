@@ -76,8 +76,8 @@ enum class layout_type {
 
 class pile {
 public:
-    std::shared_ptr<gfx::sprite> Marker;
-    std::deque<card>             Cards;
+    std::shared_ptr<gfx::rect_shape> Marker;
+    std::deque<card>                 Cards;
 
     pile_type         Type {};
     rule              Rule {};
