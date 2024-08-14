@@ -10,7 +10,6 @@
 namespace BrickOut {
 
 namespace physics {
-    using namespace tcob::physics::box2d;
     using namespace tcob::physics;
 }
 
