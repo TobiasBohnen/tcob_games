@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "B2DebugDraw.hpp"
 #include "BrickOut.hpp" // IWYU pragma: keep"
 #include "GameObject.hpp"
 
@@ -58,8 +59,12 @@ private:
     rect_f _bounds;
 
     gfx::shape_batch _spriteBatch;
-    physics::world   _physicsWorld;
-    rect_f           _physicsBounds;
+
+    debug_mode   _debug {debug_mode::Off};
+    B2DDebugDraw _debugDraw;
+
+    physics::world _physicsWorld;
+    rect_f         _physicsBounds;
 
     paddle                                  _paddle;
     ball                                    _ball;

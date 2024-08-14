@@ -2,6 +2,7 @@ add_executable(BrickOut)
 
 target_sources(BrickOut PRIVATE
     main.cpp
+    B2DebugDraw.cpp
     Field.cpp
     GameObject.cpp
     StartScene.cpp

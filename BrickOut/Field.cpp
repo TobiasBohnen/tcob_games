@@ -11,15 +11,13 @@ constexpr float physicsWorldSize {50.0};
 
 field::field(assets::group& resGrp, i32 padding, size_i windowSize)
     : _resGrp {resGrp}
+    , _debugDraw {resGrp.get<gfx::font_family>("Poppins")->get_font({}, 16).get_obj()}
     , _paddle {*this, resGrp}
     , _ball {*this, resGrp}
 {
     // Create edges around the entire screen
 
     auto groundBody {_physicsWorld.create_body({}, {})};
-
-    physics::edge_shape       groundBox;
-    physics::fixture_settings groundBoxSettings;
 
     f32 const left {padding / 2.f};
     f32 const top {0.0f};
@@ -29,17 +27,22 @@ field::field(assets::group& resGrp, i32 padding, size_i windowSize)
 
     _physicsBounds = convert_to_physics(_bounds);
 
-    groundBox.set_two_sided(_physicsBounds.top_left(), _physicsBounds.top_right());
-    groundBody->create_fixture(groundBox, groundBoxSettings);
+    physics::segment_shape_settings groundBoxSettings;
+    groundBoxSettings.Point0 = _physicsBounds.top_left();
+    groundBoxSettings.Point1 = _physicsBounds.top_right();
+    groundBody->create_shape<physics::segment_shape>(groundBoxSettings);
 
-    groundBox.set_two_sided(_physicsBounds.top_left(), _physicsBounds.bottom_left());
-    groundBody->create_fixture(groundBox, groundBoxSettings);
+    groundBoxSettings.Point0 = _physicsBounds.top_left();
+    groundBoxSettings.Point1 = _physicsBounds.bottom_left();
+    groundBody->create_shape<physics::segment_shape>(groundBoxSettings);
 
-    groundBox.set_two_sided(_physicsBounds.bottom_left(), _physicsBounds.bottom_right());
-    groundBody->create_fixture(groundBox, groundBoxSettings);
+    groundBoxSettings.Point0 = _physicsBounds.bottom_left();
+    groundBoxSettings.Point1 = _physicsBounds.bottom_right();
+    groundBody->create_shape<physics::segment_shape>(groundBoxSettings);
 
-    groundBox.set_two_sided(_physicsBounds.bottom_right(), _physicsBounds.top_right());
-    groundBody->create_fixture(groundBox, groundBoxSettings);
+    groundBoxSettings.Point0 = _physicsBounds.bottom_right();
+    groundBoxSettings.Point1 = _physicsBounds.top_right();
+    groundBody->create_shape<physics::segment_shape>(groundBoxSettings);
 
     auto leftEdgeSprite(create_sprite());
     leftEdgeSprite->Bounds   = rect_f {0, 0, padding / 2.f, static_cast<f32>(windowSize.Height)};
@@ -100,7 +103,7 @@ auto field::create_body(physics::body_settings bodySettings) -> std::shared_ptr<
 
 void field::remove_body(std::shared_ptr<physics::body> const& body)
 {
-    _physicsWorld.destroy_body(body);
+    _physicsWorld.destroy_body(*body);
 }
 
 auto field::get_update_mode() const -> update_mode
@@ -133,22 +136,27 @@ void field::on_update(milliseconds deltaTime)
 
 void field::on_fixed_update(milliseconds deltaTime)
 {
+
     if (_state != game_state::Running) {
         return;
     }
+
+    _physicsWorld.update(deltaTime);
 
     _paddle.update(deltaTime);
     _ball.update(deltaTime);
     for (auto& brick : _bricks) {
         brick->update(deltaTime);
     }
-
-    _physicsWorld.update(deltaTime);
 }
 
 void field::on_draw_to(gfx::render_target& target)
 {
     _spriteBatch.draw_to(target);
+
+    if (_debug != debug_mode::Off) {
+        _debugDraw.draw(_physicsWorld, _debug == debug_mode::Transparent ? 0.5f : 1.0f, target);
+    }
 }
 
 auto field::can_draw() const -> bool
@@ -162,6 +170,14 @@ void field::on_key_down(input::keyboard::event& ev)
         switch (ev.KeyCode) {
         case input::key_code::RIGHT: _paddle.move(direction::Right); break;
         case input::key_code::LEFT: _paddle.move(direction::Left); break;
+        case input::key_code::d:
+            switch (_debug) {
+            case debug_mode::Off: _debug = debug_mode::Transparent; break;
+            case debug_mode::Transparent: _debug = debug_mode::On; break;
+            case debug_mode::On: _debug = debug_mode::Off; break;
+            }
+
+            break;
         default: break;
         }
     }

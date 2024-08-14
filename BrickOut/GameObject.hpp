@@ -28,19 +28,30 @@ protected:
     auto get_sprite() -> gfx::rect_shape&;
     auto get_body() -> physics::body&;
 
-    void create_fixture(physics::shape const& shape, physics::fixture_settings const& settings);
-
     auto get_field_bounds() -> rect_f;
     auto convert_to_physics(rect_f const& screenObject) const -> rect_f;
     auto convert_to_screen(rect_f const& physicsObject) const -> rect_f;
 
     void destroy();
 
+    template <typename T>
+    inline void create_shape(auto&& shapeSettings)
+    {
+        if (_physicsBody) {
+            if (_physicsShape) {
+                _physicsBody->destroy_shape(*_physicsShape);
+                _physicsShape = nullptr;
+            }
+
+            _physicsShape = _physicsBody->create_shape<T>(shapeSettings);
+        }
+    }
+
 private:
-    field&                            _parent;
-    std::shared_ptr<gfx::rect_shape>  _sprite;
-    std::shared_ptr<physics::body>    _physicsBody;
-    std::shared_ptr<physics::fixture> _physicsFixture;
+    field&                           _parent;
+    std::shared_ptr<gfx::rect_shape> _sprite;
+    std::shared_ptr<physics::body>   _physicsBody;
+    std::shared_ptr<physics::shape>  _physicsShape;
 };
 
 class paddle : public game_object {
