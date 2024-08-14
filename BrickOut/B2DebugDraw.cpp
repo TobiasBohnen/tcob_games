@@ -10,7 +10,7 @@ namespace BrickOut {
 constexpr point_f physicsWorldSize {14.4, 14.4};
 
 B2DDebugDraw::B2DDebugDraw(gfx::font* font)
-    : physics::debug_draw {{}}
+    : physics::debug_draw {}
     , _font {font}
     , _debugRenderer {_canvas}
 {
@@ -72,6 +72,12 @@ void B2DDebugDraw::draw_segment(point_f p1, point_f p2, color color)
 
 void B2DDebugDraw::draw_transform(physics::body_transform const& xf)
 {
+    _canvas.set_fill_style(colors::DodgerBlue);
+    _canvas.begin_path();
+
+    _canvas.arc(xf.Center * physicsWorldSize, 10 * physicsWorldSize.X, 0, xf.Angle, gfx::winding::CCW);
+
+    _canvas.fill();
 }
 
 void B2DDebugDraw::draw_point(point_f p, f32 size, color color)
