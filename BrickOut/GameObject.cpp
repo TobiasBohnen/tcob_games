@@ -116,9 +116,8 @@ void paddle::reset()
     body.Type         = physics::body_type::Static;
     body.GravityScale = 0;
 
-    physics::polygon_shape_settings settings;
-    // shape.set_as_box(physRect.get_size());
-    std::array<point_f, 4>          vecs {{
+    physics::polygon_shape::settings settings;
+    std::array<point_f, 4>           vecs {{
         {-physRect.Width / 5, -physRect.Height / 2},
         {physRect.Width / 5, -physRect.Height / 2},
         {physRect.Width / 2, physRect.Height / 2},
@@ -211,7 +210,7 @@ void ball::reset()
     body.Type         = physics::body_type::Dynamic;
     body.GravityScale = 0;
 
-    physics::circle_shape_settings settings;
+    physics::circle_shape::settings settings;
     settings.Radius = {physRect.get_size().Width / 2};
 
     settings.Friction    = 0.01f;
@@ -283,7 +282,7 @@ void brick::reset()
     body.Type      = physics::body_type::Dynamic;
     body.Awake     = false;
 
-    physics::rect_shape_settings settings;
+    physics::rect_shape::settings settings;
     settings.Extents = {point_f::Zero, physRect.get_size()};
 
     switch (_def.Color) {

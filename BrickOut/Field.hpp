@@ -27,7 +27,7 @@ public:
     auto create_sprite() -> std::shared_ptr<gfx::rect_shape>;
     void remove_sprite(std::shared_ptr<gfx::rect_shape> const& rect_shape);
 
-    auto create_body(physics::body_settings bodySettings) -> std::shared_ptr<physics::body>;
+    auto create_body(physics::body::settings bodySettings) -> std::shared_ptr<physics::body>;
     void remove_body(std::shared_ptr<physics::body> const& body);
 
     auto get_update_mode() const -> update_mode override;

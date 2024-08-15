@@ -27,7 +27,7 @@ field::field(assets::group& resGrp, i32 padding, size_i windowSize)
 
     _physicsBounds = convert_to_physics(_bounds);
 
-    physics::segment_shape_settings groundBoxSettings;
+    physics::segment_shape::settings groundBoxSettings;
     groundBoxSettings.Point0 = _physicsBounds.top_left();
     groundBoxSettings.Point1 = _physicsBounds.top_right();
     groundBody->create_shape<physics::segment_shape>(groundBoxSettings);
@@ -96,7 +96,7 @@ void field::remove_sprite(std::shared_ptr<gfx::rect_shape> const& rect_shape)
     _spriteBatch.remove_shape(*rect_shape);
 }
 
-auto field::create_body(physics::body_settings bodySettings) -> std::shared_ptr<physics::body>
+auto field::create_body(physics::body::settings bodySettings) -> std::shared_ptr<physics::body>
 {
     return _physicsWorld.create_body({}, bodySettings);
 }
