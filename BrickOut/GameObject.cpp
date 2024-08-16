@@ -116,19 +116,17 @@ void paddle::reset()
     body.Type         = physics::body_type::Static;
     body.GravityScale = 0;
 
-    physics::polygon_shape::settings settings;
-    std::array<point_f, 4>           vecs {{
-        {-physRect.Width / 5, -physRect.Height / 2},
-        {physRect.Width / 5, -physRect.Height / 2},
-        {physRect.Width / 2, physRect.Height / 2},
-        {-physRect.Width / 2, physRect.Height / 2},
-    }};
-    settings.Verts       = vecs;
+    physics::capsule_shape::settings settings;
+    f32 const                        rad {physRect.Height / 2.0f};
+    settings.Center0     = {-physRect.Width / 2 + rad, 0};
+    settings.Center1     = {physRect.Width / 2 - rad, 0};
+    settings.Radius      = physRect.Height / 2.0f;
     settings.Restitution = 0.1f;
-    settings.Density     = 10.0f;
-    settings.Friction    = 0.4f;
 
-    create_shape<physics::polygon_shape>(settings);
+    settings.Density  = 10.0f;
+    settings.Friction = 0.4f;
+
+    create_shape<physics::capsule_shape>(settings);
 
     _moveSpeed        = rect.Width / 75.f;
     _physicsMoveSpeed = convert_to_physics({{_moveSpeed, 0}, size_f::Zero}).X;

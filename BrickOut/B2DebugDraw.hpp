@@ -33,6 +33,10 @@ public:
     /// Draw a solid circle.
     void draw_solid_circle(physics::body_transform xform, f32 radius, color color) override;
 
+    void draw_capsule(point_f p1, point_f p2, f32 radius, color color) override;
+
+    void draw_solid_capsule(point_f p1, point_f p2, f32 radius, color color) override;
+
     /// Draw a line segment.
     void draw_segment(point_f p1, point_f p2, color color) override;
 

@@ -63,6 +63,24 @@ void B2DDebugDraw::draw_solid_circle(physics::body_transform xform, f32 radius, 
     _canvas.fill();
 }
 
+void B2DDebugDraw::draw_capsule(point_f /* p1 */, point_f /* p2 */, f32 /* radius */, color /* color */)
+{
+}
+
+void B2DDebugDraw::draw_solid_capsule(point_f p1, point_f p2, f32 radius, color color)
+{
+    _canvas.set_stroke_width(radius * physicsWorldSize.X * 2);
+    _canvas.set_stroke_style(color);
+    _canvas.stroke_line(p1 * physicsWorldSize, p2 * physicsWorldSize);
+
+    _canvas.set_fill_style(color);
+
+    _canvas.begin_path();
+    _canvas.circle(p1 * physicsWorldSize, radius * physicsWorldSize.X);
+    _canvas.circle(p2 * physicsWorldSize, radius * physicsWorldSize.X);
+    _canvas.fill();
+}
+
 void B2DDebugDraw::draw_segment(point_f p1, point_f p2, color color)
 {
     _canvas.set_stroke_width(3);
