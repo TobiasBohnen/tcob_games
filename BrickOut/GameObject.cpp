@@ -22,7 +22,7 @@ void game_object::destroy()
 {
     if (_physicsBody) {
         if (_physicsShape) {
-            _physicsBody->destroy_shape(*_physicsShape);
+            _physicsBody->remove_shape(*_physicsShape);
             _physicsShape = nullptr;
         }
         _parent.remove_body(_physicsBody);
@@ -278,7 +278,7 @@ void brick::reset()
 
     body.Transform = physics::body_transform {physRect.get_center(), 0};
     body.Type      = physics::body_type::Dynamic;
-    body.Awake     = false;
+    body.IsAwake   = false;
 
     physics::rect_shape::settings settings;
     settings.Extents = {point_f::Zero, physRect.get_size()};

@@ -39,7 +39,7 @@ protected:
     {
         if (_physicsBody) {
             if (_physicsShape) {
-                _physicsBody->destroy_shape(*_physicsShape);
+                _physicsBody->remove_shape(*_physicsShape);
                 _physicsShape = nullptr;
             }
 

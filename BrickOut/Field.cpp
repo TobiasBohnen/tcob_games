@@ -103,7 +103,7 @@ auto field::create_body(physics::body::settings bodySettings) -> std::shared_ptr
 
 void field::remove_body(std::shared_ptr<physics::body> const& body)
 {
-    _physicsWorld.destroy_body(*body);
+    _physicsWorld.remove_body(*body);
 }
 
 auto field::get_update_mode() const -> update_mode
