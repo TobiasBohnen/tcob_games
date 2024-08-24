@@ -17,10 +17,9 @@ foreground_canvas::foreground_canvas(card_table& parent, assets::group& resGrp)
     , _resGrp {resGrp}
     , _renderer {_canvas}
 {
-    _hintTimer.Tick.connect([&](auto&&) {
+    _hintTimer.Tick.connect([&]() {
         _canvasDirty = true;
         _showHint    = false;
-        _hintTimer.stop();
     });
 }
 
@@ -34,7 +33,7 @@ void foreground_canvas::show_hint()
         _currentHint = 0;
     }
 
-    _hintTimer.start(5s, timer::mode::BusyLoop); // Sleep blocks
+    _hintTimer.start(5s, timer::mode::BusyLoop, false); // Sleep blocks
     _canvasDirty = true;
     _showHint    = true;
 }
