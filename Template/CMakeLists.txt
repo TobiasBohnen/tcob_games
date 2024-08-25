@@ -13,6 +13,10 @@ set_target_properties(GAME_NAME PROPERTIES
     CXX_STANDARD_REQUIRED TRUE
 )
 
+target_compile_options(GAME_NAME PRIVATE
+    $<$<CXX_COMPILER_ID:Clang>: -fexperimental-library>
+)
+
 if(NOT TCOB_BUILD_SHARED)
     target_link_libraries(GAME_NAME PRIVATE tcob_static)
 else()

@@ -21,6 +21,10 @@ target_sources(Solitide PRIVATE
     ./games/GameInfo.cpp
 )
 
+target_compile_options(Solitide PRIVATE
+    $<$<CXX_COMPILER_ID:Clang>: -fexperimental-library>
+)
+
 set_target_properties(Solitide PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED TRUE
