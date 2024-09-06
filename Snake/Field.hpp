@@ -54,9 +54,9 @@ private:
 
     milliseconds _currentTime {0ms};
 
-    rng          _rng {};
-    audio::sound _sound;
-    gfx::tilemap _map;
+    rng                     _rng {};
+    audio::sound            _sound;
+    gfx::orthogonal_tilemap _map;
 };
 
 }

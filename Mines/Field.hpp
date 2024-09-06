@@ -63,8 +63,8 @@ private:
 
     std::optional<point_i> _mouseOverPoint {};
 
-    gfx::tilemap      _map;
-    std::vector<cell> _cells {};
+    gfx::orthogonal_tilemap _map;
+    std::vector<cell>       _cells {};
 
     size_i              _gridSize {size_i::Zero};
     i32                 _windowHeight {0};
