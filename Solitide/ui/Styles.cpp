@@ -180,11 +180,11 @@ auto styles::load(color_themes const& theme) -> style_collection
 
         auto typeSplit {helper::split(entry.first, '#')};
 
-        auto  names {helper::split(typeSplit[0], ':')};
-        flags flags {};
+        auto        names {helper::split(typeSplit[0], ':')};
+        style_flags flags {};
         if (names.size() > 1) {
-            flags.Hover  = std::find(names.begin() + 1, names.end(), "hover") != names.end();
-            flags.Active = std::find(names.begin() + 1, names.end(), "active") != names.end();
+            if (std::find(names.begin() + 1, names.end(), "hover") != names.end()) { flags.Hover = true; }
+            if (std::find(names.begin() + 1, names.end(), "active") != names.end()) { flags.Active = true; }
         }
 
         std::string& type {typeMap[names[0]]};
