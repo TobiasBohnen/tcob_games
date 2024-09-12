@@ -86,9 +86,9 @@ private:
     void refresh();
     void reset_piles();
 
-    std::unordered_map<pile_type, std::vector<pile*>>               _pileMap;
-    mutable std::unordered_map<std::pair<pile const*, isize>, bool> _movableCache;
-    std::vector<hint>                                               _hints;
+    std::unordered_map<pile_type, std::vector<pile*>>                          _pileMap;
+    mutable std::unordered_map<std::pair<pile const*, isize>, bool, pair_hash> _movableCache;
+    std::vector<hint>                                                          _hints;
 
     game_info  _info;
     game_state _state;

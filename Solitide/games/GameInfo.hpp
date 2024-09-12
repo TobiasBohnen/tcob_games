@@ -187,3 +187,24 @@ struct menu_sources {
 };
 
 }
+
+struct pair_hash {
+    template <class T1, class T2>
+    auto operator()(std::pair<T1, T2> const& p) const -> std::size_t
+    {
+        return std::hash<T1> {}(p.first) ^ std::hash<T2> {}(p.second);
+    }
+};
+
+namespace std {
+template <>
+struct hash<solitaire::game_rule> {
+    auto operator()(solitaire::game_rule const& rule) const -> std::size_t
+    {
+        std::size_t h1 = std::hash<std::string> {}(rule.Build);
+        std::size_t h2 = std::hash<std::string> {}(rule.Move);
+        std::size_t h3 = std::hash<std::string> {}(rule.Base);
+        return h1 ^ (h2 << 1) ^ (h3 << 1);
+    }
+};
+}
