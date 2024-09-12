@@ -423,7 +423,7 @@ auto main_scene::generate_rule(std::string const& name) const -> data::config::o
             pileObj["count"]                = piles.size();
             pileObj["rules"]                = pileRulesArr;
 
-            flat_map<game_rule, std::vector<i32>> pileRules;
+            std::unordered_map<game_rule, std::vector<i32>> pileRules;
             for (auto const* pile : piles) {
                 game_rule desc;
                 desc.Base  = _sources->Translator.translate("rule", "base", pile->Rule.BaseHint);
