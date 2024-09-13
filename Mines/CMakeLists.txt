@@ -13,10 +13,6 @@ set_target_properties(Mines PROPERTIES
     CXX_STANDARD_REQUIRED TRUE
 )
 
-target_compile_options(Mines PRIVATE
-    $<$<CXX_COMPILER_ID:Clang>: -fexperimental-library>
-)
-
 if(NOT TCOB_BUILD_SHARED)
     target_link_libraries(Mines PRIVATE tcob_static)
 else()

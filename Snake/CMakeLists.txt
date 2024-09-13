@@ -14,10 +14,6 @@ set_target_properties(Snake PROPERTIES
     CXX_STANDARD_REQUIRED TRUE
 )
 
-target_compile_options(Snake PRIVATE
-    $<$<CXX_COMPILER_ID:Clang>: -fexperimental-library>
-)
-
 if(NOT TCOB_BUILD_SHARED)
     target_link_libraries(Snake PRIVATE tcob_static)
 else()

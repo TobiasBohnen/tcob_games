@@ -15,10 +15,6 @@ set_target_properties(BrickOut PROPERTIES
     CXX_STANDARD_REQUIRED TRUE
 )
 
-target_compile_options(BrickOut PRIVATE
-    $<$<CXX_COMPILER_ID:Clang>: -fexperimental-library>
-)
-
 if(NOT TCOB_BUILD_SHARED)
     target_link_libraries(BrickOut PRIVATE tcob_static)
 else()

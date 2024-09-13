@@ -13,9 +13,13 @@ set_target_properties(GAME_NAME PROPERTIES
     CXX_STANDARD_REQUIRED TRUE
 )
 
-target_compile_options(GAME_NAME PRIVATE
-    $<$<CXX_COMPILER_ID:Clang>: -fexperimental-library>
-)
+if(EMSCRIPTEN)
+    target_compile_options(GAME_NAME PRIVATE -fexperimental-library -pthread)
+    configure_file(GAME_NAME_LOWER.zip ${CMAKE_BINARY_DIR}/GAME_NAME_LOWER.zip COPYONLY)
+    target_link_options(GAME_NAME PRIVATE -sFULL_ES3 -sASSERTIONS -sPTHREAD_POOL_SIZE=8 -sASYNCIFY -pthread --embed-file GAME_NAME_LOWER.zip)
+else()
+    configure_file(GAME_NAME_LOWER.zip ${CMAKE_BINARY_DIR}/../../x64/GAME_NAME_LOWER.zip COPYONLY)
+endif()
 
 if(NOT TCOB_BUILD_SHARED)
     target_link_libraries(GAME_NAME PRIVATE tcob_static)
@@ -29,5 +33,3 @@ if(TCOB_BUILD_SHARED AND NOT TCOB_IS_CI)
         COMMAND_EXPAND_LISTS
     )
 endif()
-
-configure_file(GAME_NAME_LOWER.zip ${CMAKE_BINARY_DIR}/../../x64/GAME_NAME_LOWER.zip COPYONLY)
