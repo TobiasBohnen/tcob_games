@@ -25,7 +25,7 @@ start_scene::start_scene(game& game, std::shared_ptr<canvas> canvas, std::shared
         {"title6", 500ms},
         {"title7", 500ms},
     };
-    _titleAnimation = std::make_shared<gfx::frame_animation_tween>(ani.get_duration(), ani);
+    _titleAnimation = make_unique_tween<gfx::frame_animation_tween>(ani.get_duration(), ani);
     _titleAnimation->Value.Changed.connect([&] { get_canvas().request_draw(); });
 }
 
@@ -45,7 +45,9 @@ void start_scene::on_update(milliseconds deltaTime)
 
 void start_scene::on_controller_button_down(input::controller::button_event& ev)
 {
-    if (ev.Button == input::controller::button::Start) {
+    if (is_fading()) { return; }
+
+    if (ev.Button == input::controller::button::Start || (_titleAnimation && _titleAnimation->get_status() != playback_status::Running)) {
         fade_out(true, [&] { push_scene<game_scene>(); });
         _titleAnimation = nullptr;
     }
@@ -64,7 +66,7 @@ void start_scene::on_canvas_draw(gfx::canvas& canvas)
         if (_titleAnimation->get_progress() >= 0.75f) {
             canvas.set_fill_style(COLOR1);
             canvas.set_font(get_assets().get_default_font());
-            canvas.draw_textbox({105, 55, 200, 200}, "-start-");
+            canvas.draw_textbox({105, 55, 200, 200}, "~start");
         }
     }
 }

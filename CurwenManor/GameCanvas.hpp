@@ -9,8 +9,9 @@
 
 namespace stn {
 
-class canvas {
+/////////////////////////////////////////////////////
 
+class canvas {
 public:
     canvas();
 

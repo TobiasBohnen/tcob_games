@@ -3,6 +3,8 @@ add_executable(CurwenManor)
 target_sources(CurwenManor PRIVATE
     main.cpp
     GameCanvas.cpp
+    Player.cpp
+    Tiles.cpp
     assets/GameAssets.cpp
     scenes/BaseScene.cpp
     scenes/StartScene.cpp
@@ -17,7 +19,7 @@ set_target_properties(CurwenManor PROPERTIES
 
 if(EMSCRIPTEN)
     target_compile_options(CurwenManor PRIVATE -fexperimental-library -pthread)
-    target_link_options(CurwenManor PRIVATE -sFULL_ES3 -sASSERTIONS -sPTHREAD_POOL_SIZE=8 -sASYNCIFY -pthread)
+    target_link_options(CurwenManor PRIVATE -sFULL_ES3 -sASSERTIONS -sPTHREAD_POOL_SIZE=8 -sASYNCIFY --shell-file=${CMAKE_CURRENT_SOURCE_DIR}/basic.html -pthread)
 endif()
 
 if(NOT TCOB_BUILD_SHARED)

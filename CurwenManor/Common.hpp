@@ -8,6 +8,7 @@
 #include <tcob/tcob.hpp>
 
 using namespace tcob;
+using namespace tcob::tweening;
 using namespace tcob::gfx::ui;
 using namespace std::chrono_literals;
 
@@ -15,6 +16,8 @@ namespace stn {
 
 constexpr size_i CANVAS_SIZE {160, 144};
 constexpr size_f CANVAS_SIZE_F {size_f {CANVAS_SIZE}};
+constexpr size_i SCREEN_TILES {10, 9};
+constexpr size_i MAP_TILES {20, 20};
 
 constexpr size_i TILE_SIZE {16, 16};
 constexpr size_f TILE_SIZE_F {size_f {TILE_SIZE}};
@@ -26,5 +29,7 @@ constexpr color COLOR0 {color::FromRGB(0x9bbc0f)};
 constexpr color COLOR1 {color::FromRGB(0x8bac0f)};
 constexpr color COLOR2 {color::FromRGB(0x306230)};
 constexpr color COLOR3 {color::FromRGB(0x0f380f)};
+
+class assets;
 
 }

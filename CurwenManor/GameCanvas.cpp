@@ -32,9 +32,26 @@ void canvas::end_draw()
 
     _lastFrame = _canvas.get_texture(0)->copy_to_image(0);
     _lastFrame.flip_vertically();
-    assert(_lastFrame.count_colors() <= 4);
+
+#if defined(TCOB_DEBUG)
+    if (_lastFrame.count_colors() > 4) {
+        auto _ = _lastFrame.save("test.png");
+        assert(false);
+    }
+#endif
 
     _canvasDirty = false;
+    /*
+        static std::vector<gfx::animated_image_encoder::frame> LastFrames;
+        auto                                                   stats {locate_service<gfx::render_system>().get_stats()};
+        LastFrames.push_back({_lastFrame, LastFrames.empty() ? 0ms : milliseconds {stats.get_time() - LastFrames[0].TimeStamp.count()}});
+        if (LastFrames.size() > 300) {
+            auto         enc {locate_service<gfx::animated_image_encoder::factory>().create(".webp")};
+            io::ofstream fs {"test.webp"};
+            enc->encode(LastFrames, fs);
+            LastFrames.clear();
+        }
+        */
 }
 
 void canvas::draw_to(gfx::render_target& target)
@@ -116,5 +133,4 @@ void canvas::request_draw()
 {
     _canvasDirty = true;
 }
-
 }

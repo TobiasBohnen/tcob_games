@@ -10,8 +10,9 @@
 
 namespace stn {
 
-class start_scene : public base_scene {
+/////////////////////////////////////////////////////
 
+class start_scene : public base_scene {
 public:
     start_scene(game& game, std::shared_ptr<canvas> canvas, std::shared_ptr<assets> assets);
     ~start_scene() override;
@@ -27,7 +28,7 @@ protected:
 private:
     void on_canvas_draw(gfx::canvas& canvas);
 
-    std::shared_ptr<gfx::frame_animation_tween> _titleAnimation;
+    std::unique_ptr<gfx::frame_animation_tween> _titleAnimation;
 
     scoped_connection _canvasDraw;
 };

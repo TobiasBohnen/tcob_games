@@ -11,8 +11,9 @@
 
 namespace stn {
 
-class base_scene : public scene {
+/////////////////////////////////////////////////////
 
+class base_scene : public scene {
 public:
     base_scene(game& game, std::shared_ptr<canvas> canvas, std::shared_ptr<assets> assets);
 
@@ -37,7 +38,7 @@ private:
     std::shared_ptr<canvas> _canvas;
     std::shared_ptr<assets> _assets;
 
-    std::shared_ptr<tweening::linear_tween<i32>> _fadeOut;
+    std::unique_ptr<linear_tween<i32>> _fadeOut;
 };
 
 template <typename T>
@@ -51,7 +52,7 @@ inline void base_scene::fade_out(bool toBlack, auto&& func)
 {
     if (_fadeOut) { return; }
 
-    _fadeOut = tweening::make_shared_tween<tweening::linear_tween<i32>>(1000ms, 1, 4);
+    _fadeOut = make_unique_tween<linear_tween<i32>>(1000ms, 1, 4);
     _fadeOut->Value.Changed.connect([&, toBlack] {
         if (toBlack) {
             _canvas->fade_to_black();

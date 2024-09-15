@@ -10,8 +10,9 @@
 
 namespace stn {
 
-class cut_scene : public base_scene {
+/////////////////////////////////////////////////////
 
+class cut_scene : public base_scene {
 public:
     cut_scene(i32 number, game& game, std::shared_ptr<canvas> canvas, std::shared_ptr<assets> assets);
     ~cut_scene() override;

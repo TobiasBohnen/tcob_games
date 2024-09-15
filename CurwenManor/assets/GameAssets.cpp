@@ -8,6 +8,7 @@
 #include "res_cutscenes.hpp"
 #include "res_font.hpp"
 #include "res_images.hpp"
+#include "res_json.hpp"
 
 namespace stn {
 
@@ -60,15 +61,16 @@ assets::assets(game& game)
     }
 
     {
-        gfx::image img {gfx::image::CreateEmpty(TILE_SIZE, gfx::image::format::RGB)};
+        gfx::image img {gfx::image::CreateEmpty(TILE_SIZE, gfx::image::format::RGBA)};
 
-        std::array<std::pair<std::string, std::span<u8 const>>, 1> tileSets {{
+        std::array<std::pair<std::string, std::span<u8 const>>, 2> tileSets {{
             {"tiles0", pix_tiles_0},
+            {"player", pix_player_0},
         }};
 
         for (auto const& [k, v] : tileSets) {
             auto texture {_group.get_bucket<gfx::texture>()->create_or_get(k, nullptr)};
-            texture->create(TILE_SIZE, TILE_COUNT_TOTAL, gfx::texture::format::RGB8);
+            texture->create(TILE_SIZE, TILE_COUNT_TOTAL, gfx::texture::format::RGBA8);
             texture->add_region("default", {{0, 0, 1, 1}, 0});
 
             for (i32 i {0}; i < TILE_COUNT_TOTAL; ++i) {
@@ -81,7 +83,7 @@ assets::assets(game& game)
                         assert(idx < v.size());
                         u8 const col {v[idx]};
                         switch (col) {
-                        case 0: img.set_pixel({x, y}, COLOR0); break;
+                        case 0: img.set_pixel({x, y}, colors::Transparent); break;
                         case 1: img.set_pixel({x, y}, COLOR1); break;
                         case 2: img.set_pixel({x, y}, COLOR2); break;
                         case 3: img.set_pixel({x, y}, COLOR3); break;
@@ -100,7 +102,8 @@ assets::assets(game& game)
     }
 
     // json
-    _cutsceneObj.parse(cutscene_text, ".json");
+    _cutsceneObj.parse(cutscene_json, ".json");
+    _tilesObj.parse(tiles_json, ".json");
 }
 
 auto assets::get_default_font() -> gfx::font*
@@ -108,14 +111,19 @@ auto assets::get_default_font() -> gfx::font*
     return _font;
 }
 
-auto assets::get_texture(std::string const& name) -> gfx::texture*
+auto assets::get_texture(std::string const& name) const -> gfx::texture*
 {
     return _group.get<gfx::texture>(name).get_obj();
 }
 
-auto assets::get_cutscene_text() -> data::config::object const&
+auto assets::get_cutscene_texts() -> data::config::object const&
 {
     return _cutsceneObj;
+}
+
+auto assets::get_tiles_def(std::string const& name) const -> data::config::object
+{
+    return _tilesObj[name].as<data::config::object>();
 }
 
 auto assets::get_group() -> tcob::assets::group&

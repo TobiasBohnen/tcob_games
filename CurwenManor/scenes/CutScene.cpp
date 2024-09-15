@@ -52,14 +52,14 @@ void cut_scene::on_controller_button_up(input::controller::button_event&)
 void cut_scene::on_canvas_draw(gfx::canvas& canvas)
 {
     std::string text;
-    if (!get_assets().get_cutscene_text().try_get(text, std::to_string(_number), std::to_string(_step))) {
+    if (!get_assets().get_cutscene_texts().try_get(text, std::to_string(_number), std::to_string(_step))) {
         fade_out(false, []() {});
         text = _lastText;
     } else {
         if (text == BREAK) {
             _lastText = "";
             ++_step;
-            get_assets().get_cutscene_text().try_get(text, std::to_string(_number), std::to_string(_step));
+            get_assets().get_cutscene_texts().try_get(text, std::to_string(_number), std::to_string(_step));
         }
 
         text = _lastText + "\n\n" + text;
