@@ -13,27 +13,35 @@ namespace stn {
 
 class canvas {
 public:
-    canvas();
+    canvas(assets& assets);
 
-    signal<gfx::canvas> Draw;
+    signal<canvas> Draw;
 
-    void draw_to(gfx::render_target& target);
+    void begin_draw(color clearColor);
+    void end_draw();
 
     void fade_to_white();
     void fade_to_black();
 
+    void draw_to(gfx::render_target& target);
     void request_draw();
 
+    void draw_image(std::string const& image, string const& region, rect_f const& rect);
+    void draw_image(gfx::texture* image, string const& region, rect_f const& rect);
+
+    auto get_context() -> gfx::canvas&;
+    auto get_last_frame() -> gfx::image&;
+
+    void snap();
+
 private:
-    void begin_draw();
-    void end_draw();
+    assets& _assets;
 
     gfx::canvas          _canvas;
     gfx::canvas_renderer _renderer {_canvas};
     bool                 _canvasDirty {false};
 
-    gfx::image   _lastFrame;
-    gfx::texture _scratchTex;
+    gfx::image _lastFrame;
 };
 
 }

@@ -25,11 +25,14 @@ assets::assets(game& game)
     _font->render_text("abcdefghijklmopqrstuvwxyz123456790", false, false);
 
     // textures
+    _scratchTex.create(CANVAS_SIZE, 1, gfx::texture::format::RGBA8);
+    _scratchTex.add_region("default", {{0, 0, 1, 1}, 0});
+
     _group.add_bucket<gfx::texture>();
     {
         gfx::image img {gfx::image::CreateEmpty(CANVAS_SIZE, gfx::image::format::RGB)};
 
-        std::array<std::pair<std::string, std::span<u8 const>>, 8> images {{
+        std::array<std::pair<std::string, std::span<u8 const>>, 9> images {{
             {"title0", pix_title_0},
             {"title1", pix_title_1},
             {"title2", pix_title_2},
@@ -38,6 +41,7 @@ assets::assets(game& game)
             {"title5", pix_title_5},
             {"title6", pix_title_6},
             {"title7", pix_title_7},
+            {"cutscenes0", pix_cutscenes_0},
         }};
         for (auto const& [k, v] : images) {
             for (i32 y {0}; y < CANVAS_SIZE.Height; ++y) {
@@ -114,6 +118,11 @@ auto assets::get_default_font() -> gfx::font*
 auto assets::get_texture(std::string const& name) const -> gfx::texture*
 {
     return _group.get<gfx::texture>(name).get_obj();
+}
+
+auto assets::get_scratch_texture() -> gfx::texture*
+{
+    return &_scratchTex;
 }
 
 auto assets::get_cutscene_texts() -> data::config::object const&

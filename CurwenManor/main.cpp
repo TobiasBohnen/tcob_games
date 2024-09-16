@@ -57,7 +57,7 @@ auto main(int /* argc */, char* argv[]) -> int
     locate_service<gfx::render_system>().get_window().ClearColor = color::FromRGB(0x9bbc0f);
 
     auto assets {std::make_shared<stn::assets>(game)};
-    auto canvas {std::make_shared<stn::canvas>()};
+    auto canvas {std::make_shared<stn::canvas>(*assets)};
     game.push_scene(std::make_shared<stn::start_scene>(game, canvas, assets));
     game.start();
     return 0;

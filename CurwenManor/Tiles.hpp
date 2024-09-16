@@ -6,6 +6,7 @@
 #pragma once
 
 #include "Common.hpp" // IWYU pragma: keep
+#include "GameCanvas.hpp"
 
 namespace stn {
 
@@ -38,9 +39,10 @@ struct tile {
 
 class tilemap {
 public:
-    tilemap(assets const& assets);
+    tilemap(assets& assets);
 
-    void draw(gfx::canvas& canvas);
+    void draw(canvas& canvas);
+    void draw_shadow(canvas& canvas, player const& player);
 
     auto check_solid(point_i pos) const -> bool;
 
@@ -48,10 +50,13 @@ public:
     void set_offset(point_f pos);
 
 private:
+    assets& _assets;
+
     point_f _offset {0, -1};
     tileset _tiles;
 
-    std::array<std::array<tile, MAP_TILES.Width>, MAP_TILES.Height> _tilemap;
+    using tile_map = std::array<std::array<tile, MAP_TILES.Width>, MAP_TILES.Height>;
+    tile_map _tilemap;
 };
 
 }

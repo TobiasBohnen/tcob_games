@@ -17,6 +17,7 @@ public:
 
     auto get_default_font() -> gfx::font*;
     auto get_texture(std::string const& name) const -> gfx::texture*;
+    auto get_scratch_texture() -> gfx::texture*;
 
     auto get_cutscene_texts() -> data::config::object const&;
     auto get_tiles_def(std::string const& name) const -> data::config::object;
@@ -33,6 +34,8 @@ private:
 
     data::config::object _cutsceneObj;
     data::config::object _tilesObj;
+
+    gfx::texture _scratchTex;
 };
 
 }

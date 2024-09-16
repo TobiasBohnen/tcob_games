@@ -26,7 +26,7 @@ protected:
     void on_controller_button_up(input::controller::button_event&) override;
 
 private:
-    void on_canvas_draw(gfx::canvas& canvas);
+    void on_canvas_draw(canvas& canvas);
     void next_step();
 
     i32          _number;

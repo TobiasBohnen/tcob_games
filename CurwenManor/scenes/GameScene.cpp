@@ -16,12 +16,17 @@ namespace stn {
 game_scene::game_scene(game& game, std::shared_ptr<canvas> canvas, std::shared_ptr<assets> assets)
     : base_scene {game, std::move(canvas), std::move(assets)}
     , _tileMap {get_assets()}
-    , _player {_tileMap, get_canvas(), get_assets()}
+    , _player {this, get_assets()}
 {
 }
 
 game_scene::~game_scene()
 {
+}
+
+auto game_scene::check_solid(point_i pos) const -> bool
+{
+    return _tileMap.check_solid(pos);
 }
 
 void game_scene::on_start()
@@ -31,14 +36,14 @@ void game_scene::on_start()
 
 void game_scene::on_wake_up()
 {
-    auto& canvas {get_canvas()};
-    canvas.Draw.connect([&](gfx::canvas& canvas) { on_canvas_draw(canvas); });
-    canvas.request_draw();
+    _canvasDraw = connect_draw([&](canvas& canvas) { on_canvas_draw(canvas); });
+    request_draw();
 }
 
 void game_scene::on_update(milliseconds deltaTime)
 {
     _player.update(deltaTime);
+    _tileMap.set_offset(_player.get_position());
 
     _downButtonTimer += deltaTime;
     if (_downButtonTimer > 300ms) {
@@ -79,12 +84,19 @@ void game_scene::on_controller_button_up(input::controller::button_event& ev)
     }
 }
 
-void game_scene::on_canvas_draw(gfx::canvas& canvas)
+void game_scene::on_canvas_draw(canvas& canvas)
 {
-    canvas.set_fill_style(colors::White);
-
+    canvas.begin_draw(COLOR0);
     _tileMap.draw(canvas);
-    _player.draw(canvas);
+    canvas.end_draw();
+
+    canvas.begin_draw(COLOR0);
+    _tileMap.draw_shadow(canvas, _player);
+
+    _player.draw(canvas, _tileMap.get_offset());
+    canvas.end_draw();
+
+    // canvas.snap();
 }
 
 }

@@ -6,7 +6,6 @@
 #pragma once
 
 #include "Common.hpp" // IWYU pragma: keep
-#include "GameCanvas.hpp"
 #include "Tiles.hpp"
 
 namespace stn {
@@ -15,18 +14,21 @@ namespace stn {
 
 class player {
 public:
-    player(tilemap& map, canvas& canvas, assets& assets);
+    player(game_scene* parent, assets& assets);
 
     void update(milliseconds deltaTime);
-    void draw(gfx::canvas& canvas);
+    void draw(canvas& canvas, point_f offset);
 
     void move(direction dir, bool dirOnly);
+    auto get_position() const -> point_f;
+    void set_position(point_f pos);
+
+    auto get_direction() const -> direction;
     void set_direction(direction dir, i32 phase);
 
 private:
-    tilemap& _map;
-    canvas&  _canvas;
-    assets&  _assets;
+    game_scene* _parent;
+    assets&     _assets;
 
     tileset     _tiles;
     std::string _tile {};

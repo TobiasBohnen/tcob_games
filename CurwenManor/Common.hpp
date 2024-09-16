@@ -7,6 +7,8 @@
 
 #include <tcob/tcob.hpp>
 
+#include <iostream> // IWYU pragma: kepp
+
 using namespace tcob;
 using namespace tcob::tweening;
 using namespace tcob::gfx::ui;
@@ -31,5 +33,7 @@ constexpr color COLOR2 {color::FromRGB(0x306230)};
 constexpr color COLOR3 {color::FromRGB(0x0f380f)};
 
 class assets;
+class game_scene;
+class player;
 
 }

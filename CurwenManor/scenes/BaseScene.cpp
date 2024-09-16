@@ -14,6 +14,11 @@ base_scene::base_scene(game& game, std::shared_ptr<canvas> canvas, std::shared_p
 {
 }
 
+void base_scene::request_draw()
+{
+    _canvas->request_draw();
+}
+
 void base_scene::on_draw_to(gfx::render_target& target)
 {
     _canvas->draw_to(target);
@@ -46,11 +51,6 @@ void base_scene::on_key_down(input::keyboard::event& ev)
     default:
         break;
     }
-}
-
-auto base_scene::get_canvas() -> canvas&
-{
-    return *_canvas;
 }
 
 auto base_scene::get_assets() -> assets&

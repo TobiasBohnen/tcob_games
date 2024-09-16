@@ -19,6 +19,8 @@ public:
     game_scene(game& game, std::shared_ptr<canvas> canvas, std::shared_ptr<assets> assets);
     ~game_scene() override;
 
+    auto check_solid(point_i pos) const -> bool;
+
 protected:
     void on_start() override;
     void on_wake_up() override;
@@ -29,13 +31,15 @@ protected:
     void on_controller_button_up(input::controller::button_event&) override;
 
 private:
-    void on_canvas_draw(gfx::canvas& canvas);
+    void on_canvas_draw(canvas& canvas);
 
     input::controller::button _downButton {};
     milliseconds              _downButtonTimer {};
 
     tilemap _tileMap;
     player  _player;
+
+    scoped_connection _canvasDraw;
 };
 
 }

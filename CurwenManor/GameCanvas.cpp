@@ -5,25 +5,28 @@
 
 #include "GameCanvas.hpp"
 
+#include "assets/GameAssets.hpp"
+
 namespace stn {
 
-canvas::canvas()
+canvas::canvas(assets& assets)
+    : _assets {assets}
 {
-    _scratchTex.create(CANVAS_SIZE, 1, gfx::texture::format::RGBA8);
-    _scratchTex.add_region("default", {{0, 0, 1, 1}, 0});
 }
 
-void canvas::begin_draw()
+void canvas::begin_draw(color clearColor)
 {
     _canvas.begin_frame(CANVAS_SIZE, 1);
 
     _canvas.set_edge_antialias(false);
     _canvas.set_shape_antialias(false);
 
-    _canvas.set_fill_style(COLOR0);
-    _canvas.begin_path();
-    _canvas.rect({point_f::Zero, CANVAS_SIZE_F});
-    _canvas.fill();
+    if (clearColor.A > 0) {
+        _canvas.set_fill_style(clearColor);
+        _canvas.begin_path();
+        _canvas.rect({point_f::Zero, CANVAS_SIZE_F});
+        _canvas.fill();
+    }
 }
 
 void canvas::end_draw()
@@ -41,36 +44,10 @@ void canvas::end_draw()
 #endif
 
     _canvasDirty = false;
-    /*
-        static std::vector<gfx::animated_image_encoder::frame> LastFrames;
-        auto                                                   stats {locate_service<gfx::render_system>().get_stats()};
-        LastFrames.push_back({_lastFrame, LastFrames.empty() ? 0ms : milliseconds {stats.get_time() - LastFrames[0].TimeStamp.count()}});
-        if (LastFrames.size() > 300) {
-            auto         enc {locate_service<gfx::animated_image_encoder::factory>().create(".webp")};
-            io::ofstream fs {"test.webp"};
-            enc->encode(LastFrames, fs);
-            LastFrames.clear();
-        }
-        */
-}
-
-void canvas::draw_to(gfx::render_target& target)
-{
-    if (_canvasDirty) {
-        begin_draw();
-        Draw(_canvas);
-        end_draw();
-    }
-
-    _renderer.set_layer(0);
-    _renderer.set_bounds({point_f::Zero, size_f {target.Size()}});
-    _renderer.render_to_target(target);
 }
 
 void canvas::fade_to_white()
 {
-    begin_draw();
-
     gfx::image& img {_lastFrame};
 
     for (i32 y {0}; y < CANVAS_SIZE.Height; ++y) {
@@ -90,18 +67,14 @@ void canvas::fade_to_white()
         }
     }
 
-    _scratchTex.update_data(img.get_data(), 0);
+    auto* scratchTex {_assets.get_scratch_texture()};
+    scratchTex->update_data(img.get_data(), 0);
 
-    _canvas.set_fill_style(colors::White);
-    _canvas.draw_image(&_scratchTex, "default", {point_f::Zero, CANVAS_SIZE_F});
-
-    end_draw();
+    draw_image(scratchTex, "default", {point_f::Zero, CANVAS_SIZE_F});
 }
 
 void canvas::fade_to_black()
 {
-    begin_draw();
-
     gfx::image& img {_lastFrame};
 
     for (i32 y {0}; y < CANVAS_SIZE.Height; ++y) {
@@ -121,16 +94,59 @@ void canvas::fade_to_black()
         }
     }
 
-    _scratchTex.update_data(img.get_data(), 0);
+    auto* scratchTex {_assets.get_scratch_texture()};
+    scratchTex->update_data(img.get_data(), 0);
 
-    _canvas.set_fill_style(colors::White);
-    _canvas.draw_image(&_scratchTex, "default", {point_f::Zero, CANVAS_SIZE_F});
+    draw_image(scratchTex, "default", {point_f::Zero, CANVAS_SIZE_F});
+}
 
-    end_draw();
+void canvas::draw_to(gfx::render_target& target)
+{
+    if (_canvasDirty) {
+        Draw(*this);
+    }
+
+    _renderer.set_layer(0);
+    _renderer.set_bounds({point_f::Zero, size_f {target.Size()}});
+    _renderer.render_to_target(target);
 }
 
 void canvas::request_draw()
 {
     _canvasDirty = true;
+}
+
+void canvas::draw_image(std::string const& image, string const& region, rect_f const& rect)
+{
+    draw_image(_assets.get_texture(image), region, rect);
+}
+
+void canvas::draw_image(gfx::texture* image, string const& region, rect_f const& rect)
+{
+    _canvas.set_fill_style(colors::White);
+    _canvas.draw_image(image, region, rect);
+}
+
+auto canvas::get_context() -> gfx::canvas&
+{
+    return _canvas;
+}
+
+auto canvas::get_last_frame() -> gfx::image&
+{
+    return _lastFrame;
+}
+
+void canvas::snap()
+{
+    static std::vector<gfx::animated_image_encoder::frame> LastFrames;
+    auto                                                   stats {locate_service<gfx::render_system>().get_stats()};
+    LastFrames.push_back({_lastFrame, LastFrames.empty() ? 0ms : milliseconds {stats.get_time() - LastFrames[0].TimeStamp.count()}});
+    if (LastFrames.size() > 300) {
+        auto         enc {locate_service<gfx::animated_image_encoder::factory>().create(".webp")};
+        io::ofstream fs {"test.webp"};
+        enc->encode(LastFrames, fs);
+        LastFrames.clear();
+    }
 }
 }

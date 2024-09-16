@@ -26,7 +26,7 @@ start_scene::start_scene(game& game, std::shared_ptr<canvas> canvas, std::shared
         {"title7", 500ms},
     };
     _titleAnimation = make_unique_tween<gfx::frame_animation_tween>(ani.get_duration(), ani);
-    _titleAnimation->Value.Changed.connect([&] { get_canvas().request_draw(); });
+    _titleAnimation->Value.Changed.connect([&] { request_draw(); });
 }
 
 start_scene::~start_scene() = default;
@@ -34,7 +34,7 @@ start_scene::~start_scene() = default;
 void start_scene::on_start()
 {
     _titleAnimation->start();
-    _canvasDraw = get_canvas().Draw.connect([&](gfx::canvas& canvas) { on_canvas_draw(canvas); });
+    _canvasDraw = connect_draw([&](canvas& canvas) { on_canvas_draw(canvas); });
 }
 
 void start_scene::on_update(milliseconds deltaTime)
@@ -57,17 +57,20 @@ void start_scene::on_controller_button_up(input::controller::button_event& ev)
 {
 }
 
-void start_scene::on_canvas_draw(gfx::canvas& canvas)
+void start_scene::on_canvas_draw(canvas& canvas)
 {
     if (_titleAnimation) {
-        canvas.set_fill_style(colors::White);
-        canvas.draw_image(get_assets().get_texture(_titleAnimation->Value), "default", {point_f::Zero, CANVAS_SIZE_F});
+        canvas.begin_draw(COLOR0);
+
+        canvas.draw_image(_titleAnimation->Value, "default", {point_f::Zero, CANVAS_SIZE_F});
 
         if (_titleAnimation->get_progress() >= 0.75f) {
-            canvas.set_fill_style(COLOR1);
-            canvas.set_font(get_assets().get_default_font());
-            canvas.draw_textbox({105, 55, 200, 200}, "~start");
+            auto& ctx {canvas.get_context()};
+            ctx.set_fill_style(COLOR1);
+            ctx.set_font(get_assets().get_default_font());
+            ctx.draw_textbox({105, 55, 200, 200}, "~start");
         }
+        canvas.end_draw();
     }
 }
 }
