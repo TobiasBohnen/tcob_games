@@ -12,13 +12,10 @@ namespace stn {
 
 /////////////////////////////////////////////////////
 
-player::player(game_scene* parent, assets& assets)
+player::player(game_scene* parent)
     : _parent {parent}
-    , _assets {assets}
-    , _tiles {_assets.get_texture("player"), _assets.get_tiles_def("player")}
+    , _tiles {_parent->get_assets().get_texture("player"), _parent->get_assets().get_tiles_def("player")}
 {
-    _position = {3, 3};
-    set_direction(direction::Down, 0);
 }
 
 void player::update(milliseconds deltaTime)
@@ -44,6 +41,14 @@ void player::draw(canvas& canvas, point_f offset)
     for (i32 i {0}; i < _sanity; ++i) {
         canvas.draw_image(_tiles.Texture, _tiles.Set["sanity"].as<tile>().Texture, {{TILE_SIZE_F.Width / 2 * i, TILE_SIZE_F.Height / 2}, TILE_SIZE_F / 2});
     }
+
+    ctx.set_fill_style(COLOR3);
+    ctx.set_font(_parent->get_assets().get_default_font());
+    auto const time {std::chrono::hours {23} + std::chrono::minutes {_turn}};
+    auto const hours {std::chrono::duration_cast<std::chrono::hours>(time).count() % 24};
+    auto const minutes {std::chrono::duration_cast<std::chrono::minutes>(time).count() % 60};
+
+    ctx.draw_textbox({{CANVAS_SIZE_F.Width - 50, 0}, {50, 30}}, std::format("{:02}:{:02}", hours, minutes));
 }
 
 void player::move(direction dir, bool dirOnly)
@@ -62,7 +67,7 @@ void player::move(direction dir, bool dirOnly)
 
         point_f const start {_position};
         point_f const end {_position + move};
-        if (!_parent->check_solid(point_i {end})) {
+        if (!_parent->get_map().check_solid(point_i {end})) {
             _move = make_unique_tween<smootherstep_tween<point_f>>(500ms, start, end);
             _move->Value.Changed.connect([&](auto&& val) {
                 std::array<i32, 5> const frames {0, 1, 0, 2, 0};
@@ -72,6 +77,7 @@ void player::move(direction dir, bool dirOnly)
             _move->Finished.connect([&] { set_direction(_direction, 0); });
             _move->Interval = 50ms;
             _move->start();
+            end_turn();
         }
     }
 
@@ -109,4 +115,31 @@ void player::set_direction(direction dir, i32 phase)
     _parent->request_draw();
 }
 
+auto player::get_turn() const -> i32
+{
+    return _turn;
+}
+
+void player::reset_turn()
+{
+    _turn = 0;
+}
+
+void player::take_health_damage()
+{
+    _health--;
+    if (_health <= 0) { Dead(); }
+}
+
+void player::take_sanity_damage()
+{
+    _sanity--;
+    if (_sanity <= 0) { Insane(); }
+}
+
+void player::end_turn()
+{
+    Turn();
+    ++_turn;
+}
 }

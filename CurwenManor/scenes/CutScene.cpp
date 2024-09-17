@@ -9,8 +9,6 @@
 
 namespace stn {
 
-constexpr auto BREAK {"-break-"};
-
 cut_scene::cut_scene(i32 number, game& game, std::shared_ptr<canvas> canvas, std::shared_ptr<assets> assets)
     : base_scene {game, std::move(canvas), std::move(assets)}
     , _number {number}

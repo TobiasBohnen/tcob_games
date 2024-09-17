@@ -17,12 +17,12 @@ class base_scene : public scene {
 public:
     base_scene(game& game, std::shared_ptr<canvas> canvas, std::shared_ptr<assets> assets);
 
+    auto get_assets() -> assets&;
     void request_draw();
 
 protected:
     auto connect_draw(auto&& func) -> scoped_connection;
 
-    auto get_assets() -> assets&;
     auto is_fading() const -> bool;
 
     void on_draw_to(gfx::render_target& target) override;

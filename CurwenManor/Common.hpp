@@ -32,8 +32,13 @@ constexpr color COLOR1 {color::FromRGB(0x8bac0f)};
 constexpr color COLOR2 {color::FromRGB(0x306230)};
 constexpr color COLOR3 {color::FromRGB(0x0f380f)};
 
+constexpr auto BREAK {"-break-"};
+
 class assets;
+class base_level;
+class canvas;
 class game_scene;
 class player;
+class tilemap;
 
 }

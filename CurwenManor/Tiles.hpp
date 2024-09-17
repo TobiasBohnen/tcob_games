@@ -6,9 +6,16 @@
 #pragma once
 
 #include "Common.hpp" // IWYU pragma: keep
-#include "GameCanvas.hpp"
 
 namespace stn {
+
+/////////////////////////////////////////////////////
+
+struct lighting {
+    bool                                               Off {false};
+    std::unordered_map<direction, std::pair<i32, i32>> VisionCones;
+    std::array<i32, 3>                                 Falloff {};
+};
 
 /////////////////////////////////////////////////////
 
@@ -20,8 +27,8 @@ struct tileset {
 /////////////////////////////////////////////////////
 
 struct tile {
-    std::string Texture;
-    bool        Solid;
+    std::string Texture {};
+    bool        Solid {false};
 
     void static Serialize(tile const& v, auto&& s)
     {
@@ -42,6 +49,7 @@ public:
     tilemap(assets& assets);
 
     void draw(canvas& canvas);
+
     void draw_shadow(canvas& canvas, player const& player);
 
     auto check_solid(point_i pos) const -> bool;
@@ -49,14 +57,29 @@ public:
     auto get_offset() const -> point_f;
     void set_offset(point_f pos);
 
+    void make_basic_layout(std::string const& walls, std::string const& floor);
+    void set_tiles(std::array<std::array<std::string, MAP_TILES.Width>, MAP_TILES.Height> const& tiles);
+    void set_tiles(std::vector<std::vector<std::string>> const& tiles, point_i offset);
+
+    void set_object(point_i pos, std::string const& obj);
+
+    void set_lighting(lighting const& setting);
+
 private:
+    auto is_in_cone(player const& player, point_f playerPos, point_f canvasPos) const -> bool;
+    void cast_shadow(point_f playerPos, point_f canvasPos, color& target) const;
+
     assets& _assets;
 
     point_f _offset {0, -1};
-    tileset _tiles;
 
-    using tile_map = std::array<std::array<tile, MAP_TILES.Width>, MAP_TILES.Height>;
-    tile_map _tilemap;
+    tileset _tiles;
+    tileset _objects;
+
+    std::array<std::array<tile, MAP_TILES.Width>, MAP_TILES.Height> _tilemap;
+    std::array<std::array<tile, MAP_TILES.Width>, MAP_TILES.Height> _objmap;
+
+    lighting _lighting;
 };
 
 }

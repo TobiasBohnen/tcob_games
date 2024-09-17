@@ -6,8 +6,10 @@
 #include "GameScene.hpp"
 
 #include "CutScene.hpp"
-
 #include <utility>
+
+#include "../levels/BaseLevel.hpp"
+#include "../levels/Level1.hpp"
 
 namespace stn {
 
@@ -16,7 +18,7 @@ namespace stn {
 game_scene::game_scene(game& game, std::shared_ptr<canvas> canvas, std::shared_ptr<assets> assets)
     : base_scene {game, std::move(canvas), std::move(assets)}
     , _tileMap {get_assets()}
-    , _player {this, get_assets()}
+    , _player {this}
 {
 }
 
@@ -24,9 +26,14 @@ game_scene::~game_scene()
 {
 }
 
-auto game_scene::check_solid(point_i pos) const -> bool
+auto game_scene::get_map() -> tilemap&
 {
-    return _tileMap.check_solid(pos);
+    return _tileMap;
+}
+
+auto game_scene::get_player() -> player&
+{
+    return _player;
 }
 
 void game_scene::on_start()
@@ -36,12 +43,15 @@ void game_scene::on_start()
 
 void game_scene::on_wake_up()
 {
-    _canvasDraw = connect_draw([&](canvas& canvas) { on_canvas_draw(canvas); });
+    _canvasDraw   = connect_draw([&](canvas& canvas) { on_canvas_draw(canvas); });
+    _currentLevel = std::make_shared<level1>(this);
     request_draw();
 }
 
 void game_scene::on_update(milliseconds deltaTime)
 {
+    if (_currentLevel) { _currentLevel->update(deltaTime); }
+
     _player.update(deltaTime);
     _tileMap.set_offset(_player.get_position());
 
@@ -92,8 +102,10 @@ void game_scene::on_canvas_draw(canvas& canvas)
 
     canvas.begin_draw(COLOR0);
     _tileMap.draw_shadow(canvas, _player);
-
     _player.draw(canvas, _tileMap.get_offset());
+
+    if (_currentLevel) { _currentLevel->draw(canvas); }
+
     canvas.end_draw();
 
     // canvas.snap();

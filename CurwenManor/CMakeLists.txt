@@ -6,6 +6,8 @@ target_sources(CurwenManor PRIVATE
     Player.cpp
     Tiles.cpp
     assets/GameAssets.cpp
+    levels/BaseLevel.cpp
+    levels/Level1.cpp
     scenes/BaseScene.cpp
     scenes/StartScene.cpp
     scenes/GameScene.cpp

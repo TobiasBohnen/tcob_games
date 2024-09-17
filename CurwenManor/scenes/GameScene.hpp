@@ -19,7 +19,8 @@ public:
     game_scene(game& game, std::shared_ptr<canvas> canvas, std::shared_ptr<assets> assets);
     ~game_scene() override;
 
-    auto check_solid(point_i pos) const -> bool;
+    auto get_map() -> tilemap&;
+    auto get_player() -> player&;
 
 protected:
     void on_start() override;
@@ -40,6 +41,8 @@ private:
     player  _player;
 
     scoped_connection _canvasDraw;
+
+    std::shared_ptr<base_level> _currentLevel;
 };
 
 }

@@ -67,9 +67,10 @@ assets::assets(game& game)
     {
         gfx::image img {gfx::image::CreateEmpty(TILE_SIZE, gfx::image::format::RGBA)};
 
-        std::array<std::pair<std::string, std::span<u8 const>>, 2> tileSets {{
+        std::array<std::pair<std::string, std::span<u8 const>>, 3> tileSets {{
             {"tiles0", pix_tiles_0},
             {"player", pix_player_0},
+            {"objects0", pix_objects_0},
         }};
 
         for (auto const& [k, v] : tileSets) {
