@@ -9,5 +9,3 @@ if(TCOB_ENABLE_ADDON_PHYSICS_BOX2D
         add_subdirectory(Solitide)
     endif()
 endif()
-
-add_subdirectory(CurwenManor)
