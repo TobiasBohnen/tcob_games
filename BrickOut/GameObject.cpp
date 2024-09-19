@@ -40,7 +40,7 @@ void game_object::update(milliseconds deltaTime)
     if (_physicsBody && _sprite) {
         rect_f const pb {_physicsBody->Transform().Center, size_f::Zero};
 
-        _sprite->Center   = convert_to_screen(pb).get_center();
+        _sprite->Bounds   = _sprite->Bounds->with_center(convert_to_screen(pb).get_center());
         _sprite->Rotation = _physicsBody->Transform().Angle;
     }
 
