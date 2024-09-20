@@ -11,6 +11,8 @@ namespace BrickOut {
 
 class field;
 
+////////////////////////////////////////////////////////////
+
 class game_object : public updatable {
 public:
     game_object(field& parent);
@@ -55,6 +57,8 @@ private:
     std::shared_ptr<physics::shape>  _physicsShape;
 };
 
+////////////////////////////////////////////////////////////
+
 class paddle : public game_object {
 public:
     paddle(field& parent, assets::group& resGrp);
@@ -87,6 +91,8 @@ private:
     f32                                _failHeight {0.0f};
     std::shared_ptr<gfx::light_source> _lightSource;
 };
+
+////////////////////////////////////////////////////////////
 
 class brick : public game_object {
 public:

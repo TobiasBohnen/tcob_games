@@ -188,11 +188,7 @@ void paddle::on_update(milliseconds deltaTime)
 
 ball::ball(field& parent, assets::group& resGrp)
     : game_object {parent}
-    , _lightSource {parent.create_light()}
 {
-    _lightSource->Color = {255, 255, 255, 128};
-    _lightSource->Range = 500;
-
     set_material(resGrp.get<gfx::material>("ballBlue"));
     auto& body {get_body()};
     body.UserData = "Ball";
@@ -231,6 +227,10 @@ void ball::reset()
     body.apply_linear_impulse(force, physRect.get_center());
 
     _failHeight = rect.Height - _size.Height / 2;
+
+    _lightSource        = get_field().create_light();
+    _lightSource->Color = {255, 255, 255, 128};
+    _lightSource->Range = 500;
 }
 
 void ball::on_update(milliseconds deltaTime)
@@ -270,8 +270,6 @@ brick::brick(field& parent, assets::group& resGrp, brick_def def)
     set_material(resGrp.get<gfx::material>(matName));
     auto& body {get_body()};
     body.UserData = "Brick";
-
-    _shadowCaster = parent.create_shadow();
 }
 
 void brick::reset()
@@ -341,6 +339,7 @@ void brick::reset()
     }
 
     create_shape<physics::rect_shape>(settings);
+    _shadowCaster = get_field().create_shadow();
 }
 
 void brick::on_update(milliseconds deltaTime)
@@ -369,8 +368,9 @@ void brick::on_update(milliseconds deltaTime)
 
     if (_shadowCaster) {
         auto const& spriteBounds {get_sprite().Bounds()};
-        _shadowCaster->Points = {spriteBounds.top_left(), spriteBounds.bottom_left(),
-                                 spriteBounds.bottom_right(), spriteBounds.top_right()};
+        auto const& xform {get_sprite().get_transform()};
+        _shadowCaster->Points = {xform * spriteBounds.top_left(), xform * spriteBounds.bottom_left(),
+                                 xform * spriteBounds.bottom_right(), xform * spriteBounds.top_right()};
     }
 }
 

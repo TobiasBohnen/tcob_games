@@ -64,6 +64,9 @@ void field::start(std::span<brick_def const> bricks)
 
     _physicsWorld.Gravity = {0, 50};
 
+    _lightingSystem.clear_light_sources();
+    _lightingSystem.clear_shadow_casters();
+
     _paddle.reset();
     _ball.reset();
 
