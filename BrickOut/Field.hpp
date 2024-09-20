@@ -30,6 +30,11 @@ public:
     auto create_body(physics::body::settings bodySettings) -> std::shared_ptr<physics::body>;
     void remove_body(std::shared_ptr<physics::body> const& body);
 
+    auto create_light() -> std::shared_ptr<gfx::light_source>;
+
+    auto create_shadow() -> std::shared_ptr<gfx::shadow_caster>;
+    void remove_shadow(std::shared_ptr<gfx::shadow_caster> const& sc);
+
     auto get_update_mode() const -> update_mode override;
 
     auto get_field_bounds() const -> rect_f;
@@ -62,6 +67,8 @@ private:
 
     debug_mode   _debug {debug_mode::Off};
     B2DDebugDraw _debugDraw;
+
+    gfx::lighting_system _lightingSystem;
 
     physics::world _physicsWorld;
     rect_f         _physicsBounds;

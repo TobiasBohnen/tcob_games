@@ -25,6 +25,7 @@ protected:
 
     void set_material(assets::asset_ptr<gfx::material> const& mat);
 
+    auto get_field() -> field&;
     auto get_sprite() -> gfx::rect_shape&;
     auto get_body() -> physics::body&;
 
@@ -82,8 +83,9 @@ protected:
     void on_update(milliseconds deltaTime) override;
 
 private:
-    size_f _size;
-    f32    _failHeight {0.0f};
+    size_f                             _size;
+    f32                                _failHeight {0.0f};
+    std::shared_ptr<gfx::light_source> _lightSource;
 };
 
 class brick : public game_object {
@@ -96,10 +98,11 @@ protected:
     void on_update(milliseconds deltaTime) override;
 
 private:
-    brick_def    _def;
-    size_f       _size;
-    bool         _dead {false};
-    milliseconds _timeOut {};
+    brick_def                           _def;
+    size_f                              _size;
+    bool                                _dead {false};
+    milliseconds                        _timeOut {};
+    std::shared_ptr<gfx::shadow_caster> _shadowCaster;
 };
 
 }

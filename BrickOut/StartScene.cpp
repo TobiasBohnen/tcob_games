@@ -12,6 +12,7 @@ namespace BrickOut {
 start_scene::start_scene(game& game)
     : scene(game)
 {
+    get_window().ClearColor = colors::Black;
 }
 
 start_scene::~start_scene() = default;

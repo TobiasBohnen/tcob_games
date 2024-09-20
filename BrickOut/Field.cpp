@@ -23,7 +23,8 @@ field::field(assets::group& resGrp, i32 padding, size_i windowSize)
     f32 const top {0.0f};
     f32 const right {((windowSize.Height + padding / 2.f))};
     f32 const bottom {static_cast<f32>(windowSize.Height)};
-    _bounds = rect_f::FromLTRB(left, top, right, bottom);
+    _bounds                = rect_f::FromLTRB(left, top, right, bottom);
+    _lightingSystem.Bounds = _bounds;
 
     _physicsBounds = convert_to_physics(_bounds);
 
@@ -106,6 +107,21 @@ void field::remove_body(std::shared_ptr<physics::body> const& body)
     _physicsWorld.remove_body(*body);
 }
 
+auto field::create_light() -> std::shared_ptr<gfx::light_source>
+{
+    return _lightingSystem.create_light_source();
+}
+
+auto field::create_shadow() -> std::shared_ptr<gfx::shadow_caster>
+{
+    return _lightingSystem.create_shadow_caster();
+}
+
+void field::remove_shadow(std::shared_ptr<gfx::shadow_caster> const& sc)
+{
+    _lightingSystem.remove_shadow_caster(*sc);
+}
+
 auto field::get_update_mode() const -> update_mode
 {
     return update_mode::Both;
@@ -127,6 +143,7 @@ void field::on_update(milliseconds deltaTime)
         return;
     }
 
+    _lightingSystem.update(deltaTime);
     _spriteBatch.update(deltaTime);
 
     if (_hitCount == _bricks.size()) {
@@ -153,6 +170,7 @@ void field::on_fixed_update(milliseconds deltaTime)
 void field::on_draw_to(gfx::render_target& target)
 {
     _spriteBatch.draw_to(target);
+    _lightingSystem.draw_to(target);
 
     if (_debug != debug_mode::Off) {
         _debugDraw.draw(_physicsWorld, _debug == debug_mode::Transparent ? 0.5f : 1.0f, target);

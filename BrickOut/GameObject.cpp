@@ -62,6 +62,11 @@ void game_object::set_material(assets::asset_ptr<gfx::material> const& mat)
     _sprite->Material = mat;
 }
 
+auto game_object::get_field() -> field&
+{
+    return _parent;
+}
+
 auto game_object::get_sprite() -> gfx::rect_shape&
 {
     return *_sprite;
@@ -183,7 +188,11 @@ void paddle::on_update(milliseconds deltaTime)
 
 ball::ball(field& parent, assets::group& resGrp)
     : game_object {parent}
+    , _lightSource {parent.create_light()}
 {
+    _lightSource->Color = {255, 255, 255, 128};
+    _lightSource->Range = 500;
+
     set_material(resGrp.get<gfx::material>("ballBlue"));
     auto& body {get_body()};
     body.UserData = "Ball";
@@ -235,6 +244,7 @@ void ball::on_update(milliseconds deltaTime)
     if (bodyRect.bottom() >= _failHeight) {
         fail();
     }
+    _lightSource->Position = get_sprite().Bounds->get_center();
 }
 
 ////////////////////////////////////////////////////////////
@@ -260,6 +270,8 @@ brick::brick(field& parent, assets::group& resGrp, brick_def def)
     set_material(resGrp.get<gfx::material>(matName));
     auto& body {get_body()};
     body.UserData = "Brick";
+
+    _shadowCaster = parent.create_shadow();
 }
 
 void brick::reset()
@@ -348,7 +360,17 @@ void brick::on_update(milliseconds deltaTime)
         _timeOut -= deltaTime;
         if (_timeOut <= 0s) {
             destroy();
+            if (_shadowCaster) {
+                get_field().remove_shadow(_shadowCaster);
+                _shadowCaster = nullptr;
+            }
         }
+    }
+
+    if (_shadowCaster) {
+        auto const& spriteBounds {get_sprite().Bounds()};
+        _shadowCaster->Points = {spriteBounds.top_left(), spriteBounds.bottom_left(),
+                                 spriteBounds.bottom_right(), spriteBounds.top_right()};
     }
 }
 
