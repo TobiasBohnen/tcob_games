@@ -93,7 +93,7 @@ void foreground_canvas::draw_hint(gfx::render_target& target)
 
     rect_f srcBounds {hint.Src->Cards[hint.SrcCardIdx].Bounds};
     for (isize i {hint.SrcCardIdx + 1}; i < std::ssize(hint.Src->Cards); ++i) {
-        srcBounds = srcBounds.as_merged(hint.Src->Cards[i].Bounds);
+        srcBounds = srcBounds.as_union_with(hint.Src->Cards[i].Bounds);
     }
 
     rect_f dstBounds;
@@ -180,7 +180,7 @@ void foreground_canvas::draw_state()
     _canvas.set_stroke_width(5);
     _canvas.stroke();
 
-    bounds = bounds.as_padded(bounds.get_size() / 5);
+    bounds = bounds.as_padded_by(bounds.get_size() / 5);
     if (_lastStatus == game_status::Success) {
         f32 const width {bounds.Width / 15};
         _canvas.begin_path();

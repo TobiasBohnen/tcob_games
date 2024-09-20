@@ -128,7 +128,7 @@ auto card_set::is_loaded() const -> bool
 auto card_set::pad_rect(rect_f const& rect) -> rect_f
 {
     auto const cardPad {rect.get_size() / 50};
-    return rect.as_padded(cardPad);
+    return rect.as_padded_by(cardPad);
 }
 
 void card_set::set_suit_color(gfx::canvas& canvas, suit s)
@@ -456,7 +456,7 @@ void gen_cardset::draw_back(gfx::canvas& canvas, rect_f const& rect)
     canvas.save();
     draw_shape(canvas, pad_rect(rect), colors::LightSteelBlue, colors::White);
 
-    rect_f const backRect {rect.as_padded(rect.get_size() / 50 * 4)};
+    rect_f const backRect {rect.as_padded_by(rect.get_size() / 50 * 4)};
 
     canvas.set_scissor(backRect);
 
@@ -644,7 +644,7 @@ void mini_cardset::draw_back(gfx::canvas& canvas, rect_f const& rect)
     draw_shape(canvas, bounds, colors::LightSteelBlue, colors::White);
 
     canvas.begin_path();
-    canvas.rounded_rect(bounds.as_padded({3, 3}), 3);
+    canvas.rounded_rect(bounds.as_padded_by({3, 3}), 3);
     canvas.set_fill_style(colors::MidnightBlue);
     canvas.fill();
 

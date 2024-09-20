@@ -78,7 +78,7 @@ void card_table::layout()
                 pileBounds = {pos, cardSize};
                 for (auto& card : pile->Cards) {
                     card.Bounds = {pos, cardSize};
-                    pileBounds  = pileBounds.as_merged(card.Bounds);
+                    pileBounds  = pileBounds.as_union_with(card.Bounds);
                     if (card.is_face_down()) {
                         pos.Y += cardSize.Height * FACE_DOWN_OFFSET;
                     } else {
@@ -90,7 +90,7 @@ void card_table::layout()
                 pileBounds = {pos, cardSize};
                 for (auto& card : pile->Cards) {
                     card.Bounds = {pos, cardSize};
-                    pileBounds  = pileBounds.as_merged(card.Bounds);
+                    pileBounds  = pileBounds.as_union_with(card.Bounds);
                     if (card.is_face_down()) {
                         pos.X += cardSize.Width * FACE_DOWN_OFFSET;
                     } else {
@@ -109,12 +109,12 @@ void card_table::layout()
                         card.Bounds = {pos, cardSize};
                         pos.X += cardSize.Width * FACE_UP_OFFSET;
                     }
-                    pileBounds = pileBounds.as_merged(card.Bounds);
+                    pileBounds = pileBounds.as_union_with(card.Bounds);
                 }
             } break;
             }
 
-            tableBounds = tableBounds == rect_f::Zero ? pileBounds : tableBounds.as_merged(pileBounds);
+            tableBounds = tableBounds == rect_f::Zero ? pileBounds : tableBounds.as_union_with(pileBounds);
         }
     }
 
@@ -377,9 +377,9 @@ auto card_table::get_drop_target_at(rect_f const& rect, card const& card, isize 
     f32             maxArea {0};
     hit_test_result retValue;
     for (auto const& candidate : candidates) {
-        auto const interSect {rect.as_intersected(candidate.Index == INDEX_MARKER
-                                                      ? candidate.Pile->Marker->Bounds
-                                                      : candidate.Pile->Cards[candidate.Index].Bounds)};
+        auto const interSect {rect.as_intersection_with(candidate.Index == INDEX_MARKER
+                                                            ? candidate.Pile->Marker->Bounds
+                                                            : candidate.Pile->Cards[candidate.Index].Bounds)};
         if (interSect.Width * interSect.Height > maxArea) {
             maxArea  = interSect.Width * interSect.Height;
             retValue = candidate;
