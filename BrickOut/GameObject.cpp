@@ -136,7 +136,7 @@ void paddle::reset()
     _size         = size_f {rect.Width / 8.0f, rect.Height / 40.0f};
     sprite.Bounds = {point_f::Zero, _size};
     rect_f const physRect {convert_to_physics({(rect.Width - _size.Width) / 2,
-                                               (rect.Height - _size.Height * 2),
+                                               (rect.Height - (_size.Height * 2)),
                                                _size.Width,
                                                _size.Height})};
 
@@ -146,8 +146,8 @@ void paddle::reset()
 
     physics::capsule_shape::settings settings;
     f32 const                        rad {physRect.Height / 2.0f};
-    settings.Center0     = {-physRect.Width / 2 + rad, 0};
-    settings.Center1     = {physRect.Width / 2 - rad, 0};
+    settings.Center0     = {(-physRect.Width / 2) + rad, 0};
+    settings.Center1     = {(physRect.Width / 2) - rad, 0};
     settings.Radius      = physRect.Height / 2.0f;
     settings.Restitution = 0.1f;
 
@@ -216,7 +216,7 @@ void ball::reset()
                                                _size.Width,
                                                _size.Height})};
 
-    body.Transform    = physics::body_transform {physRect.get_center(), 0};
+    body.Transform    = physics::body_transform {.Center = physRect.get_center(), .Angle = 0};
     body.Type         = physics::body_type::Dynamic;
     body.GravityScale = 0;
 
@@ -259,7 +259,7 @@ void ball::on_update(milliseconds deltaTime)
     if (speedY < minSpeedY) {
         velocity.Y = (velocity.Y > 0) ? minSpeedY : -minSpeedY;
     }
-    f32 const speed {velocity.length()};
+    f64 const speed {velocity.length()};
     if (speed < minSpeed) {
         velocity *= (minSpeed / speed);
     }
@@ -303,8 +303,8 @@ void brick::reset()
     f32 const  size {rect.Width / 20.f * _def.Size};
     _size             = size_f {_def.Shape == brick_def::shape::Square ? size : size * 2, size};
     rect_shape.Bounds = {point_f::Zero, _size};
-    rect_f const physRect {convert_to_physics({rect.X + rect.Width * _def.Position.X,
-                                               rect.Y + rect.Height * _def.Position.Y,
+    rect_f const physRect {convert_to_physics({rect.X + (rect.Width * _def.Position.X),
+                                               rect.Y + (rect.Height * _def.Position.Y),
                                                _size.Width,
                                                _size.Height})};
 
