@@ -54,6 +54,7 @@ protected:
     void on_key_up(input::keyboard::event& ev) override;
     void on_controller_button_down(input::controller::button_event& ev) override;
     void on_controller_button_up(input::controller::button_event& ev) override;
+    void on_controller_axis_motion(input::controller::axis_event& ev) override;
 
 private:
     assets::group& _resGrp;
@@ -75,6 +76,7 @@ private:
 
     paddle                                  _paddle;
     ball                                    _ball;
+    std::vector<brick_def>                  _brickDefs;
     std::vector<std::unique_ptr<brick>>     _bricks {};
     assets::manual_asset_ptr<gfx::material> _edgeMat;
 

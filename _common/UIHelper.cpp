@@ -239,7 +239,7 @@ void create_styles(assets::group const& resGrp, style_collection& styles)
         style->Border.Radius        = 5_px;
         style->Text.Style           = {false, gfx::font::weight::Normal};
         style->Text.Font            = resGrp.get<gfx::font_family>("Poppins");
-        style->Text.Size            = 10_px;
+        style->Text.Size            = 16_px;
         style->Text.Shadow.OffsetX  = 0_px;
         style->Text.Shadow.OffsetY  = 1_px;
         style->Text.Alignment       = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};

@@ -6,10 +6,12 @@ namespace BrickOut {
 
 ////////////////////////////////////////////////////////////
 
-game_object::game_object(field& parent)
+game_object::game_object(field& parent, lighting_type lt)
     : _parent {parent}
     , _sprite {parent.create_sprite()}
     , _physicsBody {parent.create_body({})}
+    , _lightSource {lt == lighting_type::Light ? _parent.create_light() : nullptr}
+    , _shadowCaster {lt == lighting_type::Shadow ? _parent.create_shadow() : nullptr}
 {
 }
 
@@ -33,6 +35,11 @@ void game_object::destroy()
         _parent.remove_sprite(_sprite);
         _sprite = nullptr;
     }
+
+    if (_shadowCaster) {
+        _parent.remove_shadow(_shadowCaster);
+        _shadowCaster = nullptr;
+    }
 }
 
 void game_object::update(milliseconds deltaTime)
@@ -42,6 +49,17 @@ void game_object::update(milliseconds deltaTime)
 
         _sprite->Bounds   = _sprite->Bounds->as_centered_at(convert_to_screen(pb).get_center());
         _sprite->Rotation = _physicsBody->Transform().Angle;
+
+        if (_lightSource) {
+            _lightSource->Position = _sprite->Bounds->get_center();
+        }
+
+        if (_shadowCaster) {
+            auto const& spriteBounds {_sprite->Bounds()};
+            auto const& xform {_sprite->get_transform()};
+            _shadowCaster->Points = {xform * spriteBounds.top_left(), xform * spriteBounds.bottom_left(),
+                                     xform * spriteBounds.bottom_right(), xform * spriteBounds.top_right()};
+        }
     }
 
     on_update(deltaTime);
@@ -62,11 +80,6 @@ void game_object::set_material(assets::asset_ptr<gfx::material> const& mat)
     _sprite->Material = mat;
 }
 
-auto game_object::get_field() -> field&
-{
-    return _parent;
-}
-
 auto game_object::get_sprite() -> gfx::rect_shape&
 {
     return *_sprite;
@@ -75,6 +88,16 @@ auto game_object::get_sprite() -> gfx::rect_shape&
 auto game_object::get_body() -> physics::body&
 {
     return *_physicsBody;
+}
+
+auto game_object::get_light_source() -> gfx::light_source&
+{
+    return *_lightSource;
+}
+
+auto game_object::get_shadow_caster() -> gfx::shadow_caster&
+{
+    return *_shadowCaster;
 }
 
 auto game_object::get_field_bounds() -> rect_f
@@ -95,7 +118,7 @@ auto game_object::convert_to_screen(rect_f const& physicsObject) const -> rect_f
 ////////////////////////////////////////////////////////////
 
 paddle::paddle(field& parent, assets::group& resGrp)
-    : game_object {parent}
+    : game_object {parent, lighting_type::None}
 {
     set_material(resGrp.get<gfx::material>("paddleBlu"));
     auto& body {get_body()};
@@ -137,23 +160,19 @@ void paddle::reset()
     _physicsMoveSpeed = convert_to_physics({{_moveSpeed, 0}, size_f::Zero}).X;
 }
 
-void paddle::move(direction dir)
+void paddle::move(f32 val)
 {
-    _dir = dir;
+    _dir = val;
 }
 
-void paddle::stop(direction dir)
+void paddle::stop()
 {
-    if (_dir == dir) {
-        _dir = direction::None;
-    }
+    _dir = 0;
 }
 
 void paddle::on_update(milliseconds deltaTime)
 {
-    if (_dir == direction::None) {
-        return;
-    }
+    if (_dir == 0.f) { return; }
 
     auto& body {get_body()};
     auto  xform {body.Transform()};
@@ -163,31 +182,19 @@ void paddle::on_update(milliseconds deltaTime)
     bodyRect.Width = _size.Width + _moveSpeed * 2;
     bodyRect.X -= bodyRect.Width / 2;
 
-    switch (_dir) {
-    case direction::Left:
-        if (bodyRect.left() > rect.left()) {
-            xform.Center.X -= _physicsMoveSpeed;
-        } else {
-            _dir = direction::None;
-        }
-        break;
-    case direction::Right:
-        if (bodyRect.right() < rect.right()) {
-            xform.Center.X += _physicsMoveSpeed;
-        } else {
-            _dir = direction::None;
-        }
-        break;
-    default: break;
+    if ((_dir < 0.0f && bodyRect.left() <= rect.left())
+        || (_dir > 0.0f && bodyRect.right() >= rect.right())) {
+        _dir = 0.0f;
     }
 
+    xform.Center.X += _physicsMoveSpeed * _dir;
     body.Transform = xform;
 }
 
 ////////////////////////////////////////////////////////////
 
 ball::ball(field& parent, assets::group& resGrp)
-    : game_object {parent}
+    : game_object {parent, lighting_type::Light}
 {
     set_material(resGrp.get<gfx::material>("ballBlue"));
     auto& body {get_body()};
@@ -228,9 +235,9 @@ void ball::reset()
 
     _failHeight = rect.Height - _size.Height / 2;
 
-    _lightSource        = get_field().create_light();
-    _lightSource->Color = {255, 255, 255, 128};
-    _lightSource->Range = 500;
+    auto& lightSource {get_light_source()};
+    lightSource.Color = {255, 255, 255, 128};
+    lightSource.Range = 500;
 }
 
 void ball::on_update(milliseconds deltaTime)
@@ -241,16 +248,31 @@ void ball::on_update(milliseconds deltaTime)
     auto bodyRect {convert_to_screen({xform.Center, size_f::Zero})};
     bodyRect.Height = _size.Height;
 
-    if (bodyRect.bottom() >= _failHeight) {
-        fail();
+    if (bodyRect.bottom() >= _failHeight) { fail(); }
+
+    constexpr f32 minSpeed {20};
+    constexpr f32 minSpeedY {5};
+    constexpr f32 maxSpeed {50};
+
+    point_f   velocity {body.LinearVelocity()};
+    f32 const speedY {std::abs(velocity.Y)};
+    if (speedY < minSpeedY) {
+        velocity.Y = (velocity.Y > 0) ? minSpeedY : -minSpeedY;
     }
-    _lightSource->Position = get_sprite().Bounds->get_center();
+    f32 const speed {velocity.length()};
+    if (speed < minSpeed) {
+        velocity *= (minSpeed / speed);
+    }
+    if (speed > maxSpeed) {
+        velocity *= (maxSpeed / speed);
+    }
+    body.LinearVelocity = velocity;
 }
 
 ////////////////////////////////////////////////////////////
 
 brick::brick(field& parent, assets::group& resGrp, brick_def def)
-    : game_object {parent}
+    : game_object {parent, lighting_type::Shadow}
     , _def {def}
 {
     std::string matName {"element_"};
@@ -339,7 +361,6 @@ void brick::reset()
     }
 
     create_shape<physics::rect_shape>(settings);
-    _shadowCaster = get_field().create_shadow();
 }
 
 void brick::on_update(milliseconds deltaTime)
@@ -359,18 +380,7 @@ void brick::on_update(milliseconds deltaTime)
         _timeOut -= deltaTime;
         if (_timeOut <= 0s) {
             destroy();
-            if (_shadowCaster) {
-                get_field().remove_shadow(_shadowCaster);
-                _shadowCaster = nullptr;
-            }
         }
-    }
-
-    if (_shadowCaster) {
-        auto const& spriteBounds {get_sprite().Bounds()};
-        auto const& xform {get_sprite().get_transform()};
-        _shadowCaster->Points = {xform * spriteBounds.top_left(), xform * spriteBounds.bottom_left(),
-                                 xform * spriteBounds.bottom_right(), xform * spriteBounds.top_right()};
     }
 }
 

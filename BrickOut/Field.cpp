@@ -64,12 +64,10 @@ void field::start(std::span<brick_def const> bricks)
 
     _physicsWorld.Gravity = {0, 50};
 
-    _lightingSystem.clear_light_sources();
-    _lightingSystem.clear_shadow_casters();
-
     _paddle.reset();
     _ball.reset();
 
+    _brickDefs.assign(bricks.begin(), bricks.end());
     _bricks.clear();
     for (auto const& brickDef : bricks) {
         _bricks.emplace_back(std::make_unique<brick>(*this, _resGrp, brickDef))->reset();
@@ -189,8 +187,8 @@ void field::on_key_down(input::keyboard::event& ev)
 {
     if (!ev.Repeat) {
         switch (ev.KeyCode) {
-        case input::key_code::RIGHT: _paddle.move(direction::Right); break;
-        case input::key_code::LEFT: _paddle.move(direction::Left); break;
+        case input::key_code::RIGHT: _paddle.move(1); break;
+        case input::key_code::LEFT: _paddle.move(-1); break;
         case input::key_code::d:
             switch (_debug) {
             case debug_mode::Off: _debug = debug_mode::Transparent; break;
@@ -208,8 +206,8 @@ void field::on_key_up(input::keyboard::event& ev)
 {
     if (!ev.Repeat) {
         switch (ev.KeyCode) {
-        case input::key_code::RIGHT: _paddle.stop(direction::Right); break;
-        case input::key_code::LEFT: _paddle.stop(direction::Left); break;
+        case input::key_code::RIGHT: _paddle.stop(); break;
+        case input::key_code::LEFT: _paddle.stop(); break;
         default: break;
         }
     }
@@ -218,8 +216,9 @@ void field::on_key_up(input::keyboard::event& ev)
 void field::on_controller_button_down(input::controller::button_event& ev)
 {
     switch (ev.Button) {
-    case input::controller::button::DPadRight: _paddle.move(direction::Right); break;
-    case input::controller::button::DPadLeft: _paddle.move(direction::Left); break;
+    case input::controller::button::Start: start(_brickDefs); break;
+    case input::controller::button::DPadRight: _paddle.move(1); break;
+    case input::controller::button::DPadLeft: _paddle.move(-1); break;
     default: break;
     }
 }
@@ -227,8 +226,26 @@ void field::on_controller_button_down(input::controller::button_event& ev)
 void field::on_controller_button_up(input::controller::button_event& ev)
 {
     switch (ev.Button) {
-    case input::controller::button::DPadRight: _paddle.stop(direction::Right); break;
-    case input::controller::button::DPadLeft: _paddle.stop(direction::Left); break;
+    case input::controller::button::DPadRight: _paddle.stop(); break;
+    case input::controller::button::DPadLeft: _paddle.stop(); break;
+    default: break;
+    }
+}
+
+void field::on_controller_axis_motion(input::controller::axis_event& ev)
+{
+    switch (ev.Axis) {
+    case input::controller::axis::LeftX:
+        if (ev.RelativeValue > 0.25f) {
+            _paddle.move(ev.RelativeValue);
+        } else if (ev.RelativeValue < -0.25f) {
+            _paddle.move(ev.RelativeValue);
+        } else {
+            _paddle.stop();
+        }
+
+        logger::Debug("{}", ev.RelativeValue);
+        break;
     default: break;
     }
 }
