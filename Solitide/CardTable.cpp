@@ -214,7 +214,7 @@ auto card_table::can_draw() const -> bool
     return _currentGame != nullptr;
 }
 
-void card_table::on_key_down(input::keyboard::event& ev)
+void card_table::on_key_down(input::keyboard::event const& ev)
 {
     if (!_currentGame) { return; }
 
@@ -237,7 +237,7 @@ void card_table::on_key_down(input::keyboard::event& ev)
     }
 }
 
-void card_table::on_mouse_motion(input::mouse::motion_event& ev)
+void card_table::on_mouse_motion(input::mouse::motion_event const& ev)
 {
     if (!_currentGame || _currentGame->Status != game_status::Running) { return; }
 
@@ -256,7 +256,7 @@ void card_table::on_mouse_motion(input::mouse::motion_event& ev)
     ev.Handled = true;
 }
 
-void card_table::on_mouse_button_down(input::mouse::button_event& ev)
+void card_table::on_mouse_button_down(input::mouse::button_event const& ev)
 {
     if (!_currentGame || _currentGame->Status != game_status::Running) { return; }
 
@@ -278,7 +278,7 @@ void card_table::on_mouse_button_down(input::mouse::button_event& ev)
     }
 }
 
-void card_table::on_mouse_button_up(input::mouse::button_event& ev)
+void card_table::on_mouse_button_up(input::mouse::button_event const& ev)
 {
     if (!_currentGame || _currentGame->Status != game_status::Running) { return; }
 

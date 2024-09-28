@@ -50,11 +50,11 @@ protected:
     void on_draw_to(gfx::render_target& target) override;
     auto can_draw() const -> bool override;
 
-    void on_key_down(input::keyboard::event& ev) override;
-    void on_key_up(input::keyboard::event& ev) override;
-    void on_controller_button_down(input::controller::button_event& ev) override;
-    void on_controller_button_up(input::controller::button_event& ev) override;
-    void on_controller_axis_motion(input::controller::axis_event& ev) override;
+    void on_key_down(input::keyboard::event const& ev) override;
+    void on_key_up(input::keyboard::event const& ev) override;
+    void on_controller_button_down(input::controller::button_event const& ev) override;
+    void on_controller_button_up(input::controller::button_event const& ev) override;
+    void on_controller_axis_motion(input::controller::axis_event const& ev) override;
 
 private:
     assets::group& _resGrp;

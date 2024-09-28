@@ -73,7 +73,7 @@ void start_scene::on_fixed_update(milliseconds deltaTime)
     get_window().Title = "Snake |" + stream.str();
 }
 
-void start_scene::on_key_down(input::keyboard::event& ev)
+void start_scene::on_key_down(input::keyboard::event const& ev)
 {
     switch (ev.ScanCode) {
     case input::scan_code::BACKSPACE:
@@ -84,7 +84,7 @@ void start_scene::on_key_down(input::keyboard::event& ev)
     }
 }
 
-void start_scene::on_controller_button_down(input::controller::button_event& ev)
+void start_scene::on_controller_button_down(input::controller::button_event const& ev)
 {
     if (ev.Button == input::controller::button::Start) {
         _playField->start();

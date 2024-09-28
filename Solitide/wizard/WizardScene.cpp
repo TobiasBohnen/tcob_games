@@ -76,7 +76,7 @@ void wizard_scene::on_fixed_update(milliseconds)
 {
 }
 
-void wizard_scene::on_key_down(input::keyboard::event& ev)
+void wizard_scene::on_key_down(input::keyboard::event const& ev)
 {
     switch (ev.ScanCode) {
     case input::scan_code::BACKSPACE:

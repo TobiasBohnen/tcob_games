@@ -26,8 +26,8 @@ protected:
     void on_update(milliseconds deltaTime) override;
     void on_fixed_update(milliseconds deltaTime) override;
 
-    void on_key_down(input::keyboard::event& ev) override;
-    void on_controller_button_down(input::controller::button_event& ev) override;
+    void on_key_down(input::keyboard::event const& ev) override;
+    void on_controller_button_down(input::controller::button_event const& ev) override;
 
 private:
     std::shared_ptr<field>     _playField {};

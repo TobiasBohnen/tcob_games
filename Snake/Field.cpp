@@ -85,7 +85,7 @@ auto field::can_draw() const -> bool
     return true;
 }
 
-void field::on_key_down(input::keyboard::event& ev)
+void field::on_key_down(input::keyboard::event const& ev)
 {
     switch (ev.KeyCode) {
     case input::key_code::RIGHT: _snake.turn(direction::Right); break;
@@ -96,7 +96,7 @@ void field::on_key_down(input::keyboard::event& ev)
     }
 }
 
-void field::on_controller_button_down(input::controller::button_event& ev)
+void field::on_controller_button_down(input::controller::button_event const& ev)
 {
     switch (ev.Button) {
     case input::controller::button::DPadRight: _snake.turn(direction::Right); break;

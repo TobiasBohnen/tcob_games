@@ -72,7 +72,7 @@ public:
     void submit_settings(data::config::object& obj);
 
 protected:
-    void on_key_down(input::keyboard::event& ev) override;
+    void on_key_down(input::keyboard::event const& ev) override;
 
 private:
     void create_section_games(tab_container& parent);

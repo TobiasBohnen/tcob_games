@@ -239,7 +239,7 @@ void main_scene::on_fixed_update(milliseconds deltaTime)
 #endif
 }
 
-void main_scene::on_key_down(input::keyboard::event& ev)
+void main_scene::on_key_down(input::keyboard::event const& ev)
 {
     if (_formMenu->get_focus_widget() != nullptr) { return; }
 

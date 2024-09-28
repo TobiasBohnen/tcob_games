@@ -183,7 +183,7 @@ auto field::can_draw() const -> bool
     return true;
 }
 
-void field::on_key_down(input::keyboard::event& ev)
+void field::on_key_down(input::keyboard::event const& ev)
 {
     if (!ev.Repeat) {
         switch (ev.KeyCode) {
@@ -202,7 +202,7 @@ void field::on_key_down(input::keyboard::event& ev)
     }
 }
 
-void field::on_key_up(input::keyboard::event& ev)
+void field::on_key_up(input::keyboard::event const& ev)
 {
     if (!ev.Repeat) {
         switch (ev.KeyCode) {
@@ -213,7 +213,7 @@ void field::on_key_up(input::keyboard::event& ev)
     }
 }
 
-void field::on_controller_button_down(input::controller::button_event& ev)
+void field::on_controller_button_down(input::controller::button_event const& ev)
 {
     switch (ev.Button) {
     case input::controller::button::Start: start(_brickDefs); break;
@@ -223,7 +223,7 @@ void field::on_controller_button_down(input::controller::button_event& ev)
     }
 }
 
-void field::on_controller_button_up(input::controller::button_event& ev)
+void field::on_controller_button_up(input::controller::button_event const& ev)
 {
     switch (ev.Button) {
     case input::controller::button::DPadRight: _paddle.stop(); break;
@@ -232,7 +232,7 @@ void field::on_controller_button_up(input::controller::button_event& ev)
     }
 }
 
-void field::on_controller_axis_motion(input::controller::axis_event& ev)
+void field::on_controller_axis_motion(input::controller::axis_event const& ev)
 {
     switch (ev.Axis) {
     case input::controller::axis::LeftX:

@@ -162,7 +162,7 @@ void form_menu::submit_settings(data::config::object& obj)
     dynamic_cast<tab_container*>(find_widget_by_name(TabSettingsName).get())->submit(obj);
 }
 
-void form_menu::on_key_down(input::keyboard::event& ev)
+void form_menu::on_key_down(input::keyboard::event const& ev)
 {
     if (ev.KeyCode == input::key_code::ESCAPE) {
         hide();

@@ -42,9 +42,9 @@ protected:
     void on_draw_to(gfx::render_target& target) override;
     auto can_draw() const -> bool override;
 
-    void on_key_down(input::keyboard::event& ev) override;
-    void on_mouse_button_up(input::mouse::button_event& ev) override;
-    void on_mouse_motion(input::mouse::motion_event& ev) override;
+    void on_key_down(input::keyboard::event const& ev) override;
+    void on_mouse_button_up(input::mouse::button_event const& ev) override;
+    void on_mouse_motion(input::mouse::motion_event const& ev) override;
 
 private:
     void process_left_click();

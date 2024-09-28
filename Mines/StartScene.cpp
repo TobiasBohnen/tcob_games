@@ -70,7 +70,7 @@ void start_scene::on_fixed_update(milliseconds deltaTime)
     get_window().Title = "Mines |" + stream.str();
 }
 
-void start_scene::on_key_down(input::keyboard::event& ev)
+void start_scene::on_key_down(input::keyboard::event const& ev)
 {
     switch (ev.ScanCode) {
     case input::scan_code::BACKSPACE:

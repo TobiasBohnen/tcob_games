@@ -321,7 +321,7 @@ auto field::get_tile_size() const -> size_f
     return size_f {size, size};
 }
 
-void field::on_key_down(input::keyboard::event& ev)
+void field::on_key_down(input::keyboard::event const& ev)
 {
     switch (ev.ScanCode) {
     case input::scan_code::C:
@@ -332,7 +332,7 @@ void field::on_key_down(input::keyboard::event& ev)
     }
 }
 
-void field::on_mouse_button_up(input::mouse::button_event& ev)
+void field::on_mouse_button_up(input::mouse::button_event const& ev)
 {
     switch (ev.Button) {
     case input::mouse::button::Left:
@@ -346,7 +346,7 @@ void field::on_mouse_button_up(input::mouse::button_event& ev)
     }
 }
 
-void field::on_mouse_motion(input::mouse::motion_event& ev)
+void field::on_mouse_motion(input::mouse::motion_event const& ev)
 {
     process_mouse_motion(static_cast<point_f>(ev.Position));
 }
