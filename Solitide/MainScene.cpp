@@ -329,8 +329,8 @@ void main_scene::start_game(std::string const& name, start_reason reason, std::o
     _currentRules = generate_rule(name);
 
     auto& camera {*get_window().Camera};
-    camera.set_position(point_f::Zero);
-    camera.set_zoom(size_f::One);
+    camera.Position = point_f::Zero;
+    camera.Zoom     = size_f::One;
 
     auto* currentGame {_cardTable->game()};
     if (reason == start_reason::Resume) {         // save current game
