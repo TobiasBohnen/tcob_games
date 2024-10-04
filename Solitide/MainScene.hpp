@@ -16,7 +16,7 @@ namespace solitaire {
 
 ////////////////////////////////////////////////////////////
 
-enum class start_reason {
+enum class start_reason : u8 {
     Restart,
     Resume
 };
