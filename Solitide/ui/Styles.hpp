@@ -20,7 +20,7 @@ public:
 
 private:
     template <typename T>
-    auto create(data::config::object const& obj, style_collection& styles, std::vector<std::string> const& names, style_flags flags);
+    auto create(data::config::object const& obj, style_collection& styles, std::string_view name, style_flags flags);
 
     void parse(data::config::object const& obj, accordion::style* style);
     void parse(data::config::object const& obj, button::style* style);
@@ -59,10 +59,10 @@ private:
 };
 
 template <typename T>
-inline auto styles::create(data::config::object const& obj, style_collection& styles, std::vector<std::string> const& names, style_flags flags)
+inline auto styles::create(data::config::object const& obj, style_collection& styles, std::string_view name, style_flags flags)
 {
-    auto style {styles.create<T>(names[0], flags)};
-    if (names.size() > 0) { *style = *dynamic_cast<T*>(styles.get(names[0], {}, {})); }
+    auto style {styles.create<T>(std::string {name}, flags)};
+    *style = *dynamic_cast<T*>(styles.get(std::string {name}, {}, {}));
     parse(obj, style.get());
     return style;
 }

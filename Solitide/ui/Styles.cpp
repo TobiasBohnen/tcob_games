@@ -32,7 +32,7 @@ auto static get_length_values(tcob::data::config::cfg_value const& config) -> st
     std::vector<gfx::ui::length> l;
 
     auto const strings {helper::split(std::get<utf8_string>(config), ',')};
-    for (auto const& str : strings) {
+    for (auto str : strings) {
         auto const [valueStr, unit] {parse_unit_value(str)};
         f32 const valueF {std::stof(valueStr)};
         if (unit == "px") {
@@ -171,7 +171,7 @@ auto styles::load(color_themes const& theme) -> style_collection
 
     object styleFile {};
     if (styleFile.load("styles.json") != load_status::Ok) { return retValue; }
-    std::unordered_map<std::string, std::string> typeMap;
+    std::unordered_map<std::string_view, std::string> typeMap;
 
     for (auto const& entry : styleFile) {
         object styleObj;
@@ -203,27 +203,27 @@ auto styles::load(color_themes const& theme) -> style_collection
         });
 
         std::unordered_map<std::string, std::function<void()>> const styleCreators {
-            {"accordion", [&]() { applyTheme(create<accordion::style>(styleObj, retValue, names, flags)); }},
-            {"button", [&]() { applyTheme(create<button::style>(styleObj, retValue, names, flags)); }},
-            {"checkbox", [&]() { applyTheme(create<checkbox::style>(styleObj, retValue, names, flags)); }},
-            {"cycle_button", [&]() { applyTheme(create<cycle_button::style>(styleObj, retValue, names, flags)); }},
-            {"drop_down_list", [&]() { applyTheme(create<drop_down_list::style>(styleObj, retValue, names, flags)); }},
-            {"grid_view", [&]() { applyTheme(create<grid_view::style>(styleObj, retValue, names, flags)); }},
-            {"image_box", [&]() { applyTheme(create<image_box::style>(styleObj, retValue, names, flags)); }},
-            {"label", [&]() { applyTheme(create<label::style>(styleObj, retValue, names, flags)); }},
-            {"list_box", [&]() { applyTheme(create<list_box::style>(styleObj, retValue, names, flags)); }},
-            {"panel", [&]() { applyTheme(create<panel::style>(styleObj, retValue, names, flags)); }},
-            {"progress_bar", [&]() { applyTheme(create<progress_bar::style>(styleObj, retValue, names, flags)); }},
-            {"radio_button", [&]() { applyTheme(create<radio_button::style>(styleObj, retValue, names, flags)); }},
-            {"slider", [&]() { applyTheme(create<slider::style>(styleObj, retValue, names, flags)); }},
-            {"spinner", [&]() { applyTheme(create<spinner::style>(styleObj, retValue, names, flags)); }},
-            {"tab_container", [&]() { applyTheme(create<tab_container::style>(styleObj, retValue, names, flags)); }},
-            {"text_box", [&]() { applyTheme(create<text_box::style>(styleObj, retValue, names, flags)); }},
-            {"toggle", [&]() { applyTheme(create<toggle::style>(styleObj, retValue, names, flags)); }},
-            {"tooltip", [&]() { applyTheme(create<tooltip::style>(styleObj, retValue, names, flags)); }},
-            {"thumb", [&]() { applyTheme(create<thumb_style>(styleObj, retValue, names, flags)); }},
-            {"nav_arrow", [&]() { applyTheme(create<nav_arrows_style>(styleObj, retValue, names, flags)); }},
-            {"item", [&]() { applyTheme(create<item_style>(styleObj, retValue, names, flags)); }}};
+            {"accordion", [&]() { applyTheme(create<accordion::style>(styleObj, retValue, names[0], flags)); }},
+            {"button", [&]() { applyTheme(create<button::style>(styleObj, retValue, names[0], flags)); }},
+            {"checkbox", [&]() { applyTheme(create<checkbox::style>(styleObj, retValue, names[0], flags)); }},
+            {"cycle_button", [&]() { applyTheme(create<cycle_button::style>(styleObj, retValue, names[0], flags)); }},
+            {"drop_down_list", [&]() { applyTheme(create<drop_down_list::style>(styleObj, retValue, names[0], flags)); }},
+            {"grid_view", [&]() { applyTheme(create<grid_view::style>(styleObj, retValue, names[0], flags)); }},
+            {"image_box", [&]() { applyTheme(create<image_box::style>(styleObj, retValue, names[0], flags)); }},
+            {"label", [&]() { applyTheme(create<label::style>(styleObj, retValue, names[0], flags)); }},
+            {"list_box", [&]() { applyTheme(create<list_box::style>(styleObj, retValue, names[0], flags)); }},
+            {"panel", [&]() { applyTheme(create<panel::style>(styleObj, retValue, names[0], flags)); }},
+            {"progress_bar", [&]() { applyTheme(create<progress_bar::style>(styleObj, retValue, names[0], flags)); }},
+            {"radio_button", [&]() { applyTheme(create<radio_button::style>(styleObj, retValue, names[0], flags)); }},
+            {"slider", [&]() { applyTheme(create<slider::style>(styleObj, retValue, names[0], flags)); }},
+            {"spinner", [&]() { applyTheme(create<spinner::style>(styleObj, retValue, names[0], flags)); }},
+            {"tab_container", [&]() { applyTheme(create<tab_container::style>(styleObj, retValue, names[0], flags)); }},
+            {"text_box", [&]() { applyTheme(create<text_box::style>(styleObj, retValue, names[0], flags)); }},
+            {"toggle", [&]() { applyTheme(create<toggle::style>(styleObj, retValue, names[0], flags)); }},
+            {"tooltip", [&]() { applyTheme(create<tooltip::style>(styleObj, retValue, names[0], flags)); }},
+            {"thumb", [&]() { applyTheme(create<thumb_style>(styleObj, retValue, names[0], flags)); }},
+            {"nav_arrow", [&]() { applyTheme(create<nav_arrows_style>(styleObj, retValue, names[0], flags)); }},
+            {"item", [&]() { applyTheme(create<item_style>(styleObj, retValue, names[0], flags)); }}};
         auto it {styleCreators.find(type)};
         if (it != styleCreators.end()) {
             it->second();
