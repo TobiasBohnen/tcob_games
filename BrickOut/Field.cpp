@@ -11,7 +11,7 @@ constexpr float physicsWorldSize {50.0};
 
 field::field(assets::group& resGrp, i32 padding, size_i windowSize)
     : _resGrp {resGrp}
-    , _debugDraw {resGrp.get<gfx::font_family>("Poppins")->get_font({}, 16).get_obj()}
+    , _debugDraw {resGrp.get<gfx::font_family>("Poppins")->get_font({}, 16).get_ptr()}
     , _paddle {*this, resGrp}
     , _ball {*this, resGrp}
 {

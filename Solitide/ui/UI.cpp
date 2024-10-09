@@ -29,7 +29,7 @@ auto static make_tooltip(menu_sources& sources, form* form) -> std::shared_ptr<t
 
         auto const  bounds {widget->Bounds()};
         auto const& style {lbl->get_style<label::style>()->Text};
-        auto* const font {style.Font->get_font(style.Style, style.calc_font_size({0, 0, bounds.Width * 1.5f, bounds.Height * 0.75f})).get_obj()};
+        auto* const font {style.Font->get_font(style.Style, style.calc_font_size({0, 0, bounds.Width * 1.5f, bounds.Height * 0.75f})).get_ptr()};
         tt->Bounds = {point_f::Zero, gfx::text_formatter::measure(lbl->Label(), *font, -1, true)};
     });
     return retValue;

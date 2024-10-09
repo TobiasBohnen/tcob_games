@@ -117,7 +117,7 @@ auto card_set::get_folder() const -> std::string
 
 auto card_set::get_texture() const -> gfx::texture*
 {
-    return _texture.get_obj();
+    return _texture.get_ptr();
 }
 
 auto card_set::is_loaded() const -> bool
@@ -240,8 +240,8 @@ void gen_cardset::create(assets::group& resGrp)
     canvas.begin_frame(size_i {canvasSize}, 1.0f);
 
     auto        fontFamily {resGrp.get<gfx::font_family>(FONT)};
-    fonts const fonts {.NormalFont = fontFamily->get_font({false, gfx::font::weight::Normal}, static_cast<u32>(texSize.Height / 7.5f)).get_obj(),
-                       .LargeFont  = fontFamily->get_font({false, gfx::font::weight::Bold}, static_cast<u32>(texSize.Height / 2)).get_obj()};
+    fonts const fonts {.NormalFont = fontFamily->get_font({false, gfx::font::weight::Normal}, static_cast<u32>(texSize.Height / 7.5f)).get_ptr(),
+                       .LargeFont  = fontFamily->get_font({false, gfx::font::weight::Bold}, static_cast<u32>(texSize.Height / 2)).get_ptr()};
 
     canvas.set_text_halign(gfx::horizontal_alignment::Centered);
     canvas.set_text_valign(gfx::vertical_alignment::Middle);
@@ -533,7 +533,7 @@ void mini_cardset::create(assets::group& resGrp, size_f texSize)
     auto       fontFamily {resGrp.get<gfx::font_family>(FONT)};
     gfx::font* font {fontFamily->get_font({false, gfx::font::weight::Normal},
                                           static_cast<u32>((isHori ? texSize.Height : texSize.Width) * 0.9f))
-                         .get_obj()};
+                         .get_ptr()};
 
     canvas.set_text_halign(gfx::horizontal_alignment::Centered);
     canvas.set_text_valign(gfx::vertical_alignment::Middle);
