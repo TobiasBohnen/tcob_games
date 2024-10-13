@@ -175,9 +175,9 @@ void card_table::move_camera(rect_f const& cardBounds)
 
     auto const winSize {_camera.Size()};
 
-    f32 const     hDiff {static_cast<f32>(winSize.Height - Bounds->Height)};
-    f32 const     zoom {std::min(winSize.Width / cardBounds.Width, (winSize.Height - hDiff) / cardBounds.Height)};
-    point_f const pos {cardBounds.get_center() + point_f {0, (Bounds->Y / zoom) / 2}};
+    f32 const     hDiff {static_cast<f32>(winSize.Height - Bounds->height())};
+    f32 const     zoom {std::min(winSize.Width / cardBounds.width(), (winSize.Height - hDiff) / cardBounds.height())};
+    point_f const pos {cardBounds.get_center() + point_f {0, (Bounds->top() / zoom) / 2}};
 
     if (_camInstant) {
         _camera.look_at(pos);
@@ -380,8 +380,8 @@ auto card_table::get_drop_target_at(rect_f const& rect, card const& card, isize 
         auto const interSect {rect.as_intersection_with(candidate.Index == INDEX_MARKER
                                                             ? candidate.Pile->Marker->Bounds
                                                             : candidate.Pile->Cards[candidate.Index].Bounds)};
-        if (interSect.Width * interSect.Height > maxArea) {
-            maxArea  = interSect.Width * interSect.Height;
+        if (interSect.width() * interSect.height() > maxArea) {
+            maxArea  = interSect.width() * interSect.height();
             retValue = candidate;
         }
     }

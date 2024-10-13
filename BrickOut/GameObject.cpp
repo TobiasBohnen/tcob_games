@@ -133,10 +133,10 @@ void paddle::reset()
 
     auto const rect {get_field_bounds()};
     auto&      sprite {get_sprite()};
-    _size         = size_f {rect.Width / 8.0f, rect.Height / 40.0f};
+    _size         = size_f {rect.width() / 8.0f, rect.height() / 40.0f};
     sprite.Bounds = {point_f::Zero, _size};
-    rect_f const physRect {convert_to_physics({(rect.Width - _size.Width) / 2,
-                                               (rect.Height - (_size.Height * 2)),
+    rect_f const physRect {convert_to_physics({(rect.width() - _size.Width) / 2,
+                                               (rect.height() - (_size.Height * 2)),
                                                _size.Width,
                                                _size.Height})};
 
@@ -145,10 +145,10 @@ void paddle::reset()
     body.GravityScale = 0;
 
     physics::capsule_shape::settings settings;
-    f32 const                        rad {physRect.Height / 2.0f};
-    settings.Center0     = {(-physRect.Width / 2) + rad, 0};
-    settings.Center1     = {(physRect.Width / 2) - rad, 0};
-    settings.Radius      = physRect.Height / 2.0f;
+    f32 const                        rad {physRect.Size.Height / 2.0f};
+    settings.Center0     = {(-physRect.Size.Width / 2) + rad, 0};
+    settings.Center1     = {(physRect.Size.Width / 2) - rad, 0};
+    settings.Radius      = physRect.Size.Height / 2.0f;
     settings.Restitution = 0.1f;
 
     settings.Density  = 10.0f;
@@ -156,8 +156,8 @@ void paddle::reset()
 
     create_shape<physics::capsule_shape>(settings);
 
-    _moveSpeed        = rect.Width / 75.f;
-    _physicsMoveSpeed = convert_to_physics({{_moveSpeed, 0}, size_f::Zero}).X;
+    _moveSpeed        = rect.width() / 75.f;
+    _physicsMoveSpeed = convert_to_physics({{_moveSpeed, 0}, size_f::Zero}).Position.X;
 }
 
 void paddle::move(f32 val)
@@ -179,8 +179,8 @@ void paddle::on_update(milliseconds deltaTime)
 
     auto const rect {get_field_bounds()};
     auto       bodyRect {convert_to_screen({xform.Center, size_f::Zero})};
-    bodyRect.Width = _size.Width + _moveSpeed * 2;
-    bodyRect.X -= bodyRect.Width / 2;
+    bodyRect.Size.Width = _size.Width + _moveSpeed * 2;
+    bodyRect.Position.X -= bodyRect.Size.Width / 2;
 
     if ((_dir < 0.0f && bodyRect.left() <= rect.left())
         || (_dir > 0.0f && bodyRect.right() >= rect.right())) {
@@ -209,10 +209,10 @@ void ball::reset()
 
     auto const rect {get_field_bounds()};
     auto&      rect_shape {get_sprite()};
-    _size             = size_f {rect.Width / 40.0f, rect.Height / 40.0f};
+    _size             = size_f {rect.width() / 40.0f, rect.height() / 40.0f};
     rect_shape.Bounds = {point_f::Zero, _size};
-    rect_f const physRect {convert_to_physics({(rect.Width - _size.Width) / 2,
-                                               (rect.Height / 2.0f),
+    rect_f const physRect {convert_to_physics({(rect.width() - _size.Width) / 2,
+                                               (rect.height() / 2.0f),
                                                _size.Width,
                                                _size.Height})};
 
@@ -221,7 +221,7 @@ void ball::reset()
     body.GravityScale = 0;
 
     physics::circle_shape::settings settings;
-    settings.Radius = {physRect.get_size().Width / 2};
+    settings.Radius = {physRect.Size.Width / 2};
 
     settings.Friction    = 0.01f;
     settings.Restitution = 1.f;
@@ -233,7 +233,7 @@ void ball::reset()
     point_f const force {rand(-10.f, 10.f), -10};
     body.apply_linear_impulse(force, physRect.get_center());
 
-    _failHeight = rect.Height - _size.Height / 2;
+    _failHeight = rect.height() - _size.Height / 2;
 
     auto& lightSource {get_light_source()};
     lightSource.Color = {255, 255, 255, 128};
@@ -246,7 +246,7 @@ void ball::on_update(milliseconds deltaTime)
     auto  xform {body.Transform()};
 
     auto bodyRect {convert_to_screen({xform.Center, size_f::Zero})};
-    bodyRect.Height = _size.Height;
+    bodyRect.Size.Height = _size.Height;
 
     if (bodyRect.bottom() >= _failHeight) { fail(); }
 
@@ -300,11 +300,11 @@ void brick::reset()
 
     auto const rect {get_field_bounds()};
     auto&      rect_shape {get_sprite()};
-    f32 const  size {rect.Width / 20.f * _def.Size};
+    f32 const  size {rect.width() / 20.f * _def.Size};
     _size             = size_f {_def.Shape == brick_def::shape::Square ? size : size * 2, size};
     rect_shape.Bounds = {point_f::Zero, _size};
-    rect_f const physRect {convert_to_physics({rect.X + (rect.Width * _def.Position.X),
-                                               rect.Y + (rect.Height * _def.Position.Y),
+    rect_f const physRect {convert_to_physics({rect.Position.X + (rect.width() * _def.Position.X),
+                                               rect.Position.Y + (rect.height() * _def.Position.Y),
                                                _size.Width,
                                                _size.Height})};
 
@@ -313,7 +313,7 @@ void brick::reset()
     body.IsAwake   = false;
 
     physics::rect_shape::settings settings;
-    settings.Extents = {point_f::Zero, physRect.get_size()};
+    settings.Extents = {point_f::Zero, physRect.Size};
 
     switch (_def.Color) {
     case brick_def::color::Blue:
@@ -370,9 +370,9 @@ void brick::on_update(milliseconds deltaTime)
         auto  xform {body.Transform()};
 
         auto bodyRect {convert_to_screen({xform.Center, size_f::Zero})};
-        bodyRect.Height = _size.Height;
+        bodyRect.Size.Height = _size.Height;
 
-        if (bodyRect.top() >= get_field_bounds().Height * 0.8f) {
+        if (bodyRect.top() >= get_field_bounds().Size.Height * 0.8f) {
             _dead = true;
             give_score(100);
         }

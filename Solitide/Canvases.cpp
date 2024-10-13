@@ -40,14 +40,14 @@ void foreground_canvas::show_hint()
 
 void foreground_canvas::draw(gfx::render_target& target)
 {
-    if (target.Size != _bounds.get_size()) {
+    if (target.Size != _bounds.Size) {
         _bounds      = {point_i::Zero, target.Size()};
         _canvasDirty = true;
         _renderer.set_bounds(rect_f {_bounds});
     }
 
     if (_canvasDirty) {
-        _canvas.begin_frame(_bounds.get_size(), 1.0f);
+        _canvas.begin_frame(_bounds.Size, 1.0f);
 
         _canvas.save();
         _canvas.set_scissor(_parent.Bounds);
@@ -169,7 +169,7 @@ void foreground_canvas::draw_state()
     if (_lastStatus != game_status::Success && _lastStatus != game_status::Failure) { return; }
 
     auto const& pBounds {_parent.Bounds};
-    f32 const   size {pBounds->get_size().Width / 5};
+    f32 const   size {pBounds->width() / 5};
     rect_f      bounds {pBounds->get_center() - point_f {size / 2, size / 2}, {size, size}};
 
     _canvas.set_fill_style(colors::Silver);
@@ -180,9 +180,9 @@ void foreground_canvas::draw_state()
     _canvas.set_stroke_width(5);
     _canvas.stroke();
 
-    bounds = bounds.as_padded_by(bounds.get_size() / 5);
+    bounds = bounds.as_padded_by(bounds.Size / 5);
     if (_lastStatus == game_status::Success) {
-        f32 const width {bounds.Width / 15};
+        f32 const width {bounds.width() / 15};
         _canvas.begin_path();
         _canvas.move_to({bounds.left(), bounds.get_center().Y});
         _canvas.line_to({bounds.get_center().X, bounds.bottom()});
@@ -197,7 +197,7 @@ void foreground_canvas::draw_state()
         _canvas.set_stroke_style(colors::Green);
         _canvas.stroke();
     } else if (_lastStatus == game_status::Failure) {
-        f32 const width {bounds.Width / 10};
+        f32 const width {bounds.width() / 10};
 
         _canvas.begin_path();
         _canvas.move_to(bounds.top_left());
@@ -227,19 +227,19 @@ background_canvas::background_canvas(card_table& parent, assets::group& resGrp)
 
 void background_canvas::draw(gfx::render_target& target)
 {
-    if (target.Size != _bounds.get_size()) {
+    if (target.Size != _bounds.Size) {
         _bounds      = {point_i::Zero, target.Size()};
         _canvasDirty = true;
         _renderer.set_bounds(rect_f {_bounds});
     }
 
     if (_canvasDirty) {
-        _canvas.begin_frame(_bounds.get_size(), 1.0f);
+        _canvas.begin_frame(_bounds.Size, 1.0f);
 
         auto rect {rect_f {_bounds}};
         _canvas.set_fill_style(_canvas.create_linear_gradient(
-            rect.top_left() + point_f {0, _bounds.Height * 0.25f},
-            rect.bottom_left() - point_f {0, _bounds.Height * 0.25f},
+            rect.top_left() + point_f {0, _bounds.height() * 0.25f},
+            rect.bottom_left() - point_f {0, _bounds.height() * 0.25f},
             {_colorA, _colorB}));
         _canvas.begin_path();
         _canvas.rect(rect);

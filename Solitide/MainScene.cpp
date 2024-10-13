@@ -280,9 +280,9 @@ void main_scene::set_children_bounds(size_i size)
     _formControls->Bounds = menuBounds;
 
     f32 const tableX {0};
-    f32 const tableY {menuBounds.Height * 0.05f};
-    f32 const tableWidth {menuBounds.Width};
-    f32 const tableHeight {menuBounds.Height * 0.85f};
+    f32 const tableY {menuBounds.height() * 0.05f};
+    f32 const tableWidth {menuBounds.width()};
+    f32 const tableHeight {menuBounds.height() * 0.85f};
     _cardTable->Bounds = rect_f {{tableX, tableY}, {tableWidth, tableHeight}};
 }
 

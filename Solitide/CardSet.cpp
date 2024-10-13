@@ -127,7 +127,7 @@ auto card_set::is_loaded() const -> bool
 
 auto card_set::pad_rect(rect_f const& rect) -> rect_f
 {
-    auto const cardPad {rect.get_size() / 50};
+    auto const cardPad {rect.Size / 50};
     return rect.as_padded_by(cardPad);
 }
 
@@ -285,7 +285,7 @@ void gen_cardset::create(assets::group& resGrp)
 
         canvas.set_fill_style(colors::Green);
         canvas.begin_path();
-        canvas.star(rect.get_center(), rect.Width / 2, rect.Width / 4, 5);
+        canvas.star(rect.get_center(), rect.width() / 2, rect.width() / 4, 5);
         canvas.fill();
         addRegion("card_base_gen", rect);
     }
@@ -314,19 +314,19 @@ void gen_cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, ran
 {
     canvas.save();
 
-    size_f const  texSize {rect.get_size()};
+    size_f const  texSize {rect.Size};
     rect_f const  cardRect {pad_rect(rect)};
     point_f const cardCenter {cardRect.get_center()};
 
     draw_shape(canvas, cardRect, CardsetBackColorDefault, colors::Black);
 
     {
-        point_f offset {rect.X + 6, rect.Y + 1};
+        point_f offset {rect.left() + 6, rect.top() + 1};
 
         set_suit_color(canvas, s);
         canvas.set_font(fonts.NormalFont);
         std::string const rankSymbol {get_rank_symbol(r)};
-        auto const        rankSize {canvas.measure_text(rect.Height, rankSymbol)};
+        auto const        rankSize {canvas.measure_text(rect.height(), rankSymbol)};
         rect_f const      rankRect {offset, rankSize};
 
         f32 const suitSize {texSize.Width / 8};
@@ -341,9 +341,9 @@ void gen_cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, ran
         f32 const suitSize {texSize.Width / 6};
         f32 const centerX {cardCenter.X};
         f32 const centerY {cardCenter.Y};
-        f32 const left {centerX - cardRect.Width / 4};
-        f32 const right {centerX + cardRect.Width / 4};
-        f32 const top {cardRect.Y + suitSize * 2};
+        f32 const left {centerX - cardRect.width() / 4};
+        f32 const right {centerX + cardRect.width() / 4};
+        f32 const top {cardRect.top() + suitSize * 2};
         f32 const centerTop {top + suitSize};
 
         f32 const nineCenterY {top + suitSize * 1.5f};
@@ -456,15 +456,15 @@ void gen_cardset::draw_back(gfx::canvas& canvas, rect_f const& rect)
     canvas.save();
     draw_shape(canvas, pad_rect(rect), colors::LightSteelBlue, colors::White);
 
-    rect_f const backRect {rect.as_padded_by(rect.get_size() / 50 * 4)};
+    rect_f const backRect {rect.as_padded_by(rect.Size / 50 * 4)};
 
     canvas.set_scissor(backRect);
 
-    f32 const rhombusSize {backRect.Width / 16.f};
+    f32 const rhombusSize {backRect.width() / 16.f};
     f32 constexpr sqrt3 {std::numbers::sqrt3_v<f32>};
 
-    for (f32 row {backRect.Y}; row < backRect.bottom(); row += rhombusSize * sqrt3) {
-        for (f32 col {backRect.X}; col < backRect.right(); col += rhombusSize * 2) {
+    for (f32 row {backRect.top()}; row < backRect.bottom(); row += rhombusSize * sqrt3) {
+        for (f32 col {backRect.left()}; col < backRect.right(); col += rhombusSize * 2) {
             f32 const x1 {col};
             f32 const y1 {row + rhombusSize * sqrt3 / 2};
             f32 const x2 {col + rhombusSize};
@@ -577,7 +577,7 @@ void mini_cardset::create(assets::group& resGrp, size_f texSize)
 
         canvas.set_fill_style(colors::Green);
         canvas.begin_path();
-        canvas.star(rect.get_center(), rect.Width / 5, rect.Width / 8, 5);
+        canvas.star(rect.get_center(), rect.width() / 5, rect.width() / 8, 5);
         canvas.fill();
         addRegion("card_base_gen", rect);
     }
@@ -606,19 +606,19 @@ void mini_cardset::draw_card(gfx::canvas& canvas, gfx::font* font, suit s, rank 
     canvas.save();
 
     rect_f const cardRect {pad_rect(rect)};
-    f32 const    width {cardRect.get_size().Width};
-    f32 const    height {cardRect.get_size().Height};
+    f32 const    width {cardRect.width()};
+    f32 const    height {cardRect.height()};
 
     draw_shape(canvas, cardRect, CardsetBackColorMini, colors::Black);
 
     set_suit_color(canvas, s);
     canvas.set_font(font);
-    if (rect.Width > rect.Height) {
-        canvas.draw_textbox({cardRect.get_position(), {width / 2, height}}, get_rank_symbol(r));
-        draw_suit(canvas, s, {cardRect.get_position() + point_f {width * 0.75f, height / 2}}, width / 2.25f);
+    if (rect.width() > rect.height()) {
+        canvas.draw_textbox({cardRect.Position, {width / 2, height}}, get_rank_symbol(r));
+        draw_suit(canvas, s, {cardRect.Position + point_f {width * 0.75f, height / 2}}, width / 2.25f);
     } else {
-        canvas.draw_textbox({cardRect.get_position(), {width, height / 2}}, get_rank_symbol(r));
-        draw_suit(canvas, s, {cardRect.get_position() + point_f {width / 2, height * 0.75f}}, width / 2.25f);
+        canvas.draw_textbox({cardRect.Position, {width, height / 2}}, get_rank_symbol(r));
+        draw_suit(canvas, s, {cardRect.Position + point_f {width / 2, height * 0.75f}}, width / 2.25f);
     }
 
     canvas.restore();

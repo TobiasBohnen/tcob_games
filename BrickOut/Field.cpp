@@ -255,12 +255,12 @@ auto field::convert_to_physics(rect_f const& screenObject) const -> rect_f
     rect_f retValue;
 
     // Convert center coordinates to physics world coordinates
-    retValue.X = (screenObject.X / _bounds.Width) * physicsWorldSize;
-    retValue.Y = (screenObject.Y / _bounds.Height) * physicsWorldSize;
+    retValue.Position.X = (screenObject.Position.X / _bounds.Size.Width) * physicsWorldSize;
+    retValue.Position.Y = (screenObject.Position.Y / _bounds.Size.Height) * physicsWorldSize;
 
     // Convert size to physics world size
-    retValue.Width  = (screenObject.Width / _bounds.Width) * physicsWorldSize;
-    retValue.Height = (screenObject.Height / _bounds.Height) * physicsWorldSize;
+    retValue.Size.Width  = (screenObject.Size.Width / _bounds.Size.Width) * physicsWorldSize;
+    retValue.Size.Height = (screenObject.Size.Height / _bounds.Size.Height) * physicsWorldSize;
 
     return retValue;
 }
@@ -270,12 +270,12 @@ auto field::convert_to_screen(rect_f const& physicsObject) const -> rect_f
     rect_f retValue;
 
     // Convert center coordinates to screen coordinates
-    retValue.X = (physicsObject.X / physicsWorldSize) * _bounds.Width;
-    retValue.Y = (physicsObject.Y / physicsWorldSize) * _bounds.Height;
+    retValue.Position.X = (physicsObject.Position.X / physicsWorldSize) * _bounds.Size.Width;
+    retValue.Position.Y = (physicsObject.Position.Y / physicsWorldSize) * _bounds.Size.Height;
 
     // Convert size to screen size
-    retValue.Width  = (physicsObject.Width / physicsWorldSize) * _bounds.Width;
-    retValue.Height = (physicsObject.Height / physicsWorldSize) * _bounds.Height;
+    retValue.Size.Width  = (physicsObject.Size.Width / physicsWorldSize) * _bounds.Size.Width;
+    retValue.Size.Height = (physicsObject.Size.Height / physicsWorldSize) * _bounds.Size.Height;
 
     return retValue;
 }
