@@ -91,7 +91,7 @@ X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X
             point_f   pos {off, _windowSize.Height / 2.f};
 
             auto const draw {[&](std::string_view path, suit_color sc) {
-                auto ppath {gfx::canvas::path2d::Parse(path)};
+                auto ppath {gfx::path2d::Parse(path)};
 
                 _canvas.save();
 

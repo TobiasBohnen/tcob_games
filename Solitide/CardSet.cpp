@@ -155,7 +155,7 @@ void card_set::draw_suit(gfx::canvas& canvas, suit s, point_f center, f32 size)
         canvas.scale({size, size});
         canvas.begin_path();
 
-        canvas.path_2d(*gfx::canvas::path2d::Parse(path));
+        canvas.path_2d(*gfx::path2d::Parse(path));
 
         set_suit_color(canvas, s);
         canvas.fill();
