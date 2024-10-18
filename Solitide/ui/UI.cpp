@@ -208,7 +208,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
         }
 
         listBox->SelectedItemIndex.Changed.connect([&, lb = listBox.get()](auto val) {
-            if (val != -1) { _sources->SelectedGame = lb->get_selected_item(); }
+            if (val != -1) { _sources->SelectedGame = lb->get_selected_item().Text; }
         });
         _sources->SelectedGame.Changed.connect([&, lb = listBox.get()](auto const& val) {
             if (lb->select_item(val)) {
@@ -559,7 +559,7 @@ void form_menu::create_section_themes(tab_container& parent)
         auto lbxThemes {panelLayout->create_widget<list_box>(dock_style::Fill, "lbxThemes")};
         for (auto const& colorTheme : _sources->Themes) { lbxThemes->add_item(colorTheme.first); }
         lbxThemes->SelectedItemIndex.Changed.connect([&, lb = lbxThemes.get()](auto val) {
-            if (val != -1) { _sources->Settings.Theme = lb->get_selected_item(); }
+            if (val != -1) { _sources->Settings.Theme = lb->get_selected_item().Text; }
         });
         lbxThemes->DoubleClick.connect([&] { hide(); });
         _sources->Settings.Theme.Changed.connect([lb = lbxThemes.get()](auto const& val) { lb->select_item(val); });
@@ -579,7 +579,7 @@ void form_menu::create_section_cardset(tab_container& parent)
     lbxCardsets->Flex  = {50_pct, 25_pct};
     for (auto const& cardSet : _sources->CardSets) { lbxCardsets->add_item(cardSet.first); }
     lbxCardsets->SelectedItemIndex.Changed.connect([&, lb = lbxCardsets.get()](auto val) {
-        if (val != -1) { _sources->Settings.Cardset = lb->get_selected_item(); }
+        if (val != -1) { _sources->Settings.Cardset = lb->get_selected_item().Text; }
     });
     lbxCardsets->DoubleClick.connect([&, lb = lbxCardsets.get()] {
         if (lb->SelectedItemIndex >= 0) { hide(); }
