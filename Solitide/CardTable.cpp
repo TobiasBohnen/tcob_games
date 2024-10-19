@@ -173,7 +173,7 @@ void card_table::move_camera(rect_f const& cardBounds)
 {
     using namespace tcob::tweening;
 
-    auto const winSize {_camera.Size()};
+    auto const winSize {_camera.get_viewport().Size};
 
     f32 const     hDiff {static_cast<f32>(winSize.Height - Bounds->height())};
     f32 const     zoom {std::min(winSize.Width / cardBounds.width(), (winSize.Height - hDiff) / cardBounds.height())};
@@ -200,7 +200,7 @@ void card_table::move_camera(rect_f const& cardBounds)
             _bgCanvas.mark_dirty();
         });
 
-        _camZoomTween = make_unique_tween<linear_tween<size_f>>(0.75s, _camera.Zoom(), size_f {zoom, zoom});
+        _camZoomTween = make_unique_tween<linear_tween<size_f>>(0.75s, _camera.Zoom, size_f {zoom, zoom});
         _camZoomTween->start();
         _camZoomTween->Value.Changed.connect([&](auto val) {
             _camera.Zoom = val;
@@ -324,7 +324,7 @@ void card_table::drag_cards(input::mouse::motion_event const& ev)
         return;
     }
 
-    auto const    zoom {_camera.Zoom()};
+    auto const    zoom {_camera.Zoom};
     point_f const off {ev.RelativeMotion.X / zoom.Width, ev.RelativeMotion.Y / zoom.Height};
     for (isize i {_hovered.Index}; i < std::ssize(cards); ++i) {
         cards[i].Bounds.move_by(off);
