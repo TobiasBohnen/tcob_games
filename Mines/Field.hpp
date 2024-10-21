@@ -65,8 +65,8 @@ private:
 
     gfx::orthogonal_tilemap _map;
     std::vector<cell>       _cells {};
-    id_t                    _layerBack {0};
-    id_t                    _layerFront {1};
+    uid                     _layerBack {0};
+    uid                     _layerFront {1};
 
     size_i              _gridSize {size_i::Zero};
     i32                 _windowHeight {0};

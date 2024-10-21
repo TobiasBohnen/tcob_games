@@ -58,8 +58,8 @@ private:
     audio::sound _sound;
 
     gfx::orthogonal_tilemap _map;
-    id_t                    _layerBack {0};
-    id_t                    _layerFront {1};
+    uid                     _layerBack {0};
+    uid                     _layerFront {1};
 };
 
 }
