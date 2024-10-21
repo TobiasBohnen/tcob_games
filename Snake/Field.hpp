@@ -23,7 +23,7 @@ public:
     auto state() const -> game_state;
 
     void play_sound(audio::sound_wave const& wave);
-    void change_tile(point_i pos, gfx::tile_index_t idx);
+    void set_tile(point_i pos, gfx::tile_index_t idx);
     auto get_random_tile() -> point_i;
 
 protected:
@@ -54,9 +54,12 @@ private:
 
     milliseconds _currentTime {0ms};
 
-    rng                     _rng {};
-    audio::sound            _sound;
+    rng          _rng {};
+    audio::sound _sound;
+
     gfx::orthogonal_tilemap _map;
+    id_t                    _layerBack {0};
+    id_t                    _layerFront {1};
 };
 
 }

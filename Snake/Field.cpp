@@ -38,16 +38,18 @@ void field::start()
     _map.Grid = {.TileSize = get_tile_size()};
 
     _map.clear();
-    gfx::tilemap_layer tiles0;
-    tiles0.Tiles.resize(_gridSize.Width * _gridSize.Height, {TS_FLOOR});
-    tiles0.Size = _gridSize;
-    _map.add_layer(tiles0);
+    gfx::tilemap_layer             tiles0;
+    std::vector<gfx::tile_index_t> floorTiles(_gridSize.Width * _gridSize.Height, {TS_FLOOR});
+    tiles0.Tiles = floorTiles;
+    tiles0.Size  = _gridSize;
+    _layerBack   = _map.add_layer(tiles0);
 
-    gfx::tilemap_layer tiles1;
-    tiles1.Tiles.resize(_gridSize.Width * _gridSize.Height, {TS_NONE});
-    tiles1.Size                                       = _gridSize;
-    tiles1.Tiles[snake.X + snake.Y * _gridSize.Width] = TS_SNAKE_HEAD;
-    _map.add_layer(tiles1);
+    gfx::tilemap_layer             tiles1;
+    std::vector<gfx::tile_index_t> emptyTiles(_gridSize.Width * _gridSize.Height, {TS_NONE});
+    emptyTiles[snake.X + snake.Y * _gridSize.Width] = TS_SNAKE_HEAD;
+    tiles1.Tiles                                    = emptyTiles;
+    tiles1.Size                                     = _gridSize;
+    _layerFront                                     = _map.add_layer(tiles1);
 
     _state = game_state::Running;
 }
@@ -157,19 +159,19 @@ void field::play_sound(audio::sound_wave const& wave)
     _sound.play();
 }
 
-void field::change_tile(point_i pos, gfx::tile_index_t idx)
+void field::set_tile(point_i pos, gfx::tile_index_t idx)
 {
-    _map.change_tile(1, pos, idx);
+    _map.set_tile(_layerFront, pos, idx);
 }
 
 auto field::get_random_tile() -> point_i
 {
-    auto const gridSize {_map.get_size(0)};
+    auto const gridSize {_map.get_layer_size(_layerBack)};
 
     point_i retValue {};
     do {
         retValue = {_rng(0, gridSize.Width - 1), _rng(0, gridSize.Height - 1)};
-    } while (_map.get_tile(1, retValue) != TS_NONE);
+    } while (_map.get_tile(_layerFront, retValue) != TS_NONE);
 
     return retValue;
 }

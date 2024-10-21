@@ -24,7 +24,7 @@ auto field_item::rand(i32 max) -> bool
 void field_item::spawn_at_random(gfx::tile_index_t idx)
 {
     _pos = _parent.get_random_tile();
-    _parent.change_tile(_pos, idx);
+    _parent.set_tile(_pos, idx);
 }
 
 void field_item::give_score(i32 score)
@@ -55,7 +55,7 @@ auto field_item::is_pos(point_i pos) const -> bool
 void field_item::hide()
 {
     if (_pos != HIDDEN) {
-        _parent.change_tile(_pos, TS_NONE);
+        _parent.set_tile(_pos, TS_NONE);
         _pos = HIDDEN;
     }
 }
@@ -191,7 +191,7 @@ auto snake::move_head() -> bool
 
 void snake::move_body()
 {
-    _parent.change_tile(_oldHeadPos, TS_NONE);
+    _parent.set_tile(_oldHeadPos, TS_NONE);
 
     if (!_tail.empty()) { // draw body
         // check hit tail
@@ -201,28 +201,28 @@ void snake::move_body()
             return;
         }
 
-        _parent.change_tile(_tail.back(), TS_NONE);
+        _parent.set_tile(_tail.back(), TS_NONE);
         _tail.pop_back();
-        _parent.change_tile(_oldHeadPos, TS_SNAKE_BODY);
+        _parent.set_tile(_oldHeadPos, TS_SNAKE_BODY);
         _tail.push_front(_oldHeadPos);
     }
 
     // draw head
-    _parent.change_tile(_headPos, TS_SNAKE_HEAD);
+    _parent.set_tile(_headPos, TS_SNAKE_HEAD);
 }
 
 void snake::eat_food()
 {
-    _parent.change_tile(_oldHeadPos, TS_SNAKE_BODY);
+    _parent.set_tile(_oldHeadPos, TS_SNAKE_BODY);
     _tail.push_front(_oldHeadPos);
 
     // draw head
-    _parent.change_tile(_headPos, TS_SNAKE_HEAD);
+    _parent.set_tile(_headPos, TS_SNAKE_HEAD);
 }
 
 void snake::die()
 {
-    _parent.change_tile(_oldHeadPos, TS_SNAKE_DEAD);
+    _parent.set_tile(_oldHeadPos, TS_SNAKE_DEAD);
 }
 
 auto snake::try_eat(field_item& item) const -> bool

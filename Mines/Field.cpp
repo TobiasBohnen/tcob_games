@@ -23,9 +23,6 @@ constexpr gfx::tile_index_t TS_FLAG {13};
 constexpr gfx::tile_index_t TS_MAYBE {14};
 constexpr gfx::tile_index_t TS_MINE_EXP {15};
 
-constexpr gfx::tile_index_t LY_BACK {0};
-constexpr gfx::tile_index_t LY_FRONT {1};
-
 field::field(assets::asset_ptr<gfx::material> const& material)
     : _map {{{
           {1, {"clear"}},
@@ -83,22 +80,25 @@ void field::start(size_i gridSize, i32 windowHeight, u32 mines)
 
     // create tilemap layer
     _map.clear();
-    gfx::tilemap_layer tiles0;
-    tiles0.Tiles.reserve(_cells.size());
+    gfx::tilemap_layer             backLayer;
+    std::vector<gfx::tile_index_t> numberTiles;
+    numberTiles.reserve(_cells.size());
     for (auto& field : _cells) {
         if (field.IsMine) {
-            tiles0.Tiles.push_back(TS_MINE);
+            numberTiles.push_back(TS_MINE);
         } else {
-            tiles0.Tiles.push_back(field.NeighborMines + 1);
+            numberTiles.push_back(field.NeighborMines + 1);
         }
     }
-    tiles0.Size = gridSize;
-    _map.add_layer(tiles0);
+    backLayer.Tiles = numberTiles;
+    backLayer.Size  = gridSize;
+    _layerBack      = _map.add_layer(backLayer);
 
-    gfx::tilemap_layer tiles1;
-    tiles1.Tiles = std::vector(_cells.size(), TS_CONCEALED);
-    tiles1.Size  = gridSize;
-    _map.add_layer(tiles1);
+    gfx::tilemap_layer frontLayer;
+    std::vector        vec(_cells.size(), TS_CONCEALED);
+    frontLayer.Tiles = vec;
+    frontLayer.Size  = gridSize;
+    _layerFront      = _map.add_layer(frontLayer);
 
     _state          = game_state::Running;
     _mouseOverPoint = std::nullopt;
@@ -118,7 +118,7 @@ void field::process_left_click()
             } else {
                 _state = game_state::Failure;
                 reveal_mines();
-                change_tile(LY_FRONT, *_mouseOverPoint, TS_MINE_EXP);
+                set_tile(_layerFront, *_mouseOverPoint, TS_MINE_EXP);
                 return;
             }
         }
@@ -147,15 +147,15 @@ void field::process_right_click()
     switch (cell.Flag) {
     case flag_type::None:
         cell.Flag = flag_type::Flag;
-        change_tile(LY_FRONT, *_mouseOverPoint, TS_FLAG);
+        set_tile(_layerFront, *_mouseOverPoint, TS_FLAG);
         break;
     case flag_type::Flag:
         cell.Flag = flag_type::Maybe;
-        change_tile(LY_FRONT, *_mouseOverPoint, TS_MAYBE);
+        set_tile(_layerFront, *_mouseOverPoint, TS_MAYBE);
         break;
     case flag_type::Maybe:
         cell.Flag = flag_type::None;
-        change_tile(LY_FRONT, *_mouseOverPoint, TS_CONCEALED);
+        set_tile(_layerFront, *_mouseOverPoint, TS_CONCEALED);
         break;
     default:
         break;
@@ -171,7 +171,7 @@ void field::process_mouse_motion(point_f mouse)
     if (_mouseOverPoint.has_value()) {
         auto& mouseCell {get_cell(*_mouseOverPoint)};
         if (!mouseCell.IsCleared && mouseCell.Flag == flag_type::None) {
-            change_tile(LY_FRONT, *_mouseOverPoint, TS_CONCEALED);
+            set_tile(_layerFront, *_mouseOverPoint, TS_CONCEALED);
         }
     }
 
@@ -187,7 +187,7 @@ void field::process_mouse_motion(point_f mouse)
     if (_mouseOverPoint.has_value()) {
         auto& mouseCell {get_cell(*_mouseOverPoint)};
         if (!mouseCell.IsCleared && mouseCell.Flag == flag_type::None) {
-            change_tile(LY_FRONT, *_mouseOverPoint, TS_SELECTED);
+            set_tile(_layerFront, *_mouseOverPoint, TS_SELECTED);
         }
     }
 }
@@ -218,7 +218,7 @@ void field::clear_fields(point_i const& point)
         return;
     }
 
-    change_tile(LY_FRONT, point, TS_NONE);
+    set_tile(_layerFront, point, TS_NONE);
     cell.IsCleared = true;
 
     if (--_numRemainingCells == _numMines) {
@@ -246,7 +246,7 @@ void field::reveal_mines()
             auto& cell {get_cell({x, y})};
             if (cell.IsMine) {
                 cell.IsCleared = true;
-                change_tile(LY_FRONT, {x, y}, TS_NONE);
+                set_tile(_layerFront, {x, y}, TS_NONE);
             }
         }
     }
@@ -256,7 +256,7 @@ void field::move_mine(point_i const& point)
 {
     auto& cell {get_cell(point)};
     cell.IsMine = false;
-    change_tile(LY_BACK, point, cell.NeighborMines + 1);
+    set_tile(_layerBack, point, cell.NeighborMines + 1);
 
     // subtract mine amount
     for (auto& nb : neighbours) {
@@ -265,7 +265,7 @@ void field::move_mine(point_i const& point)
             auto& nbcell {get_cell(nc)};
             --nbcell.NeighborMines;
             if (!nbcell.IsMine) {
-                change_tile(LY_BACK, nc, nbcell.NeighborMines + 1);
+                set_tile(_layerBack, nc, nbcell.NeighborMines + 1);
             }
         }
     }
@@ -276,7 +276,7 @@ void field::move_mine(point_i const& point)
         auto&   candidate {get_cell(newSpot)};
         if (!candidate.IsMine && point != newSpot) {
             candidate.IsMine = true;
-            change_tile(LY_BACK, newSpot, TS_MINE);
+            set_tile(_layerBack, newSpot, TS_MINE);
 
             // add mine amount
             for (auto& nb : neighbours) {
@@ -285,7 +285,7 @@ void field::move_mine(point_i const& point)
                     auto& nbcell {get_cell(nc)};
                     ++nbcell.NeighborMines;
                     if (!nbcell.IsMine) {
-                        change_tile(LY_BACK, nc, nbcell.NeighborMines + 1);
+                        set_tile(_layerBack, nc, nbcell.NeighborMines + 1);
                     }
                 }
             }
@@ -294,9 +294,9 @@ void field::move_mine(point_i const& point)
     }
 }
 
-void field::change_tile(u32 layer, point_i const& point, gfx::tile_index_t id)
+void field::set_tile(u32 layer, point_i const& point, gfx::tile_index_t id)
 {
-    _map.change_tile(layer, point, id);
+    _map.set_tile(layer, point, id);
 }
 
 auto field::get_cell(point_i const& point) -> cell&
@@ -306,7 +306,7 @@ auto field::get_cell(point_i const& point) -> cell&
 
 void field::toggle_front_layer_visibility()
 {
-    _map.set_visible(LY_FRONT, !_map.is_visible(LY_FRONT));
+    _map.set_layer_visible(_layerFront, !_map.is_layer_visible(_layerFront));
 }
 
 auto field::state() const -> game_state
