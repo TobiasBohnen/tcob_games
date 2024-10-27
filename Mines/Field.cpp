@@ -296,7 +296,7 @@ void field::move_mine(point_i const& point)
 
 void field::set_tile(u32 layer, point_i const& point, gfx::tile_index_t id)
 {
-    _map.set_tile(layer, point, id);
+    _map.set_tile_index(layer, point, id);
 }
 
 auto field::get_cell(point_i const& point) -> cell&

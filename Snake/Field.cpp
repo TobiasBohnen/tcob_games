@@ -161,7 +161,7 @@ void field::play_sound(audio::sound_wave const& wave)
 
 void field::set_tile(point_i pos, gfx::tile_index_t idx)
 {
-    _map.set_tile(_layerFront, pos, idx);
+    _map.set_tile_index(_layerFront, pos, idx);
 }
 
 auto field::get_random_tile() -> point_i
@@ -171,7 +171,7 @@ auto field::get_random_tile() -> point_i
     point_i retValue {};
     do {
         retValue = {_rng(0, gridSize.Width - 1), _rng(0, gridSize.Height - 1)};
-    } while (_map.get_tile(_layerFront, retValue) != TS_NONE);
+    } while (_map.get_tile_index(_layerFront, retValue) != TS_NONE);
 
     return retValue;
 }
