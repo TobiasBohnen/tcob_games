@@ -129,7 +129,7 @@ void paddle::reset()
 {
     auto& body {get_body()};
     body.LinearVelocity  = {0, 0};
-    body.AngularVelocity = 0;
+    body.AngularVelocity = degree_f {0};
 
     auto const rect {get_field_bounds()};
     auto&      sprite {get_sprite()};
@@ -140,7 +140,7 @@ void paddle::reset()
                                                _size.Width,
                                                _size.Height})};
 
-    body.Transform    = physics::body_transform {physRect.get_center(), 0};
+    body.Transform    = physics::body_transform {physRect.get_center(), degree_f {0}};
     body.Type         = physics::body_type::Static;
     body.GravityScale = 0;
 
@@ -205,7 +205,7 @@ void ball::reset()
 {
     auto& body {get_body()};
     body.LinearVelocity  = {0, 0};
-    body.AngularVelocity = 0;
+    body.AngularVelocity = degree_f {0};
 
     auto const rect {get_field_bounds()};
     auto&      rect_shape {get_sprite()};
@@ -216,7 +216,7 @@ void ball::reset()
                                                _size.Width,
                                                _size.Height})};
 
-    body.Transform    = physics::body_transform {.Center = physRect.get_center(), .Angle = 0};
+    body.Transform    = physics::body_transform {.Center = physRect.get_center(), .Angle = degree_f {0}};
     body.Type         = physics::body_type::Dynamic;
     body.GravityScale = 0;
 
@@ -308,7 +308,7 @@ void brick::reset()
                                                _size.Width,
                                                _size.Height})};
 
-    body.Transform = physics::body_transform {physRect.get_center(), 0};
+    body.Transform = physics::body_transform {physRect.get_center(), degree_f {0}};
     body.Type      = physics::body_type::Dynamic;
     body.IsAwake   = false;
 

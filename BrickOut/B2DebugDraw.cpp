@@ -93,7 +93,7 @@ void B2DDebugDraw::draw_transform(physics::body_transform const& xf)
     _canvas.set_fill_style(colors::DodgerBlue);
     _canvas.begin_path();
 
-    _canvas.arc(xf.Center * physicsWorldSize, 10 * physicsWorldSize.X, 0, xf.Angle, gfx::winding::CCW);
+    _canvas.arc(xf.Center * physicsWorldSize, 10 * physicsWorldSize.X, radian_f {0}, xf.Angle, gfx::winding::CCW);
 
     _canvas.fill();
 }

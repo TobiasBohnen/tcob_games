@@ -332,7 +332,7 @@ void gen_cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, ran
         f32 const suitSize {texSize.Width / 8};
         canvas.draw_textbox(rankRect, rankSymbol);
         draw_suit(canvas, s, {offset.X + suitSize / 2, offset.Y + fonts.NormalFont->get_info().LineHeight + suitSize / 2}, suitSize);
-        canvas.rotate_at({180}, cardCenter);
+        canvas.rotate_at(degree_f {180}, cardCenter);
         canvas.draw_textbox(rankRect, rankSymbol);
         draw_suit(canvas, s, {offset.X + suitSize / 2, offset.Y + fonts.NormalFont->get_info().LineHeight + suitSize / 2}, suitSize);
         canvas.reset_transform();
@@ -351,7 +351,7 @@ void gen_cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, ran
 
         auto drawTwo {[&]() {
             draw_suit(canvas, s, {centerX, top}, suitSize);
-            canvas.rotate_at({180}, cardCenter);
+            canvas.rotate_at(degree_f {180}, cardCenter);
             draw_suit(canvas, s, {centerX, top}, suitSize);
             canvas.reset_transform();
         }};
@@ -359,7 +359,7 @@ void gen_cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, ran
         auto drawFour {[&]() {
             draw_suit(canvas, s, {left, top}, suitSize);
             draw_suit(canvas, s, {right, top}, suitSize);
-            canvas.rotate_at({180}, cardCenter);
+            canvas.rotate_at(degree_f {180}, cardCenter);
             draw_suit(canvas, s, {left, top}, suitSize);
             draw_suit(canvas, s, {right, top}, suitSize);
             canvas.reset_transform();
@@ -399,7 +399,7 @@ void gen_cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, ran
         case rank::Eight: {
             drawSix();
             draw_suit(canvas, s, {centerX, centerTop}, suitSize);
-            canvas.rotate_at({180}, cardCenter);
+            canvas.rotate_at(degree_f {180}, cardCenter);
             draw_suit(canvas, s, {centerX, centerTop}, suitSize);
             canvas.reset_transform();
         } break;
@@ -408,7 +408,7 @@ void gen_cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, ran
             draw_suit(canvas, s, {left, nineCenterY}, suitSize);
             draw_suit(canvas, s, {right, nineCenterY}, suitSize);
             draw_suit(canvas, s, cardCenter, suitSize);
-            canvas.rotate_at({180}, cardCenter);
+            canvas.rotate_at(degree_f {180}, cardCenter);
             draw_suit(canvas, s, {left, nineCenterY}, suitSize);
             draw_suit(canvas, s, {right, nineCenterY}, suitSize);
             canvas.reset_transform();
@@ -418,7 +418,7 @@ void gen_cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, ran
             draw_suit(canvas, s, {left, nineCenterY}, suitSize);
             draw_suit(canvas, s, {right, nineCenterY}, suitSize);
             draw_suit(canvas, s, {centerX, tenCenterY}, suitSize);
-            canvas.rotate_at({180}, cardCenter);
+            canvas.rotate_at(degree_f {180}, cardCenter);
             draw_suit(canvas, s, {left, nineCenterY}, suitSize);
             draw_suit(canvas, s, {right, nineCenterY}, suitSize);
             draw_suit(canvas, s, {centerX, tenCenterY}, suitSize);
