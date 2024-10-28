@@ -24,7 +24,7 @@ field::field(assets::group& resGrp, i32 padding, size_i windowSize)
     f32 const right {((windowSize.Height + padding / 2.f))};
     f32 const bottom {static_cast<f32>(windowSize.Height)};
     _bounds                = rect_f::FromLTRB(left, top, right, bottom);
-    _lightingSystem.Bounds = _bounds.as_padded_by(-size_f {10, 10});
+    _lightingSystem.Bounds = _bounds.as_padded_by(-size_f {100, 100});
 
     _physicsBounds = convert_to_physics(_bounds);
 
