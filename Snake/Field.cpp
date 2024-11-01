@@ -39,13 +39,12 @@ void field::start()
 
     _map.clear();
 
-    gfx::tilemap_layer tiles0 {.Tiles = {_gridSize, TS_FLOOR}};
-    _layerBack = _map.add_layer(tiles0);
+    gfx::tilemap_layer backLayer {.Tiles = {_gridSize, TS_FLOOR}};
+    _layerBack = _map.add_layer(backLayer);
 
-    grid<gfx::tile_index_t> emptyTiles(_gridSize, TS_NONE);
-    emptyTiles.at(snake) = TS_SNAKE_HEAD;
-    gfx::tilemap_layer tiles1 {emptyTiles};
-    _layerFront = _map.add_layer(tiles1);
+    gfx::tilemap_layer frontLayer {.Tiles = {_gridSize, TS_NONE}};
+    frontLayer.Tiles[snake] = TS_SNAKE_HEAD;
+    _layerFront             = _map.add_layer(frontLayer);
 
     _state = game_state::Running;
 }

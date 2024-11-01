@@ -81,17 +81,15 @@ void field::start(size_i gridSize, i32 windowHeight, u32 mines)
     // create tilemap layer
     _map.clear();
 
-    grid<gfx::tile_index_t> numberTiles {gridSize};
+    gfx::tilemap_layer backLayer {.Tiles = {gridSize}};
     for (usize i {0}; i < _cells.size(); ++i) {
         auto const& field {_cells[i]};
         if (field.IsMine) {
-            numberTiles.at(i) = TS_MINE;
+            backLayer.Tiles[i] = TS_MINE;
         } else {
-            numberTiles.at(i) = field.NeighborMines + 1;
+            backLayer.Tiles[i] = field.NeighborMines + 1;
         }
     }
-
-    gfx::tilemap_layer backLayer {numberTiles};
     _layerBack = _map.add_layer(backLayer);
 
     grid<gfx::tile_index_t> vec(gridSize, TS_CONCEALED);
