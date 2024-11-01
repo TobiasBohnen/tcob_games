@@ -47,11 +47,11 @@ void game_object::update(milliseconds deltaTime)
     if (_physicsBody && _sprite) {
         rect_f const pb {_physicsBody->Transform().Center, size_f::Zero};
 
-        _sprite->Bounds   = _sprite->Bounds->as_centered_at(convert_to_screen(pb).get_center());
+        _sprite->Bounds   = _sprite->Bounds->as_centered_at(convert_to_screen(pb).center());
         _sprite->Rotation = _physicsBody->Transform().Angle;
 
         if (_lightSource) {
-            _lightSource->Position = _sprite->Bounds->get_center();
+            _lightSource->Position = _sprite->Bounds->center();
         }
 
         if (_shadowCaster) {
@@ -140,7 +140,7 @@ void paddle::reset()
                                                _size.Width,
                                                _size.Height})};
 
-    body.Transform    = physics::body_transform {physRect.get_center(), degree_f {0}};
+    body.Transform    = physics::body_transform {physRect.center(), degree_f {0}};
     body.Type         = physics::body_type::Static;
     body.GravityScale = 0;
 
@@ -216,7 +216,7 @@ void ball::reset()
                                                _size.Width,
                                                _size.Height})};
 
-    body.Transform    = physics::body_transform {.Center = physRect.get_center(), .Angle = degree_f {0}};
+    body.Transform    = physics::body_transform {.Center = physRect.center(), .Angle = degree_f {0}};
     body.Type         = physics::body_type::Dynamic;
     body.GravityScale = 0;
 
@@ -231,7 +231,7 @@ void ball::reset()
 
     rng           rand;
     point_f const force {rand(-10.f, 10.f), -10};
-    body.apply_linear_impulse(force, physRect.get_center());
+    body.apply_linear_impulse(force, physRect.center());
 
     _failHeight = rect.height() - _size.Height / 2;
 
@@ -308,7 +308,7 @@ void brick::reset()
                                                _size.Width,
                                                _size.Height})};
 
-    body.Transform = physics::body_transform {physRect.get_center(), degree_f {0}};
+    body.Transform = physics::body_transform {physRect.center(), degree_f {0}};
     body.Type      = physics::body_type::Dynamic;
     body.IsAwake   = false;
 

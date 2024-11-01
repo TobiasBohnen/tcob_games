@@ -138,8 +138,8 @@ void foreground_canvas::draw_hint(gfx::render_target& target)
     _canvas.stroke();
 
     // Draw arrow
-    auto from {point_f {camera.convert_world_to_screen(srcBounds.get_center())}};
-    auto to {point_f {camera.convert_world_to_screen(dstBounds.get_center())}};
+    auto from {point_f {camera.convert_world_to_screen(srcBounds.center())}};
+    auto to {point_f {camera.convert_world_to_screen(dstBounds.center())}};
 
     f32 const borderWidth {3};
     f32 const arrowWidth {6};
@@ -170,7 +170,7 @@ void foreground_canvas::draw_state()
 
     auto const& pBounds {_parent.Bounds};
     f32 const   size {pBounds->width() / 5};
-    rect_f      bounds {pBounds->get_center() - point_f {size / 2, size / 2}, {size, size}};
+    rect_f      bounds {pBounds->center() - point_f {size / 2, size / 2}, {size, size}};
 
     _canvas.set_fill_style(colors::Silver);
     _canvas.begin_path();
@@ -184,8 +184,8 @@ void foreground_canvas::draw_state()
     if (_lastStatus == game_status::Success) {
         f32 const width {bounds.width() / 15};
         _canvas.begin_path();
-        _canvas.move_to({bounds.left(), bounds.get_center().Y});
-        _canvas.line_to({bounds.get_center().X, bounds.bottom()});
+        _canvas.move_to({bounds.left(), bounds.center().Y});
+        _canvas.line_to({bounds.center().X, bounds.bottom()});
         _canvas.line_to(bounds.top_right());
 
         _canvas.set_stroke_width(width * 1.5f);

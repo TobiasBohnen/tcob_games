@@ -38,18 +38,14 @@ void field::start()
     _map.Grid = {.TileSize = get_tile_size()};
 
     _map.clear();
-    gfx::tilemap_layer             tiles0;
-    std::vector<gfx::tile_index_t> floorTiles(_gridSize.Width * _gridSize.Height, {TS_FLOOR});
-    tiles0.Tiles = floorTiles;
-    tiles0.Size  = _gridSize;
-    _layerBack   = _map.add_layer(tiles0);
 
-    gfx::tilemap_layer             tiles1;
-    std::vector<gfx::tile_index_t> emptyTiles(_gridSize.Width * _gridSize.Height, {TS_NONE});
-    emptyTiles[snake.X + snake.Y * _gridSize.Width] = TS_SNAKE_HEAD;
-    tiles1.Tiles                                    = emptyTiles;
-    tiles1.Size                                     = _gridSize;
-    _layerFront                                     = _map.add_layer(tiles1);
+    gfx::tilemap_layer tiles0 {.Tiles = {_gridSize, TS_FLOOR}};
+    _layerBack = _map.add_layer(tiles0);
+
+    grid<gfx::tile_index_t> emptyTiles(_gridSize, TS_NONE);
+    emptyTiles.at(snake) = TS_SNAKE_HEAD;
+    gfx::tilemap_layer tiles1 {emptyTiles};
+    _layerFront = _map.add_layer(tiles1);
 
     _state = game_state::Running;
 }

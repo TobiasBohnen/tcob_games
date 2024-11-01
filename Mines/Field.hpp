@@ -55,7 +55,7 @@ private:
     void clear_fields(point_i const& point);
     void reveal_mines();
     void move_mine(point_i const& point);
-    void set_tile(u32 layer, point_i const& point, gfx::tile_index_t id);
+    void set_tile(uid layer, point_i const& point, gfx::tile_index_t id);
     auto get_cell(point_i const& point) -> cell&;
 
     rng        _rand {};

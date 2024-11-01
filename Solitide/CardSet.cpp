@@ -285,7 +285,7 @@ void gen_cardset::create(assets::group& resGrp)
 
         canvas.set_fill_style(colors::Green);
         canvas.begin_path();
-        canvas.star(rect.get_center(), rect.width() / 2, rect.width() / 4, 5);
+        canvas.star(rect.center(), rect.width() / 2, rect.width() / 4, 5);
         canvas.fill();
         addRegion("card_base_gen", rect);
     }
@@ -316,7 +316,7 @@ void gen_cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, ran
 
     size_f const  texSize {rect.Size};
     rect_f const  cardRect {pad_rect(rect)};
-    point_f const cardCenter {cardRect.get_center()};
+    point_f const cardCenter {cardRect.center()};
 
     draw_shape(canvas, cardRect, CardsetBackColorDefault, colors::Black);
 
@@ -577,7 +577,7 @@ void mini_cardset::create(assets::group& resGrp, size_f texSize)
 
         canvas.set_fill_style(colors::Green);
         canvas.begin_path();
-        canvas.star(rect.get_center(), rect.width() / 5, rect.width() / 8, 5);
+        canvas.star(rect.center(), rect.width() / 5, rect.width() / 8, 5);
         canvas.fill();
         addRegion("card_base_gen", rect);
     }

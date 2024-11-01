@@ -177,7 +177,7 @@ void card_table::move_camera(rect_f const& cardBounds)
 
     f32 const     hDiff {static_cast<f32>(winSize.Height - Bounds->height())};
     f32 const     zoom {std::min(winSize.Width / cardBounds.width(), (winSize.Height - hDiff) / cardBounds.height())};
-    point_f const pos {cardBounds.get_center() + point_f {0, (Bounds->top() / zoom) / 2}};
+    point_f const pos {cardBounds.center() + point_f {0, (Bounds->top() / zoom) / 2}};
 
     if (_camInstant) {
         _camera.look_at(pos);
