@@ -171,7 +171,7 @@ void card_table::on_draw_to(gfx::render_target& target)
 
 void card_table::move_camera(rect_f const& cardBounds)
 {
-    using namespace tcob::tweening;
+    using namespace tcob::gfx;
 
     auto const winSize {_camera.get_viewport().Size};
 
