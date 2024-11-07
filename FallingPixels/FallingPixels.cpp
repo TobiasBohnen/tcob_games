@@ -15,7 +15,6 @@ constexpr size_i GRID_SIZE {180, 180};
 
 main_scene::main_scene(game& game)
     : scene(game)
-
 {
     auto& window {get_window()};
     auto  winSize {window.Size()};
@@ -30,10 +29,26 @@ main_scene::main_scene(game& game)
     _shape0->Material          = _sandMat;
     _shape0->Material->Texture = _sandTex;
 
-    auto elements {load_script()};
-    _elementSystem = std::make_shared<element_system>(GRID_SIZE, elements);
+    auto                     elements {load_script()};
+    std::vector<element_def> elementsDefs;
+    for (auto [id, name, table] : elements) {
+        element_def& element {elementsDefs.emplace_back()};
+        element.ID   = id;
+        element.Name = name;
 
-    _form = std::make_shared<elements_form>(&window, rect_f {height, 0, winSize.Width - height, height}, elements);
+        element.Color.Base      = color::FromString(table["Color"][1].as<std::string>());
+        element.Color.Variation = table["Color"][2].as<i32>();
+
+        table.try_get(element.Gravity, "Gravity");
+        table.try_get(element.Flammable, "Flammable");
+        element.Density = table["Density"].as<f32>();
+        element.Type    = table["Type"].as<element_type>();
+
+        table.try_get(element.Update, "Update");
+    }
+    _elementSystem = std::make_unique<element_system>(GRID_SIZE, elementsDefs);
+
+    _form = std::make_shared<elements_form>(&window, rect_f {height, 0, winSize.Width - height, height}, elementsDefs);
     _form->LeftButtonElement.connect([&](i32 t) { _leftBtnElement = t; });
     _form->MiddleButtonElement.connect([&](i32 t) { _middleBtnElement = t; });
     _form->RightButtonElement.connect([&](i32 t) { _rightBtnElement = t; });
@@ -166,13 +181,15 @@ auto main_scene::load_script() -> script_element_vec
     _script.set_environment(env);
 
     auto& wrapper {*_script.create_wrapper<element_system>("element_system")};
-    wrapper["swap"]    = [](element_system* sys, point_i i0, point_i i1) { sys->swap(i0, i1); };
-    wrapper["clear"]   = [](element_system* sys, point_i i) { sys->clear(i); };
-    wrapper["empty"]   = [](element_system* sys, point_i i) { return sys->empty(i); };
-    wrapper["id"]      = [](element_system* sys, point_i i) { return sys->id(i); };
-    wrapper["name"]    = [](element_system* sys, point_i i) { return sys->name(i); };
-    wrapper["density"] = [](element_system* sys, point_i i) { return sys->density(i); };
-    wrapper["type"]    = [](element_system* sys, point_i i) { return sys->type(i); };
+    wrapper["swap"] = [](element_system* sys, point_i i0, point_i i1) { sys->swap(i0, i1); };
+    wrapper["set"]  = [](element_system* sys, point_i i, i32 t) { sys->set(i, t); };
+
+    wrapper["empty"]     = [](element_system* sys, point_i i) { return sys->empty(i); };
+    wrapper["id"]        = [](element_system* sys, point_i i) { return sys->id(i); };
+    wrapper["name"]      = [](element_system* sys, point_i i) { return sys->name(i); };
+    wrapper["density"]   = [](element_system* sys, point_i i) { return sys->density(i); };
+    wrapper["flammable"] = [](element_system* sys, point_i i) { return sys->flammable(i); };
+    wrapper["type"]      = [](element_system* sys, point_i i) { return sys->type(i); };
 
     std::ignore = _script.run_file("elements.lua");
 

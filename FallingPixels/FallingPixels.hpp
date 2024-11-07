@@ -12,6 +12,8 @@
 
 ////////////////////////////////////////////////////////////
 
+using script_element_vec = std::vector<std::tuple<i32, std::string, lua::table>>;
+
 class main_scene : public scene {
 public:
     main_scene(game& game);
@@ -43,11 +45,11 @@ private:
     stopwatch _hourGlass0;
     stopwatch _hourGlass1;
 
-    std::shared_ptr<element_system> _elementSystem;
+    std::unique_ptr<element_system> _elementSystem;
     i32                             _spawnElement {0};
     i32                             _leftBtnElement {2};
-    i32                             _middleBtnElement {6};
-    i32                             _rightBtnElement {5};
+    i32                             _middleBtnElement {1};
+    i32                             _rightBtnElement {0};
     bool                            _mouseDown {false};
 
     gfx::shape_batch                 _layer0;

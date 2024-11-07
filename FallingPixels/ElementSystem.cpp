@@ -7,10 +7,10 @@
 
 constexpr i32 EMPTY_ELEMENT {0};
 
-element_system::element_system(size_i size, script_element_vec const& elements)
+element_system::element_system(size_i size, std::vector<element_def> const& elements)
     : _grid {size, 0}
     , _gridMoved {size, 0}
-
+    , _elements {elements}
 {
     _shufflePoints.reserve(_grid.size());
     for (i32 x {0}; x < size.Width; ++x) {
@@ -18,50 +18,30 @@ element_system::element_system(size_i size, script_element_vec const& elements)
             _shufflePoints.emplace_back(x, y);
         }
     }
-
-    for (auto [id, name, table] : elements) {
-        element_def& element {_elements.emplace_back()};
-        element.ID   = id;
-        element.Name = name;
-
-        element.Color          = color::FromString(table["Color"].as<std::string>());
-        element.ColorVariation = table["ColorVariation"].get<i32>().value_or(0);
-        element.SpawnCount     = table["SpawnCount"].get<i32>().value_or(1);
-
-        element.DefaultGravity = table["DefaultGravity"].get<bool>().value_or(true);
-        element.Density        = table["Density"].as<f32>();
-        element.Type           = table["Type"].as<element_type>();
-
-        table.try_get(element.Update, "Update");
-    }
 }
 
 void element_system::update()
 {
     _gridMoved.fill(0);
-
     _shuffle(_shufflePoints);
-
     for (auto const& pos : _shufflePoints) {
-        process(pos.X, pos.Y);
+        process(pos);
     }
 }
 
-void element_system::process(i32 x, i32 y)
+void element_system::process(point_i i)
 {
-    point_i const pos {x, y};
+    if (_gridMoved[i] == 1) { return; }
 
-    if (_gridMoved[pos] == 1) { return; }
-
-    if (auto elementID {id(pos)}; elementID != EMPTY_ELEMENT) {
+    if (auto elementID {id(i)}; elementID != EMPTY_ELEMENT) {
         auto const* element {get_element(elementID)};
         if (!element) { return; }
 
         if (element->Update.is_valid()) {
-            element->Update(this, pos);
+            element->Update(this, i);
         }
 
-        if (element->DefaultGravity) { process_gravity(pos, *element); }
+        if (element->Gravity > 0) { process_gravity(i, *element); }
     }
 }
 
@@ -119,9 +99,8 @@ void element_system::process_gravity(point_i i, element_def const& element)
 
     // Liquid
     if (element.Type == element_type::Liquid) {
-
         // Try to move directly down if the cell below is less dense
-        if (element.Density > density(down)) {
+        if (type(down) != element_type::Solid && element.Density > density(down)) {
             swap(i, down);
             return;
         }
@@ -150,8 +129,11 @@ void element_system::process_gravity(point_i i, element_def const& element)
 
         // Attempt to move diagonally down-right or down-left for three steps
         for (i32 x {0}; x < 3; ++x) {
+            bool const downRightCheck {empty(downRight) || (type(downRight) != element_type::Solid && element.Density > density(downRight))};
+            bool const downLeftCheck {empty(downLeft) || (type(downLeft) != element_type::Solid && element.Density > density(downLeft))};
+
             // Try down-right or down-left if both are less dense
-            if (element.Density > density(downRight) && element.Density > density(downLeft)) {
+            if (downRightCheck && downLeftCheck) {
                 if (rand(0, 1) == 0) {
                     swap(i, downRight);
                 } else {
@@ -161,13 +143,13 @@ void element_system::process_gravity(point_i i, element_def const& element)
             }
 
             // If only down-right is less dense, move there
-            if (element.Density > density(downRight)) {
+            if (downRightCheck) {
                 swap(i, downRight);
                 return;
             }
 
             // If only down-left is less dense, move there
-            if (element.Density > density(downLeft)) {
+            if (downLeftCheck) {
                 swap(i, downLeft);
                 return;
             }
@@ -183,14 +165,13 @@ void element_system::update_image(gfx::image& img)
 {
     if (_dirtyPixel.empty()) { return; }
 
-    auto mutate {
-        [&](element_def const& el) {
-            if (el.ColorVariation == 0) { return el.Color; }
-            u8 const r {static_cast<u8>(std::clamp(el.Color.R + _rand(-el.ColorVariation, el.ColorVariation), 0, 255))};
-            u8 const g {static_cast<u8>(std::clamp(el.Color.G + _rand(-el.ColorVariation, el.ColorVariation), 0, 255))};
-            u8 const b {static_cast<u8>(std::clamp(el.Color.B + _rand(-el.ColorVariation, el.ColorVariation), 0, 255))};
-            return color {r, g, b};
-        }};
+    auto mutate {[&](element_def const& el) {
+        if (el.Color.Variation == 0) { return el.Color.Base; }
+        u8 const r {static_cast<u8>(std::clamp(el.Color.Base.R + _rand(-el.Color.Variation, el.Color.Variation), 0, 255))};
+        u8 const g {static_cast<u8>(std::clamp(el.Color.Base.G + _rand(-el.Color.Variation, el.Color.Variation), 0, 255))};
+        u8 const b {static_cast<u8>(std::clamp(el.Color.Base.B + _rand(-el.Color.Variation, el.Color.Variation), 0, 255))};
+        return color {r, g, b};
+    }};
 
     for (auto const& pos : _dirtyPixel) {
         img.set_pixel(pos, mutate(*get_element(_grid[pos])));
@@ -201,7 +182,25 @@ void element_system::update_image(gfx::image& img)
 
 void element_system::spawn(point_i i, i32 t)
 {
-    i32 const spread {get_element(t)->SpawnCount};
+    auto const* element {get_element(t)};
+
+    i32 spread {0};
+    switch (element->Type) {
+    case element_type::None:
+    case element_type::Solid:
+        spread = 100;
+        break;
+    case element_type::Liquid:
+        spread = 20;
+        break;
+    case element_type::Powder:
+        spread = 1;
+        break;
+    case element_type::Gas:
+        spread = 1;
+        break;
+    }
+
     for (i32 x {0}; x < spread; ++x) {
         point_i const pos {static_cast<i32>((i.X + rand(-4, 4))), static_cast<i32>((i.Y + rand(-4, 4)))};
 
@@ -233,11 +232,11 @@ void element_system::swap(point_i i0, point_i i1)
     set(i1, id0);
 }
 
-void element_system::clear(point_i i)
+void element_system::set(point_i i, i32 t)
 {
     if (!_grid.contains(i)) { return; }
 
-    _grid[i] = EMPTY_ELEMENT;
+    _grid[i] = t;
     _dirtyPixel.insert(i);
     _gridMoved[i] = 1;
 }
@@ -256,6 +255,11 @@ auto element_system::id(point_i i) -> i32
 auto element_system::name(point_i i) -> std::string
 {
     return get_element(id(i))->Name;
+}
+
+auto element_system::flammable(point_i i) -> bool
+{
+    return get_element(id(i))->Flammable;
 }
 
 auto element_system::density(point_i i) -> f32

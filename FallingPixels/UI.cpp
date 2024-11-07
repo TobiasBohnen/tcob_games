@@ -14,7 +14,7 @@ using namespace std::chrono_literals;
 
 ////////////////////////////////////////////////////////////
 
-elements_form::elements_form(window* window, rect_f const& bounds, script_element_vec const& elements)
+elements_form::elements_form(window* window, rect_f const& bounds, std::vector<element_def> const& elements)
     : form {"elements", window, bounds}
     , _font {"trim", "trim"}
 {
@@ -39,8 +39,7 @@ elements_form::elements_form(window* window, rect_f const& bounds, script_elemen
     }};
 
     for (auto const& el : elements) {
-        auto [id, name, _] {el};
-        makeButton(id, name);
+        makeButton(el.ID, el.Name);
     }
 }
 

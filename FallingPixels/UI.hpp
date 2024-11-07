@@ -7,11 +7,13 @@
 
 #include "Common.hpp" // IWYU pragma: keep
 
+#include "ElementSystem.hpp"
+
 ////////////////////////////////////////////////////////////
 
 class elements_form : public gfx::ui::form {
 public:
-    elements_form(gfx::window* window, rect_f const& bounds, script_element_vec const& elements);
+    elements_form(gfx::window* window, rect_f const& bounds, std::vector<element_def> const& elements);
 
     signal<i32> LeftButtonElement;
     signal<i32> MiddleButtonElement;

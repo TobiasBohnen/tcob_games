@@ -29,9 +29,8 @@ auto main(void) -> int
 #else
 auto main(int /* argc */, char* argv[]) -> int
 {
-    tcob::game game {{.Path    = argv[0],
-                      .Name    = "FallingPixels",
-                      .LogFile = "stdout"}};
+    tcob::game game {{.Path = argv[0],
+                      .Name = "FallingPixels"}};
 #endif
 
     game.push_scene<main_scene>();

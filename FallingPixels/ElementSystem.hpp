@@ -19,16 +19,21 @@ enum class element_type {
 
 class element_system;
 
+struct element_color {
+    color Base {};
+    i32   Variation {};
+};
+
 struct element_def {
     i32         ID;
     std::string Name;
 
-    color Color {};
-    i32   ColorVariation {};
-    i32   SpawnCount {};
+    element_color Color {};
 
-    bool         DefaultGravity {};
-    f32          Density {}; // g/cm3
+    f32  Gravity {1.0f};    // TODO
+    bool Flammable {false}; // TODO
+    f32  Density {};        // g/cm3
+
     element_type Type {};
 
     lua::function<void> Update {};
@@ -40,7 +45,7 @@ class element_system {
     friend class element_def;
 
 public:
-    element_system(size_i size, script_element_vec const& elements);
+    element_system(size_i size, std::vector<element_def> const& elements);
 
     void update();
     void update_image(gfx::image& img);
@@ -51,16 +56,17 @@ public:
 
     void swap(point_i i0, point_i i1);
 
-    void clear(point_i i);
+    void set(point_i i, i32 t);
     auto empty(point_i i) -> bool;
 
     auto id(point_i i) -> i32;
     auto name(point_i i) -> std::string;
+    auto flammable(point_i i) -> bool;
     auto density(point_i i) -> f32;
     auto type(point_i i) -> element_type;
 
 private:
-    void process(i32 x, i32 y);
+    void process(point_i i);
     void process_gravity(point_i i, element_def const& element);
 
     auto get_element(i32 t) -> element_def const*;
