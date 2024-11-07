@@ -3,7 +3,7 @@ add_executable(FallingPixels)
 target_sources(FallingPixels PRIVATE
     main.cpp
     FallingPixels.cpp
-    Element.cpp
+    ElementSystem.cpp
     UI.cpp
 )
 
@@ -31,3 +31,9 @@ if(TCOB_BUILD_SHARED AND NOT TCOB_IS_CI)
         COMMAND_EXPAND_LISTS
     )
 endif()
+
+add_custom_target(FallingPixels_copyFiles ALL
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/elements.lua ${CMAKE_BINARY_DIR}/../../x64/
+)
+
+add_dependencies(FallingPixels FallingPixels_copyFiles)

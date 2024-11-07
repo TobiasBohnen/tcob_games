@@ -5,20 +5,17 @@
 
 #pragma once
 
-#include "Element.hpp"
-#include <tcob/tcob.hpp>
-
-using namespace tcob;
+#include "Common.hpp" // IWYU pragma: keep
 
 ////////////////////////////////////////////////////////////
 
 class elements_form : public gfx::ui::form {
 public:
-    elements_form(gfx::window* window, rect_f const& bounds);
+    elements_form(gfx::window* window, rect_f const& bounds, script_element_vec const& elements);
 
-    signal<element_type> LeftButtonElement;
-    signal<element_type> MiddleButtonElement;
-    signal<element_type> RightButtonElement;
+    signal<i32> LeftButtonElement;
+    signal<i32> MiddleButtonElement;
+    signal<i32> RightButtonElement;
 
 private:
     void gen_styles();

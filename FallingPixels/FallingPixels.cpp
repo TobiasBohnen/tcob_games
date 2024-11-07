@@ -13,15 +13,16 @@ using namespace tcob::literals;
 
 constexpr size_i GRID_SIZE {180, 180};
 
-MainScene::MainScene(game& game)
+main_scene::main_scene(game& game)
     : scene(game)
-    , _elementSystem {GRID_SIZE}
+
 {
     auto& window {get_window()};
     auto  winSize {window.Size()};
 
     _sandImg = gfx::image::CreateEmpty(GRID_SIZE, gfx::image::format::RGBA);
     _sandTex->create(_sandImg.get_info().Size, 1, gfx::texture::format::RGBA8);
+    //_sandTex->Filtering = gfx::texture::filtering::Linear;
 
     _shape0 = _layer0.create_shape<gfx::rect_shape>();
     f32 const height {static_cast<f32>(winSize.Height)};
@@ -29,15 +30,18 @@ MainScene::MainScene(game& game)
     _shape0->Material          = _sandMat;
     _shape0->Material->Texture = _sandTex;
 
-    _form = std::make_shared<elements_form>(&window, rect_f {height, 0, winSize.Width - height, height});
-    _form->LeftButtonElement.connect([&](element_type t) { _leftBtnElement = t; });
-    _form->MiddleButtonElement.connect([&](element_type t) { _middleBtnElement = t; });
-    _form->RightButtonElement.connect([&](element_type t) { _rightBtnElement = t; });
+    auto elements {load_script()};
+    _elementSystem = std::make_shared<element_system>(GRID_SIZE, elements);
+
+    _form = std::make_shared<elements_form>(&window, rect_f {height, 0, winSize.Width - height, height}, elements);
+    _form->LeftButtonElement.connect([&](i32 t) { _leftBtnElement = t; });
+    _form->MiddleButtonElement.connect([&](i32 t) { _middleBtnElement = t; });
+    _form->RightButtonElement.connect([&](i32 t) { _rightBtnElement = t; });
 }
 
-MainScene::~MainScene() = default;
+main_scene::~main_scene() = default;
 
-void MainScene::on_start()
+void main_scene::on_start()
 {
     get_window().ClearColor = colors::Black;
     _hourGlass0.restart();
@@ -46,16 +50,16 @@ void MainScene::on_start()
     get_root_node()->Entity = _form;
 }
 
-void MainScene::on_finish()
+void main_scene::on_finish()
 {
 }
 
-void MainScene::on_draw_to(gfx::render_target& target)
+void main_scene::on_draw_to(gfx::render_target& target)
 {
     _layer0.draw_to(target);
 }
 
-void MainScene::on_update(milliseconds deltaTime)
+void main_scene::on_update(milliseconds deltaTime)
 {
     if (_hourGlass1.get_elapsed_milliseconds() > 10) {
         if (_mouseDown) {
@@ -64,11 +68,7 @@ void MainScene::on_update(milliseconds deltaTime)
             f32 const     height {static_cast<f32>(get_window().Size().Height)};
             if (ev.X < height) {
                 f32 const scale {height / GRID_SIZE.Height};
-                i32 const spread {_spawnElement == element_type::Wall ? 100 : 1};
-                for (i32 i {0}; i < spread; ++i) {
-                    point_i const pos {static_cast<i32>((ev.X + rand(-10, 10)) / scale), static_cast<i32>((ev.Y + rand(-10, 10)) / scale)};
-                    _elementSystem.force_set(pos, _spawnElement);
-                }
+                _elementSystem->spawn(ev / scale, _spawnElement);
                 update_image();
             }
         }
@@ -78,14 +78,14 @@ void MainScene::on_update(milliseconds deltaTime)
 
     if (_hourGlass0.get_elapsed_milliseconds() > 20) {
         _layer0.update(deltaTime);
-        _elementSystem.update();
+        _elementSystem->update();
         update_image();
 
         _hourGlass0.restart();
     }
 }
 
-void MainScene::on_fixed_update(milliseconds deltaTime)
+void main_scene::on_fixed_update(milliseconds deltaTime)
 {
     std::stringstream stream;
     stream << std::fixed << std::setprecision(2);
@@ -97,24 +97,24 @@ void MainScene::on_fixed_update(milliseconds deltaTime)
     get_window().Title = "FallingPixels " + stream.str();
 }
 
-void MainScene::on_key_down(input::keyboard::event const& ev)
+void main_scene::on_key_down(input::keyboard::event const& ev)
 {
     if (ev.ScanCode == input::scan_code::BACKSPACE) {
         get_game().pop_current_scene();
     }
 }
 
-void MainScene::on_mouse_motion(input::mouse::motion_event const& ev)
+void main_scene::on_mouse_motion(input::mouse::motion_event const& ev)
 {
 }
 
-void MainScene::on_mouse_button_up(input::mouse::button_event const& ev)
+void main_scene::on_mouse_button_up(input::mouse::button_event const& ev)
 {
-    _spawnElement = element_type::Empty;
+    _spawnElement = 0;
     _mouseDown    = false;
 }
 
-void MainScene::on_mouse_button_down(input::mouse::button_event const& ev)
+void main_scene::on_mouse_button_down(input::mouse::button_event const& ev)
 {
     if (ev.Button == input::mouse::button::Left) {
         _spawnElement = _leftBtnElement;
@@ -126,14 +126,57 @@ void MainScene::on_mouse_button_down(input::mouse::button_event const& ev)
     _mouseDown = true;
 }
 
-void MainScene::on_mouse_wheel(input::mouse::wheel_event const& ev)
+void main_scene::on_mouse_wheel(input::mouse::wheel_event const& ev)
 {
 }
 
-void MainScene::update_image()
+void main_scene::update_image()
 {
-    _elementSystem.update_image(_sandImg);
+    _elementSystem->update_image(_sandImg);
     _sandTex->update_data(_sandImg.get_data().data(), 0);
+}
+
+auto main_scene::load_script() -> script_element_vec
+{
+    using namespace scripting::lua;
+
+    _script.open_libraries(library::Table, library::String, library::Math, library::Coroutine);
+    auto& global {_script.get_global_table()};
+    table env {_script.create_table()};
+    env["table"]     = global["table"];
+    env["string"]    = global["string"];
+    env["math"]      = global["math"];
+    env["coroutine"] = global["coroutine"];
+
+    env["pairs"]        = global["pairs"];
+    env["ipairs"]       = global["ipairs"];
+    env["print"]        = global["print"];
+    env["type"]         = global["type"];
+    env["tonumber"]     = global["tonumber"];
+    env["tostring"]     = global["tostring"];
+    env["setmetatable"] = global["setmetatable"];
+    env["getmetatable"] = global["getmetatable"];
+
+    script_element_vec elements;
+    _registerElement        = make_shared_closure(std::function {[&](i32 id, std::string const& name, table const& table) {
+        elements.emplace_back(id, name, table);
+    }});
+    env["register_element"] = _registerElement.get();
+
+    _script.set_environment(env);
+
+    auto& wrapper {*_script.create_wrapper<element_system>("element_system")};
+    wrapper["swap"]    = [](element_system* sys, point_i i0, point_i i1) { sys->swap(i0, i1); };
+    wrapper["clear"]   = [](element_system* sys, point_i i) { sys->clear(i); };
+    wrapper["empty"]   = [](element_system* sys, point_i i) { return sys->empty(i); };
+    wrapper["id"]      = [](element_system* sys, point_i i) { return sys->id(i); };
+    wrapper["name"]    = [](element_system* sys, point_i i) { return sys->name(i); };
+    wrapper["density"] = [](element_system* sys, point_i i) { return sys->density(i); };
+    wrapper["type"]    = [](element_system* sys, point_i i) { return sys->type(i); };
+
+    std::ignore = _script.run_file("elements.lua");
+
+    return elements;
 }
 
 ////////////////////////////////////////////////////////////

@@ -14,7 +14,7 @@ using namespace std::chrono_literals;
 
 ////////////////////////////////////////////////////////////
 
-elements_form::elements_form(window* window, rect_f const& bounds)
+elements_form::elements_form(window* window, rect_f const& bounds, script_element_vec const& elements)
     : form {"elements", window, bounds}
     , _font {"trim", "trim"}
 {
@@ -24,23 +24,24 @@ elements_form::elements_form(window* window, rect_f const& bounds)
     auto mainPanel {create_container<panel>(dock_style::Fill, "main")};
     auto mainPanelLayout {mainPanel->create_layout<box_layout>(size_i {4, 10})};
 
-    auto mouseEvent {[&](auto&& btn, element_type t) {
-        btn->Label = btn->get_name();
-        btn->MouseDown.connect([&, t](auto const& ev) mutable {
+    auto makeButton {[&](i32 id, std::string const& name) {
+        auto btn {mainPanelLayout->create_widget<button>(name)};
+        btn->Label = name;
+        btn->MouseDown.connect([&, id](auto const& ev) mutable {
             if (ev.Event.Button == input::mouse::button::Left) {
-                LeftButtonElement(t);
+                LeftButtonElement(id);
             } else if (ev.Event.Button == input::mouse::button::Right) {
-                RightButtonElement(t);
+                RightButtonElement(id);
             } else if (ev.Event.Button == input::mouse::button::Middle) {
-                MiddleButtonElement(t);
+                MiddleButtonElement(id);
             }
         });
     }};
 
-    mouseEvent(mainPanelLayout->create_widget<button>("Sand"), element_type::Sand);
-    mouseEvent(mainPanelLayout->create_widget<button>("Sawdust"), element_type::Sawdust);
-    mouseEvent(mainPanelLayout->create_widget<button>("Water"), element_type::Water);
-    mouseEvent(mainPanelLayout->create_widget<button>("Wall"), element_type::Wall);
+    for (auto const& el : elements) {
+        auto [id, name, _] {el};
+        makeButton(id, name);
+    }
 }
 
 void elements_form::gen_styles()
@@ -66,8 +67,8 @@ void elements_form::gen_styles()
         style->Text.Size      = 50_pct;
         style->Text.Alignment = {horizontal_alignment::Centered, vertical_alignment::Top};
         style->Text.AutoSize  = element::text::auto_size_mode::OnlyShrink;
-        style->Margin         = {2_px};
-        style->Padding        = {2_px};
+        style->Margin         = {5_px};
+        style->Padding        = {8_px};
 
         style->Background        = colors::LightGray;
         style->Border.Background = colors::Black;

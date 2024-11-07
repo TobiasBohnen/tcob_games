@@ -5,19 +5,17 @@
 
 #pragma once
 
-#include <tcob/tcob.hpp>
+#include "Common.hpp" // IWYU pragma: keep
 
-#include "Element.hpp"
+#include "ElementSystem.hpp"
 #include "UI.hpp"
-
-using namespace tcob;
 
 ////////////////////////////////////////////////////////////
 
-class MainScene : public scene {
+class main_scene : public scene {
 public:
-    MainScene(game& game);
-    ~MainScene() override;
+    main_scene(game& game);
+    ~main_scene() override;
 
 protected:
     void on_start() override;
@@ -37,15 +35,20 @@ protected:
 private:
     void update_image();
 
+    auto load_script() -> script_element_vec;
+
+    lua::script                    _script;
+    lua::native_closure_shared_ptr _registerElement;
+
     stopwatch _hourGlass0;
     stopwatch _hourGlass1;
 
-    element_system _elementSystem;
-    element_type   _spawnElement {element_type::Empty};
-    element_type   _leftBtnElement {element_type::Sand};
-    element_type   _middleBtnElement {element_type::Wall};
-    element_type   _rightBtnElement {element_type::Water};
-    bool           _mouseDown {false};
+    std::shared_ptr<element_system> _elementSystem;
+    i32                             _spawnElement {0};
+    i32                             _leftBtnElement {2};
+    i32                             _middleBtnElement {6};
+    i32                             _rightBtnElement {5};
+    bool                            _mouseDown {false};
 
     gfx::shape_batch                 _layer0;
     std::shared_ptr<gfx::rect_shape> _shape0;

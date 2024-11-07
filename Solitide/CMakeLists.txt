@@ -61,7 +61,7 @@ add_custom_target(Solitide_copyFiles ALL
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/assets.zip ${CMAKE_BINARY_DIR}/../../x64/
 )
 
-add_dependencies(Solitide_copyFiles Solitide)
+add_dependencies(Solitide Solitide_copyFiles)
 
 # CPack configuration
 set(CPACK_GENERATOR "ZIP")

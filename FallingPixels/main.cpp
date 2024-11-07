@@ -34,7 +34,7 @@ auto main(int /* argc */, char* argv[]) -> int
                       .LogFile = "stdout"}};
 #endif
 
-    game.push_scene<MainScene>();
+    game.push_scene<main_scene>();
     game.start();
     return 0;
 }
