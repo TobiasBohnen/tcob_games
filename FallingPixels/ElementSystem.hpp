@@ -30,13 +30,14 @@ struct element_def {
 
     element_color Color {};
 
-    f32  Gravity {1.0f};    // TODO
-    bool Flammable {false}; // TODO
-    f32  Density {};        // g/cm3
+    f32 SpawnHeat {20};
+
+    f32 Gravity {1.0f}; // TODO
+    f32 Density {};     // g/cm3
 
     element_type Type {};
 
-    lua::function<void> Update {};
+    lua::function<bool> Update {};
 };
 
 ////////////////////////////////////////////////////////////
@@ -45,10 +46,13 @@ class element_system {
     friend class element_def;
 
 public:
-    element_system(size_i size, std::vector<element_def> const& elements);
+    element_system(size_i size);
+
+    void set_elements(std::vector<element_def> const& elements);
 
     void update();
-    void update_image(gfx::image& img);
+    void draw_image(gfx::image& img);
+    void draw_heatmap(gfx::image& img);
 
     void spawn(point_i i, i32 t);
 
@@ -56,29 +60,33 @@ public:
 
     void swap(point_i i0, point_i i1);
 
-    void set(point_i i, i32 t);
     auto empty(point_i i) -> bool;
 
+    auto temperature(point_i i) -> f32;
+    void temperature(point_i i, f32 val);
+
     auto id(point_i i) -> i32;
+    void id(point_i i, i32 val);
+
     auto name(point_i i) -> std::string;
-    auto flammable(point_i i) -> bool;
     auto density(point_i i) -> f32;
     auto type(point_i i) -> element_type;
 
 private:
-    void process(point_i i);
+    void process_temperature();
     void process_gravity(point_i i, element_def const& element);
+    void process_elements();
 
     auto get_element(i32 t) -> element_def const*;
 
-    grid<i32>                   _grid;
-    grid<u8>                    _gridMoved;
-    std::unordered_set<point_i> _dirtyPixel;
+    grid<i32> _gridElements;
+    grid<f32> _gridTemperature;
+    grid<u8>  _gridMoved;
 
     rng _rand;
 
     std::vector<point_i>     _shufflePoints;
     random::shuffle<point_i> _shuffle;
 
-    std::vector<element_def> _elements;
+    std::unordered_map<i32, element_def> _elements;
 };

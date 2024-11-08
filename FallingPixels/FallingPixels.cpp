@@ -11,7 +11,7 @@
 using namespace std::chrono_literals;
 using namespace tcob::literals;
 
-constexpr size_i GRID_SIZE {180, 180};
+constexpr size_i GRID_SIZE {128, 128};
 
 main_scene::main_scene(game& game)
     : scene(game)
@@ -29,6 +29,8 @@ main_scene::main_scene(game& game)
     _shape0->Material          = _sandMat;
     _shape0->Material->Texture = _sandTex;
 
+    _elementSystem = std::make_unique<element_system>(GRID_SIZE);
+
     auto                     elements {load_script()};
     std::vector<element_def> elementsDefs;
     for (auto [id, name, table] : elements) {
@@ -39,15 +41,15 @@ main_scene::main_scene(game& game)
         element.Color.Base      = color::FromString(table["Color"][1].as<std::string>());
         element.Color.Variation = table["Color"][2].as<i32>();
 
+        table.try_get(element.SpawnHeat, "SpawnHeat");
         table.try_get(element.Gravity, "Gravity");
-        table.try_get(element.Flammable, "Flammable");
         element.Density = table["Density"].as<f32>();
         element.Type    = table["Type"].as<element_type>();
 
         table.try_get(element.Update, "Update");
     }
-    _elementSystem = std::make_unique<element_system>(GRID_SIZE, elementsDefs);
 
+    _elementSystem->set_elements(elementsDefs);
     _form = std::make_shared<elements_form>(&window, rect_f {height, 0, winSize.Width - height, height}, elementsDefs);
     _form->LeftButtonElement.connect([&](i32 t) { _leftBtnElement = t; });
     _form->MiddleButtonElement.connect([&](i32 t) { _middleBtnElement = t; });
@@ -95,7 +97,6 @@ void main_scene::on_update(milliseconds deltaTime)
         _layer0.update(deltaTime);
         _elementSystem->update();
         update_image();
-
         _hourGlass0.restart();
     }
 }
@@ -108,6 +109,13 @@ void main_scene::on_fixed_update(milliseconds deltaTime)
     stream << "avg FPS:" << stats.get_average_FPS();
     stream << " best FPS:" << stats.get_best_FPS();
     stream << " worst FPS:" << stats.get_worst_FPS();
+
+    point_i const ev {input::system::GetMousePosition()};
+    f32 const     height {static_cast<f32>(get_window().Size().Height)};
+    if (ev.X < height) {
+        f32 const scale {height / GRID_SIZE.Height};
+        stream << "| heat:" << _elementSystem->temperature(ev / scale);
+    }
 
     get_window().Title = "FallingPixels " + stream.str();
 }
@@ -147,7 +155,7 @@ void main_scene::on_mouse_wheel(input::mouse::wheel_event const& ev)
 
 void main_scene::update_image()
 {
-    _elementSystem->update_image(_sandImg);
+    _elementSystem->draw_image(_sandImg);
     _sandTex->update_data(_sandImg.get_data().data(), 0);
 }
 
@@ -177,19 +185,20 @@ auto main_scene::load_script() -> script_element_vec
         elements.emplace_back(id, name, table);
     }});
     env["register_element"] = _registerElement.get();
-
+    env["system"]           = _elementSystem.get();
     _script.set_environment(env);
 
     auto& wrapper {*_script.create_wrapper<element_system>("element_system")};
-    wrapper["swap"] = [](element_system* sys, point_i i0, point_i i1) { sys->swap(i0, i1); };
-    wrapper["set"]  = [](element_system* sys, point_i i, i32 t) { sys->set(i, t); };
 
-    wrapper["empty"]     = [](element_system* sys, point_i i) { return sys->empty(i); };
-    wrapper["id"]        = [](element_system* sys, point_i i) { return sys->id(i); };
-    wrapper["name"]      = [](element_system* sys, point_i i) { return sys->name(i); };
-    wrapper["density"]   = [](element_system* sys, point_i i) { return sys->density(i); };
-    wrapper["flammable"] = [](element_system* sys, point_i i) { return sys->flammable(i); };
-    wrapper["type"]      = [](element_system* sys, point_i i) { return sys->type(i); };
+    wrapper["swap"]  = [](element_system* sys, i32 x0, i32 y0, i32 x1, i32 y1) { sys->swap({x0, y0}, {x1, y1}); };
+    wrapper["empty"] = [](element_system* sys, i32 x, i32 y) { return sys->empty({x, y}); };
+
+    wrapper["set_id"]      = [](element_system* sys, i32 x, i32 y, i32 val) { sys->id({x, y}, val); };
+    wrapper["temperature"] = [](element_system* sys, i32 x, i32 y) { return sys->temperature({x, y}); };
+
+    wrapper["name"]    = [](element_system* sys, i32 x, i32 y) { return sys->name({x, y}); };
+    wrapper["density"] = [](element_system* sys, i32 x, i32 y) { return sys->density({x, y}); };
+    wrapper["type"]    = [](element_system* sys, i32 x, i32 y) { return sys->type({x, y}); };
 
     std::ignore = _script.run_file("elements.lua");
 
