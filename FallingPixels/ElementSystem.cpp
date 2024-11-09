@@ -5,7 +5,8 @@
 
 #include "ElementSystem.hpp"
 
-constexpr i32 EMPTY_ELEMENT {0};
+constexpr i32                           EMPTY_ELEMENT {0};
+static constexpr std::array<point_i, 4> NEIGHBORS {{{-1, 0}, {1, 0}, {0, -1}, {0, 1}}};
 
 element_system::element_system(size_i size)
     : _gridElements {size, 0}
@@ -30,26 +31,23 @@ void element_system::set_elements(std::vector<element_def> const& elements)
 void element_system::update()
 {
     _gridMoved.fill(0);
-    process_temperature();
-    process_elements();
+    update_temperature();
+    update_grid();
 }
 
 void element_system::draw_image(gfx::image& img)
 {
-    auto mutate {[&](point_i i, element_def const& el) {
-        rng rand {i.X * 73856093 ^ i.Y * 19349663 ^ 12345u};
-        if (el.Color.Variation == 0) { return el.Color.Base; }
-        u8 const r {static_cast<u8>(std::clamp(el.Color.Base.R + rand(-el.Color.Variation, el.Color.Variation), 0, 255))};
-        u8 const g {static_cast<u8>(std::clamp(el.Color.Base.G + rand(-el.Color.Variation, el.Color.Variation), 0, 255))};
-        u8 const b {static_cast<u8>(std::clamp(el.Color.Base.B + rand(-el.Color.Variation, el.Color.Variation), 0, 255))};
-        return color {r, g, b};
+    auto getColor {[&](point_i i, element_def const& el) {
+        rng       rand {i.X * 73856093 ^ i.Y * 19349663 ^ 12345u};
+        i32 const idx {rand(0, static_cast<i32>(el.Colors.size() - 1))};
+        return el.Colors[idx];
     }};
 
     auto const size {img.get_info().Size};
     for (i32 x {0}; x < size.Width; ++x) {
         for (i32 y {0}; y < size.Height; ++y) {
             point_i const pos {x, y};
-            img.set_pixel(pos, mutate(pos, *get_element(_gridElements[pos])));
+            img.set_pixel(pos, getColor(pos, *id_to_element(_gridElements[pos])));
         }
     }
 }
@@ -71,72 +69,131 @@ void element_system::draw_heatmap(gfx::image& img)
 
 void element_system::spawn(point_i i, i32 t)
 {
-    auto const* element {get_element(t)};
+    auto const* element {id_to_element(t)};
 
-    i32 spread {0};
     switch (element->Type) {
     case element_type::None:
     case element_type::Solid:
-        spread = 100;
+        for (i32 x {0}; x < 30; ++x) {
+            for (i32 y {0}; y < 30; ++y) {
+                point_i const pos {i.X - 15 + x, i.Y - 15 + y};
+
+                if (!_gridElements.contains(pos)) { continue; }
+                _gridElements[pos]    = t;
+                _gridTemperature[pos] = element->Temperature;
+            }
+        }
         break;
     case element_type::Liquid:
-        spread = 20;
+        for (i32 x {0}; x < 50; ++x) {
+            point_i const pos {static_cast<i32>((i.X + rand(-15, 15))), static_cast<i32>((i.Y + rand(-15, 15)))};
+
+            if (!_gridElements.contains(pos)) { continue; }
+            _gridElements[pos]    = t;
+            _gridTemperature[pos] = element->Temperature;
+        }
         break;
     case element_type::Powder:
-        spread = 1;
+        for (i32 x {0}; x < 10; ++x) {
+            point_i const pos {static_cast<i32>((i.X + rand(-15, 15))), static_cast<i32>((i.Y + rand(-15, 15)))};
+
+            if (!_gridElements.contains(pos)) { continue; }
+            _gridElements[pos]    = t;
+            _gridTemperature[pos] = element->Temperature;
+        }
         break;
     case element_type::Gas:
-        spread = 1000;
+        for (i32 x {0}; x < 100; ++x) {
+            point_i const pos {static_cast<i32>((i.X + rand(-15, 15))), static_cast<i32>((i.Y + rand(-15, 15)))};
+
+            if (!_gridElements.contains(pos)) { continue; }
+            _gridElements[pos]    = t;
+            _gridTemperature[pos] = element->Temperature;
+        }
         break;
-    }
-
-    for (i32 x {0}; x < spread; ++x) {
-        point_i const pos {static_cast<i32>((i.X + rand(-4, 4))), static_cast<i32>((i.Y + rand(-4, 4)))};
-
-        if (!_gridElements.contains(pos)) { continue; }
-        _gridElements[pos]    = t;
-        _gridTemperature[pos] = element->SpawnHeat;
     }
 }
 
-void element_system::process_temperature()
+void element_system::update_temperature()
 {
-    static std::array<point_i, 4> neighbors {{{-1, 0}, {1, 0}, {0, -1}, {0, 1}}};
-
     f32 const  alpha {0.25f};
     auto const size {_gridTemperature.get_extent()};
 
-    for (i32 x {1}; x < size.Width - 1; ++x) {
-        for (i32 y {1}; y < size.Height - 1; ++y) {
+    for (i32 x {0}; x < size.Width; ++x) {
+        for (i32 y {0}; y < size.Height; ++y) {
             point_i const pos {x, y};
             f32           avgTemp {0};
-            for (auto const& n : neighbors) {
-                avgTemp += _gridTemperature[pos + n];
+            i32           n {0};
+            for (auto const& neighbor : NEIGHBORS) {
+                if (_gridTemperature.contains(pos + neighbor)) {
+                    avgTemp += _gridTemperature[pos + neighbor];
+                    ++n;
+                }
             }
-            avgTemp /= neighbors.size();
+            avgTemp /= n;
             _gridTemperature[pos] = _gridTemperature[pos] + alpha * (avgTemp - _gridTemperature[pos]);
         }
     }
 }
 
-void element_system::process_elements()
+void element_system::update_grid()
 {
     _shuffle(_shufflePoints);
     for (auto const& pos : _shufflePoints) {
         if (_gridMoved[pos] == 1) { continue; }
 
         if (auto elementID {id(pos)}; elementID != EMPTY_ELEMENT) {
-            auto const* element {get_element(elementID)};
+            auto const* element {id_to_element(elementID)};
             if (!element) { continue; }
 
-            if (element->Update.is_valid()) {
-                if (!element->Update(pos.X, pos.Y)) {
-                    continue;
-                }
-            }
+            // transitions
+            process_transitions(pos, *element);
 
+            // gravity
             if (element->Gravity > 0) { process_gravity(pos, *element); }
         }
+    }
+}
+
+void element_system::process_transitions(point_i i, element_def const& element)
+{
+    for (auto const& transition : element.Transitions) {
+        std::visit(
+            overloaded {
+                [&](temp_transition const& transition) {
+                    f32 const temp(temperature(i));
+                    switch (transition.Op) {
+                    case math_op::Equals:
+                        if (temp == transition.Temperature) { id(i, name_to_id(transition.Target)); }
+                        break;
+                    case math_op::LessThan:
+                        if (temp < transition.Temperature) { id(i, name_to_id(transition.Target)); }
+                        break;
+                    case math_op::LessThanOrEqual:
+                        if (temp <= transition.Temperature) { id(i, name_to_id(transition.Target)); }
+                        break;
+                    case math_op::GreaterThan:
+                        if (temp > transition.Temperature) { id(i, name_to_id(transition.Target)); }
+                        break;
+                    case math_op::GreaterThanOrEqual:
+                        if (temp >= transition.Temperature) { id(i, name_to_id(transition.Target)); }
+                        break;
+                    }
+                },
+                [&](neighbor_transition const& transition) {
+                    for (auto const& neighbor : NEIGHBORS) {
+                        point_i const np {i + neighbor};
+                        if (_gridElements.contains(np)) {
+                            i32 const eid {_gridElements[np]};
+                            if (eid == name_to_id(transition.Neighbor)) {
+                                id(np, transition.Target);
+                                id(i, "Empty");
+                                return;
+                            }
+                        }
+                    }
+                }},
+            transition);
     }
 }
 
@@ -339,12 +396,17 @@ auto element_system::id(point_i i) -> i32
     return _gridElements[i];
 }
 
+void element_system::id(point_i i, std::string const& val)
+{
+    id(i, name_to_id(val));
+}
+
 void element_system::id(point_i i, i32 val)
 {
     if (!_gridElements.contains(i)) { return; }
 
     _gridElements[i] = val;
-    _gridMoved[i]    = 1;
+    if (val != EMPTY_ELEMENT) { _gridMoved[i] = 1; }
 }
 
 auto element_system::temperature(point_i i) -> f32
@@ -361,17 +423,17 @@ void element_system::temperature(point_i i, f32 val)
 
 auto element_system::name(point_i i) -> std::string
 {
-    return get_element(id(i))->Name;
+    return id_to_element(id(i))->Name;
 }
 
 auto element_system::density(point_i i) -> f32
 {
-    return get_element(id(i))->Density;
+    return id_to_element(id(i))->Density;
 }
 
 auto element_system::type(point_i i) -> element_type
 {
-    return get_element(id(i))->Type;
+    return id_to_element(id(i))->Type;
 }
 
 auto element_system::rand(i32 min, i32 max) -> i32
@@ -379,9 +441,17 @@ auto element_system::rand(i32 min, i32 max) -> i32
     return _rand(min, max);
 }
 
-auto element_system::get_element(i32 t) -> element_def const*
+auto element_system::id_to_element(i32 t) -> element_def const*
 {
     auto it {_elements.find(t)};
     if (it == _elements.end()) { return nullptr; }
     return &it->second;
+}
+
+auto element_system::name_to_id(std::string const& name) const -> i32
+{
+    for (auto const& element : _elements) {
+        if (element.second.Name == name) { return element.first; }
+    }
+    return EMPTY_ELEMENT;
 }

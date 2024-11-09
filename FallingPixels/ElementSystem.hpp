@@ -17,34 +17,46 @@ enum class element_type {
     Gas
 };
 
-class element_system;
-
-struct element_color {
-    color Base {};
-    i32   Variation {};
+////////////////////////////////////////////////////////////
+enum class math_op {
+    Equals,
+    LessThan,
+    LessThanOrEqual,
+    GreaterThan,
+    GreaterThanOrEqual
 };
+struct temp_transition {
+    f32         Temperature {};
+    math_op     Op {};
+    std::string Target {};
+};
+
+struct neighbor_transition {
+    std::string Neighbor {};
+    std::string Target {};
+};
+
+////////////////////////////////////////////////////////////
 
 struct element_def {
     i32         ID;
     std::string Name;
 
-    element_color Color {};
+    std::vector<color> Colors {};
 
-    f32 SpawnHeat {20};
+    f32 Temperature {20};
 
     f32 Gravity {1.0f}; // TODO
     f32 Density {};     // g/cm3
 
-    element_type Type {};
+    std::vector<std::variant<temp_transition, neighbor_transition>> Transitions;
 
-    lua::function<bool> Update {};
+    element_type Type {};
 };
 
 ////////////////////////////////////////////////////////////
 
 class element_system {
-    friend class element_def;
-
 public:
     element_system(size_i size);
 
@@ -66,6 +78,7 @@ public:
     void temperature(point_i i, f32 val);
 
     auto id(point_i i) -> i32;
+    void id(point_i i, std::string const& val);
     void id(point_i i, i32 val);
 
     auto name(point_i i) -> std::string;
@@ -73,11 +86,13 @@ public:
     auto type(point_i i) -> element_type;
 
 private:
-    void process_temperature();
+    void update_grid();
+    void update_temperature();
+    void process_transitions(point_i i, element_def const& element);
     void process_gravity(point_i i, element_def const& element);
-    void process_elements();
 
-    auto get_element(i32 t) -> element_def const*;
+    auto id_to_element(i32 t) -> element_def const*;
+    auto name_to_id(std::string const& name) const -> i32;
 
     grid<i32> _gridElements;
     grid<f32> _gridTemperature;

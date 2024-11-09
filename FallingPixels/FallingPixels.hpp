@@ -43,7 +43,6 @@ private:
     lua::native_closure_shared_ptr _registerElement;
 
     stopwatch _hourGlass0;
-    stopwatch _hourGlass1;
 
     std::unique_ptr<element_system> _elementSystem;
     i32                             _spawnElement {0};

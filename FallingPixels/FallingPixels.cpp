@@ -11,7 +11,7 @@
 using namespace std::chrono_literals;
 using namespace tcob::literals;
 
-constexpr size_i GRID_SIZE {128, 128};
+constexpr size_i GRID_SIZE {200, 200};
 
 main_scene::main_scene(game& game)
     : scene(game)
@@ -38,15 +38,37 @@ main_scene::main_scene(game& game)
         element.ID   = id;
         element.Name = name;
 
-        element.Color.Base      = color::FromString(table["Color"][1].as<std::string>());
-        element.Color.Variation = table["Color"][2].as<i32>();
+        std::vector<std::string> colors;
+        table.try_get(colors, "Colors");
+        for (auto const& color : colors) {
+            element.Colors.push_back(color::FromString(color));
+        }
 
-        table.try_get(element.SpawnHeat, "SpawnHeat");
+        table.try_get(element.Temperature, "Temperature");
         table.try_get(element.Gravity, "Gravity");
         element.Density = table["Density"].as<f32>();
         element.Type    = table["Type"].as<element_type>();
 
-        table.try_get(element.Update, "Update");
+        lua::table transitions;
+        if (table.try_get(transitions, "Transitions")) {
+            auto const keys {transitions.get_keys<i32>()};
+            for (auto const& key : keys) {
+                lua::table transition {transitions[key].as<lua::table>()};
+
+                if (transition.has("Temperature")) {
+                    temp_transition trans;
+                    transition.try_get(trans.Temperature, "Temperature");
+                    transition.try_get(trans.Op, "Op");
+                    transition.try_get(trans.Target, "Target");
+                    element.Transitions.emplace_back(trans);
+                } else if (transition.has("Neighbor")) {
+                    neighbor_transition trans;
+                    transition.try_get(trans.Neighbor, "Neighbor");
+                    transition.try_get(trans.Target, "Target");
+                    element.Transitions.emplace_back(trans);
+                }
+            }
+        }
     }
 
     _elementSystem->set_elements(elementsDefs);
@@ -62,7 +84,6 @@ void main_scene::on_start()
 {
     get_window().ClearColor = colors::Black;
     _hourGlass0.restart();
-    _hourGlass1.restart();
 
     get_root_node()->Entity = _form;
 }
@@ -78,7 +99,7 @@ void main_scene::on_draw_to(gfx::render_target& target)
 
 void main_scene::on_update(milliseconds deltaTime)
 {
-    if (_hourGlass1.get_elapsed_milliseconds() > 10) {
+    if (_hourGlass0.get_elapsed_milliseconds() > 20) {
         if (_mouseDown) {
             rng           rand;
             point_i const ev {input::system::GetMousePosition()};
@@ -90,10 +111,6 @@ void main_scene::on_update(milliseconds deltaTime)
             }
         }
 
-        _hourGlass1.restart();
-    }
-
-    if (_hourGlass0.get_elapsed_milliseconds() > 20) {
         _layer0.update(deltaTime);
         _elementSystem->update();
         update_image();
@@ -115,6 +132,7 @@ void main_scene::on_fixed_update(milliseconds deltaTime)
     if (ev.X < height) {
         f32 const scale {height / GRID_SIZE.Height};
         stream << "| heat:" << _elementSystem->temperature(ev / scale);
+        stream << "| name:" << _elementSystem->name(ev / scale);
     }
 
     get_window().Title = "FallingPixels " + stream.str();
@@ -181,24 +199,11 @@ auto main_scene::load_script() -> script_element_vec
     env["getmetatable"] = global["getmetatable"];
 
     script_element_vec elements;
-    _registerElement        = make_shared_closure(std::function {[&](i32 id, std::string const& name, table const& table) {
-        elements.emplace_back(id, name, table);
+    _registerElement        = make_shared_closure(std::function {[&](std::string const& name, table const& table) {
+        elements.emplace_back(elements.size(), name, table);
     }});
     env["register_element"] = _registerElement.get();
-    env["system"]           = _elementSystem.get();
     _script.set_environment(env);
-
-    auto& wrapper {*_script.create_wrapper<element_system>("element_system")};
-
-    wrapper["swap"]  = [](element_system* sys, i32 x0, i32 y0, i32 x1, i32 y1) { sys->swap({x0, y0}, {x1, y1}); };
-    wrapper["empty"] = [](element_system* sys, i32 x, i32 y) { return sys->empty({x, y}); };
-
-    wrapper["set_id"]      = [](element_system* sys, i32 x, i32 y, i32 val) { sys->id({x, y}, val); };
-    wrapper["temperature"] = [](element_system* sys, i32 x, i32 y) { return sys->temperature({x, y}); };
-
-    wrapper["name"]    = [](element_system* sys, i32 x, i32 y) { return sys->name({x, y}); };
-    wrapper["density"] = [](element_system* sys, i32 x, i32 y) { return sys->density({x, y}); };
-    wrapper["type"]    = [](element_system* sys, i32 x, i32 y) { return sys->type({x, y}); };
 
     std::ignore = _script.run_file("elements.lua");
 
