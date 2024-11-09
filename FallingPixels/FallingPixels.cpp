@@ -29,11 +29,19 @@ main_scene::main_scene(game& game)
     _shape0->Material          = _sandMat;
     _shape0->Material->Texture = _sandTex;
 
-    _elementSystem = std::make_unique<element_system>(GRID_SIZE);
+    ////
+    script_element_vec const elements {load_script()};
+    auto                     name_to_id {[&](std::string const& f) {
+        for (auto const& [id, name, table] : elements) {
+            if (name == f) {
+                return id;
+            }
+        }
+        return 0;
+    }};
 
-    auto                     elements {load_script()};
     std::vector<element_def> elementsDefs;
-    for (auto [id, name, table] : elements) {
+    for (auto const& [id, name, table] : elements) {
         element_def& element {elementsDefs.emplace_back()};
         element.ID   = id;
         element.Name = name;
@@ -46,6 +54,8 @@ main_scene::main_scene(game& game)
 
         table.try_get(element.Temperature, "Temperature");
         table.try_get(element.Gravity, "Gravity");
+        table.try_get(element.Dispersion, "Dispersion");
+
         element.Density = table["Density"].as<f32>();
         element.Type    = table["Type"].as<element_type>();
 
@@ -56,22 +66,24 @@ main_scene::main_scene(game& game)
                 lua::table transition {transitions[key].as<lua::table>()};
 
                 if (transition.has("Temperature")) {
-                    temp_transition trans;
-                    transition.try_get(trans.Temperature, "Temperature");
-                    transition.try_get(trans.Op, "Op");
-                    transition.try_get(trans.Target, "Target");
-                    element.Transitions.emplace_back(trans);
+                    temp_transition val;
+                    transition.try_get(val.Temperature, "Temperature");
+                    transition.try_get(val.Op, "Op");
+                    val.Target = name_to_id(transition["Target"].as<std::string>());
+                    element.Transitions.emplace_back(val);
                 } else if (transition.has("Neighbor")) {
-                    neighbor_transition trans;
-                    transition.try_get(trans.Neighbor, "Neighbor");
-                    transition.try_get(trans.Target, "Target");
-                    element.Transitions.emplace_back(trans);
+                    neighbor_transition val;
+                    val.Neighbor = name_to_id(transition["Neighbor"].as<std::string>());
+                    val.Target   = name_to_id(transition["Target"].as<std::string>());
+                    element.Transitions.emplace_back(val);
                 }
             }
         }
     }
 
-    _elementSystem->set_elements(elementsDefs);
+    _elementSystem = std::make_unique<element_system>(GRID_SIZE, elementsDefs);
+    ////
+
     _form = std::make_shared<elements_form>(&window, rect_f {height, 0, winSize.Width - height, height}, elementsDefs);
     _form->LeftButtonElement.connect([&](i32 t) { _leftBtnElement = t; });
     _form->MiddleButtonElement.connect([&](i32 t) { _middleBtnElement = t; });
@@ -99,19 +111,18 @@ void main_scene::on_draw_to(gfx::render_target& target)
 
 void main_scene::on_update(milliseconds deltaTime)
 {
-    if (_hourGlass0.get_elapsed_milliseconds() > 20) {
-        if (_mouseDown) {
-            rng           rand;
-            point_i const ev {input::system::GetMousePosition()};
-            f32 const     height {static_cast<f32>(get_window().Size().Height)};
-            if (ev.X < height) {
-                f32 const scale {height / GRID_SIZE.Height};
-                _elementSystem->spawn(ev / scale, _spawnElement);
-                update_image();
-            }
-        }
+    _layer0.update(deltaTime);
 
-        _layer0.update(deltaTime);
+    if (_mouseDown) {
+        point_i const ev {input::system::GetMousePosition()};
+        f32 const     height {static_cast<f32>(get_window().Size().Height)};
+        if (ev.X < height) {
+            f32 const scale {height / GRID_SIZE.Height};
+            _elementSystem->spawn(ev / scale, _spawnElement);
+        }
+    }
+
+    if (_hourGlass0.get_elapsed_milliseconds() > 10) {
         _elementSystem->update();
         update_image();
         _hourGlass0.restart();
@@ -131,7 +142,6 @@ void main_scene::on_fixed_update(milliseconds deltaTime)
     f32 const     height {static_cast<f32>(get_window().Size().Height)};
     if (ev.X < height) {
         f32 const scale {height / GRID_SIZE.Height};
-        stream << "| heat:" << _elementSystem->temperature(ev / scale);
         stream << "| name:" << _elementSystem->name(ev / scale);
     }
 
@@ -142,6 +152,8 @@ void main_scene::on_key_down(input::keyboard::event const& ev)
 {
     if (ev.ScanCode == input::scan_code::BACKSPACE) {
         get_game().pop_current_scene();
+    } else if (ev.ScanCode == input::scan_code::H) {
+        _drawHeatMap = !_drawHeatMap;
     }
 }
 
@@ -173,7 +185,11 @@ void main_scene::on_mouse_wheel(input::mouse::wheel_event const& ev)
 
 void main_scene::update_image()
 {
-    _elementSystem->draw_image(_sandImg);
+    if (_drawHeatMap) {
+        _elementSystem->draw_heatmap(_sandImg);
+    } else {
+        _elementSystem->draw_image(_sandImg);
+    }
     _sandTex->update_data(_sandImg.get_data().data(), 0);
 }
 

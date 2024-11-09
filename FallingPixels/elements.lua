@@ -8,7 +8,7 @@
 local empty = {
     Colors  = { "Transparent" },
     Gravity = 0,
-    Density = 100,
+    Density = 0,
     Type    = "None",
 }
 register_element("Empty", empty)
@@ -87,6 +87,7 @@ local water = {
     Density     = 1,
     Type        = "Liquid",
     Temperature = 10,
+    Dispersion  = 5,
     Transitions = {
         { Temperature = 100, Op = "GreaterThanOrEqual", Target = "Steam" },
         { Temperature = 0,   Op = "LessThan",           Target = "Snow" },
@@ -100,6 +101,7 @@ local salt_water = {
     Density     = 1.03,
     Type        = "Liquid",
     Temperature = 10,
+    Dispersion  = 5,
     Transitions = {
         { Temperature = 102, Op = "GreaterThanOrEqual", Target = "Steam" },
         { Temperature = -21, Op = "LessThan",           Target = "Snow" },
@@ -109,17 +111,19 @@ register_element("Salt Water", salt_water)
 
 ----------------------
 local olive_oil = {
-    Colors  = { "#d1ef71", "#c1d64d", "#8eb027", "#65880f", "#5f720f" },
-    Density = 0.9,
-    Type    = "Liquid",
+    Colors     = { "#8eb027", "#65880f", "#5f720f" },
+    Density    = 0.9,
+    Dispersion = 3,
+    Type       = "Liquid",
 }
 register_element("Olive Oil", olive_oil)
 
 ----------------------
 local honey = {
-    Colors  = { "#f9c901" },
-    Density = 1.6,
-    Type    = "Liquid",
+    Colors     = { "#f9c901" },
+    Density    = 1.6,
+    Dispersion = 1,
+    Type       = "Liquid",
 }
 register_element("Honey", honey)
 

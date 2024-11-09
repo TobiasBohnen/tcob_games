@@ -45,11 +45,12 @@ private:
     stopwatch _hourGlass0;
 
     std::unique_ptr<element_system> _elementSystem;
-    i32                             _spawnElement {0};
-    i32                             _leftBtnElement {2};
-    i32                             _middleBtnElement {1};
-    i32                             _rightBtnElement {0};
-    bool                            _mouseDown {false};
+
+    i32  _spawnElement {0};
+    i32  _leftBtnElement {2};
+    i32  _middleBtnElement {1};
+    i32  _rightBtnElement {0};
+    bool _mouseDown {false};
 
     gfx::shape_batch                 _layer0;
     std::shared_ptr<gfx::rect_shape> _shape0;
@@ -59,4 +60,6 @@ private:
     gfx::image                              _sandImg;
 
     std::shared_ptr<elements_form> _form;
+
+    bool _drawHeatMap {false};
 };
