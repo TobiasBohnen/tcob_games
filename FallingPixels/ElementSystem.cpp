@@ -5,6 +5,8 @@
 
 #include "ElementSystem.hpp"
 
+#include <cstring>
+
 constexpr i32                           EMPTY_ELEMENT {0};
 static constexpr std::array<point_i, 4> NEIGHBORS {{{-1, 0}, {1, 0}, {0, -1}, {0, 1}}};
 
