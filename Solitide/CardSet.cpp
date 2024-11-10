@@ -99,7 +99,7 @@ auto card_set::load() const -> bool
                     continue;
                 }
                 if (statusFuture.get() != load_status::Ok) { return false; }
-                _texture->update_data(imgIt->Image.get_data(), imgIt->Depth);
+                _texture->update_data(imgIt->Image.buffer(), imgIt->Depth);
                 _texture->add_region(
                     json.get<std::string>("cards", io::get_filename(imgIt->Path)).value_or(io::get_stem(imgIt->Path)),
                     {{0, 0, 1, 1}, imgIt->Depth});
@@ -117,7 +117,7 @@ auto card_set::get_folder() const -> std::string
 
 auto card_set::get_texture() const -> gfx::texture*
 {
-    return _texture.get_ptr();
+    return _texture.ptr();
 }
 
 auto card_set::is_loaded() const -> bool
@@ -202,7 +202,7 @@ void card_set::save_textures(assets::asset_ptr<gfx::texture> const& canvasTex, s
     for (auto const& [k, v] : regions) {
         if (k == "default") { continue; }
 
-        auto const data {tempImg.get_data(rect_i {v.UVRect})};
+        auto const data {tempImg.buffer(rect_i {v.UVRect})};
         gfx::image cardimg {gfx::image::Create(size_i {texSize}, gfx::image::format::RGBA, data)};
 
         string const file {k + ".png"};
@@ -240,8 +240,8 @@ void gen_cardset::create(assets::group& resGrp)
     canvas.begin_frame(size_i {canvasSize}, 1.0f);
 
     auto        fontFamily {resGrp.get<gfx::font_family>(FONT)};
-    fonts const fonts {.NormalFont = fontFamily->get_font({false, gfx::font::weight::Normal}, static_cast<u32>(texSize.Height / 7.5f)).get_ptr(),
-                       .LargeFont  = fontFamily->get_font({false, gfx::font::weight::Bold}, static_cast<u32>(texSize.Height / 2)).get_ptr()};
+    fonts const fonts {.NormalFont = fontFamily->get_font({false, gfx::font::weight::Normal}, static_cast<u32>(texSize.Height / 7.5f)).ptr(),
+                       .LargeFont  = fontFamily->get_font({false, gfx::font::weight::Bold}, static_cast<u32>(texSize.Height / 2)).ptr()};
 
     canvas.set_text_halign(gfx::horizontal_alignment::Centered);
     canvas.set_text_valign(gfx::vertical_alignment::Middle);
@@ -533,7 +533,7 @@ void mini_cardset::create(assets::group& resGrp, size_f texSize)
     auto       fontFamily {resGrp.get<gfx::font_family>(FONT)};
     gfx::font* font {fontFamily->get_font({false, gfx::font::weight::Normal},
                                           static_cast<u32>((isHori ? texSize.Height : texSize.Width) * 0.9f))
-                         .get_ptr()};
+                         .ptr()};
 
     canvas.set_text_halign(gfx::horizontal_alignment::Centered);
     canvas.set_text_valign(gfx::vertical_alignment::Middle);

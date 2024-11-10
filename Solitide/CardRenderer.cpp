@@ -52,7 +52,7 @@ void card_renderer::set_card_set(std::shared_ptr<card_set> cardset)
 void card_renderer::draw_cards(gfx::render_target& target)
 {
     if (_renderDirty) {
-        _cardRenderer.set_material(_cardSet->get_material().get_ptr());
+        _cardRenderer.set_material(_cardSet->get_material().ptr());
 
         pile const* dragPile {nullptr};
         {

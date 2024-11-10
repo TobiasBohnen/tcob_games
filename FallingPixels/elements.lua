@@ -6,7 +6,7 @@
 ----------------------
 ----------------------
 local empty = {
-    Colors  = { "Transparent" },
+    Colors  = { "transparent" },
     Gravity = 0,
     Density = 0,
     Type    = "None",
@@ -14,13 +14,13 @@ local empty = {
 register_element("Empty", empty)
 
 ----------------------
-local wall = {
-    Colors  = { "DarkGray" },
+local stone = {
+    Colors  = { "darkgray" },
     Gravity = 0,
     Density = 100,
     Type    = "Solid",
 }
-register_element("Wall", wall)
+register_element("Stone", stone)
 
 --Powder
 ----------------------
@@ -83,7 +83,7 @@ register_element("Snow", snow)
 ---Liquid
 ----------------------
 local water = {
-    Colors      = { "#2389da", "#1ca3ec", "#5abcd8" },
+    Colors      = { "#2389da", "#11a3d8", "#1ca3e1" },
     Density     = 1,
     Type        = "Liquid",
     Temperature = 10,
@@ -97,7 +97,7 @@ register_element("Water", water)
 
 ----------------------
 local salt_water = {
-    Colors      = { "#00bbbb", "#77eedd", "#007799" },
+    Colors      = { "#17577e", "#188a8d", "#3f9f7f" },
     Density     = 1.03,
     Type        = "Liquid",
     Temperature = 10,
@@ -139,7 +139,6 @@ local wood = {
 register_element("Wood", wood)
 
 ----------------------
-
 local charcoal = {
     Colors      = { "#f77a35", "#e34d30", "#c6371c" },
     Gravity     = 0,
@@ -171,5 +170,16 @@ local steam = {
     Transitions = { { Temperature = 10, Op = "LessThanOrEqual", Target = "Water" } }
 }
 register_element("Steam", steam)
+
+----------------------
+local fire = {
+    Colors      = { "red" },
+    Density     = 0.001,
+    Type        = "Gas",
+    Temperature = 1500,
+    Transitions = { { Temperature = 200, Op = "LessThan", Target = "Empty" } }
+}
+register_element("Fire", fire)
+
 
 ----------------------

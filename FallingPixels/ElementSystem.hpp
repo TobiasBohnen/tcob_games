@@ -45,7 +45,6 @@ struct element_def final {
     std::vector<color> Colors {};
 
     f32 Temperature {20};
-
     f32 Gravity {1.0f}; // TODO
     f32 Density {};     // g/cm3
     i32 Dispersion {1};
@@ -56,27 +55,56 @@ struct element_def final {
 };
 
 ////////////////////////////////////////////////////////////
+
 class element_grid final {
 public:
     element_grid(size_i size);
 
-    tcob::grid<i32> Elements;
-    tcob::grid<u8>  Moved;
+    ////////////////////////////////////////////////////////////
 
-    tcob::grid<f32> Temperature;
+    void element(point_i i, element_def const& element, bool useTemp);
 
-    auto contains(point_i p) const -> bool;
+    void swap(point_i i0, point_i i1);
 
-    auto empty(point_i i) const -> bool;
-
-    auto id(point_i i) const -> i32;
-    void id(point_i i, i32 val);
-
-    auto temperature(point_i i) const -> f32;
     void temperature(point_i i, f32 val);
 
+    ////////////////////////////////////////////////////////////
+
+    auto id(point_i i) const -> i32;
+
+    auto type(point_i i) const -> element_type;
+
+    auto density(point_i i) const -> f32;
+
+    auto dispersion(point_i i) const -> i32;
+
+    auto moved(point_i i) const -> bool;
+
+    auto color(point_i i) const -> tcob::color;
+    auto colors() const -> tcob::color const*;
+
+    auto temperature(point_i i) const -> f32;
+
+    ////////////////////////////////////////////////////////////
+
+    void reset_moved();
+
+    auto contains(point_i p) const -> bool;
+    auto size() const -> size_i;
+    auto empty(point_i i) const -> bool;
+
 private:
+    grid<i32>          _gridElements;
+    grid<element_type> _gridTypes;
+    grid<f32>          _gridDensity;
+    grid<f32>          _gridDispersion;
+    grid<tcob::color>  _gridColor;
+    grid<u8>           _gridMoved;
+
+    grid<f32> _gridTemperature;
+
     size_i _size;
+    rng    _rand;
 };
 
 ////////////////////////////////////////////////////////////
@@ -84,6 +112,9 @@ private:
 class element_system final {
 public:
     element_system(size_i size, std::vector<element_def> const& elements);
+
+    auto info_name(point_i i) const -> std::string;
+    auto info_heat(point_i i) const -> f32;
 
     void update();
     void draw_image(gfx::image& img) const;
@@ -93,24 +124,16 @@ public:
 
     auto rand(i32 min, i32 max) -> i32;
 
-    void swap(point_i i0, point_i i1);
-
-    auto name(point_i i) const -> std::string;
-
-    auto higher_density(point_i i, f32 t) const -> bool;
-    auto lower_density(point_i i, f32 t) const -> bool;
-    auto density(point_i i) const -> f32;
-    auto dispersion(point_i i) const -> i32;
-
-    auto is_type(point_i i, element_type t) const -> bool;
-    auto type(point_i i) const -> element_type;
-
 private:
-    void update_grid();
     void update_temperature();
+
+    void update_grid();
     void process_transitions(point_i i, element_def const& element);
     void process_gravity(point_i i, element_def const& element);
 
+    auto is_type(point_i i, element_type t) const -> bool;
+    auto higher_density(point_i i, f32 t) const -> bool;
+    auto lower_density(point_i i, f32 t) const -> bool;
     auto id_to_element(i32 t) const -> element_def const*;
 
     element_grid _grid;

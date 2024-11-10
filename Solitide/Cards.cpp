@@ -40,7 +40,7 @@ auto card::is_face_down() const -> bool
     return _faceDown;
 }
 
-auto card::get_name() const -> std::string
+auto card::name() const -> std::string
 {
     std::string retValue {std::format("{:02}", static_cast<u8>(_rank))};
 
@@ -57,7 +57,7 @@ auto card::get_name() const -> std::string
 auto card::get_texture_name() const -> std::string
 {
     if (_faceDown) { return "card_back"; }
-    return "card_" + get_name();
+    return "card_" + name();
 }
 
 auto card::to_value() const -> u16

@@ -18,7 +18,7 @@ elements_form::elements_form(window* window, rect_f const& bounds, std::vector<e
     : form {"elements", window, bounds}
     , _font {"trim", "trim"}
 {
-    font_family::SingleFont(*_font.get_ptr(), trim_ttf);
+    font_family::SingleFont(*_font.ptr(), trim_ttf);
     gen_styles();
 
     auto mainPanel {create_container<panel>(dock_style::Fill, "main")};

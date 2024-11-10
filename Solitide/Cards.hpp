@@ -91,7 +91,7 @@ public:
     }
 
 private:
-    auto get_name() const -> std::string;
+    auto name() const -> std::string;
 
     suit _suit {};
     rank _rank {};

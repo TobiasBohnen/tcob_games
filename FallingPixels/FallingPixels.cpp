@@ -134,15 +134,15 @@ void main_scene::on_fixed_update(milliseconds deltaTime)
     std::stringstream stream;
     stream << std::fixed << std::setprecision(2);
     auto const& stats {locate_service<gfx::render_system>().get_stats()};
-    stream << "avg FPS:" << stats.get_average_FPS();
-    stream << " best FPS:" << stats.get_best_FPS();
-    stream << " worst FPS:" << stats.get_worst_FPS();
+    stream << "avg FPS:" << stats.average_FPS();
+    stream << " best FPS:" << stats.best_FPS();
+    stream << " worst FPS:" << stats.worst_FPS();
 
     point_i const ev {input::system::GetMousePosition()};
     f32 const     height {static_cast<f32>(get_window().Size().Height)};
     if (ev.X < height) {
         f32 const scale {height / GRID_SIZE.Height};
-        stream << "| name:" << _elementSystem->name(ev / scale);
+        stream << "| name:" << _elementSystem->info_name(ev / scale);
     }
 
     get_window().Title = "FallingPixels " + stream.str();
@@ -190,7 +190,7 @@ void main_scene::update_image()
     } else {
         _elementSystem->draw_image(_sandImg);
     }
-    _sandTex->update_data(_sandImg.get_data().data(), 0);
+    _sandTex->update_data(_sandImg.buffer().data(), 0);
 }
 
 auto main_scene::load_script() -> script_element_vec

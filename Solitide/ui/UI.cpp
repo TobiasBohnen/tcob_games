@@ -25,11 +25,11 @@ auto static make_tooltip(menu_sources& sources, form* form) -> std::shared_ptr<t
 
     retValue->Popup.connect([&, lbl = tooltipLabel.get(), tt = retValue.get()](auto const& event) {
         auto const widget {event.Widget};
-        sources.Translator.bind(lbl->Label, "ux", widget->get_name());
+        sources.Translator.bind(lbl->Label, "ux", widget->name());
 
         auto const  bounds {widget->Bounds()};
         auto const& style {lbl->get_style<label::style>()->Text};
-        auto* const font {style.Font->get_font(style.Style, style.calc_font_size({0, 0, bounds.width() * 1.5f, bounds.height() * 0.75f})).get_ptr()};
+        auto* const font {style.Font->get_font(style.Style, style.calc_font_size({0, 0, bounds.width() * 1.5f, bounds.height() * 0.75f})).ptr()};
         tt->Bounds = {point_f::Zero, gfx::text_formatter::measure(lbl->Label(), *font, -1, true)};
     });
     return retValue;
@@ -326,7 +326,7 @@ void form_menu::create_game_details(dock_layout& panelLayout)
     auto panelGameStatsLayout {panelGameDetails->create_layout<grid_layout>(size_i {20, 40})};
 
     auto lblSeed {panelGameStatsLayout->create_widget<label>({1, 33, 4, 2}, "lblSeed")};
-    _sources->Translator.bind(lblSeed->Label, "ux", lblSeed->get_name());
+    _sources->Translator.bind(lblSeed->Label, "ux", lblSeed->name());
     lblSeed->Class = "label-margin";
     _txbSeed       = panelGameStatsLayout->create_widget<text_box>({6, 33, 8, 2}, "txbSeed");
     _txbSeed->BeforeTextInserted.connect([](text_event& ev) {
@@ -496,7 +496,7 @@ void form_menu::create_settings_video(tab_container& tabContainer)
         ddlRes->select_item(std::format("{}x{}", res.Width, res.Height));
 
         auto lbl {tabPanelLayout->create_widget<label>({1, 2, 4, 2}, "lblResolution")};
-        _sources->Translator.bind(lbl->Label, "ux", lbl->get_name());
+        _sources->Translator.bind(lbl->Label, "ux", lbl->name());
     }
 
     // fullscreen
@@ -505,7 +505,7 @@ void form_menu::create_settings_video(tab_container& tabContainer)
         chk->Checked = config[Cfg::Video::Name][Cfg::Video::fullscreen].as<bool>();
 
         auto lbl {tabPanelLayout->create_widget<label>({1, 6, 4, 2}, "lblFullScreen")};
-        _sources->Translator.bind(lbl->Label, "ux", lbl->get_name());
+        _sources->Translator.bind(lbl->Label, "ux", lbl->name());
     }
 
     // vsync
@@ -514,7 +514,7 @@ void form_menu::create_settings_video(tab_container& tabContainer)
         chk->Checked = config[Cfg::Video::Name][Cfg::Video::vsync].as<bool>();
 
         auto lbl {tabPanelLayout->create_widget<label>({1, 10, 4, 2}, "lblVSync")};
-        _sources->Translator.bind(lbl->Label, "ux", lbl->get_name());
+        _sources->Translator.bind(lbl->Label, "ux", lbl->name());
     }
 
     auto btnApplyVideoSettings {tabPanelLayout->create_widget<button>({33, 34, 4, 4}, "btnApplyVideoSettings")};
@@ -537,7 +537,7 @@ void form_menu::create_settings_hints(tab_container& tabContainer)
         chk->Checked.Changed.connect([this](auto val) { _sources->Settings.HintMovable = val; });
 
         auto lbl {tabPanelLayout->create_widget<label>({1, 2, 8, 2}, "lblHintMovable")};
-        _sources->Translator.bind(lbl->Label, "ux", lbl->get_name());
+        _sources->Translator.bind(lbl->Label, "ux", lbl->name());
     }
     // highlight drops
     {
@@ -546,7 +546,7 @@ void form_menu::create_settings_hints(tab_container& tabContainer)
         chk->Checked.Changed.connect([this](auto val) { _sources->Settings.HintTarget = val; });
 
         auto lbl {tabPanelLayout->create_widget<label>({1, 6, 8, 2}, "lblHintDrops")};
-        _sources->Translator.bind(lbl->Label, "ux", lbl->get_name());
+        _sources->Translator.bind(lbl->Label, "ux", lbl->name());
     }
 }
 
@@ -620,7 +620,7 @@ void form_menu::create_menubar(tab_container& parent)
         auto btn {menuLayout->create_widget<radio_button>({9, y, 2, 2}, "btn" + text)};
 
         auto lbl {menuLayout->create_widget<label>({1, y, 7, 2}, "lblBtn" + text)};
-        _sources->Translator.bind(lbl->Label, "ux", lbl->get_name());
+        _sources->Translator.bind(lbl->Label, "ux", lbl->name());
         lbl->For = btn;
 
         y += 2;

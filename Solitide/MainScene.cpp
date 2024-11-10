@@ -235,13 +235,13 @@ void main_scene::on_fixed_update(milliseconds deltaTime)
 #if defined(TCOB_DEBUG)
     auto const& stats {locate_service<gfx::render_system>().get_stats()};
     get_window().Title = std::format("Solitide | avg FPS: {:.2f} best FPS: {:.2f} worst FPS: {:.2f}",
-                                     stats.get_average_FPS(), stats.get_best_FPS(), stats.get_worst_FPS());
+                                     stats.average_FPS(), stats.best_FPS(), stats.worst_FPS());
 #endif
 }
 
 void main_scene::on_key_down(input::keyboard::event const& ev)
 {
-    if (_formMenu->get_focus_widget() != nullptr) { return; }
+    if (_formMenu->focussed_widget() != nullptr) { return; }
 
     using namespace tcob::enum_ops;
 
