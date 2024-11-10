@@ -28,12 +28,13 @@ enum class math_op {
 struct temp_transition {
     f32     Temperature {};
     math_op Op {};
-    i32     Target {};
+    i32     TransformTo {};
 };
 
 struct neighbor_transition {
     i32 Neighbor {};
-    i32 Target {};
+    i32 NeighborTransformTo {};
+    i32 TransformTo {};
 };
 
 ////////////////////////////////////////////////////////////
@@ -44,10 +45,12 @@ struct element_def final {
 
     std::vector<color> Colors {};
 
-    f32 Temperature {20};
+    f32 BaseTemperature {20};
     f32 Gravity {1.0f}; // TODO
+
+    f32 ThermalConductivity {0.80f};
     f32 Density {};     // g/cm3
-    i32 Dispersion {1};
+    i32 Dispersion {1}; // liquid
 
     std::vector<std::variant<temp_transition, neighbor_transition>> Transitions;
 
@@ -74,14 +77,16 @@ public:
 
     auto type(point_i i) const -> element_type;
 
+    auto thermal_conductivity(point_i i) const -> f32;
+
     auto density(point_i i) const -> f32;
 
     auto dispersion(point_i i) const -> i32;
 
-    auto moved(point_i i) const -> bool;
-
     auto color(point_i i) const -> tcob::color;
     auto colors() const -> tcob::color const*;
+
+    auto moved(point_i i) const -> bool;
 
     auto temperature(point_i i) const -> f32;
 
@@ -96,6 +101,7 @@ public:
 private:
     grid<i32>          _gridElements;
     grid<element_type> _gridTypes;
+    grid<f32>          _gridThermalConductivity;
     grid<f32>          _gridDensity;
     grid<f32>          _gridDispersion;
     grid<tcob::color>  _gridColor;
@@ -121,7 +127,7 @@ public:
     void draw_heatmap(gfx::image& img) const;
 
     void spawn(point_i i, i32 t);
-
+    void clear();
     auto rand(i32 min, i32 max) -> i32;
 
 private:

@@ -22,24 +22,53 @@ elements_form::elements_form(window* window, rect_f const& bounds, std::vector<e
     gen_styles();
 
     auto mainPanel {create_container<panel>(dock_style::Fill, "main")};
-    auto mainPanelLayout {mainPanel->create_layout<box_layout>(size_i {4, 10})};
+    auto mainPanelLayout {mainPanel->create_layout<dock_layout>()};
 
-    auto makeButton {[&](i32 id, std::string const& name) {
-        auto btn {mainPanelLayout->create_widget<button>(name)};
-        btn->Label = name;
-        btn->MouseDown.connect([&, id](auto const& ev) mutable {
-            if (ev.Event.Button == input::mouse::button::Left) {
-                LeftButtonElement(id);
-            } else if (ev.Event.Button == input::mouse::button::Right) {
-                RightButtonElement(id);
-            } else if (ev.Event.Button == input::mouse::button::Middle) {
-                MiddleButtonElement(id);
+    auto acc {mainPanelLayout->create_widget<accordion>(dock_style::Fill, "accordion")};
+
+    auto secSolid {acc->create_section<panel>("Solid")};
+    auto secSolidLayout {secSolid->create_layout<box_layout>(size_i {4, 5})};
+    auto secPowder {acc->create_section<panel>("Powder")};
+    auto secPowderLayout {secPowder->create_layout<box_layout>(size_i {4, 5})};
+    auto secLiquid {acc->create_section<panel>("Liquid")};
+    auto secLiquidLayout {secLiquid->create_layout<box_layout>(size_i {4, 5})};
+    auto secGas {acc->create_section<panel>("Gas")};
+    auto secGasLayout {secGas->create_layout<box_layout>(size_i {4, 5})};
+
+    acc->ActiveSectionIndex = 0;
+    auto makeButton {
+        [&](i32 id, element_type type, std::string const& name) {
+            std::shared_ptr<box_layout> layout;
+            switch (type) {
+            case element_type::None:
+            case element_type::Solid:
+                layout = secSolidLayout;
+                break;
+            case element_type::Powder:
+                layout = secPowderLayout;
+                break;
+            case element_type::Liquid:
+                layout = secLiquidLayout;
+                break;
+            case element_type::Gas:
+                layout = secGasLayout;
+                break;
             }
-        });
-    }};
+            auto btn {layout->create_widget<button>(name)};
+            btn->Label = name;
+            btn->MouseDown.connect([&, id](auto const& ev) mutable {
+                if (ev.Event.Button == input::mouse::button::Left) {
+                    LeftButtonElement(id);
+                } else if (ev.Event.Button == input::mouse::button::Right) {
+                    RightButtonElement(id);
+                } else if (ev.Event.Button == input::mouse::button::Middle) {
+                    MiddleButtonElement(id);
+                }
+            });
+        }};
 
     for (auto const& el : elements) {
-        makeButton(el.ID, el.Name);
+        makeButton(el.ID, el.Type, el.Name);
     }
 }
 
@@ -53,14 +82,14 @@ void elements_form::gen_styles()
         style->Margin        = {5_px};
         style->Padding       = {5_px};
 
-        style->Background        = colors::CadetBlue;
-        style->Border.Background = colors::OliveDrab;
+        style->Background        = colors::LightSlateGray;
+        style->Border.Background = colors::MidnightBlue;
     }
     {
         auto style {styles.create<button>("button", {})};
         style->Border.Type    = element::border::type::Solid;
         style->Border.Size    = 3_px;
-        style->Border.Radius  = 5_px;
+        style->Border.Radius  = 15_px;
         style->Text.Style     = {false, font::weight::Normal};
         style->Text.Font      = _font;
         style->Text.Size      = 50_pct;
@@ -69,7 +98,7 @@ void elements_form::gen_styles()
         style->Margin         = {5_px};
         style->Padding        = {8_px};
 
-        style->Background        = colors::LightGray;
+        style->Background        = colors::DarkKhaki;
         style->Border.Background = colors::Black;
         style->Text.Color        = colors::Black;
 
@@ -77,13 +106,13 @@ void elements_form::gen_styles()
         *activeStyle = *style;
 
         activeStyle->Background        = colors::Black;
-        activeStyle->Border.Background = colors::LightGray;
+        activeStyle->Border.Background = colors::DarkKhaki;
         activeStyle->Text.Color        = colors::White;
 
         auto hoverStyle {styles.create<button>("button", {.Hover = true})};
         *hoverStyle = *style;
 
-        hoverStyle->Background        = colors::LightGray;
+        hoverStyle->Background        = colors::DarkKhaki;
         hoverStyle->Border.Background = colors::DarkGray;
         hoverStyle->Text.Color        = colors::White;
     }
@@ -102,6 +131,42 @@ void elements_form::gen_styles()
         style->Background        = colors::LightGray;
         style->Border.Background = colors::Black;
         style->Text.Color        = colors::Black;
+    }
+    {
+        auto style {styles.create<accordion>("accordion", {})};
+        style->Border.Size      = 3_px;
+        style->Border.Radius    = 5_px;
+        style->Margin           = {5_px};
+        style->Padding          = {5_px};
+        style->SectionBarHeight = 10_pct;
+        style->SectionItemClass = "section_items";
+    }
+    {
+        auto style {styles.create<item_style>("section_items", {}, {})};
+        style->Item.Padding        = {5_px};
+        style->Item.Text.Style     = {false, font::weight::Normal};
+        style->Item.Text.Font      = _font;
+        style->Item.Text.Size      = 50_pct;
+        style->Item.Text.Alignment = {horizontal_alignment::Centered, vertical_alignment::Middle};
+        style->Item.Border.Size    = 3_px;
+
+        style->Item.Background        = colors::LightGray;
+        style->Item.Border.Background = colors::Black;
+        style->Item.Text.Color        = colors::Black;
+
+        auto activeStyle {styles.create<item_style>("section_items", {.Active = true, .Hover = true})};
+        activeStyle->Item = style->Item;
+
+        activeStyle->Item.Background        = colors::Black;
+        activeStyle->Item.Border.Background = colors::LightGray;
+        activeStyle->Item.Text.Color        = colors::White;
+
+        auto hoverStyle {styles.create<item_style>("section_items", {.Hover = true})};
+        hoverStyle->Item = style->Item;
+
+        hoverStyle->Item.Background        = colors::LightGray;
+        hoverStyle->Item.Border.Background = colors::DarkGray;
+        hoverStyle->Item.Text.Color        = colors::White;
     }
     {
         auto style {styles.create<slider>("slider", {})};

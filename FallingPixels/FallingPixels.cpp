@@ -11,7 +11,7 @@
 using namespace std::chrono_literals;
 using namespace tcob::literals;
 
-constexpr size_i GRID_SIZE {200, 200};
+constexpr size_i GRID_SIZE {400, 400};
 
 main_scene::main_scene(game& game)
     : scene(game)
@@ -52,8 +52,10 @@ main_scene::main_scene(game& game)
             element.Colors.push_back(color::FromString(color));
         }
 
-        table.try_get(element.Temperature, "Temperature");
+        table.try_get(element.BaseTemperature, "BaseTemperature");
         table.try_get(element.Gravity, "Gravity");
+
+        table.try_get(element.ThermalConductivity, "ThermalConductivity");
         table.try_get(element.Dispersion, "Dispersion");
 
         element.Density = table["Density"].as<f32>();
@@ -69,12 +71,13 @@ main_scene::main_scene(game& game)
                     temp_transition val;
                     transition.try_get(val.Temperature, "Temperature");
                     transition.try_get(val.Op, "Op");
-                    val.Target = name_to_id(transition["Target"].as<std::string>());
+                    val.TransformTo = name_to_id(transition["TransformTo"].as<std::string>());
                     element.Transitions.emplace_back(val);
                 } else if (transition.has("Neighbor")) {
                     neighbor_transition val;
-                    val.Neighbor = name_to_id(transition["Neighbor"].as<std::string>());
-                    val.Target   = name_to_id(transition["Target"].as<std::string>());
+                    val.Neighbor            = name_to_id(transition["Neighbor"].as<std::string>());
+                    val.NeighborTransformTo = name_to_id(transition["NeighborTransformTo"].as<std::string>());
+                    val.TransformTo         = name_to_id(transition["TransformTo"].as<std::string>());
                     element.Transitions.emplace_back(val);
                 }
             }
@@ -143,6 +146,7 @@ void main_scene::on_fixed_update(milliseconds deltaTime)
     if (ev.X < height) {
         f32 const scale {height / GRID_SIZE.Height};
         stream << "| name:" << _elementSystem->info_name(ev / scale);
+        stream << "| heat:" << _elementSystem->info_heat(ev / scale);
     }
 
     get_window().Title = "FallingPixels " + stream.str();
@@ -154,6 +158,8 @@ void main_scene::on_key_down(input::keyboard::event const& ev)
         get_game().pop_current_scene();
     } else if (ev.ScanCode == input::scan_code::H) {
         _drawHeatMap = !_drawHeatMap;
+    } else if (ev.ScanCode == input::scan_code::C) {
+        _elementSystem->clear();
     }
 }
 

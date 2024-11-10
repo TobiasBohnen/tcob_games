@@ -112,21 +112,27 @@ void element_system::spawn(point_i i, i32 t)
     }
 }
 
+void element_system::clear()
+{
+    _grid = {_grid.size()};
+}
+
 void element_system::update_temperature()
 {
-    f32 const  alpha {0.80f};
     auto const size {_grid.size()};
 
     // Main interior loop without bounds checks
     for (i32 x {1}; x < size.Width - 1; ++x) {
         for (i32 y {1}; y < size.Height - 1; ++y) {
             point_i const pos {x, y};
+            f32 const     alpha {_grid.thermal_conductivity(pos)};
             f32           avgTemp {0};
             for (auto const& neighbor : NEIGHBORS) {
                 avgTemp += _grid.temperature(pos + neighbor);
             }
             avgTemp /= NEIGHBORS.size();
-            _grid.temperature(pos, _grid.temperature(pos) + alpha * (avgTemp - _grid.temperature(pos)));
+            f32 const currentTemp {_grid.temperature(pos)};
+            _grid.temperature(pos, currentTemp + alpha * (avgTemp - currentTemp));
         }
     }
 
@@ -134,26 +140,30 @@ void element_system::update_temperature()
     for (i32 x {0}; x < size.Width; ++x) {
         // Top row
         point_i const topPos {x, 0};
+        f32 const     topAlpha {_grid.thermal_conductivity(topPos)};
         f32 const     topAvgTemp {_grid.temperature(topPos + point_i {0, 1})}; // Only down neighbor
-        _grid.temperature(topPos, _grid.temperature(topPos) + alpha * (topAvgTemp - _grid.temperature(topPos)));
+        _grid.temperature(topPos, _grid.temperature(topPos) + topAlpha * (topAvgTemp - _grid.temperature(topPos)));
 
         // Bottom row
         point_i const bottomPos {x, size.Height - 1};
+        f32 const     bottomAlpha {_grid.thermal_conductivity(bottomPos)};
         f32 const     bottomAvgTemp {_grid.temperature(bottomPos + point_i {0, -1})}; // Only up neighbor
-        _grid.temperature(bottomPos, _grid.temperature(bottomPos) + alpha * (bottomAvgTemp - _grid.temperature(bottomPos)));
+        _grid.temperature(bottomPos, _grid.temperature(bottomPos) + bottomAlpha * (bottomAvgTemp - _grid.temperature(bottomPos)));
     }
 
     // Edge processing for left and right columns
     for (i32 y {1}; y < size.Height - 1; ++y) {
         // Left column
         point_i const leftPos {0, y};
+        f32 const     leftAlpha {_grid.thermal_conductivity(leftPos)};
         f32 const     leftAvgTemp {_grid.temperature(leftPos + point_i {1, 0})}; // Only right neighbor
-        _grid.temperature(leftPos, _grid.temperature(leftPos) + alpha * (leftAvgTemp - _grid.temperature(leftPos)));
+        _grid.temperature(leftPos, _grid.temperature(leftPos) + leftAlpha * (leftAvgTemp - _grid.temperature(leftPos)));
 
         // Right column
         point_i const rightPos {size.Width - 1, y};
+        f32 const     rightAlpha {_grid.thermal_conductivity(rightPos)};
         f32 const     rightAvgTemp {_grid.temperature(rightPos + point_i {-1, 0})}; // Only left neighbor
-        _grid.temperature(rightPos, _grid.temperature(rightPos) + alpha * (rightAvgTemp - _grid.temperature(rightPos)));
+        _grid.temperature(rightPos, _grid.temperature(rightPos) + rightAlpha * (rightAvgTemp - _grid.temperature(rightPos)));
     }
 }
 
@@ -185,19 +195,19 @@ void element_system::process_transitions(point_i i, element_def const& element)
                     f32 const temp(_grid.temperature(i));
                     switch (transition.Op) {
                     case math_op::Equals:
-                        if (temp == transition.Temperature) { _grid.element(i, _elements[transition.Target], false); }
+                        if (temp == transition.Temperature) { _grid.element(i, _elements[transition.TransformTo], false); }
                         break;
                     case math_op::LessThan:
-                        if (temp < transition.Temperature) { _grid.element(i, _elements[transition.Target], false); }
+                        if (temp < transition.Temperature) { _grid.element(i, _elements[transition.TransformTo], false); }
                         break;
                     case math_op::LessThanOrEqual:
-                        if (temp <= transition.Temperature) { _grid.element(i, _elements[transition.Target], false); }
+                        if (temp <= transition.Temperature) { _grid.element(i, _elements[transition.TransformTo], false); }
                         break;
                     case math_op::GreaterThan:
-                        if (temp > transition.Temperature) { _grid.element(i, _elements[transition.Target], false); }
+                        if (temp > transition.Temperature) { _grid.element(i, _elements[transition.TransformTo], false); }
                         break;
                     case math_op::GreaterThanOrEqual:
-                        if (temp >= transition.Temperature) { _grid.element(i, _elements[transition.Target], false); }
+                        if (temp >= transition.Temperature) { _grid.element(i, _elements[transition.TransformTo], false); }
                         break;
                     }
                 },
@@ -207,8 +217,8 @@ void element_system::process_transitions(point_i i, element_def const& element)
                         if (_grid.contains(np)) {
                             i32 const eid {_grid.id(np)};
                             if (eid == transition.Neighbor) {
-                                _grid.element(np, _elements[transition.Target], false);
-                                _grid.element(i, _elements[EMPTY_ELEMENT], false);
+                                _grid.element(np, _elements[transition.NeighborTransformTo], true);
+                                _grid.element(i, _elements[transition.TransformTo], true);
                                 return;
                             }
                         }
@@ -440,10 +450,11 @@ auto element_system::id_to_element(i32 t) const -> element_def const*
 element_grid::element_grid(size_i size)
     : _gridElements {size, 0}
     , _gridTypes {size, element_type::None}
-    , _gridMoved {size, 0}
+    , _gridThermalConductivity {size, 0.8f}
     , _gridDensity {size, 0}
     , _gridDispersion {size, 0}
     , _gridColor {size, colors::Transparent}
+    , _gridMoved {size, 0}
     , _gridTemperature {size, 20}
 
     , _size {size}
@@ -454,16 +465,17 @@ void element_grid::element(point_i i, element_def const& element, bool useTemp)
 {
     if (!contains(i)) { return; }
 
-    _gridElements[i]   = element.ID;
-    _gridTypes[i]      = element.Type;
-    _gridDensity[i]    = element.Density;
-    _gridDispersion[i] = element.Dispersion;
-    _gridColor[i]      = element.Colors[_rand(0, static_cast<i32>(element.Colors.size() - 1))];
+    _gridElements[i]            = element.ID;
+    _gridTypes[i]               = element.Type;
+    _gridThermalConductivity[i] = element.ThermalConductivity;
+    _gridDensity[i]             = element.Density;
+    _gridDispersion[i]          = element.Dispersion;
+    _gridColor[i]               = element.Colors[_rand(0, static_cast<i32>(element.Colors.size() - 1))];
 
     _gridMoved[i] = element.ID == EMPTY_ELEMENT ? 0 : 1;
 
     if (useTemp) {
-        _gridTemperature[i] = element.Temperature;
+        _gridTemperature[i] = element.BaseTemperature;
     }
 }
 
@@ -480,6 +492,7 @@ void element_grid::swap(point_i i0, point_i i1)
 
     std::swap(_gridElements[i0], _gridElements[i1]);
     std::swap(_gridTypes[i0], _gridTypes[i1]);
+    std::swap(_gridThermalConductivity[i0], _gridThermalConductivity[i1]);
     std::swap(_gridDensity[i0], _gridDensity[i1]);
     std::swap(_gridDispersion[i0], _gridDispersion[i1]);
     std::swap(_gridColor[i0], _gridColor[i1]);
@@ -502,27 +515,16 @@ auto element_grid::id(point_i i) const -> i32
     return _gridElements[i];
 }
 
-auto element_grid::moved(point_i i) const -> bool
+auto element_grid::type(point_i i) const -> element_type
 {
-    if (!contains(i)) { return false; }
-    return _gridMoved[i];
+    if (!contains(i)) { return element_type::None; }
+    return _gridTypes[i];
 }
 
-auto element_grid::color(point_i i) const -> tcob::color
-{
-    if (!contains(i)) { return colors::Transparent; }
-    return _gridColor[i];
-}
-
-auto element_grid::colors() const -> tcob::color const*
-{
-    return _gridColor.data();
-}
-
-auto element_grid::temperature(point_i i) const -> f32
+auto element_grid::thermal_conductivity(point_i i) const -> f32
 {
     if (!contains(i)) { return 0; }
-    return _gridTemperature[i];
+    return _gridThermalConductivity[i];
 }
 
 auto element_grid::density(point_i i) const -> f32
@@ -537,9 +539,27 @@ auto element_grid::dispersion(point_i i) const -> i32
     return _gridDispersion[i];
 }
 
-auto element_grid::type(point_i i) const -> element_type
+auto element_grid::color(point_i i) const -> tcob::color
 {
-    return _gridTypes[i];
+    if (!contains(i)) { return colors::Transparent; }
+    return _gridColor[i];
+}
+
+auto element_grid::colors() const -> tcob::color const*
+{
+    return _gridColor.data();
+}
+
+auto element_grid::moved(point_i i) const -> bool
+{
+    if (!contains(i)) { return false; }
+    return _gridMoved[i];
+}
+
+auto element_grid::temperature(point_i i) const -> f32
+{
+    if (!contains(i)) { return 0; }
+    return _gridTemperature[i];
 }
 
 void element_grid::reset_moved()

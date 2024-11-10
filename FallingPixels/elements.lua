@@ -5,6 +5,7 @@
 
 ----------------------
 ----------------------
+
 local empty = {
     Colors  = { "transparent" },
     Gravity = 0,
@@ -12,15 +13,6 @@ local empty = {
     Type    = "None",
 }
 register_element("Empty", empty)
-
-----------------------
-local stone = {
-    Colors  = { "darkgray" },
-    Gravity = 0,
-    Density = 100,
-    Type    = "Solid",
-}
-register_element("Stone", stone)
 
 --Powder
 ----------------------
@@ -33,20 +25,22 @@ local sand = {
 register_element("Sand", sand)
 
 ----------------------
+
 local salt = {
     Colors      = { "#f3fafd" },
     Density     = 2.19,
     Type        = "Powder",
-    Transitions = { { Neighbor = "Water", Target = "Salt Water" } }
+    Transitions = { { Neighbor = "Water", NeighborTransformTo = "Salt Water", TransformTo = "Empty" } }
 }
 register_element("Salt", salt)
 
 ----------------------
+
 local sawdust = {
     Colors      = { "#d9ead4" },
     Density     = 0.21,
     Type        = "Powder",
-    Transitions = { { Temperature = 80, Op = "GreaterThanOrEqual", Target = "Charcoal Dust" } }
+    Transitions = { { Temperature = 80, Op = "GreaterThanOrEqual", TransformTo = "Charcoal Dust" } }
 }
 register_element("Sawdust", sawdust)
 
@@ -62,54 +56,61 @@ register_element("Ash", ash)
 ----------------------
 
 local charcoal_dust = {
-    Colors      = { "#f77a35", "#e34d30", "#c6371c" },
-    Density     = 1.4,
-    Type        = "Powder",
-    Temperature = 1200,
-    Transitions = { { Temperature = 80, Op = "LessThan", Target = "Ash" } }
+    Colors = { "#f77a35", "#e34d30", "#c6371c" },
+    Density = 1.4,
+    Type = "Powder",
+    BaseTemperature = 1200,
+    ThermalConductivity = 0.10,
+    Transitions = { { Temperature = 80, Op = "LessThan", TransformTo = "Ash" } }
 }
 register_element("Charcoal Dust", charcoal_dust)
 
 ----------------------
+
 local snow = {
-    Colors      = { "#b9e8ea" },
-    Density     = 0.91,
-    Type        = "Powder",
-    Temperature = -200,
-    Transitions = { { Temperature = 0, Op = "GreaterThanOrEqual", Target = "Water" } }
+    Colors = { "#b9e8ea" },
+    Density = 0.91,
+    Type = "Powder",
+    BaseTemperature = -200,
+    ThermalConductivity = 0.10,
+    Transitions = { { Temperature = 0, Op = "GreaterThanOrEqual", TransformTo = "Water" } }
 }
 register_element("Snow", snow)
 
 ---Liquid
 ----------------------
+
 local water = {
-    Colors      = { "#2389da", "#11a3d8", "#1ca3e1" },
-    Density     = 1,
-    Type        = "Liquid",
-    Temperature = 10,
-    Dispersion  = 5,
-    Transitions = {
-        { Temperature = 100, Op = "GreaterThanOrEqual", Target = "Steam" },
-        { Temperature = 0,   Op = "LessThan",           Target = "Snow" },
+    Colors              = { "#2389da", "#11a3d8", "#1ca3e1" },
+    Density             = 1,
+    Type                = "Liquid",
+    BaseTemperature     = 10,
+    Dispersion          = 5,
+    ThermalConductivity = 1.0,
+    Transitions         = {
+        { Temperature = 100, Op = "GreaterThanOrEqual", TransformTo = "Steam" },
+        { Temperature = 0,   Op = "LessThan",           TransformTo = "Snow" },
     }
 }
 register_element("Water", water)
 
 ----------------------
+
 local salt_water = {
-    Colors      = { "#17577e", "#188a8d", "#3f9f7f" },
-    Density     = 1.03,
-    Type        = "Liquid",
-    Temperature = 10,
-    Dispersion  = 5,
-    Transitions = {
-        { Temperature = 102, Op = "GreaterThanOrEqual", Target = "Steam" },
-        { Temperature = -21, Op = "LessThan",           Target = "Snow" },
+    Colors          = { "#17577e", "#188a8d", "#3f9f7f" },
+    Density         = 1.03,
+    Type            = "Liquid",
+    BaseTemperature = 10,
+    Dispersion      = 5,
+    Transitions     = {
+        { Temperature = 102, Op = "GreaterThanOrEqual", TransformTo = "Steam" },
+        { Temperature = -21, Op = "LessThan",           TransformTo = "Snow" },
     }
 }
 register_element("Salt Water", salt_water)
 
 ----------------------
+
 local olive_oil = {
     Colors     = { "#8eb027", "#65880f", "#5f720f" },
     Density    = 0.9,
@@ -119,6 +120,7 @@ local olive_oil = {
 register_element("Olive Oil", olive_oil)
 
 ----------------------
+
 local honey = {
     Colors     = { "#f9c901" },
     Density    = 1.6,
@@ -127,57 +129,102 @@ local honey = {
 }
 register_element("Honey", honey)
 
+----------------------
+
+local lava = {
+    Colors              = { "#ff2500", "#ff6600", "#f2f217" },
+    Density             = 2.5,
+    Dispersion          = 1,
+    BaseTemperature     = 1200,
+    ThermalConductivity = 0.01,
+    Type                = "Liquid",
+}
+register_element("Lava", lava)
+
 --- Solid
 ----------------------
+
+----------------------
+
+local stone = {
+    Colors              = { "darkgray" },
+    Gravity             = 0,
+    Density             = 100,
+    ThermalConductivity = 0.00,
+    Type                = "Solid",
+}
+register_element("Stone", stone)
+
+----------------------
+
+local fuse = {
+    Colors              = { "darkred" },
+    Gravity             = 0,
+    Density             = 100,
+    Type                = "Solid",
+    ThermalConductivity = 0.01,
+    Transitions         = {
+        { Neighbor = "Fire", NeighborTransformTo = "Fire", TransformTo = "Fire" },
+        { Temperature = 800, Op = "GreaterThan",           TransformTo = "Fire" },
+    }
+}
+register_element("Fuse", fuse)
+
+----------------------
+
 local wood = {
     Colors      = { "#ba8c63" },
     Gravity     = 0,
     Density     = 0.85,
     Type        = "Solid",
-    Transitions = { { Temperature = 100, Op = "GreaterThanOrEqual", Target = "Charcoal" } }
+    Transitions = { { Temperature = 100, Op = "GreaterThanOrEqual", TransformTo = "Charcoal" } }
 }
 register_element("Wood", wood)
 
 ----------------------
+
 local charcoal = {
-    Colors      = { "#f77a35", "#e34d30", "#c6371c" },
-    Gravity     = 0,
-    Density     = 1.4,
-    Type        = "Solid",
-    Temperature = 1200,
-    Transitions = { { Temperature = 80, Op = "LessThan", Target = "Ash" } }
+    Colors          = { "#f77a35", "#e34d30", "#c6371c" },
+    Gravity         = 0,
+    Density         = 1.4,
+    Type            = "Solid",
+    BaseTemperature = 1200,
+    Transitions     = { { Temperature = 80, Op = "LessThan", TransformTo = "Ash" } }
 }
 register_element("Charcoal", charcoal)
 
 ----------------------
+
 local ice = {
-    Colors      = { "#b9e8ea" },
-    Gravity     = 0,
-    Density     = 0.91,
-    Type        = "Solid",
-    Temperature = -200,
-    Transitions = { { Temperature = 0, Op = "GreaterThanOrEqual", Target = "Water" } }
+    Colors          = { "#b9e8ea" },
+    Gravity         = 0,
+    Density         = 0.91,
+    Type            = "Solid",
+    BaseTemperature = -200,
+    Transitions     = { { Temperature = 0, Op = "GreaterThanOrEqual", TransformTo = "Water" } }
 }
 register_element("Ice", ice)
 
 --- Gas
 ----------------------
+
 local steam = {
-    Colors      = { "#eee", "#ddd", "#ccc" },
-    Density     = 0.001,
-    Type        = "Gas",
-    Temperature = 100,
-    Transitions = { { Temperature = 10, Op = "LessThanOrEqual", Target = "Water" } }
+    Colors          = { "#eee", "#ddd", "#ccc" },
+    Density         = 0.001,
+    Type            = "Gas",
+    BaseTemperature = 100,
+    Transitions     = { { Temperature = 10, Op = "LessThanOrEqual", TransformTo = "Water" } }
 }
 register_element("Steam", steam)
 
 ----------------------
+
 local fire = {
-    Colors      = { "red" },
-    Density     = 0.001,
-    Type        = "Gas",
-    Temperature = 1500,
-    Transitions = { { Temperature = 200, Op = "LessThan", Target = "Empty" } }
+    Colors          = { "red", "orange", "yellow" },
+    Density         = 0.001,
+    Type            = "Gas",
+    BaseTemperature = 1500,
+    Transitions     = { { Temperature = 200, Op = "LessThan", TransformTo = "Empty" } }
 }
 register_element("Fire", fire)
 

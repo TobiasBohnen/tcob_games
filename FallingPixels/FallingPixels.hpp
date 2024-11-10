@@ -47,8 +47,8 @@ private:
     std::unique_ptr<element_system> _elementSystem;
 
     i32  _spawnElement {0};
-    i32  _leftBtnElement {2};
-    i32  _middleBtnElement {1};
+    i32  _leftBtnElement {0};
+    i32  _middleBtnElement {0};
     i32  _rightBtnElement {0};
     bool _mouseDown {false};
 
