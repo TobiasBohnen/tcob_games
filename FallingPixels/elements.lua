@@ -19,6 +19,7 @@ register_element("Empty", empty)
 
 local sand = {
     Colors  = { "#f6d7b0", "#f2d2a9", "#eccca2", "#e7c496", "#e1bf92" },
+    Gravity = 1,
     Density = 2.5,
     Type    = "Powder",
 }
@@ -28,6 +29,7 @@ register_element("Sand", sand)
 
 local salt = {
     Colors  = { "#f3fafd" },
+    Gravity = 1,
     Density = 2.19,
     Type    = "Powder",
     Rules   = { { Neighbor = "Water", NeighborTransformTo = "Salt Water", TransformTo = "Empty" } }
@@ -38,6 +40,7 @@ register_element("Salt", salt)
 
 local sawdust = {
     Colors  = { "#d9ead4" },
+    Gravity = 1,
     Density = 0.21,
     Type    = "Powder",
     Rules   = { { Temperature = 80, Op = "GreaterThanOrEqual", TransformTo = "Charcoal Dust" } }
@@ -48,6 +51,7 @@ register_element("Sawdust", sawdust)
 
 local ash = {
     Colors  = { "#d0c6c6", "#c3b9b9", "#b4a8a8", "#a99d9d", "#9f9393" },
+    Gravity = 1,
     Density = 2.45,
     Type    = "Powder",
 }
@@ -57,6 +61,7 @@ register_element("Ash", ash)
 
 local charcoal_dust = {
     Colors = { "#f77a35", "#e34d30", "#c6371c" },
+    Gravity = 1,
     Density = 1.4,
     Type = "Powder",
     BaseTemperature = 1200,
@@ -69,6 +74,7 @@ register_element("Charcoal Dust", charcoal_dust)
 
 local snow = {
     Colors = { "#b9e8ea" },
+    Gravity = 1,
     Density = 0.91,
     Type = "Powder",
     BaseTemperature = -200,
@@ -82,6 +88,7 @@ register_element("Snow", snow)
 
 local water = {
     Colors              = { "#2389da", "#11a3d8", "#1ca3e1" },
+    Gravity             = 1,
     Density             = 1,
     Type                = "Liquid",
     BaseTemperature     = 10,
@@ -98,6 +105,7 @@ register_element("Water", water)
 
 local salt_water = {
     Colors          = { "#17577e", "#188a8d", "#3f9f7f" },
+    Gravity         = 1,
     Density         = 1.03,
     Type            = "Liquid",
     BaseTemperature = 10,
@@ -113,6 +121,7 @@ register_element("Salt Water", salt_water)
 
 local olive_oil = {
     Colors     = { "#8eb027", "#65880f", "#5f720f" },
+    Gravity    = 1,
     Density    = 0.9,
     Dispersion = 3,
     Type       = "Liquid",
@@ -123,6 +132,7 @@ register_element("Olive Oil", olive_oil)
 
 local honey = {
     Colors     = { "#f9c901" },
+    Gravity    = 1,
     Density    = 1.6,
     Dispersion = 1,
     Type       = "Liquid",
@@ -133,6 +143,7 @@ register_element("Honey", honey)
 
 local lava = {
     Colors              = { "#ff2500", "#ff6600", "#f2f217" },
+    Gravity             = 1,
     Density             = 2.5,
     Dispersion          = 1,
     BaseTemperature     = 1200,
@@ -210,6 +221,7 @@ register_element("Ice", ice)
 
 local steam = {
     Colors          = { "#eee", "#ddd", "#ccc" },
+    Gravity         = -1,
     Density         = 0.001,
     Type            = "Gas",
     BaseTemperature = 100,
@@ -222,6 +234,7 @@ register_element("Steam", steam)
 
 local fire = {
     Colors          = { "red", "orange", "yellow" },
+    Gravity         = -1,
     Density         = 0.001,
     Type            = "Gas",
     BaseTemperature = 1500,

@@ -61,7 +61,7 @@ struct element_def final {
     std::vector<color> Colors {};
 
     f32 BaseTemperature {20};
-    f32 Gravity {1.0f}; // TODO
+    i32 Gravity {};
 
     f32 ThermalConductivity {0.80f};
     f32 Density {};     // g/cm3

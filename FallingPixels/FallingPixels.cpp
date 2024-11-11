@@ -45,6 +45,12 @@ main_scene::main_scene(game& game)
         element.ID   = id;
         element.Name = name;
 
+        // required
+        element.Gravity = table["Gravity"].as<i32>();
+        element.Density = table["Density"].as<f32>();
+        element.Type    = table["Type"].as<element_type>();
+
+        // optional
         std::vector<std::string> colors;
         table.try_get(colors, "Colors");
         for (auto const& color : colors) {
@@ -52,13 +58,8 @@ main_scene::main_scene(game& game)
         }
 
         table.try_get(element.BaseTemperature, "BaseTemperature");
-        table.try_get(element.Gravity, "Gravity");
-
         table.try_get(element.ThermalConductivity, "ThermalConductivity");
         table.try_get(element.Dispersion, "Dispersion");
-
-        element.Density = table["Density"].as<f32>();
-        element.Type    = table["Type"].as<element_type>();
 
         lua::table rulesTable;
         if (table.try_get(rulesTable, "Rules")) {

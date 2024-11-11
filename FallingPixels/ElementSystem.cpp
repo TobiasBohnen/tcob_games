@@ -184,7 +184,7 @@ void element_system::update_grid()
             if (!element->Rules.empty()) { process_rules(pos, *element); }
 
             // gravity
-            if (element->Gravity > 0) { process_gravity(pos, *element); }
+            if (element->Gravity != 0) { process_gravity(pos, *element); }
         }
     }
 }
@@ -219,176 +219,72 @@ void element_system::process_rules(point_i i, element_def const& element)
 
 void element_system::process_gravity(point_i i, element_def const& element)
 {
+    if (element.Type != element_type::Liquid && element.Type != element_type::Gas && element.Type != element_type::Powder) {
+        return;
+    }
+
     if (_grid.touched(i) == 1) { return; }
 
-    point_i const up {i + point_i {0, -1}};
-    point_i const upRight {i + point_i {1, -1}};
-    point_i const upLeft {i + point_i {-1, -1}};
-
-    point_i const down {i + point_i {0, 1}};
-    point_i const downRight {i + point_i {1, 1}};
-    point_i const downLeft {i + point_i {-1, 1}};
+    point_i const down {i + point_i {0, element.Gravity}};
+    point_i const downRight {i + point_i {1, element.Gravity}};
+    point_i const downLeft {i + point_i {-1, element.Gravity}};
 
     point_i const right {i + point_i {1, 0}};
     point_i const left {i + point_i {-1, 0}};
 
-    // Powder
-    if (element.Type == element_type::Powder) {
-        auto const canPassThrough {[&](point_i pos) {
+    auto const canPassThrough {[&](point_i pos) {
+        if (element.Type == element_type::Liquid || element.Type == element_type::Gas) {
+            return _grid.empty(pos) || (!is_type(pos, element_type::Solid) && lower_density(pos, element.Density));
+        }
+        if (element.Type == element_type::Powder) {
             return _grid.empty(pos) || (!is_type(pos, element_type::Solid) && !is_type(pos, element_type::Powder) && lower_density(pos, element.Density));
-        }};
-
-        // Attempt to move down if the cell below is a liquid or gas and less dense than the current element
-        if (canPassThrough(down)) {
-            if (_grid.swap(i, down)) { return; }
         }
 
-        // Attempt to move down diagonally to the right or left if possible
-        bool const downRightCheck {canPassThrough(downRight)};
-        bool const downLeftCheck {canPassThrough(downLeft)};
+        return false;
+    }};
 
-        // If both down-right and down-left are valid moves, pick one randomly
+    // Try to move directly down if the cell below is less dense
+    if (canPassThrough(down)) {
+        if (_grid.swap(i, down)) { return; }
+    }
+
+    // Attempt to move diagonally down-right or down-left
+    i32 const disp {_grid.dispersion(i)};
+
+    bool rightFree {true};
+    bool leftFree {true};
+    for (i32 j {0}; j < disp; ++j) {
+        rightFree = rightFree && canPassThrough(right + point_i {j, 0});
+        leftFree  = leftFree && canPassThrough(left + point_i {-j, 0});
+
+        point_i const dr {downRight + point_i {j, 0}};
+        bool const    downRightCheck {rightFree && canPassThrough(dr)};
+        point_i const dl {downLeft + point_i {-j, 0}};
+        bool const    downLeftCheck {leftFree && canPassThrough(dl)};
+
+        // Try down-right or down-left if both are less dense
         if (downRightCheck && downLeftCheck) {
             if (rand(0, 1) == 0) {
-                if (_grid.swap(i, downRight)) { return; }
-                if (_grid.swap(i, downLeft)) { return; }
+                if (_grid.swap(i, dr)) { return; }
+                if (_grid.swap(i, dl)) { return; }
             } else {
-                if (_grid.swap(i, downLeft)) { return; }
-                if (_grid.swap(i, downRight)) { return; }
-            }
-            return;
-        }
-
-        // If only down-right is valid, move there
-        if (downRightCheck) {
-            if (_grid.swap(i, downRight)) { return; }
-        }
-
-        // If only down-left is valid, move there
-        if (downLeftCheck) {
-            if (_grid.swap(i, downLeft)) { return; }
-        }
-
-        return; // No valid moves found, remain in the current position
-    }
-
-    // Liquid
-    if (element.Type == element_type::Liquid) {
-        auto const canPassThrough {[&](point_i pos) {
-            return _grid.empty(pos) || (!is_type(pos, element_type::Solid) && lower_density(pos, element.Density));
-        }};
-
-        // Try to move directly down if the cell below is less dense
-        if (canPassThrough(down)) {
-            if (_grid.swap(i, down)) { return; }
-        }
-
-        // Attempt to move diagonally down-right or down-left
-        i32 const disp {_grid.dispersion(i)};
-
-        bool rightFree {true};
-        bool leftFree {true};
-        for (i32 j {0}; j < disp; ++j) {
-            rightFree = rightFree && canPassThrough(right + point_i {j, 0});
-            leftFree  = leftFree && canPassThrough(left + point_i {-j, 0});
-
-            point_i const dr {downRight + point_i {j, 0}};
-            bool const    downRightCheck {rightFree && canPassThrough(dr)};
-            point_i const dl {downLeft + point_i {-j, 0}};
-            bool const    downLeftCheck {leftFree && canPassThrough(dl)};
-
-            // Try down-right or down-left if both are less dense
-            if (downRightCheck && downLeftCheck) {
-                if (rand(0, 1) == 0) {
-                    if (_grid.swap(i, dr)) { return; }
-                    if (_grid.swap(i, dl)) { return; }
-                } else {
-                    if (_grid.swap(i, dl)) { return; }
-                    if (_grid.swap(i, dr)) { return; }
-                }
-            }
-
-            // If only down-right is less dense, move there
-            if (downRightCheck) {
+                if (_grid.swap(i, dl)) { return; }
                 if (_grid.swap(i, dr)) { return; }
             }
-
-            // If only down-left is less dense, move there
-            if (downLeftCheck) {
-                if (_grid.swap(i, dl)) { return; }
-            }
         }
 
-        // Try to move horizontally to the left or right if both are empty
-        if (_grid.empty(right) && _grid.empty(left)) {
-            if (rand(0, 1) == 0) {
-                if (_grid.swap(i, right)) { return; }
-                if (_grid.swap(i, left)) { return; }
-            } else {
-                if (_grid.swap(i, left)) { return; }
-                if (_grid.swap(i, right)) { return; }
-            }
+        // If only down-right is less dense, move there
+        if (downRightCheck) {
+            if (_grid.swap(i, dr)) { return; }
         }
 
-        // If only right is empty, move there
-        if (_grid.empty(right)) {
-            if (_grid.swap(i, right)) { return; }
+        // If only down-left is less dense, move there
+        if (downLeftCheck) {
+            if (_grid.swap(i, dl)) { return; }
         }
-
-        // If only left is empty, move there
-        if (_grid.empty(left)) {
-            if (_grid.swap(i, left)) { return; }
-        }
-        return;
     }
 
-    // Gas
-    if (element.Type == element_type::Gas) {
-        auto const canPassThrough {[&](point_i pos) {
-            return _grid.empty(pos) || (!is_type(pos, element_type::Solid) && lower_density(pos, element.Density));
-        }};
-
-        // Try to move directly up if the cell above is less dense
-        if (canPassThrough(up)) {
-            if (_grid.swap(i, up)) { return; }
-        }
-
-        // Attempt to move diagonally up-right or up-left
-        i32 const disp {_grid.dispersion(i)};
-
-        bool rightFree {true};
-        bool leftFree {true};
-        for (i32 j {0}; j < disp; ++j) {
-            rightFree = rightFree && canPassThrough(right + point_i {j, 0});
-            leftFree  = leftFree && canPassThrough(left + point_i {-j, 0});
-
-            point_i const ur {upRight + point_i {j, 0}};
-            bool const    upRightCheck {rightFree && canPassThrough(ur)};
-            point_i const ul {upLeft + point_i {-j, 0}};
-            bool const    upLeftCheck {leftFree && canPassThrough(ul)};
-
-            // Try down-right or down-left if both are less dense
-            if (upRightCheck && upLeftCheck) {
-                if (rand(0, 1) == 0) {
-                    if (_grid.swap(i, ur)) { return; }
-                    if (_grid.swap(i, ul)) { return; }
-                } else {
-                    if (_grid.swap(i, ul)) { return; }
-                    if (_grid.swap(i, ur)) { return; }
-                }
-            }
-
-            // If only down-right is less dense, move there
-            if (upRightCheck) {
-                if (_grid.swap(i, ur)) { return; }
-            }
-
-            // If only down-left is less dense, move there
-            if (upLeftCheck) {
-                if (_grid.swap(i, ul)) { return; }
-            }
-        }
-
+    if (element.Type != element_type::Powder) {
         // Try to move horizontally to the left or right if both are empty
         if (_grid.empty(right) && _grid.empty(left)) {
             if (rand(0, 1) == 0) {
@@ -409,7 +305,6 @@ void element_system::process_gravity(point_i i, element_def const& element)
         if (_grid.empty(left)) {
             if (_grid.swap(i, left)) { return; }
         }
-
         return;
     }
 }
