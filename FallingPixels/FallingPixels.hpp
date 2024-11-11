@@ -57,7 +57,6 @@ private:
 
     assets::manual_asset_ptr<gfx::material> _sandMat;
     assets::manual_asset_ptr<gfx::texture>  _sandTex;
-    gfx::image                              _sandImg;
 
     std::shared_ptr<elements_form> _form;
 

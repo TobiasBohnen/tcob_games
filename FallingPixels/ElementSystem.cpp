@@ -5,8 +5,6 @@
 
 #include "ElementSystem.hpp"
 
-#include <cstring>
-
 constexpr i32                           EMPTY_ELEMENT {0};
 static constexpr std::array<point_i, 4> NEIGHBORS {{{-1, 0}, {1, 0}, {0, -1}, {0, 1}}};
 
@@ -48,25 +46,29 @@ void element_system::update()
     update_grid();
 }
 
-void element_system::draw_image(gfx::image& img) const
+void element_system::draw_elements(gfx::texture& tex) const
 {
-    auto const size {img.get_info().Size};
-    memcpy(img.buffer().data(), _grid.colors(), img.get_info().size_in_bytes());
+    tex.update_data(point_i::Zero, _grid.size(), _grid.colors(), 0);
 }
 
-void element_system::draw_heatmap(gfx::image& img) const
+void element_system::draw_heatmap(gfx::texture& tex) const
 {
+    auto const size {_grid.size()};
+    auto       img {gfx::image::CreateEmpty(size, gfx::image::format::RGBA)};
+
     static auto colors {gfx::color_gradient {{0, colors::Blue}, {0.5f, colors::White}, {1, colors::Red}}.get_colors()};
-    auto const  size {img.get_info().Size};
+
     for (i32 x {0}; x < size.Width; ++x) {
         for (i32 y {0}; y < size.Height; ++y) {
             point_i const pos {x, y};
-
-            f32 temp {_grid.temperature(pos)};
-            temp = std::clamp((temp + 200) / 400, 0.f, 1.f); //-200 to 1200
+            f32           temp {_grid.temperature(pos)};
+            temp = 0.5f + temp / (temp < 0 ? 400 : 1200); // -200 to 600
+            temp = std::clamp(temp, 0.f, 1.f);
             img.set_pixel(pos, colors[static_cast<u8>(temp * 255)]);
         }
     }
+
+    tex.update_data(point_i::Zero, size, img.buffer().data(), 0);
 }
 
 void element_system::spawn(point_i i, i32 t)

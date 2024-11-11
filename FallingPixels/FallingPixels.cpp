@@ -19,8 +19,7 @@ main_scene::main_scene(game& game)
     auto& window {get_window()};
     auto  winSize {window.Size()};
 
-    _sandImg = gfx::image::CreateEmpty(GRID_SIZE, gfx::image::format::RGBA);
-    _sandTex->create(_sandImg.get_info().Size, 1, gfx::texture::format::RGBA8);
+    _sandTex->create(GRID_SIZE, 1, gfx::texture::format::RGBA8);
     //_sandTex->Filtering = gfx::texture::filtering::Linear;
 
     _shape0 = _layer0.create_shape<gfx::rect_shape>();
@@ -192,11 +191,10 @@ void main_scene::on_mouse_wheel(input::mouse::wheel_event const& ev)
 void main_scene::update_image()
 {
     if (_drawHeatMap) {
-        _elementSystem->draw_heatmap(_sandImg);
+        _elementSystem->draw_heatmap(*_sandTex.ptr());
     } else {
-        _elementSystem->draw_image(_sandImg);
+        _elementSystem->draw_elements(*_sandTex.ptr());
     }
-    _sandTex->update_data(_sandImg.buffer().data(), 0);
 }
 
 auto main_scene::load_script() -> script_element_vec

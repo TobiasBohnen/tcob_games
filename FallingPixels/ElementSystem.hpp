@@ -123,8 +123,8 @@ public:
     auto info_heat(point_i i) const -> f32;
 
     void update();
-    void draw_image(gfx::image& img) const;
-    void draw_heatmap(gfx::image& img) const;
+    void draw_elements(gfx::texture& tex) const;
+    void draw_heatmap(gfx::texture& tex) const;
 
     void spawn(point_i i, i32 t);
     void clear();
