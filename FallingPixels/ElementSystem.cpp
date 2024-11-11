@@ -173,65 +173,54 @@ void element_system::update_grid()
 {
     _shuffle(_drawOrder);
     for (auto const& pos : _drawOrder) {
-        if (_grid.moved(pos) == 1) { continue; }
+        if (_grid.touched(pos) == 1) { continue; }
 
         if (auto elementID {_grid.id(pos)}; elementID != EMPTY_ELEMENT) {
 
             auto const* element {id_to_element(elementID)};
             if (!element) { continue; }
 
-            // transitions
-            process_transitions(pos, *element);
+            // rules
+            if (!element->Rules.empty()) { process_rules(pos, *element); }
+
             // gravity
             if (element->Gravity > 0) { process_gravity(pos, *element); }
         }
     }
 }
 
-void element_system::process_transitions(point_i i, element_def const& element)
+void element_system::process_rules(point_i i, element_def const& element)
 {
-    for (auto const& transition : element.Transitions) {
+    for (auto const& rule : element.Rules) {
         std::visit(
             overloaded {
-                [&](temp_transition const& transition) {
+                [&](temp_rule const& r) {
                     f32 const temp(_grid.temperature(i));
-                    switch (transition.Op) {
-                    case math_op::Equals:
-                        if (temp == transition.Temperature) { _grid.element(i, _elements[transition.TransformTo], false); }
-                        break;
-                    case math_op::LessThan:
-                        if (temp < transition.Temperature) { _grid.element(i, _elements[transition.TransformTo], false); }
-                        break;
-                    case math_op::LessThanOrEqual:
-                        if (temp <= transition.Temperature) { _grid.element(i, _elements[transition.TransformTo], false); }
-                        break;
-                    case math_op::GreaterThan:
-                        if (temp > transition.Temperature) { _grid.element(i, _elements[transition.TransformTo], false); }
-                        break;
-                    case math_op::GreaterThanOrEqual:
-                        if (temp >= transition.Temperature) { _grid.element(i, _elements[transition.TransformTo], false); }
-                        break;
+                    if (comp(r.Op, temp, r.Temperature)) {
+                        _grid.element(i, _elements[r.TransformTo], false);
                     }
                 },
-                [&](neighbor_transition const& transition) {
+                [&](neighbor_rule const& r) {
                     for (auto const& neighbor : NEIGHBORS) {
                         point_i const np {i + neighbor};
                         if (_grid.contains(np)) {
                             i32 const eid {_grid.id(np)};
-                            if (eid == transition.Neighbor) {
-                                _grid.element(np, _elements[transition.NeighborTransformTo], true);
-                                _grid.element(i, _elements[transition.TransformTo], true);
+                            if (eid == r.Neighbor) {
+                                _grid.element(np, _elements[r.NeighborTransformTo], true);
+                                _grid.element(i, _elements[r.TransformTo], true);
                                 return;
                             }
                         }
                     }
                 }},
-            transition);
+            rule);
     }
 }
 
 void element_system::process_gravity(point_i i, element_def const& element)
 {
+    if (_grid.touched(i) == 1) { return; }
+
     point_i const up {i + point_i {0, -1}};
     point_i const upRight {i + point_i {1, -1}};
     point_i const upLeft {i + point_i {-1, -1}};
@@ -251,8 +240,7 @@ void element_system::process_gravity(point_i i, element_def const& element)
 
         // Attempt to move down if the cell below is a liquid or gas and less dense than the current element
         if (canPassThrough(down)) {
-            _grid.swap(i, down); // Swap positions with the less dense liquid below
-            return;
+            if (_grid.swap(i, down)) { return; }
         }
 
         // Attempt to move down diagonally to the right or left if possible
@@ -262,23 +250,23 @@ void element_system::process_gravity(point_i i, element_def const& element)
         // If both down-right and down-left are valid moves, pick one randomly
         if (downRightCheck && downLeftCheck) {
             if (rand(0, 1) == 0) {
-                _grid.swap(i, downRight); // Move down-right
+                if (_grid.swap(i, downRight)) { return; }
+                if (_grid.swap(i, downLeft)) { return; }
             } else {
-                _grid.swap(i, downLeft);  // Move down-left
+                if (_grid.swap(i, downLeft)) { return; }
+                if (_grid.swap(i, downRight)) { return; }
             }
             return;
         }
 
         // If only down-right is valid, move there
         if (downRightCheck) {
-            _grid.swap(i, downRight);
-            return;
+            if (_grid.swap(i, downRight)) { return; }
         }
 
         // If only down-left is valid, move there
         if (downLeftCheck) {
-            _grid.swap(i, downLeft);
-            return;
+            if (_grid.swap(i, downLeft)) { return; }
         }
 
         return; // No valid moves found, remain in the current position
@@ -292,8 +280,7 @@ void element_system::process_gravity(point_i i, element_def const& element)
 
         // Try to move directly down if the cell below is less dense
         if (canPassThrough(down)) {
-            _grid.swap(i, down);
-            return;
+            if (_grid.swap(i, down)) { return; }
         }
 
         // Attempt to move diagonally down-right or down-left
@@ -313,46 +300,44 @@ void element_system::process_gravity(point_i i, element_def const& element)
             // Try down-right or down-left if both are less dense
             if (downRightCheck && downLeftCheck) {
                 if (rand(0, 1) == 0) {
-                    _grid.swap(i, dr);
+                    if (_grid.swap(i, dr)) { return; }
+                    if (_grid.swap(i, dl)) { return; }
                 } else {
-                    _grid.swap(i, dl);
+                    if (_grid.swap(i, dl)) { return; }
+                    if (_grid.swap(i, dr)) { return; }
                 }
-                return;
             }
 
             // If only down-right is less dense, move there
             if (downRightCheck) {
-                _grid.swap(i, dr);
-                return;
+                if (_grid.swap(i, dr)) { return; }
             }
 
             // If only down-left is less dense, move there
             if (downLeftCheck) {
-                _grid.swap(i, dl);
-                return;
+                if (_grid.swap(i, dl)) { return; }
             }
         }
 
         // Try to move horizontally to the left or right if both are empty
         if (_grid.empty(right) && _grid.empty(left)) {
-            if (rand(0, 1) == 1) {
-                _grid.swap(i, right); // Move right
+            if (rand(0, 1) == 0) {
+                if (_grid.swap(i, right)) { return; }
+                if (_grid.swap(i, left)) { return; }
             } else {
-                _grid.swap(i, left);  // Move left
+                if (_grid.swap(i, left)) { return; }
+                if (_grid.swap(i, right)) { return; }
             }
-            return;
         }
 
         // If only right is empty, move there
         if (_grid.empty(right)) {
-            _grid.swap(i, right);
-            return;
+            if (_grid.swap(i, right)) { return; }
         }
 
         // If only left is empty, move there
         if (_grid.empty(left)) {
-            _grid.swap(i, left);
-            return;
+            if (_grid.swap(i, left)) { return; }
         }
         return;
     }
@@ -365,56 +350,64 @@ void element_system::process_gravity(point_i i, element_def const& element)
 
         // Try to move directly up if the cell above is less dense
         if (canPassThrough(up)) {
-            _grid.swap(i, up);
-            return;
+            if (_grid.swap(i, up)) { return; }
         }
 
         // Attempt to move diagonally up-right or up-left
-        bool const upRightCheck {canPassThrough(upRight)};
-        bool const upLeftCheck {canPassThrough(upLeft)};
+        i32 const disp {_grid.dispersion(i)};
 
-        // Try up-right or up-left if both are less dense
-        if (upRightCheck && upLeftCheck) {
-            if (rand(0, 1) == 0) {
-                _grid.swap(i, upRight);
-            } else {
-                _grid.swap(i, upLeft);
+        bool rightFree {true};
+        bool leftFree {true};
+        for (i32 j {0}; j < disp; ++j) {
+            rightFree = rightFree && canPassThrough(right + point_i {j, 0});
+            leftFree  = leftFree && canPassThrough(left + point_i {-j, 0});
+
+            point_i const ur {upRight + point_i {j, 0}};
+            bool const    upRightCheck {rightFree && canPassThrough(ur)};
+            point_i const ul {upLeft + point_i {-j, 0}};
+            bool const    upLeftCheck {leftFree && canPassThrough(ul)};
+
+            // Try down-right or down-left if both are less dense
+            if (upRightCheck && upLeftCheck) {
+                if (rand(0, 1) == 0) {
+                    if (_grid.swap(i, ur)) { return; }
+                    if (_grid.swap(i, ul)) { return; }
+                } else {
+                    if (_grid.swap(i, ul)) { return; }
+                    if (_grid.swap(i, ur)) { return; }
+                }
             }
-            return;
-        }
 
-        // If only up-right is less dense, move there
-        if (upRightCheck) {
-            _grid.swap(i, upRight);
-            return;
-        }
+            // If only down-right is less dense, move there
+            if (upRightCheck) {
+                if (_grid.swap(i, ur)) { return; }
+            }
 
-        // If only up-left is less dense, move there
-        if (upLeftCheck) {
-            _grid.swap(i, upLeft);
-            return;
+            // If only down-left is less dense, move there
+            if (upLeftCheck) {
+                if (_grid.swap(i, ul)) { return; }
+            }
         }
 
         // Try to move horizontally to the left or right if both are empty
         if (_grid.empty(right) && _grid.empty(left)) {
-            if (rand(0, 1) == 1) {
-                _grid.swap(i, right); // Move right
+            if (rand(0, 1) == 0) {
+                if (_grid.swap(i, right)) { return; }
+                if (_grid.swap(i, left)) { return; }
             } else {
-                _grid.swap(i, left);  // Move left
+                if (_grid.swap(i, left)) { return; }
+                if (_grid.swap(i, right)) { return; }
             }
-            return;
         }
 
         // If only right is empty, move there
         if (_grid.empty(right)) {
-            _grid.swap(i, right);
-            return;
+            if (_grid.swap(i, right)) { return; }
         }
 
         // If only left is empty, move there
         if (_grid.empty(left)) {
-            _grid.swap(i, left);
-            return;
+            if (_grid.swap(i, left)) { return; }
         }
 
         return;
@@ -456,7 +449,7 @@ element_grid::element_grid(size_i size)
     , _gridDensity {size, 0}
     , _gridDispersion {size, 0}
     , _gridColor {size, colors::Transparent}
-    , _gridMoved {size, 0}
+    , _gridTouched {size, 0}
     , _gridTemperature {size, 20}
 
     , _size {size}
@@ -474,23 +467,22 @@ void element_grid::element(point_i i, element_def const& element, bool useTemp)
     _gridDispersion[i]          = element.Dispersion;
     _gridColor[i]               = element.Colors[_rand(0, static_cast<i32>(element.Colors.size() - 1))];
 
-    _gridMoved[i] = element.ID == EMPTY_ELEMENT ? 0 : 1;
+    _gridTouched[i] = 1;
 
     if (useTemp) {
         _gridTemperature[i] = element.BaseTemperature;
     }
 }
 
-void element_grid::swap(point_i i0, point_i i1)
+auto element_grid::swap(point_i i0, point_i i1) -> bool
 {
-    if (!contains(i0) || !contains(i1)) { return; }
+    if (!contains(i0) || !contains(i1)) { return false; }
 
     auto const id0 {id(i0)};
     auto const id1 {id(i1)};
 
-    if (id0 == id1) { return; }
-    if (_gridMoved[i0] == 1 && id0 != EMPTY_ELEMENT) { return; }
-    if (_gridMoved[i1] == 1 && id1 != EMPTY_ELEMENT) { return; }
+    if (id0 == id1) { return true; }
+    if (_gridTouched[i1] == 1 && id1 != EMPTY_ELEMENT) { return false; } // prevent teleportation
 
     std::swap(_gridElements[i0], _gridElements[i1]);
     std::swap(_gridTypes[i0], _gridTypes[i1]);
@@ -501,8 +493,10 @@ void element_grid::swap(point_i i0, point_i i1)
 
     std::swap(_gridTemperature[i0], _gridTemperature[i1]);
 
-    _gridMoved[i0] = id1 == EMPTY_ELEMENT ? 0 : 1;
-    _gridMoved[i1] = id0 == EMPTY_ELEMENT ? 0 : 1;
+    _gridTouched[i0] = id1 == EMPTY_ELEMENT ? 0 : 1;
+    _gridTouched[i1] = id0 == EMPTY_ELEMENT ? 0 : 1;
+
+    return true;
 }
 
 void element_grid::temperature(point_i i, f32 val)
@@ -552,10 +546,10 @@ auto element_grid::colors() const -> tcob::color const*
     return _gridColor.data();
 }
 
-auto element_grid::moved(point_i i) const -> bool
+auto element_grid::touched(point_i i) const -> bool
 {
     if (!contains(i)) { return false; }
-    return _gridMoved[i];
+    return _gridTouched[i];
 }
 
 auto element_grid::temperature(point_i i) const -> f32
@@ -566,7 +560,7 @@ auto element_grid::temperature(point_i i) const -> f32
 
 void element_grid::reset_moved()
 {
-    _gridMoved.fill(0);
+    _gridTouched.fill(0);
 }
 
 auto element_grid::contains(point_i p) const -> bool

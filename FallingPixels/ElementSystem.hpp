@@ -18,20 +18,35 @@ enum class element_type {
 };
 
 ////////////////////////////////////////////////////////////
-enum class math_op {
+enum class comp_op {
     Equals,
     LessThan,
     LessThanOrEqual,
     GreaterThan,
     GreaterThanOrEqual
 };
-struct temp_transition {
+
+template <typename T>
+auto comp(comp_op op, T a, T b) -> bool
+{
+    switch (op) {
+    case comp_op::Equals: return a == b;
+    case comp_op::LessThan: return a < b;
+    case comp_op::LessThanOrEqual: return a <= b;
+    case comp_op::GreaterThan: return a > b;
+    case comp_op::GreaterThanOrEqual: return a > b;
+    }
+
+    return false;
+}
+
+struct temp_rule {
     f32     Temperature {};
-    math_op Op {};
+    comp_op Op {};
     i32     TransformTo {};
 };
 
-struct neighbor_transition {
+struct neighbor_rule {
     i32 Neighbor {};
     i32 NeighborTransformTo {};
     i32 TransformTo {};
@@ -52,7 +67,7 @@ struct element_def final {
     f32 Density {};     // g/cm3
     i32 Dispersion {1}; // liquid
 
-    std::vector<std::variant<temp_transition, neighbor_transition>> Transitions;
+    std::vector<std::variant<temp_rule, neighbor_rule>> Rules;
 
     element_type Type {};
 };
@@ -67,7 +82,7 @@ public:
 
     void element(point_i i, element_def const& element, bool useTemp);
 
-    void swap(point_i i0, point_i i1);
+    auto swap(point_i i0, point_i i1) -> bool;
 
     void temperature(point_i i, f32 val);
 
@@ -86,7 +101,7 @@ public:
     auto color(point_i i) const -> tcob::color;
     auto colors() const -> tcob::color const*;
 
-    auto moved(point_i i) const -> bool;
+    auto touched(point_i i) const -> bool;
 
     auto temperature(point_i i) const -> f32;
 
@@ -105,7 +120,7 @@ private:
     grid<f32>          _gridDensity;
     grid<f32>          _gridDispersion;
     grid<tcob::color>  _gridColor;
-    grid<u8>           _gridMoved;
+    grid<u8>           _gridTouched;
 
     grid<f32> _gridTemperature;
 
@@ -134,7 +149,7 @@ private:
     void update_temperature();
 
     void update_grid();
-    void process_transitions(point_i i, element_def const& element);
+    void process_rules(point_i i, element_def const& element);
     void process_gravity(point_i i, element_def const& element);
 
     auto is_type(point_i i, element_type t) const -> bool;

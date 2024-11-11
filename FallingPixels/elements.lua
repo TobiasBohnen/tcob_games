@@ -27,20 +27,20 @@ register_element("Sand", sand)
 ----------------------
 
 local salt = {
-    Colors      = { "#f3fafd" },
-    Density     = 2.19,
-    Type        = "Powder",
-    Transitions = { { Neighbor = "Water", NeighborTransformTo = "Salt Water", TransformTo = "Empty" } }
+    Colors  = { "#f3fafd" },
+    Density = 2.19,
+    Type    = "Powder",
+    Rules   = { { Neighbor = "Water", NeighborTransformTo = "Salt Water", TransformTo = "Empty" } }
 }
 register_element("Salt", salt)
 
 ----------------------
 
 local sawdust = {
-    Colors      = { "#d9ead4" },
-    Density     = 0.21,
-    Type        = "Powder",
-    Transitions = { { Temperature = 80, Op = "GreaterThanOrEqual", TransformTo = "Charcoal Dust" } }
+    Colors  = { "#d9ead4" },
+    Density = 0.21,
+    Type    = "Powder",
+    Rules   = { { Temperature = 80, Op = "GreaterThanOrEqual", TransformTo = "Charcoal Dust" } }
 }
 register_element("Sawdust", sawdust)
 
@@ -61,7 +61,7 @@ local charcoal_dust = {
     Type = "Powder",
     BaseTemperature = 1200,
     ThermalConductivity = 0.10,
-    Transitions = { { Temperature = 80, Op = "LessThan", TransformTo = "Ash" } }
+    Rules = { { Temperature = 80, Op = "LessThan", TransformTo = "Ash" } }
 }
 register_element("Charcoal Dust", charcoal_dust)
 
@@ -73,7 +73,7 @@ local snow = {
     Type = "Powder",
     BaseTemperature = -200,
     ThermalConductivity = 0.10,
-    Transitions = { { Temperature = 0, Op = "GreaterThanOrEqual", TransformTo = "Water" } }
+    Rules = { { Temperature = 0, Op = "GreaterThanOrEqual", TransformTo = "Water" } }
 }
 register_element("Snow", snow)
 
@@ -87,7 +87,7 @@ local water = {
     BaseTemperature     = 10,
     Dispersion          = 5,
     ThermalConductivity = 1.0,
-    Transitions         = {
+    Rules               = {
         { Temperature = 100, Op = "GreaterThanOrEqual", TransformTo = "Steam" },
         { Temperature = 0,   Op = "LessThan",           TransformTo = "Snow" },
     }
@@ -102,7 +102,7 @@ local salt_water = {
     Type            = "Liquid",
     BaseTemperature = 10,
     Dispersion      = 5,
-    Transitions     = {
+    Rules           = {
         { Temperature = 102, Op = "GreaterThanOrEqual", TransformTo = "Steam" },
         { Temperature = -21, Op = "LessThan",           TransformTo = "Snow" },
     }
@@ -163,7 +163,7 @@ local fuse = {
     Density             = 100,
     Type                = "Solid",
     ThermalConductivity = 0.01,
-    Transitions         = {
+    Rules               = {
         { Neighbor = "Fire", NeighborTransformTo = "Fire", TransformTo = "Fire" },
         { Temperature = 800, Op = "GreaterThan",           TransformTo = "Fire" },
     }
@@ -173,11 +173,11 @@ register_element("Fuse", fuse)
 ----------------------
 
 local wood = {
-    Colors      = { "#ba8c63" },
-    Gravity     = 0,
-    Density     = 0.85,
-    Type        = "Solid",
-    Transitions = { { Temperature = 100, Op = "GreaterThanOrEqual", TransformTo = "Charcoal" } }
+    Colors  = { "#ba8c63" },
+    Gravity = 0,
+    Density = 0.85,
+    Type    = "Solid",
+    Rules   = { { Temperature = 100, Op = "GreaterThanOrEqual", TransformTo = "Charcoal" } }
 }
 register_element("Wood", wood)
 
@@ -189,7 +189,7 @@ local charcoal = {
     Density         = 1.4,
     Type            = "Solid",
     BaseTemperature = 1200,
-    Transitions     = { { Temperature = 80, Op = "LessThan", TransformTo = "Ash" } }
+    Rules           = { { Temperature = 80, Op = "LessThan", TransformTo = "Ash" } }
 }
 register_element("Charcoal", charcoal)
 
@@ -201,7 +201,7 @@ local ice = {
     Density         = 0.91,
     Type            = "Solid",
     BaseTemperature = -200,
-    Transitions     = { { Temperature = 0, Op = "GreaterThanOrEqual", TransformTo = "Water" } }
+    Rules           = { { Temperature = 0, Op = "GreaterThanOrEqual", TransformTo = "Water" } }
 }
 register_element("Ice", ice)
 
@@ -213,7 +213,8 @@ local steam = {
     Density         = 0.001,
     Type            = "Gas",
     BaseTemperature = 100,
-    Transitions     = { { Temperature = 10, Op = "LessThanOrEqual", TransformTo = "Water" } }
+    Dispersion      = 10,
+    Rules           = { { Temperature = 10, Op = "LessThanOrEqual", TransformTo = "Water" } }
 }
 register_element("Steam", steam)
 
@@ -224,7 +225,7 @@ local fire = {
     Density         = 0.001,
     Type            = "Gas",
     BaseTemperature = 1500,
-    Transitions     = { { Temperature = 200, Op = "LessThan", TransformTo = "Empty" } }
+    Rules           = { { Temperature = 200, Op = "LessThan", TransformTo = "Empty" } }
 }
 register_element("Fire", fire)
 

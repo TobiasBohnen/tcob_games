@@ -60,24 +60,24 @@ main_scene::main_scene(game& game)
         element.Density = table["Density"].as<f32>();
         element.Type    = table["Type"].as<element_type>();
 
-        lua::table transitions;
-        if (table.try_get(transitions, "Transitions")) {
-            auto const keys {transitions.get_keys<i32>()};
+        lua::table rulesTable;
+        if (table.try_get(rulesTable, "Rules")) {
+            auto const keys {rulesTable.get_keys<i32>()};
             for (auto const& key : keys) {
-                lua::table transition {transitions[key].as<lua::table>()};
+                lua::table ruleTable {rulesTable[key].as<lua::table>()};
 
-                if (transition.has("Temperature")) {
-                    temp_transition val;
-                    transition.try_get(val.Temperature, "Temperature");
-                    transition.try_get(val.Op, "Op");
-                    val.TransformTo = name_to_id(transition["TransformTo"].as<std::string>());
-                    element.Transitions.emplace_back(val);
-                } else if (transition.has("Neighbor")) {
-                    neighbor_transition val;
-                    val.Neighbor            = name_to_id(transition["Neighbor"].as<std::string>());
-                    val.NeighborTransformTo = name_to_id(transition["NeighborTransformTo"].as<std::string>());
-                    val.TransformTo         = name_to_id(transition["TransformTo"].as<std::string>());
-                    element.Transitions.emplace_back(val);
+                if (ruleTable.has("Temperature")) {
+                    temp_rule val;
+                    ruleTable.try_get(val.Temperature, "Temperature");
+                    ruleTable.try_get(val.Op, "Op");
+                    val.TransformTo = name_to_id(ruleTable["TransformTo"].as<std::string>());
+                    element.Rules.emplace_back(val);
+                } else if (ruleTable.has("Neighbor")) {
+                    neighbor_rule val;
+                    val.Neighbor            = name_to_id(ruleTable["Neighbor"].as<std::string>());
+                    val.NeighborTransformTo = name_to_id(ruleTable["NeighborTransformTo"].as<std::string>());
+                    val.TransformTo         = name_to_id(ruleTable["TransformTo"].as<std::string>());
+                    element.Rules.emplace_back(val);
                 }
             }
         }
