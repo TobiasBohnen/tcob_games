@@ -39,8 +39,8 @@ private:
 
     auto load_script() -> script_element_vec;
 
-    lua::script                    _script;
-    lua::native_closure_shared_ptr _registerElement;
+    lua::script                                            _script;
+    std::vector<scripting::lua::native_closure_shared_ptr> _funcs;
 
     stopwatch _hourGlass0;
 

@@ -219,11 +219,14 @@ auto main_scene::load_script() -> script_element_vec
     env["setmetatable"] = global["setmetatable"];
     env["getmetatable"] = global["getmetatable"];
 
+    auto const make_func {[&](auto&& func) {
+        return _funcs.emplace_back(make_shared_closure(std::function {func})).get();
+    }};
+
     script_element_vec elements;
-    _registerElement        = make_shared_closure(std::function {[&](std::string const& name, table const& table) {
+    env["register_element"] = make_func([&](std::string const& name, table const& table) {
         elements.emplace_back(elements.size(), name, table);
-    }});
-    env["register_element"] = _registerElement.get();
+    });
     _script.set_environment(env);
 
     std::ignore = _script.run_file("elements.lua");
