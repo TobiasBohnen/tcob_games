@@ -76,7 +76,7 @@ struct element_def final {
 
 class element_grid final {
 public:
-    element_grid(size_i size);
+    element_grid();
 
     ////////////////////////////////////////////////////////////
 
@@ -114,6 +114,9 @@ public:
     auto empty(point_i i) const -> bool;
 
 private:
+    template <typename T>
+    using grid = static_grid<T, GRID_SIZE.Width, GRID_SIZE.Height>;
+
     grid<i32>          _gridElements;
     grid<element_type> _gridTypes;
     grid<f32>          _gridThermalConductivity;
@@ -124,15 +127,14 @@ private:
 
     grid<f32> _gridTemperature;
 
-    size_i _size;
-    rng    _rand;
+    rng _rand;
 };
 
 ////////////////////////////////////////////////////////////
 
 class element_system final {
 public:
-    element_system(size_i size, std::vector<element_def> const& elements);
+    element_system(std::vector<element_def> const& elements);
 
     auto info_name(point_i i) const -> std::string;
     auto info_heat(point_i i) const -> f32;
@@ -152,7 +154,6 @@ private:
     void process_rules(point_i i, element_def const& element);
     void process_gravity(point_i i, element_def const& element);
 
-    auto is_type(point_i i, element_type t) const -> bool;
     auto higher_density(point_i i, f32 t) const -> bool;
     auto lower_density(point_i i, f32 t) const -> bool;
     auto id_to_element(i32 t) const -> element_def const*;

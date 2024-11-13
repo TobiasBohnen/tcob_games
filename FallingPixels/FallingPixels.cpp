@@ -11,8 +11,6 @@
 using namespace std::chrono_literals;
 using namespace tcob::literals;
 
-constexpr size_i GRID_SIZE {400, 400};
-
 main_scene::main_scene(game& game)
     : scene(game)
 {
@@ -84,7 +82,7 @@ main_scene::main_scene(game& game)
         }
     }
 
-    _elementSystem = std::make_unique<element_system>(GRID_SIZE, elementsDefs);
+    _elementSystem = std::make_unique<element_system>(elementsDefs);
     ////
 
     _form = std::make_shared<elements_form>(&window, rect_f {height, 0, winSize.Width - height, height}, elementsDefs);

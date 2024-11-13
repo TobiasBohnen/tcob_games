@@ -8,9 +8,14 @@
 constexpr i32                           EMPTY_ELEMENT {0};
 static constexpr std::array<point_i, 4> NEIGHBORS {{{-1, 0}, {1, 0}, {0, -1}, {0, 1}}};
 
-element_system::element_system(size_i size, std::vector<element_def> const& elements)
-    : _grid {size}
+element_system::element_system(std::vector<element_def> const& elements)
+    : _grid {}
 {
+    for (auto const& el : elements) {
+        _elements[el.ID] = el;
+    }
+
+    auto const size {_grid.size()};
     _drawOrder.reserve(size.Width * size.Height);
     for (i32 y {size.Height - 1}; y >= 0; --y) {
         if (y % 2 == 0) {
@@ -22,10 +27,6 @@ element_system::element_system(size_i size, std::vector<element_def> const& elem
                 _drawOrder.emplace_back(x, y);
             }
         }
-    }
-
-    for (auto const& el : elements) {
-        _elements[el.ID] = el;
     }
 }
 
@@ -116,7 +117,7 @@ void element_system::spawn(point_i i, i32 t)
 
 void element_system::clear()
 {
-    _grid = {_grid.size()};
+    _grid = {};
 }
 
 void element_system::update_temperature()
@@ -233,11 +234,14 @@ void element_system::process_gravity(point_i i, element_def const& element)
     point_i const left {i + point_i {-1, 0}};
 
     auto const canPassThrough {[&](point_i pos) {
+        if (_grid.empty(pos)) { return true; }
+
+        auto const type {_grid.type(pos)};
         if (element.Type == element_type::Liquid || element.Type == element_type::Gas) {
-            return _grid.empty(pos) || (!is_type(pos, element_type::Solid) && lower_density(pos, element.Density));
+            return type != element_type::Solid && lower_density(pos, element.Density);
         }
         if (element.Type == element_type::Powder) {
-            return _grid.empty(pos) || (!is_type(pos, element_type::Solid) && !is_type(pos, element_type::Powder) && lower_density(pos, element.Density));
+            return type != element_type::Solid && type != element_type::Powder && lower_density(pos, element.Density);
         }
 
         return false;
@@ -318,10 +322,6 @@ auto element_system::lower_density(point_i i, f32 t) const -> bool
 {
     return _grid.density(i) < t;
 }
-auto element_system::is_type(point_i i, element_type t) const -> bool
-{
-    return _grid.type(i) == t;
-}
 
 auto element_system::rand(i32 min, i32 max) -> i32
 {
@@ -337,17 +337,15 @@ auto element_system::id_to_element(i32 t) const -> element_def const*
 
 ////////////////////////////////////////////////////////////
 
-element_grid::element_grid(size_i size)
-    : _gridElements {size, 0}
-    , _gridTypes {size, element_type::None}
-    , _gridThermalConductivity {size, 0.8f}
-    , _gridDensity {size, 0}
-    , _gridDispersion {size, 0}
-    , _gridColor {size, colors::Transparent}
-    , _gridTouched {size, 0}
-    , _gridTemperature {size, 20}
-
-    , _size {size}
+element_grid::element_grid()
+    : _gridElements {0}
+    , _gridTypes {element_type::None}
+    , _gridThermalConductivity {0.8f}
+    , _gridDensity {0}
+    , _gridDispersion {0}
+    , _gridColor {colors::Transparent}
+    , _gridTouched {0}
+    , _gridTemperature {20}
 {
 }
 
@@ -460,12 +458,12 @@ void element_grid::reset_moved()
 
 auto element_grid::contains(point_i p) const -> bool
 {
-    return _size.contains(p);
+    return GRID_SIZE.contains(p);
 }
 
 auto element_grid::size() const -> size_i
 {
-    return _size;
+    return GRID_SIZE;
 }
 
 auto element_grid::empty(point_i i) const -> bool
