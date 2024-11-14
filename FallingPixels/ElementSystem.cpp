@@ -117,7 +117,7 @@ void element_system::spawn(point_i i, i32 t)
 
 void element_system::clear()
 {
-    _grid = {};
+    _grid.clear();
 }
 
 void element_system::update_temperature()
@@ -172,9 +172,9 @@ void element_system::update_temperature()
 
 void element_system::update_grid()
 {
-    _shuffle(_drawOrder);
+    //   _shuffle(_drawOrder);
     for (auto const& pos : _drawOrder) {
-        if (_grid.touched(pos) == 1) { continue; }
+        if (_grid.touched(pos)) { continue; }
 
         if (auto elementID {_grid.id(pos)}; elementID != EMPTY_ELEMENT) {
 
@@ -193,6 +193,8 @@ void element_system::update_grid()
 void element_system::process_rules(point_i i, element_def const& element)
 {
     for (auto const& rule : element.Rules) {
+        if (_grid.touched(i)) { return; }
+
         std::visit(
             overloaded {
                 [&](temp_rule const& r) {
@@ -204,13 +206,13 @@ void element_system::process_rules(point_i i, element_def const& element)
                 [&](neighbor_rule const& r) {
                     for (auto const& neighbor : NEIGHBORS) {
                         point_i const np {i + neighbor};
-                        if (_grid.contains(np)) {
-                            i32 const eid {_grid.id(np)};
-                            if (eid == r.Neighbor) {
-                                _grid.element(np, _elements[r.NeighborTransformTo], true);
-                                _grid.element(i, _elements[r.TransformTo], true);
-                                return;
-                            }
+                        if (!_grid.contains(np) || _grid.touched(np)) { continue; }
+
+                        i32 const eid {_grid.id(np)};
+                        if (eid == r.Neighbor) {
+                            _grid.element(np, _elements[r.NeighborTransformTo], true);
+                            _grid.element(i, _elements[r.TransformTo], true);
+                            return;
                         }
                     }
                 }},
@@ -224,7 +226,7 @@ void element_system::process_gravity(point_i i, element_def const& element)
         return;
     }
 
-    if (_grid.touched(i) == 1) { return; }
+    if (_grid.touched(i)) { return; }
 
     point_i const down {i + point_i {0, element.Gravity}};
     point_i const downRight {i + point_i {1, element.Gravity}};
@@ -442,7 +444,7 @@ auto element_grid::colors() const -> tcob::color const*
 auto element_grid::touched(point_i i) const -> bool
 {
     if (!contains(i)) { return false; }
-    return _gridTouched[i];
+    return _gridTouched[i] == 1;
 }
 
 auto element_grid::temperature(point_i i) const -> f32
@@ -456,9 +458,21 @@ void element_grid::reset_moved()
     _gridTouched.fill(0);
 }
 
+void element_grid::clear()
+{
+    _gridElements.fill(0);
+    _gridTypes.fill(element_type::None);
+    _gridThermalConductivity.fill(0.8f);
+    _gridDensity.fill(0);
+    _gridDispersion.fill(0);
+    _gridColor.fill(colors::Transparent);
+    _gridTouched.fill(0);
+    _gridTemperature.fill(20);
+}
+
 auto element_grid::contains(point_i p) const -> bool
 {
-    return GRID_SIZE.contains(p);
+    return size().contains(p);
 }
 
 auto element_grid::size() const -> size_i

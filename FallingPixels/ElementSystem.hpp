@@ -108,6 +108,7 @@ public:
     ////////////////////////////////////////////////////////////
 
     void reset_moved();
+    void clear();
 
     auto contains(point_i p) const -> bool;
     auto size() const -> size_i;
