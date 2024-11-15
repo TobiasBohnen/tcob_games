@@ -28,7 +28,7 @@ auto static make_tooltip(menu_sources& sources, form* form) -> std::shared_ptr<t
         sources.Translator.bind(lbl->Label, "ux", widget->name());
 
         auto const  bounds {widget->Bounds()};
-        auto const& style {lbl->get_style<label::style>()->Text};
+        auto const& style {lbl->current_style<label::style>()->Text};
         auto* const font {style.Font->get_font(style.Style, style.calc_font_size({0, 0, bounds.width() * 1.5f, bounds.height() * 0.75f})).ptr()};
         tt->Bounds = {point_f::Zero, gfx::text_formatter::measure(lbl->Label(), *font, -1, true)};
     });
