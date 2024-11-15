@@ -119,7 +119,7 @@ public:
     void static Serialize(game_rng const& v, auto&& s)
     {
         s["Seed"]  = v._seed;
-        s["State"] = v._gen.get_state();
+        s["State"] = v._gen.state();
     }
 
     auto static Deserialize(game_rng& v, auto&& s) -> bool
