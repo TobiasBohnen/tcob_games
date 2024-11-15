@@ -139,9 +139,9 @@ auto main_scene::call_lua(std::vector<std::string> const& funcs, lua_params cons
 void main_scene::on_start()
 {
     // render queues
-    get_root_node()->create_child()->Entity = _cardTable;
-    get_root_node()->create_child()->Entity = _formControls;
-    get_root_node()->create_child()->Entity = _formMenu;
+    root_node()->create_child()->Entity = _cardTable;
+    root_node()->create_child()->Entity = _formControls;
+    root_node()->create_child()->Entity = _formMenu;
 
     locate_service<gfx::render_system>().get_stats().reset();
 

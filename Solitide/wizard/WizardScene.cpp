@@ -61,7 +61,7 @@ void wizard_scene::update_theme(color_themes const& currentTheme)
 
 void wizard_scene::on_start()
 {
-    get_root_node()->create_child()->Entity = _formWizard;
+    root_node()->create_child()->Entity = _formWizard;
 }
 
 void wizard_scene::on_draw_to(gfx::render_target&)
