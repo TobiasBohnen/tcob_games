@@ -12,6 +12,35 @@
 
 ////////////////////////////////////////////////////////////
 
+class elements_entity : public gfx::entity { // TODO: rename
+public:
+    elements_entity();
+
+    std::shared_ptr<element_system>  ElementSystem;
+    std::shared_ptr<gfx::rect_shape> Shape;
+
+    bool DrawHeatMap {false};
+
+protected:
+    void on_update(milliseconds deltaTime) override;
+    void on_fixed_update(milliseconds deltaTime) override;
+
+    auto can_draw() const -> bool override;
+    void on_draw_to(gfx::render_target& target) override;
+
+private:
+    void update_image();
+
+    stopwatch _hourGlass0;
+
+    gfx::shape_batch _layer0;
+
+    assets::manual_asset_ptr<gfx::material> _sandMat;
+    assets::manual_asset_ptr<gfx::texture>  _sandTex;
+};
+
+////////////////////////////////////////////////////////////
+
 using script_element_vec = std::vector<std::tuple<i32, std::string, lua::table>>;
 
 class main_scene : public scene {
@@ -35,30 +64,16 @@ protected:
     void on_mouse_wheel(input::mouse::wheel_event const& ev) override;
 
 private:
-    void update_image();
-
     auto load_script() -> script_element_vec;
 
     lua::script                                            _script;
     std::vector<scripting::lua::native_closure_shared_ptr> _funcs;
 
-    stopwatch _hourGlass0;
+    i32                  _spawnElement {0};
+    i32                  _leftBtnElement {0};
+    input::mouse::button _mouseDown {input::mouse::button::None};
+    i32                  _zoomStage {1};
 
-    std::unique_ptr<element_system> _elementSystem;
-
-    i32  _spawnElement {0};
-    i32  _leftBtnElement {0};
-    i32  _middleBtnElement {0};
-    i32  _rightBtnElement {0};
-    bool _mouseDown {false};
-
-    gfx::shape_batch                 _layer0;
-    std::shared_ptr<gfx::rect_shape> _shape0;
-
-    assets::manual_asset_ptr<gfx::material> _sandMat;
-    assets::manual_asset_ptr<gfx::texture>  _sandTex;
-
-    std::shared_ptr<elements_form> _form;
-
-    bool _drawHeatMap {false};
+    std::shared_ptr<elements_form>   _form;
+    std::shared_ptr<elements_entity> _entity;
 };

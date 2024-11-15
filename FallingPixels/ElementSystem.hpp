@@ -159,12 +159,52 @@ private:
     auto lower_density(point_i i, f32 t) const -> bool;
     auto id_to_element(i32 t) const -> element_def const*;
 
+    void run_parallel(auto&& func);
+
     element_grid _grid;
 
     rng _rand;
 
-    std::vector<point_i>     _drawOrder;
-    random::shuffle<point_i> _shuffle;
-
     std::unordered_map<i32, element_def> _elements;
 };
+
+inline void element_system::run_parallel(auto&& func)
+{
+    i32 const gridSize {GRID_SIZE.Width};
+    i32 const quarterGridSize {gridSize / 4};
+    i32 const eighthGridSize {gridSize / 8};
+
+    locate_service<task_manager>().run_parallel(
+        [&](par_task const& ctx) {
+            isize const idx {ctx.Thread};
+            i32 const   xStart {eighthGridSize * static_cast<i32>(idx)}, xEnd {eighthGridSize * static_cast<i32>(idx + 1)};
+            i32 const   yStart {idx % 2 == 0 ? 0 : quarterGridSize}, yEnd {idx % 2 == 0 ? quarterGridSize : gridSize};
+
+            // Iterate over points in the specified part
+            for (i32 y {yEnd - 1}; y >= yStart; --y) {
+                if (y % 2 == 0) {
+                    for (i32 x {xStart}; x < xEnd; ++x) { func({x, y}); }
+                } else {
+                    for (i32 x {xEnd - 1}; x >= xStart; --x) { func({x, y}); }
+                }
+            }
+        },
+        8);
+
+    locate_service<task_manager>().run_parallel(
+        [&](par_task const& ctx) {
+            isize const idx {ctx.Thread};
+            i32 const   xStart {eighthGridSize * static_cast<i32>(idx)}, xEnd {eighthGridSize * static_cast<i32>(idx + 1)};
+            i32 const   yStart {idx % 2 != 0 ? 0 : quarterGridSize}, yEnd {idx % 2 != 0 ? quarterGridSize : gridSize};
+
+            // Iterate over points in the specified part
+            for (i32 y {yEnd - 1}; y >= yStart; --y) {
+                if (y % 2 == 0) {
+                    for (i32 x {xStart}; x < xEnd; ++x) { func({x, y}); }
+                } else {
+                    for (i32 x {xEnd - 1}; x >= xStart; --x) { func({x, y}); }
+                }
+            }
+        },
+        8);
+}

@@ -15,9 +15,7 @@ class elements_form : public gfx::ui::form {
 public:
     elements_form(gfx::window* window, rect_f const& bounds, std::vector<element_def> const& elements);
 
-    signal<i32> LeftButtonElement;
-    signal<i32> MiddleButtonElement;
-    signal<i32> RightButtonElement;
+    signal<i32> SelectedElement;
 
 private:
     void gen_styles();

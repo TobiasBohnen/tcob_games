@@ -4,7 +4,7 @@
 -- https://opensource.org/licenses/MIT
 
 element("Empty", {
-    Colors  = { "transparent" },
+    Colors  = { "black" },
     Gravity = 0,
     Density = 0,
     Type    = "None",

@@ -11,20 +11,58 @@
 using namespace std::chrono_literals;
 using namespace tcob::literals;
 
-main_scene::main_scene(game& game)
-    : scene(game)
+elements_entity::elements_entity()
 {
-    auto& window {get_window()};
-    auto  winSize {window.Size()};
-
     _sandTex->create(GRID_SIZE, 1, gfx::texture::format::RGBA8);
     //_sandTex->Filtering = gfx::texture::filtering::Linear;
 
-    _shape0 = _layer0.create_shape<gfx::rect_shape>();
-    f32 const height {static_cast<f32>(winSize.Height)};
-    _shape0->Bounds            = {point_f::Zero, {height, height}};
-    _shape0->Material          = _sandMat;
-    _shape0->Material->Texture = _sandTex;
+    Shape                    = _layer0.create_shape<gfx::rect_shape>();
+    Shape->Bounds            = {point_f::Zero, size_f {GRID_SIZE}};
+    Shape->Material          = _sandMat;
+    Shape->Material->Texture = _sandTex;
+
+    _hourGlass0.restart();
+}
+
+void elements_entity::on_update(milliseconds deltaTime)
+{
+    _layer0.update(deltaTime);
+
+    if (_hourGlass0.elapsed_milliseconds() > 20) {
+        ElementSystem->update();
+        update_image();
+        _hourGlass0.restart();
+    }
+}
+
+void elements_entity::on_fixed_update(milliseconds)
+{
+}
+
+auto elements_entity::can_draw() const -> bool
+{
+    return ElementSystem != nullptr;
+}
+
+void elements_entity::on_draw_to(gfx::render_target& target)
+{
+    _layer0.draw_to(target);
+}
+
+void elements_entity::update_image()
+{
+    if (DrawHeatMap) {
+        ElementSystem->draw_heatmap(*_sandTex.ptr());
+    } else {
+        ElementSystem->draw_elements(*_sandTex.ptr());
+    }
+}
+
+////////////////////////////////////////////////////////////
+
+main_scene::main_scene(game& game)
+    : scene(game)
+{
 
     ////
     script_element_vec const elements {load_script()};
@@ -82,23 +120,28 @@ main_scene::main_scene(game& game)
         }
     }
 
-    _elementSystem = std::make_unique<element_system>(elementsDefs);
-    ////
+    _entity                = std::make_shared<elements_entity>();
+    _entity->ElementSystem = std::make_unique<element_system>(elementsDefs);
 
+    ////
+    auto&      window {get_window()};
+    auto const winSize {window.Size()};
+    f32 const  height {static_cast<f32>(winSize.Height)};
     _form = std::make_shared<elements_form>(&window, rect_f {height, 0, winSize.Width - height, height}, elementsDefs);
-    _form->LeftButtonElement.connect([&](i32 t) { _leftBtnElement = t; });
-    _form->MiddleButtonElement.connect([&](i32 t) { _middleBtnElement = t; });
-    _form->RightButtonElement.connect([&](i32 t) { _rightBtnElement = t; });
+    _form->SelectedElement.connect([&](i32 t) { _leftBtnElement = t; });
+
+    window.get_camera().Zoom = {3.f, 3.f};
+    window.get_camera().look_at(_entity->Shape->Bounds->center());
 }
 
 main_scene::~main_scene() = default;
 
 void main_scene::on_start()
 {
-    get_window().ClearColor = colors::Black;
-    _hourGlass0.restart();
+    get_window().ClearColor = colors::SlateGray;
 
-    get_root_node()->Entity = _form;
+    root_node()->create_child()->Entity = _entity;
+    root_node()->create_child()->Entity = _form;
 }
 
 void main_scene::on_finish()
@@ -107,26 +150,13 @@ void main_scene::on_finish()
 
 void main_scene::on_draw_to(gfx::render_target& target)
 {
-    _layer0.draw_to(target);
 }
 
 void main_scene::on_update(milliseconds deltaTime)
 {
-    _layer0.update(deltaTime);
-
-    if (_mouseDown) {
-        point_i const ev {input::system::GetMousePosition()};
-        f32 const     height {static_cast<f32>(get_window().Size().Height)};
-        if (ev.X < height) {
-            f32 const scale {height / GRID_SIZE.Height};
-            _elementSystem->spawn(ev / scale, _spawnElement);
-        }
-    }
-
-    if (_hourGlass0.get_elapsed_milliseconds() > 10) {
-        _elementSystem->update();
-        update_image();
-        _hourGlass0.restart();
+    if (_mouseDown == input::mouse::button::Left) {
+        auto const ev {point_i {get_window().get_camera().convert_screen_to_world(input::system::GetMousePosition())}};
+        _entity->ElementSystem->spawn(ev, _spawnElement);
     }
 }
 
@@ -139,13 +169,9 @@ void main_scene::on_fixed_update(milliseconds deltaTime)
     stream << " best FPS:" << stats.best_FPS();
     stream << " worst FPS:" << stats.worst_FPS();
 
-    point_i const ev {input::system::GetMousePosition()};
-    f32 const     height {static_cast<f32>(get_window().Size().Height)};
-    if (ev.X < height) {
-        f32 const scale {height / GRID_SIZE.Height};
-        stream << "| name:" << _elementSystem->info_name(ev / scale);
-        stream << "| heat:" << _elementSystem->info_heat(ev / scale);
-    }
+    auto const ev {point_i {get_window().get_camera().convert_screen_to_world(input::system::GetMousePosition())}};
+    stream << "| name:" << _entity->ElementSystem->info_name(ev);
+    stream << "| heat:" << _entity->ElementSystem->info_heat(ev);
 
     get_window().Title = "FallingPixels " + stream.str();
 }
@@ -155,45 +181,40 @@ void main_scene::on_key_down(input::keyboard::event const& ev)
     if (ev.ScanCode == input::scan_code::BACKSPACE) {
         get_game().pop_current_scene();
     } else if (ev.ScanCode == input::scan_code::H) {
-        _drawHeatMap = !_drawHeatMap;
+        _entity->DrawHeatMap = !_entity->DrawHeatMap;
     } else if (ev.ScanCode == input::scan_code::C) {
-        _elementSystem->clear();
+        _entity->ElementSystem->clear();
     }
 }
 
 void main_scene::on_mouse_motion(input::mouse::motion_event const& ev)
 {
+    if (_mouseDown == input::mouse::button::Right) {
+        auto&      camera {get_window().get_camera()};
+        auto const zoom {camera.Zoom};
+        camera.move_by(-(point_f {ev.RelativeMotion} / point_f {zoom.Width, zoom.Height}));
+    }
+}
+
+void main_scene::on_mouse_wheel(input::mouse::wheel_event const& ev)
+{
+    _zoomStage = std::clamp(_zoomStage - ev.Scroll.Y, 0, 6);
+    constexpr std::array<size_f, 7> zoomLevels {{{5.f, 5.f}, {3.f, 3.f}, {2.f, 2.f}, {1.f, 1.f}, {0.75f, 0.75f}, {0.5f, 0.5f}, {0.25f, 0.25f}}};
+    get_window().get_camera().Zoom = zoomLevels[_zoomStage];
 }
 
 void main_scene::on_mouse_button_up(input::mouse::button_event const& ev)
 {
     _spawnElement = 0;
-    _mouseDown    = false;
+    _mouseDown    = input::mouse::button::None;
 }
 
 void main_scene::on_mouse_button_down(input::mouse::button_event const& ev)
 {
     if (ev.Button == input::mouse::button::Left) {
         _spawnElement = _leftBtnElement;
-    } else if (ev.Button == input::mouse::button::Right) {
-        _spawnElement = _rightBtnElement;
-    } else if (ev.Button == input::mouse::button::Middle) {
-        _spawnElement = _middleBtnElement;
     }
-    _mouseDown = true;
-}
-
-void main_scene::on_mouse_wheel(input::mouse::wheel_event const& ev)
-{
-}
-
-void main_scene::update_image()
-{
-    if (_drawHeatMap) {
-        _elementSystem->draw_heatmap(*_sandTex.ptr());
-    } else {
-        _elementSystem->draw_elements(*_sandTex.ptr());
-    }
+    _mouseDown = ev.Button;
 }
 
 auto main_scene::load_script() -> script_element_vec

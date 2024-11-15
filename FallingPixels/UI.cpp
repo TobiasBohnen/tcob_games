@@ -58,11 +58,7 @@ elements_form::elements_form(window* window, rect_f const& bounds, std::vector<e
             btn->Label = name;
             btn->MouseDown.connect([&, id](auto const& ev) mutable {
                 if (ev.Event.Button == input::mouse::button::Left) {
-                    LeftButtonElement(id);
-                } else if (ev.Event.Button == input::mouse::button::Right) {
-                    RightButtonElement(id);
-                } else if (ev.Event.Button == input::mouse::button::Middle) {
-                    MiddleButtonElement(id);
+                    SelectedElement(id);
                 }
             });
         }};

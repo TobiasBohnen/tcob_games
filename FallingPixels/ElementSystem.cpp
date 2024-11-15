@@ -14,20 +14,6 @@ element_system::element_system(std::vector<element_def> const& elements)
     for (auto const& el : elements) {
         _elements[el.ID] = el;
     }
-
-    auto const size {_grid.size()};
-    _drawOrder.reserve(size.Width * size.Height);
-    for (i32 y {size.Height - 1}; y >= 0; --y) {
-        if (y % 2 == 0) {
-            for (i32 x {0}; x < size.Width; ++x) {
-                _drawOrder.emplace_back(x, y);
-            }
-        } else {
-            for (i32 x {size.Width - 1}; x >= 0; --x) {
-                _drawOrder.emplace_back(x, y);
-            }
-        }
-    }
 }
 
 auto element_system::info_name(point_i i) const -> std::string
@@ -122,64 +108,26 @@ void element_system::clear()
 
 void element_system::update_temperature()
 {
-    auto const size {_grid.size()};
-
-    // Main interior loop without bounds checks
-    for (i32 x {1}; x < size.Width - 1; ++x) {
-        for (i32 y {1}; y < size.Height - 1; ++y) {
-            point_i const pos {x, y};
-            f32 const     alpha {_grid.thermal_conductivity(pos)};
-            f32           avgTemp {0};
-            for (auto const& neighbor : NEIGHBORS) {
-                avgTemp += _grid.temperature(pos + neighbor);
-            }
-            avgTemp /= NEIGHBORS.size();
-            f32 const currentTemp {_grid.temperature(pos)};
-            _grid.temperature(pos, currentTemp + alpha * (avgTemp - currentTemp));
+    run_parallel([&](point_i pos) {
+        f32 const alpha {_grid.thermal_conductivity(pos)};
+        f32       avgTemp {0};
+        for (auto const& neighbor : NEIGHBORS) {
+            avgTemp += _grid.temperature(pos + neighbor);
         }
-    }
-
-    // Edge processing for top and bottom rows
-    for (i32 x {0}; x < size.Width; ++x) {
-        // Top row
-        point_i const topPos {x, 0};
-        f32 const     topAlpha {_grid.thermal_conductivity(topPos)};
-        f32 const     topAvgTemp {_grid.temperature(topPos + point_i {0, 1})}; // Only down neighbor
-        _grid.temperature(topPos, _grid.temperature(topPos) + topAlpha * (topAvgTemp - _grid.temperature(topPos)));
-
-        // Bottom row
-        point_i const bottomPos {x, size.Height - 1};
-        f32 const     bottomAlpha {_grid.thermal_conductivity(bottomPos)};
-        f32 const     bottomAvgTemp {_grid.temperature(bottomPos + point_i {0, -1})}; // Only up neighbor
-        _grid.temperature(bottomPos, _grid.temperature(bottomPos) + bottomAlpha * (bottomAvgTemp - _grid.temperature(bottomPos)));
-    }
-
-    // Edge processing for left and right columns
-    for (i32 y {1}; y < size.Height - 1; ++y) {
-        // Left column
-        point_i const leftPos {0, y};
-        f32 const     leftAlpha {_grid.thermal_conductivity(leftPos)};
-        f32 const     leftAvgTemp {_grid.temperature(leftPos + point_i {1, 0})}; // Only right neighbor
-        _grid.temperature(leftPos, _grid.temperature(leftPos) + leftAlpha * (leftAvgTemp - _grid.temperature(leftPos)));
-
-        // Right column
-        point_i const rightPos {size.Width - 1, y};
-        f32 const     rightAlpha {_grid.thermal_conductivity(rightPos)};
-        f32 const     rightAvgTemp {_grid.temperature(rightPos + point_i {-1, 0})}; // Only left neighbor
-        _grid.temperature(rightPos, _grid.temperature(rightPos) + rightAlpha * (rightAvgTemp - _grid.temperature(rightPos)));
-    }
+        avgTemp /= NEIGHBORS.size();
+        f32 const currentTemp {_grid.temperature(pos)};
+        _grid.temperature(pos, currentTemp + alpha * (avgTemp - currentTemp));
+    });
 }
 
 void element_system::update_grid()
 {
-    //   _shuffle(_drawOrder);
-    for (auto const& pos : _drawOrder) {
-        if (_grid.touched(pos)) { continue; }
-
+    run_parallel([&](point_i pos) {
+        if (_grid.touched(pos)) { return; }
         if (auto elementID {_grid.id(pos)}; elementID != EMPTY_ELEMENT) {
 
             auto const* element {id_to_element(elementID)};
-            if (!element) { continue; }
+            if (!element) { return; }
 
             // rules
             if (!element->Rules.empty()) { process_rules(pos, *element); }
@@ -187,7 +135,7 @@ void element_system::update_grid()
             // gravity
             if (element->Gravity != 0) { process_gravity(pos, *element); }
         }
-    }
+    });
 }
 
 void element_system::process_rules(point_i i, element_def const& element)
@@ -345,7 +293,7 @@ element_grid::element_grid()
     , _gridThermalConductivity {0.8f}
     , _gridDensity {0}
     , _gridDispersion {0}
-    , _gridColor {colors::Transparent}
+    , _gridColor {colors::Black}
     , _gridTouched {0}
     , _gridTemperature {20}
 {
