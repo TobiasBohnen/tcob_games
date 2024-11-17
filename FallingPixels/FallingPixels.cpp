@@ -184,6 +184,12 @@ void main_scene::on_key_down(input::keyboard::event const& ev)
         _entity->DrawHeatMap = !_entity->DrawHeatMap;
     } else if (ev.ScanCode == input::scan_code::C) {
         _entity->ElementSystem->clear();
+    } else if (ev.ScanCode == input::scan_code::S) {
+        io::ofstream stream {"grid.bin"};
+        _entity->ElementSystem->save(stream);
+    } else if (ev.ScanCode == input::scan_code::L) {
+        io::ifstream stream {"grid.bin"};
+        _entity->ElementSystem->load(stream);
     }
 }
 

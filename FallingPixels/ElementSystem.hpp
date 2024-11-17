@@ -9,7 +9,7 @@
 
 ////////////////////////////////////////////////////////////
 
-enum class element_type {
+enum class element_type : u8 {
     None,
     Liquid,
     Powder,
@@ -43,19 +43,19 @@ auto comp(comp_op op, T a, T b) -> bool
 struct temp_rule {
     f32     Temperature {};
     comp_op Op {};
-    i32     TransformTo {};
+    i16     TransformTo {};
 };
 
 struct neighbor_rule {
-    i32 Neighbor {};
-    i32 NeighborTransformTo {};
-    i32 TransformTo {};
+    i16 Neighbor {};
+    i16 NeighborTransformTo {};
+    i16 TransformTo {};
 };
 
 ////////////////////////////////////////////////////////////
 
 struct element_def final {
-    i32         ID;
+    u16         ID;
     std::string Name;
 
     std::vector<color> Colors {};
@@ -64,8 +64,8 @@ struct element_def final {
     i32 Gravity {};
 
     f32 ThermalConductivity {0.80f};
-    f32 Density {};     // g/cm3
-    i32 Dispersion {1}; // liquid
+    f32 Density {}; // g/cm3
+    u8  Dispersion {1};
 
     std::vector<std::variant<temp_rule, neighbor_rule>> Rules;
 
@@ -88,7 +88,7 @@ public:
 
     ////////////////////////////////////////////////////////////
 
-    auto id(point_i i) const -> i32;
+    auto id(point_i i) const -> u16;
 
     auto type(point_i i) const -> element_type;
 
@@ -96,7 +96,7 @@ public:
 
     auto density(point_i i) const -> f32;
 
-    auto dispersion(point_i i) const -> i32;
+    auto dispersion(point_i i) const -> u8;
 
     auto color(point_i i) const -> tcob::color;
     auto colors() const -> tcob::color const*;
@@ -110,6 +110,9 @@ public:
     void reset_moved();
     void clear();
 
+    void load(io::istream& stream);
+    void save(io::ostream& stream) const;
+
     auto contains(point_i p) const -> bool;
     auto size() const -> size_i;
     auto empty(point_i i) const -> bool;
@@ -118,15 +121,14 @@ private:
     template <typename T>
     using grid = static_grid<T, GRID_SIZE.Width, GRID_SIZE.Height>;
 
-    grid<i32>          _gridElements;
+    grid<u16>          _gridElements;
     grid<element_type> _gridTypes;
     grid<f32>          _gridThermalConductivity;
     grid<f32>          _gridDensity;
-    grid<f32>          _gridDispersion;
+    grid<u8>           _gridDispersion;
     grid<tcob::color>  _gridColor;
     grid<u8>           _gridTouched;
-
-    grid<f32> _gridTemperature;
+    grid<f32>          _gridTemperature;
 
     rng _rand;
 };
@@ -148,6 +150,9 @@ public:
     void clear();
     auto rand(i32 min, i32 max) -> i32;
 
+    void load(io::istream& stream);
+    void save(io::ostream& stream) const;
+
 private:
     void update_temperature();
 
@@ -157,7 +162,7 @@ private:
 
     auto higher_density(point_i i, f32 t) const -> bool;
     auto lower_density(point_i i, f32 t) const -> bool;
-    auto id_to_element(i32 t) const -> element_def const*;
+    auto id_to_element(u16 t) const -> element_def const*;
 
     void run_parallel(auto&& func);
 
@@ -165,7 +170,7 @@ private:
 
     rng _rand;
 
-    std::unordered_map<i32, element_def> _elements;
+    std::unordered_map<u16, element_def> _elements;
 };
 
 inline void element_system::run_parallel(auto&& func)

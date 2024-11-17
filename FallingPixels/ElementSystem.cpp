@@ -203,11 +203,11 @@ void element_system::process_gravity(point_i i, element_def const& element)
     }
 
     // Attempt to move diagonally down-right or down-left
-    i32 const disp {_grid.dispersion(i)};
+    u8 const disp {_grid.dispersion(i)};
 
     bool rightFree {true};
     bool leftFree {true};
-    for (i32 j {0}; j < disp; ++j) {
+    for (u8 j {0}; j < disp; ++j) {
         rightFree = rightFree && canPassThrough(right + point_i {j, 0});
         leftFree  = leftFree && canPassThrough(left + point_i {-j, 0});
 
@@ -278,7 +278,17 @@ auto element_system::rand(i32 min, i32 max) -> i32
     return _rand(min, max);
 }
 
-auto element_system::id_to_element(i32 t) const -> element_def const*
+void element_system::load(io::istream& stream)
+{
+    _grid.load(stream);
+}
+
+void element_system::save(io::ostream& stream) const
+{
+    _grid.save(stream);
+}
+
+auto element_system::id_to_element(u16 t) const -> element_def const*
 {
     auto it {_elements.find(t)};
     if (it == _elements.end()) { return nullptr; }
@@ -288,15 +298,50 @@ auto element_system::id_to_element(i32 t) const -> element_def const*
 ////////////////////////////////////////////////////////////
 
 element_grid::element_grid()
-    : _gridElements {0}
-    , _gridTypes {element_type::None}
-    , _gridThermalConductivity {0.8f}
-    , _gridDensity {0}
-    , _gridDispersion {0}
-    , _gridColor {colors::Black}
-    , _gridTouched {0}
-    , _gridTemperature {20}
 {
+    clear();
+}
+
+void element_grid::clear()
+{
+    _gridElements.fill(0);
+    _gridTypes.fill(element_type::None);
+    _gridThermalConductivity.fill(0.8f);
+    _gridDensity.fill(0);
+    _gridDispersion.fill(0);
+    _gridColor.fill(colors::Black);
+    _gridTouched.fill(0);
+    _gridTemperature.fill(20);
+}
+
+void element_grid::load(io::istream& stream)
+{
+    auto const size {_gridElements.size()};
+    for (usize i {0}; i < size; ++i) {
+        _gridElements[i]            = stream.read<decltype(_gridElements)::type>();
+        _gridTypes[i]               = stream.read<decltype(_gridTypes)::type>();
+        _gridThermalConductivity[i] = stream.read<decltype(_gridThermalConductivity)::type>();
+        _gridDensity[i]             = stream.read<decltype(_gridDensity)::type>();
+        _gridDispersion[i]          = stream.read<decltype(_gridDispersion)::type>();
+        _gridColor[i]               = stream.read<decltype(_gridColor)::type>();
+        _gridTouched[i]             = stream.read<decltype(_gridTouched)::type>();
+        _gridTemperature[i]         = stream.read<decltype(_gridTemperature)::type>();
+    }
+}
+
+void element_grid::save(io::ostream& stream) const
+{
+    auto const size {_gridElements.size()};
+    for (usize i {0}; i < size; ++i) {
+        stream.write(_gridElements[i]);
+        stream.write(_gridTypes[i]);
+        stream.write(_gridThermalConductivity[i]);
+        stream.write(_gridDensity[i]);
+        stream.write(_gridDispersion[i]);
+        stream.write(_gridColor[i]);
+        stream.write(_gridTouched[i]);
+        stream.write(_gridTemperature[i]);
+    }
 }
 
 void element_grid::element(point_i i, element_def const& element, bool useTemp)
@@ -348,7 +393,7 @@ void element_grid::temperature(point_i i, f32 val)
     _gridTemperature[i] = val;
 }
 
-auto element_grid::id(point_i i) const -> i32
+auto element_grid::id(point_i i) const -> u16
 {
     if (!contains(i)) { return EMPTY_ELEMENT; }
     return _gridElements[i];
@@ -372,7 +417,7 @@ auto element_grid::density(point_i i) const -> f32
     return _gridDensity[i];
 }
 
-auto element_grid::dispersion(point_i i) const -> i32
+auto element_grid::dispersion(point_i i) const -> u8
 {
     if (!contains(i)) { return 0; }
     return _gridDispersion[i];
@@ -404,18 +449,6 @@ auto element_grid::temperature(point_i i) const -> f32
 void element_grid::reset_moved()
 {
     _gridTouched.fill(0);
-}
-
-void element_grid::clear()
-{
-    _gridElements.fill(0);
-    _gridTypes.fill(element_type::None);
-    _gridThermalConductivity.fill(0.8f);
-    _gridDensity.fill(0);
-    _gridDispersion.fill(0);
-    _gridColor.fill(colors::Transparent);
-    _gridTouched.fill(0);
-    _gridTemperature.fill(20);
 }
 
 auto element_grid::contains(point_i p) const -> bool

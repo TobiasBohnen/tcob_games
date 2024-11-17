@@ -264,7 +264,7 @@ element("Acid Vapor", {
 })
 
 element("Smoke", {
-    Colors     = { "#333333", "#666666", "#999999" },
+    Colors     = { "#333", "#666", "#999" },
     Gravity    = -1,
     Density    = 0.001,
     Type       = "Gas",
