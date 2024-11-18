@@ -82,7 +82,7 @@ main_scene::main_scene(game& game)
         element.Name = name;
 
         // required
-        element.Gravity = table["Gravity"].as<i32>();
+        element.Gravity = table["Gravity"].as<i8>();
         element.Density = table["Density"].as<f32>();
         element.Type    = table["Type"].as<element_type>();
 
@@ -93,7 +93,7 @@ main_scene::main_scene(game& game)
             element.Colors.push_back(color::FromString(color));
         }
 
-        table.try_get(element.BaseTemperature, "BaseTemperature");
+        table.try_get(element.Temperature, "Temperature");
         table.try_get(element.ThermalConductivity, "ThermalConductivity");
         table.try_get(element.Dispersion, "Dispersion");
 

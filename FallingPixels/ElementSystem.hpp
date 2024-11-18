@@ -26,20 +26,6 @@ enum class comp_op {
     GreaterThanOrEqual
 };
 
-template <typename T>
-auto comp(comp_op op, T a, T b) -> bool
-{
-    switch (op) {
-    case comp_op::Equals: return a == b;
-    case comp_op::LessThan: return a < b;
-    case comp_op::LessThanOrEqual: return a <= b;
-    case comp_op::GreaterThan: return a > b;
-    case comp_op::GreaterThanOrEqual: return a > b;
-    }
-
-    return false;
-}
-
 struct temp_rule {
     f32     Temperature {};
     comp_op Op {};
@@ -60,8 +46,8 @@ struct element_def final {
 
     std::vector<color> Colors {};
 
-    f32 BaseTemperature {20};
-    i32 Gravity {};
+    f32 Temperature {20};
+    i8  Gravity {};
 
     f32 ThermalConductivity {0.80f};
     f32 Density {}; // g/cm3
@@ -92,18 +78,20 @@ public:
 
     auto type(point_i i) const -> element_type;
 
+    auto gravity(point_i i) const -> i8;
+
     auto thermal_conductivity(point_i i) const -> f32;
+
+    auto temperature(point_i i) const -> f32;
 
     auto density(point_i i) const -> f32;
 
     auto dispersion(point_i i) const -> u8;
 
-    auto color(point_i i) const -> tcob::color;
-    auto colors() const -> tcob::color const*;
-
     auto touched(point_i i) const -> bool;
 
-    auto temperature(point_i i) const -> f32;
+    auto color(point_i i) const -> tcob::color;
+    auto colors() const -> tcob::color const*;
 
     ////////////////////////////////////////////////////////////
 
@@ -118,17 +106,22 @@ public:
     auto empty(point_i i) const -> bool;
 
 private:
+    struct cell final {
+        u16          ID {0};
+        element_type Type {element_type::None};
+        i8           Gravity {0};
+        f32          ThermalConductivity {0.8f};
+        f32          Density {0};
+        u8           Dispersion {0};
+        bool         Touched {false};
+    };
+
     template <typename T>
     using grid = static_grid<T, GRID_SIZE.Width, GRID_SIZE.Height>;
 
-    grid<u16>          _gridElements;
-    grid<element_type> _gridTypes;
-    grid<f32>          _gridThermalConductivity;
-    grid<f32>          _gridDensity;
-    grid<u8>           _gridDispersion;
-    grid<tcob::color>  _gridColor;
-    grid<u8>           _gridTouched;
-    grid<f32>          _gridTemperature;
+    grid<cell>        _grid;
+    grid<f32>         _gridTemperature;
+    grid<tcob::color> _gridColors;
 
     rng _rand;
 };
@@ -158,7 +151,7 @@ private:
 
     void update_grid();
     void process_rules(point_i i, element_def const& element);
-    void process_gravity(point_i i, element_def const& element);
+    void process_gravity(point_i i, element_type elementType);
 
     auto higher_density(point_i i, f32 t) const -> bool;
     auto lower_density(point_i i, f32 t) const -> bool;

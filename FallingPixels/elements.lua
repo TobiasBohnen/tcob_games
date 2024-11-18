@@ -42,21 +42,21 @@ element("Wood", {
 })
 
 element("Charcoal", {
-    Colors          = { "#f77a35", "#e34d30", "#c6371c" },
-    Gravity         = 0,
-    Density         = 1.4,
-    Type            = "Solid",
-    BaseTemperature = 1200,
-    Rules           = { { Temperature = 80, Op = "LessThan", TransformTo = "Ash" } }
+    Colors      = { "#f77a35", "#e34d30", "#c6371c" },
+    Gravity     = 0,
+    Density     = 1.4,
+    Type        = "Solid",
+    Temperature = 1200,
+    Rules       = { { Temperature = 80, Op = "LessThan", TransformTo = "Ash" } }
 })
 
 element("Ice", {
-    Colors          = { "#b9e8ea" },
-    Gravity         = 0,
-    Density         = 0.91,
-    Type            = "Solid",
-    BaseTemperature = -200,
-    Rules           = { { Temperature = 0, Op = "GreaterThanOrEqual", TransformTo = "Water" } }
+    Colors      = { "#b9e8ea" },
+    Gravity     = 0,
+    Density     = 0.91,
+    Type        = "Solid",
+    Temperature = -200,
+    Rules       = { { Temperature = 0, Op = "GreaterThanOrEqual", TransformTo = "Water" } }
 })
 
 element("Metal", {
@@ -68,12 +68,12 @@ element("Metal", {
 })
 
 element("Solid Mercury", {
-    Colors          = { "#dcdcdc", "#c0c0c0" },
-    Gravity         = 0,
-    Density         = 13.534,
-    Type            = "Solid",
-    BaseTemperature = -50,
-    Rules           = { { Temperature = -38, Op = "GreaterThanOrEqual", TransformTo = "Mercury" } }
+    Colors      = { "#dcdcdc", "#c0c0c0" },
+    Gravity     = 0,
+    Density     = 13.534,
+    Type        = "Solid",
+    Temperature = -50,
+    Rules       = { { Temperature = -38, Op = "GreaterThanOrEqual", TransformTo = "Mercury" } }
 })
 
 --Powder
@@ -115,7 +115,7 @@ element("Charcoal Dust", {
     Gravity = 1,
     Density = 1.4,
     Type = "Powder",
-    BaseTemperature = 1200,
+    Temperature = 1200,
     ThermalConductivity = 0.10,
     Rules = { { Temperature = 80, Op = "LessThan", TransformTo = "Ash" } }
 })
@@ -125,7 +125,7 @@ element("Snow", {
     Gravity = 1,
     Density = 0.91,
     Type = "Powder",
-    BaseTemperature = -200,
+    Temperature = -200,
     ThermalConductivity = 0.10,
     Rules = { { Temperature = 0, Op = "GreaterThanOrEqual", TransformTo = "Water" } }
 })
@@ -137,7 +137,7 @@ element("Water", {
     Gravity             = 1,
     Density             = 1,
     Type                = "Liquid",
-    BaseTemperature     = 10,
+    Temperature         = 10,
     Dispersion          = 5,
     ThermalConductivity = 1.0,
     Rules               = {
@@ -147,13 +147,13 @@ element("Water", {
 })
 
 element("Salt Water", {
-    Colors          = { "#17577e", "#188a8d", "#3f9f7f" },
-    Gravity         = 1,
-    Density         = 1.03,
-    Type            = "Liquid",
-    BaseTemperature = 10,
-    Dispersion      = 5,
-    Rules           = {
+    Colors      = { "#17577e", "#188a8d", "#3f9f7f" },
+    Gravity     = 1,
+    Density     = 1.03,
+    Type        = "Liquid",
+    Temperature = 10,
+    Dispersion  = 5,
+    Rules       = {
         { Temperature = 102, Op = "GreaterThanOrEqual", TransformTo = "Steam" },
         { Temperature = -21, Op = "LessThan",           TransformTo = "Snow" },
     }
@@ -180,7 +180,7 @@ element("Lava", {
     Gravity             = 1,
     Density             = 2.5,
     Dispersion          = 1,
-    BaseTemperature     = 1200,
+    Temperature         = 1200,
     ThermalConductivity = 0.01,
     Type                = "Liquid",
 })
@@ -190,7 +190,7 @@ element("Molten Metal", {
     Gravity             = 1,
     Density             = 7.87,
     Type                = "Liquid",
-    BaseTemperature     = 1500,
+    Temperature         = 1500,
     ThermalConductivity = 0.05,
     Dispersion          = 1,
     Rules               = { { Temperature = 1300, Op = "LessThan", TransformTo = "Metal" } }
@@ -202,19 +202,19 @@ element("Mercury", {
     Density             = 13.534,
     Type                = "Liquid",
     Dispersion          = 2,
-    BaseTemperature     = -38,
+    Temperature         = -38,
     ThermalConductivity = 0.09,
     Rules               = { { Temperature = -39, Op = "LessThan", TransformTo = "Solid Mercury" } }
 })
 
 element("Acid", {
-    Colors          = { "#a8e000", "#87d300", "#72bf00" },
-    Gravity         = 1,
-    Density         = 1.02,
-    Type            = "Liquid",
-    BaseTemperature = 20,
-    Dispersion      = 4,
-    Rules           = {
+    Colors      = { "#a8e000", "#87d300", "#72bf00" },
+    Gravity     = 1,
+    Density     = 1.02,
+    Type        = "Liquid",
+    Temperature = 20,
+    Dispersion  = 4,
+    Rules       = {
         { Neighbor = "Metal", NeighborTransformTo = "Empty", TransformTo = "Empty" },
         { Temperature = 100,  Op = "GreaterThanOrEqual",     TransformTo = "Acid Vapor" },
     }
@@ -223,42 +223,42 @@ element("Acid", {
 --- Gas
 
 element("Steam", {
-    Colors          = { "#eee", "#ddd", "#ccc" },
-    Gravity         = -1,
-    Density         = 0.001,
-    Type            = "Gas",
-    BaseTemperature = 100,
-    Dispersion      = 10,
-    Rules           = { { Temperature = 10, Op = "LessThanOrEqual", TransformTo = "Water" } }
+    Colors      = { "#eee", "#ddd", "#ccc" },
+    Gravity     = -1,
+    Density     = 0.001,
+    Type        = "Gas",
+    Temperature = 100,
+    Dispersion  = 10,
+    Rules       = { { Temperature = 10, Op = "LessThanOrEqual", TransformTo = "Water" } }
 })
 
 element("Fire", {
-    Colors          = { "red", "orange", "yellow" },
-    Gravity         = -1,
-    Density         = 0.001,
-    Type            = "Gas",
-    BaseTemperature = 1500,
-    Rules           = { { Temperature = 200, Op = "LessThan", TransformTo = "Empty" } }
+    Colors      = { "red", "orange", "yellow" },
+    Gravity     = -1,
+    Density     = 0.001,
+    Type        = "Gas",
+    Temperature = 1500,
+    Rules       = { { Temperature = 200, Op = "LessThan", TransformTo = "Empty" } }
 })
 
 element("Plasma", {
-    Colors          = { "#ff41ca", "#5f007f", "#2335be" },
-    Gravity         = -1,
-    Density         = 0.0001,
-    Type            = "Gas",
-    BaseTemperature = 5000,
-    Dispersion      = 15,
-    Rules           = { { Temperature = 1000, Op = "LessThan", TransformTo = "Fire" } }
+    Colors      = { "#ff41ca", "#5f007f", "#2335be" },
+    Gravity     = -1,
+    Density     = 0.0001,
+    Type        = "Gas",
+    Temperature = 5000,
+    Dispersion  = 15,
+    Rules       = { { Temperature = 1000, Op = "LessThan", TransformTo = "Fire" } }
 })
 
 element("Acid Vapor", {
-    Colors          = { "#d3f0b0", "#c0e08a" },
-    Gravity         = -1,
-    Density         = 0.001,
-    Type            = "Gas",
-    BaseTemperature = 100,
-    Dispersion      = 8,
-    Rules           = {
+    Colors      = { "#d3f0b0", "#c0e08a" },
+    Gravity     = -1,
+    Density     = 0.001,
+    Type        = "Gas",
+    Temperature = 100,
+    Dispersion  = 8,
+    Rules       = {
         { Temperature = 30,   Op = "LessThan",               TransformTo = "Acid" },
         { Neighbor = "Metal", NeighborTransformTo = "Empty", TransformTo = "Empty" }, }
 })
