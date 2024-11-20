@@ -215,8 +215,8 @@ element("Acid", {
     Temperature = 20,
     Dispersion  = 4,
     Rules       = {
-        { Neighbor = "Metal", NeighborTransformTo = "Empty", TransformTo = "Empty" },
-        { Temperature = 100,  Op = "GreaterThanOrEqual",     TransformTo = "Acid Vapor" },
+        { Neighbor = "Any",  NeighborTransformTo = "Empty", TransformTo = "Empty" },
+        { Temperature = 100, Op = "GreaterThanOrEqual",     TransformTo = "Acid Vapor" },
     }
 })
 
@@ -259,8 +259,8 @@ element("Acid Vapor", {
     Temperature = 100,
     Dispersion  = 8,
     Rules       = {
-        { Temperature = 30,   Op = "LessThan",               TransformTo = "Acid" },
-        { Neighbor = "Metal", NeighborTransformTo = "Empty", TransformTo = "Empty" }, }
+        { Temperature = 30, Op = "LessThan",               TransformTo = "Acid" },
+        { Neighbor = "Any", NeighborTransformTo = "Empty", TransformTo = "Empty" }, }
 })
 
 element("Smoke", {

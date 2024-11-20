@@ -19,8 +19,8 @@ auto comp(comp_op op, T a, T b) -> bool
     return false;
 }
 
-constexpr i32                           EMPTY_ELEMENT {0};
-static constexpr std::array<point_i, 4> NEIGHBORS {{{-1, 0}, {1, 0}, {0, -1}, {0, 1}}};
+static constexpr std::array<point_i, 8> NEIGHBORS {
+    {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {1, 1}, {1, -1}, {-1, 1}}};
 
 element_system::element_system(std::vector<element_def> const& elements)
     : _grid {}
@@ -171,7 +171,7 @@ void element_system::process_rules(point_i i, element_def const& element)
                         if (!_grid.contains(np) || _grid.touched(np)) { continue; }
 
                         i32 const eid {_grid.id(np)};
-                        if (eid == r.Neighbor) {
+                        if (eid == r.Neighbor || (r.Neighbor == ANY_ELEMENT && eid != element.ID && eid != EMPTY_ELEMENT)) { // ANY but same or empty
                             _grid.element(np, _elements[r.NeighborTransformTo], true);
                             _grid.element(i, _elements[r.TransformTo], true);
                             return;
@@ -414,12 +414,6 @@ auto element_grid::thermal_conductivity(point_i i) const -> f32
     return _grid[i].ThermalConductivity;
 }
 
-auto element_grid::temperature(point_i i) const -> f32
-{
-    if (!contains(i)) { return 0; }
-    return _gridTemperature[i];
-}
-
 auto element_grid::density(point_i i) const -> f32
 {
     if (!contains(i)) { return 0; }
@@ -436,6 +430,12 @@ auto element_grid::touched(point_i i) const -> bool
 {
     if (!contains(i)) { return false; }
     return _grid[i].Touched;
+}
+
+auto element_grid::temperature(point_i i) const -> f32
+{
+    if (!contains(i)) { return 0; }
+    return _gridTemperature[i];
 }
 
 auto element_grid::color(point_i i) const -> tcob::color

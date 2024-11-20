@@ -29,13 +29,15 @@ enum class comp_op {
 struct temp_rule {
     f32     Temperature {};
     comp_op Op {};
-    i16     TransformTo {};
+
+    u16 TransformTo {};
 };
 
 struct neighbor_rule {
-    i16 Neighbor {};
-    i16 NeighborTransformTo {};
-    i16 TransformTo {};
+    u16 Neighbor {};
+
+    u16 NeighborTransformTo {};
+    u16 TransformTo {};
 };
 
 ////////////////////////////////////////////////////////////
@@ -82,13 +84,13 @@ public:
 
     auto thermal_conductivity(point_i i) const -> f32;
 
-    auto temperature(point_i i) const -> f32;
-
     auto density(point_i i) const -> f32;
 
     auto dispersion(point_i i) const -> u8;
 
     auto touched(point_i i) const -> bool;
+
+    auto temperature(point_i i) const -> f32;
 
     auto color(point_i i) const -> tcob::color;
     auto colors() const -> tcob::color const*;
@@ -178,7 +180,6 @@ inline void element_system::run_parallel(auto&& func)
             i32 const   xStart {eighthGridSize * static_cast<i32>(idx)}, xEnd {eighthGridSize * static_cast<i32>(idx + 1)};
             i32 const   yStart {idx % 2 == 0 ? 0 : quarterGridSize}, yEnd {idx % 2 == 0 ? quarterGridSize : gridSize};
 
-            // Iterate over points in the specified part
             for (i32 y {yEnd - 1}; y >= yStart; --y) {
                 if (y % 2 == 0) {
                     for (i32 x {xStart}; x < xEnd; ++x) { func({x, y}); }
@@ -195,7 +196,6 @@ inline void element_system::run_parallel(auto&& func)
             i32 const   xStart {eighthGridSize * static_cast<i32>(idx)}, xEnd {eighthGridSize * static_cast<i32>(idx + 1)};
             i32 const   yStart {idx % 2 != 0 ? 0 : quarterGridSize}, yEnd {idx % 2 != 0 ? quarterGridSize : gridSize};
 
-            // Iterate over points in the specified part
             for (i32 y {yEnd - 1}; y >= yStart; --y) {
                 if (y % 2 == 0) {
                     for (i32 x {xStart}; x < xEnd; ++x) { func({x, y}); }

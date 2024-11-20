@@ -11,3 +11,5 @@ using namespace tcob;
 using namespace tcob::scripting;
 
 constexpr size_i GRID_SIZE {512, 512};
+constexpr u16    EMPTY_ELEMENT {0};
+constexpr u16    ANY_ELEMENT {std::numeric_limits<u16>::max()};

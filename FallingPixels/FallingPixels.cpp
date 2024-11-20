@@ -66,13 +66,13 @@ main_scene::main_scene(game& game)
 
     ////
     script_element_vec const elements {load_script()};
-    auto                     name_to_id {[&](std::string const& f) {
+    auto const               name_to_id {[&](std::string const& f) -> u16 {
+        if (f == "Any") { return ANY_ELEMENT; }
+
         for (auto const& [id, name, table] : elements) {
-            if (name == f) {
-                return id;
-            }
+            if (name == f) { return id; }
         }
-        return 0;
+        return EMPTY_ELEMENT;
     }};
 
     std::vector<element_def> elementsDefs;

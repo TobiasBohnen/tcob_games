@@ -154,7 +154,6 @@ void field::on_update(milliseconds deltaTime)
 
 void field::on_fixed_update(milliseconds deltaTime)
 {
-
     if (_state != game_state::Running) {
         return;
     }

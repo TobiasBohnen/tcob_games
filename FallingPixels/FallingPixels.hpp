@@ -41,7 +41,7 @@ private:
 
 ////////////////////////////////////////////////////////////
 
-using script_element_vec = std::vector<std::tuple<i32, std::string, lua::table>>;
+using script_element_vec = std::vector<std::tuple<u16, std::string, lua::table>>;
 
 class main_scene : public scene {
 public:
