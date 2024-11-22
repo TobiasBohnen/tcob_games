@@ -20,7 +20,7 @@ constexpr isize       INDEX_INVALID {-2};
 constexpr i32         UNLIMITED {-1};
 constexpr i32         AUTO_LIMIT {-2};
 constexpr f32         CARD_MARGIN {1.05f};
-constexpr std::string FONT {"Roboto"};
+constexpr char const* FONT {"Roboto"};
 
 class base_game;
 class card_set;
