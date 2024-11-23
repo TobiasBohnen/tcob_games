@@ -30,34 +30,45 @@ struct temp_rule {
     f32     Temperature {};
     comp_op Op {};
 
-    u16 TransformTo {};
+    u16 Result {};
 };
 
 struct neighbor_rule {
-    u16 Neighbor {};
+    u16 Element {};
 
-    u16 NeighborTransformTo {};
-    u16 TransformTo {};
+    u16 NeighborResult {};
+    u16 Result {};
 };
+
+struct dissolve_rule {
+    u16 Element {};
+
+    u16 Result {};
+};
+
+using rules = std::variant<temp_rule, neighbor_rule, dissolve_rule>;
 
 ////////////////////////////////////////////////////////////
 
+struct element final {
+    u16          ID {0};
+    element_type Type {element_type::None};
+    i8           Gravity {0};
+    f32          ThermalConductivity {0.8f};
+    f32          Density {0};
+    u8           Dispersion {0};
+    bool         Dissolvable {true};
+};
+
 struct element_def final {
-    u16         ID;
+    element     Element;
     std::string Name;
 
     std::vector<color> Colors {};
 
     f32 Temperature {20};
-    i8  Gravity {};
 
-    f32 ThermalConductivity {0.80f};
-    f32 Density {}; // g/cm3
-    u8  Dispersion {1};
-
-    std::vector<std::variant<temp_rule, neighbor_rule>> Rules;
-
-    element_type Type {};
+    std::vector<rules> Rules;
 };
 
 ////////////////////////////////////////////////////////////
@@ -68,7 +79,7 @@ public:
 
     ////////////////////////////////////////////////////////////
 
-    void element(point_i i, element_def const& element, bool useTemp);
+    void set(point_i i, element_def const& element, bool useTemp);
 
     auto swap(point_i i0, point_i i1) -> bool;
 
@@ -87,6 +98,8 @@ public:
     auto density(point_i i) const -> f32;
 
     auto dispersion(point_i i) const -> u8;
+
+    auto dissolvable(point_i i) const -> bool;
 
     auto touched(point_i i) const -> bool;
 
@@ -108,22 +121,13 @@ public:
     auto empty(point_i i) const -> bool;
 
 private:
-    struct cell final {
-        u16          ID {0};
-        element_type Type {element_type::None};
-        i8           Gravity {0};
-        f32          ThermalConductivity {0.8f};
-        f32          Density {0};
-        u8           Dispersion {0};
-        bool         Touched {false};
-    };
-
     template <typename T>
     using grid = static_grid<T, GRID_SIZE.Width, GRID_SIZE.Height>;
 
-    grid<cell>        _grid;
+    grid<element>     _grid;
     grid<f32>         _gridTemperature;
     grid<tcob::color> _gridColors;
+    grid<bool>        _gridTouched;
 
     rng _rand;
 };

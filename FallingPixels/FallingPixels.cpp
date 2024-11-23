@@ -78,13 +78,13 @@ main_scene::main_scene(game& game)
     std::vector<element_def> elementsDefs;
     for (auto const& [id, name, table] : elements) {
         element_def& element {elementsDefs.emplace_back()};
-        element.ID   = id;
-        element.Name = name;
+        element.Element.ID = id;
+        element.Name       = name;
 
         // required
-        element.Gravity = table["Gravity"].as<i8>();
-        element.Density = table["Density"].as<f32>();
-        element.Type    = table["Type"].as<element_type>();
+        element.Element.Gravity = table["Gravity"].as<i8>();
+        element.Element.Density = table["Density"].as<f32>();
+        element.Element.Type    = table["Type"].as<element_type>();
 
         // optional
         std::vector<std::string> colors;
@@ -94,8 +94,9 @@ main_scene::main_scene(game& game)
         }
 
         table.try_get(element.Temperature, "Temperature");
-        table.try_get(element.ThermalConductivity, "ThermalConductivity");
-        table.try_get(element.Dispersion, "Dispersion");
+        table.try_get(element.Element.ThermalConductivity, "ThermalConductivity");
+        table.try_get(element.Element.Dispersion, "Dispersion");
+        table.try_get(element.Element.Dissolvable, "Dissolvable");
 
         lua::table rulesTable;
         if (table.try_get(rulesTable, "Rules")) {
@@ -104,16 +105,30 @@ main_scene::main_scene(game& game)
                 lua::table ruleTable {rulesTable[key].as<lua::table>()};
 
                 if (ruleTable.has("Temperature")) {
-                    temp_rule val;
-                    ruleTable.try_get(val.Temperature, "Temperature");
-                    ruleTable.try_get(val.Op, "Op");
-                    val.TransformTo = name_to_id(ruleTable["TransformTo"].as<std::string>());
+                    temp_rule  val;
+                    lua::table table {ruleTable["Temperature"].as<lua::table>()};
+
+                    if (table.try_get(val.Temperature, "Above")) {
+                        val.Op = comp_op::GreaterThan;
+                    } else if (table.try_get(val.Temperature, "Below")) {
+                        val.Op = comp_op::LessThan;
+                    }
+                    val.Result = name_to_id(table["Result"].as<std::string>());
                     element.Rules.emplace_back(val);
                 } else if (ruleTable.has("Neighbor")) {
                     neighbor_rule val;
-                    val.Neighbor            = name_to_id(ruleTable["Neighbor"].as<std::string>());
-                    val.NeighborTransformTo = name_to_id(ruleTable["NeighborTransformTo"].as<std::string>());
-                    val.TransformTo         = name_to_id(ruleTable["TransformTo"].as<std::string>());
+                    lua::table    table {ruleTable["Neighbor"].as<lua::table>()};
+
+                    val.Element        = name_to_id(table["Element"].as<std::string>());
+                    val.NeighborResult = name_to_id(table["NeighborResult"].as<std::string>());
+                    val.Result         = name_to_id(table["Result"].as<std::string>());
+                    element.Rules.emplace_back(val);
+                } else if (ruleTable.has("Dissolve")) {
+                    dissolve_rule val;
+                    lua::table    table {ruleTable["Dissolve"].as<lua::table>()};
+
+                    val.Element = name_to_id(table["Element"].as<std::string>());
+                    val.Result  = name_to_id(table["Result"].as<std::string>());
                     element.Rules.emplace_back(val);
                 }
             }

@@ -28,8 +28,8 @@ element("Fuse", {
     Type                = "Solid",
     ThermalConductivity = 0.01,
     Rules               = {
-        { Neighbor = "Fire", NeighborTransformTo = "Fire", TransformTo = "Fire" },
-        { Temperature = 800, Op = "GreaterThan",           TransformTo = "Fire" },
+        { Neighbor = { Element = "Fire", NeighborResult = "Fire", Result = "Fire" } },
+        { Temperature = { Above = 800, Result = "Fire" } },
     }
 })
 
@@ -38,7 +38,9 @@ element("Wood", {
     Gravity = 0,
     Density = 0.85,
     Type    = "Solid",
-    Rules   = { { Temperature = 100, Op = "GreaterThanOrEqual", TransformTo = "Charcoal" } }
+    Rules   = {
+        { Temperature = { Above = 100, Result = "Charcoal" } },
+    }
 })
 
 element("Charcoal", {
@@ -47,7 +49,9 @@ element("Charcoal", {
     Density     = 1.4,
     Type        = "Solid",
     Temperature = 1200,
-    Rules       = { { Temperature = 80, Op = "LessThan", TransformTo = "Ash" } }
+    Rules       = {
+        { Temperature = { Below = 80, Result = "Ash" } },
+    }
 })
 
 element("Ice", {
@@ -56,7 +60,9 @@ element("Ice", {
     Density     = 0.91,
     Type        = "Solid",
     Temperature = -200,
-    Rules       = { { Temperature = 0, Op = "GreaterThanOrEqual", TransformTo = "Water" } }
+    Rules       = {
+        { Temperature = { Above = 0, Result = "Water" } },
+    }
 })
 
 element("Metal", {
@@ -64,7 +70,9 @@ element("Metal", {
     Gravity = 0,
     Density = 7.87,
     Type    = "Solid",
-    Rules   = { { Temperature = 1500, Op = "GreaterThanOrEqual", TransformTo = "Molten Metal" } }
+    Rules   = {
+        { Temperature = { Above = 1500, Result = "Molten Metal" } }
+    },
 })
 
 element("Solid Mercury", {
@@ -73,7 +81,9 @@ element("Solid Mercury", {
     Density     = 13.534,
     Type        = "Solid",
     Temperature = -50,
-    Rules       = { { Temperature = -38, Op = "GreaterThanOrEqual", TransformTo = "Mercury" } }
+    Rules       = {
+        { Temperature = { Above = -38, Result = "Mercury" } }
+    },
 })
 
 --Powder
@@ -87,12 +97,12 @@ element("Sand", {
 })
 
 element("Salt", {
-    Colors     = { "#f3fafd" },
-    Gravity    = 1,
-    Density    = 2.19,
-    Dispersion = 3,
-    Type       = "Powder",
-    Rules      = { { Neighbor = "Water", NeighborTransformTo = "Salt Water", TransformTo = "Empty" } }
+    Colors      = { "#f3fafd" },
+    Gravity     = 1,
+    Density     = 2.19,
+    Dispersion  = 3,
+    Dissolvable = true,
+    Type        = "Powder"
 })
 
 element("Sawdust", {
@@ -100,7 +110,9 @@ element("Sawdust", {
     Gravity = 1,
     Density = 0.21,
     Type    = "Powder",
-    Rules   = { { Temperature = 80, Op = "GreaterThanOrEqual", TransformTo = "Charcoal Dust" } }
+    Rules   = {
+        { Temperature = { Above = 80, Result = "Charcoal Dust" } }
+    },
 })
 
 element("Ash", {
@@ -111,23 +123,27 @@ element("Ash", {
 })
 
 element("Charcoal Dust", {
-    Colors = { "#f77a35", "#e34d30", "#c6371c" },
-    Gravity = 1,
-    Density = 1.4,
-    Type = "Powder",
-    Temperature = 1200,
+    Colors              = { "#f77a35", "#e34d30", "#c6371c" },
+    Gravity             = 1,
+    Density             = 1.4,
+    Type                = "Powder",
+    Temperature         = 1200,
     ThermalConductivity = 0.10,
-    Rules = { { Temperature = 80, Op = "LessThan", TransformTo = "Ash" } }
+    Rules               = {
+        { Temperature = { Below = 80, Result = "Ash" } }
+    },
 })
 
 element("Snow", {
-    Colors = { "#b9e8ea" },
-    Gravity = 1,
-    Density = 0.91,
-    Type = "Powder",
-    Temperature = -200,
+    Colors              = { "#b9e8ea" },
+    Gravity             = 1,
+    Density             = 0.91,
+    Type                = "Powder",
+    Temperature         = -200,
     ThermalConductivity = 0.10,
-    Rules = { { Temperature = 0, Op = "GreaterThanOrEqual", TransformTo = "Water" } }
+    Rules               = {
+        { Temperature = { Above = 0, Result = "Water" } }
+    },
 })
 
 ---Liquid
@@ -141,8 +157,9 @@ element("Water", {
     Dispersion          = 5,
     ThermalConductivity = 1.0,
     Rules               = {
-        { Temperature = 100, Op = "GreaterThanOrEqual", TransformTo = "Steam" },
-        { Temperature = 0,   Op = "LessThan",           TransformTo = "Snow" },
+        { Temperature = { Above = 100, Result = "Steam" } },
+        { Temperature = { Below = 0, Result = "Snow" } },
+        { Dissolve = { Element = "Salt", Result = "Salt Water" } },
     }
 })
 
@@ -154,8 +171,8 @@ element("Salt Water", {
     Temperature = 10,
     Dispersion  = 5,
     Rules       = {
-        { Temperature = 102, Op = "GreaterThanOrEqual", TransformTo = "Steam" },
-        { Temperature = -21, Op = "LessThan",           TransformTo = "Snow" },
+        { Temperature = { Above = 102, Result = "Steam" } },
+        { Temperature = { Below = -21, Result = "Snow" } },
     }
 })
 
@@ -193,7 +210,9 @@ element("Molten Metal", {
     Temperature         = 1500,
     ThermalConductivity = 0.05,
     Dispersion          = 1,
-    Rules               = { { Temperature = 1300, Op = "LessThan", TransformTo = "Metal" } }
+    Rules               = {
+        { Temperature = { Below = 1300, Result = "Metal" } },
+    }
 })
 
 element("Mercury", {
@@ -204,7 +223,9 @@ element("Mercury", {
     Dispersion          = 2,
     Temperature         = -38,
     ThermalConductivity = 0.09,
-    Rules               = { { Temperature = -39, Op = "LessThan", TransformTo = "Solid Mercury" } }
+    Rules               = {
+        { Temperature = { Below = -39, Result = "Solid Mercury" } },
+    }
 })
 
 element("Acid", {
@@ -214,9 +235,10 @@ element("Acid", {
     Type        = "Liquid",
     Temperature = 20,
     Dispersion  = 4,
+    Dissolvable = false,
     Rules       = {
-        { Neighbor = "Any",  NeighborTransformTo = "Empty", TransformTo = "Empty" },
-        { Temperature = 100, Op = "GreaterThanOrEqual",     TransformTo = "Acid Vapor" },
+        { Temperature = { Above = 100, Result = "Acid Vapor" } },
+        { Dissolve = { Element = "Any", Result = "Empty" } },
     }
 })
 
@@ -229,7 +251,9 @@ element("Steam", {
     Type        = "Gas",
     Temperature = 100,
     Dispersion  = 10,
-    Rules       = { { Temperature = 10, Op = "LessThanOrEqual", TransformTo = "Water" } }
+    Rules       = {
+        { Temperature = { Below = 75, Result = "Water" } },
+    }
 })
 
 element("Fire", {
@@ -238,7 +262,9 @@ element("Fire", {
     Density     = 0.001,
     Type        = "Gas",
     Temperature = 1500,
-    Rules       = { { Temperature = 200, Op = "LessThan", TransformTo = "Empty" } }
+    Rules       = {
+        { Temperature = { Below = 200, Result = "Smoke" } },
+    }
 })
 
 element("Plasma", {
@@ -248,19 +274,23 @@ element("Plasma", {
     Type        = "Gas",
     Temperature = 5000,
     Dispersion  = 15,
-    Rules       = { { Temperature = 1000, Op = "LessThan", TransformTo = "Fire" } }
+    Rules       = {
+        { Temperature = { Below = 1000, Result = "Fire" } },
+    }
 })
 
 element("Acid Vapor", {
-    Colors      = { "#d3f0b0", "#c0e08a" },
-    Gravity     = -1,
-    Density     = 0.001,
-    Type        = "Gas",
+    Colors = { "#d3f0b0", "#c0e08a" },
+    Gravity = -1,
+    Density = 0.001,
+    Type = "Gas",
     Temperature = 100,
-    Dispersion  = 8,
-    Rules       = {
-        { Temperature = 30, Op = "LessThan",               TransformTo = "Acid" },
-        { Neighbor = "Any", NeighborTransformTo = "Empty", TransformTo = "Empty" }, }
+    Dispersion = 8,
+    Dissolvable = false,
+    Rules = {
+        { Temperature = { Below = 30, Result = "Acid" } },
+        { Dissolve = { Element = "Any", Result = "Empty" } },
+    }
 })
 
 element("Smoke", {
@@ -269,5 +299,7 @@ element("Smoke", {
     Density    = 0.001,
     Type       = "Gas",
     Dispersion = 8,
-    Rules      = { { Temperature = 10, Op = "LessThanOrEqual", TransformTo = "Ash" } }
+    Rules      = {
+        { Temperature = { Below = 10, Result = "Ash" } },
+    }
 })

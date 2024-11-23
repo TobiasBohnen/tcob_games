@@ -26,7 +26,7 @@ element_system::element_system(std::vector<element_def> const& elements)
     : _grid {}
 {
     for (auto const& el : elements) {
-        _elements[el.ID] = el;
+        _elements[el.Element.ID] = el;
     }
 }
 
@@ -76,7 +76,7 @@ void element_system::spawn(point_i i, i32 t)
 {
     auto const* element {id_to_element(t)};
 
-    switch (element->Type) {
+    switch (element->Element.Type) {
     case element_type::None:
     case element_type::Solid:
         for (i32 x {0}; x < 10; ++x) {
@@ -84,7 +84,7 @@ void element_system::spawn(point_i i, i32 t)
                 point_i const pos {i.X - 5 + x, i.Y - 5 + y};
 
                 if (!_grid.contains(pos)) { continue; }
-                _grid.element(pos, *element, true);
+                _grid.set(pos, *element, true);
             }
         }
         break;
@@ -93,7 +93,7 @@ void element_system::spawn(point_i i, i32 t)
             point_i const pos {static_cast<i32>((i.X + rand(-5, 5))), static_cast<i32>((i.Y + rand(-5, 5)))};
 
             if (!_grid.contains(pos)) { continue; }
-            _grid.element(pos, *element, true);
+            _grid.set(pos, *element, true);
         }
         break;
     case element_type::Powder:
@@ -101,7 +101,7 @@ void element_system::spawn(point_i i, i32 t)
             point_i const pos {static_cast<i32>((i.X + rand(-5, 5))), static_cast<i32>((i.Y + rand(-5, 5)))};
 
             if (!_grid.contains(pos)) { continue; }
-            _grid.element(pos, *element, true);
+            _grid.set(pos, *element, true);
         }
         break;
     case element_type::Gas:
@@ -109,7 +109,7 @@ void element_system::spawn(point_i i, i32 t)
             point_i const pos {static_cast<i32>((i.X + rand(-5, 5))), static_cast<i32>((i.Y + rand(-5, 5)))};
 
             if (!_grid.contains(pos)) { continue; }
-            _grid.element(pos, *element, true);
+            _grid.set(pos, *element, true);
         }
         break;
     }
@@ -147,7 +147,7 @@ void element_system::update_grid()
             if (!element->Rules.empty()) { process_rules(pos, *element); }
 
             // gravity
-            if (element->Gravity != 0) { process_gravity(pos, element->Type); }
+            if (element->Element.Gravity != 0) { process_gravity(pos, element->Element.Type); }
         }
     });
 }
@@ -162,18 +162,31 @@ void element_system::process_rules(point_i i, element_def const& element)
                 [&](temp_rule const& r) {
                     f32 const temp(_grid.temperature(i));
                     if (comp(r.Op, temp, r.Temperature)) {
-                        _grid.element(i, _elements[r.TransformTo], false);
+                        _grid.set(i, _elements[r.Result], false);
                     }
                 },
                 [&](neighbor_rule const& r) {
                     for (auto const& neighbor : NEIGHBORS) {
                         point_i const np {i + neighbor};
-                        if (!_grid.contains(np) || _grid.touched(np)) { continue; }
+                        if (_grid.touched(np)) { continue; }
 
                         i32 const eid {_grid.id(np)};
-                        if (eid == r.Neighbor || (r.Neighbor == ANY_ELEMENT && eid != element.ID && eid != EMPTY_ELEMENT)) { // ANY but same or empty
-                            _grid.element(np, _elements[r.NeighborTransformTo], true);
-                            _grid.element(i, _elements[r.TransformTo], true);
+                        if (eid == r.Element || (r.Element == ANY_ELEMENT && eid != EMPTY_ELEMENT)) { // ANY but empty
+                            _grid.set(np, _elements[r.NeighborResult], true);
+                            _grid.set(i, _elements[r.Result], true);
+                            return;
+                        }
+                    }
+                },
+                [&](dissolve_rule const& r) {
+                    for (auto const& neighbor : NEIGHBORS) {
+                        point_i const np {i + neighbor};
+                        if (_grid.touched(np) || !_grid.dissolvable(np)) { continue; }
+
+                        i32 const eid {_grid.id(np)};
+                        if (eid == r.Element || (r.Element == ANY_ELEMENT && eid != EMPTY_ELEMENT)) { // ANY but empty
+                            _grid.set(np, _elements[EMPTY_ELEMENT], false);
+                            _grid.set(i, _elements[r.Result], false);
                             return;
                         }
                     }
@@ -323,16 +336,18 @@ void element_grid::clear()
     _grid.fill({});
     _gridTemperature.fill(20); // default ambient temp
     _gridColors.fill(tcob::colors::Black);
+    _gridTouched.fill(false);
 }
 
 void element_grid::load(io::istream& stream)
 {
     auto const size {_grid.size()};
     for (usize i {0}; i < size; ++i) {
-        _grid[i]            = stream.read<cell>();
+        _grid[i]            = stream.read<element>();
         _gridTemperature[i] = stream.read<f32>();
         _gridColors[i]      = stream.read<tcob::color>();
     }
+    _gridTouched.fill(false);
 }
 
 void element_grid::save(io::ostream& stream) const
@@ -345,17 +360,12 @@ void element_grid::save(io::ostream& stream) const
     }
 }
 
-void element_grid::element(point_i i, element_def const& element, bool useTemp)
+void element_grid::set(point_i i, element_def const& element, bool useTemp)
 {
     if (!contains(i)) { return; }
 
-    _grid[i].ID                  = element.ID;
-    _grid[i].Type                = element.Type;
-    _grid[i].Gravity             = element.Gravity;
-    _grid[i].ThermalConductivity = element.ThermalConductivity;
-    _grid[i].Density             = element.Density;
-    _grid[i].Dispersion          = element.Dispersion;
-    _grid[i].Touched             = true;
+    _grid[i]        = element.Element;
+    _gridTouched[i] = true;
 
     if (useTemp) {
         _gridTemperature[i] = element.Temperature;
@@ -372,14 +382,14 @@ auto element_grid::swap(point_i i0, point_i i1) -> bool
     auto const id1 {id(i1)};
 
     if (id0 == id1) { return true; }
-    if (_grid[i1].Touched && id1 != EMPTY_ELEMENT) { return false; } // prevent teleportation
+    if (_gridTouched[i1] && id1 != EMPTY_ELEMENT) { return false; } // prevent teleportation
 
     std::swap(_grid[i0], _grid[i1]);
     std::swap(_gridTemperature[i0], _gridTemperature[i1]);
     std::swap(_gridColors[i0], _gridColors[i1]);
 
-    _grid[i0].Touched = id1 != EMPTY_ELEMENT;
-    _grid[i1].Touched = id0 != EMPTY_ELEMENT;
+    _gridTouched[i0] = id1 != EMPTY_ELEMENT;
+    _gridTouched[i1] = id0 != EMPTY_ELEMENT;
 
     return true;
 }
@@ -426,10 +436,16 @@ auto element_grid::dispersion(point_i i) const -> u8
     return _grid[i].Dispersion;
 }
 
-auto element_grid::touched(point_i i) const -> bool
+auto element_grid::dissolvable(point_i i) const -> bool
 {
     if (!contains(i)) { return false; }
-    return _grid[i].Touched;
+    return _grid[i].Dissolvable;
+}
+
+auto element_grid::touched(point_i i) const -> bool
+{
+    if (!contains(i)) { return true; }
+    return _gridTouched[i];
 }
 
 auto element_grid::temperature(point_i i) const -> f32
@@ -451,10 +467,7 @@ auto element_grid::colors() const -> tcob::color const*
 
 void element_grid::reset_moved()
 {
-    auto const size {_grid.size()};
-    for (usize i {0}; i < size; ++i) {
-        _grid[i].Touched = false;
-    }
+    _gridTouched.fill(false);
 }
 
 auto element_grid::contains(point_i p) const -> bool

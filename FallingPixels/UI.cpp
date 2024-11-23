@@ -64,12 +64,14 @@ elements_form::elements_form(window* window, rect_f const& bounds, std::vector<e
         }};
 
     for (auto const& el : elements) {
-        makeButton(el.ID, el.Type, el.Name);
+        makeButton(el.Element.ID, el.Element.Type, el.Name);
     }
 }
 
 void elements_form::gen_styles()
 {
+    namespace element = tcob::gfx::ui::element;
+
     style_collection styles;
     {
         auto style {styles.create<panel>("panel", {})};
