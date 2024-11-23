@@ -86,6 +86,13 @@ element("Solid Mercury", {
     },
 })
 
+element("Concrete", {
+    Colors  = { "#9e9e9e", "#7d7d7d" },
+    Gravity = 0,
+    Density = 2.4,
+    Type    = "Solid",
+})
+
 --Powder
 
 element("Sand", {
@@ -144,6 +151,16 @@ element("Snow", {
     Rules               = {
         { Temperature = { Above = 0, Result = "Water" } }
     },
+})
+
+element("Cement", {
+    Colors  = { "#a8a8a8", "#bcbcbc" },
+    Gravity = 1,
+    Density = 3.1,
+    Type    = "Powder",
+    Rules   = {
+        { Dissolve = { Element = "Water", Result = "Concrete" } },
+    }
 })
 
 ---Liquid
@@ -302,4 +319,31 @@ element("Smoke", {
     Rules      = {
         { Temperature = { Below = 10, Result = "Ash" } },
     }
+})
+
+element("Carbon Dioxide", {
+    Colors     = { "#d9d9d9", "#c4c4c4" },
+    Gravity    = -1,
+    Density    = 0.00198,
+    Type       = "Gas",
+    Dispersion = 12,
+})
+
+element("Oxygen", {
+    Colors     = { "#99d8ff", "#8dcff8" },
+    Gravity    = -1,
+    Density    = 0.00143,
+    Type       = "Gas",
+    Dispersion = 15,
+    Rules      = {
+        { Neighbor = { Element = "Fire", NeighborResult = "Fire", Result = "Fire" } },
+    }
+})
+
+element("Helium", {
+    Colors     = { "#f4f9ff", "#d9e8ff" },
+    Gravity    = -2,
+    Density    = 0.000179,
+    Type       = "Gas",
+    Dispersion = 20,
 })
