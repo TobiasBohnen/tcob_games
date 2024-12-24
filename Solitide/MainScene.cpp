@@ -241,7 +241,7 @@ void main_scene::on_fixed_update(milliseconds deltaTime)
 
 void main_scene::on_key_down(input::keyboard::event const& ev)
 {
-    if (_formMenu->focussed_widget() != nullptr) { return; }
+    if (_formMenu->focused_widget() != nullptr) { return; }
 
     using namespace tcob::enum_ops;
 
