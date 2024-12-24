@@ -35,8 +35,6 @@ public:
     auto create_shadow() -> std::shared_ptr<gfx::shadow_caster>;
     void remove_shadow(std::shared_ptr<gfx::shadow_caster> const& sc);
 
-    auto get_update_mode() const -> update_mode override;
-
     auto get_field_bounds() const -> rect_f;
     auto get_physics_bounds() const -> rect_f;
     auto convert_to_physics(rect_f const& screenObject) const -> rect_f;

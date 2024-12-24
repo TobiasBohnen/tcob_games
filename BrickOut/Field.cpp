@@ -10,7 +10,8 @@ namespace BrickOut {
 constexpr float physicsWorldSize {50.0};
 
 field::field(assets::group& resGrp, i32 padding, size_i windowSize)
-    : _resGrp {resGrp}
+    : gfx::entity {update_mode::Both}
+    , _resGrp {resGrp}
     , _debugDraw {resGrp.get<gfx::font_family>("Poppins")->get_font({}, 16).ptr()}
     , _paddle {*this, resGrp}
     , _ball {*this, resGrp}
@@ -121,11 +122,6 @@ auto field::create_shadow() -> std::shared_ptr<gfx::shadow_caster>
 void field::remove_shadow(std::shared_ptr<gfx::shadow_caster> const& sc)
 {
     _lightingSystem.remove_shadow_caster(*sc);
-}
-
-auto field::get_update_mode() const -> update_mode
-{
-    return update_mode::Both;
 }
 
 auto field::get_field_bounds() const -> rect_f
