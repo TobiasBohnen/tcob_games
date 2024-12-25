@@ -29,7 +29,7 @@ main_scene::main_scene(game& game)
 {
     _saveGame.load(SAVE_NAME);
 
-    auto const& config {locate_service<platform>().get_config()};
+    auto const& config {locate_service<platform>().config()};
     config.try_get(_sources->Settings, SETTINGS_NAME); // TODO: check version
 
     auto& resMgr {get_game().get_library()};
@@ -213,7 +213,7 @@ void main_scene::save()
     if (auto* game {_cardTable->game()}) {
         game->save(_saveGame);
         _saveGame.save(SAVE_NAME);
-        auto& config {locate_service<platform>().get_config()};
+        auto& config {locate_service<platform>().config()};
         config[SETTINGS_NAME] = _sources->Settings;
     }
 }

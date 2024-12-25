@@ -17,7 +17,7 @@ void load_card_sets(std::map<std::string, std::shared_ptr<card_set>>& cardsetMap
 {
     cardsetMap.clear();
 
-    auto resFolder {resGrp.get_mount_point() + "cardsets/"};
+    auto resFolder {resGrp.mount_point() + "cardsets/"};
 
     cardsetMap["gen_0"]  = std::make_shared<gen_cardset>(resGrp);
     cardsetMap["mini_h"] = std::make_shared<mini_h_cardset>(resGrp);

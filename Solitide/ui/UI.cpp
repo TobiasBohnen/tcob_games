@@ -477,7 +477,7 @@ void form_menu::create_section_settings(tab_container& parent)
 
 void form_menu::create_settings_video(tab_container& tabContainer)
 {
-    auto const& config {locate_service<platform>().get_config()};
+    auto const& config {locate_service<platform>().config()};
     auto        tabPanel {tabContainer.create_tab<panel>("tabVideo")};
     _sources->Translator.bind_tab(&tabContainer, tabPanel.get());
 
