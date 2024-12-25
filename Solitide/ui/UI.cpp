@@ -485,7 +485,7 @@ void form_menu::create_settings_video(tab_container& tabContainer)
 
     // resolution
     {
-        auto const displayModes {locate_service<gfx::render_system>().get_displays()};
+        auto const displayModes {locate_service<gfx::render_system>().displays()};
         auto       ddlRes {tabPanelLayout->create_widget<drop_down_list>({6, 1, 6, 4}, "ddlResolution")};
         ddlRes->ZOrder = 1;
         for (auto const& dm : displayModes.at(0).Modes) {

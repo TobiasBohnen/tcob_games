@@ -79,7 +79,7 @@ void start_scene::on_start()
     root_node()->create_child()->Entity = _playField;
     root_node()->create_child()->Entity = _mainForm;
 
-    locate_service<gfx::render_system>().get_stats().reset();
+    locate_service<gfx::render_system>().stats().reset();
 }
 
 void start_scene::on_draw_to(gfx::render_target&)
@@ -94,7 +94,7 @@ void start_scene::on_fixed_update(milliseconds deltaTime)
 {
     std::stringstream stream;
     stream << std::fixed << std::setprecision(2);
-    auto const& stats {locate_service<gfx::render_system>().get_stats()};
+    auto const& stats {locate_service<gfx::render_system>().stats()};
     stream << "avg FPS:" << stats.average_FPS();
     stream << " best FPS:" << stats.best_FPS();
     stream << " worst FPS:" << stats.worst_FPS();
