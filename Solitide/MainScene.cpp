@@ -128,7 +128,7 @@ void main_scene::register_game(game_info const& info, reg_game_func&& game)
 auto main_scene::call_lua(std::vector<std::string> const& funcs, lua_params const& args) -> lua_return
 {
     using namespace scripting::lua;
-    table tab {_luaScript.get_global_table()};
+    table tab {_luaScript.global_table()};
     for (isize i {0}; i < std::ssize(funcs) - 1; ++i) {
         tab = tab[funcs[i]].as<table>();
     }

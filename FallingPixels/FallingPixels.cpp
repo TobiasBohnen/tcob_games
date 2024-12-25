@@ -243,7 +243,7 @@ auto main_scene::load_script() -> script_element_vec
     using namespace scripting::lua;
 
     _script.open_libraries(library::Table, library::String, library::Math, library::Coroutine);
-    auto& global {_script.get_global_table()};
+    auto& global {_script.global_table()};
     table env {_script.create_table()};
     env["table"]     = global["table"];
     env["string"]    = global["string"];

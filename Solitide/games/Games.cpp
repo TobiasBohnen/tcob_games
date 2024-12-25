@@ -518,7 +518,7 @@ auto lua_script_game::CreateENV(scripting::lua::script& script) -> scripting::lu
 {
     using namespace scripting::lua;
     script.open_libraries(library::Table, library::String, library::Math, library::Coroutine);
-    auto& global {script.get_global_table()};
+    auto& global {script.global_table()};
     table env {script.create_table()};
     env["table"]     = global["table"];
     env["string"]    = global["string"];
@@ -555,7 +555,7 @@ void lua_script_game::CreateAPI(main_scene* scene, scripting::lua::script& scrip
 
     std::ignore = script.run_file("scripts/main.lua");
 
-    auto& global {script.get_global_table()};
+    auto& global {script.global_table()};
     global["Sol"]["Layout"] = env["Sol"]["Layout"];
 }
 
@@ -578,7 +578,7 @@ void squirrel_script_game::CreateAPI(main_scene* scene, scripting::squirrel::scr
         return ptr.get();
     }};
 
-    auto& root {script.get_root_table()};
+    auto& root {script.root_table()};
     auto  view {script.get_view()};
 
     CreateGlobals<squirrel_script_game>(scene, script, root, make_func, "nut");
