@@ -18,7 +18,7 @@ start_scene::~start_scene() = default;
 
 void start_scene::on_start()
 {
-    auto& resMgr {get_game().get_library()};
+    auto& resMgr {get_game().library()};
     auto& resGrp {resMgr.create_or_get_group("snake")};
     resGrp.mount("./snake.zip");
     resMgr.load_all_groups();
