@@ -12,9 +12,9 @@ namespace solitaire {
 start_scene::start_scene(game& game)
     : scene {game}
     , _renderer {_canvas}
-    , _windowSize {get_window().Size}
+    , _windowSize {window().Size}
 {
-    auto& resMgr {get_game().library()};
+    auto& resMgr {parent().library()};
     auto& resGrp {resMgr.create_or_get_group("solitaire")};
     resGrp.mount("./assets.zip");
     resMgr.load_all_groups();
@@ -134,12 +134,12 @@ X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X
 
 void start_scene::on_update(milliseconds)
 {
-    if (_drawn && get_game().library().is_loading_complete()) {
+    if (_drawn && parent().library().is_loading_complete()) {
 #if defined(TCOB_DEBUG)
-        std::ignore = get_window().copy_to_image().save("title.png");
+        std::ignore = window().copy_to_image().save("title.png");
 #endif
-        get_game().pop_current_scene();
-        get_game().push_scene<main_scene>();
+        parent().pop_current_scene();
+        parent().push_scene<main_scene>();
     }
 }
 }

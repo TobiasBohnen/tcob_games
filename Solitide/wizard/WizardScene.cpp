@@ -13,12 +13,12 @@ namespace solitaire {
 wizard_scene::wizard_scene(game& game)
     : scene {game}
 {
-    auto& resGrp {*get_game().library().get_group("solitaire")};
+    auto& resGrp {*parent().library().get_group("solitaire")};
 
-    _formWizard = std::make_shared<form_wizard>(&get_window(), resGrp);
+    _formWizard = std::make_shared<form_wizard>(&window(), resGrp);
 
     _formWizard->BtnBack->Click.connect([&]() {
-        get_game().pop_current_scene();
+        parent().pop_current_scene();
     });
 
     _formWizard->BtnGenerate->Click.connect([&]() {
@@ -47,14 +47,14 @@ wizard_scene::wizard_scene(game& game)
             }
 
             GameGenerated({.Name = gameName, .Path = file});
-            get_game().pop_current_scene();
+            parent().pop_current_scene();
         }
     });
 }
 
 void wizard_scene::update_theme(color_themes const& currentTheme)
 {
-    styles     styles {*get_game().library().get_group("solitaire")};
+    styles     styles {*parent().library().get_group("solitaire")};
     auto const styleCollection {styles.load(currentTheme)};
     _formWizard->Styles = styleCollection;
 }
@@ -80,7 +80,7 @@ void wizard_scene::on_key_down(input::keyboard::event const& ev)
 {
     switch (ev.ScanCode) {
     case input::scan_code::BACKSPACE:
-        get_game().pop_current_scene();
+        parent().pop_current_scene();
         break;
     default:
         break;

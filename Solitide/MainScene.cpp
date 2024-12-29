@@ -32,14 +32,14 @@ main_scene::main_scene(game& game)
     auto const& config {locate_service<platform>().config()};
     config.try_get(_sources->Settings, SETTINGS_NAME); // TODO: check version
 
-    auto& resMgr {get_game().library()};
+    auto& resMgr {parent().library()};
     auto& resGrp {*resMgr.get_group("solitaire")};
 
-    auto& window {get_window()};
-    auto  windowSize {window.Size()};
+    auto& win {window()};
+    auto  windowSize {win.Size()};
 
     auto defaultCursor {resGrp.get<gfx::cursor>("default")};
-    window.Cursor             = defaultCursor;
+    win.Cursor                = defaultCursor;
     defaultCursor->ActiveMode = "cursor32";
 
     load_scripts();
@@ -54,13 +54,13 @@ main_scene::main_scene(game& game)
     _db.insert_games(_sources->Games);
 
     // ui
-    _formControls = std::make_shared<form_controls>(&window, resGrp, _sources);
+    _formControls = std::make_shared<form_controls>(&win, resGrp, _sources);
 
-    _formMenu = std::make_shared<form_menu>(&window, resGrp, _sources);
+    _formMenu = std::make_shared<form_menu>(&win, resGrp, _sources);
     _formMenu->hide();
 
     // card table
-    _cardTable = std::make_shared<card_table>(window.get_camera(), resGrp, &_sources->Settings);
+    _cardTable = std::make_shared<card_table>(win.get_camera(), resGrp, &_sources->Settings);
 
     _cardTable->HoverChange.connect([&](pile* const pile) {
         if (!pile) {
@@ -84,7 +84,7 @@ main_scene::main_scene(game& game)
 
             switch (pile->Type) {
             case pile_type::Stock: {
-                auto const& state {_cardTable->game()->state()};
+                auto const& state {_cardTable->parent()->state()};
                 str.Description      = state.Redeals < 0 ? "∞" : std::to_string(state.Redeals);
                 str.DescriptionLabel = "Redeals";
             } break;
@@ -164,17 +164,17 @@ void main_scene::connect_events()
 
     _formControls->BtnHint->Click.connect([&](auto const&) { _cardTable->show_next_hint(); });
     _formControls->BtnCollect->Click.connect([&](auto const&) {
-        if (auto* game {_cardTable->game()}) { game->collect_all(); }
+        if (auto* game {_cardTable->parent()}) { game->collect_all(); }
     });
     _formControls->BtnUndo->Click.connect([&](auto const&) {
-        if (auto* game {_cardTable->game()}) { game->undo(); }
+        if (auto* game {_cardTable->parent()}) { game->undo(); }
     });
 
     _formControls->BtnQuit->Click.connect([&](auto const&) {
         save();
-        get_game().pop_current_scene();
+        parent().pop_current_scene();
     });
-    get_window().Close.connect([&](auto const&) {
+    window().Close.connect([&](auto const&) {
 #if !defined(TCOB_DEBUG)
         save();
 #endif
@@ -194,13 +194,13 @@ void main_scene::connect_events()
         assert(obj.has("chkFullScreen", "checked"));
         assert(obj.has("chkVSync", "checked"));
 
-        auto& window {get_window()};
+        auto& win {window()};
 
         auto const res {get_size(obj["ddlResolution"]["selected"].as<std::string>())};
-        window.Size = res;
+        win.Size = res;
 
-        window.FullScreen = obj["chkFullScreen"]["checked"].as<bool>();
-        window.VSync      = obj["chkVSync"]["checked"].as<bool>();
+        win.FullScreen = obj["chkFullScreen"]["checked"].as<bool>();
+        win.VSync      = obj["chkVSync"]["checked"].as<bool>();
 
         set_children_bounds(res);
 
@@ -210,7 +210,7 @@ void main_scene::connect_events()
 
 void main_scene::save()
 {
-    if (auto* game {_cardTable->game()}) {
+    if (auto* game {_cardTable->parent()}) {
         game->save(_saveGame);
         _saveGame.save(SAVE_NAME);
         auto& config {locate_service<platform>().config()};
@@ -228,14 +228,14 @@ void main_scene::on_update(milliseconds)
 
 void main_scene::on_fixed_update(milliseconds deltaTime)
 {
-    if (auto* game {_cardTable->game()}) {
+    if (auto* game {_cardTable->parent()}) {
         game->update(deltaTime);
         _formControls->set_game_labels(game);
     }
 #if defined(TCOB_DEBUG)
     auto const& stats {locate_service<gfx::render_system>().stats()};
-    get_window().Title = std::format("Solitide | avg FPS: {:.2f} best FPS: {:.2f} worst FPS: {:.2f}",
-                                     stats.average_FPS(), stats.best_FPS(), stats.worst_FPS());
+    window().Title = std::format("Solitide | avg FPS: {:.2f} best FPS: {:.2f} worst FPS: {:.2f}",
+                                 stats.average_FPS(), stats.best_FPS(), stats.worst_FPS());
 #endif
 }
 
@@ -267,7 +267,7 @@ void main_scene::on_key_down(input::keyboard::event const& ev)
     }
     if (ev.KeyCode == input::key_code::s && (ev.KeyMods & input::key_mod::LeftAlt) == input::key_mod::LeftAlt) {
         static i32 i {0};
-        std::ignore = get_window().copy_to_image().save(std::format("img{}.png", i++));
+        std::ignore = window().copy_to_image().save(std::format("img{}.png", i++));
         ev.Handled  = true;
     }
 #endif
@@ -292,7 +292,7 @@ void main_scene::set_theme()
     if (!_sources->Themes.contains(themeName)) { themeName = "default"; }
     auto const& newTheme {_sources->Themes[themeName]};
 
-    styles     styles {*get_game().library().get_group("solitaire")};
+    styles     styles {*parent().library().get_group("solitaire")};
     auto const styleCollection {styles.load(newTheme)};
     _formMenu->Styles = styleCollection;
     _formMenu->fixed_update(milliseconds {0});
@@ -328,11 +328,11 @@ void main_scene::start_game(std::string const& name, start_reason reason, std::o
     update_recent(name);
     _currentRules = generate_rule(name);
 
-    auto& camera {get_window().get_camera()};
+    auto& camera {window().get_camera()};
     camera.Position = point_f::Zero;
     camera.Zoom     = size_f::One;
 
-    auto* currentGame {_cardTable->game()};
+    auto* currentGame {_cardTable->parent()};
     if (reason == start_reason::Resume) {         // save current game
         if (currentGame) { currentGame->save(_saveGame); }
     } else if (reason == start_reason::Restart) { // fail current game
@@ -370,7 +370,7 @@ void main_scene::start_game(std::string const& name, start_reason reason, std::o
 void main_scene::start_wizard()
 {
     if (!_wizard) {
-        _wizard = std::make_shared<wizard_scene>(get_game());
+        _wizard = std::make_shared<wizard_scene>(parent());
         _wizard->update_theme(_sources->Themes[_sources->Settings.Theme]);
     }
 
@@ -381,7 +381,7 @@ void main_scene::start_wizard()
             start_game(val.Name, start_reason::Resume, std::nullopt);
         }
     });
-    get_game().push_scene(_wizard);
+    parent().push_scene(_wizard);
 }
 
 void main_scene::update_game_ui(std::string const& name) const

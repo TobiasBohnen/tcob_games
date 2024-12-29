@@ -12,7 +12,7 @@ namespace BrickOut {
 start_scene::start_scene(game& game)
     : scene(game)
 {
-    get_window().ClearColor = colors::Black;
+    window().ClearColor = colors::Black;
 }
 
 start_scene::~start_scene() = default;
@@ -52,13 +52,13 @@ std::vector<brick_def> level1 {
 
 void start_scene::on_start()
 {
-    auto& resMgr {get_game().library()};
+    auto& resMgr {parent().library()};
     auto& resGrp {resMgr.create_or_get_group("brickout")};
     resGrp.mount("./brickout.zip");
     resMgr.load_all_groups();
 
-    auto& window {get_window()};
-    auto  windowSize {window.Size()};
+    auto& win {window()};
+    auto  windowSize {win.Size()};
 
     i32 const padding {(windowSize.Width / 4 * 3) - windowSize.Height};
 
@@ -68,12 +68,12 @@ void start_scene::on_start()
     });
 
     rect_i const menuBounds {windowSize.Height + padding, 0, windowSize.Width - windowSize.Height - padding, windowSize.Height};
-    _mainForm = std::make_shared<main_menu>(&window, resGrp, rect_f {menuBounds});
+    _mainForm = std::make_shared<main_menu>(&win, resGrp, rect_f {menuBounds});
     _mainForm->BtnStart->Click.connect([&, windowSize](auto const&) {
         _playField->start(level1);
     });
     _mainForm->BtnQuit->Click.connect([&](auto const&) {
-        get_game().pop_current_scene();
+        parent().pop_current_scene();
     });
 
     root_node()->create_child()->Entity = _playField;
@@ -106,14 +106,14 @@ void start_scene::on_fixed_update(milliseconds deltaTime)
         stream << "| A WINNER IS YOU ";
     }
 
-    get_window().Title = "BrickOut |" + stream.str();
+    window().Title = "BrickOut |" + stream.str();
 }
 
 void start_scene::on_key_down(input::keyboard::event const& ev)
 {
     switch (ev.ScanCode) {
     case input::scan_code::BACKSPACE:
-        get_game().pop_current_scene();
+        parent().pop_current_scene();
         break;
     default:
         break;
@@ -126,7 +126,7 @@ void start_scene::on_controller_button_down(input::controller::button_event cons
         _playField->start(level1);
         ev.Handled = true;
     } else if (ev.Button == input::controller::button::Back) {
-        get_game().pop_current_scene();
+        parent().pop_current_scene();
     }
 }
 }

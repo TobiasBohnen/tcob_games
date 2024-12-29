@@ -129,7 +129,7 @@ void card_table::mark_dirty()
     _fgCanvas.mark_dirty();
 }
 
-auto card_table::game() const -> base_game*
+auto card_table::parent() const -> base_game*
 {
     return _currentGame.get();
 }

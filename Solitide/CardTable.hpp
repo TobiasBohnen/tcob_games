@@ -34,7 +34,7 @@ public:
     void start(std::shared_ptr<base_game> const& game, std::optional<u64> seed);
     void resume(std::shared_ptr<base_game> const& game, data::config::object& savegame);
 
-    auto game() const -> base_game*;
+    auto parent() const -> base_game*;
 
     void show_next_hint();
 

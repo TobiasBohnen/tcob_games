@@ -21,7 +21,7 @@ card_renderer::card_renderer(card_table& parent)
 void card_renderer::start()
 {
     _cardQuads.clear();
-    _cardQuads.resize(_parent.game()->info().DeckCount * 52);
+    _cardQuads.resize(_parent.parent()->info().DeckCount * 52);
     create_markers();
 }
 
@@ -44,7 +44,7 @@ void card_renderer::mark_dirty()
 void card_renderer::set_card_set(std::shared_ptr<card_set> cardset)
 {
     _cardSet = std::move(cardset);
-    if (_parent.game()) {
+    if (_parent.parent()) {
         if (!_markerSprites.is_empty()) { create_markers(); }
     }
 }
@@ -57,7 +57,7 @@ void card_renderer::draw_cards(gfx::render_target& target)
         pile const* dragPile {nullptr};
         {
             auto quadIt {_cardQuads.begin()};
-            for (auto const& [_, piles] : _parent.game()->piles()) {
+            for (auto const& [_, piles] : _parent.parent()->piles()) {
                 for (auto const* pile : piles) {
                     if (pile->IsDragging) {
                         dragPile = pile;
@@ -101,7 +101,7 @@ void card_renderer::create_markers()
 {
     auto const& cardSize {_cardSet->get_card_size()};
     _markerSprites.clear();
-    for (auto const& [_, piles] : _parent.game()->piles()) {
+    for (auto const& [_, piles] : _parent.parent()->piles()) {
         for (auto* pile : piles) {
             if (!pile->HasMarker) { continue; }
 

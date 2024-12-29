@@ -25,7 +25,7 @@ foreground_canvas::foreground_canvas(card_table& parent, assets::group& resGrp)
 
 void foreground_canvas::show_hint()
 {
-    auto const& hints {_parent.game()->get_available_hints()};
+    auto const& hints {_parent.parent()->get_available_hints()};
     if (hints.empty()) { return; }
 
     _currentHint++;
@@ -66,8 +66,8 @@ void foreground_canvas::draw(gfx::render_target& target)
 
 void foreground_canvas::update(milliseconds)
 {
-    if (_parent.game()->Status != _lastStatus) {
-        _lastStatus = _parent.game()->Status;
+    if (_parent.parent()->Status != _lastStatus) {
+        _lastStatus = _parent.parent()->Status;
         mark_dirty();
     }
 }
@@ -87,7 +87,7 @@ void foreground_canvas::draw_hint(gfx::render_target& target)
 {
     if (!_showHint) { return; }
 
-    auto const& hints {_parent.game()->get_available_hints()};
+    auto const& hints {_parent.parent()->get_available_hints()};
     if (hints.empty()) { return; }
     auto const& hint {hints[_currentHint]};
 
