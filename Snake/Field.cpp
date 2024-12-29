@@ -141,7 +141,7 @@ void field::fail()
     _snake.die();
 
     auto& input {locate_service<input::system>()};
-    if (input.CurrentInputMode == input::mode::Controller) {
+    if (input.InputMode == input::mode::Controller) {
         input.get_controller(0)->rumble(0x7FFF, 0, 500ms);
     }
 

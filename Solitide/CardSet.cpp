@@ -48,7 +48,7 @@ card_set::card_set(std::string folder, std::string name)
 
 auto card_set::get_card_size() -> size_f
 {
-    return size_f {_texture->get_size()};
+    return size_f {_texture->info().Size};
 }
 
 auto card_set::get_material() const -> assets::asset_ptr<gfx::material>
@@ -331,10 +331,10 @@ void gen_cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, ran
 
         f32 const suitSize {texSize.Width / 8};
         canvas.draw_textbox(rankRect, rankSymbol);
-        draw_suit(canvas, s, {offset.X + suitSize / 2, offset.Y + fonts.NormalFont->get_info().LineHeight + suitSize / 2}, suitSize);
+        draw_suit(canvas, s, {offset.X + suitSize / 2, offset.Y + fonts.NormalFont->info().LineHeight + suitSize / 2}, suitSize);
         canvas.rotate_at(degree_f {180}, cardCenter);
         canvas.draw_textbox(rankRect, rankSymbol);
-        draw_suit(canvas, s, {offset.X + suitSize / 2, offset.Y + fonts.NormalFont->get_info().LineHeight + suitSize / 2}, suitSize);
+        draw_suit(canvas, s, {offset.X + suitSize / 2, offset.Y + fonts.NormalFont->info().LineHeight + suitSize / 2}, suitSize);
         canvas.reset_transform();
     }
     {

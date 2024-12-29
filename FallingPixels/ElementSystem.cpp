@@ -57,7 +57,7 @@ void element_system::draw_heatmap(gfx::texture& tex) const
     auto const size {_grid.size()};
     auto       img {gfx::image::CreateEmpty(size, gfx::image::format::RGBA)};
 
-    static auto colors {gfx::color_gradient {{0, colors::Blue}, {0.5f, colors::White}, {1, colors::Red}}.get_colors()};
+    static auto colors {gfx::color_gradient {{0, colors::Blue}, {0.5f, colors::White}, {1, colors::Red}}.colors()};
 
     for (i32 x {0}; x < size.Width; ++x) {
         for (i32 y {0}; y < size.Height; ++y) {
