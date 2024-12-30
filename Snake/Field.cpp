@@ -151,7 +151,7 @@ void field::fail()
 void field::play_sound(audio::sound_wave const& wave)
 {
     _sound = audio::sound_generator {}.create_sound(wave);
-    _sound.play();
+    _sound->play();
 }
 
 void field::set_tile(point_i pos, gfx::tile_index_t idx)

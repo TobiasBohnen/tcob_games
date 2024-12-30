@@ -54,8 +54,8 @@ private:
 
     milliseconds _currentTime {0ms};
 
-    rng          _rng {};
-    audio::sound _sound;
+    rng                           _rng {};
+    std::shared_ptr<audio::sound> _sound;
 
     gfx::ortho_tilemap _map;
     uid                _layerBack {0};
