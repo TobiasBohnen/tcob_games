@@ -60,7 +60,7 @@ main_scene::main_scene(game& game)
     _formMenu->hide();
 
     // card table
-    _cardTable = std::make_shared<card_table>(win.get_camera(), resGrp, &_sources->Settings);
+    _cardTable = std::make_shared<card_table>(win.camera(), resGrp, &_sources->Settings);
 
     _cardTable->HoverChange.connect([&](pile* const pile) {
         if (!pile) {
@@ -328,7 +328,7 @@ void main_scene::start_game(std::string const& name, start_reason reason, std::o
     update_recent(name);
     _currentRules = generate_rule(name);
 
-    auto& camera {window().get_camera()};
+    auto& camera {window().camera()};
     camera.Position = point_f::Zero;
     camera.Zoom     = size_f::One;
 

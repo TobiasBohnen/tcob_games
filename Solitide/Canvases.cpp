@@ -107,7 +107,7 @@ void foreground_canvas::draw_hint(gfx::render_target& target)
         }
     }
 
-    auto& camera {target.get_camera()};
+    auto& camera {target.camera()};
 
     // Draw bounds
     _canvas.begin_path();
