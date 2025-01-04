@@ -52,7 +52,7 @@ std::vector<brick_def> level1 {
 
 void start_scene::on_start()
 {
-    auto& resMgr {parent().library()};
+    auto& resMgr {library()};
     auto& resGrp {resMgr.create_or_get_group("brickout")};
     resGrp.mount("./brickout.zip");
     resMgr.load_all_groups();

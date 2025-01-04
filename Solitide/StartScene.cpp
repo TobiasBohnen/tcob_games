@@ -14,7 +14,7 @@ start_scene::start_scene(game& game)
     , _renderer {_canvas}
     , _windowSize {window().Size}
 {
-    auto& resMgr {parent().library()};
+    auto& resMgr {library()};
     auto& resGrp {resMgr.create_or_get_group("solitaire")};
     resGrp.mount("./assets.zip");
     resMgr.load_all_groups();
@@ -134,7 +134,7 @@ X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X
 
 void start_scene::on_update(milliseconds)
 {
-    if (_drawn && parent().library().is_loading_complete()) {
+    if (_drawn && library().is_loading_complete()) {
 #if defined(TCOB_DEBUG)
         std::ignore = window().copy_to_image().save("title.png");
 #endif
