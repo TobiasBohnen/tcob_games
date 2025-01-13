@@ -76,7 +76,7 @@ private:
     ball                                    _ball;
     std::vector<brick_def>                  _brickDefs;
     std::vector<std::unique_ptr<brick>>     _bricks {};
-    assets::manual_asset_ptr<gfx::material> _edgeMat;
+    assets::owning_asset_ptr<gfx::material> _edgeMat;
 
     i32 _hitCount {0};
 };
