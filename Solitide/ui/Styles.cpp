@@ -138,7 +138,6 @@ struct converter<gfx::ui::ui_paint> {
 
     auto static From(cfg_value const& config, gfx::ui::ui_paint& value) -> bool
     {
-        // Xcolor, linear_gradient, radial_gradient, box_gradient, nope->image_pattern,nope->nine_patch
         if (std::holds_alternative<utf8_string>(config)) {
             auto const str {std::get<utf8_string>(config)};
             value = color::FromString(str);
