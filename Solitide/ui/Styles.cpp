@@ -264,7 +264,7 @@ void styles::parse(object const& obj, drop_down_list::style* style)
 {
     parse_background_style(obj, style);
     if (object el; obj.try_get(el, "text")) { parse_element(el, &style->Text); }
-    obj.try_get(style->ArrowClass, "arrow_class");
+    obj.try_get(style->NavArrowClass, "arrow_class");
     obj.try_get(style->ItemClass, "item_class");
     obj.try_get(style->ItemHeight, "item_height");
     obj.try_get(style->VisibleItemCount, "visible_item_count");
