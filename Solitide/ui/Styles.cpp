@@ -170,7 +170,7 @@ auto styles::load(color_themes const& theme) -> style_collection
 
     object styleFile {};
     if (styleFile.load("styles.json") != load_status::Ok) { return retValue; }
-    std::unordered_map<std::string_view, std::string> typeMap;
+    std::unordered_map<std::string, std::string> typeMap;
 
     for (auto const& entry : styleFile) {
         object styleObj;
@@ -186,7 +186,8 @@ auto styles::load(color_themes const& theme) -> style_collection
             if (std::find(names.begin() + 1, names.end(), "active") != names.end()) { flags.Active = true; }
         }
 
-        std::string& type {typeMap[names[0]]};
+        auto const   name {std::string {names[0]}};
+        std::string& type {typeMap[name]};
         if (type.empty()) {
             type = typeSplit.size() > 1 ? typeSplit[1] : typeSplit[0];
         }
@@ -202,27 +203,27 @@ auto styles::load(color_themes const& theme) -> style_collection
         });
 
         std::unordered_map<std::string, std::function<void()>> const styleCreators {
-            {"accordion", [&]() { applyTheme(create<accordion::style>(styleObj, retValue, names[0], flags)); }},
-            {"button", [&]() { applyTheme(create<button::style>(styleObj, retValue, names[0], flags)); }},
-            {"checkbox", [&]() { applyTheme(create<checkbox::style>(styleObj, retValue, names[0], flags)); }},
-            {"cycle_button", [&]() { applyTheme(create<cycle_button::style>(styleObj, retValue, names[0], flags)); }},
-            {"drop_down_list", [&]() { applyTheme(create<drop_down_list::style>(styleObj, retValue, names[0], flags)); }},
-            {"grid_view", [&]() { applyTheme(create<grid_view::style>(styleObj, retValue, names[0], flags)); }},
-            {"image_box", [&]() { applyTheme(create<image_box::style>(styleObj, retValue, names[0], flags)); }},
-            {"label", [&]() { applyTheme(create<label::style>(styleObj, retValue, names[0], flags)); }},
-            {"list_box", [&]() { applyTheme(create<list_box::style>(styleObj, retValue, names[0], flags)); }},
-            {"panel", [&]() { applyTheme(create<panel::style>(styleObj, retValue, names[0], flags)); }},
-            {"progress_bar", [&]() { applyTheme(create<progress_bar::style>(styleObj, retValue, names[0], flags)); }},
-            {"radio_button", [&]() { applyTheme(create<radio_button::style>(styleObj, retValue, names[0], flags)); }},
-            {"slider", [&]() { applyTheme(create<slider::style>(styleObj, retValue, names[0], flags)); }},
-            {"spinner", [&]() { applyTheme(create<spinner::style>(styleObj, retValue, names[0], flags)); }},
-            {"tab_container", [&]() { applyTheme(create<tab_container::style>(styleObj, retValue, names[0], flags)); }},
-            {"text_box", [&]() { applyTheme(create<text_box::style>(styleObj, retValue, names[0], flags)); }},
-            {"toggle", [&]() { applyTheme(create<toggle::style>(styleObj, retValue, names[0], flags)); }},
-            {"tooltip", [&]() { applyTheme(create<tooltip::style>(styleObj, retValue, names[0], flags)); }},
-            {"thumb", [&]() { applyTheme(create<thumb_style>(styleObj, retValue, names[0], flags)); }},
-            {"nav_arrow", [&]() { applyTheme(create<nav_arrows_style>(styleObj, retValue, names[0], flags)); }},
-            {"item", [&]() { applyTheme(create<item_style>(styleObj, retValue, names[0], flags)); }}};
+            {"accordion", [&]() { applyTheme(create<accordion::style>(styleObj, retValue, name, flags)); }},
+            {"button", [&]() { applyTheme(create<button::style>(styleObj, retValue, name, flags)); }},
+            {"checkbox", [&]() { applyTheme(create<checkbox::style>(styleObj, retValue, name, flags)); }},
+            {"cycle_button", [&]() { applyTheme(create<cycle_button::style>(styleObj, retValue, name, flags)); }},
+            {"drop_down_list", [&]() { applyTheme(create<drop_down_list::style>(styleObj, retValue, name, flags)); }},
+            {"grid_view", [&]() { applyTheme(create<grid_view::style>(styleObj, retValue, name, flags)); }},
+            {"image_box", [&]() { applyTheme(create<image_box::style>(styleObj, retValue, name, flags)); }},
+            {"label", [&]() { applyTheme(create<label::style>(styleObj, retValue, name, flags)); }},
+            {"list_box", [&]() { applyTheme(create<list_box::style>(styleObj, retValue, name, flags)); }},
+            {"panel", [&]() { applyTheme(create<panel::style>(styleObj, retValue, name, flags)); }},
+            {"progress_bar", [&]() { applyTheme(create<progress_bar::style>(styleObj, retValue, name, flags)); }},
+            {"radio_button", [&]() { applyTheme(create<radio_button::style>(styleObj, retValue, name, flags)); }},
+            {"slider", [&]() { applyTheme(create<slider::style>(styleObj, retValue, name, flags)); }},
+            {"spinner", [&]() { applyTheme(create<spinner::style>(styleObj, retValue, name, flags)); }},
+            {"tab_container", [&]() { applyTheme(create<tab_container::style>(styleObj, retValue, name, flags)); }},
+            {"text_box", [&]() { applyTheme(create<text_box::style>(styleObj, retValue, name, flags)); }},
+            {"toggle", [&]() { applyTheme(create<toggle::style>(styleObj, retValue, name, flags)); }},
+            {"tooltip", [&]() { applyTheme(create<tooltip::style>(styleObj, retValue, name, flags)); }},
+            {"thumb", [&]() { applyTheme(create<thumb_style>(styleObj, retValue, name, flags)); }},
+            {"nav_arrow", [&]() { applyTheme(create<nav_arrows_style>(styleObj, retValue, name, flags)); }},
+            {"item", [&]() { applyTheme(create<item_style>(styleObj, retValue, name, flags)); }}};
         auto it {styleCreators.find(type)};
         if (it != styleCreators.end()) {
             it->second();
@@ -453,7 +454,7 @@ void styles::parse_element(data::config::object const& obj, element::caret* care
     obj.try_get(caret->BlinkRate, "blink_rate");
 }
 
-void styles::parse_style(object const& obj, style* style)
+void styles::parse_style(object const& obj, widget_style* style)
 {
     obj.try_get(style->Cursor, "cursor");
     obj.try_get(style->Margin, "margin");

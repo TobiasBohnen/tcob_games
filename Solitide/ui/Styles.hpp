@@ -20,7 +20,7 @@ public:
 
 private:
     template <typename T>
-    auto create(data::config::object const& obj, style_collection& styles, std::string_view name, style_flags flags);
+    auto create(data::config::object const& obj, style_collection& styles, std::string const& name, style_flags flags);
 
     void parse(data::config::object const& obj, accordion::style* style);
     void parse(data::config::object const& obj, button::style* style);
@@ -52,17 +52,17 @@ private:
     void parse_element(data::config::object const& obj, element::bar* bar);
     void parse_element(data::config::object const& obj, element::caret* caret);
 
-    void parse_style(data::config::object const& obj, style* style);
+    void parse_style(data::config::object const& obj, widget_style* style);
     void parse_background_style(data::config::object const& obj, background_style* style);
 
     assets::group& _resGrp;
 };
 
 template <typename T>
-inline auto styles::create(data::config::object const& obj, style_collection& styles, std::string_view name, style_flags flags)
+inline auto styles::create(data::config::object const& obj, style_collection& styles, std::string const& name, style_flags flags)
 {
-    auto style {styles.create<T>(std::string {name}, flags)};
-    *style = *dynamic_cast<T*>(styles.get(std::string {name}, {}, {}));
+    auto style {styles.create<T>(name, flags)};
+    *style = *dynamic_cast<T*>(styles.get(name, {}, {}));
     parse(obj, style.get());
     return style;
 }
