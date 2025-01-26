@@ -62,7 +62,7 @@ template <typename T>
 inline auto styles::create(data::config::object const& obj, style_collection& styles, std::string const& name, style_flags flags)
 {
     auto style {styles.create<T>(name, flags)};
-    *style = *dynamic_cast<T*>(styles.get(name, {}, {}));
+    *style = *dynamic_cast<T*>(styles.get({name, {}, {}}));
     parse(obj, style.get());
     return style;
 }
