@@ -166,7 +166,7 @@ auto field::get_random_tile() -> point_i
     point_i retValue {};
     do {
         retValue = {_rng(0, gridSize.Width - 1), _rng(0, gridSize.Height - 1)};
-    } while (_map.get_tile_index(_layerFront, retValue) != TS_NONE);
+    } while (*_map.get_tile_index(_layerFront, retValue) != TS_NONE);
 
     return retValue;
 }
