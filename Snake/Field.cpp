@@ -161,7 +161,7 @@ void field::set_tile(point_i pos, gfx::tile_index_t idx)
 
 auto field::get_random_tile() -> point_i
 {
-    auto const gridSize {_map.get_layer_size(_layerBack)};
+    auto const gridSize {*_map.get_layer_size(_layerBack)};
 
     point_i retValue {};
     do {

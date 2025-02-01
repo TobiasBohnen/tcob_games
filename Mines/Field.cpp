@@ -302,7 +302,11 @@ auto field::get_cell(point_i const& point) -> cell&
 
 void field::toggle_front_layer_visibility()
 {
-    _map.set_layer_visible(_layerFront, !_map.is_layer_visible(_layerFront));
+    if (_map.is_layer_visible(_layerFront)) {
+        _map.hide_layer(_layerFront);
+    } else {
+        _map.show_layer(_layerFront);
+    }
 }
 
 auto field::state() const -> game_state
