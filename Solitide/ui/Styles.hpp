@@ -53,7 +53,7 @@ private:
     void parse_element(data::config::object const& obj, element::caret* caret);
 
     void parse_style(data::config::object const& obj, widget_style* style);
-    void parse_background_style(data::config::object const& obj, background_style* style);
+    void parse_widget_style(data::config::object const& obj, widget_style* style);
 
     assets::group& _resGrp;
 };

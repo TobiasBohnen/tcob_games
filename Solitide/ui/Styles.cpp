@@ -237,32 +237,32 @@ auto styles::load(color_themes const& theme) -> style_collection
 
 void styles::parse(object const& obj, accordion::style* style)
 {
-    parse_background_style(obj, style);
+    parse_widget_style(obj, style);
     obj.try_get(style->SectionBarHeight, "section_bar_height");
     obj.try_get(style->SectionItemClass, "section_item_class");
 }
 
 void styles::parse(object const& obj, button::style* style)
 {
-    parse_background_style(obj, style);
+    parse_widget_style(obj, style);
     if (object el; obj.try_get(el, "text")) { parse_element(el, &style->Text); }
 }
 
 void styles::parse(object const& obj, checkbox::style* style)
 {
-    parse_background_style(obj, style);
+    parse_widget_style(obj, style);
     if (object el; obj.try_get(el, "tick")) { parse_element(el, &style->Tick); }
 }
 
 void styles::parse(object const& obj, cycle_button::style* style)
 {
-    parse_background_style(obj, style);
+    parse_widget_style(obj, style);
     if (object el; obj.try_get(el, "text")) { parse_element(el, &style->Text); }
 }
 
 void styles::parse(object const& obj, drop_down_list::style* style)
 {
-    parse_background_style(obj, style);
+    parse_widget_style(obj, style);
     if (object el; obj.try_get(el, "text")) { parse_element(el, &style->Text); }
     obj.try_get(style->NavArrowClass, "arrow_class");
     obj.try_get(style->ItemClass, "item_class");
@@ -273,7 +273,7 @@ void styles::parse(object const& obj, drop_down_list::style* style)
 
 void styles::parse(data::config::object const& obj, grid_view::style* style)
 {
-    parse_background_style(obj, style);
+    parse_widget_style(obj, style);
     if (object el; obj.try_get(el, "v_scroll_bar")) { parse_element(el, &style->VScrollBar); }
     obj.try_get(style->AutoSizeColumns, "auto_size_columns");
     obj.try_get(style->HeaderClass, "header_class");
@@ -283,20 +283,20 @@ void styles::parse(data::config::object const& obj, grid_view::style* style)
 
 void styles::parse(data::config::object const& obj, image_box::style* style)
 {
-    parse_background_style(obj, style);
+    parse_widget_style(obj, style);
     obj.try_get(style->Fit, "fit");
     obj.try_get(style->Alignment, "alignment");
 }
 
 void styles::parse(data::config::object const& obj, label::style* style)
 {
-    parse_background_style(obj, style);
+    parse_widget_style(obj, style);
     if (object el; obj.try_get(el, "text")) { parse_element(el, &style->Text); }
 }
 
 void styles::parse(data::config::object const& obj, list_box::style* style)
 {
-    parse_background_style(obj, style);
+    parse_widget_style(obj, style);
     if (object el; obj.try_get(el, "v_scroll_bar")) { parse_element(el, &style->VScrollBar); }
     obj.try_get(style->ItemClass, "item_class");
     obj.try_get(style->ItemHeight, "item_height");
@@ -304,20 +304,20 @@ void styles::parse(data::config::object const& obj, list_box::style* style)
 
 void styles::parse(data::config::object const& obj, panel::style* style)
 {
-    parse_background_style(obj, style);
+    parse_widget_style(obj, style);
     if (object el; obj.try_get(el, "v_scroll_bar")) { parse_element(el, &style->VScrollBar); }
     if (object el; obj.try_get(el, "h_scroll_bar")) { parse_element(el, &style->HScrollBar); }
 }
 
 void styles::parse(data::config::object const& obj, progress_bar::style* style)
 {
-    parse_background_style(obj, style);
+    parse_widget_style(obj, style);
     if (object el; obj.try_get(el, "bar")) { parse_element(el, &style->Bar); }
 }
 
 void styles::parse(data::config::object const& obj, radio_button::style* style)
 {
-    parse_background_style(obj, style);
+    parse_widget_style(obj, style);
     if (object el; obj.try_get(el, "tick")) { parse_element(el, &style->Tick); }
 }
 
@@ -330,14 +330,14 @@ void styles::parse(data::config::object const& obj, slider::style* style)
 
 void styles::parse(data::config::object const& obj, spinner::style* style)
 {
-    parse_background_style(obj, style);
+    parse_widget_style(obj, style);
     if (object el; obj.try_get(el, "text")) { parse_element(el, &style->Text); }
     obj.try_get(style->NavArrowClass, "nav_arrow_class");
 }
 
 void styles::parse(data::config::object const& obj, tab_container::style* style)
 {
-    parse_background_style(obj, style);
+    parse_widget_style(obj, style);
     obj.try_get(style->TabItemClass, "tab_item_class");
     obj.try_get(style->TabBarPosition, "tab_bar_position");
     obj.try_get(style->TabBarHeight, "tab_bar_height");
@@ -346,21 +346,21 @@ void styles::parse(data::config::object const& obj, tab_container::style* style)
 
 void styles::parse(data::config::object const& obj, text_box::style* style)
 {
-    parse_background_style(obj, style);
+    parse_widget_style(obj, style);
     if (object el; obj.try_get(el, "text")) { parse_element(el, &style->Text); }
     if (object el; obj.try_get(el, "caret")) { parse_element(el, &style->Caret); }
 }
 
 void styles::parse(data::config::object const& obj, toggle::style* style)
 {
-    parse_background_style(obj, style);
+    parse_widget_style(obj, style);
     if (object el; obj.try_get(el, "tick")) { parse_element(el, &style->Tick); }
     obj.try_get(style->Delay, "delay");
 }
 
 void styles::parse(data::config::object const& obj, tooltip::style* style)
 {
-    parse_background_style(obj, style);
+    parse_widget_style(obj, style);
     if (object el; obj.try_get(el, "v_scroll_bar")) { parse_element(el, &style->VScrollBar); }
     if (object el; obj.try_get(el, "h_scroll_bar")) { parse_element(el, &style->HScrollBar); }
     obj.try_get(style->Delay, "delay");
@@ -460,7 +460,7 @@ void styles::parse_style(object const& obj, widget_style* style)
     obj.try_get(style->Padding, "padding");
 }
 
-void styles::parse_background_style(object const& obj, background_style* style)
+void styles::parse_widget_style(object const& obj, widget_style* style)
 {
     parse_style(obj, style);
     obj.try_get(style->Background, "background");
