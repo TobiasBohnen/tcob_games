@@ -245,7 +245,6 @@ void styles::parse(object const& obj, accordion::style* style)
 void styles::parse(object const& obj, button::style* style)
 {
     parse_background_style(obj, style);
-    obj.try_get(style->Display, "display");
     if (object el; obj.try_get(el, "text")) { parse_element(el, &style->Text); }
 }
 
