@@ -54,7 +54,7 @@ form_controls::form_controls(gfx::window* window, assets::group& resGrp, std::sh
 
         auto const create {[&](rect_i const& bounds, std::string const& name, std::string const& tex) {
             auto retValue {menuPanelLayout->create_widget<button>(bounds, name)};
-            retValue->Icon    = resGrp.get<gfx::texture>(tex);
+            retValue->Icon    = {resGrp.get<gfx::texture>(tex)};
             retValue->Tooltip = tooltip0;
             return retValue;
         }};
@@ -190,7 +190,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
     auto txbFilter {panelFilterLayout->create_widget<text_box>({0, 0, 9, 1}, "txbFilter")};
     txbFilter->MaxLength = 30;
     auto btnClearFilter {panelFilterLayout->create_widget<button>({9, 0, 1, 1}, "btnClearFilter")};
-    btnClearFilter->Icon = _resGrp.get<gfx::texture>("cross");
+    btnClearFilter->Icon = {_resGrp.get<gfx::texture>("cross")};
     btnClearFilter->Click.connect([tb = txbFilter.get()]() { tb->Text = ""; });
     btnClearFilter->Tooltip = _tooltip;
 
@@ -337,7 +337,7 @@ void form_menu::create_game_details(dock_layout& panelLayout)
     });
 
     auto btnStartGame {panelGameStatsLayout->create_widget<button>({1, 36, 4, 3}, "btnStartGame")};
-    btnStartGame->Icon = _resGrp.get<gfx::texture>("play");
+    btnStartGame->Icon = {_resGrp.get<gfx::texture>("play")};
     btnStartGame->Click.connect([&]() { start_game(); });
     btnStartGame->Tooltip = _tooltip;
 
@@ -518,7 +518,7 @@ void form_menu::create_settings_video(tab_container& tabContainer)
     }
 
     auto btnApplyVideoSettings {tabPanelLayout->create_widget<button>({33, 34, 4, 4}, "btnApplyVideoSettings")};
-    btnApplyVideoSettings->Icon    = _resGrp.get<gfx::texture>("apply");
+    btnApplyVideoSettings->Icon    = {_resGrp.get<gfx::texture>("apply")};
     btnApplyVideoSettings->Tooltip = _tooltip;
     btnApplyVideoSettings->Click.connect([&]() { VideoSettingsChanged(); });
 }
@@ -646,7 +646,7 @@ void form_menu::create_menubar(tab_container& parent)
     }
 
     auto btnBack {menuLayout->create_widget<button>({1, 17, 10, 2}, "btnBack")};
-    btnBack->Icon = _resGrp.get<gfx::texture>("back");
+    btnBack->Icon = {_resGrp.get<gfx::texture>("back")};
     btnBack->Click.connect([&](auto&) { hide(); });
     btnBack->Tooltip = _tooltip;
 }

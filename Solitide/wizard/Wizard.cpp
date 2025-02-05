@@ -208,10 +208,10 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
     });
 
     BtnGenerate       = mainLayout->create_widget<button>({60, 72, 9, 5}, "btnGenerate");
-    BtnGenerate->Icon = resGrp.get<gfx::texture>("apply");
+    BtnGenerate->Icon = {resGrp.get<gfx::texture>("apply")};
 
     BtnBack       = mainLayout->create_widget<button>({70, 72, 9, 5}, "btnBack");
-    BtnBack->Icon = resGrp.get<gfx::texture>("back");
+    BtnBack->Icon = {resGrp.get<gfx::texture>("back")};
 }
 
 void form_wizard::set_log_messages(std::vector<std::string> const& messages)
