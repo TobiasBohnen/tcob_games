@@ -283,7 +283,6 @@ void styles::parse(data::config::object const& obj, grid_view::style* style)
 void styles::parse(data::config::object const& obj, image_box::style* style)
 {
     parse_widget_style(obj, style);
-    obj.try_get(style->Fit, "fit");
     obj.try_get(style->Alignment, "alignment");
 }
 
