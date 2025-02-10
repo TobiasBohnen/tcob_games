@@ -289,8 +289,7 @@
         },
         "tab_bar_height": "5pct",
         "tab_item_class": "tab_items",
-        "tab_bar_position": "Top",
-        "max_tabs_per_row": 6
+        "tab_bar_position": "Top"
     },
     "tab_container_small#tab_container": {
         "padding": "2px",
@@ -300,8 +299,7 @@
         },
         "tab_bar_height": "20pct",
         "tab_item_class": "tab_items",
-        "tab_bar_position": "Top",
-        "max_tabs_per_row": 5
+        "tab_bar_position": "Top"
     },
     "tab_container_hidden#tab_container": {
         "border": {
