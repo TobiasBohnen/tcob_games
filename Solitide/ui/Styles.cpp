@@ -355,15 +355,6 @@ void styles::parse(data::config::object const& obj, toggle::style* style)
     obj.try_get(style->Delay, "delay");
 }
 
-void styles::parse(data::config::object const& obj, tooltip::style* style)
-{
-    parse_widget_style(obj, style);
-    if (object el; obj.try_get(el, "v_scroll_bar")) { parse_element(el, &style->VScrollBar); }
-    if (object el; obj.try_get(el, "h_scroll_bar")) { parse_element(el, &style->HScrollBar); }
-    obj.try_get(style->Delay, "delay");
-    obj.try_get(style->FadeIn, "fade_in");
-}
-
 void styles::parse(data::config::object const& obj, nav_arrows_style* style)
 {
     obj.try_get(style->NavArrow.Type, "type");

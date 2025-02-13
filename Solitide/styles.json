@@ -433,10 +433,7 @@
             "vertical": "Middle"
         }
     },
-    "tooltip": {
-        "delay": 500,
-        "fade_in": 150
-    },
+    "tooltip": {},
     "text_box": {
         "padding": "2px",
         "border": {

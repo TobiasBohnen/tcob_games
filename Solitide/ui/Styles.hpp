@@ -39,7 +39,6 @@ private:
     void parse(data::config::object const& obj, tab_container::style* style);
     void parse(data::config::object const& obj, text_box::style* style);
     void parse(data::config::object const& obj, toggle::style* style);
-    void parse(data::config::object const& obj, tooltip::style* style);
     void parse(data::config::object const& obj, nav_arrows_style* style);
     void parse(data::config::object const& obj, thumb_style* style);
     void parse(data::config::object const& obj, item_style* style);

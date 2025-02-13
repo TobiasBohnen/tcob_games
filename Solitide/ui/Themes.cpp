@@ -146,12 +146,6 @@ void color_theme::apply(std::shared_ptr<accordion::style> const& style) const
     style->Border.Background = Border;
 }
 
-void color_theme::apply(std::shared_ptr<tooltip::style> const& style) const
-{
-    style->Background        = Background;
-    style->Border.Background = Border;
-}
-
 void color_theme::apply(std::shared_ptr<thumb_style> const& style) const
 {
     style->Thumb.Background        = Background;
