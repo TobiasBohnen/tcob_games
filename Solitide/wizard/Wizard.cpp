@@ -139,7 +139,7 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
         auto         tab {mainLayout->create_widget<tab_container>({0, 20, 30, 60}, "Piles")};
         size_i const boxSize {2, 12};
         {
-            auto pnl {tab->create_tab<panel>("Stock", "Stock")};
+            auto pnl {tab->create_tab<panel>("Stock", {"Stock", {}, {}})};
             auto layout {pnl->create_layout<box_layout>(boxSize)};
 
             createLabel(layout, "Deal");
@@ -158,14 +158,14 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
             spnRedeals->Value = 1;
         }
         {
-            auto pnl {tab->create_tab<panel>("Waste", "Waste")};
+            auto pnl {tab->create_tab<panel>("Waste", {"Waste", {}, {}})};
             auto layout {pnl->create_layout<box_layout>(boxSize)};
 
             createPileSize(layout, "Waste");
             createPileLayout(layout, "Waste");
         }
         {
-            auto pnl {tab->create_tab<panel>("Reserve", "Reserve")};
+            auto pnl {tab->create_tab<panel>("Reserve", {"Reserve", {}, {}})};
             auto layout {pnl->create_layout<box_layout>(boxSize)};
 
             createPileSize(layout, "Reserve");
@@ -174,7 +174,7 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
             createPileLayout(layout, "Reserve");
         }
         {
-            auto pnl {tab->create_tab<panel>("FreeCell", "FreeCell")};
+            auto pnl {tab->create_tab<panel>("FreeCell", {"FreeCell", {}, {}})};
             auto layout {pnl->create_layout<box_layout>(boxSize)};
 
             createPileSize(layout, "FreeCell");
@@ -183,14 +183,14 @@ form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
             createPileRule(layout, "FreeCell", {.base = "Any", .build = "None", .move = "Top"});
         }
         {
-            auto pnl {tab->create_tab<panel>("Foundation", "Foundation")};
+            auto pnl {tab->create_tab<panel>("Foundation", {"Foundation", {}, {}})};
             auto layout {pnl->create_layout<box_layout>(boxSize)};
 
             createPileLayout(layout, "Foundation");
             createPileRule(layout, "Foundation", {.base = "Ace", .build = "UpInSuit", .move = "Top"});
         }
         {
-            auto pnl {tab->create_tab<panel>("Tableau", "Tableau")};
+            auto pnl {tab->create_tab<panel>("Tableau", {"Tableau", {}, {}})};
             auto layout {pnl->create_layout<box_layout>(boxSize)};
 
             createPileSize(layout, "Tableau");
