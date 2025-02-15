@@ -23,14 +23,14 @@ auto static make_tooltip(menu_sources& sources, form* form) -> std::shared_ptr<t
     auto tooltipLabel {tooltipLayout->create_widget<label>(dock_style::Fill, "TTLabel0")};
     tooltipLabel->Class = "tooltip-label";
 
-    retValue->Popup.connect([&, lbl = tooltipLabel.get(), tt = retValue.get()](auto const& event) {
+    retValue->Popup.connect([&sources, lbl = tooltipLabel.get(), tt = retValue.get()](auto const& event) {
         auto const widget {event.Widget};
         sources.Translator.bind(lbl->Label, "ux", widget->name());
 
-        auto const   bounds {widget->Bounds()};
-        label::style style;
-        lbl->get_style(style);
-        auto* const font {style.Text.Font->get_font(style.Text.Style, style.Text.calc_font_size({0, 0, bounds.width() * 1.5f, bounds.height() * 0.75f})).ptr()};
+        auto const bounds {widget->Bounds()};
+        auto*      style {dynamic_cast<label::style*>(lbl->current_style())};
+        assert(style);
+        auto* const font {style->Text.Font->get_font(style->Text.Style, style->Text.calc_font_size({0, 0, bounds.width() * 1.5f, bounds.height() * 0.75f})).ptr()};
         tt->Bounds = {point_f::Zero, gfx::text_formatter::measure(lbl->Label(), *font, -1, true)};
     });
     return retValue;
