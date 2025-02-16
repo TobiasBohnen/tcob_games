@@ -443,7 +443,6 @@ void styles::parse_element(data::config::object const& obj, element::caret* care
 
 void styles::parse_style(object const& obj, widget_style* style)
 {
-    obj.try_get(style->Cursor, "cursor");
     obj.try_get(style->Margin, "margin");
     obj.try_get(style->Padding, "padding");
 }
