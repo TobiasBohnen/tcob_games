@@ -358,8 +358,8 @@ void styles::parse(data::config::object const& obj, toggle::style* style)
 void styles::parse(data::config::object const& obj, nav_arrows_style* style)
 {
     obj.try_get(style->NavArrow.Type, "type");
-    obj.try_get(style->NavArrow.IncBackground, "inc_background");
-    obj.try_get(style->NavArrow.DecBackground, "dec_background");
+    obj.try_get(style->NavArrow.UpBackground, "inc_background");
+    obj.try_get(style->NavArrow.DownBackground, "dec_background");
     obj.try_get(style->NavArrow.Foreground, "foreground");
     obj.try_get(style->NavArrow.Size, "size");
     obj.try_get(style->NavArrow.Padding, "padding");

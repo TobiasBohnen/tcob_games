@@ -162,8 +162,8 @@ void color_theme::apply(std::shared_ptr<item_style> const& style) const
 void color_theme::apply(std::shared_ptr<nav_arrows_style> const& style) const
 {
     style->NavArrow.Foreground        = Foreground;
-    style->NavArrow.IncBackground     = Background;
-    style->NavArrow.DecBackground     = Background;
+    style->NavArrow.UpBackground      = Background;
+    style->NavArrow.DownBackground    = Background;
     style->NavArrow.Border.Background = Border;
 }
 

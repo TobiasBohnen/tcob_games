@@ -257,16 +257,16 @@ void elements_form::gen_styles()
         style->NavArrow.Border.Radius = 0_px;
 
         style->NavArrow.Foreground        = colors::Black;
-        style->NavArrow.IncBackground     = colors::LightGray;
-        style->NavArrow.DecBackground     = colors::LightGray;
+        style->NavArrow.UpBackground      = colors::LightGray;
+        style->NavArrow.DownBackground    = colors::LightGray;
         style->NavArrow.Border.Background = colors::Black;
 
         auto hoverStyle {styles.create<nav_arrows_style>("nav_arrows", {.Hover = true})};
         hoverStyle->NavArrow = style->NavArrow;
 
         hoverStyle->NavArrow.Foreground        = colors::LightGray;
-        hoverStyle->NavArrow.IncBackground     = colors::Black;
-        hoverStyle->NavArrow.DecBackground     = colors::Black;
+        hoverStyle->NavArrow.UpBackground      = colors::Black;
+        hoverStyle->NavArrow.DownBackground    = colors::Black;
         hoverStyle->NavArrow.Border.Background = colors::LightGray;
     }
     Styles = styles;
