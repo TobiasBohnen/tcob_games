@@ -110,7 +110,7 @@ void B2DDebugDraw::draw_string(point_f p, string const& text)
 {
     _canvas.set_font(_font);
     _canvas.set_fill_style(colors::Black);
-    _canvas.fill_text({p * physicsWorldSize, {1000, 1000}}, text);
+    _canvas.draw_text({p * physicsWorldSize, {1000, 1000}}, text);
 }
 
 void B2DDebugDraw::draw(physics::world const& world, f32 alpha, gfx::render_target& target)
