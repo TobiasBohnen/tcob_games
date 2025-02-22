@@ -330,10 +330,10 @@ void gen_cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, ran
         rect_f const      rankRect {offset, rankSize};
 
         f32 const suitSize {texSize.Width / 8};
-        canvas.draw_textbox(rankRect, rankSymbol);
+        canvas.fill_text(rankRect, rankSymbol);
         draw_suit(canvas, s, {offset.X + suitSize / 2, offset.Y + fonts.NormalFont->info().LineHeight + suitSize / 2}, suitSize);
         canvas.rotate_at(degree_f {180}, cardCenter);
-        canvas.draw_textbox(rankRect, rankSymbol);
+        canvas.fill_text(rankRect, rankSymbol);
         draw_suit(canvas, s, {offset.X + suitSize / 2, offset.Y + fonts.NormalFont->info().LineHeight + suitSize / 2}, suitSize);
         canvas.reset_transform();
     }
@@ -430,7 +430,7 @@ void gen_cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, ran
         case rank::King: {
             set_suit_color(canvas, s);
             canvas.set_font(fonts.LargeFont);
-            canvas.draw_textbox(pad_rect(rect), get_rank_symbol(r));
+            canvas.fill_text(pad_rect(rect), get_rank_symbol(r));
         } break;
         }
     }
@@ -446,7 +446,7 @@ void gen_cardset::draw_marker(gfx::canvas& canvas, fonts const& fonts, rank r, r
 
     canvas.set_fill_style(colors::Green);
     canvas.set_font(fonts.LargeFont);
-    canvas.draw_textbox(pad_rect(rect), get_rank_symbol(r));
+    canvas.fill_text(pad_rect(rect), get_rank_symbol(r));
 
     canvas.restore();
 }
@@ -614,10 +614,10 @@ void mini_cardset::draw_card(gfx::canvas& canvas, gfx::font* font, suit s, rank 
     set_suit_color(canvas, s);
     canvas.set_font(font);
     if (rect.width() > rect.height()) {
-        canvas.draw_textbox({cardRect.Position, {width / 2, height}}, get_rank_symbol(r));
+        canvas.fill_text({cardRect.Position, {width / 2, height}}, get_rank_symbol(r));
         draw_suit(canvas, s, {cardRect.Position + point_f {width * 0.75f, height / 2}}, width / 2.25f);
     } else {
-        canvas.draw_textbox({cardRect.Position, {width, height / 2}}, get_rank_symbol(r));
+        canvas.fill_text({cardRect.Position, {width, height / 2}}, get_rank_symbol(r));
         draw_suit(canvas, s, {cardRect.Position + point_f {width / 2, height * 0.75f}}, width / 2.25f);
     }
 
@@ -632,7 +632,7 @@ void mini_cardset::draw_marker(gfx::canvas& canvas, gfx::font* font, rank r, rec
 
     canvas.set_fill_style(colors::Green);
     canvas.set_font(font);
-    canvas.draw_textbox(pad_rect(rect), get_rank_symbol(r));
+    canvas.fill_text(pad_rect(rect), get_rank_symbol(r));
 
     canvas.restore();
 }
