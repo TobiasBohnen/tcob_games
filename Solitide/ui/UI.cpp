@@ -27,8 +27,8 @@ auto static make_tooltip(menu_sources& sources, form* form) -> std::shared_ptr<t
         auto const widget {event.Widget};
         sources.Translator.bind(lbl->Label, "ux", widget->name());
 
-        auto const bounds {widget->Bounds()};
-        auto const*      style {dynamic_cast<label::style const*>(lbl->current_style())};
+        auto const  bounds {widget->Bounds()};
+        auto const* style {dynamic_cast<label::style const*>(lbl->current_style())};
         assert(style);
         auto* const font {style->Text.Font->get_font(style->Text.Style, style->Text.calc_font_size({0, 0, bounds.width() * 1.5f, bounds.height() * 0.75f})).ptr()};
         tt->Bounds = {point_f::Zero, gfx::text_formatter::measure(lbl->Label(), *font, -1, true)};
@@ -489,7 +489,7 @@ void form_menu::create_settings_video(tab_container& tabContainer)
 
     // resolution
     {
-        auto const displayModes {locate_service<gfx::render_system>().displays()};
+        auto const displayModes {locate_service<platform>().displays()};
         auto       ddlRes {tabPanelLayout->create_widget<drop_down_list>({6, 1, 6, 4}, "ddlResolution")};
         ddlRes->ZOrder = 1;
         for (auto const& dm : displayModes.at(0).Modes) {
