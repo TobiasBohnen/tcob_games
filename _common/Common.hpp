@@ -8,7 +8,7 @@
 #include <tcob/tcob.hpp>
 
 using namespace tcob;
-using namespace tcob::gfx::ui;
+using namespace tcob::ui;
 using namespace std::chrono_literals;
 
 enum class game_state {

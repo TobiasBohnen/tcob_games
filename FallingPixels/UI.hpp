@@ -11,7 +11,7 @@
 
 ////////////////////////////////////////////////////////////
 
-class elements_form : public gfx::ui::form {
+class elements_form : public ui::form {
 public:
     elements_form(gfx::window* window, rect_f const& bounds, std::vector<element_def> const& elements);
 

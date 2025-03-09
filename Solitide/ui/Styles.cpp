@@ -26,19 +26,19 @@ static auto parse_unit_value(tcob::utf8_string_view input) -> std::pair<std::str
     return std::make_pair(value, unit);
 }
 
-auto static get_length_values(tcob::data::config::cfg_value const& config) -> std::vector<tcob::gfx::ui::length>
+auto static get_length_values(tcob::data::config::cfg_value const& config) -> std::vector<tcob::ui::length>
 {
     using namespace tcob;
-    std::vector<gfx::ui::length> l;
+    std::vector<ui::length> l;
 
     auto const strings {helper::split(std::get<utf8_string>(config), ',')};
     for (auto str : strings) {
         auto const [valueStr, unit] {parse_unit_value(str)};
         f32 const valueF {std::stof(valueStr)};
         if (unit == "px") {
-            l.emplace_back(valueF, gfx::ui::length::type::Absolute);
+            l.emplace_back(valueF, ui::length::type::Absolute);
         } else if (unit == "pct") {
-            l.emplace_back(valueF / 100.0f, gfx::ui::length::type::Relative);
+            l.emplace_back(valueF / 100.0f, ui::length::type::Relative);
         } else {
             return {};
         }
@@ -49,13 +49,13 @@ auto static get_length_values(tcob::data::config::cfg_value const& config) -> st
 
 namespace tcob::data::config {
 template <>
-struct converter<gfx::ui::thickness> {
+struct converter<ui::thickness> {
     auto static IsType(cfg_value const& config) -> bool
     {
         return std::holds_alternative<utf8_string>(config);
     }
 
-    auto static From(cfg_value const& config, gfx::ui::thickness& value) -> bool
+    auto static From(cfg_value const& config, ui::thickness& value) -> bool
     {
         if (std::holds_alternative<utf8_string>(config)) {
             auto l {get_length_values(config)};
@@ -79,13 +79,13 @@ struct converter<gfx::ui::thickness> {
 };
 
 template <>
-struct converter<gfx::ui::dimensions> {
+struct converter<ui::dimensions> {
     auto static IsType(cfg_value const& config) -> bool
     {
         return std::holds_alternative<utf8_string>(config);
     }
 
-    auto static From(cfg_value const& config, gfx::ui::dimensions& value) -> bool
+    auto static From(cfg_value const& config, ui::dimensions& value) -> bool
     {
         if (std::holds_alternative<utf8_string>(config)) {
             auto l {get_length_values(config)};
@@ -106,13 +106,13 @@ struct converter<gfx::ui::dimensions> {
 };
 
 template <>
-struct converter<gfx::ui::length> {
+struct converter<ui::length> {
     auto static IsType(cfg_value const& config) -> bool
     {
         return std::holds_alternative<utf8_string>(config);
     }
 
-    auto static From(cfg_value const& config, gfx::ui::length& value) -> bool
+    auto static From(cfg_value const& config, ui::length& value) -> bool
     {
         if (std::holds_alternative<utf8_string>(config)) {
             auto l {get_length_values(config)};
@@ -130,13 +130,13 @@ struct converter<gfx::ui::length> {
 };
 
 template <>
-struct converter<gfx::ui::ui_paint> {
+struct converter<ui::ui_paint> {
     auto static IsType(cfg_value const& config) -> bool
     {
         return std::holds_alternative<utf8_string>(config);
     }
 
-    auto static From(cfg_value const& config, gfx::ui::ui_paint& value) -> bool
+    auto static From(cfg_value const& config, ui::ui_paint& value) -> bool
     {
         if (std::holds_alternative<utf8_string>(config)) {
             auto const str {std::get<utf8_string>(config)};

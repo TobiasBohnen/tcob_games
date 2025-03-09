@@ -11,8 +11,7 @@
 
 namespace solitaire {
 using namespace tcob;
-using namespace tcob::gfx::ui;
-namespace tweening = tcob::gfx;
+using namespace tcob::ui;
 using namespace std::chrono_literals;
 
 constexpr isize       INDEX_MARKER {-1};

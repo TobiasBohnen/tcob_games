@@ -9,7 +9,7 @@
 
 using namespace tcob::literals;
 using namespace tcob::gfx;
-using namespace tcob::gfx::ui;
+using namespace tcob::ui;
 using namespace std::chrono_literals;
 
 ////////////////////////////////////////////////////////////
@@ -70,7 +70,7 @@ elements_form::elements_form(window* window, rect_f const& bounds, std::vector<e
 
 void elements_form::gen_styles()
 {
-    namespace element = tcob::gfx::ui::element;
+    namespace element = tcob::ui::element;
 
     style_collection styles;
     {
