@@ -233,7 +233,7 @@ void create_styles(assets::group const& resGrp, style_collection& styles)
     }
     {
         auto style {styles.create<button>("button", {})};
-        style->Border.Type          = border_element::type::Solid;
+        style->Border.Type          = line_type::Solid;
         style->Border.Size          = 3_px;
         style->Border.Radius        = 5_px;
         style->Text.Style           = {false, gfx::font::weight::Normal};
@@ -243,7 +243,7 @@ void create_styles(assets::group const& resGrp, style_collection& styles)
         style->Text.Shadow.OffsetY  = 1_px;
         style->Text.Alignment       = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
         style->Text.Decoration.Size = {3_px};
-        style->Text.AutoSize        = text_element::auto_size_mode::Always;
+        style->Text.AutoSize        = auto_size_mode::Always;
         style->Margin               = {5_px};
         style->Padding              = {1_px};
 
@@ -263,7 +263,7 @@ void create_styles(assets::group const& resGrp, style_collection& styles)
         style->Margin            = {2_px};
         style->Padding           = {2_px};
         style->ThumbClass        = "slider_thumb";
-        style->Bar.Type          = bar_element::type::Continuous;
+        style->Bar.Type          = bar_type::Continuous;
         style->Bar.Size          = 25_pct;
         style->Bar.Delay         = 100ms;
         style->Bar.Border.Size   = 3_px;
@@ -277,7 +277,7 @@ void create_styles(assets::group const& resGrp, style_collection& styles)
         style->Text.Font      = resGrp.get<gfx::font_family>("Poppins");
         style->Text.Size      = 50_pct;
         style->Text.Alignment = {gfx::horizontal_alignment::Left, gfx::vertical_alignment::Middle};
-        style->Text.AutoSize  = text_element::auto_size_mode::OnlyShrink;
+        style->Text.AutoSize  = auto_size_mode::OnlyShrink;
 
         normal.apply(style);
     }
@@ -287,7 +287,7 @@ void create_styles(assets::group const& resGrp, style_collection& styles)
         style->Text.Font      = resGrp.get<gfx::font_family>("Poppins");
         style->Text.Size      = 16_px;
         style->Text.Alignment = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
-        style->Text.AutoSize  = text_element::auto_size_mode::OnlyShrink;
+        style->Text.AutoSize  = auto_size_mode::OnlyShrink;
         normal.apply(style);
         style->Text.Color = colors::White;
     }
@@ -301,7 +301,7 @@ void create_styles(assets::group const& resGrp, style_collection& styles)
         style->ItemHeight                 = 10_pct;
         style->ItemClass                  = "list_items";
         style->VScrollBar.ThumbClass      = "scrollbar_thumb";
-        style->VScrollBar.Bar.Type        = bar_element::type::Continuous;
+        style->VScrollBar.Bar.Type        = bar_type::Continuous;
         style->VScrollBar.Bar.Size        = 20_pct;
         style->VScrollBar.Bar.Border.Size = 3_px;
         style->VScrollBar.Bar.Delay       = 250ms;
@@ -315,7 +315,7 @@ void create_styles(assets::group const& resGrp, style_collection& styles)
 
     {
         auto style {styles.create<thumb_style>("slider_thumb", {}, {})};
-        style->Thumb.Type          = thumb_element::type::Rect;
+        style->Thumb.Type          = thumb_type::Rect;
         style->Thumb.LongSide      = 25_pct;
         style->Thumb.ShortSide     = 80_pct;
         style->Thumb.Border.Size   = 3_px;
@@ -333,7 +333,7 @@ void create_styles(assets::group const& resGrp, style_collection& styles)
     }
     {
         auto style {styles.create<thumb_style>("scrollbar_thumb", {}, {})};
-        style->Thumb.Type        = thumb_element::type::Rect;
+        style->Thumb.Type        = thumb_type::Rect;
         style->Thumb.LongSide    = 25_pct;
         style->Thumb.ShortSide   = 80_pct;
         style->Thumb.Border.Size = 3_px;

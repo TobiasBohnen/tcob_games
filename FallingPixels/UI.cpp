@@ -83,14 +83,14 @@ void elements_form::gen_styles()
     }
     {
         auto style {styles.create<button>("button", {})};
-        style->Border.Type    = border_element::type::Solid;
+        style->Border.Type    = line_type::Solid;
         style->Border.Size    = 3_px;
         style->Border.Radius  = 15_px;
         style->Text.Style     = {false, font::weight::Normal};
         style->Text.Font      = _font;
         style->Text.Size      = 50_pct;
         style->Text.Alignment = {horizontal_alignment::Centered, vertical_alignment::Top};
-        style->Text.AutoSize  = text_element::auto_size_mode::OnlyShrink;
+        style->Text.AutoSize  = auto_size_mode::OnlyShrink;
         style->Margin         = {5_px};
         style->Padding        = {8_px};
 
@@ -114,13 +114,13 @@ void elements_form::gen_styles()
     }
     {
         auto style {styles.create<label>("label", {})};
-        style->Border.Type    = border_element::type::Solid;
+        style->Border.Type    = line_type::Solid;
         style->Border.Size    = 3_px;
         style->Text.Style     = {false, font::weight::Normal};
         style->Text.Font      = _font;
         style->Text.Size      = 40_pct;
         style->Text.Alignment = {horizontal_alignment::Centered, vertical_alignment::Middle};
-        style->Text.AutoSize  = text_element::auto_size_mode::OnlyShrink;
+        style->Text.AutoSize  = auto_size_mode::OnlyShrink;
         style->Margin         = {2_px};
         style->Padding        = {2_px};
 
@@ -169,7 +169,7 @@ void elements_form::gen_styles()
         style->Margin            = {5_px};
         style->Padding           = {2_px};
         style->ThumbClass        = "slider_thumb";
-        style->Bar.Type          = bar_element::type::Continuous;
+        style->Bar.Type          = bar_type::Continuous;
         style->Bar.Size          = 95_pct;
         style->Bar.Delay         = 0ms;
         style->Bar.Border.Size   = 3_px;
@@ -180,7 +180,7 @@ void elements_form::gen_styles()
     }
     {
         auto style {styles.create<thumb_style>("slider_thumb", {}, {})};
-        style->Thumb.Type          = thumb_element::type::Rect;
+        style->Thumb.Type          = thumb_type::Rect;
         style->Thumb.LongSide      = 25_pct;
         style->Thumb.ShortSide     = 80_pct;
         style->Thumb.Border.Size   = 3_px;
@@ -211,7 +211,7 @@ void elements_form::gen_styles()
         style->Text.Font      = _font;
         style->Text.Size      = 50_pct;
         style->Text.Alignment = {horizontal_alignment::Centered, vertical_alignment::Middle};
-        style->Text.AutoSize  = text_element::auto_size_mode::OnlyShrink;
+        style->Text.AutoSize  = auto_size_mode::OnlyShrink;
         style->ItemHeight     = 100_pct;
         style->ItemClass      = "list_items";
 
@@ -226,7 +226,7 @@ void elements_form::gen_styles()
         style->Item.Text.Font      = _font;
         style->Item.Text.Size      = 50_pct;
         style->Item.Text.Alignment = {horizontal_alignment::Left, vertical_alignment::Middle};
-        style->Item.Text.AutoSize  = text_element::auto_size_mode::OnlyShrink;
+        style->Item.Text.AutoSize  = auto_size_mode::OnlyShrink;
         style->Item.Border.Size    = 3_px;
 
         style->Item.Background        = colors::LightGray;
