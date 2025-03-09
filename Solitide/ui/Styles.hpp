@@ -43,13 +43,13 @@ private:
     void parse(data::config::object const& obj, thumb_style* style);
     void parse(data::config::object const& obj, item_style* style);
 
-    void parse_element(data::config::object const& obj, element::border* border);
-    void parse_element(data::config::object const& obj, element::shadow* shadow);
-    void parse_element(data::config::object const& obj, element::text* text);
-    void parse_element(data::config::object const& obj, element::tick* tick);
-    void parse_element(data::config::object const& obj, element::scrollbar* scrollbar);
-    void parse_element(data::config::object const& obj, element::bar* bar);
-    void parse_element(data::config::object const& obj, element::caret* caret);
+    void parse_element(data::config::object const& obj, border_element* border);
+    void parse_element(data::config::object const& obj, shadow_element* shadow);
+    void parse_element(data::config::object const& obj, text_element* text);
+    void parse_element(data::config::object const& obj, tick_element* tick);
+    void parse_element(data::config::object const& obj, scrollbar_element* scrollbar);
+    void parse_element(data::config::object const& obj, bar_element* bar);
+    void parse_element(data::config::object const& obj, caret_element* caret);
 
     void parse_style(data::config::object const& obj, widget_style* style);
     void parse_widget_style(data::config::object const& obj, widget_style* style);

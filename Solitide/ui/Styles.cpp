@@ -164,8 +164,6 @@ auto styles::load(color_themes const& theme) -> style_collection
     using namespace tcob::literals;
     using namespace std::chrono_literals;
 
-    namespace element = element;
-
     style_collection retValue;
 
     object styleFile {};
@@ -383,7 +381,7 @@ void styles::parse(data::config::object const& obj, item_style* style)
     obj.try_get(style->Item.Padding, "padding");
 }
 
-void styles::parse_element(object const& obj, element::border* border)
+void styles::parse_element(object const& obj, border_element* border)
 {
     obj.try_get(border->Radius, "radius");
     obj.try_get(border->Background, "background");
@@ -391,14 +389,14 @@ void styles::parse_element(object const& obj, element::border* border)
     obj.try_get(border->Type, "type");
 }
 
-void styles::parse_element(object const& obj, element::shadow* shadow)
+void styles::parse_element(object const& obj, shadow_element* shadow)
 {
     obj.try_get(shadow->Color, "color");
     obj.try_get(shadow->OffsetX, "offset_x");
     obj.try_get(shadow->OffsetY, "offset_y");
 }
 
-void styles::parse_element(object const& obj, element::text* text)
+void styles::parse_element(object const& obj, text_element* text)
 {
     obj.try_get(text->Color, "color");
     obj.try_get(text->Alignment, "alignment");
@@ -411,20 +409,20 @@ void styles::parse_element(object const& obj, element::text* text)
     obj.try_get(text->Transform, "transform");
 }
 
-void styles::parse_element(object const& obj, element::tick* tick)
+void styles::parse_element(object const& obj, tick_element* tick)
 {
     obj.try_get(tick->Type, "type");
     obj.try_get(tick->Foreground, "foreground");
     obj.try_get(tick->Size, "size");
 }
 
-void styles::parse_element(object const& obj, element::scrollbar* scrollbar)
+void styles::parse_element(object const& obj, scrollbar_element* scrollbar)
 {
     if (object el; obj.try_get(el, "bar")) { parse_element(el, &scrollbar->Bar); }
     obj.try_get(scrollbar->ThumbClass, "thumb_class");
 }
 
-void styles::parse_element(data::config::object const& obj, element::bar* bar)
+void styles::parse_element(data::config::object const& obj, bar_element* bar)
 {
     obj.try_get(bar->Type, "type");
     obj.try_get(bar->LowerBackground, "lower_background");
@@ -434,7 +432,7 @@ void styles::parse_element(data::config::object const& obj, element::bar* bar)
     obj.try_get(bar->Delay, "delay");
 }
 
-void styles::parse_element(data::config::object const& obj, element::caret* caret)
+void styles::parse_element(data::config::object const& obj, caret_element* caret)
 {
     obj.try_get(caret->Color, "color");
     obj.try_get(caret->Width, "width");
