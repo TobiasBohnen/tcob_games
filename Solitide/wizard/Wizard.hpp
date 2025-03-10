@@ -10,7 +10,7 @@
 namespace solitaire {
 ////////////////////////////////////////////////////////////
 
-class form_wizard : public form {
+class form_wizard : public form<dock_layout> {
 public:
     form_wizard(gfx::window* window, assets::group& resGrp);
 

@@ -9,7 +9,7 @@
 
 namespace Snake {
 
-class main_menu : public form {
+class main_menu : public form<dock_layout> {
 public:
     main_menu(gfx::window* window, assets::group const& resGrp, rect_f bounds);
 
