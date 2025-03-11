@@ -21,37 +21,37 @@ elements_form::elements_form(rect_i const& bounds, std::vector<element_def> cons
     font_family::SingleFont(*_font.ptr(), trim_ttf);
     gen_styles();
 
-    auto mainPanel {create_container<panel>(dock_style::Fill, "main")};
-    auto mainPanelLayout {mainPanel->create_layout<dock_layout>()};
+    auto  mainPanel {create_container<panel>(dock_style::Fill, "main")};
+    auto& mainPanelLayout {mainPanel->create_layout<dock_layout>()};
 
-    auto acc {mainPanelLayout->create_widget<accordion>(dock_style::Fill, "accordion")};
+    auto acc {mainPanelLayout.create_widget<accordion>(dock_style::Fill, "accordion")};
 
-    auto secSolid {acc->create_section<panel>("Solid")};
-    auto secSolidLayout {secSolid->create_layout<box_layout>(size_i {4, 5})};
-    auto secPowder {acc->create_section<panel>("Powder")};
-    auto secPowderLayout {secPowder->create_layout<box_layout>(size_i {4, 5})};
-    auto secLiquid {acc->create_section<panel>("Liquid")};
-    auto secLiquidLayout {secLiquid->create_layout<box_layout>(size_i {4, 5})};
-    auto secGas {acc->create_section<panel>("Gas")};
-    auto secGasLayout {secGas->create_layout<box_layout>(size_i {4, 5})};
+    auto  secSolid {acc->create_section<panel>("Solid")};
+    auto& secSolidLayout {secSolid->create_layout<box_layout>(size_i {4, 5})};
+    auto  secPowder {acc->create_section<panel>("Powder")};
+    auto& secPowderLayout {secPowder->create_layout<box_layout>(size_i {4, 5})};
+    auto  secLiquid {acc->create_section<panel>("Liquid")};
+    auto& secLiquidLayout {secLiquid->create_layout<box_layout>(size_i {4, 5})};
+    auto  secGas {acc->create_section<panel>("Gas")};
+    auto& secGasLayout {secGas->create_layout<box_layout>(size_i {4, 5})};
 
     acc->ActiveSectionIndex = 0;
     auto makeButton {
         [&](i32 id, element_type type, std::string const& name) {
-            std::shared_ptr<box_layout> layout;
+            box_layout* layout {nullptr};
             switch (type) {
             case element_type::None:
             case element_type::Solid:
-                layout = secSolidLayout;
+                layout = &secSolidLayout;
                 break;
             case element_type::Powder:
-                layout = secPowderLayout;
+                layout = &secPowderLayout;
                 break;
             case element_type::Liquid:
-                layout = secLiquidLayout;
+                layout = &secLiquidLayout;
                 break;
             case element_type::Gas:
-                layout = secGasLayout;
+                layout = &secGasLayout;
                 break;
             }
             auto btn {layout->create_widget<button>(name)};
