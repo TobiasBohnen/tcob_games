@@ -210,17 +210,17 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
             if (pred(game.second.first)) { listBox->add_item(game.first); }
         }
 
-        listBox->SelectedItemIndex.Changed.connect([&, lb = listBox.get()](auto val) {
+        listBox->SelectedItemIndex.Changed.connect([this, lb = listBox.get()](auto val) {
             if (val != -1) { _sources->SelectedGame = lb->selected_item().Text; }
         });
-        _sources->SelectedGame.Changed.connect([&, lb = listBox.get()](auto const& val) {
+        _sources->SelectedGame.Changed.connect([lb = listBox.get()](auto const& val) {
             if (lb->select_item(val)) {
                 if (!lb->is_focused()) { lb->scroll_to_selected(); }
             } else {
                 lb->SelectedItemIndex = -1;
             }
         });
-        listBox->DoubleClick.connect([&, lb = listBox.get()] {
+        listBox->DoubleClick.connect([this, lb = listBox.get()] {
             if (lb->SelectedItemIndex >= 0) { start_game(); }
         });
         return listBox;
@@ -233,7 +233,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
 
         auto& tabPanelLayout {tabPanel->create_layout<dock_layout>()};
         auto  listBox {createListBox(tabPanelLayout, [](auto const&) { return true; })};
-        _sources->GameAdded.connect([&, lb = listBox.get()] {
+        _sources->GameAdded.connect([this, lb = listBox.get()] {
             // TODO: update all listboxes
             lb->clear_items();
             for (auto const& game : _sources->Games) { lb->add_item(game.first); }
@@ -247,7 +247,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
         auto& tabPanelLayout {tabPanel->create_layout<dock_layout>()};
         auto  listBox {createListBox(tabPanelLayout, [](auto const&) { return false; })};
         for (auto const& game : _sources->Settings.Recent()) { listBox->add_item(game); }
-        _sources->Settings.Recent.Changed.connect([&, lb = listBox.get()] {
+        _sources->Settings.Recent.Changed.connect([this, lb = listBox.get()] {
             lb->clear_items();
             for (auto const& game : _sources->Settings.Recent()) { lb->add_item(game); }
         });
@@ -341,7 +341,7 @@ void form_menu::create_game_details(dock_layout& panelLayout)
 
     auto btnStartGame {panelGameStatsLayout.create_widget<button>({1, 36, 4, 3}, "btnStartGame")};
     btnStartGame->Icon = {_resGrp.get<gfx::texture>("play")};
-    btnStartGame->Click.connect([&]() { start_game(); });
+    btnStartGame->Click.connect([this]() { start_game(); });
     btnStartGame->Tooltip = _tooltip;
 
     auto tabGameDetails {panelGameStatsLayout.create_widget<tab_container>({0, 0, 20, 32}, "tabGameDetails")};
@@ -356,18 +356,17 @@ void form_menu::create_game_details(dock_layout& panelLayout)
 
         auto gvInfo {tabPanelLayout.create_widget<grid_view>({2, 1, 36, 5}, "gvInfo")};
         gvInfo->Class = "grid_view2";
-        auto addRow {
-            [&, infoGV = gvInfo.get()](auto const& game) {
-                infoGV->clear_rows();
-                if (!_sources->Games.contains(game)) { return; }
-                auto gameInfo {_sources->Games[game].first};
-                infoGV->add_row(
-                    {_sources->Translator.translate("family", gameInfo.Family),
-                     std::to_string(gameInfo.DeckCount),
-                     gameInfo.Redeals < 0 ? "∞" : std::to_string(gameInfo.Redeals)});
-            }};
+        auto addRow {[this, infoGV = gvInfo.get()](auto const& game) {
+            infoGV->clear_rows();
+            if (!_sources->Games.contains(game)) { return; }
+            auto gameInfo {_sources->Games[game].first};
+            infoGV->add_row(
+                {_sources->Translator.translate("family", gameInfo.Family),
+                 std::to_string(gameInfo.DeckCount),
+                 gameInfo.Redeals < 0 ? "∞" : std::to_string(gameInfo.Redeals)});
+        }};
         _sources->Translator.bind(
-            [&, addRow, infoGV = gvInfo.get()](std::vector<std::string> const& val) {
+            [this, addRow, infoGV = gvInfo.get()](std::vector<std::string> const& val) {
                 infoGV->set_columns(val, false);
                 addRow(_sources->SelectedGame);
             },
@@ -525,7 +524,7 @@ void form_menu::create_settings_video(tab_container& tabContainer)
     auto btnApplyVideoSettings {tabPanelLayout.create_widget<button>({33, 34, 4, 4}, "btnApplyVideoSettings")};
     btnApplyVideoSettings->Icon    = {_resGrp.get<gfx::texture>("apply")};
     btnApplyVideoSettings->Tooltip = _tooltip;
-    btnApplyVideoSettings->Click.connect([&]() { VideoSettingsChanged(); });
+    btnApplyVideoSettings->Click.connect([this]() { VideoSettingsChanged(); });
 }
 
 void form_menu::create_settings_hints(tab_container& tabContainer)
@@ -563,10 +562,10 @@ void form_menu::create_section_themes(tab_container& parent)
         auto& panelLayout {panelThemes->create_layout<dock_layout>()};
         auto  lbxThemes {panelLayout.create_widget<list_box>(dock_style::Fill, "lbxThemes")};
         for (auto const& colorTheme : _sources->Themes) { lbxThemes->add_item(colorTheme.first); }
-        lbxThemes->SelectedItemIndex.Changed.connect([&, lb = lbxThemes.get()](auto val) {
+        lbxThemes->SelectedItemIndex.Changed.connect([this, lb = lbxThemes.get()](auto val) {
             if (val != -1) { _sources->Settings.Theme = lb->selected_item().Text; }
         });
-        lbxThemes->DoubleClick.connect([&] { hide(); });
+        lbxThemes->DoubleClick.connect([this] { hide(); });
         _sources->Settings.Theme.Changed.connect([lb = lbxThemes.get()](auto const& val) { lb->select_item(val); });
         lbxThemes->select_item(_sources->Settings.Theme);
     }
@@ -583,10 +582,10 @@ void form_menu::create_section_cardset(tab_container& parent)
     lbxCardsets->Class = "list_box_log";
     lbxCardsets->Flex  = {50_pct, 25_pct};
     for (auto const& cardSet : _sources->CardSets) { lbxCardsets->add_item(cardSet.first); }
-    lbxCardsets->SelectedItemIndex.Changed.connect([&, lb = lbxCardsets.get()](auto val) {
+    lbxCardsets->SelectedItemIndex.Changed.connect([this, lb = lbxCardsets.get()](auto val) {
         if (val != -1) { _sources->Settings.Cardset = lb->selected_item().Text; }
     });
-    lbxCardsets->DoubleClick.connect([&, lb = lbxCardsets.get()] {
+    lbxCardsets->DoubleClick.connect([this, lb = lbxCardsets.get()] {
         if (lb->SelectedItemIndex >= 0) { hide(); }
     });
 
@@ -595,7 +594,7 @@ void form_menu::create_section_cardset(tab_container& parent)
     panelCards->Flex   = {100_pct, 75_pct};
     panelCards->ZOrder = 1;
 
-    auto const cardsetChanged {[&, lb = lbxCardsets.get(), panel = panelCards.get()](auto const& val) {
+    auto const cardsetChanged {[this, lb = lbxCardsets.get(), panel = panelCards.get()](auto const& val) {
         lb->select_item(val);
 
         auto& layout {panel->create_layout<box_layout>(size_i {13, 4})};
@@ -651,7 +650,7 @@ void form_menu::create_menubar(tab_container& parent)
 
     auto btnBack {menuLayout.create_widget<button>({1, 17, 10, 2}, "btnBack")};
     btnBack->Icon = {_resGrp.get<gfx::texture>("back")};
-    btnBack->Click.connect([&](auto&) { hide(); });
+    btnBack->Click.connect([this](auto&) { hide(); });
     btnBack->Tooltip = _tooltip;
 }
 
