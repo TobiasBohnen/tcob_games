@@ -9,8 +9,8 @@ namespace solitaire {
 
 using namespace tcob::literals;
 
-form_wizard::form_wizard(gfx::window* window, assets::group& resGrp)
-    : form {"Wizard", window}
+form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
+    : form {{"Wizard", window.bounds()}}
 {
     auto main {create_container<panel>(dock_style::Fill, "Wizard")};
     auto mainLayout {main->create_layout<grid_layout>(size_i {80, 80})};

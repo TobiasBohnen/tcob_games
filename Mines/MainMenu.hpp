@@ -11,7 +11,7 @@ namespace Mines {
 
 class main_menu : public form<dock_layout> {
 public:
-    main_menu(gfx::window* window, assets::group const& resGrp, rect_f bounds);
+    main_menu(assets::group const& resGrp, rect_i const& bounds);
 
     std::shared_ptr<button> BtnStart;
     std::shared_ptr<button> BtnQuit;

@@ -12,7 +12,7 @@ namespace solitaire {
 
 class form_wizard : public form<dock_layout> {
 public:
-    form_wizard(gfx::window* window, assets::group& resGrp);
+    form_wizard(gfx::window& window, assets::group& resGrp);
 
     std::shared_ptr<button> BtnGenerate;
     std::shared_ptr<button> BtnBack;

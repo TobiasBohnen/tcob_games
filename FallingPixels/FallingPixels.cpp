@@ -141,8 +141,7 @@ main_scene::main_scene(game& game)
     ////
     auto&      win {window()};
     auto const winSize {win.Size()};
-    f32 const  height {static_cast<f32>(winSize.Height)};
-    _form = std::make_shared<elements_form>(&win, rect_f {height, 0, winSize.Width - height, height}, elementsDefs);
+    _form = std::make_shared<elements_form>(rect_i {winSize.Height, 0, winSize.Width - winSize.Height, winSize.Height}, elementsDefs);
     _form->SelectedElement.connect([&](i32 t) { _leftBtnElement = t; });
 
     win.camera().Zoom = {3.f, 3.f};

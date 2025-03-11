@@ -54,9 +54,9 @@ main_scene::main_scene(game& game)
     _db.insert_games(_sources->Games);
 
     // ui
-    _formControls = std::make_shared<form_controls>(&win, resGrp, _sources);
+    _formControls = std::make_shared<form_controls>(win, resGrp, _sources);
 
-    _formMenu = std::make_shared<form_menu>(&win, resGrp, _sources);
+    _formMenu = std::make_shared<form_menu>(win, resGrp, _sources);
     _formMenu->hide();
 
     // card table

@@ -14,8 +14,8 @@ using namespace std::chrono_literals;
 
 ////////////////////////////////////////////////////////////
 
-elements_form::elements_form(window* window, rect_f const& bounds, std::vector<element_def> const& elements)
-    : form {"elements", window, bounds}
+elements_form::elements_form(rect_i const& bounds, std::vector<element_def> const& elements)
+    : form {{"elements", bounds}}
     , _font {"trim", "trim"}
 {
     font_family::SingleFont(*_font.ptr(), trim_ttf);

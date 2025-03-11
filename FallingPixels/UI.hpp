@@ -13,7 +13,7 @@
 
 class elements_form : public ui::form<ui::dock_layout> {
 public:
-    elements_form(gfx::window* window, rect_f const& bounds, std::vector<element_def> const& elements);
+    elements_form(rect_i const& bounds, std::vector<element_def> const& elements);
 
     signal<i32> SelectedElement;
 

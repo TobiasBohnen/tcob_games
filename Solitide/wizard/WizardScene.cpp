@@ -15,7 +15,7 @@ wizard_scene::wizard_scene(game& game)
 {
     auto& resGrp {*library().get_group("solitaire")};
 
-    _formWizard = std::make_shared<form_wizard>(&window(), resGrp);
+    _formWizard = std::make_shared<form_wizard>(window(), resGrp);
 
     _formWizard->BtnBack->Click.connect([&]() {
         parent().pop_current_scene();

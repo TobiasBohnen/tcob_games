@@ -18,6 +18,7 @@ using namespace tcob::literals;
 auto static make_tooltip(menu_sources& sources, form_base* form) -> std::shared_ptr<tooltip>
 {
     auto retValue {form->create_tooltip<tooltip>("tooltip")};
+    form->TooltipOffset = {40, 40};
 
     auto tooltipLayout {retValue->create_layout<dock_layout>()};
     auto tooltipLabel {tooltipLayout->create_widget<label>(dock_style::Fill, "TTLabel0")};
@@ -36,8 +37,8 @@ auto static make_tooltip(menu_sources& sources, form_base* form) -> std::shared_
     return retValue;
 }
 
-form_controls::form_controls(gfx::window* window, assets::group& resGrp, std::shared_ptr<menu_sources> sources)
-    : form {"Controls", window}
+form_controls::form_controls(gfx::window& window, assets::group& resGrp, std::shared_ptr<menu_sources> sources)
+    : form {{"Controls", window.bounds()}}
     , _sources {std::move(sources)}
 {
     (*Controls).ActivateKey = input::key_code::UNKNOWN;
@@ -140,8 +141,8 @@ void form_controls::set_game_labels(base_game* game)
 static std::string const TabSettingsName {"conSettings"};
 static std::string const MenuName {"menu"};
 
-form_menu::form_menu(gfx::window* window, assets::group& resGrp, std::shared_ptr<menu_sources> sources)
-    : form {"Menu", window}
+form_menu::form_menu(gfx::window& window, assets::group& resGrp, std::shared_ptr<menu_sources> sources)
+    : form {{"Menu", window.bounds()}}
     , _resGrp {resGrp}
     , _sources {std::move(sources)}
 {

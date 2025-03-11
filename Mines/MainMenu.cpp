@@ -25,8 +25,8 @@ auto create_slider(grid_layout& layout, std::string const& name,
     return sl1;
 }
 
-main_menu::main_menu(gfx::window* window, assets::group const& resGrp, rect_f bounds)
-    : form {"MainMenu", window, bounds}
+main_menu::main_menu(assets::group const& resGrp, rect_i const& bounds)
+    : form {{"MainMenu", bounds}}
 {
     create_styles(resGrp, *Styles);
 

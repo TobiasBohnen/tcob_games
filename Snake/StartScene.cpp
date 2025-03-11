@@ -32,7 +32,7 @@ void start_scene::on_start()
     });
 
     rect_i const menuBounds {windowSize.Height, 0, windowSize.Width - windowSize.Height, windowSize.Height};
-    _mainForm = std::make_shared<main_menu>(&win, resGrp, rect_f {menuBounds});
+    _mainForm = std::make_shared<main_menu>(resGrp, menuBounds);
     _mainForm->BtnStart->Click.connect([&, windowSize](auto const&) {
         _playField->start();
     });

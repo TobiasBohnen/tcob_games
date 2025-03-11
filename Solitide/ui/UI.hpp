@@ -13,7 +13,7 @@ namespace solitaire {
 
 class form_controls : public form<dock_layout> {
 public:
-    form_controls(gfx::window* window, assets::group& resGrp, std::shared_ptr<menu_sources> sources);
+    form_controls(gfx::window& window, assets::group& resGrp, std::shared_ptr<menu_sources> sources);
 
     std::shared_ptr<button> BtnMenu;
     std::shared_ptr<button> BtnWizard;
@@ -64,7 +64,7 @@ private:
 
 class form_menu : public form<dock_layout> {
 public:
-    form_menu(gfx::window* window, assets::group& resGrp, std::shared_ptr<menu_sources> sources);
+    form_menu(gfx::window& window, assets::group& resGrp, std::shared_ptr<menu_sources> sources);
 
     signal<std::optional<u64> const> StartGame;
     signal<>                         VideoSettingsChanged;
