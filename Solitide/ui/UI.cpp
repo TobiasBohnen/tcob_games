@@ -179,8 +179,8 @@ void form_menu::create_section_games(tab_container& parent)
     auto  panelGames {parent.create_tab<panel>("tabGames")};
     auto& panelLayout {panelGames->create_layout<dock_layout>()};
 
-    create_game_lists(panelLayout);
     create_game_details(panelLayout);
+    create_game_lists(panelLayout);
 }
 
 void form_menu::create_game_lists(dock_layout& panelLayout)
