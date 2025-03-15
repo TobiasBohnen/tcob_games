@@ -294,7 +294,7 @@
             "size": "2px",
             "radius": "5px"
         },
-        "tab_bar_position": "Hidden"
+        "tab_bar_position": "None"
     },
     "accordion": {
         "border": {
