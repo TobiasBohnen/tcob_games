@@ -275,7 +275,7 @@
             "size": "2px",
             "radius": "5px"
         },
-        "tab_bar_height": "5pct",
+        "tab_bar_size": "5pct",
         "tab_item_class": "tab_items",
         "tab_bar_position": "Top"
     },
@@ -285,7 +285,7 @@
             "size": "2px",
             "radius": "5px"
         },
-        "tab_bar_height": "20pct",
+        "tab_bar_size": "20pct",
         "tab_item_class": "tab_items",
         "tab_bar_position": "Top"
     },

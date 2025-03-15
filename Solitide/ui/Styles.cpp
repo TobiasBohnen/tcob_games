@@ -336,7 +336,7 @@ void styles::parse(data::config::object const& obj, tab_container::style* style)
     parse_widget_style(obj, style);
     obj.try_get(style->TabItemClass, "tab_item_class");
     obj.try_get(style->TabBarPosition, "tab_bar_position");
-    obj.try_get(style->TabBarHeight, "tab_bar_height");
+    obj.try_get(style->TabBarSize, "tab_bar_size");
 }
 
 void styles::parse(data::config::object const& obj, text_box::style* style)
