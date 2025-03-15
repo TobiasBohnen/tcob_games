@@ -255,7 +255,7 @@ void styles::parse(object const& obj, checkbox::style* style)
 void styles::parse(object const& obj, cycle_button::style* style)
 {
     parse_widget_style(obj, style);
-    if (object el; obj.try_get(el, "text")) { parse_element(el, &style->Text); }
+    obj.try_get(style->ItemClass, "item_class");
 }
 
 void styles::parse(object const& obj, drop_down_list::style* style)

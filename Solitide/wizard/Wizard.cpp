@@ -15,11 +15,10 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
     auto  main {create_container<panel>(dock_style::Fill, "Wizard")};
     auto& mainLayout {main->create_layout<grid_layout>(size_i {80, 80})};
 
-    auto const createLabel {[](auto&& layout, std::string const& text, isize zorder = 0) {
+    auto const createLabel {[](auto&& layout, std::string const& text) {
         auto lbl {layout.template create_widget<label>("lbl" + text)};
-        lbl->Class  = "label-margin";
-        lbl->Label  = text;
-        lbl->ZOrder = zorder;
+        lbl->Class = "label-margin";
+        lbl->Label = text;
     }};
 
     {
@@ -40,27 +39,25 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
 
     {
         auto const createPileSize {[&](auto&& layout, std::string const& name) {
-            createLabel(layout, "# of Piles", 20);
+            createLabel(layout, "# of Piles");
             auto spn {layout.template create_widget<spinner>(name + "Size")};
-            spn->Flex   = {30_pct, 100_pct};
-            spn->Min    = 0;
-            spn->Max    = 20;
-            spn->Step   = 1;
-            spn->Value  = 0;
-            spn->ZOrder = 19;
+            spn->Flex  = {30_pct, 100_pct};
+            spn->Min   = 0;
+            spn->Max   = 20;
+            spn->Step  = 1;
+            spn->Value = 0;
         }};
         auto const createCardCount {[&](auto&& layout, std::string const& name) {
-            createLabel(layout, "# of Cards", 18);
+            createLabel(layout, "# of Cards");
             auto spn {layout.template create_widget<spinner>(name + "CardCount")};
-            spn->Flex   = {30_pct, 100_pct};
-            spn->Min    = 0;
-            spn->Max    = 208;
-            spn->Step   = 1;
-            spn->Value  = 0;
-            spn->ZOrder = 17;
+            spn->Flex  = {30_pct, 100_pct};
+            spn->Min   = 0;
+            spn->Max   = 208;
+            spn->Step  = 1;
+            spn->Value = 0;
         }};
         auto const createCardFace {[&](auto&& layout, std::string const& name) {
-            createLabel(layout, "Orientation", 16);
+            createLabel(layout, "Orientation");
             auto face {layout.template create_widget<drop_down_list>(name + "Orientation")};
             face->add_item("Face Up");
             face->add_item("Top Card Face Up");
@@ -69,18 +66,16 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
             face->add_item("Face Down");
 
             face->SelectedItemIndex = 0;
-            face->ZOrder            = 15;
             face->Class             = "drop_down_list_wizard";
         }};
         auto const createPileLayout {[&](auto&& layout, std::string const& name) {
-            createLabel(layout, "Layout", 14);
+            createLabel(layout, "Layout");
             auto cyb {layout.template create_widget<cycle_button>(name + "Layout")};
             cyb->add_item("Squared");
             cyb->add_item("Column");
             cyb->add_item("Row");
             cyb->add_item("Fan");
             cyb->SelectedItemIndex = 0;
-            cyb->ZOrder            = 13;
         }};
         struct rule {
             std::string base;
@@ -88,17 +83,16 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
             std::string move;
         };
         auto const createPileRule {[&](auto&& layout, std::string const& name, rule const& select) {
-            createLabel(layout, "Base", 12);
+            createLabel(layout, "Base");
             auto base {layout.template create_widget<drop_down_list>(name + "Base")};
             base->add_item("Ace");
             base->add_item("King");
             base->add_item("Any");
             base->add_item("None");
             base->select_item(select.base);
-            base->ZOrder = 11;
-            base->Class  = "drop_down_list_wizard";
+            base->Class = "drop_down_list_wizard";
 
-            createLabel(layout, "Build", 10);
+            createLabel(layout, "Build");
             auto build {layout.template create_widget<drop_down_list>(name + "Build")};
             build->add_item("Any");
             build->add_item("InRank");
@@ -121,10 +115,9 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
             build->add_item("UpAlternateColors");
             build->add_item("None");
             build->select_item(select.build);
-            build->ZOrder = 9;
-            build->Class  = "drop_down_list_wizard";
+            build->Class = "drop_down_list_wizard";
 
-            createLabel(layout, "Move", 8);
+            createLabel(layout, "Move");
             auto move {layout.template create_widget<drop_down_list>(name + "Move")};
             move->add_item("Top");
             move->add_item("FaceUp");
@@ -132,8 +125,7 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
             move->add_item("InSeqInSuit");
             move->add_item("None");
             move->select_item(select.move);
-            move->ZOrder = 7;
-            move->Class  = "drop_down_list_wizard";
+            move->Class = "drop_down_list_wizard";
         }};
 
         auto         tab {mainLayout.create_widget<tab_container>({0, 20, 30, 60}, "Piles")};
@@ -147,7 +139,7 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
             cybStockTarget->add_item("To Waste");
             cybStockTarget->add_item("To Waste by Threes");
             cybStockTarget->add_item("To Tableau");
-            cybStockTarget->select_item(cybStockTarget->get_item_at(0));
+            cybStockTarget->select_item(cybStockTarget->get_item_at(0).Text);
 
             createLabel(layout, "Redeals");
             auto spnRedeals {layout.create_widget<spinner>("Redeals")};

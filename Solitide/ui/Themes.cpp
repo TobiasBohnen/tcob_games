@@ -25,7 +25,6 @@ void color_theme::apply(std::shared_ptr<cycle_button::style> const& style) const
     style->Background        = Background;
     style->Border.Background = Border;
     style->DropShadow.Color  = Shadow;
-    style->Text.Color        = Foreground;
 }
 
 void color_theme::apply(std::shared_ptr<drop_down_list::style> const& style) const

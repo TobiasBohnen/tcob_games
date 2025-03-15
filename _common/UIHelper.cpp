@@ -22,12 +22,9 @@ void color_theme::apply(std::shared_ptr<checkbox::style> const& style) const
 
 void color_theme::apply(std::shared_ptr<cycle_button::style> const& style) const
 {
-    style->Background            = Background;
-    style->Border.Background     = Border;
-    style->DropShadow.Color      = DropShadow;
-    style->Text.Color            = Text;
-    style->Text.Decoration.Color = TextDecoration;
-    style->Text.Shadow.Color     = TextShadow;
+    style->Background        = Background;
+    style->Border.Background = Border;
+    style->DropShadow.Color  = DropShadow;
 }
 
 void color_theme::apply(std::shared_ptr<grid_view::style> const& style) const

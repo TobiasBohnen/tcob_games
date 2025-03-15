@@ -40,19 +40,7 @@
             "size": "3px",
             "radius": "5px"
         },
-        "text": {
-            "font": "Roboto",
-            "style": {
-                "is_italic": false,
-                "weight": "Normal"
-            },
-            "size": "24px",
-            "alignment": {
-                "horizontal": "Centered",
-                "vertical": "Middle"
-            },
-            "auto_size": "Always"
-        }
+        "item_class": "list_items"
     },
     "cycle_button:hover": {},
     "cycle_button:active": {},
