@@ -142,7 +142,7 @@ void field::fail()
 
     auto& input {locate_service<input::system>()};
     if (input.InputMode == input::mode::Controller) {
-        input.get_controller(0)->rumble(0x7FFF, 0, 500ms);
+        input.first_controller().rumble(0x7FFF, 0, 500ms);
     }
 
     _state = game_state::Failure;
