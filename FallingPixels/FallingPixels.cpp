@@ -218,7 +218,7 @@ void main_scene::on_mouse_motion(input::mouse::motion_event const& ev)
 
 void main_scene::on_mouse_wheel(input::mouse::wheel_event const& ev)
 {
-    _zoomStage = std::clamp(_zoomStage - ev.Scroll.Y, 0, 6);
+    _zoomStage = std::clamp(static_cast<i32>(_zoomStage - ev.Scroll.Y), 0, 6);
     constexpr std::array<size_f, 7> zoomLevels {{{5.f, 5.f}, {3.f, 3.f}, {2.f, 2.f}, {1.f, 1.f}, {0.75f, 0.75f}, {0.5f, 0.5f}, {0.25f, 0.25f}}};
     window().camera().Zoom = zoomLevels[_zoomStage];
 }
