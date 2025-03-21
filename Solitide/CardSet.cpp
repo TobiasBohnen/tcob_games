@@ -99,7 +99,7 @@ auto card_set::load() const -> bool
                     continue;
                 }
                 if (statusFuture.get() != load_status::Ok) { return false; }
-                _texture->update_data(imgIt->Image.buffer(), imgIt->Depth);
+                _texture->update_data(imgIt->Image, imgIt->Depth);
                 _texture->add_region(
                     json.get<std::string>("cards", io::get_filename(imgIt->Path)).value_or(io::get_stem(imgIt->Path)),
                     {{0, 0, 1, 1}, imgIt->Depth});
@@ -202,7 +202,7 @@ void card_set::save_textures(assets::asset_ptr<gfx::texture> const& canvasTex, s
     for (auto const& [k, v] : regions) {
         if (k == "default") { continue; }
 
-        auto const data {tempImg.buffer(rect_i {v.UVRect})};
+        auto const data {tempImg.data(rect_i {v.UVRect})};
         gfx::image cardimg {gfx::image::Create(size_i {texSize}, gfx::image::format::RGBA, data)};
 
         string const file {k + ".png"};

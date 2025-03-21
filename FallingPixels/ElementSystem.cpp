@@ -69,7 +69,7 @@ void element_system::draw_heatmap(gfx::texture& tex) const
         }
     }
 
-    tex.update_data(point_i::Zero, size, img.buffer().data(), 0);
+    tex.update_data(img, 0);
 }
 
 void element_system::spawn(point_i i, i32 t)
