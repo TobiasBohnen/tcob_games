@@ -159,11 +159,6 @@ form_menu::form_menu(gfx::window& window, assets::group& resGrp, std::shared_ptr
     create_menubar(*tabContainer);
 }
 
-void form_menu::submit_settings(data::config::object& obj)
-{
-    dynamic_cast<tab_container*>(find_widget_by_name(TabSettingsName).get())->submit(obj);
-}
-
 void form_menu::on_key_down(input::keyboard::event const& ev)
 {
     if (ev.KeyCode == input::key_code::ESCAPE) {
@@ -492,7 +487,7 @@ void form_menu::create_settings_video(tab_container& tabContainer)
         auto const displayModes {locate_service<platform>().displays()};
         auto       ddlRes {tabPanelLayout.create_widget<drop_down_list>({6, 1, 6, 4}, "ddlResolution")};
         ddlRes->ZOrder = 1;
-        for (auto const& dm : displayModes.at(0).Modes) {
+        for (auto const& dm : displayModes.begin()->second.Modes) {
             ddlRes->add_item(std::format("{}x{}", dm.Size.Width, dm.Size.Height));
         }
 

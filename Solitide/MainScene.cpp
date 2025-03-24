@@ -188,7 +188,7 @@ void main_scene::connect_events()
 
     _formMenu->VideoSettingsChanged.connect([&]() {
         data::config::object obj;
-        _formMenu->submit_settings(obj);
+        _formMenu->submit(obj);
 
         assert(obj.has("ddlResolution", "selected"));
         assert(obj.has("chkFullScreen", "checked"));

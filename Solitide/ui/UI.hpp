@@ -69,8 +69,6 @@ public:
     signal<std::optional<u64> const> StartGame;
     signal<>                         VideoSettingsChanged;
 
-    void submit_settings(data::config::object& obj);
-
 protected:
     void on_key_down(input::keyboard::event const& ev) override;
 
