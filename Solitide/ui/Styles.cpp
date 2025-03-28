@@ -429,7 +429,7 @@ void styles::parse_element(data::config::object const& obj, bar_element* bar)
     obj.try_get(bar->HigherBackground, "higher_background");
     obj.try_get(bar->Size, "size");
     if (object el; obj.try_get(el, "border")) { parse_element(el, &bar->Border); }
-    obj.try_get(bar->a, "delay");
+    obj.try_get(bar->MotionDuration, "delay");
 }
 
 void styles::parse_element(data::config::object const& obj, caret_element* caret)
