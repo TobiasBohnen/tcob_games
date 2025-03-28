@@ -93,9 +93,9 @@ private:
     bool            _buttonDown {false};
 
     // camera
-    bool                                        _camInstant {true};
-    std::unique_ptr<gfx::linear_tween<point_f>> _camPosTween;
-    std::unique_ptr<gfx::linear_tween<size_f>>  _camZoomTween;
+    bool                                   _camInstant {true};
+    std::unique_ptr<linear_tween<point_f>> _camPosTween;
+    std::unique_ptr<linear_tween<size_f>>  _camZoomTween;
 };
 
 }
