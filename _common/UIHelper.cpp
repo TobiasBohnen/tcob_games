@@ -257,14 +257,14 @@ void create_styles(assets::group const& resGrp, style_collection& styles)
 
     {
         auto style {styles.create<slider>("slider", {})};
-        style->Margin            = {2_px};
-        style->Padding           = {2_px};
-        style->ThumbClass        = "slider_thumb";
-        style->Bar.Type          = bar_type::Continuous;
-        style->Bar.Size          = 25_pct;
-        style->Bar.Delay         = 100ms;
-        style->Bar.Border.Size   = 3_px;
-        style->Bar.Border.Radius = 5_px;
+        style->Margin             = {2_px};
+        style->Padding            = {2_px};
+        style->ThumbClass         = "slider_thumb";
+        style->Bar.Type           = bar_type::Continuous;
+        style->Bar.Size           = 25_pct;
+        style->Bar.MotionDuration = 100ms;
+        style->Bar.Border.Size    = 3_px;
+        style->Bar.Border.Radius  = 5_px;
 
         normal.apply(style);
     }
@@ -290,18 +290,18 @@ void create_styles(assets::group const& resGrp, style_collection& styles)
     }
     {
         auto style {styles.create<list_box>("list_box", {})};
-        style->Border.Size                = 3_px;
-        style->Border.Radius              = 5_px;
-        style->Margin                     = {5_px};
-        style->Padding                    = {5_px};
-        style->DropShadow.Color           = color {0, 0, 0, 128};
-        style->ItemHeight                 = 10_pct;
-        style->ItemClass                  = "list_items";
-        style->VScrollBar.ThumbClass      = "scrollbar_thumb";
-        style->VScrollBar.Bar.Type        = bar_type::Continuous;
-        style->VScrollBar.Bar.Size        = 20_pct;
-        style->VScrollBar.Bar.Border.Size = 3_px;
-        style->VScrollBar.Bar.Delay       = 250ms;
+        style->Border.Size                   = 3_px;
+        style->Border.Radius                 = 5_px;
+        style->Margin                        = {5_px};
+        style->Padding                       = {5_px};
+        style->DropShadow.Color              = color {0, 0, 0, 128};
+        style->ItemHeight                    = 10_pct;
+        style->ItemClass                     = "list_items";
+        style->VScrollBar.ThumbClass         = "scrollbar_thumb";
+        style->VScrollBar.Bar.Type           = bar_type::Continuous;
+        style->VScrollBar.Bar.Size           = 20_pct;
+        style->VScrollBar.Bar.Border.Size    = 3_px;
+        style->VScrollBar.Bar.MotionDuration = 250ms;
 
         auto hoverStyle {styles.create<list_box>("list_box", {.Hover = true})};
         *hoverStyle = *style;

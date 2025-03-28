@@ -350,7 +350,7 @@ void styles::parse(data::config::object const& obj, toggle::style* style)
 {
     parse_widget_style(obj, style);
     if (object el; obj.try_get(el, "tick")) { parse_element(el, &style->Tick); }
-    obj.try_get(style->Delay, "delay");
+    obj.try_get(style->AnimationDuration, "delay");
 }
 
 void styles::parse(data::config::object const& obj, nav_arrows_style* style)
@@ -429,7 +429,7 @@ void styles::parse_element(data::config::object const& obj, bar_element* bar)
     obj.try_get(bar->HigherBackground, "higher_background");
     obj.try_get(bar->Size, "size");
     if (object el; obj.try_get(el, "border")) { parse_element(el, &bar->Border); }
-    obj.try_get(bar->Delay, "delay");
+    obj.try_get(bar->a, "delay");
 }
 
 void styles::parse_element(data::config::object const& obj, caret_element* caret)

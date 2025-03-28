@@ -166,14 +166,14 @@ void elements_form::gen_styles()
     }
     {
         auto style {styles.create<slider>("slider", {})};
-        style->Margin            = {5_px};
-        style->Padding           = {2_px};
-        style->ThumbClass        = "slider_thumb";
-        style->Bar.Type          = bar_type::Continuous;
-        style->Bar.Size          = 95_pct;
-        style->Bar.Delay         = 0ms;
-        style->Bar.Border.Size   = 3_px;
-        style->Bar.Border.Radius = 5_px;
+        style->Margin             = {5_px};
+        style->Padding            = {2_px};
+        style->ThumbClass         = "slider_thumb";
+        style->Bar.Type           = bar_type::Continuous;
+        style->Bar.Size           = 95_pct;
+        style->Bar.MotionDuration = 0ms;
+        style->Bar.Border.Size    = 3_px;
+        style->Bar.Border.Radius  = 5_px;
 
         style->Bar.HigherBackground = colors::LightGray;
         style->Bar.LowerBackground  = colors::LightGray;
