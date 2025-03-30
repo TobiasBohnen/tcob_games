@@ -2,6 +2,9 @@ add_executable(Rogue)
 
 target_sources(Rogue PRIVATE
     main.cpp
+
+    Layout.cpp
+    Level.cpp
     MainMenu.cpp
     StartScene.cpp
 )

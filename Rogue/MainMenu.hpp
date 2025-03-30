@@ -5,15 +5,15 @@
 
 #pragma once
 
-#include "Common.hpp" // IWYU pragma: keep
+#include "Common.hpp"
 
 namespace Rogue {
 
-class main_menu : public form<dock_layout> {
+class main_menu : public ui::form<ui::dock_layout> {
 public:
     main_menu(assets::group const& resGrp, rect_i const& bounds);
 
-    std::shared_ptr<terminal> Terminal;
+    std::shared_ptr<ui::terminal> Terminal;
 
 protected:
 private:

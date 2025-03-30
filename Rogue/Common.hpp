@@ -5,10 +5,10 @@
 
 #pragma once
 
+// IWYU pragma: always_keep
+
 #include <tcob/tcob.hpp>
 
 using namespace tcob;
-using namespace tcob::ui;
-using namespace tcob::gfx;
 using namespace std::chrono_literals;
 using namespace tcob::literals;
