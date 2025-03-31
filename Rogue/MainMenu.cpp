@@ -36,7 +36,7 @@ main_menu::main_menu(assets::group const& resGrp, rect_i const& bounds)
     size_i const termSize {80, 24};
     Terminal->Size = termSize;
     Terminal->curs_set(false);
-    Terminal->mouse_set(false);
+    Terminal->mouse_set(true);
     Terminal->noecho();
 
     Styles = styles;

@@ -32,8 +32,7 @@ protected:
 private:
     std::shared_ptr<main_menu> _mainForm {};
 
-    point_i _mapOffset;
-    level   _level;
+    level _level;
 };
 
 }

@@ -30,20 +30,31 @@ class level {
 public:
     level();
 
-    void move_player(direction dir);
+    void draw(ui::terminal& term);
+    void update(milliseconds deltaTime);
 
-    void draw(ui::terminal& term, point_i offset);
+    void key_down(input::key_code kc);
+    void mouse_down(point_i pos);
+    void mouse_hover(point_i pos);
 
 private:
+    void move_player(direction dir);
     auto can_move_to(point_i pos) const -> bool;
     void end_turn();
     auto line_of_sight(point_i start, point_i end) const -> bool;
 
-    grid<tile>           _tiles;
+    grid<tile> _tiles;
+    point_i    _termOffset;
+
+    point_i _hoveredTile {-1, -1};
+
     std::vector<object>  _objects;
     std::vector<monster> _monsters;
     player               _player;
 
     bool _redraw {true};
+
+    std::queue<std::function<bool()>> _queue;
+    milliseconds                      _queueTimer {};
 };
 }

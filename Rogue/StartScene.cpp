@@ -28,6 +28,14 @@ void start_scene::on_start()
     auto  windowSize {win.Size()};
 
     _mainForm = std::make_shared<main_menu>(resGrp, rect_i {point_i::Zero, windowSize});
+    _mainForm->Terminal->MouseDown.connect([this](auto const& ev) {
+        if (ev.Event.Button == input::mouse::button::Left) {
+            _level.mouse_down(_mainForm->Terminal->HoveredCell);
+        }
+    });
+    _mainForm->Terminal->HoveredCell.Changed.connect([this](auto const& val) {
+        _level.mouse_hover(val);
+    });
 
     root_node()->create_child()->Entity = _mainForm;
 
@@ -36,11 +44,12 @@ void start_scene::on_start()
 
 void start_scene::on_draw_to(gfx::render_target&)
 {
-    _level.draw(*_mainForm->Terminal, _mapOffset);
+    _level.draw(*_mainForm->Terminal);
 }
 
-void start_scene::on_update(milliseconds)
+void start_scene::on_update(milliseconds deltaTime)
 {
+    _level.update(deltaTime);
 }
 
 void start_scene::on_fixed_update(milliseconds deltaTime)
@@ -60,14 +69,10 @@ void start_scene::on_key_down(input::keyboard::event const& ev)
     switch (ev.ScanCode) {
     case input::scan_code::BACKSPACE:
         parent().pop_current_scene();
-        break;
-    case input::scan_code::UP: _level.move_player(direction::Up); break;
-    case input::scan_code::DOWN: _level.move_player(direction::Down); break;
-    case input::scan_code::LEFT: _level.move_player(direction::Left); break;
-    case input::scan_code::RIGHT: _level.move_player(direction::Right); break;
-    default:
-        break;
+        return;
+    default: break;
     }
+    _level.key_down(ev.KeyCode);
 }
 
 }
