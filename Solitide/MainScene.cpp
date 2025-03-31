@@ -394,7 +394,7 @@ void main_scene::update_recent(std::string const& name)
 {
     _sources->Settings.LastGame = name;
 
-    usize constexpr static maxEntries {10};
+    usize static constexpr maxEntries {10};
 
     std::deque<std::string> recent {_sources->Settings.Recent()};
 
