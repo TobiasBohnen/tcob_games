@@ -84,27 +84,27 @@ struct game_state {
     milliseconds Time {0};
     i32          Undos {0};
     i32          Hints {0};
+
+    void static Serialize(game_state const& v, auto&& s)
+    {
+        s["Redeals"] = v.Redeals;
+        s["Turns"]   = v.Turns;
+        s["Score"]   = v.Score;
+        s["Hints"]   = v.Hints;
+        s["Undos"]   = v.Undos;
+        s["Time"]    = v.Time.count();
+    }
+
+    auto static Deserialize(game_state& v, auto&& s) -> bool
+    {
+        return s.try_get(v.Redeals, "Redeals")
+            && s.try_get(v.Turns, "Turns")
+            && s.try_get(v.Score, "Score")
+            && s.try_get(v.Hints, "Hints")
+            && s.try_get(v.Undos, "Undos")
+            && s.try_get(v.Time, "Time");
+    }
 };
-
-void Serialize(game_state const& v, auto&& s)
-{
-    s["Redeals"] = v.Redeals;
-    s["Turns"]   = v.Turns;
-    s["Score"]   = v.Score;
-    s["Hints"]   = v.Hints;
-    s["Undos"]   = v.Undos;
-    s["Time"]    = v.Time.count();
-}
-
-auto Deserialize(game_state& v, auto&& s) -> bool
-{
-    return s.try_get(v.Redeals, "Redeals")
-        && s.try_get(v.Turns, "Turns")
-        && s.try_get(v.Score, "Score")
-        && s.try_get(v.Hints, "Hints")
-        && s.try_get(v.Undos, "Undos")
-        && s.try_get(v.Time, "Time");
-}
 
 ////////////////////////////////////////////////////////////
 using rng = random::shuffle<card, random::xoshiro_256_plus_plus>;
@@ -138,16 +138,6 @@ private:
     rng::seed_type _seed {};
     rng            _gen {};
 };
-
-void Serialize(game_rng const& v, auto&& s)
-{
-    game_rng::Serialize(v, s);
-}
-
-auto Deserialize(game_rng& v, auto&& s) -> bool
-{
-    return game_rng::Deserialize(v, s);
-}
 
 ////////////////////////////////////////////////////////////
 

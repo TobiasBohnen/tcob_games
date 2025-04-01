@@ -99,16 +99,6 @@ private:
     bool _faceDown {true};
 };
 
-void Serialize(card const& v, auto&& s)
-{
-    card::Serialize(v, s);
-}
-
-auto Deserialize(card& v, auto&& s) -> bool
-{
-    return card::Deserialize(v, s);
-}
-
 ////////////////////////////////////////////////////////////
 
 struct deck {
