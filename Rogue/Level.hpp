@@ -7,24 +7,7 @@
 #include "Layout.hpp"
 
 namespace Rogue {
-
-struct object {
-    std::string Symbol;
-    color       Color {colors::White};
-    point_i     Position {};
-};
-struct monster {
-    std::string Symbol;
-    color       Color {colors::White};
-    point_i     Position {};
-};
-struct player {
-    color   Color {colors::White};
-    point_i Position {};
-
-    auto get_target(direction dir) const -> point_i;
-    void move_to(point_i pos);
-};
+////////////////////////////////////////////////////////////
 
 class level {
 public:
@@ -33,28 +16,30 @@ public:
     void draw(ui::terminal& term);
     void update(milliseconds deltaTime);
 
-    void key_down(input::key_code kc);
-    void mouse_down(point_i pos);
-    void mouse_hover(point_i pos);
+    void key_down(input::key_code kc); // TODO: to StartScene
+    void mouse_down(point_i pos);      // TODO: to StartScene
+    void mouse_hover(point_i pos);     // TODO: to StartScene
+
+    void move_player(point_i pos);
+    void move_player(direction dir);
+
+    auto is_passable(point_i pos) const -> bool;
 
 private:
-    void move_player(direction dir);
-    auto can_move_to(point_i pos) const -> bool;
     void end_turn();
-    auto line_of_sight(point_i start, point_i end) const -> bool;
 
     grid<tile> _tiles;
-    point_i    _termOffset;
 
     point_i _hoveredTile {-1, -1};
 
     std::vector<object>  _objects;
     std::vector<monster> _monsters;
     player               _player;
+    point_i              _pointOfView;
 
     bool _redraw {true};
 
-    std::queue<std::function<bool()>> _queue;
-    milliseconds                      _queueTimer {};
+    std::queue<std::function<bool()>> _queue;         // TODO: to StartScene
+    milliseconds                      _queueTimer {}; // TODO: to StartScene
 };
 }

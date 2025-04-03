@@ -6,21 +6,7 @@
 #include "Common.hpp"
 
 namespace Rogue {
-
 ////////////////////////////////////////////////////////////
-
-struct tile {
-    std::string Floor;
-    color       ForegroundColor {colors::White};
-    color       BackgroundColor {colors::Black};
-    bool        Seen {false};
-    bool        InSight {false};
-    bool        Passable {false};
-};
-
-////////////////////////////////////////////////////////////
-
-using min_max = std::pair<i32, i32>;
 
 class base_layout {
 public:

@@ -10,7 +10,6 @@
 #include "MainMenu.hpp"
 
 namespace Rogue {
-
 ////////////////////////////////////////////////////////////
 
 class start_scene : public scene {

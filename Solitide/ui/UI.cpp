@@ -25,7 +25,7 @@ auto static make_tooltip(menu_sources& sources, form_base* form) -> std::shared_
     tooltipLabel->Class = "tooltip-label";
 
     retValue->Popup.connect([&sources, lbl = tooltipLabel.get(), tt = retValue.get()](auto const& event) {
-        auto const widget {event.Widget};
+        auto* const widget {event.Widget};
         sources.Translator.bind(lbl->Label, "ux", widget->name());
 
         auto const  bounds {widget->Bounds()};

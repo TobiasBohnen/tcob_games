@@ -3,6 +3,7 @@ add_executable(Rogue)
 target_sources(Rogue PRIVATE
     main.cpp
 
+    Common.cpp
     Layout.cpp
     Level.cpp
     MainMenu.cpp

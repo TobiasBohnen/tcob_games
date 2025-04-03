@@ -23,7 +23,7 @@ main_menu::main_menu(assets::group const& resGrp, rect_i const& bounds)
         style->FlashDuration   = 100ms;
         style->Text.Font       = resGrp.get<gfx::font_family>("Font");
         style->Text.Style      = {.IsItalic = false, .Weight = gfx::font::weight::Bold};
-        style->Text.Size       = {1 / 30.f, length::type::Relative};
+        style->Text.Size       = {1.0f / TermSize.Width, length::type::Relative};
         style->Caret.BlinkRate = 0ms;
         style->Caret.Color     = colors::Transparent;
         style->Background      = colors::White;
@@ -32,9 +32,8 @@ main_menu::main_menu(assets::group const& resGrp, rect_i const& bounds)
     auto mainPanel {create_container<panel>(dock_style::Fill, "main")};
 
     auto& mainPanelLayout {mainPanel->create_layout<dock_layout>()};
-    Terminal = mainPanelLayout.create_widget<terminal>(dock_style::Fill, "Terminal");
-    size_i const termSize {80, 24};
-    Terminal->Size = termSize;
+    Terminal       = mainPanelLayout.create_widget<terminal>(dock_style::Fill, "Terminal");
+    Terminal->Size = TermSize;
     Terminal->curs_set(false);
     Terminal->mouse_set(true);
     Terminal->noecho();

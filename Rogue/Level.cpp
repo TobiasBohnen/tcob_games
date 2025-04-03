@@ -11,13 +11,14 @@ namespace Rogue {
 
 level::level()
 {
-    _tiles = tunneling {12, 5, 12}.generate({80, 24});
+    _tiles = tunneling {20, 5, 12}.generate({120, 120});
     for (i32 i {0}; i < _tiles.size(); ++i) {
         if (_tiles[i].Passable) {
             _player.Position = {i % _tiles.width(), i / _tiles.width()};
             break;
         }
     }
+    _pointOfView = _player.Position;
 }
 
 void level::draw(ui::terminal& term)
@@ -26,22 +27,25 @@ void level::draw(ui::terminal& term)
     _redraw = false;
 
     term.clear();
-    static constexpr std::array<f32, 3> DistanceFalloff {6, 4, 2}; // TODO: player stat
+    static constexpr std::array<f32, 3> DistanceFalloff {5, 3}; // TODO: player stat
 
     for (i32 y {0}; y < term.Size->Height; ++y) {
         for (i32 x {0}; x < term.Size->Width; ++x) {
-            point_i const pos {x + _termOffset.X, y + _termOffset.Y};
-            auto&         tile {_tiles[pos]};
+            point_i const termPos {point_i {x, y}};
+            point_i const gridPos {term_to_grid(termPos, _pointOfView)};
+            if (!_tiles.contains(gridPos)) { continue; }
+
+            auto& tile {_tiles[gridPos]};
 
             color bg;
             color fg;
 
-            f64 const  distance {_player.Position.distance_to({x, y})};
-            bool const inLOS {distance <= DistanceFalloff[0] && line_of_sight(_player.Position, pos)};
+            f64 const  distance {_player.Position.distance_to(gridPos)};
+            bool const inLOS {distance <= DistanceFalloff[0] && line_of_sight(_player.Position, gridPos, _tiles)};
             if (distance > DistanceFalloff[0] || !inLOS) {
                 if (tile.Seen) {
-                    fg = color::Lerp(colors::Black, tile.ForegroundColor, 0.15f);
-                    bg = color::Lerp(colors::Black, tile.BackgroundColor, 0.15f);
+                    fg = color::Lerp(colors::Black, colors::White, 0.15f);
+                    bg = colors::Black;
                 } else {
                     bg = colors::Black;
                     fg = colors::Black;
@@ -49,11 +53,8 @@ void level::draw(ui::terminal& term)
                 tile.InSight = false;
             } else {
                 if (distance > DistanceFalloff[1]) {
-                    fg = color::Lerp(colors::Black, tile.ForegroundColor, 0.50f);
-                    bg = color::Lerp(colors::Black, tile.BackgroundColor, 0.50f);
-                } else if (distance > DistanceFalloff[2]) {
-                    fg = color::Lerp(colors::Black, tile.ForegroundColor, 0.75f);
-                    bg = color::Lerp(colors::Black, tile.BackgroundColor, 0.75f);
+                    fg = color::Lerp(colors::Black, tile.ForegroundColor, 0.5f);
+                    bg = color::Lerp(colors::Black, tile.BackgroundColor, 0.5f);
                 } else {
                     fg = tile.ForegroundColor;
                     bg = tile.BackgroundColor;
@@ -63,26 +64,26 @@ void level::draw(ui::terminal& term)
             }
 
             if (tile.Seen || tile.InSight) {
-                if (point_i {x, y} == _hoveredTile) { std::swap(fg, bg); }
+                if (gridPos == _hoveredTile) { std::swap(fg, bg); }
                 term.color_set(fg, bg);
-                term.add_str(pos, tile.Floor);
+                term.add_str(termPos, tile.Floor);
             }
         }
     }
 
     for (auto const& obj : _objects) {
-        point_i const pos {obj.Position + _termOffset};
+        point_i const termPos {grid_to_term(obj.Position, _pointOfView)};
         term.color_set(obj.Color);
-        term.add_str(pos, obj.Symbol);
+        term.add_str(termPos, obj.Symbol);
     }
     for (auto const& mon : _monsters) {
-        point_i const pos {mon.Position + _termOffset};
+        point_i const termPos {grid_to_term(mon.Position, _pointOfView)};
         term.color_set(mon.Color);
-        term.add_str(pos, mon.Symbol);
+        term.add_str(termPos, mon.Symbol);
     }
 
     term.color_set(_player.Color);
-    term.add_str(_player.Position + _termOffset, "@");
+    term.add_str(grid_to_term(_player.Position, _pointOfView), "@");
 }
 
 void level::update(milliseconds deltaTime)
@@ -115,7 +116,7 @@ void level::key_down(input::key_code kc)
 
 void level::mouse_down(point_i pos)
 {
-    pos += _termOffset;
+    pos = term_to_grid(pos, _pointOfView);
     if (!_tiles.contains(pos)) { return; }
 
     // move player
@@ -135,9 +136,9 @@ void level::mouse_down(point_i pos)
 
     auto p {path.find_path(pathfinding, _tiles.extent(), _player.Position, pos)};
     if (p.empty()) { return; }
-    _queue.emplace([=, this]() mutable -> bool {
-        _player.move_to(p.front());
-        end_turn();
+    _queue.emplace([p, this]() mutable -> bool {
+        move_player(p.front());
+
         p.erase(p.begin());
         return p.empty();
     });
@@ -146,7 +147,7 @@ void level::mouse_down(point_i pos)
 
 void level::mouse_hover(point_i pos)
 {
-    pos += _termOffset;
+    pos = term_to_grid(pos, _pointOfView);
     if (!_tiles.contains(pos)) { pos = {-1, -1}; }
 
     if (_hoveredTile != pos) {
@@ -155,73 +156,29 @@ void level::mouse_hover(point_i pos)
     }
 }
 
-void level::end_turn()
-{
-    _redraw = true;
-}
-
-auto level::line_of_sight(point_i start, point_i end) const -> bool
-{
-    auto [x0, y0] {start};
-    auto const [x1, y1] {end};
-    i32 const dx {std::abs(x1 - x0)};
-    i32 const dy {std::abs(y1 - y0)};
-    i32 const sx {(x0 < x1) ? 1 : -1};
-    i32 const sy {(y0 < y1) ? 1 : -1};
-    i32       err {dx - dy};
-
-    for (;;) {
-        if (x0 == x1 && y0 == y1) { break; }
-
-        i32 const e2 {2 * err};
-        if (e2 > -dy) {
-            err -= dy;
-            x0 += sx;
-        }
-        if (e2 < dx) {
-            err += dx;
-            y0 += sy;
-        }
-
-        point_i const pos {x0, y0};
-        if (pos != end && !_tiles[pos].Passable) { return false; }
-    }
-    return true;
-}
-
 void level::move_player(direction dir)
 {
-    auto const target(_player.get_target(dir));
-    if (can_move_to(target)) {
-        _player.move_to(target);
+    move_player(get_target(_player.Position, dir));
+}
+
+void level::move_player(point_i pos)
+{
+    if (is_passable(pos)) {
+        _player.Position = pos;
         end_turn();
     }
 }
 
-auto level::can_move_to(point_i pos) const -> bool
+auto level::is_passable(point_i pos) const -> bool
 {
     if (!_tiles.contains(pos)) { return false; }
     return _tiles[pos].Passable;
 }
 
-////////////////////////////////////////////////////////////
-
-auto player::get_target(direction dir) const -> point_i
+void level::end_turn()
 {
-    switch (dir) {
-    case direction::Left: return Position + point_i {-1, 0};
-    case direction::Right: return Position + point_i {1, 0};
-    case direction::Up: return Position + point_i {0, -1};
-    case direction::Down: return Position + point_i {0, 1};
-    default: break;
-    }
-
-    return Position;
-}
-
-void player::move_to(point_i pos)
-{
-    Position = pos;
+    _pointOfView = _player.Position;
+    _redraw      = true;
 }
 
 }

@@ -47,7 +47,7 @@ void base_layout::draw_room(grid<tile>& grid, rect_i const& rect, tile const& fl
 }
 
 static tile const FLOOR {.Floor = ".", .ForegroundColor = colors::White, .BackgroundColor = colors::Black, .Passable = true};
-static tile const WALL {.Floor = "#", .ForegroundColor = colors::White, .BackgroundColor = colors::Black, .Passable = false};
+static tile const WALL {.Floor = "#", .ForegroundColor = colors::DarkBlue, .BackgroundColor = colors::Black, .Passable = false};
 
 ////////////////////////////////////////////////////////////
 
