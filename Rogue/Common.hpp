@@ -15,39 +15,81 @@ using namespace tcob;
 using namespace std::chrono_literals;
 using namespace tcob::literals;
 
-constinit inline size_i TermSize {40, 40};
+constinit inline size_i TermMapSize {60, 40};
+constinit inline size_i TermSize {80, 45};
 
-////////////////////////////////////////////////////////////
-
-struct tile {
-    std::string Floor;
-    color       ForegroundColor {colors::White};
-    color       BackgroundColor {colors::Black};
-    bool        Seen {false};
-    bool        InSight {false};
-    bool        Passable {false};
-};
+class level;
 
 ////////////////////////////////////////////////////////////
 
 struct object {
-    std::string Symbol;
-    color       Color {colors::White};
-    point_i     Position {};
+    string  Symbol;
+    color   Color {colors::White};
+    point_i Position {};
 };
 struct monster {
-    std::string Symbol;
-    color       Color {colors::White};
-    point_i     Position {};
-};
-struct player {
+    string  Symbol;
     color   Color {colors::White};
     point_i Position {};
 };
 
 ////////////////////////////////////////////////////////////
+enum class tile_type {
+    Floor,
+    Wall
+};
 
-auto line_of_sight(point_i start, point_i end, grid<tile> const& tiles) -> bool;
+struct tile_type_traits {
+    static auto passable(tile_type type) -> bool
+    {
+        switch (type) {
+        case tile_type::Floor: return true;
+        case tile_type::Wall: return false;
+        }
+        return false;
+    }
+};
+
+struct tile {
+    tile_type Type;
+    string    Symbol;
+    color     ForegroundColor {colors::White};
+    color     BackgroundColor {colors::Black};
+    bool      Seen {false};
+    bool      InSight {false};
+
+    std::vector<std::shared_ptr<object>> Objects;
+    std::shared_ptr<monster>             Monster;
+};
+
+////////////////////////////////////////////////////////////
+
+enum class action {
+    None,
+
+    MoveLeft,
+    MoveRight,
+    MoveUp,
+    MoveDown,
+
+    MoveLeftUp,
+    MoveRightUp,
+    MoveLeftDown,
+    MoveRightDown,
+
+    LookMode,
+
+    Execute
+};
+
+using action_queue = std::queue<action>;
+
+using animation_func = std::function<bool()>;
+constinit inline milliseconds AnimationDelay {50};
+
+////////////////////////////////////////////////////////////
+
+auto is_line_of_sight(point_i start, point_i end, grid<tile> const& tiles) -> bool;
 
 auto term_to_grid(point_i pos, point_i center) -> point_i;
 auto grid_to_term(point_i pos, point_i center) -> point_i;

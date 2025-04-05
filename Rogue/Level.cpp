@@ -5,20 +5,22 @@
 
 #include "Level.hpp"
 
+#include "Layout.hpp"
+
 namespace Rogue {
 
 ////////////////////////////////////////////////////////////
 
 level::level()
 {
-    _tiles = tunneling {20, 5, 12}.generate({120, 120});
+    _tiles = tunneling {20, 5, 12}.generate(clock::now().time_since_epoch().count(), {120, 120});
     for (i32 i {0}; i < _tiles.size(); ++i) {
-        if (_tiles[i].Passable) {
+        if (tile_type_traits::passable(_tiles[i].Type)) {
             _player.Position = {i % _tiles.width(), i / _tiles.width()};
             break;
         }
     }
-    _pointOfView = _player.Position;
+    _viewCenter = _player.Position;
 }
 
 void level::draw(ui::terminal& term)
@@ -26,159 +28,190 @@ void level::draw(ui::terminal& term)
     if (!_redraw) { return; }
     _redraw = false;
 
-    term.clear();
-    static constexpr std::array<f32, 3> DistanceFalloff {5, 3}; // TODO: player stat
-
-    for (i32 y {0}; y < term.Size->Height; ++y) {
-        for (i32 x {0}; x < term.Size->Width; ++x) {
-            point_i const termPos {point_i {x, y}};
-            point_i const gridPos {term_to_grid(termPos, _pointOfView)};
-            if (!_tiles.contains(gridPos)) { continue; }
-
-            auto& tile {_tiles[gridPos]};
-
-            color bg;
-            color fg;
-
-            f64 const  distance {_player.Position.distance_to(gridPos)};
-            bool const inLOS {distance <= DistanceFalloff[0] && line_of_sight(_player.Position, gridPos, _tiles)};
-            if (distance > DistanceFalloff[0] || !inLOS) {
-                if (tile.Seen) {
-                    fg = color::Lerp(colors::Black, colors::White, 0.15f);
-                    bg = colors::Black;
-                } else {
-                    bg = colors::Black;
-                    fg = colors::Black;
-                }
-                tile.InSight = false;
-            } else {
-                if (distance > DistanceFalloff[1]) {
-                    fg = color::Lerp(colors::Black, tile.ForegroundColor, 0.5f);
-                    bg = color::Lerp(colors::Black, tile.BackgroundColor, 0.5f);
-                } else {
-                    fg = tile.ForegroundColor;
-                    bg = tile.BackgroundColor;
-                }
-                tile.Seen    = true;
-                tile.InSight = true;
-            }
-
-            if (tile.Seen || tile.InSight) {
-                if (gridPos == _hoveredTile) { std::swap(fg, bg); }
-                term.color_set(fg, bg);
-                term.add_str(termPos, tile.Floor);
-            }
-        }
-    }
-
-    for (auto const& obj : _objects) {
-        point_i const termPos {grid_to_term(obj.Position, _pointOfView)};
-        term.color_set(obj.Color);
-        term.add_str(termPos, obj.Symbol);
-    }
-    for (auto const& mon : _monsters) {
-        point_i const termPos {grid_to_term(mon.Position, _pointOfView)};
-        term.color_set(mon.Color);
-        term.add_str(termPos, mon.Symbol);
-    }
-
-    term.color_set(_player.Color);
-    term.add_str(grid_to_term(_player.Position, _pointOfView), "@");
+    _renderer.draw(term);
 }
 
-void level::update(milliseconds deltaTime)
+void level::update(milliseconds deltaTime, action_queue& queue)
 {
-    if (_queue.empty()) { return; }
-    _queueTimer -= deltaTime;
-    if (_queueTimer <= 0s) {
-        std::queue<std::function<bool()>> queue;
-        while (!_queue.empty()) {
-            auto& front {_queue.front()};
-            if (!front()) { queue.emplace(front); }
-            _queue.pop();
-        }
-
-        _queue.swap(queue);
-        _queueTimer = 25ms;
+    if (_animation) {
+        handle_animation(deltaTime);
+    } else {
+        handle_action_queue(queue);
     }
-}
 
-void level::key_down(input::key_code kc)
-{
-    switch (kc) {
-    case input::key_code::UP: move_player(direction::Up); break;
-    case input::key_code::DOWN: move_player(direction::Down); break;
-    case input::key_code::LEFT: move_player(direction::Left); break;
-    case input::key_code::RIGHT: move_player(direction::Right); break;
-    default: break;
-    }
-}
-
-void level::mouse_down(point_i pos)
-{
-    pos = term_to_grid(pos, _pointOfView);
-    if (!_tiles.contains(pos)) { return; }
-
-    // move player
-    if (!_queue.empty()) { return; }
-    ai::astar_pathfinding path;
-
-    struct grid_path {
-        grid<tile>* Parent;
-
-        auto get_cost(point_i p) const -> u64
-        {
-            auto const& tile {(*Parent)[p]};
-            if (!tile.Passable || !tile.Seen) { return ai::astar_pathfinding::IMPASSABLE_COST; }
-            return 1;
-        }
-    } pathfinding {&_tiles};
-
-    auto p {path.find_path(pathfinding, _tiles.extent(), _player.Position, pos)};
-    if (p.empty()) { return; }
-    _queue.emplace([p, this]() mutable -> bool {
-        move_player(p.front());
-
-        p.erase(p.begin());
-        return p.empty();
-    });
-    _queueTimer = 25ms;
-}
-
-void level::mouse_hover(point_i pos)
-{
-    pos = term_to_grid(pos, _pointOfView);
-    if (!_tiles.contains(pos)) { pos = {-1, -1}; }
-
-    if (_hoveredTile != pos) {
-        _hoveredTile = pos;
-        _redraw      = true;
-    }
-}
-
-void level::move_player(direction dir)
-{
-    move_player(get_target(_player.Position, dir));
-}
-
-void level::move_player(point_i pos)
-{
-    if (is_passable(pos)) {
-        _player.Position = pos;
-        end_turn();
-    }
+    _player.update(deltaTime);
 }
 
 auto level::is_passable(point_i pos) const -> bool
 {
     if (!_tiles.contains(pos)) { return false; }
-    return _tiles[pos].Passable;
+    return tile_type_traits::passable(_tiles[pos].Type);
 }
 
 void level::end_turn()
 {
-    _pointOfView = _player.Position;
-    _redraw      = true;
+    if (_mode == mode::Move) {
+        _viewCenter = _player.Position;
+    }
+    mark_dirty();
+}
+
+auto level::find_path(point_i target) const -> std::vector<point_i>
+{
+    ai::astar_pathfinding path;
+
+    struct grid_path {
+        grid<tile> const* Parent;
+
+        auto get_cost(point_i p) const -> u64
+        {
+            auto const& tile {(*Parent)[p]};
+            if (!tile_type_traits::passable(tile.Type) || !tile.Seen) { return ai::astar_pathfinding::IMPASSABLE_COST; }
+            return 1;
+        }
+    } pathfinding {&_tiles};
+
+    return path.find_path(pathfinding, _tiles.extent(), _player.Position, target);
+}
+
+void level::mark_dirty()
+{
+    _redraw = true;
+}
+
+void level::set_view_center(point_i pos)
+{
+    if (pos != _viewCenter) {
+        _viewCenter = pos;
+        mark_dirty();
+    }
+}
+
+auto level::get_view_center() -> point_i
+{
+    return _viewCenter;
+}
+
+auto level::get_tiles() -> grid<tile>&
+{
+    return _tiles;
+}
+
+auto level::get_player() -> player&
+{
+    return _player;
+}
+
+auto level::get_log() const -> std::vector<string> const&
+{
+    return _log;
+}
+
+void level::log_message(string const& message)
+{
+    if (message.empty()) { return; }
+
+    _log.push_back(message);
+    mark_dirty();
+}
+
+void level::handle_animation(milliseconds deltaTime)
+{
+    _animationTimer -= deltaTime;
+    if (_animationTimer <= 0s) {
+        if (_animation()) { _animation = {}; }
+        _animationTimer = AnimationDelay;
+    }
+}
+
+void level::handle_action_queue(action_queue& queue)
+{
+    while (!queue.empty()) {
+        auto const action {queue.front()};
+        queue.pop();
+
+        switch (action) {
+        case action::LookMode:
+            _mode = _mode == mode::Move ? mode::Look : mode::Move;
+            if (_mode == mode::Move) { set_view_center(_player.Position); }
+            break;
+        case action::Execute: do_execute(); break;
+        default:
+            if (_mode == mode::Look) {
+                std::optional<point_i> pov;
+
+                switch (action) {
+                case action::MoveLeft: pov = get_target(_viewCenter, direction::Left); break;
+                case action::MoveRight: pov = get_target(_viewCenter, direction::Right); break;
+                case action::MoveUp: pov = get_target(_viewCenter, direction::Up); break;
+                case action::MoveDown: pov = get_target(_viewCenter, direction::Down); break;
+                case action::MoveLeftUp: pov = get_target(get_target(_viewCenter, direction::Left), direction::Up); break;
+                case action::MoveRightUp: pov = get_target(get_target(_viewCenter, direction::Right), direction::Up); break;
+                case action::MoveLeftDown: pov = get_target(get_target(_viewCenter, direction::Left), direction::Down); break;
+                case action::MoveRightDown: pov = get_target(get_target(_viewCenter, direction::Right), direction::Down); break;
+                default: break;
+                }
+
+                if (pov) { set_view_center(*pov); }
+            } else {
+                std::optional<point_i> moveTarget;
+                string                 message {};
+
+                switch (action) {
+                case action::MoveLeft:
+                    moveTarget = get_target(_player.Position, direction::Left);
+                    message    = "moved left";
+                    break;
+                case action::MoveRight:
+                    moveTarget = get_target(_player.Position, direction::Right);
+                    message    = "moved right";
+                    break;
+                case action::MoveUp:
+                    moveTarget = get_target(_player.Position, direction::Up);
+                    message    = "moved up";
+                    break;
+                case action::MoveDown:
+                    moveTarget = get_target(_player.Position, direction::Down);
+                    message    = "moved down";
+                    break;
+                default: break;
+                }
+
+                if (moveTarget) {
+                    if (_player.try_move(*moveTarget)) {
+                        end_turn();
+                    } else {
+                        message = "bonk";
+                    }
+                }
+                log_message(message);
+            }
+            break;
+        }
+    }
+}
+
+void level::do_execute()
+{
+    if (_mode == mode::Look) {
+        if (auto p {find_path(_viewCenter)}; !p.empty()) {
+            _animation = ([p, this]() mutable -> bool {
+                if (_player.try_move(p.front())) {
+                    end_turn();
+                } else {
+                    return true;
+                }
+                p.erase(p.begin());
+                if (p.empty()) {
+                    _mode = mode::Move;
+                    return true;
+                }
+                return false;
+            });
+
+            _animationTimer = AnimationDelay;
+        }
+    }
 }
 
 }

@@ -30,6 +30,7 @@ protected:
 
 private:
     std::shared_ptr<main_menu> _mainForm {};
+    action_queue               _actionQueue;
 
     level _level;
 };

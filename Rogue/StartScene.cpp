@@ -28,14 +28,6 @@ void start_scene::on_start()
     auto  windowSize {win.Size()};
 
     _mainForm = std::make_shared<main_menu>(resGrp, rect_i {point_i::Zero, windowSize});
-    _mainForm->Terminal->MouseDown.connect([this](auto const& ev) {
-        if (ev.Event.Button == input::mouse::button::Left) {
-            _level.mouse_down(_mainForm->Terminal->HoveredCell);
-        }
-    });
-    _mainForm->Terminal->HoveredCell.Changed.connect([this](auto const& val) {
-        _level.mouse_hover(val);
-    });
 
     root_node()->create_child()->Entity = _mainForm;
 
@@ -49,7 +41,7 @@ void start_scene::on_draw_to(gfx::render_target&)
 
 void start_scene::on_update(milliseconds deltaTime)
 {
-    _level.update(deltaTime);
+    _level.update(deltaTime, _actionQueue);
 }
 
 void start_scene::on_fixed_update(milliseconds deltaTime)
@@ -72,7 +64,25 @@ void start_scene::on_key_down(input::keyboard::event const& ev)
         return;
     default: break;
     }
-    _level.key_down(ev.KeyCode);
+    switch (ev.KeyCode) {
+    case input::key_code::KP_8:
+    case input::key_code::UP: _actionQueue.push(action::MoveUp); break;
+    case input::key_code::KP_2:
+    case input::key_code::DOWN: _actionQueue.push(action::MoveDown); break;
+    case input::key_code::KP_4:
+    case input::key_code::LEFT: _actionQueue.push(action::MoveLeft); break;
+    case input::key_code::KP_6:
+    case input::key_code::RIGHT: _actionQueue.push(action::MoveRight); break;
+    case input::key_code::KP_7: _actionQueue.push(action::MoveLeftUp); break;
+    case input::key_code::KP_9: _actionQueue.push(action::MoveRightUp); break;
+    case input::key_code::KP_1: _actionQueue.push(action::MoveLeftDown); break;
+    case input::key_code::KP_3: _actionQueue.push(action::MoveRightDown); break;
+    case input::key_code::KP_ENTER:
+    case input::key_code::RETURN: _actionQueue.push(action::Execute); break;
+    case input::key_code::KP_5:
+    case input::key_code::l: _actionQueue.push(action::LookMode); break;
+    default: break;
+    }
 }
 
 }

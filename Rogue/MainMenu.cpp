@@ -12,7 +12,6 @@ using namespace tcob::ui;
 main_menu::main_menu(assets::group const& resGrp, rect_i const& bounds)
     : form {{"MainMenu", bounds}}
 {
-
     style_collection styles;
     {
         auto style {styles.create<panel>("panel", {})};
@@ -23,7 +22,7 @@ main_menu::main_menu(assets::group const& resGrp, rect_i const& bounds)
         style->FlashDuration   = 100ms;
         style->Text.Font       = resGrp.get<gfx::font_family>("Font");
         style->Text.Style      = {.IsItalic = false, .Weight = gfx::font::weight::Bold};
-        style->Text.Size       = {1.0f / TermSize.Width, length::type::Relative};
+        style->Text.Size       = {static_cast<f32>(bounds.width() / TermSize.Width), length::type::Absolute};
         style->Caret.BlinkRate = 0ms;
         style->Caret.Color     = colors::Transparent;
         style->Background      = colors::White;

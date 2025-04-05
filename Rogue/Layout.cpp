@@ -9,11 +9,6 @@ namespace Rogue {
 
 ////////////////////////////////////////////////////////////
 
-auto base_layout::get_random(i32 min, i32 max) -> i32
-{
-    return _rand(min, max);
-}
-
 void base_layout::draw_horizontal_tunnel(grid<tile>& grid, i32 x0, i32 x1, i32 y, tile const& floor) const
 {
     i32 const startX {std::min(x0, x1)};
@@ -46,8 +41,11 @@ void base_layout::draw_room(grid<tile>& grid, rect_i const& rect, tile const& fl
     }
 }
 
-static tile const FLOOR {.Floor = ".", .ForegroundColor = colors::White, .BackgroundColor = colors::Black, .Passable = true};
-static tile const WALL {.Floor = "#", .ForegroundColor = colors::DarkBlue, .BackgroundColor = colors::Black, .Passable = false};
+static tile const FLOOR {.Type = tile_type::Floor, .Symbol = ".", .ForegroundColor = colors::Gray, .BackgroundColor = colors::SeaShell};
+
+static tile const WALL0 {.Type = tile_type::Wall, .Symbol = "#", .ForegroundColor = colors::Black, .BackgroundColor = colors::LightSlateGray};
+static tile const WALL1 {.Type = tile_type::Wall, .Symbol = "#", .ForegroundColor = colors::Black, .BackgroundColor = colors::DimGray};
+static tile const WALL2 {.Type = tile_type::Wall, .Symbol = "#", .ForegroundColor = colors::Black, .BackgroundColor = colors::Silver};
 
 ////////////////////////////////////////////////////////////
 
@@ -58,16 +56,25 @@ tunneling::tunneling(i32 maxRooms, i32 minSize, i32 maxSize)
 {
 }
 
-auto tunneling::generate(size_i size) -> grid<tile>
+auto tunneling::generate(u64 seed, size_i size) -> grid<tile>
 {
-    grid<tile> retValue {size, WALL};
+    rng rng {seed};
+
+    grid<tile> retValue {size};
+    for (usize i {0}; i < retValue.size(); ++i) {
+        switch (rng(0, 2)) {
+        case 0: retValue[i] = WALL0; break;
+        case 1: retValue[i] = WALL1; break;
+        case 2: retValue[i] = WALL2; break;
+        }
+    }
 
     std::vector<rect_i> rooms;
     for (i32 r {0}; r < _maxRooms; ++r) {
-        i32 const w {get_random(_minSize, _maxSize)};
-        i32 const h {get_random(_minSize, _maxSize)};
-        i32 const x {get_random(0, size.Width - w - 1)};
-        i32 const y {get_random(0, size.Height - h - 1)};
+        i32 const w {rng(_minSize, _maxSize)};
+        i32 const h {rng(_minSize, _maxSize)};
+        i32 const x {rng(1, size.Width - w - 2)};
+        i32 const y {rng(1, size.Height - h - 2)};
 
         rect_i const newRoom {x, y, w, h};
         bool         failed {false};
@@ -84,7 +91,7 @@ auto tunneling::generate(size_i size) -> grid<tile>
         if (!rooms.empty()) {
             auto const newCenter {point_i {newRoom.center()}};
             auto const prevCenter {point_i {rooms.back().center()}};
-            if (get_random(0, 1) == 1) {
+            if (rng(0, 1) == 1) {
                 draw_horizontal_tunnel(retValue, prevCenter.X, newCenter.X, prevCenter.Y, FLOOR);
                 draw_vertical_tunnel(retValue, newCenter.X, prevCenter.Y, newCenter.Y, FLOOR);
             } else {

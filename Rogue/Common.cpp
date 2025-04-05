@@ -7,7 +7,7 @@
 
 namespace Rogue {
 
-auto line_of_sight(point_i start, point_i end, grid<tile> const& tiles) -> bool
+auto is_line_of_sight(point_i start, point_i end, grid<tile> const& tiles) -> bool
 {
     auto [x0, y0] {start};
     auto const [x1, y1] {end};
@@ -31,19 +31,19 @@ auto line_of_sight(point_i start, point_i end, grid<tile> const& tiles) -> bool
         }
 
         point_i const pos {x0, y0};
-        if (pos != end && !tiles[pos].Passable) { return false; }
+        if (pos != end && !tile_type_traits::passable(tiles[pos].Type)) { return false; }
     }
     return true;
 }
 
 auto term_to_grid(point_i pos, point_i center) -> point_i
 {
-    return pos - point_i {TermSize.Width / 2, TermSize.Height / 2} + center;
+    return pos - point_i {TermMapSize.Width / 2, TermMapSize.Height / 2} + center;
 }
 
 auto grid_to_term(point_i pos, point_i center) -> point_i
 {
-    return pos + point_i {TermSize.Width / 2, TermSize.Height / 2} - center;
+    return pos + point_i {TermMapSize.Width / 2, TermMapSize.Height / 2} - center;
 }
 
 auto get_target(point_i pos, direction dir) -> point_i
