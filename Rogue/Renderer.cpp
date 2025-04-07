@@ -39,12 +39,12 @@ void renderer::draw(ui::terminal& term)
 
     auto const& player {_level.get_player()};
     auto const  termPos {grid_to_term(player.Position, viewCenter)};
-    if (termPos.X < TermMapSize.Width && termPos.Y < TermMapSize.Height) {
+    if (TermMapSize.contains(termPos)) {
         term.color_set(player.Color);
         term.add_str(termPos, "@");
     }
 
-    term.add_str({60, 0}, "01234567890123456789");
+    term.add_str({60, 0}, std::format("{}", player.Position));
     auto const&             log {_level.get_log()};
     std::span<string const> last;
     if (log.size() >= 5) {
