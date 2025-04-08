@@ -618,6 +618,314 @@ void city_walls::draw_doors()
 
 ////////////////////////////////////////////////////////////
 
+maze_with_rooms::maze_with_rooms(i32 minRoomSize, i32 maxRoomSize, i32 buildRoomAttempts, f32 connectionChance, f32 windingPercent, bool allowDeadEnds)
+    : _minRoomSize {minRoomSize}
+    , _maxRoomSize {maxRoomSize}
+    , _buildRoomAttempts {buildRoomAttempts}
+    , _connectionChance {connectionChance}
+    , _windingPercent {windingPercent}
+    , _allowDeadEnds {allowDeadEnds}
+{
+}
+
+auto maze_with_rooms::generate(u64 seed, size_i size) -> grid<tile>
+{
+    if (size.Width % 2 == 0) { --size.Width; }
+    if (size.Height % 2 == 0) { --size.Height; }
+
+    _rng  = rng {seed};
+    _grid = grid<tile> {size};
+    fill_grid(_grid, _rng, std::array {WALL0, WALL1, WALL2});
+
+    _currentRegion = -1;
+    _regions       = grid<std::optional<i32>> {size, std::nullopt};
+
+    auto const [mapWidth, mapHeight] {size};
+
+    _floor = FLOOR;
+    _wall  = WALL0;
+
+    add_rooms();
+
+    // Fill in the empty space around the rooms with mazes
+    for (i32 y {1}; y < mapHeight; y += 2) {
+        for (i32 x {1}; x < mapWidth; x += 2) {
+            point_i const pos {x, y};
+            if (tile_traits::passable(_grid[pos])) { continue; }
+            grow_maze(pos);
+        }
+    }
+    connect_regions();
+    if (!_allowDeadEnds) { remove_dead_ends(); }
+
+    return _grid;
+}
+
+void maze_with_rooms::grow_maze(point_i start)
+{
+    std::array<point_i, 4> const directions {{{0, -1}, {0, 1}, {1, 0}, {-1, 0}}};
+
+    std::vector<point_i>   cells;
+    std::optional<point_i> lastDirection;
+
+    start_region();
+    carve(start);
+
+    cells.push_back(start);
+
+    while (!cells.empty()) {
+        point_i const               cell {cells.back()};
+        std::unordered_set<point_i> unmadeCells;
+        for (auto const& direction : directions) {
+            if (can_carve(cell, direction)) {
+                unmadeCells.insert(direction);
+            }
+        }
+        if (!unmadeCells.empty()) {
+            // Prefer to carve in the same direction, when
+            // it isn't necessary to do otherwise.
+            point_i direction;
+            if (lastDirection && unmadeCells.contains(*lastDirection) && _rng(0.0f, 1.0f) > _windingPercent) {
+                direction = *lastDirection;
+            } else {
+                direction = *unmadeCells.begin();
+                unmadeCells.erase(unmadeCells.begin());
+            }
+            point_i newCell {cell + direction};
+            carve(newCell);
+
+            newCell = {cell + (direction * 2)};
+            carve(newCell);
+
+            cells.push_back(newCell);
+            lastDirection = direction;
+        } else {
+            cells.pop_back();
+            lastDirection = std::nullopt;
+        }
+    }
+}
+
+void maze_with_rooms::add_rooms()
+{
+    std::vector<rect_i> rooms;
+
+    for (i32 i {0}; i < _buildRoomAttempts; ++i) {
+        // Pick a random room size and ensure that rooms have odd
+        // dimensions and that rooms are not too narrow.
+        i32 const    roomWidth {_rng((_minRoomSize / 2), (_maxRoomSize / 2)) * 2 + 1};
+        i32 const    roomHeight {_rng((_minRoomSize / 2), (_maxRoomSize / 2)) * 2 + 1};
+        i32 const    x {(_rng(0, _grid.width() - roomWidth - 1) / 2) * 2 + 1};
+        i32 const    y {(_rng(0, _grid.height() - roomHeight - 1) / 2) * 2 + 1};
+        rect_i const room {x, y, roomWidth, roomHeight};
+
+        // check for overlap with previous rooms
+        bool failed {false};
+        for (auto const& outerRoom : rooms) {
+            if (room.intersects(outerRoom, true)) {
+                failed = true;
+                break;
+            }
+        }
+        if (!failed) {
+            rooms.push_back(room);
+            start_region();
+            create_room(room);
+        }
+    }
+}
+
+template <typename T>
+void difference_update(std::unordered_set<T>& a, std::unordered_set<T> const& b)
+{
+    for (auto it {a.begin()}; it != a.end();) {
+        if (b.contains(*it)) {
+            it = a.erase(it); // erase returns the next iterator
+        } else {
+            ++it;
+        }
+    }
+}
+
+void maze_with_rooms::connect_regions()
+{
+    // Find all of the tiles that can connect two regions
+    std::array<point_i, 4> const directions {{{0, -1}, {0, 1}, {1, 0}, {-1, 0}}};
+
+    grid<std::unordered_set<i32>> connectorRegions {_regions.size()};
+    auto const [mapWidth, mapHeight] {_regions.size()};
+
+    for (i32 x {1}; x < mapWidth - 1; ++x) {
+        for (i32 y {1}; y < mapHeight - 1; ++y) {
+            if (tile_traits::passable(_grid[{x, y}])) { continue; }
+            std::unordered_set<i32> regions;
+            for (auto const& direction : directions) {
+                point_i const newPos {x + direction.X, y + direction.Y};
+                auto const    region {_regions[newPos]};
+                if (region) {
+                    regions.insert(*region);
+                }
+            }
+            if (regions.size() < 2) { continue; }
+            connectorRegions[{x, y}] = regions;
+        }
+    }
+
+    // make a list of all of the connectors
+    std::unordered_set<point_i> connectors;
+    for (i32 x {0}; x < mapWidth; ++x) {
+        for (i32 y {0}; y < mapHeight; ++y) {
+            if (!connectorRegions[{x, y}].empty()) {
+                connectors.insert({x, y});
+            }
+        }
+    }
+
+    // keep track of the regions that have been merged.
+    std::unordered_map<i32, i32> merged;
+    std::unordered_set<i32>      openRegions;
+    for (i32 i {0}; i <= _currentRegion; ++i) {
+        merged[i] = i;
+        openRegions.insert(i);
+    }
+
+    while (openRegions.size() > 1) {
+        point_i connector {*connectors.begin()};
+        // carve the connection
+        add_junction(connector);
+
+        // make a list of the regions at (x,y)
+        auto [x, y] {connector};
+        std::vector<i32> regions;
+        for (i32 n : connectorRegions[{x, y}]) {
+            regions.push_back(merged[n]);
+        }
+
+        i32            dest {regions[0]};
+        std::span<i32> sources {regions.begin() + 1, regions.size() - 1};
+        /*
+        Merge all of the effective regions. You must look
+        at all of the regions, as some regions may have
+        previously been merged with the ones we are
+        connecting now.
+        */
+        for (i32 i {0}; i <= _currentRegion; ++i) {
+            if (std::find(sources.begin(), sources.end(), merged[i]) != sources.end()) {
+                merged[i] = dest;
+            }
+        }
+
+        // clear the sources, they are no longer needed
+        for (i32 s : sources) {
+            openRegions.erase(s);
+        }
+
+        // remove the unneeded connectors
+        std::unordered_set<point_i> toBeRemoved;
+        for (auto const& pos : connectors) {
+            // remove connectors that are next to the current connector
+            if (euclidean_distance(connector, pos) < 2) {
+                toBeRemoved.insert(pos);
+                continue;
+            }
+
+            std::unordered_set<i32> regions;
+            for (i32 n : connectorRegions[pos]) {
+                regions.insert(merged[n]);
+            }
+            if (regions.size() > 1) { continue; }
+
+            if (_rng(0.0f, 1.0f) < _connectionChance) {
+                add_junction(pos);
+            }
+
+            if (regions.size() == 1) {
+                toBeRemoved.insert(pos);
+            }
+        }
+
+        difference_update(connectors, toBeRemoved);
+    }
+}
+
+void maze_with_rooms::create_room(rect_i const& room)
+{
+    for (i32 x {room.left()}; x < room.right(); ++x) {
+        for (i32 y {room.top()}; y < room.bottom(); ++y) {
+            carve({x, y});
+        }
+    }
+}
+
+void maze_with_rooms::add_junction(point_i pos)
+{
+    _grid[pos] = _floor;
+}
+
+void maze_with_rooms::remove_dead_ends()
+{
+    bool                         done {false};
+    std::array<point_i, 4> const directions {{{0, -1}, {0, 1}, {1, 0}, {-1, 0}}};
+
+    while (!done) {
+        done = true;
+        for (i32 x {1}; x < _grid.width(); ++x) {
+            for (i32 y {1}; y < _grid.height(); ++y) {
+                point_i const pos {x, y};
+                if (tile_traits::passable(_grid[pos])) {
+                    i32 exits {0};
+                    for (auto const& direction : directions) {
+                        if (tile_traits::passable(_grid[pos + direction])) {
+                            ++exits;
+                        }
+                    }
+                    if (exits > 1) { continue; }
+                    done       = false;
+                    _grid[pos] = _wall;
+                }
+            }
+        }
+    }
+}
+
+auto maze_with_rooms::can_carve(point_i pos, point_i dir) -> bool
+{
+
+    /*
+    gets whether an opening can be carved at the location
+    adjacent to the cell at (pos) in the (dir) direction.
+    returns False if the location is out of bounds or if the cell
+    is already open.
+    */
+
+    i32 x = pos.X + dir.X * 3;
+    i32 y = pos.Y + dir.Y * 3;
+
+    if (!_grid.contains({x, y})) { return false; }
+
+    x = pos.X + dir.X * 2;
+    y = pos.Y + dir.Y * 2;
+
+    if (!_grid.contains({x, y})) { return false; }
+
+    // return True if the cell is a wall (1)
+    // false if the cell is a floor (0)
+    return !tile_traits::passable(_grid[{x, y}]);
+}
+
+void maze_with_rooms::start_region()
+{
+    ++_currentRegion;
+}
+
+void maze_with_rooms::carve(point_i pos)
+{
+    _grid[pos]    = _floor;
+    _regions[pos] = _currentRegion;
+}
+
+////////////////////////////////////////////////////////////
+
 leaf::leaf(rect_i const& rect)
     : Rect {rect}
 {
@@ -702,4 +1010,5 @@ auto leaf::get_room(rng& rng) -> rect_i
     // If both room_1 and room_2 exist, pick one
     return (rng(0, 1) == 0) ? *room1 : *room2;
 }
+
 }
