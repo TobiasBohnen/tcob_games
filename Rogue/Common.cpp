@@ -31,7 +31,7 @@ auto is_line_of_sight(point_i start, point_i end, grid<tile> const& tiles) -> bo
         }
 
         point_i const pos {x0, y0};
-        if (pos != end && !tile_type_traits::passable(tiles[pos].Type)) { return false; }
+        if (pos != end && !tile_traits::passable(tiles[pos])) { return false; }
     }
     return true;
 }

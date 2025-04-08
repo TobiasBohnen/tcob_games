@@ -13,12 +13,13 @@ namespace Rogue {
 
 level::level()
 {
-    //_tiles = tunneling {20, 5, 12}.generate(clock::now().time_since_epoch().count(), {120, 120});
+    // _tiles = tunneling {20, 5, 12}.generate(clock::now().time_since_epoch().count(), {120, 120});
     // _tiles = drunkards_walk {.4f, 25000, 0.15f, 0.7f}.generate(clock::now().time_since_epoch().count(), {120, 120});
     _tiles = bsp_tree {6, 15}.generate(clock::now().time_since_epoch().count(), {120, 120});
-
-    for (i32 i {0}; i < _tiles.size(); ++i) {
-        if (tile_type_traits::passable(_tiles[i].Type)) {
+    // _tiles = cellular_automata {30000, 4, 0.5f, 16, 500, true, 1}.generate(clock::now().time_since_epoch().count(), {120, 120});
+    // _tiles = city_walls {8, 16}.generate(clock::now().time_since_epoch().count(), {120, 120});
+    for (i32 i {0}; i < _tiles.count(); ++i) {
+        if (tile_traits::passable(_tiles[i])) {
             _player.Position = {i % _tiles.width(), i / _tiles.width()};
             break;
         }
@@ -49,7 +50,7 @@ void level::update(milliseconds deltaTime, action_queue& queue)
 auto level::is_passable(point_i pos) const -> bool
 {
     if (!_tiles.contains(pos)) { return false; }
-    return tile_type_traits::passable(_tiles[pos].Type);
+    return tile_traits::passable(_tiles[pos]);
 }
 
 void level::end_turn()
@@ -70,12 +71,12 @@ auto level::find_path(point_i target) const -> std::vector<point_i>
         auto get_cost(point_i p) const -> u64
         {
             auto const& tile {(*Parent)[p]};
-            if (!tile_type_traits::passable(tile.Type) || !tile.Seen) { return ai::astar_pathfinding::IMPASSABLE_COST; }
+            if (!tile_traits::passable(tile) || !tile.Seen) { return ai::astar_pathfinding::IMPASSABLE_COST; }
             return 1;
         }
     } pathfinding {&_tiles};
 
-    return path.find_path(pathfinding, _tiles.extent(), _player.Position, target);
+    return path.find_path(pathfinding, _tiles.size(), _player.Position, target);
 }
 
 void level::mark_dirty()

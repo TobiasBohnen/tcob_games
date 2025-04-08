@@ -39,20 +39,9 @@ enum class tile_type {
     Wall
 };
 
-struct tile_type_traits {
-    static auto passable(tile_type type) -> bool
-    {
-        switch (type) {
-        case tile_type::Floor: return true;
-        case tile_type::Wall: return false;
-        }
-        return false;
-    }
-};
-
 struct tile {
     tile_type Type;
-    string    Symbol;
+    string    Symbol {};
     color     ForegroundColor {colors::White};
     color     BackgroundColor {colors::Black};
     bool      Seen {false};
@@ -60,6 +49,17 @@ struct tile {
 
     std::vector<std::shared_ptr<object>> Objects;
     std::shared_ptr<monster>             Monster;
+};
+
+struct tile_traits {
+    static auto passable(tile const& tile) -> bool
+    {
+        switch (tile.Type) {
+        case tile_type::Floor: return true;
+        case tile_type::Wall: return false;
+        }
+        return false;
+    }
 };
 
 ////////////////////////////////////////////////////////////
