@@ -341,7 +341,7 @@ void element_grid::clear()
 
 void element_grid::load(io::istream& stream)
 {
-    auto const size {_grid.size()};
+    auto const size {_grid.count()};
     for (usize i {0}; i < size; ++i) {
         _grid[i]            = stream.read<element>();
         _gridTemperature[i] = stream.read<f32>();
@@ -352,7 +352,7 @@ void element_grid::load(io::istream& stream)
 
 void element_grid::save(io::ostream& stream) const
 {
-    auto const size {_grid.size()};
+    auto const size {_grid.count()};
     for (usize i {0}; i < size; ++i) {
         stream.write(_grid[i]);
         stream.write(_gridTemperature[i]);
