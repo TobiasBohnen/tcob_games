@@ -361,7 +361,7 @@ void cellular_automata::create_tunnel(point_i point1, point_i point2, std::unord
         // weight the random walk against edges
         if (drunkardX < point1.X) {        // drunkard is left of point1
             right += weight;
-        } else if (drunkardX > point1.X) { // # drunkard is right of point1
+        } else if (drunkardX > point1.X) { // drunkard is right of point1
             left += weight;
         }
         if (drunkardY < point1.Y) {        // drunkard is above point1
@@ -922,6 +922,146 @@ void maze_with_rooms::carve(point_i pos)
 {
     _grid[pos]    = _floor;
     _regions[pos] = _currentRegion;
+}
+
+////////////////////////////////////////////////////////////
+
+messy_bsp_tree::messy_bsp_tree(i32 minRoomSize, i32 maxRoomSize, bool smoothEdges, i32 smoothing, i32 filling)
+    : _minRoomSize {minRoomSize}
+    , _maxRoomSize {maxRoomSize}
+    , _smoothEdges {smoothEdges}
+    , _smoothing {smoothing}
+    , _filling {filling}
+{
+}
+
+auto messy_bsp_tree::generate(u64 seed, size_i size) -> grid<tile>
+{
+    static i32 constexpr MAX_LEAF_SIZE {24};
+
+    _rng  = rng {seed};
+    _grid = grid<tile> {size};
+    auto const [mapWidth, mapHeight] {size};
+    fill_grid(_grid, _rng, std::array {WALL0, WALL1, WALL2});
+
+    _floor = FLOOR;
+    _wall  = WALL0;
+
+    leaf root {rect_i {0, 0, mapWidth, mapHeight}};
+    root.split_leaf(_rng, MAX_LEAF_SIZE);
+    root.create_rooms(
+        [&](rect_i const& room1, rect_i const& room2) { draw_hallway(room1, room2); },
+        [&](rect_i const& room0) { draw_room(room0); },
+        _minRoomSize, _maxRoomSize, _rng);
+    cleanup_map();
+
+    return _grid;
+}
+
+void messy_bsp_tree::draw_room(rect_i const& rect)
+{
+    for (i32 y {rect.top() + 1}; y < rect.bottom(); ++y) {
+        for (i32 x {rect.left() + 1}; x < rect.right(); ++x) {
+            if (x == 0 || y == 0 || x == _grid.width() - 1 || y == _grid.height() - 1) { continue; }
+
+            point_i const pos {x, y};
+            assert(_grid.contains(pos));
+            _grid[pos] = _floor;
+        }
+    }
+}
+
+void messy_bsp_tree::draw_hallway(rect_i const& room1, rect_i const& room2)
+{
+    // run a heavily weighted random Walk
+    // from point2 to point1
+    auto [drunkardX, drunkardY] {point_i {room2.center()}};
+    auto [goalX, goalY] {point_i {room1.center()}};
+
+    while (!room1.contains(point_i {drunkardX, drunkardY})) {
+        // ==== Choose Direction ====
+        f32 up {1.0f};
+        f32 down {1.0f};
+        f32 right {1.0f};
+        f32 left {1.0f};
+
+        f32 weight {1};
+
+        // weight the random walk against edges
+        if (drunkardX < goalX) {        // drunkard is left of point1
+            right += weight;
+        } else if (drunkardX > goalX) { // drunkard is right of point1
+            left += weight;
+        }
+        if (drunkardY < goalY) {        // drunkard is above point1
+            down += weight;
+        } else if (drunkardY > goalY) { // drunkard is below point1
+            up += weight;
+        }
+
+        // normalize probabilities so they form a range from 0 to 1
+        f32 const total {up + down + right + left};
+        up /= total;
+        down /= total;
+        right /= total;
+        left /= total;
+
+        // choose the direction
+        i32 dx {0};
+        i32 dy {0};
+        f32 choice = _rng(0.0f, 1.0f);
+        if (choice < up) {
+            dx = 0;
+            dy = -1;
+        } else if (choice < (up + down)) {
+            dx = 0;
+            dy = 1;
+        } else if (choice < (up + down + right)) {
+            dx = 1;
+            dy = 0;
+        } else {
+            dx = -1;
+            dy = 0;
+        }
+        // ==== Walk ====
+        // check colision at edges
+        if ((drunkardX + dx > 0 && drunkardX + dx < _grid.width() - 1) && (drunkardY + dy > 0 && drunkardY + dy < _grid.height() - 1)) {
+            drunkardX += dx;
+            drunkardY += dy;
+            if (!tile_traits::passable(_grid[{drunkardX, drunkardY}])) {
+                _grid[{drunkardX, drunkardY}] = _floor;
+            }
+        }
+    }
+}
+
+void messy_bsp_tree::cleanup_map()
+{
+    if (!_smoothEdges) { return; }
+    for (i32 i {0}; i < 3; ++i) {
+        for (i32 x {1}; x < _grid.width() - 1; ++x) {
+            for (i32 y {1}; y < _grid.height() - 1; ++y) {
+                point_i const pos {x, y};
+                auto const    walls {get_adjacent_walls_simple(pos)};
+                if (tile_traits::passable(_grid[pos]) && walls <= _smoothing) {
+                    _grid[pos] = _floor;
+                }
+                if (!tile_traits::passable(_grid[pos]) && walls >= _filling) {
+                    _grid[pos] = _wall;
+                }
+            }
+        }
+    }
+}
+
+auto messy_bsp_tree::get_adjacent_walls_simple(point_i p) -> i32
+{
+    i32 retValue {0};
+    if (!tile_traits::passable(_grid[{p.X, p.Y - 1}])) { ++retValue; }
+    if (!tile_traits::passable(_grid[{p.X, p.Y + 1}])) { ++retValue; }
+    if (!tile_traits::passable(_grid[{p.X - 1, p.Y}])) { ++retValue; }
+    if (!tile_traits::passable(_grid[{p.X + 1, p.Y}])) { ++retValue; }
+    return retValue;
 }
 
 ////////////////////////////////////////////////////////////

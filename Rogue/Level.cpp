@@ -16,9 +16,11 @@ level::level()
     // _tiles = tunneling {20, 5, 12}.generate(clock::now().time_since_epoch().count(), {120, 120});
     // _tiles = drunkards_walk {.4f, 25000, 0.15f, 0.7f}.generate(clock::now().time_since_epoch().count(), {120, 120});
     // _tiles = bsp_tree {6, 15}.generate(clock::now().time_since_epoch().count(), {120, 120});
-    // _tiles = cellular_automata {30000, 4, 0.5f, 16, 500, true, 1}.generate(clock::now().time_since_epoch().count(), {120, 120});
+    _tiles = cellular_automata {30000, 4, 0.5f, 16, 500, true, 1}.generate(clock::now().time_since_epoch().count(), {120, 120});
     // _tiles = city_walls {8, 16}.generate(clock::now().time_since_epoch().count(), {120, 120});
-    _tiles = maze_with_rooms {6, 13, 100, 0.04f, 0.1f, false}.generate(clock::now().time_since_epoch().count(), {121, 121});
+    // _tiles = maze_with_rooms {6, 13, 100, 0.04f, 0.1f, false}.generate(clock::now().time_since_epoch().count(), {121, 121});
+    // _tiles = messy_bsp_tree {6, 15, true, 1, 3}.generate(clock::now().time_since_epoch().count(), {120, 120});
+
     for (i32 i {0}; i < _tiles.count(); ++i) {
         if (tile_traits::passable(_tiles[i])) {
             _player.Position = {i % _tiles.width(), i / _tiles.width()};
@@ -64,7 +66,7 @@ void level::end_turn()
 
 auto level::find_path(point_i target) const -> std::vector<point_i>
 {
-    ai::astar_pathfinding path;
+    ai::astar_pathfinding path {true, ai::astar_pathfinding::heuristic::Chebyshev};
 
     struct grid_path {
         grid<tile> const* Parent;
@@ -179,6 +181,22 @@ void level::handle_action_queue(action_queue& queue)
                 case action::MoveDown:
                     moveTarget = get_target(_player.Position, direction::Down);
                     message    = "moved down";
+                    break;
+                case action::MoveLeftUp:
+                    moveTarget = get_target(get_target(_player.Position, direction::Left), direction::Up);
+                    message    = "moved left up";
+                    break;
+                case action::MoveRightUp:
+                    moveTarget = get_target(get_target(_player.Position, direction::Right), direction::Up);
+                    message    = "moved right up";
+                    break;
+                case action::MoveLeftDown:
+                    moveTarget = get_target(get_target(_player.Position, direction::Left), direction::Down);
+                    message    = "moved left down";
+                    break;
+                case action::MoveRightDown:
+                    moveTarget = get_target(get_target(_player.Position, direction::Right), direction::Down);
+                    message    = "moved right down";
                     break;
                 default: break;
                 }
