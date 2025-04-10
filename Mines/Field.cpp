@@ -81,7 +81,7 @@ void field::start(size_i gridSize, i32 windowHeight, u32 mines)
     // create tilemap layer
     _map.clear();
 
-    gfx::tilemap_layer backLayer {.Tiles = {gridSize}};
+    gfx::tilemap_layer backLayer {.Tiles = grid<gfx::tile_index_t> {gridSize}};
     for (usize i {0}; i < _cells.size(); ++i) {
         auto const& field {_cells[i]};
         if (field.IsMine) {

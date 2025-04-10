@@ -39,10 +39,10 @@ void field::start()
 
     _map.clear();
 
-    gfx::tilemap_layer backLayer {.Tiles = {_gridSize, TS_FLOOR}};
+    gfx::tilemap_layer backLayer {.Tiles = grid<gfx::tile_index_t> {_gridSize, TS_FLOOR}};
     _layerBack = _map.add_layer(backLayer);
 
-    gfx::tilemap_layer frontLayer {.Tiles = {_gridSize, TS_NONE}};
+    gfx::tilemap_layer frontLayer {.Tiles = grid<gfx::tile_index_t> {_gridSize, TS_NONE}};
     frontLayer.Tiles[snake] = TS_SNAKE_HEAD;
     _layerFront             = _map.add_layer(frontLayer);
 
