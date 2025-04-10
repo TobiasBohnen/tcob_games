@@ -343,13 +343,13 @@ void cellular_automata::cleanup_map()
     }
 }
 
-void cellular_automata::create_tunnel(point_i point1, point_i point2, std::unordered_set<point_i>& currentCave)
+void cellular_automata::create_tunnel(point_i point1, point_i point2, std::unordered_set<i32> const& currentCave)
 {
     // run a heavily weighted random Walk
     // from point2 to point1
     auto [drunkardX, drunkardY] {point2};
 
-    while (!currentCave.contains({drunkardX, drunkardY})) {
+    while (!currentCave.contains(get_index({drunkardX, drunkardY}))) {
         // ==== Choose Direction ====
         f32 up {1.0f};
         f32 down {1.0f};
@@ -455,24 +455,24 @@ void cellular_automata::flood_fill(point_i pos)
     the regions that are smaller than a minimum size, and
     create a reference for the rest.
     */
-    std::unordered_set<point_i> cave;
-    std::unordered_set<point_i> toBeFilled {};
-    toBeFilled.insert(pos);
+    std::unordered_set<i32> cave;
+    std::queue<point_i>     toBeFilled {};
+    toBeFilled.push(pos);
 
     while (!toBeFilled.empty()) {
-        point_i const tile {*toBeFilled.begin()};
-        toBeFilled.erase(toBeFilled.begin());
+        point_i const tile {toBeFilled.front()};
+        toBeFilled.pop();
 
-        if (!cave.contains(tile)) {
-            cave.insert(tile);
+        if (!cave.contains(get_index(tile))) {
+            cave.insert(get_index(tile));
             _grid[tile] = _wall;
 
             // check adjacent cells
             auto const [x, y] {tile};
-            std::array<point_i, 4> directions {{{x, y - 1}, {x, y + 1}, {x + 1, y}, {x - 1, y}}};
+            std::array<point_i, 4> const directions {{{x, y - 1}, {x, y + 1}, {x + 1, y}, {x - 1, y}}};
             for (auto const& direction : directions) {
                 if (_grid.contains(direction) && tile_traits::passable(_grid[direction])) {
-                    if (!cave.contains(direction)) { toBeFilled.insert(direction); }
+                    if (!cave.contains(get_index(direction))) { toBeFilled.push(direction); }
                 }
             }
         }
@@ -486,15 +486,15 @@ void cellular_automata::connect_caves()
 {
     // Find the closest cave to the current cave
     for (auto& currentCave : _caves) {
-        point_i const          point1 {*currentCave.begin()};
-        std::optional<point_i> point2;
-        std::optional<f64>     distance;
+        i32 const          point1 {*currentCave.begin()};
+        std::optional<i32> point2;
+        std::optional<f64> distance;
 
         for (auto& nextCave : _caves) {
             if (nextCave != currentCave && !check_connectivity(currentCave, nextCave)) {
                 // choose a random point from nextCave
-                point_i const nextPoint {*nextCave.begin()};
-                f64 const     newDistance {euclidean_distance(point1, nextPoint)};
+                i32 const nextPoint {*nextCave.begin()};
+                f64 const newDistance {euclidean_distance(get_point(point1), get_point(nextPoint))};
                 if (newDistance < distance || !distance) {
                     point2   = nextPoint;
                     distance = newDistance;
@@ -502,41 +502,43 @@ void cellular_automata::connect_caves()
             }
         }
         if (point2) { // if all tunnels are connected, point2 == None
-            create_tunnel(point1, *point2, currentCave);
+            create_tunnel(get_point(point1), get_point(*point2), currentCave);
         }
     }
 }
 
-auto cellular_automata::check_connectivity(std::unordered_set<point_i>& cave1, std::unordered_set<point_i>& cave2) const -> bool
+auto cellular_automata::check_connectivity(std::unordered_set<i32> const& cave1, std::unordered_set<i32> const& cave2) const -> bool
 {
     // floods cave1, then checks a point in cave2 for the flood
-    std::unordered_set<point_i> connectedRegion;
-    point_i const               start {*cave1.begin()};
+    std::unordered_set<i32> connectedRegion;
+    i32 const               start {*cave1.begin()};
+    i32 const               end {*cave2.begin()};
+    if (start == end) { return true; }
 
-    std::unordered_set<point_i> toBeFilled {};
-    toBeFilled.insert(start);
+    std::queue<i32> toBeFilled {};
+    toBeFilled.push(start);
 
     while (!toBeFilled.empty()) {
-
-        point_i const tile {*toBeFilled.begin()};
-        toBeFilled.erase(toBeFilled.begin());
+        i32 const tile {toBeFilled.front()};
+        toBeFilled.pop();
 
         if (!connectedRegion.contains(tile)) {
             connectedRegion.insert(tile);
 
             // check adjacent cells
-            auto const [x, y] {tile};
-            std::array<point_i, 4> directions {{{x, y - 1}, {x, y + 1}, {x + 1, y}, {x - 1, y}}};
+            auto const [x, y] {get_point(tile)};
+            std::array<point_i, 4> const directions {{{x, y - 1}, {x, y + 1}, {x + 1, y}, {x - 1, y}}};
 
             for (auto const& direction : directions) {
+                i32 const dir {get_index(direction)};
+                if (dir == end) { return true; }
+
                 if (_grid.contains(direction) && tile_traits::passable(_grid[direction])) {
-                    if (!connectedRegion.contains(direction)) { toBeFilled.insert(direction); }
+                    if (!connectedRegion.contains(dir)) { toBeFilled.push(dir); }
                 }
             }
         }
     }
-
-    point_i const end {*cave2.begin()};
     return connectedRegion.contains(end);
 }
 

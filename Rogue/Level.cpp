@@ -13,13 +13,15 @@ namespace Rogue {
 
 level::level()
 {
-    // _tiles = tunneling {20, 5, 12}.generate(clock::now().time_since_epoch().count(), {120, 120});
-    // _tiles = drunkards_walk {.4f, 25000, 0.15f, 0.7f}.generate(clock::now().time_since_epoch().count(), {120, 120});
-    // _tiles = bsp_tree {6, 15}.generate(clock::now().time_since_epoch().count(), {120, 120});
-    _tiles = cellular_automata {30000, 4, 0.5f, 16, 500, true, 1}.generate(clock::now().time_since_epoch().count(), {120, 120});
-    // _tiles = city_walls {8, 16}.generate(clock::now().time_since_epoch().count(), {120, 120});
-    // _tiles = maze_with_rooms {6, 13, 100, 0.04f, 0.1f, false}.generate(clock::now().time_since_epoch().count(), {121, 121});
-    // _tiles = messy_bsp_tree {6, 15, true, 1, 3}.generate(clock::now().time_since_epoch().count(), {120, 120});
+    i64 seed {clock::now().time_since_epoch().count()};
+    seed   = 12345;
+    // _tiles = tunneling {20, 5, 12}.generate(seed, {120, 120});
+    // _tiles = drunkards_walk {.4f, 25000, 0.15f, 0.7f}.generate(seed, {120, 120});
+    // _tiles = bsp_tree {6, 15}.generate(seed, {120, 120});
+    _tiles = cellular_automata {30000, 4, 0.5f, 16, 500, true, 1}.generate(seed, {120, 120});
+    // _tiles = city_walls {8, 16}.generate(seed, {120, 120});
+    // _tiles = maze_with_rooms {6, 13, 100, 0.04f, 0.1f, false}.generate(seed, {121, 121});
+    // _tiles = messy_bsp_tree {6, 15, true, 1, 3}.generate(seed, {120, 120});
 
     for (i32 i {0}; i < _tiles.count(); ++i) {
         if (tile_traits::passable(_tiles[i])) {

@@ -93,13 +93,23 @@ private:
     void random_fill_map();
     void draw_caves();
     void cleanup_map();
-    void create_tunnel(point_i point1, point_i point2, std::unordered_set<point_i>& currentCave);
+    void create_tunnel(point_i point1, point_i point2, std::unordered_set<i32> const& currentCave);
     auto get_adjacent_walls(point_i p) -> i32;
     auto get_adjacent_walls_simple(point_i p) -> i32;
     void get_caves();
     void flood_fill(point_i pos);
     void connect_caves();
-    auto check_connectivity(std::unordered_set<point_i>& cave1, std::unordered_set<point_i>& cave2) const -> bool;
+    auto check_connectivity(std::unordered_set<i32> const& cave1, std::unordered_set<i32> const& cave2) const -> bool;
+
+    auto get_index(point_i pos) const -> i32
+    {
+        return pos.Y * _grid.width() + pos.X;
+    }
+    auto get_point(isize idx) const -> point_i
+    {
+        auto const width = _grid.width(); // Get the grid width.
+        return {static_cast<i32>(idx % width), static_cast<i32>(idx / width)};
+    }
 
     i32  _iterations;
     i32  _neighbors;
@@ -112,9 +122,9 @@ private:
     tile _floor;
     tile _wall;
 
-    std::vector<std::unordered_set<point_i>> _caves;
-    grid<tile>                               _grid;
-    rng                                      _rng;
+    std::vector<std::unordered_set<i32>> _caves;
+    grid<tile>                           _grid;
+    rng                                  _rng;
 };
 
 ////////////////////////////////////////////////////////////
