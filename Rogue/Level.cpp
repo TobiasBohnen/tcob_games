@@ -13,15 +13,29 @@ namespace Rogue {
 
 level::level()
 {
-    i64 seed {clock::now().time_since_epoch().count()};
+    u64 seed {static_cast<u64>(clock::now().time_since_epoch().count())};
     seed   = 12345;
     // _tiles = tunneling {20, 5, 12}.generate(seed, {120, 120});
     // _tiles = drunkards_walk {.4f, 25000, 0.15f, 0.7f}.generate(seed, {120, 120});
     // _tiles = bsp_tree {6, 15}.generate(seed, {120, 120});
-    _tiles = cellular_automata {30000, 4, 0.5f, 16, 500, true, 1}.generate(seed, {120, 120});
+    // _tiles = cellular_automata {30000, 4, 0.5f, 16, 500, true, 1}.generate(seed, {120, 120});
     // _tiles = city_walls {8, 16}.generate(seed, {120, 120});
-    // _tiles = maze_with_rooms {6, 13, 100, 0.04f, 0.1f, false}.generate(seed, {121, 121});
+    _tiles = maze_with_rooms {6, 13, 100, 0.04f, 0.1f, false}.generate(seed, {121, 121});
     // _tiles = messy_bsp_tree {6, 15, true, 1, 3}.generate(seed, {120, 120});
+
+    gfx::l_system lsystem {seed};
+    lsystem.add_rule('X', {"[RPRPRPR]Y", 1.0f}); // Create room and path
+
+    // Rules for expanding the path and changing directions
+    lsystem.add_rule('Y', {"[>RPW*R]PY", 0.50f}); // Expand path right, add room, and path
+    lsystem.add_rule('Y', {"[>PRPPR]PY", 0.25f}); // Expand path right with smaller rooms
+    lsystem.add_rule('Y', {"[<PRPPR]PY", 0.25f}); // Expand path left with smaller rooms
+
+    //"[RPRPRPR][>RPR]P[>PRPPR]P[>PRPPR]"2
+
+    //  _tiles = turtle {turtle::pen {.Position = {5, 8}, .Direction = direction::Right, .RoomSize = {3, 5}, .PathLength = 5},
+    //                 lsystem.generate("X", 5)}
+    //             .generate(seed, {120, 120});
 
     for (i32 i {0}; i < _tiles.count(); ++i) {
         if (tile_traits::passable(_tiles[i])) {

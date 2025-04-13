@@ -5,6 +5,8 @@
 
 #include "Layout.hpp"
 
+#include <utility>
+
 // based on: https://github.com/AtTheMatinee/dungeon-generation/blob/master/dungeonGenerationAlgorithms.py
 // MIT License Copyright (c) 2017 AtTheMatinee
 
@@ -15,6 +17,153 @@ static tile const FLOOR {.Type = tile_type::Floor, .Symbol = ".", .ForegroundCol
 static tile const WALL0 {.Type = tile_type::Wall, .Symbol = "#", .ForegroundColor = colors::Black, .BackgroundColor = colors::LightSlateGray, .Seen = true};
 static tile const WALL1 {.Type = tile_type::Wall, .Symbol = "#", .ForegroundColor = colors::Black, .BackgroundColor = colors::DimGray, .Seen = true};
 static tile const WALL2 {.Type = tile_type::Wall, .Symbol = "#", .ForegroundColor = colors::Black, .BackgroundColor = colors::Silver, .Seen = true};
+
+////////////////////////////////////////////////////////////
+
+turtle::turtle(pen const& start, string sequence)
+    : _sequence {std::move(sequence)}
+    , _startPen {start}
+{
+}
+
+auto turtle::generate(u64 seed, size_i size) -> grid<tile>
+{
+    _grid = grid<tile> {size};
+    _rng  = rng {seed};
+
+    std::array const tiles {WALL0, WALL1, WALL2};
+    for (usize i {0}; i < _grid.count(); ++i) {
+        i32 const idx {_rng(0, static_cast<i32>(tiles.size() - 1))};
+        _grid[i] = tiles[idx];
+    }
+
+    interpret_string();
+    return _grid;
+}
+
+void turtle::interpret_string()
+{
+    std::stack<pen> stack;
+    pen             t {_startPen};
+
+    for (char c : _sequence) {
+        switch (c) {
+        case 'R': draw_room(t); break;
+        case 'P': draw_path(t, t.PathLength); break;
+        case 'p': draw_path(t, 1); break;
+        case '+': apply_scale(t, 1); break;
+        case '-': apply_scale(t, -1); break;
+        case '*': apply_scale(t, 2); break;
+        case '/': apply_scale(t, -2); break;
+        case 'W': t.ScaleTarget = scale_target::RoomWidth; break;
+        case 'H': t.ScaleTarget = scale_target::RoomHeight; break;
+        case 'L': t.ScaleTarget = scale_target::Path; break;
+        case '?': t.Direction = static_cast<direction>(_rng(1, 4)); break;
+        case '>': rotate_direction(t, true); break;
+        case '<': rotate_direction(t, false); break;
+        case '[': stack.push(t); break;
+        case ']':
+            if (!stack.empty()) {
+                t = stack.top();
+                stack.pop();
+            }
+            break;
+        default: break;
+        }
+    }
+}
+
+void turtle::apply_scale(pen& t, i32 factor)
+{
+    switch (t.ScaleTarget) {
+    case scale_target::Path:
+        switch (factor) {
+        case 1: t.PathLength++; break;
+        case -1: t.PathLength--; break;
+        case 2: t.PathLength *= 2; break;
+        case -2: t.PathLength /= 2; break;
+        }
+        break;
+    case scale_target::RoomWidth:
+        switch (factor) {
+        case 1: t.RoomSize.Width++; break;
+        case -1: t.RoomSize.Width--; break;
+        case 2: t.RoomSize.Width *= 2; break;
+        case -2: t.RoomSize.Width /= 2; break;
+        }
+        break;
+    case scale_target::RoomHeight:
+        switch (factor) {
+        case 1: t.RoomSize.Height++; break;
+        case -1: t.RoomSize.Height--; break;
+        case 2: t.RoomSize.Height *= 2; break;
+        case -2: t.RoomSize.Height /= 2; break;
+        }
+        break;
+    }
+}
+
+void turtle::rotate_direction(pen& t, bool clockwise)
+{
+    if (clockwise) {
+        switch (t.Direction) {
+        case direction::None:
+        case direction::Left: t.Direction = direction::Up; break;
+        case direction::Up: t.Direction = direction::Right; break;
+        case direction::Right: t.Direction = direction::Down; break;
+        case direction::Down: t.Direction = direction::Left; break;
+        }
+    } else {
+        switch (t.Direction) {
+        case direction::None:
+        case direction::Left: t.Direction = direction::Down; break;
+        case direction::Up: t.Direction = direction::Left; break;
+        case direction::Right: t.Direction = direction::Up; break;
+        case direction::Down: t.Direction = direction::Right; break;
+        }
+    }
+}
+
+void turtle::draw_room(pen& t)
+{
+    auto const   width {t.RoomSize.Width};
+    auto const   height {t.RoomSize.Height};
+    rect_i const room {t.Position.X - width / 2, t.Position.Y - height / 2, width, height};
+
+    for (i32 y {room.top()}; y < room.bottom(); ++y) {
+        for (i32 x {room.left()}; x < room.right(); ++x) {
+            if (x < 0) { x += _grid.width(); }
+            if (y < 0) { y += _grid.height(); }
+
+            _grid[{x % _grid.width(), y % _grid.height()}] = FLOOR;
+        }
+    }
+}
+
+void turtle::draw_path(pen& t, i32 l)
+{
+    for (i32 i {0}; i < l; ++i) {
+        if (t.Position.X < 0) { t.Position.X += _grid.width(); }
+        if (t.Position.Y < 0) { t.Position.Y += _grid.height(); }
+
+        _grid[t.Position] = FLOOR;
+        move_forward(t);
+    }
+}
+
+void turtle::move_forward(pen& t)
+{
+    switch (t.Direction) {
+    case direction::None: break;
+    case direction::Left: t.Position += point_i {-1, 0}; break;
+    case direction::Right: t.Position += point_i {1, 0}; break;
+    case direction::Up: t.Position += point_i {0, -1}; break;
+    case direction::Down: t.Position += point_i {0, 1}; break;
+    }
+
+    t.Position = {t.Position.X % _grid.width(),
+                  t.Position.Y % _grid.height()};
+}
 
 ////////////////////////////////////////////////////////////
 
@@ -80,6 +229,8 @@ void base_layout::draw_hallway(grid<tile>& grid, rect_i const& room1, rect_i con
         draw_horizontal_tunnel(grid, x1, x2, y2, floor);
     }
 }
+
+////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////
 

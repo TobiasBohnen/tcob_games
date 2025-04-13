@@ -8,6 +8,7 @@
 #include "Common.hpp"
 
 namespace Rogue {
+
 ////////////////////////////////////////////////////////////
 
 class base_layout {
@@ -25,6 +26,46 @@ protected:
 private:
     void draw_horizontal_tunnel(grid<tile>& grid, i32 x0, i32 x1, i32 y, tile const& floor);
     void draw_vertical_tunnel(grid<tile>& grid, i32 x, i32 y0, i32 y1, tile const& floor);
+};
+
+////////////////////////////////////////////////////////////
+
+class turtle : public base_layout {
+public:
+    enum class scale_target {
+        Path,
+        RoomWidth,
+        RoomHeight
+    };
+
+    struct pen {
+        point_i   Position {0, 0};
+        direction Direction {direction::Right};
+        size_i    RoomSize {4, 4};
+        i32       PathLength {4};
+
+        scale_target ScaleTarget {scale_target::Path};
+    };
+
+    turtle(pen const& start, string sequence);
+
+    auto generate(u64 seed, size_i size) -> grid<tile> override;
+
+private:
+    void interpret_string();
+    void apply_scale(pen& t, i32 factor);
+    void rotate_direction(pen& t, bool clockwise);
+
+    void draw_room(pen& t);
+    void draw_path(pen& t, i32 l);
+    void move_forward(pen& t);
+
+    string _sequence;
+
+    grid<tile> _grid;
+    rng        _rng;
+
+    pen _startPen;
 };
 
 ////////////////////////////////////////////////////////////
