@@ -7,6 +7,7 @@ target_sources(Rogue PRIVATE
     Layout.cpp
     Level.cpp
     MainMenu.cpp
+    MasterControl.cpp
     Player.cpp
     Renderer.cpp
     StartScene.cpp

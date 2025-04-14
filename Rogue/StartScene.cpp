@@ -36,12 +36,12 @@ void start_scene::on_start()
 
 void start_scene::on_draw_to(gfx::render_target&)
 {
-    _level.draw(*_mainForm->Terminal);
+    _master.draw(*_mainForm->Terminal);
 }
 
 void start_scene::on_update(milliseconds deltaTime)
 {
-    _level.update(deltaTime, _actionQueue);
+    _master.update(deltaTime, _actionQueue);
 }
 
 void start_scene::on_fixed_update(milliseconds deltaTime)

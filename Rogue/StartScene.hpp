@@ -6,14 +6,13 @@
 #pragma once
 
 #include "Common.hpp"
-#include "Level.hpp"
 #include "MainMenu.hpp"
+#include "MasterControl.hpp"
 
 namespace Rogue {
 ////////////////////////////////////////////////////////////
 
 class start_scene : public scene {
-
 public:
     start_scene(game& game);
     ~start_scene() override;
@@ -32,7 +31,7 @@ private:
     std::shared_ptr<main_menu> _mainForm {};
     action_queue               _actionQueue;
 
-    level _level;
+    master_control _master;
 };
 
 }

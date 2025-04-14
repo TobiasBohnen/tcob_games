@@ -15,10 +15,11 @@ using namespace tcob;
 using namespace std::chrono_literals;
 using namespace tcob::literals;
 
-constinit inline size_i TermMapSize {60, 40};
+constinit inline size_i TermMapSize {50, 40};
 constinit inline size_i TermSize {80, 45};
 
 class level;
+class master_control;
 
 ////////////////////////////////////////////////////////////
 

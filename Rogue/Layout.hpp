@@ -8,7 +8,6 @@
 #include "Common.hpp"
 
 namespace Rogue {
-
 ////////////////////////////////////////////////////////////
 
 class base_layout {
@@ -18,7 +17,7 @@ public:
     auto virtual generate(u64 seed, size_i size) -> grid<tile> = 0;
 
 protected:
-    void fill_grid(grid<tile>& grid, rng& rng, std::span<tile const> tiles) const;
+    void fill_grid(grid<tile>& grid, rng& rng, tile const& tile, std::span<color const> colors) const;
 
     void draw_room(grid<tile>& grid, rect_i const& rect, tile const& floor);
     void draw_hallway(grid<tile>& grid, rect_i const& room1, rect_i const& room2, tile const& floor, bool b);

@@ -12,11 +12,9 @@
 
 namespace Rogue {
 
-static tile const FLOOR {.Type = tile_type::Floor, .Symbol = ".", .ForegroundColor = colors::Gray, .BackgroundColor = colors::SeaShell, .Seen = true};
-
-static tile const WALL0 {.Type = tile_type::Wall, .Symbol = "#", .ForegroundColor = colors::Black, .BackgroundColor = colors::LightSlateGray, .Seen = true};
-static tile const WALL1 {.Type = tile_type::Wall, .Symbol = "#", .ForegroundColor = colors::Black, .BackgroundColor = colors::DimGray, .Seen = true};
-static tile const WALL2 {.Type = tile_type::Wall, .Symbol = "#", .ForegroundColor = colors::Black, .BackgroundColor = colors::Silver, .Seen = true};
+static tile const                 FLOOR {.Type = tile_type::Floor, .Symbol = ".", .ForegroundColor = colors::Gray, .BackgroundColor = colors::SeaShell};
+static tile const                 WALL {.Type = tile_type::Wall, .Symbol = "#", .ForegroundColor = colors::Black};
+static std::array<color, 3> const WALL_COLORS {{colors::DimGray, colors::Silver, colors::LightSlateGray}};
 
 ////////////////////////////////////////////////////////////
 
@@ -31,10 +29,8 @@ auto turtle::generate(u64 seed, size_i size) -> grid<tile>
     _grid = grid<tile> {size};
     _rng  = rng {seed};
 
-    std::array const tiles {WALL0, WALL1, WALL2};
     for (usize i {0}; i < _grid.count(); ++i) {
-        i32 const idx {_rng(0, static_cast<i32>(tiles.size() - 1))};
-        _grid[i] = tiles[idx];
+        _grid[i] = WALL;
     }
 
     interpret_string();
@@ -167,11 +163,12 @@ void turtle::move_forward(pen& t)
 
 ////////////////////////////////////////////////////////////
 
-void base_layout::fill_grid(grid<tile>& grid, rng& rng, std::span<tile const> tiles) const
+void base_layout::fill_grid(grid<tile>& grid, rng& rng, tile const& tile, std::span<color const> colors) const
 {
     for (usize i {0}; i < grid.count(); ++i) {
-        i32 const idx {rng(0, static_cast<i32>(tiles.size() - 1))};
-        grid[i] = tiles[idx];
+        i32 const idx {rng(0, static_cast<i32>(colors.size() - 1))};
+        grid[i]                 = tile;
+        grid[i].BackgroundColor = colors[idx];
     }
 }
 
@@ -247,7 +244,7 @@ auto tunneling::generate(u64 seed, size_i size) -> grid<tile>
 
     grid<tile> retValue {size};
     auto const [mapWidth, mapHeight] {size};
-    fill_grid(retValue, rng, std::array {WALL0, WALL1, WALL2});
+    fill_grid(retValue, rng, WALL, WALL_COLORS);
 
     std::vector<rect_i> rooms;
     for (i32 r {0}; r < _maxRooms; ++r) {
@@ -293,7 +290,7 @@ auto bsp_tree::generate(u64 seed, size_i size) -> grid<tile>
 
     grid<tile> retValue {size};
     auto const [mapWidth, mapHeight] {size};
-    fill_grid(retValue, rng, std::array {WALL0, WALL1, WALL2});
+    fill_grid(retValue, rng, WALL, WALL_COLORS);
 
     leaf root {rect_i {0, 0, mapWidth, mapHeight}};
     root.split_leaf(rng, MAX_LEAF_SIZE);
@@ -327,7 +324,7 @@ auto drunkards_walk::generate(u64 seed, size_i size) -> grid<tile>
 
     _grid = grid<tile> {size};
     auto const [mapWidth, mapHeight] {size};
-    fill_grid(_grid, rng, std::array {WALL0, WALL1, WALL2});
+    fill_grid(_grid, rng, WALL, WALL_COLORS);
 
     _floor = FLOOR;
 
@@ -436,10 +433,11 @@ auto cellular_automata::generate(u64 seed, size_i size) -> grid<tile>
     _rng = rng {seed};
 
     _grid = grid<tile> {size};
-    fill_grid(_grid, _rng, std::array {WALL0, WALL1, WALL2});
+    fill_grid(_grid, _rng, WALL, WALL_COLORS);
 
-    _floor = FLOOR;
-    _wall  = WALL0;
+    _floor                = FLOOR;
+    _wall                 = WALL;
+    _wall.BackgroundColor = WALL_COLORS[0];
 
     random_fill_map();
     draw_caves();
@@ -710,8 +708,9 @@ auto city_walls::generate(u64 seed, size_i size) -> grid<tile>
     _grid = grid<tile> {size, FLOOR};
     auto const [mapWidth, mapHeight] {size};
 
-    _floor = FLOOR;
-    _wall  = WALL0;
+    _floor                = FLOOR;
+    _wall                 = WALL;
+    _wall.BackgroundColor = WALL_COLORS[0];
 
     leaf root {rect_i {0, 0, mapWidth, mapHeight}};
     root.split_leaf(_rng, MAX_LEAF_SIZE);
@@ -788,15 +787,16 @@ auto maze_with_rooms::generate(u64 seed, size_i size) -> grid<tile>
 
     _rng  = rng {seed};
     _grid = grid<tile> {size};
-    fill_grid(_grid, _rng, std::array {WALL0, WALL1, WALL2});
+    fill_grid(_grid, _rng, WALL, WALL_COLORS);
 
     _currentRegion = -1;
     _regions       = grid<std::optional<i32>> {size, std::nullopt};
 
     auto const [mapWidth, mapHeight] {size};
 
-    _floor = FLOOR;
-    _wall  = WALL0;
+    _floor                = FLOOR;
+    _wall                 = WALL;
+    _wall.BackgroundColor = WALL_COLORS[0];
 
     add_rooms();
 
@@ -1095,10 +1095,11 @@ auto messy_bsp_tree::generate(u64 seed, size_i size) -> grid<tile>
     _rng  = rng {seed};
     _grid = grid<tile> {size};
     auto const [mapWidth, mapHeight] {size};
-    fill_grid(_grid, _rng, std::array {WALL0, WALL1, WALL2});
+    fill_grid(_grid, _rng, WALL, WALL_COLORS);
 
-    _floor = FLOOR;
-    _wall  = WALL0;
+    _floor                = FLOOR;
+    _wall                 = WALL;
+    _wall.BackgroundColor = WALL_COLORS[0];
 
     leaf root {rect_i {0, 0, mapWidth, mapHeight}};
     root.split_leaf(_rng, MAX_LEAF_SIZE);
