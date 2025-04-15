@@ -31,4 +31,8 @@ if(TCOB_BUILD_SHARED AND NOT TCOB_IS_CI)
     )
 endif()
 
-configure_file(rogue.zip ${CMAKE_BINARY_DIR}/../../x64/rogue.zip COPYONLY)
+add_custom_target(Rogue_copyFiles ALL
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/rogue.zip ${CMAKE_BINARY_DIR}/../../x64/
+)
+
+add_dependencies(Rogue Rogue_copyFiles)
