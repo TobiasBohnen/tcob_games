@@ -23,17 +23,23 @@ struct light_source {
 
 class level {
 public:
-    explicit level(master_control& parent);
+    level();
 
     auto is_line_of_sight(point_i start, point_i end) -> bool;
     auto is_passable(point_i pos) const -> bool;
     auto find_path(point_i start, point_i target) const -> std::vector<point_i>;
 
-    auto get_tiles() -> grid<tile>&;
+    auto tiles() -> grid<tile>&;
+    auto tiles() const -> grid<tile> const&;
 
-    void add_light(std::shared_ptr<light_source> const& light);
-    void remove_light(light_source const& light);
-    auto get_lights() -> std::vector<std::shared_ptr<light_source>> const&;
+    auto objects() -> std::vector<std::shared_ptr<object>>&;
+    auto objects() const -> std::vector<std::shared_ptr<object>> const&;
+
+    auto monsters() -> std::vector<std::shared_ptr<monster>>&;
+    auto monsters() const -> std::vector<std::shared_ptr<monster>> const&;
+
+    auto lights() -> std::vector<std::shared_ptr<light_source>>&;
+    auto lights() const -> std::vector<std::shared_ptr<light_source>> const&;
 
 private:
     grid<tile> _tiles;
@@ -42,8 +48,6 @@ private:
     std::vector<std::shared_ptr<monster>> _monsters;
 
     std::vector<std::shared_ptr<light_source>> _lights;
-
-    master_control& _parent;
 };
 
 }

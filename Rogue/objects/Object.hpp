@@ -10,7 +10,7 @@
 namespace Rogue {
 ////////////////////////////////////////////////////////////
 
-struct monster {
+struct object {
     string  Symbol;
     color   Color {colors::White};
     point_i Position {};

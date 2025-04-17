@@ -6,25 +6,30 @@
 #pragma once
 
 #include "Common.hpp"
-#include "level/Tile.hpp"
 
 namespace Rogue {
 ////////////////////////////////////////////////////////////
 
+struct render_context {
+    ui::terminal* Terminal {};
+
+    level*                    Level {};
+    player*                   Player {};
+    std::vector<log_message>* Log {};
+
+    point_i Center {};
+};
+
 class renderer {
 public:
-    explicit renderer(master_control& parent);
-
-    void draw(ui::terminal& term, point_i center);
+    void draw(render_context const& ctx);
 
 private:
-    void draw_map(ui::terminal& term, point_i const& viewCenter, grid<tile>& tiles);
-    void draw_player(ui::terminal& term, point_i const& viewCenter);
-    void draw_log(ui::terminal& term);
+    void draw_map(render_context const& ctx);
+    void draw_player(render_context const& ctx);
+    void draw_log(render_context const& ctx);
 
-    auto lighting(tile& tile, point_i gridPos) const -> std::pair<color, color>;
-
-    master_control& _parent;
+    auto lighting(render_context const& ctx, point_i gridPos) const -> std::pair<color, color>;
 };
 
 }

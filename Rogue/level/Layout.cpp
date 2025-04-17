@@ -12,10 +12,6 @@
 
 namespace Rogue {
 
-static tile const                 FLOOR {.Type = tile_type::Floor, .Symbol = ".", .ForegroundColor = colors::Gray, .BackgroundColor = colors::SeaShell};
-static tile const                 WALL {.Type = tile_type::Wall, .Symbol = "\u2592", .ForegroundColor = colors::Black};
-static std::array<color, 3> const WALL_COLORS {{colors::DimGray, colors::Silver, colors::LightSlateGray}};
-
 ////////////////////////////////////////////////////////////
 
 turtle::turtle(pen const& start, string sequence)
@@ -405,7 +401,7 @@ void drunkards_walk::walk(rng& rng)
         _drunkardX += dx;
         _drunkardY += dy;
         auto& tile {_grid[{_drunkardX, _drunkardY}]};
-        if (!tile_traits::passable(tile)) {
+        if (!tile.is_passable()) {
             tile = _floor;
             _filled += 1;
         }
@@ -484,7 +480,7 @@ void cellular_automata::cleanup_map()
         for (i32 x {1}; x < _grid.width() - 1; ++x) {
             for (i32 y {1}; y < _grid.height() - 1; ++y) {
                 point_i const pos {x, y};
-                if (tile_traits::passable(_grid[pos]) && get_adjacent_walls_simple(pos) <= _smoothing) {
+                if (_grid[pos].is_passable() && get_adjacent_walls_simple(pos) <= _smoothing) {
                     _grid[pos] = _floor;
                 }
             }
@@ -549,7 +545,7 @@ void cellular_automata::create_tunnel(point_i point1, point_i point2, std::unord
         if (_grid.contains({drunkardX + dx, drunkardY + dy})) {
             drunkardX += dx;
             drunkardY += dy;
-            if (!tile_traits::passable(_grid[{drunkardX, drunkardY}])) {
+            if (!_grid[{drunkardX, drunkardY}].is_passable()) {
                 _grid[{drunkardX, drunkardY}] = _floor;
             }
         }
@@ -563,7 +559,7 @@ auto cellular_automata::get_adjacent_walls(point_i p) -> i32
         for (i32 y {p.Y - 1}; y <= p.Y + 1; ++y) {
             point_i const pos {x, y};
             if (pos == p) { continue; }
-            if (!tile_traits::passable(_grid[pos])) {
+            if (!_grid[pos].is_passable()) {
                 retValue++;
             }
         }
@@ -574,10 +570,10 @@ auto cellular_automata::get_adjacent_walls(point_i p) -> i32
 auto cellular_automata::get_adjacent_walls_simple(point_i p) -> i32
 {
     i32 retValue {0};
-    if (!tile_traits::passable(_grid[{p.X, p.Y - 1}])) { ++retValue; }
-    if (!tile_traits::passable(_grid[{p.X, p.Y + 1}])) { ++retValue; }
-    if (!tile_traits::passable(_grid[{p.X - 1, p.Y}])) { ++retValue; }
-    if (!tile_traits::passable(_grid[{p.X + 1, p.Y}])) { ++retValue; }
+    if (!_grid[{p.X, p.Y - 1}].is_passable()) { ++retValue; }
+    if (!_grid[{p.X, p.Y + 1}].is_passable()) { ++retValue; }
+    if (!_grid[{p.X - 1, p.Y}].is_passable()) { ++retValue; }
+    if (!_grid[{p.X + 1, p.Y}].is_passable()) { ++retValue; }
     return retValue;
 }
 
@@ -620,7 +616,7 @@ void cellular_automata::flood_fill(point_i pos)
             auto const [x, y] {tile};
             std::array<point_i, 4> const directions {{{x, y - 1}, {x, y + 1}, {x + 1, y}, {x - 1, y}}};
             for (auto const& direction : directions) {
-                if (_grid.contains(direction) && tile_traits::passable(_grid[direction])) {
+                if (_grid.contains(direction) && _grid[direction].is_passable()) {
                     if (!cave.contains(get_index(direction))) { toBeFilled.push(direction); }
                 }
             }
@@ -682,7 +678,7 @@ auto cellular_automata::check_connectivity(std::unordered_set<i32> const& cave1,
                 i32 const dir {get_index(direction)};
                 if (dir == end) { return true; }
 
-                if (_grid.contains(direction) && tile_traits::passable(_grid[direction])) {
+                if (_grid.contains(direction) && _grid[direction].is_passable()) {
                     if (!connectedRegion.contains(dir)) { toBeFilled.push(dir); }
                 }
             }
@@ -804,7 +800,7 @@ auto maze_with_rooms::generate(u64 seed, size_i size) -> grid<tile>
     for (i32 y {1}; y < mapHeight; y += 2) {
         for (i32 x {1}; x < mapWidth; x += 2) {
             point_i const pos {x, y};
-            if (tile_traits::passable(_grid[pos])) { continue; }
+            if (_grid[pos].is_passable()) { continue; }
             grow_maze(pos);
         }
     }
@@ -910,7 +906,7 @@ void maze_with_rooms::connect_regions()
 
     for (i32 x {1}; x < mapWidth - 1; ++x) {
         for (i32 y {1}; y < mapHeight - 1; ++y) {
-            if (tile_traits::passable(_grid[{x, y}])) { continue; }
+            if (_grid[{x, y}].is_passable()) { continue; }
             std::unordered_set<i32> regions;
             for (auto const& direction : directions) {
                 point_i const newPos {x + direction.X, y + direction.Y};
@@ -1025,10 +1021,10 @@ void maze_with_rooms::remove_dead_ends()
         for (i32 x {1}; x < _grid.width(); ++x) {
             for (i32 y {1}; y < _grid.height(); ++y) {
                 point_i const pos {x, y};
-                if (tile_traits::passable(_grid[pos])) {
+                if (_grid[pos].is_passable()) {
                     i32 exits {0};
                     for (auto const& direction : directions) {
-                        if (tile_traits::passable(_grid[pos + direction])) {
+                        if (_grid[pos + direction].is_passable()) {
                             ++exits;
                         }
                     }
@@ -1063,7 +1059,7 @@ auto maze_with_rooms::can_carve(point_i pos, point_i dir) -> bool
 
     // return True if the cell is a wall (1)
     // false if the cell is a floor (0)
-    return !tile_traits::passable(_grid[{x, y}]);
+    return !_grid[{x, y}].is_passable();
 }
 
 void maze_with_rooms::start_region()
@@ -1182,7 +1178,7 @@ void messy_bsp_tree::draw_hallway(rect_i const& room1, rect_i const& room2)
         if ((drunkardX + dx > 0 && drunkardX + dx < _grid.width() - 1) && (drunkardY + dy > 0 && drunkardY + dy < _grid.height() - 1)) {
             drunkardX += dx;
             drunkardY += dy;
-            if (!tile_traits::passable(_grid[{drunkardX, drunkardY}])) {
+            if (!_grid[{drunkardX, drunkardY}].is_passable()) {
                 _grid[{drunkardX, drunkardY}] = _floor;
             }
         }
@@ -1197,10 +1193,10 @@ void messy_bsp_tree::cleanup_map()
             for (i32 y {1}; y < _grid.height() - 1; ++y) {
                 point_i const pos {x, y};
                 auto const    walls {get_adjacent_walls_simple(pos)};
-                if (tile_traits::passable(_grid[pos]) && walls <= _smoothing) {
+                if (_grid[pos].is_passable() && walls <= _smoothing) {
                     _grid[pos] = _floor;
                 }
-                if (!tile_traits::passable(_grid[pos]) && walls >= _filling) {
+                if (!_grid[pos].is_passable() && walls >= _filling) {
                     _grid[pos] = _wall;
                 }
             }
@@ -1211,10 +1207,10 @@ void messy_bsp_tree::cleanup_map()
 auto messy_bsp_tree::get_adjacent_walls_simple(point_i p) -> i32
 {
     i32 retValue {0};
-    if (!tile_traits::passable(_grid[{p.X, p.Y - 1}])) { ++retValue; }
-    if (!tile_traits::passable(_grid[{p.X, p.Y + 1}])) { ++retValue; }
-    if (!tile_traits::passable(_grid[{p.X - 1, p.Y}])) { ++retValue; }
-    if (!tile_traits::passable(_grid[{p.X + 1, p.Y}])) { ++retValue; }
+    if (!_grid[{p.X, p.Y - 1}].is_passable()) { ++retValue; }
+    if (!_grid[{p.X, p.Y + 1}].is_passable()) { ++retValue; }
+    if (!_grid[{p.X - 1, p.Y}].is_passable()) { ++retValue; }
+    if (!_grid[{p.X + 1, p.Y}].is_passable()) { ++retValue; }
     return retValue;
 }
 

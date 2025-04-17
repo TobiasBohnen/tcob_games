@@ -12,9 +12,9 @@ namespace Rogue {
 master_control::master_control()
 {
     // TODO
-    auto const& tiles {_level.get_tiles()};
+    auto const& tiles {_level.tiles()};
     for (i32 i {0}; i < tiles.count(); ++i) {
-        if (tile_traits::passable(tiles[i])) {
+        if (tiles[i].is_passable()) {
             _player.Position = {i % tiles.width(), i / tiles.width()};
             break;
         }
@@ -28,7 +28,7 @@ void master_control::draw(ui::terminal& term)
     if (!_redraw) { return; }
     _redraw = false;
 
-    _renderer.draw(term, _viewCenter);
+    _renderer.draw({.Terminal = &term, .Level = &_level, .Player = &_player, .Log = &_log, .Center = _viewCenter});
 }
 
 void master_control::update(milliseconds deltaTime, action_queue& queue)
@@ -40,11 +40,6 @@ void master_control::update(milliseconds deltaTime, action_queue& queue)
     }
 
     _player.update(deltaTime);
-}
-
-auto master_control::get_level() -> level&
-{
-    return _level;
 }
 
 void master_control::end_turn()
@@ -66,16 +61,6 @@ void master_control::set_view_center(point_i pos)
 void master_control::mark_dirty()
 {
     _redraw = true;
-}
-
-auto master_control::get_player() -> player&
-{
-    return _player;
-}
-
-auto master_control::get_log() const -> std::vector<log_message> const&
-{
-    return _log;
 }
 
 void master_control::log(string const& message)

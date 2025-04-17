@@ -21,6 +21,7 @@ class master_control;
 class base_layout;
 class monster;
 class object;
+class player;
 
 ////////////////////////////////////////////////////////////
 
@@ -50,7 +51,11 @@ enum class action {
 using action_queue = std::queue<action>;
 
 using animation_func = std::function<bool()>;
-constinit inline milliseconds AnimationDelay {50};
+constinit inline milliseconds AnimationDelay {150};
+
+////////////////////////////////////////////////////////////
+
+using log_message = std::pair<string, i32>;
 
 ////////////////////////////////////////////////////////////
 

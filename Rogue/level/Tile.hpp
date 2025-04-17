@@ -12,7 +12,8 @@ namespace Rogue {
 
 enum class tile_type {
     Floor,
-    Wall
+    Wall,
+    Glass
 };
 
 struct tile {
@@ -20,22 +21,23 @@ struct tile {
     string    Symbol {};
     color     ForegroundColor {colors::White};
     color     BackgroundColor {colors::Black};
-    bool      Seen {false};
-    bool      InSight {false};
 
-    std::vector<std::shared_ptr<object>> Objects;
-    std::shared_ptr<monster>             Monster;
+    bool Seen {false};
+    bool InSight {false};
+
+    auto is_passable() const -> bool;
+    auto is_transparent() const -> bool;
 };
 
-struct tile_traits {
-    static auto passable(tile const& tile) -> bool
-    {
-        switch (tile.Type) {
-        case tile_type::Floor: return true;
-        case tile_type::Wall: return false;
-        }
-        return false;
-    }
-};
+////////////////////////////////////////////////////////////
+
+static constinit tile const FLOOR {.Type = tile_type::Floor, .Symbol = ".", .ForegroundColor = colors::Gray, .BackgroundColor = colors::SeaShell};
+static constinit tile const WALL {.Type = tile_type::Wall, .Symbol = "\u2592", .ForegroundColor = colors::Black};
+static constinit tile const WALL0 {.Type = tile_type::Wall, .Symbol = "\u2592", .ForegroundColor = colors::Black, .BackgroundColor = colors::Silver};
+static constinit tile const GLASS {.Type = tile_type::Glass, .Symbol = "\u2591"};
+
+static constinit std::array<color, 3> const WALL_COLORS {{colors::DimGray, colors::Silver, colors::LightSlateGray}};
+
+////////////////////////////////////////////////////////////
 
 }

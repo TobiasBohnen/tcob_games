@@ -5,39 +5,35 @@
 
 #include "Renderer.hpp"
 
-#include "MasterControl.hpp"
+#include "Player.hpp"
 #include "level/Level.hpp"
+#include "level/Tile.hpp"
 
 namespace Rogue {
 
-renderer::renderer(master_control& parent)
-    : _parent {parent}
+void renderer::draw(render_context const& ctx)
 {
+    ctx.Terminal->clear();
+
+    draw_map(ctx);
+    draw_player(ctx);
+    draw_log(ctx);
 }
 
-void renderer::draw(ui::terminal& term, point_i center)
+void renderer::draw_map(render_context const& ctx)
 {
-    term.clear();
+    auto& tiles {ctx.Level->tiles()};
+    auto& term {*ctx.Terminal};
 
-    auto& level {_parent.get_level()};
-    auto& tiles {level.get_tiles()};
-
-    draw_map(term, center, tiles);
-    draw_player(term, center);
-    draw_log(term);
-}
-
-void renderer::draw_map(ui::terminal& term, point_i const& viewCenter, grid<tile>& tiles)
-{
     for (i32 y {0}; y < TermMapSize.Height; ++y) {
         for (i32 x {0}; x < TermMapSize.Width; ++x) {
             point_i const termPos {point_i {x, y}};
-            point_i const gridPos {term_to_grid(termPos, viewCenter)};
+            point_i const gridPos {term_to_grid(termPos, ctx.Center)};
             if (!tiles.contains(gridPos)) { continue; }
 
             auto& tile {tiles[gridPos]};
-            auto [fg, bg] {lighting(tile, gridPos)};
-            if (gridPos == viewCenter) {
+            auto [fg, bg] {lighting(ctx, gridPos)};
+            if (gridPos == ctx.Center) {
                 term.color_set(colors::White, colors::Black);
                 term.add_str(termPos, "+");
             } else if (tile.Seen || tile.InSight) {
@@ -48,12 +44,14 @@ void renderer::draw_map(ui::terminal& term, point_i const& viewCenter, grid<tile
     }
 }
 
-void renderer::draw_player(ui::terminal& term, point_i const& viewCenter)
+void renderer::draw_player(render_context const& ctx)
 {
+    auto& term {*ctx.Terminal};
+
     // symbol
-    auto const& player {_parent.get_player()};
+    auto const& player {*ctx.Player};
     auto const& render {player.get_render()};
-    auto const  termPos {grid_to_term(player.Position, viewCenter)};
+    auto const  termPos {grid_to_term(player.Position, ctx.Center)};
     if (TermMapSize.contains(termPos)) {
         term.color_set(render.Color);
         term.add_str(termPos, render.Symbol);
@@ -85,9 +83,10 @@ void renderer::draw_player(ui::terminal& term, point_i const& viewCenter)
     drawBar(stats.MP, stats.MPMax);
 }
 
-void renderer::draw_log(ui::terminal& term)
+void renderer::draw_log(render_context const& ctx)
 {
-    auto const& log {_parent.get_log()};
+    auto&       term {*ctx.Terminal};
+    auto const& log {*ctx.Log};
 
     std::span<log_message const> last;
     if (log.size() >= 5) {
@@ -105,11 +104,14 @@ void renderer::draw_log(ui::terminal& term)
     }
 }
 
-auto renderer::lighting(tile& tile, point_i gridPos) const -> std::pair<color, color>
+auto renderer::lighting(render_context const& ctx, point_i gridPos) const -> std::pair<color, color>
 {
-    auto&       level {_parent.get_level()};
-    auto&       tiles {level.get_tiles()};
-    auto const& player {_parent.get_player()};
+    auto& term {*ctx.Terminal};
+
+    auto&       level {*ctx.Level};
+    auto&       tiles {level.tiles()};
+    tile&       tile {tiles[gridPos]};
+    auto const& player {*ctx.Player};
 
     if (!level.is_line_of_sight(player.Position, gridPos)) {
         return tile.Seen
@@ -136,11 +138,13 @@ auto renderer::lighting(tile& tile, point_i gridPos) const -> std::pair<color, c
     }};
 
     // Process environmental light sources.
-    auto const& lights {_parent.get_level().get_lights()};
+    auto const& lights {level.lights()};
     for (auto const& light : lights) {
         f64 const distance {euclidean_distance(light->Position, gridPos)};
         f64 const range {light->Range};
         if (distance > range) { continue; }
+
+        if (!level.is_line_of_sight(light->Position, gridPos)) { continue; }
 
         f32 const factor {light->Falloff && distance != 0
                               ? static_cast<f32>(std::clamp((range * range) / (distance * distance) * ((range - distance) / range), 0., 1.))

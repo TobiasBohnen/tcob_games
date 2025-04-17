@@ -11,6 +11,7 @@ target_sources(Rogue PRIVATE
 
     level/Layout.cpp
     level/Level.cpp
+    level/Tile.cpp
 
     ui/MainMenu.cpp
 )

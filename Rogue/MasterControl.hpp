@@ -13,18 +13,12 @@
 namespace Rogue {
 ////////////////////////////////////////////////////////////
 
-using log_message = std::pair<string, i32>;
-
 class master_control {
 public:
     master_control();
 
     void draw(ui::terminal& term);
     void update(milliseconds deltaTime, action_queue& queue);
-
-    auto get_level() -> level&;
-    auto get_player() -> player&;
-    auto get_log() const -> std::vector<log_message> const&;
 
 private:
     void set_view_center(point_i pos);
@@ -39,7 +33,7 @@ private:
 
     void do_execute();
 
-    level  _level {*this};
+    level  _level {};
     player _player {};
 
     point_i _viewCenter;
@@ -57,7 +51,7 @@ private:
     milliseconds   _animationTimer {}; // TODO: MOVE
 
     bool     _redraw {true};
-    renderer _renderer {*this};
+    renderer _renderer {};
 };
 
 }

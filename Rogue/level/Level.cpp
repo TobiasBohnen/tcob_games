@@ -5,15 +5,15 @@
 
 #include "Level.hpp"
 
-#include "../MasterControl.hpp"
+#include "../monsters/Monster.hpp"
+#include "../objects/Object.hpp"
 #include "Layout.hpp"
 
 namespace Rogue {
 
 ////////////////////////////////////////////////////////////
 
-level::level(master_control& parent)
-    : _parent {parent}
+level::level()
 {
     u64 seed {static_cast<u64>(clock::now().time_since_epoch().count())};
     seed   = 12345;
@@ -44,14 +44,18 @@ level::level(master_control& parent)
     light0->Intensity = 1.f;
     light0->Position  = point_i {15, 2};
     light0->Range     = 5;
-    add_light(light0);
+    lights().push_back(light0);
 
     auto light1 {std::make_shared<light_source>()};
     light1->Color    = colors::Blue;
     light1->Position = point_i {18, 5};
     light1->Range    = 5;
     light1->Falloff  = false;
-    add_light(light1);
+    lights().push_back(light1);
+
+    _tiles[{18, 1}] = WALL0;
+    _tiles[{18, 2}] = GLASS;
+    _tiles[{18, 3}] = WALL0;
 }
 
 auto level::is_line_of_sight(point_i start, point_i end) -> bool
@@ -78,7 +82,7 @@ auto level::is_line_of_sight(point_i start, point_i end) -> bool
         }
 
         point_i const pos {x0, y0};
-        if (pos != end && !tile_traits::passable(_tiles[pos])) { return false; }
+        if (pos != end && !_tiles[pos].is_transparent()) { return false; }
     }
     return true;
 }
@@ -86,7 +90,7 @@ auto level::is_line_of_sight(point_i start, point_i end) -> bool
 auto level::is_passable(point_i pos) const -> bool
 {
     if (!_tiles.contains(pos)) { return false; }
-    return tile_traits::passable(_tiles[pos]);
+    return _tiles[pos].is_passable();
 }
 
 auto level::find_path(point_i start, point_i target) const -> std::vector<point_i>
@@ -96,33 +100,54 @@ auto level::find_path(point_i start, point_i target) const -> std::vector<point_
     struct grid_path {
         grid<tile> const* Parent;
 
-        auto get_cost(point_i p) const -> u64
+        auto get_cost(point_i from, point_i to) const -> u64
         {
-            auto const& tile {(*Parent)[p]};
-            if (!tile_traits::passable(tile) || !tile.Seen) { return ai::astar_pathfinding::IMPASSABLE_COST; }
-            return 1;
+            auto const& tile {(*Parent)[to]};
+            if (!tile.is_passable() || !tile.Seen) { return ai::astar_pathfinding::IMPASSABLE_COST; }
+            bool const diagonal {(from.X != to.X) && (from.Y != to.Y)};
+            return diagonal ? 14 : 10;
         }
     } pathfinding {&_tiles};
 
     return path.find_path(pathfinding, _tiles.size(), start, target);
 }
 
-auto level::get_tiles() -> grid<tile>&
+auto level::tiles() -> grid<tile>&
 {
     return _tiles;
 }
 
-void level::add_light(std::shared_ptr<light_source> const& light)
+auto level::tiles() const -> grid<tile> const&
 {
-    _lights.push_back(light);
+    return _tiles;
 }
 
-void level::remove_light(light_source const& light)
+auto level::objects() -> std::vector<std::shared_ptr<object>>&
 {
-    helper::erase_first(_lights, [light](auto const& val) { return &light == val.get(); });
+    return _objects;
 }
 
-auto level::get_lights() -> std::vector<std::shared_ptr<light_source>> const&
+auto level::objects() const -> std::vector<std::shared_ptr<object>> const&
+{
+    return _objects;
+}
+
+auto level::monsters() -> std::vector<std::shared_ptr<monster>>&
+{
+    return _monsters;
+}
+
+auto level::monsters() const -> std::vector<std::shared_ptr<monster>> const&
+{
+    return _monsters;
+}
+
+auto level::lights() -> std::vector<std::shared_ptr<light_source>>&
+{
+    return _lights;
+}
+
+auto level::lights() const -> std::vector<std::shared_ptr<light_source>> const&
 {
     return _lights;
 }
