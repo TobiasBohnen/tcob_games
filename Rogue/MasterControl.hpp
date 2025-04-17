@@ -6,9 +6,9 @@
 #pragma once
 
 #include "Common.hpp"
-#include "Level.hpp"
 #include "Player.hpp"
 #include "Renderer.hpp"
+#include "level/Level.hpp"
 
 namespace Rogue {
 ////////////////////////////////////////////////////////////
@@ -26,10 +26,9 @@ public:
     auto get_player() -> player&;
     auto get_log() const -> std::vector<log_message> const&;
 
-    auto get_view_center() -> point_i;
+private:
     void set_view_center(point_i pos);
 
-private:
     void mark_dirty();
 
     void log(string const& message);

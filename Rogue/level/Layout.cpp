@@ -13,7 +13,7 @@
 namespace Rogue {
 
 static tile const                 FLOOR {.Type = tile_type::Floor, .Symbol = ".", .ForegroundColor = colors::Gray, .BackgroundColor = colors::SeaShell};
-static tile const                 WALL {.Type = tile_type::Wall, .Symbol = "#", .ForegroundColor = colors::Black};
+static tile const                 WALL {.Type = tile_type::Wall, .Symbol = "\u2592", .ForegroundColor = colors::Black};
 static std::array<color, 3> const WALL_COLORS {{colors::DimGray, colors::Silver, colors::LightSlateGray}};
 
 ////////////////////////////////////////////////////////////

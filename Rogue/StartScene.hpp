@@ -6,8 +6,9 @@
 #pragma once
 
 #include "Common.hpp"
-#include "MainMenu.hpp"
 #include "MasterControl.hpp"
+#include "ui/MainMenu.hpp"
+
 
 namespace Rogue {
 ////////////////////////////////////////////////////////////

@@ -7,35 +7,6 @@
 
 namespace Rogue {
 
-auto is_line_of_sight(point_i start, point_i end, grid<tile> const& tiles) -> bool
-{
-    auto [x0, y0] {start};
-    auto const [x1, y1] {end};
-    i32 const dx {std::abs(x1 - x0)};
-    i32 const dy {std::abs(y1 - y0)};
-    i32 const sx {(x0 < x1) ? 1 : -1};
-    i32 const sy {(y0 < y1) ? 1 : -1};
-    i32       err {dx - dy};
-
-    for (;;) {
-        if (x0 == x1 && y0 == y1) { break; }
-
-        i32 const e2 {2 * err};
-        if (e2 > -dy) {
-            err -= dy;
-            x0 += sx;
-        }
-        if (e2 < dx) {
-            err += dx;
-            y0 += sy;
-        }
-
-        point_i const pos {x0, y0};
-        if (pos != end && !tile_traits::passable(tiles[pos])) { return false; }
-    }
-    return true;
-}
-
 auto term_to_grid(point_i pos, point_i center) -> point_i
 {
     return pos - point_i {TermMapSize.Width / 2, TermMapSize.Height / 2} + center;

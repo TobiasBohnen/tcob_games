@@ -5,8 +5,8 @@
 
 #include "Level.hpp"
 
+#include "../MasterControl.hpp"
 #include "Layout.hpp"
-#include "MasterControl.hpp"
 
 namespace Rogue {
 
@@ -38,6 +38,49 @@ level::level(master_control& parent)
     //  _tiles = turtle {turtle::pen {.Position = {5, 8}, .Direction = direction::Right, .RoomSize = {3, 5}, .PathLength = 5},
     //                 lsystem.generate("X", 5)}
     //             .generate(seed, {120, 120});
+
+    auto light0 {std::make_shared<light_source>()};
+    light0->Color     = colors::Red;
+    light0->Intensity = 1.f;
+    light0->Position  = point_i {15, 2};
+    light0->Range     = 5;
+    add_light(light0);
+
+    auto light1 {std::make_shared<light_source>()};
+    light1->Color    = colors::Blue;
+    light1->Position = point_i {18, 5};
+    light1->Range    = 5;
+    light1->Falloff  = false;
+    add_light(light1);
+}
+
+auto level::is_line_of_sight(point_i start, point_i end) -> bool
+{
+    auto [x0, y0] {start};
+    auto const [x1, y1] {end};
+    i32 const dx {std::abs(x1 - x0)};
+    i32 const dy {std::abs(y1 - y0)};
+    i32 const sx {(x0 < x1) ? 1 : -1};
+    i32 const sy {(y0 < y1) ? 1 : -1};
+    i32       err {dx - dy};
+
+    for (;;) {
+        if (x0 == x1 && y0 == y1) { break; }
+
+        i32 const e2 {2 * err};
+        if (e2 > -dy) {
+            err -= dy;
+            x0 += sx;
+        }
+        if (e2 < dx) {
+            err += dx;
+            y0 += sy;
+        }
+
+        point_i const pos {x0, y0};
+        if (pos != end && !tile_traits::passable(_tiles[pos])) { return false; }
+    }
+    return true;
 }
 
 auto level::is_passable(point_i pos) const -> bool
@@ -67,6 +110,21 @@ auto level::find_path(point_i start, point_i target) const -> std::vector<point_
 auto level::get_tiles() -> grid<tile>&
 {
     return _tiles;
+}
+
+void level::add_light(std::shared_ptr<light_source> const& light)
+{
+    _lights.push_back(light);
+}
+
+void level::remove_light(light_source const& light)
+{
+    helper::erase_first(_lights, [light](auto const& val) { return &light == val.get(); });
+}
+
+auto level::get_lights() -> std::vector<std::shared_ptr<light_source>> const&
+{
+    return _lights;
 }
 
 }

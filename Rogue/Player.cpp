@@ -5,7 +5,7 @@
 
 #include "Player.hpp"
 
-#include "Level.hpp"
+#include "level/Level.hpp"
 
 namespace Rogue {
 
@@ -25,34 +25,14 @@ auto player::try_move(point_i pos, level const& level) -> bool
     return false;
 }
 
-auto player::get_name() const -> string const&
+auto player::get_stats() const -> stats const&
 {
-    return _name;
+    return _stats;
 }
 
-auto player::get_hp() const -> i32
+auto player::get_render() const -> render const&
 {
-    return _hp;
-}
-
-auto player::get_hp_max() const -> i32
-{
-    return _hpMax;
-}
-
-auto player::get_mp() const -> i32
-{
-    return _mp;
-}
-
-auto player::get_mp_max() const -> i32
-{
-    return _mpMax;
-}
-
-auto player::get_visual_range() const -> std::span<f32 const>
-{
-    return _visualRange;
+    return _render;
 }
 
 }

@@ -5,16 +5,15 @@
 
 #pragma once
 
-#include "Common.hpp"
+#include "../Common.hpp"
 
 namespace Rogue {
 ////////////////////////////////////////////////////////////
 
-class main_menu : public ui::form<ui::dock_layout> {
-public:
-    main_menu(assets::group const& resGrp, rect_i const& bounds);
-
-    std::shared_ptr<ui::terminal> Terminal;
+struct monster {
+    string  Symbol;
+    color   Color {colors::White};
+    point_i Position {};
 };
 
 }

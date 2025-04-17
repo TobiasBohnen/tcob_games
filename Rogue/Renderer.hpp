@@ -6,6 +6,7 @@
 #pragma once
 
 #include "Common.hpp"
+#include "level/Tile.hpp"
 
 namespace Rogue {
 ////////////////////////////////////////////////////////////
@@ -14,7 +15,7 @@ class renderer {
 public:
     explicit renderer(master_control& parent);
 
-    void draw(ui::terminal& term);
+    void draw(ui::terminal& term, point_i center);
 
 private:
     void draw_map(ui::terminal& term, point_i const& viewCenter, grid<tile>& tiles);

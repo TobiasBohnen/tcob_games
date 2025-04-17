@@ -4,13 +4,15 @@ target_sources(Rogue PRIVATE
     main.cpp
 
     Common.cpp
-    Layout.cpp
-    Level.cpp
-    MainMenu.cpp
     MasterControl.cpp
     Player.cpp
     Renderer.cpp
     StartScene.cpp
+
+    level/Layout.cpp
+    level/Level.cpp
+
+    ui/MainMenu.cpp
 )
 
 set_target_properties(Rogue PROPERTIES
@@ -23,6 +25,8 @@ if(NOT TCOB_BUILD_SHARED)
 else()
     target_link_libraries(Rogue PRIVATE tcob_shared)
 endif()
+
+set_target_properties(Rogue PROPERTIES OUTPUT_NAME "mage")
 
 if(TCOB_BUILD_SHARED AND NOT TCOB_IS_CI)
     add_custom_command(TARGET Rogue POST_BUILD

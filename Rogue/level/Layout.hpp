@@ -5,7 +5,8 @@
 
 #pragma once
 
-#include "Common.hpp"
+#include "../Common.hpp"
+#include "Tile.hpp"
 
 namespace Rogue {
 ////////////////////////////////////////////////////////////

@@ -5,10 +5,13 @@
 
 #include "MasterControl.hpp"
 
+#include "level/Tile.hpp"
+
 namespace Rogue {
 
 master_control::master_control()
 {
+    // TODO
     auto const& tiles {_level.get_tiles()};
     for (i32 i {0}; i < tiles.count(); ++i) {
         if (tile_traits::passable(tiles[i])) {
@@ -25,7 +28,7 @@ void master_control::draw(ui::terminal& term)
     if (!_redraw) { return; }
     _redraw = false;
 
-    _renderer.draw(term);
+    _renderer.draw(term, _viewCenter);
 }
 
 void master_control::update(milliseconds deltaTime, action_queue& queue)
@@ -60,15 +63,11 @@ void master_control::set_view_center(point_i pos)
     }
 }
 
-auto master_control::get_view_center() -> point_i
-{
-    return _viewCenter;
-}
-
 void master_control::mark_dirty()
 {
     _redraw = true;
 }
+
 auto master_control::get_player() -> player&
 {
     return _player;

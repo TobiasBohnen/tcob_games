@@ -53,11 +53,12 @@ void start_scene::on_fixed_update(milliseconds deltaTime)
     stream << " best FPS:" << stats.best_FPS();
     stream << " worst FPS:" << stats.worst_FPS();
 
-    window().Title = "Roguefort |" + stream.str();
+    window().Title = "Mage |" + stream.str();
 }
 
 void start_scene::on_key_down(input::keyboard::event const& ev)
 {
+
     switch (ev.ScanCode) {
     case input::scan_code::BACKSPACE:
         parent().pop_current_scene();
