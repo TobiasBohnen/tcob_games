@@ -5,13 +5,17 @@ target_sources(Rogue PRIVATE
 
     Common.cpp
     MasterControl.cpp
-    Player.cpp
+
     Renderer.cpp
     StartScene.cpp
 
     level/Layout.cpp
     level/Level.cpp
     level/Tile.cpp
+
+    monsters/Player.cpp
+
+    objects/Object.cpp
 
     ui/MainMenu.cpp
 )

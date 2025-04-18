@@ -5,9 +5,9 @@
 
 #include "Renderer.hpp"
 
-#include "Player.hpp"
 #include "level/Level.hpp"
-#include "level/Tile.hpp"
+#include "monsters/Player.hpp"
+#include "objects/Object.hpp"
 
 namespace Rogue {
 
@@ -32,14 +32,30 @@ void renderer::draw_map(render_context const& ctx)
             if (!tiles.contains(gridPos)) { continue; }
 
             auto& tile {tiles[gridPos]};
-            auto [fg, bg] {lighting(ctx, gridPos)};
+            auto [fg, bg] {lighting(ctx, tile, gridPos)};
             if (gridPos == ctx.Center) {
                 term.color_set(colors::White, colors::Black);
                 term.add_str(termPos, "+");
             } else if (tile.Seen || tile.InSight) {
                 term.color_set(fg, bg);
                 term.add_str(termPos, tile.Symbol);
+                draw_objects(ctx, tile, gridPos);
             }
+        }
+    }
+}
+
+void renderer::draw_objects(render_context const& ctx, tile const& tile, point_i gridPos)
+{
+    auto& term {*ctx.Terminal};
+
+    auto const& objects {tile.Objects};
+    for (auto const& object : objects) {
+        point_i const termPos {grid_to_term(gridPos, ctx.Center)};
+        if (TermMapSize.contains(termPos)) {
+            auto const colors {tile.InSight ? object->colors() : seen_colors()};
+            term.color_set(colors.first, colors.second);
+            term.add_str(termPos, object->symbol());
         }
     }
 }
@@ -50,15 +66,14 @@ void renderer::draw_player(render_context const& ctx)
 
     // symbol
     auto const& player {*ctx.Player};
-    auto const& render {player.get_render()};
     auto const  termPos {grid_to_term(player.Position, ctx.Center)};
     if (TermMapSize.contains(termPos)) {
-        term.color_set(render.Color);
-        term.add_str(termPos, render.Symbol);
+        term.color_set(player.color(), colors::Black);
+        term.add_str(termPos, player.symbol());
     }
 
     // stats
-    auto const& stats {player.get_stats()};
+    auto const& stats {player.stats()};
     i32 const   statsX {TermMapSize.Width};
     term.color_set(colors::White, colors::Black);
     term.add_str({statsX, 0}, std::format("{}", stats.Name));
@@ -104,18 +119,17 @@ void renderer::draw_log(render_context const& ctx)
     }
 }
 
-auto renderer::lighting(render_context const& ctx, point_i gridPos) const -> std::pair<color, color>
+auto renderer::lighting(render_context const& ctx, tile& tile, point_i gridPos) const -> color_pair
 {
     auto& term {*ctx.Terminal};
 
     auto&       level {*ctx.Level};
-    auto&       tiles {level.tiles()};
-    tile&       tile {tiles[gridPos]};
     auto const& player {*ctx.Player};
 
     if (!level.is_line_of_sight(player.Position, gridPos)) {
+        tile.InSight = false;
         return tile.Seen
-            ? std::pair {color::Lerp(colors::Black, colors::White, 0.15f), colors::Black}
+            ? seen_colors()
             : std::pair {colors::Black, colors::Black};
     }
 
@@ -154,12 +168,12 @@ auto renderer::lighting(render_context const& ctx, point_i gridPos) const -> std
 
     // Process player light.
     f64 const distance {euclidean_distance(player.Position, gridPos)};
-    f64 const range {player.get_stats().VisualRange};
+    f64 const range {player.stats().VisualRange};
     if (distance <= range) {
         f32 const factor {distance != 0
                               ? static_cast<f32>(std::clamp((range * range) / (distance * distance) * ((range - distance) / range), 0., 1.))
                               : 1.0f};
-        accumulateLight(player.get_render().Color, factor);
+        accumulateLight(player.color(), factor);
     }
 
     if (totalLightFactor > 0.f) {
@@ -170,11 +184,16 @@ auto renderer::lighting(render_context const& ctx, point_i gridPos) const -> std
         auto const  apply {[&](u8 c, f32 light) -> u8 { return std::min(255.f, c * (light / totalLightFactor)); }};
         color const fgColor {apply(tile.ForegroundColor.R, lightFgR), apply(tile.ForegroundColor.G, lightFgG), apply(tile.ForegroundColor.B, lightFgB)};
         color const bgColor {apply(tile.BackgroundColor.R, lightBgR), apply(tile.BackgroundColor.G, lightBgG), apply(tile.BackgroundColor.B, lightBgB)};
-        return std::pair<color, color> {fgColor, bgColor};
+        return color_pair {fgColor, bgColor};
     }
 
     tile.InSight = false;
     return std::pair {color::Lerp(colors::Black, colors::White, 0.15f), colors::Black};
+}
+
+auto renderer::seen_colors() const -> color_pair
+{
+    return {color::Lerp(colors::Black, colors::White, 0.15f), colors::Black};
 }
 
 }

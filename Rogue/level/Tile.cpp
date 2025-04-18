@@ -5,26 +5,32 @@
 
 #include "Tile.hpp"
 
+#include "../objects/Object.hpp" // IWYU pragma: keep
+
 namespace Rogue {
 
 auto tile::is_passable() const -> bool
 {
+    if (Monster) { return false; }
+
     switch (Type) {
-    case tile_type::Floor: return true;
     case tile_type::Wall: return false;
     case tile_type::Glass: return false;
+    case tile_type::Floor: break;
     }
-    return false;
+
+    return std::ranges::none_of(Objects, [](auto const& val) { return val->is_blocking(); });
 }
 
 auto tile::is_transparent() const -> bool
 {
     switch (Type) {
-    case tile_type::Floor: return true;
     case tile_type::Wall: return false;
-    case tile_type::Glass: return true;
+    case tile_type::Floor:
+    case tile_type::Glass: break;
     }
-    return false;
+
+    return std::ranges::none_of(Objects, [](auto const& val) { return val->is_blocking(); });
 }
 
 }

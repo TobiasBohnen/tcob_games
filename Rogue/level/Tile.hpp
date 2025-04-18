@@ -25,6 +25,9 @@ struct tile {
     bool Seen {false};
     bool InSight {false};
 
+    std::vector<std::shared_ptr<object>> Objects;
+    std::shared_ptr<monster>             Monster;
+
     auto is_passable() const -> bool;
     auto is_transparent() const -> bool;
 };

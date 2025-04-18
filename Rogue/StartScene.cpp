@@ -82,6 +82,8 @@ void start_scene::on_key_down(input::keyboard::event const& ev)
     case input::key_code::RETURN: _actionQueue.push(action::Execute); break;
     case input::key_code::KP_5:
     case input::key_code::l: _actionQueue.push(action::LookMode); break;
+    case input::key_code::i: _actionQueue.push(action::InteractMode); break;
+    case input::key_code::g: _actionQueue.push(action::PickUp); break;
     default: break;
     }
 }

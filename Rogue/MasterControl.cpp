@@ -6,19 +6,29 @@
 #include "MasterControl.hpp"
 
 #include "level/Tile.hpp"
+#include "objects/Object.hpp"
 
 namespace Rogue {
 
 master_control::master_control()
 {
     // TODO
-    auto const& tiles {_level.tiles()};
+    _levels.emplace_back();
+    auto const& tiles {_levels[0].tiles()};
     for (i32 i {0}; i < tiles.count(); ++i) {
         if (tiles[i].is_passable()) {
             _player.Position = {i % tiles.width(), i / tiles.width()};
             break;
         }
     }
+
+    auto doorObj {std::make_shared<door>()};
+    doorObj->Position = {12, 9};
+    add_object(doorObj);
+
+    auto goldObj {std::make_shared<gold>(125)};
+    goldObj->Position = {13, 9};
+    add_object(goldObj);
 
     set_view_center(_player.Position);
 }
@@ -28,7 +38,7 @@ void master_control::draw(ui::terminal& term)
     if (!_redraw) { return; }
     _redraw = false;
 
-    _renderer.draw({.Terminal = &term, .Level = &_level, .Player = &_player, .Log = &_log, .Center = _viewCenter});
+    _renderer.draw({.Terminal = &term, .Level = &current_level(), .Player = &_player, .Log = &_log, .Center = _viewCenter});
 }
 
 void master_control::update(milliseconds deltaTime, action_queue& queue)
@@ -42,11 +52,14 @@ void master_control::update(milliseconds deltaTime, action_queue& queue)
     _player.update(deltaTime);
 }
 
+auto master_control::current_level() -> level&
+{
+    return _levels[_currentLevel];
+}
+
 void master_control::end_turn()
 {
-    if (_mode == mode::Move) {
-        set_view_center(_player.Position);
-    }
+    if (_mode == mode::Move) { set_view_center(_player.Position); }
     mark_dirty();
 }
 
@@ -95,72 +108,34 @@ void master_control::handle_action_queue(action_queue& queue)
             _mode = _mode == mode::Move ? mode::Look : mode::Move;
             if (_mode == mode::Move) { set_view_center(_player.Position); }
             break;
+        case action::InteractMode:
+            log("direction?");
+            _mode = mode::Interact;
+            break;
         case action::Execute: do_execute(); break;
+        case action::PickUp: {
+            std::vector<std::shared_ptr<object>> toRemove;
+            auto&                                tile {current_level().tiles()[_player.Position]};
+            for (auto& object : tile.Objects) {
+                if (object->can_pickup(_player)) {
+                    log(object->pickup(_player));
+                    toRemove.push_back(object);
+                }
+            }
+            if (!toRemove.empty()) {
+                end_turn();
+                for (auto& object : toRemove) {
+                    remove_object(object);
+                }
+            }
+        } break;
         default:
             if (_mode == mode::Look) {
-                std::optional<point_i> pov;
-
-                switch (action) {
-                case action::MoveLeft: pov = get_target(_viewCenter, direction::Left); break;
-                case action::MoveRight: pov = get_target(_viewCenter, direction::Right); break;
-                case action::MoveUp: pov = get_target(_viewCenter, direction::Up); break;
-                case action::MoveDown: pov = get_target(_viewCenter, direction::Down); break;
-                case action::MoveLeftUp: pov = get_target(get_target(_viewCenter, direction::Left), direction::Up); break;
-                case action::MoveRightUp: pov = get_target(get_target(_viewCenter, direction::Right), direction::Up); break;
-                case action::MoveLeftDown: pov = get_target(get_target(_viewCenter, direction::Left), direction::Down); break;
-                case action::MoveRightDown: pov = get_target(get_target(_viewCenter, direction::Right), direction::Down); break;
-                default: break;
-                }
-
-                if (pov) { set_view_center(*pov); }
+                do_look(action);
+            } else if (_mode == mode::Interact) {
+                do_interact(action);
             } else {
-                std::optional<point_i> moveTarget;
-                string                 message {};
-
-                switch (action) {
-                case action::MoveLeft:
-                    moveTarget = get_target(_player.Position, direction::Left);
-                    message    = "moved left";
-                    break;
-                case action::MoveRight:
-                    moveTarget = get_target(_player.Position, direction::Right);
-                    message    = "moved right";
-                    break;
-                case action::MoveUp:
-                    moveTarget = get_target(_player.Position, direction::Up);
-                    message    = "moved up";
-                    break;
-                case action::MoveDown:
-                    moveTarget = get_target(_player.Position, direction::Down);
-                    message    = "moved down";
-                    break;
-                case action::MoveLeftUp:
-                    moveTarget = get_target(get_target(_player.Position, direction::Left), direction::Up);
-                    message    = "moved left up";
-                    break;
-                case action::MoveRightUp:
-                    moveTarget = get_target(get_target(_player.Position, direction::Right), direction::Up);
-                    message    = "moved right up";
-                    break;
-                case action::MoveLeftDown:
-                    moveTarget = get_target(get_target(_player.Position, direction::Left), direction::Down);
-                    message    = "moved left down";
-                    break;
-                case action::MoveRightDown:
-                    moveTarget = get_target(get_target(_player.Position, direction::Right), direction::Down);
-                    message    = "moved right down";
-                    break;
-                default: break;
-                }
-
-                if (moveTarget) {
-                    if (_player.try_move(*moveTarget, _level)) {
-                        end_turn();
-                    } else {
-                        message = "bonk";
-                    }
-                }
-                log(message);
+                do_move(action);
             }
             break;
         }
@@ -170,9 +145,9 @@ void master_control::handle_action_queue(action_queue& queue)
 void master_control::do_execute()
 {
     if (_mode == mode::Look) {
-        if (auto p {_level.find_path(_player.Position, _viewCenter)}; !p.empty()) {
+        if (auto p {current_level().find_path(_player.Position, _viewCenter)}; !p.empty()) {
             _animation = ([p, this]() mutable -> bool {
-                if (_player.try_move(p.front(), _level)) {
+                if (_player.try_move(p.front(), current_level())) {
                     end_turn();
                 } else {
                     return true;
@@ -189,4 +164,103 @@ void master_control::do_execute()
         }
     }
 }
+
+void master_control::do_move(action action)
+{
+    std::optional<point_i> moveTarget {get_target(action, _player.Position)};
+    if (!moveTarget) { return; }
+
+    auto& level {current_level()};
+    if (!level.is_passable(*moveTarget)) { //  check interact
+        auto& tiles {level.tiles()};
+        if (tiles.contains(*moveTarget)) {
+            for (auto& object : tiles[*moveTarget].Objects) {
+                if (!object->can_interact(_player)) { continue; }
+                log(object->interact(_player));
+                end_turn();
+                break;
+            }
+        }
+        return;
+    }
+
+    if (_player.try_move(*moveTarget, current_level())) {
+        end_turn();
+    } else {
+        log("bonk");
+    }
+}
+
+void master_control::do_look(action action)
+{
+    if (auto pov {get_target(action, _viewCenter)}) { set_view_center(*pov); }
+}
+
+void master_control::do_interact(action action)
+{
+    std::optional<point_i> interactTarget {get_target(action, _player.Position)};
+    string                 message {};
+
+    if (interactTarget) {
+        auto& tiles {current_level().tiles()};
+
+        if (tiles.contains(*interactTarget)) {
+            for (auto& object : tiles[*interactTarget].Objects) {
+                if (!object->can_interact(_player)) { continue; }
+                message = object->interact(_player);
+                break;
+            }
+        }
+    }
+
+    _mode = mode::Move;
+    if (message.empty()) {
+        message = "nothing here";
+    } else {
+        end_turn();
+    }
+
+    log(message);
+}
+
+void master_control::add_object(std::shared_ptr<object> const& object)
+{
+    auto& level {current_level()};
+    level.objects().push_back(object);
+    level.tiles()[object->Position].Objects.push_back(object);
+    mark_dirty();
+}
+
+void master_control::remove_object(std::shared_ptr<object> const& object)
+{
+    auto& level {current_level()};
+    helper::erase_first(level.objects(), [object](auto const& val) { return val == object; });
+    helper::erase_first(level.tiles()[object->Position].Objects, [object](auto const& val) { return val == object; });
+}
+
+auto master_control::get_target(action action, point_i pos) const -> std::optional<point_i>
+{
+    auto static target {[](point_i pos, direction dir) -> point_i {
+        switch (dir) {
+        case direction::Left: return pos + point_i {-1, 0};
+        case direction::Right: return pos + point_i {1, 0};
+        case direction::Up: return pos + point_i {0, -1};
+        case direction::Down: return pos + point_i {0, 1};
+        default: return pos;
+        }
+    }};
+
+    switch (action) {
+    case action::MoveLeft: return target(pos, direction::Left); break;
+    case action::MoveRight: return target(pos, direction::Right); break;
+    case action::MoveUp: return target(pos, direction::Up); break;
+    case action::MoveDown: return target(pos, direction::Down); break;
+    case action::MoveLeftUp: return target(target(pos, direction::Left), direction::Up); break;
+    case action::MoveRightUp: return target(target(pos, direction::Right), direction::Up); break;
+    case action::MoveLeftDown: return target(target(pos, direction::Left), direction::Down); break;
+    case action::MoveRightDown: return target(target(pos, direction::Right), direction::Down); break;
+    default: return std::nullopt;
+    }
+}
+
 }

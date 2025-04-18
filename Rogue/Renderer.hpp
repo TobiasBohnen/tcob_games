@@ -6,6 +6,7 @@
 #pragma once
 
 #include "Common.hpp"
+#include "level/Tile.hpp"
 
 namespace Rogue {
 ////////////////////////////////////////////////////////////
@@ -26,10 +27,13 @@ public:
 
 private:
     void draw_map(render_context const& ctx);
+    void draw_objects(render_context const& ctx, tile const& tile, point_i gridPos);
     void draw_player(render_context const& ctx);
     void draw_log(render_context const& ctx);
 
-    auto lighting(render_context const& ctx, point_i gridPos) const -> std::pair<color, color>;
+    auto lighting(render_context const& ctx, tile& tile, point_i gridPos) const -> color_pair;
+
+    auto seen_colors() const -> color_pair;
 };
 
 }

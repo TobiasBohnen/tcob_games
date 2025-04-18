@@ -44,7 +44,9 @@ enum class action {
     MoveRightDown,
 
     LookMode,
+    InteractMode,
 
+    PickUp,
     Execute
 };
 
@@ -56,12 +58,11 @@ constinit inline milliseconds AnimationDelay {150};
 ////////////////////////////////////////////////////////////
 
 using log_message = std::pair<string, i32>;
+using color_pair  = std::pair<color, color>;
 
 ////////////////////////////////////////////////////////////
 
 auto term_to_grid(point_i pos, point_i center) -> point_i;
 auto grid_to_term(point_i pos, point_i center) -> point_i;
-
-auto get_target(point_i pos, direction dir) -> point_i;
 
 }

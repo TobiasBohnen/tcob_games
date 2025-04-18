@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "Common.hpp"
+#include "../Common.hpp"
 
 namespace Rogue {
 ////////////////////////////////////////////////////////////
@@ -14,7 +14,7 @@ class player {
 public:
     ////////////////////////////////////////////////////////////
 
-    struct stats {
+    struct statistics {
         string Name {"Tim"};
 
         i32 HP {75};
@@ -24,11 +24,6 @@ public:
         i32 MPMax {100};
 
         f32 VisualRange {7};
-    };
-
-    struct render {
-        string Symbol {"@"};
-        color  Color {colors::White};
     };
 
     ////////////////////////////////////////////////////////////
@@ -41,12 +36,13 @@ public:
 
     auto try_move(point_i pos, level const& level) -> bool;
 
-    auto get_stats() const -> stats const&;
-    auto get_render() const -> render const&;
+    auto stats() const -> statistics const&;
+
+    auto symbol() const -> string;
+    auto color() const -> color;
 
 private:
-    stats  _stats;
-    render _render;
+    statistics _stats;
 };
 
 }

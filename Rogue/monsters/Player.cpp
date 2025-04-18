@@ -5,7 +5,7 @@
 
 #include "Player.hpp"
 
-#include "level/Level.hpp"
+#include "../level/Level.hpp"
 
 namespace Rogue {
 
@@ -25,14 +25,19 @@ auto player::try_move(point_i pos, level const& level) -> bool
     return false;
 }
 
-auto player::get_stats() const -> stats const&
+auto player::stats() const -> statistics const&
 {
     return _stats;
 }
 
-auto player::get_render() const -> render const&
+auto player::symbol() const -> string
 {
-    return _render;
+    return "@";
+}
+
+auto player::color() const -> tcob::color
+{
+    return colors::White;
 }
 
 }
