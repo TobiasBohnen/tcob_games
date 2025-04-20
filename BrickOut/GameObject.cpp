@@ -146,13 +146,13 @@ void paddle::reset()
 
     physics::capsule_shape::settings settings;
     f32 const                        rad {physRect.Size.Height / 2.0f};
-    settings.Center0     = {(-physRect.Size.Width / 2) + rad, 0};
-    settings.Center1     = {(physRect.Size.Width / 2) - rad, 0};
-    settings.Radius      = physRect.Size.Height / 2.0f;
-    settings.Restitution = 0.1f;
+    settings.Center0              = {(-physRect.Size.Width / 2) + rad, 0};
+    settings.Center1              = {(physRect.Size.Width / 2) - rad, 0};
+    settings.Radius               = physRect.Size.Height / 2.0f;
+    settings.Material.Restitution = 0.1f;
 
-    settings.Density  = 10.0f;
-    settings.Friction = 0.4f;
+    settings.Density           = 10.0f;
+    settings.Material.Friction = 0.4f;
 
     create_shape<physics::capsule_shape>(settings);
 
@@ -223,9 +223,9 @@ void ball::reset()
     physics::circle_shape::settings settings;
     settings.Radius = {physRect.Size.Width / 2};
 
-    settings.Friction    = 0.01f;
-    settings.Restitution = 1.f;
-    settings.Density     = 0.35f;
+    settings.Material.Friction    = 0.01f;
+    settings.Material.Restitution = 1.f;
+    settings.Density              = 0.35f;
 
     create_shape<physics::circle_shape>(settings);
 
@@ -317,46 +317,46 @@ void brick::reset()
 
     switch (_def.Color) {
     case brick_def::color::Blue:
-        settings.Restitution = 0.1f;
-        settings.Density     = 10.0f;
-        settings.Friction    = 0.0f;
-        settings.CustomColor = colors::Blue;
-        _timeOut             = 4s;
+        settings.Material.Restitution = 0.1f;
+        settings.Density              = 10.0f;
+        settings.Material.Friction    = 0.0f;
+        settings.Material.CustomColor = colors::Blue;
+        _timeOut                      = 4s;
         break;
     case brick_def::color::Green:
-        settings.Restitution = 0.2f;
-        settings.Density     = 10.0f;
-        settings.Friction    = 1.0f;
-        settings.CustomColor = colors::Green;
-        _timeOut             = 3s;
+        settings.Material.Restitution = 0.2f;
+        settings.Density              = 10.0f;
+        settings.Material.Friction    = 1.0f;
+        settings.Material.CustomColor = colors::Green;
+        _timeOut                      = 3s;
         break;
     case brick_def::color::Grey:
-        settings.Restitution = 0.3f;
-        settings.Density     = 10.0f;
-        settings.Friction    = 0.0f;
-        settings.CustomColor = colors::Gray;
-        _timeOut             = 2s;
+        settings.Material.Restitution = 0.3f;
+        settings.Density              = 10.0f;
+        settings.Material.Friction    = 0.0f;
+        settings.Material.CustomColor = colors::Gray;
+        _timeOut                      = 2s;
         break;
     case brick_def::color::Purple:
-        settings.Restitution = 0.4f;
-        settings.Density     = 10.0f;
-        settings.Friction    = 0.4f;
-        settings.CustomColor = colors::Purple;
-        _timeOut             = 10s;
+        settings.Material.Restitution = 0.4f;
+        settings.Density              = 10.0f;
+        settings.Material.Friction    = 0.4f;
+        settings.Material.CustomColor = colors::Purple;
+        _timeOut                      = 10s;
         break;
     case brick_def::color::Red:
-        settings.Restitution = 0.5f;
-        settings.Density     = 10.0f;
-        settings.Friction    = 0.3f;
-        settings.CustomColor = colors::Red;
-        _timeOut             = 1s;
+        settings.Material.Restitution = 0.5f;
+        settings.Density              = 10.0f;
+        settings.Material.Friction    = 0.3f;
+        settings.Material.CustomColor = colors::Red;
+        _timeOut                      = 1s;
         break;
     case brick_def::color::Yellow:
-        settings.Restitution = 0.6f;
-        settings.Density     = 10.0f;
-        settings.Friction    = 0.6f;
-        settings.CustomColor = colors::Yellow;
-        _timeOut             = 5s;
+        settings.Material.Restitution = 0.6f;
+        settings.Density              = 10.0f;
+        settings.Material.Friction    = 0.6f;
+        settings.Material.CustomColor = colors::Yellow;
+        _timeOut                      = 5s;
         break;
     }
 

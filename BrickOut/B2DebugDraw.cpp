@@ -63,10 +63,6 @@ void B2DDebugDraw::draw_solid_circle(physics::body_transform xform, f32 radius, 
     _canvas.fill();
 }
 
-void B2DDebugDraw::draw_capsule(point_f /* p1 */, point_f /* p2 */, f32 /* radius */, color /* color */)
-{
-}
-
 void B2DDebugDraw::draw_solid_capsule(point_f p1, point_f p2, f32 radius, color color)
 {
     _canvas.set_stroke_width(radius * physicsWorldSize.X * 2);
@@ -90,12 +86,28 @@ void B2DDebugDraw::draw_segment(point_f p1, point_f p2, color color)
 
 void B2DDebugDraw::draw_transform(physics::body_transform const& xf)
 {
-    _canvas.set_fill_style(colors::DodgerBlue);
+    _canvas.set_stroke_width(3);
+
+    auto b2MulAdd {[](point_f a, f32 s, point_f b) -> point_f {
+        return {a.X + s * b.X, a.Y + s * b.Y};
+    }};
+
+    f32 const k_axisScale {5.f};
+    point_f   p1 {xf.Center};
+
     _canvas.begin_path();
+    point_f p2 {b2MulAdd(p1, k_axisScale, physics::rotation::FromAngle(xf.Angle).x_axis())};
+    _canvas.move_to(p1 * physicsWorldSize);
+    _canvas.line_to(p2 * physicsWorldSize);
+    _canvas.set_stroke_style(colors::Red);
+    _canvas.stroke();
 
-    _canvas.arc(xf.Center * physicsWorldSize, 10 * physicsWorldSize.X, radian_f {0}, xf.Angle, gfx::winding::CCW);
-
-    _canvas.fill();
+    _canvas.begin_path();
+    p2 = b2MulAdd(p1, k_axisScale, physics::rotation::FromAngle(xf.Angle).y_axis());
+    _canvas.move_to(p1 * physicsWorldSize);
+    _canvas.line_to(p2 * physicsWorldSize);
+    _canvas.set_stroke_style(colors::Green);
+    _canvas.stroke();
 }
 
 void B2DDebugDraw::draw_point(point_f p, f32 size, color color)
@@ -106,7 +118,7 @@ void B2DDebugDraw::draw_point(point_f p, f32 size, color color)
     _canvas.fill();
 }
 
-void B2DDebugDraw::draw_string(point_f p, string const& text)
+void B2DDebugDraw::draw_string(point_f p, string const& text, color color)
 {
     _canvas.set_font(_font);
     _canvas.set_fill_style(colors::Black);
