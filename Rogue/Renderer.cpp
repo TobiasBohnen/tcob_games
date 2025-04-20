@@ -15,9 +15,21 @@ void renderer::draw(render_context const& ctx)
 {
     ctx.Terminal->clear();
 
+    draw_layout(ctx);
     draw_map(ctx);
-    draw_player(ctx);
     draw_log(ctx);
+    draw_player(ctx);
+}
+
+void renderer::draw_layout(render_context const& ctx)
+{
+    auto& term {*ctx.Terminal};
+
+    term.color_set(colors::White, colors::Black);
+    term.rectangle({TermMapSize.Width, 0, TermSize.Width - TermMapSize.Width - 1, TermSize.Height - 1});
+
+    term.color_set(colors::White, colors::Black);
+    term.rectangle({0, TermMapSize.Height, TermMapSize.Width - 1, TermSize.Height - TermMapSize.Height - 1});
 }
 
 void renderer::draw_map(render_context const& ctx)
@@ -39,13 +51,13 @@ void renderer::draw_map(render_context const& ctx)
             } else if (tile.Seen || tile.InSight) {
                 term.color_set(fg, bg);
                 term.add_str(termPos, tile.Symbol);
-                draw_objects(ctx, tile, gridPos);
+                draw_objects(ctx, bg, tile, gridPos);
             }
         }
     }
 }
 
-void renderer::draw_objects(render_context const& ctx, tile const& tile, point_i gridPos)
+void renderer::draw_objects(render_context const& ctx, color bg, tile const& tile, point_i gridPos)
 {
     auto& term {*ctx.Terminal};
 
@@ -54,7 +66,7 @@ void renderer::draw_objects(render_context const& ctx, tile const& tile, point_i
         point_i const termPos {grid_to_term(gridPos, ctx.Center)};
         if (TermMapSize.contains(termPos)) {
             auto const colors {tile.InSight ? object->colors() : seen_colors()};
-            term.color_set(colors.first, colors.second);
+            term.color_set(colors.first, colors.second == colors::Transparent ? bg : colors.second);
             term.add_str(termPos, object->symbol());
         }
     }
@@ -63,6 +75,8 @@ void renderer::draw_objects(render_context const& ctx, tile const& tile, point_i
 void renderer::draw_player(render_context const& ctx)
 {
     auto& term {*ctx.Terminal};
+
+    i32 y {0};
 
     // symbol
     auto const& player {*ctx.Player};
@@ -74,28 +88,46 @@ void renderer::draw_player(render_context const& ctx)
 
     // stats
     auto const& stats {player.stats()};
-    i32 const   statsX {TermMapSize.Width};
+    i32 const   x {TermMapSize.Width + 1};
     term.color_set(colors::White, colors::Black);
-    term.add_str({statsX, 0}, std::format("{}", stats.Name));
+    term.add_str({x, y++}, std::format("{}", stats.Name));
 
     term.color_set(colors::White, colors::Black);
-    term.add_str({statsX, 1}, std::format("{}", player.Position));
+    term.add_str({x, y++}, std::format("{}", player.Position));
+    y++;
 
-    auto const drawBar {[&](i32 current, i32 max) {
+    auto const drawXPBar {[&](i32 current, i32 max, i32 level) {
         i32 const    tickCount {static_cast<i32>(std::ceil(static_cast<f32>(current) / max * 10.f))};
         string const ticks {string(tickCount, '-') + string(10 - tickCount, ' ')};
-        term.add_str(std::format("[{}] {:03}/{:03}", ticks, current, max));
+        term.add_str(std::format("{:03}/{:03} [{}]", current, level, ticks));
     }};
+    auto const drawBar {[&](i32 current, i32 max) { drawXPBar(current, max, max); }};
 
+    // HP
     term.color_set(colors::White, colors::Black);
-    term.add_str({statsX, 3}, "Health: ");
+    term.add_str({x, y++}, "HP:     ");
     term.color_set(colors::Red, colors::Black);
-    drawBar(stats.HP, stats.HPMax);
+    drawBar(stats.HP, stats.hp_max());
 
+    // MP
     term.color_set(colors::White, colors::Black);
-    term.add_str({statsX, 4}, "Mana:   ");
+    term.add_str({x, y++}, "MP:     ");
     term.color_set(colors::RoyalBlue, colors::Black);
-    drawBar(stats.MP, stats.MPMax);
+    drawBar(stats.MP, stats.mp_max());
+
+    // XP
+    term.color_set(colors::White, colors::Black);
+    term.add_str({x, y++}, "XP/Lvl: ");
+    term.color_set(colors::DarkGray, colors::Black);
+    i32 const level {stats.level()};
+    i32 const xpLevel {stats.xp_required_for(level)};
+    drawXPBar(stats.XP - xpLevel, stats.xp_required_for(level + 1) - xpLevel, level);
+
+    // Gold
+    term.color_set(colors::White, colors::Black);
+    term.add_str({x, y++}, "Gold:   ");
+    term.color_set(colors::Gold, colors::Black);
+    term.add_str(std::format("{:07}", stats.Gold));
 }
 
 void renderer::draw_log(render_context const& ctx)
@@ -103,16 +135,15 @@ void renderer::draw_log(render_context const& ctx)
     auto&       term {*ctx.Terminal};
     auto const& log {*ctx.Log};
 
-    std::span<log_message const> last;
-    if (log.size() >= 5) {
-        last = std::span<log_message const>(log).subspan(log.size() - 5, 5);
-    } else {
-        last = std::span<log_message const>(log);
-    }
-    term.color_set(colors::White, colors::Black);
+    isize const logSize {TermSize.Height - TermMapSize.Height - 2};
+    auto const  last {log.size() >= logSize
+                          ? std::span<log_message const>(log).subspan(log.size() - logSize, logSize)
+                          : std::span<log_message const>(log)};
+
     i32 y {TermMapSize.Height};
+
     for (auto const& message : last) {
-        term.add_str({0, y++}, message.first);
+        term.add_str({1, y++}, message.first); // TODO: check message length
         if (message.second > 1) {
             term.add_str(std::format(" ({}x)", message.second));
         }
@@ -133,12 +164,10 @@ auto renderer::lighting(render_context const& ctx, tile& tile, point_i gridPos) 
             : std::pair {colors::Black, colors::Black};
     }
 
-    // Variables to accumulate light contributions separately for foreground and background.
     f32 lightFgR {0.f}, lightFgG {0.f}, lightFgB {0.f};
     f32 lightBgR {0.f}, lightBgG {0.f}, lightBgB {0.f};
     f32 totalLightFactor {0.f};
 
-    // Lambda to accumulate a given light's color contribution scaled by its factor.
     auto const accumulateLight {[&](color const& lightColor, f32 const factor) -> void {
         lightFgR += (lightColor.R / 255.f) * factor;
         lightFgG += (lightColor.G / 255.f) * factor;
@@ -151,7 +180,6 @@ auto renderer::lighting(render_context const& ctx, tile& tile, point_i gridPos) 
         totalLightFactor += factor;
     }};
 
-    // Process environmental light sources.
     auto const& lights {level.lights()};
     for (auto const& light : lights) {
         f64 const distance {euclidean_distance(light->Position, gridPos)};
@@ -166,7 +194,6 @@ auto renderer::lighting(render_context const& ctx, tile& tile, point_i gridPos) 
         accumulateLight(light->Color, factor * light->Intensity);
     }
 
-    // Process player light.
     f64 const distance {euclidean_distance(player.Position, gridPos)};
     f64 const range {player.stats().VisualRange};
     if (distance <= range) {

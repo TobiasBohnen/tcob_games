@@ -22,10 +22,11 @@ class base_layout;
 class monster;
 class object;
 class player;
+class inv_item;
 
 ////////////////////////////////////////////////////////////
 
-constinit inline size_i TermMapSize {50, 40};
+constinit inline size_i TermMapSize {50, 35};
 constinit inline size_i TermSize {80, 45};
 
 ////////////////////////////////////////////////////////////

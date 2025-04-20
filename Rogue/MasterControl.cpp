@@ -118,7 +118,14 @@ void master_control::handle_action_queue(action_queue& queue)
             auto&                                tile {current_level().tiles()[_player.Position]};
             for (auto& object : tile.Objects) {
                 if (object->can_pickup(_player)) {
-                    log(object->pickup(_player));
+                    auto const result {object->pickup(_player)};
+                    if (result.Item && _player.can_add_item(*result.Item)) {
+                        _player.add_item(result.Item);
+                    }
+                    if (!result.Message.empty()) {
+                        log(result.Message);
+                    }
+
                     toRemove.push_back(object);
                 }
             }

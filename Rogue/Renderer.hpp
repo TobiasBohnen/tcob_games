@@ -26,8 +26,9 @@ public:
     void draw(render_context const& ctx);
 
 private:
+    void draw_layout(render_context const& ctx);
     void draw_map(render_context const& ctx);
-    void draw_objects(render_context const& ctx, tile const& tile, point_i gridPos);
+    void draw_objects(render_context const& ctx, color bg, tile const& tile, point_i gridPos);
     void draw_player(render_context const& ctx);
     void draw_log(render_context const& ctx);
 
