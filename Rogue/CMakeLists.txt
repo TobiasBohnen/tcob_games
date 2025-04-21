@@ -5,8 +5,6 @@ target_sources(Rogue PRIVATE
 
     Common.cpp
     MasterControl.cpp
-
-    Renderer.cpp
     StartScene.cpp
 
     level/Layout.cpp
@@ -18,6 +16,7 @@ target_sources(Rogue PRIVATE
     objects/Object.cpp
 
     ui/MainMenu.cpp
+    ui/Renderer.cpp
 )
 
 set_target_properties(Rogue PROPERTIES

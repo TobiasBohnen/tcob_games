@@ -6,9 +6,9 @@
 #pragma once
 
 #include "Common.hpp"
-#include "Renderer.hpp"
 #include "level/Level.hpp"
 #include "monsters/Player.hpp"
+#include "ui/Renderer.hpp"
 
 namespace Rogue {
 ////////////////////////////////////////////////////////////
@@ -34,6 +34,7 @@ private:
     void handle_action_queue(action_queue& queue);
 
     void do_execute();
+    void do_pickup();
     void do_move(action action);
     void do_look(action action);
     void do_interact(action action);
@@ -50,18 +51,17 @@ private:
 
     std::vector<log_message> _log;
 
-    enum class mode {
-        Move,
-        Look,
-        Interact,
-    };
     mode _mode {mode::Move};
+
+    mfd_mode _mfdMode {mfd_mode::Character};
 
     animation_func _animation;
     milliseconds   _animationTimer {};
 
     bool     _redraw {true};
     renderer _renderer {};
+
+    i32 _turn {0};
 };
 
 }

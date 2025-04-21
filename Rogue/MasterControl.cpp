@@ -38,7 +38,14 @@ void master_control::draw(ui::terminal& term)
     if (!_redraw) { return; }
     _redraw = false;
 
-    _renderer.draw({.Terminal = &term, .Level = &current_level(), .Player = &_player, .Log = &_log, .Center = _viewCenter});
+    _renderer.draw({.Terminal      = &term,
+                    .Level         = &current_level(),
+                    .Player        = &_player,
+                    .PlayerProfile = _player.current_profile(),
+                    .Log           = &_log,
+                    .Mode          = _mode,
+                    .MfdMode       = _mfdMode,
+                    .Center        = _viewCenter});
 }
 
 void master_control::update(milliseconds deltaTime, action_queue& queue)
@@ -61,6 +68,7 @@ void master_control::end_turn()
 {
     if (_mode == mode::Move) { set_view_center(_player.Position); }
     mark_dirty();
+    ++_turn;
 }
 
 void master_control::set_view_center(point_i pos)
@@ -107,35 +115,22 @@ void master_control::handle_action_queue(action_queue& queue)
         case action::LookMode:
             _mode = _mode == mode::Move ? mode::Look : mode::Move;
             if (_mode == mode::Move) { set_view_center(_player.Position); }
+            mark_dirty();
             break;
         case action::InteractMode:
-            log("direction?");
-            _mode = mode::Interact;
+            _mode = _mode == mode::Move ? mode::Interact : mode::Move;
+            mark_dirty();
             break;
-        case action::Execute: do_execute(); break;
-        case action::PickUp: {
-            std::vector<std::shared_ptr<object>> toRemove;
-            auto&                                tile {current_level().tiles()[_player.Position]};
-            for (auto& object : tile.Objects) {
-                if (object->can_pickup(_player)) {
-                    auto const result {object->pickup(_player)};
-                    if (result.Item && _player.can_add_item(*result.Item)) {
-                        _player.add_item(result.Item);
-                    }
-                    if (!result.Message.empty()) {
-                        log(result.Message);
-                    }
-
-                    toRemove.push_back(object);
-                }
-            }
-            if (!toRemove.empty()) {
-                end_turn();
-                for (auto& object : toRemove) {
-                    remove_object(object);
-                }
-            }
-        } break;
+        case action::Execute:
+            do_execute();
+            break;
+        case action::MFDModeChange:
+            _mfdMode = static_cast<mfd_mode>((static_cast<i32>(_mfdMode) + 1) % 3);
+            mark_dirty();
+            break;
+        case action::PickUp:
+            do_pickup();
+            break;
         default:
             if (_mode == mode::Look) {
                 do_look(action);
@@ -168,6 +163,31 @@ void master_control::do_execute()
             });
 
             _animationTimer = AnimationDelay;
+        }
+    }
+}
+
+void master_control::do_pickup()
+{
+    std::vector<std::shared_ptr<object>> toRemove;
+    auto&                                tile {current_level().tiles()[_player.Position]};
+    for (auto& object : tile.Objects) {
+        if (object->can_pickup(_player)) {
+            auto const result {object->pickup(_player)};
+            if (result.Item && _player.can_add_item(*result.Item)) {
+                _player.add_item(result.Item);
+            }
+            if (!result.Message.empty()) {
+                log(result.Message);
+            }
+
+            toRemove.push_back(object);
+        }
+    }
+    if (!toRemove.empty()) {
+        end_turn();
+        for (auto& object : toRemove) {
+            remove_object(object);
         }
     }
 }
