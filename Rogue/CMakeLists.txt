@@ -7,13 +7,12 @@ target_sources(Rogue PRIVATE
     MasterControl.cpp
     StartScene.cpp
 
-    level/Layout.cpp
-    level/Level.cpp
-    level/Tile.cpp
+    dungeon/Layout.cpp
+    dungeon/Dungeon.cpp
+    dungeon/Object.cpp
+    dungeon/Tile.cpp
 
     monsters/Player.cpp
-
-    objects/Object.cpp
 
     ui/MainMenu.cpp
     ui/Renderer.cpp

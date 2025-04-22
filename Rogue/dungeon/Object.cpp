@@ -6,11 +6,15 @@
 #include "Object.hpp"
 
 #include "../monsters/Player.hpp"
-#include "InvItem.hpp"
 
 namespace Rogue {
 
 ////////////////////////////////////////////////////////////
+
+door::door(bool open)
+    : _open {open}
+{
+}
 
 auto door::symbol() const -> string
 {
@@ -19,7 +23,7 @@ auto door::symbol() const -> string
 
 auto door::colors() const -> color_pair
 {
-    return {colors::White, colors::Black};
+    return {colors::Sienna, colors::Transparent};
 }
 
 auto door::is_blocking() const -> bool
@@ -60,10 +64,29 @@ auto gold::can_pickup(player& player) const -> bool
     return true;
 }
 
-auto gold::pickup(player& player) -> pickup_result
+auto gold::pickup(player& player) -> string
 {
-    player.add_gold(_amount);
-    return {.Message = std::format("you picked up {} gold coins", _amount), .Item = nullptr};
+    return std::format("you picked up {} gold coins", _amount);
+}
+
+auto gold::can_stack() const -> bool
+{
+    return true;
+}
+
+auto gold::type() const -> item_type
+{
+    return item_type::Gold;
+}
+
+auto gold::name() const -> string
+{
+    return "Gold";
+}
+
+auto gold::amount() const -> i32
+{
+    return _amount;
 }
 
 ////////////////////////////////////////////////////////////
@@ -87,9 +110,19 @@ auto wand::can_pickup(player& player) const -> bool
     return true; // TODO
 }
 
-auto wand::pickup(player& player) -> pickup_result
+auto wand::pickup(player& player) -> string
 {
-    return {.Message = std::format("you picked up the wand"), .Item = std::make_shared<weapon>()};
+    return std::format("you picked up a wand");
+}
+
+auto wand::type() const -> item_type
+{
+    return item_type::Weapon;
+}
+
+auto wand::name() const -> string
+{
+    return "Wand";
 }
 
 ////////////////////////////////////////////////////////////
@@ -113,9 +146,19 @@ auto rod::can_pickup(player& player) const -> bool
     return true; // TODO
 }
 
-auto rod::pickup(player& player) -> pickup_result
+auto rod::pickup(player& player) -> string
 {
-    return {.Message = std::format("you picked up the rod"), .Item = std::make_shared<weapon>()};
+    return std::format("you picked up a rod");
+}
+
+auto rod::type() const -> item_type
+{
+    return item_type::Weapon;
+}
+
+auto rod::name() const -> string
+{
+    return "Rod";
 }
 
 ////////////////////////////////////////////////////////////
@@ -139,9 +182,19 @@ auto staff::can_pickup(player& player) const -> bool
     return true; // TODO
 }
 
-auto staff::pickup(player& player) -> pickup_result
+auto staff::pickup(player& player) -> string
 {
-    return {.Message = std::format("you picked up the staff"), .Item = std::make_shared<weapon>()};
+    return std::format("you picked up a staff");
+}
+
+auto staff::type() const -> item_type
+{
+    return item_type::Weapon;
+}
+
+auto staff::name() const -> string
+{
+    return "Staff";
 }
 
 ////////////////////////////////////////////////////////////

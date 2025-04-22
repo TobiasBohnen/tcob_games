@@ -34,12 +34,12 @@ struct tile {
 
 ////////////////////////////////////////////////////////////
 
-static constinit tile const FLOOR {.Type = tile_type::Floor, .Symbol = ".", .ForegroundColor = colors::Gray, .BackgroundColor = colors::SeaShell};
+static constinit tile const FLOOR {.Type = tile_type::Floor, .Symbol = ".", .ForegroundColor = colors::Black, .BackgroundColor = colors::SlateGray};
 static constinit tile const WALL {.Type = tile_type::Wall, .Symbol = "\u2592", .ForegroundColor = colors::Black};
 static constinit tile const WALL0 {.Type = tile_type::Wall, .Symbol = "\u2592", .ForegroundColor = colors::Black, .BackgroundColor = colors::Silver};
 static constinit tile const GLASS {.Type = tile_type::Glass, .Symbol = "\u2591"};
 
-static constinit std::array<color, 3> const WALL_COLORS {{colors::DimGray, colors::Silver, colors::LightSlateGray}};
+static constinit std::array<color, 3> const WALL_COLORS {{color::FromRGB(0x2b2b2b), color::FromRGB(0x555d65), color::FromRGB(0xaab0b9)}};
 
 ////////////////////////////////////////////////////////////
 

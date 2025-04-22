@@ -5,51 +5,96 @@
 
 #include "Player.hpp"
 
-#include "../level/Level.hpp"
+#include "../MasterControl.hpp"
+#include "../dungeon/Dungeon.hpp"
+#include "../dungeon/Object.hpp"
 
 namespace Rogue {
 ////////////////////////////////////////////////////////////
 
-player::player() = default;
-
-void player::update(milliseconds deltaTime)
+player::player(master_control& parent)
+    : _parent {parent}
 {
 }
 
-auto player::try_move(point_i pos, level const& level) -> bool
+void player::update(milliseconds deltaTime)
 {
-    if (level.is_passable(pos)) {
+    if (_animationTimer <= 0s) { return; }
+
+    _animationTimer -= deltaTime;
+    if (_animationTimer <= 0s) {
+        if (!_path.empty()) {
+            if (!try_move(_path.front())) {
+                _path.clear();
+                FinishedPath();
+            } else {
+                _path.erase(_path.begin());
+            }
+            if (_path.empty()) {
+                FinishedPath();
+            } else {
+                _animationTimer = ANIMATION_DELAY;
+            }
+        }
+    }
+}
+
+auto player::busy() const -> bool
+{
+    return !_path.empty();
+}
+
+void player::start_path(std::vector<point_i> const& path)
+{
+    _path           = path;
+    _animationTimer = ANIMATION_DELAY;
+}
+
+auto player::try_move(point_i pos) -> bool
+{
+    if (_parent.current_dungeon().is_passable(pos)) {
         Position = pos;
+        EndTurn();
         return true;
     }
 
     return false;
 }
 
-auto player::can_add_item(inv_item const& item) const -> bool
+auto player::try_pickup(std::shared_ptr<item> const& item) -> bool
 {
+    if (!item->can_pickup(*this)) { return false; }
 
+    auto const message {item->pickup(*this)};
+
+    bool const stackable {item->can_stack()};
+    bool       added {false};
+
+    if (stackable) {
+        for (auto& [inv_item, count] : _profile.Inventory) {
+            if (inv_item->type() == item->type() && inv_item->name() == item->name()) {
+                count += item->amount();
+                added = true;
+                break;
+            }
+        }
+    }
+
+    if (!added) {
+        _profile.Inventory.emplace_back(item, item->amount());
+    }
+
+    if (!message.empty()) {
+        _parent.log(message);
+    }
+
+    EndTurn();
     return true;
 }
 
-void player::add_item(std::shared_ptr<inv_item> const& item)
+auto player::current_profile() -> profile&
 {
-    _inventory.push_back(item);
-}
-
-void player::add_gold(i32 amount)
-{
-    _profile.Gold += amount;
-}
-
-auto player::inventory() const -> std::vector<std::shared_ptr<inv_item>> const&
-{
-    return _inventory;
-}
-
-auto player::current_profile() const -> profile
-{
-    // TODO: add inventory, etc.
+    // TODO: add inventory, effects, etc.
     return _profile;
 }
 
@@ -59,6 +104,12 @@ auto player::symbol() const -> string
 }
 
 auto player::color() const -> tcob::color
+{
+    f32 const ratio {static_cast<f32>(_profile.HP) / static_cast<f32>(hp_max())};
+    return tcob::color::Lerp(colors::Red, colors::White, ratio);
+}
+
+auto player::light_color() const -> tcob::color
 {
     return colors::White;
 }
@@ -80,4 +131,14 @@ auto player::mp_max() const -> i32
     return 50 + ((current_level() - 1) * INT_SCALE * _profile.Attributes.Intelligence);
 }
 
+auto player::count_gold() const -> i32
+{
+    i32 retValue {0};
+    for (auto const& [item, count] : _profile.Inventory) {
+        if (item->type() == item_type::Gold) {
+            retValue += count;
+        }
+    }
+    return retValue;
+}
 }

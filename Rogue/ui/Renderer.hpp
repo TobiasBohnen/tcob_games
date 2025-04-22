@@ -15,11 +15,11 @@ public:
     struct context {
         ui::terminal* Terminal {};
 
-        level*  Level {};
-        player* Player {};
-        profile PlayerProfile {};
+        dungeon*       Dungeon {};
+        player const*  Player {};
+        profile const* PlayerProfile {};
 
-        std::vector<log_message>* Log {};
+        std::vector<log_message> const* Log {};
 
         mode     Mode {};
         mfd_mode MfdMode {};
@@ -31,12 +31,14 @@ public:
 
 private:
     void draw_layout(context const& ctx);
+
     void draw_map(context const& ctx);
     void draw_objects(context const& ctx, color bg, tile const& tile, point_i gridPos);
     void draw_player(context const& ctx);
+
     void draw_log(context const& ctx);
     void draw_mfd(context const& ctx);
-    void draw_mode(context const& ctx);
+    void draw_detail(context const& ctx);
 
     auto lighting(context const& ctx, tile& tile, point_i gridPos) const -> color_pair;
 };

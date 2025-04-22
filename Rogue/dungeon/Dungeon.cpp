@@ -3,17 +3,17 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-#include "Level.hpp"
+#include "Dungeon.hpp"
 
 #include "../monsters/Monster.hpp"
-#include "../objects/Object.hpp"
 #include "Layout.hpp"
+#include "Object.hpp"
 
 namespace Rogue {
 
 ////////////////////////////////////////////////////////////
 
-level::level()
+dungeon::dungeon()
 {
     u64 seed {static_cast<u64>(clock::now().time_since_epoch().count())};
     seed   = 12345;
@@ -58,7 +58,7 @@ level::level()
     _tiles[{18, 3}] = WALL0;
 }
 
-auto level::is_line_of_sight(point_i start, point_i end) -> bool
+auto dungeon::is_line_of_sight(point_i start, point_i end) -> bool
 {
     auto [x0, y0] {start};
     auto const [x1, y1] {end};
@@ -87,13 +87,13 @@ auto level::is_line_of_sight(point_i start, point_i end) -> bool
     return true;
 }
 
-auto level::is_passable(point_i pos) const -> bool
+auto dungeon::is_passable(point_i pos) const -> bool
 {
     if (!_tiles.contains(pos)) { return false; }
     return _tiles[pos].is_passable();
 }
 
-auto level::find_path(point_i start, point_i target) const -> std::vector<point_i>
+auto dungeon::find_path(point_i start, point_i target) const -> std::vector<point_i>
 {
     ai::astar_pathfinding path {true, ai::astar_pathfinding::heuristic::Chebyshev};
 
@@ -112,42 +112,42 @@ auto level::find_path(point_i start, point_i target) const -> std::vector<point_
     return path.find_path(pathfinding, _tiles.size(), start, target);
 }
 
-auto level::tiles() -> grid<tile>&
+auto dungeon::tiles() -> grid<tile>&
 {
     return _tiles;
 }
 
-auto level::tiles() const -> grid<tile> const&
+auto dungeon::tiles() const -> grid<tile> const&
 {
     return _tiles;
 }
 
-auto level::objects() -> std::vector<std::shared_ptr<object>>&
+auto dungeon::objects() -> std::vector<std::shared_ptr<object>>&
 {
     return _objects;
 }
 
-auto level::objects() const -> std::vector<std::shared_ptr<object>> const&
+auto dungeon::objects() const -> std::vector<std::shared_ptr<object>> const&
 {
     return _objects;
 }
 
-auto level::monsters() -> std::vector<std::shared_ptr<monster>>&
+auto dungeon::monsters() -> std::vector<std::shared_ptr<monster>>&
 {
     return _monsters;
 }
 
-auto level::monsters() const -> std::vector<std::shared_ptr<monster>> const&
+auto dungeon::monsters() const -> std::vector<std::shared_ptr<monster>> const&
 {
     return _monsters;
 }
 
-auto level::lights() -> std::vector<std::shared_ptr<light_source>>&
+auto dungeon::lights() -> std::vector<std::shared_ptr<light_source>>&
 {
     return _lights;
 }
 
-auto level::lights() const -> std::vector<std::shared_ptr<light_source>> const&
+auto dungeon::lights() const -> std::vector<std::shared_ptr<light_source>> const&
 {
     return _lights;
 }

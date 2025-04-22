@@ -10,11 +10,6 @@
 namespace Rogue {
 ////////////////////////////////////////////////////////////
 
-struct pickup_result {
-    string                    Message {};
-    std::shared_ptr<inv_item> Item {};
-};
-
 class object {
 public:
     virtual ~object() = default;
@@ -23,34 +18,44 @@ public:
 
     auto virtual symbol() const -> string     = 0;
     auto virtual colors() const -> color_pair = 0;
+    auto virtual amount() const -> i32 { return 1; }
 
     auto virtual is_blocking() const -> bool = 0;
 
     auto virtual can_interact(player& player) const -> bool = 0;
     auto virtual interact(player& player) -> string         = 0;
-
-    auto virtual can_pickup(player& player) const -> bool = 0;
-    auto virtual pickup(player& player) -> pickup_result  = 0;
 };
 
-class feature : public object {
-public:
-    auto can_pickup(player& player) const -> bool override { return false; }
-    auto pickup(player& player) -> pickup_result override { return {}; }
+////////////////////////////////////////////////////////////
+
+enum class item_type {
+    Potion,
+    Weapon,
+    Armor,
+    Gold
 };
 
 class item : public object {
 public:
+    auto virtual can_pickup(player& player) const -> bool = 0;
+    auto virtual pickup(player& player) -> string         = 0;
+
     auto is_blocking() const -> bool override { return false; }
     auto can_interact(player& player) const -> bool override { return false; }
     auto interact(player& player) -> string override { return ""; }
+
+    auto virtual can_stack() const -> bool { return false; }
+    auto virtual type() const -> item_type = 0;
+    auto virtual name() const -> string    = 0;
 };
 
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 
-class door : public feature {
+class door : public object {
 public:
+    explicit door(bool open);
+
     auto symbol() const -> string override;
     auto colors() const -> color_pair override;
 
@@ -74,7 +79,13 @@ public:
     auto colors() const -> color_pair override;
 
     auto can_pickup(player& player) const -> bool override;
-    auto pickup(player& player) -> pickup_result override;
+    auto pickup(player& player) -> string override;
+
+    auto can_stack() const -> bool override;
+    auto type() const -> item_type override;
+    auto name() const -> string override;
+
+    auto amount() const -> i32 override;
 
 private:
     i32 _amount;
@@ -123,39 +134,48 @@ $   Gold or gems
 )   A shield */
 class wand : public item {
 public:
-    wand(quality quality);
+    explicit wand(quality quality);
 
     auto symbol() const -> string override;
     auto colors() const -> color_pair override;
 
     auto can_pickup(player& player) const -> bool override;
-    auto pickup(player& player) -> pickup_result override;
+    auto pickup(player& player) -> string override;
+
+    auto type() const -> item_type override;
+    auto name() const -> string override;
 };
 
 ////////////////////////////////////////////////////////////
 
 class rod : public item {
 public:
-    rod(quality quality);
+    explicit rod(quality quality);
 
     auto symbol() const -> string override;
     auto colors() const -> color_pair override;
 
     auto can_pickup(player& player) const -> bool override;
-    auto pickup(player& player) -> pickup_result override;
+    auto pickup(player& player) -> string override;
+
+    auto type() const -> item_type override;
+    auto name() const -> string override;
 };
 
 ////////////////////////////////////////////////////////////
 
 class staff : public item {
 public:
-    staff(quality quality);
+    explicit staff(quality quality);
 
     auto symbol() const -> string override;
     auto colors() const -> color_pair override;
 
     auto can_pickup(player& player) const -> bool override;
-    auto pickup(player& player) -> pickup_result override;
+    auto pickup(player& player) -> string override;
+
+    auto type() const -> item_type override;
+    auto name() const -> string override;
 };
 
 }

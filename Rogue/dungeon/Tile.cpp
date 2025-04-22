@@ -5,7 +5,7 @@
 
 #include "Tile.hpp"
 
-#include "../objects/Object.hpp" // IWYU pragma: keep
+#include "Object.hpp" // IWYU pragma: keep
 
 namespace Rogue {
 

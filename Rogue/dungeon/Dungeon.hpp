@@ -21,9 +21,9 @@ struct light_source {
 
 ////////////////////////////////////////////////////////////
 
-class level {
+class dungeon {
 public:
-    level();
+    dungeon();
 
     auto is_line_of_sight(point_i start, point_i end) -> bool;
     auto is_passable(point_i pos) const -> bool;

@@ -5,24 +5,35 @@
 
 #include "Renderer.hpp"
 
-#include "../level/Level.hpp"
+#include "../dungeon/Dungeon.hpp"
+#include "../dungeon/Object.hpp"
 #include "../monsters/Player.hpp"
-#include "../objects/Object.hpp"
 
 namespace Rogue {
+
+auto static term_to_grid(point_i pos, point_i center) -> point_i
+{
+    return pos - point_i {TERM_MAP_SIZE.Width / 2, TERM_MAP_SIZE.Height / 2} + center;
+}
+
+auto static grid_to_term(point_i pos, point_i center) -> point_i
+{
+    return pos + point_i {TERM_MAP_SIZE.Width / 2, TERM_MAP_SIZE.Height / 2} - center;
+}
 
 void renderer::draw(context const& ctx)
 {
     ctx.Terminal->clear();
 
-    draw_map(ctx);
-
     draw_layout(ctx);
 
-    draw_log(ctx);
+    draw_map(ctx);
+
     draw_player(ctx);
+
+    draw_log(ctx);
     draw_mfd(ctx);
-    draw_mode(ctx);
+    draw_detail(ctx);
 }
 
 constexpr i32        STATS_HEIGHT {10};
@@ -34,22 +45,22 @@ void renderer::draw_layout(context const& ctx)
 
     term.color_set(colors::White, colors::Black);
     // Stats
-    term.rectangle({TermMapSize.Width, 0, TermSize.Width - TermMapSize.Width - 1, STATS_HEIGHT});
+    term.rectangle({TERM_MAP_SIZE.Width, 0, TERM_SIZE.Width - TERM_MAP_SIZE.Width - 1, STATS_HEIGHT});
     // MFD
-    term.rectangle({TermMapSize.Width, STATS_HEIGHT + 1, TermSize.Width - TermMapSize.Width - 1, TermMapSize.Height - STATS_HEIGHT - 2});
-    // Look
-    term.rectangle({TermMapSize.Width, TermMapSize.Height, TermSize.Width - TermMapSize.Width - 1, TermSize.Height - TermMapSize.Height - 1});
+    term.rectangle({TERM_MAP_SIZE.Width, STATS_HEIGHT + 1, TERM_SIZE.Width - TERM_MAP_SIZE.Width - 1, TERM_MAP_SIZE.Height - STATS_HEIGHT - 2});
+    // Detail
+    term.rectangle({TERM_MAP_SIZE.Width, TERM_MAP_SIZE.Height, TERM_SIZE.Width - TERM_MAP_SIZE.Width - 1, TERM_SIZE.Height - TERM_MAP_SIZE.Height - 1});
     // Log
-    term.rectangle({0, TermMapSize.Height, TermMapSize.Width - 1, TermSize.Height - TermMapSize.Height - 1});
+    term.rectangle({0, TERM_MAP_SIZE.Height, TERM_MAP_SIZE.Width - 1, TERM_SIZE.Height - TERM_MAP_SIZE.Height - 1});
 }
 
 void renderer::draw_map(context const& ctx)
 {
-    auto& tiles {ctx.Level->tiles()};
+    auto& tiles {ctx.Dungeon->tiles()};
     auto& term {*ctx.Terminal};
 
-    for (i32 y {0}; y < TermMapSize.Height; ++y) {
-        for (i32 x {0}; x < TermMapSize.Width; ++x) {
+    for (i32 y {0}; y < TERM_MAP_SIZE.Height; ++y) {
+        for (i32 x {0}; x < TERM_MAP_SIZE.Width; ++x) {
             point_i const termPos {point_i {x, y}};
             point_i const gridPos {term_to_grid(termPos, ctx.Center)};
             if (!tiles.contains(gridPos)) { continue; }
@@ -75,7 +86,7 @@ void renderer::draw_objects(context const& ctx, color bg, tile const& tile, poin
     auto const& objects {tile.Objects};
     for (auto const& object : objects) {
         point_i const termPos {grid_to_term(gridPos, ctx.Center)};
-        if (TermMapSize.contains(termPos)) {
+        if (TERM_MAP_SIZE.contains(termPos)) {
             auto const colors {tile.InSight ? object->colors() : SEEN_COLORS};
             term.color_set(colors.first, colors.second == colors::Transparent ? bg : colors.second);
             term.add_str(termPos, object->symbol());
@@ -87,18 +98,19 @@ void renderer::draw_log(context const& ctx)
 {
     auto& term {*ctx.Terminal};
 
-    isize const maxMessages {TermSize.Height - TermMapSize.Height - 2};
+    isize const maxMessages {TERM_SIZE.Height - TERM_MAP_SIZE.Height - 2};
     auto const  log {ctx.Log->size() >= maxMessages
                          ? std::span<log_message const>(*ctx.Log).subspan(ctx.Log->size() - maxMessages, maxMessages)
                          : std::span<log_message const>(*ctx.Log)};
 
+    i32 y {TERM_MAP_SIZE.Height + 1};
+
     term.color_set(colors::White, colors::Black);
-
-    i32 y {TermMapSize.Height + 1};
-
     for (auto const& message : log) {
         term.add_str({1, y++}, message.first); // TODO: check message length
-        if (message.second > 1) {
+        if (message.second > 99) {
+            term.add_str(std::format(" (yes, again.)", message.second));
+        } else if (message.second > 1) {
             term.add_str(std::format(" ({}x)", message.second));
         }
     }
@@ -113,17 +125,16 @@ void renderer::draw_player(context const& ctx)
     // symbol
     auto const& player {*ctx.Player};
     auto const  termPos {grid_to_term(player.Position, ctx.Center)};
-    if (TermMapSize.contains(termPos)) {
+    if (TERM_MAP_SIZE.contains(termPos)) {
         term.color_set(player.color(), colors::Black);
         term.add_str(termPos, player.symbol());
     }
 
     // stats
-    auto const& stats {ctx.PlayerProfile};
-    i32 const   x {TermMapSize.Width + 1};
+    auto const* stats {ctx.PlayerProfile};
+    i32 const   x {TERM_MAP_SIZE.Width + 1};
     term.color_set(colors::White, colors::Black);
-    term.add_str({x, y++}, std::format("{} [Lvl {}]", stats.Name, player.current_level()));
-
+    term.add_str({x, y++}, std::format("{} [Lvl {}]", stats->Name, player.current_level()));
     term.add_str({x, y++}, std::format("{}", player.Position));
 
     y++;
@@ -132,20 +143,20 @@ void renderer::draw_player(context const& ctx)
         term.add_str(std::format("{}/{}", current, max));
         i32 const    tickCount {static_cast<i32>(std::ceil(static_cast<f32>(current) / max * 10.f))};
         string const ticks {string(tickCount, '-') + string(10 - tickCount, ' ')};
-        term.add_str({static_cast<i32>(TermSize.Width - ticks.size() - 3), term.get_xy().Y}, std::format("[{}]", ticks));
+        term.add_str({static_cast<i32>(TERM_SIZE.Width - ticks.size() - 3), term.get_xy().Y}, std::format("[{}]", ticks));
     }};
 
     // HP
     term.color_set(colors::Silver, colors::Black);
     term.add_str({x, y++}, "HP: ");
     term.color_set(colors::Red, colors::Black);
-    drawBar(stats.HP, player.hp_max());
+    drawBar(stats->HP, player.hp_max());
 
     // MP
     term.color_set(colors::Silver, colors::Black);
     term.add_str({x, y++}, "MP: ");
     term.color_set(colors::RoyalBlue, colors::Black);
-    drawBar(stats.MP, player.mp_max());
+    drawBar(stats->MP, player.mp_max());
 
     y++;
 
@@ -153,19 +164,34 @@ void renderer::draw_player(context const& ctx)
     term.color_set(colors::Silver, colors::Black);
     term.add_str({x, y++}, "XP: ");
     term.color_set(colors::DarkGray, colors::Black);
-    i32 const level {player.current_level()};
-    i32 const xpLevel {profile::xp_required_for(level)};
-    drawBar(stats.XP - xpLevel, profile::xp_required_for(level + 1) - xpLevel);
+    i32 const dungeon {player.current_level()};
+    i32 const xpLevel {profile::xp_required_for(dungeon)};
+    drawBar(stats->XP - xpLevel, profile::xp_required_for(dungeon + 1) - xpLevel);
 
     y += 2;
+
+    switch (ctx.Mode) {
+    case mode::Move: {
+        term.color_set(colors::White, colors::Blue);
+        term.add_str({x, y++}, "Move");
+    } break;
+    case mode::Look: {
+        term.color_set(colors::Silver, colors::Blue);
+        term.add_str({x, y++}, "Look");
+    } break;
+    case mode::Interact: {
+        term.color_set(colors::GhostWhite, colors::Blue);
+        term.add_str({x, y++}, "Interact");
+    } break;
+    }
 }
 
 void renderer::draw_mfd(context const& ctx)
 {
     auto&       term {*ctx.Terminal};
-    auto const& stats {ctx.PlayerProfile};
+    auto const* stats {ctx.PlayerProfile};
 
-    i32 const x {TermMapSize.Width + 1};
+    i32 const x {TERM_MAP_SIZE.Width + 1};
     i32       y {STATS_HEIGHT + 1};
 
     switch (ctx.MfdMode) {
@@ -175,11 +201,11 @@ void renderer::draw_mfd(context const& ctx)
         y++;
 
         term.color_set(colors::Silver, colors::Black);
-        term.add_str({x, y++}, std::format("Strength:     {:02}", stats.Attributes.Strength));
-        term.add_str({x, y++}, std::format("Agility:      {:02}", stats.Attributes.Agility));
-        term.add_str({x, y++}, std::format("Dexterity:    {:02}", stats.Attributes.Dexterity));
-        term.add_str({x, y++}, std::format("Intelligence: {:02}", stats.Attributes.Intelligence));
-        term.add_str({x, y++}, std::format("Vitality:     {:02}", stats.Attributes.Vitality));
+        term.add_str({x, y++}, std::format("Strength:     {:02}", stats->Attributes.Strength));
+        term.add_str({x, y++}, std::format("Agility:      {:02}", stats->Attributes.Agility));
+        term.add_str({x, y++}, std::format("Dexterity:    {:02}", stats->Attributes.Dexterity));
+        term.add_str({x, y++}, std::format("Intelligence: {:02}", stats->Attributes.Intelligence));
+        term.add_str({x, y++}, std::format("Vitality:     {:02}", stats->Attributes.Vitality));
     } break;
     case mfd_mode::Inventory: {
         term.color_set(colors::White, colors::Black);
@@ -190,7 +216,7 @@ void renderer::draw_mfd(context const& ctx)
         term.color_set(colors::White, colors::Black);
         term.add_str({x, y++}, "Gold:   ");
         term.color_set(colors::Gold, colors::Black);
-        term.add_str(std::format("{:07}", stats.Gold));
+        term.add_str(std::format("{:07}", ctx.Player->count_gold()));
 
     } break;
     case mfd_mode::Magic: {
@@ -204,52 +230,49 @@ void renderer::draw_mfd(context const& ctx)
             term.add_str(std::format("{:02}", value));
         }};
 
-        drawMagicStat("Earth: ", COLOR_EARTH, stats.Magic.Earth);
-        drawMagicStat("Wind:  ", COLOR_WIND, stats.Magic.Wind);
-        drawMagicStat("Fire:  ", COLOR_FIRE, stats.Magic.Fire);
-        drawMagicStat("Water: ", COLOR_WATER, stats.Magic.Water);
-        drawMagicStat("Life:  ", COLOR_LIFE, stats.Magic.Life);
-        drawMagicStat("Light: ", COLOR_LIGHT, stats.Magic.Light);
+        drawMagicStat("Earth:  ", COLOR_EARTH, stats->Magic.Earth);
+        drawMagicStat("Wind:   ", COLOR_WIND, stats->Magic.Wind);
+        drawMagicStat("Fire:   ", COLOR_FIRE, stats->Magic.Fire);
+        drawMagicStat("Water:  ", COLOR_WATER, stats->Magic.Water);
+        drawMagicStat("Life:   ", COLOR_LIFE, stats->Magic.Life);
+        drawMagicStat("Energy: ", COLOR_ENERGY, stats->Magic.Energy);
     } break;
+    case mfd_mode::Monsters:
+        term.color_set(colors::White, colors::Black);
+        term.add_str({x, y++}, "Monsters (TAB)");
+        y++;
+        break;
     }
 }
 
-void renderer::draw_mode(context const& ctx)
+void renderer::draw_detail(context const& ctx)
 {
     auto& term {*ctx.Terminal};
 
-    i32 const x {TermMapSize.Width + 2};
-    i32       y {TermMapSize.Height + 1};
+    i32 x {TERM_MAP_SIZE.Width + 1};
+    i32 y {TERM_MAP_SIZE.Height + 1};
 
-    switch (ctx.Mode) {
-
-    case mode::Move:
-        term.color_set(colors::Silver, colors::Green);
-        term.add_str({x, y}, "Move");
-        break;
-    case mode::Look:
-        term.color_set(colors::Silver, colors::LimeGreen);
-        term.add_str({x, y}, "Look");
-        break;
-    case mode::Interact:
-        term.color_set(colors::Silver, colors::OliveDrab);
-        term.add_str({x, y}, "Interact");
-        break;
-    }
+    term.color_set(colors::White, colors::Black);
+    x = TERM_MAP_SIZE.Width + 24;
+    y = TERM_MAP_SIZE.Height + 1;
+    term.add_str({x, y++}, "7 8 9");
+    term.add_str({x, y++}, " \\|/ ");
+    term.add_str({x, y++}, "4-5-6");
+    term.add_str({x, y++}, " /|\\ ");
+    term.add_str({x, y++}, "1 2 3");
 }
 
 auto renderer::lighting(context const& ctx, tile& tile, point_i gridPos) const -> color_pair
 {
     auto& term {*ctx.Terminal};
 
-    auto&       level {*ctx.Level};
+    auto&       dungeon {*ctx.Dungeon};
     auto const& player {*ctx.Player};
 
-    if (!level.is_line_of_sight(player.Position, gridPos)) {
+    if (!dungeon.is_line_of_sight(player.Position, gridPos)) {
         tile.InSight = false;
-        return tile.Seen
-            ? SEEN_COLORS
-            : std::pair {colors::Black, colors::Black};
+        return tile.Seen ? SEEN_COLORS
+                         : std::pair {colors::Black, colors::Black};
     }
 
     f32 lightFgR {0.f}, lightFgG {0.f}, lightFgB {0.f};
@@ -268,13 +291,13 @@ auto renderer::lighting(context const& ctx, tile& tile, point_i gridPos) const -
         totalLightFactor += factor;
     }};
 
-    auto const& lights {level.lights()};
+    auto const& lights {dungeon.lights()};
     for (auto const& light : lights) {
         f64 const distance {euclidean_distance(light->Position, gridPos)};
         f64 const range {light->Range};
         if (distance > range) { continue; }
 
-        if (!level.is_line_of_sight(light->Position, gridPos)) { continue; }
+        if (!dungeon.is_line_of_sight(light->Position, gridPos)) { continue; }
 
         f32 const factor {light->Falloff && distance != 0
                               ? static_cast<f32>(std::clamp((range * range) / (distance * distance) * ((range - distance) / range), 0., 1.))
@@ -283,12 +306,12 @@ auto renderer::lighting(context const& ctx, tile& tile, point_i gridPos) const -
     }
 
     f64 const distance {euclidean_distance(player.Position, gridPos)};
-    f64 const range {ctx.PlayerProfile.VisualRange};
+    f64 const range {ctx.PlayerProfile->VisualRange};
     if (distance <= range) {
         f32 const factor {distance != 0
                               ? static_cast<f32>(std::clamp((range * range) / (distance * distance) * ((range - distance) / range), 0., 1.))
                               : 1.0f};
-        accumulateLight(player.color(), factor);
+        accumulateLight(player.light_color(), factor);
     }
 
     if (totalLightFactor > 0.f) {

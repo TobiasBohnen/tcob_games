@@ -5,16 +5,41 @@
 
 #include "MasterControl.hpp"
 
-#include "level/Tile.hpp"
-#include "objects/Object.hpp"
+#include "dungeon/Object.hpp"
+#include "dungeon/Tile.hpp"
 
 namespace Rogue {
+
+auto static get_target(action action, point_i pos) -> std::optional<point_i>
+{
+    auto static target {[](point_i pos, direction dir) -> point_i {
+        switch (dir) {
+        case direction::Left: return pos + point_i {-1, 0};
+        case direction::Right: return pos + point_i {1, 0};
+        case direction::Up: return pos + point_i {0, -1};
+        case direction::Down: return pos + point_i {0, 1};
+        default: return pos;
+        }
+    }};
+
+    switch (action) {
+    case action::MoveLeft: return target(pos, direction::Left); break;
+    case action::MoveRight: return target(pos, direction::Right); break;
+    case action::MoveUp: return target(pos, direction::Up); break;
+    case action::MoveDown: return target(pos, direction::Down); break;
+    case action::MoveLeftUp: return target(target(pos, direction::Left), direction::Up); break;
+    case action::MoveRightUp: return target(target(pos, direction::Right), direction::Up); break;
+    case action::MoveLeftDown: return target(target(pos, direction::Left), direction::Down); break;
+    case action::MoveRightDown: return target(target(pos, direction::Right), direction::Down); break;
+    default: return std::nullopt;
+    }
+}
 
 master_control::master_control()
 {
     // TODO
-    _levels.emplace_back();
-    auto const& tiles {_levels[0].tiles()};
+    _dungeons.emplace_back();
+    auto const& tiles {_dungeons[0].tiles()};
     for (i32 i {0}; i < tiles.count(); ++i) {
         if (tiles[i].is_passable()) {
             _player.Position = {i % tiles.width(), i / tiles.width()};
@@ -22,15 +47,24 @@ master_control::master_control()
         }
     }
 
-    auto doorObj {std::make_shared<door>()};
+    auto doorObj {std::make_shared<door>(true)};
     doorObj->Position = {12, 9};
     add_object(doorObj);
 
-    auto goldObj {std::make_shared<gold>(125)};
-    goldObj->Position = {13, 9};
-    add_object(goldObj);
+    auto goldObj0 {std::make_shared<gold>(125)};
+    goldObj0->Position = {13, 9};
+    add_object(goldObj0);
+    auto goldObj1 {std::make_shared<gold>(256)};
+    goldObj1->Position = {14, 11};
+    add_object(goldObj1);
 
     set_view_center(_player.Position);
+
+    _player.EndTurn.connect([this]() { end_turn(); });
+    _player.FinishedPath.connect([this]() {
+        _mode = mode::Move;
+        mark_dirty();
+    });
 }
 
 void master_control::draw(ui::terminal& term)
@@ -39,9 +73,9 @@ void master_control::draw(ui::terminal& term)
     _redraw = false;
 
     _renderer.draw({.Terminal      = &term,
-                    .Level         = &current_level(),
+                    .Dungeon       = &current_dungeon(),
                     .Player        = &_player,
-                    .PlayerProfile = _player.current_profile(),
+                    .PlayerProfile = &_player.current_profile(),
                     .Log           = &_log,
                     .Mode          = _mode,
                     .MfdMode       = _mfdMode,
@@ -50,23 +84,23 @@ void master_control::draw(ui::terminal& term)
 
 void master_control::update(milliseconds deltaTime, action_queue& queue)
 {
-    if (_animation) {
-        handle_animation(deltaTime);
-    } else {
+    if (!_player.busy()) {
         handle_action_queue(queue);
     }
 
     _player.update(deltaTime);
 }
 
-auto master_control::current_level() -> level&
+auto master_control::current_dungeon() -> dungeon&
 {
-    return _levels[_currentLevel];
+    return _dungeons[_currentDungeon];
 }
 
 void master_control::end_turn()
 {
-    if (_mode == mode::Move) { set_view_center(_player.Position); }
+    if (_mode == mode::Move) {
+        set_view_center(_player.Position);
+    }
     mark_dirty();
     ++_turn;
 }
@@ -96,15 +130,6 @@ void master_control::log(string const& message)
     mark_dirty();
 }
 
-void master_control::handle_animation(milliseconds deltaTime)
-{
-    _animationTimer -= deltaTime;
-    if (_animationTimer <= 0s) {
-        if (_animation()) { _animation = {}; }
-        _animationTimer = AnimationDelay;
-    }
-}
-
 void master_control::handle_action_queue(action_queue& queue)
 {
     while (!queue.empty()) {
@@ -125,7 +150,7 @@ void master_control::handle_action_queue(action_queue& queue)
             do_execute();
             break;
         case action::MFDModeChange:
-            _mfdMode = static_cast<mfd_mode>((static_cast<i32>(_mfdMode) + 1) % 3);
+            _mfdMode = static_cast<mfd_mode>((static_cast<i32>(_mfdMode) + 1) % MFD_COUNT);
             mark_dirty();
             break;
         case action::PickUp:
@@ -135,7 +160,7 @@ void master_control::handle_action_queue(action_queue& queue)
             if (_mode == mode::Look) {
                 do_look(action);
             } else if (_mode == mode::Interact) {
-                do_interact(action);
+                do_interact(get_target(action, _player.Position), true);
             } else {
                 do_move(action);
             }
@@ -147,75 +172,49 @@ void master_control::handle_action_queue(action_queue& queue)
 void master_control::do_execute()
 {
     if (_mode == mode::Look) {
-        if (auto p {current_level().find_path(_player.Position, _viewCenter)}; !p.empty()) {
-            _animation = ([p, this]() mutable -> bool {
-                if (_player.try_move(p.front(), current_level())) {
-                    end_turn();
-                } else {
-                    return true;
-                }
-                p.erase(p.begin());
-                if (p.empty()) {
-                    _mode = mode::Move;
-                    return true;
-                }
-                return false;
-            });
-
-            _animationTimer = AnimationDelay;
-        }
+        _player.start_path(current_dungeon().find_path(_player.Position, _viewCenter));
     }
 }
 
 void master_control::do_pickup()
 {
     std::vector<std::shared_ptr<object>> toRemove;
-    auto&                                tile {current_level().tiles()[_player.Position]};
-    for (auto& object : tile.Objects) {
-        if (object->can_pickup(_player)) {
-            auto const result {object->pickup(_player)};
-            if (result.Item && _player.can_add_item(*result.Item)) {
-                _player.add_item(result.Item);
-            }
-            if (!result.Message.empty()) {
-                log(result.Message);
-            }
 
+    auto& tile {current_dungeon().tiles()[_player.Position]};
+    for (auto& object : tile.Objects) {
+        auto objItem {std::dynamic_pointer_cast<item>(object)};
+        if (objItem && _player.try_pickup(objItem)) {
             toRemove.push_back(object);
         }
     }
-    if (!toRemove.empty()) {
-        end_turn();
+    if (!toRemove.empty()) { // TODO: choice
         for (auto& object : toRemove) {
             remove_object(object);
         }
+    } else {
+        log("nothing here");
     }
 }
 
-void master_control::do_move(action action)
+auto master_control::do_move(action action) -> bool
 {
     std::optional<point_i> moveTarget {get_target(action, _player.Position)};
-    if (!moveTarget) { return; }
+    if (!moveTarget) { return false; }
 
-    auto& level {current_level()};
+    auto& level {current_dungeon()};
+
     if (!level.is_passable(*moveTarget)) { //  check interact
-        auto& tiles {level.tiles()};
-        if (tiles.contains(*moveTarget)) {
-            for (auto& object : tiles[*moveTarget].Objects) {
-                if (!object->can_interact(_player)) { continue; }
-                log(object->interact(_player));
-                end_turn();
-                break;
-            }
+        if (do_interact(moveTarget, false)) {
+            return false;
         }
-        return;
     }
 
-    if (_player.try_move(*moveTarget, current_level())) {
-        end_turn();
-    } else {
+    if (!_player.try_move(*moveTarget)) {
         log("bonk");
+        return false;
     }
+
+    return true;
 }
 
 void master_control::do_look(action action)
@@ -223,71 +222,47 @@ void master_control::do_look(action action)
     if (auto pov {get_target(action, _viewCenter)}) { set_view_center(*pov); }
 }
 
-void master_control::do_interact(action action)
+auto master_control::do_interact(std::optional<point_i> interactTarget, bool failMessage) -> bool
 {
-    std::optional<point_i> interactTarget {get_target(action, _player.Position)};
-    string                 message {};
+    string message {};
 
-    if (interactTarget) {
-        auto& tiles {current_level().tiles()};
+    if (!interactTarget) { return false; }
+    auto& tiles {current_dungeon().tiles()};
 
-        if (tiles.contains(*interactTarget)) {
-            for (auto& object : tiles[*interactTarget].Objects) {
-                if (!object->can_interact(_player)) { continue; }
-                message = object->interact(_player);
-                break;
-            }
+    if (tiles.contains(*interactTarget)) {
+        for (auto& object : tiles[*interactTarget].Objects) {
+            if (!object->can_interact(_player)) { continue; }
+            message = object->interact(_player);
+            break;
         }
     }
 
     _mode = mode::Move;
+
     if (message.empty()) {
-        message = "nothing here";
-    } else {
-        end_turn();
+        if (failMessage) {
+            log("nothing here");
+        }
+        return false;
     }
 
     log(message);
+    return true;
 }
 
 void master_control::add_object(std::shared_ptr<object> const& object)
 {
-    auto& level {current_level()};
-    level.objects().push_back(object);
-    level.tiles()[object->Position].Objects.push_back(object);
+    auto& dungeon {current_dungeon()};
+    dungeon.objects().push_back(object);
+    dungeon.tiles()[object->Position].Objects.push_back(object);
     mark_dirty();
 }
 
 void master_control::remove_object(std::shared_ptr<object> const& object)
 {
-    auto& level {current_level()};
-    helper::erase_first(level.objects(), [object](auto const& val) { return val == object; });
-    helper::erase_first(level.tiles()[object->Position].Objects, [object](auto const& val) { return val == object; });
-}
-
-auto master_control::get_target(action action, point_i pos) const -> std::optional<point_i>
-{
-    auto static target {[](point_i pos, direction dir) -> point_i {
-        switch (dir) {
-        case direction::Left: return pos + point_i {-1, 0};
-        case direction::Right: return pos + point_i {1, 0};
-        case direction::Up: return pos + point_i {0, -1};
-        case direction::Down: return pos + point_i {0, 1};
-        default: return pos;
-        }
-    }};
-
-    switch (action) {
-    case action::MoveLeft: return target(pos, direction::Left); break;
-    case action::MoveRight: return target(pos, direction::Right); break;
-    case action::MoveUp: return target(pos, direction::Up); break;
-    case action::MoveDown: return target(pos, direction::Down); break;
-    case action::MoveLeftUp: return target(target(pos, direction::Left), direction::Up); break;
-    case action::MoveRightUp: return target(target(pos, direction::Right), direction::Up); break;
-    case action::MoveLeftDown: return target(target(pos, direction::Left), direction::Down); break;
-    case action::MoveRightDown: return target(target(pos, direction::Right), direction::Down); break;
-    default: return std::nullopt;
-    }
+    auto& dungeon {current_dungeon()};
+    helper::erase_first(dungeon.objects(), [object](auto const& val) { return val == object; });
+    helper::erase_first(dungeon.tiles()[object->Position].Objects, [object](auto const& val) { return val == object; });
 }
 
 }
