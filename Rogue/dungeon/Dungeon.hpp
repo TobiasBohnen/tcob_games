@@ -43,6 +43,7 @@ public:
 
 private:
     grid<tile> _tiles;
+    u64        _seed;
 
     std::vector<std::shared_ptr<object>>  _objects;
     std::vector<std::shared_ptr<monster>> _monsters;

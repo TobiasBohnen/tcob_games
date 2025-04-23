@@ -291,6 +291,13 @@ auto renderer::lighting(context const& ctx, tile& tile, point_i gridPos) const -
         totalLightFactor += factor;
     }};
 
+    auto const falloff {[](f64 range, f64 distance) -> f32 {
+        if (distance == 0) { return 1.f; }
+        if (range == 0) { return 0.f; }
+
+        return static_cast<f32>(std::clamp((range * range) / (distance * distance) * ((range - distance) / range), 0., 1.));
+    }};
+
     auto const& lights {dungeon.lights()};
     for (auto const& light : lights) {
         f64 const distance {euclidean_distance(light->Position, gridPos)};
@@ -299,18 +306,14 @@ auto renderer::lighting(context const& ctx, tile& tile, point_i gridPos) const -
 
         if (!dungeon.is_line_of_sight(light->Position, gridPos)) { continue; }
 
-        f32 const factor {light->Falloff && distance != 0
-                              ? static_cast<f32>(std::clamp((range * range) / (distance * distance) * ((range - distance) / range), 0., 1.))
-                              : 1.0f};
+        f32 const factor {light->Falloff ? falloff(range, distance) : 1.0f};
         accumulateLight(light->Color, factor * light->Intensity);
     }
 
     f64 const distance {euclidean_distance(player.Position, gridPos)};
     f64 const range {ctx.PlayerProfile->VisualRange};
     if (distance <= range) {
-        f32 const factor {distance != 0
-                              ? static_cast<f32>(std::clamp((range * range) / (distance * distance) * ((range - distance) / range), 0., 1.))
-                              : 1.0f};
+        f32 const factor {falloff(range, distance)};
         accumulateLight(player.light_color(), factor);
     }
 

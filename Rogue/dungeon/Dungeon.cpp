@@ -14,18 +14,19 @@ namespace Rogue {
 ////////////////////////////////////////////////////////////
 
 dungeon::dungeon()
+    : _seed {12345}
 {
-    u64 seed {static_cast<u64>(clock::now().time_since_epoch().count())};
-    seed   = 12345;
+    // u64 seed {static_cast<u64>(clock::now().time_since_epoch().count())};
+
     // _tiles = tunneling {20, 5, 12}.generate(seed, {120, 120});
-    // _tiles = drunkards_walk {.4f, 25000, 0.15f, 0.7f}.generate(seed, {120, 120});
-    _tiles = bsp_tree {6, 15}.generate(seed, {120, 120});
+    _tiles = drunkards_walk {.4f, 25000, 0.15f, 0.7f}.generate(_seed, {120, 120});
+    //_tiles = bsp_tree {6, 15}.generate(seed, {120, 120});
     // _tiles = cellular_automata {30000, 4, 0.5f, 16, 500, true, 1}.generate(seed, {120, 120});
     // _tiles = city_walls {8, 16}.generate(seed, {120, 120});
     // _tiles = maze_with_rooms {6, 13, 100, 0.04f, 0.1f, false}.generate(seed, {121, 121});
     // _tiles = messy_bsp_tree {6, 15, true, 1, 3}.generate(seed, {120, 120});
 
-    gfx::l_system lsystem {seed};
+    gfx::l_system lsystem {_seed};
     lsystem.add_rule('X', {"[RPRPRPR]Y", 1.0f}); // Create room and path
 
     // Rules for expanding the path and changing directions
