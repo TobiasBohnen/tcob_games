@@ -30,20 +30,20 @@ field::field(assets::group& resGrp, i32 padding, size_i windowSize)
     _physicsBounds = convert_to_physics(_bounds);
 
     physics::segment_shape::settings groundBoxSettings;
-    groundBoxSettings.Point0 = _physicsBounds.top_left();
-    groundBoxSettings.Point1 = _physicsBounds.top_right();
+    groundBoxSettings.Point1 = _physicsBounds.top_left();
+    groundBoxSettings.Point2 = _physicsBounds.top_right();
     groundBody->create_shape<physics::segment_shape>(groundBoxSettings);
 
-    groundBoxSettings.Point0 = _physicsBounds.top_left();
+    groundBoxSettings.Point1 = _physicsBounds.top_left();
+    groundBoxSettings.Point2 = _physicsBounds.bottom_left();
+    groundBody->create_shape<physics::segment_shape>(groundBoxSettings);
+
     groundBoxSettings.Point1 = _physicsBounds.bottom_left();
+    groundBoxSettings.Point2 = _physicsBounds.bottom_right();
     groundBody->create_shape<physics::segment_shape>(groundBoxSettings);
 
-    groundBoxSettings.Point0 = _physicsBounds.bottom_left();
     groundBoxSettings.Point1 = _physicsBounds.bottom_right();
-    groundBody->create_shape<physics::segment_shape>(groundBoxSettings);
-
-    groundBoxSettings.Point0 = _physicsBounds.bottom_right();
-    groundBoxSettings.Point1 = _physicsBounds.top_right();
+    groundBoxSettings.Point2 = _physicsBounds.top_right();
     groundBody->create_shape<physics::segment_shape>(groundBoxSettings);
 
     auto leftEdgeSprite(create_sprite());

@@ -60,9 +60,9 @@ void spacecraft::setup()
     logger::Info("{}", _def.MaxTurnrate.Value);
 
     physics::rect_shape::settings settings;
-    settings.Extents           = {point_f::Zero, physRect.Size};
-    settings.Density           = 10.0f;
-    settings.Material.Friction = 0;
+    settings.Extents                 = {point_f::Zero, physRect.Size};
+    settings.Shape.Density           = 10.0f;
+    settings.Shape.Material.Friction = 0;
 
     create_shape<physics::rect_shape>(settings);
 }
