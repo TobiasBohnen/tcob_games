@@ -5,7 +5,7 @@
 
 #include "Object.hpp"
 
-#include "../monsters/Player.hpp"
+#include "../actors/Actor.hpp"
 
 namespace Rogue {
 
@@ -31,15 +31,63 @@ auto door::is_blocking() const -> bool
     return !_open;
 }
 
-auto door::can_interact(player& player) const -> bool
+auto door::can_interact(actor& actor) const -> bool
 {
     return true;
 }
 
-auto door::interact(player& player) -> string
+auto door::interact(actor& actor) -> string
 {
     _open = !_open;
     return _open ? "you opened the door" : "you closed the door";
+}
+
+auto door::on_enter(actor& actor) -> string
+{
+    return !_open ? interact(actor) : "";
+}
+
+////////////////////////////////////////////////////////////
+
+trap::trap(bool visible, trap_type type)
+    : _visible {visible}
+    , _type {type}
+{
+}
+
+auto trap::symbol() const -> string
+{
+    return _visible ? "^" : "";
+}
+
+auto trap::colors() const -> color_pair
+{
+    return {colors::Sienna, colors::Transparent};
+}
+
+auto trap::can_interact(actor& actor) const -> bool
+{
+    return false;
+}
+
+auto trap::interact(actor& actor) -> string
+{
+    if (_visible && _armed) {
+        _armed = false;
+        return "trap disarmed";
+    }
+
+    return "";
+}
+
+auto trap::on_enter(actor& actor) -> string
+{
+    if (_armed) {
+        _visible = true;
+        return "stepped on trap";
+    }
+
+    return "";
 }
 
 ////////////////////////////////////////////////////////////
@@ -59,12 +107,12 @@ auto gold::colors() const -> color_pair
     return {colors::Gold, colors::Transparent};
 }
 
-auto gold::can_pickup(player& player) const -> bool
+auto gold::can_pickup(actor& actor) const -> bool
 {
     return true;
 }
 
-auto gold::pickup(player& player) -> string
+auto gold::pickup(actor& actor) -> string
 {
     return std::format("you picked up {} gold coins", _amount);
 }
@@ -105,12 +153,12 @@ auto wand::colors() const -> color_pair
     return {colors::Blue, colors::Transparent}; // TODO
 }
 
-auto wand::can_pickup(player& player) const -> bool
+auto wand::can_pickup(actor& actor) const -> bool
 {
     return true; // TODO
 }
 
-auto wand::pickup(player& player) -> string
+auto wand::pickup(actor& actor) -> string
 {
     return std::format("you picked up a wand");
 }
@@ -141,12 +189,12 @@ auto rod::colors() const -> color_pair
     return {colors::Blue, colors::Transparent}; // TODO
 }
 
-auto rod::can_pickup(player& player) const -> bool
+auto rod::can_pickup(actor& actor) const -> bool
 {
     return true; // TODO
 }
 
-auto rod::pickup(player& player) -> string
+auto rod::pickup(actor& actor) -> string
 {
     return std::format("you picked up a rod");
 }
@@ -177,12 +225,12 @@ auto staff::colors() const -> color_pair
     return {colors::Blue, colors::Transparent}; // TODO
 }
 
-auto staff::can_pickup(player& player) const -> bool
+auto staff::can_pickup(actor& actor) const -> bool
 {
     return true; // TODO
 }
 
-auto staff::pickup(player& player) -> string
+auto staff::pickup(actor& actor) -> string
 {
     return std::format("you picked up a staff");
 }
@@ -198,5 +246,4 @@ auto staff::name() const -> string
 }
 
 ////////////////////////////////////////////////////////////
-
 }

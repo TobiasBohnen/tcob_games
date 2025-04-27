@@ -6,8 +6,8 @@
 #pragma once
 
 #include "Common.hpp"
+#include "actors/Player.hpp"
 #include "dungeon/Dungeon.hpp"
-#include "monsters/Player.hpp"
 #include "ui/Renderer.hpp"
 
 namespace Rogue {
@@ -38,9 +38,6 @@ private:
     auto do_move(action action) -> bool;
     void do_look(action action);
     auto do_interact(std::optional<point_i> interactTarget, bool failMessage) -> bool;
-
-    void add_object(std::shared_ptr<object> const& object);
-    void remove_object(std::shared_ptr<object> const& object);
 
     std::vector<dungeon> _dungeons {};
     usize                _currentDungeon {0};

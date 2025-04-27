@@ -1,0 +1,87 @@
+InlayHints:
+    Enabled: No
+    ParameterNames: Yes
+    DeducedTypes: No
+Diagnostics:
+    UnusedIncludes: Strict
+    MissingIncludes: None
+    Includes:
+        IgnoreHeader: 
+            - tcob_config.hpp
+            - __msvc_chrono.hpp
+            - __msvc_string_view.hpp
+            - Concepts.hpp
+            - concepts
+            - .inl
+            - Windows.h
+            - libloaderapi.h
+            - SDL_gamecontroller.h
+            - SDL_events.h
+            - SDL_stdinc.h
+            - SDL_main.h
+            - SDL_locale.h
+            - SDL_system.h
+            - SDL_version.h
+            - SDL_keyboard.h
+            - SDL_keycode.h
+            - SDL_mouse.h     
+            - SDL_clipboard.h
+            - SDL_video.h
+            - SDL_surface.h
+            - winuser.h
+            - winnt.h
+            - minwindef.h
+            - synchapi.h
+            - errhandlingapi.h
+            - handleapi.h
+            - winerror.h
+            - consoleapi2.h
+            - winnls.h
+            - yvals_core.h
+            - freetype/config/ftheader.h
+            - freetype/fttypes.h
+            - freetype/ftimage.h
+    ClangTidy:
+        Add:
+            - "cppcoreguidelines-*"
+            - "performance-*"
+            - "clang-analyzer-*"
+            - "modernize-*"
+            - "readability-*"
+            - "portability-*"
+        Remove:
+            - "cppcoreguidelines-avoid-const-or-ref-data-members"
+            - "cppcoreguidelines-avoid-do-while"
+            - "cppcoreguidelines-avoid-magic-numbers"
+            - "cppcoreguidelines-non-private-member-variables-in-classes"
+            - "cppcoreguidelines-special-member-functions"
+            - "cppcoreguidelines-pro-bounds-pointer-arithmetic"
+            - "cppcoreguidelines-avoid-non-const-global-variables"
+            - "cppcoreguidelines-macro-usage"
+            - "cppcoreguidelines-pro-bounds-constant-array-index"
+            - "cppcoreguidelines-pro-bounds-array-to-pointer-decay"
+            - "cppcoreguidelines-pro-type-reinterpret-cast"
+            - "cppcoreguidelines-pro-type-vararg"
+            - "cppcoreguidelines-pro-type-union-access"
+            - "cppcoreguidelines-no-malloc"
+            - "cppcoreguidelines-narrowing-conversions"
+            - "bugprone-reserved-identifier"
+            - "bugprone-string-literal-with-embedded-nul"
+            - "bugprone-implicit-widening-of-multiplication-result"
+            - "bugprone-easily-swappable-parameters"
+            - "bugprone-narrowing-conversions"
+            - "bugprone-incorrect-roundings"
+            - "modernize-use-nodiscard"
+            - "readability-isolate-declaration"
+            - "readability-uppercase-literal-suffix"
+            - "readability-identifier-length"
+            - "readability-implicit-bool-conversion"
+            - "readability-magic-numbers"
+            - "readability-named-parameter"
+            - "readability-const-return-type"
+            - "readability-function-size"
+            - "readability-function-cognitive-complexity"
+            - "readability-convert-member-functions-to-static"
+            - "readability-container-data-pointer"
+            - "readability-redundant-member-init"
+           # - "readability-avoid-nested-conditional-operator"

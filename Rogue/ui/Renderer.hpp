@@ -15,9 +15,8 @@ public:
     struct context {
         ui::terminal* Terminal {};
 
-        dungeon*       Dungeon {};
-        player const*  Player {};
-        profile const* PlayerProfile {};
+        dungeon* Dungeon {};
+        player*  Player {};
 
         std::vector<log_message> const* Log {};
 
@@ -40,7 +39,7 @@ private:
     void draw_mfd(context const& ctx);
     void draw_detail(context const& ctx);
 
-    auto lighting(context const& ctx, tile& tile, point_i gridPos) const -> color_pair;
+    auto lighting(context const& ctx, tile& tile, point_i gridPos, f32 range) const -> color_pair;
 };
 
 }

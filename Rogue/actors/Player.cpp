@@ -92,7 +92,7 @@ auto player::try_pickup(std::shared_ptr<item> const& item) -> bool
     return true;
 }
 
-auto player::current_profile() -> profile&
+auto player::current_profile() -> profile
 {
     // TODO: add inventory, effects, etc.
     return _profile;
@@ -116,7 +116,7 @@ auto player::light_color() const -> tcob::color
 
 auto player::current_level() const -> i32
 {
-    return static_cast<i32>((1.0f + std::sqrt(1.0f + 4.0f * (static_cast<f32>(_profile.XP) / XP_SCALE))) * 0.5f);
+    return static_cast<i32>((1.0f + std::sqrt(1.0f + (4.0f * (static_cast<f32>(_profile.XP) / XP_SCALE)))) * 0.5f);
 }
 
 auto player::hp_max() const -> i32

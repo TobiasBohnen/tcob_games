@@ -29,17 +29,13 @@ public:
     auto is_passable(point_i pos) const -> bool;
     auto find_path(point_i start, point_i target) const -> std::vector<point_i>;
 
+    void add_object(std::shared_ptr<object> const& object);
+    void remove_object(std::shared_ptr<object> const& object);
+
     auto tiles() -> grid<tile>&;
-    auto tiles() const -> grid<tile> const&;
-
-    auto objects() -> std::vector<std::shared_ptr<object>>&;
-    auto objects() const -> std::vector<std::shared_ptr<object>> const&;
-
-    auto monsters() -> std::vector<std::shared_ptr<monster>>&;
-    auto monsters() const -> std::vector<std::shared_ptr<monster>> const&;
-
-    auto lights() -> std::vector<std::shared_ptr<light_source>>&;
-    auto lights() const -> std::vector<std::shared_ptr<light_source>> const&;
+    auto objects() const -> std::span<std::shared_ptr<object> const>;
+    auto monsters() const -> std::span<std::shared_ptr<monster> const>;
+    auto lights() const -> std::span<std::shared_ptr<light_source> const>;
 
 private:
     grid<tile> _tiles;

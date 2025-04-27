@@ -5,9 +5,10 @@
 
 #include "Renderer.hpp"
 
+#include "../actors/Player.hpp"
+#include "../actors/Profile.hpp"
 #include "../dungeon/Dungeon.hpp"
 #include "../dungeon/Object.hpp"
-#include "../monsters/Player.hpp"
 
 namespace Rogue {
 
@@ -56,8 +57,9 @@ void renderer::draw_layout(context const& ctx)
 
 void renderer::draw_map(context const& ctx)
 {
-    auto& tiles {ctx.Dungeon->tiles()};
-    auto& term {*ctx.Terminal};
+    auto&      tiles {ctx.Dungeon->tiles()};
+    auto&      term {*ctx.Terminal};
+    auto const visualRange {ctx.Player->current_profile().VisualRange};
 
     for (i32 y {0}; y < TERM_MAP_SIZE.Height; ++y) {
         for (i32 x {0}; x < TERM_MAP_SIZE.Width; ++x) {
@@ -66,7 +68,7 @@ void renderer::draw_map(context const& ctx)
             if (!tiles.contains(gridPos)) { continue; }
 
             auto& tile {tiles[gridPos]};
-            auto [fg, bg] {lighting(ctx, tile, gridPos)};
+            auto [fg, bg] {lighting(ctx, tile, gridPos, visualRange)};
             if (gridPos == ctx.Center) {
                 term.color_set(colors::White, colors::Black);
                 term.add_str(termPos, "+");
@@ -86,10 +88,11 @@ void renderer::draw_objects(context const& ctx, color bg, tile const& tile, poin
     auto const& objects {tile.Objects};
     for (auto const& object : objects) {
         point_i const termPos {grid_to_term(gridPos, ctx.Center)};
-        if (TERM_MAP_SIZE.contains(termPos)) {
+        auto const    symbol {object->symbol()};
+        if (TERM_MAP_SIZE.contains(termPos) && !symbol.empty()) {
             auto const colors {tile.InSight ? object->colors() : SEEN_COLORS};
             term.color_set(colors.first, colors.second == colors::Transparent ? bg : colors.second);
-            term.add_str(termPos, object->symbol());
+            term.add_str(termPos, symbol);
         }
     }
 }
@@ -123,18 +126,18 @@ void renderer::draw_player(context const& ctx)
     i32 y {0};
 
     // symbol
-    auto const& player {*ctx.Player};
-    auto const  termPos {grid_to_term(player.Position, ctx.Center)};
+    auto&      player {*ctx.Player};
+    auto const termPos {grid_to_term(player.Position, ctx.Center)};
     if (TERM_MAP_SIZE.contains(termPos)) {
         term.color_set(player.color(), colors::Black);
         term.add_str(termPos, player.symbol());
     }
 
     // stats
-    auto const* stats {ctx.PlayerProfile};
-    i32 const   x {TERM_MAP_SIZE.Width + 1};
+    auto const stats {ctx.Player->current_profile()};
+    i32 const  x {TERM_MAP_SIZE.Width + 1};
     term.color_set(colors::White, colors::Black);
-    term.add_str({x, y++}, std::format("{} [Lvl {}]", stats->Name, player.current_level()));
+    term.add_str({x, y++}, std::format("{} [Lvl {}]", stats.Name, player.current_level()));
     term.add_str({x, y++}, std::format("{}", player.Position));
 
     y++;
@@ -150,13 +153,13 @@ void renderer::draw_player(context const& ctx)
     term.color_set(colors::Silver, colors::Black);
     term.add_str({x, y++}, "HP: ");
     term.color_set(colors::Red, colors::Black);
-    drawBar(stats->HP, player.hp_max());
+    drawBar(stats.HP, player.hp_max());
 
     // MP
     term.color_set(colors::Silver, colors::Black);
     term.add_str({x, y++}, "MP: ");
     term.color_set(colors::RoyalBlue, colors::Black);
-    drawBar(stats->MP, player.mp_max());
+    drawBar(stats.MP, player.mp_max());
 
     y++;
 
@@ -166,7 +169,7 @@ void renderer::draw_player(context const& ctx)
     term.color_set(colors::DarkGray, colors::Black);
     i32 const dungeon {player.current_level()};
     i32 const xpLevel {profile::xp_required_for(dungeon)};
-    drawBar(stats->XP - xpLevel, profile::xp_required_for(dungeon + 1) - xpLevel);
+    drawBar(stats.XP - xpLevel, profile::xp_required_for(dungeon + 1) - xpLevel);
 
     y += 2;
 
@@ -188,24 +191,25 @@ void renderer::draw_player(context const& ctx)
 
 void renderer::draw_mfd(context const& ctx)
 {
-    auto&       term {*ctx.Terminal};
-    auto const* stats {ctx.PlayerProfile};
+    auto& term {*ctx.Terminal};
 
     i32 const x {TERM_MAP_SIZE.Width + 1};
     i32       y {STATS_HEIGHT + 1};
 
     switch (ctx.MfdMode) {
     case mfd_mode::Character: {
+        auto const stats {ctx.Player->current_profile()};
+
         term.color_set(colors::White, colors::Black);
         term.add_str({x, y++}, "Character (TAB)");
         y++;
 
         term.color_set(colors::Silver, colors::Black);
-        term.add_str({x, y++}, std::format("Strength:     {:02}", stats->Attributes.Strength));
-        term.add_str({x, y++}, std::format("Agility:      {:02}", stats->Attributes.Agility));
-        term.add_str({x, y++}, std::format("Dexterity:    {:02}", stats->Attributes.Dexterity));
-        term.add_str({x, y++}, std::format("Intelligence: {:02}", stats->Attributes.Intelligence));
-        term.add_str({x, y++}, std::format("Vitality:     {:02}", stats->Attributes.Vitality));
+        term.add_str({x, y++}, std::format("Strength:     {:02}", stats.Attributes.Strength));
+        term.add_str({x, y++}, std::format("Agility:      {:02}", stats.Attributes.Agility));
+        term.add_str({x, y++}, std::format("Dexterity:    {:02}", stats.Attributes.Dexterity));
+        term.add_str({x, y++}, std::format("Intelligence: {:02}", stats.Attributes.Intelligence));
+        term.add_str({x, y++}, std::format("Vitality:     {:02}", stats.Attributes.Vitality));
     } break;
     case mfd_mode::Inventory: {
         term.color_set(colors::White, colors::Black);
@@ -220,6 +224,8 @@ void renderer::draw_mfd(context const& ctx)
 
     } break;
     case mfd_mode::Magic: {
+        auto const stats {ctx.Player->current_profile()};
+
         term.color_set(colors::White, colors::Black);
         term.add_str({x, y++}, "Magic (TAB)");
         y++;
@@ -230,12 +236,12 @@ void renderer::draw_mfd(context const& ctx)
             term.add_str(std::format("{:02}", value));
         }};
 
-        drawMagicStat("Earth:  ", COLOR_EARTH, stats->Magic.Earth);
-        drawMagicStat("Wind:   ", COLOR_WIND, stats->Magic.Wind);
-        drawMagicStat("Fire:   ", COLOR_FIRE, stats->Magic.Fire);
-        drawMagicStat("Water:  ", COLOR_WATER, stats->Magic.Water);
-        drawMagicStat("Life:   ", COLOR_LIFE, stats->Magic.Life);
-        drawMagicStat("Energy: ", COLOR_ENERGY, stats->Magic.Energy);
+        drawMagicStat("Earth:  ", COLOR_EARTH, stats.Magic.Earth);
+        drawMagicStat("Wind:   ", COLOR_WIND, stats.Magic.Wind);
+        drawMagicStat("Fire:   ", COLOR_FIRE, stats.Magic.Fire);
+        drawMagicStat("Water:  ", COLOR_WATER, stats.Magic.Water);
+        drawMagicStat("Life:   ", COLOR_LIFE, stats.Magic.Life);
+        drawMagicStat("Energy: ", COLOR_ENERGY, stats.Magic.Energy);
     } break;
     case mfd_mode::Monsters:
         term.color_set(colors::White, colors::Black);
@@ -262,7 +268,7 @@ void renderer::draw_detail(context const& ctx)
     term.add_str({x, y++}, "1 2 3");
 }
 
-auto renderer::lighting(context const& ctx, tile& tile, point_i gridPos) const -> color_pair
+auto renderer::lighting(context const& ctx, tile& tile, point_i gridPos, f32 range) const -> color_pair
 {
     auto& term {*ctx.Terminal};
 
@@ -311,7 +317,6 @@ auto renderer::lighting(context const& ctx, tile& tile, point_i gridPos) const -
     }
 
     f64 const distance {euclidean_distance(player.Position, gridPos)};
-    f64 const range {ctx.PlayerProfile->VisualRange};
     if (distance <= range) {
         f32 const factor {falloff(range, distance)};
         accumulateLight(player.light_color(), factor);

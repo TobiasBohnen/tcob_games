@@ -26,6 +26,7 @@ class object;
 class item;
 class inv_item;
 
+class actor;
 class monster;
 class player;
 struct profile;
@@ -38,7 +39,7 @@ constinit inline milliseconds ANIMATION_DELAY {150};
 
 ////////////////////////////////////////////////////////////
 
-enum class action {
+enum class action : u8 {
     None,
 
     MoveLeft,
@@ -51,6 +52,8 @@ enum class action {
     MoveLeftDown,
     MoveRightDown,
 
+    Center,
+
     LookMode,
     InteractMode,
     MFDModeChange,
@@ -61,7 +64,7 @@ enum class action {
 
 ////////////////////////////////////////////////////////////
 
-enum class mfd_mode {
+enum class mfd_mode : u8 {
     Character,
     Inventory,
     Magic,
@@ -71,7 +74,7 @@ constexpr i32 MFD_COUNT {4};
 
 ////////////////////////////////////////////////////////////
 
-enum class mode {
+enum class mode : u8 {
     Move,
     Look,
     Interact,

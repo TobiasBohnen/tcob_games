@@ -18,35 +18,13 @@ public:
 
     auto virtual symbol() const -> string     = 0;
     auto virtual colors() const -> color_pair = 0;
-    auto virtual amount() const -> i32 { return 1; }
 
-    auto virtual is_blocking() const -> bool = 0;
+    auto virtual is_blocking() const -> bool { return false; }
 
-    auto virtual can_interact(player& player) const -> bool = 0;
-    auto virtual interact(player& player) -> string         = 0;
-};
+    auto virtual can_interact(actor& actor) const -> bool = 0;
+    auto virtual interact(actor& actor) -> string         = 0;
 
-////////////////////////////////////////////////////////////
-
-enum class item_type {
-    Potion,
-    Weapon,
-    Armor,
-    Gold
-};
-
-class item : public object {
-public:
-    auto virtual can_pickup(player& player) const -> bool = 0;
-    auto virtual pickup(player& player) -> string         = 0;
-
-    auto is_blocking() const -> bool override { return false; }
-    auto can_interact(player& player) const -> bool override { return false; }
-    auto interact(player& player) -> string override { return ""; }
-
-    auto virtual can_stack() const -> bool { return false; }
-    auto virtual type() const -> item_type = 0;
-    auto virtual name() const -> string    = 0;
+    auto virtual on_enter(actor& actor) -> string = 0;
 };
 
 ////////////////////////////////////////////////////////////
@@ -61,14 +39,65 @@ public:
 
     auto is_blocking() const -> bool override;
 
-    auto can_interact(player& player) const -> bool override;
-    auto interact(player& player) -> string override;
+    auto can_interact(actor& actor) const -> bool override;
+    auto interact(actor& actor) -> string override;
+
+    auto on_enter(actor& actor) -> string override;
 
 private:
-    bool _open {false};
+    bool _open;
 };
 
 ////////////////////////////////////////////////////////////
+enum class trap_type : u8 {
+    Spikes
+};
+
+class trap : public object {
+public:
+    trap(bool visible, trap_type type);
+
+    auto symbol() const -> string override;
+    auto colors() const -> color_pair override;
+
+    auto can_interact(actor& actor) const -> bool override;
+    auto interact(actor& actor) -> string override;
+
+    auto on_enter(actor& actor) -> string override;
+
+private:
+    bool      _visible;
+    bool      _armed {true};
+    trap_type _type;
+};
+
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+
+enum class item_type : u8 {
+    Potion,
+    Weapon,
+    Armor,
+    Gold
+};
+
+class item : public object {
+public:
+    auto virtual amount() const -> i32 { return 1; }
+
+    auto virtual can_pickup(actor& actor) const -> bool = 0;
+    auto virtual pickup(actor& actor) -> string         = 0;
+
+    auto virtual can_stack() const -> bool { return false; }
+    auto virtual type() const -> item_type = 0;
+    auto virtual name() const -> string    = 0;
+
+private:
+    auto can_interact(actor& actor) const -> bool override { return false; }
+    auto interact(actor& actor) -> string override { return ""; }
+    auto on_enter(actor& actor) -> string override { return ""; }
+};
+
 ////////////////////////////////////////////////////////////
 
 class gold : public item {
@@ -78,8 +107,8 @@ public:
     auto symbol() const -> string override;
     auto colors() const -> color_pair override;
 
-    auto can_pickup(player& player) const -> bool override;
-    auto pickup(player& player) -> string override;
+    auto can_pickup(actor& actor) const -> bool override;
+    auto pickup(actor& actor) -> string override;
 
     auto can_stack() const -> bool override;
     auto type() const -> item_type override;
@@ -93,7 +122,7 @@ private:
 
 ////////////////////////////////////////////////////////////
 
-enum class quality {
+enum class quality : u8 {
     Poor,
     Common,
     Rare,
@@ -139,8 +168,8 @@ public:
     auto symbol() const -> string override;
     auto colors() const -> color_pair override;
 
-    auto can_pickup(player& player) const -> bool override;
-    auto pickup(player& player) -> string override;
+    auto can_pickup(actor& actor) const -> bool override;
+    auto pickup(actor& actor) -> string override;
 
     auto type() const -> item_type override;
     auto name() const -> string override;
@@ -155,8 +184,8 @@ public:
     auto symbol() const -> string override;
     auto colors() const -> color_pair override;
 
-    auto can_pickup(player& player) const -> bool override;
-    auto pickup(player& player) -> string override;
+    auto can_pickup(actor& actor) const -> bool override;
+    auto pickup(actor& actor) -> string override;
 
     auto type() const -> item_type override;
     auto name() const -> string override;
@@ -171,8 +200,8 @@ public:
     auto symbol() const -> string override;
     auto colors() const -> color_pair override;
 
-    auto can_pickup(player& player) const -> bool override;
-    auto pickup(player& player) -> string override;
+    auto can_pickup(actor& actor) const -> bool override;
+    auto pickup(actor& actor) -> string override;
 
     auto type() const -> item_type override;
     auto name() const -> string override;
