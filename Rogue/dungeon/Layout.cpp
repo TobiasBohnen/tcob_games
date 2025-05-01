@@ -70,25 +70,25 @@ void turtle::apply_scale(pen& t, i32 factor)
     switch (t.ScaleTarget) {
     case scale_target::Path:
         switch (factor) {
-        case 1: t.PathLength++; break;
+        case 1:  t.PathLength++; break;
         case -1: t.PathLength--; break;
-        case 2: t.PathLength *= 2; break;
+        case 2:  t.PathLength *= 2; break;
         case -2: t.PathLength /= 2; break;
         }
         break;
     case scale_target::RoomWidth:
         switch (factor) {
-        case 1: t.RoomSize.Width++; break;
+        case 1:  t.RoomSize.Width++; break;
         case -1: t.RoomSize.Width--; break;
-        case 2: t.RoomSize.Width *= 2; break;
+        case 2:  t.RoomSize.Width *= 2; break;
         case -2: t.RoomSize.Width /= 2; break;
         }
         break;
     case scale_target::RoomHeight:
         switch (factor) {
-        case 1: t.RoomSize.Height++; break;
+        case 1:  t.RoomSize.Height++; break;
         case -1: t.RoomSize.Height--; break;
-        case 2: t.RoomSize.Height *= 2; break;
+        case 2:  t.RoomSize.Height *= 2; break;
         case -2: t.RoomSize.Height /= 2; break;
         }
         break;
@@ -100,18 +100,18 @@ void turtle::rotate_direction(pen& t, bool clockwise)
     if (clockwise) {
         switch (t.Direction) {
         case direction::None:
-        case direction::Left: t.Direction = direction::Up; break;
-        case direction::Up: t.Direction = direction::Right; break;
+        case direction::Left:  t.Direction = direction::Up; break;
+        case direction::Up:    t.Direction = direction::Right; break;
         case direction::Right: t.Direction = direction::Down; break;
-        case direction::Down: t.Direction = direction::Left; break;
+        case direction::Down:  t.Direction = direction::Left; break;
         }
     } else {
         switch (t.Direction) {
         case direction::None:
-        case direction::Left: t.Direction = direction::Down; break;
-        case direction::Up: t.Direction = direction::Left; break;
+        case direction::Left:  t.Direction = direction::Down; break;
+        case direction::Up:    t.Direction = direction::Left; break;
         case direction::Right: t.Direction = direction::Up; break;
-        case direction::Down: t.Direction = direction::Right; break;
+        case direction::Down:  t.Direction = direction::Right; break;
         }
     }
 }
@@ -120,7 +120,7 @@ void turtle::draw_room(pen& t)
 {
     auto const   width {t.RoomSize.Width};
     auto const   height {t.RoomSize.Height};
-    rect_i const room {t.Position.X - width / 2, t.Position.Y - height / 2, width, height};
+    rect_i const room {t.Position.X - (width / 2), t.Position.Y - (height / 2), width, height};
 
     for (i32 y {room.top()}; y < room.bottom(); ++y) {
         for (i32 x {room.left()}; x < room.right(); ++x) {
@@ -146,11 +146,11 @@ void turtle::draw_path(pen& t, i32 l)
 void turtle::move_forward(pen& t)
 {
     switch (t.Direction) {
-    case direction::None: break;
-    case direction::Left: t.Position += point_i {-1, 0}; break;
+    case direction::None:  break;
+    case direction::Left:  t.Position += point_i {-1, 0}; break;
     case direction::Right: t.Position += point_i {1, 0}; break;
-    case direction::Up: t.Position += point_i {0, -1}; break;
-    case direction::Down: t.Position += point_i {0, 1}; break;
+    case direction::Up:    t.Position += point_i {0, -1}; break;
+    case direction::Down:  t.Position += point_i {0, 1}; break;
     }
 
     t.Position = {t.Position.X % _grid.width(),
@@ -862,10 +862,10 @@ void maze_with_rooms::add_rooms()
     for (i32 i {0}; i < _buildRoomAttempts; ++i) {
         // Pick a random room size and ensure that rooms have odd
         // dimensions and that rooms are not too narrow.
-        i32 const    roomWidth {_rng((_minRoomSize / 2), (_maxRoomSize / 2)) * 2 + 1};
-        i32 const    roomHeight {_rng((_minRoomSize / 2), (_maxRoomSize / 2)) * 2 + 1};
-        i32 const    x {(_rng(0, _grid.width() - roomWidth - 1) / 2) * 2 + 1};
-        i32 const    y {(_rng(0, _grid.height() - roomHeight - 1) / 2) * 2 + 1};
+        i32 const    roomWidth {(_rng((_minRoomSize / 2), (_maxRoomSize / 2)) * 2) + 1};
+        i32 const    roomHeight {(_rng((_minRoomSize / 2), (_maxRoomSize / 2)) * 2) + 1};
+        i32 const    x {((_rng(0, _grid.width() - roomWidth - 1) / 2) * 2) + 1};
+        i32 const    y {((_rng(0, _grid.height() - roomHeight - 1) / 2) * 2) + 1};
         rect_i const room {x, y, roomWidth, roomHeight};
 
         // check for overlap with previous rooms
@@ -1047,8 +1047,8 @@ auto maze_with_rooms::can_carve(point_i pos, point_i dir) -> bool
     is already open.
     */
 
-    i32 x = pos.X + dir.X * 3;
-    i32 y = pos.Y + dir.Y * 3;
+    i32 x {pos.X + (dir.X * 3)};
+    i32 y {pos.Y + (dir.Y * 3)};
 
     if (!_grid.contains({x, y})) { return false; }
 
@@ -1259,15 +1259,15 @@ void leaf::split_leaf(rng& rng, i32 maxRoomSize)
     }
 }
 
-void leaf::create_rooms(hall_func&& hall, room_func&& room, i32 minRoomSize, i32 maxRoomSize, rng& rng)
+void leaf::create_rooms(hall_func const& hall, room_func const& room, i32 minRoomSize, i32 maxRoomSize, rng& rng)
 {
     if (Child1 || Child2) {
         // Recursively search for children until you hit the end of the branch
         if (Child1) {
-            Child1->create_rooms(std::forward<hall_func>(hall), std::forward<room_func>(room), minRoomSize, maxRoomSize, rng);
+            Child1->create_rooms(hall, room, minRoomSize, maxRoomSize, rng);
         }
         if (Child2) {
-            Child2->create_rooms(std::forward<hall_func>(hall), std::forward<room_func>(room), minRoomSize, maxRoomSize, rng);
+            Child2->create_rooms(hall, room, minRoomSize, maxRoomSize, rng);
         }
 
         if (Child1 && Child2) {

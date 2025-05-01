@@ -92,7 +92,7 @@ main_scene::main_scene(game& game)
             case pile_type::Reserve:
             case pile_type::FreeCell:
             case pile_type::Foundation:
-            case pile_type::Tableau: {
+            case pile_type::Tableau:    {
                 str.Description      = ruleObj["build"].as<std::string>();
                 str.DescriptionLabel = "Build";
                 str.Move             = ruleObj["move"].as<std::string>();
@@ -245,11 +245,11 @@ void main_scene::on_key_down(input::keyboard::event const& ev)
 
     using namespace tcob::enum_ops;
 
-    if (ev.KeyCode == input::key_code::n && (ev.KeyMods & input::key_mod::LeftControl) == input::key_mod::LeftControl) {
+    if (ev.KeyCode == input::key_code::n && ev.KeyMods.control()) {
         start_game(_sources->Settings.LastGame, start_reason::Restart, std::nullopt);
         ev.Handled = true;
     }
-    if (ev.KeyCode == input::key_code::t && (ev.KeyMods & input::key_mod::LeftAlt) == input::key_mod::LeftAlt) {
+    if (ev.KeyCode == input::key_code::t && ev.KeyMods.alt()) {
         load_themes(_sources->Themes);
         set_theme();
         ev.Handled = true;
@@ -265,7 +265,7 @@ void main_scene::on_key_down(input::keyboard::event const& ev)
         _currentRules = generate_rule(_sources->Settings.LastGame);
         ev.Handled    = true;
     }
-    if (ev.KeyCode == input::key_code::s && (ev.KeyMods & input::key_mod::LeftAlt) == input::key_mod::LeftAlt) {
+    if (ev.KeyCode == input::key_code::s && ev.KeyMods.alt()) {
         static i32 i {0};
         std::ignore = window().copy_to_image().save(std::format("img{}.png", i++));
         ev.Handled  = true;

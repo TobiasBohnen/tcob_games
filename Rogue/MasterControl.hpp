@@ -20,7 +20,7 @@ public:
     void draw(ui::terminal& term);
     void update(milliseconds deltaTime, action_queue& queue);
 
-    auto current_dungeon() -> dungeon&;
+    auto current_dungeon() const -> dungeon const&;
 
     void log(string const& message);
 
@@ -34,10 +34,11 @@ private:
     void handle_action_queue(action_queue& queue);
 
     void do_execute();
+
     void do_pickup();
-    auto do_move(action action) -> bool;
-    void do_look(action action);
-    auto do_interact(std::optional<point_i> interactTarget, bool failMessage) -> bool;
+    auto do_move(point_i target) -> bool;
+    void do_look(point_i target);
+    auto do_interact(point_i target, bool failMessage) -> bool;
 
     std::vector<dungeon> _dungeons {};
     usize                _currentDungeon {0};

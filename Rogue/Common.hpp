@@ -42,21 +42,26 @@ constinit inline milliseconds ANIMATION_DELAY {150};
 enum class action : u8 {
     None,
 
-    MoveLeft,
-    MoveRight,
-    MoveUp,
-    MoveDown,
+    Left,
+    Right,
+    Up,
+    Down,
 
-    MoveLeftUp,
-    MoveRightUp,
-    MoveLeftDown,
-    MoveRightDown,
+    LeftUp,
+    RightUp,
+    LeftDown,
+    RightDown,
 
     Center,
 
     LookMode,
     InteractMode,
+
     MFDModeChange,
+    MFDModeCharacter,
+    MFDModeInventory,
+    MFDModeMagic,
+    MFDModeMonsters,
 
     PickUp,
     Execute

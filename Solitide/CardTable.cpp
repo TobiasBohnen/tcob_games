@@ -224,13 +224,13 @@ void card_table::on_key_down(input::keyboard::event const& ev)
         if (ev.KeyCode == input::key_code::SPACE) {
             _currentGame->deal_cards();
             ev.Handled = true;
-        } else if (ev.KeyCode == input::key_code::z && (ev.KeyMods & input::key_mod::LeftControl) == input::key_mod::LeftControl) {
+        } else if (ev.KeyCode == input::key_code::z && ev.KeyMods.control()) {
             _currentGame->undo();
             ev.Handled = true;
-        } else if (ev.KeyCode == input::key_code::h && (ev.KeyMods & input::key_mod::LeftControl) == input::key_mod::LeftControl) {
+        } else if (ev.KeyCode == input::key_code::h && ev.KeyMods.control()) {
             show_next_hint();
             ev.Handled = true;
-        } else if (ev.KeyCode == input::key_code::c && (ev.KeyMods & input::key_mod::LeftControl) == input::key_mod::LeftControl) {
+        } else if (ev.KeyCode == input::key_code::c && ev.KeyMods.control()) {
             _currentGame->collect_all();
             ev.Handled = true;
         }

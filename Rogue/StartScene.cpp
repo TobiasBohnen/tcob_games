@@ -65,27 +65,38 @@ void start_scene::on_key_down(input::keyboard::event const& ev)
         return;
     default: break;
     }
+
+    bool const shiftDown {ev.KeyMods.shift() || ev.KeyMods.caps_lock()};
+
     switch (ev.KeyCode) {
     case input::key_code::KP_8:
-    case input::key_code::UP: _actionQueue.push(action::MoveUp); break;
+    case input::key_code::UP:       _actionQueue.push(action::Up); break;
     case input::key_code::KP_2:
-    case input::key_code::DOWN: _actionQueue.push(action::MoveDown); break;
+    case input::key_code::DOWN:     _actionQueue.push(action::Down); break;
     case input::key_code::KP_4:
-    case input::key_code::LEFT: _actionQueue.push(action::MoveLeft); break;
+    case input::key_code::LEFT:     _actionQueue.push(action::Left); break;
     case input::key_code::KP_6:
-    case input::key_code::RIGHT: _actionQueue.push(action::MoveRight); break;
-    case input::key_code::KP_7: _actionQueue.push(action::MoveLeftUp); break;
-    case input::key_code::KP_9: _actionQueue.push(action::MoveRightUp); break;
-    case input::key_code::KP_1: _actionQueue.push(action::MoveLeftDown); break;
-    case input::key_code::KP_3: _actionQueue.push(action::MoveRightDown); break;
+    case input::key_code::RIGHT:    _actionQueue.push(action::Right); break;
+    case input::key_code::KP_7:     _actionQueue.push(action::LeftUp); break;
+    case input::key_code::KP_9:     _actionQueue.push(action::RightUp); break;
+    case input::key_code::KP_1:     _actionQueue.push(action::LeftDown); break;
+    case input::key_code::KP_3:     _actionQueue.push(action::RightDown); break;
     case input::key_code::KP_ENTER:
-    case input::key_code::RETURN: _actionQueue.push(action::Execute); break;
-    case input::key_code::KP_5:_actionQueue.push(action::Center); break;
-    case input::key_code::l: _actionQueue.push(action::LookMode); break;
-    case input::key_code::i: _actionQueue.push(action::InteractMode); break;
-    case input::key_code::g: _actionQueue.push(action::PickUp); break;
-    case input::key_code::TAB: _actionQueue.push(action::MFDModeChange); break;
-    default: break;
+    case input::key_code::RETURN:   _actionQueue.push(action::Execute); break;
+    case input::key_code::KP_5:     _actionQueue.push(action::Center); break;
+
+    case input::key_code::l:        _actionQueue.push(action::LookMode); break;
+    case input::key_code::u:        _actionQueue.push(action::InteractMode); break;
+    case input::key_code::g:        _actionQueue.push(action::PickUp); break;
+
+    case input::key_code::c:        _actionQueue.push(action::MFDModeCharacter); break;
+    case input::key_code::i:        _actionQueue.push(action::MFDModeInventory); break;
+    case input::key_code::e:        _actionQueue.push(action::MFDModeMonsters); break;
+    case input::key_code::m:        _actionQueue.push(action::MFDModeMagic); break;
+
+    case input::key_code::TAB:      _actionQueue.push(action::MFDModeChange); break;
+
+    default:                        break;
     }
 }
 

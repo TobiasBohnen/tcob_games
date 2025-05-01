@@ -23,7 +23,7 @@ auto door::symbol() const -> string
 
 auto door::colors() const -> color_pair
 {
-    return {colors::Sienna, colors::Transparent};
+    return {colors::Sienna, colors::Black};
 }
 
 auto door::is_blocking() const -> bool
@@ -62,19 +62,19 @@ auto trap::symbol() const -> string
 
 auto trap::colors() const -> color_pair
 {
-    return {colors::Sienna, colors::Transparent};
+    return {colors::Red, colors::Transparent};
 }
 
 auto trap::can_interact(actor& actor) const -> bool
 {
-    return false;
+    return _visible;
 }
 
 auto trap::interact(actor& actor) -> string
 {
-    if (_visible && _armed) {
-        _armed = false;
-        return "trap disarmed";
+    if (_visible) {
+        _armed = !_armed;
+        return _armed ? "trap armed" : "trap disarmed";
     }
 
     return "";

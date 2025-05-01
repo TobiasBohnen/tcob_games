@@ -32,7 +32,7 @@ private:
 
 class turtle : public base_layout {
 public:
-    enum class scale_target {
+    enum class scale_target : u8 {
         Path,
         RoomWidth,
         RoomHeight
@@ -144,7 +144,7 @@ private:
 
     auto get_index(point_i pos) const -> i32
     {
-        return pos.Y * _grid.width() + pos.X;
+        return (pos.Y * _grid.width()) + pos.X;
     }
     auto get_point(isize idx) const -> point_i
     {
@@ -267,7 +267,7 @@ struct leaf {
     std::unique_ptr<leaf> Child2 {nullptr};
 
     void split_leaf(rng& rng, i32 maxRoomSize);
-    void create_rooms(hall_func&& hall, room_func&& room, i32 minRoomSize, i32 maxRoomSize, rng& rng);
+    void create_rooms(hall_func const& hall, room_func const& room, i32 minRoomSize, i32 maxRoomSize, rng& rng);
     auto get_room(rng& rng) -> rect_i;
 
 private:

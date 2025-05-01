@@ -64,7 +64,6 @@ private:
     scripting::squirrel::script                                 _sqScript;
     std::vector<scripting::squirrel::native_closure_shared_ptr> _sqFunctions;
 
-    input::mouse::button           _buttonDown {input::mouse::button::None};
     std::shared_ptr<card_table>    _cardTable {};
     std::shared_ptr<form_controls> _formControls {};
     std::shared_ptr<form_menu>     _formMenu {};
