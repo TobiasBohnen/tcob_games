@@ -8,6 +8,7 @@
 #include "../MasterControl.hpp"
 #include "../dungeon/Dungeon.hpp"
 #include "../dungeon/Object.hpp"
+#include "../ui/Renderer.hpp"
 
 namespace Rogue {
 ////////////////////////////////////////////////////////////
@@ -53,8 +54,8 @@ void player::start_path(std::vector<point_i> const& path)
 auto player::try_move(point_i pos) -> bool
 {
     if (_parent.current_dungeon().is_passable(pos)) {
-        Position = pos;
-        EndTurn();
+        _position = pos;
+        FinishedAction();
         return true;
     }
 
@@ -69,9 +70,10 @@ auto player::try_pickup(std::shared_ptr<item> const& item) -> bool
 
     bool const stackable {item->can_stack()};
     bool       added {false};
+    auto&      stats {current_profile()};
 
     if (stackable) {
-        for (auto& [inv_item, count] : _profile.Inventory) {
+        for (auto& [inv_item, count] : stats.Inventory) {
             if (inv_item->type() == item->type() && inv_item->name() == item->name()) {
                 count += item->amount();
                 added = true;
@@ -81,21 +83,15 @@ auto player::try_pickup(std::shared_ptr<item> const& item) -> bool
     }
 
     if (!added) {
-        _profile.Inventory.emplace_back(item, item->amount());
+        stats.Inventory.emplace_back(item, item->amount());
     }
 
     if (!message.empty()) {
         _parent.log(message);
     }
 
-    EndTurn();
+    FinishedAction();
     return true;
-}
-
-auto player::current_profile() -> profile
-{
-    // TODO: add inventory, effects, etc.
-    return _profile;
 }
 
 auto player::symbol() const -> string
@@ -105,8 +101,8 @@ auto player::symbol() const -> string
 
 auto player::color() const -> tcob::color
 {
-    f32 const ratio {static_cast<f32>(_profile.HP) / static_cast<f32>(hp_max())};
-    return tcob::color::Lerp(colors::Red, colors::White, ratio);
+    f32 const ratio {static_cast<f32>(current_profile().HP) / static_cast<f32>(hp_max())};
+    return color::Lerp(colors::Red, colors::White, ratio);
 }
 
 auto player::light_color() const -> tcob::color
@@ -114,31 +110,133 @@ auto player::light_color() const -> tcob::color
     return colors::White;
 }
 
-auto player::current_level() const -> i32
+auto player::light_range() const -> f32
 {
-    return static_cast<i32>((1.0f + std::sqrt(1.0f + (4.0f * (static_cast<f32>(_profile.XP) / XP_SCALE)))) * 0.5f);
+    return current_profile().VisualRange;
 }
 
-auto player::hp_max() const -> i32
+auto player::position() const -> point_i
 {
-    // Base 100 HP + 10 * Vitality per level
-    return 100 + ((current_level() - 1) * VIT_SCALE * _profile.Attributes.Vitality);
-}
-
-auto player::mp_max() const -> i32
-{
-    // Base 50 MP + 15 * Intelligence per level
-    return 50 + ((current_level() - 1) * INT_SCALE * _profile.Attributes.Intelligence);
+    return _position;
 }
 
 auto player::count_gold() const -> i32
 {
     i32 retValue {0};
-    for (auto const& [item, count] : _profile.Inventory) {
+    for (auto const& [item, count] : current_profile().Inventory) {
         if (item->type() == item_type::Gold) {
             retValue += count;
         }
     }
     return retValue;
 }
+
+void player::draw(renderer& renderer, point_i center, mode mode)
+{
+    i32 y {0};
+
+    // symbol
+    auto const termPos {grid_to_term(_position, center)};
+    if (TERM_MAP_SIZE.contains(termPos)) {
+        renderer.set_color(color(), colors::Black);
+        renderer.draw_cell(termPos, symbol());
+    }
+
+    // stats
+    auto const& stats {current_profile()};
+    i32 const   lvl {level()};
+    i32 const   x {TERM_MAP_SIZE.Width + 1};
+    renderer.set_color(colors::White, colors::Black);
+    renderer.draw_cell({x, y++}, std::format("{} [Lvl {}]", stats.Name, lvl));
+    renderer.draw_cell({x, y++}, std::format("{}", _position));
+
+    y++;
+
+    auto const drawBar {[&](i32 current, i32 max) {
+        renderer.draw_cell(std::format("{}/{}", current, max));
+        i32 const    tickCount {static_cast<i32>(std::ceil(static_cast<f32>(current) / max * 10.f))};
+        string const ticks {string(tickCount, '-') + string(10 - tickCount, ' ')};
+        renderer.draw_cell({static_cast<i32>(TERM_SIZE.Width - ticks.size() - 3), renderer.current_cell().Y}, std::format("[{}]", ticks));
+    }};
+
+    // HP
+    renderer.set_color(colors::Silver, colors::Black);
+    renderer.draw_cell({x, y++}, "HP: ");
+    renderer.set_color(colors::Red, colors::Black);
+    drawBar(stats.HP, hp_max());
+
+    // MP
+    renderer.set_color(colors::Silver, colors::Black);
+    renderer.draw_cell({x, y++}, "MP: ");
+    renderer.set_color(colors::RoyalBlue, colors::Black);
+    drawBar(stats.MP, mp_max());
+
+    y++;
+
+    // XP
+    renderer.set_color(colors::Silver, colors::Black);
+    renderer.draw_cell({x, y++}, "XP: ");
+    renderer.set_color(colors::DarkGray, colors::Black);
+
+    i32 const xpLevel {profile::xp_required_for(lvl)};
+    drawBar(stats.XP - xpLevel, profile::xp_required_for(lvl + 1) - xpLevel);
+
+    y += 2;
+
+    switch (mode) {
+    case mode::Move: {
+        renderer.set_color(colors::White, colors::Blue);
+        renderer.draw_cell({x, y++}, "Move");
+    } break;
+    case mode::Look: {
+        renderer.set_color(colors::Silver, colors::Blue);
+        renderer.draw_cell({x, y++}, "Look");
+    } break;
+    case mode::Interact: {
+        renderer.set_color(colors::GhostWhite, colors::Blue);
+        renderer.draw_cell({x, y++}, "Interact");
+    } break;
+    }
+}
+
+void player::draw_inventory(renderer& renderer, i32 x, i32 y)
+{
+    // Gold
+    renderer.set_color(colors::White, colors::Black);
+    renderer.draw_cell({x, y++}, "Gold:   ");
+    renderer.set_color(colors::Gold, colors::Black);
+    renderer.draw_cell(std::format("{:07}", count_gold()));
+}
+
+void player::draw_attributes(renderer& renderer, i32 x, i32 y)
+{
+    auto const& stats {current_profile()};
+
+    renderer.set_color(colors::Silver, colors::Black);
+    renderer.draw_cell({x, y++}, std::format("Strength:     {:02}", stats.Attributes.Strength));
+    renderer.draw_cell({x, y++}, std::format("Agility:      {:02}", stats.Attributes.Agility));
+    renderer.draw_cell({x, y++}, std::format("Dexterity:    {:02}", stats.Attributes.Dexterity));
+    renderer.draw_cell({x, y++}, std::format("Intelligence: {:02}", stats.Attributes.Intelligence));
+    renderer.draw_cell({x, y++}, std::format("Vitality:     {:02}", stats.Attributes.Vitality));
+}
+
+void player::draw_magic(renderer& renderer, i32 x, i32 y)
+{
+    auto const& stats {current_profile()};
+
+    auto drawMagicStat {[&](string const& label, tcob::color fg, i32 value) {
+        renderer.set_color(colors::Silver, colors::Black);
+        renderer.draw_cell({x, y++}, label);
+        renderer.set_color(fg, colors::Black);
+        renderer.draw_cell(std::format("{:02}", value));
+    }};
+
+    drawMagicStat("Earth:  ", COLOR_EARTH, stats.Magic.Earth);
+    drawMagicStat("Wind:   ", COLOR_WIND, stats.Magic.Wind);
+    drawMagicStat("Fire:   ", COLOR_FIRE, stats.Magic.Fire);
+    drawMagicStat("Water:  ", COLOR_WATER, stats.Magic.Water);
+    drawMagicStat("Life:   ", COLOR_LIFE, stats.Magic.Life);
+    drawMagicStat("Energy: ", COLOR_ENERGY, stats.Magic.Energy);
+}
+
 }

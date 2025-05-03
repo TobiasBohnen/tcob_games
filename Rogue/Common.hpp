@@ -17,6 +17,7 @@ using namespace std::chrono_literals;
 using namespace tcob::literals;
 
 class master_control;
+class renderer;
 
 class tile;
 class dungeon;
@@ -101,8 +102,20 @@ constexpr color COLOR_WATER {colors::Blue};
 constexpr color COLOR_LIFE {colors::Green};
 constexpr color COLOR_ENERGY {colors::WhiteSmoke};
 
+constexpr color_pair SEEN_COLORS {color::Lerp(colors::Black, colors::White, 0.15f), colors::Black};
+
 constexpr i32 XP_SCALE {50};
 constexpr i32 VIT_SCALE {10};
 constexpr i32 INT_SCALE {15};
+
+auto inline term_to_grid(point_i pos, point_i center) -> point_i
+{
+    return pos - point_i {TERM_MAP_SIZE.Width / 2, TERM_MAP_SIZE.Height / 2} + center;
+}
+
+auto inline grid_to_term(point_i pos, point_i center) -> point_i
+{
+    return pos + point_i {TERM_MAP_SIZE.Width / 2, TERM_MAP_SIZE.Height / 2} - center;
+}
 
 }

@@ -8,7 +8,6 @@
 #include "Common.hpp"
 #include "actors/Player.hpp"
 #include "dungeon/Dungeon.hpp"
-#include "ui/Renderer.hpp"
 
 namespace Rogue {
 ////////////////////////////////////////////////////////////
@@ -17,7 +16,7 @@ class master_control {
 public:
     master_control();
 
-    void draw(ui::terminal& term);
+    void draw(renderer& renderer);
     void update(milliseconds deltaTime, action_queue& queue);
 
     auto current_dungeon() const -> dungeon const&;
@@ -40,6 +39,10 @@ private:
     void do_look(point_i target);
     auto do_interact(point_i target, bool failMessage) -> bool;
 
+    void draw_log(renderer& renderer);
+    void draw_mfd(renderer& renderer);
+    void draw_detail(renderer& renderer);
+
     std::vector<dungeon> _dungeons {};
     usize                _currentDungeon {0};
 
@@ -52,8 +55,7 @@ private:
 
     mfd_mode _mfdMode {mfd_mode::Character};
 
-    bool     _redraw {true};
-    renderer _renderer {};
+    bool _redraw {true};
 
     i32 _turn {0};
 };

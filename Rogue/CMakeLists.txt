@@ -12,6 +12,7 @@ target_sources(Rogue PRIVATE
     dungeon/Object.cpp
     dungeon/Tile.cpp
 
+    actors/Actor.cpp
     actors/Player.cpp
 
     ui/MainMenu.cpp

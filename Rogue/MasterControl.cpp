@@ -7,6 +7,7 @@
 
 #include "dungeon/Object.hpp"
 #include "dungeon/Tile.hpp"
+#include "ui/Renderer.hpp"
 
 namespace Rogue {
 
@@ -43,7 +44,7 @@ master_control::master_control()
     auto const& tiles {_dungeons[0].tiles()};
     for (i32 i {0}; i < tiles.count(); ++i) {
         if (tiles[i].is_passable()) {
-            _player.Position = {i % tiles.width(), i / tiles.width()};
+            _player.try_move({i % tiles.width(), i / tiles.width()});
             break;
         }
     }
@@ -64,27 +65,39 @@ master_control::master_control()
     trapObj1->Position = {15, 11};
     dungeon.add_object(trapObj1);
 
-    set_view_center(_player.Position);
+    set_view_center(_player.position());
 
-    _player.EndTurn.connect([this]() { end_turn(); });
+    _player.FinishedAction.connect([this]() { end_turn(); });
     _player.FinishedPath.connect([this]() {
         _mode = mode::Move;
         mark_dirty();
     });
 }
 
-void master_control::draw(ui::terminal& term)
+constexpr i32 STATS_HEIGHT {10};
+
+void master_control::draw(renderer& renderer)
 {
     if (!_redraw) { return; }
     _redraw = false;
 
-    _renderer.draw({.Terminal = &term,
-                    .Dungeon  = &_dungeons[_currentDungeon],
-                    .Player   = &_player,
-                    .Log      = &_log,
-                    .Mode     = _mode,
-                    .MfdMode  = _mfdMode,
-                    .Center   = _viewCenter});
+    renderer.begin();
+    renderer.set_color(colors::White, colors::Black);
+    // Stats
+    renderer.draw_box({TERM_MAP_SIZE.Width, 0, TERM_SIZE.Width - TERM_MAP_SIZE.Width - 1, STATS_HEIGHT});
+    // MFD
+    renderer.draw_box({TERM_MAP_SIZE.Width, STATS_HEIGHT + 1, TERM_SIZE.Width - TERM_MAP_SIZE.Width - 1, TERM_MAP_SIZE.Height - STATS_HEIGHT - 2});
+    // Detail
+    renderer.draw_box({TERM_MAP_SIZE.Width, TERM_MAP_SIZE.Height, TERM_SIZE.Width - TERM_MAP_SIZE.Width - 1, TERM_SIZE.Height - TERM_MAP_SIZE.Height - 1});
+    // Log
+    renderer.draw_box({0, TERM_MAP_SIZE.Height, TERM_MAP_SIZE.Width - 1, TERM_SIZE.Height - TERM_MAP_SIZE.Height - 1});
+
+    _dungeons[_currentDungeon].draw(renderer, _viewCenter, _player);
+    _player.draw(renderer, _viewCenter, _mode);
+
+    draw_log(renderer);
+    draw_mfd(renderer);
+    draw_detail(renderer);
 }
 
 void master_control::update(milliseconds deltaTime, action_queue& queue)
@@ -104,7 +117,7 @@ auto master_control::current_dungeon() const -> dungeon const&
 void master_control::end_turn()
 {
     if (_mode == mode::Move) {
-        set_view_center(_player.Position);
+        set_view_center(_player.position());
     }
     mark_dirty();
     ++_turn;
@@ -145,7 +158,7 @@ void master_control::handle_action_queue(action_queue& queue)
         case action::LookMode:
             _mode = _mode == mode::Move ? mode::Look : mode::Move;
             if (_mode == mode::Move) {
-                set_view_center(_player.Position);
+                set_view_center(_player.position());
             }
             mark_dirty();
             break;
@@ -162,7 +175,7 @@ void master_control::handle_action_queue(action_queue& queue)
                     do_look(*target);
                 }
             } else if (_mode == mode::Interact) {
-                if (auto target {get_target(action, _player.Position)}) {
+                if (auto target {get_target(action, _player.position())}) {
                     do_interact(*target, true);
                 }
             } else {
@@ -194,7 +207,7 @@ void master_control::handle_action_queue(action_queue& queue)
                     mark_dirty();
                     break;
                 default:
-                    if (auto target {get_target(action, _player.Position)}) {
+                    if (auto target {get_target(action, _player.position())}) {
                         do_move(*target);
                     }
                 }
@@ -207,7 +220,7 @@ void master_control::handle_action_queue(action_queue& queue)
 void master_control::do_execute()
 {
     if (_mode == mode::Look) {
-        _player.start_path(current_dungeon().find_path(_player.Position, _viewCenter));
+        _player.start_path(current_dungeon().find_path(_player.position(), _viewCenter));
     }
 }
 
@@ -216,7 +229,7 @@ void master_control::do_pickup()
     std::vector<std::shared_ptr<object>> toRemove;
 
     auto& dungeon {_dungeons[_currentDungeon]};
-    auto& tile {dungeon.tiles()[_player.Position]};
+    auto& tile {dungeon.tiles()[_player.position()]};
     for (auto& object : tile.Objects) {
         auto objItem {std::dynamic_pointer_cast<item>(object)};
         if (objItem && _player.try_pickup(objItem)) {
@@ -276,6 +289,78 @@ auto master_control::do_interact(point_i target, bool failMessage) -> bool
 
     log(message);
     return true;
+}
+
+void master_control::draw_log(renderer& renderer)
+{
+
+    isize const maxMessages {TERM_SIZE.Height - TERM_MAP_SIZE.Height - 2};
+    auto const  log {_log.size() >= maxMessages
+                         ? std::span<log_message const>(_log).subspan(_log.size() - maxMessages, maxMessages)
+                         : std::span<log_message const>(_log)};
+
+    i32 y {TERM_MAP_SIZE.Height + 1};
+
+    renderer.set_color(colors::White, colors::Black);
+    for (auto const& message : log) {
+        renderer.draw_cell({1, y++}, message.first); // TODO: check message length
+        if (message.second > 99) {
+            renderer.draw_cell(std::format(" (yes, again.)", message.second));
+        } else if (message.second > 1) {
+            renderer.draw_cell(std::format(" ({}x)", message.second));
+        }
+    }
+}
+
+void master_control::draw_mfd(renderer& renderer)
+{
+    i32 const x {TERM_MAP_SIZE.Width + 1};
+    i32       y {STATS_HEIGHT + 1};
+
+    switch (_mfdMode) {
+    case mfd_mode::Character: {
+        renderer.set_color(colors::White, colors::Black);
+        renderer.draw_cell({x, y++}, "Character (TAB)");
+        y++;
+
+        _player.draw_attributes(renderer, x, y);
+    } break;
+    case mfd_mode::Inventory: {
+        renderer.set_color(colors::White, colors::Black);
+        renderer.draw_cell({x, y++}, "Inventory (TAB)");
+        y++;
+
+        _player.draw_inventory(renderer, x, y);
+    } break;
+    case mfd_mode::Magic: {
+        renderer.set_color(colors::White, colors::Black);
+        renderer.draw_cell({x, y++}, "Magic (TAB)");
+        y++;
+
+        _player.draw_magic(renderer, x, y);
+    } break;
+    case mfd_mode::Monsters:
+        renderer.set_color(colors::White, colors::Black);
+        renderer.draw_cell({x, y++}, "Monsters (TAB)");
+        y++;
+
+        break;
+    }
+}
+
+void master_control::draw_detail(renderer& renderer)
+{
+    i32 x {TERM_MAP_SIZE.Width + 1};
+    i32 y {TERM_MAP_SIZE.Height + 1};
+
+    renderer.set_color(colors::White, colors::Black);
+    x = TERM_MAP_SIZE.Width + 24;
+    y = TERM_MAP_SIZE.Height + 1;
+    renderer.draw_cell({x, y++}, "7 8 9");
+    renderer.draw_cell({x, y++}, " \\|/ ");
+    renderer.draw_cell({x, y++}, "4-5-6");
+    renderer.draw_cell({x, y++}, " /|\\ ");
+    renderer.draw_cell({x, y++}, "1 2 3");
 }
 
 } // namespace Rogue

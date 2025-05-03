@@ -6,6 +6,8 @@
 #include "Dungeon.hpp"
 
 #include "../actors/Monster.hpp"
+#include "../actors/Player.hpp"
+#include "../ui/Renderer.hpp"
 #include "Layout.hpp"
 #include "Object.hpp"
 
@@ -59,7 +61,7 @@ dungeon::dungeon()
     _tiles[{18, 3}] = WALL0;
 }
 
-auto dungeon::is_line_of_sight(point_i start, point_i end) -> bool
+auto dungeon::is_line_of_sight(point_i start, point_i end) const -> bool
 {
     auto [x0, y0] {start};
     auto const [x1, y1] {end};
@@ -143,6 +145,106 @@ auto dungeon::monsters() const -> std::span<std::shared_ptr<monster> const>
 auto dungeon::lights() const -> std::span<std::shared_ptr<light_source> const>
 {
     return _lights;
+}
+
+void dungeon::draw(renderer& renderer, point_i center, player const& player)
+{
+    auto&      tiles {_tiles};
+    auto const range {player.light_range()};
+    auto const color {player.light_color()};
+
+    for (i32 y {0}; y < TERM_MAP_SIZE.Height; ++y) {
+        for (i32 x {0}; x < TERM_MAP_SIZE.Width; ++x) {
+            point_i const termPos {point_i {x, y}};
+            point_i const gridPos {term_to_grid(termPos, center)};
+            if (!tiles.contains(gridPos)) { continue; }
+
+            auto& tile {tiles[gridPos]};
+            auto [fg, bg] {lighting(tile, gridPos, player.position(), range, color)};
+            if (gridPos == center) {
+                renderer.set_color(colors::White, colors::Black);
+                renderer.draw_cell(termPos, "+");
+            } else if (tile.Seen || tile.InSight) {
+                renderer.set_color(fg, bg);
+                renderer.draw_cell(termPos, tile.Symbol);
+
+                // draw objects
+                auto const& objects {tile.Objects};
+                for (auto const& object : objects) {
+                    point_i const termPos {grid_to_term(gridPos, center)};
+                    auto const    symbol {object->symbol()};
+                    if (TERM_MAP_SIZE.contains(termPos) && !symbol.empty()) {
+                        auto const colors {tile.InSight ? object->colors() : SEEN_COLORS};
+                        renderer.set_color(colors.first, colors.second == colors::Transparent ? bg : colors.second);
+                        renderer.draw_cell(termPos, symbol);
+                    }
+                }
+            }
+        }
+    }
+}
+
+auto dungeon::lighting(tile& tile, point_i gridPos, point_i playerPos, f32 playerRange, color playerLightColor) const -> color_pair
+{
+    if (!is_line_of_sight(playerPos, gridPos)) {
+        tile.InSight = false;
+        return tile.Seen ? SEEN_COLORS
+                         : std::pair {colors::Black, colors::Black};
+    }
+
+    f32 lightFgR {0.f}, lightFgG {0.f}, lightFgB {0.f};
+    f32 lightBgR {0.f}, lightBgG {0.f}, lightBgB {0.f};
+    f32 totalLightFactor {0.f};
+
+    auto const accumulateLight {[&](color const& lightColor, f32 const factor) -> void {
+        lightFgR += (lightColor.R / 255.f) * factor;
+        lightFgG += (lightColor.G / 255.f) * factor;
+        lightFgB += (lightColor.B / 255.f) * factor;
+
+        lightBgR += (lightColor.R / 255.f) * factor;
+        lightBgG += (lightColor.G / 255.f) * factor;
+        lightBgB += (lightColor.B / 255.f) * factor;
+
+        totalLightFactor += factor;
+    }};
+
+    auto const falloff {[](f64 range, f64 distance) -> f32 {
+        if (distance == 0) { return 1.f; }
+        if (range == 0) { return 0.f; }
+
+        return static_cast<f32>(std::clamp((range * range) / (distance * distance) * ((range - distance) / range), 0., 1.));
+    }};
+
+    for (auto const& light : _lights) {
+        f64 const distance {euclidean_distance(light->Position, gridPos)};
+        f64 const range {light->Range};
+        if (distance > range) { continue; }
+
+        if (!is_line_of_sight(light->Position, gridPos)) { continue; }
+
+        f32 const factor {light->Falloff ? falloff(range, distance) : 1.0f};
+        accumulateLight(light->Color, factor * light->Intensity);
+    }
+
+    f64 const distance {euclidean_distance(playerPos, gridPos)};
+    if (distance <= playerRange) {
+        f32 const factor {falloff(playerRange, distance)};
+        accumulateLight(playerLightColor, factor);
+    }
+
+    if (totalLightFactor > 0.f) {
+        tile.Seen    = true;
+        tile.InSight = true;
+
+        totalLightFactor = std::max(1.0f, totalLightFactor);
+        auto const  apply {[&](u8 c, f32 light) -> u8 { return std::min(255.f, c * (light / totalLightFactor)); }};
+        color const fgColor {apply(tile.ForegroundColor.R, lightFgR), apply(tile.ForegroundColor.G, lightFgG), apply(tile.ForegroundColor.B, lightFgB)};
+        color const bgColor {apply(tile.BackgroundColor.R, lightBgR), apply(tile.BackgroundColor.G, lightBgG), apply(tile.BackgroundColor.B, lightBgB)};
+        return color_pair {fgColor, bgColor};
+    }
+
+    tile.InSight = false;
+    return std::pair {color::Lerp(colors::Black, colors::White, 0.15f), colors::Black};
 }
 
 }

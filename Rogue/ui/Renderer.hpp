@@ -12,34 +12,20 @@ namespace Rogue {
 
 class renderer {
 public:
-    struct context {
-        ui::terminal* Terminal {};
+    explicit renderer(ui::terminal& term);
 
-        dungeon* Dungeon {};
-        player*  Player {};
+    void begin();
+    auto current_cell() const -> point_i;
 
-        std::vector<log_message> const* Log {};
+    void set_color(color foreground, color background);
 
-        mode     Mode {};
-        mfd_mode MfdMode {};
+    void draw_box(rect_i const& rect);
 
-        point_i Center {};
-    };
-
-    void draw(context const& ctx);
+    void draw_cell(point_i pos, utf8_string_view str);
+    void draw_cell(utf8_string_view str);
 
 private:
-    void draw_layout(context const& ctx);
-
-    void draw_map(context const& ctx);
-    void draw_objects(context const& ctx, color bg, tile const& tile, point_i gridPos);
-    void draw_player(context const& ctx);
-
-    void draw_log(context const& ctx);
-    void draw_mfd(context const& ctx);
-    void draw_detail(context const& ctx);
-
-    auto lighting(context const& ctx, tile& tile, point_i gridPos, f32 range) const -> color_pair;
+    ui::terminal& _term;
 };
 
 }

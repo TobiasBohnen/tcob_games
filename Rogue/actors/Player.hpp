@@ -7,7 +7,6 @@
 
 #include "../Common.hpp"
 #include "Actor.hpp"
-#include "Profile.hpp"
 
 namespace Rogue {
 ////////////////////////////////////////////////////////////
@@ -16,35 +15,36 @@ class player : public actor {
 public:
     explicit player(master_control& parent);
 
-    signal<> EndTurn;
+    signal<> FinishedAction;
     signal<> FinishedPath;
-
-    point_i Position {};
 
     void update(milliseconds deltaTime);
     auto busy() const -> bool;
-
-    auto symbol() const -> string;
-    auto color() const -> tcob::color;
-    auto light_color() const -> tcob::color;
-
-    auto current_level() const -> i32;
-    auto current_profile() -> profile;
-
-    auto hp_max() const -> i32;
-    auto mp_max() const -> i32;
-    auto count_gold() const -> i32;
 
     auto try_pickup(std::shared_ptr<item> const& item) -> bool;
 
     void start_path(std::vector<point_i> const& path);
     auto try_move(point_i pos) -> bool;
 
+    auto light_color() const -> tcob::color;
+    auto light_range() const -> f32;
+
+    auto position() const -> point_i override;
+
+    void draw(renderer& renderer, point_i center, mode mode);
+    void draw_inventory(renderer& renderer, i32 x, i32 y);
+    void draw_attributes(renderer& renderer, i32 x, i32 y);
+    void draw_magic(renderer& renderer, i32 x, i32 y);
+
 private:
-    profile _profile;
+    auto symbol() const -> string override;
+    auto color() const -> tcob::color override;
+
+    auto count_gold() const -> i32;
 
     milliseconds         _animationTimer {};
     std::vector<point_i> _path;
+    point_i              _position;
 
     master_control& _parent;
 };

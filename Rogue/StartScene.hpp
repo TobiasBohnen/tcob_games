@@ -9,7 +9,6 @@
 #include "MasterControl.hpp"
 #include "ui/MainMenu.hpp"
 
-
 namespace Rogue {
 ////////////////////////////////////////////////////////////
 
@@ -29,8 +28,10 @@ protected:
     void on_key_down(input::keyboard::event const& ev) override;
 
 private:
-    std::shared_ptr<main_menu> _mainForm {};
-    action_queue               _actionQueue;
+    std::shared_ptr<main_menu> _mainForm;
+    std::shared_ptr<renderer>  _renderer;
+
+    action_queue _actionQueue;
 
     master_control _master;
 };
