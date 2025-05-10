@@ -121,10 +121,10 @@ void dungeon::add_object(std::shared_ptr<object> const& object)
     _tiles[object->Position].Objects.push_back(object);
 }
 
-void dungeon::remove_object(std::shared_ptr<object> const& object)
+void dungeon::remove_object(object const& object)
 {
-    helper::erase_first(_objects, [object](auto const& val) { return val == object; });
-    helper::erase_first(_tiles[object->Position].Objects, [object](auto const& val) { return val == object; });
+    helper::erase_first(_objects, [&object](auto const& val) { return val.get() == &object; });
+    helper::erase_first(_tiles[object.Position].Objects, [&object](auto const& val) { return val.get() == &object; });
 }
 
 auto dungeon::tiles() -> grid<tile>&

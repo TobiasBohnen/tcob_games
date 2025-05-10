@@ -10,7 +10,7 @@
 namespace Rogue {
 ////////////////////////////////////////////////////////////
 
-enum class tile_type {
+enum class tile_type : u8 {
     Floor,
     Wall,
     Glass

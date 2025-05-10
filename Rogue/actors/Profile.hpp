@@ -10,21 +10,27 @@
 namespace Rogue {
 ////////////////////////////////////////////////////////////
 
+constexpr i32 MAGIC_MIN {0};
+constexpr i32 MAGIC_MAX {99};
+
 struct magic {
-    i32 Earth {1};
-    i32 Wind {2};
-    i32 Fire {3};
-    i32 Water {4};
-    i32 Life {5};
-    i32 Energy {6};
+    i32 Earth {MAGIC_MIN};
+    i32 Wind {MAGIC_MIN};
+    i32 Fire {MAGIC_MIN};
+    i32 Water {MAGIC_MIN};
+    i32 Life {MAGIC_MIN};
+    i32 Energy {MAGIC_MIN};
 };
 
+constexpr i32 ATTRI_MIN {1};
+constexpr i32 ATTRI_MAX {10};
+
 struct attributes {
-    i32 Strength {10};
-    i32 Intelligence {20};
-    i32 Vitality {5};
-    i32 Agility {3};
-    i32 Dexterity {9};
+    i32 Strength {ATTRI_MIN};
+    i32 Intelligence {ATTRI_MIN};
+    i32 Vitality {ATTRI_MIN};
+    i32 Agility {ATTRI_MIN};
+    i32 Dexterity {ATTRI_MIN};
 };
 
 ////////////////////////////////////////////////////////////
@@ -32,10 +38,8 @@ struct attributes {
 struct profile {
     string Name {"Tim"};
 
-    i32 HP {25};
-    i32 MP {25};
-
-    i32 XP {85};
+    i32 HP {0};
+    i32 MP {0};
 
     inventory Inventory;
 
@@ -43,11 +47,6 @@ struct profile {
 
     magic      Magic;
     attributes Attributes;
-
-    auto static constexpr xp_required_for(i32 level) -> i32
-    {
-        return XP_SCALE * (level - 1) * level;
-    }
 };
 
 }

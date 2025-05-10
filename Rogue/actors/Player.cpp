@@ -5,6 +5,8 @@
 
 #include "Player.hpp"
 
+#include <utility>
+
 #include "../MasterControl.hpp"
 #include "../dungeon/Dungeon.hpp"
 #include "../dungeon/Object.hpp"
@@ -13,9 +15,14 @@
 namespace Rogue {
 ////////////////////////////////////////////////////////////
 
-player::player(master_control& parent)
-    : _parent {parent}
+player::player(master_control& parent, profile profile)
+    : actor {parent, std::move(profile)}
 {
+}
+
+void player::start_turn()
+{
+    do_search();
 }
 
 void player::update(milliseconds deltaTime)
@@ -53,13 +60,30 @@ void player::start_path(std::vector<point_i> const& path)
 
 auto player::try_move(point_i pos) -> bool
 {
-    if (_parent.current_dungeon().is_passable(pos)) {
+    if (parent().current_dungeon().is_passable(pos)) {
         _position = pos;
         FinishedAction();
         return true;
     }
 
     return false;
+}
+
+void player::search()
+{
+    do_search();
+    FinishedAction();
+}
+
+void player::do_search()
+{
+    auto& tiles {parent().current_dungeon().tiles()};
+    for (auto& tile : tiles) {
+        if (!tile.InSight) { continue; }
+        for (auto& obj : tile.Objects) {
+            Log(obj->on_search(*this));
+        }
+    }
 }
 
 auto player::try_pickup(std::shared_ptr<item> const& item) -> bool
@@ -70,7 +94,7 @@ auto player::try_pickup(std::shared_ptr<item> const& item) -> bool
 
     bool const stackable {item->can_stack()};
     bool       added {false};
-    auto&      stats {current_profile()};
+    auto&      stats {get_profile()};
 
     if (stackable) {
         for (auto& [inv_item, count] : stats.Inventory) {
@@ -86,8 +110,8 @@ auto player::try_pickup(std::shared_ptr<item> const& item) -> bool
         stats.Inventory.emplace_back(item, item->amount());
     }
 
-    if (!message.empty()) {
-        _parent.log(message);
+    if (!message.Message.empty()) {
+        Log(message);
     }
 
     FinishedAction();
@@ -101,7 +125,7 @@ auto player::symbol() const -> string
 
 auto player::color() const -> tcob::color
 {
-    f32 const ratio {static_cast<f32>(current_profile().HP) / static_cast<f32>(hp_max())};
+    f32 const ratio {static_cast<f32>(get_profile().HP) / static_cast<f32>(hp_max())};
     return color::Lerp(colors::Red, colors::White, ratio);
 }
 
@@ -112,7 +136,7 @@ auto player::light_color() const -> tcob::color
 
 auto player::light_range() const -> f32
 {
-    return current_profile().VisualRange;
+    return get_profile().VisualRange;
 }
 
 auto player::position() const -> point_i
@@ -123,7 +147,7 @@ auto player::position() const -> point_i
 auto player::count_gold() const -> i32
 {
     i32 retValue {0};
-    for (auto const& [item, count] : current_profile().Inventory) {
+    for (auto const& [item, count] : get_profile().Inventory) {
         if (item->type() == item_type::Gold) {
             retValue += count;
         }
@@ -143,11 +167,10 @@ void player::draw(renderer& renderer, point_i center, mode mode)
     }
 
     // stats
-    auto const& stats {current_profile()};
-    i32 const   lvl {level()};
+    auto const& stats {get_profile()};
     i32 const   x {TERM_MAP_SIZE.Width + 1};
     renderer.set_color(colors::White, colors::Black);
-    renderer.draw_cell({x, y++}, std::format("{} [Lvl {}]", stats.Name, lvl));
+    renderer.draw_cell({x, y++}, std::format("{}", stats.Name));
     renderer.draw_cell({x, y++}, std::format("{}", _position));
 
     y++;
@@ -171,16 +194,6 @@ void player::draw(renderer& renderer, point_i center, mode mode)
     renderer.set_color(colors::RoyalBlue, colors::Black);
     drawBar(stats.MP, mp_max());
 
-    y++;
-
-    // XP
-    renderer.set_color(colors::Silver, colors::Black);
-    renderer.draw_cell({x, y++}, "XP: ");
-    renderer.set_color(colors::DarkGray, colors::Black);
-
-    i32 const xpLevel {profile::xp_required_for(lvl)};
-    drawBar(stats.XP - xpLevel, profile::xp_required_for(lvl + 1) - xpLevel);
-
     y += 2;
 
     switch (mode) {
@@ -192,9 +205,9 @@ void player::draw(renderer& renderer, point_i center, mode mode)
         renderer.set_color(colors::Silver, colors::Blue);
         renderer.draw_cell({x, y++}, "Look");
     } break;
-    case mode::Interact: {
+    case mode::Use: {
         renderer.set_color(colors::GhostWhite, colors::Blue);
-        renderer.draw_cell({x, y++}, "Interact");
+        renderer.draw_cell({x, y++}, "Use");
     } break;
     }
 }
@@ -210,7 +223,7 @@ void player::draw_inventory(renderer& renderer, i32 x, i32 y)
 
 void player::draw_attributes(renderer& renderer, i32 x, i32 y)
 {
-    auto const& stats {current_profile()};
+    auto const& stats {get_profile()};
 
     renderer.set_color(colors::Silver, colors::Black);
     renderer.draw_cell({x, y++}, std::format("Strength:     {:02}", stats.Attributes.Strength));
@@ -218,11 +231,8 @@ void player::draw_attributes(renderer& renderer, i32 x, i32 y)
     renderer.draw_cell({x, y++}, std::format("Dexterity:    {:02}", stats.Attributes.Dexterity));
     renderer.draw_cell({x, y++}, std::format("Intelligence: {:02}", stats.Attributes.Intelligence));
     renderer.draw_cell({x, y++}, std::format("Vitality:     {:02}", stats.Attributes.Vitality));
-}
 
-void player::draw_magic(renderer& renderer, i32 x, i32 y)
-{
-    auto const& stats {current_profile()};
+    y += 2;
 
     auto drawMagicStat {[&](string const& label, tcob::color fg, i32 value) {
         renderer.set_color(colors::Silver, colors::Black);

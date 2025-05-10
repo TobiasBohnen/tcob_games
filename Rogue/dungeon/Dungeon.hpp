@@ -30,17 +30,17 @@ public:
     auto find_path(point_i start, point_i target) const -> std::vector<point_i>;
 
     void add_object(std::shared_ptr<object> const& object);
-    void remove_object(std::shared_ptr<object> const& object);
+    void remove_object(object const& object);
 
     void draw(renderer& renderer, point_i center, player const& player);
 
     auto tiles() -> grid<tile>&;
 
+private:
     auto objects() const -> std::span<std::shared_ptr<object> const>;
     auto monsters() const -> std::span<std::shared_ptr<monster> const>;
     auto lights() const -> std::span<std::shared_ptr<light_source> const>;
 
-private:
     auto lighting(tile& tile, point_i gridPos, point_i playerPos, f32 playerRange, color playerLightColor) const -> color_pair;
 
     grid<tile> _tiles;

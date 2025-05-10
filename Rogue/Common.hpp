@@ -56,15 +56,15 @@ enum class action : u8 {
     Center,
 
     LookMode,
-    InteractMode,
+    UseMode,
 
     MFDModeChange,
     MFDModeCharacter,
     MFDModeInventory,
-    MFDModeMagic,
     MFDModeMonsters,
 
-    PickUp,
+    Get,
+    Search,
     Execute
 };
 
@@ -73,22 +73,26 @@ enum class action : u8 {
 enum class mfd_mode : u8 {
     Character,
     Inventory,
-    Magic,
     Monsters
 };
-constexpr i32 MFD_COUNT {4};
+constexpr i32 MFD_COUNT {3};
 
 ////////////////////////////////////////////////////////////
 
 enum class mode : u8 {
     Move,
     Look,
-    Interact,
+    Use,
 };
 
 ////////////////////////////////////////////////////////////
 
-using log_message  = std::pair<string, i32>;
+struct log_message {
+    string Message;
+};
+
+////////////////////////////////////////////////////////////
+
 using color_pair   = std::pair<color, color>;
 using action_queue = std::queue<action>;
 using inventory    = std::vector<std::pair<std::shared_ptr<item>, i32>>;
@@ -103,10 +107,6 @@ constexpr color COLOR_LIFE {colors::Green};
 constexpr color COLOR_ENERGY {colors::WhiteSmoke};
 
 constexpr color_pair SEEN_COLORS {color::Lerp(colors::Black, colors::White, 0.15f), colors::Black};
-
-constexpr i32 XP_SCALE {50};
-constexpr i32 VIT_SCALE {10};
-constexpr i32 INT_SCALE {15};
 
 auto inline term_to_grid(point_i pos, point_i center) -> point_i
 {

@@ -13,11 +13,11 @@ namespace Rogue {
 
 class player : public actor {
 public:
-    explicit player(master_control& parent);
+    player(master_control& parent, profile profile);
 
-    signal<> FinishedAction;
     signal<> FinishedPath;
 
+    void start_turn();
     void update(milliseconds deltaTime);
     auto busy() const -> bool;
 
@@ -25,6 +25,8 @@ public:
 
     void start_path(std::vector<point_i> const& path);
     auto try_move(point_i pos) -> bool;
+
+    void search();
 
     auto light_color() const -> tcob::color;
     auto light_range() const -> f32;
@@ -34,9 +36,10 @@ public:
     void draw(renderer& renderer, point_i center, mode mode);
     void draw_inventory(renderer& renderer, i32 x, i32 y);
     void draw_attributes(renderer& renderer, i32 x, i32 y);
-    void draw_magic(renderer& renderer, i32 x, i32 y);
 
 private:
+    void do_search();
+
     auto symbol() const -> string override;
     auto color() const -> tcob::color override;
 
@@ -45,8 +48,6 @@ private:
     milliseconds         _animationTimer {};
     std::vector<point_i> _path;
     point_i              _position;
-
-    master_control& _parent;
 };
 
 }

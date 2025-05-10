@@ -88,15 +88,16 @@ void start_scene::on_key_down(input::keyboard::event const& ev)
     case input::key_code::KP_5:     _actionQueue.push(action::Center); break;
 
     case input::key_code::l:        _actionQueue.push(action::LookMode); break;
-    case input::key_code::u:        _actionQueue.push(action::InteractMode); break;
-    case input::key_code::g:        _actionQueue.push(action::PickUp); break;
+    case input::key_code::u:        _actionQueue.push(action::UseMode); break;
+    case input::key_code::g:        _actionQueue.push(action::Get); break;
 
     case input::key_code::c:        _actionQueue.push(action::MFDModeCharacter); break;
     case input::key_code::i:        _actionQueue.push(action::MFDModeInventory); break;
-    case input::key_code::e:        _actionQueue.push(action::MFDModeMonsters); break;
-    case input::key_code::m:        _actionQueue.push(action::MFDModeMagic); break;
+    case input::key_code::m:        _actionQueue.push(action::MFDModeMonsters); break;
 
     case input::key_code::TAB:      _actionQueue.push(action::MFDModeChange); break;
+
+    case input::key_code::s:        _actionQueue.push(action::Search); break;
 
     default:                        break;
     }

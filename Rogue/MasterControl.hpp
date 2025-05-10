@@ -19,12 +19,15 @@ public:
     void draw(renderer& renderer);
     void update(milliseconds deltaTime, action_queue& queue);
 
-    auto current_dungeon() const -> dungeon const&;
+    auto current_dungeon() -> dungeon&;
 
-    void log(string const& message);
+    auto rand() -> f32;
 
 private:
+    void log(log_message const& message);
+
     void set_view_center(point_i pos);
+    void set_mfd_mode(mfd_mode mode);
 
     void mark_dirty();
 
@@ -32,9 +35,7 @@ private:
 
     void handle_action_queue(action_queue& queue);
 
-    void do_execute();
-
-    void do_pickup();
+    void do_get(point_i target);
     auto do_move(point_i target) -> bool;
     void do_look(point_i target);
     auto do_interact(point_i target, bool failMessage) -> bool;
@@ -46,18 +47,21 @@ private:
     std::vector<dungeon> _dungeons {};
     usize                _currentDungeon {0};
 
-    player  _player {*this};
+    std::unique_ptr<player> _player;
+
     point_i _viewCenter;
 
-    std::vector<log_message> _log;
+    using log_entry = std::pair<string, i32>;
+    std::vector<log_entry> _log;
 
-    mode _mode {mode::Move};
-
+    mode     _mode {mode::Move};
     mfd_mode _mfdMode {mfd_mode::Character};
 
     bool _redraw {true};
+    bool _newTurn {true};
+    i32  _turn {0};
 
-    i32 _turn {0};
+    rng _rng;
 };
 
 }

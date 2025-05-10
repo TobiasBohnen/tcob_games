@@ -5,17 +5,58 @@
 
 #include "Actor.hpp"
 
+#include "../MasterControl.hpp"
+
 namespace Rogue {
 ////////////////////////////////////////////////////////////
 
-auto actor::current_profile() -> profile&
+actor::actor(master_control& parent, profile profile)
+    : _parent {parent}
+    , _profile {std::move(profile)}
 {
-    // TODO: add inventory, effects, etc.
+    _profile.HP = hp_max();
+    _profile.MP = mp_max();
+}
+
+auto actor::strength_check(f32 prob) const -> bool
+{
+    return check(_profile.Attributes.Strength, prob);
+}
+
+auto actor::intelligence_check(f32 prob) const -> bool
+{
+    return check(_profile.Attributes.Intelligence, prob);
+}
+
+auto actor::vitality_check(f32 prob) const -> bool
+{
+    return check(_profile.Attributes.Vitality, prob);
+}
+
+auto actor::agility_check(f32 prob) const -> bool
+{
+    return check(_profile.Attributes.Agility, prob);
+}
+
+auto actor::dexterity_check(f32 prob) const -> bool
+{
+    return check(_profile.Attributes.Dexterity, prob);
+}
+
+auto actor::check(i32 attr, f32 prob) const -> bool
+{
+    prob = std::clamp(prob, 0.0f, 1.0f);
+    return _parent.rand() < prob * (static_cast<f32>(attr) / 10.0f);
+}
+
+auto actor::get_profile() const -> profile const&
+{
     return _profile;
 }
 
-auto actor::current_profile() const -> profile const&
+auto actor::get_profile() -> profile&
 {
+    // TODO: add inventory, effects, etc.
     return _profile;
 }
 
@@ -30,20 +71,19 @@ auto actor::color() const -> tcob::color
     return color::Lerp(colors::Red, colors::White, ratio);
 }
 
-auto actor::level() const -> i32
-{
-    return static_cast<i32>((1.0f + std::sqrt(1.0f + (4.0f * (static_cast<f32>(_profile.XP) / XP_SCALE)))) * 0.5f);
-}
-
 auto actor::hp_max() const -> i32
 {
-    // Base 100 HP + 10 * Vitality per level
-    return 100 + ((level() - 1) * VIT_SCALE * _profile.Attributes.Vitality);
+    return _profile.Attributes.Vitality + _profile.Magic.Life;
 }
 
 auto actor::mp_max() const -> i32
 {
-    // Base 50 MP + 15 * Intelligence per level
-    return 50 + ((level() - 1) * INT_SCALE * _profile.Attributes.Intelligence);
+    return _profile.Attributes.Intelligence + _profile.Magic.Energy;
 }
+
+auto actor::parent() -> master_control&
+{
+    return _parent;
+}
+
 }

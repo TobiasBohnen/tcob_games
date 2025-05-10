@@ -22,9 +22,10 @@ public:
     auto virtual is_blocking() const -> bool { return false; }
 
     auto virtual can_interact(actor& actor) const -> bool = 0;
-    auto virtual interact(actor& actor) -> string         = 0;
+    auto virtual interact(actor& actor) -> log_message    = 0;
 
-    auto virtual on_enter(actor& actor) -> string = 0;
+    auto virtual on_enter(actor& actor) -> log_message { return {""}; }
+    auto virtual on_search(actor& actor) -> log_message { return {""}; }
 };
 
 ////////////////////////////////////////////////////////////
@@ -32,7 +33,7 @@ public:
 
 class door : public object {
 public:
-    explicit door(bool open);
+    door(bool visible, bool open);
 
     auto symbol() const -> string override;
     auto colors() const -> color_pair override;
@@ -40,11 +41,13 @@ public:
     auto is_blocking() const -> bool override;
 
     auto can_interact(actor& actor) const -> bool override;
-    auto interact(actor& actor) -> string override;
+    auto interact(actor& actor) -> log_message override;
 
-    auto on_enter(actor& actor) -> string override;
+    auto on_enter(actor& actor) -> log_message override;
+    auto on_search(actor& actor) -> log_message override;
 
 private:
+    bool _visible;
     bool _open;
 };
 
@@ -61,9 +64,10 @@ public:
     auto colors() const -> color_pair override;
 
     auto can_interact(actor& actor) const -> bool override;
-    auto interact(actor& actor) -> string override;
+    auto interact(actor& actor) -> log_message override;
 
-    auto on_enter(actor& actor) -> string override;
+    auto on_enter(actor& actor) -> log_message override;
+    auto on_search(actor& actor) -> log_message override;
 
 private:
     bool      _visible;
@@ -86,7 +90,7 @@ public:
     auto virtual amount() const -> i32 { return 1; }
 
     auto virtual can_pickup(actor& actor) const -> bool = 0;
-    auto virtual pickup(actor& actor) -> string         = 0;
+    auto virtual pickup(actor& actor) -> log_message    = 0;
 
     auto virtual can_stack() const -> bool { return false; }
     auto virtual type() const -> item_type = 0;
@@ -94,8 +98,7 @@ public:
 
 private:
     auto can_interact(actor& actor) const -> bool override { return false; }
-    auto interact(actor& actor) -> string override { return ""; }
-    auto on_enter(actor& actor) -> string override { return ""; }
+    auto interact(actor& actor) -> log_message override { return {""}; }
 };
 
 ////////////////////////////////////////////////////////////
@@ -108,7 +111,7 @@ public:
     auto colors() const -> color_pair override;
 
     auto can_pickup(actor& actor) const -> bool override;
-    auto pickup(actor& actor) -> string override;
+    auto pickup(actor& actor) -> log_message override;
 
     auto can_stack() const -> bool override;
     auto type() const -> item_type override;
@@ -169,7 +172,7 @@ public:
     auto colors() const -> color_pair override;
 
     auto can_pickup(actor& actor) const -> bool override;
-    auto pickup(actor& actor) -> string override;
+    auto pickup(actor& actor) -> log_message override;
 
     auto type() const -> item_type override;
     auto name() const -> string override;
@@ -185,7 +188,7 @@ public:
     auto colors() const -> color_pair override;
 
     auto can_pickup(actor& actor) const -> bool override;
-    auto pickup(actor& actor) -> string override;
+    auto pickup(actor& actor) -> log_message override;
 
     auto type() const -> item_type override;
     auto name() const -> string override;
@@ -201,7 +204,7 @@ public:
     auto colors() const -> color_pair override;
 
     auto can_pickup(actor& actor) const -> bool override;
-    auto pickup(actor& actor) -> string override;
+    auto pickup(actor& actor) -> log_message override;
 
     auto type() const -> item_type override;
     auto name() const -> string override;

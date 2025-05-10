@@ -6,45 +6,68 @@
 #include "Object.hpp"
 
 #include "../actors/Actor.hpp"
+#include "Tile.hpp"
 
 namespace Rogue {
 
 ////////////////////////////////////////////////////////////
 
-door::door(bool open)
-    : _open {open}
+door::door(bool visible, bool open)
+    : _visible {visible}
+    , _open {open}
 {
 }
 
 auto door::symbol() const -> string
 {
+    if (!_visible) { return WALL.Symbol; }
     return _open ? "'" : "+";
 }
 
 auto door::colors() const -> color_pair
 {
+    if (!_visible) { return {WALL.ForegroundColor, WALL_COLORS[0]}; }
     return {colors::Sienna, colors::Black};
 }
 
 auto door::is_blocking() const -> bool
 {
-    return !_open;
+    if (!_visible) { return true; }
+    if (!_open) { return true; }
+    return false;
 }
 
 auto door::can_interact(actor& actor) const -> bool
 {
-    return true;
+    return _visible;
 }
 
-auto door::interact(actor& actor) -> string
+auto door::interact(actor& actor) -> log_message
 {
-    _open = !_open;
-    return _open ? "you opened the door" : "you closed the door";
+    if (can_interact(actor)) {
+        _open = !_open;
+        return _open ? log_message {"you opened the door"} : log_message {"you closed the door"};
+    }
+
+    return {};
 }
 
-auto door::on_enter(actor& actor) -> string
+auto door::on_enter(actor& actor) -> log_message
 {
-    return !_open ? interact(actor) : "";
+    if (!_visible) { return {}; }
+    return !_open ? interact(actor) : log_message {};
+}
+
+auto door::on_search(actor& actor) -> log_message
+{
+    if (!_visible) {
+        if (actor.intelligence_check(0.5f)) {
+            _visible = true;
+            return {"discovered a door"};
+        }
+    }
+
+    return {};
 }
 
 ////////////////////////////////////////////////////////////
@@ -70,24 +93,36 @@ auto trap::can_interact(actor& actor) const -> bool
     return _visible;
 }
 
-auto trap::interact(actor& actor) -> string
+auto trap::interact(actor& actor) -> log_message
 {
-    if (_visible) {
+    if (can_interact(actor)) {
         _armed = !_armed;
-        return _armed ? "trap armed" : "trap disarmed";
+        return _armed ? log_message {"trap armed"} : log_message {"trap disarmed"};
     }
 
-    return "";
+    return {};
 }
 
-auto trap::on_enter(actor& actor) -> string
+auto trap::on_enter(actor& actor) -> log_message
 {
     if (_armed) {
         _visible = true;
-        return "stepped on trap";
+        return {"stepped on trap"};
     }
 
-    return "";
+    return {};
+}
+
+auto trap::on_search(actor& actor) -> log_message
+{
+    if (!_visible) {
+        if (actor.intelligence_check(0.05f)) {
+            _visible = true;
+            return {"discovered a trap"};
+        }
+    }
+
+    return {};
 }
 
 ////////////////////////////////////////////////////////////
@@ -112,9 +147,9 @@ auto gold::can_pickup(actor& actor) const -> bool
     return true;
 }
 
-auto gold::pickup(actor& actor) -> string
+auto gold::pickup(actor& actor) -> log_message
 {
-    return std::format("you picked up {} gold coins", _amount);
+    return {std::format("you picked up {} gold coins", _amount)};
 }
 
 auto gold::can_stack() const -> bool
@@ -158,9 +193,9 @@ auto wand::can_pickup(actor& actor) const -> bool
     return true; // TODO
 }
 
-auto wand::pickup(actor& actor) -> string
+auto wand::pickup(actor& actor) -> log_message
 {
-    return std::format("you picked up a wand");
+    return {std::format("you picked up a wand")};
 }
 
 auto wand::type() const -> item_type
@@ -194,9 +229,9 @@ auto rod::can_pickup(actor& actor) const -> bool
     return true; // TODO
 }
 
-auto rod::pickup(actor& actor) -> string
+auto rod::pickup(actor& actor) -> log_message
 {
-    return std::format("you picked up a rod");
+    return {std::format("you picked up a rod")};
 }
 
 auto rod::type() const -> item_type
@@ -230,9 +265,9 @@ auto staff::can_pickup(actor& actor) const -> bool
     return true; // TODO
 }
 
-auto staff::pickup(actor& actor) -> string
+auto staff::pickup(actor& actor) -> log_message
 {
-    return std::format("you picked up a staff");
+    return {std::format("you picked up a staff")};
 }
 
 auto staff::type() const -> item_type

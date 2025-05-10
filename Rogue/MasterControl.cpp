@@ -40,16 +40,33 @@ auto static get_target(action action, point_i pos) -> std::optional<point_i>
 master_control::master_control()
 {
     // TODO
+
+    random::dice<6> magicDice;
+    random::dice<5> attrDice;
+    profile         profile;
+    profile.Magic.Earth             = magicDice.roll_n_sum(3);
+    profile.Magic.Wind              = magicDice.roll_n_sum(3);
+    profile.Magic.Fire              = magicDice.roll_n_sum(3);
+    profile.Magic.Water             = magicDice.roll_n_sum(3);
+    profile.Magic.Life              = magicDice.roll_n_sum(3);
+    profile.Magic.Energy            = magicDice.roll_n_sum(3);
+    profile.Attributes.Strength     = std::clamp(attrDice.roll_n_sum(2), 1, 10);
+    profile.Attributes.Intelligence = std::clamp(attrDice.roll_n_sum(2), 1, 10);
+    profile.Attributes.Vitality     = std::clamp(attrDice.roll_n_sum(2), 1, 10);
+    profile.Attributes.Agility      = std::clamp(attrDice.roll_n_sum(2), 1, 10);
+    profile.Attributes.Dexterity    = std::clamp(attrDice.roll_n_sum(2), 1, 10);
+    _player                         = std::make_unique<player>(*this, profile);
+
     auto&       dungeon {_dungeons.emplace_back()};
     auto const& tiles {_dungeons[0].tiles()};
     for (i32 i {0}; i < tiles.count(); ++i) {
         if (tiles[i].is_passable()) {
-            _player.try_move({i % tiles.width(), i / tiles.width()});
+            _player->try_move({i % tiles.width(), i / tiles.width()});
             break;
         }
     }
 
-    auto doorObj {std::make_shared<door>(false)};
+    auto doorObj {std::make_shared<door>(false, false)};
     doorObj->Position = {12, 9};
     dungeon.add_object(doorObj);
 
@@ -65,13 +82,14 @@ master_control::master_control()
     trapObj1->Position = {15, 11};
     dungeon.add_object(trapObj1);
 
-    set_view_center(_player.position());
+    set_view_center(_player->position());
 
-    _player.FinishedAction.connect([this]() { end_turn(); });
-    _player.FinishedPath.connect([this]() {
+    _player->FinishedAction.connect([this]() { end_turn(); });
+    _player->FinishedPath.connect([this]() {
         _mode = mode::Move;
         mark_dirty();
     });
+    _player->Log.connect([this](auto const& message) { log(message); });
 }
 
 constexpr i32 STATS_HEIGHT {10};
@@ -92,8 +110,8 @@ void master_control::draw(renderer& renderer)
     // Log
     renderer.draw_box({0, TERM_MAP_SIZE.Height, TERM_MAP_SIZE.Width - 1, TERM_SIZE.Height - TERM_MAP_SIZE.Height - 1});
 
-    _dungeons[_currentDungeon].draw(renderer, _viewCenter, _player);
-    _player.draw(renderer, _viewCenter, _mode);
+    _dungeons[_currentDungeon].draw(renderer, _viewCenter, *_player);
+    _player->draw(renderer, _viewCenter, _mode);
 
     draw_log(renderer);
     draw_mfd(renderer);
@@ -102,14 +120,19 @@ void master_control::draw(renderer& renderer)
 
 void master_control::update(milliseconds deltaTime, action_queue& queue)
 {
-    if (!_player.busy()) {
+    if (_newTurn) {
+        _player->start_turn();
+        _newTurn = false;
+    }
+
+    if (!_player->busy()) {
         handle_action_queue(queue);
     }
 
-    _player.update(deltaTime);
+    _player->update(deltaTime);
 }
 
-auto master_control::current_dungeon() const -> dungeon const&
+auto master_control::current_dungeon() -> dungeon&
 {
     return _dungeons[_currentDungeon];
 }
@@ -117,10 +140,11 @@ auto master_control::current_dungeon() const -> dungeon const&
 void master_control::end_turn()
 {
     if (_mode == mode::Move) {
-        set_view_center(_player.position());
+        set_view_center(_player->position());
     }
     mark_dirty();
     ++_turn;
+    _newTurn = true;
 }
 
 void master_control::set_view_center(point_i pos)
@@ -131,21 +155,34 @@ void master_control::set_view_center(point_i pos)
     }
 }
 
+void master_control::set_mfd_mode(mfd_mode mode)
+{
+    if (mode != _mfdMode) {
+        _mfdMode = mode;
+        mark_dirty();
+    }
+}
+
 void master_control::mark_dirty()
 {
     _redraw = true;
 }
 
-void master_control::log(string const& message)
+void master_control::log(log_message const& message)
 {
-    if (message.empty()) { return; }
+    if (message.Message.empty()) { return; }
 
-    if (!_log.empty() && _log.back().first == message) {
+    if (!_log.empty() && _log.back().first == message.Message) {
         _log.back().second++;
     } else {
-        _log.emplace_back(message, 1);
+        _log.emplace_back(message.Message, 1);
     }
     mark_dirty();
+}
+
+auto master_control::rand() -> f32
+{
+    return _rng(0.0f, 1.0f);
 }
 
 void master_control::handle_action_queue(action_queue& queue)
@@ -155,61 +192,46 @@ void master_control::handle_action_queue(action_queue& queue)
         queue.pop();
 
         switch (action) {
+
         case action::LookMode:
-            _mode = _mode == mode::Move ? mode::Look : mode::Move;
-            if (_mode == mode::Move) {
-                set_view_center(_player.position());
-            }
+            _mode = _mode == mode::Look ? mode::Move : mode::Look;
+            if (_mode != mode::Look) { set_view_center(_player->position()); }
             mark_dirty();
             break;
-        case action::InteractMode:
-            _mode = _mode == mode::Move ? mode::Interact : mode::Move;
+        case action::UseMode:
+            _mode = _mode == mode::Use ? mode::Move : mode::Use;
             mark_dirty();
             break;
-        case action::Execute:
-            do_execute();
-            break;
+
         default:
-            if (_mode == mode::Look) {
-                if (auto target {get_target(action, _viewCenter)}) {
+            switch (_mode) {
+            case mode::Look:
+                if (action == action::Execute) {
+                    _player->start_path(current_dungeon().find_path(_player->position(), _viewCenter));
+                } else if (auto target {get_target(action, _viewCenter)}) {
                     do_look(*target);
                 }
-            } else if (_mode == mode::Interact) {
-                if (auto target {get_target(action, _player.position())}) {
+                break;
+            case mode::Use:
+                if (auto target {get_target(action, _player->position())}) {
                     do_interact(*target, true);
                 }
-            } else {
+                break;
+            case mode::Move:
+            default:
                 switch (action) {
-                case action::PickUp:
-                    do_pickup();
-                    break;
-                case action::Center:
-                    _mode = mode::Look;
-                    break;
-                case action::MFDModeChange:
-                    _mfdMode = static_cast<mfd_mode>((static_cast<i32>(_mfdMode) + 1) % MFD_COUNT);
-                    mark_dirty();
-                    break;
-                case action::MFDModeCharacter:
-                    _mfdMode = mfd_mode::Character;
-                    mark_dirty();
-                    break;
-                case action::MFDModeInventory:
-                    _mfdMode = mfd_mode::Inventory;
-                    mark_dirty();
-                    break;
-                case action::MFDModeMagic:
-                    _mfdMode = mfd_mode::Magic;
-                    mark_dirty();
-                    break;
-                case action::MFDModeMonsters:
-                    _mfdMode = mfd_mode::Monsters;
-                    mark_dirty();
-                    break;
+                case action::Get:              do_get(_player->position()); break;
+                case action::Search:           _player->search(); break;
+                case action::Center:           _mode = mode::Look; break;
+                case action::MFDModeChange:    set_mfd_mode(static_cast<mfd_mode>((static_cast<i32>(_mfdMode) + 1) % MFD_COUNT)); break;
+                case action::MFDModeCharacter: set_mfd_mode(mfd_mode::Character); break;
+                case action::MFDModeInventory: set_mfd_mode(mfd_mode::Inventory); break;
+                case action::MFDModeMonsters:  set_mfd_mode(mfd_mode::Monsters); break;
                 default:
-                    if (auto target {get_target(action, _player.position())}) {
+                    if (auto target {get_target(action, _player->position())}) {
                         do_move(*target);
                     }
+                    break;
                 }
             }
             break;
@@ -217,31 +239,27 @@ void master_control::handle_action_queue(action_queue& queue)
     }
 }
 
-void master_control::do_execute()
+void master_control::do_get(point_i target)
 {
-    if (_mode == mode::Look) {
-        _player.start_path(current_dungeon().find_path(_player.position(), _viewCenter));
-    }
-}
+    auto& tiles {_dungeons[_currentDungeon].tiles()};
+    if (!tiles.contains(target)) { return; }
 
-void master_control::do_pickup()
-{
-    std::vector<std::shared_ptr<object>> toRemove;
+    std::vector<std::shared_ptr<object>> toBeRemove;
 
     auto& dungeon {_dungeons[_currentDungeon]};
-    auto& tile {dungeon.tiles()[_player.position()]};
+    auto& tile {tiles[target]};
     for (auto& object : tile.Objects) {
         auto objItem {std::dynamic_pointer_cast<item>(object)};
-        if (objItem && _player.try_pickup(objItem)) {
-            toRemove.push_back(object);
+        if (objItem && _player->try_pickup(objItem)) {
+            toBeRemove.push_back(object);
         }
     }
-    if (!toRemove.empty()) { // TODO: choice
-        for (auto& object : toRemove) {
-            dungeon.remove_object(object);
+    if (!toBeRemove.empty()) { // TODO: choice
+        for (auto& object : toBeRemove) {
+            dungeon.remove_object(*object);
         }
     } else {
-        log("nothing here");
+        log({"nothing here"});
     }
 }
 
@@ -251,11 +269,11 @@ auto master_control::do_move(point_i target) -> bool
     if (!tiles.contains(target)) { return false; }
 
     for (auto& object : tiles[target].Objects) {
-        log(object->on_enter(_player));
+        log({object->on_enter(*_player)});
     }
 
-    if (!_player.try_move(target)) {
-        log("bonk");
+    if (!_player->try_move(target)) {
+        log({"bonk"});
         return false;
     }
     return true;
@@ -268,22 +286,22 @@ void master_control::do_look(point_i target)
 
 auto master_control::do_interact(point_i target, bool failMessage) -> bool
 {
-    string message {};
+    log_message message {};
 
     auto& tiles {_dungeons[_currentDungeon].tiles()};
 
     if (tiles.contains(target)) {
         for (auto& object : tiles[target].Objects) {
-            if (!object->can_interact(_player)) { continue; }
-            message = object->interact(_player);
+            if (!object->can_interact(*_player)) { continue; }
+            message = object->interact(*_player);
             break;
         }
     }
 
     _mode = mode::Move;
 
-    if (message.empty()) {
-        if (failMessage) { log("nothing here"); }
+    if (message.Message.empty()) {
+        if (failMessage) { log({"nothing here"}); }
         return false;
     }
 
@@ -296,8 +314,8 @@ void master_control::draw_log(renderer& renderer)
 
     isize const maxMessages {TERM_SIZE.Height - TERM_MAP_SIZE.Height - 2};
     auto const  log {_log.size() >= maxMessages
-                         ? std::span<log_message const>(_log).subspan(_log.size() - maxMessages, maxMessages)
-                         : std::span<log_message const>(_log)};
+                         ? std::span<log_entry const>(_log).subspan(_log.size() - maxMessages, maxMessages)
+                         : std::span<log_entry const>(_log)};
 
     i32 y {TERM_MAP_SIZE.Height + 1};
 
@@ -323,21 +341,14 @@ void master_control::draw_mfd(renderer& renderer)
         renderer.draw_cell({x, y++}, "Character (TAB)");
         y++;
 
-        _player.draw_attributes(renderer, x, y);
+        _player->draw_attributes(renderer, x, y);
     } break;
     case mfd_mode::Inventory: {
         renderer.set_color(colors::White, colors::Black);
         renderer.draw_cell({x, y++}, "Inventory (TAB)");
         y++;
 
-        _player.draw_inventory(renderer, x, y);
-    } break;
-    case mfd_mode::Magic: {
-        renderer.set_color(colors::White, colors::Black);
-        renderer.draw_cell({x, y++}, "Magic (TAB)");
-        y++;
-
-        _player.draw_magic(renderer, x, y);
+        _player->draw_inventory(renderer, x, y);
     } break;
     case mfd_mode::Monsters:
         renderer.set_color(colors::White, colors::Black);
