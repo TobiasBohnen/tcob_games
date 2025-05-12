@@ -11,7 +11,7 @@ target_sources(STC PRIVATE
 )
 
 set_target_properties(STC PROPERTIES
-    CXX_STANDARD 20
+    CXX_STANDARD 23
     CXX_STANDARD_REQUIRED TRUE
 )
 
