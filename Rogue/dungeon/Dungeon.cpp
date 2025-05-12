@@ -56,9 +56,9 @@ dungeon::dungeon()
     light1->Falloff  = false;
     _lights.push_back(light1);
 
-    _tiles[{18, 1}] = WALL0;
-    _tiles[{18, 2}] = GLASS;
-    _tiles[{18, 3}] = WALL0;
+    _tiles[18, 1] = WALL0;
+    _tiles[18, 2] = GLASS;
+    _tiles[18, 3] = WALL0;
 }
 
 auto dungeon::is_line_of_sight(point_i start, point_i end) const -> bool

@@ -5,6 +5,7 @@
 
 #include "Layout.hpp"
 
+#include <algorithm>
 #include <utility>
 
 // based on: https://github.com/AtTheMatinee/dungeon-generation/blob/master/dungeonGenerationAlgorithms.py
@@ -127,7 +128,7 @@ void turtle::draw_room(pen& t)
             if (x < 0) { x += _grid.width(); }
             if (y < 0) { y += _grid.height(); }
 
-            _grid[{x % _grid.width(), y % _grid.height()}] = FLOOR;
+            _grid[x % _grid.width(), y % _grid.height()] = FLOOR;
         }
     }
 }
@@ -400,7 +401,7 @@ void drunkards_walk::walk(rng& rng)
     if ((_drunkardX + dx > 0 && _drunkardX + dx < mapWidth - 1) && (_drunkardY + dy > 0 && _drunkardY + dy < mapHeight - 1)) {
         _drunkardX += dx;
         _drunkardY += dy;
-        auto& tile {_grid[{_drunkardX, _drunkardY}]};
+        auto& tile {_grid[_drunkardX, _drunkardY]};
         if (!tile.is_passable()) {
             tile = _floor;
             _filled += 1;
@@ -462,9 +463,9 @@ void cellular_automata::draw_caves()
 
         i32 const neighbors {get_adjacent_walls({tileX, tileY})};
         if (neighbors > _neighbors) {
-            _grid[{tileX, tileY}] = _wall;  // 1
+            _grid[tileX, tileY] = _wall;  // 1
         } else if (neighbors < _neighbors) {
-            _grid[{tileX, tileY}] = _floor; // 0
+            _grid[tileX, tileY] = _floor; // 0
         }
     }
 
@@ -545,8 +546,8 @@ void cellular_automata::create_tunnel(point_i point1, point_i point2, std::unord
         if (_grid.contains({drunkardX + dx, drunkardY + dy})) {
             drunkardX += dx;
             drunkardY += dy;
-            if (!_grid[{drunkardX, drunkardY}].is_passable()) {
-                _grid[{drunkardX, drunkardY}] = _floor;
+            if (!_grid[drunkardX, drunkardY].is_passable()) {
+                _grid[drunkardX, drunkardY] = _floor;
             }
         }
     }
@@ -570,10 +571,10 @@ auto cellular_automata::get_adjacent_walls(point_i p) -> i32
 auto cellular_automata::get_adjacent_walls_simple(point_i p) -> i32
 {
     i32 retValue {0};
-    if (!_grid[{p.X, p.Y - 1}].is_passable()) { ++retValue; }
-    if (!_grid[{p.X, p.Y + 1}].is_passable()) { ++retValue; }
-    if (!_grid[{p.X - 1, p.Y}].is_passable()) { ++retValue; }
-    if (!_grid[{p.X + 1, p.Y}].is_passable()) { ++retValue; }
+    if (!_grid[p.X, p.Y - 1].is_passable()) { ++retValue; }
+    if (!_grid[p.X, p.Y + 1].is_passable()) { ++retValue; }
+    if (!_grid[p.X - 1, p.Y].is_passable()) { ++retValue; }
+    if (!_grid[p.X + 1, p.Y].is_passable()) { ++retValue; }
     return retValue;
 }
 
@@ -906,7 +907,7 @@ void maze_with_rooms::connect_regions()
 
     for (i32 x {1}; x < mapWidth - 1; ++x) {
         for (i32 y {1}; y < mapHeight - 1; ++y) {
-            if (_grid[{x, y}].is_passable()) { continue; }
+            if (_grid[x, y].is_passable()) { continue; }
             std::unordered_set<i32> regions;
             for (auto const& direction : directions) {
                 point_i const newPos {x + direction.X, y + direction.Y};
@@ -916,7 +917,7 @@ void maze_with_rooms::connect_regions()
                 }
             }
             if (regions.size() < 2) { continue; }
-            connectorRegions[{x, y}] = regions;
+            connectorRegions[x, y] = regions;
         }
     }
 
@@ -924,7 +925,7 @@ void maze_with_rooms::connect_regions()
     std::unordered_set<point_i> connectors;
     for (i32 x {0}; x < mapWidth; ++x) {
         for (i32 y {0}; y < mapHeight; ++y) {
-            if (!connectorRegions[{x, y}].empty()) {
+            if (!connectorRegions[x, y].empty()) {
                 connectors.insert({x, y});
             }
         }
@@ -946,7 +947,7 @@ void maze_with_rooms::connect_regions()
         // make a list of the regions at (x,y)
         auto [x, y] {connector};
         std::vector<i32> regions;
-        for (i32 n : connectorRegions[{x, y}]) {
+        for (i32 n : connectorRegions[x, y]) {
             regions.push_back(merged[n]);
         }
 
@@ -959,7 +960,7 @@ void maze_with_rooms::connect_regions()
         connecting now.
         */
         for (i32 i {0}; i <= _currentRegion; ++i) {
-            if (std::find(sources.begin(), sources.end(), merged[i]) != sources.end()) {
+            if (std::ranges::find(sources, merged[i]) != sources.end()) {
                 merged[i] = dest;
             }
         }
@@ -1059,7 +1060,7 @@ auto maze_with_rooms::can_carve(point_i pos, point_i dir) -> bool
 
     // return True if the cell is a wall (1)
     // false if the cell is a floor (0)
-    return !_grid[{x, y}].is_passable();
+    return !_grid[x, y].is_passable();
 }
 
 void maze_with_rooms::start_region()
@@ -1178,8 +1179,8 @@ void messy_bsp_tree::draw_hallway(rect_i const& room1, rect_i const& room2)
         if ((drunkardX + dx > 0 && drunkardX + dx < _grid.width() - 1) && (drunkardY + dy > 0 && drunkardY + dy < _grid.height() - 1)) {
             drunkardX += dx;
             drunkardY += dy;
-            if (!_grid[{drunkardX, drunkardY}].is_passable()) {
-                _grid[{drunkardX, drunkardY}] = _floor;
+            if (!_grid[drunkardX, drunkardY].is_passable()) {
+                _grid[drunkardX, drunkardY] = _floor;
             }
         }
     }
@@ -1207,10 +1208,10 @@ void messy_bsp_tree::cleanup_map()
 auto messy_bsp_tree::get_adjacent_walls_simple(point_i p) -> i32
 {
     i32 retValue {0};
-    if (!_grid[{p.X, p.Y - 1}].is_passable()) { ++retValue; }
-    if (!_grid[{p.X, p.Y + 1}].is_passable()) { ++retValue; }
-    if (!_grid[{p.X - 1, p.Y}].is_passable()) { ++retValue; }
-    if (!_grid[{p.X + 1, p.Y}].is_passable()) { ++retValue; }
+    if (!_grid[p.X, p.Y - 1].is_passable()) { ++retValue; }
+    if (!_grid[p.X, p.Y + 1].is_passable()) { ++retValue; }
+    if (!_grid[p.X - 1, p.Y].is_passable()) { ++retValue; }
+    if (!_grid[p.X + 1, p.Y].is_passable()) { ++retValue; }
     return retValue;
 }
 
