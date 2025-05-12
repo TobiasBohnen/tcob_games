@@ -20,7 +20,7 @@ base_game::base_game(game_info info)
 {
 }
 
-void base_game::start(std::optional<data::config::object> const& loadObj, std::optional<u64> seed)
+void base_game::start(std::optional<data::object> const& loadObj, std::optional<u64> seed)
 {
     Status         = game_status::Initial;
     _state.Redeals = _info.Redeals;
@@ -79,9 +79,9 @@ void base_game::new_game()
     if (_pileMap.contains(pile_type::Waste)) { do_deal(); }
 }
 
-auto base_game::load(std::optional<data::config::object> const& loadObj) -> bool
+auto base_game::load(std::optional<data::object> const& loadObj) -> bool
 {
-    using namespace tcob::data::config;
+    using namespace tcob::data;
 
     if (!loadObj) { return false; }
 
@@ -122,9 +122,9 @@ auto base_game::load(std::optional<data::config::object> const& loadObj) -> bool
     return true;
 }
 
-void base_game::save(tcob::data::config::object& saveObj)
+void base_game::save(tcob::data::object& saveObj)
 {
-    using namespace tcob::data::config;
+    using namespace tcob::data;
 
     object obj;
 
@@ -500,7 +500,7 @@ auto base_game::info() const -> game_info const&
     return _info;
 }
 
-auto base_game::storage() -> data::config::object*
+auto base_game::storage() -> data::object*
 {
     return &_storage;
 }

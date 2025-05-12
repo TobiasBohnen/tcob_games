@@ -29,12 +29,12 @@ void card_table::start(std::shared_ptr<base_game> const& game, std::optional<u64
     start_game(game, std::nullopt, seed);
 }
 
-void card_table::resume(std::shared_ptr<base_game> const& game, data::config::object& savegame)
+void card_table::resume(std::shared_ptr<base_game> const& game, data::object& savegame)
 {
     start_game(game, savegame, std::nullopt);
 }
 
-void card_table::start_game(std::shared_ptr<base_game> const& game, std::optional<data::config::object> const& savegame, std::optional<u64> seed)
+void card_table::start_game(std::shared_ptr<base_game> const& game, std::optional<data::object> const& savegame, std::optional<u64> seed)
 {
     _currentGame = game;
 

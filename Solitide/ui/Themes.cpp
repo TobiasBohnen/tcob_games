@@ -169,7 +169,7 @@ void color_theme::apply(std::shared_ptr<nav_arrows_style> const& style) const
 void load_themes(std::map<std::string, color_themes>& themeMap)
 {
     themeMap.clear();
-    using namespace tcob::data::config;
+    using namespace tcob::data;
 
     object themes {};
     if (themes.load("themes.json") != load_status::Ok) { return; }

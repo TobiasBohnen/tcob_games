@@ -33,10 +33,10 @@ public:
 
     auto piles() const -> std::unordered_map<pile_type, std::vector<pile*>> const&;
     auto rng() -> game_rng&;
-    auto storage() -> data::config::object*;
+    auto storage() -> data::object*;
 
-    void start(std::optional<data::config::object> const& loadObj, std::optional<u64> seed);
-    void save(data::config::object& saveObj);
+    void start(std::optional<data::object> const& loadObj, std::optional<u64> seed);
+    void save(data::object& saveObj);
 
     void undo();
     auto can_undo() const -> bool;
@@ -80,7 +80,7 @@ private:
     void calc_hints();
 
     void new_game();
-    auto load(std::optional<data::config::object> const& loadObj) -> bool;
+    auto load(std::optional<data::object> const& loadObj) -> bool;
 
     void init();
     void refresh();
@@ -94,9 +94,9 @@ private:
     game_state _state;
     game_rng   _rng;
 
-    data::config::object             _saveObj;
-    std::stack<data::config::object> _undoStack;
-    data::config::object             _storage;
+    data::object             _saveObj;
+    std::stack<data::object> _undoStack;
+    data::object             _storage;
 };
 
 ////////////////////////////////////////////////////////////

@@ -52,7 +52,7 @@ private:
     void update_game_ui(std::string const& name) const;
     void update_recent(std::string const& name);
 
-    auto generate_rule(std::string const& name) const -> data::config::object;
+    auto generate_rule(std::string const& name) const -> data::object;
 
     void load_scripts();
 
@@ -68,8 +68,8 @@ private:
     std::shared_ptr<form_controls> _formControls {};
     std::shared_ptr<form_menu>     _formMenu {};
 
-    data::config::object _saveGame;
-    data::config::object _currentRules;
+    data::object _saveGame;
+    data::object _currentRules;
 
     database _db;
 

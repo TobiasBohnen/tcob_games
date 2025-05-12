@@ -58,8 +58,8 @@ auto card_set::get_material() const -> assets::asset_ptr<gfx::material>
 
 auto card_set::load() const -> bool
 {
-    std::string const    folder {get_folder()};
-    data::config::object json;
+    std::string const folder {get_folder()};
+    data::object      json;
     json.load(folder + "cardset.json");
 
     auto files {io::enumerate(folder, {"*card*.png"}, false)};
@@ -198,7 +198,7 @@ void card_set::save_textures(assets::asset_ptr<gfx::texture> const& canvasTex, s
     io::create_folder(folder);
     u32 level {0};
 
-    data::config::object cardsetObj;
+    data::object cardsetObj;
     for (auto const& [k, v] : regions) {
         if (k == "default") { continue; }
 
@@ -427,7 +427,7 @@ void gen_cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, ran
 
         case rank::Jack:
         case rank::Queen:
-        case rank::King: {
+        case rank::King:  {
             set_suit_color(canvas, s);
             canvas.set_font(fonts.LargeFont);
             canvas.draw_text(pad_rect(rect), get_rank_symbol(r));

@@ -371,17 +371,17 @@ void form_menu::create_game_details(dock_layout& panelLayout)
 
         auto accRules {tabPanelLayout.create_widget<accordion>({1, 7, 38, 22}, "gvRules")};
 
-        _sources->SelectedRules.Changed.connect([rulesAcc = accRules.get()](data::config::object const& piles) {
+        _sources->SelectedRules.Changed.connect([rulesAcc = accRules.get()](data::object const& piles) {
             rulesAcc->clear_sections();
 
             for (auto const& pile : piles) {
                 auto const& name {pile.first};
                 auto        pilePanel {rulesAcc->create_section<panel>(name)};
-                auto const& pileObj {pile.second.as<data::config::object>()};
+                auto const& pileObj {pile.second.as<data::object>()};
                 //    auto const  count {pileObj["count"].as<std::string>()};
-                auto const& rulesArr {pileObj["rules"].as<data::config::array>()};
+                auto const& rulesArr {pileObj["rules"].as<data::array>()};
 
-                auto createRule {[&](grid_layout& layout, data::config::object const& rule) {
+                auto createRule {[&](grid_layout& layout, data::object const& rule) {
                     auto const create {[&](rect_i const& rect, std::string const& text) {
                         auto l {layout.create_widget<label>(rect, "")};
                         l->Class = "label-margin";
@@ -399,14 +399,14 @@ void form_menu::create_game_details(dock_layout& panelLayout)
 
                 if (rulesArr.size() == 1) {
                     auto& pilePanelLayout {pilePanel->create_layout<grid_layout>(size_i {30, 25})};
-                    createRule(pilePanelLayout, rulesArr[0].as<data::config::object>());
+                    createRule(pilePanelLayout, rulesArr[0].as<data::object>());
                 } else {
                     auto& pilePanelLayout {pilePanel->create_layout<dock_layout>()};
                     auto  tabRules {pilePanelLayout.create_widget<tab_container>(dock_style::Fill, "")};
                     tabRules->Class          = "tab_container_small";
                     tabRules->MaxTabsPerLine = 5;
                     for (auto const& rule : rulesArr) {
-                        auto const& ruleObj {rule.as<data::config::object>()};
+                        auto const& ruleObj {rule.as<data::object>()};
                         auto        panelRule {tabRules->create_tab<panel>(set_to_string(ruleObj["piles"].as<std::set<i32>>()))};
                         auto&       panelRuleLayout {panelRule->create_layout<grid_layout>(size_i {30, 25})};
                         createRule(panelRuleLayout, ruleObj);

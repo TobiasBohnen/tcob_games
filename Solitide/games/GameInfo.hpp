@@ -176,9 +176,9 @@ struct menu_sources {
     game_map Games;
     signal<> GameAdded; // wizard
 
-    prop<std::string>          SelectedGame;
-    prop<game_history>         SelectedHistory;
-    prop<data::config::object> SelectedRules;
+    prop<std::string>  SelectedGame;
+    prop<game_history> SelectedHistory;
+    prop<data::object> SelectedRules;
 
     theme_map    Themes;
     card_set_map CardSets;

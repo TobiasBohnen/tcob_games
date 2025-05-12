@@ -32,7 +32,7 @@ public:
     prop<rect_f>        Bounds;
 
     void start(std::shared_ptr<base_game> const& game, std::optional<u64> seed);
-    void resume(std::shared_ptr<base_game> const& game, data::config::object& savegame);
+    void resume(std::shared_ptr<base_game> const& game, data::object& savegame);
 
     auto parent() const -> base_game*;
 
@@ -62,7 +62,7 @@ private:
 
     void move_camera(rect_f const& cardBounds);
 
-    void start_game(std::shared_ptr<base_game> const& game, std::optional<data::config::object> const& savegame, std::optional<u64> seed);
+    void start_game(std::shared_ptr<base_game> const& game, std::optional<data::object> const& savegame, std::optional<u64> seed);
 
     void drag_cards(input::mouse::motion_event const& ev);
     auto get_hover_color(pile* pile, isize idx) const -> color;

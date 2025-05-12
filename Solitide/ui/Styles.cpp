@@ -26,7 +26,7 @@ static auto parse_unit_value(tcob::utf8_string_view input) -> std::pair<std::str
     return std::make_pair(value, unit);
 }
 
-auto static get_length_values(tcob::data::config::cfg_value const& config) -> std::vector<tcob::ui::length>
+auto static get_length_values(tcob::data::cfg_value const& config) -> std::vector<tcob::ui::length>
 {
     using namespace tcob;
     std::vector<ui::length> l;
@@ -47,7 +47,7 @@ auto static get_length_values(tcob::data::config::cfg_value const& config) -> st
     return l;
 }
 
-namespace tcob::data::config {
+namespace tcob::data {
 template <>
 struct converter<ui::thickness> {
     auto static IsType(cfg_value const& config) -> bool
@@ -150,7 +150,7 @@ struct converter<ui::ui_paint> {
 
 }
 
-using namespace tcob::data::config;
+using namespace tcob::data;
 
 namespace solitaire {
 
@@ -268,7 +268,7 @@ void styles::parse(object const& obj, drop_down_list::style* style)
     if (object el; obj.try_get(el, "v_scroll_bar")) { parse_element(el, &style->VScrollBar); }
 }
 
-void styles::parse(data::config::object const& obj, grid_view::style* style)
+void styles::parse(data::object const& obj, grid_view::style* style)
 {
     parse_widget_style(obj, style);
     if (object el; obj.try_get(el, "v_scroll_bar")) { parse_element(el, &style->VScrollBar); }
@@ -278,19 +278,19 @@ void styles::parse(data::config::object const& obj, grid_view::style* style)
     obj.try_get(style->RowHeight, "row_height");
 }
 
-void styles::parse(data::config::object const& obj, image_box::style* style)
+void styles::parse(data::object const& obj, image_box::style* style)
 {
     parse_widget_style(obj, style);
     obj.try_get(style->Alignment, "alignment");
 }
 
-void styles::parse(data::config::object const& obj, label::style* style)
+void styles::parse(data::object const& obj, label::style* style)
 {
     parse_widget_style(obj, style);
     if (object el; obj.try_get(el, "text")) { parse_element(el, &style->Text); }
 }
 
-void styles::parse(data::config::object const& obj, list_box::style* style)
+void styles::parse(data::object const& obj, list_box::style* style)
 {
     parse_widget_style(obj, style);
     if (object el; obj.try_get(el, "v_scroll_bar")) { parse_element(el, &style->VScrollBar); }
@@ -298,40 +298,40 @@ void styles::parse(data::config::object const& obj, list_box::style* style)
     obj.try_get(style->ItemHeight, "item_height");
 }
 
-void styles::parse(data::config::object const& obj, panel::style* style)
+void styles::parse(data::object const& obj, panel::style* style)
 {
     parse_widget_style(obj, style);
     if (object el; obj.try_get(el, "v_scroll_bar")) { parse_element(el, &style->VScrollBar); }
     if (object el; obj.try_get(el, "h_scroll_bar")) { parse_element(el, &style->HScrollBar); }
 }
 
-void styles::parse(data::config::object const& obj, progress_bar::style* style)
+void styles::parse(data::object const& obj, progress_bar::style* style)
 {
     parse_widget_style(obj, style);
     if (object el; obj.try_get(el, "bar")) { parse_element(el, &style->Bar); }
 }
 
-void styles::parse(data::config::object const& obj, radio_button::style* style)
+void styles::parse(data::object const& obj, radio_button::style* style)
 {
     parse_widget_style(obj, style);
     if (object el; obj.try_get(el, "tick")) { parse_element(el, &style->Tick); }
 }
 
-void styles::parse(data::config::object const& obj, slider::style* style)
+void styles::parse(data::object const& obj, slider::style* style)
 {
     parse_style(obj, style);
     if (object el; obj.try_get(el, "bar")) { parse_element(el, &style->Bar); }
     obj.try_get(style->ThumbClass, "thumb_class");
 }
 
-void styles::parse(data::config::object const& obj, spinner::style* style)
+void styles::parse(data::object const& obj, spinner::style* style)
 {
     parse_widget_style(obj, style);
     if (object el; obj.try_get(el, "text")) { parse_element(el, &style->Text); }
     obj.try_get(style->NavArrowClass, "nav_arrow_class");
 }
 
-void styles::parse(data::config::object const& obj, tab_container::style* style)
+void styles::parse(data::object const& obj, tab_container::style* style)
 {
     parse_widget_style(obj, style);
     obj.try_get(style->TabItemClass, "tab_item_class");
@@ -339,21 +339,21 @@ void styles::parse(data::config::object const& obj, tab_container::style* style)
     obj.try_get(style->TabBarSize, "tab_bar_size");
 }
 
-void styles::parse(data::config::object const& obj, text_box::style* style)
+void styles::parse(data::object const& obj, text_box::style* style)
 {
     parse_widget_style(obj, style);
     if (object el; obj.try_get(el, "text")) { parse_element(el, &style->Text); }
     if (object el; obj.try_get(el, "caret")) { parse_element(el, &style->Caret); }
 }
 
-void styles::parse(data::config::object const& obj, toggle::style* style)
+void styles::parse(data::object const& obj, toggle::style* style)
 {
     parse_widget_style(obj, style);
     if (object el; obj.try_get(el, "tick")) { parse_element(el, &style->Tick); }
     obj.try_get(style->AnimationDuration, "delay");
 }
 
-void styles::parse(data::config::object const& obj, nav_arrows_style* style)
+void styles::parse(data::object const& obj, nav_arrows_style* style)
 {
     obj.try_get(style->NavArrow.Type, "type");
     obj.try_get(style->NavArrow.UpBackground, "inc_background");
@@ -364,7 +364,7 @@ void styles::parse(data::config::object const& obj, nav_arrows_style* style)
     if (object el; obj.try_get(el, "border")) { parse_element(el, &style->NavArrow.Border); }
 }
 
-void styles::parse(data::config::object const& obj, thumb_style* style)
+void styles::parse(data::object const& obj, thumb_style* style)
 {
     obj.try_get(style->Thumb.Type, "type");
     obj.try_get(style->Thumb.Background, "background");
@@ -373,7 +373,7 @@ void styles::parse(data::config::object const& obj, thumb_style* style)
     if (object el; obj.try_get(el, "border")) { parse_element(el, &style->Thumb.Border); }
 }
 
-void styles::parse(data::config::object const& obj, item_style* style)
+void styles::parse(data::object const& obj, item_style* style)
 {
     if (object el; obj.try_get(el, "text")) { parse_element(el, &style->Item.Text); }
     obj.try_get(style->Item.Background, "background");
@@ -422,7 +422,7 @@ void styles::parse_element(object const& obj, scrollbar_element* scrollbar)
     obj.try_get(scrollbar->ThumbClass, "thumb_class");
 }
 
-void styles::parse_element(data::config::object const& obj, bar_element* bar)
+void styles::parse_element(data::object const& obj, bar_element* bar)
 {
     obj.try_get(bar->Type, "type");
     obj.try_get(bar->LowerBackground, "lower_background");
@@ -432,7 +432,7 @@ void styles::parse_element(data::config::object const& obj, bar_element* bar)
     obj.try_get(bar->MotionDuration, "delay");
 }
 
-void styles::parse_element(data::config::object const& obj, caret_element* caret)
+void styles::parse_element(data::object const& obj, caret_element* caret)
 {
     obj.try_get(caret->Color, "color");
     obj.try_get(caret->Width, "width");

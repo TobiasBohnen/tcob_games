@@ -72,12 +72,12 @@ main_scene::main_scene(game& game)
         str.Pile      = get_pile_type_name(pile->Type);
         str.CardCount = std::to_string(pile->size());
 
-        data::config::array rules;
-        auto const&         gameObj {_currentRules};
+        data::array rules;
+        auto const& gameObj {_currentRules};
         if (!gameObj.try_get(rules, str.Pile, "rules")) { return; }
 
         for (auto const& rule : rules) {
-            auto const ruleObj {rule.as<data::config::object>()};
+            auto const ruleObj {rule.as<data::object>()};
             if (std::unordered_set<i32> piles; ruleObj.try_get(piles, "piles")) {
                 if (!piles.contains(pile->Index)) { continue; }
             }
@@ -187,7 +187,7 @@ void main_scene::connect_events()
     _formMenu->StartGame.connect([&](auto const& seed) { start_game(_sources->SelectedGame, start_reason::Resume, seed); });
 
     _formMenu->VideoSettingsChanged.connect([&]() {
-        data::config::object obj;
+        data::object obj;
         _formMenu->submit(obj);
 
         assert(obj.has("ddlResolution", "selected"));
@@ -406,19 +406,19 @@ void main_scene::update_recent(std::string const& name)
     _sources->Settings.Recent = recent;
 }
 
-auto main_scene::generate_rule(std::string const& name) const -> data::config::object
+auto main_scene::generate_rule(std::string const& name) const -> data::object
 {
     if (!_sources->Games.contains(name)) { return {}; }
 
-    auto                 game {_sources->Games[name].second()};
-    data::config::object gameObj;
+    auto         game {_sources->Games[name].second()};
+    data::object gameObj;
 
     auto writePileType {
         [&](pile_type pt, std::vector<pile*> const& piles) {
             if (piles.empty()) { return; }
 
-            data::config::array  pileRulesArr;
-            data::config::object pileObj;
+            data::array  pileRulesArr;
+            data::object pileObj;
             gameObj[get_pile_type_name(pt)] = pileObj;
             pileObj["count"]                = piles.size();
             pileObj["rules"]                = pileRulesArr;
@@ -432,7 +432,7 @@ auto main_scene::generate_rule(std::string const& name) const -> data::config::o
                 pileRules[desc].push_back(pile->Index);
             }
             for (auto const& [k, v] : pileRules) {
-                data::config::object rule;
+                data::object rule;
                 if (pileRules.size() > 1) { rule["piles"] = v; }
                 rule["base"]  = k.Base;
                 rule["build"] = k.Build;

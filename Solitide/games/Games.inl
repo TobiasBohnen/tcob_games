@@ -187,7 +187,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     };
 
     // object
-    auto& objWrap {*script.template create_wrapper<data::config::object>("object")};
+    auto& objWrap {*script.template create_wrapper<data::object>("object")};
     objWrap.UnknownGet.connect([](auto&& ev) {
         ev.Handled = true;
 

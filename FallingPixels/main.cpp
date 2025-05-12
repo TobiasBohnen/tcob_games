@@ -10,7 +10,7 @@
 #if defined(__EMSCRIPTEN__)
 auto main(void) -> int
 {
-    tcob::data::config::object config;
+    tcob::data::object config;
 
     tcob::gfx::video_config video;
     video.FrameLimit           = 100;
