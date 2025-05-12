@@ -29,8 +29,8 @@ private:
     void draw_hint(gfx::render_target& target);
     void draw_state();
 
-    card_table&    _parent;
-    assets::group& _resGrp;
+    card_table&                     _parent;
+    [[maybe_unused]] assets::group& _resGrp;
 
     isize _currentHint {-1};
     bool  _showHint {false};
@@ -57,8 +57,8 @@ public:
     void mark_dirty();
 
 private:
-    card_table&    _parent;
-    assets::group& _resGrp;
+    [[maybe_unused]] card_table&    _parent;
+    [[maybe_unused]] assets::group& _resGrp;
 
     bool                 _canvasDirty {true};
     gfx::canvas          _canvas;
