@@ -97,7 +97,7 @@ auto static get_base_cards(base_func const& func) -> std::multimap<rank, suit>
 
     for (i32 i {0}; i < 52; ++i) {
         suit s {static_cast<suit>(i / 13)};
-        rank r {static_cast<rank>(i % 13 + 1)};
+        rank r {static_cast<rank>((i % 13) + 1)};
         if (func({s, r, 0}, 1)) {
             retValue.emplace(r, s);
         }
@@ -109,12 +109,12 @@ auto static get_base_cards(base_func const& func) -> std::multimap<rank, suit>
 auto get_pile_type_name(pile_type pt) -> std::string
 {
     switch (pt) {
-    case pile_type::Stock: return "Stock";
-    case pile_type::Waste: return "Waste";
+    case pile_type::Stock:      return "Stock";
+    case pile_type::Waste:      return "Waste";
     case pile_type::Foundation: return "Foundation";
-    case pile_type::Tableau: return "Tableau";
-    case pile_type::Reserve: return "Reserve";
-    case pile_type::FreeCell: return "FreeCell";
+    case pile_type::Tableau:    return "Tableau";
+    case pile_type::Reserve:    return "Reserve";
+    case pile_type::FreeCell:   return "FreeCell";
     }
 
     return "";

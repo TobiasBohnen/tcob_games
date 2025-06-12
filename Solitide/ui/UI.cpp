@@ -5,6 +5,7 @@
 
 #include "UI.hpp"
 
+#include <algorithm>
 #include <utility>
 
 #include "CardSet.hpp" // IWYU pragma: keep
@@ -73,7 +74,7 @@ form_controls::form_controls(gfx::window& window, assets::group& resGrp, std::sh
     // status
     {
         auto statusPanel {mainPanelLayout.create_widget<panel>(dock_style::Bottom, "status")};
-        statusPanel->Flex = {100_pct, 10_pct};
+        statusPanel->Flex = {.Width = 100_pct, .Height = 10_pct};
         auto& statusPanelLayout {statusPanel->create_layout<grid_layout>(size_i {40, 6})};
 
         i32        lbID {0};
@@ -142,7 +143,7 @@ static std::string const TabSettingsName {"conSettings"};
 static std::string const MenuName {"menu"};
 
 form_menu::form_menu(gfx::window& window, assets::group& resGrp, std::shared_ptr<menu_sources> sources)
-    : form {{"Menu", window.bounds()}}
+    : form {{.Name = "Menu", .Bounds = window.bounds()}}
     , _resGrp {resGrp}
     , _sources {std::move(sources)}
 {
@@ -150,7 +151,7 @@ form_menu::form_menu(gfx::window& window, assets::group& resGrp, std::shared_ptr
 
     auto tabContainer {create_container<tab_container>(dock_style::Right, "tabMenu")};
     tabContainer->Class = "tab_container_hidden";
-    tabContainer->Flex  = {85_pct, 100_pct};
+    tabContainer->Flex  = {.Width = 85_pct, .Height = 100_pct};
 
     create_section_games(*tabContainer);
     create_section_settings(*tabContainer);
@@ -181,7 +182,7 @@ void form_menu::create_section_games(tab_container& parent)
 void form_menu::create_game_lists(dock_layout& panelLayout)
 {
     auto panelFilter {panelLayout.create_widget<panel>(dock_style::Top, "panelFilter")};
-    panelFilter->Flex = {100_pct, 5_pct};
+    panelFilter->Flex = {.Width = 100_pct, .Height = 5_pct};
 
     auto& panelFilterLayout {panelFilter->create_layout<grid_layout>(size_i {10, 1})};
     auto  txbFilter {panelFilterLayout.create_widget<text_box>({0, 0, 9, 1}, "txbFilter")};
@@ -194,7 +195,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
     std::vector<list_box*> listBoxes;
     auto                   tabGames {panelLayout.create_widget<tab_container>(dock_style::Left, "tabGames")};
     tabGames->MaxTabsPerLine = 6;
-    tabGames->Flex           = {50_pct, 100_pct};
+    tabGames->Flex           = {.Width = 50_pct, .Height = 100_pct};
 
     i32        lbID {0};
     auto const createListBox {[&](dock_layout& tabPanelLayout, auto&& pred) -> std::shared_ptr<list_box> {
@@ -484,11 +485,18 @@ void form_menu::create_settings_video(tab_container& tabContainer)
 
     // resolution
     {
-        auto const displayModes {locate_service<platform>().displays()};
-        auto       ddlRes {tabPanelLayout.create_widget<drop_down_list>({6, 1, 6, 4}, "ddlResolution")};
-        ddlRes->ZOrder = 1;
+        auto const          displayModes {locate_service<platform>().displays()};
+        std::vector<size_i> displaySizes;
         for (auto const& dm : displayModes.begin()->second.Modes) {
-            ddlRes->add_item(std::format("{}x{}", dm.Size.Width, dm.Size.Height));
+            if (displaySizes.empty() || displaySizes.back() != dm.Size) {
+                displaySizes.push_back(dm.Size);
+            }
+        }
+
+        auto ddlRes {tabPanelLayout.create_widget<drop_down_list>({6, 1, 6, 4}, "ddlResolution")};
+        ddlRes->ZOrder = 1;
+        for (auto const& ds : displaySizes) {
+            ddlRes->add_item(std::format("{}x{}", ds.Width, ds.Height));
         }
 
         auto const res {config[Cfg::Video::Name][Cfg::Video::resolution].as<size_i>()};
@@ -517,7 +525,7 @@ void form_menu::create_settings_video(tab_container& tabContainer)
     }
 
     auto btnApplyVideoSettings {tabPanelLayout.create_widget<button>({33, 34, 4, 4}, "btnApplyVideoSettings")};
-    btnApplyVideoSettings->Icon    = {_resGrp.get<gfx::texture>("apply")};
+    btnApplyVideoSettings->Icon    = {.Texture = _resGrp.get<gfx::texture>("apply")};
     btnApplyVideoSettings->Tooltip = _tooltip;
     btnApplyVideoSettings->Click.connect([this]() { VideoSettingsChanged(); });
 }
