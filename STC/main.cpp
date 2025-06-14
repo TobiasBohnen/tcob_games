@@ -30,7 +30,7 @@ auto main(void) -> int
 auto main(int /* argc */, char* argv[]) -> int
 {
     tcob::game game {{
-        .Path    = argv[0],
+
         .Name    = "STC",
         .LogFile = "stdout",
     }};

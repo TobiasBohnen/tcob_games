@@ -13,8 +13,8 @@
 
 class my_game : public tcob::game {
 public:
-    my_game(char const* argv)
-        : tcob::game {{.Path = argv, .Name = "Solitide"}}
+    my_game()
+        : tcob::game {{.Name = "Solitide"}}
     {
         start();
     }
@@ -25,9 +25,9 @@ public:
     }
 };
 
-auto main(int /* argc */, char* argv[]) -> int
+auto main(int /* argc */, char*[] /* argv*/) -> int
 {
     tcob::single_instance inst {"Solitide"};
-    if (inst) { my_game m {argv[0]}; }
+    if (inst) { my_game m {}; }
     return 0;
 }

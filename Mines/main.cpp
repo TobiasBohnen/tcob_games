@@ -14,7 +14,7 @@
 class my_game : public tcob::game {
 public:
     my_game(char const* argv)
-        : tcob::game {{.Path = argv, .Name = "Mines", .LogFile = "stdout"}}
+        : tcob::game {{.Name = "Mines", .LogFile = "stdout"}}
     {
         start();
     }
