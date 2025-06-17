@@ -20,5 +20,5 @@ public:
 private:
     void gen_styles();
 
-    assets::owning_asset_ptr<gfx::font_family> _font;
+    assets::asset_owner_ptr<gfx::font_family> _font;
 };

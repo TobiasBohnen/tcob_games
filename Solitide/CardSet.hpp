@@ -37,11 +37,11 @@ private:
     auto get_folder() const -> std::string;
     auto get_texture() const -> gfx::texture*;
 
-    assets::owning_asset_ptr<gfx::material> _material;
-    assets::owning_asset_ptr<gfx::texture>  _texture;
-    std::string                             _name;
-    std::string                             _folder;
-    bool                                    _loaded;
+    assets::asset_owner_ptr<gfx::material> _material;
+    assets::asset_owner_ptr<gfx::texture>  _texture;
+    std::string                            _name;
+    std::string                            _folder;
+    bool                                   _loaded;
 };
 
 void load_card_sets(std::map<std::string, std::shared_ptr<card_set>>& cardsetMap, assets::group& resGrp);

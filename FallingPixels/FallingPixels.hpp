@@ -35,8 +35,8 @@ private:
 
     gfx::shape_batch _layer0;
 
-    assets::owning_asset_ptr<gfx::material> _sandMat;
-    assets::owning_asset_ptr<gfx::texture>  _sandTex;
+    assets::asset_owner_ptr<gfx::material> _sandMat;
+    assets::asset_owner_ptr<gfx::texture>  _sandTex;
 };
 
 ////////////////////////////////////////////////////////////

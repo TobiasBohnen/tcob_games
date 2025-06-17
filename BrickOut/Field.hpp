@@ -72,11 +72,11 @@ private:
     physics::world _physicsWorld;
     rect_f         _physicsBounds;
 
-    paddle                                  _paddle;
-    ball                                    _ball;
-    std::vector<brick_def>                  _brickDefs;
-    std::vector<std::unique_ptr<brick>>     _bricks {};
-    assets::owning_asset_ptr<gfx::material> _edgeMat;
+    paddle                                 _paddle;
+    ball                                   _ball;
+    std::vector<brick_def>                 _brickDefs;
+    std::vector<std::unique_ptr<brick>>    _bricks {};
+    assets::asset_owner_ptr<gfx::material> _edgeMat;
 
     i32 _hitCount {0};
 };
