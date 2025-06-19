@@ -237,7 +237,7 @@ void ball::reset()
 
     auto& lightSource {get_light_source()};
     lightSource.Color = {255, 255, 255, 128};
-    lightSource.Range = 500;
+    lightSource.Range = 500.0f;
 }
 
 void ball::on_update(milliseconds deltaTime)
@@ -277,16 +277,16 @@ brick::brick(field& parent, assets::group& resGrp, brick_def def)
 {
     std::string matName {"element_"};
     switch (def.Color) {
-    case brick_def::color::Blue: matName += "blue_"; break;
-    case brick_def::color::Green: matName += "green_"; break;
-    case brick_def::color::Grey: matName += "grey_"; break;
+    case brick_def::color::Blue:   matName += "blue_"; break;
+    case brick_def::color::Green:  matName += "green_"; break;
+    case brick_def::color::Grey:   matName += "grey_"; break;
     case brick_def::color::Purple: matName += "purple_"; break;
-    case brick_def::color::Red: matName += "red_"; break;
+    case brick_def::color::Red:    matName += "red_"; break;
     case brick_def::color::Yellow: matName += "yellow_"; break;
     }
     switch (def.Shape) {
     case brick_def::shape::Rectangle: matName += "rectangle"; break;
-    case brick_def::shape::Square: matName += "square"; break;
+    case brick_def::shape::Square:    matName += "square"; break;
     }
 
     set_material(resGrp.get<gfx::material>(matName));
