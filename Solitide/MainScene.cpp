@@ -148,8 +148,8 @@ void main_scene::on_start()
     // config
     set_cardset();
 
-    _formMenu->fixed_update(0s);     // updates style
-    _formControls->fixed_update(0s); // updates style
+    _formMenu->update(0s);     // updates style
+    _formControls->update(0s); // updates style
 
     if (!_sources->Settings.LastGame.empty()) {
         start_game(_sources->Settings.LastGame, start_reason::Resume, std::nullopt);
@@ -295,10 +295,10 @@ void main_scene::set_theme()
     styles     styles {*library().get_group("solitaire")};
     auto const styleCollection {styles.load(newTheme)};
     _formMenu->Styles = styleCollection;
-    _formMenu->fixed_update(milliseconds {0});
+    _formMenu->update(milliseconds {0});
 
     _formControls->Styles = styleCollection;
-    _formControls->fixed_update(milliseconds {0});
+    _formControls->update(milliseconds {0});
 
     if (_wizard) {
         _wizard->update_theme(newTheme);
