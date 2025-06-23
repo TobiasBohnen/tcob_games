@@ -29,20 +29,20 @@ auto static make_tooltip(menu_sources& sources, form_base* form) -> std::shared_
         auto* const widget {event.Widget};
         sources.Translator.bind(lbl->Label, "ux", widget->name());
 
-        auto const  bounds {widget->Bounds()};
-        auto const* style {dynamic_cast<label::style const*>(lbl->current_style())};
+        rect_f const bounds {widget->Bounds};
+        auto const*  style {dynamic_cast<label::style const*>(lbl->current_style())};
         assert(style);
         auto* const font {style->Text.Font->get_font(style->Text.Style, style->Text.calc_font_size({0, 0, bounds.width() * 1.5f, bounds.height() * 0.75f})).ptr()};
-        tt->Bounds = {point_f::Zero, gfx::text_formatter::measure(lbl->Label(), *font, -1, true)};
+        tt->Bounds = {point_f::Zero, gfx::text_formatter::measure(*lbl->Label, *font, -1, true)};
     });
     return retValue;
 }
 
 form_controls::form_controls(gfx::window& window, assets::group& resGrp, std::shared_ptr<menu_sources> sources)
-    : form {{"Controls", window.bounds()}}
+    : form {{.Name = "Controls", .Bounds = window.bounds()}}
     , _sources {std::move(sources)}
 {
-    (*Controls).ActivateKey = input::key_code::UNKNOWN;
+    Controls.mut_ref().ActivateKey = input::key_code::UNKNOWN;
 
     auto tooltip0 {make_tooltip(*_sources, this)};
 
@@ -52,12 +52,12 @@ form_controls::form_controls(gfx::window& window, assets::group& resGrp, std::sh
     // menu
     {
         auto menuPanel {mainPanelLayout.create_widget<panel>(dock_style::Top, "menu")};
-        menuPanel->Flex = {100_pct, 5_pct};
+        menuPanel->Flex = {.Width = 100_pct, .Height = 5_pct};
         auto& menuPanelLayout {menuPanel->create_layout<grid_layout>(size_i {20, 1})};
 
         auto const create {[&](rect_i const& bounds, std::string const& name, std::string const& tex) {
             auto retValue {menuPanelLayout.create_widget<button>(bounds, name)};
-            retValue->Icon    = {resGrp.get<gfx::texture>(tex)};
+            retValue->Icon    = {.Texture = resGrp.get<gfx::texture>(tex)};
             retValue->Tooltip = tooltip0;
             return retValue;
         }};
@@ -242,10 +242,10 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
 
         auto& tabPanelLayout {tabPanel->create_layout<dock_layout>()};
         auto  listBox {createListBox(tabPanelLayout, [](auto const&) { return false; })};
-        for (auto const& game : _sources->Settings.Recent()) { listBox->add_item(game); }
+        for (auto const& game : *_sources->Settings.Recent) { listBox->add_item(game); }
         _sources->Settings.Recent.Changed.connect([this, lb = listBox.get()] {
             lb->clear_items();
-            for (auto const& game : _sources->Settings.Recent()) { lb->add_item(game); }
+            for (auto const& game : *_sources->Settings.Recent) { lb->add_item(game); }
         });
     }
     // By Family
@@ -652,14 +652,14 @@ void form_menu::create_menubar(tab_container& parent)
     }
 
     auto btnBack {menuLayout.create_widget<button>({1, 17, 10, 2}, "btnBack")};
-    btnBack->Icon = {_resGrp.get<gfx::texture>("back")};
+    btnBack->Icon = {.Texture = _resGrp.get<gfx::texture>("back")};
     btnBack->Click.connect([this](auto&) { hide(); });
     btnBack->Tooltip = _tooltip;
 }
 
 void form_menu::start_game()
 {
-    StartGame(helper::to_number<u64>(_txbSeed->Text()));
+    StartGame(helper::to_number<u64>(*_txbSeed->Text));
     _txbSeed->Text = "";
     hide();
 }

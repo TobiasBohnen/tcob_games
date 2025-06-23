@@ -10,9 +10,9 @@
 namespace Snake {
 
 main_menu::main_menu(assets::group const& resGrp, rect_i const& bounds)
-    : form {{"MainMenu", bounds}}
+    : form {{.Name = "MainMenu", .Bounds = bounds}}
 {
-    create_styles(resGrp, *Styles);
+    create_styles(resGrp, Styles.mut_ref());
 
     auto mainPanel {create_container<panel>(dock_style::Fill, "main")};
 

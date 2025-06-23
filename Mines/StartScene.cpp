@@ -24,7 +24,7 @@ void start_scene::on_start()
     resMgr.load_all_groups();
 
     auto& win {window()};
-    auto  windowSize {win.Size()};
+    auto  windowSize {*win.Size};
 
     _playField = std::make_shared<field>(resGrp.get<gfx::material>("mat-mines-tiles"));
 

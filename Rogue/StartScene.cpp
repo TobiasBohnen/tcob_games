@@ -26,7 +26,7 @@ void start_scene::on_start()
     resMgr.load_all_groups();
 
     auto& win {window()};
-    auto  windowSize {win.Size()};
+    auto  windowSize {*win.Size};
 
     _mainForm                           = std::make_shared<main_menu>(resGrp, rect_i {point_i::Zero, windowSize});
     root_node()->create_child()->Entity = _mainForm;

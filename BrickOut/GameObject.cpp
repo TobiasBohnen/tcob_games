@@ -45,17 +45,17 @@ void game_object::destroy()
 void game_object::update(milliseconds deltaTime)
 {
     if (_physicsBody && _sprite) {
-        rect_f const pb {_physicsBody->Transform().Center, size_f::Zero};
+        rect_f const pb {(*_physicsBody->Transform).Center, size_f::Zero};
 
         _sprite->Bounds   = _sprite->Bounds->as_centered_at(convert_to_screen(pb).center());
-        _sprite->Rotation = _physicsBody->Transform().Angle;
+        _sprite->Rotation = (*_physicsBody->Transform).Angle;
 
         if (_lightSource) {
             _lightSource->Position = _sprite->Bounds->center();
         }
 
         if (_shadowCaster) {
-            auto const& spriteBounds {_sprite->Bounds()};
+            auto const& spriteBounds {*_sprite->Bounds};
             auto const& xform {_sprite->transform()};
             _shadowCaster->Polygon = {xform * spriteBounds.top_left(), xform * spriteBounds.bottom_left(),
                                       xform * spriteBounds.bottom_right(), xform * spriteBounds.top_right()};
@@ -175,7 +175,7 @@ void paddle::on_update(milliseconds deltaTime)
     if (_dir == 0.f) { return; }
 
     auto& body {get_body()};
-    auto  xform {body.Transform()};
+    auto  xform {*body.Transform};
 
     auto const rect {get_field_bounds()};
     auto       bodyRect {convert_to_screen({xform.Center, size_f::Zero})};
@@ -243,7 +243,7 @@ void ball::reset()
 void ball::on_update(milliseconds deltaTime)
 {
     auto& body {get_body()};
-    auto  xform {body.Transform()};
+    auto  xform {*body.Transform};
 
     auto bodyRect {convert_to_screen({xform.Center, size_f::Zero})};
     bodyRect.Size.Height = _size.Height;
@@ -254,7 +254,7 @@ void ball::on_update(milliseconds deltaTime)
     constexpr f32 minSpeedY {5};
     constexpr f32 maxSpeed {50};
 
-    point_f   velocity {body.LinearVelocity()};
+    point_f   velocity {*body.LinearVelocity};
     f32 const speedY {std::abs(velocity.Y)};
     if (speedY < minSpeedY) {
         velocity.Y = (velocity.Y > 0) ? minSpeedY : -minSpeedY;
@@ -367,7 +367,7 @@ void brick::on_update(milliseconds deltaTime)
 {
     if (!_dead) {
         auto& body {get_body()};
-        auto  xform {body.Transform()};
+        auto  xform {*body.Transform};
 
         auto bodyRect {convert_to_screen({xform.Center, size_f::Zero})};
         bodyRect.Size.Height = _size.Height;

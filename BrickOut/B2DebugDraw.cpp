@@ -89,7 +89,7 @@ void B2DDebugDraw::draw_transform(physics::body_transform const& xf)
     _canvas.set_stroke_width(3);
 
     auto b2MulAdd {[](point_f a, f32 s, point_f b) -> point_f {
-        return {a.X + s * b.X, a.Y + s * b.Y};
+        return {a.X + (s * b.X), a.Y + (s * b.Y)};
     }};
 
     f32 const k_axisScale {5.f};
@@ -127,7 +127,7 @@ void B2DDebugDraw::draw_string(point_f p, string const& text, color color)
 
 void B2DDebugDraw::draw(physics::world const& world, f32 alpha, gfx::render_target& target)
 {
-    rect_f const bounds {point_f::Zero, size_f {target.Size()}};
+    rect_f const bounds {point_f::Zero, size_f {*target.Size}};
 
     _canvas.begin_frame(target.Size, 1);
     _canvas.set_global_alpha(alpha);

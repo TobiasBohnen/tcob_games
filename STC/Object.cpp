@@ -35,10 +35,10 @@ auto object::shape() -> gfx::rect_shape&
 void object::update(milliseconds deltaTime)
 {
     if (_physicsBody && _gfxShape) {
-        rect_f const pb {_physicsBody->Transform().Center, size_f::Zero};
+        rect_f const pb {(*_physicsBody->Transform).Center, size_f::Zero};
 
         _gfxShape->Bounds   = _gfxShape->Bounds->as_centered_at(convert_to_screen(pb).center());
-        _gfxShape->Rotation = _physicsBody->Transform().Angle;
+        _gfxShape->Rotation = (*_physicsBody->Transform).Angle;
     }
 
     on_update(deltaTime);

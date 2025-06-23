@@ -36,7 +36,7 @@ main_scene::main_scene(game& game)
     auto& resGrp {*resMgr.get_group("solitaire")};
 
     auto& win {window()};
-    auto  windowSize {win.Size()};
+    auto  windowSize {*win.Size};
 
     auto defaultCursor {resGrp.get<gfx::cursor>("default")};
     win.Cursor                = defaultCursor;
@@ -288,7 +288,7 @@ void main_scene::set_children_bounds(size_i size)
 
 void main_scene::set_theme()
 {
-    auto themeName {_sources->Settings.Theme()};
+    auto themeName {*_sources->Settings.Theme};
     if (!_sources->Themes.contains(themeName)) { themeName = "default"; }
     auto const& newTheme {_sources->Themes[themeName]};
 
@@ -310,7 +310,7 @@ void main_scene::set_theme()
 
 void main_scene::set_cardset()
 {
-    auto newCardset {_sources->Settings.Cardset()};
+    auto newCardset {*_sources->Settings.Cardset};
     if (!_sources->CardSets.contains(newCardset)) { newCardset = "default"; }
 
     _sources->Settings.Cardset = newCardset;
@@ -396,7 +396,7 @@ void main_scene::update_recent(std::string const& name)
 
     usize static constexpr maxEntries {10};
 
-    std::deque<std::string> recent {_sources->Settings.Recent()};
+    std::deque<std::string> recent {*_sources->Settings.Recent};
 
     auto it {std::find(recent.begin(), recent.end(), name)};
     if (it != recent.end()) { recent.erase(it); }

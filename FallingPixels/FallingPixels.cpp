@@ -140,7 +140,7 @@ main_scene::main_scene(game& game)
 
     ////
     auto&      win {window()};
-    auto const winSize {win.Size()};
+    auto const winSize {*win.Size};
     _form = std::make_shared<elements_form>(rect_i {winSize.Height, 0, winSize.Width - winSize.Height, winSize.Height}, elementsDefs);
     _form->SelectedElement.connect([&](i32 t) { _leftBtnElement = t; });
 

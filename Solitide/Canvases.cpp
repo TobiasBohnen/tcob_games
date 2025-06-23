@@ -41,7 +41,7 @@ void foreground_canvas::show_hint()
 void foreground_canvas::draw(gfx::render_target& target)
 {
     if (target.Size != _bounds.Size) {
-        _bounds      = {point_i::Zero, target.Size()};
+        _bounds      = {point_i::Zero, target.Size};
         _canvasDirty = true;
         _renderer.set_bounds(rect_f {_bounds});
     }
@@ -101,7 +101,7 @@ void foreground_canvas::draw_hint(gfx::render_target& target)
         dstBounds = hint.Dst->Cards[hint.DstCardIdx].Bounds;
     } else {
         if (hint.Dst->HasMarker && hint.Dst->Marker) {
-            dstBounds = hint.Dst->Marker->Bounds();
+            dstBounds = hint.Dst->Marker->Bounds;
         } else if (!hint.Dst->Cards.empty()) {
             dstBounds = hint.Dst->Cards[0].Bounds;
         }
@@ -153,9 +153,9 @@ void foreground_canvas::draw_hint(gfx::render_target& target)
     f32 const angle {std::atan2(to.Y - from.Y, to.X - from.X)};
 
     _canvas.move_to(to);
-    _canvas.line_to({to.X - headLength * std::cos(angle - TAU_F / 12), to.Y - headLength * std::sin(angle - TAU_F / 12)});
+    _canvas.line_to({to.X - (headLength * std::cos(angle - (TAU_F / 12))), to.Y - (headLength * std::sin(angle - (TAU_F / 12)))});
     _canvas.move_to(to);
-    _canvas.line_to({to.X - headLength * std::cos(angle + TAU_F / 12), to.Y - headLength * std::sin(angle + TAU_F / 12)});
+    _canvas.line_to({to.X - (headLength * std::cos(angle + (TAU_F / 12))), to.Y - (headLength * std::sin(angle + (TAU_F / 12)))});
     _canvas.set_stroke_style(colors::Black);
     _canvas.set_stroke_width(arrowWidth + borderWidth);
     _canvas.stroke();
@@ -228,7 +228,7 @@ background_canvas::background_canvas(card_table& parent, assets::group& resGrp)
 void background_canvas::draw(gfx::render_target& target)
 {
     if (target.Size != _bounds.Size) {
-        _bounds      = {point_i::Zero, target.Size()};
+        _bounds      = {point_i::Zero, target.Size};
         _canvasDirty = true;
         _renderer.set_bounds(rect_f {_bounds});
     }

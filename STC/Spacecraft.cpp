@@ -17,9 +17,9 @@ void spacecraft::on_update(milliseconds deltaTime)
 
     f32 const      seconds {static_cast<f32>(deltaTime.count() / 1000)};
     auto&          body {this->body()};
-    degree_f const bodyAngle {body.Transform().Angle.as_normalized(angle_normalize::PositiveFullTurn)};
+    degree_f const bodyAngle {(*body.Transform).Angle.as_normalized(angle_normalize::PositiveFullTurn)};
 
-    auto       velocity {body.LinearVelocity()};
+    auto       velocity {*body.LinearVelocity};
     f32 const  acceleration {_def.MaxAcceleration * seconds};
     auto const dir {point_f::FromDirection(bodyAngle)};
     body.apply_force_to_center(dir * (acceleration));
@@ -53,8 +53,8 @@ void spacecraft::setup()
     shape.Color    = colors::Blue;
     shape.Material = gfx::material::Empty();
 
-    rect_f const physRect {convert_to_physics(shape.Bounds())};
-    body.Transform    = physics::body_transform {physRect.center(), shape.Rotation()};
+    rect_f const physRect {convert_to_physics(shape.Bounds)};
+    body.Transform    = physics::body_transform {physRect.center(), *shape.Rotation};
     body.Type         = physics::body_type::Dynamic;
     body.GravityScale = 0;
     logger::Info("{}", _def.MaxTurnrate.Value);

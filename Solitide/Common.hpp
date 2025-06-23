@@ -97,10 +97,10 @@ public:
     void static Serialize(settings const& v, auto&& s)
     {
         s["version"]      = v.Version;
-        s["theme"]        = v.Theme();
-        s["cardset"]      = v.Cardset();
+        s["theme"]        = *v.Theme;
+        s["cardset"]      = *v.Cardset;
         s["last_game"]    = v.LastGame;
-        s["recent"]       = v.Recent();
+        s["recent"]       = *v.Recent;
         s["hint_movable"] = v.HintMovable;
         s["hint_target"]  = v.HintTarget;
     }
@@ -108,10 +108,10 @@ public:
     auto static Deserialize(settings& v, auto&& s) -> bool
     {
         return s.try_get(v.Version, "version")
-            && s.try_get(*v.Theme, "theme")
-            && s.try_get(*v.Cardset, "cardset")
+            && s.try_get(v.Theme.mut_ref(), "theme")
+            && s.try_get(v.Cardset.mut_ref(), "cardset")
             && s.try_get(v.LastGame, "last_game")
-            && s.try_get(*v.Recent, "recent")
+            && s.try_get(v.Recent.mut_ref(), "recent")
             && s.try_get(v.HintMovable, "hint_movable")
             && s.try_get(v.HintTarget, "hint_target");
     }

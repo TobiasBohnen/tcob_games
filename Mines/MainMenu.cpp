@@ -26,9 +26,9 @@ auto create_slider(grid_layout& layout, std::string const& name,
 }
 
 main_menu::main_menu(assets::group const& resGrp, rect_i const& bounds)
-    : form {{"MainMenu", bounds}}
+    : form {{.Name = "MainMenu", .Bounds = bounds}}
 {
-    create_styles(resGrp, *Styles);
+    create_styles(resGrp, Styles.mut_ref());
 
     auto mainPanel {create_container<panel>(dock_style::Fill, "main")};
 
@@ -40,8 +40,8 @@ main_menu::main_menu(assets::group const& resGrp, rect_i const& bounds)
     SldHeight = create_slider(mainPanelLayout, "Height", 5, 3, 25, 10);
     SldMines  = create_slider(mainPanelLayout, "Mines", 6, 1, 99, 10);
 
-    SldWidth->Value.Changed.connect([&](auto const&) { SldMines->Max = SldWidth->Value * SldHeight->Value - 1; });
-    SldHeight->Value.Changed.connect([&](auto const&) { SldMines->Max = SldWidth->Value * SldHeight->Value - 1; });
+    SldWidth->Value.Changed.connect([&](auto const&) { SldMines->Max = (SldWidth->Value * SldHeight->Value) - 1; });
+    SldHeight->Value.Changed.connect([&](auto const&) { SldMines->Max = (SldWidth->Value * SldHeight->Value) - 1; });
 
     BtnQuit        = mainPanelLayout.create_widget<button>({1, 17, 3, 2}, "btnQuit");
     BtnQuit->Label = "Quit";
