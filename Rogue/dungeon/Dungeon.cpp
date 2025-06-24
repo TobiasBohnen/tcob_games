@@ -92,7 +92,7 @@ auto dungeon::is_line_of_sight(point_i start, point_i end) const -> bool
 
 auto dungeon::is_passable(point_i pos) const -> bool
 {
-    if (!_tiles.contains(pos)) { return false; }
+    if (!_tiles.size().contains(pos)) { return false; }
     return _tiles[pos].is_passable();
 }
 
@@ -157,7 +157,7 @@ void dungeon::draw(renderer& renderer, point_i center, player const& player)
         for (i32 x {0}; x < TERM_MAP_SIZE.Width; ++x) {
             point_i const termPos {point_i {x, y}};
             point_i const gridPos {term_to_grid(termPos, center)};
-            if (!tiles.contains(gridPos)) { continue; }
+            if (!tiles.size().contains(gridPos)) { continue; }
 
             auto& tile {tiles[gridPos]};
             auto [fg, bg] {lighting(tile, gridPos, player.position(), range, color)};

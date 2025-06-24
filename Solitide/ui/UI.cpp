@@ -320,7 +320,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
 void form_menu::create_game_details(dock_layout& panelLayout)
 {
     auto panelGameDetails {panelLayout.create_widget<panel>(dock_style::Right, "panelGameDetails")};
-    panelGameDetails->Flex   = {50_pct, 100_pct};
+    panelGameDetails->Flex   = {.Width = 50_pct, .Height = 100_pct};
     panelGameDetails->ZOrder = 1;
     auto& panelGameStatsLayout {panelGameDetails->create_layout<grid_layout>(size_i {20, 40})};
 
@@ -336,7 +336,7 @@ void form_menu::create_game_details(dock_layout& panelLayout)
     });
 
     auto btnStartGame {panelGameStatsLayout.create_widget<button>({1, 36, 4, 3}, "btnStartGame")};
-    btnStartGame->Icon = {_resGrp.get<gfx::texture>("play")};
+    btnStartGame->Icon = {.Texture = _resGrp.get<gfx::texture>("play")};
     btnStartGame->Click.connect([this]() { start_game(); });
     btnStartGame->Tooltip = _tooltip;
 
@@ -353,17 +353,24 @@ void form_menu::create_game_details(dock_layout& panelLayout)
         auto gvInfo {tabPanelLayout.create_widget<grid_view>({2, 1, 36, 5}, "gvInfo")};
         gvInfo->Class = "grid_view2";
         auto addRow {[this, infoGV = gvInfo.get()](auto const& game) {
-            infoGV->clear_rows();
-            if (!_sources->Games.contains(game)) { return; }
-            auto gameInfo {_sources->Games[game].first};
-            infoGV->add_row(
-                {_sources->Translator.translate("family", gameInfo.Family),
-                 std::to_string(gameInfo.DeckCount),
-                 gameInfo.Redeals < 0 ? "∞" : std::to_string(gameInfo.Redeals)});
+            infoGV->Grid.mutate([&](auto& grid) {
+                grid.resize({3, 1});
+
+                if (!_sources->Games.contains(game)) { return; }
+                auto gameInfo {_sources->Games[game].first};
+
+                grid.assign({0, 0},
+                            {{_sources->Translator.translate("family", gameInfo.Family)},
+                             {std::to_string(gameInfo.DeckCount)},
+                             {gameInfo.Redeals < 0 ? "∞" : std::to_string(gameInfo.Redeals)}});
+            });
         }};
         _sources->Translator.bind(
             [this, addRow, infoGV = gvInfo.get()](std::vector<std::string> const& val) {
-                infoGV->set_columns(val, false);
+                std::vector<item> items;
+                items.reserve(val.size());
+                for (auto const& str : val) { items.push_back({.Text = str}); }
+                infoGV->Header = items;
                 addRow(_sources->SelectedGame);
             },
             "columns", "info");
@@ -435,16 +442,18 @@ void form_menu::create_game_details(dock_layout& panelLayout)
         _sources->Translator.bind_grid_header(gvHistory.get(), "history");
 
         _sources->SelectedHistory.Changed.connect([wl = gvWL.get(), tt = gvScore.get(), history = gvHistory.get()](auto const& stats) {
-            wl->clear_rows();
-            wl->add_row({std::to_string(stats.Won), std::to_string(stats.Lost),
-                         stats.Lost + stats.Won > 0 ? std::format("{:.2f}%", static_cast<f32>(stats.Won) / (stats.Lost + stats.Won) * 100) : "-"});
-            tt->clear_rows();
+            grid<item> wlGrid {{3, 1}};
+            wlGrid.assign({0, 0},
+                          {{.Text = std::to_string(stats.Won)},
+                           {.Text = std::to_string(stats.Lost)},
+                           {.Text = stats.Lost + stats.Won > 0 ? std::format("{:.2f}%", static_cast<f32>(stats.Won) / (stats.Lost + stats.Won) * 100) : "-"}});
+            wl->Grid = wlGrid;
 
             std::optional<i64> bestTime;
             std::optional<i64> bestTurns;
             std::optional<i64> bestScore;
 
-            history->clear_rows();
+            grid<item> historyGrid {{5, 0}};
             for (auto const& entry : stats.Entries) {
                 if (entry.Won) {
                     bestTime  = !bestTime ? entry.Time : std::min(entry.Time, *bestTime);
@@ -452,16 +461,21 @@ void form_menu::create_game_details(dock_layout& panelLayout)
                 }
                 bestScore = !bestScore ? entry.Score : std::max(entry.Score, *bestScore);
 
-                history->add_row(
-                    {std::to_string(entry.Seed),
-                     std::to_string(entry.Score),
-                     std::to_string(entry.Turns),
-                     std::format("{:%M:%S}", seconds {entry.Time / 1000.f}),
-                     entry.Won ? "X" : "-"});
+                historyGrid.append(
+                    {{std::to_string(entry.Seed)},
+                     {std::to_string(entry.Score)},
+                     {std::to_string(entry.Turns)},
+                     {std::format("{:%M:%S}", seconds {entry.Time / 1000.f})},
+                     {entry.Won ? "X" : "-"}});
             }
-            tt->add_row({bestScore ? std::to_string(*bestScore) : "-",
-                         bestTurns ? std::to_string(*bestTurns) : "-",
-                         bestTime ? std::format("{:%M:%S}", seconds {*bestTime / 1000.f}) : "--:--"});
+            history->Grid = historyGrid;
+
+            grid<item> ttGrid {{3, 1}};
+            ttGrid.assign({0, 0},
+                          {{.Text = bestScore ? std::to_string(*bestScore) : "-"},
+                           {.Text = bestTurns ? std::to_string(*bestTurns) : "-"},
+                           {.Text = bestTime ? std::format("{:%M:%S}", seconds {*bestTime / 1000.f}) : "--:--"}});
+            tt->Grid = ttGrid;
         });
     }
 }

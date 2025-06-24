@@ -242,7 +242,7 @@ void master_control::handle_action_queue(action_queue& queue)
 void master_control::do_get(point_i target)
 {
     auto& tiles {_dungeons[_currentDungeon].tiles()};
-    if (!tiles.contains(target)) { return; }
+    if (!tiles.size().contains(target)) { return; }
 
     std::vector<std::shared_ptr<object>> toBeRemove;
 
@@ -266,7 +266,7 @@ void master_control::do_get(point_i target)
 auto master_control::do_move(point_i target) -> bool
 {
     auto& tiles {_dungeons[_currentDungeon].tiles()};
-    if (!tiles.contains(target)) { return false; }
+    if (!tiles.size().contains(target)) { return false; }
 
     for (auto& object : tiles[target].Objects) {
         log({object->on_enter(*_player)});
@@ -290,7 +290,7 @@ auto master_control::do_interact(point_i target, bool failMessage) -> bool
 
     auto& tiles {_dungeons[_currentDungeon].tiles()};
 
-    if (tiles.contains(target)) {
+    if (tiles.size().contains(target)) {
         for (auto& object : tiles[target].Objects) {
             if (!object->can_interact(*_player)) { continue; }
             message = object->interact(*_player);

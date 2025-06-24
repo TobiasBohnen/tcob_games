@@ -47,7 +47,13 @@ void translator::bind_tab(tab_container* container, widget* tab)
 
 void translator::bind_grid_header(grid_view* gv, std::string const& id)
 {
-    bind([=](std::vector<std::string> const& val) { gv->set_columns(val, false); }, "columns", id);
+    bind([=](std::vector<std::string> const& val) {
+        std::vector<item> items;
+        items.reserve(val.size());
+        for (auto const& str : val) { items.push_back({.Text = str}); }
+        gv->Header = items;
+    },
+         "columns", id);
 }
 
 } // namespace solitaire

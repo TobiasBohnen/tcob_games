@@ -178,7 +178,7 @@ void base_layout::draw_horizontal_tunnel(grid<tile>& grid, i32 x0, i32 x1, i32 y
         if (x == 0 || y == 0 || x == grid.width() - 1 || y == grid.height() - 1) { continue; }
 
         point_i const pos {x, y};
-        assert(grid.contains(pos));
+        assert(grid.size().contains(pos));
         grid[pos] = floor;
     }
 }
@@ -192,7 +192,7 @@ void base_layout::draw_vertical_tunnel(grid<tile>& grid, i32 x, i32 y0, i32 y1, 
         if (x == 0 || y == 0 || x == grid.width() - 1 || y == grid.height() - 1) { continue; }
 
         point_i const pos {x, y};
-        assert(grid.contains(pos));
+        assert(grid.size().contains(pos));
         grid[pos] = floor;
     }
 }
@@ -204,7 +204,7 @@ void base_layout::draw_room(grid<tile>& grid, rect_i const& rect, tile const& fl
             if (x == 0 || y == 0 || x == grid.width() - 1 || y == grid.height() - 1) { continue; }
 
             point_i const pos {x, y};
-            assert(grid.contains(pos));
+            assert(grid.size().contains(pos));
             grid[pos] = floor;
         }
     }
@@ -543,7 +543,7 @@ void cellular_automata::create_tunnel(point_i point1, point_i point2, std::unord
 
         // ==== Walk ====
         // check colision at edges
-        if (_grid.contains({drunkardX + dx, drunkardY + dy})) {
+        if (_grid.size().contains({drunkardX + dx, drunkardY + dy})) {
             drunkardX += dx;
             drunkardY += dy;
             if (!_grid[drunkardX, drunkardY].is_passable()) {
@@ -617,7 +617,7 @@ void cellular_automata::flood_fill(point_i pos)
             auto const [x, y] {tile};
             std::array<point_i, 4> const directions {{{x, y - 1}, {x, y + 1}, {x + 1, y}, {x - 1, y}}};
             for (auto const& direction : directions) {
-                if (_grid.contains(direction) && _grid[direction].is_passable()) {
+                if (_grid.size().contains(direction) && _grid[direction].is_passable()) {
                     if (!cave.contains(get_index(direction))) { toBeFilled.push(direction); }
                 }
             }
@@ -679,7 +679,7 @@ auto cellular_automata::check_connectivity(std::unordered_set<i32> const& cave1,
                 i32 const dir {get_index(direction)};
                 if (dir == end) { return true; }
 
-                if (_grid.contains(direction) && _grid[direction].is_passable()) {
+                if (_grid.size().contains(direction) && _grid[direction].is_passable()) {
                     if (!connectedRegion.contains(dir)) { toBeFilled.push(dir); }
                 }
             }
@@ -731,7 +731,7 @@ void city_walls::draw_room(rect_i const& rect)
             if (x == 0 || y == 0 || x == _grid.width() - 1 || y == _grid.height() - 1) { continue; }
 
             point_i const pos {x, y};
-            assert(_grid.contains(pos));
+            assert(_grid.size().contains(pos));
             _grid[pos] = _wall;
         }
     }
@@ -740,7 +740,7 @@ void city_walls::draw_room(rect_i const& rect)
             if (x == 0 || y == 0 || x == _grid.width() - 1 || y == _grid.height() - 1) { continue; }
 
             point_i const pos {x, y};
-            assert(_grid.contains(pos));
+            assert(_grid.size().contains(pos));
             _grid[pos] = _floor;
         }
     }
@@ -1051,12 +1051,12 @@ auto maze_with_rooms::can_carve(point_i pos, point_i dir) -> bool
     i32 x {pos.X + (dir.X * 3)};
     i32 y {pos.Y + (dir.Y * 3)};
 
-    if (!_grid.contains({x, y})) { return false; }
+    if (!_grid.size().contains({x, y})) { return false; }
 
     x = pos.X + dir.X * 2;
     y = pos.Y + dir.Y * 2;
 
-    if (!_grid.contains({x, y})) { return false; }
+    if (!_grid.size().contains({x, y})) { return false; }
 
     // return True if the cell is a wall (1)
     // false if the cell is a floor (0)
@@ -1116,7 +1116,7 @@ void messy_bsp_tree::draw_room(rect_i const& rect)
             if (x == 0 || y == 0 || x == _grid.width() - 1 || y == _grid.height() - 1) { continue; }
 
             point_i const pos {x, y};
-            assert(_grid.contains(pos));
+            assert(_grid.size().contains(pos));
             _grid[pos] = _floor;
         }
     }
