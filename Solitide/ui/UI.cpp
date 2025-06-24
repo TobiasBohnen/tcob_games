@@ -42,7 +42,7 @@ form_controls::form_controls(gfx::window& window, assets::group& resGrp, std::sh
     : form {{.Name = "Controls", .Bounds = window.bounds()}}
     , _sources {std::move(sources)}
 {
-    Controls.mut_ref().ActivateKey = input::key_code::UNKNOWN;
+    Controls.apply([&](auto& ctrls) { ctrls.ActivateKey = input::key_code::UNKNOWN; });
 
     auto tooltip0 {make_tooltip(*_sources, this)};
 
