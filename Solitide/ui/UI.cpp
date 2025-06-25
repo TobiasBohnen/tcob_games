@@ -455,6 +455,7 @@ void form_menu::create_game_details(dock_layout& panelLayout)
 
             grid<item> historyGrid {{5, 0}};
             for (auto const& entry : stats.Entries) {
+                // FIXME: performance
                 if (entry.Won) {
                     bestTime  = !bestTime ? entry.Time : std::min(entry.Time, *bestTime);
                     bestTurns = !bestTurns ? entry.Turns : std::min(entry.Turns, *bestTurns);
