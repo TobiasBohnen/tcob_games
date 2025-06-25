@@ -521,9 +521,11 @@ void form_menu::create_settings_video(tab_container& tabContainer)
 
         auto ddlRes {tabPanelLayout.create_widget<drop_down_list>({6, 1, 6, 4}, "ddlResolution")};
         ddlRes->ZOrder = 1;
-        for (auto const& ds : displaySizes) {
-            ddlRes->add_item(std::format("{}x{}", ds.Width, ds.Height));
-        }
+        ddlRes->Items.mutate([&](auto& items) {
+            for (auto const& ds : displaySizes) {
+                items.push_back({std::format("{}x{}", ds.Width, ds.Height)});
+            }
+        });
 
         auto const res {config[Cfg::Video::Name][Cfg::Video::resolution].as<size_i>()};
         ddlRes->select_item(std::format("{}x{}", res.Width, res.Height));

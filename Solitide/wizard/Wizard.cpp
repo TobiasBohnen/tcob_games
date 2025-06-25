@@ -59,11 +59,13 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
         auto const createCardFace {[&](auto&& layout, std::string const& name) {
             createLabel(layout, "Orientation");
             auto face {layout.template create_widget<drop_down_list>(name + "Orientation")};
-            face->add_item("Face Up");
-            face->add_item("Top Card Face Up");
-            face->add_item("Alternate - First Face Up");
-            face->add_item("Alternate - First Face Down");
-            face->add_item("Face Down");
+            face->Items.mutate([](auto& items) {
+                items.push_back({"Face Up"});
+                items.push_back({"Top Card Face Up"});
+                items.push_back({"Alternate - First Face Up"});
+                items.push_back({"Alternate - First Face Down"});
+                items.push_back({"Face Down"});
+            });
 
             face->SelectedItemIndex = 0;
             face->Class             = "drop_down_list_wizard";
@@ -71,10 +73,12 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
         auto const createPileLayout {[&](auto&& layout, std::string const& name) {
             createLabel(layout, "Layout");
             auto cyb {layout.template create_widget<cycle_button>(name + "Layout")};
-            cyb->add_item("Squared");
-            cyb->add_item("Column");
-            cyb->add_item("Row");
-            cyb->add_item("Fan");
+            cyb->Items.mutate([](auto& items) {
+                items.push_back({"Squared"});
+                items.push_back({"Column"});
+                items.push_back({"Row"});
+                items.push_back({"Fan"});
+            });
             cyb->SelectedItemIndex = 0;
         }};
         struct rule {
@@ -82,68 +86,77 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
             std::string build;
             std::string move;
         };
-        auto const createPileRule {[&](auto&& layout, std::string const& name, rule const& select) {
-            createLabel(layout, "Base");
-            auto base {layout.template create_widget<drop_down_list>(name + "Base")};
-            base->add_item("Ace");
-            base->add_item("King");
-            base->add_item("Any");
-            base->add_item("None");
-            base->select_item(select.base);
-            base->Class = "drop_down_list_wizard";
+        auto const createPileRule {
+            [&](auto&& layout, std::string const& name, rule const& select) {
+                createLabel(layout, "Base");
+                auto base {layout.template create_widget<drop_down_list>(name + "Base")};
+                base->Items.mutate([](auto& items) {
+                    items.push_back({"Ace"});
+                    items.push_back({"King"});
+                    items.push_back({"Any"});
+                    items.push_back({"None"});
+                });
+                base->select_item(select.base);
+                base->Class = "drop_down_list_wizard";
 
-            createLabel(layout, "Build");
-            auto build {layout.template create_widget<drop_down_list>(name + "Build")};
-            build->add_item("Any");
-            build->add_item("InRank");
-            build->add_item("InRankOrDownByRank");
-            build->add_item("RankPack");
-            build->add_item("UpOrDownByRank");
-            build->add_item("DownByRank");
-            build->add_item("UpByRank");
-            build->add_item("UpOrDownAnyButOwnSuit");
-            build->add_item("DownAnyButOwnSuit");
-            build->add_item("UpAnyButOwnSuit");
-            build->add_item("UpOrDownInSuit");
-            build->add_item("DownInSuit");
-            build->add_item("UpInSuit");
-            build->add_item("UpOrDownInColor");
-            build->add_item("DownInColor");
-            build->add_item("UpInColor");
-            build->add_item("UpOrDownAlternateColors");
-            build->add_item("DownAlternateColors");
-            build->add_item("UpAlternateColors");
-            build->add_item("None");
-            build->select_item(select.build);
-            build->Class = "drop_down_list_wizard";
+                createLabel(layout, "Build");
+                auto build {layout.template create_widget<drop_down_list>(name + "Build")};
+                build->Items.mutate([](auto& items) {
+                    items.push_back({"Any"});
+                    items.push_back({"InRank"});
+                    items.push_back({"InRankOrDownByRank"});
+                    items.push_back({"RankPack"});
+                    items.push_back({"UpOrDownByRank"});
+                    items.push_back({"DownByRank"});
+                    items.push_back({"UpByRank"});
+                    items.push_back({"UpOrDownAnyButOwnSuit"});
+                    items.push_back({"DownAnyButOwnSuit"});
+                    items.push_back({"UpAnyButOwnSuit"});
+                    items.push_back({"UpOrDownInSuit"});
+                    items.push_back({"DownInSuit"});
+                    items.push_back({"UpInSuit"});
+                    items.push_back({"UpOrDownInColor"});
+                    items.push_back({"DownInColor"});
+                    items.push_back({"UpInColor"});
+                    items.push_back({"UpOrDownAlternateColors"});
+                    items.push_back({"DownAlternateColors"});
+                    items.push_back({"UpAlternateColors"});
+                    items.push_back({"None"});
+                });
+                build->select_item(select.build);
+                build->Class = "drop_down_list_wizard";
 
-            createLabel(layout, "Move");
-            auto move {layout.template create_widget<drop_down_list>(name + "Move")};
-            move->add_item("Top");
-            move->add_item("FaceUp");
-            move->add_item("InSeq");
-            move->add_item("InSeqInSuit");
-            move->add_item("None");
-            move->select_item(select.move);
-            move->Class = "drop_down_list_wizard";
-        }};
+                createLabel(layout, "Move");
+                auto move {layout.template create_widget<drop_down_list>(name + "Move")};
+                move->Items.mutate([](auto& items) {
+                    items.push_back({"Top"});
+                    items.push_back({"FaceUp"});
+                    items.push_back({"InSeq"});
+                    items.push_back({"InSeqInSuit"});
+                    items.push_back({"None"});
+                });
+                move->select_item(select.move);
+                move->Class = "drop_down_list_wizard";
+            }};
 
         auto         tab {mainLayout.create_widget<tab_container>({0, 20, 30, 60}, "Piles")};
         size_i const boxSize {2, 12};
         {
-            auto  pnl {tab->create_tab<panel>("Stock", {"Stock", {}, {}})};
+            auto  pnl {tab->create_tab<panel>("Stock", {.Text = "Stock", .Icon = {}, .UserData = {}})};
             auto& layout {pnl->create_layout<box_layout>(boxSize)};
 
             createLabel(layout, "Deal");
             auto cybStockTarget {layout.create_widget<cycle_button>("StockTarget")};
-            cybStockTarget->add_item("To Waste");
-            cybStockTarget->add_item("To Waste by Threes");
-            cybStockTarget->add_item("To Tableau");
+            cybStockTarget->Items.mutate([](auto& items) {
+                items.push_back({"To Waste"});
+                items.push_back({"To Waste by Threes"});
+                items.push_back({"To Tableau"});
+            });
             cybStockTarget->select_item(cybStockTarget->get_item_at(0).Text);
 
             createLabel(layout, "Redeals");
             auto spnRedeals {layout.create_widget<spinner>("Redeals")};
-            spnRedeals->Flex  = {30_pct, 100_pct};
+            spnRedeals->Flex  = {.Width = 30_pct, .Height = 100_pct};
             spnRedeals->Min   = -1;
             spnRedeals->Max   = 5;
             spnRedeals->Step  = 1;
@@ -175,14 +188,14 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
             createPileRule(layout, "FreeCell", {.base = "Any", .build = "None", .move = "Top"});
         }
         {
-            auto  pnl {tab->create_tab<panel>("Foundation", {"Foundation", {}, {}})};
+            auto  pnl {tab->create_tab<panel>("Foundation", {.Text = "Foundation", .Icon = {}, .UserData = {}})};
             auto& layout {pnl->create_layout<box_layout>(boxSize)};
 
             createPileLayout(layout, "Foundation");
             createPileRule(layout, "Foundation", {.base = "Ace", .build = "UpInSuit", .move = "Top"});
         }
         {
-            auto  pnl {tab->create_tab<panel>("Tableau", {"Tableau", {}, {}})};
+            auto  pnl {tab->create_tab<panel>("Tableau", {.Text = "Tableau", .Icon = {}, .UserData = {}})};
             auto& layout {pnl->create_layout<box_layout>(boxSize)};
 
             createPileSize(layout, "Tableau");
@@ -213,5 +226,4 @@ void form_wizard::set_log_messages(std::vector<std::string> const& messages)
     for (auto const& m : messages) { items.push_back({.Text = m}); }
     _lbxLog->Items = items;
 }
-
 }
