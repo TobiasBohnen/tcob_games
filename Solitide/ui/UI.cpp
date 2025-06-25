@@ -202,9 +202,11 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
         auto listBox {tabPanelLayout.create_widget<list_box>(dock_style::Fill, "lbxGames" + std::to_string(lbID++))};
         listBoxes.push_back(listBox.get());
 
+        std::vector<item> listBoxItems;
         for (auto const& game : _sources->Games) {
-            if (pred(game.second.first)) { listBox->add_item(game.first); }
+            if (pred(game.second.first)) { listBoxItems.push_back({.Text = game.first}); }
         }
+        listBox->Items = listBoxItems;
 
         listBox->SelectedItemIndex.Changed.connect([this, lb = listBox.get()](auto val) {
             if (val != -1) { _sources->SelectedGame = lb->selected_item().Text; }
@@ -231,21 +233,30 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
         auto  listBox {createListBox(tabPanelLayout, [](auto const&) { return true; })};
         _sources->GameAdded.connect([this, lb = listBox.get()] {
             // TODO: update all listboxes
-            lb->clear_items();
-            for (auto const& game : _sources->Games) { lb->add_item(game.first); }
+            std::vector<item> listBoxItems;
+            for (auto const& game : _sources->Games) { listBoxItems.push_back({.Text = game.first}); }
+            lb->Items = listBoxItems;
         });
     }
     // Recent
     {
+        auto const updateList {[this]() {
+            std::vector<item> items;
+            for (auto const& game : *_sources->Settings.Recent) {
+                items.push_back({.Text = game});
+            }
+            return items;
+        }};
+
         auto tabPanel {tabGames->create_tab<panel>("tabRecent")};
         _sources->Translator.bind_tab(tabGames.get(), tabPanel.get());
 
         auto& tabPanelLayout {tabPanel->create_layout<dock_layout>()};
         auto  listBox {createListBox(tabPanelLayout, [](auto const&) { return false; })};
-        for (auto const& game : *_sources->Settings.Recent) { listBox->add_item(game); }
-        _sources->Settings.Recent.Changed.connect([this, lb = listBox.get()] {
-            lb->clear_items();
-            for (auto const& game : *_sources->Settings.Recent) { lb->add_item(game); }
+
+        listBox->Items = updateList();
+        _sources->Settings.Recent.Changed.connect([lb = listBox.get(), updateList] {
+            lb->Items = updateList();
         });
     }
     // By Family
@@ -579,7 +590,10 @@ void form_menu::create_section_themes(tab_container& parent)
     {
         auto& panelLayout {panelThemes->create_layout<dock_layout>()};
         auto  lbxThemes {panelLayout.create_widget<list_box>(dock_style::Fill, "lbxThemes")};
-        for (auto const& colorTheme : _sources->Themes) { lbxThemes->add_item(colorTheme.first); }
+        lbxThemes->Items.mutate([&](auto& items) {
+            for (auto const& colorTheme : _sources->Themes) { items.push_back({colorTheme.first}); }
+        });
+
         lbxThemes->SelectedItemIndex.Changed.connect([this, lb = lbxThemes.get()](auto val) {
             if (val != -1) { _sources->Settings.Theme = lb->selected_item().Text; }
         });
@@ -598,8 +612,10 @@ void form_menu::create_section_cardset(tab_container& parent)
     // listbox
     auto lbxCardsets {panelLayout.create_widget<list_box>(dock_style::Top, "lbxCardsets")};
     lbxCardsets->Class = "list_box_log";
-    lbxCardsets->Flex  = {50_pct, 25_pct};
-    for (auto const& cardSet : _sources->CardSets) { lbxCardsets->add_item(cardSet.first); }
+    lbxCardsets->Flex  = {.Width = 50_pct, .Height = 25_pct};
+    lbxCardsets->Items.mutate([&](auto& items) {
+        for (auto const& cardSet : _sources->CardSets) { items.push_back({cardSet.first}); }
+    });
     lbxCardsets->SelectedItemIndex.Changed.connect([this, lb = lbxCardsets.get()](auto val) {
         if (val != -1) { _sources->Settings.Cardset = lb->selected_item().Text; }
     });
@@ -609,7 +625,7 @@ void form_menu::create_section_cardset(tab_container& parent)
 
     // preview
     auto panelCards {panelLayout.create_widget<panel>(dock_style::Bottom, "panelCardsets")};
-    panelCards->Flex   = {100_pct, 75_pct};
+    panelCards->Flex   = {.Width = 100_pct, .Height = 75_pct};
     panelCards->ZOrder = 1;
 
     auto const cardsetChanged {[this, lb = lbxCardsets.get(), panel = panelCards.get()](auto const& val) {

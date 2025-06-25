@@ -200,18 +200,18 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
     });
 
     BtnGenerate       = mainLayout.create_widget<button>({60, 72, 9, 5}, "btnGenerate");
-    BtnGenerate->Icon = {resGrp.get<gfx::texture>("apply")};
+    BtnGenerate->Icon = {.Texture = resGrp.get<gfx::texture>("apply")};
 
     BtnBack       = mainLayout.create_widget<button>({70, 72, 9, 5}, "btnBack");
-    BtnBack->Icon = {resGrp.get<gfx::texture>("back")};
+    BtnBack->Icon = {.Texture = resGrp.get<gfx::texture>("back")};
 }
 
 void form_wizard::set_log_messages(std::vector<std::string> const& messages)
 {
-    _lbxLog->clear_items();
-    for (auto const& m : messages) {
-        _lbxLog->add_item(m);
-    }
+    std::vector<item> items;
+    items.reserve(messages.size());
+    for (auto const& m : messages) { items.push_back({.Text = m}); }
+    _lbxLog->Items = items;
 }
 
 }
