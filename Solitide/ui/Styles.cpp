@@ -424,7 +424,6 @@ void styles::parse_element(object const& obj, scrollbar_element* scrollbar)
 
 void styles::parse_element(data::object const& obj, bar_element* bar)
 {
-    obj.try_get(bar->Type, "type");
     obj.try_get(bar->LowerBackground, "lower_background");
     obj.try_get(bar->HigherBackground, "higher_background");
     obj.try_get(bar->Size, "size");

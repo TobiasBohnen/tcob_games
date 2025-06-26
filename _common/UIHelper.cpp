@@ -260,7 +260,6 @@ void create_styles(assets::group const& resGrp, style_collection& styles)
         style->Margin             = {2_px};
         style->Padding            = {2_px};
         style->ThumbClass         = "slider_thumb";
-        style->Bar.Type           = bar_type::Continuous;
         style->Bar.Size           = 25_pct;
         style->Bar.MotionDuration = 100ms;
         style->Bar.Border.Size    = 3_px;
@@ -298,7 +297,6 @@ void create_styles(assets::group const& resGrp, style_collection& styles)
         style->ItemHeight                    = 10_pct;
         style->ItemClass                     = "list_items";
         style->VScrollBar.ThumbClass         = "scrollbar_thumb";
-        style->VScrollBar.Bar.Type           = bar_type::Continuous;
         style->VScrollBar.Bar.Size           = 20_pct;
         style->VScrollBar.Bar.Border.Size    = 3_px;
         style->VScrollBar.Bar.MotionDuration = 250ms;

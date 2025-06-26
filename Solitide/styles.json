@@ -49,7 +49,6 @@
         "padding": "2px",
         "thumb_class": "slider_thumb",
         "bar": {
-            "type": "Continuous",
             "size": "25pct",
             "delay": 100,
             "border": {
@@ -259,7 +258,6 @@
         "v_scroll_bar": {
             "thumb_class": "scrollbar_thumb",
             "bar": {
-                "type": "Continuous",
                 "size": "10pct",
                 "delay": 250,
                 "border": {
@@ -375,7 +373,6 @@
         "v_scroll_bar": {
             "thumb_class": "scrollbar_thumb",
             "bar": {
-                "type": "Continuous",
                 "size": "5pct",
                 "delay": 250,
                 "border": {
@@ -405,7 +402,6 @@
         "v_scroll_bar": {
             "thumb_class": "scrollbar_thumb",
             "bar": {
-                "type": "Continuous",
                 "size": "25pct",
                 "delay": 250,
                 "border": {
