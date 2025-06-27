@@ -18,7 +18,7 @@ auto create_slider(grid_layout& layout, std::string const& name,
     auto lb1 {layout.create_widget<label>({4, row, 1, 1}, "lb" + name + "Val")};
 
     auto sl1 {layout.create_widget<slider>({2, row, 2, 1}, "sld" + name)};
-    sl1->Value.Changed.connect([lb1](auto const& ev) { lb1->Label = std::to_string(ev); });
+    sl1->Value.Changed.connect([lb1](f32 val) { lb1->Label = std::format("{:.0f}", val); });
     sl1->Min   = min;
     sl1->Max   = max;
     sl1->Value = initialValue;
