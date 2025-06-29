@@ -16,9 +16,10 @@ namespace solitaire {
 
 using namespace tcob::literals;
 
-auto static make_tooltip(menu_sources& sources, form_base* form) -> std::shared_ptr<tooltip>
+auto static make_tooltip(menu_sources& sources, form_base* form) -> std::shared_ptr<popup>
 {
-    auto retValue {form->create_tooltip<tooltip>("tooltip")};
+    auto retValue {form->create_popup<>("tooltip")};
+    retValue->Class     = "tooltip";
     form->TooltipOffset = {40, 40};
 
     auto& tooltipLayout {retValue->create_layout<dock_layout>()};
@@ -188,7 +189,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
     auto  txbFilter {panelFilterLayout.create_widget<text_box>({0, 0, 9, 1}, "txbFilter")};
     txbFilter->MaxLength = 30;
     auto btnClearFilter {panelFilterLayout.create_widget<button>({9, 0, 1, 1}, "btnClearFilter")};
-    btnClearFilter->Icon = {_resGrp.get<gfx::texture>("cross")};
+    btnClearFilter->Icon = {.Texture = _resGrp.get<gfx::texture>("cross")};
     btnClearFilter->Click.connect([tb = txbFilter.get()]() { tb->Text = ""; });
     btnClearFilter->Tooltip = _tooltip;
 

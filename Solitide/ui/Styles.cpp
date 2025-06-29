@@ -218,7 +218,7 @@ auto styles::load(color_themes const& theme) -> style_collection
             {"tab_container", [&]() { applyTheme(create<tab_container::style>(styleObj, retValue, name, flags)); }},
             {"text_box", [&]() { applyTheme(create<text_box::style>(styleObj, retValue, name, flags)); }},
             {"toggle", [&]() { applyTheme(create<toggle::style>(styleObj, retValue, name, flags)); }},
-            {"tooltip", [&]() { applyTheme(create<tooltip::style>(styleObj, retValue, name, flags)); }},
+            {"tooltip", [&]() { applyTheme(create<popup::style>(styleObj, retValue, name, flags)); }},
             {"thumb", [&]() { applyTheme(create<thumb_style>(styleObj, retValue, name, flags)); }},
             {"nav_arrow", [&]() { applyTheme(create<nav_arrows_style>(styleObj, retValue, name, flags)); }},
             {"item", [&]() { applyTheme(create<item_style>(styleObj, retValue, name, flags)); }}};

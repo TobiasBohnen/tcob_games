@@ -90,7 +90,7 @@ private:
 
     std::shared_ptr<text_box> _txbSeed;
 
-    std::shared_ptr<tooltip> _tooltip;
+    std::shared_ptr<popup> _tooltip;
 
     assets::group&                _resGrp;
     std::shared_ptr<menu_sources> _sources;
