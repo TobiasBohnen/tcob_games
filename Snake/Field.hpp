@@ -57,9 +57,9 @@ private:
     rng                           _rng {};
     std::shared_ptr<audio::sound> _sound;
 
-    gfx::ortho_tilemap _map;
-    uid                _layerBack {0};
-    uid                _layerFront {1};
+    gfx::orthogonal_tilemap _map;
+    uid                     _layerBack {0};
+    uid                     _layerFront {1};
 };
 
 }
