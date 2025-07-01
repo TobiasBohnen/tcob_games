@@ -11,15 +11,15 @@ namespace Snake {
 
 field::field(assets::asset_ptr<gfx::material> const& material, i32 windowHeight)
     : _windowHeight(windowHeight)
-    , _map {{{
-          {TS_FLOOR, {"metal"}},
-          {TS_SNAKE_BODY, {"blockerBody"}},
-          {TS_SNAKE_HEAD, {"blockerMad"}},
-          {TS_SNAKE_DEAD, {"blockerSad"}},
-          {TS_FOOD, {"coinGold"}},
-          {TS_STAR, {"star"}},
-          {TS_BOMB, {"bomb"}},
-      }}}
+    , _map {gfx::orthogonal_tileset {
+          {TS_FLOOR, {.TextureRegion = "metal"}},
+          {TS_SNAKE_BODY, {.TextureRegion = "blockerBody"}},
+          {TS_SNAKE_HEAD, {.TextureRegion = "blockerMad"}},
+          {TS_SNAKE_DEAD, {.TextureRegion = "blockerSad"}},
+          {TS_FOOD, {.TextureRegion = "coinGold"}},
+          {TS_STAR, {.TextureRegion = "star"}},
+          {TS_BOMB, {.TextureRegion = "bomb"}},
+      }}
 {
     _map.Material = material;
 }
@@ -86,10 +86,10 @@ void field::on_key_down(input::keyboard::event const& ev)
 {
     switch (ev.KeyCode) {
     case input::key_code::RIGHT: _snake.turn(direction::Right); break;
-    case input::key_code::LEFT: _snake.turn(direction::Left); break;
-    case input::key_code::DOWN: _snake.turn(direction::Down); break;
-    case input::key_code::UP: _snake.turn(direction::Up); break;
-    default: break;
+    case input::key_code::LEFT:  _snake.turn(direction::Left); break;
+    case input::key_code::DOWN:  _snake.turn(direction::Down); break;
+    case input::key_code::UP:    _snake.turn(direction::Up); break;
+    default:                     break;
     }
 }
 
@@ -97,10 +97,10 @@ void field::on_controller_button_down(input::controller::button_event const& ev)
 {
     switch (ev.Button) {
     case input::controller::button::DPadRight: _snake.turn(direction::Right); break;
-    case input::controller::button::DPadLeft: _snake.turn(direction::Left); break;
-    case input::controller::button::DPadDown: _snake.turn(direction::Down); break;
-    case input::controller::button::DPadUp: _snake.turn(direction::Up); break;
-    default: break;
+    case input::controller::button::DPadLeft:  _snake.turn(direction::Left); break;
+    case input::controller::button::DPadDown:  _snake.turn(direction::Down); break;
+    case input::controller::button::DPadUp:    _snake.turn(direction::Up); break;
+    default:                                   break;
     }
 }
 
