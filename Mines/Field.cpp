@@ -297,7 +297,7 @@ void field::set_tile(uid layer, point_i const& point, gfx::tile_index_t id)
 
 auto field::get_cell(point_i const& point) -> cell&
 {
-    return _cells.at(point.X + point.Y * _gridSize.Width);
+    return _cells.at(point.X + (point.Y * _gridSize.Width));
 }
 
 void field::toggle_front_layer_visibility()
