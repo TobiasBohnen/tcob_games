@@ -56,7 +56,7 @@ elements_form::elements_form(rect_i const& bounds, std::vector<element_def> cons
             }
             auto btn {layout->create_widget<button>(name)};
             btn->Label = name;
-            btn->MouseDown.connect([&, id](auto const& ev) mutable {
+            btn->MouseButtonDown.connect([&, id](auto const& ev) mutable {
                 if (ev.Event.Button == input::mouse::button::Left) {
                     SelectedElement(id);
                 }
