@@ -230,7 +230,7 @@ void create_styles(assets::group const& resGrp, style_collection& styles)
     }
     {
         auto style {styles.create<button>("button", {})};
-        style->Border.Type          = line_type::Solid;
+        style->Border.Type          = border_type::Solid;
         style->Border.Size          = 3_px;
         style->Border.Radius        = 5_px;
         style->Text.Style           = {false, gfx::font::weight::Normal};
