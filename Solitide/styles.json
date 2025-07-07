@@ -527,7 +527,7 @@
     "section_items:hover": {},
     "section_items:active": {},
     "nav_arrows#nav_arrow": {
-        "size": "25pct, 80pct",
+        "size": "25pct, 95pct",
         "padding": "1px",
         "border": {
             "size": "1px",
