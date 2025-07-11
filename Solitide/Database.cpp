@@ -16,20 +16,20 @@ database::database()
     _database.set_journal_mode(data::sqlite::journal_mode::Off);
 
     _tabGames   = _database.create_table("games",
-                                         db::column {"ID", db::type::Integer, false, db::primary_key {}},
-                                         db::column {"Name", db::type::Text, true, db::unique {}});
+                                         db::column<db::type::Integer, db::primary_key> {.Name = "ID", .NotNull = false},
+                                         db::column<db::type::Text, db::unique> {.Name = "Name", .NotNull = true});
     _tabHistory = _database.create_table("history",
-                                         db::column {"ID", db::type::Integer, false, db::primary_key {}},
-                                         db::column {"GameID", db::type::Integer},
-                                         db::column {"Seed", db::type::Text, true},
-                                         db::column {"Won", db::type::Integer},
-                                         db::column {"Turns", db::type::Integer},
-                                         db::column {"Score", db::type::Integer},
-                                         db::column {"Undos", db::type::Integer},
-                                         db::column {"Hints", db::type::Integer},
-                                         db::column {"Time", db::type::Real},
+                                         db::column<db::type::Integer, db::primary_key> {.Name = "ID", .NotNull = false},
+                                         db::column<db::type::Integer> {.Name = "GameID"},
+                                         db::column<db::type::Text> {.Name = "Seed", .NotNull = true},
+                                         db::column<db::type::Integer> {.Name = "Won"},
+                                         db::column<db::type::Integer> {.Name = "Turns"},
+                                         db::column<db::type::Integer> {.Name = "Score"},
+                                         db::column<db::type::Integer> {.Name = "Undos"},
+                                         db::column<db::type::Integer> {.Name = "Hints"},
+                                         db::column<db::type::Real> {.Name = "Time"},
                                          db::unique {"GameID", "Seed"},
-                                         db::foreign_key {"GameID", "games", "ID"});
+                                         db::table_foreign_key {.Column = "GameID", .ForeignTable = "games", .ForeignColumn = "ID"});
     assert(_tabGames && _tabHistory);
 }
 
