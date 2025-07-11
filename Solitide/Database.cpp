@@ -66,7 +66,7 @@ auto database::get_history(std::string const& name) const -> game_history
     auto const entries {
         _tabHistory->select_from<i64, rng::seed_type, i64, i64, i64, i64, i64, bool>("ID", "Seed", "Turns", "Score", "Undos", "Hints", "Time", "Won")
             .where("GameID = ?")
-            .order_by("Seed")
+            .order_by(db::ordering {"Seed"})
             .exec<game_history::entry>(id)};
     isize const won {std::ranges::count_if(entries, [](auto const& entry) { return entry.Won; })};
     return {.Won = won, .Lost = std::ssize(entries) - won, .Entries = entries};
