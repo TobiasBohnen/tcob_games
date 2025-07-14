@@ -257,7 +257,8 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
 
         listBox->Items = updateList();
         _sources->Settings.Recent.Changed.connect([lb = listBox.get(), updateList] {
-            lb->Items = updateList();
+            lb->Items             = updateList();
+            lb->SelectedItemIndex = -1;
         });
     }
     // By Family
