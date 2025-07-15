@@ -9,7 +9,7 @@ template <typename T>
 auto comp(comp_op op, T a, T b) -> bool
 {
     switch (op) {
-    case comp_op::Equals:             return a == b;
+    case comp_op::Equal:              return a == b;
     case comp_op::LessThan:           return a < b;
     case comp_op::LessThanOrEqual:    return a <= b;
     case comp_op::GreaterThan:        return a > b;

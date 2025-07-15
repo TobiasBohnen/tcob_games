@@ -18,8 +18,8 @@ enum class element_type : u8 {
 };
 
 ////////////////////////////////////////////////////////////
-enum class comp_op {
-    Equals,
+enum class comp_op : u8 {
+    Equal,
     LessThan,
     LessThanOrEqual,
     GreaterThan,
