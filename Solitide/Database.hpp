@@ -23,9 +23,9 @@ public:
     auto get_history(std::string const& name) const -> game_history;
 
 private:
-    data::sqlite::database             _database;
-    std::optional<data::sqlite::table> _tabGames;
-    std::optional<data::sqlite::table> _tabHistory;
+    db::database             _database;
+    std::optional<db::table> _tabGames;
+    std::optional<db::table> _tabHistory;
 };
 
 }

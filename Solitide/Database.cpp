@@ -8,12 +8,11 @@
 namespace solitaire {
 
 static char const* DB_NAME {"profile.db"};
-namespace db = tcob::data::sqlite;
 
 database::database()
-    : _database {*data::sqlite::database::Open(DB_NAME)}
+    : _database {*db::database::Open(DB_NAME)}
 {
-    _database.set_journal_mode(data::sqlite::journal_mode::Off);
+    _database.set_journal_mode(db::journal_mode::Off);
 
     _tabGames   = _database.create_table("games",
                                          db::int_column<db::primary_key> {.Name = "ID", .NotNull = false},
