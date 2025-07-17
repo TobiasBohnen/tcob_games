@@ -47,26 +47,27 @@ void database::insert_games(game_map const& games) const
 
 void database::insert_history_entry(std::string const& name, game_state const& state, game_rng const& rng, game_status status) const
 {
-    auto sp {_database.create_savepoint("sp1")};
+    i64 const    id {_tabGames->select_from<i64>("ID").where(db::equal {"Name", name})()[0]};
+    string const seed {std::to_string(rng.seed())};
 
-    auto const id {_tabGames->select_from<i64>("ID").where("Name = ?")(name)};
-    auto const seed {std::to_string(rng.seed())};
-
-    std::ignore = _tabHistory->insert_into(db::ignore, "GameID", "Seed")(std::tuple<i64, string> {id[0], seed});
-    std::ignore = _tabHistory->update("Won", "Turns", "Score", "Undos", "Hints", "Time")
-                      .where("GameID = ? and Seed = ?")(status == game_status::Success, state.Turns, state.Score, state.Undos, state.Hints, state.Time.count(), id[0], seed);
-
-    sp.release();
+    [[maybe_unused]] bool check {
+        _tabHistory->insert_into(db::ignore, "GameID", "Seed") //
+        (std::tuple {id, seed})};
+    assert(check);
+    check = _tabHistory->update("Won", "Turns", "Score", "Undos", "Hints", "Time")
+                .where(db::equal {"GameID", id} && db::equal {"Seed", seed}) //
+            (status == game_status::Success, state.Turns, state.Score, state.Undos, state.Hints, state.Time.count());
+    assert(check);
 }
 
 auto database::get_history(std::string const& name) const -> game_history
 {
-    auto const id {_tabGames->select_from<i64>("ID").where("Name = ?")(name)};
+    i64 const  id {_tabGames->select_from<i64>("ID").where(db::equal {"Name", name})()[0]};
     auto const entries {
         _tabHistory->select_from<i64, rng::seed_type, i64, i64, i64, i64, i64, bool>("ID", "Seed", "Turns", "Score", "Undos", "Hints", "Time", "Won")
-            .where("GameID = ?")
+            .where(db::equal {"GameID", id})
             .order_by(db::ordering {"Seed"})
-            .exec<game_history::entry>(id)};
+            .exec<game_history::entry>()};
     isize const won {std::ranges::count_if(entries, [](auto const& entry) { return entry.Won; })};
     return {.Won = won, .Lost = std::ssize(entries) - won, .Entries = entries};
 }
