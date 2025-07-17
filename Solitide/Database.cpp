@@ -28,7 +28,7 @@ database::database()
                                          db::int_column<> {.Name = "Hints"},
                                          db::real_column<> {.Name = "Time"},
                                          db::unique {"GameID", "Seed"},
-                                         db::table_foreign_key {.Column = "GameID", .ForeignTable = "games", .ForeignColumn = "ID"});
+                                         db::foreign_key {.Column = "GameID", .ForeignTable = "games", .ForeignColumn = "ID"});
     assert(_tabGames && _tabHistory);
 }
 
