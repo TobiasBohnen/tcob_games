@@ -331,22 +331,22 @@ void gen_cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, ran
 
         f32 const suitSize {texSize.Width / 8};
         canvas.draw_text(rankRect, rankSymbol);
-        draw_suit(canvas, s, {offset.X + suitSize / 2, offset.Y + fonts.NormalFont->info().LineHeight + suitSize / 2}, suitSize);
+        draw_suit(canvas, s, {offset.X + (suitSize / 2), offset.Y + fonts.NormalFont->info().LineHeight + (suitSize / 2)}, suitSize);
         canvas.rotate_at(degree_f {180}, cardCenter);
         canvas.draw_text(rankRect, rankSymbol);
-        draw_suit(canvas, s, {offset.X + suitSize / 2, offset.Y + fonts.NormalFont->info().LineHeight + suitSize / 2}, suitSize);
+        draw_suit(canvas, s, {offset.X + (suitSize / 2), offset.Y + fonts.NormalFont->info().LineHeight + (suitSize / 2)}, suitSize);
         canvas.reset_transform();
     }
     {
         f32 const suitSize {texSize.Width / 6};
         f32 const centerX {cardCenter.X};
         f32 const centerY {cardCenter.Y};
-        f32 const left {centerX - cardRect.width() / 4};
-        f32 const right {centerX + cardRect.width() / 4};
-        f32 const top {cardRect.top() + suitSize * 2};
+        f32 const left {centerX - (cardRect.width() / 4)};
+        f32 const right {centerX + (cardRect.width() / 4)};
+        f32 const top {cardRect.top() + (suitSize * 2)};
         f32 const centerTop {top + suitSize};
 
-        f32 const nineCenterY {top + suitSize * 1.5f};
+        f32 const nineCenterY {top + (suitSize * 1.5f)};
         f32 const tenCenterY {(top + nineCenterY) / 2};
 
         auto drawTwo {[&]() {
@@ -466,15 +466,15 @@ void gen_cardset::draw_back(gfx::canvas& canvas, rect_f const& rect)
     for (f32 row {backRect.top()}; row < backRect.bottom(); row += rhombusSize * sqrt3) {
         for (f32 col {backRect.left()}; col < backRect.right(); col += rhombusSize * 2) {
             f32 const x1 {col};
-            f32 const y1 {row + rhombusSize * sqrt3 / 2};
+            f32 const y1 {row + (rhombusSize * sqrt3 / 2)};
             f32 const x2 {col + rhombusSize};
             f32 const y2 {row};
-            f32 const x3 {col + rhombusSize * 2};
+            f32 const x3 {col + (rhombusSize * 2)};
             f32 const y3 {y1};
             f32 const x4 {x2};
-            f32 const y4 {row + rhombusSize * sqrt3};
+            f32 const y4 {row + (rhombusSize * sqrt3)};
 
-            color const color {static_cast<i32>(row / (rhombusSize * sqrt3) + col / (rhombusSize * 2)) % 2 == 0 ? colors::LightBlue : colors::LightGray};
+            color const color {static_cast<i32>((row / (rhombusSize * sqrt3)) + (col / (rhombusSize * 2))) % 2 == 0 ? colors::LightBlue : colors::LightGray};
 
             canvas.set_fill_style(color);
             canvas.begin_path();
