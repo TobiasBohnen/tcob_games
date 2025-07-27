@@ -17,6 +17,7 @@ constexpr i32 SCORE_TABLEAU    = 1;
 
 base_game::base_game(game_info info)
     : _info {std::move(info)}
+    , _rng {get_time_seed()}
 {
 }
 
@@ -90,10 +91,9 @@ auto base_game::load(std::optional<data::object> const& loadObj) -> bool
     if (!loadObj->has(_info.Name)) { return false; }
 
     object const obj {loadObj->get<object>(_info.Name).value()};
-    if (!obj.has("State") || !obj.has("RNG")) { return false; }
 
-    _state = obj["State"].as<game_state>();
-    _rng   = obj["RNG"].as<game_rng>();
+    if (!obj.try_get(_state, "State")) { return false; }
+    if (!obj.try_get(_rng, "RNG")) { return false; }
 
     _storage.clear();
     if (object storage; obj.try_get(storage, "Storage")) { _storage = storage.clone(true); }

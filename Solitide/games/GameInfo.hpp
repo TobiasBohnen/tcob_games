@@ -16,7 +16,7 @@ namespace solitaire {
 
 ////////////////////////////////////////////////////////////
 
-enum class family {
+enum class family : u8 {
     Other,
     BakersDozen,
     BeleagueredCastle,
@@ -39,7 +39,7 @@ enum class family {
 
 ////////////////////////////////////////////////////////////
 
-enum class game_status {
+enum class game_status : u8 {
     Initial,
     Running,
     Failure,
@@ -48,7 +48,7 @@ enum class game_status {
 
 ////////////////////////////////////////////////////////////
 
-enum class objective {
+enum class objective : u8 {
     AllCardsToFoundation,
     AllCardsButOneToFoundation,
     AllCardsButTwoToFoundation,
@@ -109,9 +109,16 @@ struct game_state {
 ////////////////////////////////////////////////////////////
 using rng = random::shuffle<card, random::xoshiro_256_plus_plus>;
 
+inline auto get_time_seed() -> rng::seed_type
+{
+    u64 const                seed {static_cast<u64>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count())};
+    random::rng_split_mix_64 rng {seed};
+    return static_cast<rng::seed_type>(rng.next());
+}
+
 class game_rng {
 public:
-    game_rng(rng::seed_type seed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count());
+    game_rng(rng::seed_type seed);
 
     auto gen() -> rng&;
     auto seed() const -> rng::seed_type const&;

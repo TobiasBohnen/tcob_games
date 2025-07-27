@@ -54,7 +54,7 @@ struct rule {
 
 ////////////////////////////////////////////////////////////
 
-enum class pile_type {
+enum class pile_type : u8 {
     Stock,
     Waste,
     Foundation,
@@ -65,7 +65,7 @@ enum class pile_type {
 
 auto get_pile_type_name(pile_type pt) -> std::string;
 
-enum class layout_type {
+enum class layout_type : u8 {
     Squared,
     Column,
     Row,
