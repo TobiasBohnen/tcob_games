@@ -100,9 +100,8 @@ auto card_set::load() const -> bool
                 }
                 if (statusFuture.get() != load_status::Ok) { return false; }
                 _texture->update_data(imgIt->Image, imgIt->Depth);
-                _texture->add_region(
-                    json.get<std::string>("cards", io::get_filename(imgIt->Path)).value_or(io::get_stem(imgIt->Path)),
-                    {{0, 0, 1, 1}, imgIt->Depth});
+                string const name {json.get<std::string>("cards", io::get_filename(imgIt->Path)).value_or(io::get_stem(imgIt->Path))};
+                _texture->regions()[name] = {.UVRect = {0, 0, 1, 1}, .Level = imgIt->Depth};
             }
         }
     }
@@ -209,7 +208,7 @@ void card_set::save_textures(assets::asset_ptr<gfx::texture> const& canvasTex, s
         cardsetObj["cards"][file] = k;
         std::ignore               = cardimg.save(folder + file);
         tex->update_data(data, level);
-        tex->add_region(k, gfx::texture_region {{0, 0, 1, 1}, level++});
+        tex->regions()[k] = gfx::texture_region {.UVRect = {0, 0, 1, 1}, .Level = level++};
     }
     cardsetObj["version"]   = "1.0";
     cardsetObj["filtering"] = "Linear";
@@ -258,7 +257,7 @@ void gen_cardset::create(assets::group& resGrp)
     }};
 
     auto addRegion {[&](std::string const& texName, rect_f const& rect) {
-        tempTex->add_region(texName, {rect, 0});
+        tempTex->regions()[texName] = {.UVRect = rect, .Level = 0};
     }};
 
     // draw cards
@@ -550,7 +549,7 @@ void mini_cardset::create(assets::group& resGrp, size_f texSize)
     }};
 
     auto addRegion {[&](std::string const& texName, rect_f const& rect) {
-        tempTex->add_region(texName, {rect, 0});
+        tempTex->regions()[texName] = {.UVRect = rect, .Level = 0};
     }};
 
     // draw cards
