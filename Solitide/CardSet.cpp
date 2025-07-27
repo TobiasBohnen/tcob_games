@@ -187,7 +187,7 @@ void card_set::save_textures(assets::asset_ptr<gfx::texture> const& canvasTex, s
 {
     auto* tex {get_texture()};
 
-    auto const& regions {canvasTex->get_regions()};
+    auto const& regions {canvasTex->regions()};
     tex->create(size_i {texSize}, static_cast<u32>(regions.size()), gfx::texture::format::RGBA8);
     tex->Filtering = gfx::texture::filtering::Linear;
 
