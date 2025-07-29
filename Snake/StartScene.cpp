@@ -29,8 +29,14 @@ void start_scene::on_start()
     _playField = std::make_shared<field>(resGrp.get<gfx::material>("mat-tiles"), windowSize.Height);
     _playField->Score.Changed.connect([&](auto val) { _mainForm->Score(std::to_string(val)); });
 
-    i32 const    menuWidth {(windowSize.Width - windowSize.Height) / 2};
-    rect_i const menuBounds {windowSize.Height + (menuWidth / 2), 0, menuWidth, windowSize.Height};
+    rect_i    menuBounds;
+    i32 const menuWidth {(windowSize.Width - windowSize.Height) / 2};
+    if (windowSize.Width * 3 == windowSize.Height * 4) {
+        menuBounds = {windowSize.Height, 0, menuWidth * 2, windowSize.Height};
+    } else {
+        menuBounds = {windowSize.Height + (menuWidth / 2), 0, menuWidth, windowSize.Height};
+    }
+
     _mainForm = std::make_shared<main_menu>(resGrp, menuBounds);
     _mainForm->Start.connect([&, windowSize]() { _playField->start(); });
     _mainForm->Quit.connect([&]() { parent().pop_current_scene(); });

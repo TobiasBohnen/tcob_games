@@ -120,8 +120,8 @@ auto food::eat_check(point_i pos) -> bool
 {
     if (is_pos(pos)) { // eat food
         give_score(FOOD_SCORE);
-        hide();
         play_sound(audio::sound_generator {}.generate_pickup_coin());
+        hide();
         return true;
     }
 
@@ -157,7 +157,7 @@ void snake::turn(direction dir)
     _dir = dir;
 }
 
-auto snake::check_bounds() const -> bool
+auto snake::enforce_bounds() const -> bool
 {
     if (!_gridSize.contains(_headPos)) {
         _parent.fail();
@@ -168,7 +168,7 @@ auto snake::check_bounds() const -> bool
     return true;
 }
 
-auto snake::move_head() -> bool
+auto snake::try_move_head() -> bool
 {
     _oldHeadPos = _headPos;
 
@@ -180,7 +180,7 @@ auto snake::move_head() -> bool
     case direction::None:  break;
     }
 
-    return check_bounds();
+    return enforce_bounds();
 }
 
 void snake::move_body()

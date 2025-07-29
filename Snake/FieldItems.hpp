@@ -77,7 +77,7 @@ public:
     void reset(point_i pos);
 
     void turn(direction dir);
-    auto move_head() -> bool;
+    auto try_move_head() -> bool;
     void move_body();
     void eat_food();
 
@@ -86,7 +86,7 @@ public:
     auto try_eat(field_item& item) const -> bool;
 
 private:
-    auto check_bounds() const -> bool;
+    auto enforce_bounds() const -> bool;
 
     field& _parent;
     size_i _gridSize;

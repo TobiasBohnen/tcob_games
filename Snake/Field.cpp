@@ -113,7 +113,7 @@ auto field::get_tile_size() const -> size_f
 
 void field::tick()
 {
-    if (!_snake.move_head()) { // out of bounds
+    if (!_snake.try_move_head()) { // out of bounds
         return;
     }
 
