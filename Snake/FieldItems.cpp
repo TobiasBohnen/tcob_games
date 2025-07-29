@@ -1,5 +1,7 @@
 #include "FieldItems.hpp"
 
+#include <algorithm>
+
 #include "Field.hpp"
 
 namespace Snake {
@@ -171,19 +173,11 @@ auto snake::move_head() -> bool
     _oldHeadPos = _headPos;
 
     switch (_dir) {
-    case direction::Left:
-        _headPos = {_oldHeadPos.X - 1, _oldHeadPos.Y};
-        break;
-    case direction::Right:
-        _headPos = {_oldHeadPos.X + 1, _oldHeadPos.Y};
-        break;
-    case direction::Up:
-        _headPos = {_oldHeadPos.X, _oldHeadPos.Y - 1};
-        break;
-    case direction::Down:
-        _headPos = {_oldHeadPos.X, _oldHeadPos.Y + 1};
-        break;
-    case direction::None: break;
+    case direction::Left:  _headPos = {_oldHeadPos.X - 1, _oldHeadPos.Y}; break;
+    case direction::Right: _headPos = {_oldHeadPos.X + 1, _oldHeadPos.Y}; break;
+    case direction::Up:    _headPos = {_oldHeadPos.X, _oldHeadPos.Y - 1}; break;
+    case direction::Down:  _headPos = {_oldHeadPos.X, _oldHeadPos.Y + 1}; break;
+    case direction::None:  break;
     }
 
     return check_bounds();
@@ -195,7 +189,7 @@ void snake::move_body()
 
     if (!_tail.empty()) { // draw body
         // check hit tail
-        if (std::find(_tail.begin(), _tail.end(), _headPos) != _tail.end()) {
+        if (std::ranges::find(_tail, _headPos) != _tail.end()) {
             _parent.fail();
             _parent.play_sound(audio::sound_generator {}.generate_hit_hurt());
             return;

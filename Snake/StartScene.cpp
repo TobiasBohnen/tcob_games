@@ -27,18 +27,13 @@ void start_scene::on_start()
     auto  windowSize {*win.Size};
 
     _playField = std::make_shared<field>(resGrp.get<gfx::material>("mat-tiles"), windowSize.Height);
-    _playField->Score.Changed.connect([&](auto val) {
-        _mainForm->LblScore->Label = std::to_string(val);
-    });
+    _playField->Score.Changed.connect([&](auto val) { _mainForm->Score(std::to_string(val)); });
 
-    rect_i const menuBounds {windowSize.Height, 0, windowSize.Width - windowSize.Height, windowSize.Height};
+    i32 const    menuWidth {(windowSize.Width - windowSize.Height) / 2};
+    rect_i const menuBounds {windowSize.Height + (menuWidth / 2), 0, menuWidth, windowSize.Height};
     _mainForm = std::make_shared<main_menu>(resGrp, menuBounds);
-    _mainForm->BtnStart->Click.connect([&, windowSize](auto const&) {
-        _playField->start();
-    });
-    _mainForm->BtnQuit->Click.connect([&](auto const&) {
-        parent().pop_current_scene();
-    });
+    _mainForm->Start.connect([&, windowSize]() { _playField->start(); });
+    _mainForm->Quit.connect([&]() { parent().pop_current_scene(); });
 
     root_node()->create_child()->Entity = _playField;
     root_node()->create_child()->Entity = _mainForm;

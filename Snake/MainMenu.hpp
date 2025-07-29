@@ -13,12 +13,15 @@ class main_menu : public form<dock_layout> {
 public:
     main_menu(assets::group const& resGrp, rect_i const& bounds);
 
-    std::shared_ptr<button> BtnStart;
-    std::shared_ptr<button> BtnQuit;
-    std::shared_ptr<label>  LblScore;
+    signal<>             Start;
+    signal<>             Quit;
+    signal<string const> Score;
 
 protected:
 private:
+    void gen_styles();
+
+    assets::asset_ptr<gfx::font_family> _font;
 };
 
 }
