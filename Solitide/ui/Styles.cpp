@@ -167,7 +167,7 @@ auto styles::load(color_themes const& theme) -> style_collection
     style_collection retValue;
 
     object styleFile {};
-    if (styleFile.load("styles.json") != load_status::Ok) { return retValue; }
+    if (!styleFile.load("styles.json")) { return retValue; }
     std::unordered_map<std::string, std::string> typeMap;
 
     for (auto const& entry : styleFile) {

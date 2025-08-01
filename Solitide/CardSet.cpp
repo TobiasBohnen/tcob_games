@@ -73,10 +73,10 @@ auto card_set::load() const -> bool
     _texture->Filtering = json.get<gfx::texture::filtering>("filtering").value_or(gfx::texture::filtering::Linear);
 
     struct image_ftr {
-        u32                      Depth {};
-        path                     Path {};
-        gfx::image               Image {};
-        std::future<load_status> Future {};
+        u32               Depth {};
+        path              Path {};
+        gfx::image        Image {};
+        std::future<bool> Future {};
     };
 
     u32                    level {0};
@@ -98,7 +98,7 @@ auto card_set::load() const -> bool
                     assetLoadingDone = false;
                     continue;
                 }
-                if (statusFuture.get() != load_status::Ok) { return false; }
+                if (!statusFuture.get()) { return false; }
                 _texture->update_data(imgIt->Image, imgIt->Depth);
                 string const name {json.get<std::string>("cards", io::get_filename(imgIt->Path)).value_or(io::get_stem(imgIt->Path))};
                 _texture->regions()[name] = {.UVRect = {0, 0, 1, 1}, .Level = imgIt->Depth};

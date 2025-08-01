@@ -172,12 +172,12 @@ void load_themes(std::map<std::string, color_themes>& themeMap)
     using namespace tcob::data;
 
     object themes {};
-    if (themes.load("themes.json") != load_status::Ok) { return; }
+    if (!themes.load("themes.json")) { return; }
 
     object     customThemes {};
-    auto const files {io::enumerate("/", {"themes.*.json", false}, true)};
+    auto const files {io::enumerate("/", {.String = "themes.*.json", .MatchWholePath = false}, true)};
     for (auto const& file : files) {
-        if (customThemes.load(file) == load_status::Ok) { themes.merge(customThemes, true); }
+        if (customThemes.load(file)) { themes.merge(customThemes, true); }
     }
 
     auto const getColor {[](object const& theme, color& target, std::string const& group, std::string const& name) {
