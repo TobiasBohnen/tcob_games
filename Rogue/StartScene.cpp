@@ -33,7 +33,7 @@ void start_scene::on_start()
 
     _renderer = std::make_shared<renderer>(*_mainForm->Terminal);
 
-    locate_service<gfx::render_system>().stats().reset();
+    locate_service<gfx::render_system>().statistics().reset();
 }
 
 void start_scene::on_draw_to(gfx::render_target&)
@@ -50,7 +50,7 @@ void start_scene::on_fixed_update(milliseconds deltaTime)
 {
     std::stringstream stream;
     stream << std::fixed << std::setprecision(2);
-    auto const& stats {locate_service<gfx::render_system>().stats()};
+    auto const& stats {locate_service<gfx::render_system>().statistics()};
     stream << "avg FPS:" << stats.average_FPS();
     stream << " best FPS:" << stats.best_FPS();
     stream << " worst FPS:" << stats.worst_FPS();

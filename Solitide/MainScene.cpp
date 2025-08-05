@@ -143,7 +143,7 @@ void main_scene::on_start()
     root_node()->create_child()->Entity = _formControls;
     root_node()->create_child()->Entity = _formMenu;
 
-    locate_service<gfx::render_system>().stats().reset();
+    locate_service<gfx::render_system>().statistics().reset();
 
     // config
     set_cardset();
@@ -233,7 +233,7 @@ void main_scene::on_fixed_update(milliseconds deltaTime)
         _formControls->set_game_labels(game);
     }
 #if defined(TCOB_DEBUG)
-    auto const& stats {locate_service<gfx::render_system>().stats()};
+    auto const& stats {locate_service<gfx::render_system>().statistics()};
     window().Title = std::format("Solitide | avg FPS: {:.2f} best FPS: {:.2f} worst FPS: {:.2f}",
                                  stats.average_FPS(), stats.best_FPS(), stats.worst_FPS());
 #endif
@@ -364,7 +364,7 @@ void main_scene::start_game(std::string const& name, start_reason reason, std::o
     } break;
     }
 
-    locate_service<gfx::render_system>().stats().reset();
+    locate_service<gfx::render_system>().statistics().reset();
 }
 
 void main_scene::start_wizard()
