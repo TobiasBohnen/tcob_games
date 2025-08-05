@@ -513,9 +513,9 @@ void form_menu::create_settings_video(tab_container& tabContainer)
 
     // resolution
     {
-        auto const          displayModes {locate_service<platform>().displays()};
+        auto const          displayModes {locate_service<platform>().displays().begin()->second.Modes};
         std::vector<size_i> displaySizes;
-        for (auto const& dm : displayModes.begin()->second.Modes) {
+        for (auto const& dm : displayModes) {
             if (displaySizes.empty() || displaySizes.back() != dm.Size) {
                 displaySizes.push_back(dm.Size);
             }
