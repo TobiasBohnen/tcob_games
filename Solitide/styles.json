@@ -273,9 +273,9 @@
             "size": "2px",
             "radius": "5px"
         },
-        "tab_bar_size": "5pct",
+        "tab_header_size": "5pct",
         "tab_item_class": "tab_items",
-        "tab_bar_position": "Top"
+        "tab_header_position": "Top"
     },
     "tab_container_small#tab_container": {
         "padding": "2px",
@@ -283,16 +283,16 @@
             "size": "2px",
             "radius": "5px"
         },
-        "tab_bar_size": "20pct",
+        "tab_header_size": "20pct",
         "tab_item_class": "tab_items",
-        "tab_bar_position": "Top"
+        "tab_header_position": "Top"
     },
     "tab_container_hidden#tab_container": {
         "border": {
             "size": "2px",
             "radius": "5px"
         },
-        "tab_bar_position": "None"
+        "tab_header_position": "None"
     },
     "accordion": {
         "border": {

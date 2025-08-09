@@ -335,8 +335,8 @@ void styles::parse(data::object const& obj, tab_container::style* style)
 {
     parse_widget_style(obj, style);
     obj.try_get(style->TabItemClass, "tab_item_class");
-    obj.try_get(style->TabBarPosition, "tab_bar_position");
-    obj.try_get(style->TabBarSize, "tab_bar_size");
+    obj.try_get(style->HeaderPosition, "tab_header_position");
+    obj.try_get(style->HeaderSize, "tab_header_size");
 }
 
 void styles::parse(data::object const& obj, text_box::style* style)

@@ -33,7 +33,7 @@ auto static make_tooltip(menu_sources& sources, form_base* form) -> std::shared_
         rect_f const bounds {widget->Bounds};
         auto const*  style {dynamic_cast<label::style const*>(lbl->current_style())};
         assert(style);
-        auto* const font {style->Text.Font->get_font(style->Text.Style, style->Text.calc_font_size({0, 0, bounds.width() * 1.5f, bounds.height() * 0.75f})).ptr()};
+        auto* const font {style->Text.Font->get_font(style->Text.Style, style->Text.calc_font_size(bounds.height() * 0.75f)).ptr()};
         tt->Bounds = {point_f::Zero, gfx::text_formatter::measure(*lbl->Label, *font, -1, true)};
     });
     return retValue;
