@@ -195,8 +195,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
 
     std::vector<list_box*> listBoxes;
     auto                   tabGames {panelLayout.create_widget<tab_container>(dock_style::Left, "tabGames")};
-    tabGames->MaxTabsPerLine = 6;
-    tabGames->Flex           = {.Width = 50_pct, .Height = 100_pct};
+    tabGames->Flex = {.Width = 50_pct, .Height = 100_pct};
 
     i32        lbID {0};
     auto const createListBox {[&](dock_layout& tabPanelLayout, auto&& pred) -> std::shared_ptr<list_box> {
@@ -354,7 +353,6 @@ void form_menu::create_game_details(dock_layout& panelLayout)
     btnStartGame->Tooltip = _tooltip;
 
     auto tabGameDetails {panelGameStatsLayout.create_widget<tab_container>({0, 0, 20, 32}, "tabGameDetails")};
-    tabGameDetails->MaxTabsPerLine = 6;
 
     // info tab
     {
@@ -424,8 +422,7 @@ void form_menu::create_game_details(dock_layout& panelLayout)
                 } else {
                     auto& pilePanelLayout {pilePanel->create_layout<dock_layout>()};
                     auto  tabRules {pilePanelLayout.create_widget<tab_container>(dock_style::Fill, "")};
-                    tabRules->Class          = "tab_container_small";
-                    tabRules->MaxTabsPerLine = 5;
+                    tabRules->Class = "tab_container_small";
                     for (auto const& rule : rulesArr) {
                         auto const& ruleObj {rule.as<data::object>()};
                         auto        panelRule {tabRules->create_tab<panel>(set_to_string(ruleObj["piles"].as<std::set<i32>>()))};
