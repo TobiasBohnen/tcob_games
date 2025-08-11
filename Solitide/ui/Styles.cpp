@@ -130,13 +130,13 @@ struct converter<ui::length> {
 };
 
 template <>
-struct converter<ui::ui_paint> {
+struct converter<ui::paint> {
     auto static IsType(cfg_value const& config) -> bool
     {
         return std::holds_alternative<utf8_string>(config);
     }
 
-    auto static From(cfg_value const& config, ui::ui_paint& value) -> bool
+    auto static From(cfg_value const& config, ui::paint& value) -> bool
     {
         if (std::holds_alternative<utf8_string>(config)) {
             auto const str {std::get<utf8_string>(config)};
