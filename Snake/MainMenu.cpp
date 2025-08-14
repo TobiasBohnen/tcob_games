@@ -27,11 +27,11 @@ main_menu::main_menu(assets::group const& resGrp, rect_i const& bounds)
 
     auto btnStart {mainPanelLayout.create_widget<button>({1, 5, 3, 2}, "btnPlay")};
     btnStart->Label = "New Game";
-    btnStart->Click.connect([&]() { Start(); });
+    btnStart->Click.connect([&] { Start(); });
 
     auto btnQuit {mainPanelLayout.create_widget<button>({1, 17, 3, 2}, "btnQuit")};
     btnQuit->Label = "Quit";
-    btnQuit->Click.connect([&]() { Quit(); });
+    btnQuit->Click.connect([&] { Quit(); });
 
     for (auto* widget : all_widgets()) {
         widget->TransitionDuration = 250ms;

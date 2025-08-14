@@ -38,8 +38,8 @@ void start_scene::on_start()
     }
 
     _mainForm = std::make_shared<main_menu>(resGrp, menuBounds);
-    _mainForm->Start.connect([&, windowSize]() { _playField->start(); });
-    _mainForm->Quit.connect([&]() { parent().pop_current_scene(); });
+    _mainForm->Start.connect([&, windowSize] { _playField->start(); });
+    _mainForm->Quit.connect([&] { parent().pop_current_scene(); });
 
     root_node()->create_child()->Entity = _playField;
     root_node()->create_child()->Entity = _mainForm;

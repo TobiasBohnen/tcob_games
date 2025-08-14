@@ -182,11 +182,11 @@ void main_scene::connect_events()
 
     _sources->SelectedGame.Changed.connect([&](auto const& game) { update_game_ui(game); });
     _sources->Settings.Theme.Changed.connect([&](auto const&) { set_theme(); });
-    _sources->Settings.Cardset.Changed.connect([&]() { set_cardset(); });
+    _sources->Settings.Cardset.Changed.connect([&] { set_cardset(); });
 
     _formMenu->StartGame.connect([&](auto const& seed) { start_game(_sources->SelectedGame, start_reason::Resume, seed); });
 
-    _formMenu->VideoSettingsChanged.connect([&]() {
+    _formMenu->VideoSettingsChanged.connect([&] {
         data::object obj;
         _formMenu->submit(obj);
 

@@ -84,8 +84,8 @@ master_control::master_control()
 
     set_view_center(_player->position());
 
-    _player->FinishedAction.connect([this]() { end_turn(); });
-    _player->FinishedPath.connect([this]() {
+    _player->FinishedAction.connect([this] { end_turn(); });
+    _player->FinishedPath.connect([this] {
         _mode = mode::Move;
         mark_dirty();
     });

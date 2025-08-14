@@ -17,7 +17,7 @@ foreground_canvas::foreground_canvas(card_table& parent, assets::group& resGrp)
     , _resGrp {resGrp}
     , _renderer {_canvas}
 {
-    _hintTimer.Tick.connect([&]() {
+    _hintTimer.Tick.connect([&] {
         _canvasDirty = true;
         _showHint    = false;
     });

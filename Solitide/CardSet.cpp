@@ -249,7 +249,7 @@ void gen_cardset::create(assets::group& resGrp)
     tempTex->Filtering = gfx::texture::filtering::Linear;
 
     i32  i {0};
-    auto nextRect {[&]() {
+    auto nextRect {[&] {
         f32 const x {static_cast<f32>(i % columns * texSize.Width)};
         f32 const y {static_cast<f32>(i / columns * texSize.Height)};
         ++i;
@@ -348,14 +348,14 @@ void gen_cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, ran
         f32 const nineCenterY {top + (suitSize * 1.5f)};
         f32 const tenCenterY {(top + nineCenterY) / 2};
 
-        auto drawTwo {[&]() {
+        auto drawTwo {[&] {
             draw_suit(canvas, s, {centerX, top}, suitSize);
             canvas.rotate_at(degree_f {180}, cardCenter);
             draw_suit(canvas, s, {centerX, top}, suitSize);
             canvas.reset_transform();
         }};
 
-        auto drawFour {[&]() {
+        auto drawFour {[&] {
             draw_suit(canvas, s, {left, top}, suitSize);
             draw_suit(canvas, s, {right, top}, suitSize);
             canvas.rotate_at(degree_f {180}, cardCenter);
@@ -364,7 +364,7 @@ void gen_cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, ran
             canvas.reset_transform();
         }};
 
-        auto drawSix {[&]() {
+        auto drawSix {[&] {
             drawFour();
             draw_suit(canvas, s, {left, centerY}, suitSize);
             draw_suit(canvas, s, {right, centerY}, suitSize);
@@ -541,7 +541,7 @@ void mini_cardset::create(assets::group& resGrp, size_f texSize)
     tempTex->Filtering = gfx::texture::filtering::Linear;
 
     i32  i {0};
-    auto nextRect {[&]() {
+    auto nextRect {[&] {
         f32 const x {static_cast<f32>(i % columns * texSize.Width)};
         f32 const y {static_cast<f32>(i / columns * texSize.Height)};
         ++i;

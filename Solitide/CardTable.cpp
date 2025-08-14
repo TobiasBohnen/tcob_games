@@ -38,7 +38,7 @@ void card_table::start_game(std::shared_ptr<base_game> const& game, std::optiona
 {
     _currentGame = game;
 
-    _currentGame->Layout.connect([&]() { layout(); });
+    _currentGame->Layout.connect([&] { layout(); });
     reset();
 
     _fgCanvas.disable_hint();

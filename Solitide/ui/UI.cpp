@@ -190,7 +190,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
     txbFilter->MaxLength = 30;
     auto btnClearFilter {panelFilterLayout.create_widget<button>({9, 0, 1, 1}, "btnClearFilter")};
     btnClearFilter->Icon = {.Texture = _resGrp.get<gfx::texture>("cross")};
-    btnClearFilter->Click.connect([tb = txbFilter.get()]() { tb->Text = ""; });
+    btnClearFilter->Click.connect([tb = txbFilter.get()] { tb->Text = ""; });
     btnClearFilter->Tooltip = _tooltip;
 
     std::vector<list_box*> listBoxes;
@@ -240,7 +240,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
     }
     // Recent
     {
-        auto const updateList {[this]() {
+        auto const updateList {[this] {
             std::vector<item> items;
             for (auto const& game : *_sources->Settings.Recent) {
                 items.push_back({.Text = game});
@@ -349,7 +349,7 @@ void form_menu::create_game_details(dock_layout& panelLayout)
 
     auto btnStartGame {panelGameStatsLayout.create_widget<button>({1, 36, 4, 3}, "btnStartGame")};
     btnStartGame->Icon = {.Texture = _resGrp.get<gfx::texture>("play")};
-    btnStartGame->Click.connect([this]() { start_game(); });
+    btnStartGame->Click.connect([this] { start_game(); });
     btnStartGame->Tooltip = _tooltip;
 
     auto tabGameDetails {panelGameStatsLayout.create_widget<tab_container>({0, 0, 20, 32}, "tabGameDetails")};
@@ -554,7 +554,7 @@ void form_menu::create_settings_video(tab_container& tabContainer)
     auto btnApplyVideoSettings {tabPanelLayout.create_widget<button>({33, 34, 4, 4}, "btnApplyVideoSettings")};
     btnApplyVideoSettings->Icon    = {.Texture = _resGrp.get<gfx::texture>("apply")};
     btnApplyVideoSettings->Tooltip = _tooltip;
-    btnApplyVideoSettings->Click.connect([this]() { VideoSettingsChanged(); });
+    btnApplyVideoSettings->Click.connect([this] { VideoSettingsChanged(); });
 }
 
 void form_menu::create_settings_hints(tab_container& tabContainer)

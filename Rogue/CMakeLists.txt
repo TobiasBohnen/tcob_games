@@ -40,6 +40,8 @@ if(TCOB_BUILD_SHARED AND NOT TCOB_IS_CI)
 endif()
 
 add_custom_target(Rogue_copyFiles ALL
+
+    # COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/_scripts/ ${CMAKE_BINARY_DIR}/../../x64/scripts/
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/rogue.zip ${CMAKE_BINARY_DIR}/../../x64/
 )
 

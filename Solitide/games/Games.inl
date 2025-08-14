@@ -276,7 +276,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& scen
         infoTab.try_get(info.DisableHints, "DisableHints");
         infoTab.try_get(info.DisableAutoPlay, "DisableAutoPlay");
 
-        auto func {[tab, info]() { return std::make_shared<T>(info, tab); }};
+        auto func {[tab, info] { return std::make_shared<T>(info, tab); }};
         scene->register_game(info, func);
     });
 
@@ -435,7 +435,7 @@ inline void script_game<Table, Function, IndexOffset>::make_piles(auto&& gameRef
                 moveTable.try_get(pile.Rule.MoveHint, "Hint");
 
                 if (Function<bool> func; moveTable.try_get(func, "IsPlayable")) {
-                    pile.Rule.IsPlayable = {[this, func]() {
+                    pile.Rule.IsPlayable = {[this, func] {
                         return func(static_cast<base_game*>(this));
                     }};
                 }

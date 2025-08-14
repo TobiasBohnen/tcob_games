@@ -17,11 +17,11 @@ wizard_scene::wizard_scene(game& game)
 
     _formWizard = std::make_shared<form_wizard>(window(), resGrp);
 
-    _formWizard->BtnBack->Click.connect([&]() {
+    _formWizard->BtnBack->Click.connect([&] {
         parent().pop_current_scene();
     });
 
-    _formWizard->BtnGenerate->Click.connect([&]() {
+    _formWizard->BtnGenerate->Click.connect([&] {
         using namespace tcob::scripting::lua;
 
         script script;
