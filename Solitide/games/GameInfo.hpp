@@ -85,24 +85,15 @@ struct game_state {
     i32          Undos {0};
     i32          Hints {0};
 
-    void static Serialize(game_state const& v, auto&& s)
+    auto static constexpr Members()
     {
-        s["Redeals"] = v.Redeals;
-        s["Turns"]   = v.Turns;
-        s["Score"]   = v.Score;
-        s["Hints"]   = v.Hints;
-        s["Undos"]   = v.Undos;
-        s["Time"]    = v.Time.count();
-    }
-
-    auto static Deserialize(game_state& v, auto&& s) -> bool
-    {
-        return s.try_get(v.Redeals, "Redeals")
-            && s.try_get(v.Turns, "Turns")
-            && s.try_get(v.Score, "Score")
-            && s.try_get(v.Hints, "Hints")
-            && s.try_get(v.Undos, "Undos")
-            && s.try_get(v.Time, "Time");
+        return std::tuple {
+            member<&game_state::Redeals> {"Redeals"},
+            member<&game_state::Turns> {"Turns"},
+            member<&game_state::Score> {"Score"},
+            member<&game_state::Hints> {"Hints"},
+            member<&game_state::Undos> {"Undos"},
+            member<&game_state::Time> {"Time"}};
     }
 };
 
@@ -123,22 +114,13 @@ public:
     auto gen() -> rng&;
     auto seed() const -> rng::seed_type const&;
 
-    void static Serialize(game_rng const& v, auto&& s)
+    auto static constexpr Members()
     {
-        s["Seed"]  = v._seed;
-        s["State"] = v._gen.state();
-    }
-
-    auto static Deserialize(game_rng& v, auto&& s) -> bool
-    {
-        rng::state_type state;
-        if (s.try_get(v._seed, "Seed")
-            && s.try_get(state, "State")) {
-            v._gen = rng {state};
-            return true;
-        }
-
-        return false;
+        return std::tuple {
+            member<&game_rng::_seed> {"Seed"},
+            computed_member<
+                [](auto&& val) { return val._gen.state(); },
+                [](auto&& val, auto&& state) { val._gen = rng {state}; }> {"State"}};
     }
 
 private:

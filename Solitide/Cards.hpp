@@ -66,21 +66,20 @@ public:
     auto to_value() const -> u16;
     auto static FromValue(u16 value) -> card;
 
-    void static Serialize(card const& v, auto&& s)
+    auto static constexpr Members()
     {
-        s["Deck"]       = v._deck;
-        s["Suit"]       = v._suit;
-        s["Rank"]       = v._rank;
-        s["IsFaceDown"] = v._faceDown;
-
-        s["Color"]    = get_suit_color(v._suit);
-        s["IsFaceUp"] = !v._faceDown;
-    }
-
-    auto static Deserialize(card& v, auto&& s) -> bool
-    {
-        return s.try_get(v._deck, "Deck") && s.try_get(v._suit, "Suit")
-            && s.try_get(v._rank, "Rank") && s.try_get(v._faceDown, "IsFaceDown");
+        return std::tuple {
+            member<&card::_deck> {"Deck"},
+            member<&card::_suit> {"Suit"},
+            member<&card::_rank> {"Rank"},
+            member<&card::_faceDown> {"IsFaceDown"},
+            computed_member<
+                [](auto&& val) { return get_suit_color(val._suit); },
+                [](auto&&, auto&&) {}> {"Color"},
+            computed_member<
+                [](auto&& val) { return !val._faceDown; },
+                [](auto&&, auto&&) {}> {"IsFaceUp"},
+        };
     }
 
     auto operator==(card const& other) const -> bool

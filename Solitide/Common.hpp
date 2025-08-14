@@ -94,26 +94,16 @@ public:
     bool HintMovable {true};
     bool HintTarget {true};
 
-    void static Serialize(settings const& v, auto&& s)
+    auto static constexpr Members()
     {
-        s["version"]      = v.Version;
-        s["theme"]        = v.Theme;
-        s["cardset"]      = v.Cardset;
-        s["last_game"]    = v.LastGame;
-        s["recent"]       = v.Recent;
-        s["hint_movable"] = v.HintMovable;
-        s["hint_target"]  = v.HintTarget;
-    }
-
-    auto static Deserialize(settings& v, auto&& s) -> bool
-    {
-        return s.try_get(v.Version, "version")
-            && s.try_get(v.Theme, "theme")
-            && s.try_get(v.Cardset, "cardset")
-            && s.try_get(v.LastGame, "last_game")
-            && s.try_get(v.Recent, "recent")
-            && s.try_get(v.HintMovable, "hint_movable")
-            && s.try_get(v.HintTarget, "hint_target");
+        return std::tuple {
+            member<&settings::Version> {"version"},
+            member<&settings::Theme> {"theme"},
+            member<&settings::Cardset> {"cardset"},
+            member<&settings::LastGame> {"last_game"},
+            member<&settings::Recent> {"recent"},
+            member<&settings::HintMovable> {"hint_movable"},
+            member<&settings::HintTarget> {"hint_target"}};
     }
 };
 
