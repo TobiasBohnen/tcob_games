@@ -78,7 +78,7 @@ struct game_info {
 ////////////////////////////////////////////////////////////
 
 struct game_state {
-    i32          Redeals {};
+    i32          Redeals {0};
     i32          Score {0};
     i32          Turns {0};
     milliseconds Time {0};

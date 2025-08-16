@@ -152,7 +152,7 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
                 items.push_back({"To Waste by Threes"});
                 items.push_back({"To Tableau"});
             });
-            cybStockTarget->select_item(cybStockTarget->get_item_at(0).Text);
+            cybStockTarget->select_item(cybStockTarget->Items->at(0).Text);
 
             createLabel(layout, "Redeals");
             auto spnRedeals {layout.create_widget<spinner>("Redeals")};

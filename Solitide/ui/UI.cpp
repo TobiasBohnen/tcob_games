@@ -373,7 +373,7 @@ void form_menu::create_game_details(dock_layout& panelLayout)
                 grid.assign({0, 0},
                             {{_sources->Translator.translate("family", gameInfo.Family)},
                              {std::to_string(gameInfo.DeckCount)},
-                             {gameInfo.Redeals < 0 ? "∞" : std::to_string(gameInfo.Redeals)}});
+                             {gameInfo.Redeals < 0 ? "INF" : std::to_string(gameInfo.Redeals)}});
             });
         }};
         _sources->Translator.bind(

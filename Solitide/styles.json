@@ -268,7 +268,7 @@
     },
     "drop_down_list_wizard:hover": {},
     "tab_container": {
-        "padding": "2px",
+        "padding": "0px",
         "border": {
             "size": "2px",
             "radius": "5px"
@@ -382,7 +382,7 @@
         }
     },
     "grid_view2#grid_view": {
-        "padding": "2px",
+        "padding": "0px",
         "border": {
             "size": "3px",
             "radius": "5px"
@@ -479,7 +479,7 @@
             "auto_size": "Always"
         },
         "border": {
-            "size": "5px"
+            "size": "2px"
         }
     },
     "list_items:hover": {},
@@ -521,7 +521,7 @@
             "auto_size": "Always"
         },
         "border": {
-            "size": "3px"
+            "size": "2px"
         }
     },
     "section_items:hover": {},
@@ -561,7 +561,7 @@
             "auto_size": "Always"
         },
         "border": {
-            "size": "5px"
+            "size": "2px"
         }
     },
     "header_items:hover": {},
@@ -582,7 +582,7 @@
             "auto_size": "Always"
         },
         "border": {
-            "size": "3px"
+            "size": "2px"
         }
     },
     "row_items:hover": {},
