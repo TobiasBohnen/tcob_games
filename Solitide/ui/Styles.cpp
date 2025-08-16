@@ -255,7 +255,7 @@ void styles::parse(data::object const& obj, grid_view::style* style)
     if (object el; obj.try_get(el, "v_scroll_bar")) { parse_element(el, &style->VScrollBar); }
     obj.try_get(style->AutoSizeColumns, "auto_size_columns");
     obj.try_get(style->HeaderItemClass, "header_class");
-    obj.try_get(style->RowItemClass, "row_class");
+    obj.try_get(style->RowItemClasses, "row_classes");
     obj.try_get(style->RowHeight, "row_height");
 }
 

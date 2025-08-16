@@ -368,7 +368,9 @@
         },
         "row_height": "10pct",
         "header_class": "header_items",
-        "row_class": "row_items",
+        "row_classes": [
+            "row_items"
+        ],
         "auto_size_columns": false,
         "v_scroll_bar": {
             "thumb_class": "scrollbar_thumb",
@@ -397,7 +399,9 @@
         },
         "row_height": "50pct",
         "header_class": "header_items",
-        "row_class": "row_items",
+        "row_classes": [
+            "row_items"
+        ],
         "auto_size_columns": false,
         "v_scroll_bar": {
             "thumb_class": "scrollbar_thumb",
