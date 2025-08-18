@@ -294,7 +294,7 @@ void create_styles(assets::group const& resGrp, style_collection& styles)
         style->Margin                        = {5_px};
         style->Padding                       = {5_px};
         style->DropShadow.Color              = color {0, 0, 0, 128};
-        style->ItemHeight                    = 10_pct;
+        style->MaxVisibleItems               = 10;
         style->ItemClass                     = "list_items";
         style->VScrollBar.ThumbClass         = "scrollbar_thumb";
         style->VScrollBar.Bar.Size           = 20_pct;

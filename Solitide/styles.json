@@ -144,7 +144,7 @@
         }
     },
     "list_box": {
-        "item_height": "5pct",
+        "max_visible_items": 20,
         "item_class": "list_items",
         "border": {
             "size": "2px",
@@ -163,7 +163,7 @@
         }
     },
     "list_box_log#list_box": {
-        "item_height": "20pct",
+        "max_visible_items": 5,
         "item_class": "list_items",
         "border": {
             "size": "2px",
@@ -366,7 +366,7 @@
                 "a": 128
             }
         },
-        "row_height": "10pct",
+        "max_visible_rows": 10,
         "header_class": "header_items",
         "row_classes": [
             "row_items"
@@ -397,7 +397,7 @@
                 "a": 128
             }
         },
-        "row_height": "50pct",
+        "max_visible_rows": 1,
         "header_class": "header_items",
         "row_classes": [
             "row_items"

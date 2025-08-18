@@ -256,7 +256,7 @@ void styles::parse(data::object const& obj, grid_view::style* style)
     obj.try_get(style->AutoSizeColumns, "auto_size_columns");
     obj.try_get(style->HeaderItemClass, "header_class");
     obj.try_get(style->RowItemClasses, "row_classes");
-    obj.try_get(style->RowHeight, "row_height");
+    obj.try_get(style->MaxVisibleRows, "max_visible_rows");
 }
 
 void styles::parse(data::object const& obj, image_box::style* style)
@@ -276,7 +276,7 @@ void styles::parse(data::object const& obj, list_box::style* style)
     parse_widget_style(obj, style);
     if (object el; obj.try_get(el, "v_scroll_bar")) { parse_element(el, &style->VScrollBar); }
     obj.try_get(style->ItemClass, "item_class");
-    obj.try_get(style->ItemHeight, "item_height");
+    obj.try_get(style->MaxVisibleItems, "max_visible_items");
 }
 
 void styles::parse(data::object const& obj, panel::style* style)
