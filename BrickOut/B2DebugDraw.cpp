@@ -25,7 +25,7 @@ void B2DDebugDraw::draw_polygon(std::span<point_f const> vertices, color color)
     for (auto const vert : vertices) {
         verts.push_back(vert * physicsWorldSize);
     }
-    _canvas.stoke_polyline(verts);
+    _canvas.stroke_polyline(verts);
 }
 
 void B2DDebugDraw::draw_solid_polygon(physics::body_transform xform, std::span<point_f const> vertices, f32 radius, color color)
