@@ -59,10 +59,8 @@ private:
     void connect_events();
     void save();
 
-    scripting::lua::script                                      _luaScript;
-    std::vector<scripting::lua::native_closure_shared_ptr>      _luaFunctions;
-    scripting::squirrel::script                                 _sqScript;
-    std::vector<scripting::squirrel::native_closure_shared_ptr> _sqFunctions;
+    scripting::lua::script                                 _luaScript;
+    std::vector<scripting::lua::native_closure_shared_ptr> _luaFunctions;
 
     std::shared_ptr<card_table>    _cardTable {};
     std::shared_ptr<form_controls> _formControls {};

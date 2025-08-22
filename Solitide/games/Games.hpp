@@ -159,15 +159,6 @@ public:
     void static CreateAPI(main_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs);
 };
 
-////////////////////////////////////////////////////////////
-
-class squirrel_script_game : public script_game<scripting::squirrel::table, scripting::squirrel::function, 0> {
-public:
-    squirrel_script_game(game_info info, scripting::squirrel::table tab);
-
-    void static CreateAPI(main_scene* scene, scripting::squirrel::script& script, std::vector<scripting::squirrel::native_closure_shared_ptr>& funcs);
-};
-
 }
 
 #include "Games.inl"

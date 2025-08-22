@@ -292,6 +292,11 @@ inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& scen
         globalTable["package"]["loaded"][package] = pkg;
         return pkg;
     });
+
+    globalTable["rand"] = makeFunc([]() {
+        static tcob::rng rand;
+        return rand(u64 {0}, std::numeric_limits<u64>::max());
+    });
 }
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>

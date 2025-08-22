@@ -108,6 +108,13 @@ cruel.on_init         = Sol.Layout.bakers_dozen
 
 ------
 
+local relaxed_cruel             = Sol.copy(cruel)
+relaxed_cruel.Info.Name         = "Relaxed Cruel"
+relaxed_cruel.Tableau.Pile.Rule = { Base = Sol.Rules.Base.None(), Build = Sol.Rules.Build.DownInSuit(), Move = Sol.Rules.Move.InSeq() }
+
+
+------
+
 local indefatigable        = Sol.copy(cruel)
 indefatigable.Info.Name    = "Indefatigable"
 indefatigable.Info.Redeals = 2
@@ -169,6 +176,7 @@ Sol.register_game(capricieuse)
 Sol.register_game(cruel)
 Sol.register_game(indefatigable)
 Sol.register_game(perseverance)
+Sol.register_game(relaxed_cruel)
 Sol.register_game(royal_family)
 Sol.register_game(ripple_fan)
 Sol.register_game(strata)
