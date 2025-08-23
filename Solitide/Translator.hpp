@@ -28,7 +28,7 @@ public:
     void bind_grid_header(grid_view* gv, std::string const& id);
 
 private:
-    auto bind(auto&& func) -> i32;
+    auto do_bind(auto&& func) -> i32;
 
     scripting::lua::script _script;
 
@@ -58,7 +58,7 @@ inline auto translator::bind(prop<std::string>& target, auto&& category, auto&& 
 
 inline auto translator::bind(std::function<void(std::string)> const& target, auto&& category, auto&& id) -> i32
 {
-    return bind([this, category, id, target] {
+    return do_bind([this, category, id, target] {
         auto v {_func(category, id)};
         if (std::string * item {std::get_if<std::string>(&v)}) {
             target(*item);
@@ -68,15 +68,15 @@ inline auto translator::bind(std::function<void(std::string)> const& target, aut
 
 inline auto translator::bind(std::function<void(std::vector<std::string>)> const& target, auto&& category, auto&& id) -> i32
 {
-    return bind([this, category, id, target] {
+    return do_bind([this, category, id, target] {
         auto v {_func(category, id)};
-        if (std::vector<std::string> * item {std::get_if<std::vector<std::string>>(&v)}) {
+        if (auto* item {std::get_if<std::vector<std::string>>(&v)}) {
             target(*item);
         }
     });
 }
 
-inline auto translator::bind(auto&& func) -> i32
+inline auto translator::do_bind(auto&& func) -> i32
 {
     func();
     auto const retValue {++_currentId};

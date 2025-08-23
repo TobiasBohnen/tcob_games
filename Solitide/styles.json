@@ -4,7 +4,15 @@
         "border": {
             "type": "Solid",
             "size": "2px",
-            "radius": "15px"
+            "radius": "10px"
+        }
+    },
+    "inner_panel#panel": {
+        "padding": "2px",
+        "border": {
+            "type": "Solid",
+            "size": "0px",
+            "radius": "0px"
         }
     },
     "button": {
@@ -159,7 +167,7 @@
     },
     "list_box": {
         "margin": "3px",
-        "padding": "5px",
+        "padding": "0px",
         "max_visible_items": 20,
         "item_class": "list_items",
         "border": {
@@ -285,9 +293,10 @@
     "drop_down_list_wizard:hover": {},
     "tab_container": {
         "padding": "2px",
+        "margin": "10px",
         "border": {
-            "size": "0px",
-            "radius": "5px"
+            "size": "2px",
+            "radius": "10px"
         },
         "tab_header_size": "5pct",
         "tab_item_class": "tab_items",
@@ -296,7 +305,7 @@
     "tab_container_small#tab_container": {
         "padding": "2px",
         "border": {
-            "size": "2px",
+            "size": "0px",
             "radius": "5px"
         },
         "tab_header_size": "20pct",
@@ -305,7 +314,7 @@
     },
     "tab_container_hidden#tab_container": {
         "border": {
-            "size": "2px",
+            "size": "0px",
             "radius": "5px"
         },
         "tab_header_position": "None"
@@ -522,7 +531,7 @@
         },
         "border": {
             "size": "2px",
-            "radius": "5px"
+            "radius": "10px"
         }
     },
     "tab_items:hover": {},
@@ -543,7 +552,8 @@
             "auto_size": "Always"
         },
         "border": {
-            "size": "2px"
+            "size": "2px",
+            "radius": "10px"
         }
     },
     "section_items:hover": {},

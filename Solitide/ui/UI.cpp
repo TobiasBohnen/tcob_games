@@ -182,8 +182,10 @@ void form_menu::create_section_games(tab_container& parent)
 
 void form_menu::create_game_lists(dock_layout& panelLayout)
 {
+    // filter
     auto panelFilter {panelLayout.create_widget<panel>(dock_style::Top, "panelFilter")};
-    panelFilter->Flex = {.Width = 100_pct, .Height = 5_pct};
+    panelFilter->Class = "inner_panel";
+    panelFilter->Flex  = {.Width = 100_pct, .Height = 5_pct};
 
     auto& panelFilterLayout {panelFilter->create_layout<grid_layout>(size_i {10, 1})};
     auto  txbFilter {panelFilterLayout.create_widget<text_box>({0, 0, 9, 1}, "txbFilter")};
@@ -193,6 +195,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
     btnClearFilter->Click.connect([tb = txbFilter.get()] { tb->Text = ""; });
     btnClearFilter->Tooltip = _tooltip;
 
+    // games
     std::vector<list_box*> listBoxes;
     auto                   tabGames {panelLayout.create_widget<tab_container>(dock_style::Left, "tabGames")};
     tabGames->Flex = {.Width = 50_pct, .Height = 100_pct};
@@ -227,6 +230,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
     // By Name
     {
         auto tabPanel {tabGames->create_tab<panel>("tabByName")};
+        tabPanel->Class = "inner_panel";
         _sources->Translator.bind_tab(tabGames.get(), tabPanel.get());
 
         auto& tabPanelLayout {tabPanel->create_layout<dock_layout>()};
@@ -249,6 +253,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
         }};
 
         auto tabPanel {tabGames->create_tab<panel>("tabRecent")};
+        tabPanel->Class = "inner_panel";
         _sources->Translator.bind_tab(tabGames.get(), tabPanel.get());
 
         auto& tabPanelLayout {tabPanel->create_layout<dock_layout>()};
@@ -268,7 +273,8 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
         _sources->Translator.bind_tab(tabGames.get(), acc.get());
 
         auto const createSection {[&](family family) {
-            auto  secPanel {acc->create_section<panel>("")};
+            auto secPanel {acc->create_section<panel>("")};
+            secPanel->Class = "inner_panel";
             auto& secPanelLayout {secPanel->create_layout<dock_layout>()};
             _sources->Translator.bind(
                 [tabC = acc.get(), tabP = secPanel.get()](std::string const& val) { tabC->change_section_label(tabP, val); },
@@ -300,7 +306,8 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
         _sources->Translator.bind_tab(tabGames.get(), tabContainer.get());
 
         auto const createTab {[&](isize count, std::string const& name) {
-            auto  tabPanel {tabContainer->create_tab<panel>(name)};
+            auto tabPanel {tabContainer->create_tab<panel>(name)};
+            tabPanel->Class = "inner_panel";
             auto& tabPanelLayout {tabPanel->create_layout<dock_layout>()};
             createListBox(tabPanelLayout, [count](auto const& gameInfo) { return gameInfo.DeckCount == count; });
         }};
@@ -309,12 +316,14 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
         createTab(3, "3");
 
         {
-            auto  tabPanel {tabContainer->create_tab<panel>(">= 4")};
+            auto tabPanel {tabContainer->create_tab<panel>(">= 4")};
+            tabPanel->Class = "inner_panel";
             auto& tabPanelLayout {tabPanel->create_layout<dock_layout>()};
             createListBox(tabPanelLayout, [](auto const& gameInfo) { return gameInfo.DeckCount >= 4; });
         }
         {
             auto tabPanel {tabContainer->create_tab<panel>("tabStripped")};
+            tabPanel->Class = "inner_panel";
             _sources->Translator.bind_tab(tabContainer.get(), tabPanel.get());
 
             auto& tabPanelLayout {tabPanel->create_layout<dock_layout>()};
@@ -332,6 +341,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
 void form_menu::create_game_details(dock_layout& panelLayout)
 {
     auto panelGameDetails {panelLayout.create_widget<panel>(dock_style::Right, "panelGameDetails")};
+    panelGameDetails->Class  = "inner_panel";
     panelGameDetails->Flex   = {.Width = 50_pct, .Height = 100_pct};
     panelGameDetails->ZOrder = 1;
     auto& panelGameStatsLayout {panelGameDetails->create_layout<grid_layout>(size_i {20, 40})};
@@ -357,6 +367,7 @@ void form_menu::create_game_details(dock_layout& panelLayout)
     // info tab
     {
         auto tabPanel {tabGameDetails->create_tab<panel>("tabInfo")};
+        tabPanel->Class = "inner_panel";
         _sources->Translator.bind_tab(tabGameDetails.get(), tabPanel.get());
 
         auto& tabPanelLayout {tabPanel->create_layout<grid_layout>(size_i {40, 30})};
@@ -397,6 +408,7 @@ void form_menu::create_game_details(dock_layout& panelLayout)
             for (auto const& pile : piles) {
                 auto const& name {pile.first};
                 auto        pilePanel {rulesAcc->create_section<panel>(name)};
+                pilePanel->Class = "inner_panel";
                 auto const& pileObj {pile.second.as<data::object>()};
                 //    auto const  count {pileObj["count"].as<std::string>()};
                 auto const& rulesArr {pileObj["rules"].as<data::array>()};
@@ -427,7 +439,8 @@ void form_menu::create_game_details(dock_layout& panelLayout)
                     for (auto const& rule : rulesArr) {
                         auto const& ruleObj {rule.as<data::object>()};
                         auto        panelRule {tabRules->create_tab<panel>(set_to_string(ruleObj["piles"].as<std::set<i32>>()))};
-                        auto&       panelRuleLayout {panelRule->create_layout<grid_layout>(size_i {30, 25})};
+                        panelRule->Class = "inner_panel";
+                        auto& panelRuleLayout {panelRule->create_layout<grid_layout>(size_i {30, 25})};
                         createRule(panelRuleLayout, ruleObj);
                     }
                 }
@@ -437,6 +450,7 @@ void form_menu::create_game_details(dock_layout& panelLayout)
     // stats tab
     {
         auto tabPanel {tabGameDetails->create_tab<panel>("tabStats")};
+        tabPanel->Class = "inner_panel";
         _sources->Translator.bind_tab(tabGameDetails.get(), tabPanel.get());
 
         auto& tabPanelLayout {tabPanel->create_layout<grid_layout>(size_i {40, 30})};
