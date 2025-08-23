@@ -556,6 +556,37 @@
       "B": "#8fbc8f"
     }
   },
+  "Lava": {
+    "active": {
+      "background": "#ff4500",
+      "border": "#550000",
+      "container": "#cc3300",
+      "foreground": "#fff0e0",
+      "list": "#ff6347",
+      "shadow": "#220000"
+    },
+    "hover": {
+      "background": "#ff6347",
+      "border": "#660000",
+      "container": "#ff3300",
+      "foreground": "#ffffff",
+      "list": "#ff7f50",
+      "shadow": "#220000"
+    },
+    "normal": {
+      "background": "#220000",
+      "border": "#cc3300",
+      "container": "#330000",
+      "foreground": "#ffffff",
+      "label": "#ff7744",
+      "list": "#440000",
+      "shadow": "#220000"
+    },
+    "table": {
+      "A": "#ff4500",
+      "B": "#cc3300"
+    }
+  },
   "Midnight": {
     "active": {
       "background": "#8b0000",

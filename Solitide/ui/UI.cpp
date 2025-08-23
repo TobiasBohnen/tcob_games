@@ -76,7 +76,7 @@ form_controls::form_controls(gfx::window& window, assets::group& resGrp, std::sh
     {
         auto statusPanel {mainPanelLayout.create_widget<panel>(dock_style::Bottom, "status")};
         statusPanel->Flex = {.Width = 100_pct, .Height = 10_pct};
-        auto& statusPanelLayout {statusPanel->create_layout<grid_layout>(size_i {40, 6})};
+        auto& statusPanelLayout {statusPanel->create_layout<grid_layout>(size_i {40, 8})};
 
         i32        lbID {0};
         auto const create {[&](rect_i const& rect, std::string const& id = "") {
@@ -88,27 +88,27 @@ form_controls::form_controls(gfx::window& window, assets::group& resGrp, std::sh
             return l;
         }};
 
-        _lblGameName = create({0, 0, 4, 6});
+        _lblGameName = create({0, 0, 4, 8});
 
-        _lblPile           = create({4, 3, 4, 3});
+        _lblPile           = create({4, 3, 4, 5});
         _lblPileLabel      = create({4, 0, 4, 3}, "Pile");
-        _lblCardCount      = create({8, 3, 2, 3});
+        _lblCardCount      = create({8, 3, 2, 5});
         _lblCardCountLabel = create({8, 0, 2, 3}, "Cards");
 
-        _lblBase             = create({11, 3, 6, 3});
+        _lblBase             = create({11, 3, 6, 5});
         _lblBaseLabel        = create({11, 0, 6, 3});
-        _lblDescription      = create({17, 3, 10, 3});
+        _lblDescription      = create({17, 3, 10, 5});
         _lblDescriptionLabel = create({17, 0, 10, 3});
-        _lblMove             = create({27, 3, 6, 3});
+        _lblMove             = create({27, 3, 6, 5});
         _lblMoveLabel        = create({27, 0, 6, 3});
 
-        _lblTurns      = create({34, 3, 2, 3});
+        _lblTurns      = create({34, 3, 2, 5});
         _lblTurnsLabel = create({34, 0, 2, 3}, "Turns");
 
-        _lblScore      = create({36, 3, 2, 3});
+        _lblScore      = create({36, 3, 2, 5});
         _lblScoreLabel = create({36, 0, 2, 3}, "Score");
 
-        _lblTime      = create({38, 3, 2, 3});
+        _lblTime      = create({38, 3, 2, 5});
         _lblTimeLabel = create({38, 0, 2, 3}, "Time");
     }
 }
