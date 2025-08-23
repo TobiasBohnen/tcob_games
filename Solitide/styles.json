@@ -1,8 +1,10 @@
 {
     "panel": {
+        "padding": "2px",
         "border": {
+            "type": "Solid",
             "size": "2px",
-            "radius": "5px"
+            "radius": "15px"
         }
     },
     "button": {
@@ -41,10 +43,18 @@
         "margin": "5px",
         "padding": "1px",
         "border": {
-            "size": "3px",
-            "radius": "5px"
+            "size": "4px",
+            "radius": "10px"
         },
-        "item_class": "list_items"
+        "item_class": "list_items",
+        "bar": {
+            "size": "100pct",
+            "delay": 100,
+            "border": {
+                "size": "2px",
+                "radius": "1px"
+            }
+        }
     },
     "cycle_button:hover": {},
     "cycle_button:active": {},
@@ -66,7 +76,7 @@
         "margin": "5px",
         "padding": "1px",
         "border": {
-            "size": "3px",
+            "size": "2px",
             "radius": "5px"
         },
         "text": {
@@ -82,7 +92,7 @@
             },
             "auto_size": "Always"
         },
-        "nav_arrow_class": "nav_arrows"
+        "nav_arrow_class": "nav_arrows_spinner"
     },
     "spinner:hover": {},
     "spinner:active": {},
@@ -91,7 +101,7 @@
         "border": {
             "type": "Solid",
             "size": "2px",
-            "radius": "2px"
+            "radius": "15px"
         },
         "text": {
             "font": "Roboto",
@@ -148,10 +158,12 @@
         }
     },
     "list_box": {
+        "margin": "3px",
+        "padding": "5px",
         "max_visible_items": 20,
         "item_class": "list_items",
         "border": {
-            "size": "2px",
+            "size": "0px",
             "radius": "5px"
         },
         "v_scroll_bar": {
@@ -272,9 +284,9 @@
     },
     "drop_down_list_wizard:hover": {},
     "tab_container": {
-        "padding": "0px",
+        "padding": "2px",
         "border": {
-            "size": "2px",
+            "size": "0px",
             "radius": "5px"
         },
         "tab_header_size": "5pct",
@@ -357,7 +369,7 @@
     "radio_button:hover": {},
     "radio_button:active": {},
     "grid_view": {
-        "padding": "2px",
+        "padding": "5px",
         "border": {
             "size": "3px",
             "radius": "5px"
@@ -428,8 +440,9 @@
     "tooltip": {},
     "text_box": {
         "padding": "2px",
+        "margin": "5px",
         "border": {
-            "size": "3px",
+            "size": "2px",
             "radius": "5px"
         },
         "text": {
@@ -455,7 +468,7 @@
         "long_side": "25pct",
         "short_side": "80pct",
         "border": {
-            "size": "3px",
+            "size": "2px",
             "radius": "5px"
         }
     },
@@ -487,7 +500,7 @@
             "auto_size": "Always"
         },
         "border": {
-            "size": "2px"
+            "size": "1px"
         }
     },
     "list_items:hover": {},
@@ -508,7 +521,8 @@
             "auto_size": "Always"
         },
         "border": {
-            "size": "2px"
+            "size": "2px",
+            "radius": "5px"
         }
     },
     "tab_items:hover": {},
@@ -553,13 +567,22 @@
     },
     "nav_arrows_wizard:hover": {},
     "nav_arrows_wizard:active": {},
+    "nav_arrows_spinner#nav_arrow": {
+        "size": "20pct, 75pct",
+        "border": {
+            "size": "1px",
+            "radius": "2px"
+        }
+    },
+    "nav_arrows_spinner:hover": {},
+    "nav_arrows_spinner:active": {},
     "header_items#item": {
-        "padding": "5px",
+        "padding": "2px",
         "text": {
             "font": "Roboto",
             "style": {
                 "is_italic": false,
-                "weight": "Bold"
+                "weight": "ExtraBold"
             },
             "size": "24px",
             "alignment": {

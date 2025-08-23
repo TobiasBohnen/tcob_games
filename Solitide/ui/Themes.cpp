@@ -22,9 +22,12 @@ void color_theme::apply(std::shared_ptr<checkbox::style> const& style) const
 
 void color_theme::apply(std::shared_ptr<cycle_button::style> const& style) const
 {
-    style->Background        = Background;
-    style->Border.Background = Border;
-    style->DropShadow.Color  = Shadow;
+    style->Background            = Background;
+    style->Border.Background     = Border;
+    style->DropShadow.Color      = Shadow;
+    style->Bar.HigherBackground  = Foreground;
+    style->Bar.LowerBackground   = Background;
+    style->Bar.Border.Background = Border;
 }
 
 void color_theme::apply(std::shared_ptr<drop_down_list::style> const& style) const

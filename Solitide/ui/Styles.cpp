@@ -237,6 +237,7 @@ void styles::parse(object const& obj, cycle_button::style* style)
 {
     parse_widget_style(obj, style);
     obj.try_get(style->ItemClass, "item_class");
+    if (object el; obj.try_get(el, "bar")) { parse_element(el, &style->Bar); }
 }
 
 void styles::parse(object const& obj, drop_down_list::style* style)
