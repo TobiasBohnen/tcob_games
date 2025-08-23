@@ -49,7 +49,7 @@
         "item_class": "list_items",
         "bar": {
             "size": "100pct",
-            "delay": 100,
+            "delay": 0,
             "border": {
                 "size": "2px",
                 "radius": "1px"
