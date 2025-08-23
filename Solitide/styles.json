@@ -40,10 +40,10 @@
         "margin": "5x, 6px, 5px, 6px"
     },
     "cycle_button": {
-        "margin": "5px",
-        "padding": "1px",
+        "margin": "2px",
+        "padding": "2px",
         "border": {
-            "size": "4px",
+            "size": "2px",
             "radius": "10px"
         },
         "item_class": "list_items",
