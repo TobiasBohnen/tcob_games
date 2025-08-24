@@ -17,7 +17,7 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
 
     auto const createLabel {[](auto&& layout, std::string const& text) {
         auto lbl {layout.template create_widget<label>("lbl" + text)};
-        lbl->Class = "label-margin";
+        lbl->Class = "status_label";
         lbl->Label = text;
     }};
 
@@ -30,7 +30,7 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
 
         createLabel(layout, "Deck Count");
         auto spnDecks {layout.create_widget<spinner>("Decks")};
-        spnDecks->Flex  = {30_pct, 100_pct};
+        spnDecks->Flex  = {.Width = 30_pct, .Height = 100_pct};
         spnDecks->Min   = 1;
         spnDecks->Max   = 4;
         spnDecks->Step  = 1;
@@ -68,7 +68,7 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
             });
 
             face->SelectedItemIndex = 0;
-            face->Class             = "drop_down_list_wizard";
+            face->Class             = "wizard_drop_down_list";
         }};
         auto const createPileLayout {[&](auto&& layout, std::string const& name) {
             createLabel(layout, "Layout");
@@ -97,7 +97,7 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
                     items.push_back({"None"});
                 });
                 base->select_item(select.base);
-                base->Class = "drop_down_list_wizard";
+                base->Class = "wizard_drop_down_list";
 
                 createLabel(layout, "Build");
                 auto build {layout.template create_widget<drop_down_list>(name + "Build")};
@@ -124,7 +124,7 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
                     items.push_back({"None"});
                 });
                 build->select_item(select.build);
-                build->Class = "drop_down_list_wizard";
+                build->Class = "wizard_drop_down_list";
 
                 createLabel(layout, "Move");
                 auto move {layout.template create_widget<drop_down_list>(name + "Move")};
@@ -136,7 +136,7 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
                     items.push_back({"None"});
                 });
                 move->select_item(select.move);
-                move->Class = "drop_down_list_wizard";
+                move->Class = "wizard_drop_down_list";
             }};
 
         auto         tab {mainLayout.create_widget<tab_container>({0, 20, 30, 60}, "Piles")};
@@ -163,7 +163,7 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
             spnRedeals->Value = 1;
         }
         {
-            auto  pnl {tab->create_tab<panel>("Waste", {"Waste", {}, {}})};
+            auto  pnl {tab->create_tab<panel>("Waste", {.Text = "Waste", .Icon = {}, .UserData = {}})};
             auto& layout {pnl->create_layout<box_layout>(boxSize)};
 
             createPileSize(layout, "Waste");
@@ -207,7 +207,7 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
     }
 
     _lbxLog        = mainLayout.create_widget<list_box>({32, 2, 36, 30}, "Log");
-    _lbxLog->Class = "list_box_log";
+    _lbxLog->Class = "wizard_list_box";
     _lbxLog->HoveredItemIndex.Changed.connect([lb = _lbxLog.get()] {
         lb->HoveredItemIndex = -1;
     });

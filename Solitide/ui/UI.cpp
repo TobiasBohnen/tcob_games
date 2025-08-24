@@ -24,7 +24,7 @@ auto static make_tooltip(menu_sources& sources, form_base* form) -> std::shared_
 
     auto& tooltipLayout {retValue->create_layout<dock_layout>()};
     auto  tooltipLabel {tooltipLayout.create_widget<label>(dock_style::Fill, "TTLabel0")};
-    tooltipLabel->Class = "tooltip-label";
+    tooltipLabel->Class = "tooltip_label";
 
     retValue->Popup.connect([&sources, lbl = tooltipLabel.get(), tt = retValue.get()](auto const& event) {
         auto* const widget {event.Widget};
@@ -81,7 +81,7 @@ form_controls::form_controls(gfx::window& window, assets::group& resGrp, std::sh
         i32        lbID {0};
         auto const create {[&](rect_i const& rect, std::string const& id = "") {
             auto l {statusPanelLayout.create_widget<label>(rect, "lblStatus" + std::to_string(lbID++))};
-            l->Class = "label-margin";
+            l->Class = "status_label";
             if (!id.empty()) {
                 _sources->Translator.bind(l->Label, "status", id);
             }
@@ -348,7 +348,7 @@ void form_menu::create_game_details(dock_layout& panelLayout)
 
     auto lblSeed {panelGameStatsLayout.create_widget<label>({1, 33, 4, 2}, "lblSeed")};
     _sources->Translator.bind(lblSeed->Label, "ux", lblSeed->name());
-    lblSeed->Class = "label-margin";
+    lblSeed->Class = "label";
     _txbSeed       = panelGameStatsLayout.create_widget<text_box>({6, 33, 8, 2}, "txbSeed");
     _txbSeed->BeforeTextInserted.connect([](text_event& ev) {
         if (ev.Text.empty()) { return; }
@@ -416,7 +416,7 @@ void form_menu::create_game_details(dock_layout& panelLayout)
                 auto createRule {[&](grid_layout& layout, data::object const& rule) {
                     auto const create {[&](rect_i const& rect, std::string const& text) {
                         auto l {layout.create_widget<label>(rect, "")};
-                        l->Class = "label-margin";
+                        l->Class = "label";
                         l->Label = text;
                         return l;
                     }};
