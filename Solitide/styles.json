@@ -285,15 +285,6 @@
     },
     "list_items:active": {},
     "list_items:hover": {},
-    "nav_arrows_spinner#nav_arrow": {
-        "border": {
-            "radius": "2px",
-            "size": "1px"
-        },
-        "size": "20pct, 75pct"
-    },
-    "nav_arrows_spinner:active": {},
-    "nav_arrows_spinner:hover": {},
     "nav_arrows#nav_arrow": {
         "border": {
             "radius": "20px",
@@ -304,6 +295,15 @@
     },
     "nav_arrows:active": {},
     "nav_arrows:hover": {},
+    "nav_arrows_spinner#nav_arrow": {
+        "border": {
+            "radius": "2px",
+            "size": "1px"
+        },
+        "size": "20pct, 75pct"
+    },
+    "nav_arrows_spinner:active": {},
+    "nav_arrows_spinner:hover": {},
     "panel": {
         "border": {
             "radius": "10px",
@@ -391,6 +391,7 @@
         "padding": "2px",
         "thumb_class": "slider_thumb"
     },
+    "slider:hover": {},
     "slider_thumb#thumb": {
         "border": {
             "radius": "5px",
@@ -402,7 +403,6 @@
     },
     "slider_thumb:active": {},
     "slider_thumb:hover": {},
-    "slider:hover": {},
     "spinner": {
         "border": {
             "radius": "5px",
