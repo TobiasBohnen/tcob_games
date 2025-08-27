@@ -10,10 +10,8 @@ namespace solitaire {
 static char const* DB_NAME {"profile.db"};
 
 database::database()
-    : _database {*db::database::Open(DB_NAME)}
+    : _database {*db::database::Open(DB_NAME, db::journal_mode::Off)}
 {
-    _database.set_journal_mode(db::journal_mode::Off);
-
     _tabGames   = _database.create_table("games",
                                          db::int_column<db::primary_key> {.Name = "ID", .NotNull = false},
                                          db::text_column<db::unique> {.Name = "Name", .NotNull = true});
