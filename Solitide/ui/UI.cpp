@@ -16,9 +16,9 @@ namespace solitaire {
 
 using namespace tcob::literals;
 
-auto static make_tooltip(menu_sources& sources, form_base* form) -> std::shared_ptr<popup>
+auto static make_tooltip(menu_sources& sources, form_base* form) -> std::shared_ptr<tooltip>
 {
-    auto retValue {form->create_popup<>("tooltip")};
+    auto retValue {form->create_tooltip<>("tooltip")};
     retValue->Class     = "tooltip";
     form->TooltipOffset = {40, 40};
 
@@ -26,7 +26,7 @@ auto static make_tooltip(menu_sources& sources, form_base* form) -> std::shared_
     auto  tooltipLabel {tooltipLayout.create_widget<label>(dock_style::Fill, "TTLabel0")};
     tooltipLabel->Class = "tooltip_label";
 
-    retValue->Popup.connect([&sources, lbl = tooltipLabel.get(), tt = retValue.get()](auto const& event) {
+    retValue->Popup.connect([&sources, lbl = tooltipLabel.get(), tt = retValue.get()](auto const& event) -> void {
         auto* const widget {event.Widget};
         sources.Translator.bind(lbl->Label, "ux", widget->name());
 
@@ -192,7 +192,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
     txbFilter->MaxLength = 30;
     auto btnClearFilter {panelFilterLayout.create_widget<button>({9, 0, 1, 1}, "btnClearFilter")};
     btnClearFilter->Icon = {.Texture = _resGrp.get<gfx::texture>("cross")};
-    btnClearFilter->Click.connect([tb = txbFilter.get()] { tb->Text = ""; });
+    btnClearFilter->Click.connect([tb = txbFilter.get()] -> void { tb->Text = ""; });
     btnClearFilter->Tooltip = _tooltip;
 
     // games
@@ -235,7 +235,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
 
         auto& tabPanelLayout {tabPanel->create_layout<dock_layout>()};
         auto  listBox {createListBox(tabPanelLayout, [](auto const&) { return true; })};
-        _sources->GameAdded.connect([this, lb = listBox.get()] {
+        _sources->GameAdded.connect([this, lb = listBox.get()] -> void {
             // TODO: update all listboxes
             std::vector<item> listBoxItems;
             for (auto const& game : _sources->Games) { listBoxItems.push_back({.Text = game.first}); }
