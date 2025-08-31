@@ -24,8 +24,8 @@ protected:
     template <typename T>
     void create_shape(auto&& shapeSettings);
 
-    auto static convert_to_physics(rect_f const& screenObject) -> rect_f;
-    auto static convert_to_screen(rect_f const& physicsObject) -> rect_f;
+    static auto convert_to_physics(rect_f const& screenObject) -> rect_f;
+    static auto convert_to_screen(rect_f const& physicsObject) -> rect_f;
 
 private:
     std::shared_ptr<physics::body>   _physicsBody;

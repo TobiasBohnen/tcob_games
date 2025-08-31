@@ -401,7 +401,7 @@ void base_game::calc_hints()
         return;
     }
 
-    auto static const validHint {[](auto const& src, auto const& dst) {
+    static auto const validHint {[](auto const& src, auto const& dst) {
         switch (src.Src->Type) {
         case pile_type::Foundation:
             // ignore Foundation to Foundation or to FreeCell

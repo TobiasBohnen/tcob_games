@@ -55,7 +55,7 @@ void start_scene::on_fixed_update(milliseconds deltaTime)
     stream << " best FPS:" << stats.best_FPS();
     stream << " worst FPS:" << stats.worst_FPS();
 
-    window().Title = "Mage |" + stream.str();
+    window().Title = "Val Verde |" + stream.str();
 }
 
 void start_scene::on_key_down(input::keyboard::event const& ev)

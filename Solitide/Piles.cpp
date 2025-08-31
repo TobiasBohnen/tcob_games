@@ -91,7 +91,7 @@ void pile::flip_down_top_card()
     if (!empty()) { Cards.back().flip_face_down(); }
 }
 
-auto static get_base_cards(base_func const& func) -> std::multimap<rank, suit>
+static auto get_base_cards(base_func const& func) -> std::multimap<rank, suit>
 {
     std::multimap<rank, suit> retValue;
 

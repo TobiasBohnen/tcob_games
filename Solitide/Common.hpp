@@ -94,7 +94,7 @@ public:
     bool HintMovable {true};
     bool HintTarget {true};
 
-    auto static constexpr Members()
+    static auto constexpr Members()
     {
         return std::tuple {
             member<&settings::Version> {"version"},

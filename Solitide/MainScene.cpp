@@ -12,7 +12,7 @@ namespace solitaire {
 static char const* SAVE_NAME {"save.ini"};
 static char const* SETTINGS_NAME {"settings"};
 
-auto static get_size(std::string_view str) -> size_i
+static auto get_size(std::string_view str) -> size_i
 {
     i32                    width {}, height {};
     size_t const           xPos {str.find('x')};

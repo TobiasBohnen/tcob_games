@@ -63,10 +63,10 @@ public:
 
     auto get_texture_name() const -> std::string;
 
-    auto to_value() const -> u16;
-    auto static FromValue(u16 value) -> card;
+    auto        to_value() const -> u16;
+    static auto FromValue(u16 value) -> card;
 
-    auto static constexpr Members()
+    static auto constexpr Members()
     {
         return std::tuple {
             member<&card::_deck> {"Deck"},
@@ -105,7 +105,7 @@ struct deck {
 
     std::vector<card> Cards;
 
-    auto static GetShuffled(auto&& rand, i32 num, std::unordered_set<suit> const& suits, std::unordered_set<rank> const& ranks) -> std::vector<card>
+    static auto GetShuffled(auto&& rand, i32 num, std::unordered_set<suit> const& suits, std::unordered_set<rank> const& ranks) -> std::vector<card>
     {
         std::vector<card> retValue;
         for (u8 i {0}; i < num; ++i) {

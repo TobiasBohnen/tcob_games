@@ -30,7 +30,7 @@ else()
     target_link_libraries(Rogue PRIVATE tcob_shared)
 endif()
 
-set_target_properties(Rogue PROPERTIES OUTPUT_NAME "mage")
+set_target_properties(Rogue PROPERTIES OUTPUT_NAME "valverde")
 
 if(TCOB_BUILD_SHARED AND NOT TCOB_IS_CI)
     add_custom_command(TARGET Rogue POST_BUILD

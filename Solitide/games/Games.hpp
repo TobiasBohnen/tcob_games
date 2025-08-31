@@ -108,9 +108,9 @@ public:
 
     auto can_play(pile const& targetPile, isize targetCardIndex, card const& card, isize numCards) const -> bool override;
 
-    void static CreateWrapper(auto&& script);
+    static void CreateWrapper(auto&& script);
     template <typename T>
-    void static CreateGlobals(auto&& scene, auto&& script, auto&& globalTable, auto&& makeFunc, std::string const& ext);
+    static void CreateGlobals(auto&& scene, auto&& script, auto&& globalTable, auto&& makeFunc, std::string const& ext);
 
 protected:
     auto do_redeal() -> bool override;
@@ -155,8 +155,8 @@ class lua_script_game : public script_game<scripting::lua::table, scripting::lua
 public:
     lua_script_game(game_info info, scripting::lua::table tab);
 
-    auto static CreateENV(scripting::lua::script& script) -> scripting::lua::table;
-    void static CreateAPI(main_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs);
+    static auto CreateENV(scripting::lua::script& script) -> scripting::lua::table;
+    static void CreateAPI(main_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs);
 };
 
 }

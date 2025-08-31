@@ -16,7 +16,7 @@ namespace solitaire {
 
 using namespace tcob::literals;
 
-auto static make_tooltip(menu_sources& sources, form_base* form) -> std::shared_ptr<tooltip>
+static auto make_tooltip(menu_sources& sources, form_base* form) -> std::shared_ptr<tooltip>
 {
     auto retValue {form->create_tooltip<>("tooltip")};
     retValue->Class     = "tooltip";

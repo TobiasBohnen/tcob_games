@@ -26,7 +26,7 @@ static auto parse_unit_value(tcob::utf8_string_view input) -> std::pair<std::str
     return std::make_pair(value, unit);
 }
 
-auto static get_length_values(tcob::data::cfg_value const& config) -> std::vector<tcob::ui::length>
+static auto get_length_values(tcob::data::cfg_value const& config) -> std::vector<tcob::ui::length>
 {
     using namespace tcob;
     std::vector<ui::length> l;
@@ -50,12 +50,12 @@ auto static get_length_values(tcob::data::cfg_value const& config) -> std::vecto
 namespace tcob::data {
 template <>
 struct converter<ui::thickness> {
-    auto static IsType(cfg_value const& config) -> bool
+    static auto IsType(cfg_value const& config) -> bool
     {
         return std::holds_alternative<utf8_string>(config);
     }
 
-    auto static From(cfg_value const& config, ui::thickness& value) -> bool
+    static auto From(cfg_value const& config, ui::thickness& value) -> bool
     {
         if (std::holds_alternative<utf8_string>(config)) {
             auto l {get_length_values(config)};
@@ -80,12 +80,12 @@ struct converter<ui::thickness> {
 
 template <>
 struct converter<ui::dimensions> {
-    auto static IsType(cfg_value const& config) -> bool
+    static auto IsType(cfg_value const& config) -> bool
     {
         return std::holds_alternative<utf8_string>(config);
     }
 
-    auto static From(cfg_value const& config, ui::dimensions& value) -> bool
+    static auto From(cfg_value const& config, ui::dimensions& value) -> bool
     {
         if (std::holds_alternative<utf8_string>(config)) {
             auto l {get_length_values(config)};
@@ -107,12 +107,12 @@ struct converter<ui::dimensions> {
 
 template <>
 struct converter<ui::length> {
-    auto static IsType(cfg_value const& config) -> bool
+    static auto IsType(cfg_value const& config) -> bool
     {
         return std::holds_alternative<utf8_string>(config);
     }
 
-    auto static From(cfg_value const& config, ui::length& value) -> bool
+    static auto From(cfg_value const& config, ui::length& value) -> bool
     {
         if (std::holds_alternative<utf8_string>(config)) {
             auto l {get_length_values(config)};

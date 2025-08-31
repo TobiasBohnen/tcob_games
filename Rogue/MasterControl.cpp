@@ -11,9 +11,9 @@
 
 namespace Rogue {
 
-auto static get_target(action action, point_i pos) -> std::optional<point_i>
+static auto get_target(action action, point_i pos) -> std::optional<point_i>
 {
-    auto static target {[](point_i pos, direction dir) -> point_i {
+    static auto target {[](point_i pos, direction dir) -> point_i {
         switch (dir) {
         case direction::Left:  return pos + point_i {-1, 0};
         case direction::Right: return pos + point_i {1, 0};

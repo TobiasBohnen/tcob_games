@@ -34,7 +34,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     gameWrapper["RedealsLeft"] = getter {[](base_game* game) { return game->state().Redeals; }};
     gameWrapper["DeckCount"]   = getter {[](base_game* game) { return game->info().DeckCount; }};
 
-    auto static const returnPile {[](base_game* game, pile_type type) {
+    static auto const returnPile {[](base_game* game, pile_type type) {
         auto const& piles {game->piles()};
         if (piles.contains(type)) { return game->piles().at(type); }
         return std::vector<pile*> {};
@@ -93,7 +93,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
     };
 
     // static methods
-    auto static const placeCard {[](card& card, pile& to, bool ifEmpty, bool front) {
+    static auto const placeCard {[](card& card, pile& to, bool ifEmpty, bool front) {
         bool const canPlace {ifEmpty ? to.Cards.empty() : true};
         if (canPlace) {
             card.flip_face_up();

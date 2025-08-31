@@ -85,7 +85,7 @@ struct game_state {
     i32          Undos {0};
     i32          Hints {0};
 
-    auto static constexpr Members()
+    static auto constexpr Members()
     {
         return std::tuple {
             member<&game_state::Redeals> {"Redeals"},
@@ -114,7 +114,7 @@ public:
     auto gen() -> rng&;
     auto seed() const -> rng::seed_type const&;
 
-    auto static constexpr Members()
+    static auto constexpr Members()
     {
         return std::tuple {
             member<&game_rng::_seed> {"Seed"},
