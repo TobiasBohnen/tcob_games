@@ -16,16 +16,16 @@ public:
 
     point_i Position {};
 
-    auto virtual symbol() const -> string     = 0;
-    auto virtual colors() const -> color_pair = 0;
+    virtual auto symbol() const -> string     = 0;
+    virtual auto colors() const -> color_pair = 0;
 
-    auto virtual is_blocking() const -> bool { return false; }
+    virtual auto is_blocking() const -> bool { return false; }
 
-    auto virtual can_interact(actor& actor) const -> bool = 0;
-    auto virtual interact(actor& actor) -> log_message    = 0;
+    virtual auto can_interact(actor& actor) const -> bool = 0;
+    virtual auto interact(actor& actor) -> log_message    = 0;
 
-    auto virtual on_enter(actor& actor) -> log_message { return {""}; }
-    auto virtual on_search(actor& actor) -> log_message { return {""}; }
+    virtual auto on_enter(actor& actor) -> log_message { return {""}; }
+    virtual auto on_search(actor& actor) -> log_message { return {""}; }
 };
 
 ////////////////////////////////////////////////////////////
@@ -87,14 +87,14 @@ enum class item_type : u8 {
 
 class item : public object {
 public:
-    auto virtual amount() const -> i32 { return 1; }
+    virtual auto amount() const -> i32 { return 1; }
 
-    auto virtual can_pickup(actor& actor) const -> bool = 0;
-    auto virtual pickup(actor& actor) -> log_message    = 0;
+    virtual auto can_pickup(actor& actor) const -> bool = 0;
+    virtual auto pickup(actor& actor) -> log_message    = 0;
 
-    auto virtual can_stack() const -> bool { return false; }
-    auto virtual type() const -> item_type = 0;
-    auto virtual name() const -> string    = 0;
+    virtual auto can_stack() const -> bool { return false; }
+    virtual auto type() const -> item_type = 0;
+    virtual auto name() const -> string    = 0;
 
 private:
     auto can_interact(actor& actor) const -> bool override { return false; }

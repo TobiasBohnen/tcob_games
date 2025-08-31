@@ -15,7 +15,7 @@ class base_layout {
 public:
     virtual ~base_layout() = default;
 
-    auto virtual generate(u64 seed, size_i size) -> grid<tile> = 0;
+    virtual auto generate(u64 seed, size_i size) -> grid<tile> = 0;
 
 protected:
     void fill_grid(grid<tile>& grid, rng& rng, tile const& tile, std::span<color const> colors) const;

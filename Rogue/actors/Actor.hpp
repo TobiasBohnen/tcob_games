@@ -18,9 +18,9 @@ public:
     signal<>                  FinishedAction;
     signal<log_message const> Log;
 
-    auto virtual position() const -> point_i = 0;
-    auto virtual symbol() const -> string    = 0;
-    auto virtual color() const -> color      = 0;
+    virtual auto position() const -> point_i = 0;
+    virtual auto symbol() const -> string    = 0;
+    virtual auto color() const -> color      = 0;
 
     auto strength_check(f32 prob) const -> bool;
     auto intelligence_check(f32 prob) const -> bool;

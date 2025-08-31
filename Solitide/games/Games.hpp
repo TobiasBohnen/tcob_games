@@ -45,11 +45,11 @@ public:
 
     void give_score(i32 value);
 
-    auto deal_cards() -> bool;
-    void play_cards(pile& from, pile& to, isize startIndex, isize numCards);
-    auto auto_play_cards(pile& from) -> bool;
-    void collect_all();
-    auto virtual can_play(pile const& targetPile, isize targetCardIndex, card const& card, isize numCards) const -> bool;
+    auto         deal_cards() -> bool;
+    void         play_cards(pile& from, pile& to, isize startIndex, isize numCards);
+    auto         auto_play_cards(pile& from) -> bool;
+    void         collect_all();
+    virtual auto can_play(pile const& targetPile, isize targetCardIndex, card const& card, isize numCards) const -> bool;
 
     auto get_available_hints() const -> std::vector<hint> const&;
     auto check_movable(pile const& targetPile, isize idx) const -> bool;
@@ -57,20 +57,20 @@ public:
     void update(milliseconds delta);
 
 protected:
-    auto virtual do_redeal() -> bool = 0;
-    auto virtual do_deal() -> bool   = 0;
+    virtual auto do_redeal() -> bool = 0;
+    virtual auto do_deal() -> bool   = 0;
 
-    auto virtual before_setup(card& card) -> bool         = 0;
-    auto virtual on_setup(card& card, pile* pile) -> bool = 0;
-    void virtual after_setup()                            = 0;
+    virtual auto before_setup(card& card) -> bool         = 0;
+    virtual auto on_setup(card& card, pile* pile) -> bool = 0;
+    virtual void after_setup()                            = 0;
 
-    void virtual on_init() = 0;
+    virtual void on_init() = 0;
 
-    void virtual on_drop(pile* pile) = 0;
-    void virtual on_end_turn()       = 0;
+    virtual void on_drop(pile* pile) = 0;
+    virtual void on_end_turn()       = 0;
 
-    auto virtual get_status() const -> game_status;
-    auto virtual get_shuffled() -> std::vector<card>;
+    virtual auto get_status() const -> game_status;
+    virtual auto get_shuffled() -> std::vector<card>;
 
     void create_piles(auto&& piles, isize size, std::function<void(pile&, i32)> const& func);
 
