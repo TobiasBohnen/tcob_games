@@ -19,7 +19,7 @@ public:
 
     auto get_card_size() -> size_f;
 
-    auto get_material() const -> assets::asset_ptr<gfx::material>;
+    auto get_material() const -> asset_ptr<gfx::material>;
 
     auto load() const -> bool;
 
@@ -31,17 +31,17 @@ protected:
     void set_suit_color(gfx::canvas& canvas, suit s);
     void draw_suit(gfx::canvas& canvas, suit s, point_f center, f32 size);
 
-    void save_textures(assets::asset_ptr<gfx::texture> const& canvasTex, size_f texSize) const;
+    void save_textures(asset_ptr<gfx::texture> const& canvasTex, size_f texSize) const;
 
 private:
     auto get_folder() const -> std::string;
     auto get_texture() const -> gfx::texture*;
 
-    assets::asset_owner_ptr<gfx::material> _material;
-    assets::asset_owner_ptr<gfx::texture>  _texture;
-    std::string                            _name;
-    std::string                            _folder;
-    bool                                   _loaded;
+    asset_owner_ptr<gfx::material> _material;
+    asset_owner_ptr<gfx::texture>  _texture;
+    std::string                    _name;
+    std::string                    _folder;
+    bool                           _loaded;
 };
 
 void load_card_sets(std::map<std::string, std::shared_ptr<card_set>>& cardsetMap, assets::group& resGrp);

@@ -51,7 +51,7 @@ auto card_set::get_card_size() -> size_f
     return size_f {_texture->info().Size};
 }
 
-auto card_set::get_material() const -> assets::asset_ptr<gfx::material>
+auto card_set::get_material() const -> asset_ptr<gfx::material>
 {
     return _material;
 }
@@ -182,7 +182,7 @@ void card_set::draw_suit(gfx::canvas& canvas, suit s, point_f center, f32 size)
     }
 }
 
-void card_set::save_textures(assets::asset_ptr<gfx::texture> const& canvasTex, size_f texSize) const
+void card_set::save_textures(asset_ptr<gfx::texture> const& canvasTex, size_f texSize) const
 {
     auto* tex {get_texture()};
 

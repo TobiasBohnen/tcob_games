@@ -23,7 +23,7 @@ constexpr gfx::tile_index_t TS_FLAG {13};
 constexpr gfx::tile_index_t TS_MAYBE {14};
 constexpr gfx::tile_index_t TS_MINE_EXP {15};
 
-field::field(assets::asset_ptr<gfx::material> const& material)
+field::field(asset_ptr<gfx::material> const& material)
     : _map {gfx::orthogonal_tileset {
           {1, {"clear"}},
           {2, {"1"}},

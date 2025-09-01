@@ -75,7 +75,7 @@ void game_object::fail()
     _parent.fail();
 }
 
-void game_object::set_material(assets::asset_ptr<gfx::material> const& mat)
+void game_object::set_material(asset_ptr<gfx::material> const& mat)
 {
     _sprite->Material = mat;
 }

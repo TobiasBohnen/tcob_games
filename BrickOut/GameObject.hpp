@@ -29,7 +29,7 @@ protected:
     void give_score(i32 score);
     void fail();
 
-    void set_material(assets::asset_ptr<gfx::material> const& mat);
+    void set_material(asset_ptr<gfx::material> const& mat);
 
     auto get_sprite() -> gfx::rect_shape&;
     auto get_body() -> physics::body&;

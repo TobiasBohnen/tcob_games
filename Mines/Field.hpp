@@ -27,7 +27,7 @@ struct cell {
 
 class field : public gfx::entity {
 public:
-    explicit field(assets::asset_ptr<gfx::material> const& material);
+    explicit field(asset_ptr<gfx::material> const& material);
 
     void start(size_i gridSize, i32 windowHeight, u32 mines);
 

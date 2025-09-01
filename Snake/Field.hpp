@@ -13,7 +13,7 @@ namespace Snake {
 
 class field : public gfx::entity {
 public:
-    field(assets::asset_ptr<gfx::material> const& material, i32 windowHeight);
+    field(asset_ptr<gfx::material> const& material, i32 windowHeight);
 
     prop<i32> Score;
 

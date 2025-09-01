@@ -9,7 +9,7 @@
 
 namespace Snake {
 
-field::field(assets::asset_ptr<gfx::material> const& material, i32 windowHeight)
+field::field(asset_ptr<gfx::material> const& material, i32 windowHeight)
     : _windowHeight(windowHeight)
     , _map {gfx::orthogonal_tileset {
           {TS_FLOOR, {.TextureRegion = "metal"}},
