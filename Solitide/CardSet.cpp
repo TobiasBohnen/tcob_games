@@ -293,7 +293,7 @@ void gen_cardset::create(assets::group& resGrp)
         for (u8 cr {static_cast<u8>(rank::Ace)}; cr <= static_cast<u8>(rank::King); ++cr) {
             rect_f const rect {nextRect()};
             draw_marker(canvas, fonts, static_cast<rank>(cr), rect);
-            addRegion("card_base_" + helper::to_lower(get_rank_name(static_cast<rank>(cr))), rect);
+            addRegion("card_base_" + utf8::to_lower(get_rank_name(static_cast<rank>(cr))), rect);
         }
     }
 
@@ -585,7 +585,7 @@ void mini_cardset::create(assets::group& resGrp, size_f texSize)
         for (u8 cr {static_cast<u8>(rank::Ace)}; cr <= static_cast<u8>(rank::King); ++cr) {
             rect_f const rect {nextRect()};
             draw_marker(canvas, font, static_cast<rank>(cr), rect);
-            addRegion("card_base_" + helper::to_lower(get_rank_name(static_cast<rank>(cr))), rect);
+            addRegion("card_base_" + utf8::to_lower(get_rank_name(static_cast<rank>(cr))), rect);
         }
     }
 

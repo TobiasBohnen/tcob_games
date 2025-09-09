@@ -131,7 +131,7 @@ auto pile::get_marker_texture_name() const -> std::string
         }
         for (u8 cr {static_cast<u8>(rank::Ace)}; cr <= static_cast<u8>(rank::King); ++cr) {
             if (valid.count(static_cast<rank>(cr)) == 4) {
-                return "card_base_" + helper::to_lower(get_rank_name(static_cast<rank>(cr)));
+                return "card_base_" + utf8::to_lower(get_rank_name(static_cast<rank>(cr)));
             }
         }
         return "card_base_gen";
