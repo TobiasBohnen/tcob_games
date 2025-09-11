@@ -73,10 +73,10 @@ public:
             member<&card::_suit> {"Suit"},
             member<&card::_rank> {"Rank"},
             member<&card::_faceDown> {"IsFaceDown"},
-            computed_member<
+            member_fn<
                 [](auto&& val) { return get_suit_color(val._suit); },
                 [](auto&&, auto&&) {}> {"Color"},
-            computed_member<
+            member_fn<
                 [](auto&& val) { return !val._faceDown; },
                 [](auto&&, auto&&) {}> {"IsFaceUp"},
         };
