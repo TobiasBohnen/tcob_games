@@ -76,59 +76,59 @@ main_scene::main_scene(game& game)
     }};
 
     std::vector<element_def> elementsDefs;
-    for (auto const& [id, name, table] : elements) {
+    for (auto const& [id, name, elementTable] : elements) {
         element_def& element {elementsDefs.emplace_back()};
         element.Element.ID = id;
         element.Name       = name;
 
         // required
-        element.Element.Gravity = table["Gravity"].as<i8>();
-        element.Element.Density = table["Density"].as<f32>();
-        element.Element.Type    = table["Type"].as<element_type>();
+        element.Element.Gravity = elementTable["Gravity"].as<i8>();
+        element.Element.Density = elementTable["Density"].as<f32>();
+        element.Element.Type    = elementTable["Type"].as<element_type>();
 
         // optional
         std::vector<std::string> colors;
-        table.try_get(colors, "Colors");
+        elementTable.try_get(colors, "Colors");
         for (auto const& color : colors) {
             element.Colors.push_back(color::FromString(color));
         }
 
-        table.try_get(element.Temperature, "Temperature");
-        table.try_get(element.Element.ThermalConductivity, "ThermalConductivity");
-        table.try_get(element.Element.Dispersion, "Dispersion");
-        table.try_get(element.Element.Dissolvable, "Dissolvable");
+        elementTable.try_get(element.Temperature, "Temperature");
+        elementTable.try_get(element.Element.ThermalConductivity, "ThermalConductivity");
+        elementTable.try_get(element.Element.Dispersion, "Dispersion");
+        elementTable.try_get(element.Element.Dissolvable, "Dissolvable");
 
-        lua::table rulesTable;
-        if (table.try_get(rulesTable, "Rules")) {
+        table rulesTable;
+        if (elementTable.try_get(rulesTable, "Rules")) {
             auto const keys {rulesTable.get_keys<i32>()};
             for (auto const& key : keys) {
-                lua::table ruleTable {rulesTable[key].as<lua::table>()};
+                table ruleTable {rulesTable[key].as<table>()};
 
                 if (ruleTable.has("Temperature")) {
-                    temp_rule  val;
-                    lua::table table {ruleTable["Temperature"].as<lua::table>()};
+                    temp_rule val;
+                    table     tab {ruleTable["Temperature"].as<table>()};
 
-                    if (table.try_get(val.Temperature, "Above")) {
+                    if (tab.try_get(val.Temperature, "Above")) {
                         val.Op = comp_op::GreaterThan;
-                    } else if (table.try_get(val.Temperature, "Below")) {
+                    } else if (tab.try_get(val.Temperature, "Below")) {
                         val.Op = comp_op::LessThan;
                     }
-                    val.Result = name_to_id(table["Result"].as<std::string>());
+                    val.Result = name_to_id(tab["Result"].as<std::string>());
                     element.Rules.emplace_back(val);
                 } else if (ruleTable.has("Neighbor")) {
                     neighbor_rule val;
-                    lua::table    table {ruleTable["Neighbor"].as<lua::table>()};
+                    table         tab {ruleTable["Neighbor"].as<table>()};
 
-                    val.Element        = name_to_id(table["Element"].as<std::string>());
-                    val.NeighborResult = name_to_id(table["NeighborResult"].as<std::string>());
-                    val.Result         = name_to_id(table["Result"].as<std::string>());
+                    val.Element        = name_to_id(tab["Element"].as<std::string>());
+                    val.NeighborResult = name_to_id(tab["NeighborResult"].as<std::string>());
+                    val.Result         = name_to_id(tab["Result"].as<std::string>());
                     element.Rules.emplace_back(val);
                 } else if (ruleTable.has("Dissolve")) {
                     dissolve_rule val;
-                    lua::table    table {ruleTable["Dissolve"].as<lua::table>()};
+                    table         tab {ruleTable["Dissolve"].as<table>()};
 
-                    val.Element = name_to_id(table["Element"].as<std::string>());
-                    val.Result  = name_to_id(table["Result"].as<std::string>());
+                    val.Element = name_to_id(tab["Element"].as<std::string>());
+                    val.Result  = name_to_id(tab["Result"].as<std::string>());
                     element.Rules.emplace_back(val);
                 }
             }
@@ -239,7 +239,7 @@ void main_scene::on_mouse_button_down(input::mouse::button_event const& ev)
 
 auto main_scene::load_script() -> script_element_vec
 {
-    using namespace scripting::lua;
+    using namespace scripting;
 
     _script.open_libraries(library::Table, library::String, library::Math, library::Coroutine);
     auto& global {_script.global_table()};

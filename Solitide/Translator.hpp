@@ -30,10 +30,10 @@ public:
 private:
     auto do_bind(auto&& func) -> i32;
 
-    scripting::lua::script _script;
+    scripting::script _script;
 
     using return_type = std::variant<std::string, std::vector<std::string>>;
-    scripting::lua::function<return_type> _func;
+    scripting::function<return_type> _func;
 
     std::vector<std::pair<i32, std::function<void(void)>>> _bindings;
 

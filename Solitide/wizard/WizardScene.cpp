@@ -22,7 +22,7 @@ wizard_scene::wizard_scene(game& game)
     });
 
     _formWizard->BtnGenerate->Click.connect([&] {
-        using namespace tcob::scripting::lua;
+        using namespace tcob::scripting;
 
         script script;
         lua_script_game::CreateENV(script);

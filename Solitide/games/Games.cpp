@@ -507,16 +507,14 @@ auto base_game::storage() -> data::object*
 
 ////////////////////////////////////////////////////////////
 
-using namespace scripting;
-
-lua_script_game::lua_script_game(game_info info, lua::table tab)
+lua_script_game::lua_script_game(game_info info, scripting::table tab)
     : script_game {std::move(info), std::move(tab)}
 {
 }
 
-auto lua_script_game::CreateENV(scripting::lua::script& script) -> scripting::lua::table
+auto lua_script_game::CreateENV(scripting::script& script) -> scripting::table
 {
-    using namespace scripting::lua;
+    using namespace scripting;
     script.open_libraries(library::Table, library::String, library::Math, library::Coroutine);
     auto& global {script.global_table()};
     table env {script.create_table()};
@@ -539,9 +537,9 @@ auto lua_script_game::CreateENV(scripting::lua::script& script) -> scripting::lu
     return env;
 }
 
-void lua_script_game::CreateAPI(main_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs)
+void lua_script_game::CreateAPI(main_scene* scene, scripting::script& script, std::vector<scripting::native_closure_shared_ptr>& funcs)
 {
-    using namespace scripting::lua;
+    using namespace scripting;
     auto env {CreateENV(script)};
 
     auto make_func {[&](auto&& func) {

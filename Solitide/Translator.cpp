@@ -9,7 +9,7 @@
 
 namespace solitaire {
 
-using namespace scripting::lua;
+using namespace scripting;
 
 translator::translator()
 {

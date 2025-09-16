@@ -151,12 +151,12 @@ private:
 
 ////////////////////////////////////////////////////////////
 
-class lua_script_game : public script_game<scripting::lua::table, scripting::lua::function, -1> {
+class lua_script_game : public script_game<scripting::table, scripting::function, -1> {
 public:
-    lua_script_game(game_info info, scripting::lua::table tab);
+    lua_script_game(game_info info, scripting::table tab);
 
-    static auto CreateENV(scripting::lua::script& script) -> scripting::lua::table;
-    static void CreateAPI(main_scene* scene, scripting::lua::script& script, std::vector<scripting::lua::native_closure_shared_ptr>& funcs);
+    static auto CreateENV(scripting::script& script) -> scripting::table;
+    static void CreateAPI(main_scene* scene, scripting::script& script, std::vector<scripting::native_closure_shared_ptr>& funcs);
 };
 
 }

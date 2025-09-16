@@ -41,7 +41,7 @@ private:
 
 ////////////////////////////////////////////////////////////
 
-using script_element_vec = std::vector<std::tuple<u16, std::string, lua::table>>;
+using script_element_vec = std::vector<std::tuple<u16, std::string, table>>;
 
 class main_scene : public scene {
 public:
@@ -66,8 +66,8 @@ protected:
 private:
     auto load_script() -> script_element_vec;
 
-    lua::script                                            _script;
-    std::vector<scripting::lua::native_closure_shared_ptr> _funcs;
+    script                                            _script;
+    std::vector<scripting::native_closure_shared_ptr> _funcs;
 
     i32                  _spawnElement {0};
     i32                  _leftBtnElement {0};
