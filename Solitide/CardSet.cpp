@@ -69,7 +69,7 @@ auto card_set::load() const -> bool
     if (!info) { return false; }
     auto const texSize {gfx::image::LoadInfo(*files.begin())->Size};
 
-    _texture->create(texSize, static_cast<u32>(files.size()), gfx::texture::format::RGBA8);
+    _texture->resize(texSize, static_cast<u32>(files.size()), gfx::texture::format::RGBA8);
     _texture->Filtering = json.get<gfx::texture::filtering>("filtering").value_or(gfx::texture::filtering::Linear);
 
     struct image_ftr {
@@ -187,7 +187,7 @@ void card_set::save_textures(asset_ptr<gfx::texture> const& canvasTex, size_f te
     auto* tex {get_texture()};
 
     auto const& regions {canvasTex->regions()};
-    tex->create(size_i {texSize}, static_cast<u32>(regions.size()), gfx::texture::format::RGBA8);
+    tex->resize(size_i {texSize}, static_cast<u32>(regions.size()), gfx::texture::format::RGBA8);
     tex->Filtering = gfx::texture::filtering::Linear;
 
     auto tempImg {canvasTex->copy_to_image(0)};

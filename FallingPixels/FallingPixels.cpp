@@ -13,7 +13,7 @@ using namespace tcob::literals;
 
 elements_entity::elements_entity()
 {
-    _sandTex->create(GRID_SIZE, 1, gfx::texture::format::RGBA8);
+    _sandTex->resize(GRID_SIZE, 1, gfx::texture::format::RGBA8);
     //_sandTex->Filtering = gfx::texture::filtering::Linear;
 
     Shape                    = _layer0.create_shape<gfx::rect_shape>();
