@@ -374,7 +374,7 @@ void form_menu::create_game_details(dock_layout& panelLayout)
 
         auto gvInfo {tabPanelLayout.create_widget<grid_view>({2, 1, 36, 5}, "gvInfo")};
         gvInfo->Class      = "grid_view2";
-        gvInfo->SelectMode = grid_view::select_mode::None;
+        gvInfo->SelectMode = grid_select_mode::None;
         auto addRow {[this, infoGV = gvInfo.get()](auto const& game) {
             infoGV->Grid.mutate([&](auto& grid) {
                 grid.resize({3, 1});
@@ -457,16 +457,16 @@ void form_menu::create_game_details(dock_layout& panelLayout)
 
         auto gvWL {tabPanelLayout.create_widget<grid_view>({1, 1, 18, 5}, "gvWinLose")};
         gvWL->Class      = "grid_view2";
-        gvWL->SelectMode = grid_view::select_mode::None;
+        gvWL->SelectMode = grid_select_mode::None;
         _sources->Translator.bind_grid_header(gvWL.get(), "wl");
 
         auto gvScore {tabPanelLayout.create_widget<grid_view>({21, 1, 18, 5}, "gvBest")};
         gvScore->Class      = "grid_view2";
-        gvScore->SelectMode = grid_view::select_mode::None;
+        gvScore->SelectMode = grid_select_mode::None;
         _sources->Translator.bind_grid_header(gvScore.get(), "score");
 
         auto gvHistory {tabPanelLayout.create_widget<grid_view>({1, 7, 38, 22}, "gvHistory")};
-        gvHistory->SelectMode = grid_view::select_mode::Row;
+        gvHistory->SelectMode = grid_select_mode::Row;
         _sources->Translator.bind_grid_header(gvHistory.get(), "history");
 
         _sources->SelectedHistory.Changed.connect([wl = gvWL.get(), tt = gvScore.get(), history = gvHistory.get()](auto const& stats) {
