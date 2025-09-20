@@ -264,7 +264,7 @@ auto main_scene::load_script() -> script_element_vec
 
     script_element_vec elements;
     env["element"] = make_func([&](std::string const& name, table const& table) {
-        elements.emplace_back(elements.size(), name, table);
+        elements.emplace_back(static_cast<u16>(elements.size()), name, table);
     });
     _script.set_environment(env);
 
