@@ -102,8 +102,8 @@ using rng = random::shuffle<card, random::xoshiro_256_plus_plus>;
 
 inline auto get_time_seed() -> rng::seed_type
 {
-    u64 const                seed {static_cast<u64>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count())};
-    random::rng_split_mix_64 rng {seed};
+    u64 const                 seed {static_cast<u64>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count())};
+    random::prng_split_mix_64 rng {seed};
     return static_cast<rng::seed_type>(rng.next());
 }
 
