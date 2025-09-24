@@ -242,12 +242,12 @@ inline void script_game<Table, Function, IndexOffset>::CreateWrapper(auto&& scri
 
 template <typename Table, template <typename> typename Function, isize IndexOffset>
 template <typename T>
-inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& scene, auto&& script, auto&& globalTable, auto&& makeFunc, std::string const& ext)
+inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& host, auto&& script, auto&& globalTable, auto&& makeFunc, std::string const& ext)
 {
     auto const now {std::chrono::system_clock::now()};
     globalTable["Sol"]["Date"] = std::format("{:%Y%m%d}", now);
 
-    globalTable["Sol"]["register_game"] = makeFunc([scene](Table& tab) {
+    globalTable["Sol"]["register_game"] = makeFunc([host](Table& tab) {
         Table infoTab;
         if (!tab.is_valid() || !tab.try_get(infoTab, "Info")) { return; } // TODO: error
 
@@ -277,7 +277,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& scen
         infoTab.try_get(info.DisableAutoPlay, "DisableAutoPlay");
 
         auto func {[tab, info] { return std::make_shared<T>(info, tab); }};
-        scene->register_game(info, func);
+        host->register_game(info, func);
     });
 
     globalTable["require"] = makeFunc([globalTable, &script, ext](std::string const& package) {

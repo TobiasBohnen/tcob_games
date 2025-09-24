@@ -6,7 +6,7 @@
 #pragma once
 
 #include "Common.hpp" // IWYU pragma: keep
-
+#include "Sources.hpp"
 #include "games/GameInfo.hpp"
 
 namespace solitaire {

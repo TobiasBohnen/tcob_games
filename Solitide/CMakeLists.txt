@@ -3,6 +3,7 @@ add_executable(Solitide)
 target_sources(Solitide PRIVATE
     Database.cpp
     MainScene.cpp
+    ScriptHost.cpp
     StartScene.cpp
     main.cpp
 

@@ -8,6 +8,7 @@
 #include "Common.hpp" // IWYU pragma: keep
 
 #include "Database.hpp"
+#include "ScriptHost.hpp"
 #include "gfx/CardTable.hpp"
 #include "ui/UI.hpp"
 #include "wizard/WizardScene.hpp"
@@ -28,9 +29,6 @@ public:
     main_scene(game& game);
     ~main_scene() override;
 
-    void register_game(game_info const& info, reg_game_func&& game);
-    auto call_lua(std::vector<std::string> const& funcs, lua_params const& args) -> lua_return;
-
 protected:
     void on_start() override;
 
@@ -43,8 +41,8 @@ protected:
 
 private:
     void set_children_bounds(size_i size);
-    void set_theme();
-    void set_cardset();
+    void apply_theme();
+    void apply_cardset();
 
     void start_game(std::string const& name, start_reason reason, std::optional<u64> seed);
     void start_wizard();
@@ -54,17 +52,11 @@ private:
 
     auto generate_rule(std::string const& name) const -> data::object;
 
-    void load_scripts();
-
     void connect_events();
     void save();
 
-    scripting::script                                 _luaScript;
-    std::vector<scripting::native_closure_shared_ptr> _luaFunctions;
-
-    std::shared_ptr<card_table>    _cardTable {};
-    std::shared_ptr<form_controls> _formControls {};
-    std::shared_ptr<form_menu>     _formMenu {};
+    std::shared_ptr<script_host> _scriptHost;
+    std::shared_ptr<sources>     _sources;
 
     data::object _saveGame;
     data::object _currentRules;
@@ -72,7 +64,10 @@ private:
     database _db;
 
     std::shared_ptr<wizard_scene> _wizard;
-    std::shared_ptr<menu_sources> _sources;
+
+    std::shared_ptr<card_table>    _cardTable {};
+    std::shared_ptr<form_controls> _formControls {};
+    std::shared_ptr<form_menu>     _formMenu {};
 };
 
 }

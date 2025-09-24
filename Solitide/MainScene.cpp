@@ -6,17 +6,20 @@
 #include "MainScene.hpp"
 
 #include <algorithm>
+#include <utility>
 
 #include "ui/Styles.hpp"
 
 namespace solitaire {
+
+////////////////////////////////////////////////////////////
 
 static char const* SAVE_NAME {"save.ini"};
 static char const* SETTINGS_NAME {"settings"};
 
 main_scene::main_scene(game& game)
     : scene {game}
-    , _sources {std::make_shared<menu_sources>()}
+    , _sources {std::make_shared<sources>()}
 {
     _saveGame.load(SAVE_NAME);
 
@@ -33,7 +36,7 @@ main_scene::main_scene(game& game)
     win.Cursor                = defaultCursor;
     defaultCursor->ActiveMode = "cursor32";
 
-    load_scripts();
+    _scriptHost = std::make_shared<script_host>(_sources);
 
     // themes
     load_themes(_sources->Themes);
@@ -59,31 +62,11 @@ main_scene::main_scene(game& game)
 
     connect_events();
     set_children_bounds(windowSize);
-    set_theme();
-    set_cardset();
+    apply_theme();
+    apply_cardset();
 }
 
 main_scene::~main_scene() = default;
-
-void main_scene::register_game(game_info const& info, reg_game_func&& game)
-{
-    if (info.DeckCount > 24) { return; }                                                   // TODO: error
-    if (info.DeckCount * info.DeckSuits.size() * info.DeckSuits.size() > 1500) { return; } // TODO: error
-    if (_sources->Games.size() > 2500) { return; }                                         // TODO: error
-
-    _sources->Games[info.Name] = {info, std::move(game)};
-}
-
-auto main_scene::call_lua(std::vector<std::string> const& funcs, lua_params const& args) -> lua_return
-{
-    using namespace scripting;
-    table tab {_luaScript.global_table()};
-    for (isize i {0}; i < std::ssize(funcs) - 1; ++i) {
-        tab = tab[funcs[i]].as<table>();
-    }
-
-    return tab[funcs.back()].as<function<lua_return>>()(args);
-}
 
 void main_scene::on_start()
 {
@@ -95,7 +78,7 @@ void main_scene::on_start()
     locate_service<gfx::render_system>().statistics().reset();
 
     // config
-    set_cardset();
+    apply_cardset();
 
     _formMenu->update(0s);     // updates style
     _formControls->update(0s); // updates style
@@ -107,19 +90,19 @@ void main_scene::on_start()
 
 void main_scene::connect_events()
 {
-    _sources->RestartGame.connect([&]() { start_game(_sources->Settings.LastGame, start_reason::Restart, std::nullopt); });
-    _sources->ShowWizard.connect([&]() { start_wizard(); });
-    _sources->ShowMenu.connect([&]() { _formMenu->show(); });
+    _sources->Events.RestartGame.connect([&]() { start_game(_sources->Settings.LastGame, start_reason::Restart, std::nullopt); });
+    _sources->Events.ShowWizard.connect([&]() { start_wizard(); });
+    _sources->Events.ShowMenu.connect([&]() { _formMenu->show(); });
 
-    _sources->ShowHint.connect([&]() { _cardTable->show_next_hint(); });
-    _sources->Collect.connect([&]() {
+    _sources->Events.ShowHint.connect([&]() { _cardTable->show_next_hint(); });
+    _sources->Events.Collect.connect([&]() {
         if (auto* game {_cardTable->game()}) { game->collect_all(); }
     });
-    _sources->Undo.connect([&]() {
+    _sources->Events.Undo.connect([&]() {
         if (auto* game {_cardTable->game()}) { game->undo(); }
     });
 
-    _sources->Quit.connect([&]() {
+    _sources->Events.Quit.connect([&]() {
         save();
         parent().pop_current_scene();
     });
@@ -130,13 +113,18 @@ void main_scene::connect_events()
     });
 
     _sources->SelectedGame.Changed.connect([&](auto const& game) { update_selected(game); });
-    _sources->Settings.Theme.Changed.connect([&](auto const&) { set_theme(); });
-    _sources->Settings.Cardset.Changed.connect([&] { set_cardset(); });
+    _sources->Settings.Theme.Changed.connect([&](auto const&) { apply_theme(); });
+    _sources->Settings.Cardset.Changed.connect([&] { apply_cardset(); });
 
-    _sources->StartGame.connect([&](auto const& seed) { start_game(_sources->SelectedGame, start_reason::Resume, seed); });
+    _sources->Events.StartGame.connect([&](auto const& seed) { start_game(_sources->SelectedGame, start_reason::Resume, seed); });
 
-    _sources->VideoSettingsChanged.connect([&] {
-        set_children_bounds(window().Size);
+    _sources->Events.VideoSettingsChanged.connect([&](video_settings const& v) {
+        auto& win {window()};
+        win.FullScreen = v.FullScreen;
+        win.VSync      = v.VSync;
+        win.Size       = v.Resolution;
+
+        set_children_bounds(win.Size);
         start_game(_sources->Settings.LastGame, start_reason::Resume, std::nullopt);
     });
 }
@@ -146,9 +134,10 @@ void main_scene::save()
     if (auto* game {_cardTable->game()}) {
         game->save(_saveGame);
         _saveGame.save(SAVE_NAME);
-        auto& config {locate_service<platform>().config()};
-        config[SETTINGS_NAME] = _sources->Settings;
     }
+
+    auto& config {locate_service<platform>().config()};
+    config[SETTINGS_NAME] = _sources->Settings;
 }
 
 void main_scene::on_draw_to(gfx::render_target&)
@@ -184,7 +173,7 @@ void main_scene::on_key_down(input::keyboard::event const& ev)
     }
     if (ev.KeyCode == input::key_code::t && ev.KeyMods.alt()) {
         load_themes(_sources->Themes);
-        set_theme();
+        apply_theme();
         ev.Handled = true;
     }
 #if defined(TCOB_DEBUG)
@@ -219,7 +208,7 @@ void main_scene::set_children_bounds(size_i size)
     _cardTable->Bounds = rect_f {{tableX, tableY}, {tableWidth, tableHeight}};
 }
 
-void main_scene::set_theme()
+void main_scene::apply_theme()
 {
     auto themeName {*_sources->Settings.Theme};
     if (!_sources->Themes.contains(themeName)) { themeName = "default"; }
@@ -241,7 +230,7 @@ void main_scene::set_theme()
     _sources->Settings.Theme = themeName;
 }
 
-void main_scene::set_cardset()
+void main_scene::apply_cardset()
 {
     auto newCardset {*_sources->Settings.Cardset};
     if (!_sources->CardSets.contains(newCardset)) { newCardset = "default"; }
@@ -296,8 +285,6 @@ void main_scene::start_game(std::string const& name, start_reason reason, std::o
         _cardTable->resume(newGame, _saveGame);
     } break;
     }
-
-    locate_service<gfx::render_system>().statistics().reset();
 }
 
 void main_scene::start_wizard()
@@ -308,8 +295,8 @@ void main_scene::start_wizard()
     }
 
     _wizard->GameGenerated.connect([&](auto const& val) {
-        if (_luaScript.run_file(val.Path)) {
-            _sources->GameAdded();
+        if (_scriptHost->run_file(val.Path)) {
+            _sources->Events.GameAdded();
             _db.insert_games(_sources->Games);
             start_game(val.Name, start_reason::Resume, std::nullopt);
         }
@@ -381,15 +368,6 @@ auto main_scene::generate_rule(std::string const& name) const -> data::object
     }
 
     return gameObj;
-}
-
-void main_scene::load_scripts()
-{
-    lua_script_game::CreateAPI(this, _luaScript, _luaFunctions);
-    auto const files {io::enumerate("/", {.String = "games.*.lua", .MatchWholePath = false}, true)};
-    for (auto const& file : files) {
-        std::ignore = _luaScript.run_file(file);
-    }
 }
 
 }

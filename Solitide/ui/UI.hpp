@@ -7,17 +7,17 @@
 
 #include "Common.hpp"
 
+#include "Sources.hpp"
 #include "Themes.hpp"      // IWYU pragma: keep
 #include "games/Games.hpp"
 #include "gfx/CardSet.hpp" // IWYU pragma: keep
-#include "ui/Sources.hpp"
 
 namespace solitaire {
 ////////////////////////////////////////////////////////////
 
 class form_controls : public form<dock_layout> {
 public:
-    form_controls(gfx::window& window, assets::group& resGrp, std::shared_ptr<menu_sources> sources);
+    form_controls(gfx::window& window, assets::group& resGrp, std::shared_ptr<sources> sources);
 
     void set_pile_labels(pile const* pile, data::object const& currentRules, game_state const& state);
     void set_game_labels(base_game* game);
@@ -51,7 +51,7 @@ private:
     std::shared_ptr<label> _lblTime;
     std::shared_ptr<label> _lblTimeLabel;
 
-    std::shared_ptr<menu_sources> _sources;
+    std::shared_ptr<sources> _sources;
 };
 
 ////////////////////////////////////////////////////////////
@@ -59,7 +59,7 @@ private:
 
 class form_menu : public form<dock_layout> {
 public:
-    form_menu(gfx::window& window, assets::group& resGrp, std::shared_ptr<menu_sources> sources);
+    form_menu(gfx::window& window, assets::group& resGrp, std::shared_ptr<sources> sources);
 
 protected:
     void on_key_down(input::keyboard::event const& ev) override;
@@ -84,9 +84,8 @@ private:
 
     std::shared_ptr<tooltip> _tooltip;
 
-    assets::group&                _resGrp;
-    std::shared_ptr<menu_sources> _sources;
-    gfx::window&                  _window;
+    assets::group&           _resGrp;
+    std::shared_ptr<sources> _sources;
 };
 
 }

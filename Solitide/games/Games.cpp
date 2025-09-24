@@ -537,7 +537,7 @@ auto lua_script_game::CreateENV(scripting::script& script) -> scripting::table
     return env;
 }
 
-void lua_script_game::CreateAPI(main_scene* scene, scripting::script& script, std::vector<scripting::native_closure_shared_ptr>& funcs)
+void lua_script_game::CreateAPI(script_host* host, scripting::script& script, std::vector<scripting::native_closure_shared_ptr>& funcs)
 {
     using namespace scripting;
     auto env {CreateENV(script)};
@@ -548,7 +548,7 @@ void lua_script_game::CreateAPI(main_scene* scene, scripting::script& script, st
         return ptr.get();
     }};
 
-    CreateGlobals<lua_script_game>(scene, script, env, make_func, "lua");
+    CreateGlobals<lua_script_game>(host, script, env, make_func, "lua");
     CreateWrapper(script);
 
     std::ignore = script.run_file("scripts/main.lua");

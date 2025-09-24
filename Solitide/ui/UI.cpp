@@ -11,6 +11,39 @@ namespace solitaire {
 
 using namespace tcob::literals;
 
+static auto set_to_string(std::set<i32> const& numbers) -> std::string
+{
+    if (numbers.empty()) { return ""; }
+
+    std::ostringstream oss;
+    auto               it {numbers.begin()};
+    i32                start {*it}, end {*it};
+    ++it;
+
+    while (it != numbers.end()) {
+        if (*it == end + 1) {
+            end = *it;
+        } else {
+            if (start == end) {
+                oss << (start + 1);
+            } else {
+                oss << (start + 1) << "-" << (end + 1);
+            }
+            oss << ",";
+            start = end = *it;
+        }
+        ++it;
+    }
+
+    if (start == end) {
+        oss << (start + 1);
+    } else {
+        oss << (start + 1) << "-" << (end + 1);
+    }
+
+    return oss.str();
+}
+
 static auto get_size(std::string_view str) -> size_i
 {
     i32                    width {}, height {};
@@ -22,7 +55,7 @@ static auto get_size(std::string_view str) -> size_i
     return {width, height};
 }
 
-static auto make_tooltip(menu_sources& sources, form_base* form) -> std::shared_ptr<tooltip>
+static auto make_tooltip(sources& sources, form_base* form) -> std::shared_ptr<tooltip>
 {
     auto retValue {form->create_tooltip<>("tooltip")};
     retValue->Class     = "tooltip";
@@ -45,7 +78,7 @@ static auto make_tooltip(menu_sources& sources, form_base* form) -> std::shared_
     return retValue;
 }
 
-form_controls::form_controls(gfx::window& window, assets::group& resGrp, std::shared_ptr<menu_sources> sources)
+form_controls::form_controls(gfx::window& window, assets::group& resGrp, std::shared_ptr<sources> sources)
     : form {{.Name = "Controls", .Bounds = window.bounds()}}
     , _sources {std::move(sources)}
 {
@@ -69,13 +102,13 @@ form_controls::form_controls(gfx::window& window, assets::group& resGrp, std::sh
             return retValue;
         }};
 
-        create({0, 0, 1, 1}, "btnMenu", "burger")->Click.connect([&] { _sources->ShowMenu(); });
-        create({2, 0, 1, 1}, "btnWizard", "wand")->Click.connect([&] { _sources->ShowWizard(); });
-        create({12, 0, 1, 1}, "btnNewGame", "newgame")->Click.connect([&] { _sources->RestartGame(); });
-        create({14, 0, 1, 1}, "btnHint", "hint")->Click.connect([&] { _sources->ShowHint(); });
-        create({15, 0, 1, 1}, "btnCollect", "collect")->Click.connect([&] { _sources->Collect(); });
-        create({16, 0, 1, 1}, "btnUndo", "undo")->Click.connect([&] { _sources->Undo(); });
-        create({19, 0, 1, 1}, "btnQuit", "exit")->Click.connect([&] { _sources->Quit(); });
+        create({0, 0, 1, 1}, "btnMenu", "burger")->Click.connect([&] { _sources->Events.ShowMenu(); });
+        create({2, 0, 1, 1}, "btnWizard", "wand")->Click.connect([&] { _sources->Events.ShowWizard(); });
+        create({12, 0, 1, 1}, "btnNewGame", "newgame")->Click.connect([&] { _sources->Events.RestartGame(); });
+        create({14, 0, 1, 1}, "btnHint", "hint")->Click.connect([&] { _sources->Events.ShowHint(); });
+        create({15, 0, 1, 1}, "btnCollect", "collect")->Click.connect([&] { _sources->Events.Collect(); });
+        create({16, 0, 1, 1}, "btnUndo", "undo")->Click.connect([&] { _sources->Events.Undo(); });
+        create({19, 0, 1, 1}, "btnQuit", "exit")->Click.connect([&] { _sources->Events.Quit(); });
     }
 
     // status
@@ -195,11 +228,10 @@ void form_controls::set_game_labels(base_game* game)
 static std::string const TabSettingsName {"conSettings"};
 static std::string const MenuName {"menu"};
 
-form_menu::form_menu(gfx::window& window, assets::group& resGrp, std::shared_ptr<menu_sources> sources)
+form_menu::form_menu(gfx::window& window, assets::group& resGrp, std::shared_ptr<sources> sources)
     : form {{.Name = "Menu", .Bounds = window.bounds()}}
     , _resGrp {resGrp}
     , _sources {std::move(sources)}
-    , _window {window}
 {
     _tooltip = make_tooltip(*_sources, this);
 
@@ -288,7 +320,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
 
         auto& tabPanelLayout {tabPanel->create_layout<dock_layout>()};
         auto  listBox {createListBox(tabPanelLayout, [](auto const&) { return true; })};
-        _sources->GameAdded.connect([this, lb = listBox.get()] -> void {
+        _sources->Events.GameAdded.connect([this, lb = listBox.get()] -> void {
             // TODO: update all listboxes
             std::vector<item> listBoxItems;
             for (auto const& game : _sources->Games) { listBoxItems.push_back({.Text = game.first}); }
@@ -626,11 +658,10 @@ void form_menu::create_settings_video(tab_container& tabContainer)
     btnApplyVideoSettings->Icon    = {.Texture = _resGrp.get<gfx::texture>("apply")};
     btnApplyVideoSettings->Tooltip = _tooltip;
     btnApplyVideoSettings->Click.connect([this] {
-        _window.FullScreen = dynamic_cast<checkbox*>(find_widget_by_name("chkFullScreen"))->Checked;
-        _window.VSync      = dynamic_cast<checkbox*>(find_widget_by_name("chkVSync"))->Checked;
         auto const res {get_size(dynamic_cast<drop_down_list*>(find_widget_by_name("ddlResolution"))->selected_item().Text)};
-        _window.Size = res;
-        _sources->VideoSettingsChanged();
+        _sources->Events.VideoSettingsChanged({.FullScreen = dynamic_cast<checkbox*>(find_widget_by_name("chkFullScreen"))->Checked,
+                                               .VSync      = dynamic_cast<checkbox*>(find_widget_by_name("chkVSync"))->Checked,
+                                               .Resolution = res});
     });
 }
 
@@ -768,7 +799,7 @@ void form_menu::create_menubar(tab_container& parent)
 
 void form_menu::start_game()
 {
-    _sources->StartGame(helper::to_number<u64>(*_txbSeed->Text));
+    _sources->Events.StartGame(helper::to_number<u64>(*_txbSeed->Text));
     _txbSeed->Text = "";
     hide();
 }

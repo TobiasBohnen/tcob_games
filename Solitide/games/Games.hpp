@@ -9,6 +9,7 @@
 
 #include "GameInfo.hpp"
 #include "Piles.hpp"
+#include "ScriptHost.hpp"
 
 namespace solitaire {
 ////////////////////////////////////////////////////////////
@@ -110,7 +111,7 @@ public:
 
     static void CreateWrapper(auto&& script);
     template <typename T>
-    static void CreateGlobals(auto&& scene, auto&& script, auto&& globalTable, auto&& makeFunc, std::string const& ext);
+    static void CreateGlobals(auto&& host, auto&& script, auto&& globalTable, auto&& makeFunc, std::string const& ext);
 
 protected:
     auto do_redeal() -> bool override;
@@ -156,7 +157,7 @@ public:
     lua_script_game(game_info info, scripting::table tab);
 
     static auto CreateENV(scripting::script& script) -> scripting::table;
-    static void CreateAPI(main_scene* scene, scripting::script& script, std::vector<scripting::native_closure_shared_ptr>& funcs);
+    static void CreateAPI(script_host* host, scripting::script& script, std::vector<scripting::native_closure_shared_ptr>& funcs);
 };
 
 }
