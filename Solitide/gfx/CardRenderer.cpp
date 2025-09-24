@@ -5,10 +5,8 @@
 
 #include "CardRenderer.hpp"
 
-#include <utility>
-
 #include "CardTable.hpp"
-#include "Games.hpp"
+#include "games/Games.hpp"
 
 namespace solitaire {
 
@@ -21,7 +19,7 @@ card_renderer::card_renderer(card_table& parent)
 void card_renderer::start()
 {
     _cardQuads.clear();
-    _cardQuads.resize(_parent.parent()->info().DeckCount * 52);
+    _cardQuads.resize(_parent.game()->info().DeckCount * 52);
     create_markers();
 }
 
@@ -41,10 +39,10 @@ void card_renderer::mark_dirty()
     _renderDirty = true;
 }
 
-void card_renderer::set_card_set(std::shared_ptr<card_set> cardset)
+void card_renderer::set_cardset(card_set const& cardset)
 {
-    _cardSet = std::move(cardset);
-    if (_parent.parent()) {
+    _cardSet = &cardset;
+    if (_parent.game()) {
         if (!_markerSprites.is_empty()) { create_markers(); }
     }
 }
@@ -57,7 +55,7 @@ void card_renderer::draw_cards(gfx::render_target& target)
         pile const* dragPile {nullptr};
         {
             auto quadIt {_cardQuads.begin()};
-            for (auto const& [_, piles] : _parent.parent()->piles()) {
+            for (auto const& [_, piles] : _parent.game()->piles()) {
                 for (auto const* pile : piles) {
                     if (pile->IsDragging) {
                         dragPile = pile;
@@ -101,7 +99,7 @@ void card_renderer::create_markers()
 {
     auto const& cardSize {_cardSet->get_card_size()};
     _markerSprites.clear();
-    for (auto const& [_, piles] : _parent.parent()->piles()) {
+    for (auto const& [_, piles] : _parent.game()->piles()) {
         for (auto* pile : piles) {
             if (!pile->HasMarker) { continue; }
 
@@ -111,6 +109,11 @@ void card_renderer::create_markers()
             pile->Marker->Bounds        = {multiply(pile->Position, cardSize), cardSize};
         }
     }
+}
+
+auto card_renderer::get_card_size() const -> size_f
+{
+    return _cardSet->get_card_size();
 }
 
 } // namespace solitaire

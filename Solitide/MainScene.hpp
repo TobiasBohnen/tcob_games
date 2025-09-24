@@ -7,8 +7,8 @@
 
 #include "Common.hpp" // IWYU pragma: keep
 
-#include "CardTable.hpp"
 #include "Database.hpp"
+#include "gfx/CardTable.hpp"
 #include "ui/UI.hpp"
 #include "wizard/WizardScene.hpp"
 
@@ -49,7 +49,7 @@ private:
     void start_game(std::string const& name, start_reason reason, std::optional<u64> seed);
     void start_wizard();
 
-    void update_game_ui(std::string const& name) const;
+    void update_selected(std::string const& name) const;
     void update_recent(std::string const& name);
 
     auto generate_rule(std::string const& name) const -> data::object;

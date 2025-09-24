@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "CardSet.hpp"
-#include "Common.hpp" // IWYU pragma: keep
-#include "Piles.hpp"
+#include "Common.hpp"      // IWYU pragma: keep
+#include "games/Piles.hpp" // IWYU pragma: keep
+#include "gfx/CardSet.hpp"
 
 namespace solitaire {
 
@@ -31,7 +31,8 @@ public:
 
     void mark_dirty();
 
-    void set_card_set(std::shared_ptr<card_set> cardset);
+    void set_cardset(card_set const& cardset);
+    auto get_card_size() const -> size_f;
 
 private:
     void get_pile_quads(std::vector<gfx::quad>::iterator& quadIt, pile const* pile) const;
@@ -39,11 +40,11 @@ private:
 
     card_table& _parent;
 
-    std::shared_ptr<card_set> _cardSet;
-    gfx::shape_batch          _markerSprites;
-    gfx::quad_renderer        _cardRenderer;
-    std::vector<gfx::quad>    _cardQuads;
-    bool                      _renderDirty {true};
+    card_set const*        _cardSet {nullptr};
+    gfx::shape_batch       _markerSprites;
+    gfx::quad_renderer     _cardRenderer;
+    std::vector<gfx::quad> _cardQuads;
+    bool                   _renderDirty {true};
 };
 
 }

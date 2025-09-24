@@ -1,24 +1,28 @@
 add_executable(Solitide)
 
 target_sources(Solitide PRIVATE
-    Canvases.cpp
-    CardRenderer.cpp
-    Cards.cpp
-    CardSet.cpp
-    CardTable.cpp
     Database.cpp
     MainScene.cpp
-    Piles.cpp
     StartScene.cpp
-    Translator.cpp
     main.cpp
+
+    ./gfx/Canvases.cpp
+    ./gfx/CardRenderer.cpp
+    ./gfx/CardSet.cpp
+    ./gfx/CardTable.cpp
+
     ./ui/UI.cpp
     ./ui/Themes.cpp
     ./ui/Styles.cpp
+    ./ui/Translator.cpp
+
     ./wizard/Wizard.cpp
     ./wizard/WizardScene.cpp
+
+    ./games/Cards.cpp
     ./games/Games.cpp
     ./games/GameInfo.cpp
+    ./games/Piles.cpp
 )
 
 set_target_properties(Solitide PROPERTIES
@@ -28,7 +32,6 @@ set_target_properties(Solitide PROPERTIES
 
 target_include_directories(Solitide
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/
-    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/games
 )
 
 target_compile_options(Solitide PRIVATE

@@ -9,8 +9,8 @@
 
 #include "Canvases.hpp"
 #include "CardRenderer.hpp"
-#include "CardSet.hpp"
-#include "Piles.hpp"
+#include "games/Piles.hpp"
+#include "gfx/CardSet.hpp"
 #include "ui/Themes.hpp"
 
 namespace solitaire {
@@ -34,12 +34,12 @@ public:
     void start(std::shared_ptr<base_game> const& game, std::optional<u64> seed);
     void resume(std::shared_ptr<base_game> const& game, data::object& savegame);
 
-    auto parent() const -> base_game*;
+    auto game() const -> base_game*;
 
     void show_next_hint();
 
     void set_theme(color_themes const& theme);
-    void set_card_set(std::shared_ptr<card_set> const& cardset);
+    void set_cardset(card_set const& cardset);
 
 protected:
     void on_update(milliseconds deltaTime) override;
@@ -79,7 +79,6 @@ private:
     settings*      _settings;
 
     std::shared_ptr<base_game> _currentGame;
-    size_f                     _cardSize;
 
     // render
     card_renderer     _cardRenderer;

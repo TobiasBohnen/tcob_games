@@ -5,16 +5,22 @@
 
 #include "UI.hpp"
 
-#include <algorithm>
-#include <utility>
-
-#include "CardSet.hpp" // IWYU pragma: keep
-#include "GameInfo.hpp"
-#include "Themes.hpp"  // IWYU pragma: keep
+#include "games/GameInfo.hpp"
 
 namespace solitaire {
 
 using namespace tcob::literals;
+
+static auto get_size(std::string_view str) -> size_i
+{
+    i32                    width {}, height {};
+    size_t const           xPos {str.find('x')};
+    std::string_view const widthStrView(str.data(), xPos);
+    std::string_view const heightStrView(str.data() + xPos + 1);
+    std::from_chars(widthStrView.data(), widthStrView.data() + widthStrView.size(), width);
+    std::from_chars(heightStrView.data(), heightStrView.data() + heightStrView.size(), height);
+    return {width, height};
+}
 
 static auto make_tooltip(menu_sources& sources, form_base* form) -> std::shared_ptr<tooltip>
 {
@@ -63,13 +69,13 @@ form_controls::form_controls(gfx::window& window, assets::group& resGrp, std::sh
             return retValue;
         }};
 
-        BtnMenu    = create({0, 0, 1, 1}, "btnMenu", "burger");
-        BtnWizard  = create({2, 0, 1, 1}, "btnWizard", "wand");
-        BtnNewGame = create({12, 0, 1, 1}, "btnNewGame", "newgame");
-        BtnHint    = create({14, 0, 1, 1}, "btnHint", "hint");
-        BtnCollect = create({15, 0, 1, 1}, "btnCollect", "collect");
-        BtnUndo    = create({16, 0, 1, 1}, "btnUndo", "undo");
-        BtnQuit    = create({19, 0, 1, 1}, "btnQuit", "exit");
+        create({0, 0, 1, 1}, "btnMenu", "burger")->Click.connect([&] { _sources->ShowMenu(); });
+        create({2, 0, 1, 1}, "btnWizard", "wand")->Click.connect([&] { _sources->ShowWizard(); });
+        create({12, 0, 1, 1}, "btnNewGame", "newgame")->Click.connect([&] { _sources->RestartGame(); });
+        create({14, 0, 1, 1}, "btnHint", "hint")->Click.connect([&] { _sources->ShowHint(); });
+        create({15, 0, 1, 1}, "btnCollect", "collect")->Click.connect([&] { _sources->Collect(); });
+        create({16, 0, 1, 1}, "btnUndo", "undo")->Click.connect([&] { _sources->Undo(); });
+        create({19, 0, 1, 1}, "btnQuit", "exit")->Click.connect([&] { _sources->Quit(); });
     }
 
     // status
@@ -113,6 +119,52 @@ form_controls::form_controls(gfx::window& window, assets::group& resGrp, std::sh
     }
 }
 
+void form_controls::set_pile_labels(pile const* pile, data::object const& currentRules, game_state const& state)
+{
+    if (!pile) {
+        set_pile_labels({});
+        return;
+    }
+
+    pile_description str;
+    str.Pile      = get_pile_type_name(pile->Type);
+    str.CardCount = std::to_string(pile->size());
+
+    data::array rules;
+    auto const& gameObj {currentRules};
+    if (!gameObj.try_get(rules, str.Pile, "rules")) { return; }
+
+    for (auto const& rule : rules) {
+        auto const ruleObj {rule.as<data::object>()};
+        if (std::unordered_set<i32> piles; ruleObj.try_get(piles, "piles")) {
+            if (!piles.contains(pile->Index)) { continue; }
+        }
+
+        switch (pile->Type) {
+        case pile_type::Stock: {
+            str.Description      = state.Redeals < 0 ? "∞" : std::to_string(state.Redeals);
+            str.DescriptionLabel = "Redeals";
+        } break;
+        case pile_type::Waste:
+        case pile_type::Reserve:
+        case pile_type::FreeCell:
+        case pile_type::Foundation:
+        case pile_type::Tableau:    {
+            str.Description      = ruleObj["build"].as<std::string>();
+            str.DescriptionLabel = "Build";
+            str.Move             = ruleObj["move"].as<std::string>();
+            str.MoveLabel        = "Move";
+            str.Base             = ruleObj["base"].as<std::string>();
+            str.BaseLabel        = "Base";
+            break;
+        }
+        }
+
+        set_pile_labels(str);
+        return;
+    }
+}
+
 void form_controls::set_pile_labels(pile_description const& str)
 {
     _lblPile->Label      = str.Pile;
@@ -147,6 +199,7 @@ form_menu::form_menu(gfx::window& window, assets::group& resGrp, std::shared_ptr
     : form {{.Name = "Menu", .Bounds = window.bounds()}}
     , _resGrp {resGrp}
     , _sources {std::move(sources)}
+    , _window {window}
 {
     _tooltip = make_tooltip(*_sources, this);
 
@@ -572,7 +625,13 @@ void form_menu::create_settings_video(tab_container& tabContainer)
     auto btnApplyVideoSettings {tabPanelLayout.create_widget<button>({33, 34, 4, 4}, "btnApplyVideoSettings")};
     btnApplyVideoSettings->Icon    = {.Texture = _resGrp.get<gfx::texture>("apply")};
     btnApplyVideoSettings->Tooltip = _tooltip;
-    btnApplyVideoSettings->Click.connect([this] { VideoSettingsChanged(); });
+    btnApplyVideoSettings->Click.connect([this] {
+        _window.FullScreen = dynamic_cast<checkbox*>(find_widget_by_name("chkFullScreen"))->Checked;
+        _window.VSync      = dynamic_cast<checkbox*>(find_widget_by_name("chkVSync"))->Checked;
+        auto const res {get_size(dynamic_cast<drop_down_list*>(find_widget_by_name("ddlResolution"))->selected_item().Text)};
+        _window.Size = res;
+        _sources->VideoSettingsChanged();
+    });
 }
 
 void form_menu::create_settings_hints(tab_container& tabContainer)
@@ -709,7 +768,7 @@ void form_menu::create_menubar(tab_container& parent)
 
 void form_menu::start_game()
 {
-    StartGame(helper::to_number<u64>(*_txbSeed->Text));
+    _sources->StartGame(helper::to_number<u64>(*_txbSeed->Text));
     _txbSeed->Text = "";
     hide();
 }

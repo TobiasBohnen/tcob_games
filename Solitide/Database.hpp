@@ -7,7 +7,7 @@
 
 #include "Common.hpp" // IWYU pragma: keep
 
-#include "GameInfo.hpp"
+#include "games/GameInfo.hpp"
 
 namespace solitaire {
 

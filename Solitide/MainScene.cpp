@@ -5,23 +5,14 @@
 
 #include "MainScene.hpp"
 
+#include <algorithm>
+
 #include "ui/Styles.hpp"
 
 namespace solitaire {
 
 static char const* SAVE_NAME {"save.ini"};
 static char const* SETTINGS_NAME {"settings"};
-
-static auto get_size(std::string_view str) -> size_i
-{
-    i32                    width {}, height {};
-    size_t const           xPos {str.find('x')};
-    std::string_view const widthStrView(str.data(), xPos);
-    std::string_view const heightStrView(str.data() + xPos + 1);
-    std::from_chars(widthStrView.data(), widthStrView.data() + widthStrView.size(), width);
-    std::from_chars(heightStrView.data(), heightStrView.data() + heightStrView.size(), height);
-    return {width, height};
-}
 
 main_scene::main_scene(game& game)
     : scene {game}
@@ -63,49 +54,7 @@ main_scene::main_scene(game& game)
     _cardTable = std::make_shared<card_table>(win.camera(), resGrp, &_sources->Settings);
 
     _cardTable->HoverChange.connect([&](pile* const pile) {
-        if (!pile) {
-            _formControls->set_pile_labels({});
-            return;
-        }
-
-        pile_description str;
-        str.Pile      = get_pile_type_name(pile->Type);
-        str.CardCount = std::to_string(pile->size());
-
-        data::array rules;
-        auto const& gameObj {_currentRules};
-        if (!gameObj.try_get(rules, str.Pile, "rules")) { return; }
-
-        for (auto const& rule : rules) {
-            auto const ruleObj {rule.as<data::object>()};
-            if (std::unordered_set<i32> piles; ruleObj.try_get(piles, "piles")) {
-                if (!piles.contains(pile->Index)) { continue; }
-            }
-
-            switch (pile->Type) {
-            case pile_type::Stock: {
-                auto const& state {_cardTable->parent()->state()};
-                str.Description      = state.Redeals < 0 ? "∞" : std::to_string(state.Redeals);
-                str.DescriptionLabel = "Redeals";
-            } break;
-            case pile_type::Waste:
-            case pile_type::Reserve:
-            case pile_type::FreeCell:
-            case pile_type::Foundation:
-            case pile_type::Tableau:    {
-                str.Description      = ruleObj["build"].as<std::string>();
-                str.DescriptionLabel = "Build";
-                str.Move             = ruleObj["move"].as<std::string>();
-                str.MoveLabel        = "Move";
-                str.Base             = ruleObj["base"].as<std::string>();
-                str.BaseLabel        = "Base";
-                break;
-            }
-            }
-
-            _formControls->set_pile_labels(str);
-            return;
-        }
+        _formControls->set_pile_labels(pile, _currentRules, _cardTable->game()->state());
     });
 
     connect_events();
@@ -158,19 +107,19 @@ void main_scene::on_start()
 
 void main_scene::connect_events()
 {
-    _formControls->BtnNewGame->Click.connect([&](auto const&) { start_game(_sources->Settings.LastGame, start_reason::Restart, std::nullopt); });
-    _formControls->BtnWizard->Click.connect([&](auto const&) { start_wizard(); });
-    _formControls->BtnMenu->Click.connect([&](auto const&) { _formMenu->show(); });
+    _sources->RestartGame.connect([&]() { start_game(_sources->Settings.LastGame, start_reason::Restart, std::nullopt); });
+    _sources->ShowWizard.connect([&]() { start_wizard(); });
+    _sources->ShowMenu.connect([&]() { _formMenu->show(); });
 
-    _formControls->BtnHint->Click.connect([&](auto const&) { _cardTable->show_next_hint(); });
-    _formControls->BtnCollect->Click.connect([&](auto const&) {
-        if (auto* game {_cardTable->parent()}) { game->collect_all(); }
+    _sources->ShowHint.connect([&]() { _cardTable->show_next_hint(); });
+    _sources->Collect.connect([&]() {
+        if (auto* game {_cardTable->game()}) { game->collect_all(); }
     });
-    _formControls->BtnUndo->Click.connect([&](auto const&) {
-        if (auto* game {_cardTable->parent()}) { game->undo(); }
+    _sources->Undo.connect([&]() {
+        if (auto* game {_cardTable->game()}) { game->undo(); }
     });
 
-    _formControls->BtnQuit->Click.connect([&](auto const&) {
+    _sources->Quit.connect([&]() {
         save();
         parent().pop_current_scene();
     });
@@ -180,37 +129,21 @@ void main_scene::connect_events()
 #endif
     });
 
-    _sources->SelectedGame.Changed.connect([&](auto const& game) { update_game_ui(game); });
+    _sources->SelectedGame.Changed.connect([&](auto const& game) { update_selected(game); });
     _sources->Settings.Theme.Changed.connect([&](auto const&) { set_theme(); });
     _sources->Settings.Cardset.Changed.connect([&] { set_cardset(); });
 
-    _formMenu->StartGame.connect([&](auto const& seed) { start_game(_sources->SelectedGame, start_reason::Resume, seed); });
+    _sources->StartGame.connect([&](auto const& seed) { start_game(_sources->SelectedGame, start_reason::Resume, seed); });
 
-    _formMenu->VideoSettingsChanged.connect([&] {
-        data::object obj;
-        _formMenu->submit(obj);
-
-        assert(obj.has("ddlResolution", "selected"));
-        assert(obj.has("chkFullScreen", "checked"));
-        assert(obj.has("chkVSync", "checked"));
-
-        auto& win {window()};
-
-        win.FullScreen = obj["chkFullScreen"]["checked"].as<bool>();
-        win.VSync      = obj["chkVSync"]["checked"].as<bool>();
-
-        auto const res {get_size(obj["ddlResolution"]["selected"].as<std::string>())};
-        win.Size = res;
-
-        set_children_bounds(res);
-
+    _sources->VideoSettingsChanged.connect([&] {
+        set_children_bounds(window().Size);
         start_game(_sources->Settings.LastGame, start_reason::Resume, std::nullopt);
     });
 }
 
 void main_scene::save()
 {
-    if (auto* game {_cardTable->parent()}) {
+    if (auto* game {_cardTable->game()}) {
         game->save(_saveGame);
         _saveGame.save(SAVE_NAME);
         auto& config {locate_service<platform>().config()};
@@ -228,7 +161,7 @@ void main_scene::on_update(milliseconds)
 
 void main_scene::on_fixed_update(milliseconds deltaTime)
 {
-    if (auto* game {_cardTable->parent()}) {
+    if (auto* game {_cardTable->game()}) {
         game->update(deltaTime);
         _formControls->set_game_labels(game);
     }
@@ -315,7 +248,7 @@ void main_scene::set_cardset()
 
     _sources->Settings.Cardset = newCardset;
 
-    _cardTable->set_card_set(_sources->CardSets[newCardset]);
+    _cardTable->set_cardset(*_sources->CardSets[newCardset]);
     start_game(_sources->Settings.LastGame, start_reason::Resume, std::nullopt);
 }
 
@@ -332,7 +265,7 @@ void main_scene::start_game(std::string const& name, start_reason reason, std::o
     camera.Position = point_f::Zero;
     camera.Zoom     = size_f::One;
 
-    auto* currentGame {_cardTable->parent()};
+    auto* currentGame {_cardTable->game()};
     if (reason == start_reason::Resume) {         // save current game
         if (currentGame) { currentGame->save(_saveGame); }
     } else if (reason == start_reason::Restart) { // fail current game
@@ -349,7 +282,7 @@ void main_scene::start_game(std::string const& name, start_reason reason, std::o
 
             auto const& gameName {current->info().Name};
             _db.insert_history_entry(gameName, state, current->rng(), current->Status);
-            update_game_ui(gameName);
+            update_selected(gameName);
         } break;
         default: break;
         }
@@ -384,7 +317,7 @@ void main_scene::start_wizard()
     parent().push_scene(_wizard);
 }
 
-void main_scene::update_game_ui(std::string const& name) const
+void main_scene::update_selected(std::string const& name) const
 {
     _sources->SelectedHistory = _db.get_history(name);
     _sources->SelectedRules   = generate_rule(name);
@@ -398,7 +331,7 @@ void main_scene::update_recent(std::string const& name)
 
     std::deque<std::string> recent {*_sources->Settings.Recent};
 
-    auto it {std::find(recent.begin(), recent.end(), name)};
+    auto it {std::ranges::find(recent, name)};
     if (it != recent.end()) { recent.erase(it); }
     if (recent.size() >= maxEntries) { recent.pop_back(); }
     recent.push_front(name);
@@ -413,34 +346,33 @@ auto main_scene::generate_rule(std::string const& name) const -> data::object
     auto         game {_sources->Games[name].second()};
     data::object gameObj;
 
-    auto writePileType {
-        [&](pile_type pt, std::vector<pile*> const& piles) {
-            if (piles.empty()) { return; }
+    auto writePileType {[&](pile_type pt, std::vector<pile*> const& piles) {
+        if (piles.empty()) { return; }
 
-            data::array  pileRulesArr;
-            data::object pileObj;
-            gameObj[get_pile_type_name(pt)] = pileObj;
-            pileObj["count"]                = piles.size();
-            pileObj["rules"]                = pileRulesArr;
+        data::array  pileRulesArr;
+        data::object pileObj;
+        gameObj[get_pile_type_name(pt)] = pileObj;
+        pileObj["count"]                = piles.size();
+        pileObj["rules"]                = pileRulesArr;
 
-            std::unordered_map<game_rule, std::vector<i32>> pileRules;
-            for (auto const* pile : piles) {
-                game_rule desc;
-                desc.Base  = _sources->Translator.translate("rule", "base", pile->Rule.BaseHint);
-                desc.Build = _sources->Translator.translate("rule", "build", pile->Rule.BuildHint);
-                desc.Move  = _sources->Translator.translate("rule", "move", pile->Rule.MoveHint);
-                pileRules[desc].push_back(pile->Index);
-            }
-            for (auto const& [k, v] : pileRules) {
-                data::object rule;
-                if (pileRules.size() > 1) { rule["piles"] = v; }
-                rule["base"]  = k.Base;
-                rule["build"] = k.Build;
-                rule["move"]  = k.Move;
-                // TODO: create long description
-                pileRulesArr.add(rule);
-            }
-        }};
+        std::unordered_map<game_rule, std::vector<i32>> pileRules;
+        for (auto const* pile : piles) {
+            game_rule desc;
+            desc.Base  = _sources->Translator.translate("rule", "base", pile->Rule.BaseHint);
+            desc.Build = _sources->Translator.translate("rule", "build", pile->Rule.BuildHint);
+            desc.Move  = _sources->Translator.translate("rule", "move", pile->Rule.MoveHint);
+            pileRules[desc].push_back(pile->Index);
+        }
+        for (auto const& [k, v] : pileRules) {
+            data::object rule;
+            if (pileRules.size() > 1) { rule["piles"] = v; }
+            rule["base"]  = k.Base;
+            rule["build"] = k.Build;
+            rule["move"]  = k.Move;
+            // TODO: create long description
+            pileRulesArr.add(rule);
+        }
+    }};
 
     auto const& piles {game->piles()};
     for (auto pt : {pile_type::Stock, pile_type::Waste, pile_type::Foundation, pile_type::Tableau, pile_type::Reserve, pile_type::FreeCell}) {

@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "Cards.hpp"
 #include "Common.hpp" // IWYU pragma: keep
+#include "games/Cards.hpp"
 
 namespace solitaire {
 
@@ -17,7 +17,7 @@ public:
     virtual ~card_set() = default;
     card_set(std::string folder, std::string name);
 
-    auto get_card_size() -> size_f;
+    auto get_card_size() const -> size_f;
 
     auto get_material() const -> asset_ptr<gfx::material>;
 

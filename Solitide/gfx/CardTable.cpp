@@ -5,8 +5,8 @@
 
 #include "CardTable.hpp"
 
-#include "Cards.hpp"
-#include "Games.hpp"
+#include "games/Cards.hpp"
+#include "games/Games.hpp"
 
 namespace solitaire {
 
@@ -48,16 +48,15 @@ void card_table::start_game(std::shared_ptr<base_game> const& game, std::optiona
     _cardRenderer.start();
 }
 
-void card_table::set_card_set(std::shared_ptr<card_set> const& cardset)
+void card_table::set_cardset(card_set const& cardset)
 {
-    _cardSize = cardset->get_card_size();
-    _cardRenderer.set_card_set(cardset);
+    _cardRenderer.set_cardset(cardset);
     if (_currentGame) { layout(); }
 }
 
 void card_table::layout()
 {
-    auto const& cardSize {_cardSize};
+    auto const& cardSize {_cardRenderer.get_card_size()};
     rect_f      tableBounds;
     rect_f      pileBounds;
     for (auto const& [_, piles] : _currentGame->piles()) {
@@ -129,7 +128,7 @@ void card_table::mark_dirty()
     _fgCanvas.mark_dirty();
 }
 
-auto card_table::parent() const -> base_game*
+auto card_table::game() const -> base_game*
 {
     return _currentGame.get();
 }

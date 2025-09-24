@@ -46,7 +46,7 @@ card_set::card_set(std::string folder, std::string name)
     _material->Texture = _texture;
 }
 
-auto card_set::get_card_size() -> size_f
+auto card_set::get_card_size() const -> size_f
 {
     return size_f {_texture->info().Size};
 }

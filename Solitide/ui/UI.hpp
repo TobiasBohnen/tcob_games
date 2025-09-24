@@ -5,8 +5,12 @@
 
 #pragma once
 
-#include "Common.hpp" // IWYU pragma: keep
-#include "Games.hpp"
+#include "Common.hpp"
+
+#include "Themes.hpp"      // IWYU pragma: keep
+#include "games/Games.hpp"
+#include "gfx/CardSet.hpp" // IWYU pragma: keep
+#include "ui/Sources.hpp"
 
 namespace solitaire {
 ////////////////////////////////////////////////////////////
@@ -15,21 +19,12 @@ class form_controls : public form<dock_layout> {
 public:
     form_controls(gfx::window& window, assets::group& resGrp, std::shared_ptr<menu_sources> sources);
 
-    std::shared_ptr<button> BtnMenu;
-    std::shared_ptr<button> BtnWizard;
-
-    std::shared_ptr<button> BtnNewGame;
-
-    std::shared_ptr<button> BtnHint;
-    std::shared_ptr<button> BtnCollect;
-    std::shared_ptr<button> BtnUndo;
-
-    std::shared_ptr<button> BtnQuit;
-
-    void set_pile_labels(pile_description const& str);
+    void set_pile_labels(pile const* pile, data::object const& currentRules, game_state const& state);
     void set_game_labels(base_game* game);
 
 private:
+    void set_pile_labels(pile_description const& str);
+
     std::shared_ptr<label> _lblPile;
     std::shared_ptr<label> _lblPileLabel;
 
@@ -66,9 +61,6 @@ class form_menu : public form<dock_layout> {
 public:
     form_menu(gfx::window& window, assets::group& resGrp, std::shared_ptr<menu_sources> sources);
 
-    signal<std::optional<u64> const> StartGame;
-    signal<>                         VideoSettingsChanged;
-
 protected:
     void on_key_down(input::keyboard::event const& ev) override;
 
@@ -94,6 +86,7 @@ private:
 
     assets::group&                _resGrp;
     std::shared_ptr<menu_sources> _sources;
+    gfx::window&                  _window;
 };
 
 }

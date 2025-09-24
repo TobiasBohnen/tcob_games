@@ -10,7 +10,6 @@
 #include <unordered_set>
 
 #include "Cards.hpp"
-#include "Translator.hpp"
 
 namespace solitaire {
 
@@ -155,24 +154,6 @@ struct game_rule {
     std::string Base;
 
     auto operator==(game_rule const& right) const -> bool = default;
-};
-
-////////////////////////////////////////////////////////////
-
-struct menu_sources {
-    settings Settings;
-
-    game_map Games;
-    signal<> GameAdded; // wizard
-
-    prop<std::string>  SelectedGame;
-    prop<game_history> SelectedHistory;
-    prop<data::object> SelectedRules;
-
-    theme_map    Themes;
-    card_set_map CardSets;
-
-    translator Translator;
 };
 
 }
