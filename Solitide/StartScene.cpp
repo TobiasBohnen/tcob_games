@@ -66,8 +66,8 @@ X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X
             for (auto it {Text.begin()}; it != Text.end(); ++it) {
                 switch (*it) {
                 case '\n': pos = {0, pos.Y + 1}; break;
-                case ' ': ++pos.X; break;
-                case 'X': {
+                case ' ':  ++pos.X; break;
+                case 'X':  {
                     rect_f const pixBounds {pos.X++ * pixWidth + offX, pos.Y * pixWidth + _windowSize.Height / 4.f, pixWidth, pixWidth};
                     _canvas.rect(pixBounds);
                 } break;
@@ -106,7 +106,7 @@ X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X
                 _canvas.set_stroke_width(5 / scale1);
                 _canvas.stroke();
                 switch (sc) {
-                case suit_color::Red: _canvas.set_fill_style(colors::Red); break;
+                case suit_color::Red:   _canvas.set_fill_style(colors::Red); break;
                 case suit_color::Black: _canvas.set_fill_style(colors::Black); break;
                 }
                 _canvas.fill();
@@ -128,7 +128,7 @@ X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X
         _drawn       = true;
     }
 
-    _renderer.set_layer(0);
+    _renderer.add_layer(0);
     _renderer.render_to_target(target);
 }
 
