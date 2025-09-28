@@ -5,8 +5,6 @@
 
 #include "Games.hpp"
 
-#include "MainScene.hpp"
-
 #include <ranges>
 #include <utility>
 
@@ -533,7 +531,7 @@ auto lua_script_game::CreateENV(scripting::script& script) -> scripting::table
     env["getmetatable"] = global["getmetatable"];
     // env["collectgarbage"] = global["collectgarbage"];
 
-    script.set_environment(env);
+    script.Environment = env;
     return env;
 }
 

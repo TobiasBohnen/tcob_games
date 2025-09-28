@@ -22,8 +22,10 @@ void translator::set_language(std::string const& langid)
 {
     if (_langid == langid) { return; }
 
-    _langid                                = langid;
-    (*_script.get_environment())["Locale"] = *_script.run_file<table>(std::format("scripts/lang/{}.lua", langid));
+    _langid = langid;
+    _script.Environment.mutate([&](std::optional<table>& env) {
+        (*env)["Locale"] = *_script.run_file<table>(std::format("scripts/lang/{}.lua", langid));
+    });
 
     for (auto it {_bindings.begin()}; it != _bindings.end(); ++it) {
         it->second();
