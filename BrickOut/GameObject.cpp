@@ -179,7 +179,7 @@ void paddle::on_update(milliseconds deltaTime)
 
     auto const rect {get_field_bounds()};
     auto       bodyRect {convert_to_screen({xform.Center, size_f::Zero})};
-    bodyRect.Size.Width = _size.Width + _moveSpeed * 2;
+    bodyRect.Size.Width = _size.Width + (_moveSpeed * 2);
     bodyRect.Position.X -= bodyRect.Size.Width / 2;
 
     if ((_dir < 0.0f && bodyRect.left() <= rect.left())
@@ -233,7 +233,7 @@ void ball::reset()
     point_f const force {rand(-10.f, 10.f), -10};
     body.apply_linear_impulse(force, physRect.center());
 
-    _failHeight = rect.height() - _size.Height / 2;
+    _failHeight = rect.height() - (_size.Height / 2);
 
     auto& lightSource {get_light_source()};
     lightSource.Color = {255, 255, 255, 128};
@@ -308,9 +308,9 @@ void brick::reset()
                                                _size.Width,
                                                _size.Height})};
 
-    body.Transform = physics::body_transform {physRect.center(), degree_f {0}};
+    body.Transform = physics::body_transform {.Center = physRect.center(), .Angle = degree_f {0}};
     body.Type      = physics::body_type::Dynamic;
-    body.IsAwake   = false;
+    body.sleep();
 
     physics::rect_shape::settings settings;
     settings.Extents = {point_f::Zero, physRect.Size};
