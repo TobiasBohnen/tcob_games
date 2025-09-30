@@ -150,7 +150,7 @@ void field::fail()
 
 void field::play_sound(audio::sound_wave const& wave)
 {
-    _sound = audio::sound_generator {}.create_sound(wave);
+    _sound = std::make_shared<audio::sound>(audio::sound_generator {}.create_buffer(wave));
     _sound->play();
 }
 
