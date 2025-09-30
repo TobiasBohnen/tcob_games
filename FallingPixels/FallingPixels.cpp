@@ -169,7 +169,7 @@ void main_scene::on_draw_to(gfx::render_target& target)
 void main_scene::on_update(milliseconds deltaTime)
 {
     if (_mouseDown == input::mouse::button::Left) {
-        auto const ev {point_i {window().camera().convert_screen_to_world(locate_service<input::system>().mouse()->get_position())}};
+        auto const ev {point_i {window().camera().convert_screen_to_world(locate_service<input::system>().mouse().get_position())}};
         _entity->ElementSystem->spawn(ev, _spawnElement);
     }
 }
@@ -183,7 +183,7 @@ void main_scene::on_fixed_update(milliseconds deltaTime)
     stream << " best FPS:" << stats.best_FPS();
     stream << " worst FPS:" << stats.worst_FPS();
 
-    auto const ev {point_i {window().camera().convert_screen_to_world(locate_service<input::system>().mouse()->get_position())}};
+    auto const ev {point_i {window().camera().convert_screen_to_world(locate_service<input::system>().mouse().get_position())}};
     stream << "| name:" << _entity->ElementSystem->info_name(ev);
     stream << "| heat:" << _entity->ElementSystem->info_heat(ev);
 
