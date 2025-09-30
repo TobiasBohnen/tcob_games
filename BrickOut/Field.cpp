@@ -12,7 +12,6 @@ constexpr float physicsWorldSize {50.0};
 field::field(assets::group& resGrp, i32 padding, size_i windowSize)
     : gfx::entity {update_mode::Both}
     , _resGrp {resGrp}
-    , _debugDraw {resGrp.get<gfx::font_family>("Poppins")->get_font({}, 16).ptr()}
     , _paddle {*this, resGrp}
     , _ball {*this, resGrp}
 {
@@ -51,7 +50,7 @@ field::field(assets::group& resGrp, i32 padding, size_i windowSize)
     leftEdgeSprite->Color    = colors::Gray;
     leftEdgeSprite->Material = _edgeMat;
     auto rightEdgeSprite(create_sprite());
-    rightEdgeSprite->Bounds   = rect_f {static_cast<f32>(windowSize.Height) + padding / 2.f, 0,
+    rightEdgeSprite->Bounds   = rect_f {static_cast<f32>(windowSize.Height) + (padding / 2.f), 0,
                                       static_cast<f32>(windowSize.Width - windowSize.Height), static_cast<f32>(windowSize.Height)};
     rightEdgeSprite->Color    = colors::Gray;
     rightEdgeSprite->Material = _edgeMat;
@@ -167,10 +166,6 @@ void field::on_draw_to(gfx::render_target& target)
 {
     _spriteBatch.draw_to(target);
     _lightingSystem.draw_to(target);
-
-    if (_debug != debug_mode::Off) {
-        _debugDraw.draw(_physicsWorld, _debug == debug_mode::Transparent ? 0.5f : 1.0f, target);
-    }
 }
 
 auto field::can_draw() const -> bool
@@ -183,16 +178,8 @@ void field::on_key_down(input::keyboard::event const& ev)
     if (!ev.Repeat) {
         switch (ev.KeyCode) {
         case input::key_code::RIGHT: _paddle.move(1); break;
-        case input::key_code::LEFT: _paddle.move(-1); break;
-        case input::key_code::d:
-            switch (_debug) {
-            case debug_mode::Off: _debug = debug_mode::Transparent; break;
-            case debug_mode::Transparent: _debug = debug_mode::On; break;
-            case debug_mode::On: _debug = debug_mode::Off; break;
-            }
-
-            break;
-        default: break;
+        case input::key_code::LEFT:  _paddle.move(-1); break;
+        default:                     break;
         }
     }
 }
@@ -202,8 +189,8 @@ void field::on_key_up(input::keyboard::event const& ev)
     if (!ev.Repeat) {
         switch (ev.KeyCode) {
         case input::key_code::RIGHT: _paddle.stop(); break;
-        case input::key_code::LEFT: _paddle.stop(); break;
-        default: break;
+        case input::key_code::LEFT:  _paddle.stop(); break;
+        default:                     break;
         }
     }
 }
@@ -211,10 +198,10 @@ void field::on_key_up(input::keyboard::event const& ev)
 void field::on_controller_button_down(input::controller::button_event const& ev)
 {
     switch (ev.Button) {
-    case input::controller::button::Start: start(_brickDefs); break;
+    case input::controller::button::Start:     start(_brickDefs); break;
     case input::controller::button::DPadRight: _paddle.move(1); break;
-    case input::controller::button::DPadLeft: _paddle.move(-1); break;
-    default: break;
+    case input::controller::button::DPadLeft:  _paddle.move(-1); break;
+    default:                                   break;
     }
 }
 
@@ -222,8 +209,8 @@ void field::on_controller_button_up(input::controller::button_event const& ev)
 {
     switch (ev.Button) {
     case input::controller::button::DPadRight: _paddle.stop(); break;
-    case input::controller::button::DPadLeft: _paddle.stop(); break;
-    default: break;
+    case input::controller::button::DPadLeft:  _paddle.stop(); break;
+    default:                                   break;
     }
 }
 
