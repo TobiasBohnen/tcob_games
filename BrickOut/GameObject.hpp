@@ -46,12 +46,11 @@ protected:
     inline void create_shape(auto&& shapeSettings);
 
 private:
-    field&                           _parent;
-    std::shared_ptr<gfx::rect_shape> _sprite;
-    std::shared_ptr<physics::body>   _physicsBody;
-    std::shared_ptr<physics::shape>  _physicsShape;
-    gfx::light_source*               _lightSource;
-    gfx::shadow_caster*              _shadowCaster;
+    field&              _parent;
+    gfx::rect_shape*    _sprite;
+    physics::body*      _physicsBody;
+    gfx::light_source*  _lightSource;
+    gfx::shadow_caster* _shadowCaster;
 };
 
 ////////////////////////////////////////////////////////////
@@ -114,12 +113,8 @@ template <typename T>
 inline void game_object::create_shape(auto&& shapeSettings)
 {
     if (_physicsBody) {
-        if (_physicsShape) {
-            _physicsBody->remove_shape(*_physicsShape);
-            _physicsShape = nullptr;
-        }
-
-        _physicsShape = _physicsBody->create_shape<T>(shapeSettings);
+        _physicsBody->remove_shapes();
+        _physicsBody->create_shape<T>(shapeSettings);
     }
 }
 

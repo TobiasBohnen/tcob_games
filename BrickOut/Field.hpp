@@ -23,11 +23,11 @@ public:
 
     auto state() const -> game_state;
 
-    auto create_sprite() -> std::shared_ptr<gfx::rect_shape>;
-    void remove_sprite(std::shared_ptr<gfx::rect_shape> const& rect_shape);
+    auto create_sprite() -> gfx::rect_shape*;
+    void remove_sprite(gfx::rect_shape const& rect_shape);
 
-    auto create_body(physics::body::settings bodySettings) -> std::shared_ptr<physics::body>;
-    void remove_body(std::shared_ptr<physics::body> const& body);
+    auto create_body(physics::body::settings bodySettings) -> physics::body*;
+    void remove_body(physics::body const& body);
 
     auto create_light() -> gfx::light_source*;
 

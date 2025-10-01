@@ -23,16 +23,12 @@ game_object::~game_object()
 void game_object::destroy()
 {
     if (_physicsBody) {
-        if (_physicsShape) {
-            _physicsBody->remove_shape(*_physicsShape);
-            _physicsShape = nullptr;
-        }
-        _parent.remove_body(_physicsBody);
+        _parent.remove_body(*_physicsBody);
         _physicsBody = nullptr;
     }
 
     if (_sprite) {
-        _parent.remove_sprite(_sprite);
+        _parent.remove_sprite(*_sprite);
         _sprite = nullptr;
     }
 

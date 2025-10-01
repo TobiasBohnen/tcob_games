@@ -17,7 +17,7 @@ field::field(assets::group& resGrp, i32 padding, size_i windowSize)
 {
     // Create edges around the entire screen
 
-    auto groundBody {_physicsWorld.create_body({}, {})};
+    auto& groundBody {_physicsWorld.create_body({}, {})};
 
     f32 const left {padding / 2.f};
     f32 const top {0.0f};
@@ -31,31 +31,31 @@ field::field(assets::group& resGrp, i32 padding, size_i windowSize)
     physics::segment_shape::settings groundBoxSettings;
     groundBoxSettings.Point1 = _physicsBounds.top_left();
     groundBoxSettings.Point2 = _physicsBounds.top_right();
-    groundBody->create_shape<physics::segment_shape>(groundBoxSettings);
+    groundBody.create_shape<physics::segment_shape>(groundBoxSettings);
 
     groundBoxSettings.Point1 = _physicsBounds.top_left();
     groundBoxSettings.Point2 = _physicsBounds.bottom_left();
-    groundBody->create_shape<physics::segment_shape>(groundBoxSettings);
+    groundBody.create_shape<physics::segment_shape>(groundBoxSettings);
 
     groundBoxSettings.Point1 = _physicsBounds.bottom_left();
     groundBoxSettings.Point2 = _physicsBounds.bottom_right();
-    groundBody->create_shape<physics::segment_shape>(groundBoxSettings);
+    groundBody.create_shape<physics::segment_shape>(groundBoxSettings);
 
     groundBoxSettings.Point1 = _physicsBounds.bottom_right();
     groundBoxSettings.Point2 = _physicsBounds.top_right();
-    groundBody->create_shape<physics::segment_shape>(groundBoxSettings);
+    groundBody.create_shape<physics::segment_shape>(groundBoxSettings);
 
-    auto leftEdgeSprite(create_sprite());
+    auto* leftEdgeSprite(create_sprite());
     leftEdgeSprite->Bounds   = rect_f {0, 0, padding / 2.f, static_cast<f32>(windowSize.Height)};
     leftEdgeSprite->Color    = colors::Gray;
     leftEdgeSprite->Material = _edgeMat;
-    auto rightEdgeSprite(create_sprite());
+    auto* rightEdgeSprite(create_sprite());
     rightEdgeSprite->Bounds   = rect_f {static_cast<f32>(windowSize.Height) + (padding / 2.f), 0,
                                       static_cast<f32>(windowSize.Width - windowSize.Height), static_cast<f32>(windowSize.Height)};
     rightEdgeSprite->Color    = colors::Gray;
     rightEdgeSprite->Material = _edgeMat;
 
-    groundBody->UserData = "Ground";
+    groundBody.UserData = "Ground";
 }
 
 void field::start(std::span<brick_def const> bricks)
@@ -88,24 +88,24 @@ auto field::state() const -> game_state
     return _state;
 }
 
-auto field::create_sprite() -> std::shared_ptr<gfx::rect_shape>
+auto field::create_sprite() -> gfx::rect_shape*
 {
-    return _spriteBatch.create_shape<gfx::rect_shape>();
+    return _spriteBatch.create_shape<gfx::rect_shape>().get();
 }
 
-void field::remove_sprite(std::shared_ptr<gfx::rect_shape> const& rect_shape)
+void field::remove_sprite(gfx::rect_shape const& rect_shape)
 {
-    _spriteBatch.remove_shape(*rect_shape);
+    _spriteBatch.remove_shape(rect_shape);
 }
 
-auto field::create_body(physics::body::settings bodySettings) -> std::shared_ptr<physics::body>
+auto field::create_body(physics::body::settings bodySettings) -> physics::body*
 {
-    return _physicsWorld.create_body({}, bodySettings);
+    return &_physicsWorld.create_body({}, bodySettings);
 }
 
-void field::remove_body(std::shared_ptr<physics::body> const& body)
+void field::remove_body(physics::body const& body)
 {
-    _physicsWorld.remove_body(*body);
+    _physicsWorld.remove_body(body);
 }
 
 auto field::create_light() -> gfx::light_source*
