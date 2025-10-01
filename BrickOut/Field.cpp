@@ -108,19 +108,19 @@ void field::remove_body(std::shared_ptr<physics::body> const& body)
     _physicsWorld.remove_body(*body);
 }
 
-auto field::create_light() -> std::shared_ptr<gfx::light_source>
+auto field::create_light() -> gfx::light_source*
 {
-    return _lightingSystem.create_light_source();
+    return &_lightingSystem.create_light_source();
 }
 
-auto field::create_shadow() -> std::shared_ptr<gfx::shadow_caster>
+auto field::create_shadow() -> gfx::shadow_caster*
 {
-    return _lightingSystem.create_shadow_caster();
+    return &_lightingSystem.create_shadow_caster();
 }
 
-void field::remove_shadow(std::shared_ptr<gfx::shadow_caster> const& sc)
+void field::remove_shadow(gfx::shadow_caster const& sc)
 {
-    _lightingSystem.remove_shadow_caster(*sc);
+    _lightingSystem.remove_shadow_caster(sc);
 }
 
 auto field::get_field_bounds() const -> rect_f

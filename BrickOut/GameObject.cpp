@@ -37,7 +37,7 @@ void game_object::destroy()
     }
 
     if (_shadowCaster) {
-        _parent.remove_shadow(_shadowCaster);
+        _parent.remove_shadow(*_shadowCaster);
         _shadowCaster = nullptr;
     }
 }

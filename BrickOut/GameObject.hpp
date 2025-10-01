@@ -10,7 +10,7 @@
 namespace BrickOut {
 
 class field;
-enum class lighting_type {
+enum class lighting_type : u8 {
     None,
     Shadow,
     Light
@@ -46,12 +46,12 @@ protected:
     inline void create_shape(auto&& shapeSettings);
 
 private:
-    field&                              _parent;
-    std::shared_ptr<gfx::rect_shape>    _sprite;
-    std::shared_ptr<physics::body>      _physicsBody;
-    std::shared_ptr<physics::shape>     _physicsShape;
-    std::shared_ptr<gfx::light_source>  _lightSource;
-    std::shared_ptr<gfx::shadow_caster> _shadowCaster;
+    field&                           _parent;
+    std::shared_ptr<gfx::rect_shape> _sprite;
+    std::shared_ptr<physics::body>   _physicsBody;
+    std::shared_ptr<physics::shape>  _physicsShape;
+    gfx::light_source*               _lightSource;
+    gfx::shadow_caster*              _shadowCaster;
 };
 
 ////////////////////////////////////////////////////////////

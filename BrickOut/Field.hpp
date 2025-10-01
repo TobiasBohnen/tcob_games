@@ -29,10 +29,10 @@ public:
     auto create_body(physics::body::settings bodySettings) -> std::shared_ptr<physics::body>;
     void remove_body(std::shared_ptr<physics::body> const& body);
 
-    auto create_light() -> std::shared_ptr<gfx::light_source>;
+    auto create_light() -> gfx::light_source*;
 
-    auto create_shadow() -> std::shared_ptr<gfx::shadow_caster>;
-    void remove_shadow(std::shared_ptr<gfx::shadow_caster> const& sc);
+    auto create_shadow() -> gfx::shadow_caster*;
+    void remove_shadow(gfx::shadow_caster const& sc);
 
     auto get_field_bounds() const -> rect_f;
     auto get_physics_bounds() const -> rect_f;
