@@ -17,21 +17,21 @@ main_menu::main_menu(assets::group const& resGrp, rect_i const& bounds)
 {
     gen_styles();
 
-    auto mainPanel {create_container<panel>(dock_style::Fill, "main")};
+    auto& mainPanel {create_container<panel>(dock_style::Fill, "main")};
 
-    auto& mainPanelLayout {mainPanel->create_layout<grid_layout>(size_i {5, 20})};
+    auto& mainPanelLayout {mainPanel.create_layout<grid_layout>(size_i {5, 20})};
 
-    auto lblScore {mainPanelLayout.create_widget<label>({0, 1, 5, 3}, "lblScore")};
-    lblScore->Label = "0";
-    Score.connect([lbl = lblScore.get()](auto const val) { lbl->Label = val; });
+    auto& lblScore {mainPanelLayout.create_widget<label>({0, 1, 5, 3}, "lblScore")};
+    lblScore.Label = "0";
+    Score.connect([&](auto const val) { lblScore.Label = val; });
 
-    auto btnStart {mainPanelLayout.create_widget<button>({1, 5, 3, 2}, "btnPlay")};
-    btnStart->Label = "New Game";
-    btnStart->Click.connect([&] { Start(); });
+    auto& btnStart {mainPanelLayout.create_widget<button>({1, 5, 3, 2}, "btnPlay")};
+    btnStart.Label = "New Game";
+    btnStart.Click.connect([&] { Start(); });
 
-    auto btnQuit {mainPanelLayout.create_widget<button>({1, 17, 3, 2}, "btnQuit")};
-    btnQuit->Label = "Quit";
-    btnQuit->Click.connect([&] { Quit(); });
+    auto& btnQuit {mainPanelLayout.create_widget<button>({1, 17, 3, 2}, "btnQuit")};
+    btnQuit.Label = "Quit";
+    btnQuit.Click.connect([&] { Quit(); });
 
     for (auto* widget : all_widgets()) {
         widget->TransitionDuration = 250ms;

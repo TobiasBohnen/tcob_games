@@ -25,31 +25,31 @@ public:
 private:
     void set_pile_labels(pile_description const& str);
 
-    std::shared_ptr<label> _lblPile;
-    std::shared_ptr<label> _lblPileLabel;
+    label* _lblPile;
+    label* _lblPileLabel;
 
-    std::shared_ptr<label> _lblGameName;
+    label* _lblGameName;
 
-    std::shared_ptr<label> _lblDescription;
-    std::shared_ptr<label> _lblDescriptionLabel;
+    label* _lblDescription;
+    label* _lblDescriptionLabel;
 
-    std::shared_ptr<label> _lblMove;
-    std::shared_ptr<label> _lblMoveLabel;
+    label* _lblMove;
+    label* _lblMoveLabel;
 
-    std::shared_ptr<label> _lblBase;
-    std::shared_ptr<label> _lblBaseLabel;
+    label* _lblBase;
+    label* _lblBaseLabel;
 
-    std::shared_ptr<label> _lblCardCount;
-    std::shared_ptr<label> _lblCardCountLabel;
+    label* _lblCardCount;
+    label* _lblCardCountLabel;
 
-    std::shared_ptr<label> _lblTurns;
-    std::shared_ptr<label> _lblTurnsLabel;
+    label* _lblTurns;
+    label* _lblTurnsLabel;
 
-    std::shared_ptr<label> _lblScore;
-    std::shared_ptr<label> _lblScoreLabel;
+    label* _lblScore;
+    label* _lblScoreLabel;
 
-    std::shared_ptr<label> _lblTime;
-    std::shared_ptr<label> _lblTimeLabel;
+    label* _lblTime;
+    label* _lblTimeLabel;
 
     std::shared_ptr<sources> _sources;
 };
@@ -80,7 +80,7 @@ private:
 
     void start_game();
 
-    std::shared_ptr<text_box> _txbSeed;
+    text_box* _txbSeed {nullptr};
 
     std::shared_ptr<tooltip> _tooltip;
 

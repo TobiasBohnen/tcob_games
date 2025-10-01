@@ -10,7 +10,7 @@ namespace Rogue {
 using namespace tcob::ui;
 
 main_menu::main_menu(assets::group const& resGrp, rect_i const& bounds)
-    : form {{"MainMenu", bounds}}
+    : form {{.Name = "MainMenu", .Bounds = bounds}}
 {
     style_collection styles;
     {
@@ -28,10 +28,10 @@ main_menu::main_menu(assets::group const& resGrp, rect_i const& bounds)
         style->Background      = colors::White;
     }
 
-    auto mainPanel {create_container<panel>(dock_style::Fill, "main")};
+    auto& mainPanel {create_container<panel>(dock_style::Fill, "main")};
 
-    auto& mainPanelLayout {mainPanel->create_layout<dock_layout>()};
-    Terminal       = mainPanelLayout.create_widget<terminal>(dock_style::Fill, "Terminal");
+    auto& mainPanelLayout {mainPanel.create_layout<dock_layout>()};
+    Terminal       = &mainPanelLayout.create_widget<terminal>(dock_style::Fill, "Terminal");
     Terminal->Size = TERM_SIZE;
     Terminal->curs_set(false);
     Terminal->mouse_set(true);

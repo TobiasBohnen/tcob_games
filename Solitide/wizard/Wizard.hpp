@@ -14,13 +14,13 @@ class form_wizard : public form<dock_layout> {
 public:
     form_wizard(gfx::window& window, assets::group& resGrp);
 
-    std::shared_ptr<button> BtnGenerate;
-    std::shared_ptr<button> BtnBack;
+    button* BtnGenerate {nullptr};
+    button* BtnBack {nullptr};
 
     void set_log_messages(std::vector<std::string> const& messages);
 
 private:
-    std::shared_ptr<list_box> _lbxLog;
+    list_box* _lbxLog {nullptr};
 };
 
 }
