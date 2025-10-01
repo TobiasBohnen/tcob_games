@@ -154,8 +154,8 @@ void main_scene::on_start()
 {
     window().ClearColor = colors::SlateGray;
 
-    root_node()->create_child()->Entity = _entity;
-    root_node()->create_child()->Entity = _form;
+    root_node().create_child().Entity = _entity;
+    root_node().create_child().Entity = _form;
 }
 
 void main_scene::on_finish()

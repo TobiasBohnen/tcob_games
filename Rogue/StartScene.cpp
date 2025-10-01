@@ -28,8 +28,8 @@ void start_scene::on_start()
     auto& win {window()};
     auto  windowSize {*win.Size};
 
-    _mainForm                           = std::make_shared<main_menu>(resGrp, rect_i {point_i::Zero, windowSize});
-    root_node()->create_child()->Entity = _mainForm;
+    _mainForm                         = std::make_shared<main_menu>(resGrp, rect_i {point_i::Zero, windowSize});
+    root_node().create_child().Entity = _mainForm;
 
     _renderer = std::make_shared<renderer>(*_mainForm->Terminal);
 

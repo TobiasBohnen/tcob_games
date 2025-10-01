@@ -40,8 +40,8 @@ void start_scene::on_start()
         parent().pop_current_scene();
     });
 
-    root_node()->create_child()->Entity = _playField;
-    root_node()->create_child()->Entity = _mainForm;
+    root_node().create_child().Entity = _playField;
+    root_node().create_child().Entity = _mainForm;
 
     locate_service<gfx::render_system>().statistics().reset();
 }

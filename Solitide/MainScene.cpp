@@ -71,9 +71,9 @@ main_scene::~main_scene() = default;
 void main_scene::on_start()
 {
     // render queues
-    root_node()->create_child()->Entity = _cardTable;
-    root_node()->create_child()->Entity = _formControls;
-    root_node()->create_child()->Entity = _formMenu;
+    root_node().create_child().Entity = _cardTable;
+    root_node().create_child().Entity = _formControls;
+    root_node().create_child().Entity = _formMenu;
 
     locate_service<gfx::render_system>().statistics().reset();
 

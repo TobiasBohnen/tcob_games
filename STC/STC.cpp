@@ -19,8 +19,8 @@ main_scene::~main_scene()
 
 void main_scene::on_start()
 {
-    _currentMission     = std::make_shared<test_mission>();
-    root_node()->Entity = _currentMission;
+    _currentMission    = std::make_shared<test_mission>();
+    root_node().Entity = _currentMission;
 }
 
 void main_scene::on_finish()
