@@ -90,7 +90,7 @@ auto field::state() const -> game_state
 
 auto field::create_sprite() -> gfx::rect_shape*
 {
-    return _spriteBatch.create_shape<gfx::rect_shape>().get();
+    return &_spriteBatch.create_shape<gfx::rect_shape>();
 }
 
 void field::remove_sprite(gfx::rect_shape const& rect_shape)

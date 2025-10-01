@@ -11,15 +11,16 @@
 using namespace std::chrono_literals;
 using namespace tcob::literals;
 
-elements_entity::elements_entity()
+elements_entity::elements_entity(std::vector<element_def> const& elementsDefs)
+    : _elementSystem {std::make_unique<element_system>(elementsDefs)}
+    , _shape(&_layer0.create_shape<gfx::rect_shape>())
 {
     _sandTex->resize(GRID_SIZE, 1, gfx::texture::format::RGBA8);
     //_sandTex->Filtering = gfx::texture::filtering::Linear;
 
-    Shape                    = _layer0.create_shape<gfx::rect_shape>();
-    Shape->Bounds            = {point_f::Zero, size_f {GRID_SIZE}};
-    Shape->Material          = _sandMat;
-    Shape->Material->Texture = _sandTex;
+    _shape->Bounds            = {point_f::Zero, size_f {GRID_SIZE}};
+    _shape->Material          = _sandMat;
+    _shape->Material->Texture = _sandTex;
 
     _hourGlass0.restart();
 }
@@ -29,7 +30,7 @@ void elements_entity::on_update(milliseconds deltaTime)
     _layer0.update(deltaTime);
 
     if (_hourGlass0.elapsed_milliseconds() > 20) {
-        ElementSystem->update();
+        system().update();
         update_image();
         _hourGlass0.restart();
     }
@@ -41,7 +42,7 @@ void elements_entity::on_fixed_update(milliseconds)
 
 auto elements_entity::can_draw() const -> bool
 {
-    return ElementSystem != nullptr;
+    return _elementSystem != nullptr;
 }
 
 void elements_entity::on_draw_to(gfx::render_target& target)
@@ -52,9 +53,9 @@ void elements_entity::on_draw_to(gfx::render_target& target)
 void elements_entity::update_image()
 {
     if (DrawHeatMap) {
-        ElementSystem->draw_heatmap(*_sandTex.ptr());
+        system().draw_heatmap(*_sandTex.ptr());
     } else {
-        ElementSystem->draw_elements(*_sandTex.ptr());
+        system().draw_elements(*_sandTex.ptr());
     }
 }
 
@@ -135,8 +136,7 @@ main_scene::main_scene(game& game)
         }
     }
 
-    _entity                = std::make_shared<elements_entity>();
-    _entity->ElementSystem = std::make_unique<element_system>(elementsDefs);
+    _entity = std::make_shared<elements_entity>(elementsDefs);
 
     ////
     auto&      win {window()};
@@ -144,8 +144,7 @@ main_scene::main_scene(game& game)
     _form = std::make_shared<elements_form>(rect_i {winSize.Height, 0, winSize.Width - winSize.Height, winSize.Height}, elementsDefs);
     _form->SelectedElement.connect([&](i32 t) { _leftBtnElement = t; });
 
-    win.camera().Zoom = {3.f, 3.f};
-    win.camera().look_at(_entity->Shape->Bounds->center());
+    _entity->center_camera(win.camera());
 }
 
 main_scene::~main_scene() = default;
@@ -170,7 +169,7 @@ void main_scene::on_update(milliseconds deltaTime)
 {
     if (_mouseDown == input::mouse::button::Left) {
         auto const ev {point_i {window().camera().convert_screen_to_world(locate_service<input::system>().mouse().get_position())}};
-        _entity->ElementSystem->spawn(ev, _spawnElement);
+        _entity->system().spawn(ev, _spawnElement);
     }
 }
 
@@ -184,8 +183,8 @@ void main_scene::on_fixed_update(milliseconds deltaTime)
     stream << " worst FPS:" << stats.worst_FPS();
 
     auto const ev {point_i {window().camera().convert_screen_to_world(locate_service<input::system>().mouse().get_position())}};
-    stream << "| name:" << _entity->ElementSystem->info_name(ev);
-    stream << "| heat:" << _entity->ElementSystem->info_heat(ev);
+    stream << "| name:" << _entity->system().info_name(ev);
+    stream << "| heat:" << _entity->system().info_heat(ev);
 
     window().Title = "FallingPixels " + stream.str();
 }
@@ -197,13 +196,13 @@ void main_scene::on_key_down(input::keyboard::event const& ev)
     } else if (ev.ScanCode == input::scan_code::H) {
         _entity->DrawHeatMap = !_entity->DrawHeatMap;
     } else if (ev.ScanCode == input::scan_code::C) {
-        _entity->ElementSystem->clear();
+        _entity->system().clear();
     } else if (ev.ScanCode == input::scan_code::S) {
         io::ofstream stream {"grid.bin"};
-        _entity->ElementSystem->save(stream);
+        _entity->system().save(stream);
     } else if (ev.ScanCode == input::scan_code::L) {
         io::ifstream stream {"grid.bin"};
-        _entity->ElementSystem->load(stream);
+        _entity->system().load(stream);
     }
 }
 

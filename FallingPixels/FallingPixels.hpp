@@ -14,12 +14,20 @@
 
 class elements_entity : public gfx::entity { // TODO: rename
 public:
-    elements_entity();
-
-    std::shared_ptr<element_system>  ElementSystem;
-    std::shared_ptr<gfx::rect_shape> Shape;
+    elements_entity(std::vector<element_def> const& elementsDefs);
 
     bool DrawHeatMap {false};
+
+    auto system() const -> element_system&
+    {
+        return *_elementSystem;
+    }
+
+    void center_camera(gfx::camera& cam) const
+    {
+        cam.Zoom = {3.f, 3.f};
+        cam.look_at(_shape->Bounds->center());
+    }
 
 protected:
     void on_update(milliseconds deltaTime) override;
@@ -37,6 +45,9 @@ private:
 
     asset_owner_ptr<gfx::material> _sandMat;
     asset_owner_ptr<gfx::texture>  _sandTex;
+
+    std::shared_ptr<element_system> _elementSystem;
+    gfx::rect_shape*                _shape {nullptr};
 };
 
 ////////////////////////////////////////////////////////////
