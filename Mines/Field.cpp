@@ -81,20 +81,21 @@ void field::start(size_i gridSize, i32 windowHeight, u32 mines)
     // create tilemap layer
     _map.clear();
 
-    gfx::tilemap_layer backLayer {.Tiles = grid<gfx::tile_index_t> {gridSize}};
+    _layerBack = &_map.create_layer();
+    auto backTiles {grid<gfx::tile_index_t> {gridSize}};
     for (usize i {0}; i < _cells.size(); ++i) {
         auto const& field {_cells[i]};
         if (field.IsMine) {
-            backLayer.Tiles[i] = TS_MINE;
+            backTiles[i] = TS_MINE;
         } else {
-            backLayer.Tiles[i] = field.NeighborMines + 1;
+            backTiles[i] = field.NeighborMines + 1;
         }
     }
-    _layerBack = _map.add_layer(backLayer);
+    _layerBack->Tiles = backTiles;
 
-    grid<gfx::tile_index_t> vec(gridSize, TS_CONCEALED);
-    gfx::tilemap_layer      frontLayer {vec};
-    _layerFront = _map.add_layer(frontLayer);
+    grid<gfx::tile_index_t> frontTiles {gridSize, TS_CONCEALED};
+    _layerFront        = &_map.create_layer();
+    _layerFront->Tiles = frontTiles;
 
     _state          = game_state::Running;
     _mouseOverPoint = std::nullopt;
@@ -290,9 +291,11 @@ void field::move_mine(point_i const& point)
     }
 }
 
-void field::set_tile(uid layer, point_i const& point, gfx::tile_index_t id)
+void field::set_tile(gfx::tilemap_layer* layer, point_i const& point, gfx::tile_index_t id)
 {
-    _map.set_tile_index(layer, point, id);
+    layer->Tiles.mutate([&](auto& tiles) {
+        tiles[point] = id;
+    });
 }
 
 auto field::get_cell(point_i const& point) -> cell&
@@ -302,11 +305,8 @@ auto field::get_cell(point_i const& point) -> cell&
 
 void field::toggle_front_layer_visibility()
 {
-    if (_map.is_layer_visible(_layerFront)) {
-        _map.hide_layer(_layerFront);
-    } else {
-        _map.show_layer(_layerFront);
-    }
+    if (!_layerFront) { return; }
+    _layerFront->Visible = !_layerFront->Visible;
 }
 
 auto field::state() const -> game_state

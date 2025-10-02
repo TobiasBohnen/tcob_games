@@ -12,7 +12,7 @@
 
 namespace Mines {
 
-enum class flag_type {
+enum class flag_type : u8 {
     None,
     Maybe,
     Flag
@@ -55,7 +55,7 @@ private:
     void clear_fields(point_i const& point);
     void reveal_mines();
     void move_mine(point_i const& point);
-    void set_tile(uid layer, point_i const& point, gfx::tile_index_t id);
+    void set_tile(gfx::tilemap_layer* layer, point_i const& point, gfx::tile_index_t id);
     auto get_cell(point_i const& point) -> cell&;
 
     rng        _rand {};
@@ -65,8 +65,8 @@ private:
 
     gfx::orthogonal_tilemap _map;
     std::vector<cell>       _cells {};
-    uid                     _layerBack {0};
-    uid                     _layerFront {1};
+    gfx::tilemap_layer*     _layerBack {nullptr};
+    gfx::tilemap_layer*     _layerFront {nullptr};
 
     size_i              _gridSize {size_i::Zero};
     i32                 _windowHeight {0};

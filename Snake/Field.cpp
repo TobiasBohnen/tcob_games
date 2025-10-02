@@ -39,12 +39,13 @@ void field::start()
 
     _map.clear();
 
-    gfx::tilemap_layer backLayer {.Tiles = grid<gfx::tile_index_t> {_gridSize, TS_FLOOR}};
-    _layerBack = _map.add_layer(backLayer);
+    _layerBack        = &_map.create_layer();
+    _layerBack->Tiles = grid<gfx::tile_index_t> {_gridSize, TS_FLOOR};
 
-    gfx::tilemap_layer frontLayer {.Tiles = grid<gfx::tile_index_t> {_gridSize, TS_NONE}};
-    frontLayer.Tiles[snake] = TS_SNAKE_HEAD;
-    _layerFront             = _map.add_layer(frontLayer);
+    auto frontTiles {grid<gfx::tile_index_t> {_gridSize, TS_NONE}};
+    frontTiles[snake]  = TS_SNAKE_HEAD;
+    _layerFront        = &_map.create_layer();
+    _layerFront->Tiles = frontTiles;
 
     _state = game_state::Running;
 }
@@ -156,7 +157,9 @@ void field::play_sound(audio::sound_wave const& wave)
 
 void field::set_tile(point_i pos, gfx::tile_index_t idx)
 {
-    _map.set_tile_index(_layerFront, pos, idx);
+    _layerFront->Tiles.mutate([&](auto& tiles) {
+        tiles[pos] = idx;
+    });
 }
 
 auto field::get_random_tile() -> point_i
@@ -164,7 +167,7 @@ auto field::get_random_tile() -> point_i
     point_i retValue {};
     do {
         retValue = {_rng(0, _gridSize.Width - 1), _rng(0, _gridSize.Height - 1)};
-    } while (*_map.get_tile_index(_layerFront, retValue) != TS_NONE);
+    } while (_layerFront->Tiles[retValue] != TS_NONE);
 
     return retValue;
 }

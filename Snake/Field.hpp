@@ -58,8 +58,8 @@ private:
     std::shared_ptr<audio::sound> _sound;
 
     gfx::orthogonal_tilemap _map;
-    uid                     _layerBack {0};
-    uid                     _layerFront {1};
+    gfx::tilemap_layer*     _layerBack {nullptr};
+    gfx::tilemap_layer*     _layerFront {nullptr};
 };
 
 }
