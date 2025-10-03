@@ -24,7 +24,7 @@ constexpr gfx::tile_index_t TS_MAYBE {14};
 constexpr gfx::tile_index_t TS_MINE_EXP {15};
 
 field::field(asset_ptr<gfx::material> const& material)
-    : _map {gfx::orthogonal_tileset {
+    : _map {gfx::orthogonal_tilemap::set {
           {1, {"clear"}},
           {2, {"1"}},
           {3, {"2"}},
