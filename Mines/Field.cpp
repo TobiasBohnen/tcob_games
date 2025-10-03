@@ -24,24 +24,24 @@ constexpr gfx::tile_index_t TS_MAYBE {14};
 constexpr gfx::tile_index_t TS_MINE_EXP {15};
 
 field::field(asset_ptr<gfx::material> const& material)
-    : _map {gfx::orthogonal_tilemap::set {
-          {1, {"clear"}},
-          {2, {"1"}},
-          {3, {"2"}},
-          {4, {"3"}},
-          {5, {"4"}},
-          {6, {"5"}},
-          {7, {"6"}},
-          {8, {"7"}},
-          {9, {"8"}},
-          {TS_MINE, {"mine"}},
-          {TS_CONCEALED, {"concealed"}},
-          {TS_SELECTED, {"selected"}},
-          {TS_FLAG, {"flag"}},
-          {TS_MAYBE, {"maybe"}},
-          {TS_MINE_EXP, {"mine-exp"}},
-      }}
 {
+    _map.TileSet = gfx::orthogonal_tilemap::set {
+        {1, {"clear"}},
+        {2, {"1"}},
+        {3, {"2"}},
+        {4, {"3"}},
+        {5, {"4"}},
+        {6, {"5"}},
+        {7, {"6"}},
+        {8, {"7"}},
+        {9, {"8"}},
+        {TS_MINE, {"mine"}},
+        {TS_CONCEALED, {"concealed"}},
+        {TS_SELECTED, {"selected"}},
+        {TS_FLAG, {"flag"}},
+        {TS_MAYBE, {"maybe"}},
+        {TS_MINE_EXP, {"mine-exp"}},
+    };
     _map.Material = material;
 }
 

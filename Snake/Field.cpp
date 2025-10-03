@@ -10,17 +10,17 @@
 namespace Snake {
 
 field::field(asset_ptr<gfx::material> const& material, i32 windowHeight)
-    : _windowHeight(windowHeight)
-    , _map {gfx::orthogonal_tilemap::set {
-          {TS_FLOOR, {.TextureRegion = "metal"}},
-          {TS_SNAKE_BODY, {.TextureRegion = "blockerBody"}},
-          {TS_SNAKE_HEAD, {.TextureRegion = "blockerMad"}},
-          {TS_SNAKE_DEAD, {.TextureRegion = "blockerSad"}},
-          {TS_FOOD, {.TextureRegion = "coinGold"}},
-          {TS_STAR, {.TextureRegion = "star"}},
-          {TS_BOMB, {.TextureRegion = "bomb"}},
-      }}
+    : _windowHeight {windowHeight}
 {
+    _map.TileSet = gfx::orthogonal_tilemap::set {
+        {TS_FLOOR, {.TextureRegion = "metal"}},
+        {TS_SNAKE_BODY, {.TextureRegion = "blockerBody"}},
+        {TS_SNAKE_HEAD, {.TextureRegion = "blockerMad"}},
+        {TS_SNAKE_DEAD, {.TextureRegion = "blockerSad"}},
+        {TS_FOOD, {.TextureRegion = "coinGold"}},
+        {TS_STAR, {.TextureRegion = "star"}},
+        {TS_BOMB, {.TextureRegion = "bomb"}},
+    };
     _map.Material = material;
 }
 
