@@ -11,7 +11,7 @@ using namespace tcob;
 using namespace tcob::ui;
 using namespace std::chrono_literals;
 
-enum class game_state {
+enum class game_state : u8 {
     Initial,
     Running,
     Failure,

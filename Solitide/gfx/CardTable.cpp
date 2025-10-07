@@ -379,8 +379,8 @@ auto card_table::get_drop_target_at(rect_f const& rect, card const& card, isize 
         auto const interSect {rect.as_intersection_with(candidate.Index == INDEX_MARKER
                                                             ? candidate.Pile->Marker->Bounds
                                                             : candidate.Pile->Cards[candidate.Index].Bounds)};
-        if (interSect.width() * interSect.height() > maxArea) {
-            maxArea  = interSect.width() * interSect.height();
+        if (interSect.Size.area() > maxArea) {
+            maxArea  = interSect.Size.area();
             retValue = candidate;
         }
     }

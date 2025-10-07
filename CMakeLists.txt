@@ -1,5 +1,6 @@
 if(NOT EMSCRIPTEN)
     add_subdirectory(BrickOut)
+    add_subdirectory(Dice)
     add_subdirectory(FallingPixels)
     add_subdirectory(Mines)
     add_subdirectory(Rogue)
