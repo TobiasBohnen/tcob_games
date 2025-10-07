@@ -28,4 +28,4 @@ if(TCOB_BUILD_SHARED AND NOT TCOB_IS_CI)
     )
 endif()
 
-configure_file(Dice.zip ${CMAKE_BINARY_DIR}/../../x64/dice.zip COPYONLY)
+configure_file(dice.zip ${CMAKE_BINARY_DIR}/../../x64/dice.zip COPYONLY)
