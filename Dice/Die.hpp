@@ -6,7 +6,6 @@
 #pragma once
 
 #include "Common.hpp" // IWYU pragma: keep
-#include "Hand.hpp"
 
 ////////////////////////////////////////////////////////////
 
@@ -47,7 +46,7 @@ private:
 
 class dice {
 public:
-    dice(gfx::shape_batch& batch, gfx::window& window, slots& slots);
+    dice(gfx::shape_batch& batch, gfx::window& window);
 
     void add_die(rng& rng, std::span<die_face const> faces, asset_ptr<gfx::material> const& material);
 
@@ -57,19 +56,15 @@ public:
 
     void reset();
 
-    void drag(point_i mousePos, rect_i const& bounds);
+    void drag(point_i mousePos);
 
-    auto drop_die() -> hand;
-
-    void hover_die(point_i mousePos);
-    void hover_slot(point_i mousePos);
+    auto hover_die(point_i mousePos) -> die*;
+    auto hover_rect(point_i mousePos) const -> rect_f;
 
 private:
-    bool             _isDragging {false};
     die*             _hoverDie {nullptr};
     std::vector<die> _dice;
 
     gfx::window&      _window;
     gfx::shape_batch& _batch;
-    slots&            _slots;
 };

@@ -48,12 +48,8 @@ void slots::hover(rect_f const& rect, color color)
     }};
 
     auto* slot {find(rect)};
-    if (_hoverSlot == slot) { return; }
-
+    if (slot) { slot->Shape->Color = color; }
     _hoverSlot = slot;
-    if (!_hoverSlot) { return; }
-
-    _hoverSlot->Shape->Color = color;
 }
 
 void slots::drop_die(die* die)

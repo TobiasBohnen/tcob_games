@@ -39,4 +39,6 @@ private:
 
     slots _slots;
     dice  _dice;
+
+    bool _isDragging {false};
 };

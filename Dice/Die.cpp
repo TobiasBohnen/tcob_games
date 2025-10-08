@@ -5,8 +5,6 @@
 
 #include "Die.hpp"
 
-#include "Slot.hpp"
-
 die::die(rng& rng, std::span<die_face const> faces)
     : _rng {rng}
     , _faces {faces.begin(), faces.end()}
@@ -106,10 +104,9 @@ auto die::texture_region() const -> string
 
 ////////////////////////////////////////////////////////////
 
-dice::dice(gfx::shape_batch& batch, gfx::window& window, slots& slots)
+dice::dice(gfx::shape_batch& batch, gfx::window& window)
     : _window {window}
     , _batch {batch}
-    , _slots {slots}
 {
 }
 
@@ -141,18 +138,17 @@ void dice::update(milliseconds deltaTime)
 void dice::reset()
 {
     for (auto& die : _dice) {
-        if (_hoverDie == &die) { continue; }
         die.Shape->Color  = colors::White;
         die.Shape->Bounds = {die.Shape->Bounds->center() - point_f {DICE_SIZE.Width / 2, DICE_SIZE.Height / 2}, DICE_SIZE};
     }
 }
 
-void dice::drag(point_i mousePos, rect_i const& bounds)
+void dice::drag(point_i mousePos)
 {
-    point_f const newPos {_window.camera().convert_screen_to_world(mousePos)};
-
     if (!_hoverDie) { return; }
-    _slots.take_die(_hoverDie);
+
+    point_f const newPos {_window.camera().convert_screen_to_world(mousePos)};
+    rect_i const& bounds {_window.bounds()};
 
     constexpr static f32 DragScaleFactor {1.2f};
     size_f const         dieSize {DICE_SIZE * DragScaleFactor};
@@ -177,20 +173,9 @@ void dice::drag(point_i mousePos, rect_i const& bounds)
 
     _batch.bring_to_front(*_hoverDie->Shape);
     _hoverDie->Shape->Bounds = newBounds;
-
-    _isDragging = true;
 }
 
-auto dice::drop_die() -> hand
-{
-    if (!_isDragging) { return {}; }
-    _isDragging = false;
-    _slots.drop_die(_hoverDie);
-    _hoverDie = nullptr;
-    return _slots.check();
-}
-
-void dice::hover_die(point_i mousePos)
+auto dice::hover_die(point_i mousePos) -> die*
 {
     point_f const mp {_window.camera().convert_screen_to_world(mousePos)};
 
@@ -207,29 +192,20 @@ void dice::hover_die(point_i mousePos)
     }};
 
     auto* die {findDie(mp)};
-    if (_hoverDie == die || (die && die->is_rolling())) { return; }
-
+    if (die) { die->Shape->Color = colors::Silver; }
     _hoverDie = die;
-    if (!_hoverDie) { return; }
-    _hoverDie->Shape->Color = colors::Silver;
+    return _hoverDie;
 }
 
-void dice::hover_slot(point_i mousePos)
+auto dice::hover_rect(point_i mousePos) const -> rect_f
 {
-    rect_f rect;
-    color  color;
-
-    if (_isDragging && _hoverDie) {
+    if (_hoverDie) {
         rect_i const  bounds {*_hoverDie->Shape->Bounds};
         point_f const tl {_window.camera().convert_screen_to_world(bounds.top_left())};
         point_f const br {_window.camera().convert_screen_to_world(bounds.bottom_right())};
-        rect  = rect_f::FromLTRB(tl.X, tl.Y, br.X, br.Y);
-        color = colors::Green;
-    } else {
-        point_f const mp {_window.camera().convert_screen_to_world(mousePos)};
-        rect  = {mp, size_f::One};
-        color = colors::Silver;
+        return rect_f::FromLTRB(tl.X, tl.Y, br.X, br.Y);
     }
 
-    _slots.hover(rect, color);
+    point_f const mp {_window.camera().convert_screen_to_world(mousePos)};
+    return {mp, size_f::One};
 }

@@ -12,7 +12,7 @@ field::field(gfx::window& window, asset_ptr<gfx::material> const& material, asse
     , _window {window}
     , _testText {font}
     , _slots {_batch, material}
-    , _dice {_batch, _window, _slots}
+    , _dice {_batch, _window}
 {
     std::vector<die_face> faces;
     std::array const      colors {color_type::Red, color_type::Green, color_type::Yellow, color_type::Cyan, color_type::Blue};
@@ -77,7 +77,8 @@ void field::on_mouse_button_up(input::mouse::button_event const& ev)
 {
     switch (ev.Button) {
     case input::mouse::button::Left: {
-        auto [v, c] {_dice.drop_die()};
+        _slots.drop_die(_dice.hover_die(ev.Position));
+        auto [v, c] {_slots.check()};
         reset_shapes();
         _testText.Text = std::format("{}:{}", to_string(v), to_string(c));
     } break;
@@ -90,11 +91,12 @@ void field::on_mouse_motion(input::mouse::motion_event const& ev)
 {
     reset_shapes();
 
-    _dice.hover_slot(ev.Position);
+    auto* hoverDie {_dice.hover_die(ev.Position)};
+    _slots.hover(_dice.hover_rect(ev.Position), colors::Green);
     if (ev.Mouse->is_button_down(input::mouse::button::Left)) {
-        _dice.drag(ev.Position, _window.bounds());
-    } else {
-        _dice.hover_die(ev.Position);
+        _isDragging = true;
+        _slots.take_die(hoverDie);
+        _dice.drag(ev.Position);
     }
 }
 
