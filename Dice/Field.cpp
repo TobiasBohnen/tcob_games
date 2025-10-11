@@ -11,18 +11,35 @@ field::field(gfx::window& window, asset_ptr<gfx::material> const& material, asse
     : gfx::entity {update_mode::Both}
     , _window {window}
     , _testText {font}
-    , _slots {_batch, material}
+    , _slots {_batch}
     , _dice {_batch, _window}
 {
-    std::vector<die_face> faces;
-    std::array const      colors {color_type::Red, color_type::Green, color_type::Yellow, color_type::Cyan, color_type::Blue};
-    for (u8 i {1}; i <= 6; ++i) {
-        for (auto const col : colors) {
-            faces.push_back({.Value = i, .Color = col});
+    {
+        std::vector<die_face> faces;
+        std::array const      colors {color_type::Red, color_type::Green, color_type::Yellow, color_type::Cyan, color_type::Blue};
+        for (u8 i {1}; i <= 6; ++i) {
+            for (auto const col : colors) {
+                faces.push_back({.Value = i, .Color = col});
+            }
+        }
+
+        for (i32 i {0}; i < 15; ++i) {
+            _dice.add_die(_rng, faces, material);
         }
     }
-    for (i32 i {0}; i < 15; ++i) {
-        _dice.add_die(_rng, faces, material);
+
+    {
+        std::vector<die_face> faces;
+        std::array const      colors {color_type::Green, color_type::Yellow, color_type::Cyan, color_type::Blue};
+        for (u8 i {1}; i <= 6; ++i) {
+            for (auto const col : colors) {
+                faces.push_back({.Value = i, .Color = col});
+            }
+        }
+
+        for (i32 i {0}; i < 5; ++i) {
+            _slots.add_slot(faces, material);
+        }
     }
 
     _testText.Bounds = {{DICE_OFFSET * 6, 10}, {400, 400}};
@@ -92,7 +109,29 @@ void field::on_mouse_motion(input::mouse::motion_event const& ev)
     reset_shapes();
 
     auto* hoverDie {_dice.hover_die(ev.Position)};
-    _slots.hover(_dice.hover_rect(ev.Position), colors::Green);
+
+    auto getRect {[&] -> rect_f {
+        if (hoverDie) {
+            rect_i const  bounds {*hoverDie->Shape->Bounds};
+            point_f const tl {_window.camera().convert_screen_to_world(bounds.top_left())};
+            point_f const br {_window.camera().convert_screen_to_world(bounds.bottom_right())};
+            return rect_f::FromLTRB(tl.X, tl.Y, br.X, br.Y);
+        }
+
+        point_f const mp {_window.camera().convert_screen_to_world(ev.Position)};
+        return {mp, size_f::One};
+    }};
+
+    auto* hoverSlot {_slots.hover_slot(getRect())};
+    if (hoverSlot) {
+        if (!hoverDie) {
+            hoverSlot->Shape->Color = colors::Gray;
+        } else {
+            hoverSlot->Shape->Color = hoverSlot->AcceptedFaces.contains(hoverDie->Face)
+                ? colors::Green
+                : colors::Red;
+        }
+    }
     if (ev.Mouse->is_button_down(input::mouse::button::Left)) {
         _isDragging = true;
         _slots.take_die(hoverDie);

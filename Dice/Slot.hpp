@@ -13,15 +13,21 @@ class slot {
 public:
     gfx::rect_shape* Shape {nullptr};
     die*             Die {nullptr};
+
+    std::unordered_set<die_face> AcceptedFaces;
 };
+
+////////////////////////////////////////////////////////////
 
 class slots {
 public:
-    slots(gfx::shape_batch& batch, asset_ptr<gfx::material> const& material);
+    slots(gfx::shape_batch& batch);
+
+    void add_slot(std::span<die_face const> faces, asset_ptr<gfx::material> const& material);
 
     void reset();
 
-    void hover(rect_f const& rect, color color);
+    auto hover_slot(rect_f const& rect) -> slot*;
 
     void drop_die(die* die);
     void take_die(die* die);
@@ -29,8 +35,8 @@ public:
     auto check() -> hand;
 
 private:
-    auto get_faces() const -> std::optional<std::array<die_face, 5>>;
+    std::vector<slot> _slots {};
+    slot*             _hoverSlot {nullptr};
 
-    std::array<slot, 5> _slots {};
-    slot*               _hoverSlot {nullptr};
+    gfx::shape_batch& _batch;
 };

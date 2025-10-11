@@ -11,7 +11,7 @@
 
 class die {
 public:
-    explicit die(rng& rng, std::span<die_face const> faces);
+    die(rng& rng, std::span<die_face const> faces);
 
     gfx::rect_shape* Shape {nullptr};
     die_face         Face;
@@ -59,7 +59,6 @@ public:
     void drag(point_i mousePos);
 
     auto hover_die(point_i mousePos) -> die*;
-    auto hover_rect(point_i mousePos) const -> rect_f;
 
 private:
     die*             _hoverDie {nullptr};

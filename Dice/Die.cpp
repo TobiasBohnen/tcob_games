@@ -196,16 +196,3 @@ auto dice::hover_die(point_i mousePos) -> die*
     _hoverDie = die;
     return _hoverDie;
 }
-
-auto dice::hover_rect(point_i mousePos) const -> rect_f
-{
-    if (_hoverDie) {
-        rect_i const  bounds {*_hoverDie->Shape->Bounds};
-        point_f const tl {_window.camera().convert_screen_to_world(bounds.top_left())};
-        point_f const br {_window.camera().convert_screen_to_world(bounds.bottom_right())};
-        return rect_f::FromLTRB(tl.X, tl.Y, br.X, br.Y);
-    }
-
-    point_f const mp {_window.camera().convert_screen_to_world(mousePos)};
-    return {mp, size_f::One};
-}
