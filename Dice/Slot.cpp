@@ -8,27 +8,51 @@
 #include "Die.hpp"
 #include "Slot.hpp"
 
-slots::slots(gfx::shape_batch& batch)
+////////////////////////////////////////////////////////////
+
+slot::slot(std::span<u8 const> values, std::span<color_type const> colors)
+    : _allowedValues {values.begin(), values.end()}
+    , _allowedColors {colors.begin(), colors.end()}
+{
+}
+
+auto slot::current_die() const -> die*
+{
+    return _die;
+}
+
+auto slot::can_drop(die_face face) const -> bool
+{
+    return _allowedValues.contains(face.Value) && _allowedColors.contains(face.Color);
+}
+
+void slot::drop(die* die)
+{
+    _die = die;
+    if (_die) { _die->lock(); }
+}
+
+void slot::take()
+{
+    if (_die) { _die->unlock(); }
+    _die = nullptr;
+}
+
+////////////////////////////////////////////////////////////
+
+slots::slots(gfx::shape_batch& batch, asset_ptr<gfx::material> const& material)
     : _batch {batch}
+    , _material {material}
 {
 }
 
-void slots::add_slot(std::span<die_face const> faces, asset_ptr<gfx::material> const& material)
+void slots::add_slot(point_f pos, std::span<u8 const> values, std::span<color_type const> colors)
 {
-    auto& slot {_slots.emplace_back()};
+    auto& slot {_slots.emplace_back(values, colors)};
     slot.Shape                = &_batch.create_shape<gfx::rect_shape>();
-    slot.Shape->Bounds        = {{_slots.size() * DICE_OFFSET, 10}, DICE_SIZE};
-    slot.Shape->Material      = material;
+    slot.Shape->Bounds        = {pos, DICE_SIZE};
+    slot.Shape->Material      = _material;
     slot.Shape->TextureRegion = "empty";
-    slot.AcceptedFaces        = {faces.begin(), faces.end()};
-}
-
-void slots::reset()
-{
-    for (auto& slot : _slots) {
-        if (_hoverSlot == &slot) { continue; }
-        slot.Shape->Color = colors::White;
-    }
 }
 
 auto slots::hover_slot(rect_f const& rect) -> slot*
@@ -38,7 +62,7 @@ auto slots::hover_slot(rect_f const& rect) -> slot*
         f32   maxArea {0.0f};
 
         for (auto& s : _slots) {
-            if (s.Die) { continue; }
+            if (s.current_die()) { continue; }
 
             auto const& slotRect {*s.Shape->Bounds};
             auto const  interSect {rect.as_intersection_with(slotRect)};
@@ -57,11 +81,10 @@ auto slots::hover_slot(rect_f const& rect) -> slot*
 
 void slots::drop_die(die* die)
 {
-    if (!die || !_hoverSlot || !_hoverSlot->AcceptedFaces.contains(die->Face)) { return; }
+    if (!die || !_hoverSlot || !_hoverSlot->can_drop(die->current_face())) { return; }
 
-    if (!_hoverSlot->Die) {
-        _hoverSlot->Die = die;
-        die->lock();
+    if (!_hoverSlot->current_die()) {
+        _hoverSlot->drop(die);
         die->Shape->Bounds = *_hoverSlot->Shape->Bounds;
     }
 }
@@ -71,9 +94,8 @@ void slots::take_die(die* die)
     if (!die) { return; }
 
     for (auto& slot : _slots) {
-        if (slot.Die == die) {
-            die->unlock();
-            slot.Die = nullptr;
+        if (slot.current_die() == die) {
+            slot.take();
             break;
         }
     }
@@ -86,9 +108,9 @@ auto slots::check() -> hand
     std::vector<die_face> faces;
     faces.resize(_slots.size());
     for (usize i {0}; i < _slots.size(); ++i) {
-        auto* die {_slots[i].Die};
+        auto* die {_slots[i].current_die()};
         if (!die) { return {}; }
-        faces[i] = die->Face;
+        faces[i] = die->current_face();
     }
     std::ranges::stable_sort(faces, {}, &die_face::Value);
 
@@ -135,4 +157,12 @@ auto slots::check() -> hand
     }
 
     return {.Value = valueCat, .Color = colorCat};
+}
+
+void slots::reset_shapes()
+{
+    for (auto& slot : _slots) {
+        if (_hoverSlot == &slot) { continue; }
+        slot.Shape->Color = colors::White;
+    }
 }

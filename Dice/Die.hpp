@@ -11,10 +11,11 @@
 
 class die {
 public:
-    die(rng& rng, std::span<die_face const> faces);
+    die(rng& rng, std::span<die_face const> faces, die_face initFace);
 
     gfx::rect_shape* Shape {nullptr};
-    die_face         Face;
+
+    auto current_face() const -> die_face;
 
     void lock();
     void unlock();
@@ -31,39 +32,39 @@ private:
     bool _rolling {false};
     bool _locked {false};
 
-    milliseconds _elapsed {0};
-    milliseconds _updateTimer {0};
-    milliseconds _targetTime {0};
-    milliseconds _baseInterval {0};
-    f32          _slowdownFactor {1.0f};
+    std::unique_ptr<linear_tween<f32>> _tween;
 
     std::shared_ptr<audio::sound> _sound;
 
     std::vector<die_face> _faces;
+    die_face              _currentFace;
 };
 
 ////////////////////////////////////////////////////////////
 
 class dice {
 public:
-    dice(gfx::shape_batch& batch, gfx::window& window);
+    dice(gfx::shape_batch& batch, asset_ptr<gfx::material> const& material, gfx::window& window);
 
-    void add_die(rng& rng, std::span<die_face const> faces, asset_ptr<gfx::material> const& material);
+    void add_die(point_f pos, rng& rng, std::span<die_face const> faces);
+    auto get_die(usize idx) const -> die*;
 
     void roll();
-
-    void update(milliseconds deltaTime);
-
-    void reset();
 
     void drag(point_i mousePos);
 
     auto hover_die(point_i mousePos) -> die*;
 
+    void clear();
+    void reset_shapes();
+
+    void update(milliseconds deltaTime);
+
 private:
     die*             _hoverDie {nullptr};
     std::vector<die> _dice;
 
-    gfx::window&      _window;
-    gfx::shape_batch& _batch;
+    gfx::window&             _window;
+    gfx::shape_batch&        _batch;
+    asset_ptr<gfx::material> _material;
 };
