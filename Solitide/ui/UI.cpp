@@ -743,7 +743,7 @@ void form_menu::create_section_cardset(tab_container& parent)
         auto& layout {panelCards.create_layout<box_layout>(size_i {13, 4})};
 
         auto const& cards {_sources->CardSets.at(val)};
-        auto const& tex {cards->get_material()->Texture};
+        auto const& tex {cards->get_material()->first_pass().Texture};
 
         for (u8 s {static_cast<u8>(suit::Hearts)}; s <= static_cast<u8>(suit::Spades); ++s) {
             for (u8 r {static_cast<u8>(rank::Ace)}; r <= static_cast<u8>(rank::King); ++r) {

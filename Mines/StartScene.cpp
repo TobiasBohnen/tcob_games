@@ -10,7 +10,7 @@
 namespace Mines {
 
 start_scene::start_scene(game& game)
-    : scene(game)
+    : scene {game}
 {
 }
 

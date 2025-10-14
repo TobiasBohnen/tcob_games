@@ -24,7 +24,7 @@ field::field(gfx::window& window, asset_ptr<gfx::material> const& material, asse
         }
 
         for (i32 i {0}; i < 15; ++i) {
-            _dice.add_die({i * DICE_OFFSET, DICE_OFFSET * 2}, _rng, faces);
+            _dice.add_die({i * DICE_OFFSET, DICE_OFFSET * 2}, _rng, {.Value = static_cast<u8>(_rng(1, 6)), .Color = color_type::Green}, faces);
         }
     }
 

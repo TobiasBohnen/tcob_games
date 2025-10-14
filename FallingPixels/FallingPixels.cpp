@@ -18,9 +18,9 @@ elements_entity::elements_entity(std::vector<element_def> const& elementsDefs)
     _sandTex->resize(GRID_SIZE, 1, gfx::texture::format::RGBA8);
     //_sandTex->Filtering = gfx::texture::filtering::Linear;
 
-    _shape->Bounds            = {point_f::Zero, size_f {GRID_SIZE}};
-    _shape->Material          = _sandMat;
-    _shape->Material->Texture = _sandTex;
+    _shape->Bounds                         = {point_f::Zero, size_f {GRID_SIZE}};
+    _shape->Material                       = _sandMat;
+    _shape->Material->first_pass().Texture = _sandTex;
 
     _hourGlass0.restart();
 }
@@ -62,7 +62,7 @@ void elements_entity::update_image()
 ////////////////////////////////////////////////////////////
 
 main_scene::main_scene(game& game)
-    : scene(game)
+    : scene {game}
 {
 
     ////

@@ -123,15 +123,13 @@ dice::dice(gfx::shape_batch& batch, asset_ptr<gfx::material> const& material, gf
 {
 }
 
-void dice::add_die(point_f pos, rng& rng, std::span<die_face const> faces)
+void dice::add_die(point_f pos, rng& rng, die_face currentFace, std::span<die_face const> faces)
 {
-    die_face const df {.Value = static_cast<u8>(rng(1, 6)), .Color = color_type::Red};
-
     auto* shape {&_batch.create_shape<gfx::rect_shape>()};
     shape->Bounds   = {pos, DICE_SIZE};
     shape->Material = _material;
 
-    _dice.emplace_back(shape, rng, faces, df);
+    _dice.emplace_back(shape, rng, faces, currentFace);
 }
 
 auto dice::get_die(usize idx) -> die*

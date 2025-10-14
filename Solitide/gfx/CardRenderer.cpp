@@ -89,7 +89,7 @@ void card_renderer::get_pile_quads(std::vector<gfx::quad>::iterator& quadIt, pil
     for (auto const& card : pile->Cards) {
         auto& quad {*quadIt};
         gfx::geometry::set_color(quad, card.Color);
-        gfx::geometry::set_texcoords(quad, mat->Texture->regions()[card.get_texture_name()]);
+        gfx::geometry::set_texcoords(quad, mat->first_pass().Texture->regions()[card.get_texture_name()]);
         gfx::geometry::set_position(quad, card.Bounds);
         ++quadIt;
     }

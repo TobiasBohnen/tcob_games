@@ -58,7 +58,7 @@ class dice {
 public:
     dice(gfx::shape_batch& batch, asset_ptr<gfx::material> const& material, gfx::window& window);
 
-    void add_die(point_f pos, rng& rng, std::span<die_face const> faces);
+    void add_die(point_f pos, rng& rng, die_face currentFace, std::span<die_face const> faces);
     auto get_die(usize idx) -> die*;
 
     void roll();

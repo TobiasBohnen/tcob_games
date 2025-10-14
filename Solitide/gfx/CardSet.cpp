@@ -43,7 +43,7 @@ card_set::card_set(std::string folder, std::string name)
     , _folder {std::move(folder)}
     , _loaded {load()}
 {
-    _material->Texture = _texture;
+    _material->first_pass().Texture = _texture;
 }
 
 auto card_set::get_card_size() const -> size_f

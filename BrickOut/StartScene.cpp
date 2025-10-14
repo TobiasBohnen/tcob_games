@@ -10,7 +10,7 @@
 namespace BrickOut {
 
 start_scene::start_scene(game& game)
-    : scene(game)
+    : scene {game}
 {
     window().ClearColor = colors::Black;
 }
