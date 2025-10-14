@@ -101,16 +101,16 @@ void slots::take_die(die* die)
     }
 }
 
-auto slots::check() -> hand
+auto slots::get_hand() const -> hand
 {
     assert(_slots.size() <= 5);
+
+    if (!is_complete()) { return {}; }
 
     std::vector<die_face> faces;
     faces.resize(_slots.size());
     for (usize i {0}; i < _slots.size(); ++i) {
-        auto* die {_slots[i].current_die()};
-        if (!die) { return {}; }
-        faces[i] = die->current_face();
+        faces[i] = _slots[i].current_die()->current_face();
     }
     std::ranges::stable_sort(faces, {}, &die_face::Value);
 
@@ -157,6 +157,22 @@ auto slots::check() -> hand
     }
 
     return {.Value = valueCat, .Color = colorCat};
+}
+
+auto slots::get_sum() const -> i32
+{
+    if (!is_complete()) { return -1; }
+
+    i32 retValue {0};
+    for (auto const& slot : _slots) {
+        retValue += slot.current_die()->current_face().Value;
+    }
+    return retValue;
+}
+
+auto slots::is_complete() const -> bool
+{
+    return std::ranges::all_of(_slots, [](auto const& slot) { return slot.current_die(); });
 }
 
 void slots::reset_shapes()

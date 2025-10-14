@@ -43,7 +43,9 @@ public:
     void drop_die(die* die);
     void take_die(die* die);
 
-    auto check() -> hand;
+    auto get_hand() const -> hand;
+    auto get_sum() const -> i32;
+    auto is_complete() const -> bool;
 
     void reset_shapes();
 

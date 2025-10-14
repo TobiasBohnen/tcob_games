@@ -36,7 +36,7 @@ field::field(gfx::window& window, asset_ptr<gfx::material> const& material, asse
         }
     }
 
-    _testText.Bounds = {{DICE_OFFSET * 6, 10}, {400, 400}};
+    _testText.Bounds = {{DICE_OFFSET * 6, 10}, {1000, 400}};
 }
 
 void field::on_update(milliseconds deltaTime)
@@ -89,9 +89,10 @@ void field::on_mouse_button_up(input::mouse::button_event const& ev)
     switch (ev.Button) {
     case input::mouse::button::Left: {
         _slots.drop_die(_dice.hover_die(ev.Position));
-        auto [v, c] {_slots.check()};
+        auto [v, c] {_slots.get_hand()};
+        auto sum {_slots.get_sum()};
         reset_shapes();
-        _testText.Text = std::format("{}:{}", to_string(v), to_string(c));
+        _testText.Text = std::format("{}:{}-{}", to_string(v), to_string(c), sum);
     } break;
     case input::mouse::button::Right: break;
     default:                          break;
