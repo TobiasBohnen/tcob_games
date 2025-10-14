@@ -29,8 +29,6 @@ protected:
     void on_mouse_motion(input::mouse::motion_event const& ev) override;
 
 private:
-    void reset_shapes();
-
     rng          _rng;
     gfx::window& _window;
 
@@ -38,7 +36,7 @@ private:
     gfx::text        _testText;
 
     slots _slots;
+    slot* _hoverSlot {nullptr};
     dice  _dice;
-
-    bool _isDragging {false};
+    die*  _hoverDie {nullptr};
 };

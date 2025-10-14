@@ -5,8 +5,11 @@
 
 #include "Die.hpp"
 
-die::die(rng& rng, std::span<die_face const> faces, die_face initFace)
-    : _rng {rng}
+#include "Slot.hpp"
+
+die::die(gfx::rect_shape* shape, rng& rng, std::span<die_face const> faces, die_face initFace)
+    : _shape(shape)
+    , _rng {rng}
     , _faces {faces.begin(), faces.end()}
     , _currentFace {initFace}
 {
@@ -18,6 +21,8 @@ die::die(rng& rng, std::span<die_face const> faces, die_face initFace)
     wv = gen.mutate_wave(wv);
     auto buffer {gen.create_buffer(wv)};
     _sound = std::make_shared<audio::sound>(buffer);
+
+    _shape->TextureRegion = texture_region();
 }
 
 auto die::current_face() const -> die_face { return _currentFace; }
@@ -48,8 +53,8 @@ void die::roll()
         _currentFace.Color = face.Color;
         _currentFace.Value = face.Value;
 
-        if (auto texRegion {texture_region()}; Shape->TextureRegion != texRegion) {
-            Shape->TextureRegion = texRegion;
+        if (auto texRegion {texture_region()}; _shape->TextureRegion != texRegion) {
+            _shape->TextureRegion = texRegion;
 
             if (_sound && _sound->state() != playback_state::Running) {
                 _sound->play();
@@ -62,8 +67,27 @@ void die::roll()
 
 void die::update(milliseconds deltaTime)
 {
+    switch (State) {
+    case die_state::Normal:
+        _shape->Bounds = {_shape->Bounds->center() - point_f {DICE_SIZE.Width / 2, DICE_SIZE.Height / 2}, DICE_SIZE};
+        _shape->Color  = colors::White;
+        break;
+    case die_state::Hovered:
+        _shape->Bounds = {_shape->Bounds->center() - point_f {DICE_SIZE.Width / 2, DICE_SIZE.Height / 2}, DICE_SIZE};
+        _shape->Color  = colors::Silver;
+        break;
+    case die_state::Dragged:
+        _shape->Color = colors::Silver;
+        break;
+    }
+
     if (!_rolling) { return; }
     if (_tween) { _tween->update(deltaTime); }
+}
+
+auto die::bounds() const -> rect_f const&
+{
+    return *_shape->Bounds;
 }
 
 auto die::texture_region() const -> string
@@ -103,17 +127,16 @@ void dice::add_die(point_f pos, rng& rng, std::span<die_face const> faces)
 {
     die_face const df {.Value = static_cast<u8>(rng(1, 6)), .Color = color_type::Red};
 
-    auto& die {_dice.emplace_back(rng, faces, df)};
+    auto* shape {&_batch.create_shape<gfx::rect_shape>()};
+    shape->Bounds   = {pos, DICE_SIZE};
+    shape->Material = _material;
 
-    die.Shape                = &_batch.create_shape<gfx::rect_shape>();
-    die.Shape->Bounds        = {pos, DICE_SIZE};
-    die.Shape->Material      = _material;
-    die.Shape->TextureRegion = die.texture_region();
+    _dice.emplace_back(shape, rng, faces, df);
 }
 
-auto dice::get_die(usize idx) const -> die*
+auto dice::get_die(usize idx) -> die*
 {
-    return &_hoverDie[idx];
+    return &_dice[idx];
 }
 
 void dice::roll()
@@ -149,8 +172,24 @@ void dice::drag(point_i mousePos)
 
     rect_f const newBounds {clampedPos - halfSize, dieSize};
 
-    _batch.bring_to_front(*_hoverDie->Shape);
-    _hoverDie->Shape->Bounds = newBounds;
+    _batch.bring_to_front(*_hoverDie->_shape);
+    _hoverDie->_shape->Bounds = newBounds;
+    _hoverDie->State          = die_state::Dragged;
+}
+
+void dice::drop(slot* slot)
+{
+    if (_hoverDie) { _hoverDie->State = die_state::Hovered; }
+    if (slot) { slot->State = slot_state::Normal; }
+
+    if (!_hoverDie || !slot || !slot->can_drop(_hoverDie->current_face())) { return; }
+
+    if (!slot->current_die()) {
+        slot->drop(_hoverDie);
+    }
+
+    _hoverDie->_shape->Bounds = slot->bounds();
+    _batch.send_to_back(*_hoverDie->_shape);
 }
 
 auto dice::hover_die(point_i mousePos) -> die*
@@ -163,14 +202,22 @@ auto dice::hover_die(point_i mousePos) -> die*
         for (auto* v : vec | std::views::reverse) {
             auto* shape {dynamic_cast<gfx::rect_shape*>(v)};
             for (auto& die : _dice) {
-                if (die.Shape == shape) { return &die; }
+                if (die.is_rolling()) { continue; }
+                if (die._shape == shape) { return &die; }
             }
         }
         return nullptr;
     }};
 
     auto* die {findDie(mp)};
-    if (die) { die->Shape->Color = colors::Silver; }
+    if (die) { die->State = die_state::Hovered; }
+
+    if (_hoverDie) {
+        if (die != _hoverDie) {
+            _hoverDie->State = die_state::Normal;
+        }
+    }
+
     _hoverDie = die;
     return _hoverDie;
 }
@@ -179,14 +226,6 @@ void dice::clear()
 {
     _dice.clear();
     _batch.clear();
-}
-
-void dice::reset_shapes()
-{
-    for (auto& die : _dice) {
-        die.Shape->Color  = colors::White;
-        die.Shape->Bounds = {die.Shape->Bounds->center() - point_f {DICE_SIZE.Width / 2, DICE_SIZE.Height / 2}, DICE_SIZE};
-    }
 }
 
 void dice::update(milliseconds deltaTime)

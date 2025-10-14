@@ -9,11 +9,19 @@
 
 ////////////////////////////////////////////////////////////
 
-class die {
-public:
-    die(rng& rng, std::span<die_face const> faces, die_face initFace);
+enum class die_state : u8 {
+    Normal,
+    Hovered,
+    Dragged
+};
 
-    gfx::rect_shape* Shape {nullptr};
+class die {
+    friend class dice;
+
+public:
+    die(gfx::rect_shape* shape, rng& rng, std::span<die_face const> faces, die_face initFace);
+
+    die_state State {die_state::Normal};
 
     auto current_face() const -> die_face;
 
@@ -25,9 +33,13 @@ public:
 
     void update(milliseconds deltaTime);
 
-    auto texture_region() const -> string;
+    auto bounds() const -> rect_f const&;
 
 private:
+    auto texture_region() const -> string;
+
+    gfx::rect_shape* _shape {nullptr};
+
     rng& _rng;
     bool _rolling {false};
     bool _locked {false};
@@ -47,16 +59,16 @@ public:
     dice(gfx::shape_batch& batch, asset_ptr<gfx::material> const& material, gfx::window& window);
 
     void add_die(point_f pos, rng& rng, std::span<die_face const> faces);
-    auto get_die(usize idx) const -> die*;
+    auto get_die(usize idx) -> die*;
 
     void roll();
 
     void drag(point_i mousePos);
+    void drop(slot* slot);
 
     auto hover_die(point_i mousePos) -> die*;
 
     void clear();
-    void reset_shapes();
 
     void update(milliseconds deltaTime);
 

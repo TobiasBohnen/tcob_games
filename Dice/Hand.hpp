@@ -30,6 +30,8 @@ enum class color_category : u8 {
 struct hand {
     value_category Value {value_category::None};
     color_category Color {color_category::None};
+
+    std::vector<usize> Slots;
 };
 
 static constexpr auto to_string(value_category v) -> std::string_view

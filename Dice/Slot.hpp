@@ -11,11 +11,19 @@
 
 ////////////////////////////////////////////////////////////
 
+enum class slot_state : u8 {
+    Normal,
+    Hovered,
+    Accept,
+    Reject,
+    PartOfHand
+};
+
 class slot {
 public:
-    slot(std::span<u8 const> values, std::span<color_type const> colors);
+    slot(gfx::rect_shape* shape, std::span<u8 const> values, std::span<color_type const> colors);
 
-    gfx::rect_shape* Shape {nullptr};
+    slot_state State {slot_state::Normal};
 
     auto current_die() const -> die*;
 
@@ -23,8 +31,13 @@ public:
     void drop(die* die);
     void take();
 
+    void update(milliseconds deltaTime) const;
+
+    auto bounds() const -> rect_f const&;
+
 private:
-    die* _die {nullptr};
+    die*             _die {nullptr};
+    gfx::rect_shape* _shape {nullptr};
 
     std::unordered_set<u8>         _allowedValues;
     std::unordered_set<color_type> _allowedColors;
@@ -37,17 +50,17 @@ public:
     slots(gfx::shape_batch& batch, asset_ptr<gfx::material> const& material);
 
     void add_slot(point_f pos, std::span<u8 const> values, std::span<color_type const> colors);
+    auto get_slot(usize idx) -> slot*;
 
     auto hover_slot(rect_f const& rect) -> slot*;
 
-    void drop_die(die* die);
     void take_die(die* die);
 
     auto get_hand() const -> hand;
     auto get_sum() const -> i32;
     auto is_complete() const -> bool;
 
-    void reset_shapes();
+    void update(milliseconds deltaTime);
 
 private:
     std::vector<slot> _slots {};

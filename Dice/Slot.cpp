@@ -10,8 +10,9 @@
 
 ////////////////////////////////////////////////////////////
 
-slot::slot(std::span<u8 const> values, std::span<color_type const> colors)
-    : _allowedValues {values.begin(), values.end()}
+slot::slot(gfx::rect_shape* shape, std::span<u8 const> values, std::span<color_type const> colors)
+    : _shape {shape}
+    , _allowedValues {values.begin(), values.end()}
     , _allowedColors {colors.begin(), colors.end()}
 {
 }
@@ -38,6 +39,32 @@ void slot::take()
     _die = nullptr;
 }
 
+void slot::update(milliseconds deltaTime) const
+{
+    switch (State) {
+    case slot_state::Normal:
+        _shape->Color = colors::White;
+        break;
+    case slot_state::Hovered:
+        _shape->Color = colors::Gray;
+        break;
+    case slot_state::Accept:
+        _shape->Color = colors::Green;
+        break;
+    case slot_state::Reject:
+        _shape->Color = colors::Red;
+        break;
+    case slot_state::PartOfHand:
+        _shape->Color = colors::PaleVioletRed;
+        break;
+    }
+}
+
+auto slot::bounds() const -> rect_f const&
+{
+    return *_shape->Bounds;
+}
+
 ////////////////////////////////////////////////////////////
 
 slots::slots(gfx::shape_batch& batch, asset_ptr<gfx::material> const& material)
@@ -48,11 +75,16 @@ slots::slots(gfx::shape_batch& batch, asset_ptr<gfx::material> const& material)
 
 void slots::add_slot(point_f pos, std::span<u8 const> values, std::span<color_type const> colors)
 {
-    auto& slot {_slots.emplace_back(values, colors)};
-    slot.Shape                = &_batch.create_shape<gfx::rect_shape>();
-    slot.Shape->Bounds        = {pos, DICE_SIZE};
-    slot.Shape->Material      = _material;
-    slot.Shape->TextureRegion = "empty";
+    auto* shape {&_batch.create_shape<gfx::rect_shape>()};
+    shape->Bounds        = {pos, DICE_SIZE};
+    shape->Material      = _material;
+    shape->TextureRegion = "empty";
+    _slots.emplace_back(shape, values, colors);
+}
+
+auto slots::get_slot(usize idx) -> slot*
+{
+    return &_slots[idx];
 }
 
 auto slots::hover_slot(rect_f const& rect) -> slot*
@@ -64,7 +96,7 @@ auto slots::hover_slot(rect_f const& rect) -> slot*
         for (auto& s : _slots) {
             if (s.current_die()) { continue; }
 
-            auto const& slotRect {*s.Shape->Bounds};
+            auto const& slotRect {s.bounds()};
             auto const  interSect {rect.as_intersection_with(slotRect)};
             if (interSect.Size.area() > maxArea) {
                 maxArea  = interSect.Size.area();
@@ -75,18 +107,14 @@ auto slots::hover_slot(rect_f const& rect) -> slot*
         return bestSlot;
     }};
 
-    _hoverSlot = find(rect);
-    return _hoverSlot;
-}
+    auto* slot {find(rect)};
 
-void slots::drop_die(die* die)
-{
-    if (!die || !_hoverSlot || !_hoverSlot->can_drop(die->current_face())) { return; }
-
-    if (!_hoverSlot->current_die()) {
-        _hoverSlot->drop(die);
-        die->Shape->Bounds = *_hoverSlot->Shape->Bounds;
+    if (_hoverSlot && slot != _hoverSlot) {
+        _hoverSlot->State = slot_state::Normal;
     }
+
+    _hoverSlot = slot;
+    return _hoverSlot;
 }
 
 void slots::take_die(die* die)
@@ -103,60 +131,88 @@ void slots::take_die(die* die)
 
 auto slots::get_hand() const -> hand
 {
-    assert(_slots.size() <= 5);
+    if (!is_complete() || _slots.size() > 5) { return {}; }
 
-    if (!is_complete()) { return {}; }
+    struct indexed_face {
+        die_face Face;
+        usize    Index;
+    };
 
-    std::vector<die_face> faces;
-    faces.resize(_slots.size());
+    static auto const func {[](auto const& f) { return f.Face.Value; }};
+
+    std::vector<indexed_face> faces;
+    faces.reserve(_slots.size());
     for (usize i {0}; i < _slots.size(); ++i) {
-        faces[i] = _slots[i].current_die()->current_face();
+        faces.push_back({.Face = _slots[i].current_die()->current_face(), .Index = i});
     }
-    std::ranges::stable_sort(faces, {}, &die_face::Value);
+    std::ranges::stable_sort(faces, {}, func);
+
+    hand result {};
 
     // value
-    value_category valueCat {value_category::None};
-
-    if ((faces.back().Value - faces.front().Value == 4) // Straight
-        && (std::ranges::adjacent_find(faces, {}, &die_face::Value) == faces.end())) {
-        valueCat = value_category::Straight;
+    if ((faces.back().Face.Value - faces.front().Face.Value == faces.size() - 1)
+        && (std::ranges::adjacent_find(faces, {}, func) == faces.end())) {
+        result.Value = value_category::Straight;
+        for (auto const& f : faces) { result.Slots.push_back(f.Index); }
     } else {
         std::array<i8, 6> counts {};
         std::array<i8, 4> groups {};
-        for (auto const& die : faces) {
-            i8 const count {++counts[die.Value - 1]};
+        for (auto const& f : faces) {
+            i8 const count {++counts[f.Face.Value - 1]};
             if (count >= 2 && count <= 5) {
                 ++groups[count - 2];
                 if (count > 2) { --groups[count - 3]; }
             }
         }
-        if (groups[3] == 1) {                          // FiveOfAKind
-            valueCat = value_category::FiveOfAKind;
-        } else if (groups[2] == 1) {                   // FourOfAKind
-            valueCat = value_category::FourOfAKind;
-        } else if (groups[0] == 1 && groups[1] == 1) { // FullHouse
-            valueCat = value_category::FullHouse;
-        } else if (groups[1] == 1) {                   // ThreeOfAKind
-            valueCat = value_category::ThreeOfAKind;
-        } else if (groups[0] == 2) {                   // TwoPair
-            valueCat = value_category::TwoPair;
-        } else if (groups[0] == 1) {                   // OnePair
-            valueCat = value_category::OnePair;
+
+        auto collect {[&](u8 targetValue) {
+            for (auto const& f : faces) {
+                if (f.Face.Value == targetValue) { result.Slots.push_back(f.Index); }
+            }
+        }};
+        auto collectAll {[&](u8 targetCount) {
+            for (usize v {0}; v < 6; ++v) {
+                if (counts[v] == targetCount) { collect(v + 1); }
+            }
+        }};
+
+        if (groups[3] == 1) {
+            result.Value = value_category::FiveOfAKind; // FiveOfAKind
+            collect(faces[0].Face.Value);
+        } else if (groups[2] == 1) {
+            result.Value = value_category::FourOfAKind; // FourOfAKind
+            collectAll(4);
+        } else if (groups[0] == 1 && groups[1] == 1) {
+            result.Value = value_category::FullHouse;   // FullHouse
+            collect(faces.front().Face.Value);
+            collect(faces.back().Face.Value);
+        } else if (groups[1] == 1) {
+            result.Value = value_category::ThreeOfAKind; // ThreeOfAKind
+            collectAll(3);
+        } else if (groups[0] == 2) {
+            result.Value = value_category::TwoPair;      // TwoPair
+            collectAll(2);
+        } else if (groups[0] == 1) {
+            result.Value = value_category::OnePair;      // OnePair
+            collectAll(2);
         }
     }
 
     // color
-    color_category colorCat {color_category::None};
-
     std::unordered_set<color_type> uniqueColors;
-    for (auto const& die : faces) { uniqueColors.insert(die.Color); }
+    for (auto const& f : faces) { uniqueColors.insert(f.Face.Color); }
+
     switch (uniqueColors.size()) {
-    case 1:  colorCat = color_category::Flush; break;   // Flush
-    case 5:  colorCat = color_category::Rainbow; break; // Rainbow
+    case 1:
+        result.Color = color_category::Flush;
+        break;
+    case 5:
+        result.Color = color_category::Rainbow;
+        break;
     default: break;
     }
 
-    return {.Value = valueCat, .Color = colorCat};
+    return result;
 }
 
 auto slots::get_sum() const -> i32
@@ -175,10 +231,9 @@ auto slots::is_complete() const -> bool
     return std::ranges::all_of(_slots, [](auto const& slot) { return slot.current_die(); });
 }
 
-void slots::reset_shapes()
+void slots::update(milliseconds deltaTime)
 {
     for (auto& slot : _slots) {
-        if (_hoverSlot == &slot) { continue; }
-        slot.Shape->Color = colors::White;
+        slot.update(deltaTime);
     }
 }

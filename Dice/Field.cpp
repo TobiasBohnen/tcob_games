@@ -31,7 +31,7 @@ field::field(gfx::window& window, asset_ptr<gfx::material> const& material, asse
     {
         for (i32 i {0}; i < 5; ++i) {
             _slots.add_slot({i * DICE_OFFSET, 10},
-                            std::array<u8, 5> {1, 2, 3, 5, 6},
+                            std::array<u8, 6> {1, 2, 3, 4, 5, 6},
                             std::array {color_type::Green, color_type::Yellow, color_type::Cyan, color_type::Blue});
         }
     }
@@ -41,13 +41,22 @@ field::field(gfx::window& window, asset_ptr<gfx::material> const& material, asse
 
 void field::on_update(milliseconds deltaTime)
 {
+    auto [v, c, i] {_slots.get_hand()};
+    auto sum {_slots.get_sum()};
+    for (auto id : i) {
+        _slots.get_slot(id)->State = slot_state::PartOfHand;
+    }
+    _testText.Text = std::format("{}:{}-{}-<{}>", to_string(v), to_string(c), helper::join(i, ","), sum);
+
+    _dice.update(deltaTime);
+    _slots.update(deltaTime);
+
     _batch.update(deltaTime);
     _testText.update(deltaTime);
 }
 
 void field::on_fixed_update(milliseconds deltaTime)
 {
-    _dice.update(deltaTime);
 }
 
 void field::on_draw_to(gfx::render_target& target)
@@ -66,7 +75,6 @@ void field::on_key_down(input::keyboard::event const& ev)
     switch (ev.ScanCode) {
     case input::scan_code::C:
         _dice.roll();
-        reset_shapes();
         break;
     default:
         break;
@@ -76,9 +84,7 @@ void field::on_key_down(input::keyboard::event const& ev)
 void field::on_mouse_button_down(input::mouse::button_event const& ev)
 {
     switch (ev.Button) {
-    case input::mouse::button::Left: {
-        _dice.hover_die(ev.Position);
-    } break;
+    case input::mouse::button::Left:  break;
     case input::mouse::button::Right: break;
     default:                          break;
     }
@@ -88,11 +94,7 @@ void field::on_mouse_button_up(input::mouse::button_event const& ev)
 {
     switch (ev.Button) {
     case input::mouse::button::Left: {
-        _slots.drop_die(_dice.hover_die(ev.Position));
-        auto [v, c] {_slots.get_hand()};
-        auto sum {_slots.get_sum()};
-        reset_shapes();
-        _testText.Text = std::format("{}:{}-{}", to_string(v), to_string(c), sum);
+        _dice.drop(_hoverSlot);
     } break;
     case input::mouse::button::Right: break;
     default:                          break;
@@ -101,13 +103,15 @@ void field::on_mouse_button_up(input::mouse::button_event const& ev)
 
 void field::on_mouse_motion(input::mouse::motion_event const& ev)
 {
-    reset_shapes();
+    bool const isButtonDown {ev.Mouse->is_button_down(input::mouse::button::Left)};
 
-    auto* hoverDie {_dice.hover_die(ev.Position)};
+    if (!isButtonDown) {
+        _hoverDie = _dice.hover_die(ev.Position);
+    }
 
     auto getRect {[&] -> rect_f {
-        if (hoverDie) {
-            rect_i const  bounds {*hoverDie->Shape->Bounds};
+        if (_hoverDie) {
+            rect_i const  bounds {_hoverDie->bounds()};
             point_f const tl {_window.camera().convert_screen_to_world(bounds.top_left())};
             point_f const br {_window.camera().convert_screen_to_world(bounds.bottom_right())};
             return rect_f::FromLTRB(tl.X, tl.Y, br.X, br.Y);
@@ -117,25 +121,18 @@ void field::on_mouse_motion(input::mouse::motion_event const& ev)
         return {mp, size_f::One};
     }};
 
-    auto* hoverSlot {_slots.hover_slot(getRect())};
-    if (hoverSlot) {
-        if (!hoverDie) {
-            hoverSlot->Shape->Color = colors::Gray;
-        } else {
-            hoverSlot->Shape->Color = hoverSlot->can_drop(hoverDie->current_face())
-                ? colors::Green
-                : colors::Red;
+    _hoverSlot = _slots.hover_slot(getRect());
+    if (_hoverSlot) {
+        if (!_hoverDie) {
+            _hoverSlot->State = slot_state::Hovered;
+        } else if (isButtonDown) {
+            _hoverSlot->State = _hoverSlot->can_drop(_hoverDie->current_face())
+                ? slot_state::Accept
+                : slot_state::Reject;
         }
     }
-    if (ev.Mouse->is_button_down(input::mouse::button::Left)) {
-        _isDragging = true;
-        _slots.take_die(hoverDie);
+    if (isButtonDown) {
+        _slots.take_die(_hoverDie);
         _dice.drag(ev.Position);
     }
-}
-
-void field::reset_shapes()
-{
-    _dice.reset_shapes();
-    _slots.reset_shapes();
 }
