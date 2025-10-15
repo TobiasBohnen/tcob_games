@@ -50,7 +50,7 @@ void card_renderer::set_cardset(card_set const& cardset)
 void card_renderer::draw_cards(gfx::render_target& target)
 {
     if (_renderDirty) {
-        _cardRenderer.set_material(_cardSet->get_material().ptr());
+        _cardRenderer.set_pass(&_cardSet->get_material()->first_pass());
 
         pile const* dragPile {nullptr};
         {
