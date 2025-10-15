@@ -49,9 +49,9 @@ void card_renderer::set_cardset(card_set const& cardset)
 
 void card_renderer::draw_cards(gfx::render_target& target)
 {
-    if (_renderDirty) {
-        _cardRenderer.set_pass(&_cardSet->get_material()->first_pass());
+    auto const& pass {_cardSet->get_material()->first_pass()};
 
+    if (_renderDirty) {
         pile const* dragPile {nullptr};
         {
             auto quadIt {_cardQuads.begin()};
@@ -65,20 +65,20 @@ void card_renderer::draw_cards(gfx::render_target& target)
                 }
             }
 
-            _cardRenderer.set_geometry({_cardQuads.begin(), quadIt});
+            _cardRenderer.set_geometry({_cardQuads.begin(), quadIt}, &pass);
             _cardRenderer.render_to_target(target);
         }
         if (dragPile) {
             auto quadIt {_cardQuads.begin()};
             get_pile_quads(quadIt, dragPile);
 
-            _cardRenderer.set_geometry({_cardQuads.begin(), quadIt});
+            _cardRenderer.set_geometry({_cardQuads.begin(), quadIt}, &pass);
             _cardRenderer.render_to_target(target);
         }
 
         _renderDirty = false;
     } else {
-        _cardRenderer.set_geometry(_cardQuads);
+        _cardRenderer.set_geometry(_cardQuads, &pass);
         _cardRenderer.render_to_target(target);
     }
 }
