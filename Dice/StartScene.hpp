@@ -7,7 +7,7 @@
 
 #include "Common.hpp" // IWYU pragma: keep
 
-#include "Field.hpp"
+#include "games/Field.hpp"
 
 class start_scene : public scene {
 

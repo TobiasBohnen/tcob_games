@@ -22,10 +22,7 @@ void start_scene::on_start()
     resMgr.load_all_groups();
 
     auto& win {window()};
-    _playField = std::make_shared<field>(
-        win,
-        resGrp.get<gfx::material>("mat-dice-tiles"),
-        resGrp.get<gfx::font_family>("Poppins")->get_font({}, 48));
+    _playField = std::make_shared<field>(win, resGrp);
 
     root_node().create_child().Entity = _playField;
 

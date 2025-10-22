@@ -7,6 +7,8 @@
 
 #include "Slot.hpp"
 
+////////////////////////////////////////////////////////////
+
 die::die(gfx::rect_shape* shape, rng& rng, std::span<die_face const> faces, die_face initFace)
     : _shape(shape)
     , _rng {rng}
@@ -22,7 +24,7 @@ die::die(gfx::rect_shape* shape, rng& rng, std::span<die_face const> faces, die_
     auto buffer {gen.create_buffer(wv)};
     _sound = std::make_shared<audio::sound>(buffer);
 
-    _shape->TextureRegion = texture_region();
+    _shape->TextureRegion = _currentFace.texture_region();
 }
 
 auto die::current_face() const -> die_face { return _currentFace; }
@@ -53,7 +55,7 @@ void die::roll()
         _currentFace.Color = face.Color;
         _currentFace.Value = face.Value;
 
-        if (auto texRegion {texture_region()}; _shape->TextureRegion != texRegion) {
+        if (auto texRegion {_currentFace.texture_region()}; _shape->TextureRegion != texRegion) {
             _shape->TextureRegion = texRegion;
 
             if (_sound && _sound->state() != playback_state::Running) {
@@ -67,17 +69,13 @@ void die::roll()
 
 void die::update(milliseconds deltaTime)
 {
-    switch (State) {
+    switch (_colorState) {
     case die_state::Normal:
-        _shape->Bounds = {_shape->Bounds->center() - point_f {DICE_SIZE.Width / 2, DICE_SIZE.Height / 2}, DICE_SIZE};
-        _shape->Color  = colors::White;
+        _shape->Color = colors::White;
         break;
     case die_state::Hovered:
-        _shape->Bounds = {_shape->Bounds->center() - point_f {DICE_SIZE.Width / 2, DICE_SIZE.Height / 2}, DICE_SIZE};
-        _shape->Color  = colors::Silver;
-        break;
     case die_state::Dragged:
-        _shape->Color = colors::Silver;
+        _shape->Color = colors::DarkGray;
         break;
     }
 
@@ -90,36 +88,12 @@ auto die::bounds() const -> rect_f const&
     return *_shape->Bounds;
 }
 
-auto die::texture_region() const -> string
-{
-    string color;
-    switch (_currentFace.Color) {
-    case color_type::Red:    color = "red"; break;
-    case color_type::Green:  color = "green"; break;
-    case color_type::Yellow: color = "yellow"; break;
-    case color_type::Cyan:   color = "cyan"; break;
-    case color_type::Blue:   color = "blue"; break;
-    }
-    string value;
-    switch (_currentFace.Value) {
-    case 1:   value = "1"; break;
-    case 2:   value = "2"; break;
-    case 3:   value = "3"; break;
-    case 4:   value = "4"; break;
-    case 5:   value = "5"; break;
-    case 6:   value = "6"; break;
-    case 254: value = "E"; break;
-    case 255: value = "Q"; break;
-    }
-    return color + value;
-}
-
 ////////////////////////////////////////////////////////////
 
-dice::dice(gfx::shape_batch& batch, asset_ptr<gfx::material> const& material, gfx::window& window)
+dice::dice(gfx::shape_batch& batch, gfx::window& window)
     : _window {window}
     , _batch {batch}
-    , _material {material}
+    , _painter {{10, 50}}
 {
 }
 
@@ -127,9 +101,10 @@ void dice::add_die(point_f pos, rng& rng, die_face currentFace, std::span<die_fa
 {
     auto* shape {&_batch.create_shape<gfx::rect_shape>()};
     shape->Bounds   = {pos, DICE_SIZE};
-    shape->Material = _material;
+    shape->Material = _painter.material();
 
     _dice.emplace_back(shape, rng, faces, currentFace);
+    _painter.make_die(faces);
 }
 
 auto dice::get_die(usize idx) -> die*
@@ -150,9 +125,7 @@ void dice::drag(point_i mousePos)
     point_f const newPos {_window.camera().convert_screen_to_world(mousePos)};
     rect_i const& bounds {_window.bounds()};
 
-    constexpr static f32 DragScaleFactor {1.2f};
-    size_f const         dieSize {DICE_SIZE * DragScaleFactor};
-    point_f const        halfSize {dieSize.Width / 2, dieSize.Height / 2};
+    point_f const halfSize {DICE_SIZE.Width / 2, DICE_SIZE.Height / 2};
 
     point_f clampedPos {newPos};
 
@@ -168,24 +141,22 @@ void dice::drag(point_i mousePos)
         clampedPos.Y = bounds.bottom() - halfSize.Y;
     }
 
-    rect_f const newBounds {clampedPos - halfSize, dieSize};
+    rect_f const newBounds {clampedPos - halfSize, DICE_SIZE};
 
     _batch.bring_to_front(*_hoverDie->_shape);
     _hoverDie->_shape->Bounds = newBounds;
-    _hoverDie->State          = die_state::Dragged;
+    _hoverDie->_colorState    = die_state::Dragged;
 }
 
 void dice::drop(slot* slot)
 {
-    if (_hoverDie) { _hoverDie->State = die_state::Hovered; }
-    if (slot) { slot->State = slot_state::Normal; }
-
     if (!_hoverDie || !slot || !slot->can_drop(_hoverDie->current_face())) { return; }
 
-    if (!slot->current_die()) {
+    if (slot->empty()) {
         slot->drop(_hoverDie);
     }
 
+    _hoverDie->_colorState    = die_state::Hovered;
     _hoverDie->_shape->Bounds = slot->bounds();
     _batch.send_to_back(*_hoverDie->_shape);
 }
@@ -208,11 +179,11 @@ auto dice::hover_die(point_i mousePos) -> die*
     }};
 
     auto* die {findDie(mp)};
-    if (die) { die->State = die_state::Hovered; }
+    if (die) { die->_colorState = die_state::Hovered; }
 
     if (_hoverDie) {
         if (die != _hoverDie) {
-            _hoverDie->State = die_state::Normal;
+            _hoverDie->_colorState = die_state::Normal;
         }
     }
 

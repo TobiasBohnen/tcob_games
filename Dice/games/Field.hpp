@@ -5,16 +5,16 @@
 
 #pragma once
 
-#include "Common.hpp" // IWYU pragma: keep
+#include "../Common.hpp" // IWYU pragma: keep
 
-#include "Die.hpp"
-#include "Slot.hpp"
+#include "../objects/Die.hpp"
+#include "../objects/Slot.hpp"
 
 ////////////////////////////////////////////////////////////
 
 class field : public gfx::entity {
 public:
-    field(gfx::window& window, asset_ptr<gfx::material> const& material, asset_ptr<gfx::font> const& font);
+    field(gfx::window& window, assets::group const& grp);
 
 protected:
     void on_update(milliseconds deltaTime) override;
@@ -39,4 +39,6 @@ private:
     slot* _hoverSlot {nullptr};
     dice  _dice;
     die*  _hoverDie {nullptr};
+
+    gfx::background _background;
 };

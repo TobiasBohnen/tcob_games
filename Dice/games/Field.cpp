@@ -5,18 +5,20 @@
 
 #include "Field.hpp"
 
-#include "Hand.hpp"
+#include "../Hand.hpp"
 
-field::field(gfx::window& window, asset_ptr<gfx::material> const& material, asset_ptr<gfx::font> const& font)
+field::field(gfx::window& window, assets::group const& grp)
     : gfx::entity {update_mode::Both}
     , _window {window}
-    , _testText {font}
-    , _slots {_batch, material}
-    , _dice {_batch, material, _window}
+    , _testText {grp.get<gfx::font_family>("Poppins")->get_font({}, 48)}
+    , _slots {_batch, grp.get<gfx::font_family>("Poppins")}
+    , _dice {_batch, _window}
 {
+    _background.Material = grp.get<gfx::material>("space");
+
+    std::array const colors {colors::Red, colors::DarkOrange, colors::Gray, colors::White, colors::LightYellow, colors::Green};
     {
         std::vector<die_face> faces;
-        std::array const      colors {color_type::Red, color_type::Green, color_type::Yellow, color_type::Cyan, color_type::Blue};
         for (u8 i {1}; i <= 6; ++i) {
             for (auto const col : colors) {
                 faces.push_back({.Value = i, .Color = col});
@@ -24,15 +26,14 @@ field::field(gfx::window& window, asset_ptr<gfx::material> const& material, asse
         }
 
         for (i32 i {0}; i < 15; ++i) {
-            _dice.add_die({i * DICE_OFFSET, DICE_OFFSET * 2}, _rng, {.Value = static_cast<u8>(_rng(1, 6)), .Color = color_type::Green}, faces);
+            _dice.add_die({i * DICE_OFFSET, DICE_OFFSET * 2}, _rng, {.Value = static_cast<u8>(_rng(1, 6)), .Color = colors::Green}, faces);
         }
     }
 
     {
         for (i32 i {0}; i < 5; ++i) {
             _slots.add_slot({i * DICE_OFFSET, 10},
-                            std::array<u8, 6> {1, 2, 3, 4, 5, 6},
-                            std::array {color_type::Green, color_type::Yellow, color_type::Cyan, color_type::Blue});
+                            {.Value = 3, .Color = colors::Green, .Op = op::Equal});
         }
     }
 
@@ -43,9 +44,6 @@ void field::on_update(milliseconds deltaTime)
 {
     auto [v, c, i] {_slots.get_hand()};
     auto sum {_slots.get_sum()};
-    for (auto id : i) {
-        _slots.get_slot(id)->State = slot_state::PartOfHand;
-    }
     _testText.Text = std::format("{}:{}-{}-<{}>", to_string(v), to_string(c), helper::join(i, ","), sum);
 
     _dice.update(deltaTime);
@@ -61,6 +59,7 @@ void field::on_fixed_update(milliseconds deltaTime)
 
 void field::on_draw_to(gfx::render_target& target)
 {
+    _background.draw_to(target);
     _batch.draw_to(target);
     _testText.draw_to(target);
 }
@@ -121,16 +120,7 @@ void field::on_mouse_motion(input::mouse::motion_event const& ev)
         return {mp, size_f::One};
     }};
 
-    _hoverSlot = _slots.hover_slot(getRect());
-    if (_hoverSlot) {
-        if (!_hoverDie) {
-            _hoverSlot->State = slot_state::Hovered;
-        } else if (isButtonDown) {
-            _hoverSlot->State = _hoverSlot->can_drop(_hoverDie->current_face())
-                ? slot_state::Accept
-                : slot_state::Reject;
-        }
-    }
+    _hoverSlot = _slots.hover_slot(getRect(), _hoverDie, isButtonDown);
     if (isButtonDown) {
         _slots.take_die(_hoverDie);
         _dice.drag(ev.Position);

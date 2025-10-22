@@ -3,4 +3,10 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-#include "Hand.hpp"
+#pragma once
+
+#include "Common.hpp" // IWYU pragma: keep
+
+class lua_script_game {
+public:
+};

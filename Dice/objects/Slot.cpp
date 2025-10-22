@@ -4,17 +4,22 @@
 // https://opensource.org/licenses/MIT
 
 #include <algorithm>
+#include <utility>
 
 #include "Die.hpp"
 #include "Slot.hpp"
 
 ////////////////////////////////////////////////////////////
 
-slot::slot(gfx::rect_shape* shape, std::span<u8 const> values, std::span<color_type const> colors)
+slot::slot(gfx::rect_shape* shape, slot_face face)
     : _shape {shape}
-    , _allowedValues {values.begin(), values.end()}
-    , _allowedColors {colors.begin(), colors.end()}
+    , _face {face}
 {
+}
+
+auto slot::empty() const -> bool
+{
+    return _die == nullptr;
 }
 
 auto slot::current_die() const -> die*
@@ -22,13 +27,31 @@ auto slot::current_die() const -> die*
     return _die;
 }
 
-auto slot::can_drop(die_face face) const -> bool
+auto slot::can_drop(die_face dieFace) const -> bool
 {
-    return _allowedValues.contains(face.Value) && _allowedColors.contains(face.Color);
+    switch (_face.Op) {
+    case op::Equal:
+        if (dieFace.Value != _face.Value) { return false; }
+        break;
+    case op::NotEqual:
+        if (dieFace.Value == _face.Value) { return false; }
+        break;
+    case op::Greater:
+        if (dieFace.Value <= _face.Value) { return false; }
+        break;
+    case op::Less:
+        if (dieFace.Value >= _face.Value) { return false; }
+        break;
+    }
+
+    if (_face.Color == colors::Transparent) { return true; }
+    return _face.Color == dieFace.Color;
 }
 
 void slot::drop(die* die)
 {
+    _colorState = slot_state::Normal;
+
     _die = die;
     if (_die) { _die->lock(); }
 }
@@ -41,22 +64,12 @@ void slot::take()
 
 void slot::update(milliseconds deltaTime) const
 {
-    switch (State) {
-    case slot_state::Normal:
-        _shape->Color = colors::White;
-        break;
-    case slot_state::Hovered:
-        _shape->Color = colors::Gray;
-        break;
-    case slot_state::Accept:
-        _shape->Color = colors::Green;
-        break;
-    case slot_state::Reject:
-        _shape->Color = colors::Red;
-        break;
-    case slot_state::PartOfHand:
-        _shape->Color = colors::PaleVioletRed;
-        break;
+    // TODO: accept/reject texregion
+    switch (_colorState) {
+    case slot_state::Normal:  _shape->Color = colors::White; break;
+    case slot_state::Hovered: _shape->Color = colors::Gray; break;
+    case slot_state::Accept:  _shape->Color = colors::Gray; break;
+    case slot_state::Reject:  _shape->Color = colors::White; break;
     }
 }
 
@@ -67,19 +80,21 @@ auto slot::bounds() const -> rect_f const&
 
 ////////////////////////////////////////////////////////////
 
-slots::slots(gfx::shape_batch& batch, asset_ptr<gfx::material> const& material)
+slots::slots(gfx::shape_batch& batch, asset_ptr<gfx::font_family> font)
     : _batch {batch}
-    , _material {material}
+    , _painter {{10, 50}, std::move(font)}
 {
 }
 
-void slots::add_slot(point_f pos, std::span<u8 const> values, std::span<color_type const> colors)
+void slots::add_slot(point_f pos, slot_face face)
 {
     auto* shape {&_batch.create_shape<gfx::rect_shape>()};
     shape->Bounds        = {pos, DICE_SIZE};
-    shape->Material      = _material;
-    shape->TextureRegion = "empty";
-    _slots.emplace_back(shape, values, colors);
+    shape->Material      = _painter.material();
+    shape->TextureRegion = face.texture_region();
+
+    _slots.emplace_back(shape, face);
+    _painter.make_slot(face);
 }
 
 auto slots::get_slot(usize idx) -> slot*
@@ -87,14 +102,14 @@ auto slots::get_slot(usize idx) -> slot*
     return &_slots[idx];
 }
 
-auto slots::hover_slot(rect_f const& rect) -> slot*
+auto slots::hover_slot(rect_f const& rect, die* die, bool isButtonDown) -> slot*
 {
     auto const find {[&](rect_f const& rect) -> slot* {
         slot* bestSlot {nullptr};
         f32   maxArea {0.0f};
 
         for (auto& s : _slots) {
-            if (s.current_die()) { continue; }
+            if (!s.empty()) { continue; }
 
             auto const& slotRect {s.bounds()};
             auto const  interSect {rect.as_intersection_with(slotRect)};
@@ -108,10 +123,14 @@ auto slots::hover_slot(rect_f const& rect) -> slot*
     }};
 
     auto* slot {find(rect)};
-
-    if (_hoverSlot && slot != _hoverSlot) {
-        _hoverSlot->State = slot_state::Normal;
+    if (slot) {
+        if (!die) {
+            slot->_colorState = slot_state::Hovered;
+        } else if (isButtonDown) {
+            slot->_colorState = slot->can_drop(die->current_face()) ? slot_state::Accept : slot_state::Reject;
+        }
     }
+    if (slot != _hoverSlot && _hoverSlot) { _hoverSlot->_colorState = slot_state::Normal; }
 
     _hoverSlot = slot;
     return _hoverSlot;
@@ -199,16 +218,12 @@ auto slots::get_hand() const -> hand
     }
 
     // color
-    std::unordered_set<color_type> uniqueColors;
+    std::unordered_set<color> uniqueColors;
     for (auto const& f : faces) { uniqueColors.insert(f.Face.Color); }
 
     switch (uniqueColors.size()) {
-    case 1:
-        result.Color = color_category::Flush;
-        break;
-    case 5:
-        result.Color = color_category::Rainbow;
-        break;
+    case 1:  result.Color = color_category::Flush; break;
+    case 5:  result.Color = color_category::Rainbow; break;
     default: break;
     }
 
@@ -228,7 +243,7 @@ auto slots::get_sum() const -> i32
 
 auto slots::is_complete() const -> bool
 {
-    return std::ranges::all_of(_slots, [](auto const& slot) { return slot.current_die(); });
+    return std::ranges::all_of(_slots, [](auto const& slot) { return !slot.empty(); });
 }
 
 void slots::update(milliseconds deltaTime)

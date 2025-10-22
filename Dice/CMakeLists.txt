@@ -2,12 +2,11 @@ add_executable(Dice)
 
 target_sources(Dice PRIVATE
     main.cpp
-    Die.cpp
-    Field.cpp
-    Hand.cpp
-    Slot.cpp
     StartScene.cpp
-    ../_common/UIHelper.cpp
+    Painter.cpp
+    ./games/Field.cpp
+    ./objects/Die.cpp
+    ./objects/Slot.cpp
 )
 
 set_target_properties(Dice PROPERTIES
@@ -28,4 +27,4 @@ if(TCOB_BUILD_SHARED AND NOT TCOB_IS_CI)
     )
 endif()
 
-configure_file(dice.zip ${CMAKE_BINARY_DIR}/../../x64/dice.zip COPYONLY)
+configure_file(./assets/dice.zip ${CMAKE_BINARY_DIR}/../../x64/dice.zip COPYONLY)
