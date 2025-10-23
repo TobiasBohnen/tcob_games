@@ -286,7 +286,7 @@ inline void script_game<Table, Function, IndexOffset>::CreateGlobals(auto&& host
         }
 
         string file {package + "." + ext};
-        if (!io::exists(file)) { file = "scripts/" + file; }
+        if (!io::exists(file)) { file = "sol/scripts/" + file; }
 
         auto pkg {script.template run_file<Table>(file).value()};
         globalTable["package"]["loaded"][package] = pkg;

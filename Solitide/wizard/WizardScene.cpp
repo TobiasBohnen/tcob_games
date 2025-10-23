@@ -27,7 +27,7 @@ wizard_scene::wizard_scene(game& game)
         script script;
         lua_script_game::CreateENV(script);
 
-        auto func {script.run_file<function<std::tuple<std::string, std::vector<std::string>, std::string>>>("scripts/wizard.lua")};
+        auto func {script.run_file<function<std::tuple<std::string, std::vector<std::string>, std::string>>>("sol/scripts/wizard.lua")};
         if (!func) { return; } // ERROR loading wizard func
 
         table obj {script.create_table()};

@@ -14,7 +14,7 @@ using namespace scripting;
 translator::translator()
 {
     lua_script_game::CreateENV(_script);
-    _func = *_script.run_file<function<return_type>>("scripts/lang/translator.lua");
+    _func = *_script.run_file<function<return_type>>("sol/scripts/lang/translator.lua");
     set_language("en-US");
 }
 
@@ -24,7 +24,7 @@ void translator::set_language(std::string const& langid)
 
     _langid = langid;
     _script.Environment.mutate([&](std::optional<table>& env) {
-        (*env)["Locale"] = *_script.run_file<table>(std::format("scripts/lang/{}.lua", langid));
+        (*env)["Locale"] = *_script.run_file<table>(std::format("sol/scripts/lang/{}.lua", langid));
     });
 
     for (auto it {_bindings.begin()}; it != _bindings.end(); ++it) {

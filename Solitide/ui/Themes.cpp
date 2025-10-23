@@ -175,7 +175,7 @@ void load_themes(std::map<std::string, color_themes>& themeMap)
     using namespace tcob::data;
 
     object themes {};
-    if (!themes.load("themes.json")) { return; }
+    if (!themes.load("sol/themes.json")) { return; }
 
     object     customThemes {};
     auto const files {io::enumerate("/", {.String = "themes.*.json", .MatchWholePath = false}, true)};

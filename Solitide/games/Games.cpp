@@ -549,7 +549,7 @@ void lua_script_game::CreateAPI(script_host* host, scripting::script& script, st
     CreateGlobals<lua_script_game>(host, script, env, make_func, "lua");
     CreateWrapper(script);
 
-    std::ignore = script.run_file("scripts/main.lua");
+    std::ignore = script.run_file("sol/scripts/main.lua");
 
     auto& global {script.global_table()};
     global["Sol"]["Layout"] = env["Sol"]["Layout"];

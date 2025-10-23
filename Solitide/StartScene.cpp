@@ -16,7 +16,7 @@ start_scene::start_scene(game& game)
 {
     auto& resMgr {library()};
     auto& resGrp {resMgr.create_or_get_group("solitaire")};
-    resGrp.mount("./assets.zip");
+    resGrp.mount("./sol/assets.zip");
     resMgr.load_all_groups();
 }
 
@@ -68,7 +68,7 @@ X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X
                 case '\n': pos = {0, pos.Y + 1}; break;
                 case ' ':  ++pos.X; break;
                 case 'X':  {
-                    rect_f const pixBounds {pos.X++ * pixWidth + offX, pos.Y * pixWidth + _windowSize.Height / 4.f, pixWidth, pixWidth};
+                    rect_f const pixBounds {(pos.X++ * pixWidth) + offX, (pos.Y * pixWidth) + (_windowSize.Height / 4.f), pixWidth, pixWidth};
                     _canvas.rect(pixBounds);
                 } break;
                 }
