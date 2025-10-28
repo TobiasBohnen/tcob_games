@@ -25,14 +25,12 @@ void dice_painter::make_die(std::span<die_face const> faces)
     static auto const dicePath {*gfx::path2d::Parse("m 15,0 h 34 c 8,0 15,7 15,15 v 34 c 0,8 -7,15 -15,15 H 15 C 7,64 0,57 0,49 V 15 C 0,7 7,0 15,0 Z")};
 
     auto const paintDie {[&](color fg, color bg) {
-        _canvas.set_global_enforce_path_winding(false);
         _canvas.path_2d(dicePath);
         _canvas.set_fill_style(fg);
-        _canvas.fill();
+        _canvas.fill(false);
         _canvas.set_stroke_width(2);
         _canvas.set_stroke_style(bg);
         _canvas.stroke();
-        _canvas.set_global_enforce_path_winding(true);
     }};
     auto const paintDots {[&](color fg, auto... dots) {
         _canvas.set_fill_style(fg);
@@ -122,14 +120,12 @@ void slot_painter::make_slot(slot_face face)
             _texPointer.Y += 68;
         }
 
-        _canvas.set_global_enforce_path_winding(false);
         _canvas.path_2d(slotPath);
         _canvas.set_fill_style(face.Color == colors::Transparent ? colors::White : face.Color);
-        _canvas.fill();
+        _canvas.fill(false);
         _canvas.set_stroke_width(2);
         _canvas.set_stroke_style(colors::Black);
         _canvas.stroke();
-        _canvas.set_global_enforce_path_winding(true);
 
         if (face.Value != 0) {
             string op;
