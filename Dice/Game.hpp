@@ -25,16 +25,19 @@ struct script_assets {
 ////////////////////////////////////////////////////////////
 
 class base_game : public gfx::entity {
-    friend class engine;
-
 public:
     base_game(gfx::window& window, assets::group const& grp);
-
-    script_assets Assets;
 
     void run(string const& file);
 
     auto create_shape() -> gfx::rect_shape*;
+    auto random(f32 min, f32 max) -> f32;
+    void roll();
+
+    auto bounds() const -> rect_f
+    {
+        return _assets.Background->Bounds;
+    }
 
 protected:
     void on_update(milliseconds deltaTime) override;
@@ -59,5 +62,6 @@ private:
     dice  _dice;
     die*  _hoverDie {nullptr};
 
-    engine _engine;
+    script_assets _assets;
+    engine        _engine;
 };

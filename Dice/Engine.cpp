@@ -11,9 +11,16 @@
 
 using namespace scripting;
 
-engine::engine(base_game& game)
+engine::engine(base_game& game, script_assets& assets)
     : _game {game}
+    , _assets {assets}
 {
+}
+
+template <typename R = void>
+inline auto engine::call(string const& name, auto&&... args) -> R
+{
+    return _table[name].as<function<R>>()(_table, this, args...);
 }
 
 void engine::run(string const& file)
@@ -26,14 +33,24 @@ void engine::run(string const& file)
     create_gfx();
     create_sfx();
 
-    _table["on_setup"].as<function<void>>()(_table, this);
+    call("on_setup");
 }
 
 void engine::update(milliseconds deltaTime)
 {
-    if (_table["can_process_turn"].as<function<bool>>()(_table, this)) {
-        _table["on_process_turn"].as<function<void>>()(_table, this, deltaTime.count());
+    if (call<bool>("can_process_turn")) {
+        call("on_process_turn", deltaTime.count());
     }
+}
+
+auto engine::end_turn() -> bool
+{
+    if (call<bool>("can_end_turn")) {
+        call("on_end_turn");
+        return true;
+    }
+
+    return false;
 }
 
 void engine::create_env(string const& path)
@@ -81,8 +98,8 @@ void engine::create_env(string const& path)
 void engine::create_wrappers()
 {
     auto convert_point {[this](point_f pos) -> point_f {
-        return {_game.Assets.Background->Bounds->left() + (pos.X * _game.Assets.Background->Bounds->Size.Width),
-                pos.Y * _game.Assets.Background->Bounds->Size.Height};
+        return {_game.bounds().left() + (pos.X * _game.bounds().Size.Width),
+                pos.Y * _game.bounds().Size.Height};
     }};
 
     // create wrappers
@@ -114,25 +131,25 @@ void engine::create_wrappers()
     slotsWrapper["are_locked"]     = [](slots* slots) { slots->are_locked(); };
 
     auto& engineWrapper {*_script.create_wrapper<engine>("engine")};
-    engineWrapper["random"]        = [](engine* engine, f32 min, f32 max) { return engine->_game._rng(min, max); };
+    engineWrapper["random"]        = [](engine* engine, f32 min, f32 max) { return engine->_game.random(min, max); };
     engineWrapper["create_sprite"] = [convert_point](engine* engine, point_f center, u32 tex) {
         auto  ptr {std::make_unique<sprite>()};
         auto* sprite {ptr.get()};
-        engine->_game.Assets.Sprites.push_back(std::move(ptr));
+        engine->_assets.Sprites.push_back(std::move(ptr));
 
-        auto const& texture {engine->_game.Assets.Textures[tex]}; // TODO: error check
+        auto const& texture {engine->_assets.Textures[tex]}; // TODO: error check
         auto const  spriteCenter {convert_point(center)};
         sprite->Shape         = engine->_game.create_shape();
         sprite->Shape->Bounds = rect_f {
             point_f {spriteCenter.X - (texture.Size.Width / 2), spriteCenter.Y - (texture.Size.Width / 2)},
             size_f {texture.Size}};
-        sprite->Shape->Material      = engine->_game.Assets.SpriteMaterial;
+        sprite->Shape->Material      = engine->_assets.SpriteMaterial;
         sprite->Shape->TextureRegion = texture.Region;
         return sprite;
     };
     engineWrapper["create_slots"] = [](engine* engine, table const& slots) { };
     engineWrapper["create_dice"]  = [](engine* engine, table const& dice) { };
-    engineWrapper["roll_dice"]    = [](engine* engine) { engine->_game._dice.roll(); };
+    engineWrapper["roll_dice"]    = [](engine* engine) { engine->_game.roll(); };
 }
 
 auto engine::create_gfx() -> bool
@@ -141,16 +158,16 @@ auto engine::create_gfx() -> bool
     if (!_table.try_get(gfxTable, "Gfx")) { return false; }
 
     if (function<void> func; gfxTable.try_get(func, "draw_background")) { // background
-        auto const canvasSize {size_i {_game.Assets.Background->Bounds->Size}};
+        auto const canvasSize {size_i {_game.bounds().Size}};
         _canvas.begin_frame(canvasSize, 1, 0);
         func(this, &_canvas, canvasSize);
         _canvas.end_frame();
 
         auto tex {_canvas.get_texture(0)};
-        _game.Assets.BackgroundMaterial->first_pass().Texture = tex;
-        tex->regions()["default"]                             = {.UVRect = {gfx::render_texture::UVRect()},
-                                                                 .Level  = 0};
-        _game.Assets.Background->Material                     = _game.Assets.BackgroundMaterial;
+        _assets.BackgroundMaterial->first_pass().Texture = tex;
+        tex->regions()["default"]                        = {.UVRect = {gfx::render_texture::UVRect()},
+                                                            .Level  = 0};
+        _assets.Background->Material                     = _assets.BackgroundMaterial;
     } else {
         return false;
     }
@@ -190,9 +207,9 @@ auto engine::create_gfx() -> bool
             _canvas.translate(pen);
             texDef.Draw(&_canvas);
 
-            _game.Assets.Textures[texDef.ID].Size   = texDef.Size;
-            _game.Assets.Textures[texDef.ID].Region = std::to_string(texDef.ID);
-            tex->regions()[_game.Assets.Textures[texDef.ID].Region] =
+            _assets.Textures[texDef.ID].Size   = texDef.Size;
+            _assets.Textures[texDef.ID].Region = std::to_string(texDef.ID);
+            tex->regions()[_assets.Textures[texDef.ID].Region] =
                 {.UVRect = {
                      {pen.X / canvasSize.Width, -pen.Y / canvasSize.Height},
                      {static_cast<f32>(texDef.Size.Width) / canvasSize.Width,
@@ -205,7 +222,7 @@ auto engine::create_gfx() -> bool
         }
         _canvas.end_frame();
 
-        _game.Assets.SpriteMaterial->first_pass().Texture = tex;
+        _assets.SpriteMaterial->first_pass().Texture = tex;
     } else {
         return false;
     }

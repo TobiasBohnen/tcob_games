@@ -15,6 +15,7 @@ class slots;
 class die;
 class dice;
 class base_game;
+struct script_assets;
 
 constexpr size_f DICE_SIZE {62, 62};
 constexpr f32    DICE_OFFSET {72.f};

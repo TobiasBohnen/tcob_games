@@ -13,12 +13,12 @@ base_game::base_game(gfx::window& window, assets::group const& grp)
     , _window {window}
     , _slots {_batch, grp.get<gfx::font_family>("Poppins")}
     , _dice {_batch, _window}
-    , _engine {*this}
+    , _engine {*this, _assets}
 {
     auto const [w, h] {size_f {*window.Size}};
 
-    Assets.Background         = &_batch.create_shape<gfx::rect_shape>();
-    Assets.Background->Bounds = {(w - h) / 2, 0, h, h};
+    _assets.Background         = &_batch.create_shape<gfx::rect_shape>();
+    _assets.Background->Bounds = {(w - h) / 2, 0, h, h};
 }
 
 void base_game::on_update(milliseconds deltaTime)
@@ -93,13 +93,13 @@ void base_game::run(string const& file)
 
 void base_game::wrap_sprites()
 {
-    auto const fieldSize {Assets.Background->Bounds->Size};
+    auto const fieldSize {_assets.Background->Bounds->Size};
 
-    for (auto& s : Assets.Sprites) {
+    for (auto& s : _assets.Sprites) {
         if (!s || !s->Shape) { continue; }
 
         auto b {*s->Shape->Bounds};
-        b.Position.X -= Assets.Background->Bounds->left();
+        b.Position.X -= _assets.Background->Bounds->left();
         bool const needs_copy_x {(b.left() < 0.f) || (b.right() > fieldSize.Width)};
         bool const needs_copy_y {(b.top() < 0.f) || (b.bottom() > fieldSize.Height)};
 
@@ -124,7 +124,7 @@ void base_game::wrap_sprites()
                 copyY = b.top() - fieldSize.Height;
             }
 
-            s->WrapCopy->Bounds   = {{copyX + Assets.Background->Bounds->left(), copyY}, s->Shape->Bounds->Size};
+            s->WrapCopy->Bounds   = {{copyX + _assets.Background->Bounds->left(), copyY}, s->Shape->Bounds->Size};
             s->WrapCopy->Rotation = *s->Shape->Rotation;
         } else {
             if (s->WrapCopy) {
@@ -136,3 +136,11 @@ void base_game::wrap_sprites()
 }
 
 auto base_game::create_shape() -> gfx::rect_shape* { return &_batch.create_shape<gfx::rect_shape>(); }
+auto base_game::random(f32 min, f32 max) -> f32
+{
+    return _rng(min, max);
+}
+void base_game::roll()
+{
+    _dice.roll();
+}
