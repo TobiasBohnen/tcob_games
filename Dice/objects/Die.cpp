@@ -120,7 +120,7 @@ void dice::roll()
 
 void dice::drag(point_i mousePos)
 {
-    if (!_hoverDie) { return; }
+    if (!_hoverDie || _hoverDie->_locked) { return; }
 
     point_f const newPos {_window.camera().convert_screen_to_world(mousePos)};
     rect_i const& bounds {_window.bounds()};

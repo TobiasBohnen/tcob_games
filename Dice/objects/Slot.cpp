@@ -27,8 +27,14 @@ auto slot::current_die() const -> die*
     return _die;
 }
 
+void slot::lock() { _locked = true; }
+
+void slot::unlock() { _locked = false; }
+
 auto slot::can_drop(die_face dieFace) const -> bool
 {
+    if (_die || _locked) { return false; }
+
     switch (_face.Op) {
     case op::Equal:
         if (dieFace.Value != _face.Value) { return false; }
@@ -54,6 +60,11 @@ void slot::drop(die* die)
 
     _die = die;
     if (_die) { _die->lock(); }
+}
+
+auto slot::can_take(die* die) const -> bool
+{
+    return !_locked && _die && die == _die;
 }
 
 void slot::take()
@@ -86,6 +97,12 @@ slots::slots(gfx::shape_batch& batch, asset_ptr<gfx::font_family> font)
 {
 }
 
+void slots::lock() { _locked = true; }
+
+void slots::unlock() { _locked = false; }
+
+auto slots::are_locked() const -> bool { return _locked; }
+
 void slots::add_slot(point_f pos, slot_face face)
 {
     auto* shape {&_batch.create_shape<gfx::rect_shape>()};
@@ -104,13 +121,13 @@ auto slots::get_slot(usize idx) -> slot*
 
 auto slots::hover_slot(rect_f const& rect, die* die, bool isButtonDown) -> slot*
 {
+    if (_locked) { return nullptr; }
+
     auto const find {[&](rect_f const& rect) -> slot* {
         slot* bestSlot {nullptr};
         f32   maxArea {0.0f};
 
         for (auto& s : _slots) {
-            if (!s.empty()) { continue; }
-
             auto const& slotRect {s.bounds()};
             auto const  interSect {rect.as_intersection_with(slotRect)};
             if (interSect.Size.area() > maxArea) {
@@ -141,9 +158,9 @@ void slots::take_die(die* die)
     if (!die) { return; }
 
     for (auto& slot : _slots) {
-        if (slot.current_die() == die) {
+        if (slot.can_take(die)) {
             slot.take();
-            break;
+            return;
         }
     }
 }

@@ -7,7 +7,7 @@
 
 #include "Common.hpp" // IWYU pragma: keep
 
-#include "games/Field.hpp"
+#include "Game.hpp"
 
 class start_scene : public scene {
 
@@ -26,5 +26,5 @@ protected:
     void on_key_down(input::keyboard::event const& ev) override;
 
 private:
-    std::shared_ptr<field> _playField {};
+    std::shared_ptr<base_game> _currentGame {};
 };

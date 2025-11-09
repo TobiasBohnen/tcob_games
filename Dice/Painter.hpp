@@ -21,7 +21,7 @@ private:
     gfx::canvas _canvas;
 
     size_i                         _texGrid;
-    point_f                        _texPointer {2, 2};
+    point_f                        _pen {2, 2};
     asset_ptr<gfx::texture>        _tex;
     asset_owner_ptr<gfx::material> _material;
 };
@@ -40,7 +40,7 @@ private:
     gfx::canvas _canvas;
 
     size_i                         _texGrid;
-    point_f                        _texPointer {2, 2};
+    point_f                        _pen {2, 2};
     asset_ptr<gfx::texture>        _tex;
     asset_owner_ptr<gfx::material> _material;
     asset_ptr<gfx::font_family>    _font;

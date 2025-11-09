@@ -4,7 +4,8 @@ target_sources(Dice PRIVATE
     main.cpp
     StartScene.cpp
     Painter.cpp
-    ./games/Field.cpp
+    Game.cpp
+    Engine.cpp
     ./objects/Die.cpp
     ./objects/Slot.cpp
 )
@@ -27,4 +28,9 @@ if(TCOB_BUILD_SHARED AND NOT TCOB_IS_CI)
     )
 endif()
 
-configure_file(./assets/dice.zip ${CMAKE_BINARY_DIR}/../../x64/dice.zip COPYONLY)
+add_custom_target(Dice_copyFiles ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/games/ ${CMAKE_BINARY_DIR}/../../x64/dice/games
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/assets/dice.zip ${CMAKE_BINARY_DIR}/../../x64/
+)
+
+add_dependencies(Dice Dice_copyFiles)

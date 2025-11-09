@@ -23,8 +23,7 @@ auto dice_painter::material() -> asset_owner_ptr<gfx::material>
 void dice_painter::make_die(std::span<die_face const> faces)
 {
     static auto const dicePath {*gfx::path2d::Parse("m 15,0 h 34 c 8,0 15,7 15,15 v 34 c 0,8 -7,15 -15,15 H 15 C 7,64 0,57 0,49 V 15 C 0,7 7,0 15,0 Z")};
-
-    auto const paintDie {[&](color fg, color bg) {
+    auto const        paintDie {[&](color fg, color bg) {
         _canvas.path_2d(dicePath);
         _canvas.set_fill_style(fg);
         _canvas.fill(false);
@@ -32,7 +31,7 @@ void dice_painter::make_die(std::span<die_face const> faces)
         _canvas.set_stroke_style(bg);
         _canvas.stroke();
     }};
-    auto const paintDots {[&](color fg, auto... dots) {
+    auto const        paintDots {[&](color fg, auto... dots) {
         _canvas.set_fill_style(fg);
         _canvas.begin_path();
         (_canvas.circle(dots, 6), ...);
@@ -46,19 +45,19 @@ void dice_painter::make_die(std::span<die_face const> faces)
 
         _canvas.save();
 
-        _canvas.translate(_texPointer);
+        _canvas.translate(_pen);
 
         _tex->regions()[face.texture_region()] = {
-            .UVRect = {{(_texPointer.X - 2) / texSize.Width,
-                        -(_texPointer.Y - 2) / texSize.Height},
+            .UVRect = {{(_pen.X - 2) / texSize.Width,
+                        -(_pen.Y - 2) / texSize.Height},
                        {68.f / texSize.Width,
                         -68.f / texSize.Height}},
             .Level  = 0};
 
-        _texPointer += point_f {68, 0};
-        if (_texPointer.X >= texSize.Width) {
-            _texPointer.X = 2;
-            _texPointer.Y += 68;
+        _pen += point_f {68, 0};
+        if (_pen.X >= texSize.Width) {
+            _pen.X = 2;
+            _pen.Y += 68;
         }
 
         paintDie(face.Color, colors::Black);
@@ -105,19 +104,19 @@ void slot_painter::make_slot(slot_face face)
     {
         _canvas.save();
 
-        _canvas.translate(_texPointer);
+        _canvas.translate(_pen);
 
         _tex->regions()[face.texture_region()] = {
-            .UVRect = {{(_texPointer.X - 2) / texSize.Width,
-                        -(_texPointer.Y - 2) / texSize.Height},
+            .UVRect = {{(_pen.X - 2) / texSize.Width,
+                        -(_pen.Y - 2) / texSize.Height},
                        {68.f / texSize.Width,
                         -68.f / texSize.Height}},
             .Level  = 0};
 
-        _texPointer += point_f {68, 0};
-        if (_texPointer.X >= texSize.Width) {
-            _texPointer.X = 2;
-            _texPointer.Y += 68;
+        _pen += point_f {68, 0};
+        if (_pen.X >= texSize.Width) {
+            _pen.X = 2;
+            _pen.Y += 68;
         }
 
         _canvas.path_2d(slotPath);

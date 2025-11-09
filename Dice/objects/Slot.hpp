@@ -28,8 +28,12 @@ public:
     auto empty() const -> bool;
     auto current_die() const -> die*;
 
+    void lock();
+    void unlock();
+
     auto can_drop(die_face dieFace) const -> bool;
     void drop(die* die);
+    auto can_take(die* die) const -> bool;
     void take();
 
     void update(milliseconds deltaTime) const;
@@ -40,6 +44,8 @@ private:
     die*             _die {nullptr};
     gfx::rect_shape* _shape {nullptr};
 
+    bool _locked {false};
+
     slot_face  _face;
     slot_state _colorState {slot_state::Normal};
 };
@@ -49,6 +55,10 @@ private:
 class slots {
 public:
     slots(gfx::shape_batch& batch, asset_ptr<gfx::font_family> font);
+
+    void lock();
+    void unlock();
+    auto are_locked() const -> bool;
 
     void add_slot(point_f pos, slot_face face);
     auto get_slot(usize idx) -> slot*;
@@ -69,4 +79,6 @@ private:
 
     gfx::shape_batch& _batch;
     slot_painter      _painter;
+
+    bool _locked {false};
 };

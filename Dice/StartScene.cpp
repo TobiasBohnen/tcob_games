@@ -22,9 +22,10 @@ void start_scene::on_start()
     resMgr.load_all_groups();
 
     auto& win {window()};
-    _playField = std::make_shared<field>(win, resGrp);
+    _currentGame = std::make_shared<base_game>(win, resGrp);
+    _currentGame->run("dice/games/SpaceRocks/game.lua");
 
-    root_node().create_child().Entity = _playField;
+    root_node().create_child().Entity = _currentGame;
 
     locate_service<gfx::render_system>().statistics().reset();
 }
