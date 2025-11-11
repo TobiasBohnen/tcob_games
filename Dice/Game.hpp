@@ -13,17 +13,6 @@
 
 ////////////////////////////////////////////////////////////
 
-struct script_assets {
-    std::unordered_map<u32, texture>     Textures;
-    asset_owner_ptr<gfx::material>       SpriteMaterial;
-    std::vector<std::unique_ptr<sprite>> Sprites;
-
-    gfx::rect_shape*               Background;
-    asset_owner_ptr<gfx::material> BackgroundMaterial;
-};
-
-////////////////////////////////////////////////////////////
-
 class base_game : public gfx::entity {
 public:
     base_game(gfx::window& window, assets::group const& grp);
@@ -31,13 +20,8 @@ public:
     void run(string const& file);
 
     auto create_shape() -> gfx::rect_shape*;
-    auto random(f32 min, f32 max) -> f32;
-    void roll();
 
-    auto bounds() const -> rect_f
-    {
-        return _assets.Background->Bounds;
-    }
+    void roll();
 
 protected:
     void on_update(milliseconds deltaTime) override;
@@ -51,11 +35,12 @@ protected:
 
 private:
     void wrap_sprites();
+    void collide_sprites();
 
-    rng          _rng;
     gfx::window& _window;
 
-    gfx::shape_batch _batch;
+    gfx::shape_batch _diceBatch;
+    gfx::shape_batch _entityBatch;
 
     slots _slots;
     slot* _hoverSlot {nullptr};

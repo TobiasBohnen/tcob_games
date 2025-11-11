@@ -8,18 +8,23 @@
 ------
 
 local game_module = {
+    draw_background = function(game_module, engine, canvas, canvasSize) end,
+
     on_setup = function(game_module, engine) end,
     can_process_turn = function(game_module, engine) end,
     on_process_turn = function(game_module, deltaTime) end,
     can_end_turn = function(game_module, engine) end,
-    on_end_turn = function(game_module, engine) end
+    on_end_turn = function(game_module, engine) end,
+    on_collision = function(game_module, engine, spriteA, spriteB) end
 }
+
 local gfx_module = {
-    draw_background = function(gfx_module, engine, canvas, canvasSize) end,
     get_textures = function(gfx_module, engine) end,
 }
 
 ------
+
+---@alias texture integer
 
 ---@class point
 ---@field x number
@@ -52,7 +57,10 @@ local gfx_module = {
 ---@field position point
 ---@field faces die_face[]|nil
 
----@alias texture integer
+---@class spriteDef
+---@field type string
+---@field texture texture
+---@field collisionEnabled boolean|nil
 
 ------
 ---wrapper
@@ -84,10 +92,10 @@ local canvas = {
 
 ---@class sprite
 local sprite = {
-    ---@param point point
-    position = function(sprite, point) end,
-    ---@param rot number
-    rotation = function(sprite, rot) end,
+    Position = { x = 0, y = 0 }, ---@type point
+    Rotation = 0, ---@type number
+    Type = "", ---@type string
+    Index = -1, ---@type number
 }
 
 ---@class slots
@@ -117,15 +125,20 @@ local engine = {
     ---@return number
     random = function(engine, min, max) end,
 
+    ---@param min integer
+    ---@param max integer
+    ---@return integer
+    randomInt = function(engine, min, max) end,
+
     ---@param size size
     ---@param func function
     ---@return texture
     create_texture = function(engine, size, func) end,
 
-    ---@param center point
-    ---@param texture texture
+    ---@param index integer
+    ---@param def spriteDef
     ---@return sprite
-    create_sprite = function(engine, center, texture) end,
+    create_sprite = function(engine, index, def) end,
 
     ---@param slotDefs slot_def[]
     ---@return slots

@@ -11,13 +11,34 @@
 
 using namespace scripting;
 
+auto extract_alpha(gfx::image const& img, rect_f const& uv) -> grid<u8>
+{
+    auto const& info {img.info()};
+    rect_f      rect;
+    rect.Position.X  = uv.Position.X * info.Size.Width;
+    rect.Position.Y  = -uv.Position.Y * info.Size.Height;
+    rect.Size.Width  = uv.Size.Width * info.Size.Width;
+    rect.Size.Height = -uv.Size.Height * info.Size.Height;
+
+    grid<u8> retValue {size_i {rect.Size}};
+
+    for (i32 y {0}; y < rect.Size.Height; ++y) {
+        for (i32 x {0}; x < rect.Size.Width; ++x) {
+            retValue[x, y] = img.get_pixel({static_cast<int>(x + rect.Position.X), static_cast<int>(y + rect.Position.Y)}).A;
+        }
+    }
+
+    return retValue;
+}
+
 engine::engine(base_game& game, script_assets& assets)
-    : _game {game}
+    : _rng {}
+    , _game {game}
     , _assets {assets}
 {
 }
 
-template <typename R = void>
+template <typename R>
 inline auto engine::call(string const& name, auto&&... args) -> R
 {
     return _table[name].as<function<R>>()(_table, this, args...);
@@ -36,11 +57,14 @@ void engine::run(string const& file)
     call("on_setup");
 }
 
-void engine::update(milliseconds deltaTime)
+auto engine::update(milliseconds deltaTime) -> bool
 {
     if (call<bool>("can_process_turn")) {
         call("on_process_turn", deltaTime.count());
+        return true;
     }
+
+    return false;
 }
 
 auto engine::end_turn() -> bool
@@ -53,9 +77,14 @@ auto engine::end_turn() -> bool
     return false;
 }
 
+void engine::collision(sprite* a, sprite* b)
+{
+    call("on_collision", a, b);
+}
+
 void engine::create_env(string const& path)
 {
-    auto make_func {[&](auto&& func) {
+    auto makeFunc {[&](auto&& func) {
         auto ptr {make_shared_closure(std::function {func})};
         _funcs.push_back(ptr);
         return ptr.get();
@@ -81,7 +110,7 @@ void engine::create_env(string const& path)
     _script.Environment = env;
 
     // require
-    env["require"] = make_func([env, path, this](string const& package) {
+    env["require"] = makeFunc([env, path, this](string const& package) {
         if (env.has("package", "loaded", package)) {
             return env["package"]["loaded"][package].as<table>();
         }
@@ -97,9 +126,13 @@ void engine::create_env(string const& path)
 
 void engine::create_wrappers()
 {
-    auto convert_point {[this](point_f pos) -> point_f {
-        return {_game.bounds().left() + (pos.X * _game.bounds().Size.Width),
-                pos.Y * _game.bounds().Size.Height};
+    auto const normalToScreen {[this](point_f pos) -> point_f {
+        auto const& bounds {*_assets.Background->Bounds};
+        return {bounds.left() + (pos.X * bounds.width()), pos.Y * bounds.height()};
+    }};
+    auto const screenToNormal {[this](point_f pos) -> point_f {
+        auto const& bounds {*_assets.Background->Bounds};
+        return {(pos.X - bounds.left()) / bounds.width(), pos.Y / bounds.height()};
     }};
 
     // create wrappers
@@ -115,12 +148,12 @@ void engine::create_wrappers()
     canvasWrapper["fill"]         = [](gfx::canvas* canvas, std::optional<bool> enforeWinding) { canvas->fill(enforeWinding ? *enforeWinding : true); };
 
     auto& spriteWrapper {*_script.create_wrapper<sprite>("sprite")};
-    spriteWrapper["position"] = [convert_point](sprite* sprite, point_f p) {
-        sprite->Shape->Bounds = {convert_point(p), sprite->Shape->Bounds->Size};
-    };
-    spriteWrapper["rotation"] = [](sprite* sprite, f32 p) {
-        sprite->Shape->Rotation = degree_f {p};
-    };
+    spriteWrapper["Position"] = property {[screenToNormal](sprite* sprite) { return screenToNormal(sprite->Shape->Bounds->Position); },
+                                          [normalToScreen](sprite* sprite, point_f p) { sprite->Shape->Bounds = {normalToScreen(p), sprite->Shape->Bounds->Size}; }};
+    spriteWrapper["Rotation"] = property {[](sprite* sprite) { return sprite->Shape->Rotation->Value; },
+                                          [](sprite* sprite, f32 p) { sprite->Shape->Rotation = degree_f {p}; }};
+    spriteWrapper["Type"]     = getter {[](sprite* sprite) { return sprite->Type; }};
+    spriteWrapper["Index"]    = getter {[](sprite* sprite) { return sprite->Index; }};
 
     auto& slotsWrapper {*_script.create_wrapper<slots>("slots")};
     slotsWrapper["slot_is_empty"]  = [](slots* slots, usize idx) { return slots->get_slot(idx)->empty(); };                             // TODO: error check
@@ -131,20 +164,25 @@ void engine::create_wrappers()
     slotsWrapper["are_locked"]     = [](slots* slots) { slots->are_locked(); };
 
     auto& engineWrapper {*_script.create_wrapper<engine>("engine")};
-    engineWrapper["random"]        = [](engine* engine, f32 min, f32 max) { return engine->_game.random(min, max); };
-    engineWrapper["create_sprite"] = [convert_point](engine* engine, point_f center, u32 tex) {
+    engineWrapper["random"]        = [](engine* engine, f32 min, f32 max) { return engine->_rng(min, max); };
+    engineWrapper["randomInt"]     = [](engine* engine, i32 min, i32 max) { return engine->_rng(min, max); };
+    engineWrapper["create_sprite"] = [normalToScreen](engine* engine, usize idx, table const& def) {
         auto  ptr {std::make_unique<sprite>()};
         auto* sprite {ptr.get()};
         engine->_assets.Sprites.push_back(std::move(ptr));
 
-        auto const& texture {engine->_assets.Textures[tex]}; // TODO: error check
-        auto const  spriteCenter {convert_point(center)};
-        sprite->Shape         = engine->_game.create_shape();
-        sprite->Shape->Bounds = rect_f {
-            point_f {spriteCenter.X - (texture.Size.Width / 2), spriteCenter.Y - (texture.Size.Width / 2)},
-            size_f {texture.Size}};
+        sprite->Type               = def["type"].as<string>();
+        sprite->Index              = idx;
+        sprite->TexID              = def["texture"].as<u32>();
+        sprite->IsCollisionEnabled = def["collisionEnabled"].as<bool>();
+
+        auto const& texture {engine->_assets.Textures[sprite->TexID]};            // TODO: error check
+        auto const  spritePos {normalToScreen({def["x"].as<f32>(), def["y"].as<f32>()})};
+        sprite->Shape                = engine->_game.create_shape();
+        sprite->Shape->Bounds        = rect_f {spritePos, size_f {texture.Size}}; // TODO: scaling
         sprite->Shape->Material      = engine->_assets.SpriteMaterial;
         sprite->Shape->TextureRegion = texture.Region;
+
         return sprite;
     };
     engineWrapper["create_slots"] = [](engine* engine, table const& slots) { };
@@ -152,15 +190,20 @@ void engine::create_wrappers()
     engineWrapper["roll_dice"]    = [](engine* engine) { engine->_game.roll(); };
 }
 
+struct tex_def {
+    u32            ID {0};
+    size_i         Size;
+    function<void> Draw;
+};
+
 auto engine::create_gfx() -> bool
 {
-    table gfxTable;
-    if (!_table.try_get(gfxTable, "Gfx")) { return false; }
+    auto const bgSize {size_i {_assets.Background->Bounds->Size}};
 
-    if (function<void> func; gfxTable.try_get(func, "draw_background")) { // background
-        auto const canvasSize {size_i {_game.bounds().Size}};
-        _canvas.begin_frame(canvasSize, 1, 0);
-        func(this, &_canvas, canvasSize);
+    // draw background
+    if (function<void> func; _table.try_get(func, "draw_background")) {
+        _canvas.begin_frame(bgSize, 1, 0);
+        func(_table, this, &_canvas, bgSize);
         _canvas.end_frame();
 
         auto tex {_canvas.get_texture(0)};
@@ -174,21 +217,20 @@ auto engine::create_gfx() -> bool
 
     constexpr f32 PAD {2};
 
-    if (function<std::unordered_map<u32, table>> func; gfxTable.try_get(func, "get_textures")) { // textures
-        auto const texMap {func(gfxTable, this)};
-        struct tex_def {
-            u32            ID {0};
-            size_i         Size;
-            function<void> Draw;
-        };
+    // textures
+    if (function<std::unordered_map<u32, table>> func; _table.try_get(func, "get_textures")) {
+        auto const           texMap {func(_table, this)};
         std::vector<tex_def> texDefs;
 
+        // get canvas size
         size_i canvasSize {0, 0};
         for (auto const& [id, texDefTable] : texMap) {
             tex_def& texDef {texDefs.emplace_back()};
             texDef.ID = id;
-            if (!texDefTable.try_get(texDef.Size, "Size")) { return false; }
-            if (!texDefTable.try_get(texDef.Draw, "Draw")) { return false; }
+            size_f size;
+            if (!texDefTable.try_get(size, "size")) { return false; }
+            texDef.Size = size_i {size * bgSize};
+            if (!texDefTable.try_get(texDef.Draw, "draw")) { return false; }
 
             canvasSize.Width += texDef.Size.Width + static_cast<i32>(PAD * 2);
             canvasSize.Height = std::max(canvasSize.Height, texDef.Size.Height + static_cast<i32>(PAD * 2));
@@ -197,6 +239,7 @@ auto engine::create_gfx() -> bool
         canvasSize.Width += static_cast<i32>(PAD);
         canvasSize.Height += static_cast<i32>(PAD);
 
+        // draw textures
         point_f pen {PAD, PAD};
 
         _canvas.begin_frame(canvasSize, 1, 1);
@@ -207,9 +250,10 @@ auto engine::create_gfx() -> bool
             _canvas.translate(pen);
             texDef.Draw(&_canvas);
 
-            _assets.Textures[texDef.ID].Size   = texDef.Size;
-            _assets.Textures[texDef.ID].Region = std::to_string(texDef.ID);
-            tex->regions()[_assets.Textures[texDef.ID].Region] =
+            auto& assTex {_assets.Textures[texDef.ID]};
+            assTex.Size   = texDef.Size;
+            assTex.Region = std::to_string(texDef.ID);
+            tex->regions()[assTex.Region] =
                 {.UVRect = {
                      {pen.X / canvasSize.Width, -pen.Y / canvasSize.Height},
                      {static_cast<f32>(texDef.Size.Width) / canvasSize.Width,
@@ -222,6 +266,16 @@ auto engine::create_gfx() -> bool
         }
         _canvas.end_frame();
 
+        // get alpha
+        auto spriteImage {tex->copy_to_image(0)};
+        spriteImage.flip_vertically();
+        for (auto& texture : _assets.Textures) {
+            auto const& textureRegion {tex->regions()[texture.second.Region]};
+            texture.second.Alpha = extract_alpha(spriteImage, textureRegion.UVRect);
+        }
+
+        // setup material
+        tex->Filtering                               = gfx::texture::filtering::Linear;
         _assets.SpriteMaterial->first_pass().Texture = tex;
     } else {
         return false;
@@ -232,8 +286,5 @@ auto engine::create_gfx() -> bool
 
 auto engine::create_sfx() -> bool
 {
-    if (table sfxTable; _table.try_get(sfxTable, "Sfx")) {
-    }
-
     return true;
 }

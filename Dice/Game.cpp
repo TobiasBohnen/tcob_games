@@ -9,15 +9,14 @@ using namespace scripting;
 
 base_game::base_game(gfx::window& window, assets::group const& grp)
     : gfx::entity {update_mode::Both}
-    , _rng {12345}
     , _window {window}
-    , _slots {_batch, grp.get<gfx::font_family>("Poppins")}
-    , _dice {_batch, _window}
+    , _slots {_diceBatch, grp.get<gfx::font_family>("Poppins")}
+    , _dice {_diceBatch, _window}
     , _engine {*this, _assets}
 {
     auto const [w, h] {size_f {*window.Size}};
 
-    _assets.Background         = &_batch.create_shape<gfx::rect_shape>();
+    _assets.Background         = &_entityBatch.create_shape<gfx::rect_shape>();
     _assets.Background->Bounds = {(w - h) / 2, 0, h, h};
 }
 
@@ -26,15 +25,19 @@ void base_game::on_update(milliseconds deltaTime)
     _dice.update(deltaTime);
     _slots.update(deltaTime);
 
-    _engine.update(deltaTime);
+    if (_engine.update(deltaTime)) {
+        wrap_sprites();
+        collide_sprites();
+    }
 
-    wrap_sprites();
-    _batch.update(deltaTime);
+    _entityBatch.update(deltaTime);
+    _diceBatch.update(deltaTime);
 }
 
 void base_game::on_draw_to(gfx::render_target& target)
 {
-    _batch.draw_to(target);
+    _entityBatch.draw_to(target);
+    _diceBatch.draw_to(target);
 }
 
 auto base_game::can_draw() const -> bool
@@ -105,7 +108,7 @@ void base_game::wrap_sprites()
 
         if (needs_copy_x || needs_copy_y) {
             if (!s->WrapCopy) {
-                s->WrapCopy                = &_batch.create_shape<gfx::rect_shape>();
+                s->WrapCopy                = &_entityBatch.create_shape<gfx::rect_shape>();
                 s->WrapCopy->Material      = *s->Shape->Material;
                 s->WrapCopy->TextureRegion = *s->Shape->TextureRegion;
             }
@@ -128,18 +131,97 @@ void base_game::wrap_sprites()
             s->WrapCopy->Rotation = *s->Shape->Rotation;
         } else {
             if (s->WrapCopy) {
-                _batch.remove_shape(*s->WrapCopy);
+                _entityBatch.remove_shape(*s->WrapCopy);
                 s->WrapCopy = nullptr;
             }
         }
     }
 }
 
-auto base_game::create_shape() -> gfx::rect_shape* { return &_batch.create_shape<gfx::rect_shape>(); }
-auto base_game::random(f32 min, f32 max) -> f32
+void base_game::collide_sprites()
 {
-    return _rng(min, max);
+    auto const collide {[this](gfx::rect_shape* a, gfx::rect_shape* b, sprite* sA, sprite* sB) {
+        rect_f const inter {a->aabb().as_intersection_with(b->aabb())};
+        if (inter == rect_f::Zero) { return; }
+
+        auto const& texA {_assets.Textures[sA->TexID]};
+        auto const& texB {_assets.Textures[sB->TexID]};
+
+        auto const& invA {a->transform().as_inverted()};
+        auto const& invB {b->transform().as_inverted()};
+
+        // cache bounds and dimensions
+        f32 const aLeft {a->Bounds->left()};
+        f32 const aTop {a->Bounds->top()};
+        f32 const aWidth {a->Bounds->width()};
+        f32 const aHeight {a->Bounds->height()};
+
+        f32 const bLeft {b->Bounds->left()};
+        f32 const bTop {b->Bounds->top()};
+        f32 const bWidth {b->Bounds->width()};
+        f32 const bHeight {b->Bounds->height()};
+
+        i32 const iWidth {static_cast<i32>(inter.width())};
+        i32 const iHeight {static_cast<i32>(inter.height())};
+
+        for (i32 y {0}; y < iHeight; ++y) {
+            f32 const wy {inter.top() + static_cast<f32>(y)};
+            for (i32 x {0}; x < iWidth; ++x) {
+                f32 const wx {inter.left() + static_cast<f32>(x)};
+
+                // world → local
+                point_f const localA {invA.transform_point({wx, wy})};
+                point_f const localB {invB.transform_point({wx, wy})};
+
+                i32 const ax {static_cast<i32>(localA.X - aLeft)};
+                i32 const ay {static_cast<i32>(localA.Y - aTop)};
+                i32 const bx {static_cast<i32>(localB.X - bLeft)};
+                i32 const by {static_cast<i32>(localB.Y - bTop)};
+
+                if (ax < 0 || ay < 0 || bx < 0 || by < 0
+                    || ax >= static_cast<i32>(aWidth)
+                    || ay >= static_cast<i32>(aHeight)
+                    || bx >= static_cast<i32>(bWidth)
+                    || by >= static_cast<i32>(bHeight)) {
+                    continue;
+                }
+
+                if (texA.Alpha[ax, ay] > 250 && texB.Alpha[bx, by] > 250) {
+                    _engine.collision(sA, sB);
+                    return;
+                }
+            }
+        }
+    }};
+
+    for (usize i {0}; i < _assets.Sprites.size(); ++i) {
+        auto const& spriteA {_assets.Sprites[i]};
+        if (!spriteA->IsCollisionEnabled) { continue; }
+
+        std::vector<gfx::rect_shape*> shapesA {spriteA->Shape};
+        if (spriteA->WrapCopy) { shapesA.push_back(spriteA->WrapCopy); }
+
+        for (usize j {i + 1}; j < _assets.Sprites.size(); ++j) {
+            auto const& spriteB {_assets.Sprites[j]};
+            if (!spriteB->IsCollisionEnabled) { continue; }
+
+            std::vector<gfx::rect_shape*> shapesB {spriteB->Shape};
+            if (spriteB->WrapCopy) { shapesB.push_back(spriteB->WrapCopy); }
+
+            for (auto* a : shapesA) {
+                for (auto* b : shapesB) {
+                    collide(a, b, spriteA.get(), spriteB.get());
+                }
+            }
+        }
+    }
 }
+
+auto base_game::create_shape() -> gfx::rect_shape*
+{
+    return &_entityBatch.create_shape<gfx::rect_shape>();
+}
+
 void base_game::roll()
 {
     _dice.roll();
