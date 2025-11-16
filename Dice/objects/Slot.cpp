@@ -17,7 +17,7 @@ slot::slot(gfx::rect_shape* shape, slot_face face)
 {
 }
 
-auto slot::empty() const -> bool
+auto slot::is_empty() const -> bool
 {
     return _die == nullptr;
 }
@@ -27,49 +27,47 @@ auto slot::current_die() const -> die*
     return _die;
 }
 
-void slot::lock() { _locked = true; }
-
-void slot::unlock() { _locked = false; }
-
-auto slot::can_drop(die_face dieFace) const -> bool
+auto slot::can_accept(die_face dieFace) const -> bool
 {
     if (_die || _locked) { return false; }
 
-    switch (_face.Op) {
-    case op::Equal:
-        if (dieFace.Value != _face.Value) { return false; }
-        break;
-    case op::NotEqual:
-        if (dieFace.Value == _face.Value) { return false; }
-        break;
-    case op::Greater:
-        if (dieFace.Value <= _face.Value) { return false; }
-        break;
-    case op::Less:
-        if (dieFace.Value >= _face.Value) { return false; }
-        break;
+    if (_face.Value != 0) {
+        switch (_face.Op) {
+        case op::Equal:
+            if (dieFace.Value != _face.Value) { return false; }
+            break;
+        case op::NotEqual:
+            if (dieFace.Value == _face.Value) { return false; }
+            break;
+        case op::Greater:
+            if (dieFace.Value <= _face.Value) { return false; }
+            break;
+        case op::Less:
+            if (dieFace.Value >= _face.Value) { return false; }
+            break;
+        }
     }
 
     if (_face.Color == colors::Transparent) { return true; }
     return _face.Color == dieFace.Color;
 }
 
-void slot::drop(die* die)
+void slot::accept(die* die)
 {
     _colorState = slot_state::Normal;
 
     _die = die;
-    if (_die) { _die->lock(); }
+    if (_die) { _die->freeze(); }
 }
 
-auto slot::can_take(die* die) const -> bool
+auto slot::can_release(die* die) const -> bool
 {
     return !_locked && _die && die == _die;
 }
 
-void slot::take()
+void slot::release()
 {
-    if (_die) { _die->unlock(); }
+    if (_die) { _die->unfreeze(); }
     _die = nullptr;
 }
 
@@ -144,7 +142,7 @@ auto slots::hover_slot(rect_f const& rect, die* die, bool isButtonDown) -> slot*
         if (!die) {
             slot->_colorState = slot_state::Hovered;
         } else if (isButtonDown) {
-            slot->_colorState = slot->can_drop(die->current_face()) ? slot_state::Accept : slot_state::Reject;
+            slot->_colorState = slot->can_accept(die->current_face()) ? slot_state::Accept : slot_state::Reject;
         }
     }
     if (slot != _hoverSlot && _hoverSlot) { _hoverSlot->_colorState = slot_state::Normal; }
@@ -153,13 +151,13 @@ auto slots::hover_slot(rect_f const& rect, die* die, bool isButtonDown) -> slot*
     return _hoverSlot;
 }
 
-void slots::take_die(die* die)
+void slots::release_die(die* die)
 {
-    if (!die) { return; }
+    if (_locked || !die) { return; }
 
     for (auto& slot : _slots) {
-        if (slot.can_take(die)) {
-            slot.take();
+        if (slot.can_release(die)) {
+            slot.release();
             return;
         }
     }
@@ -167,7 +165,7 @@ void slots::take_die(die* die)
 
 auto slots::get_hand() const -> hand
 {
-    if (!is_complete() || _slots.size() > 5) { return {}; }
+    if (!are_filled() || _slots.size() > 5) { return {}; }
 
     struct indexed_face {
         die_face Face;
@@ -249,7 +247,7 @@ auto slots::get_hand() const -> hand
 
 auto slots::get_sum() const -> i32
 {
-    if (!is_complete()) { return -1; }
+    if (!are_filled()) { return -1; }
 
     i32 retValue {0};
     for (auto const& slot : _slots) {
@@ -258,9 +256,9 @@ auto slots::get_sum() const -> i32
     return retValue;
 }
 
-auto slots::is_complete() const -> bool
+auto slots::are_filled() const -> bool
 {
-    return std::ranges::all_of(_slots, [](auto const& slot) { return !slot.empty(); });
+    return std::ranges::all_of(_slots, [](auto const& slot) { return !slot.is_empty(); });
 }
 
 void slots::update(milliseconds deltaTime)
@@ -268,4 +266,9 @@ void slots::update(milliseconds deltaTime)
     for (auto& slot : _slots) {
         slot.update(deltaTime);
     }
+}
+
+auto slots::count() const -> usize
+{
+    return _slots.size();
 }

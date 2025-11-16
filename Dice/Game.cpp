@@ -17,7 +17,7 @@ base_game::base_game(gfx::window& window, assets::group const& grp)
     auto const [w, h] {size_f {*window.Size}};
 
     _assets.Background         = &_entityBatch.create_shape<gfx::rect_shape>();
-    _assets.Background->Bounds = {(w - h) / 2, 0, h, h};
+    _assets.Background->Bounds = {0, 0, h, h};
 }
 
 void base_game::on_update(milliseconds deltaTime)
@@ -48,7 +48,7 @@ auto base_game::can_draw() const -> bool
 void base_game::on_key_down(input::keyboard::event const& ev)
 {
     switch (ev.ScanCode) {
-    case input::scan_code::C: _dice.roll(); break;
+    case input::scan_code::C: _engine.start_turn(); break;
     default:                  break;
     }
 }
@@ -56,7 +56,7 @@ void base_game::on_key_down(input::keyboard::event const& ev)
 void base_game::on_mouse_button_up(input::mouse::button_event const& ev)
 {
     switch (ev.Button) {
-    case input::mouse::button::Left:  _dice.drop(_hoverSlot); break;
+    case input::mouse::button::Left:  _dice.accept(_hoverSlot); break;
     case input::mouse::button::Right: break;
     default:                          break;
     }
@@ -84,7 +84,7 @@ void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
 
     _hoverSlot = _slots.hover_slot(getRect(), _hoverDie, isButtonDown);
     if (isButtonDown) {
-        _slots.take_die(_hoverDie);
+        _slots.release_die(_hoverDie);
         _dice.drag(ev.Position);
     }
 }
@@ -187,7 +187,7 @@ void base_game::collide_sprites()
                 }
 
                 if (texA.Alpha[ax, ay] > 250 && texB.Alpha[bx, by] > 250) {
-                    _engine.collision(sA, sB);
+                    Collision({.A = sA, .B = sB});
                     return;
                 }
             }
@@ -222,7 +222,49 @@ auto base_game::create_shape() -> gfx::rect_shape*
     return &_entityBatch.create_shape<gfx::rect_shape>();
 }
 
-void base_game::roll()
+auto base_game::get_slots() -> slots*
 {
-    _dice.roll();
+    return &_slots;
+}
+auto base_game::get_dice() -> dice*
+{
+    return &_dice;
+}
+
+auto base_game::get_random_die_position() -> point_f
+{
+    auto const winSize {*_window.Size};
+    auto const width {winSize.Width - _assets.Background->Bounds->width()};
+    rect_f     area {};
+    area.Position.X  = _assets.Background->Bounds->right() + (width * _assets.DiceArea.left());
+    area.Position.Y  = winSize.Height * _assets.DiceArea.top();
+    area.Size.Width  = width * _assets.DiceArea.width();
+    area.Size.Height = winSize.Height * _assets.DiceArea.height();
+    area.Size -= DICE_SIZE;
+
+    point_f pos;
+    pos.X = _assets.Rng(area.left(), area.right());
+    pos.Y = _assets.Rng(area.top(), area.bottom());
+
+    return pos;
+}
+
+void base_game::add_die(std::span<die_face const> faces)
+{
+    _dice.add_die(get_random_die_position(), _assets.Rng, faces[0], faces);
+}
+
+void base_game::release_dice(std::span<i32 const> slotIdx)
+{
+    _slots.unlock();
+
+    for (i32 i : slotIdx) {
+        auto* slot {_slots.get_slot(i - 1)};
+        if (!slot) { continue; }
+        auto* die {slot->current_die()};
+        if (!die) { continue; }
+
+        slot->release();
+        die->move_to(get_random_die_position());
+    }
 }

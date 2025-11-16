@@ -25,16 +25,13 @@ class slot {
 public:
     slot(gfx::rect_shape* shape, slot_face face);
 
-    auto empty() const -> bool;
+    auto is_empty() const -> bool;
     auto current_die() const -> die*;
 
-    void lock();
-    void unlock();
-
-    auto can_drop(die_face dieFace) const -> bool;
-    void drop(die* die);
-    auto can_take(die* die) const -> bool;
-    void take();
+    auto can_accept(die_face dieFace) const -> bool;
+    void accept(die* die);
+    auto can_release(die* die) const -> bool;
+    void release();
 
     void update(milliseconds deltaTime) const;
 
@@ -62,14 +59,15 @@ public:
 
     void add_slot(point_f pos, slot_face face);
     auto get_slot(usize idx) -> slot*;
+    auto count() const -> usize;
 
     auto hover_slot(rect_f const& rect, die* die, bool isButtonDown) -> slot*;
 
-    void take_die(die* die);
+    void release_die(die* die);
 
     auto get_hand() const -> hand;
     auto get_sum() const -> i32;
-    auto is_complete() const -> bool;
+    auto are_filled() const -> bool;
 
     void update(milliseconds deltaTime);
 

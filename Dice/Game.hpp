@@ -17,11 +17,24 @@ class base_game : public gfx::entity {
 public:
     base_game(gfx::window& window, assets::group const& grp);
 
+    signal<collision_event const> Collision;
+
     void run(string const& file);
 
     auto create_shape() -> gfx::rect_shape*;
 
-    void roll();
+    void add_die(std::span<die_face const> faces);
+    void release_dice(std::span<i32 const> slotIdx);
+
+    void add_slot(point_f pos, slot_face face)
+    {
+        _slots.add_slot(pos, face);
+    }
+
+    auto get_slots() -> slots*;
+    auto get_dice() -> dice*;
+
+    auto get_random_die_position() -> point_f;
 
 protected:
     void on_update(milliseconds deltaTime) override;
@@ -47,6 +60,6 @@ private:
     dice  _dice;
     die*  _hoverDie {nullptr};
 
-    script_assets _assets;
+    shared_assets _assets;
     engine        _engine;
 };

@@ -56,6 +56,9 @@ void start_scene::on_key_down(input::keyboard::event const& ev)
     case input::scan_code::BACKSPACE:
         parent().pop_current_scene();
         break;
+    case input::scan_code::R: {
+        auto _ = window().copy_to_image().save("screen01.webp");
+    } break;
     default:
         break;
     }

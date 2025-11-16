@@ -9,45 +9,29 @@
 
 ////////////////////////////////////////////////////////////
 
-struct sprite {
-    gfx::rect_shape* Shape {};
-    gfx::rect_shape* WrapCopy {};
-
-    string Type;
-    usize  Index {0};
-
-    u32  TexID {0};
-    bool IsCollisionEnabled {false};
-};
-
-struct texture {
-    size_i   Size;
-    string   Region;
-    grid<u8> Alpha;
-};
-
-////////////////////////////////////////////////////////////
-
-struct script_assets {
+struct shared_assets {
     std::unordered_map<u32, texture>     Textures;
     asset_owner_ptr<gfx::material>       SpriteMaterial;
     std::vector<std::unique_ptr<sprite>> Sprites;
 
     gfx::rect_shape*               Background;
     asset_owner_ptr<gfx::material> BackgroundMaterial;
+
+    rect_f DiceArea {0.00f, 0.00f, 1.00f, 0.25f};
+
+    rng Rng;
 };
 
 ////////////////////////////////////////////////////////////
 
 class engine {
 public:
-    engine(base_game& game, script_assets& assets);
+    engine(base_game& game, shared_assets& assets);
 
     void run(string const& file);
 
     auto update(milliseconds deltaTime) -> bool;
-    auto end_turn() -> bool;
-    void collision(sprite* a, sprite* b);
+    auto start_turn() -> bool;
 
 private:
     void create_env(string const& path);
@@ -58,8 +42,6 @@ private:
     template <typename R = void>
     auto call(string const& name, auto&&... args) -> R;
 
-    rng _rng;
-
     scripting::script                                 _script;
     scripting::table                                  _table;
     std::vector<scripting::native_closure_shared_ptr> _funcs;
@@ -67,5 +49,5 @@ private:
     gfx::canvas _canvas;
 
     base_game&     _game;
-    script_assets& _assets;
+    shared_assets& _assets;
 };

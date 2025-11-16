@@ -24,22 +24,24 @@ public:
 
     auto current_face() const -> die_face;
 
-    void lock();
-    void unlock();
+    void freeze();
+    void unfreeze();
 
-    auto is_rolling() const -> bool;
     void roll();
+    auto is_rolling() const -> bool;
 
     void update(milliseconds deltaTime);
 
     auto bounds() const -> rect_f const&;
+    void move_to(point_f pos);
+    void move_by(point_f offset);
 
 private:
     gfx::rect_shape* _shape {nullptr};
 
     rng& _rng;
     bool _rolling {false};
-    bool _locked {false};
+    bool _frozen {false};
 
     std::unique_ptr<linear_tween<f32>> _tween;
 
@@ -59,11 +61,12 @@ public:
 
     void add_die(point_f pos, rng& rng, die_face currentFace, std::span<die_face const> faces);
     auto get_die(usize idx) -> die*;
+    auto count() const -> usize;
 
     void roll();
 
     void drag(point_i mousePos);
-    void drop(slot* slot);
+    void accept(slot* slot);
 
     auto hover_die(point_i mousePos) -> die*;
 

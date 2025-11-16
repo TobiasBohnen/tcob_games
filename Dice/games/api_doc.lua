@@ -11,10 +11,10 @@ local game_module = {
     draw_background = function(game_module, engine, canvas, canvasSize) end,
 
     on_setup = function(game_module, engine) end,
-    can_process_turn = function(game_module, engine) end,
-    on_process_turn = function(game_module, deltaTime) end,
-    can_end_turn = function(game_module, engine) end,
-    on_end_turn = function(game_module, engine) end,
+    can_run = function(game_module, engine) end,
+    on_run = function(game_module, deltaTime) end,
+    can_start = function(game_module, engine) end,
+    on_start = function(game_module, engine) end,
     on_collision = function(game_module, engine, spriteA, spriteB) end
 }
 
@@ -43,19 +43,11 @@ local gfx_module = {
 ---@class slot_face
 ---@field color string
 ---@field value number
----@field op string
-
----@class slot_def
----@field position point
----@field face slot_face|nil
+---@field op string|nil
 
 ---@class die_face
 ---@field color string
----@field value number
-
----@class die_def
----@field position point
----@field faces die_face[]|nil
+---@field values integer[]
 
 ---@class spriteDef
 ---@field type string
@@ -98,28 +90,11 @@ local sprite = {
     Index = -1, ---@type number
 }
 
----@class slots
-local slots = {
-    ---@return boolean
-    is_complete = function(slots) end,
-
-    lock = function(slots) end,
-    unlock = function(slots) end,
-
-    ---@return boolean
-    are_locked = function(slots) end,
-
-    ---@param idx number
-    ---@return boolean
-    slot_is_empty = function(slots, idx) end,
-
-    ---@param idx number
-    ---@return integer
-    slot_die_value = function(slot, idx) end,
-}
-
 ---@class engine
 local engine = {
+    ---@param bounds rect
+    set_dice_area = function(engine, bounds) end,
+
     ---@param min number
     ---@param max number
     ---@return number
@@ -130,22 +105,33 @@ local engine = {
     ---@return integer
     randomInt = function(engine, min, max) end,
 
-    ---@param size size
-    ---@param func function
-    ---@return texture
-    create_texture = function(engine, size, func) end,
-
     ---@param index integer
     ---@param def spriteDef
     ---@return sprite
     create_sprite = function(engine, index, def) end,
 
-    ---@param slotDefs slot_def[]
-    ---@return slots
-    create_slots = function(engine, slotDefs) end,
+    ---@param pos point
+    ---@param slotFace slot_face
+    create_slot = function(engine, pos, slotFace) end,
 
-    ---@param dieDefs die_def[]
-    create_dice = function(engine, dieDefs) end,
+    ---@param count integer
+    ---@param dieFaces die_face[]
+    create_dice = function(engine, count, dieFaces) end,
 
+    release_dice = function(engine, slots) end,
     roll_dice = function(engine) end,
+
+    ---@return boolean
+    are_slots_filled = function(slots) end,
+
+    ---@return boolean
+    are_slots_locked = function(slots) end,
+
+    ---@param idx number
+    ---@return boolean
+    is_slot_empty = function(slots, idx) end,
+
+    ---@param idx number
+    ---@return integer
+    slot_die_value = function(slot, idx) end,
 }

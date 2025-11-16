@@ -15,7 +15,7 @@ class slots;
 class die;
 class dice;
 class base_game;
-struct script_assets;
+struct shared_assets;
 
 constexpr size_f DICE_SIZE {62, 62};
 constexpr f32    DICE_OFFSET {72.f};
@@ -70,4 +70,28 @@ struct slot_face {
     }
 
     auto operator==(slot_face const& other) const -> bool = default;
+};
+
+////////////////////////////////////////////////////////////
+
+struct sprite {
+    gfx::rect_shape* Shape {};
+    gfx::rect_shape* WrapCopy {};
+
+    string Type;
+    usize  Index {0};
+
+    u32  TexID {0};
+    bool IsCollisionEnabled {false};
+};
+
+struct texture {
+    size_i   Size;
+    string   Region;
+    grid<u8> Alpha;
+};
+
+struct collision_event {
+    sprite* A;
+    sprite* B;
 };

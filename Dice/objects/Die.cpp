@@ -29,9 +29,9 @@ die::die(gfx::rect_shape* shape, rng& rng, std::span<die_face const> faces, die_
 
 auto die::current_face() const -> die_face { return _currentFace; }
 
-void die::lock() { _locked = true; }
+void die::freeze() { _frozen = true; }
 
-void die::unlock() { _locked = false; }
+void die::unfreeze() { _frozen = false; }
 
 auto die::is_rolling() const -> bool
 {
@@ -40,14 +40,19 @@ auto die::is_rolling() const -> bool
 
 void die::roll()
 {
-    if (_locked || _rolling) { return; }
+    if (_frozen || _rolling) { return; }
 
     _rolling = true;
 
-    _tween           = make_unique_tween<linear_tween<f32>>(milliseconds {_rng(500, 2500)}, 0.0f, 1.0f);
-    _tween->Interval = milliseconds {_rng(20, 40)};
+    constexpr i32 MinRollTime {250};
+    constexpr i32 MaxRollTime {250};
+    constexpr i32 MinRollInterval {20};
+    constexpr i32 MaxRollInterval {40};
+
+    _tween           = make_unique_tween<linear_tween<f32>>(milliseconds {_rng(MinRollTime, MaxRollTime)}, 0.0f, 1.0f);
+    _tween->Interval = milliseconds {_rng(MinRollInterval, MaxRollInterval)};
     _tween->Value.Changed.connect([&](auto val) {
-        _tween->Interval = *_tween->Interval + milliseconds {_rng(50, 150)};
+        _tween->Interval = *_tween->Interval + milliseconds {_rng(MinRollInterval / 2, MaxRollInterval / 2)};
 
         u8 const    idx {static_cast<u8>(_rng(usize {0}, _faces.size() - 1))};
         auto const& face {_faces.at(idx)};
@@ -88,6 +93,20 @@ auto die::bounds() const -> rect_f const&
     return *_shape->Bounds;
 }
 
+void die::move_to(point_f pos)
+{
+    _shape->Bounds.mutate([&](rect_f& bounds) {
+        bounds.Position = pos;
+    });
+}
+
+void die::move_by(point_f offset)
+{
+    _shape->Bounds.mutate([&](rect_f& bounds) {
+        bounds.Position += offset;
+    });
+}
+
 ////////////////////////////////////////////////////////////
 
 dice::dice(gfx::shape_batch& batch, gfx::window& window)
@@ -120,7 +139,7 @@ void dice::roll()
 
 void dice::drag(point_i mousePos)
 {
-    if (!_hoverDie || _hoverDie->_locked) { return; }
+    if (!_hoverDie || _hoverDie->_frozen) { return; }
 
     point_f const newPos {_window.camera().convert_screen_to_world(mousePos)};
     rect_i const& bounds {_window.bounds()};
@@ -148,12 +167,12 @@ void dice::drag(point_i mousePos)
     _hoverDie->_colorState    = die_state::Dragged;
 }
 
-void dice::drop(slot* slot)
+void dice::accept(slot* slot)
 {
-    if (!_hoverDie || !slot || !slot->can_drop(_hoverDie->current_face())) { return; }
+    if (!_hoverDie || !slot || !slot->can_accept(_hoverDie->current_face())) { return; }
 
-    if (slot->empty()) {
-        slot->drop(_hoverDie);
+    if (slot->is_empty()) {
+        slot->accept(_hoverDie);
     }
 
     _hoverDie->_colorState    = die_state::Hovered;
@@ -202,4 +221,9 @@ void dice::update(milliseconds deltaTime)
     for (auto& die : _dice) {
         die.update(deltaTime);
     }
+}
+
+auto dice::count() const -> usize
+{
+    return _dice.size();
 }

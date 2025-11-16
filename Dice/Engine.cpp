@@ -24,18 +24,20 @@ auto extract_alpha(gfx::image const& img, rect_f const& uv) -> grid<u8>
 
     for (i32 y {0}; y < rect.Size.Height; ++y) {
         for (i32 x {0}; x < rect.Size.Width; ++x) {
-            retValue[x, y] = img.get_pixel({static_cast<int>(x + rect.Position.X), static_cast<int>(y + rect.Position.Y)}).A;
+            retValue[x, y] = img.get_pixel({static_cast<i32>(x + rect.Position.X), static_cast<i32>(y + rect.Position.Y)}).A;
         }
     }
 
     return retValue;
 }
 
-engine::engine(base_game& game, script_assets& assets)
-    : _rng {}
-    , _game {game}
+engine::engine(base_game& game, shared_assets& assets)
+    : _game {game}
     , _assets {assets}
 {
+    _game.Collision.connect([&](auto const& ev) {
+        call("on_collision", ev.A, ev.B);
+    });
 }
 
 template <typename R>
@@ -59,27 +61,23 @@ void engine::run(string const& file)
 
 auto engine::update(milliseconds deltaTime) -> bool
 {
-    if (call<bool>("can_process_turn")) {
-        call("on_process_turn", deltaTime.count());
+    if (call<bool>("can_run")) {
+        call("on_run", deltaTime.count());
         return true;
     }
 
     return false;
 }
 
-auto engine::end_turn() -> bool
+auto engine::start_turn() -> bool
 {
-    if (call<bool>("can_end_turn")) {
-        call("on_end_turn");
+    if (call<bool>("can_start")) {
+        _game.get_slots()->lock();
+        call("on_start");
         return true;
     }
 
     return false;
-}
-
-void engine::collision(sprite* a, sprite* b)
-{
-    call("on_collision", a, b);
 }
 
 void engine::create_env(string const& path)
@@ -126,11 +124,11 @@ void engine::create_env(string const& path)
 
 void engine::create_wrappers()
 {
-    auto const normalToScreen {[this](point_f pos) -> point_f {
+    auto const normalToWorld {[this](point_f pos) -> point_f {
         auto const& bounds {*_assets.Background->Bounds};
         return {bounds.left() + (pos.X * bounds.width()), pos.Y * bounds.height()};
     }};
-    auto const screenToNormal {[this](point_f pos) -> point_f {
+    auto const worldToNormal {[this](point_f pos) -> point_f {
         auto const& bounds {*_assets.Background->Bounds};
         return {(pos.X - bounds.left()) / bounds.width(), pos.Y / bounds.height()};
     }};
@@ -148,25 +146,17 @@ void engine::create_wrappers()
     canvasWrapper["fill"]         = [](gfx::canvas* canvas, std::optional<bool> enforeWinding) { canvas->fill(enforeWinding ? *enforeWinding : true); };
 
     auto& spriteWrapper {*_script.create_wrapper<sprite>("sprite")};
-    spriteWrapper["Position"] = property {[screenToNormal](sprite* sprite) { return screenToNormal(sprite->Shape->Bounds->Position); },
-                                          [normalToScreen](sprite* sprite, point_f p) { sprite->Shape->Bounds = {normalToScreen(p), sprite->Shape->Bounds->Size}; }};
+    spriteWrapper["Position"] = property {[worldToNormal](sprite* sprite) { return worldToNormal(sprite->Shape->Bounds->Position); },
+                                          [normalToWorld](sprite* sprite, point_f p) { sprite->Shape->Bounds = {normalToWorld(p), sprite->Shape->Bounds->Size}; }};
     spriteWrapper["Rotation"] = property {[](sprite* sprite) { return sprite->Shape->Rotation->Value; },
                                           [](sprite* sprite, f32 p) { sprite->Shape->Rotation = degree_f {p}; }};
     spriteWrapper["Type"]     = getter {[](sprite* sprite) { return sprite->Type; }};
     spriteWrapper["Index"]    = getter {[](sprite* sprite) { return sprite->Index; }};
 
-    auto& slotsWrapper {*_script.create_wrapper<slots>("slots")};
-    slotsWrapper["slot_is_empty"]  = [](slots* slots, usize idx) { return slots->get_slot(idx)->empty(); };                             // TODO: error check
-    slotsWrapper["slot_die_value"] = [](slots* slots, usize idx) { return slots->get_slot(idx)->current_die()->current_face().Value; }; // TODO: error check
-    slotsWrapper["is_complete"]    = [](slots* slots) { return slots->is_complete(); };
-    slotsWrapper["lock"]           = [](slots* slots) { slots->lock(); };
-    slotsWrapper["unlock"]         = [](slots* slots) { slots->unlock(); };
-    slotsWrapper["are_locked"]     = [](slots* slots) { slots->are_locked(); };
-
     auto& engineWrapper {*_script.create_wrapper<engine>("engine")};
-    engineWrapper["random"]        = [](engine* engine, f32 min, f32 max) { return engine->_rng(min, max); };
-    engineWrapper["randomInt"]     = [](engine* engine, i32 min, i32 max) { return engine->_rng(min, max); };
-    engineWrapper["create_sprite"] = [normalToScreen](engine* engine, usize idx, table const& def) {
+    engineWrapper["random"]        = [](engine* engine, f32 min, f32 max) { return engine->_assets.Rng(min, max); };
+    engineWrapper["randomInt"]     = [](engine* engine, i32 min, i32 max) { return engine->_assets.Rng(min, max); };
+    engineWrapper["create_sprite"] = [normalToWorld](engine* engine, usize idx, table const& def) {
         auto  ptr {std::make_unique<sprite>()};
         auto* sprite {ptr.get()};
         engine->_assets.Sprites.push_back(std::move(ptr));
@@ -177,7 +167,7 @@ void engine::create_wrappers()
         sprite->IsCollisionEnabled = def["collisionEnabled"].as<bool>();
 
         auto const& texture {engine->_assets.Textures[sprite->TexID]};            // TODO: error check
-        auto const  spritePos {normalToScreen({def["x"].as<f32>(), def["y"].as<f32>()})};
+        auto const  spritePos {normalToWorld({def["x"].as<f32>(), def["y"].as<f32>()})};
         sprite->Shape                = engine->_game.create_shape();
         sprite->Shape->Bounds        = rect_f {spritePos, size_f {texture.Size}}; // TODO: scaling
         sprite->Shape->Material      = engine->_assets.SpriteMaterial;
@@ -185,9 +175,41 @@ void engine::create_wrappers()
 
         return sprite;
     };
-    engineWrapper["create_slots"] = [](engine* engine, table const& slots) { };
-    engineWrapper["create_dice"]  = [](engine* engine, table const& dice) { };
-    engineWrapper["roll_dice"]    = [](engine* engine) { engine->_game.roll(); };
+    engineWrapper["create_slot"] = [normalToWorld](engine* engine, point_f pos, table const& slot) {
+        slot_face face;
+        slot.try_get(face.Op, "op");
+        slot.try_get(face.Value, "value");
+        string col;
+        slot.try_get(col, "color");
+        face.Color = color::FromString(col);
+
+        engine->_game.add_slot(normalToWorld(pos), face);
+    };
+    engineWrapper["create_dice"] = [](engine* engine, i32 count, table const& faces) {
+        std::vector<die_face> vec;
+        for (i32 i {1}; i <= faces.raw_length(); ++i) {
+            table            face {faces.get<table>(i).value()}; // TODO: error check
+            std::vector<i32> values;
+            face.try_get(values, "values");
+            string col;
+            face.try_get(col, "color");
+            color const color {color::FromString(col)};
+            for (auto const& value : values) {
+                vec.emplace_back(value, color);
+            }
+        }
+        if (vec.empty()) { return; }
+        for (i32 i {0}; i < count; ++i) {
+            engine->_game.add_die(vec);
+        }
+    };
+    engineWrapper["roll_dice"]        = [](engine* engine) { engine->_game.get_dice()->roll(); };
+    engineWrapper["release_dice"]     = [](engine* engine, std::vector<i32> const& slotIdx) { engine->_game.release_dice(slotIdx); };
+    engineWrapper["set_dice_area"]    = [](engine* engine, rect_f const& rect) { engine->_assets.DiceArea = rect; };
+    engineWrapper["is_slot_empty"]    = [](engine* engine, usize idx) { return engine->_game.get_slots()->get_slot(idx - 1)->is_empty(); };                          // TODO: error check
+    engineWrapper["slot_die_value"]   = [](engine* engine, usize idx) { return engine->_game.get_slots()->get_slot(idx - 1)->current_die()->current_face().Value; }; // TODO: error check
+    engineWrapper["are_slots_filled"] = [](engine* engine) { return engine->_game.get_slots()->are_filled(); };
+    engineWrapper["are_slots_locked"] = [](engine* engine) { return engine->_game.get_slots()->are_locked(); };
 }
 
 struct tex_def {
