@@ -22,15 +22,12 @@ public:
     void run(string const& file);
 
     auto create_shape() -> gfx::rect_shape*;
+    void remove_shape(gfx::shape* shape);
 
     void add_die(std::span<die_face const> faces);
     void release_dice(std::span<i32 const> slotIdx);
 
-    void add_slot(point_f pos, slot_face face)
-    {
-        _slots.add_slot(pos, face);
-    }
-
+    void add_slot(point_f pos, slot_face face);
     auto get_slots() -> slots*;
     auto get_dice() -> dice*;
 
@@ -53,7 +50,7 @@ private:
     gfx::window& _window;
 
     gfx::shape_batch _diceBatch;
-    gfx::shape_batch _entityBatch;
+    gfx::shape_batch _spriteBatch;
 
     slots _slots;
     slot* _hoverSlot {nullptr};

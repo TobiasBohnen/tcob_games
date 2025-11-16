@@ -75,11 +75,10 @@ struct slot_face {
 ////////////////////////////////////////////////////////////
 
 struct sprite {
-    gfx::rect_shape* Shape {};
-    gfx::rect_shape* WrapCopy {};
+    gfx::rect_shape* Shape {nullptr};
+    gfx::rect_shape* WrapCopy {nullptr};
 
     string Type;
-    usize  Index {0};
 
     u32  TexID {0};
     bool IsCollisionEnabled {false};

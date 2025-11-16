@@ -87,7 +87,6 @@ local sprite = {
     Position = { x = 0, y = 0 }, ---@type point
     Rotation = 0, ---@type number
     Type = "", ---@type string
-    Index = -1, ---@type number
 }
 
 ---@class engine
@@ -105,10 +104,12 @@ local engine = {
     ---@return integer
     randomInt = function(engine, min, max) end,
 
-    ---@param index integer
     ---@param def spriteDef
     ---@return sprite
-    create_sprite = function(engine, index, def) end,
+    create_sprite = function(engine, def) end,
+
+    ---@param spritePtr sprite
+    remove_sprite = function(engine, spritePtr) end,
 
     ---@param pos point
     ---@param slotFace slot_face

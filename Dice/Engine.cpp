@@ -151,18 +151,16 @@ void engine::create_wrappers()
     spriteWrapper["Rotation"] = property {[](sprite* sprite) { return sprite->Shape->Rotation->Value; },
                                           [](sprite* sprite, f32 p) { sprite->Shape->Rotation = degree_f {p}; }};
     spriteWrapper["Type"]     = getter {[](sprite* sprite) { return sprite->Type; }};
-    spriteWrapper["Index"]    = getter {[](sprite* sprite) { return sprite->Index; }};
 
     auto& engineWrapper {*_script.create_wrapper<engine>("engine")};
     engineWrapper["random"]        = [](engine* engine, f32 min, f32 max) { return engine->_assets.Rng(min, max); };
     engineWrapper["randomInt"]     = [](engine* engine, i32 min, i32 max) { return engine->_assets.Rng(min, max); };
-    engineWrapper["create_sprite"] = [normalToWorld](engine* engine, usize idx, table const& def) {
+    engineWrapper["create_sprite"] = [normalToWorld](engine* engine, table const& def) {
         auto  ptr {std::make_unique<sprite>()};
         auto* sprite {ptr.get()};
         engine->_assets.Sprites.push_back(std::move(ptr));
 
         sprite->Type               = def["type"].as<string>();
-        sprite->Index              = idx;
         sprite->TexID              = def["texture"].as<u32>();
         sprite->IsCollisionEnabled = def["collisionEnabled"].as<bool>();
 
@@ -174,6 +172,11 @@ void engine::create_wrappers()
         sprite->Shape->TextureRegion = texture.Region;
 
         return sprite;
+    };
+    engineWrapper["remove_sprite"] = [](engine* engine, sprite* sprite) {
+        engine->_game.remove_shape(sprite->Shape);
+        if (sprite->WrapCopy) { engine->_game.remove_shape(sprite->WrapCopy); }
+        std::erase_if(engine->_assets.Sprites, [&](auto const& spr) { return spr.get() == sprite; });
     };
     engineWrapper["create_slot"] = [normalToWorld](engine* engine, point_f pos, table const& slot) {
         slot_face face;

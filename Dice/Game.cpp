@@ -16,7 +16,7 @@ base_game::base_game(gfx::window& window, assets::group const& grp)
 {
     auto const [w, h] {size_f {*window.Size}};
 
-    _assets.Background         = &_entityBatch.create_shape<gfx::rect_shape>();
+    _assets.Background         = &_spriteBatch.create_shape<gfx::rect_shape>();
     _assets.Background->Bounds = {0, 0, h, h};
 }
 
@@ -30,13 +30,13 @@ void base_game::on_update(milliseconds deltaTime)
         collide_sprites();
     }
 
-    _entityBatch.update(deltaTime);
+    _spriteBatch.update(deltaTime);
     _diceBatch.update(deltaTime);
 }
 
 void base_game::on_draw_to(gfx::render_target& target)
 {
-    _entityBatch.draw_to(target);
+    _spriteBatch.draw_to(target);
     _diceBatch.draw_to(target);
 }
 
@@ -108,7 +108,7 @@ void base_game::wrap_sprites()
 
         if (needs_copy_x || needs_copy_y) {
             if (!s->WrapCopy) {
-                s->WrapCopy                = &_entityBatch.create_shape<gfx::rect_shape>();
+                s->WrapCopy                = &_spriteBatch.create_shape<gfx::rect_shape>();
                 s->WrapCopy->Material      = *s->Shape->Material;
                 s->WrapCopy->TextureRegion = *s->Shape->TextureRegion;
             }
@@ -131,7 +131,7 @@ void base_game::wrap_sprites()
             s->WrapCopy->Rotation = *s->Shape->Rotation;
         } else {
             if (s->WrapCopy) {
-                _entityBatch.remove_shape(*s->WrapCopy);
+                _spriteBatch.remove_shape(*s->WrapCopy);
                 s->WrapCopy = nullptr;
             }
         }
@@ -140,7 +140,8 @@ void base_game::wrap_sprites()
 
 void base_game::collide_sprites()
 {
-    auto const collide {[this](gfx::rect_shape* a, gfx::rect_shape* b, sprite* sA, sprite* sB) {
+    std::vector<collision_event> events;
+    auto const                   collide {[this, &events](gfx::rect_shape* a, gfx::rect_shape* b, sprite* sA, sprite* sB) {
         rect_f const inter {a->aabb().as_intersection_with(b->aabb())};
         if (inter == rect_f::Zero) { return; }
 
@@ -187,7 +188,7 @@ void base_game::collide_sprites()
                 }
 
                 if (texA.Alpha[ax, ay] > 250 && texB.Alpha[bx, by] > 250) {
-                    Collision({.A = sA, .B = sB});
+                    events.push_back({.A = sA, .B = sB});
                     return;
                 }
             }
@@ -215,17 +216,32 @@ void base_game::collide_sprites()
             }
         }
     }
+
+    for (auto const& event : events) {
+        Collision(event);
+    }
 }
 
 auto base_game::create_shape() -> gfx::rect_shape*
 {
-    return &_entityBatch.create_shape<gfx::rect_shape>();
+    return &_spriteBatch.create_shape<gfx::rect_shape>();
+}
+
+void base_game::remove_shape(gfx::shape* shape)
+{
+    _spriteBatch.remove_shape(*shape);
+}
+
+void base_game::add_slot(point_f pos, slot_face face)
+{
+    _slots.add_slot(pos, face);
 }
 
 auto base_game::get_slots() -> slots*
 {
     return &_slots;
 }
+
 auto base_game::get_dice() -> dice*
 {
     return &_dice;
