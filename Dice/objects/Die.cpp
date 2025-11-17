@@ -45,16 +45,16 @@ void die::roll()
     _rolling = true;
 
     constexpr i32 MinRollTime {250};
-    constexpr i32 MaxRollTime {250};
-    constexpr i32 MinRollInterval {20};
-    constexpr i32 MaxRollInterval {40};
+    constexpr i32 MaxRollTime {750};
+    constexpr i32 MinRollInterval {50};
+    constexpr i32 MaxRollInterval {100};
 
     _tween           = make_unique_tween<linear_tween<f32>>(milliseconds {_rng(MinRollTime, MaxRollTime)}, 0.0f, 1.0f);
     _tween->Interval = milliseconds {_rng(MinRollInterval, MaxRollInterval)};
     _tween->Value.Changed.connect([&](auto val) {
         _tween->Interval = *_tween->Interval + milliseconds {_rng(MinRollInterval / 2, MaxRollInterval / 2)};
 
-        u8 const    idx {static_cast<u8>(_rng(usize {0}, _faces.size() - 1))};
+        usize const idx {_rng(usize {0}, _faces.size() - 1)};
         auto const& face {_faces.at(idx)};
 
         _currentFace.Color = face.Color;

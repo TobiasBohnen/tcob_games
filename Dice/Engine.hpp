@@ -50,4 +50,6 @@ private:
 
     base_game&     _game;
     shared_assets& _assets;
+
+    bool _running {false};
 };

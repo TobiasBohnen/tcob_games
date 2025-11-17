@@ -22,7 +22,7 @@ public:
     void run(string const& file);
 
     auto create_shape() -> gfx::rect_shape*;
-    void remove_shape(gfx::shape* shape);
+    auto remove_shape(gfx::shape* shape) -> bool;
 
     void add_die(std::span<die_face const> faces);
     void release_dice(std::span<i32 const> slotIdx);
@@ -35,6 +35,7 @@ public:
 
 protected:
     void on_update(milliseconds deltaTime) override;
+    void on_fixed_update(milliseconds deltaTime) override;
 
     void on_draw_to(gfx::render_target& target) override;
     auto can_draw() const -> bool override;

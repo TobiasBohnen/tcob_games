@@ -9,18 +9,17 @@
 
 local game_module = {
     draw_background = function(game_module, engine, canvas, canvasSize) end,
+    get_textures = function(gfx_module, engine) end,
 
     on_setup = function(game_module, engine) end,
     can_run = function(game_module, engine) end,
     on_run = function(game_module, deltaTime) end,
     can_start = function(game_module, engine) end,
     on_start = function(game_module, engine) end,
+    on_finish = function(game_module, engine) end,
     on_collision = function(game_module, engine, spriteA, spriteB) end
 }
 
-local gfx_module = {
-    get_textures = function(gfx_module, engine) end,
-}
 
 ------
 
@@ -83,11 +82,10 @@ local canvas = {
 }
 
 ---@class sprite
-local sprite = {
-    Position = { x = 0, y = 0 }, ---@type point
-    Rotation = 0, ---@type number
-    Type = "", ---@type string
-}
+---@field Position point
+---@field Rotation number
+---@field Type string
+---@field Bounds rect
 
 ---@class engine
 local engine = {

@@ -25,13 +25,16 @@ void base_game::on_update(milliseconds deltaTime)
     _dice.update(deltaTime);
     _slots.update(deltaTime);
 
+    _spriteBatch.update(deltaTime);
+    _diceBatch.update(deltaTime);
+}
+
+void base_game::on_fixed_update(milliseconds deltaTime)
+{
     if (_engine.update(deltaTime)) {
         wrap_sprites();
         collide_sprites();
     }
-
-    _spriteBatch.update(deltaTime);
-    _diceBatch.update(deltaTime);
 }
 
 void base_game::on_draw_to(gfx::render_target& target)
@@ -141,7 +144,9 @@ void base_game::wrap_sprites()
 void base_game::collide_sprites()
 {
     std::vector<collision_event> events;
-    auto const                   collide {[this, &events](gfx::rect_shape* a, gfx::rect_shape* b, sprite* sA, sprite* sB) {
+    events.reserve(10);
+
+    auto const collide {[this, &events](gfx::rect_shape* a, gfx::rect_shape* b, sprite* sA, sprite* sB) {
         rect_f const inter {a->aabb().as_intersection_with(b->aabb())};
         if (inter == rect_f::Zero) { return; }
 
@@ -170,7 +175,7 @@ void base_game::collide_sprites()
             for (i32 x {0}; x < iWidth; ++x) {
                 f32 const wx {inter.left() + static_cast<f32>(x)};
 
-                // world → local
+                // world -> local
                 point_f const localA {invA.transform_point({wx, wy})};
                 point_f const localB {invB.transform_point({wx, wy})};
 
@@ -227,9 +232,9 @@ auto base_game::create_shape() -> gfx::rect_shape*
     return &_spriteBatch.create_shape<gfx::rect_shape>();
 }
 
-void base_game::remove_shape(gfx::shape* shape)
+auto base_game::remove_shape(gfx::shape* shape) -> bool
 {
-    _spriteBatch.remove_shape(*shape);
+    return _spriteBatch.remove_shape(*shape);
 }
 
 void base_game::add_slot(point_f pos, slot_face face)

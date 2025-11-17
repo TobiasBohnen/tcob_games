@@ -14,8 +14,13 @@
 class my_game : public tcob::game {
 public:
     my_game(char const* argv)
-        : tcob::game {{.Name = "Dice", .LogFile = "stdout"}}
+        : tcob::game {{.Name      = "Dice",
+                       .LogFile   = "stdout",
+                       .FixedStep = milliseconds {1000.f / 100.f}}}
     {
+        auto& plt {locate_service<platform>()};
+        plt.FrameLimit = plt.displays().begin()->second.DesktopMode.RefreshRate;
+
         start();
     }
 

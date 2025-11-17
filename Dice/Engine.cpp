@@ -61,8 +61,14 @@ void engine::run(string const& file)
 
 auto engine::update(milliseconds deltaTime) -> bool
 {
+    if (!_running) { return false; }
+
     if (call<bool>("can_run")) {
-        call("on_run", deltaTime.count());
+        if (!call<bool>("on_run", deltaTime.count())) {
+            call("on_finish");
+            _running = false;
+            return false;
+        }
         return true;
     }
 
@@ -71,9 +77,12 @@ auto engine::update(milliseconds deltaTime) -> bool
 
 auto engine::start_turn() -> bool
 {
+    if (_running) { return false; }
+
     if (call<bool>("can_start")) {
         _game.get_slots()->lock();
         call("on_start");
+        _running = true;
         return true;
     }
 
@@ -151,6 +160,12 @@ void engine::create_wrappers()
     spriteWrapper["Rotation"] = property {[](sprite* sprite) { return sprite->Shape->Rotation->Value; },
                                           [](sprite* sprite, f32 p) { sprite->Shape->Rotation = degree_f {p}; }};
     spriteWrapper["Type"]     = getter {[](sprite* sprite) { return sprite->Type; }};
+    spriteWrapper["Bounds"]   = getter {[worldToNormal](sprite* sprite) {
+        rect_f const  bounds {*sprite->Shape->Bounds};
+        point_f const tl {worldToNormal(bounds.top_left())};
+        point_f const br {worldToNormal(bounds.bottom_right())};
+        return rect_f::FromLTRB(tl.X, tl.Y, br.X, br.Y);
+    }};
 
     auto& engineWrapper {*_script.create_wrapper<engine>("engine")};
     engineWrapper["random"]        = [](engine* engine, f32 min, f32 max) { return engine->_assets.Rng(min, max); };
