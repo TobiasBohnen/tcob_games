@@ -50,7 +50,9 @@ local game_module = {
 
 ---@class spriteDef
 ---@field texture texture
----@field collisionEnabled boolean|nil
+---@field collisionEnabled boolean
+---@field x number
+---@field y number
 
 ------
 ---wrapper

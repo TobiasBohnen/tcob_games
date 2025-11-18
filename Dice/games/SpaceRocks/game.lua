@@ -20,6 +20,7 @@
 local DURATION = 2500
 local HALF_DURATION = DURATION * 0.5
 local INIT_ASTEROID_COUNT = 100
+local EXPLOSION_DURATION = 7500
 
 local gfx = require('gfx')
 
@@ -52,6 +53,9 @@ local game = {
 
     asteroids = {},
     asteroidTextures = { small = 2, medium = 3, large = 4 }, ---@type { [string]: texture }
+
+    explosions = {},
+    explosionTexture = 5, ---@type texture
 
     updateTime = 0,
 }
@@ -123,6 +127,7 @@ function game:on_run(engine, deltaTime)
     end
 
     self:update_asteroids(engine, deltaTime)
+    self:update_explosions(engine, deltaTime)
     self:update_bullets(engine, deltaTime)
     self:update_ship(deltaTime)
 
@@ -146,8 +151,8 @@ function game:on_collision(engine, spriteA, spriteB)
     elseif (typeA == "bullet" or typeB == "bullet") and (typeA == "asteroid" or typeB == "asteroid") then
         if typeA == "asteroid" then ownerA.markForDeath = true end
         if typeB == "asteroid" then ownerB.markForDeath = true end
-        if typeA == "bullet" then ownerA.life = 1 end
-        if typeB == "bullet" then ownerB.life = 1 end
+        if typeA == "bullet" then ownerA.lifetime = HALF_DURATION - 1 end
+        if typeB == "bullet" then ownerB.lifetime = HALF_DURATION - 1 end
     end
 end
 
@@ -167,13 +172,13 @@ end
 function game:update_bullets(engine, deltaTime)
     for i = #self.bullets, 1, -1 do
         local b = self.bullets[i]
-        if b.life > 0 then
+        if b.lifetime < HALF_DURATION then
             self:update_entity(b, deltaTime)
         else
             engine:remove_sprite(b.sprite)
             table.remove(self.bullets, i)
         end
-        b.life = b.life - deltaTime
+        b.lifetime = b.lifetime + deltaTime
     end
 end
 
@@ -182,6 +187,18 @@ function game:update_asteroids(engine, deltaTime)
     for i = #self.asteroids, 1, -1 do
         local a = self.asteroids[i]
         if a.markForDeath then
+            local explosion = {
+                x                = a.x,
+                y                = a.y,
+                texture          = self.explosionTexture,
+                collisionEnabled = false,
+                rotation         = 0,
+                scale            = 1,
+                lifetime         = 0,
+            }
+            explosion.sprite = engine:create_sprite(explosion)
+            self.explosions[#self.explosions + 1] = explosion
+
             engine:remove_sprite(a.sprite)
             table.remove(self.asteroids, i)
         else
@@ -203,6 +220,34 @@ function game:update_ship(deltaTime)
     self:update_entity(ship, deltaTime)
 end
 
+function game:update_explosions(engine, deltaTime)
+    for i = #self.explosions, 1, -1 do
+        local e    = self.explosions[i]
+        local s    = e.sprite
+
+        e.lifetime = e.lifetime + deltaTime
+        if e.lifetime >= EXPLOSION_DURATION then
+            engine:remove_sprite(s)
+            table.remove(self.explosions, i)
+        else
+            e.rotation       = e.rotation + 720 * deltaTime / 1000
+            s.Rotation       = e.rotation
+
+            local shrinkRate = deltaTime / EXPLOSION_DURATION
+            e.scale          = e.scale - shrinkRate
+            if e.scale < 0 then e.scale = 0 end
+
+            local size    = s.Size
+            local newSize = { width = size.width * e.scale, height = size.height * e.scale }
+            s.Size        = newSize
+            local newPos  = { x = e.x + (size.width - newSize.width) / 2, y = e.y + (size.height - newSize.height) / 2 }
+            s.Position    = newPos
+            e.x           = newPos.x
+            e.y           = newPos.y
+        end
+    end
+end
+
 ---@param engine engine
 function game:spawn_bullet(engine)
     local bullet                    = {
@@ -215,10 +260,10 @@ function game:spawn_bullet(engine)
         texture = self.bulletTexture,
         type = "bullet",
         collisionEnabled = true,
+        lifetime = 0,
     }
 
     bullet.sprite                   = engine:create_sprite(bullet)
-    bullet.life                     = HALF_DURATION
     self.bullets[#self.bullets + 1] = bullet
 
     local shipBounds                = self.ship.sprite.Bounds

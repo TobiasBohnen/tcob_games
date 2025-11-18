@@ -22,8 +22,8 @@ auto extract_alpha(gfx::image const& img, rect_f const& uv) -> grid<u8>
 
     grid<u8> retValue {size_i {rect.Size}};
 
-    for (i32 y {0}; y < rect.Size.Height; ++y) {
-        for (i32 x {0}; x < rect.Size.Width; ++x) {
+    for (i32 y {0}; y < retValue.size().Height; ++y) {
+        for (i32 x {0}; x < retValue.size().Width; ++x) {
             retValue[x, y] = img.get_pixel({static_cast<i32>(x + rect.Position.X), static_cast<i32>(y + rect.Position.Y)}).A;
         }
     }
@@ -157,6 +157,15 @@ void engine::create_wrappers()
     auto& spriteWrapper {*_script.create_wrapper<sprite>("sprite")};
     spriteWrapper["Position"] = property {[worldToNormal](sprite* sprite) { return worldToNormal(sprite->Shape->Bounds->Position); },
                                           [normalToWorld](sprite* sprite, point_f p) { sprite->Shape->Bounds = {normalToWorld(p), sprite->Shape->Bounds->Size}; }};
+    spriteWrapper["Size"]     = property {
+        [worldToNormal](sprite* sprite) -> size_f {
+            auto const size {worldToNormal({sprite->Shape->Bounds->Size.Width, sprite->Shape->Bounds->Size.Height})};
+            return {size.X, size.Y};
+        },
+        [normalToWorld](sprite* sprite, size_f p) {
+            auto const size {normalToWorld({p.Width, p.Height})};
+            sprite->Shape->Bounds = {sprite->Shape->Bounds->Position, {size.X, size.Y}};
+        }};
     spriteWrapper["Rotation"] = property {[](sprite* sprite) { return sprite->Shape->Rotation->Value; },
                                           [](sprite* sprite, f32 p) { sprite->Shape->Rotation = degree_f {p}; }};
     spriteWrapper["Bounds"]   = getter {[worldToNormal](sprite* sprite) {

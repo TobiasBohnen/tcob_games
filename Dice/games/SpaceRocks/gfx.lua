@@ -74,6 +74,20 @@ function gfx.get_textures(game, engine)
                 canvas:fill()
             end
         },
+
+        [game.explosionTexture] = {
+            size = { width = 32 / 900, height = 32 / 900 },
+            draw = function(canvas)
+                canvas:begin_path()
+                canvas:path_2d("M16 0 L20 8 L32 12 L22 18 L24 30 L16 25 L8 30 L10 18 L0 12 L12 8 Z")
+                canvas:fill_color("orange")
+                canvas:fill()
+
+                canvas:stroke_color("red")
+                canvas:stroke_width(2)
+                canvas:stroke()
+            end
+        }
     }
 end
 
