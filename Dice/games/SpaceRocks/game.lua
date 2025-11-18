@@ -35,6 +35,7 @@ local game = {
         angularVelocityTarget = 0,
         sprite = nil, ---@type sprite
         texture = 0, ---@type texture
+        hurtTexture = 1, ---@type texture
         type = "ship",
         collisionEnabled = true,
         health = 10,
@@ -42,16 +43,16 @@ local game = {
     },
 
     bullets = {},
-    bulletTexture = 1, ---@type texture
+    bulletTexture = 10, ---@type texture
     bulletsLeft = 0,
     bulletTime = 0,
     bulletDuration = 0,
 
     asteroids = {},
-    asteroidTextures = { small = 2, medium = 3, large = 4 }, ---@type { [string]: texture }
+    asteroidTextures = { small = 20, medium = 21, large = 22 }, ---@type { [string]: texture }
 
     explosions = {},
-    explosionTexture = 5, ---@type texture
+    explosionTexture = 30, ---@type texture
 
     updateTime = 0,
 }
@@ -81,7 +82,6 @@ function game:can_start(engine) return engine:are_slots_filled() end
 function game:on_start(engine)
     self.updateTime = 0
     self.bulletTime = 0
-    self.ship.invulnerable = false
     engine.log(tostring(self.ship.health))
 
     local spawnAsteroid = (#self.asteroids < INIT_ASTEROID_COUNT / 5)
@@ -138,6 +138,7 @@ function game:on_collision(engine, spriteA, spriteB)
         if not self.ship.invulnerable then
             self.ship.health = self.ship.health - 1
             self.ship.invulnerable = true
+            self.ship.sprite.Texture = self.ship.hurtTexture
         end
 
         if typeA == "asteroid" then
@@ -163,6 +164,9 @@ end
 function game:on_finish(engine)
     engine:release_dice({ 1, 2, 3 })
     engine:roll_dice()
+
+    self.ship.invulnerable = false
+    self.ship.sprite.Texture = self.ship.texture
 end
 
 ---@param engine engine

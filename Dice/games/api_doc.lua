@@ -104,6 +104,7 @@ local canvas = {
 ---@field Rotation number
 ---@field Scale size
 ---@field Owner table
+---@field Texture texture
 
 --------------------------------
 -- Engine

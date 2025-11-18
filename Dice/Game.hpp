@@ -8,6 +8,7 @@
 #include "Common.hpp" // IWYU pragma: keep
 
 #include "Engine.hpp"
+#include "UI.hpp"
 #include "objects/Die.hpp"
 #include "objects/Slot.hpp"
 
@@ -42,6 +43,7 @@ protected:
 
     void on_key_down(input::keyboard::event const& ev) override;
     void on_mouse_button_up(input::mouse::button_event const& ev) override;
+    void on_mouse_button_down(input::mouse::button_event const& ev) override;
     void on_mouse_motion(input::mouse::motion_event const& ev) override;
 
 private:
@@ -50,8 +52,9 @@ private:
 
     gfx::window& _window;
 
-    gfx::shape_batch _diceBatch;
-    gfx::shape_batch _spriteBatch;
+    gfx::shape_batch           _diceBatch;
+    gfx::shape_batch           _spriteBatch;
+    std::unique_ptr<game_form> _form0;
 
     slots _slots;
     slot* _hoverSlot {nullptr};

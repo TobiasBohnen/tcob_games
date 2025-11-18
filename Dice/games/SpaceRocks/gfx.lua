@@ -37,7 +37,14 @@ function gfx.get_textures(game, engine)
                 canvas:stroke()
             end
         },
-
+        [game.ship.hurtTexture] = {
+            size = { width = 32 / 900, height = 32 / 900 },
+            draw = function(canvas) ---@param canvas canvas
+                canvas:path_2d("M16,3 L29,29 L16,24 L3,29 Z")
+                canvas:fill_color("red")
+                canvas:fill()
+            end
+        },
         [game.bulletTexture] = {
             size = { width = 8 / 900, height = 8 / 900 },
             draw = function(canvas) ---@param canvas canvas

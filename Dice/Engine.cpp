@@ -35,7 +35,7 @@ engine::engine(base_game& game, shared_assets& assets)
     : _game {game}
     , _assets {assets}
 {
-    _game.Collision.connect([&](auto const& ev) {
+    _game.Collision.connect([this](auto const& ev) {
         call("on_collision", ev.A, ev.B);
     });
 }
@@ -91,7 +91,7 @@ auto engine::start_turn() -> bool
 
 void engine::create_env(string const& path)
 {
-    auto makeFunc {[&](auto&& func) {
+    auto makeFunc {[this](auto&& func) {
         auto ptr {make_shared_closure(std::function {func})};
         _funcs.push_back(ptr);
         return ptr.get();
@@ -174,11 +174,16 @@ void engine::create_wrappers()
         point_f const br {worldToNormal(bounds.bottom_right())};
         return rect_f::FromLTRB(tl.X, tl.Y, br.X, br.Y);
     }};
-    spriteWrapper["Owner"]    = getter {[](sprite* sprite) { return sprite->Owner; }};
     spriteWrapper["Scale"]    = property {[](sprite* sprite) { return *sprite->Shape->Scale; },
                                        [](sprite* sprite, size_f factor) {
                                            sprite->Shape->Scale = factor;
                                        }};
+    spriteWrapper["Owner"]    = getter {[](sprite* sprite) { return sprite->Owner; }};
+    spriteWrapper["Texture"]  = property {[](sprite* sprite) { return sprite->TexID; },
+                                         [this](sprite* sprite, u32 texId) {
+                                             sprite->TexID                = texId;
+                                             sprite->Shape->TextureRegion = _assets.Textures[sprite->TexID].Region; // TODO: error check
+                                         }};
 
     auto& engineWrapper {*_script.create_wrapper<engine>("engine")};
     engineWrapper["random"]        = [](engine* engine, f32 min, f32 max) { return engine->_assets.Rng(min, max); };
@@ -204,7 +209,7 @@ void engine::create_wrappers()
     engineWrapper["remove_sprite"] = [](engine* engine, sprite* sprite) {
         engine->_game.remove_shape(sprite->Shape);
         if (sprite->WrapCopy) { engine->_game.remove_shape(sprite->WrapCopy); }
-        std::erase_if(engine->_assets.Sprites, [&](auto const& spr) { return spr.get() == sprite; });
+        std::erase_if(engine->_assets.Sprites, [&sprite](auto const& spr) { return spr.get() == sprite; });
     };
     engineWrapper["create_slot"] = [normalToWorld](engine* engine, point_f pos, table const& slot) {
         slot_face face;

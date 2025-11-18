@@ -6,6 +6,7 @@ target_sources(Dice PRIVATE
     Painter.cpp
     Game.cpp
     Engine.cpp
+    UI.cpp
     ./objects/Die.cpp
     ./objects/Slot.cpp
 )

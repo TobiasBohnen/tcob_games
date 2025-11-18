@@ -18,13 +18,15 @@ base_game::base_game(gfx::window& window, assets::group const& grp)
 
     _assets.Background         = &_spriteBatch.create_shape<gfx::rect_shape>();
     _assets.Background->Bounds = {0, 0, h, h};
+
+    _form0 = std::make_unique<game_form>(rect_f {h, 0, w - h, h}, grp);
 }
 
 void base_game::on_update(milliseconds deltaTime)
 {
     _dice.update(deltaTime);
     _slots.update(deltaTime);
-
+    _form0->update(deltaTime);
     _spriteBatch.update(deltaTime);
     _diceBatch.update(deltaTime);
 }
@@ -40,6 +42,7 @@ void base_game::on_fixed_update(milliseconds deltaTime)
 void base_game::on_draw_to(gfx::render_target& target)
 {
     _spriteBatch.draw_to(target);
+    _form0->draw_to(target);
     _diceBatch.draw_to(target);
 }
 
@@ -63,6 +66,12 @@ void base_game::on_mouse_button_up(input::mouse::button_event const& ev)
     case input::mouse::button::Right: break;
     default:                          break;
     }
+    dynamic_cast<input::receiver*>(_form0.get())->on_mouse_button_up(ev);
+}
+
+void base_game::on_mouse_button_down(input::mouse::button_event const& ev)
+{
+    dynamic_cast<input::receiver*>(_form0.get())->on_mouse_button_down(ev);
 }
 
 void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
@@ -90,6 +99,8 @@ void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
         _slots.release_die(_hoverDie);
         _dice.drag(ev.Position);
     }
+
+    dynamic_cast<input::receiver*>(_form0.get())->on_mouse_motion(ev);
 }
 
 void base_game::run(string const& file)
