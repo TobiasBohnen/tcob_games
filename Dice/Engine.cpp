@@ -159,13 +159,13 @@ void engine::create_wrappers()
                                           [normalToWorld](sprite* sprite, point_f p) { sprite->Shape->Bounds = {normalToWorld(p), sprite->Shape->Bounds->Size}; }};
     spriteWrapper["Rotation"] = property {[](sprite* sprite) { return sprite->Shape->Rotation->Value; },
                                           [](sprite* sprite, f32 p) { sprite->Shape->Rotation = degree_f {p}; }};
-    spriteWrapper["Type"]     = getter {[](sprite* sprite) { return sprite->Type; }};
     spriteWrapper["Bounds"]   = getter {[worldToNormal](sprite* sprite) {
         rect_f const  bounds {*sprite->Shape->Bounds};
         point_f const tl {worldToNormal(bounds.top_left())};
         point_f const br {worldToNormal(bounds.bottom_right())};
         return rect_f::FromLTRB(tl.X, tl.Y, br.X, br.Y);
     }};
+    spriteWrapper["Owner"]    = getter {[](sprite* sprite) { return sprite->Owner; }};
 
     auto& engineWrapper {*_script.create_wrapper<engine>("engine")};
     engineWrapper["random"]        = [](engine* engine, f32 min, f32 max) { return engine->_assets.Rng(min, max); };
@@ -175,9 +175,9 @@ void engine::create_wrappers()
         auto* sprite {ptr.get()};
         engine->_assets.Sprites.push_back(std::move(ptr));
 
-        sprite->Type               = def["type"].as<string>();
         sprite->TexID              = def["texture"].as<u32>();
         sprite->IsCollisionEnabled = def["collisionEnabled"].as<bool>();
+        sprite->Owner              = def;
 
         auto const& texture {engine->_assets.Textures[sprite->TexID]};            // TODO: error check
         auto const  spritePos {normalToWorld({def["x"].as<f32>(), def["y"].as<f32>()})};

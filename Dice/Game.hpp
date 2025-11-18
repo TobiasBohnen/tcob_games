@@ -58,6 +58,6 @@ private:
     dice  _dice;
     die*  _hoverDie {nullptr};
 
-    shared_assets _assets;
     engine        _engine;
+    shared_assets _assets;
 };

@@ -110,93 +110,21 @@ function game:can_run(engine) return engine:are_slots_locked() end
 ---@param deltaTime number
 function game:on_run(engine, deltaTime)
     self.updateTime = self.updateTime + deltaTime
-    if self.updateTime >= DURATION then
-        return false
-    end
+    if self.updateTime >= DURATION then return false end
 
-    -- spawn bullets
+    -- bullets spawn
     if self.bulletsLeft > 0 then
         self.bulletTime = self.bulletTime - deltaTime
         if self.bulletTime <= 0 then
-            local bullet                    = {
-                x = 0,
-                y = 0,
-                direction = self.ship.direction,
-                rotation = 0,
-                linearVelocity = math.max(0.5, self.ship.linearVelocity * 1.5),
-                angularVelocity = 0,
-                texture = self.bulletTexture,
-                type = "bullet",
-                collisionEnabled = true,
-            }
-
-            bullet.sprite                   = engine:create_sprite(bullet)
-            bullet.life                     = HALF_DURATION
-            self.bullets[#self.bullets + 1] = bullet
-            self.bulletTime                 = self.bulletDuration
-            self.bulletsLeft                = self.bulletsLeft - 1
-
-            local shipBounds                = self.ship.sprite.Bounds
-            local noseOffset                = shipBounds.height * 0.5
-            local rad                       = math.rad(self.ship.sprite.Rotation)
-            local noseX                     = self.ship.x + shipBounds.width * 0.5 + math.sin(rad) * noseOffset
-            local noseY                     = self.ship.y + shipBounds.height * 0.5 - math.cos(rad) * noseOffset
-            local bulletBounds              = bullet.sprite.Bounds
-            bullet.x                        = noseX - bulletBounds.width * 0.5
-            bullet.y                        = noseY - bulletBounds.height * 0.5
-            bullet.sprite.Position          = { x = bullet.x, y = bullet.y }
+            self:spawn_bullet(engine)
+            self.bulletTime  = self.bulletDuration
+            self.bulletsLeft = self.bulletsLeft - 1
         end
     end
 
-    -- update
-    local function update_entity(e) ---@param e entity
-        local rad = math.rad(e.direction - 90)
-        local vx = math.cos(rad) * e.linearVelocity / 1000
-        local vy = math.sin(rad) * e.linearVelocity / 1000
-
-        e.x = (e.x + vx * deltaTime) % 1
-        e.y = (e.y + vy * deltaTime) % 1
-
-        e.sprite.Position = { x = e.x, y = e.y }
-
-        e.rotation = (e.rotation + e.angularVelocity * deltaTime) % 360
-        e.sprite.Rotation = e.rotation
-    end
-
-    -- update asteroids
-    for i = #self.asteroids, 1, -1 do
-        local a = self.asteroids[i]
-        if a.markForDeath then
-            engine:remove_sprite(a.sprite)
-            table.remove(self.asteroids, i)
-        else
-            a.rotation = a.rotation + 0.1 * deltaTime
-            update_entity(a)
-        end
-    end
-
-    -- update bullets
-    for i = #self.bullets, 1, -1 do
-        local b = self.bullets[i]
-        b.life = b.life - deltaTime
-        if b.life > 0 then
-            update_entity(b)
-        else
-            engine:remove_sprite(b.sprite)
-            table.remove(self.bullets, i)
-        end
-    end
-
-    -- update ship
-    local factor         = self.updateTime < HALF_DURATION
-        and self.updateTime / HALF_DURATION
-        or 1 - ((self.updateTime - HALF_DURATION) / HALF_DURATION)
-
-    local ship           = self.ship
-    ship.linearVelocity  = ship.linearVelocityTarget * factor
-    ship.angularVelocity = ship.angularVelocityTarget * factor
-    update_entity(ship)
-    ship.direction = ship.rotation
+    self:update_asteroids(engine, deltaTime)
+    self:update_bullets(engine, deltaTime)
+    self:update_ship(deltaTime)
 
     return true
 end
@@ -205,30 +133,25 @@ end
 ---@param spriteA sprite
 ---@param spriteB sprite
 function game:on_collision(engine, spriteA, spriteB)
-    local indexA, indexB
-    local function findAsteroids()
-        for idx, ast in ipairs(self.asteroids) do
-            if ast.sprite == spriteA then indexA = idx end
-            if ast.sprite == spriteB then indexB = idx end
-            if indexA and indexB then break end
-        end
-    end
+    local ownerA = spriteA.Owner
+    local typeA = ownerA.type
+    local ownerB = spriteB.Owner
+    local typeB = ownerB.type
 
-    if (spriteA.Type == "ship" or spriteB.Type == "ship") and (spriteA.Type == "asteroid" or spriteB.Type == "asteroid") then
+    if (typeA == "ship" or typeB == "ship") and (typeA == "asteroid" or typeB == "asteroid") then
 
-    elseif spriteA.Type == "asteroid" and spriteB.Type == "asteroid" then
-        findAsteroids()
-        local a = self.asteroids[indexA]
-        a.direction = (a.direction + engine:random(45, 135)) % 360
-        local b = self.asteroids[indexB]
-        b.direction = (b.direction - engine:random(45, 135)) % 360
-    elseif (spriteA.Type == "bullet" or spriteB.Type == "bullet") and (spriteA.Type == "asteroid" or spriteB.Type == "asteroid") then
-        findAsteroids()
-        if indexA then self.asteroids[indexA].markForDeath = true end
-        if indexB then self.asteroids[indexB].markForDeath = true end
+    elseif typeA == "asteroid" and typeB == "asteroid" then
+        ownerA.direction = (ownerA.direction + engine:random(45, 135)) % 360
+        ownerB.direction = (ownerB.direction - engine:random(45, 135)) % 360
+    elseif (typeA == "bullet" or typeB == "bullet") and (typeA == "asteroid" or typeB == "asteroid") then
+        if typeA == "asteroid" then ownerA.markForDeath = true end
+        if typeB == "asteroid" then ownerB.markForDeath = true end
+        if typeA == "bullet" then ownerA.life = 1 end
+        if typeB == "bullet" then ownerB.life = 1 end
     end
 end
 
+---@param engine engine
 function game:on_finish(engine)
     for i = #self.bullets, 1, -1 do
         print(i)
@@ -238,6 +161,93 @@ function game:on_finish(engine)
 
     engine:release_dice({ 1, 2, 3 })
     engine:roll_dice()
+end
+
+---@param engine engine
+function game:update_bullets(engine, deltaTime)
+    for i = #self.bullets, 1, -1 do
+        local b = self.bullets[i]
+        if b.life > 0 then
+            self:update_entity(b, deltaTime)
+        else
+            engine:remove_sprite(b.sprite)
+            table.remove(self.bullets, i)
+        end
+        b.life = b.life - deltaTime
+    end
+end
+
+---@param engine engine
+function game:update_asteroids(engine, deltaTime)
+    for i = #self.asteroids, 1, -1 do
+        local a = self.asteroids[i]
+        if a.markForDeath then
+            engine:remove_sprite(a.sprite)
+            table.remove(self.asteroids, i)
+        else
+            a.rotation = a.rotation + 0.1 * deltaTime
+            self:update_entity(a, deltaTime)
+        end
+    end
+end
+
+function game:update_ship(deltaTime)
+    local factor         = self.updateTime < HALF_DURATION
+        and self.updateTime / HALF_DURATION
+        or 1 - ((self.updateTime - HALF_DURATION) / HALF_DURATION)
+
+    local ship           = self.ship
+    ship.linearVelocity  = ship.linearVelocityTarget * factor
+    ship.angularVelocity = ship.angularVelocityTarget * factor
+    ship.direction       = ship.rotation
+    self:update_entity(ship, deltaTime)
+end
+
+---@param engine engine
+function game:spawn_bullet(engine)
+    local bullet                    = {
+        x = 0,
+        y = 0,
+        direction = self.ship.direction,
+        rotation = 0,
+        linearVelocity = math.max(0.5, self.ship.linearVelocity * 1.5),
+        angularVelocity = 0,
+        texture = self.bulletTexture,
+        type = "bullet",
+        collisionEnabled = true,
+    }
+
+    bullet.sprite                   = engine:create_sprite(bullet)
+    bullet.life                     = HALF_DURATION
+    self.bullets[#self.bullets + 1] = bullet
+
+    local shipBounds                = self.ship.sprite.Bounds
+    local rad                       = math.rad(self.ship.rotation)
+    local bulletBounds              = bullet.sprite.Bounds
+
+    bullet.x                        = self.ship.x + (shipBounds.width * 0.5)
+        + (math.sin(rad) * shipBounds.height * 0.5)
+        - (bulletBounds.width * 0.5)
+
+    bullet.y                        = self.ship.y + (shipBounds.height * 0.5)
+        - (math.cos(rad) * shipBounds.height * 0.5)
+        - (bulletBounds.height * 0.5)
+
+    bullet.sprite.Position          = { x = bullet.x, y = bullet.y }
+end
+
+function game:update_entity(e, deltaTime)
+    local rad = math.rad(e.direction - 90)
+    local vx = math.cos(rad) * e.linearVelocity / 1000
+    local vy = math.sin(rad) * e.linearVelocity / 1000
+
+    e.x = (e.x + vx * deltaTime) % 1
+    e.y = (e.y + vy * deltaTime) % 1
+
+    e.sprite.Position = { x = e.x, y = e.y }
+
+    e.rotation = (e.rotation + e.angularVelocity * deltaTime) % 360
+    e.sprite.Rotation = e.rotation
 end
 
 return game

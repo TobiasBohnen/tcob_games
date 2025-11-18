@@ -49,7 +49,6 @@ local game_module = {
 ---@field values integer[]
 
 ---@class spriteDef
----@field type string
 ---@field texture texture
 ---@field collisionEnabled boolean|nil
 
@@ -84,8 +83,8 @@ local canvas = {
 ---@class sprite
 ---@field Position point
 ---@field Rotation number
----@field Type string
 ---@field Bounds rect
+---@field Owner table
 
 ---@class engine
 local engine = {

@@ -144,7 +144,6 @@ void base_game::wrap_sprites()
 void base_game::collide_sprites()
 {
     std::vector<collision_event> events;
-    events.reserve(10);
 
     auto const collide {[this, &events](gfx::rect_shape* a, gfx::rect_shape* b, sprite* sA, sprite* sB) {
         rect_f const inter {a->aabb().as_intersection_with(b->aabb())};
@@ -204,19 +203,19 @@ void base_game::collide_sprites()
         auto const& spriteA {_assets.Sprites[i]};
         if (!spriteA->IsCollisionEnabled) { continue; }
 
-        std::vector<gfx::rect_shape*> shapesA {spriteA->Shape};
-        if (spriteA->WrapCopy) { shapesA.push_back(spriteA->WrapCopy); }
+        std::array<gfx::rect_shape*, 2> shapesA {spriteA->Shape, spriteA->WrapCopy};
+        i32                             countA {spriteA->WrapCopy ? 2 : 1};
 
         for (usize j {i + 1}; j < _assets.Sprites.size(); ++j) {
             auto const& spriteB {_assets.Sprites[j]};
             if (!spriteB->IsCollisionEnabled) { continue; }
 
-            std::vector<gfx::rect_shape*> shapesB {spriteB->Shape};
-            if (spriteB->WrapCopy) { shapesB.push_back(spriteB->WrapCopy); }
+            std::array<gfx::rect_shape*, 2> shapesB {spriteB->Shape, spriteB->WrapCopy};
+            i32                             countB {spriteB->WrapCopy ? 2 : 1};
 
-            for (auto* a : shapesA) {
-                for (auto* b : shapesB) {
-                    collide(a, b, spriteA.get(), spriteB.get());
+            for (i32 a {0}; a < countA; ++a) {
+                for (i32 b {0}; b < countB; ++b) {
+                    collide(shapesA[a], shapesB[b], spriteA.get(), spriteB.get());
                 }
             }
         }

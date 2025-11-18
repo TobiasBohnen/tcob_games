@@ -78,10 +78,10 @@ struct sprite {
     gfx::rect_shape* Shape {nullptr};
     gfx::rect_shape* WrapCopy {nullptr};
 
-    string Type;
-
     u32  TexID {0};
     bool IsCollisionEnabled {false};
+
+    scripting::table Owner;
 };
 
 struct texture {
