@@ -175,10 +175,15 @@ void engine::create_wrappers()
         return rect_f::FromLTRB(tl.X, tl.Y, br.X, br.Y);
     }};
     spriteWrapper["Owner"]    = getter {[](sprite* sprite) { return sprite->Owner; }};
+    spriteWrapper["Scale"]    = property {[](sprite* sprite) { return *sprite->Shape->Scale; },
+                                       [](sprite* sprite, size_f factor) {
+                                           sprite->Shape->Scale = factor;
+                                       }};
 
     auto& engineWrapper {*_script.create_wrapper<engine>("engine")};
     engineWrapper["random"]        = [](engine* engine, f32 min, f32 max) { return engine->_assets.Rng(min, max); };
     engineWrapper["randomInt"]     = [](engine* engine, i32 min, i32 max) { return engine->_assets.Rng(min, max); };
+    engineWrapper["log"]           = [](string const& str) { logger::Info(str); };
     engineWrapper["create_sprite"] = [normalToWorld](engine* engine, table const& def) {
         auto  ptr {std::make_unique<sprite>()};
         auto* sprite {ptr.get()};
@@ -188,10 +193,9 @@ void engine::create_wrappers()
         sprite->IsCollisionEnabled = def["collisionEnabled"].as<bool>();
         sprite->Owner              = def;
 
-        auto const& texture {engine->_assets.Textures[sprite->TexID]};            // TODO: error check
-        auto const  spritePos {normalToWorld({def["x"].as<f32>(), def["y"].as<f32>()})};
+        auto const& texture {engine->_assets.Textures[sprite->TexID]};                // TODO: error check
         sprite->Shape                = engine->_game.create_shape();
-        sprite->Shape->Bounds        = rect_f {spritePos, size_f {texture.Size}}; // TODO: scaling
+        sprite->Shape->Bounds        = rect_f {point_f::Zero, size_f {texture.Size}}; // TODO: scaling
         sprite->Shape->Material      = engine->_assets.SpriteMaterial;
         sprite->Shape->TextureRegion = texture.Region;
 

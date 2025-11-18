@@ -5,10 +5,7 @@
 
 
 ---@class entity
----@field x number
----@field y number
 ---@field direction number
----@field rotation number
 ---@field linearVelocity number
 ---@field linearVelocityTarget number
 ---@field angularVelocity number
@@ -19,8 +16,8 @@
 
 local DURATION = 2500
 local HALF_DURATION = DURATION * 0.5
-local INIT_ASTEROID_COUNT = 100
-local EXPLOSION_DURATION = 7500
+local INIT_ASTEROID_COUNT = 10
+local EXPLOSION_DURATION = 750
 
 local gfx = require('gfx')
 
@@ -31,10 +28,7 @@ local game = {
 
     --private:
     ship = {
-        x = 0.5,
-        y = 0.5,
         direction = 0,
-        rotation = 0,
         linearVelocity = 0,
         linearVelocityTarget = 0,
         angularVelocity = 0,
@@ -43,6 +37,8 @@ local game = {
         texture = 0, ---@type texture
         type = "ship",
         collisionEnabled = true,
+        health = 10,
+        invulnerable = false
     },
 
     bullets = {},
@@ -63,32 +59,17 @@ local game = {
 ---@param engine engine
 function game:on_setup(engine)
     self.ship.sprite = engine:create_sprite(self.ship)
+    self.ship.sprite.Position = { x = 0.5, y = 0.5 }
 
-    local aType = { "large", "medium", "small" }
     for i = 1, INIT_ASTEROID_COUNT do
-        local sz = aType[engine:randomInt(1, 3)]
-        local asteroid = {
-            x = engine:random(0.0, 1.0),
-            y = engine:random(0.0, 1.0),
-            direction = engine:random(0, 359),
-            rotation = engine:random(0, 359),
-            linearVelocity = engine:random(0.05, 0.15),
-            angularVelocity = engine:random(0.01, 0.15),
-            size = sz,
-            texture = self.asteroidTextures[sz],
-            type = "asteroid",
-            collisionEnabled = true,
-            markForDeath = false,
-        }
-        asteroid.sprite = engine:create_sprite(asteroid)
-        self.asteroids[i] = asteroid
+        self:spawn_asteroid(engine, "large", engine:random(0.0, 1.0), engine:random(0.0, 1.0))
     end
 
     engine:create_slot({ x = 1.2, y = 0.1 }, { value = 0, color = "silver" })
     engine:create_slot({ x = 1.3, y = 0.1 }, { value = 0, color = "silver" })
     engine:create_slot({ x = 1.4, y = 0.1 }, { value = 0, color = "silver" })
 
-    engine:set_dice_area({ x = 0.25, y = 0.5, width = 0.5, height = 0.25 })
+    engine:set_dice_area({ x = 0.25, y = 0.25, width = 0.5, height = 0.25 })
     engine:create_dice(3, { { values = { 1, 2, 3, 4, 5, 6 }, color = "silver" } })
     engine:roll_dice()
 end
@@ -100,6 +81,16 @@ function game:can_start(engine) return engine:are_slots_filled() end
 function game:on_start(engine)
     self.updateTime = 0
     self.bulletTime = 0
+    self.ship.invulnerable = false
+    engine.log(tostring(self.ship.health))
+
+    local spawnAsteroid = (#self.asteroids < INIT_ASTEROID_COUNT / 5)
+        or (#self.asteroids < INIT_ASTEROID_COUNT and engine:random(0, 1) == 1)
+
+    if spawnAsteroid then
+        self:spawn_asteroid(engine, "large", engine:random(0.0, 1.0), engine:random(0.0, 1.0))
+        engine.log("spawn at " .. #self.asteroids)
+    end
 
     self.ship.linearVelocityTarget = engine:slot_die_value(1) / 12.0
     self.ship.angularVelocityTarget = (engine:slot_die_value(2) - 3.5) / 25
@@ -144,13 +135,25 @@ function game:on_collision(engine, spriteA, spriteB)
     local typeB = ownerB.type
 
     if (typeA == "ship" or typeB == "ship") and (typeA == "asteroid" or typeB == "asteroid") then
+        if not self.ship.invulnerable then
+            self.ship.health = self.ship.health - 1
+            self.ship.invulnerable = true
+        end
 
+        if typeA == "asteroid" then
+            ownerA.direction = self.ship.direction
+            ownerA.linearVelocity = self.ship.linearVelocity * 1.1
+        end
+        if typeB == "asteroid" then
+            ownerB.direction = self.ship.direction
+            ownerB.linearVelocity = self.ship.linearVelocity * 1.1
+        end
     elseif typeA == "asteroid" and typeB == "asteroid" then
         ownerA.direction = (ownerA.direction + engine:random(45, 135)) % 360
         ownerB.direction = (ownerB.direction - engine:random(45, 135)) % 360
     elseif (typeA == "bullet" or typeB == "bullet") and (typeA == "asteroid" or typeB == "asteroid") then
-        if typeA == "asteroid" then ownerA.markForDeath = true end
-        if typeB == "asteroid" then ownerB.markForDeath = true end
+        if typeA == "asteroid" then ownerA.markedForDeath = true end
+        if typeB == "asteroid" then ownerB.markedForDeath = true end
         if typeA == "bullet" then ownerA.lifetime = HALF_DURATION - 1 end
         if typeB == "bullet" then ownerB.lifetime = HALF_DURATION - 1 end
     end
@@ -158,12 +161,6 @@ end
 
 ---@param engine engine
 function game:on_finish(engine)
-    for i = #self.bullets, 1, -1 do
-        print(i)
-        engine:remove_sprite(self.bullets[i].sprite)
-        table.remove(self.bullets, i)
-    end
-
     engine:release_dice({ 1, 2, 3 })
     engine:roll_dice()
 end
@@ -186,23 +183,29 @@ end
 function game:update_asteroids(engine, deltaTime)
     for i = #self.asteroids, 1, -1 do
         local a = self.asteroids[i]
-        if a.markForDeath then
-            local explosion = {
-                x                = a.x,
-                y                = a.y,
-                texture          = self.explosionTexture,
-                collisionEnabled = false,
-                rotation         = 0,
-                scale            = 1,
-                lifetime         = 0,
-            }
-            explosion.sprite = engine:create_sprite(explosion)
-            self.explosions[#self.explosions + 1] = explosion
+        if a.markedForDeath then
+            if a.size == "small" then
+                local explosion = {
+                    texture          = self.explosionTexture,
+                    collisionEnabled = false,
+                    lifetime         = 0,
+                }
+                explosion.sprite = engine:create_sprite(explosion)
+                explosion.sprite.Position = a.sprite.Position
+                self.explosions[#self.explosions + 1] = explosion
+            else
+                local newSize = a.size == "medium" and "small" or "medium"
+                local aBounds = a.sprite.Bounds
+
+                self:spawn_asteroid(engine, newSize, aBounds.x, aBounds.y)
+                self:spawn_asteroid(engine, newSize, aBounds.x + aBounds.width, aBounds.y + aBounds.height)
+            end
+
 
             engine:remove_sprite(a.sprite)
             table.remove(self.asteroids, i)
         else
-            a.rotation = a.rotation + 0.1 * deltaTime
+            a.sprite.Rotation = a.sprite.Rotation + 0.1 * deltaTime
             self:update_entity(a, deltaTime)
         end
     end
@@ -216,7 +219,7 @@ function game:update_ship(deltaTime)
     local ship           = self.ship
     ship.linearVelocity  = ship.linearVelocityTarget * factor
     ship.angularVelocity = ship.angularVelocityTarget * factor
-    ship.direction       = ship.rotation
+    ship.direction       = ship.sprite.Rotation
     self:update_entity(ship, deltaTime)
 end
 
@@ -230,31 +233,27 @@ function game:update_explosions(engine, deltaTime)
             engine:remove_sprite(s)
             table.remove(self.explosions, i)
         else
-            e.rotation       = e.rotation + 720 * deltaTime / 1000
-            s.Rotation       = e.rotation
-
-            local shrinkRate = deltaTime / EXPLOSION_DURATION
-            e.scale          = e.scale - shrinkRate
-            if e.scale < 0 then e.scale = 0 end
-
-            local size    = s.Size
-            local newSize = { width = size.width * e.scale, height = size.height * e.scale }
-            s.Size        = newSize
-            local newPos  = { x = e.x + (size.width - newSize.width) / 2, y = e.y + (size.height - newSize.height) / 2 }
-            s.Position    = newPos
-            e.x           = newPos.x
-            e.y           = newPos.y
+            s.Rotation = s.Rotation + 720 * deltaTime / 1000
+            local scale = 1 - (e.lifetime / EXPLOSION_DURATION)
+            s.Scale = { width = scale, height = scale }
         end
     end
+end
+
+function game:update_entity(e, deltaTime)
+    local rad = math.rad(e.direction - 90)
+    local vx = math.cos(rad) * e.linearVelocity / 1000
+    local vy = math.sin(rad) * e.linearVelocity / 1000
+
+    local pos = e.sprite.Position
+    e.sprite.Position = { x = (pos.x + vx * deltaTime) % 1, y = (pos.y + vy * deltaTime) % 1 }
+    e.sprite.Rotation = (e.sprite.Rotation + e.angularVelocity * deltaTime) % 360
 end
 
 ---@param engine engine
 function game:spawn_bullet(engine)
     local bullet                    = {
-        x = 0,
-        y = 0,
         direction = self.ship.direction,
-        rotation = 0,
         linearVelocity = math.max(0.5, self.ship.linearVelocity * 1.5),
         angularVelocity = 0,
         texture = self.bulletTexture,
@@ -267,32 +266,36 @@ function game:spawn_bullet(engine)
     self.bullets[#self.bullets + 1] = bullet
 
     local shipBounds                = self.ship.sprite.Bounds
-    local rad                       = math.rad(self.ship.rotation)
+    local rad                       = math.rad(self.ship.sprite.Rotation)
     local bulletBounds              = bullet.sprite.Bounds
 
-    bullet.x                        = self.ship.x + (shipBounds.width * 0.5)
+    local bx                        = shipBounds.x + (shipBounds.width * 0.5)
         + (math.sin(rad) * shipBounds.height * 0.5)
         - (bulletBounds.width * 0.5)
 
-    bullet.y                        = self.ship.y + (shipBounds.height * 0.5)
+    local by                        = shipBounds.y + (shipBounds.height * 0.5)
         - (math.cos(rad) * shipBounds.height * 0.5)
         - (bulletBounds.height * 0.5)
 
-    bullet.sprite.Position          = { x = bullet.x, y = bullet.y }
+    bullet.sprite.Position          = { x = bx, y = by }
 end
 
-function game:update_entity(e, deltaTime)
-    local rad = math.rad(e.direction - 90)
-    local vx = math.cos(rad) * e.linearVelocity / 1000
-    local vy = math.sin(rad) * e.linearVelocity / 1000
-
-    e.x = (e.x + vx * deltaTime) % 1
-    e.y = (e.y + vy * deltaTime) % 1
-
-    e.sprite.Position = { x = e.x, y = e.y }
-
-    e.rotation = (e.rotation + e.angularVelocity * deltaTime) % 360
-    e.sprite.Rotation = e.rotation
+---@param engine engine
+function game:spawn_asteroid(engine, size, x, y)
+    local asteroid = {
+        direction = engine:random(0, 359),
+        linearVelocity = engine:random(0.05, 0.15),
+        angularVelocity = engine:random(0.01, 0.15),
+        size = size,
+        texture = self.asteroidTextures[size],
+        type = "asteroid",
+        collisionEnabled = true,
+        markedForDeath = false,
+    }
+    asteroid.sprite = engine:create_sprite(asteroid)
+    asteroid.sprite.Rotation = engine:random(0, 359)
+    asteroid.sprite.Position = { x = x, y = y }
+    self.asteroids[#self.asteroids + 1] = asteroid
 end
 
 return game
