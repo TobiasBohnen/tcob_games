@@ -11,10 +11,15 @@
 
 class game_form : public ui::form<ui::dock_layout> {
 public:
-    game_form(rect_f const& bounds, assets::group const& grp);
+    game_form(rect_f const& bounds, assets::group const& grp, shared_state const& state);
 
     signal<> StartTurn;
 
+protected:
+    void on_update(milliseconds deltaTime) override;
+
 private:
     void gen_styles(assets::group const& grp);
+
+    shared_state const& _sharedState;
 };

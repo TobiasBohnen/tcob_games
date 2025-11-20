@@ -12,8 +12,9 @@ using namespace std::chrono_literals;
 
 ////////////////////////////////////////////////////////////
 
-game_form::game_form(rect_f const& bounds, assets::group const& grp)
+game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_state const& state)
     : form {{.Name = "game", .Bounds = rect_i {bounds}}}
+    , _sharedState {state}
 {
     i32 const dotsW {48};
     i32 const dotsH {32};
@@ -36,7 +37,21 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp)
     dmd.Dots     = dots;
 
     auto& btn {layout.create_widget<button>(dock_style::Bottom, "btnTurn")};
-    btn.Flex = {.Width = 100_pct, .Height = 5_pct};
+    btn.Flex  = {.Width = 100_pct, .Height = 5_pct};
+    btn.Label = ">";
+    btn.Click.connect([&]() { StartTurn(); });
+    btn.disable();
+}
+
+void game_form::on_update(milliseconds deltaTime)
+{
+    if (_sharedState.CanStart) {
+        find_widget_by_name("btnTurn")->enable();
+    } else {
+        find_widget_by_name("btnTurn")->disable();
+    }
+
+    form_base::on_update(deltaTime);
 }
 
 void game_form::gen_styles(assets::group const& grp)
@@ -78,6 +93,12 @@ void game_form::gen_styles(assets::group const& grp)
         auto activeStyle {styles.create<button>("button", {.Focus = true, .Active = true})};
         *activeStyle        = *style;
         activeStyle->Margin = {5_px, 5_px, 10_px, 0_px};
+
+        auto disableStyle {styles.create<button>("button", {.Disabled = true})};
+        *disableStyle                   = *style;
+        disableStyle->Background        = colors::Gray;
+        disableStyle->Border.Background = colors::Black;
+        disableStyle->Text.Color        = colors::Black;
     }
     {
         auto style {styles.create<seven_segment_display>("seven_segment_display", {})};

@@ -22,20 +22,21 @@ constexpr f32    DICE_OFFSET {72.f};
 
 ////////////////////////////////////////////////////////////
 
-struct sprite {
-    gfx::rect_shape* Shape {nullptr};
-    gfx::rect_shape* WrapCopy {nullptr};
-
-    u32  TexID {0};
-    bool IsCollisionEnabled {false};
-
-    scripting::table Owner;
-};
-
 struct texture {
     size_i   Size;
     string   Region;
     grid<u8> Alpha;
+};
+
+struct sprite {
+    gfx::rect_shape* Shape {nullptr};
+    gfx::rect_shape* WrapCopy {nullptr};
+
+    u32            TexID {0};
+    texture const* Texture {nullptr};
+    bool           IsCollisionEnabled {false};
+
+    scripting::table Owner;
 };
 
 struct collision_event {
@@ -43,15 +44,8 @@ struct collision_event {
     sprite* B;
 };
 
-struct shared_assets {
-    std::unordered_map<u32, texture>     Textures;
-    asset_owner_ptr<gfx::material>       SpriteMaterial;
-    std::vector<std::unique_ptr<sprite>> Sprites;
-
-    gfx::rect_shape*               Background;
-    asset_owner_ptr<gfx::material> BackgroundMaterial;
-
+struct shared_state {
     rect_f DiceArea {0.00f, 0.00f, 1.00f, 0.25f};
-
-    rng Rng;
+    rng    Rng;
+    bool   CanStart {false};
 };

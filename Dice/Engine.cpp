@@ -11,9 +11,9 @@
 
 using namespace scripting;
 
-engine::engine(base_game& game, shared_assets& assets)
+engine::engine(base_game& game, shared_state& state)
     : _game {game}
-    , _assets {assets}
+    , _sharedState {state}
 {
     _game.Collision.connect([this](auto const& ev) {
         if (!_running) { return; }
@@ -59,6 +59,8 @@ void engine::run(string const& file)
 
 auto engine::update(milliseconds deltaTime) -> bool
 {
+    _sharedState.CanStart = !_running && call(_callbacks.CanStart);
+
     if (!_running) { return false; }
 
     if (!call(_callbacks.OnRun, deltaTime.count())) {
@@ -127,12 +129,12 @@ void engine::create_env(string const& path)
 
 auto engine::normal_to_world(point_f pos) const -> point_f
 {
-    auto const& bounds {*_assets.Background->Bounds};
+    auto const& bounds {_game.bounds()};
     return {pos.X * bounds.width(), pos.Y * bounds.height()};
 }
 auto engine::world_to_normal(point_f pos) const -> point_f
 {
-    auto const& bounds {*_assets.Background->Bounds};
+    auto const& bounds {_game.bounds()};
     return {pos.X / bounds.width(), pos.Y / bounds.height()};
 }
 
@@ -184,9 +186,8 @@ void engine::create_sprite_wrapper()
                                        [](sprite* sprite, size_f factor) { sprite->Shape->Scale = factor; }};
     spriteWrapper["Owner"]    = getter {[](sprite* sprite) { return sprite->Owner; }};
     spriteWrapper["Texture"]  = property {[](sprite* sprite) { return sprite->TexID; },
-                                         [this](sprite* sprite, u32 texId) {
-                                             sprite->TexID                = texId;
-                                             sprite->Shape->TextureRegion = _assets.Textures[sprite->TexID].Region; // TODO: error check
+                                         [this](sprite* sprite, u32 texID) {
+                                             set_texture(sprite, texID);
                                          }};
 }
 
@@ -223,30 +224,28 @@ void engine::create_slot_wrapper()
 void engine::create_engine_wrapper()
 {
     auto& engineWrapper {*_script.create_wrapper<engine>("engine")};
-    engineWrapper["random"]        = [](engine* engine, f32 min, f32 max) { return engine->_assets.Rng(min, max); };
-    engineWrapper["random_int"]    = [](engine* engine, i32 min, i32 max) { return engine->_assets.Rng(min, max); };
+    engineWrapper["random"]        = [](engine* engine, f32 min, f32 max) { return engine->_sharedState.Rng(min, max); };
+    engineWrapper["random_int"]    = [](engine* engine, i32 min, i32 max) { return engine->_sharedState.Rng(min, max); };
     engineWrapper["log"]           = [](string const& str) { logger::Info(str); };
     engineWrapper["create_sprite"] = [this](engine* engine, table const& spriteDef) {
-        auto  ptr {std::make_unique<sprite>()};
-        auto* sprite {ptr.get()};
-        engine->_assets.Sprites.push_back(std::move(ptr));
+        auto* sprite {engine->_game.add_sprite()};
 
-        sprite->TexID              = spriteDef["texture"].as<u32>();
         sprite->IsCollisionEnabled = spriteDef["collisionEnabled"].as<bool>();
         sprite->Owner              = spriteDef;
 
-        auto const& texture {engine->_assets.Textures[sprite->TexID]};                // TODO: error check
-        sprite->Shape                = engine->_game.create_shape();
-        sprite->Shape->Bounds        = rect_f {point_f::Zero, size_f {texture.Size}}; // TODO: scaling
-        sprite->Shape->Material      = engine->_assets.SpriteMaterial;
-        sprite->Shape->TextureRegion = texture.Region;
+        sprite->Shape           = engine->_game.add_shape();
+        sprite->Shape->Material = engine->_spriteMaterial;
+
+        auto const texID {spriteDef["texture"].as<u32>()};
+        set_texture(sprite, texID);
+        sprite->Shape->Bounds = rect_f {point_f::Zero, size_f {sprite->Texture->Size}};
 
         return sprite;
     };
     engineWrapper["remove_sprite"] = [](engine* engine, sprite* sprite) {
         engine->_game.remove_shape(sprite->Shape);
         if (sprite->WrapCopy) { engine->_game.remove_shape(sprite->WrapCopy); }
-        std::erase_if(engine->_assets.Sprites, [&sprite](auto const& spr) { return spr.get() == sprite; });
+        engine->_game.remove_sprite(sprite);
     };
     engineWrapper["create_slot"] = [this](engine* engine, point_f pos, table const& slotDef) -> slot* {
         slot_face face;
@@ -289,7 +288,7 @@ void engine::create_engine_wrapper()
         s->unlock();
         s->reset(slots);
     };
-    engineWrapper["set_dice_area"]    = [](engine* engine, rect_f const& rect) { engine->_assets.DiceArea = rect; };
+    engineWrapper["set_dice_area"]    = [](engine* engine, rect_f const& rect) { engine->_sharedState.DiceArea = rect; };
     engineWrapper["are_slots_filled"] = [](engine* engine) { return engine->_game.get_slots()->are_filled(); };
 }
 
@@ -320,7 +319,7 @@ auto engine::create_gfx() -> bool
         return retValue;
     }};
 
-    auto const bgSize {size_i {_assets.Background->Bounds->Size}};
+    auto const bgSize {size_i {_game.bounds().Size}};
 
     // draw background
     if (function<void> func; _table.try_get(func, "draw_background")) {
@@ -329,10 +328,7 @@ auto engine::create_gfx() -> bool
         _canvas.end_frame();
 
         auto tex {_canvas.get_texture(0)};
-        _assets.BackgroundMaterial->first_pass().Texture = tex;
-        tex->regions()["default"]                        = {.UVRect = {gfx::render_texture::UVRect()},
-                                                            .Level  = 0};
-        _assets.Background->Material                     = _assets.BackgroundMaterial;
+        _game.set_background_tex(tex);
     } else {
         return false;
     }
@@ -372,9 +368,10 @@ auto engine::create_gfx() -> bool
             _canvas.translate(pen);
             texDef.Draw(&_canvas);
 
-            auto& assTex {_assets.Textures[texDef.ID]};
+            auto& assTex {_textures[texDef.ID]};
             assTex.Size   = texDef.Size;
             assTex.Region = std::to_string(texDef.ID);
+
             tex->regions()[assTex.Region] =
                 {.UVRect = {
                      {pen.X / canvasSize.Width, -pen.Y / canvasSize.Height},
@@ -391,14 +388,14 @@ auto engine::create_gfx() -> bool
         // get alpha
         auto spriteImage {tex->copy_to_image(0)};
         spriteImage.flip_vertically();
-        for (auto& texture : _assets.Textures) {
+        for (auto& texture : _textures) {
             auto const& textureRegion {tex->regions()[texture.second.Region]};
             texture.second.Alpha = extract_alpha(spriteImage, textureRegion.UVRect);
         }
 
         // setup material
-        tex->Filtering                               = gfx::texture::filtering::Linear;
-        _assets.SpriteMaterial->first_pass().Texture = tex;
+        tex->Filtering                        = gfx::texture::filtering::Linear;
+        _spriteMaterial->first_pass().Texture = tex;
     } else {
         return false;
     }
@@ -409,4 +406,13 @@ auto engine::create_gfx() -> bool
 auto engine::create_sfx() -> bool
 {
     return true;
+}
+
+void engine::set_texture(sprite* sprite, u32 texID)
+{
+    sprite->TexID = texID;
+
+    auto const& texture {_textures[sprite->TexID]}; // TODO: error check
+    sprite->Texture              = &texture;
+    sprite->Shape->TextureRegion = texture.Region;
 }

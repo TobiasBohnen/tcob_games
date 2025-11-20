@@ -26,7 +26,7 @@ struct callbacks {
 
 class engine {
 public:
-    engine(base_game& game, shared_assets& assets);
+    engine(base_game& game, shared_state& state);
 
     void run(string const& file);
 
@@ -49,15 +49,19 @@ private:
     auto normal_to_world(point_f pos) const -> point_f;
     auto world_to_normal(point_f pos) const -> point_f;
 
+    void set_texture(sprite* sprite, u32 texID);
+
     scripting::script                                 _script;
     scripting::table                                  _table;
     std::vector<scripting::native_closure_shared_ptr> _funcs;
 
-    gfx::canvas _canvas;
+    gfx::canvas                      _canvas;
+    asset_owner_ptr<gfx::material>   _spriteMaterial; // TODO: move to game
+    std::unordered_map<u32, texture> _textures;       // TODO: move to game
 
-    base_game&     _game;
-    shared_assets& _assets;
-    callbacks      _callbacks;
+    base_game&    _game;
+    shared_state& _sharedState;
+    callbacks     _callbacks;
 
     bool _running {false};
 };

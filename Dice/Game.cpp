@@ -10,17 +10,18 @@ using namespace scripting;
 base_game::base_game(gfx::window& window, assets::group const& grp)
     : gfx::entity {update_mode::Both}
     , _window {window}
+    , _background(&_spriteBatch.create_shape<gfx::rect_shape>())
     , _slots {_diceBatch, grp.get<gfx::font_family>("Poppins")}
     , _dice {_diceBatch, _window}
-    , _engine {*this, _assets}
+    , _engine {*this, _sharedState}
 {
     auto const [w, h] {size_f {*window.Size}};
 
     rect_f const background {0, 0, h / 3.0f * 4.0f, h};
-    _assets.Background         = &_spriteBatch.create_shape<gfx::rect_shape>();
-    _assets.Background->Bounds = background;
+    _background->Bounds = background;
 
-    _form0 = std::make_unique<game_form>(rect_f {background.width(), 0.0f, w - background.width(), h}, grp);
+    _form0 = std::make_unique<game_form>(rect_f {background.width(), 0.0f, w - background.width(), h}, grp, _sharedState);
+    _form0->StartTurn.connect([&]() { _engine.start_turn(); });
 }
 
 void base_game::on_update(milliseconds deltaTime)
@@ -55,8 +56,8 @@ auto base_game::can_draw() const -> bool
 void base_game::on_key_down(input::keyboard::event const& ev)
 {
     switch (ev.ScanCode) {
-    case input::scan_code::C: _engine.start_turn(); break;
-    default:                  break;
+    case input::scan_code::SPACE: _engine.start_turn(); break;
+    default:                      break;
     }
 }
 
@@ -118,13 +119,13 @@ void base_game::run(string const& file)
 
 void base_game::wrap_sprites()
 {
-    auto const fieldSize {_assets.Background->Bounds->Size};
+    auto const fieldSize {_background->Bounds->Size};
 
-    for (auto& s : _assets.Sprites) {
+    for (auto& s : _sprites) {
         if (!s || !s->Shape) { continue; }
 
         auto b {*s->Shape->Bounds};
-        b.Position.X -= _assets.Background->Bounds->left();
+        b.Position.X -= _background->Bounds->left();
         bool const needs_copy_x {(b.left() < 0.f) || (b.right() > fieldSize.Width)};
         bool const needs_copy_y {(b.top() < 0.f) || (b.bottom() > fieldSize.Height)};
 
@@ -149,7 +150,7 @@ void base_game::wrap_sprites()
                 copyY = b.top() - fieldSize.Height;
             }
 
-            s->WrapCopy->Bounds   = {{copyX + _assets.Background->Bounds->left(), copyY}, s->Shape->Bounds->Size};
+            s->WrapCopy->Bounds   = {{copyX + _background->Bounds->left(), copyY}, s->Shape->Bounds->Size};
             s->WrapCopy->Rotation = *s->Shape->Rotation;
         } else {
             if (s->WrapCopy) {
@@ -168,8 +169,8 @@ void base_game::collide_sprites()
         rect_f const inter {a->aabb().as_intersection_with(b->aabb())};
         if (inter == rect_f::Zero) { return; }
 
-        auto const& texA {_assets.Textures[sA->TexID]};
-        auto const& texB {_assets.Textures[sB->TexID]};
+        auto const* texA {sA->Texture};
+        auto const* texB {sB->Texture};
 
         auto const& invA {a->transform().as_inverted()};
         auto const& invB {b->transform().as_inverted()};
@@ -210,7 +211,7 @@ void base_game::collide_sprites()
                     continue;
                 }
 
-                if (texA.Alpha[ax, ay] > 250 && texB.Alpha[bx, by] > 250) {
+                if (texA->Alpha[ax, ay] > 250 && texB->Alpha[bx, by] > 250) {
                     events.push_back({.A = sA, .B = sB});
                     return;
                 }
@@ -218,15 +219,15 @@ void base_game::collide_sprites()
         }
     }};
 
-    for (usize i {0}; i < _assets.Sprites.size(); ++i) {
-        auto const& spriteA {_assets.Sprites[i]};
+    for (usize i {0}; i < _sprites.size(); ++i) {
+        auto const& spriteA {_sprites[i]};
         if (!spriteA->IsCollisionEnabled) { continue; }
 
         std::array<gfx::rect_shape*, 2> shapesA {spriteA->Shape, spriteA->WrapCopy};
         i32                             countA {spriteA->WrapCopy ? 2 : 1};
 
-        for (usize j {i + 1}; j < _assets.Sprites.size(); ++j) {
-            auto const& spriteB {_assets.Sprites[j]};
+        for (usize j {i + 1}; j < _sprites.size(); ++j) {
+            auto const& spriteB {_sprites[j]};
             if (!spriteB->IsCollisionEnabled) { continue; }
 
             std::array<gfx::rect_shape*, 2> shapesB {spriteB->Shape, spriteB->WrapCopy};
@@ -245,7 +246,7 @@ void base_game::collide_sprites()
     }
 }
 
-auto base_game::create_shape() -> gfx::rect_shape*
+auto base_game::add_shape() -> gfx::rect_shape*
 {
     return &_spriteBatch.create_shape<gfx::rect_shape>();
 }
@@ -253,6 +254,19 @@ auto base_game::create_shape() -> gfx::rect_shape*
 auto base_game::remove_shape(gfx::shape* shape) -> bool
 {
     return _spriteBatch.remove_shape(*shape);
+}
+
+auto base_game::add_sprite() -> sprite*
+{
+    auto  ptr {std::make_unique<sprite>()};
+    auto* retValue {ptr.get()};
+    _sprites.push_back(std::move(ptr));
+    return retValue;
+}
+
+void base_game::remove_sprite(sprite* sprite)
+{
+    std::erase_if(_sprites, [&sprite](auto const& spr) { return spr.get() == sprite; });
 }
 
 auto base_game::add_slot(point_f pos, slot_face face) -> slot*
@@ -268,27 +282,38 @@ auto base_game::get_slots() -> slots*
 auto base_game::get_random_die_position() -> point_f
 {
     auto const winSize {*_window.Size};
-    auto const width {winSize.Width - _assets.Background->Bounds->width()};
+    auto const width {winSize.Width - _background->Bounds->width()};
     rect_f     area {};
-    area.Position.X  = _assets.Background->Bounds->right() + (width * _assets.DiceArea.left());
-    area.Position.Y  = winSize.Height * _assets.DiceArea.top();
-    area.Size.Width  = width * _assets.DiceArea.width();
-    area.Size.Height = winSize.Height * _assets.DiceArea.height();
+    area.Position.X  = _background->Bounds->right() + (width * _sharedState.DiceArea.left());
+    area.Position.Y  = winSize.Height * _sharedState.DiceArea.top();
+    area.Size.Width  = width * _sharedState.DiceArea.width();
+    area.Size.Height = winSize.Height * _sharedState.DiceArea.height();
     area.Size -= DICE_SIZE;
 
     point_f pos;
-    pos.X = _assets.Rng(area.left(), area.right());
-    pos.Y = _assets.Rng(area.top(), area.bottom());
+    pos.X = _sharedState.Rng(area.left(), area.right());
+    pos.Y = _sharedState.Rng(area.top(), area.bottom());
 
     return pos;
 }
 
 auto base_game::add_die(std::span<die_face const> faces) -> die*
 {
-    return _dice.add_die(get_random_die_position(), _assets.Rng, faces[0], faces);
+    return _dice.add_die(get_random_die_position(), _sharedState.Rng, faces[0], faces);
 }
 
 void base_game::roll()
 {
     _dice.roll();
+}
+void base_game::set_background_tex(asset_ptr<gfx::texture> const& tex)
+{
+    _backgroundMaterial->first_pass().Texture = tex;
+    tex->regions()["default"]                 = {.UVRect = {gfx::render_texture::UVRect()},
+                                                 .Level  = 0};
+    _background->Material                     = _backgroundMaterial;
+}
+auto base_game::bounds() const -> rect_f const&
+{
+    return *_background->Bounds;
 }
