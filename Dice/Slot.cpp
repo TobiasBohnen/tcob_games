@@ -12,7 +12,7 @@
 ////////////////////////////////////////////////////////////
 
 slot::slot(gfx::rect_shape* shape, slot_face face)
-    : _shape {shape}
+    : Shape {shape}
     , _face {face}
 {
 }
@@ -27,7 +27,7 @@ auto slot::current_die() const -> die*
     return _die;
 }
 
-auto slot::can_accept(die_face dieFace) const -> bool
+auto slot::can_insert(die_face dieFace) const -> bool
 {
     if (_die || _locked) { return false; }
 
@@ -52,7 +52,7 @@ auto slot::can_accept(die_face dieFace) const -> bool
     return _face.Color == dieFace.Color;
 }
 
-void slot::accept(die* die)
+void slot::insert(die* die)
 {
     _colorState = slot_state::Normal;
 
@@ -60,12 +60,12 @@ void slot::accept(die* die)
     if (_die) { _die->freeze(); }
 }
 
-auto slot::can_release(die* die) const -> bool
+auto slot::can_remove(die* die) const -> bool
 {
     return !_locked && _die && die == _die;
 }
 
-void slot::release()
+void slot::remove()
 {
     if (_die) { _die->unfreeze(); }
     _die = nullptr;
@@ -75,16 +75,11 @@ void slot::update(milliseconds deltaTime) const
 {
     // TODO: accept/reject texregion
     switch (_colorState) {
-    case slot_state::Normal:  _shape->Color = colors::White; break;
-    case slot_state::Hovered: _shape->Color = colors::Gray; break;
-    case slot_state::Accept:  _shape->Color = colors::Gray; break;
-    case slot_state::Reject:  _shape->Color = colors::White; break;
+    case slot_state::Normal:  Shape->Color = colors::White; break;
+    case slot_state::Hovered: Shape->Color = colors::Gray; break;
+    case slot_state::Accept:  Shape->Color = colors::Gray; break;
+    case slot_state::Reject:  Shape->Color = colors::White; break;
     }
-}
-
-auto slot::bounds() const -> rect_f const&
-{
-    return *_shape->Bounds;
 }
 
 ////////////////////////////////////////////////////////////
@@ -99,38 +94,44 @@ void slots::lock() { _locked = true; }
 
 void slots::unlock() { _locked = false; }
 
-auto slots::are_locked() const -> bool { return _locked; }
-
-void slots::add_slot(point_f pos, slot_face face)
+auto slots::add_slot(point_f pos, slot_face face) -> slot*
 {
     auto* shape {&_batch.create_shape<gfx::rect_shape>()};
     shape->Bounds        = {pos, DICE_SIZE};
     shape->Material      = _painter.material();
     shape->TextureRegion = face.texture_region();
 
-    _slots.emplace_back(shape, face);
+    auto& retValue {_slots.emplace_back(std::make_unique<slot>(shape, face))};
     _painter.make_slot(face);
+
+    return retValue.get();
 }
 
-auto slots::get_slot(usize idx) -> slot*
+auto slots::try_insert(die* hoverDie) -> bool
 {
-    return &_slots[idx];
+    if (_locked || !hoverDie || !HoverSlot || !HoverSlot->can_insert(hoverDie->current_face())) { return false; }
+
+    HoverSlot->insert(hoverDie);
+    hoverDie->_colorState    = die_state::Hovered;
+    hoverDie->_shape->Bounds = *HoverSlot->Shape->Bounds;
+    _batch.send_to_back(*hoverDie->_shape);
+    return true;
 }
 
-auto slots::hover_slot(rect_f const& rect, die* die, bool isButtonDown) -> slot*
+void slots::hover_slot(rect_f const& rect, die* die, bool isButtonDown)
 {
-    if (_locked) { return nullptr; }
+    if (_locked) { return; }
 
     auto const find {[&](rect_f const& rect) -> slot* {
         slot* bestSlot {nullptr};
         f32   maxArea {0.0f};
 
         for (auto& s : _slots) {
-            auto const& slotRect {s.bounds()};
+            auto const& slotRect {*s->Shape->Bounds};
             auto const  interSect {rect.as_intersection_with(slotRect)};
             if (interSect.Size.area() > maxArea) {
                 maxArea  = interSect.Size.area();
-                bestSlot = &s;
+                bestSlot = s.get();
             }
         }
 
@@ -142,24 +143,35 @@ auto slots::hover_slot(rect_f const& rect, die* die, bool isButtonDown) -> slot*
         if (!die) {
             slot->_colorState = slot_state::Hovered;
         } else if (isButtonDown) {
-            slot->_colorState = slot->can_accept(die->current_face()) ? slot_state::Accept : slot_state::Reject;
+            slot->_colorState = slot->can_insert(die->current_face()) ? slot_state::Accept : slot_state::Reject;
         }
     }
-    if (slot != _hoverSlot && _hoverSlot) { _hoverSlot->_colorState = slot_state::Normal; }
+    if (slot != HoverSlot && HoverSlot) { HoverSlot->_colorState = slot_state::Normal; }
 
-    _hoverSlot = slot;
-    return _hoverSlot;
+    HoverSlot = slot;
 }
 
-void slots::release_die(die* die)
+auto slots::try_remove(die* die) -> slot*
 {
-    if (_locked || !die) { return; }
+    if (_locked || !die) { return nullptr; }
 
     for (auto& slot : _slots) {
-        if (slot.can_release(die)) {
-            slot.release();
-            return;
+        if (slot->can_remove(die)) {
+            slot->remove();
+            return slot.get();
         }
+    }
+
+    return nullptr;
+}
+
+void slots::reset(std::span<slot* const> slots)
+{
+    for (auto* slot : slots) {
+        auto* die {slot->current_die()};
+        if (!die) { continue; }
+        slot->remove();
+        die->move_by({0, (*slot->Shape->Bounds).height()});
     }
 }
 
@@ -177,7 +189,7 @@ auto slots::get_hand() const -> hand
     std::vector<indexed_face> faces;
     faces.reserve(_slots.size());
     for (usize i {0}; i < _slots.size(); ++i) {
-        faces.push_back({.Face = _slots[i].current_die()->current_face(), .Index = i});
+        faces.push_back({.Face = _slots[i]->current_die()->current_face(), .Index = i});
     }
     std::ranges::stable_sort(faces, {}, func);
 
@@ -251,24 +263,19 @@ auto slots::get_sum() const -> i32
 
     i32 retValue {0};
     for (auto const& slot : _slots) {
-        retValue += slot.current_die()->current_face().Value;
+        retValue += slot->current_die()->current_face().Value;
     }
     return retValue;
 }
 
 auto slots::are_filled() const -> bool
 {
-    return std::ranges::all_of(_slots, [](auto const& slot) { return !slot.is_empty(); });
+    return std::ranges::all_of(_slots, [](auto const& slot) { return !slot->is_empty(); });
 }
 
 void slots::update(milliseconds deltaTime)
 {
     for (auto& slot : _slots) {
-        slot.update(deltaTime);
+        slot->update(deltaTime);
     }
-}
-
-auto slots::count() const -> usize
-{
-    return _slots.size();
 }

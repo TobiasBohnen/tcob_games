@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "../Common.hpp" // IWYU pragma: keep
-#include "../Painter.hpp"
+#include "Common.hpp" // IWYU pragma: keep
+#include "Painter.hpp"
 
 ////////////////////////////////////////////////////////////
 
@@ -17,6 +17,7 @@ enum class die_state : u8 {
 };
 
 class die {
+    friend class slots;
     friend class dice;
 
 public:
@@ -59,24 +60,20 @@ class dice {
 public:
     dice(gfx::shape_batch& batch, gfx::window& window);
 
-    void add_die(point_f pos, rng& rng, die_face currentFace, std::span<die_face const> faces);
-    auto get_die(usize idx) -> die*;
-    auto count() const -> usize;
+    die* HoverDie {nullptr};
+
+    auto add_die(point_f pos, rng& rng, die_face currentFace, std::span<die_face const> faces) -> die*;
 
     void roll();
 
     void drag(point_i mousePos);
-    void accept(slot* slot);
 
-    auto hover_die(point_i mousePos) -> die*;
-
-    void clear();
+    void hover_die(point_i mousePos);
 
     void update(milliseconds deltaTime);
 
 private:
-    die*             _hoverDie {nullptr};
-    std::vector<die> _dice;
+    std::vector<std::unique_ptr<die>> _dice;
 
     gfx::window&      _window;
     gfx::shape_batch& _batch;

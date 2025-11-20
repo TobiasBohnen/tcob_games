@@ -8,15 +8,21 @@
 --------------------------------
 
 ---@class game_module
+---@
 ---@field draw_background fun(self: game_module, engine: engine, canvas: canvas, canvasSize: size)
 ---@field get_textures fun(self: game_module, engine: engine): table<texture, table>
+---@
 ---@field on_setup fun(self: game_module, engine: engine)
----@field can_run fun(self: game_module, engine: engine): boolean
+---@
 ---@field on_run fun(self: game_module, deltaTime: number)
+---@
 ---@field can_start fun(self: game_module, engine: engine): boolean
 ---@field on_start fun(self: game_module, engine: engine)
+---@
 ---@field on_finish fun(self: game_module, engine: engine)
+---@
 ---@field on_collision fun(self: game_module, engine: engine, spriteA: sprite, spriteB: sprite)
+---@field on_slot_die_changed fun(self: game_module, engine: engine, slot: slot)
 local game_module = {}
 
 --------------------------------
@@ -39,7 +45,7 @@ local game_module = {}
 ---@field width number
 ---@field height number
 
----@class slot_face
+---@class slot_owner
 ---@field color string
 ---@field value number
 ---@field op string|nil
@@ -48,7 +54,7 @@ local game_module = {}
 ---@field color string
 ---@field values integer[]
 
----@class spriteDef
+---@class sprite_owner
 ---@field texture texture
 ---@field collisionEnabled boolean
 
@@ -107,6 +113,24 @@ local canvas = {
 ---@field Texture texture
 
 --------------------------------
+-- Slot
+--------------------------------
+
+---@class slot
+---@field Position point
+---@field Size size
+---@field Bounds rect
+---@field IsEmpty boolean
+---@field DieValue integer
+
+--------------------------------
+-- Die
+--------------------------------
+
+---@class die
+---@
+
+--------------------------------
 -- Engine
 --------------------------------
 
@@ -127,24 +151,32 @@ local engine = {
     ---@param min integer
     ---@param max integer
     ---@return integer
-    randomInt = function(self, min, max) end,
+    random_int = function(self, min, max) end,
 
     ---@param str string
     log = function(str) end,
 
     ---@param self engine
-    ---@param def spriteDef
+    ---@param owner sprite_owner
     ---@return sprite
-    create_sprite = function(self, def) end,
+    create_sprite = function(self, owner) end,
 
     ---@param self engine
-    ---@param spritePtr sprite
-    remove_sprite = function(self, spritePtr) end,
+    ---@param sprite sprite
+    remove_sprite = function(self, sprite) end,
 
     ---@param self engine
     ---@param pos point
-    ---@param slotFace slot_face
-    create_slot = function(self, pos, slotFace) end,
+    ---@param owner slot_owner
+    ---@return slot
+    create_slot = function(self, pos, owner) end,
+
+    ---@param self engine
+    ---@param slots { [string]: slot }
+    reset_slots = function(self, slots) end,
+
+    ---@return boolean
+    are_slots_filled = function(self) end,
 
     ---@param self engine
     ---@param count integer
@@ -152,23 +184,6 @@ local engine = {
     create_dice = function(self, count, dieFaces) end,
 
     ---@param self engine
-    ---@param slots table
-    release_dice = function(self, slots) end,
-
-    ---@param self engine
     roll_dice = function(self) end,
 
-    ---@return boolean
-    are_slots_filled = function(self) end,
-
-    ---@return boolean
-    are_slots_locked = function(self) end,
-
-    ---@param idx integer
-    ---@return boolean
-    is_slot_empty = function(self, idx) end,
-
-    ---@param idx integer
-    ---@return integer
-    slot_die_value = function(self, idx) end,
 }

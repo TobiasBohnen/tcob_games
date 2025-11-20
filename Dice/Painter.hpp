@@ -9,6 +9,18 @@
 
 ////////////////////////////////////////////////////////////
 
+struct die_face {
+    u8    Value {0};
+    color Color {};
+
+    auto texture_region() const -> string
+    {
+        return std::format("d{}-{}", Value, Color.value());
+    }
+
+    auto operator==(die_face const& other) const -> bool = default;
+};
+
 class dice_painter {
 public:
     explicit dice_painter(size_i texGrid);
@@ -27,6 +39,34 @@ private:
 };
 
 ////////////////////////////////////////////////////////////
+
+enum class op : u8 {
+    Equal    = 0,
+    NotEqual = 1,
+    Greater  = 2,
+    Less     = 3
+};
+
+struct slot_face {
+    u8    Value {0};
+    color Color {colors::Transparent};
+    op    Op {op::Equal};
+
+    auto texture_region() const -> string
+    {
+        string op;
+        switch (Op) {
+        case op::Equal:    op = "="; break;
+        case op::NotEqual: op = "!"; break;
+        case op::Greater:  op = "+"; break;
+        case op::Less:     op = "-"; break;
+        }
+
+        return std::format("d{}-{}-{}", Value, Color.value(), op);
+    }
+
+    auto operator==(slot_face const& other) const -> bool = default;
+};
 
 class slot_painter {
 public:

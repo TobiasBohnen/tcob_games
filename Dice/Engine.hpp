@@ -9,17 +9,17 @@
 
 ////////////////////////////////////////////////////////////
 
-struct shared_assets {
-    std::unordered_map<u32, texture>     Textures;
-    asset_owner_ptr<gfx::material>       SpriteMaterial;
-    std::vector<std::unique_ptr<sprite>> Sprites;
+template <typename T = void>
+using callback = std::optional<scripting::function<T>>;
 
-    gfx::rect_shape*               Background;
-    asset_owner_ptr<gfx::material> BackgroundMaterial;
-
-    rect_f DiceArea {0.00f, 0.00f, 1.00f, 0.25f};
-
-    rng Rng;
+struct callbacks {
+    callback<>     OnCollision;
+    callback<>     OnSlotDieChanged;
+    callback<>     OnSetup;
+    callback<bool> OnRun;
+    callback<>     OnFinish;
+    callback<bool> CanStart;
+    callback<>     OnStart;
 };
 
 ////////////////////////////////////////////////////////////
@@ -36,11 +36,18 @@ public:
 private:
     void create_env(string const& path);
     void create_wrappers();
+    void create_canvas_wrapper();
+    void create_sprite_wrapper();
+    void create_slot_wrapper();
+    void create_engine_wrapper();
     auto create_gfx() -> bool;
     auto create_sfx() -> bool;
 
     template <typename R = void>
-    auto call(string const& name, auto&&... args) -> R;
+    auto call(callback<R> const& func, auto&&... args) -> R;
+
+    auto normal_to_world(point_f pos) const -> point_f;
+    auto world_to_normal(point_f pos) const -> point_f;
 
     scripting::script                                 _script;
     scripting::table                                  _table;
@@ -50,6 +57,7 @@ private:
 
     base_game&     _game;
     shared_assets& _assets;
+    callbacks      _callbacks;
 
     bool _running {false};
 };

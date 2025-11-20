@@ -16,10 +16,11 @@ base_game::base_game(gfx::window& window, assets::group const& grp)
 {
     auto const [w, h] {size_f {*window.Size}};
 
+    rect_f const background {0, 0, h / 3.0f * 4.0f, h};
     _assets.Background         = &_spriteBatch.create_shape<gfx::rect_shape>();
-    _assets.Background->Bounds = {0, 0, h, h};
+    _assets.Background->Bounds = background;
 
-    _form0 = std::make_unique<game_form>(rect_f {h, 0, w - h, h}, grp);
+    _form0 = std::make_unique<game_form>(rect_f {background.width(), 0.0f, w - background.width(), h}, grp);
 }
 
 void base_game::on_update(milliseconds deltaTime)
@@ -62,7 +63,11 @@ void base_game::on_key_down(input::keyboard::event const& ev)
 void base_game::on_mouse_button_up(input::mouse::button_event const& ev)
 {
     switch (ev.Button) {
-    case input::mouse::button::Left:  _dice.accept(_hoverSlot); break;
+    case input::mouse::button::Left:
+        if (_slots.try_insert(_dice.HoverDie)) {
+            SlotDieChanged(_slots.HoverSlot);
+        }
+        break;
     case input::mouse::button::Right: break;
     default:                          break;
     }
@@ -79,12 +84,12 @@ void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
     bool const isButtonDown {ev.Mouse->is_button_down(input::mouse::button::Left)};
 
     if (!isButtonDown) {
-        _hoverDie = _dice.hover_die(ev.Position);
+        _dice.hover_die(ev.Position);
     }
 
     auto const getRect {[&] -> rect_f {
-        if (_hoverDie) {
-            rect_i const  bounds {_hoverDie->bounds()};
+        if (_dice.HoverDie) {
+            rect_i const  bounds {_dice.HoverDie->bounds()};
             point_f const tl {_window.camera().convert_screen_to_world(bounds.top_left())};
             point_f const br {_window.camera().convert_screen_to_world(bounds.bottom_right())};
             return rect_f::FromLTRB(tl.X, tl.Y, br.X, br.Y);
@@ -94,9 +99,11 @@ void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
         return {mp, size_f::One};
     }};
 
-    _hoverSlot = _slots.hover_slot(getRect(), _hoverDie, isButtonDown);
+    _slots.hover_slot(getRect(), _dice.HoverDie, isButtonDown);
     if (isButtonDown) {
-        _slots.release_die(_hoverDie);
+        if (auto* slot {_slots.try_remove(_dice.HoverDie)}) {
+            SlotDieChanged(slot);
+        }
         _dice.drag(ev.Position);
     }
 
@@ -106,6 +113,7 @@ void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
 void base_game::run(string const& file)
 {
     _engine.run(file);
+    wrap_sprites();
 }
 
 void base_game::wrap_sprites()
@@ -247,19 +255,14 @@ auto base_game::remove_shape(gfx::shape* shape) -> bool
     return _spriteBatch.remove_shape(*shape);
 }
 
-void base_game::add_slot(point_f pos, slot_face face)
+auto base_game::add_slot(point_f pos, slot_face face) -> slot*
 {
-    _slots.add_slot(pos, face);
+    return _slots.add_slot(pos, face);
 }
 
 auto base_game::get_slots() -> slots*
 {
     return &_slots;
-}
-
-auto base_game::get_dice() -> dice*
-{
-    return &_dice;
 }
 
 auto base_game::get_random_die_position() -> point_f
@@ -280,22 +283,12 @@ auto base_game::get_random_die_position() -> point_f
     return pos;
 }
 
-void base_game::add_die(std::span<die_face const> faces)
+auto base_game::add_die(std::span<die_face const> faces) -> die*
 {
-    _dice.add_die(get_random_die_position(), _assets.Rng, faces[0], faces);
+    return _dice.add_die(get_random_die_position(), _assets.Rng, faces[0], faces);
 }
 
-void base_game::release_dice(std::span<i32 const> slotIdx)
+void base_game::roll()
 {
-    _slots.unlock();
-
-    for (i32 i : slotIdx) {
-        auto* slot {_slots.get_slot(i - 1)};
-        if (!slot) { continue; }
-        auto* die {slot->current_die()};
-        if (!die) { continue; }
-
-        slot->release();
-        die->move_to(get_random_die_position());
-    }
+    _dice.roll();
 }

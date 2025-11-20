@@ -13,6 +13,8 @@ class game_form : public ui::form<ui::dock_layout> {
 public:
     game_form(rect_f const& bounds, assets::group const& grp);
 
+    signal<> StartTurn;
+
 private:
     void gen_styles(assets::group const& grp);
 };

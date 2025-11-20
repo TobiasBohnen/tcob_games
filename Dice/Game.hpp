@@ -7,10 +7,10 @@
 
 #include "Common.hpp" // IWYU pragma: keep
 
+#include "Die.hpp"
 #include "Engine.hpp"
+#include "Slot.hpp"
 #include "UI.hpp"
-#include "objects/Die.hpp"
-#include "objects/Slot.hpp"
 
 ////////////////////////////////////////////////////////////
 
@@ -19,20 +19,21 @@ public:
     base_game(gfx::window& window, assets::group const& grp);
 
     signal<collision_event const> Collision;
+    signal<slot* const>           SlotDieChanged;
 
     void run(string const& file);
 
     auto create_shape() -> gfx::rect_shape*;
     auto remove_shape(gfx::shape* shape) -> bool;
 
-    void add_die(std::span<die_face const> faces);
-    void release_dice(std::span<i32 const> slotIdx);
+    auto add_die(std::span<die_face const> faces) -> die*;
 
-    void add_slot(point_f pos, slot_face face);
+    auto add_slot(point_f pos, slot_face face) -> slot*;
     auto get_slots() -> slots*;
-    auto get_dice() -> dice*;
 
     auto get_random_die_position() -> point_f;
+
+    void roll();
 
 protected:
     void on_update(milliseconds deltaTime) override;
@@ -52,15 +53,14 @@ private:
 
     gfx::window& _window;
 
+    engine _engine;
+
     gfx::shape_batch           _diceBatch;
     gfx::shape_batch           _spriteBatch;
     std::unique_ptr<game_form> _form0;
 
     slots _slots;
-    slot* _hoverSlot {nullptr};
     dice  _dice;
-    die*  _hoverDie {nullptr};
 
-    engine        _engine;
     shared_assets _assets;
 };

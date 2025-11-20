@@ -5,8 +5,6 @@
 
 #include "Die.hpp"
 
-#include "Slot.hpp"
-
 ////////////////////////////////////////////////////////////
 
 die::die(gfx::rect_shape* shape, rng& rng, std::span<die_face const> faces, die_face initFace)
@@ -33,10 +31,7 @@ void die::freeze() { _frozen = true; }
 
 void die::unfreeze() { _frozen = false; }
 
-auto die::is_rolling() const -> bool
-{
-    return _rolling;
-}
+auto die::is_rolling() const -> bool { return _rolling; }
 
 void die::roll()
 {
@@ -88,10 +83,7 @@ void die::update(milliseconds deltaTime)
     if (_tween) { _tween->update(deltaTime); }
 }
 
-auto die::bounds() const -> rect_f const&
-{
-    return *_shape->Bounds;
-}
+auto die::bounds() const -> rect_f const& { return *_shape->Bounds; }
 
 void die::move_to(point_f pos)
 {
@@ -116,30 +108,27 @@ dice::dice(gfx::shape_batch& batch, gfx::window& window)
 {
 }
 
-void dice::add_die(point_f pos, rng& rng, die_face currentFace, std::span<die_face const> faces)
+auto dice::add_die(point_f pos, rng& rng, die_face currentFace, std::span<die_face const> faces) -> die*
 {
     auto* shape {&_batch.create_shape<gfx::rect_shape>()};
     shape->Bounds   = {pos, DICE_SIZE};
     shape->Material = _painter.material();
 
-    _dice.emplace_back(shape, rng, faces, currentFace);
+    auto& retValue {_dice.emplace_back(std::make_unique<die>(shape, rng, faces, currentFace))};
     _painter.make_die(faces);
-}
 
-auto dice::get_die(usize idx) -> die*
-{
-    return &_dice[idx];
+    return retValue.get();
 }
 
 void dice::roll()
 {
-    _hoverDie = nullptr;
-    for (auto& die : _dice) { die.roll(); }
+    HoverDie = nullptr;
+    for (auto& die : _dice) { die->roll(); }
 }
 
 void dice::drag(point_i mousePos)
 {
-    if (!_hoverDie || _hoverDie->_frozen) { return; }
+    if (!HoverDie || HoverDie->_frozen) { return; }
 
     point_f const newPos {_window.camera().convert_screen_to_world(mousePos)};
     rect_i const& bounds {_window.bounds()};
@@ -162,25 +151,12 @@ void dice::drag(point_i mousePos)
 
     rect_f const newBounds {clampedPos - halfSize, DICE_SIZE};
 
-    _batch.bring_to_front(*_hoverDie->_shape);
-    _hoverDie->_shape->Bounds = newBounds;
-    _hoverDie->_colorState    = die_state::Dragged;
+    _batch.bring_to_front(*HoverDie->_shape);
+    HoverDie->_shape->Bounds = newBounds;
+    HoverDie->_colorState    = die_state::Dragged;
 }
 
-void dice::accept(slot* slot)
-{
-    if (!_hoverDie || !slot || !slot->can_accept(_hoverDie->current_face())) { return; }
-
-    if (slot->is_empty()) {
-        slot->accept(_hoverDie);
-    }
-
-    _hoverDie->_colorState    = die_state::Hovered;
-    _hoverDie->_shape->Bounds = slot->bounds();
-    _batch.send_to_back(*_hoverDie->_shape);
-}
-
-auto dice::hover_die(point_i mousePos) -> die*
+void dice::hover_die(point_i mousePos)
 {
     point_f const mp {_window.camera().convert_screen_to_world(mousePos)};
 
@@ -190,8 +166,8 @@ auto dice::hover_die(point_i mousePos) -> die*
         for (auto* v : vec | std::views::reverse) {
             auto* shape {dynamic_cast<gfx::rect_shape*>(v)};
             for (auto& die : _dice) {
-                if (die.is_rolling()) { continue; }
-                if (die._shape == shape) { return &die; }
+                if (die->is_rolling()) { continue; }
+                if (die->_shape == shape) { return die.get(); }
             }
         }
         return nullptr;
@@ -200,30 +176,18 @@ auto dice::hover_die(point_i mousePos) -> die*
     auto* die {findDie(mp)};
     if (die) { die->_colorState = die_state::Hovered; }
 
-    if (_hoverDie) {
-        if (die != _hoverDie) {
-            _hoverDie->_colorState = die_state::Normal;
+    if (HoverDie) {
+        if (die != HoverDie) {
+            HoverDie->_colorState = die_state::Normal;
         }
     }
 
-    _hoverDie = die;
-    return _hoverDie;
-}
-
-void dice::clear()
-{
-    _dice.clear();
-    _batch.clear();
+    HoverDie = die;
 }
 
 void dice::update(milliseconds deltaTime)
 {
     for (auto& die : _dice) {
-        die.update(deltaTime);
+        die->update(deltaTime);
     }
-}
-
-auto dice::count() const -> usize
-{
-    return _dice.size();
 }

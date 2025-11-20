@@ -7,8 +7,8 @@ target_sources(Dice PRIVATE
     Game.cpp
     Engine.cpp
     UI.cpp
-    ./objects/Die.cpp
-    ./objects/Slot.cpp
+    Die.cpp
+    Slot.cpp
 )
 
 set_target_properties(Dice PROPERTIES
