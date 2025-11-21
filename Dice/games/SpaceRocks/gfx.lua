@@ -27,7 +27,7 @@ function gfx.draw_background(game, engine, canvas, size)
 end
 
 local function square(x)
-    return { width = x / 1200, height = x / 900 }
+    return { width = x, height = x }
 end
 
 function gfx.get_textures(game, engine)

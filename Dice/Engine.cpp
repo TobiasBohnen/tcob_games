@@ -129,12 +129,12 @@ void engine::create_env(string const& path)
 
 auto engine::normal_to_world(point_f pos) const -> point_f
 {
-    auto const& bounds {_game.bounds()};
+    auto const& bounds {_game.field_bounds()};
     return {pos.X * bounds.width(), pos.Y * bounds.height()};
 }
 auto engine::world_to_normal(point_f pos) const -> point_f
 {
-    auto const& bounds {_game.bounds()};
+    auto const& bounds {_game.field_bounds()};
     return {pos.X / bounds.width(), pos.Y / bounds.height()};
 }
 
@@ -186,31 +186,19 @@ void engine::create_sprite_wrapper()
                                        [](sprite* sprite, size_f factor) { sprite->Shape->Scale = factor; }};
     spriteWrapper["Owner"]    = getter {[](sprite* sprite) { return sprite->Owner; }};
     spriteWrapper["Texture"]  = property {[](sprite* sprite) { return sprite->TexID; },
-                                         [this](sprite* sprite, u32 texID) {
-                                             set_texture(sprite, texID);
-                                         }};
+                                         [this](sprite* sprite, u32 texID) { set_texture(sprite, texID); }};
 }
 
 void engine::create_slot_wrapper()
 {
     auto& slotWrapper {*_script.create_wrapper<slot>("slot")};
-    slotWrapper["Position"] = property {[this](slot* slot) { return world_to_normal(slot->Shape->Bounds->Position); },
-                                        [this](slot* slot, point_f p) { slot->Shape->Bounds = {normal_to_world(p), slot->Shape->Bounds->Size}; }};
-    slotWrapper["Size"]     = property {
-        [this](slot* slot) -> size_f {
-            auto const size {world_to_normal({slot->Shape->Bounds->Size.Width, slot->Shape->Bounds->Size.Height})};
-            return {size.X, size.Y};
+    slotWrapper["Position"] = property {
+        [this](slot* slot) {
+            return world_to_normal(slot->Shape->Bounds->Position);
         },
-        [this](slot* slot, size_f p) {
-            auto const size {normal_to_world({p.Width, p.Height})};
-            slot->Shape->Bounds = {slot->Shape->Bounds->Position, {size.X, size.Y}};
+        [this](slot* slot, point_f p) {
+            slot->Shape->Bounds = {normal_to_world(p), slot->Shape->Bounds->Size};
         }};
-    slotWrapper["Bounds"]   = getter {[this](slot* slot) {
-        rect_f const  bounds {*slot->Shape->Bounds};
-        point_f const tl {world_to_normal(bounds.top_left())};
-        point_f const br {world_to_normal(bounds.bottom_right())};
-        return rect_f::FromLTRB(tl.X, tl.Y, br.X, br.Y);
-    }};
     slotWrapper["Owner"]    = getter {[](slot* slot) { return slot->Owner; }};
     slotWrapper["IsEmpty"]  = getter {[this](slot* slot) {
         return slot->is_empty();
@@ -238,7 +226,7 @@ void engine::create_engine_wrapper()
 
         auto const texID {spriteDef["texture"].as<u32>()};
         set_texture(sprite, texID);
-        sprite->Shape->Bounds = rect_f {point_f::Zero, size_f {sprite->Texture->Size}};
+        sprite->Shape->Bounds = rect_f {point_f::Zero, sprite->Texture->Size};
 
         return sprite;
     };
@@ -247,16 +235,16 @@ void engine::create_engine_wrapper()
         if (sprite->WrapCopy) { engine->_game.remove_shape(sprite->WrapCopy); }
         engine->_game.remove_sprite(sprite);
     };
-    engineWrapper["create_slot"] = [this](engine* engine, point_f pos, table const& slotDef) -> slot* {
+    engineWrapper["create_slot"] = [this](engine* engine, table const& slotDef) -> slot* {
         slot_face face;
         slotDef.try_get(face.Op, "op");
         slotDef.try_get(face.Value, "value");
         string col;
         slotDef.try_get(col, "color");
         face.Color = color::FromString(col);
-        auto* slot {engine->_game.add_slot(normal_to_world(pos), face)};
-        slot->Owner = slotDef;
 
+        auto* slot {engine->_game.add_slot(face)};
+        slot->Owner = slotDef;
         return slot;
     };
     engineWrapper["create_dice"] = [](engine* engine, i32 count, table const& faces) {
@@ -288,13 +276,12 @@ void engine::create_engine_wrapper()
         s->unlock();
         s->reset(slots);
     };
-    engineWrapper["set_dice_area"]    = [](engine* engine, rect_f const& rect) { engine->_sharedState.DiceArea = rect; };
-    engineWrapper["are_slots_filled"] = [](engine* engine) { return engine->_game.get_slots()->are_filled(); };
+    engineWrapper["set_dice_area"] = [](engine* engine, rect_f const& rect) { engine->_sharedState.DiceArea = rect; };
 }
 
 struct tex_def {
     u32            ID {0};
-    size_i         Size;
+    size_f         Size;
     function<void> Draw;
 };
 
@@ -319,7 +306,7 @@ auto engine::create_gfx() -> bool
         return retValue;
     }};
 
-    auto const bgSize {size_i {_game.bounds().Size}};
+    auto const bgSize {size_i {_game.field_bounds().Size}};
 
     // draw background
     if (function<void> func; _table.try_get(func, "draw_background")) {
@@ -345,13 +332,11 @@ auto engine::create_gfx() -> bool
         for (auto const& [id, texDefTable] : texMap) {
             tex_def& texDef {texDefs.emplace_back()};
             texDef.ID = id;
-            size_f size;
-            if (!texDefTable.try_get(size, "size")) { return false; }
-            texDef.Size = size_i {size * bgSize};
+            if (!texDefTable.try_get(texDef.Size, "size")) { return false; }
             if (!texDefTable.try_get(texDef.Draw, "draw")) { return false; }
 
             canvasSize.Width += texDef.Size.Width + static_cast<i32>(PAD * 2);
-            canvasSize.Height = std::max(canvasSize.Height, texDef.Size.Height + static_cast<i32>(PAD * 2));
+            canvasSize.Height = std::max(canvasSize.Height, static_cast<i32>(texDef.Size.Height + (PAD * 2)));
         }
 
         canvasSize.Width += static_cast<i32>(PAD);

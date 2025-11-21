@@ -118,8 +118,6 @@ local canvas = {
 
 ---@class slot
 ---@field Position point
----@field Size size
----@field Bounds rect
 ---@field IsEmpty boolean
 ---@field DieValue integer
 
@@ -166,17 +164,13 @@ local engine = {
     remove_sprite = function(self, sprite) end,
 
     ---@param self engine
-    ---@param pos point
     ---@param owner slot_owner
     ---@return slot
-    create_slot = function(self, pos, owner) end,
+    create_slot = function(self, owner) end,
 
     ---@param self engine
     ---@param slots { [string]: slot }
     reset_slots = function(self, slots) end,
-
-    ---@return boolean
-    are_slots_filled = function(self) end,
 
     ---@param self engine
     ---@param count integer

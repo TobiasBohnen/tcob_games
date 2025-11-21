@@ -22,7 +22,7 @@ void start_scene::on_start()
     resMgr.load_all_groups();
 
     auto& win {window()};
-    _currentGame = std::make_shared<base_game>(win, resGrp);
+    _currentGame = std::make_shared<base_game>(resGrp, win.bounds().Size);
     _currentGame->run("dice/games/SpaceRocks/game.lua");
 
     root_node().create_child().Entity = _currentGame;

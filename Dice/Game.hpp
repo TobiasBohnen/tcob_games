@@ -16,7 +16,7 @@
 
 class base_game : public gfx::entity {
 public:
-    base_game(gfx::window& window, assets::group const& grp);
+    base_game(assets::group const& grp, size_i realWindowSize);
 
     signal<collision_event const> Collision;
     signal<slot* const>           SlotDieChanged;
@@ -31,12 +31,12 @@ public:
 
     auto add_die(std::span<die_face const> faces) -> die*;
 
-    auto add_slot(point_f pos, slot_face face) -> slot*;
+    auto add_slot(slot_face face) -> slot*;
     auto get_slots() -> slots*;
 
     void roll();
 
-    auto bounds() const -> rect_f const&;
+    auto field_bounds() const -> rect_f const&;
     void set_background_tex(asset_ptr<gfx::texture> const& tex);
 
 protected:
@@ -53,11 +53,16 @@ protected:
 
 private:
     auto get_random_die_position() -> point_f;
+    auto convert_screen_to_world(point_i pos) const -> point_f;
 
     void wrap_sprites();
     void collide_sprites();
 
-    gfx::window& _window;
+    size_f _realWindowSize;
+
+    asset_owner_ptr<gfx::render_texture> _texture;
+    asset_owner_ptr<gfx::material>       _material {};
+    gfx::quad_renderer                   _renderer {gfx::buffer_usage_hint::StaticDraw};
 
     engine _engine;
 

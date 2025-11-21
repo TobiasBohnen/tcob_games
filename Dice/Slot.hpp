@@ -58,7 +58,7 @@ public:
     void lock();
     void unlock();
 
-    auto add_slot(point_f pos, slot_face face) -> slot*;
+    auto add_slot(slot_face face) -> slot*;
 
     void hover_slot(rect_f const& rect, die* die, bool isButtonDown);
 
@@ -69,11 +69,12 @@ public:
 
     auto get_hand() const -> hand;
     auto get_sum() const -> i32;
-    auto are_filled() const -> bool;
 
     void update(milliseconds deltaTime);
 
 private:
+    auto are_filled() const -> bool;
+
     std::vector<std::unique_ptr<slot>> _slots {};
 
     gfx::shape_batch& _batch;

@@ -94,10 +94,10 @@ void slots::lock() { _locked = true; }
 
 void slots::unlock() { _locked = false; }
 
-auto slots::add_slot(point_f pos, slot_face face) -> slot*
+auto slots::add_slot(slot_face face) -> slot*
 {
     auto* shape {&_batch.create_shape<gfx::rect_shape>()};
-    shape->Bounds        = {pos, DICE_SIZE};
+    shape->Bounds        = {point_f::Zero, DICE_SIZE};
     shape->Material      = _painter.material();
     shape->TextureRegion = face.texture_region();
 

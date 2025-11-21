@@ -58,9 +58,12 @@ function game:on_setup(engine)
         self:try_spawn_asteroid(engine)
     end
 
-    self.slots.speed = engine:create_slot({ x = 1.0, y = 0.1 }, { value = 0, color = "silver" })
-    self.slots.turn = engine:create_slot({ x = 1.05, y = 0.1 }, { value = 0, color = "silver" })
-    self.slots.bullets = engine:create_slot({ x = 1.10, y = 0.1 }, { value = 0, color = "silver" })
+    self.slots.speed = engine:create_slot({ value = 0, color = "silver" })
+    self.slots.speed.Position = { x = 1.1, y = 0.1 };
+    self.slots.turn = engine:create_slot({ value = 0, color = "silver" })
+    self.slots.turn.Position = { x = 1.15, y = 0.1 };
+    self.slots.bullets = engine:create_slot({ value = 0, color = "silver" })
+    self.slots.bullets.Position = { x = 1.2, y = 0.1 };
 
     engine:set_dice_area({ x = 0.25, y = 0.25, width = 0.5, height = 0.25 })
     engine:create_dice(3, { { values = { 1, 2, 3, 4, 5, 6 }, color = "silver" } })
@@ -68,7 +71,10 @@ function game:on_setup(engine)
 end
 
 ---@param engine engine
-function game:can_start(engine) return engine:are_slots_filled() end
+function game:can_start(engine)
+    local s = self.slots
+    return not (s.speed.IsEmpty or s.turn.IsEmpty or s.bullets.IsEmpty)
+end
 
 ---@param engine engine
 function game:on_start(engine)

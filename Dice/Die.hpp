@@ -58,7 +58,7 @@ private:
 
 class dice {
 public:
-    dice(gfx::shape_batch& batch, gfx::window& window);
+    dice(gfx::shape_batch& batch);
 
     die* HoverDie {nullptr};
 
@@ -66,16 +66,15 @@ public:
 
     void roll();
 
-    void drag(point_i mousePos);
+    void drag(point_f mousePos);
 
-    void hover_die(point_i mousePos);
+    void hover_die(point_f mousePos);
 
     void update(milliseconds deltaTime);
 
 private:
     std::vector<std::unique_ptr<die>> _dice;
 
-    gfx::window&      _window;
     gfx::shape_batch& _batch;
     dice_painter      _painter;
 };

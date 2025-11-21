@@ -7,21 +7,30 @@
 
 using namespace scripting;
 
-base_game::base_game(gfx::window& window, assets::group const& grp)
+base_game::base_game(assets::group const& grp, size_i realWindowSize)
     : gfx::entity {update_mode::Both}
-    , _window {window}
+    , _realWindowSize {size_f {realWindowSize}}
     , _background(&_spriteBatch.create_shape<gfx::rect_shape>())
     , _slots {_diceBatch, grp.get<gfx::font_family>("Poppins")}
-    , _dice {_diceBatch, _window}
+    , _dice {_diceBatch}
     , _engine {*this, _sharedState}
 {
-    auto const [w, h] {size_f {*window.Size}};
-
+    auto const [w, h] {VIRTUAL_SCREEN_SIZE};
     rect_f const background {0, 0, h / 3.0f * 4.0f, h};
     _background->Bounds = background;
 
     _form0 = std::make_unique<game_form>(rect_f {background.width(), 0.0f, w - background.width(), h}, grp, _sharedState);
     _form0->StartTurn.connect([&]() { _engine.start_turn(); });
+
+    _texture->Size                  = size_i {VIRTUAL_SCREEN_SIZE};
+    _texture->Filtering             = gfx::texture::filtering::Linear;
+    _material->first_pass().Texture = _texture;
+
+    gfx::quad q {};
+    gfx::geometry::set_color(q, colors::White);
+    gfx::geometry::set_position(q, {0, 0, static_cast<f32>(_realWindowSize.Width), static_cast<f32>(_realWindowSize.Height)});
+    gfx::geometry::set_texcoords(q, {.UVRect = gfx::render_texture::UVRect(), .Level = 0});
+    _renderer.set_geometry(q, &_material->first_pass());
 }
 
 void base_game::on_update(milliseconds deltaTime)
@@ -43,9 +52,11 @@ void base_game::on_fixed_update(milliseconds deltaTime)
 
 void base_game::on_draw_to(gfx::render_target& target)
 {
-    _spriteBatch.draw_to(target);
-    _form0->draw_to(target);
-    _diceBatch.draw_to(target);
+    _spriteBatch.draw_to(*_texture);
+    _form0->draw_to(*_texture);
+    _diceBatch.draw_to(*_texture);
+
+    _renderer.render_to_target(target);
 }
 
 auto base_game::can_draw() const -> bool
@@ -61,6 +72,12 @@ void base_game::on_key_down(input::keyboard::event const& ev)
     }
 }
 
+auto base_game::convert_screen_to_world(point_i pos) const -> point_f
+{
+    return {static_cast<f32>(pos.X) / _realWindowSize.Width * VIRTUAL_SCREEN_SIZE.Width,
+            static_cast<f32>(pos.Y) / _realWindowSize.Height * VIRTUAL_SCREEN_SIZE.Height};
+}
+
 void base_game::on_mouse_button_up(input::mouse::button_event const& ev)
 {
     switch (ev.Button) {
@@ -72,31 +89,39 @@ void base_game::on_mouse_button_up(input::mouse::button_event const& ev)
     case input::mouse::button::Right: break;
     default:                          break;
     }
-    dynamic_cast<input::receiver*>(_form0.get())->on_mouse_button_up(ev);
+
+    input::mouse::button_event nev {ev};
+    nev.Position = point_i {convert_screen_to_world(nev.Position)};
+    dynamic_cast<input::receiver*>(_form0.get())->on_mouse_button_up(nev);
 }
 
 void base_game::on_mouse_button_down(input::mouse::button_event const& ev)
 {
-    dynamic_cast<input::receiver*>(_form0.get())->on_mouse_button_down(ev);
+    input::mouse::button_event nev {ev};
+    nev.Position = point_i {convert_screen_to_world(nev.Position)};
+    dynamic_cast<input::receiver*>(_form0.get())->on_mouse_button_down(nev);
 }
 
 void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
 {
+    input::mouse::motion_event nev {ev};
+    nev.Position = point_i {convert_screen_to_world(nev.Position)};
+    auto const mp {point_f {nev.Position}};
+
     bool const isButtonDown {ev.Mouse->is_button_down(input::mouse::button::Left)};
 
     if (!isButtonDown) {
-        _dice.hover_die(ev.Position);
+        _dice.hover_die(mp);
     }
 
     auto const getRect {[&] -> rect_f {
         if (_dice.HoverDie) {
             rect_i const  bounds {_dice.HoverDie->bounds()};
-            point_f const tl {_window.camera().convert_screen_to_world(bounds.top_left())};
-            point_f const br {_window.camera().convert_screen_to_world(bounds.bottom_right())};
+            point_f const tl {bounds.top_left()};
+            point_f const br {bounds.bottom_right()};
             return rect_f::FromLTRB(tl.X, tl.Y, br.X, br.Y);
         }
 
-        point_f const mp {_window.camera().convert_screen_to_world(ev.Position)};
         return {mp, size_f::One};
     }};
 
@@ -105,10 +130,10 @@ void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
         if (auto* slot {_slots.try_remove(_dice.HoverDie)}) {
             SlotDieChanged(slot);
         }
-        _dice.drag(ev.Position);
+        _dice.drag(mp);
     }
 
-    dynamic_cast<input::receiver*>(_form0.get())->on_mouse_motion(ev);
+    dynamic_cast<input::receiver*>(_form0.get())->on_mouse_motion(nev);
 }
 
 void base_game::run(string const& file)
@@ -269,9 +294,9 @@ void base_game::remove_sprite(sprite* sprite)
     std::erase_if(_sprites, [&sprite](auto const& spr) { return spr.get() == sprite; });
 }
 
-auto base_game::add_slot(point_f pos, slot_face face) -> slot*
+auto base_game::add_slot(slot_face face) -> slot*
 {
-    return _slots.add_slot(pos, face);
+    return _slots.add_slot(face);
 }
 
 auto base_game::get_slots() -> slots*
@@ -281,7 +306,7 @@ auto base_game::get_slots() -> slots*
 
 auto base_game::get_random_die_position() -> point_f
 {
-    auto const winSize {*_window.Size};
+    auto const winSize {VIRTUAL_SCREEN_SIZE};
     auto const width {winSize.Width - _background->Bounds->width()};
     rect_f     area {};
     area.Position.X  = _background->Bounds->right() + (width * _sharedState.DiceArea.left());
@@ -313,7 +338,7 @@ void base_game::set_background_tex(asset_ptr<gfx::texture> const& tex)
                                                  .Level  = 0};
     _background->Material                     = _backgroundMaterial;
 }
-auto base_game::bounds() const -> rect_f const&
+auto base_game::field_bounds() const -> rect_f const&
 {
     return *_background->Bounds;
 }

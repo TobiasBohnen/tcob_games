@@ -101,9 +101,8 @@ void die::move_by(point_f offset)
 
 ////////////////////////////////////////////////////////////
 
-dice::dice(gfx::shape_batch& batch, gfx::window& window)
-    : _window {window}
-    , _batch {batch}
+dice::dice(gfx::shape_batch& batch)
+    : _batch {batch}
     , _painter {{10, 50}}
 {
 }
@@ -126,40 +125,35 @@ void dice::roll()
     for (auto& die : _dice) { die->roll(); }
 }
 
-void dice::drag(point_i mousePos)
+void dice::drag(point_f mousePos)
 {
     if (!HoverDie || HoverDie->_frozen) { return; }
 
-    point_f const newPos {_window.camera().convert_screen_to_world(mousePos)};
-    rect_i const& bounds {_window.bounds()};
-
+    rect_i const  bounds {point_i::Zero, size_i {VIRTUAL_SCREEN_SIZE}};
     point_f const halfSize {DICE_SIZE.Width / 2, DICE_SIZE.Height / 2};
+    point_f       newPos {mousePos};
 
-    point_f clampedPos {newPos};
-
-    if (newPos.X - halfSize.X < bounds.left()) {
-        clampedPos.X = bounds.left() + halfSize.X;
-    } else if (newPos.X + halfSize.X > bounds.right()) {
-        clampedPos.X = bounds.right() - halfSize.X;
+    if (mousePos.X - halfSize.X < bounds.left()) {
+        newPos.X = bounds.left() + halfSize.X;
+    } else if (mousePos.X + halfSize.X > bounds.right()) {
+        newPos.X = bounds.right() - halfSize.X;
     }
 
-    if (newPos.Y - halfSize.Y < bounds.top()) {
-        clampedPos.Y = bounds.top() + halfSize.Y;
-    } else if (newPos.Y + halfSize.Y > bounds.bottom()) {
-        clampedPos.Y = bounds.bottom() - halfSize.Y;
+    if (mousePos.Y - halfSize.Y < bounds.top()) {
+        newPos.Y = bounds.top() + halfSize.Y;
+    } else if (mousePos.Y + halfSize.Y > bounds.bottom()) {
+        newPos.Y = bounds.bottom() - halfSize.Y;
     }
 
-    rect_f const newBounds {clampedPos - halfSize, DICE_SIZE};
+    rect_f const newBounds {newPos - halfSize, DICE_SIZE};
 
     _batch.bring_to_front(*HoverDie->_shape);
     HoverDie->_shape->Bounds = newBounds;
     HoverDie->_colorState    = die_state::Dragged;
 }
 
-void dice::hover_die(point_i mousePos)
+void dice::hover_die(point_f mousePos)
 {
-    point_f const mp {_window.camera().convert_screen_to_world(mousePos)};
-
     auto const findDie {[&](point_f mp) -> die* {
         auto const vec {_batch.intersect({mp, size_f::One})};
         if (vec.empty()) { return nullptr; }
@@ -173,7 +167,7 @@ void dice::hover_die(point_i mousePos)
         return nullptr;
     }};
 
-    auto* die {findDie(mp)};
+    auto* die {findDie(mousePos)};
     if (die) { die->_colorState = die_state::Hovered; }
 
     if (HoverDie) {
