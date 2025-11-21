@@ -125,24 +125,23 @@ void dice::roll()
     for (auto& die : _dice) { die->roll(); }
 }
 
-void dice::drag(point_f mousePos)
+void dice::drag(point_f mousePos, size_f winSize)
 {
     if (!HoverDie || HoverDie->_frozen) { return; }
 
-    rect_i const  bounds {point_i::Zero, size_i {VIRTUAL_SCREEN_SIZE}};
     point_f const halfSize {DICE_SIZE.Width / 2, DICE_SIZE.Height / 2};
     point_f       newPos {mousePos};
 
-    if (mousePos.X - halfSize.X < bounds.left()) {
-        newPos.X = bounds.left() + halfSize.X;
-    } else if (mousePos.X + halfSize.X > bounds.right()) {
-        newPos.X = bounds.right() - halfSize.X;
+    if (mousePos.X - halfSize.X < 0) {
+        newPos.X = halfSize.X;
+    } else if (mousePos.X + halfSize.X > winSize.Width) {
+        newPos.X = winSize.Width - halfSize.X;
     }
 
-    if (mousePos.Y - halfSize.Y < bounds.top()) {
-        newPos.Y = bounds.top() + halfSize.Y;
-    } else if (mousePos.Y + halfSize.Y > bounds.bottom()) {
-        newPos.Y = bounds.bottom() - halfSize.Y;
+    if (mousePos.Y - halfSize.Y < 0) {
+        newPos.Y = halfSize.Y;
+    } else if (mousePos.Y + halfSize.Y > winSize.Height) {
+        newPos.Y = winSize.Height - halfSize.Y;
     }
 
     rect_f const newBounds {newPos - halfSize, DICE_SIZE};

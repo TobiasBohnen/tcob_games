@@ -19,7 +19,6 @@ struct shared_assets;
 
 constexpr size_f DICE_SIZE {62, 62};
 constexpr f32    DICE_OFFSET {72.f};
-constexpr size_f VIRTUAL_SCREEN_SIZE {1600, 900};
 
 ////////////////////////////////////////////////////////////
 

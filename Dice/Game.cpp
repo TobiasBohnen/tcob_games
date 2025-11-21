@@ -7,6 +7,8 @@
 
 using namespace scripting;
 
+constexpr size_f VIRTUAL_SCREEN_SIZE {1600, 900};
+
 base_game::base_game(assets::group const& grp, size_i realWindowSize)
     : gfx::entity {update_mode::Both}
     , _realWindowSize {size_f {realWindowSize}}
@@ -16,10 +18,12 @@ base_game::base_game(assets::group const& grp, size_i realWindowSize)
     , _engine {*this, _sharedState}
 {
     auto const [w, h] {VIRTUAL_SCREEN_SIZE};
-    rect_f const background {0, 0, h / 3.0f * 4.0f, h};
-    _background->Bounds = background;
+    rect_f const bgBounds {0, 0, h / 3.0f * 4.0f, h};
+    rect_f const uiBounds {bgBounds.width(), 0.0f, w - bgBounds.width(), h};
 
-    _form0 = std::make_unique<game_form>(rect_f {background.width(), 0.0f, w - background.width(), h}, grp, _sharedState);
+    _background->Bounds = bgBounds;
+
+    _form0 = std::make_unique<game_form>(uiBounds, grp, _sharedState);
     _form0->StartTurn.connect([&]() { _engine.start_turn(); });
 
     _texture->Size                  = size_i {VIRTUAL_SCREEN_SIZE};
@@ -28,7 +32,7 @@ base_game::base_game(assets::group const& grp, size_i realWindowSize)
 
     gfx::quad q {};
     gfx::geometry::set_color(q, colors::White);
-    gfx::geometry::set_position(q, {0, 0, static_cast<f32>(_realWindowSize.Width), static_cast<f32>(_realWindowSize.Height)});
+    gfx::geometry::set_position(q, {point_f::Zero, _realWindowSize});
     gfx::geometry::set_texcoords(q, {.UVRect = gfx::render_texture::UVRect(), .Level = 0});
     _renderer.set_geometry(q, &_material->first_pass());
 }
@@ -37,8 +41,9 @@ void base_game::on_update(milliseconds deltaTime)
 {
     _dice.update(deltaTime);
     _slots.update(deltaTime);
-    _form0->update(deltaTime);
+
     _spriteBatch.update(deltaTime);
+    _form0->update(deltaTime);
     _diceBatch.update(deltaTime);
 }
 
@@ -130,7 +135,7 @@ void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
         if (auto* slot {_slots.try_remove(_dice.HoverDie)}) {
             SlotDieChanged(slot);
         }
-        _dice.drag(mp);
+        _dice.drag(mp, VIRTUAL_SCREEN_SIZE);
     }
 
     dynamic_cast<input::receiver*>(_form0.get())->on_mouse_motion(nev);
