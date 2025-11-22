@@ -36,7 +36,9 @@ public:
 
     void roll();
 
-    auto field_bounds() const -> rect_f const&;
+    auto world_size() const -> size_f;
+    auto ui_bounds() const -> rect_f const&;
+
     void set_background_tex(asset_ptr<gfx::texture> const& tex);
 
 protected:
@@ -53,7 +55,6 @@ protected:
 
 private:
     auto get_random_die_position() -> point_f;
-    auto convert_screen_to_world(point_i pos) const -> point_f;
 
     void wrap_sprites();
     void collide_sprites();

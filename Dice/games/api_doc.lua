@@ -136,10 +136,6 @@ local canvas = {
 local engine = {
 
     ---@param self engine
-    ---@param bounds rect
-    set_dice_area = function(self, bounds) end,
-
-    ---@param self engine
     ---@param min number
     ---@param max number
     ---@return number

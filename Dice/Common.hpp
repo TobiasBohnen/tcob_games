@@ -45,7 +45,6 @@ struct collision_event {
 };
 
 struct shared_state {
-    rect_f DiceArea {0.00f, 0.00f, 1.00f, 0.25f};
-    rng    Rng;
-    bool   CanStart {false};
+    rng  Rng;
+    bool CanStart {false};
 };

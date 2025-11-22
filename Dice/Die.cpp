@@ -125,23 +125,23 @@ void dice::roll()
     for (auto& die : _dice) { die->roll(); }
 }
 
-void dice::drag(point_f mousePos, size_f winSize)
+void dice::drag(point_f mousePos, rect_f const& winBounds)
 {
     if (!HoverDie || HoverDie->_frozen) { return; }
 
     point_f const halfSize {DICE_SIZE.Width / 2, DICE_SIZE.Height / 2};
     point_f       newPos {mousePos};
 
-    if (mousePos.X - halfSize.X < 0) {
-        newPos.X = halfSize.X;
-    } else if (mousePos.X + halfSize.X > winSize.Width) {
-        newPos.X = winSize.Width - halfSize.X;
+    if (mousePos.X - halfSize.X < winBounds.left()) {
+        newPos.X = winBounds.left() + halfSize.X;
+    } else if (mousePos.X + halfSize.X > winBounds.right()) {
+        newPos.X = winBounds.right() - halfSize.X;
     }
 
-    if (mousePos.Y - halfSize.Y < 0) {
-        newPos.Y = halfSize.Y;
-    } else if (mousePos.Y + halfSize.Y > winSize.Height) {
-        newPos.Y = winSize.Height - halfSize.Y;
+    if (mousePos.Y - halfSize.Y < winBounds.top()) {
+        newPos.Y = winBounds.top() + halfSize.Y;
+    } else if (mousePos.Y + halfSize.Y > winBounds.bottom()) {
+        newPos.Y = winBounds.bottom() - halfSize.Y;
     }
 
     rect_f const newBounds {newPos - halfSize, DICE_SIZE};

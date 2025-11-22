@@ -59,13 +59,12 @@ function game:on_setup(engine)
     end
 
     self.slots.speed = engine:create_slot({ value = 0, color = "silver" })
-    self.slots.speed.Position = { x = 1.1, y = 0.1 };
+    self.slots.speed.Position = { x = 0.05, y = 0.1 };
     self.slots.turn = engine:create_slot({ value = 0, color = "silver" })
-    self.slots.turn.Position = { x = 1.15, y = 0.1 };
+    self.slots.turn.Position = { x = 0.20, y = 0.1 };
     self.slots.bullets = engine:create_slot({ value = 0, color = "silver" })
-    self.slots.bullets.Position = { x = 1.2, y = 0.1 };
+    self.slots.bullets.Position = { x = 0.35, y = 0.1 };
 
-    engine:set_dice_area({ x = 0.25, y = 0.25, width = 0.5, height = 0.25 })
     engine:create_dice(3, { { values = { 1, 2, 3, 4, 5, 6 }, color = "silver" } })
     engine:roll_dice()
 end

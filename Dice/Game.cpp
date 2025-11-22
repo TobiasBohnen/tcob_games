@@ -7,7 +7,7 @@
 
 using namespace scripting;
 
-constexpr size_f VIRTUAL_SCREEN_SIZE {1600, 900};
+constexpr size_f VIRTUAL_SCREEN_SIZE {800, 600};
 
 base_game::base_game(assets::group const& grp, size_i realWindowSize)
     : gfx::entity {update_mode::Both}
@@ -17,11 +17,11 @@ base_game::base_game(assets::group const& grp, size_i realWindowSize)
     , _dice {_diceBatch}
     , _engine {*this, _sharedState}
 {
-    auto const [w, h] {VIRTUAL_SCREEN_SIZE};
+    _background->Bounds = {point_f::Zero, VIRTUAL_SCREEN_SIZE};
+
+    auto const [w, h] {_realWindowSize};
     rect_f const bgBounds {0, 0, h / 3.0f * 4.0f, h};
     rect_f const uiBounds {bgBounds.width(), 0.0f, w - bgBounds.width(), h};
-
-    _background->Bounds = bgBounds;
 
     _form0 = std::make_unique<game_form>(uiBounds, grp, _sharedState);
     _form0->StartTurn.connect([&]() { _engine.start_turn(); });
@@ -32,7 +32,7 @@ base_game::base_game(assets::group const& grp, size_i realWindowSize)
 
     gfx::quad q {};
     gfx::geometry::set_color(q, colors::White);
-    gfx::geometry::set_position(q, {point_f::Zero, _realWindowSize});
+    gfx::geometry::set_position(q, bgBounds);
     gfx::geometry::set_texcoords(q, {.UVRect = gfx::render_texture::UVRect(), .Level = 0});
     _renderer.set_geometry(q, &_material->first_pass());
 }
@@ -58,10 +58,10 @@ void base_game::on_fixed_update(milliseconds deltaTime)
 void base_game::on_draw_to(gfx::render_target& target)
 {
     _spriteBatch.draw_to(*_texture);
-    _form0->draw_to(*_texture);
-    _diceBatch.draw_to(*_texture);
-
     _renderer.render_to_target(target);
+
+    _form0->draw_to(target);
+    _diceBatch.draw_to(target);
 }
 
 auto base_game::can_draw() const -> bool
@@ -77,12 +77,6 @@ void base_game::on_key_down(input::keyboard::event const& ev)
     }
 }
 
-auto base_game::convert_screen_to_world(point_i pos) const -> point_f
-{
-    return {static_cast<f32>(pos.X) / _realWindowSize.Width * VIRTUAL_SCREEN_SIZE.Width,
-            static_cast<f32>(pos.Y) / _realWindowSize.Height * VIRTUAL_SCREEN_SIZE.Height};
-}
-
 void base_game::on_mouse_button_up(input::mouse::button_event const& ev)
 {
     switch (ev.Button) {
@@ -95,23 +89,17 @@ void base_game::on_mouse_button_up(input::mouse::button_event const& ev)
     default:                          break;
     }
 
-    input::mouse::button_event nev {ev};
-    nev.Position = point_i {convert_screen_to_world(nev.Position)};
-    dynamic_cast<input::receiver*>(_form0.get())->on_mouse_button_up(nev);
+    dynamic_cast<input::receiver*>(_form0.get())->on_mouse_button_up(ev);
 }
 
 void base_game::on_mouse_button_down(input::mouse::button_event const& ev)
 {
-    input::mouse::button_event nev {ev};
-    nev.Position = point_i {convert_screen_to_world(nev.Position)};
-    dynamic_cast<input::receiver*>(_form0.get())->on_mouse_button_down(nev);
+    dynamic_cast<input::receiver*>(_form0.get())->on_mouse_button_down(ev);
 }
 
 void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
 {
-    input::mouse::motion_event nev {ev};
-    nev.Position = point_i {convert_screen_to_world(nev.Position)};
-    auto const mp {point_f {nev.Position}};
+    auto const mp {point_f {ev.Position}};
 
     bool const isButtonDown {ev.Mouse->is_button_down(input::mouse::button::Left)};
 
@@ -135,10 +123,10 @@ void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
         if (auto* slot {_slots.try_remove(_dice.HoverDie)}) {
             SlotDieChanged(slot);
         }
-        _dice.drag(mp, VIRTUAL_SCREEN_SIZE);
+        _dice.drag(mp, ui_bounds());
     }
 
-    dynamic_cast<input::receiver*>(_form0.get())->on_mouse_motion(nev);
+    dynamic_cast<input::receiver*>(_form0.get())->on_mouse_motion(ev);
 }
 
 void base_game::run(string const& file)
@@ -337,7 +325,12 @@ void base_game::set_background_tex(asset_ptr<gfx::texture> const& tex)
                                                  .Level  = 0};
     _background->Material                     = _backgroundMaterial;
 }
-auto base_game::field_bounds() const -> rect_f const&
+
+auto base_game::world_size() const -> size_f
 {
-    return *_background->Bounds;
+    return _background->Bounds->Size;
+}
+auto base_game::ui_bounds() const -> rect_f const&
+{
+    return *_form0->Bounds;
 }

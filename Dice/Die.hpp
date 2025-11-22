@@ -66,7 +66,7 @@ public:
 
     void roll();
 
-    void drag(point_f mousePos, size_f winSize);
+    void drag(point_f mousePos, rect_f const& winBounds);
 
     void hover_die(point_f mousePos);
 

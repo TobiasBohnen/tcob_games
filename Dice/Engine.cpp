@@ -129,13 +129,23 @@ void engine::create_env(string const& path)
 
 auto engine::normal_to_world(point_f pos) const -> point_f
 {
-    auto const& bounds {_game.field_bounds()};
-    return {pos.X * bounds.width(), pos.Y * bounds.height()};
+    auto const& size {_game.world_size()};
+    return {pos.X * size.Width, pos.Y * size.Height};
 }
 auto engine::world_to_normal(point_f pos) const -> point_f
 {
-    auto const& bounds {_game.field_bounds()};
-    return {pos.X / bounds.width(), pos.Y / bounds.height()};
+    auto const& size {_game.world_size()};
+    return {pos.X / size.Width, pos.Y / size.Height};
+}
+auto engine::normal_to_ui(point_f pos) const -> point_f
+{
+    auto const& bounds {_game.ui_bounds()};
+    return {bounds.left() + (pos.X * bounds.width()), bounds.top() + (pos.Y * bounds.height())};
+}
+auto engine::ui_to_normal(point_f pos) const -> point_f
+{
+    auto const& bounds {_game.ui_bounds()};
+    return {(pos.X - bounds.left()) / bounds.width(), (pos.Y - bounds.top()) / bounds.height()};
 }
 
 void engine::create_wrappers()
@@ -192,21 +202,11 @@ void engine::create_sprite_wrapper()
 void engine::create_slot_wrapper()
 {
     auto& slotWrapper {*_script.create_wrapper<slot>("slot")};
-    slotWrapper["Position"] = property {
-        [this](slot* slot) {
-            return world_to_normal(slot->Shape->Bounds->Position);
-        },
-        [this](slot* slot, point_f p) {
-            slot->Shape->Bounds = {normal_to_world(p), slot->Shape->Bounds->Size};
-        }};
+    slotWrapper["Position"] = property {[this](slot* slot) { return ui_to_normal(slot->Shape->Bounds->Position); },
+                                        [this](slot* slot, point_f p) { slot->Shape->Bounds = {normal_to_ui(p), slot->Shape->Bounds->Size}; }};
     slotWrapper["Owner"]    = getter {[](slot* slot) { return slot->Owner; }};
-    slotWrapper["IsEmpty"]  = getter {[this](slot* slot) {
-        return slot->is_empty();
-    }};
-    slotWrapper["DieValue"] = getter {[this](slot* slot) {
-        if (slot->is_empty()) { return u8 {0}; }
-        return slot->current_die()->current_face().Value;
-    }};
+    slotWrapper["IsEmpty"]  = getter {[](slot* slot) { return slot->is_empty(); }};
+    slotWrapper["DieValue"] = getter {[](slot* slot) -> u8 { return slot->is_empty() ? 0 : slot->current_die()->current_face().Value; }};
 }
 
 void engine::create_engine_wrapper()
@@ -215,7 +215,7 @@ void engine::create_engine_wrapper()
     engineWrapper["random"]        = [](engine* engine, f32 min, f32 max) { return engine->_sharedState.Rng(min, max); };
     engineWrapper["random_int"]    = [](engine* engine, i32 min, i32 max) { return engine->_sharedState.Rng(min, max); };
     engineWrapper["log"]           = [](string const& str) { logger::Info(str); };
-    engineWrapper["create_sprite"] = [this](engine* engine, table const& spriteDef) {
+    engineWrapper["create_sprite"] = [](engine* engine, table const& spriteDef) {
         auto* sprite {engine->_game.add_sprite()};
 
         sprite->IsCollisionEnabled = spriteDef["collisionEnabled"].as<bool>();
@@ -225,7 +225,7 @@ void engine::create_engine_wrapper()
         sprite->Shape->Material = engine->_spriteMaterial;
 
         auto const texID {spriteDef["texture"].as<u32>()};
-        set_texture(sprite, texID);
+        engine->set_texture(sprite, texID);
         sprite->Shape->Bounds = rect_f {point_f::Zero, sprite->Texture->Size};
 
         return sprite;
@@ -276,7 +276,6 @@ void engine::create_engine_wrapper()
         s->unlock();
         s->reset(slots);
     };
-    engineWrapper["set_dice_area"] = [](engine* engine, rect_f const& rect) { engine->_sharedState.DiceArea = rect; };
 }
 
 struct tex_def {
@@ -306,16 +305,14 @@ auto engine::create_gfx() -> bool
         return retValue;
     }};
 
-    auto const bgSize {size_i {_game.field_bounds().Size}};
+    auto const bgSize {size_i {_game.world_size()}};
 
     // draw background
     if (function<void> func; _table.try_get(func, "draw_background")) {
         _canvas.begin_frame(bgSize, 1, 0);
         func(_table, this, &_canvas, bgSize);
         _canvas.end_frame();
-
-        auto tex {_canvas.get_texture(0)};
-        _game.set_background_tex(tex);
+        _game.set_background_tex(_canvas.get_texture(0));
     } else {
         return false;
     }
