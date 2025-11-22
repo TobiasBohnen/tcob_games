@@ -311,13 +311,7 @@ auto base_game::get_slots() -> slots*
 
 auto base_game::get_random_die_position() -> point_f
 {
-    auto const winSize {VIRTUAL_SCREEN_SIZE};
-    auto const width {winSize.Width - _background->Bounds->width()};
-    rect_f     area {};
-    area.Position.X  = _background->Bounds->right() + (width * _sharedState.DiceArea.left());
-    area.Position.Y  = winSize.Height * _sharedState.DiceArea.top();
-    area.Size.Width  = width * _sharedState.DiceArea.width();
-    area.Size.Height = winSize.Height * _sharedState.DiceArea.height();
+    rect_f area {_form0->Bounds};
     area.Size -= DICE_SIZE;
 
     point_f pos;

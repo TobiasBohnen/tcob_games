@@ -58,13 +58,13 @@ private:
     void wrap_sprites();
     void collide_sprites();
 
+    engine _engine;
+
     size_f _realWindowSize;
 
     asset_owner_ptr<gfx::render_texture> _texture;
     asset_owner_ptr<gfx::material>       _material {};
     gfx::quad_renderer                   _renderer {gfx::buffer_usage_hint::StaticDraw};
-
-    engine _engine;
 
     gfx::shape_batch           _diceBatch;
     gfx::shape_batch           _spriteBatch;
