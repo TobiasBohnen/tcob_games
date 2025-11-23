@@ -575,7 +575,7 @@ void form_menu::create_game_details(dock_layout& panelLayout)
                 }
                 bestScore = !bestScore ? entry.Score : std::max(entry.Score, *bestScore);
 
-                historyGrid.append(
+                historyGrid.append_row(
                     {{std::to_string(entry.Seed)},
                      {std::to_string(entry.Score)},
                      {std::to_string(entry.Turns)},
