@@ -177,7 +177,7 @@ local engine = {
 
     ---@param self engine
     ---@param rect rect
-    ---@param dots integer[]
+    ---@param dots string
     dmd = function(self, rect, dots) end
 
 }

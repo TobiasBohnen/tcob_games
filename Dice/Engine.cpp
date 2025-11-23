@@ -264,7 +264,18 @@ void engine::create_engine_wrapper()
         s->unlock();
         s->reset(slots);
     };
-    engineWrapper["dmd"] = [](engine* engine, rect_i const& rect, std::vector<u8> const& dots) {
+    engineWrapper["dmd"] = [](engine* engine, rect_i const& rect, string const& dotStr) {
+        std::vector<u8> dots;
+        dots.reserve(dotStr.size());
+        for (char c : dotStr) {
+            if (c >= '0' && c <= '9') {
+                dots.push_back(static_cast<u8>(c - '0'));
+            } else if (c >= 'A' && c <= 'F') {
+                dots.push_back(static_cast<u8>(10 + (c - 'A')));
+            } else if (c >= 'a' && c <= 'f') {
+                dots.push_back(static_cast<u8>(10 + (c - 'a')));
+            }
+        }
         engine->_sharedState.Dots.blit(rect, dots);
     };
 }

@@ -10,17 +10,17 @@ for _, cel in ipairs(spr.cels) do
 end
 
 local w, h = img.width, img.height
-local lines = {"{"}
+local lines = { "[[" }
 
-for y = 0, h-1 do
+for y = 0, h - 1 do
     local row = {}
-    for x = 0, w-1 do
-        row[#row+1] = tostring(img:getPixel(x, y))
+    for x = 0, w - 1 do
+        row[#row + 1] = string.format("%X", img:getPixel(x, y))
     end
-    lines[#lines+1] = " "..table.concat(row, ", ")..","
+    lines[#lines + 1] = table.concat(row, "")
 end
 
-lines[#lines+1] = "}"
+lines[#lines + 1] = "]]"
 
 app.clipboard.text = table.concat(lines, "\n")
-app.alert("Copied indices ("..w.."x"..h..") to clipboard!")
+app.alert("Copied indices (" .. w .. "x" .. h .. ") to clipboard!")
