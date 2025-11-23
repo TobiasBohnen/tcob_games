@@ -48,8 +48,6 @@ private:
 
     auto normal_to_world(point_f pos) const -> point_f;
     auto world_to_normal(point_f pos) const -> point_f;
-    auto normal_to_ui(point_f pos) const -> point_f;
-    auto ui_to_normal(point_f pos) const -> point_f;
 
     void set_texture(sprite* sprite, u32 texID);
 

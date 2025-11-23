@@ -137,16 +137,6 @@ auto engine::world_to_normal(point_f pos) const -> point_f
     auto const& size {_game.world_size()};
     return {pos.X / size.Width, pos.Y / size.Height};
 }
-auto engine::normal_to_ui(point_f pos) const -> point_f
-{
-    auto const& bounds {_game.ui_bounds()};
-    return {bounds.left() + (pos.X * bounds.width()), bounds.top() + (pos.Y * bounds.height())};
-}
-auto engine::ui_to_normal(point_f pos) const -> point_f
-{
-    auto const& bounds {_game.ui_bounds()};
-    return {(pos.X - bounds.left()) / bounds.width(), (pos.Y - bounds.top()) / bounds.height()};
-}
 
 void engine::create_wrappers()
 {
@@ -202,8 +192,6 @@ void engine::create_sprite_wrapper()
 void engine::create_slot_wrapper()
 {
     auto& slotWrapper {*_script.create_wrapper<slot>("slot")};
-    slotWrapper["Position"] = property {[this](slot* slot) { return ui_to_normal(slot->Shape->Bounds->Position); },
-                                        [this](slot* slot, point_f p) { slot->Shape->Bounds = {normal_to_ui(p), slot->Shape->Bounds->Size}; }};
     slotWrapper["Owner"]    = getter {[](slot* slot) { return slot->Owner; }};
     slotWrapper["IsEmpty"]  = getter {[](slot* slot) { return slot->is_empty(); }};
     slotWrapper["DieValue"] = getter {[](slot* slot) -> u8 { return slot->is_empty() ? 0 : slot->current_die()->current_face().Value; }};
@@ -276,6 +264,9 @@ void engine::create_engine_wrapper()
         s->unlock();
         s->reset(slots);
     };
+    engineWrapper["dmd"] = [](engine* engine, rect_i const& rect, std::vector<u8> const& dots) {
+        engine->_sharedState.Dots.blit(rect, dots);
+    };
 }
 
 struct tex_def {
@@ -298,7 +289,7 @@ auto engine::create_gfx() -> bool
 
         for (i32 y {0}; y < retValue.size().Height; ++y) {
             for (i32 x {0}; x < retValue.size().Width; ++x) {
-                retValue[x, y] = img.get_pixel({static_cast<i32>(x + rect.Position.X), static_cast<i32>(y + rect.Position.Y)}).A;
+                retValue[{x, y}] = img.get_pixel({static_cast<i32>(x + rect.Position.X), static_cast<i32>(y + rect.Position.Y)}).A;
             }
         }
 

@@ -8,13 +8,14 @@
 using namespace scripting;
 
 constexpr size_f VIRTUAL_SCREEN_SIZE {800, 600};
+constexpr size_f DICE_SLOTS_REF_SIZE {1600, 900};
 
 base_game::base_game(assets::group const& grp, size_i realWindowSize)
     : gfx::entity {update_mode::Both}
     , _realWindowSize {size_f {realWindowSize}}
     , _background(&_spriteBatch.create_shape<gfx::rect_shape>())
-    , _slots {_diceBatch, grp.get<gfx::font_family>("Poppins")}
-    , _dice {_diceBatch}
+    , _slots {_diceBatch, grp.get<gfx::font_family>("Poppins"), _realWindowSize / DICE_SLOTS_REF_SIZE}
+    , _dice {_diceBatch, _realWindowSize / DICE_SLOTS_REF_SIZE}
     , _engine {*this, _sharedState}
 {
     _background->Bounds = {point_f::Zero, VIRTUAL_SCREEN_SIZE};
@@ -104,7 +105,7 @@ void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
     bool const isButtonDown {ev.Mouse->is_button_down(input::mouse::button::Left)};
 
     if (!isButtonDown) {
-        _dice.hover_die(mp);
+        _dice.hover(mp);
     }
 
     auto const getRect {[&] -> rect_f {
@@ -118,7 +119,7 @@ void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
         return {mp, size_f::One};
     }};
 
-    _slots.hover_slot(getRect(), _dice.HoverDie, isButtonDown);
+    _slots.hover(getRect(), _dice.HoverDie, isButtonDown);
     if (isButtonDown) {
         if (auto* slot {_slots.try_remove(_dice.HoverDie)}) {
             SlotDieChanged(slot);
@@ -289,7 +290,19 @@ void base_game::remove_sprite(sprite* sprite)
 
 auto base_game::add_slot(slot_face face) -> slot*
 {
-    return _slots.add_slot(face);
+    rect_f const bounds {ui_bounds()};
+
+    usize const index {_slots.count()};
+    usize const col {index % 5};
+    usize const row {index / 5};
+
+    f32 const xStart {bounds.left() + (bounds.width() / 20.0f)};
+    f32 const xStep {bounds.width() / 6.0f};
+
+    f32 const y {bounds.top() + (bounds.height() / 2)};
+
+    point_f const pos {xStart + (col * xStep), y + (row * (bounds.height() * 0.12f))};
+    return _slots.add_slot(face, pos);
 }
 
 auto base_game::get_slots() -> slots*

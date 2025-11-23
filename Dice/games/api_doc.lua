@@ -117,7 +117,6 @@ local canvas = {
 --------------------------------
 
 ---@class slot
----@field Position point
 ---@field IsEmpty boolean
 ---@field DieValue integer
 
@@ -175,5 +174,10 @@ local engine = {
 
     ---@param self engine
     roll_dice = function(self) end,
+
+    ---@param self engine
+    ---@param rect rect
+    ---@param dots integer[]
+    dmd = function(self, rect, dots) end
 
 }

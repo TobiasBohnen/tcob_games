@@ -16,28 +16,27 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
     : form {{.Name = "game", .Bounds = rect_i {bounds}}}
     , _sharedState {state}
 {
-    i32 const dotsW {48};
-    i32 const dotsH {32};
-
     gen_styles(grp);
 
     auto& panel {create_container<ui::panel>(dock_style::Fill, "panel")};
     auto& layout {panel.create_layout<dock_layout>()};
 
     auto& ssd {layout.create_widget<seven_segment_display>(dock_style::Top, "ssd")};
-    ssd.Flex = {.Width = 100_pct, .Height = 10_pct};
+    ssd.Flex = {.Width = 100_pct, .Height = 5_pct};
     ssd.draw_text("OIOI");
-    auto&     dmd {layout.create_widget<dot_matrix_display>(dock_style::Top, "dmd")};
-    f32 const flexHeight {(bounds.width() * (dotsH / static_cast<f32>(dotsW))) / bounds.height()};
-    dmd.Flex  = {.Width = 100_pct, .Height = length(flexHeight, length::type::Relative)};
-    auto dots = grid<u8> {{dotsW, dotsH}};
 
-    dots[0, 0]   = u8 {1};
-    dots[47, 31] = u8 {5};
-    dmd.Dots     = dots;
+    auto& dmd {layout.create_widget<dot_matrix_display>(dock_style::Top, "dmd")};
+
+    f32 const flexHeight {(bounds.width() * (DMD_HEIGHT / static_cast<f32>(DMD_WIDTH))) / bounds.height()};
+    dmd.Flex  = {.Width = 100_pct, .Height = length(flexHeight, length::type::Relative)};
+    auto dots = grid<u8> {{DMD_WIDTH, DMD_HEIGHT}, 3};
+
+    dots[0, 0]                          = u8 {1};
+    dots[DMD_WIDTH - 1, DMD_HEIGHT - 1] = u8 {5};
+    dmd.Dots                            = dots;
 
     auto& btn {layout.create_widget<button>(dock_style::Bottom, "btnTurn")};
-    btn.Flex  = {.Width = 100_pct, .Height = 5_pct};
+    btn.Flex  = {.Width = 100_pct, .Height = 15_pct};
     btn.Label = ">";
     btn.Click.connect([&]() { StartTurn(); });
     btn.disable();
@@ -51,6 +50,8 @@ void game_form::on_update(milliseconds deltaTime)
         find_widget_by_name("btnTurn")->disable();
     }
 
+    dynamic_cast<dot_matrix_display*>(find_widget_by_name("dmd"))->Dots = _sharedState.Dots;
+
     form_base::on_update(deltaTime);
 }
 
@@ -59,9 +60,8 @@ void game_form::gen_styles(assets::group const& grp)
     style_collection styles;
     {
         auto style {styles.create<panel>("panel", {})};
-        style->Border.Size   = 3_px;
-        style->Border.Radius = 5_px;
-        style->Padding       = {5_px};
+        style->Border.Size = 5_pct;
+        style->Padding     = {1_pct};
 
         style->Background        = colors::LightSteelBlue;
         style->Border.Background = colors::Black;
@@ -81,18 +81,19 @@ void game_form::gen_styles(assets::group const& grp)
         style->Margin              = {10_px};
         style->Padding             = {2_px};
         style->Background          = colors::FireBrick;
-        style->Border.Background   = colors::Black;
+        style->Border.Background   = colors::Gray;
         style->Text.Color          = colors::White;
 
         auto hoverStyle {styles.create<button>("button", {.Hover = true})};
         *hoverStyle                   = *style;
-        hoverStyle->Margin            = {5_px};
-        hoverStyle->Background        = colors::Black;
-        hoverStyle->Border.Background = colors::FireBrick;
+        hoverStyle->Background        = colors::FireBrick;
+        hoverStyle->Border.Background = colors::Black;
 
         auto activeStyle {styles.create<button>("button", {.Focus = true, .Active = true})};
-        *activeStyle        = *style;
-        activeStyle->Margin = {5_px, 5_px, 10_px, 0_px};
+        *activeStyle                   = *style;
+        activeStyle->Margin            = {5_px, 5_px, 10_px, 0_px};
+        activeStyle->Background        = colors::Black;
+        activeStyle->Border.Background = colors::FireBrick;
 
         auto disableStyle {styles.create<button>("button", {.Disabled = true})};
         *disableStyle                   = *style;
@@ -102,23 +103,35 @@ void game_form::gen_styles(assets::group const& grp)
     }
     {
         auto style {styles.create<seven_segment_display>("seven_segment_display", {})};
-        style->Size          = 5_pct;
-        style->Background    = colors::DimGray;
-        style->ActiveColor   = colors::Red;
-        style->InactiveColor = colors::White;
+        style->Size              = 5_pct;
+        style->Border.Size       = 2_pct;
+        style->Background        = colors::DimGray;
+        style->ActiveColor       = colors::Red;
+        style->InactiveColor     = colors::White;
+        style->Border.Background = colors::Black;
     }
     {
         auto style {styles.create<dot_matrix_display>("dot_matrix_display", {})};
-        style->Colors[0] = colors::Black;
-        style->Colors[1] = colors::Red;
-        style->Colors[2] = colors::Green;
-        style->Colors[3] = colors::Yellow;
-        style->Colors[4] = colors::Cyan;
-        style->Colors[5] = colors::Magenta;
-        style->Colors[6] = colors::White;
+        style->Border.Size = 2_pct;
+        style->Type        = dot_matrix_display::dot_type::Disc;
+        style->Colors[0]   = {0, 0, 0, 0};
+        style->Colors[1]   = {0, 0, 0, 255};
+        style->Colors[2]   = {29, 43, 83, 255};
+        style->Colors[3]   = {126, 37, 83, 255};
+        style->Colors[4]   = {0, 135, 81, 255};
+        style->Colors[5]   = {171, 82, 54, 255};
+        style->Colors[6]   = {95, 87, 79, 255};
+        style->Colors[7]   = {194, 195, 199, 255};
+        style->Colors[8]   = {255, 241, 232, 255};
+        style->Colors[9]   = {255, 0, 77, 255};
+        style->Colors[10]  = {255, 163, 0, 255};
+        style->Colors[11]  = {255, 236, 39, 255};
+        style->Colors[12]  = {0, 228, 54, 255};
+        style->Colors[13]  = {41, 173, 255, 255};
+        style->Colors[14]  = {131, 118, 156, 255};
 
-        style->Type       = dot_matrix_display::dot_type::Disc;
-        style->Background = colors::DimGray;
+        style->Background        = colors::DimGray;
+        style->Border.Background = colors::Black;
     }
     Styles = styles;
 }

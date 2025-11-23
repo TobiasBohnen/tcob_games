@@ -12,7 +12,7 @@
 ////////////////////////////////////////////////////////////
 
 slot::slot(gfx::rect_shape* shape, slot_face face)
-    : Shape {shape}
+    : _shape {shape}
     , _face {face}
 {
 }
@@ -75,18 +75,19 @@ void slot::update(milliseconds deltaTime) const
 {
     // TODO: accept/reject texregion
     switch (_colorState) {
-    case slot_state::Normal:  Shape->Color = colors::White; break;
-    case slot_state::Hovered: Shape->Color = colors::Gray; break;
-    case slot_state::Accept:  Shape->Color = colors::Gray; break;
-    case slot_state::Reject:  Shape->Color = colors::White; break;
+    case slot_state::Normal:  _shape->Color = colors::White; break;
+    case slot_state::Hovered: _shape->Color = colors::Gray; break;
+    case slot_state::Accept:  _shape->Color = colors::Gray; break;
+    case slot_state::Reject:  _shape->Color = colors::White; break;
     }
 }
 
 ////////////////////////////////////////////////////////////
 
-slots::slots(gfx::shape_batch& batch, asset_ptr<gfx::font_family> font)
+slots::slots(gfx::shape_batch& batch, asset_ptr<gfx::font_family> font, size_f scale)
     : _batch {batch}
     , _painter {{10, 50}, std::move(font)}
+    , _scale {scale}
 {
 }
 
@@ -94,10 +95,10 @@ void slots::lock() { _locked = true; }
 
 void slots::unlock() { _locked = false; }
 
-auto slots::add_slot(slot_face face) -> slot*
+auto slots::add_slot(slot_face face, point_f pos) -> slot*
 {
     auto* shape {&_batch.create_shape<gfx::rect_shape>()};
-    shape->Bounds        = {point_f::Zero, DICE_SIZE};
+    shape->Bounds        = {pos, DICE_SIZE * _scale};
     shape->Material      = _painter.material();
     shape->TextureRegion = face.texture_region();
 
@@ -113,12 +114,12 @@ auto slots::try_insert(die* hoverDie) -> bool
 
     HoverSlot->insert(hoverDie);
     hoverDie->_colorState    = die_state::Hovered;
-    hoverDie->_shape->Bounds = *HoverSlot->Shape->Bounds;
+    hoverDie->_shape->Bounds = *HoverSlot->_shape->Bounds;
     _batch.send_to_back(*hoverDie->_shape);
     return true;
 }
 
-void slots::hover_slot(rect_f const& rect, die* die, bool isButtonDown)
+void slots::hover(rect_f const& rect, die* die, bool isButtonDown)
 {
     if (_locked) { return; }
 
@@ -127,7 +128,7 @@ void slots::hover_slot(rect_f const& rect, die* die, bool isButtonDown)
         f32   maxArea {0.0f};
 
         for (auto& s : _slots) {
-            auto const& slotRect {*s->Shape->Bounds};
+            auto const& slotRect {*s->_shape->Bounds};
             auto const  interSect {rect.as_intersection_with(slotRect)};
             if (interSect.Size.area() > maxArea) {
                 maxArea  = interSect.Size.area();
@@ -171,7 +172,7 @@ void slots::reset(std::span<slot* const> slots)
         auto* die {slot->current_die()};
         if (!die) { continue; }
         slot->remove();
-        die->move_by({0, (*slot->Shape->Bounds).height()});
+        die->move_by({0, (*slot->_shape->Bounds).height()});
     }
 }
 
@@ -278,4 +279,8 @@ void slots::update(milliseconds deltaTime)
     for (auto& slot : _slots) {
         slot->update(deltaTime);
     }
+}
+auto slots::count() const -> usize
+{
+    return _slots.size();
 }

@@ -101,16 +101,17 @@ void die::move_by(point_f offset)
 
 ////////////////////////////////////////////////////////////
 
-dice::dice(gfx::shape_batch& batch)
+dice::dice(gfx::shape_batch& batch, size_f scale)
     : _batch {batch}
     , _painter {{10, 50}}
+    , _scale {scale}
 {
 }
 
 auto dice::add_die(point_f pos, rng& rng, die_face currentFace, std::span<die_face const> faces) -> die*
 {
     auto* shape {&_batch.create_shape<gfx::rect_shape>()};
-    shape->Bounds   = {pos, DICE_SIZE};
+    shape->Bounds   = {pos, DICE_SIZE * _scale};
     shape->Material = _painter.material();
 
     auto& retValue {_dice.emplace_back(std::make_unique<die>(shape, rng, faces, currentFace))};
@@ -151,7 +152,7 @@ void dice::drag(point_f mousePos, rect_f const& winBounds)
     HoverDie->_colorState    = die_state::Dragged;
 }
 
-void dice::hover_die(point_f mousePos)
+void dice::hover(point_f mousePos)
 {
     auto const findDie {[&](point_f mp) -> die* {
         auto const vec {_batch.intersect({mp, size_f::One})};

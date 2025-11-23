@@ -58,7 +58,7 @@ private:
 
 class dice {
 public:
-    dice(gfx::shape_batch& batch);
+    dice(gfx::shape_batch& batch, size_f scale);
 
     die* HoverDie {nullptr};
 
@@ -68,7 +68,7 @@ public:
 
     void drag(point_f mousePos, rect_f const& winBounds);
 
-    void hover_die(point_f mousePos);
+    void hover(point_f mousePos);
 
     void update(milliseconds deltaTime);
 
@@ -77,4 +77,5 @@ private:
 
     gfx::shape_batch& _batch;
     dice_painter      _painter;
+    size_f            _scale;
 };

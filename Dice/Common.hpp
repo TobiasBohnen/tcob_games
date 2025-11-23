@@ -19,6 +19,8 @@ struct shared_assets;
 
 constexpr size_f DICE_SIZE {62, 62};
 constexpr f32    DICE_OFFSET {72.f};
+constexpr i32    DMD_WIDTH {72};
+constexpr i32    DMD_HEIGHT {66};
 
 ////////////////////////////////////////////////////////////
 
@@ -45,6 +47,7 @@ struct collision_event {
 };
 
 struct shared_state {
-    rng  Rng;
-    bool CanStart {false};
+    rng      Rng;
+    bool     CanStart {false};
+    grid<u8> Dots {size_i {DMD_WIDTH, DMD_HEIGHT}, 0};
 };

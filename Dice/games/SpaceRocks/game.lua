@@ -59,11 +59,8 @@ function game:on_setup(engine)
     end
 
     self.slots.speed = engine:create_slot({ value = 0, color = "silver" })
-    self.slots.speed.Position = { x = 0.05, y = 0.1 };
     self.slots.turn = engine:create_slot({ value = 0, color = "silver" })
-    self.slots.turn.Position = { x = 0.20, y = 0.1 };
     self.slots.bullets = engine:create_slot({ value = 0, color = "silver" })
-    self.slots.bullets.Position = { x = 0.35, y = 0.1 };
 
     engine:create_dice(3, { { values = { 1, 2, 3, 4, 5, 6 }, color = "silver" } })
     engine:roll_dice()
@@ -145,10 +142,18 @@ end
 ---@param engine engine
 ---@param slot slot
 function game:on_slot_die_changed(engine, slot)
-    if self.slots.turn == slot then
-    elseif self.slots.speed == slot then
-    elseif self.slots.bullets == slot then
+    local str
+    if slot == self.slots.speed then
+        str = "speed"
+    elseif slot == self.slots.bullets then
+        str = "bullets"
+    elseif slot == self.slots.turn then
+        str = "turn"
     end
+    local value = slot.DieValue
+    local region, pattern = gfx.get_dmd(str, value)
+
+    engine:dmd(region, pattern)
 end
 
 ---@param engine engine

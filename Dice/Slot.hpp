@@ -25,7 +25,6 @@ class slot {
 public:
     slot(gfx::rect_shape* shape, slot_face face);
 
-    gfx::rect_shape* Shape {nullptr};
     scripting::table Owner;
 
     auto is_empty() const -> bool;
@@ -39,7 +38,8 @@ public:
     void update(milliseconds deltaTime) const;
 
 private:
-    die* _die {nullptr};
+    gfx::rect_shape* _shape {nullptr};
+    die*             _die {nullptr};
 
     bool _locked {false};
 
@@ -51,16 +51,17 @@ private:
 
 class slots {
 public:
-    slots(gfx::shape_batch& batch, asset_ptr<gfx::font_family> font);
+    slots(gfx::shape_batch& batch, asset_ptr<gfx::font_family> font, size_f scale);
 
     slot* HoverSlot {nullptr};
 
     void lock();
     void unlock();
 
-    auto add_slot(slot_face face) -> slot*;
+    auto add_slot(slot_face face, point_f pos) -> slot*;
+    auto count() const -> usize;
 
-    void hover_slot(rect_f const& rect, die* die, bool isButtonDown);
+    void hover(rect_f const& rect, die* die, bool isButtonDown);
 
     auto try_insert(die* die) -> bool;
     auto try_remove(die* die) -> slot*;
@@ -79,6 +80,7 @@ private:
 
     gfx::shape_batch& _batch;
     slot_painter      _painter;
+    size_f            _scale;
 
     bool _locked {false};
 };
