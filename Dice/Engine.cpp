@@ -282,7 +282,10 @@ void engine::create_engine_wrapper()
         s->unlock();
         s->reset(slots);
     };
-    engineWrapper["dmd"] = [](engine* engine, rect_i const& rect, string const& dotStr) {
+    engineWrapper["clear_dmd"] = [](engine* engine) {
+        engine->_sharedState.DMD = grid<u8> {{DMD_WIDTH, DMD_HEIGHT}, 0};
+    };
+    engineWrapper["blit_dmd"] = [](engine* engine, rect_i const& rect, string const& dotStr) {
         std::vector<u8> dots;
         dots.reserve(dotStr.size());
         for (char c : dotStr) {

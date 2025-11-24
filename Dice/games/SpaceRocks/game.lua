@@ -151,9 +151,7 @@ function game:on_slot_die_changed(engine, slot)
         str = "turn"
     end
     local value = slot.DieValue
-    local region, pattern = gfx.get_dmd(str, value)
-
-    engine:dmd(region, pattern)
+    gfx.draw_dmd(engine, self.slots)
 end
 
 ---@param engine engine

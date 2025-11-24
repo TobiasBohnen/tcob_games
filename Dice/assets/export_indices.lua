@@ -20,7 +20,7 @@ for y = 0, h - 1 do
     end
 end
 
-local out = "[[" .. table.concat(buf, "") .. "]]"
+local out = table.concat(buf, "")
 
 app.clipboard.text = out
 app.alert("Exported " .. w .. "x" .. h .. " indices to clipboard.")
