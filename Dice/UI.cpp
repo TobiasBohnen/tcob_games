@@ -22,7 +22,7 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
     auto& layout {panel.create_layout<dock_layout>()};
 
     auto& ssd {layout.create_widget<seven_segment_display>(dock_style::Top, "ssd")};
-    ssd.Flex = {.Width = 100_pct, .Height = 5_pct};
+    ssd.Flex = {.Width = 100_pct, .Height = 6_pct};
     ssd.draw_text("OIOI");
 
     auto&     dmd {layout.create_widget<dot_matrix_display>(dock_style::Top, "dmd")};
@@ -58,11 +58,11 @@ void game_form::gen_styles(assets::group const& grp)
     style_collection styles;
     {
         auto style {styles.create<panel>("panel", {})};
-        style->Border.Size = 5_pct;
+        style->Border.Size = 2_pct;
         style->Padding     = {1_pct};
 
-        style->Background        = colors::LightSteelBlue;
-        style->Border.Background = colors::Black;
+        style->Background        = colors::DarkGray;
+        style->Border.Background = colors::White;
     }
     {
         auto style {styles.create<button>("button", {})};
@@ -102,11 +102,12 @@ void game_form::gen_styles(assets::group const& grp)
     {
         auto style {styles.create<seven_segment_display>("seven_segment_display", {})};
         style->Size              = 5_pct;
+        style->Padding           = 1_pct;
         style->Border.Size       = 2_pct;
-        style->Background        = colors::DimGray;
+        style->Background        = colors::Black;
         style->ActiveColor       = colors::Red;
-        style->InactiveColor     = colors::White;
-        style->Border.Background = colors::Black;
+        style->InactiveColor     = colors::Black;
+        style->Border.Background = colors::White;
     }
     {
         auto style {styles.create<dot_matrix_display>("dot_matrix_display", {})};
@@ -116,8 +117,8 @@ void game_form::gen_styles(assets::group const& grp)
             style->Colors[i] = _sharedState.Palette[i];
         }
 
-        style->Background        = colors::DimGray;
-        style->Border.Background = colors::Black;
+        style->Background        = colors::Black;
+        style->Border.Background = colors::White;
     }
     Styles = styles;
 }

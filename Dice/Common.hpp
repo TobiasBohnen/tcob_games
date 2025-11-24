@@ -51,8 +51,7 @@ struct shared_state {
     bool CanStart {false};
 
     prop<grid<u8>>        DMD {grid<u8> {{DMD_WIDTH, DMD_HEIGHT}, 0}};
-    std::array<color, 16> Palette {{{0, 0, 0, 0},
-                                    {0, 0, 0, 255},
+    std::array<color, 16> Palette {{{0, 0, 0, 255},
                                     {157, 157, 157, 255},
                                     {255, 255, 255, 255},
                                     {190, 38, 51, 255},
@@ -66,5 +65,6 @@ struct shared_state {
                                     {163, 206, 39, 255},
                                     {27, 38, 50, 255},
                                     {0, 87, 132, 255},
-                                    {49, 162, 242, 255}}};
+                                    {49, 162, 242, 255},
+                                    {178, 220, 239, 255}}};
 };

@@ -113,23 +113,23 @@ void engine::create_env(string const& path)
     env["tostring"]           = global["tostring"];
 
     table palette {_script.create_table()};
-    palette["Transparent"] = _sharedState.Palette[0];
-    palette["Black"]       = _sharedState.Palette[1];
-    palette["Gray"]        = _sharedState.Palette[2];
-    palette["White"]       = _sharedState.Palette[3];
-    palette["Red"]         = _sharedState.Palette[4];
-    palette["Pink"]        = _sharedState.Palette[5];
-    palette["DarkBrown"]   = _sharedState.Palette[6];
-    palette["Brown"]       = _sharedState.Palette[7];
-    palette["Orange"]      = _sharedState.Palette[8];
-    palette["Yellow"]      = _sharedState.Palette[9];
-    palette["DarkGreen"]   = _sharedState.Palette[10];
-    palette["Green"]       = _sharedState.Palette[11];
-    palette["LightGreen"]  = _sharedState.Palette[12];
-    palette["DarkBlue"]    = _sharedState.Palette[13];
-    palette["Blue"]        = _sharedState.Palette[14];
-    palette["LightBlue"]   = _sharedState.Palette[15];
-    env["palette"]         = palette;
+    palette["Black"]      = _sharedState.Palette[0];
+    palette["Gray"]       = _sharedState.Palette[1];
+    palette["White"]      = _sharedState.Palette[2];
+    palette["Red"]        = _sharedState.Palette[3];
+    palette["Pink"]       = _sharedState.Palette[4];
+    palette["DarkBrown"]  = _sharedState.Palette[5];
+    palette["Brown"]      = _sharedState.Palette[6];
+    palette["Orange"]     = _sharedState.Palette[7];
+    palette["Yellow"]     = _sharedState.Palette[8];
+    palette["DarkGreen"]  = _sharedState.Palette[9];
+    palette["Green"]      = _sharedState.Palette[10];
+    palette["LightGreen"] = _sharedState.Palette[11];
+    palette["BlueGray"]   = _sharedState.Palette[12];
+    palette["DarkBlue"]   = _sharedState.Palette[13];
+    palette["Blue"]       = _sharedState.Palette[14];
+    palette["LightBlue"]  = _sharedState.Palette[15];
+    env["palette"]        = palette;
 
     _script.Environment = env;
 
