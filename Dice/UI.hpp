@@ -22,4 +22,5 @@ private:
     void gen_styles(assets::group const& grp);
 
     shared_state const& _sharedState;
+    bool                _updateDmd {true};
 };

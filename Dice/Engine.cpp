@@ -64,6 +64,8 @@ auto engine::update(milliseconds deltaTime) -> bool
     if (!_running) { return false; }
 
     if (!call(_callbacks.OnRun, deltaTime.count())) {
+        _sharedState.DMD = grid<u8> {{DMD_WIDTH, DMD_HEIGHT}, 0};
+
         call(_callbacks.OnFinish);
         _running = false;
         return false;
@@ -110,6 +112,25 @@ void engine::create_env(string const& path)
     env["tonumber"]           = global["tonumber"];
     env["tostring"]           = global["tostring"];
 
+    table palette {_script.create_table()};
+    palette["Transparent"] = _sharedState.Palette[0];
+    palette["Black"]       = _sharedState.Palette[1];
+    palette["Gray"]        = _sharedState.Palette[2];
+    palette["White"]       = _sharedState.Palette[3];
+    palette["Red"]         = _sharedState.Palette[4];
+    palette["Pink"]        = _sharedState.Palette[5];
+    palette["DarkBrown"]   = _sharedState.Palette[6];
+    palette["Brown"]       = _sharedState.Palette[7];
+    palette["Orange"]      = _sharedState.Palette[8];
+    palette["Yellow"]      = _sharedState.Palette[9];
+    palette["DarkGreen"]   = _sharedState.Palette[10];
+    palette["Green"]       = _sharedState.Palette[11];
+    palette["LightGreen"]  = _sharedState.Palette[12];
+    palette["DarkBlue"]    = _sharedState.Palette[13];
+    palette["Blue"]        = _sharedState.Palette[14];
+    palette["LightBlue"]   = _sharedState.Palette[15];
+    env["palette"]         = palette;
+
     _script.Environment = env;
 
     // require
@@ -150,13 +171,13 @@ void engine::create_canvas_wrapper()
 {
     auto& canvasWrapper {*_script.create_wrapper<gfx::canvas>("canvas")};
     canvasWrapper["begin_path"]   = [](gfx::canvas* canvas) { canvas->begin_path(); };
-    canvasWrapper["clear"]        = [](gfx::canvas* canvas, string const& color) { canvas->clear(color::FromString(color)); };
+    canvasWrapper["clear"]        = [](gfx::canvas* canvas, color color) { canvas->clear(color); };
     canvasWrapper["path_2d"]      = [](gfx::canvas* canvas, string const& path) { canvas->path_2d(*gfx::path2d::Parse(path)); };
     canvasWrapper["rect"]         = [](gfx::canvas* canvas, rect_f const& rect) { canvas->rect(rect); };
-    canvasWrapper["stroke_color"] = [](gfx::canvas* canvas, string const& color) { canvas->set_stroke_style(color::FromString(color)); };
+    canvasWrapper["stroke_color"] = [](gfx::canvas* canvas, color color) { canvas->set_stroke_style(color); };
     canvasWrapper["stroke_width"] = [](gfx::canvas* canvas, f32 w) { canvas->set_stroke_width(w); };
     canvasWrapper["stroke"]       = [](gfx::canvas* canvas) { canvas->stroke(); };
-    canvasWrapper["fill_color"]   = [](gfx::canvas* canvas, string const& color) { canvas->set_fill_style(color::FromString(color)); };
+    canvasWrapper["fill_color"]   = [](gfx::canvas* canvas, color color) { canvas->set_fill_style(color); };
     canvasWrapper["fill"]         = [](gfx::canvas* canvas, std::optional<bool> enforeWinding) { canvas->fill(enforeWinding ? *enforeWinding : true); };
 }
 
@@ -227,9 +248,7 @@ void engine::create_engine_wrapper()
         slot_face face;
         slotDef.try_get(face.Op, "op");
         slotDef.try_get(face.Value, "value");
-        string col;
-        slotDef.try_get(col, "color");
-        face.Color = color::FromString(col);
+        slotDef.try_get(face.Color, "color");
 
         auto* slot {engine->_game.add_slot(face)};
         slot->Owner = slotDef;
@@ -241,9 +260,8 @@ void engine::create_engine_wrapper()
             table            face {faces.get<table>(i).value()}; // TODO: error check
             std::vector<i32> values;
             face.try_get(values, "values");
-            string col;
-            face.try_get(col, "color");
-            color const color {color::FromString(col)};
+            color color;
+            face.try_get(color, "color");
             for (auto const& value : values) {
                 vec.emplace_back(value, color);
             }
@@ -276,7 +294,8 @@ void engine::create_engine_wrapper()
                 dots.push_back(static_cast<u8>(10 + (c - 'a')));
             }
         }
-        engine->_sharedState.Dots.blit(rect, dots);
+
+        engine->_sharedState.DMD.mutate([&](auto& dmd) { dmd.blit(rect, dots); });
     };
 }
 

@@ -31,6 +31,12 @@ local game_module = {}
 
 ---@alias texture integer
 
+---@class color
+---@field r integer
+---@field g integer
+---@field b integer
+---@field a integer|nil
+
 ---@class point
 ---@field x number
 ---@field y number
@@ -46,17 +52,36 @@ local game_module = {}
 ---@field height number
 
 ---@class slot_owner
----@field color string
+---@field color color
 ---@field value number
 ---@field op string|nil
 
 ---@class die_face
----@field color string
+---@field color color
 ---@field values integer[]
 
 ---@class sprite_owner
 ---@field texture texture
 ---@field collisionEnabled boolean
+
+---@class palette
+---@field Transparent color
+---@field Black color
+---@field Gray color
+---@field White color
+---@field Red color
+---@field Pink color
+---@field DarkBrown color
+---@field Brown color
+---@field Orange color
+---@field Yellow color
+---@field DarkGreen color
+---@field Green color
+---@field LightGreen color
+---@field DarkBlue color
+---@field Blue color
+---@field LightBlue color
+palette = {}
 
 --------------------------------
 -- Canvas
@@ -68,7 +93,7 @@ local canvas = {
     begin_path = function(self) end,
 
     ---@param self canvas
-    ---@param color string
+    ---@param color color
     clear = function(self, color) end,
 
     ---@param self canvas
@@ -80,7 +105,7 @@ local canvas = {
     rect = function(self, rect) end,
 
     ---@param self canvas
-    ---@param color string
+    ---@param color color
     stroke_color = function(self, color) end,
 
     ---@param self canvas
@@ -91,7 +116,7 @@ local canvas = {
     stroke = function(self) end,
 
     ---@param self canvas
-    ---@param color string
+    ---@param color color
     fill_color = function(self, color) end,
 
     ---@param self canvas

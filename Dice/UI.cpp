@@ -25,19 +25,14 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
     ssd.Flex = {.Width = 100_pct, .Height = 5_pct};
     ssd.draw_text("OIOI");
 
-    auto& dmd {layout.create_widget<dot_matrix_display>(dock_style::Top, "dmd")};
-
+    auto&     dmd {layout.create_widget<dot_matrix_display>(dock_style::Top, "dmd")};
     f32 const flexHeight {(bounds.width() * (DMD_HEIGHT / static_cast<f32>(DMD_WIDTH))) / bounds.height()};
-    dmd.Flex  = {.Width = 100_pct, .Height = length(flexHeight, length::type::Relative)};
-    auto dots = grid<u8> {{DMD_WIDTH, DMD_HEIGHT}, 3};
-
-    dots[0, 0]                          = u8 {1};
-    dots[DMD_WIDTH - 1, DMD_HEIGHT - 1] = u8 {5};
-    dmd.Dots                            = dots;
+    dmd.Flex = {.Width = 100_pct, .Height = length(flexHeight, length::type::Relative)};
+    _sharedState.DMD.Changed.connect([&]() { _updateDmd = true; });
 
     auto& btn {layout.create_widget<button>(dock_style::Bottom, "btnTurn")};
     btn.Flex  = {.Width = 100_pct, .Height = 15_pct};
-    btn.Label = ">";
+    btn.Label = "->";
     btn.Click.connect([&]() { StartTurn(); });
     btn.disable();
 }
@@ -50,7 +45,10 @@ void game_form::on_update(milliseconds deltaTime)
         find_widget_by_name("btnTurn")->disable();
     }
 
-    dynamic_cast<dot_matrix_display*>(find_widget_by_name("dmd"))->Dots = _sharedState.Dots;
+    if (_updateDmd) {
+        dynamic_cast<dot_matrix_display*>(find_widget_by_name("dmd"))->Dots = *_sharedState.DMD;
+        _updateDmd                                                          = false;
+    }
 
     form_base::on_update(deltaTime);
 }
@@ -114,22 +112,9 @@ void game_form::gen_styles(assets::group const& grp)
         auto style {styles.create<dot_matrix_display>("dot_matrix_display", {})};
         style->Border.Size = 2_pct;
         style->Type        = dot_matrix_display::dot_type::Disc;
-        style->Colors[0]   = {0, 0, 0, 0};
-        style->Colors[1]   = {0, 0, 0, 255};
-        style->Colors[2]   = {157, 157, 157, 255};
-        style->Colors[3]   = {255, 255, 255, 255};
-        style->Colors[4]   = {190, 38, 51, 255};
-        style->Colors[5]   = {224, 111, 139, 255};
-        style->Colors[6]   = {73, 60, 43, 255};
-        style->Colors[7]   = {164, 100, 34, 255};
-        style->Colors[8]   = {235, 137, 49, 255};
-        style->Colors[9]   = {247, 226, 107, 255};
-        style->Colors[10]  = {47, 72, 78, 255};
-        style->Colors[11]  = {68, 137, 26, 255};
-        style->Colors[12]  = {163, 206, 39, 255};
-        style->Colors[13]  = {27, 38, 50, 255};
-        style->Colors[14]  = {0, 87, 132, 255};
-        style->Colors[15]  = {49, 162, 242, 255};
+        for (i32 i {0}; i < _sharedState.Palette.size(); ++i) {
+            style->Colors[i] = _sharedState.Palette[i];
+        }
 
         style->Background        = colors::DimGray;
         style->Border.Background = colors::Black;
