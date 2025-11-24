@@ -23,4 +23,4 @@ end
 local out = "[[" .. table.concat(buf, "") .. "]]"
 
 app.clipboard.text = out
-app.alert("Copied indices (" .. w .. "x" .. h .. ") to clipboard!")
+app.alert("Exported " .. w .. "x" .. h .. " indices to clipboard.")
