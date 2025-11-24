@@ -203,6 +203,8 @@ local engine = {
     ---@param self engine
     ---@param rect rect
     ---@param dots string
-    dmd = function(self, rect, dots) end
+    blit_dmd = function(self, rect, dots) end,
+
+    clear_dmd = function(self) end
 
 }

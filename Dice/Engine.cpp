@@ -287,14 +287,52 @@ void engine::create_engine_wrapper()
     };
     engineWrapper["blit_dmd"] = [](engine* engine, rect_i const& rect, string const& dotStr) {
         std::vector<u8> dots;
-        dots.reserve(dotStr.size());
-        for (char c : dotStr) {
-            if (c >= '0' && c <= '9') {
-                dots.push_back(static_cast<u8>(c - '0'));
-            } else if (c >= 'A' && c <= 'F') {
-                dots.push_back(static_cast<u8>(10 + (c - 'A')));
-            } else if (c >= 'a' && c <= 'f') {
-                dots.push_back(static_cast<u8>(10 + (c - 'a')));
+        dots.reserve(rect.width() * rect.height());
+
+        auto const isRLE {[](string_view s) -> bool {
+            for (usize i {0}; i + 1 < s.size(); ++i) {
+                char const c {s[i]};
+                char const next {s[i + 1]};
+                if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F')) {
+                    if (next >= 'a' && next <= 'z') { return true; }
+                }
+            }
+            return false;
+        }};
+
+        if (isRLE(dotStr)) {
+            auto const fromBase26Letters {[](string_view s) -> u32 {
+                u32 n {0};
+                for (char c : s) {
+                    n = (n * 26) + (c - 'a' + 1);
+                }
+                return n;
+            }};
+
+            usize i {0};
+            while (i < dotStr.size()) {
+                char digitChar {dotStr[i++]};
+                u8   val {0};
+                if (digitChar >= '0' && digitChar <= '9') {
+                    val = digitChar - '0';
+                } else if (digitChar >= 'A' && digitChar <= 'F') {
+                    val = 10 + (digitChar - 'A');
+                }
+
+                usize start {i};
+                while (i < dotStr.size() && dotStr[i] >= 'a' && dotStr[i] <= 'z') { ++i; }
+
+                u32 const run {fromBase26Letters(std::string_view(dotStr.data() + start, i - start))};
+
+                dots.insert(dots.end(), run, val);
+            }
+        } else {
+            for (char c : dotStr) {
+                if (c >= '0' && c <= '9') {
+                    dots.push_back(static_cast<u8>(c - '0'));
+                } else if (c >= 'A' && c <= 'F') {
+                    dots.push_back(static_cast<u8>(10 + (c - 'A')));
+                }
             }
         }
 
