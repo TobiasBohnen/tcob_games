@@ -202,10 +202,16 @@ local engine = {
     roll_dice = function(self) end,
 
     ---@param self engine
+    ---@param score integer
+    give_score = function(self, score) end,
+
+    ---@param self engine
     ---@param rect rect
     ---@param dots string
     blit_dmd = function(self, rect, dots) end,
 
-    clear_dmd = function(self) end
+    clear_dmd = function(self) end,
+
+
 
 }

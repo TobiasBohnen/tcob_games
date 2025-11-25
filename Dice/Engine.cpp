@@ -111,22 +111,22 @@ void engine::create_env(string const& path)
     env["tostring"]           = global["tostring"];
 
     table palette {_script.create_table()};
-    palette["Black"]      = _sharedState.Palette[0];
-    palette["Gray"]       = _sharedState.Palette[1];
-    palette["White"]      = _sharedState.Palette[2];
-    palette["Red"]        = _sharedState.Palette[3];
-    palette["Pink"]       = _sharedState.Palette[4];
-    palette["DarkBrown"]  = _sharedState.Palette[5];
-    palette["Brown"]      = _sharedState.Palette[6];
-    palette["Orange"]     = _sharedState.Palette[7];
-    palette["Yellow"]     = _sharedState.Palette[8];
-    palette["DarkGreen"]  = _sharedState.Palette[9];
-    palette["Green"]      = _sharedState.Palette[10];
-    palette["LightGreen"] = _sharedState.Palette[11];
-    palette["BlueGray"]   = _sharedState.Palette[12];
-    palette["DarkBlue"]   = _sharedState.Palette[13];
-    palette["Blue"]       = _sharedState.Palette[14];
-    palette["LightBlue"]  = _sharedState.Palette[15];
+    palette["Black"]      = PALETTE[0];
+    palette["Gray"]       = PALETTE[1];
+    palette["White"]      = PALETTE[2];
+    palette["Red"]        = PALETTE[3];
+    palette["Pink"]       = PALETTE[4];
+    palette["DarkBrown"]  = PALETTE[5];
+    palette["Brown"]      = PALETTE[6];
+    palette["Orange"]     = PALETTE[7];
+    palette["Yellow"]     = PALETTE[8];
+    palette["DarkGreen"]  = PALETTE[9];
+    palette["Green"]      = PALETTE[10];
+    palette["LightGreen"] = PALETTE[11];
+    palette["BlueGray"]   = PALETTE[12];
+    palette["DarkBlue"]   = PALETTE[13];
+    palette["Blue"]       = PALETTE[14];
+    palette["LightBlue"]  = PALETTE[15];
     env["palette"]        = palette;
 
     _script.Environment = env;
@@ -280,6 +280,9 @@ void engine::create_engine_wrapper()
         auto* s {engine->_game.get_slots()};
         s->unlock();
         s->reset(slots);
+    };
+    engineWrapper["give_score"] = [](engine* engine, i32 score) {
+        engine->_sharedState.Score += score;
     };
     engineWrapper["clear_dmd"] = [](engine* engine) {
         engine->_sharedState.DMD = grid<u8> {{DMD_WIDTH, DMD_HEIGHT}, 0};

@@ -195,6 +195,7 @@ function game:update_asteroids(engine, deltaTime)
 
             engine:remove_sprite(a.sprite)
             table.remove(self.asteroids, i)
+            engine:give_score(100)
         else
             a.sprite.Rotation = a.sprite.Rotation + 0.1 * deltaTime
             self:update_entity(a, deltaTime)

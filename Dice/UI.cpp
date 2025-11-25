@@ -23,7 +23,7 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
 
     auto& ssd {layout.create_widget<seven_segment_display>(dock_style::Top, "ssd")};
     ssd.Flex = {.Width = 100_pct, .Height = 6_pct};
-    ssd.draw_text("OIOI");
+    _sharedState.Score.Changed.connect([&]() { _updateSsd = true; });
 
     auto&     dmd {layout.create_widget<dot_matrix_display>(dock_style::Top, "dmd")};
     f32 const flexHeight {(bounds.width() * (DMD_HEIGHT / static_cast<f32>(DMD_WIDTH))) / bounds.height()};
@@ -48,6 +48,10 @@ void game_form::on_update(milliseconds deltaTime)
     if (_updateDmd) {
         dynamic_cast<dot_matrix_display*>(find_widget_by_name("dmd"))->Dots = *_sharedState.DMD;
         _updateDmd                                                          = false;
+    }
+    if (_updateSsd) {
+        dynamic_cast<seven_segment_display*>(find_widget_by_name("ssd"))->draw_text(std::to_string(*_sharedState.Score));
+        _updateSsd = false;
     }
 
     form_base::on_update(deltaTime);
@@ -113,8 +117,8 @@ void game_form::gen_styles(assets::group const& grp)
         auto style {styles.create<dot_matrix_display>("dot_matrix_display", {})};
         style->Border.Size = 2_pct;
         style->Type        = dot_matrix_display::dot_type::Disc;
-        for (i32 i {0}; i < _sharedState.Palette.size(); ++i) {
-            style->Colors[i] = _sharedState.Palette[i];
+        for (i32 i {0}; i < PALETTE.size(); ++i) {
+            style->Colors[i] = PALETTE[i];
         }
 
         style->Background        = colors::Black;
