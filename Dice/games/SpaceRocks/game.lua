@@ -28,8 +28,7 @@ local game = {
         texture = 0, ---@type texture
         hurtTexture = 1, ---@type texture
         type = "ship",
-        collisionEnabled = true,
-        health = 10,
+        health = 5,
         invulnerable = false
     },
 
@@ -64,6 +63,7 @@ function game:on_setup(engine)
 
     engine:create_dice(4, { { values = { 1, 2, 3, 4, 5, 6 }, color = palette.White } })
     engine:roll_dice()
+    gfx.draw_dmd(engine, self)
 end
 
 ---@param engine engine
@@ -122,12 +122,13 @@ function game:on_collision(engine, spriteA, spriteB)
             self.ship.health = self.ship.health - 1
             self.ship.invulnerable = true
             self.ship.sprite.Texture = self.ship.hurtTexture
+            gfx.draw_dmd(engine, self)
         end
 
         local asteroid = typeA == "asteroid" and ownerA or ownerB
         asteroid.direction = self.ship.direction
         asteroid.linearVelocity = self.ship.linearVelocity * 1.1
-        if asteroid.size == "small" then asteroid.markedForDeath = true end
+        asteroid.markedForDeath = true
     elseif typeA == "asteroid" and typeB == "asteroid" then
         ownerA.direction = (ownerA.direction + engine:random(45, 135)) % 360
         ownerB.direction = (ownerB.direction - engine:random(45, 135)) % 360
@@ -142,22 +143,14 @@ end
 ---@param engine engine
 ---@param slot slot
 function game:on_slot_die_changed(engine, slot)
-    local str
-    if slot == self.slots.speed then
-        str = "speed"
-    elseif slot == self.slots.bullets then
-        str = "bullets"
-    elseif slot == self.slots.turn then
-        str = "turn"
-    end
-    local value = slot.DieValue
-    gfx.draw_dmd(engine, self.slots)
+    gfx.draw_dmd(engine, self)
 end
 
 ---@param engine engine
 function game:on_finish(engine)
     engine:reset_slots(self.slots)
     engine:roll_dice()
+    gfx.draw_dmd(engine, self)
 
     self.ship.invulnerable = false
     self.ship.sprite.Texture = self.ship.texture
@@ -184,9 +177,9 @@ function game:update_asteroids(engine, deltaTime)
         if a.markedForDeath then
             if a.size == "small" then
                 local explosion = {
-                    texture          = self.explosionTexture,
-                    collisionEnabled = false,
-                    lifetime         = 0,
+                    texture    = self.explosionTexture,
+                    collidable = false,
+                    lifetime   = 0,
                 }
                 explosion.sprite = engine:create_sprite(explosion)
                 explosion.sprite.Position = a.sprite.Position
@@ -256,7 +249,6 @@ function game:spawn_bullet(engine)
         angularVelocity = 0,
         texture = self.bulletTexture,
         type = "bullet",
-        collisionEnabled = true,
         lifetime = 0,
     }
 
@@ -313,7 +305,6 @@ function game:spawn_asteroid(engine, size, x, y)
         size = size,
         texture = self.asteroidTextures[size],
         type = "asteroid",
-        collisionEnabled = true,
         markedForDeath = false,
     }
     asteroid.sprite = engine:create_sprite(asteroid)

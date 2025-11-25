@@ -129,35 +129,39 @@ local bullets_patterns = {
     [6] = [[8888008888008888008888008888008888]],
 }
 
+local heart_pattern = [[0b3a0d3a0c3c0b3c0a3ad0a3h0b3h0c3f0e3d0g3b0d]]
+
+local ship_pattern = [[0i2b0r2b0q2d0p2d0p2d0o2f0n2f0m2h0l2h0l2h0k2j0j2j0j2j0i2l0h2l0h2l0g2f0b2f0f2e0d2e0e2e0f2e0d2d0h2d0d2c0j2c0c2c0l2c0b2b0n2b0a]]
+
 ---@param engine engine
-function gfx.draw_dmd(engine, slots)
+function gfx.draw_dmd(engine, game)
+    local slots = game.slots
+    local bulletsValue = slots.bullets.DieValue
+    local speedValue = slots.speed.DieValue
+    local turnValue = slots.turn.DieValue
+
     engine:clear_dmd()
-    engine:blit_dmd({ x = 40, y = 25, width = 20, height = 23 },
-        [[0i2b0r2b0q2d0p2d0p2d0o2f0n2f0m2h0l2h0l2h0k2j0j2j0j2j0i2l0h2l0h2l0g2f0b2f0f2e0d2e0e2e0f2e0d2d0h2d0d2c0j2c0c2c0l2c0b2b0n2b0a]]
-    )
-    if slots.bullets.DieValue > 0 then
-        engine:blit_dmd(
-            { x = 49, y = 7, width = 2, height = 17 },
-            bullets_patterns[slots.bullets.DieValue]
-        )
+
+    for i = 1, game.ship.health do
+        engine:blit_dmd({ x = (i - 1) * 11, y = 0, width = 10, height = 10 }, heart_pattern)
     end
-    if slots.speed.DieValue > 0 then
-        engine:blit_dmd(
-            { x = 45, y = 48, width = 10, height = 10 },
-            speed_patterns[slots.speed.DieValue]
-        )
+
+    engine:blit_dmd({ x = 40, y = 30, width = 20, height = 23 }, ship_pattern)
+
+    if bulletsValue > 0 then
+        engine:blit_dmd({ x = 49, y = 12, width = 2, height = 17 }, bullets_patterns[bulletsValue])
     end
-    if slots.turn.DieValue > 0 then
+    if speedValue > 0 then
+        engine:blit_dmd({ x = 45, y = 53, width = 10, height = 10 }, speed_patterns[speedValue])
+    end
+    if turnValue > 0 then
         local region
-        if slots.turn.DieValue >= 1 and slots.turn.DieValue <= 3 then
-            region = { x = 30, y = 23, width = 10, height = 10 }
+        if turnValue >= 1 and turnValue <= 3 then
+            region = { x = 30, y = 25, width = 10, height = 10 }
         else
-            region = { x = 60, y = 23, width = 10, height = 10 }
+            region = { x = 60, y = 25, width = 10, height = 10 }
         end
-        engine:blit_dmd(
-            region,
-            turn_patterns[slots.turn.DieValue]
-        )
+        engine:blit_dmd(region, turn_patterns[turnValue])
     end
 end
 

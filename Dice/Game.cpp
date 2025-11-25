@@ -141,7 +141,7 @@ void base_game::wrap_sprites()
     auto const fieldSize {_background->Bounds->Size};
 
     for (auto& s : _sprites) {
-        if (!s || !s->Shape) { continue; }
+        if (!s || !s->Shape || !s->IsWrappable) { continue; }
 
         auto b {*s->Shape->Bounds};
         b.Position.X -= _background->Bounds->left();
@@ -240,14 +240,14 @@ void base_game::collide_sprites()
 
     for (usize i {0}; i < _sprites.size(); ++i) {
         auto const& spriteA {_sprites[i]};
-        if (!spriteA->IsCollisionEnabled) { continue; }
+        if (!spriteA->IsCollidable) { continue; }
 
         std::array<gfx::rect_shape*, 2> shapesA {spriteA->Shape, spriteA->WrapCopy};
         i32                             countA {spriteA->WrapCopy ? 2 : 1};
 
         for (usize j {i + 1}; j < _sprites.size(); ++j) {
             auto const& spriteB {_sprites[j]};
-            if (!spriteB->IsCollisionEnabled) { continue; }
+            if (!spriteB->IsCollidable) { continue; }
 
             std::array<gfx::rect_shape*, 2> shapesB {spriteB->Shape, spriteB->WrapCopy};
             i32                             countB {spriteB->WrapCopy ? 2 : 1};

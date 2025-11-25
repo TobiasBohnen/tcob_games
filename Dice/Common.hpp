@@ -19,8 +19,8 @@ struct shared_assets;
 
 constexpr size_f DICE_SIZE {62, 62};
 constexpr f32    DICE_OFFSET {72.f};
-constexpr i32    DMD_WIDTH {72};
-constexpr i32    DMD_HEIGHT {66};
+constexpr i32    DMD_WIDTH {80};
+constexpr i32    DMD_HEIGHT {70};
 
 ////////////////////////////////////////////////////////////
 
@@ -36,7 +36,8 @@ struct sprite {
 
     u32            TexID {0};
     texture const* Texture {nullptr};
-    bool           IsCollisionEnabled {false};
+    bool           IsCollidable {true};
+    bool           IsWrappable {true};
 
     scripting::table Owner;
 };

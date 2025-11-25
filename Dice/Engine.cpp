@@ -64,8 +64,6 @@ auto engine::update(milliseconds deltaTime) -> bool
     if (!_running) { return false; }
 
     if (!call(_callbacks.OnRun, deltaTime.count())) {
-        _sharedState.DMD = grid<u8> {{DMD_WIDTH, DMD_HEIGHT}, 0};
-
         call(_callbacks.OnFinish);
         _running = false;
         return false;
@@ -227,8 +225,9 @@ void engine::create_engine_wrapper()
     engineWrapper["create_sprite"] = [](engine* engine, table const& spriteDef) {
         auto* sprite {engine->_game.add_sprite()};
 
-        sprite->IsCollisionEnabled = spriteDef["collisionEnabled"].as<bool>();
-        sprite->Owner              = spriteDef;
+        spriteDef.try_get(sprite->IsCollidable, "collidable");
+        spriteDef.try_get(sprite->IsWrappable, "wrappable");
+        sprite->Owner = spriteDef;
 
         sprite->Shape           = engine->_game.add_shape();
         sprite->Shape->Material = engine->_spriteMaterial;
@@ -290,14 +289,7 @@ void engine::create_engine_wrapper()
         dots.reserve(rect.width() * rect.height());
 
         auto const isRLE {[](string_view s) -> bool {
-            for (usize i {0}; i + 1 < s.size(); ++i) {
-                char const c {s[i]};
-                char const next {s[i + 1]};
-                if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F')) {
-                    if (next >= 'a' && next <= 'z') { return true; }
-                }
-            }
-            return false;
+            return s.size() > 1 && (s[1] >= 'a' && s[1] <= 'z');
         }};
 
         if (isRLE(dotStr)) {
@@ -459,4 +451,5 @@ void engine::set_texture(sprite* sprite, u32 texID)
     auto const& texture {_textures[sprite->TexID]}; // TODO: error check
     sprite->Texture              = &texture;
     sprite->Shape->TextureRegion = texture.Region;
+    if (sprite->WrapCopy) { sprite->WrapCopy->TextureRegion = texture.Region; }
 }

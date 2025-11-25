@@ -35,7 +35,7 @@ local game_module = {}
 ---@field r integer
 ---@field g integer
 ---@field b integer
----@field a integer|nil
+---@field a? integer
 
 ---@class point
 ---@field x number
@@ -54,7 +54,7 @@ local game_module = {}
 ---@class slot_owner
 ---@field color color
 ---@field value number
----@field op string|nil
+---@field op? string
 
 ---@class die_face
 ---@field color color
@@ -62,7 +62,8 @@ local game_module = {}
 
 ---@class sprite_owner
 ---@field texture texture
----@field collisionEnabled boolean
+---@field collidable? boolean
+---@field wrappable? boolean
 
 ---@class palette
 ---@field Transparent color
@@ -120,7 +121,7 @@ local canvas = {
     fill_color = function(self, color) end,
 
     ---@param self canvas
-    ---@param enforceWinding boolean|nil
+    ---@param enforceWinding? boolean
     fill = function(self, enforceWinding) end,
 }
 
