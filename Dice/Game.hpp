@@ -16,7 +16,7 @@
 
 class base_game : public gfx::entity {
 public:
-    base_game(assets::group const& grp, size_i realWindowSize);
+    base_game(assets::group const& grp, size_f realWindowSize);
 
     signal<collision_event const> Collision;
     signal<slot* const>           SlotDieChanged;
@@ -60,8 +60,6 @@ private:
     void collide_sprites();
 
     engine _engine;
-
-    size_f _realWindowSize;
 
     asset_owner_ptr<gfx::render_texture> _texture;
     asset_owner_ptr<gfx::material>       _material {};

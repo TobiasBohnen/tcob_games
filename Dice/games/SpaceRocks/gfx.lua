@@ -143,16 +143,16 @@ function gfx.draw_dmd(engine, game)
     engine:clear_dmd()
 
     for i = 1, game.ship.health do
-        engine:blit_dmd({ x = (i - 1) * 11, y = 0, width = 10, height = 10 }, heart_pattern)
+        engine:blit_dmd({ x = 0, y = (i - 1) * 11, width = 10, height = 10 }, heart_pattern)
     end
 
-    engine:blit_dmd({ x = 40, y = 30, width = 20, height = 23 }, ship_pattern)
+    engine:blit_dmd({ x = 40, y = 23, width = 20, height = 23 }, ship_pattern)
 
     if bulletsValue > 0 then
-        engine:blit_dmd({ x = 49, y = 12, width = 2, height = 17 }, bullets_patterns[bulletsValue])
+        engine:blit_dmd({ x = 49, y = 5, width = 2, height = 17 }, bullets_patterns[bulletsValue])
     end
     if speedValue > 0 then
-        engine:blit_dmd({ x = 45, y = 53, width = 10, height = 10 }, speed_patterns[speedValue])
+        engine:blit_dmd({ x = 45, y = 43, width = 10, height = 10 }, speed_patterns[speedValue])
     end
     if turnValue > 0 then
         local region

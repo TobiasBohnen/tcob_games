@@ -12,7 +12,7 @@ using namespace std::chrono_literals;
 
 ////////////////////////////////////////////////////////////
 
-game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_state const& state)
+game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_state& state)
     : form {{.Name = "game", .Bounds = rect_i {bounds}}}
     , _sharedState {state}
 {
@@ -24,17 +24,22 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
     auto& ssd {layout.create_widget<seven_segment_display>(dock_style::Top, "ssd")};
     ssd.Flex = {.Width = 100_pct, .Height = 6_pct};
     _sharedState.Score.Changed.connect([&]() { _updateSsd = true; });
+    ssd.disable();
 
     auto&     dmd {layout.create_widget<dot_matrix_display>(dock_style::Top, "dmd")};
     f32 const flexHeight {(bounds.width() * (DMD_HEIGHT / static_cast<f32>(DMD_WIDTH))) / bounds.height()};
     dmd.Flex = {.Width = 100_pct, .Height = length(flexHeight, length::type::Relative)};
     _sharedState.DMD.Changed.connect([&]() { _updateDmd = true; });
+    dmd.disable();
+    dmd.Bounds.Changed.connect([&](auto const& rect) { _sharedState.DMDBounds = rect; });
 
     auto& btn {layout.create_widget<button>(dock_style::Bottom, "btnTurn")};
     btn.Flex  = {.Width = 100_pct, .Height = 15_pct};
     btn.Label = "->";
     btn.Click.connect([&]() { StartTurn(); });
     btn.disable();
+
+    update(0ms);
 }
 
 void game_form::on_update(milliseconds deltaTime)

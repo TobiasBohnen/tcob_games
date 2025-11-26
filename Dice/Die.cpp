@@ -130,7 +130,7 @@ void dice::drag(point_f mousePos, rect_f const& winBounds)
 {
     if (!HoverDie || HoverDie->_frozen) { return; }
 
-    point_f const halfSize {DICE_SIZE.Width / 2, DICE_SIZE.Height / 2};
+    point_f const halfSize {DICE_SIZE.Width * _scale.Width / 2, DICE_SIZE.Height * _scale.Height / 2};
     point_f       newPos {mousePos};
 
     if (mousePos.X - halfSize.X < winBounds.left()) {
@@ -145,7 +145,7 @@ void dice::drag(point_f mousePos, rect_f const& winBounds)
         newPos.Y = winBounds.bottom() - halfSize.Y;
     }
 
-    rect_f const newBounds {newPos - halfSize, DICE_SIZE};
+    rect_f const newBounds {newPos - halfSize, DICE_SIZE * _scale};
 
     _batch.bring_to_front(*HoverDie->_shape);
     HoverDie->_shape->Bounds = newBounds;

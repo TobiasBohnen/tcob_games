@@ -7,20 +7,16 @@
 
 using namespace scripting;
 
-constexpr size_f VIRTUAL_SCREEN_SIZE {800, 600};
-constexpr size_f DICE_SLOTS_REF_SIZE {1600, 900};
-
-base_game::base_game(assets::group const& grp, size_i realWindowSize)
+base_game::base_game(assets::group const& grp, size_f realWindowSize)
     : gfx::entity {update_mode::Both}
-    , _realWindowSize {size_f {realWindowSize}}
     , _background(&_spriteBatch.create_shape<gfx::rect_shape>())
-    , _slots {_diceBatch, grp.get<gfx::font_family>("Poppins"), _realWindowSize / DICE_SLOTS_REF_SIZE}
-    , _dice {_diceBatch, _realWindowSize / DICE_SLOTS_REF_SIZE}
+    , _slots {_diceBatch, grp.get<gfx::font_family>("Poppins"), realWindowSize / DICE_SLOTS_REF_SIZE}
+    , _dice {_diceBatch, realWindowSize / DICE_SLOTS_REF_SIZE}
     , _engine {*this, _sharedState}
 {
     _background->Bounds = {point_f::Zero, VIRTUAL_SCREEN_SIZE};
 
-    auto const [w, h] {_realWindowSize};
+    auto const [w, h] {realWindowSize};
     rect_f const bgBounds {0, 0, h / 3.0f * 4.0f, h};
     rect_f const uiBounds {bgBounds.width(), 0.0f, w - bgBounds.width(), h};
 

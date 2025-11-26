@@ -11,7 +11,7 @@
 
 class game_form : public ui::form<ui::dock_layout> {
 public:
-    game_form(rect_f const& bounds, assets::group const& grp, shared_state const& state);
+    game_form(rect_f const& bounds, assets::group const& grp, shared_state& state);
 
     signal<> StartTurn;
 
@@ -21,7 +21,7 @@ protected:
 private:
     void gen_styles(assets::group const& grp);
 
-    shared_state const& _sharedState;
+    shared_state& _sharedState;
 
     bool _updateDmd {true};
     bool _updateSsd {true};

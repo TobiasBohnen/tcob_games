@@ -68,6 +68,7 @@ auto engine::update(milliseconds deltaTime) -> bool
         _running = false;
         return false;
     }
+
     return true;
 }
 
@@ -343,25 +344,6 @@ struct tex_def {
 
 auto engine::create_gfx() -> bool
 {
-    static auto extract_alpha {[](gfx::image const& img, rect_f const& uv) -> grid<u8> {
-        auto const& info {img.info()};
-        rect_f      rect;
-        rect.Position.X  = uv.Position.X * info.Size.Width;
-        rect.Position.Y  = -uv.Position.Y * info.Size.Height;
-        rect.Size.Width  = uv.Size.Width * info.Size.Width;
-        rect.Size.Height = -uv.Size.Height * info.Size.Height;
-
-        grid<u8> retValue {size_i {rect.Size}};
-
-        for (i32 y {0}; y < retValue.size().Height; ++y) {
-            for (i32 x {0}; x < retValue.size().Width; ++x) {
-                retValue[{x, y}] = img.get_pixel({static_cast<i32>(x + rect.Position.X), static_cast<i32>(y + rect.Position.Y)}).A;
-            }
-        }
-
-        return retValue;
-    }};
-
     auto const bgSize {size_i {_game.world_size()}};
 
     // draw background
@@ -374,7 +356,7 @@ auto engine::create_gfx() -> bool
         return false;
     }
 
-    constexpr f32 PAD {2};
+    constexpr i32 PAD {2};
 
     // textures
     if (function<std::unordered_map<u32, table>> func; _table.try_get(func, "get_textures")) {
@@ -389,18 +371,20 @@ auto engine::create_gfx() -> bool
             if (!texDefTable.try_get(texDef.Size, "size")) { return false; }
             if (!texDefTable.try_get(texDef.Draw, "draw")) { return false; }
 
-            canvasSize.Width += texDef.Size.Width + static_cast<i32>(PAD * 2);
+            canvasSize.Width += texDef.Size.Width + (PAD * 2);
             canvasSize.Height = std::max(canvasSize.Height, static_cast<i32>(texDef.Size.Height + (PAD * 2)));
         }
 
-        canvasSize.Width += static_cast<i32>(PAD);
-        canvasSize.Height += static_cast<i32>(PAD);
+        canvasSize.Width += PAD;
+        canvasSize.Height += PAD;
 
         // draw textures
         point_f pen {PAD, PAD};
 
         _canvas.begin_frame(canvasSize, 1, 1);
         auto tex {_canvas.get_texture(1)};
+        tex->Filtering                        = gfx::texture::filtering::Linear;
+        _spriteMaterial->first_pass().Texture = tex;
 
         for (auto const& texDef : texDefs) {
             _canvas.save();
@@ -425,16 +409,32 @@ auto engine::create_gfx() -> bool
         _canvas.end_frame();
 
         // get alpha
+        static auto const extractAlpha {[](gfx::image const& img, rect_f const& uv) -> grid<u8> {
+            auto const& info {img.info()};
+            rect_f      rect;
+            rect.Position.X  = uv.Position.X * info.Size.Width;
+            rect.Position.Y  = -uv.Position.Y * info.Size.Height;
+            rect.Size.Width  = uv.Size.Width * info.Size.Width;
+            rect.Size.Height = -uv.Size.Height * info.Size.Height;
+
+            grid<u8> retValue {size_i {rect.Size}};
+
+            for (i32 y {0}; y < retValue.size().Height; ++y) {
+                for (i32 x {0}; x < retValue.size().Width; ++x) {
+                    retValue[{x, y}] = img.get_pixel({static_cast<i32>(x + rect.Position.X), static_cast<i32>(y + rect.Position.Y)}).A;
+                }
+            }
+
+            return retValue;
+        }};
+
         auto spriteImage {tex->copy_to_image(0)};
         spriteImage.flip_vertically();
         for (auto& texture : _textures) {
             auto const& textureRegion {tex->regions()[texture.second.Region]};
-            texture.second.Alpha = extract_alpha(spriteImage, textureRegion.UVRect);
+            texture.second.Alpha = extractAlpha(spriteImage, textureRegion.UVRect);
         }
 
-        // setup material
-        tex->Filtering                        = gfx::texture::filtering::Linear;
-        _spriteMaterial->first_pass().Texture = tex;
     } else {
         return false;
     }

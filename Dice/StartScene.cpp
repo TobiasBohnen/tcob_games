@@ -23,7 +23,7 @@ void start_scene::on_start()
 
     auto& win {window()};
     win.ClearColor = colors::White;
-    _currentGame   = std::make_shared<base_game>(resGrp, win.bounds().Size);
+    _currentGame   = std::make_shared<base_game>(resGrp, size_f {win.bounds().Size});
     _currentGame->run("dice/games/SpaceRocks/game.lua");
 
     root_node().create_child().Entity = _currentGame;
