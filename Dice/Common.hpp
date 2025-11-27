@@ -73,4 +73,10 @@ struct shared_state {
     prop<i32>      Score;
     prop<grid<u8>> DMD {grid<u8> {{DMD_WIDTH, DMD_HEIGHT}, 0}};
     prop<rect_f>   DMDBounds;
+
+    asset_owner_ptr<gfx::material> SpriteMaterial;
+    asset_owner_ptr<gfx::texture>  SpriteTexture;
+
+    asset_owner_ptr<gfx::material> BackgroundMaterial;
+    asset_owner_ptr<gfx::texture>  BackgroundTexture;
 };

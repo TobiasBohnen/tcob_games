@@ -14,7 +14,7 @@ local gfx = require('gfx')
 
 local game = {
     --public:
-    draw_background = gfx.draw_background,
+    get_background = gfx.get_background,
     get_textures = gfx.get_textures,
 
     --private:
@@ -63,7 +63,7 @@ function game:on_setup(engine)
 
     engine:create_dice(4, { { values = { 1, 2, 3, 4, 5, 6 }, color = palette.White } })
     engine:roll_dice()
-    gfx.draw_dmd(engine, self)
+    gfx.draw_dmd(engine.DMD, self)
 end
 
 ---@param engine engine
@@ -122,7 +122,7 @@ function game:on_collision(engine, spriteA, spriteB)
             self.ship.health = self.ship.health - 1
             self.ship.invulnerable = true
             self.ship.sprite.Texture = self.ship.hurtTexture
-            gfx.draw_dmd(engine, self)
+            gfx.draw_dmd(engine.DMD, self)
         end
 
         local asteroid = typeA == "asteroid" and ownerA or ownerB
@@ -143,14 +143,14 @@ end
 ---@param engine engine
 ---@param slot slot
 function game:on_slot_die_changed(engine, slot)
-    gfx.draw_dmd(engine, self)
+    gfx.draw_dmd(engine.DMD, self)
 end
 
 ---@param engine engine
 function game:on_finish(engine)
     engine:reset_slots(self.slots)
     engine:roll_dice()
-    gfx.draw_dmd(engine, self)
+    gfx.draw_dmd(engine.DMD, self)
 
     self.ship.invulnerable = false
     self.ship.sprite.Texture = self.ship.texture

@@ -14,7 +14,8 @@ base_game::base_game(assets::group const& grp, size_f realWindowSize)
     , _dice {_diceBatch, realWindowSize / DICE_SLOTS_REF_SIZE}
     , _engine {*this, _sharedState}
 {
-    _background->Bounds = {point_f::Zero, VIRTUAL_SCREEN_SIZE};
+    _background->Bounds   = {point_f::Zero, VIRTUAL_SCREEN_SIZE};
+    _background->Material = _sharedState.BackgroundMaterial;
 
     auto const [w, h] {realWindowSize};
     rect_f const bgBounds {0, 0, h / 3.0f * 4.0f, h};
@@ -327,18 +328,7 @@ void base_game::roll()
 {
     _dice.roll();
 }
-void base_game::set_background_tex(asset_ptr<gfx::texture> const& tex)
-{
-    _backgroundMaterial->first_pass().Texture = tex;
-    tex->regions()["default"]                 = {.UVRect = {gfx::render_texture::UVRect()},
-                                                 .Level  = 0};
-    _background->Material                     = _backgroundMaterial;
-}
 
-auto base_game::world_size() const -> size_f
-{
-    return _background->Bounds->Size;
-}
 auto base_game::ui_bounds() const -> rect_f const&
 {
     return *_form0->Bounds;

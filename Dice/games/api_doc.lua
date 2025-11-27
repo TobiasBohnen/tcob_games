@@ -4,28 +4,6 @@
 ---@meta
 
 --------------------------------
--- Game Module
---------------------------------
-
----@class game_module
----@
----@field draw_background fun(self: game_module, engine: engine, canvas: canvas, canvasSize: size)
----@field get_textures fun(self: game_module, engine: engine): table<texture, table>
----@
----@field on_setup fun(self: game_module, engine: engine)
----@
----@field on_run fun(self: game_module, deltaTime: number)
----@
----@field can_start fun(self: game_module, engine: engine): boolean
----@field on_start fun(self: game_module, engine: engine)
----@
----@field on_finish fun(self: game_module, engine: engine)
----@
----@field on_collision fun(self: game_module, engine: engine, spriteA: sprite, spriteB: sprite)
----@field on_slot_die_changed fun(self: game_module, engine: engine, slot: slot)
-local game_module = {}
-
---------------------------------
 -- Basic Types
 --------------------------------
 
@@ -85,45 +63,25 @@ local game_module = {}
 palette = {}
 
 --------------------------------
--- Canvas
+-- Game Module
 --------------------------------
 
----@class canvas
-local canvas = {
-    ---@param self canvas
-    begin_path = function(self) end,
-
-    ---@param self canvas
-    ---@param color color
-    clear = function(self, color) end,
-
-    ---@param self canvas
-    ---@param path string
-    path_2d = function(self, path) end,
-
-    ---@param self canvas
-    ---@param rect rect
-    rect = function(self, rect) end,
-
-    ---@param self canvas
-    ---@param color color
-    stroke_color = function(self, color) end,
-
-    ---@param self canvas
-    ---@param width number
-    stroke_width = function(self, width) end,
-
-    ---@param self canvas
-    stroke = function(self) end,
-
-    ---@param self canvas
-    ---@param color color
-    fill_color = function(self, color) end,
-
-    ---@param self canvas
-    ---@param enforceWinding? boolean
-    fill = function(self, enforceWinding) end,
-}
+---@class game_module
+---@
+---@field get_background fun(self: game_module, engine: engine, size: size): string
+---@field get_textures fun(self: game_module, engine: engine): table<texture, table>
+---@
+---@field on_setup fun(self: game_module, engine: engine)
+---@
+---@field on_run fun(self: game_module, deltaTime: number)
+---@
+---@field can_start fun(self: game_module, engine: engine): boolean
+---@field on_start fun(self: game_module, engine: engine)
+---@
+---@field on_finish fun(self: game_module, engine: engine)
+---@
+---@field on_collision fun(self: game_module, engine: engine, spriteA: sprite, spriteB: sprite)
+---@field on_slot_die_changed fun(self: game_module, engine: engine, slot: slot)
 
 --------------------------------
 -- Sprite
@@ -154,64 +112,34 @@ local canvas = {
 ---@
 
 --------------------------------
+-- DMD
+--------------------------------
+
+---@class dmd
+---
+---@field blit fun(self: dmd, rect: rect, dots: string)
+---@field clear fun(self: dmd)
+
+--------------------------------
 -- Engine
 --------------------------------
 
 ---@class engine
-local engine = {
-
-    ---@param self engine
-    ---@param min number
-    ---@param max number
-    ---@return number
-    random = function(self, min, max) end,
-
-    ---@param self engine
-    ---@param min integer
-    ---@param max integer
-    ---@return integer
-    random_int = function(self, min, max) end,
-
-    ---@param str string
-    log = function(str) end,
-
-    ---@param self engine
-    ---@param owner sprite_owner
-    ---@return sprite
-    create_sprite = function(self, owner) end,
-
-    ---@param self engine
-    ---@param sprite sprite
-    remove_sprite = function(self, sprite) end,
-
-    ---@param self engine
-    ---@param owner slot_owner
-    ---@return slot
-    create_slot = function(self, owner) end,
-
-    ---@param self engine
-    ---@param slots { [string]: slot }
-    reset_slots = function(self, slots) end,
-
-    ---@param self engine
-    ---@param count integer
-    ---@param dieFaces die_face[]
-    create_dice = function(self, count, dieFaces) end,
-
-    ---@param self engine
-    roll_dice = function(self) end,
-
-    ---@param self engine
-    ---@param score integer
-    give_score = function(self, score) end,
-
-    ---@param self engine
-    ---@param rect rect
-    ---@param dots string
-    blit_dmd = function(self, rect, dots) end,
-
-    clear_dmd = function(self) end,
-
-
-
-}
+---
+---@field DMD dmd
+---
+---@field random fun(self: engine, min: number, max: number): number
+---@field random_int fun(self: engine, min: integer, max: integer): integer
+---
+---@field log fun(str: string)
+---
+---@field create_sprite fun(self: engine, owner: sprite_owner): sprite
+---@field remove_sprite fun(self: engine, sprite: sprite)
+---
+---@field create_slot fun(self: engine, owner: slot_owner): slot
+---@field reset_slots fun(self: engine, slots: { [string]: slot })
+---
+---@field create_dice fun(self: engine, count: integer, dieFaces: die_face[])
+---@field roll_dice fun(self: engine)
+---
+---@field give_score fun(self: engine, score: integer)

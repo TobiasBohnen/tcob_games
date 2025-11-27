@@ -36,10 +36,7 @@ public:
 
     void roll();
 
-    auto world_size() const -> size_f;
     auto ui_bounds() const -> rect_f const&;
-
-    void set_background_tex(asset_ptr<gfx::texture> const& tex);
 
 protected:
     void on_update(milliseconds deltaTime) override;
@@ -70,7 +67,6 @@ private:
     std::unique_ptr<game_form> _form0;
 
     gfx::rect_shape*                     _background;
-    asset_owner_ptr<gfx::material>       _backgroundMaterial;
     std::vector<std::unique_ptr<sprite>> _sprites;
 
     slots _slots;
