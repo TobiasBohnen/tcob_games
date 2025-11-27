@@ -8,6 +8,7 @@
 --------------------------------
 
 ---@alias texture integer
+---@alias sound integer
 
 ---@class color
 ---@field r integer
@@ -71,6 +72,8 @@ palette = {}
 ---@field get_background fun(self: game_module, engine: engine, size: size): string
 ---@field get_textures fun(self: game_module, engine: engine): table<texture, table>
 ---@
+---@field get_sounds fun(self: game_module, engine: engine): table<sound, table>
+---@
 ---@field on_setup fun(self: game_module, engine: engine)
 ---@
 ---@field on_run fun(self: game_module, deltaTime: number)
@@ -121,12 +124,28 @@ palette = {}
 ---@field clear fun(self: dmd)
 
 --------------------------------
+-- SFX
+--------------------------------
+
+---@class sfx
+---
+---@field pickup_coin fun(self: sfx, seed: integer)
+---@field laser_shoot fun(self: sfx, seed: integer)
+---@field explosion fun(self: sfx, seed: integer)
+---@field powerup fun(self: sfx, seed: integer)
+---@field hit_hurt fun(self: sfx, seed: integer)
+---@field jump fun(self: sfx, seed: integer)
+---@field blip_select fun(self: sfx, seed: integer)
+---@field random fun(self: sfx, seed: integer)
+
+--------------------------------
 -- Engine
 --------------------------------
 
 ---@class engine
 ---
 ---@field DMD dmd
+---@field SFX sfx
 ---
 ---@field random fun(self: engine, min: number, max: number): number
 ---@field random_int fun(self: engine, min: integer, max: integer): integer
@@ -143,3 +162,5 @@ palette = {}
 ---@field roll_dice fun(self: engine)
 ---
 ---@field give_score fun(self: engine, score: integer)
+---@
+---@field play_sound fun(self: engine, id: integer)

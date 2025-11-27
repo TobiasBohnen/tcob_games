@@ -57,7 +57,7 @@ function gfx.get_textures(game, engine)
         },
         [game.bulletTexture] = {
             size    = square(8),
-            pattern = [[7bl]]
+            pattern = [[8aFf8aFa7fFb7fFb7fFb7fFb7fFb7fFa8aFf8a]]
         },
         [game.asteroidTextures.small] = {
             size        = square(16),

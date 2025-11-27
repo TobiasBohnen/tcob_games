@@ -182,17 +182,20 @@ void engine::create_env(string const& path)
     _script.Environment = env;
 
     // require
-    env["require"] = makeFunc([env, path, this](string const& package) {
-        if (env.has("package", "loaded", package)) {
-            return env["package"]["loaded"][package].as<table>();
+    env["require"] = makeFunc([env, path, this](string const& module) {
+        if (env.has("package", "loaded", module)) {
+            return env["package"]["loaded"][module].as<table>();
         }
 
-        string pkgFile {package + ".lua"};
-        if (!io::exists(pkgFile)) { pkgFile = path + "/" + pkgFile; }
+        string const pkgFile {std::format("{}/{}.lua", path, module)};
+        if (auto pkg {_script.run_file<table>(pkgFile)}) {
+            auto& val {pkg.value()};
+            env["package"]["loaded"][module] = val;
+            return val;
+        }
 
-        auto pkg {_script.run_file<table>(pkgFile).value()};
-        env["package"]["loaded"][package] = pkg;
-        return pkg;
+        _script.raise_error(std::format("module {} not found", module));
+        return _script.create_table();
     });
 }
 
@@ -213,6 +216,7 @@ void engine::create_wrappers()
     create_slot_wrapper();
     create_engine_wrapper();
     create_dmd_wrapper();
+    create_sfx_wrapper();
 }
 
 void engine::create_sprite_wrapper()
@@ -320,7 +324,11 @@ void engine::create_engine_wrapper()
     engineWrapper["give_score"] = [](engine* engine, i32 score) {
         engine->_sharedState.Score += score;
     };
+    engineWrapper["play_sound"] = [](engine* engine, u32 id) {
+        engine->_sounds[id]->play();
+    };
     engineWrapper["DMD"] = getter {[](engine* engine) { return &engine->_dmdProxy; }};
+    engineWrapper["SFX"] = getter {[](engine* engine) { return &engine->_sfxProxy; }};
 }
 
 void engine::create_dmd_wrapper()
@@ -334,15 +342,44 @@ void engine::create_dmd_wrapper()
     };
 }
 
-struct tex_def {
-    u32                ID {0};
-    size_i             Size {size_i::Zero};
-    string             Pattern;
-    std::optional<u32> Transparent;
-};
+void engine::create_sfx_wrapper()
+{
+    auto& sfxWrapper {*_script.create_wrapper<sfx_proxy>("sfx")};
+    sfxWrapper["pickup_coin"] = [](sfx_proxy* sfx, u64 seed) {
+        return sfx->pickup_coin(seed);
+    };
+    sfxWrapper["laser_shoot"] = [](sfx_proxy* sfx, u64 seed) {
+        return sfx->laser_shoot(seed);
+    };
+    sfxWrapper["explosion"] = [](sfx_proxy* sfx, u64 seed) {
+        return sfx->explosion(seed);
+    };
+    sfxWrapper["powerup"] = [](sfx_proxy* sfx, u64 seed) {
+        return sfx->powerup(seed);
+    };
+    sfxWrapper["hit_hurt"] = [](sfx_proxy* sfx, u64 seed) {
+        return sfx->hit_hurt(seed);
+    };
+    sfxWrapper["jump"] = [](sfx_proxy* sfx, u64 seed) {
+        return sfx->jump(seed);
+    };
+    sfxWrapper["blip_select"] = [](sfx_proxy* sfx, u64 seed) {
+        return sfx->blip_select(seed);
+    };
+    sfxWrapper["random"] = [](sfx_proxy* sfx, u64 seed) {
+        return sfx->random(seed);
+    };
+}
 
 auto engine::create_gfx() -> bool
 {
+    struct tex_def {
+        u32                ID {0};
+        size_i             Size {size_i::Zero};
+        string             Pattern;
+        std::optional<u32> Transparent;
+    };
+
     // draw background
     if (function<string> func; _table.try_get(func, "get_background")) {
         auto const bgSize {size_i {VIRTUAL_SCREEN_SIZE}};
@@ -462,6 +499,16 @@ auto engine::create_gfx() -> bool
 
 auto engine::create_sfx() -> bool
 {
+    if (function<std::unordered_map<u32, audio::sound_wave>> func; _table.try_get(func, "get_sounds")) {
+        auto const soundMap {func(_table, this)};
+        for (auto const& [id, soundWave] : soundMap) {
+            _sounds.emplace(id, std::make_unique<audio::sound>(audio::sound_generator {}.create_buffer(soundWave)));
+        }
+
+    } else {
+        return false;
+    }
+
     return true;
 }
 
@@ -490,3 +537,14 @@ void dmd_proxy::blit(rect_i const& rect, string const& dotStr)
     auto const dots {get_texture_pattern(dotStr, rect.Size)};
     _sharedState.DMD.mutate([&](auto& dmd) { dmd.blit(rect, dots); });
 }
+
+////////////////////////////////////////////////////////////
+
+auto sfx_proxy::pickup_coin(u64 seed) -> audio::sound_wave { return audio::sound_generator {random::prng_split_mix_64 {seed}}.generate_pickup_coin(); }
+auto sfx_proxy::laser_shoot(u64 seed) -> audio::sound_wave { return audio::sound_generator {random::prng_split_mix_64 {seed}}.generate_laser_shoot(); }
+auto sfx_proxy::explosion(u64 seed) -> audio::sound_wave { return audio::sound_generator {random::prng_split_mix_64 {seed}}.generate_explosion(); }
+auto sfx_proxy::powerup(u64 seed) -> audio::sound_wave { return audio::sound_generator {random::prng_split_mix_64 {seed}}.generate_powerup(); }
+auto sfx_proxy::hit_hurt(u64 seed) -> audio::sound_wave { return audio::sound_generator {random::prng_split_mix_64 {seed}}.generate_hit_hurt(); }
+auto sfx_proxy::jump(u64 seed) -> audio::sound_wave { return audio::sound_generator {random::prng_split_mix_64 {seed}}.generate_jump(); }
+auto sfx_proxy::blip_select(u64 seed) -> audio::sound_wave { return audio::sound_generator {random::prng_split_mix_64 {seed}}.generate_blip_select(); }
+auto sfx_proxy::random(u64 seed) -> audio::sound_wave { return audio::sound_generator {random::prng_split_mix_64 {seed}}.generate_random(); }

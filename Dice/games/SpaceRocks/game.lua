@@ -11,11 +11,13 @@ local INIT_ASTEROID_COUNT = 10
 local EXPLOSION_DURATION = 750
 
 local gfx = require('gfx')
+local sfx = require('sfx')
 
 local game = {
     --public:
     get_background = gfx.get_background,
     get_textures = gfx.get_textures,
+    get_sounds = sfx.get_sounds,
 
     --private:
     ship = {
@@ -90,21 +92,12 @@ function game:on_run(engine, deltaTime)
     self.updateTime = self.updateTime + deltaTime
     if self.updateTime >= DURATION then return false end
 
-    -- bullet spawn
-    if self.bulletsLeft > 0 then
-        self.bulletTime = self.bulletTime - deltaTime
-        if self.bulletTime <= 0 then
-            self:spawn_bullet(engine)
-            self.bulletTime  = HALF_DURATION / self.slots.bullets.DieValue
-            self.bulletsLeft = self.bulletsLeft - 1
-        end
-    end
+    self:try_spawn_bullet(engine, deltaTime)
 
     self:update_asteroids(engine, deltaTime)
     self:update_explosions(engine, deltaTime)
     self:update_bullets(engine, deltaTime)
     self:update_ship(deltaTime)
-
     return true
 end
 
@@ -195,6 +188,7 @@ function game:update_asteroids(engine, deltaTime)
 
             engine:remove_sprite(a.sprite)
             table.remove(self.asteroids, i)
+            engine:play_sound(0)
             engine:give_score(100)
         else
             a.sprite.Rotation = a.sprite.Rotation + 0.1 * deltaTime
@@ -243,7 +237,11 @@ function game:update_entity(e, deltaTime)
 end
 
 ---@param engine engine
-function game:spawn_bullet(engine)
+function game:try_spawn_bullet(engine, deltaTime)
+    if self.bulletsLeft <= 0 then return end
+    self.bulletTime = self.bulletTime - deltaTime
+    if self.bulletTime > 0 then return end
+
     local bullet                    = {
         direction = self.ship.direction,
         linearVelocity = math.max(0.5, self.ship.linearVelocity * 1.5),
@@ -272,6 +270,9 @@ function game:spawn_bullet(engine)
         - bulletBounds.height * 0.5
 
     bullet.sprite.Position          = { x = bx, y = by }
+
+    self.bulletTime                 = HALF_DURATION / self.slots.bullets.DieValue
+    self.bulletsLeft                = self.bulletsLeft - 1
 end
 
 ---@param engine engine

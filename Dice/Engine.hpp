@@ -23,6 +23,20 @@ private:
 
 ////////////////////////////////////////////////////////////
 
+class sfx_proxy {
+public:
+    auto pickup_coin(u64 seed) -> audio::sound_wave;
+    auto laser_shoot(u64 seed) -> audio::sound_wave;
+    auto explosion(u64 seed) -> audio::sound_wave;
+    auto powerup(u64 seed) -> audio::sound_wave;
+    auto hit_hurt(u64 seed) -> audio::sound_wave;
+    auto jump(u64 seed) -> audio::sound_wave;
+    auto blip_select(u64 seed) -> audio::sound_wave;
+    auto random(u64 seed) -> audio::sound_wave;
+};
+
+////////////////////////////////////////////////////////////
+
 class engine {
     template <typename T = void>
     using callback = std::optional<scripting::function<T>>;
@@ -53,6 +67,7 @@ private:
     void create_slot_wrapper();
     void create_engine_wrapper();
     void create_dmd_wrapper();
+    void create_sfx_wrapper();
 
     auto create_gfx() -> bool;
     auto create_sfx() -> bool;
@@ -75,6 +90,9 @@ private:
 
     bool _running {false};
 
-    dmd_proxy                        _dmdProxy;
-    std::unordered_map<u32, texture> _textures;
+    dmd_proxy _dmdProxy;
+    sfx_proxy _sfxProxy;
+
+    std::unordered_map<u32, texture>                       _textures;
+    std::unordered_map<u32, std::unique_ptr<audio::sound>> _sounds;
 };
