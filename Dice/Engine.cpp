@@ -386,7 +386,6 @@ auto engine::create_gfx() -> bool
 
         auto& tex {_sharedState.BackgroundTexture};
         tex->resize(bgSize, 1, gfx::texture::format::RGBA8);
-        tex->Filtering                                        = gfx::texture::filtering::Linear;
         tex->regions()["default"]                             = {.UVRect = {0, 0, 1, 1}, .Level = 0};
         _sharedState.BackgroundMaterial->first_pass().Texture = tex;
 
@@ -433,7 +432,6 @@ auto engine::create_gfx() -> bool
 
         auto& tex {_sharedState.SpriteTexture};
         tex->resize(texImgSize, 1, gfx::texture::format::RGBA8);
-        tex->Filtering                                    = gfx::texture::filtering::Linear;
         _sharedState.SpriteMaterial->first_pass().Texture = tex;
 
         gfx::image texImg {gfx::image::CreateEmpty(texImgSize, gfx::image::format::RGBA)};

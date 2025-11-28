@@ -25,7 +25,6 @@ base_game::base_game(assets::group const& grp, size_f realWindowSize)
     _form0->StartTurn.connect([&]() { _engine.start_turn(); });
 
     _screenTexture->Size                  = size_i {VIRTUAL_SCREEN_SIZE};
-    _screenTexture->Filtering             = gfx::texture::filtering::Linear;
     _screenMaterial->first_pass().Texture = _screenTexture;
 
     gfx::quad q {};
@@ -130,6 +129,12 @@ void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
 void base_game::run(string const& file)
 {
     _engine.run(file);
+
+    auto const filter {gfx::texture::filtering::Linear};
+    _screenTexture->Filtering                 = filter;
+    _sharedState.BackgroundTexture->Filtering = filter;
+    _sharedState.SpriteTexture->Filtering     = filter;
+
     wrap_sprites();
 }
 
