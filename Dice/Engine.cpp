@@ -19,7 +19,7 @@ auto from_base26(string_view s) -> u32
     }
     return n;
 }
-auto get_texture_pattern(string_view s, size_i size) -> std::vector<u8>
+auto get_texture(string_view s, size_i size) -> std::vector<u8>
 {
     std::vector<u8> dots;
     dots.reserve(size.area());
@@ -376,7 +376,7 @@ auto engine::create_gfx() -> bool
     struct tex_def {
         u32                ID {0};
         size_i             Size {size_i::Zero};
-        string             Pattern;
+        string             BitmapString;
         std::optional<u32> Transparent;
     };
 
@@ -392,8 +392,8 @@ auto engine::create_gfx() -> bool
 
         gfx::image bgImg {gfx::image::CreateEmpty(bgSize, gfx::image::format::RGBA)};
 
-        auto const pattern {func(_table, this, bgSize)};
-        auto const dots {get_texture_pattern(pattern, bgSize)};
+        auto const bitmap {func(_table, this, bgSize)};
+        auto const dots {get_texture(bitmap, bgSize)};
         isize      i {0};
         for (i32 y {0}; y < bgSize.Height; ++y) {
             for (i32 x {0}; x < bgSize.Width; ++x) {
@@ -418,7 +418,7 @@ auto engine::create_gfx() -> bool
             tex_def& texDef {texDefs.emplace_back()};
             texDef.ID = id;
             if (!texDefTable.try_get(texDef.Size, "size")) { return false; }
-            if (!texDefTable.try_get(texDef.Pattern, "pattern")) { return false; }
+            if (!texDefTable.try_get(texDef.BitmapString, "bitmap")) { return false; }
             texDefTable.try_get(texDef.Transparent, "transparent");
 
             texImgSize.Width += texDef.Size.Width + (PAD * 2);
@@ -438,7 +438,7 @@ auto engine::create_gfx() -> bool
 
         gfx::image texImg {gfx::image::CreateEmpty(texImgSize, gfx::image::format::RGBA)};
         for (auto const& texDef : texDefs) {
-            auto const dots {get_texture_pattern(texDef.Pattern, texDef.Size)};
+            auto const dots {get_texture(texDef.BitmapString, texDef.Size)};
             isize      i {0};
             for (i32 y {0}; y < texDef.Size.Height; ++y) {
                 for (i32 x {0}; x < texDef.Size.Width; ++x) {
@@ -534,7 +534,7 @@ void dmd_proxy::clear()
 }
 void dmd_proxy::blit(rect_i const& rect, string const& dotStr)
 {
-    auto const dots {get_texture_pattern(dotStr, rect.Size)};
+    auto const dots {get_texture(dotStr, rect.Size)};
     _sharedState.DMD.mutate([&](auto& dmd) { dmd.blit(rect, dots); });
 }
 

@@ -58,9 +58,9 @@ private:
 
     engine _engine;
 
-    asset_owner_ptr<gfx::render_texture> _texture;
-    asset_owner_ptr<gfx::material>       _material {};
-    gfx::quad_renderer                   _renderer {gfx::buffer_usage_hint::StaticDraw};
+    asset_owner_ptr<gfx::render_texture> _screenTexture;
+    asset_owner_ptr<gfx::material>       _screenMaterial {};
+    gfx::quad_renderer                   _screenRenderer {gfx::buffer_usage_hint::StaticDraw};
 
     gfx::shape_batch           _diceBatch;
     gfx::shape_batch           _spriteBatch;

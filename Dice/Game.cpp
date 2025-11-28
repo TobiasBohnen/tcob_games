@@ -24,15 +24,15 @@ base_game::base_game(assets::group const& grp, size_f realWindowSize)
     _form0 = std::make_unique<game_form>(uiBounds, grp, _sharedState);
     _form0->StartTurn.connect([&]() { _engine.start_turn(); });
 
-    _texture->Size                  = size_i {VIRTUAL_SCREEN_SIZE};
-    _texture->Filtering             = gfx::texture::filtering::Linear;
-    _material->first_pass().Texture = _texture;
+    _screenTexture->Size                  = size_i {VIRTUAL_SCREEN_SIZE};
+    _screenTexture->Filtering             = gfx::texture::filtering::Linear;
+    _screenMaterial->first_pass().Texture = _screenTexture;
 
     gfx::quad q {};
     gfx::geometry::set_color(q, colors::White);
     gfx::geometry::set_position(q, bgBounds);
     gfx::geometry::set_texcoords(q, {.UVRect = gfx::render_texture::UVRect(), .Level = 0});
-    _renderer.set_geometry(q, &_material->first_pass());
+    _screenRenderer.set_geometry(q, &_screenMaterial->first_pass());
 }
 
 void base_game::on_update(milliseconds deltaTime)
@@ -55,8 +55,8 @@ void base_game::on_fixed_update(milliseconds deltaTime)
 
 void base_game::on_draw_to(gfx::render_target& target)
 {
-    _spriteBatch.draw_to(*_texture);
-    _renderer.render_to_target(target);
+    _spriteBatch.draw_to(*_screenTexture);
+    _screenRenderer.render_to_target(target);
 
     _form0->draw_to(target);
     _diceBatch.draw_to(target);
