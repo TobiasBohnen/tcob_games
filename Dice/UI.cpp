@@ -18,26 +18,32 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
 {
     gen_styles(grp);
 
-    auto& panel {create_container<ui::panel>(dock_style::Fill, "panel")};
-    auto& layout {panel.create_layout<dock_layout>()};
+    {
+        auto& panel1 {create_container<ui::panel>(dock_style::Top, "panel1")};
+        panel1.Flex = {.Width = 100_pct, .Height = 90_pct};
+        panel1.disable();
+        auto& layout {panel1.create_layout<dock_layout>()};
 
-    auto& ssd {layout.create_widget<seven_segment_display>(dock_style::Top, "ssd")};
-    ssd.Flex = {.Width = 100_pct, .Height = 6_pct};
-    _sharedState.Score.Changed.connect([&]() { _updateSsd = true; });
-    ssd.disable();
+        auto& ssd {layout.create_widget<seven_segment_display>(dock_style::Top, "ssd")};
+        ssd.Flex = {.Width = 100_pct, .Height = 7_pct};
+        _sharedState.Score.Changed.connect([&]() { _updateSsd = true; });
+        ssd.disable();
 
-    auto&     dmd {layout.create_widget<dot_matrix_display>(dock_style::Top, "dmd")};
-    f32 const flexHeight {(bounds.width() * (DMD_HEIGHT / static_cast<f32>(DMD_WIDTH))) / bounds.height()};
-    dmd.Flex = {.Width = 100_pct, .Height = length(flexHeight, length::type::Relative)};
-    _sharedState.DMD.Changed.connect([&]() { _updateDmd = true; });
-    dmd.disable();
-    dmd.Bounds.Changed.connect([&](auto const& rect) { _sharedState.DMDBounds = rect; });
+        auto& dmd {layout.create_widget<dot_matrix_display>(dock_style::Fill, "dmd")};
+        _sharedState.DMD.Changed.connect([&]() { _updateDmd = true; });
+        dmd.disable();
+        dmd.Bounds.Changed.connect([&](auto const& rect) { _sharedState.DMDBounds = rect; });
+    }
+    {
+        auto& panel2 {create_container<ui::panel>(dock_style::Fill, "panel2")};
+        auto& layout {panel2.create_layout<dock_layout>()};
 
-    auto& btn {layout.create_widget<button>(dock_style::Bottom, "btnTurn")};
-    btn.Flex  = {.Width = 100_pct, .Height = 15_pct};
-    btn.Label = "->";
-    btn.Click.connect([&]() { StartTurn(); });
-    btn.disable();
+        auto& btn {layout.create_widget<button>(dock_style::Bottom, "btnTurn")};
+        btn.Flex  = {.Width = 100_pct, .Height = 100_pct};
+        btn.Label = "->";
+        btn.Click.connect([&]() { StartTurn(); });
+        btn.disable();
+    }
 
     update(0ms);
 }
