@@ -29,9 +29,32 @@ if(TCOB_BUILD_SHARED AND NOT TCOB_IS_CI)
     )
 endif()
 
+set(GAMES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/games")
+set(TARGET_DIR "${CMAKE_BINARY_DIR}/../../x64/dice")
+
+file(GLOB GAMES_SUBDIRS RELATIVE "${GAMES_DIR}" "${GAMES_DIR}/*")
+
+set(ZIP_COMMANDS "")
+
+foreach(subdir ${GAMES_SUBDIRS})
+    if(IS_DIRECTORY "${GAMES_DIR}/${subdir}")
+        list(APPEND ZIP_COMMANDS
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${TARGET_DIR}"
+            COMMAND ${CMAKE_COMMAND} -E tar
+            "cf"
+            "${TARGET_DIR}/${subdir}.die"
+            --format=zip
+            -- "${subdir}"
+            WORKING_DIRECTORY "${GAMES_DIR}"
+        )
+    endif()
+endforeach()
+
 add_custom_target(Dice_copyFiles ALL
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/games/ ${CMAKE_BINARY_DIR}/../../x64/dice/games
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/assets/dice.zip ${CMAKE_BINARY_DIR}/../../x64/
+    ${ZIP_COMMANDS}
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${CMAKE_CURRENT_SOURCE_DIR}/assets/dice.zip
+    ${CMAKE_BINARY_DIR}/../../x64/
 )
 
 add_dependencies(Dice Dice_copyFiles)

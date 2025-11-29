@@ -21,10 +21,15 @@ void start_scene::on_start()
     resGrp.mount("./dice.zip");
     resMgr.load_all_groups();
 
+    auto modules {io::enumerate("/", {.String = "*.die", .MatchWholePath = true}, true)};
+    for (auto const& module : modules) { resGrp.mount(module); }
+
+    auto inis {io::enumerate("/", {.String = "*game.ini", .MatchWholePath = true}, true)};
+
     auto& win {window()};
     win.ClearColor = colors::White;
     _currentGame   = std::make_shared<base_game>(resGrp, size_f {win.bounds().Size});
-    _currentGame->run("dice/games/SpaceRocks/game.lua");
+    _currentGame->run("dice/SpaceRocks/game.lua");
 
     root_node().create_child().Entity = _currentGame;
 
