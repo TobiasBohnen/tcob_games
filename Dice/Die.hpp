@@ -17,7 +17,6 @@ enum class die_state : u8 {
 };
 
 class die {
-    friend class slots;
     friend class dice;
 
 public:
@@ -36,6 +35,8 @@ public:
     auto bounds() const -> rect_f const&;
     void move_to(point_f pos);
     void move_by(point_f offset);
+
+    void on_slotted(rect_f const& bounds, gfx::shape_batch& batch);
 
 private:
     gfx::rect_shape* _shape {nullptr};
@@ -60,8 +61,6 @@ class dice {
 public:
     dice(gfx::shape_batch& batch, size_f scale);
 
-    die* HoverDie {nullptr};
-
     auto add_die(point_f pos, rng& rng, die_face currentFace, std::span<die_face const> faces) -> die*;
 
     void roll();
@@ -72,10 +71,17 @@ public:
 
     void update(milliseconds deltaTime);
 
+    auto get_hovered() const -> die*
+    {
+        return _hoverDie;
+    }
+
 private:
     std::vector<std::unique_ptr<die>> _dice;
 
     gfx::shape_batch& _batch;
     dice_painter      _painter;
     size_f            _scale;
+
+    die* _hoverDie {nullptr};
 };

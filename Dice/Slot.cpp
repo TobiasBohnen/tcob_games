@@ -110,12 +110,10 @@ auto slots::add_slot(slot_face face, point_f pos) -> slot*
 
 auto slots::try_insert(die* hoverDie) -> bool
 {
-    if (_locked || !hoverDie || !HoverSlot || !HoverSlot->can_insert(hoverDie->current_face())) { return false; }
+    if (_locked || !hoverDie || !_hoverSlot || !_hoverSlot->can_insert(hoverDie->current_face())) { return false; }
 
-    HoverSlot->insert(hoverDie);
-    hoverDie->_colorState    = die_state::Hovered;
-    hoverDie->_shape->Bounds = *HoverSlot->_shape->Bounds;
-    _batch.send_to_back(*hoverDie->_shape);
+    _hoverSlot->insert(hoverDie);
+    hoverDie->on_slotted(*_hoverSlot->_shape->Bounds, _batch);
     return true;
 }
 
@@ -147,9 +145,9 @@ void slots::hover(rect_f const& rect, die* die, bool isButtonDown)
             slot->_colorState = slot->can_insert(die->current_face()) ? slot_state::Accept : slot_state::Reject;
         }
     }
-    if (slot != HoverSlot && HoverSlot) { HoverSlot->_colorState = slot_state::Normal; }
+    if (slot != _hoverSlot && _hoverSlot) { _hoverSlot->_colorState = slot_state::Normal; }
 
-    HoverSlot = slot;
+    _hoverSlot = slot;
 }
 
 auto slots::try_remove(die* die) -> slot*

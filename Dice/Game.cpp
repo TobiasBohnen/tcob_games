@@ -80,8 +80,8 @@ void base_game::on_mouse_button_up(input::mouse::button_event const& ev)
 {
     switch (ev.Button) {
     case input::mouse::button::Left:
-        if (_slots.try_insert(_dice.HoverDie)) {
-            _sharedState.SlotDieChanged(_slots.HoverSlot);
+        if (_slots.try_insert(_dice.get_hovered())) {
+            _sharedState.SlotDieChanged(_slots.get_hovered());
         }
         break;
     case input::mouse::button::Right: break;
@@ -106,9 +106,10 @@ void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
         _dice.hover(mp);
     }
 
+    auto*      hoverDie {_dice.get_hovered()};
     auto const getRect {[&] -> rect_f {
-        if (_dice.HoverDie) {
-            rect_i const  bounds {_dice.HoverDie->bounds()};
+        if (hoverDie) {
+            rect_i const  bounds {hoverDie->bounds()};
             point_f const tl {bounds.top_left()};
             point_f const br {bounds.bottom_right()};
             return rect_f::FromLTRB(tl.X, tl.Y, br.X, br.Y);
@@ -117,9 +118,9 @@ void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
         return {mp, size_f::One};
     }};
 
-    _slots.hover(getRect(), _dice.HoverDie, isButtonDown);
+    _slots.hover(getRect(), hoverDie, isButtonDown);
     if (isButtonDown) {
-        if (auto* slot {_slots.try_remove(_dice.HoverDie)}) {
+        if (auto* slot {_slots.try_remove(hoverDie)}) {
             _sharedState.SlotDieChanged(slot);
         }
         _dice.drag(mp, ui_bounds());

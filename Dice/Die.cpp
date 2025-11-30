@@ -99,6 +99,13 @@ void die::move_by(point_f offset)
     });
 }
 
+void die::on_slotted(rect_f const& bounds, gfx::shape_batch& batch)
+{
+    _colorState    = die_state::Hovered;
+    _shape->Bounds = bounds;
+    batch.send_to_back(*_shape);
+}
+
 ////////////////////////////////////////////////////////////
 
 dice::dice(gfx::shape_batch& batch, size_f scale)
@@ -122,13 +129,13 @@ auto dice::add_die(point_f pos, rng& rng, die_face currentFace, std::span<die_fa
 
 void dice::roll()
 {
-    HoverDie = nullptr;
+    _hoverDie = nullptr;
     for (auto& die : _dice) { die->roll(); }
 }
 
 void dice::drag(point_f mousePos, rect_f const& winBounds)
 {
-    if (!HoverDie || HoverDie->_frozen) { return; }
+    if (!_hoverDie || _hoverDie->_frozen) { return; }
 
     point_f const halfSize {DICE_SIZE.Width * _scale.Width / 2, DICE_SIZE.Height * _scale.Height / 2};
     point_f       newPos {mousePos};
@@ -147,9 +154,9 @@ void dice::drag(point_f mousePos, rect_f const& winBounds)
 
     rect_f const newBounds {newPos - halfSize, DICE_SIZE * _scale};
 
-    _batch.bring_to_front(*HoverDie->_shape);
-    HoverDie->_shape->Bounds = newBounds;
-    HoverDie->_colorState    = die_state::Dragged;
+    _batch.bring_to_front(*_hoverDie->_shape);
+    _hoverDie->_shape->Bounds = newBounds;
+    _hoverDie->_colorState    = die_state::Dragged;
 }
 
 void dice::hover(point_f mousePos)
@@ -170,13 +177,13 @@ void dice::hover(point_f mousePos)
     auto* die {findDie(mousePos)};
     if (die) { die->_colorState = die_state::Hovered; }
 
-    if (HoverDie) {
-        if (die != HoverDie) {
-            HoverDie->_colorState = die_state::Normal;
+    if (_hoverDie) {
+        if (die != _hoverDie) {
+            _hoverDie->_colorState = die_state::Normal;
         }
     }
 
-    HoverDie = die;
+    _hoverDie = die;
 }
 
 void dice::update(milliseconds deltaTime)

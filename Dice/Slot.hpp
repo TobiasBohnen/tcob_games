@@ -53,8 +53,6 @@ class slots {
 public:
     slots(gfx::shape_batch& batch, asset_ptr<gfx::font_family> font, size_f scale);
 
-    slot* HoverSlot {nullptr};
-
     void lock();
     void unlock();
 
@@ -73,6 +71,11 @@ public:
 
     void update(milliseconds deltaTime);
 
+    auto get_hovered() const -> slot*
+    {
+        return _hoverSlot;
+    }
+
 private:
     auto are_filled() const -> bool;
 
@@ -83,4 +86,6 @@ private:
     size_f            _scale;
 
     bool _locked {false};
+
+    slot* _hoverSlot {nullptr};
 };
