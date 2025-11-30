@@ -70,7 +70,7 @@ engine::engine(init const& init)
 
     _init.State.SlotDieChanged.connect([this](auto const& ev) {
         if (_running) { return; }
-        call(_callbacks.OnSlotDieChanged, ev);
+        call(_callbacks.OnDieChanged, ev);
     });
 
     _init.State.Start.connect([&]() { start_turn(); });
@@ -97,12 +97,12 @@ void engine::run(string const& file, gfx::texture* sprTexture, gfx::texture* bgT
     create_sfx();
 
     _table.try_get(_callbacks.OnCollision, "on_collision");
-    _table.try_get(_callbacks.OnSlotDieChanged, "on_slot_die_changed");
+    _table.try_get(_callbacks.OnDieChanged, "on_die_changed");
     _table.try_get(_callbacks.OnSetup, "on_setup");
-    _table.try_get(_callbacks.OnRun, "on_run");
-    _table.try_get(_callbacks.OnFinish, "on_finish");
+    _table.try_get(_callbacks.Update, "update");
+    _table.try_get(_callbacks.Finish, "finish");
     _table.try_get(_callbacks.CanStart, "can_start");
-    _table.try_get(_callbacks.OnStart, "on_start");
+    _table.try_get(_callbacks.Start, "start");
 
     call(_callbacks.OnSetup);
 }
@@ -113,8 +113,8 @@ auto engine::update(milliseconds deltaTime) -> bool
 
     if (!_running) { return false; }
 
-    if (!call(_callbacks.OnRun, deltaTime.count())) {
-        call(_callbacks.OnFinish);
+    if (!call(_callbacks.Update, deltaTime.count())) {
+        call(_callbacks.Finish);
         _running = false;
         return false;
     }
@@ -128,7 +128,7 @@ auto engine::start_turn() -> bool
 
     if (call(_callbacks.CanStart)) {
         _init.Game.get_slots()->lock();
-        call(_callbacks.OnStart);
+        call(_callbacks.Start);
         _running = true;
         return true;
     }
@@ -327,6 +327,14 @@ void engine::create_engine_wrapper()
         auto* s {engine->_init.Game.get_slots()};
         s->unlock();
         s->reset(slots);
+    };
+    engineWrapper["get_hand"] = [](engine* engine, table const& slotsTable) {
+        std::vector<slot*> slots;
+        for (auto const& key : slotsTable.get_keys<string>()) {
+            slots.push_back(slotsTable[key].as<slot*>());
+        }
+
+        return engine->_init.Game.get_slots()->get_hand(slots);
     };
     engineWrapper["give_score"] = [](engine* engine, i32 score) { engine->_init.State.Score += score; };
     engineWrapper["play_sound"] = [](engine* engine, u32 id) { engine->_sounds[id]->play(); };

@@ -31,7 +31,15 @@ struct hand {
     value_category Value {value_category::None};
     color_category Color {color_category::None};
 
-    std::vector<usize> Slots;
+    std::vector<slot*> Slots;
+
+    static auto constexpr Members()
+    {
+        return std::tuple {
+            member<&hand::Value> {"value"},
+            member<&hand::Color> {"color"},
+            member<&hand::Slots> {"slots"}};
+    }
 };
 
 static constexpr auto to_string(value_category v) -> std::string_view

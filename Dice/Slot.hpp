@@ -30,10 +30,10 @@ public:
     auto is_empty() const -> bool;
     auto current_die() const -> die*;
 
-    auto can_insert(die_face dieFace) const -> bool;
-    void insert(die* die);
-    auto can_remove(die* die) const -> bool;
-    void remove();
+    auto can_insert_die(die_face dieFace) const -> bool;
+    void insert_die(die* die);
+    auto can_remove_die(die* die) const -> bool;
+    void remove_die();
 
     void update(milliseconds deltaTime) const;
 
@@ -64,13 +64,11 @@ public:
 
     void hover(rect_f const& rect, die* die, bool isButtonDown);
 
-    auto try_insert(die* die) -> bool;
-    auto try_remove(die* die) -> slot*;
+    auto try_insert_die(die* die) -> bool;
+    auto try_remove_die(die* die) -> slot*;
 
     void reset(std::span<slot* const> slots);
-
-    auto get_hand() const -> hand;
-    auto get_sum() const -> i32;
+    auto get_hand(std::span<slot* const> slots) const -> hand;
 
     void update(milliseconds deltaTime);
 

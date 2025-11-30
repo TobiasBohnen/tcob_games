@@ -44,6 +44,11 @@
 ---@field collidable? boolean
 ---@field wrappable? boolean
 
+---@class hand
+---@field value string
+---@field color string
+---@field slots slot[]
+
 ---@class palette
 ---@field Transparent color
 ---@field Black color
@@ -76,15 +81,15 @@ Palette = {}
 ---@
 ---@field on_setup fun(self: game_module, engine: engine)
 ---@
----@field on_run fun(self: game_module, deltaTime: number)
+---@field update fun(self: game_module, deltaTime: number)
 ---@
 ---@field can_start fun(self: game_module, engine: engine): boolean
----@field on_start fun(self: game_module, engine: engine)
+---@field start fun(self: game_module, engine: engine)
 ---@
----@field on_finish fun(self: game_module, engine: engine)
+---@field finish fun(self: game_module, engine: engine)
 ---@
 ---@field on_collision fun(self: game_module, engine: engine, spriteA: sprite, spriteB: sprite)
----@field on_slot_die_changed fun(self: game_module, engine: engine, slot: slot)
+---@field on_die_changed fun(self: game_module, engine: engine, slot: slot)
 
 --------------------------------
 -- Sprite
@@ -159,10 +164,11 @@ Palette = {}
 ---
 ---@field create_slot fun(self: engine, owner: slot_owner): slot
 ---@field reset_slots fun(self: engine, slots: { [string]: slot })
+---@field get_hand fun(self: engine, slots: { [string]: slot }): hand
 ---
 ---@field create_dice fun(self: engine, count: integer, dieFaces: die_face[])
 ---@field roll_dice fun(self: engine)
 ---
 ---@field give_score fun(self: engine, score: integer)
----@
+---
 ---@field play_sound fun(self: engine, id: integer)

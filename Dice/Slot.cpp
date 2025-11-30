@@ -27,7 +27,7 @@ auto slot::current_die() const -> die*
     return _die;
 }
 
-auto slot::can_insert(die_face dieFace) const -> bool
+auto slot::can_insert_die(die_face dieFace) const -> bool
 {
     if (_die || _locked) { return false; }
 
@@ -52,7 +52,7 @@ auto slot::can_insert(die_face dieFace) const -> bool
     return _face.Color == dieFace.Color;
 }
 
-void slot::insert(die* die)
+void slot::insert_die(die* die)
 {
     _colorState = slot_state::Normal;
 
@@ -60,12 +60,12 @@ void slot::insert(die* die)
     if (_die) { _die->freeze(); }
 }
 
-auto slot::can_remove(die* die) const -> bool
+auto slot::can_remove_die(die* die) const -> bool
 {
     return !_locked && _die && die == _die;
 }
 
-void slot::remove()
+void slot::remove_die()
 {
     if (_die) { _die->unfreeze(); }
     _die = nullptr;
@@ -113,11 +113,11 @@ auto slots::add_slot(slot_face face) -> slot*
     return retValue.get();
 }
 
-auto slots::try_insert(die* hoverDie) -> bool
+auto slots::try_insert_die(die* hoverDie) -> bool
 {
-    if (_locked || !hoverDie || !_hoverSlot || !_hoverSlot->can_insert(hoverDie->current_face())) { return false; }
+    if (_locked || !hoverDie || !_hoverSlot || !_hoverSlot->can_insert_die(hoverDie->current_face())) { return false; }
 
-    _hoverSlot->insert(hoverDie);
+    _hoverSlot->insert_die(hoverDie);
     hoverDie->on_slotted(*_hoverSlot->_shape->Bounds, _batch);
     return true;
 }
@@ -147,7 +147,7 @@ void slots::hover(rect_f const& rect, die* die, bool isButtonDown)
         if (!die) {
             slot->_colorState = slot_state::Hovered;
         } else if (isButtonDown) {
-            slot->_colorState = slot->can_insert(die->current_face()) ? slot_state::Accept : slot_state::Reject;
+            slot->_colorState = slot->can_insert_die(die->current_face()) ? slot_state::Accept : slot_state::Reject;
         }
     }
     if (slot != _hoverSlot && _hoverSlot) { _hoverSlot->_colorState = slot_state::Normal; }
@@ -155,13 +155,13 @@ void slots::hover(rect_f const& rect, die* die, bool isButtonDown)
     _hoverSlot = slot;
 }
 
-auto slots::try_remove(die* die) -> slot*
+auto slots::try_remove_die(die* die) -> slot*
 {
     if (_locked || !die) { return nullptr; }
 
     for (auto& slot : _slots) {
-        if (slot->can_remove(die)) {
-            slot->remove();
+        if (slot->can_remove_die(die)) {
+            slot->remove_die();
             return slot.get();
         }
     }
@@ -174,26 +174,26 @@ void slots::reset(std::span<slot* const> slots)
     for (auto* slot : slots) {
         auto* die {slot->current_die()};
         if (!die) { continue; }
-        slot->remove();
-        die->move_by({0, (*slot->_shape->Bounds).height()});
+        slot->remove_die();
+        die->move_by({0, (*slot->_shape->Bounds).height()}); // TODO: random die movement
     }
 }
 
-auto slots::get_hand() const -> hand
+auto slots::get_hand(std::span<slot* const> slots) const -> hand
 {
-    if (!are_filled() || _slots.size() > 5) { return {}; }
+    if (!are_filled() || slots.size() > 5) { return {}; }
 
     struct indexed_face {
         die_face Face;
-        usize    Index;
+        slot*    Slot;
     };
 
     static auto const func {[](auto const& f) { return f.Face.Value; }};
 
     std::vector<indexed_face> faces;
-    faces.reserve(_slots.size());
-    for (usize i {0}; i < _slots.size(); ++i) {
-        faces.push_back({.Face = _slots[i]->current_die()->current_face(), .Index = i});
+    faces.reserve(slots.size());
+    for (usize i {0}; i < slots.size(); ++i) {
+        faces.push_back({.Face = slots[i]->current_die()->current_face(), .Slot = slots[i]});
     }
     std::ranges::stable_sort(faces, {}, func);
 
@@ -203,7 +203,7 @@ auto slots::get_hand() const -> hand
     if ((faces.back().Face.Value - faces.front().Face.Value == faces.size() - 1)
         && (std::ranges::adjacent_find(faces, {}, func) == faces.end())) {
         result.Value = value_category::Straight;
-        for (auto const& f : faces) { result.Slots.push_back(f.Index); }
+        for (auto const& f : faces) { result.Slots.push_back(f.Slot); }
     } else {
         std::array<i8, 6> counts {};
         std::array<i8, 4> groups {};
@@ -217,7 +217,7 @@ auto slots::get_hand() const -> hand
 
         auto collect {[&](u8 targetValue) {
             for (auto const& f : faces) {
-                if (f.Face.Value == targetValue) { result.Slots.push_back(f.Index); }
+                if (f.Face.Value == targetValue) { result.Slots.push_back(f.Slot); }
             }
         }};
         auto collectAll {[&](u8 targetCount) {
@@ -259,17 +259,6 @@ auto slots::get_hand() const -> hand
     }
 
     return result;
-}
-
-auto slots::get_sum() const -> i32
-{
-    if (!are_filled()) { return -1; }
-
-    i32 retValue {0};
-    for (auto const& slot : _slots) {
-        retValue += slot->current_die()->current_face().Value;
-    }
-    return retValue;
 }
 
 auto slots::are_filled() const -> bool

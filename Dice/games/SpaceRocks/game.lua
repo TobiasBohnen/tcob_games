@@ -78,7 +78,7 @@ function game:can_start(engine)
 end
 
 ---@param engine engine
-function game:on_start(engine)
+function game:start(engine)
     self.updateTime = 0
     self.bulletTime = 0
 
@@ -91,7 +91,7 @@ end
 
 ---@param engine engine
 ---@param deltaTime number
-function game:on_run(engine, deltaTime)
+function game:update(engine, deltaTime)
     self.updateTime = self.updateTime + deltaTime
     if self.updateTime >= DURATION then return false end
 
@@ -144,12 +144,12 @@ end
 
 ---@param engine engine
 ---@param slot slot
-function game:on_slot_die_changed(engine, slot)
+function game:on_die_changed(engine, slot)
     gfx.draw_dmd(engine.dmd, self)
 end
 
 ---@param engine engine
-function game:on_finish(engine)
+function game:finish(engine)
     engine:reset_slots(self.slots)
     engine:roll_dice()
     gfx.draw_dmd(engine.dmd, self)

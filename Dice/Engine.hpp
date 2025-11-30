@@ -43,12 +43,12 @@ class engine {
 
     struct callbacks {
         callback<>     OnCollision;
-        callback<>     OnSlotDieChanged;
+        callback<>     OnDieChanged;
         callback<>     OnSetup;
-        callback<bool> OnRun;
-        callback<>     OnFinish;
+        callback<bool> Update;
+        callback<>     Finish;
         callback<bool> CanStart;
-        callback<>     OnStart;
+        callback<>     Start;
     };
 
 public:
