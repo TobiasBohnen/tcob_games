@@ -59,20 +59,21 @@ auto get_texture(string_view s, size_i size) -> std::vector<u8>
     return dots;
 }
 
-engine::engine(base_game& game, shared_state& state)
-    : _game {game}
-    , _sharedState {state}
-    , _dmdProxy {state}
+engine::engine(init const& init)
+    : _init {init}
+    , _dmdProxy {init.State.DMD}
 {
-    _game.Collision.connect([this](auto const& ev) {
+    _init.State.Collision.connect([this](auto const& ev) {
         if (!_running) { return; }
         call(_callbacks.OnCollision, ev.A, ev.B);
     });
 
-    _game.SlotDieChanged.connect([this](auto const& ev) {
+    _init.State.SlotDieChanged.connect([this](auto const& ev) {
         if (_running) { return; }
         call(_callbacks.OnSlotDieChanged, ev);
     });
+
+    _init.State.Start.connect([&]() { start_turn(); });
 }
 
 template <typename R>
@@ -85,14 +86,14 @@ inline auto engine::call(callback<R> const& func, auto&&... args) -> R
     return R {};
 }
 
-void engine::run(string const& file)
+void engine::run(string const& file, gfx::texture* sprTexture, gfx::texture* bgTexture)
 {
     create_env(io::get_parent_folder(file));
     create_wrappers();
 
     _table = *_script.run_file<table>(file);
 
-    create_gfx();
+    create_gfx(sprTexture, bgTexture);
     create_sfx();
 
     _table.try_get(_callbacks.OnCollision, "on_collision");
@@ -108,7 +109,7 @@ void engine::run(string const& file)
 
 auto engine::update(milliseconds deltaTime) -> bool
 {
-    _sharedState.CanStart = !_running && call(_callbacks.CanStart);
+    _init.State.CanStart = !_running && call(_callbacks.CanStart);
 
     if (!_running) { return false; }
 
@@ -126,7 +127,7 @@ auto engine::start_turn() -> bool
     if (_running) { return false; }
 
     if (call(_callbacks.CanStart)) {
-        _game.get_slots()->lock();
+        _init.Game.get_slots()->lock();
         call(_callbacks.OnStart);
         _running = true;
         return true;
@@ -259,18 +260,15 @@ void engine::create_slot_wrapper()
 void engine::create_engine_wrapper()
 {
     auto& engineWrapper {*_script.create_wrapper<engine>("engine")};
-    engineWrapper["random"]        = [](engine* engine, f32 min, f32 max) { return engine->_sharedState.Rng(min, max); };
-    engineWrapper["random_int"]    = [](engine* engine, i32 min, i32 max) { return engine->_sharedState.Rng(min, max); };
+    engineWrapper["random"]        = [](engine* engine, f32 min, f32 max) { return engine->_init.State.Rng(min, max); };
+    engineWrapper["random_int"]    = [](engine* engine, i32 min, i32 max) { return engine->_init.State.Rng(min, max); };
     engineWrapper["log"]           = [](string const& str) { logger::Info(str); };
     engineWrapper["create_sprite"] = [](engine* engine, table const& spriteDef) {
-        auto* sprite {engine->_game.add_sprite()};
+        auto* sprite {engine->_init.Game.add_sprite()};
 
         spriteDef.try_get(sprite->IsCollidable, "collidable");
         spriteDef.try_get(sprite->IsWrappable, "wrappable");
         sprite->Owner = spriteDef;
-
-        sprite->Shape           = engine->_game.add_shape();
-        sprite->Shape->Material = engine->_sharedState.SpriteMaterial;
 
         auto const texID {spriteDef["texture"].as<u32>()};
         engine->set_texture(sprite, texID);
@@ -278,18 +276,14 @@ void engine::create_engine_wrapper()
 
         return sprite;
     };
-    engineWrapper["remove_sprite"] = [](engine* engine, sprite* sprite) {
-        engine->_game.remove_shape(sprite->Shape);
-        if (sprite->WrapCopy) { engine->_game.remove_shape(sprite->WrapCopy); }
-        engine->_game.remove_sprite(sprite);
-    };
-    engineWrapper["create_slot"] = [this](engine* engine, table const& slotDef) -> slot* {
+    engineWrapper["remove_sprite"] = [](engine* engine, sprite* sprite) { engine->_init.Game.remove_sprite(sprite); };
+    engineWrapper["create_slot"]   = [this](engine* engine, table const& slotDef) -> slot* {
         slot_face face;
         slotDef.try_get(face.Op, "op");
         slotDef.try_get(face.Value, "value");
         slotDef.try_get(face.Color, "color");
 
-        auto* slot {engine->_game.add_slot(face)};
+        auto* slot {engine->_init.Game.add_slot(face)};
         slot->Owner = slotDef;
         return slot;
     };
@@ -307,71 +301,47 @@ void engine::create_engine_wrapper()
         }
         if (vec.empty()) { return; }
         for (i32 i {0}; i < count; ++i) {
-            engine->_game.add_die(vec);
+            engine->_init.Game.add_die(vec);
         }
     };
-    engineWrapper["roll_dice"]   = [](engine* engine) { engine->_game.roll(); };
+    engineWrapper["roll_dice"]   = [](engine* engine) { engine->_init.Game.roll(); };
     engineWrapper["reset_slots"] = [](engine* engine, table const& slotsTable) {
         std::vector<slot*> slots;
         for (auto const& key : slotsTable.get_keys<string>()) {
             slots.push_back(slotsTable[key].as<slot*>());
         }
 
-        auto* s {engine->_game.get_slots()};
+        auto* s {engine->_init.Game.get_slots()};
         s->unlock();
         s->reset(slots);
     };
-    engineWrapper["give_score"] = [](engine* engine, i32 score) {
-        engine->_sharedState.Score += score;
-    };
-    engineWrapper["play_sound"] = [](engine* engine, u32 id) {
-        engine->_sounds[id]->play();
-    };
-    engineWrapper["DMD"] = getter {[](engine* engine) { return &engine->_dmdProxy; }};
-    engineWrapper["SFX"] = getter {[](engine* engine) { return &engine->_sfxProxy; }};
+    engineWrapper["give_score"] = [](engine* engine, i32 score) { engine->_init.State.Score += score; };
+    engineWrapper["play_sound"] = [](engine* engine, u32 id) { engine->_sounds[id]->play(); };
+    engineWrapper["DMD"]        = getter {[](engine* engine) { return &engine->_dmdProxy; }};
+    engineWrapper["SFX"]        = getter {[](engine* engine) { return &engine->_sfxProxy; }};
 }
 
 void engine::create_dmd_wrapper()
 {
     auto& dmdWrapper {*_script.create_wrapper<dmd_proxy>("dmd")};
-    dmdWrapper["clear"] = [](dmd_proxy* dmd) {
-        dmd->clear();
-    };
-    dmdWrapper["blit"] = [](dmd_proxy* dmd, rect_i const& rect, string const& dotStr) {
-        dmd->blit(rect, dotStr);
-    };
+    dmdWrapper["clear"] = [](dmd_proxy* dmd) { dmd->clear(); };
+    dmdWrapper["blit"]  = [](dmd_proxy* dmd, rect_i const& rect, string const& dotStr) { dmd->blit(rect, dotStr); };
 }
 
 void engine::create_sfx_wrapper()
 {
     auto& sfxWrapper {*_script.create_wrapper<sfx_proxy>("sfx")};
-    sfxWrapper["pickup_coin"] = [](sfx_proxy* sfx, u64 seed) {
-        return sfx->pickup_coin(seed);
-    };
-    sfxWrapper["laser_shoot"] = [](sfx_proxy* sfx, u64 seed) {
-        return sfx->laser_shoot(seed);
-    };
-    sfxWrapper["explosion"] = [](sfx_proxy* sfx, u64 seed) {
-        return sfx->explosion(seed);
-    };
-    sfxWrapper["powerup"] = [](sfx_proxy* sfx, u64 seed) {
-        return sfx->powerup(seed);
-    };
-    sfxWrapper["hit_hurt"] = [](sfx_proxy* sfx, u64 seed) {
-        return sfx->hit_hurt(seed);
-    };
-    sfxWrapper["jump"] = [](sfx_proxy* sfx, u64 seed) {
-        return sfx->jump(seed);
-    };
-    sfxWrapper["blip_select"] = [](sfx_proxy* sfx, u64 seed) {
-        return sfx->blip_select(seed);
-    };
-    sfxWrapper["random"] = [](sfx_proxy* sfx, u64 seed) {
-        return sfx->random(seed);
-    };
+    sfxWrapper["pickup_coin"] = [](sfx_proxy* sfx, u64 seed) { return sfx->pickup_coin(seed); };
+    sfxWrapper["laser_shoot"] = [](sfx_proxy* sfx, u64 seed) { return sfx->laser_shoot(seed); };
+    sfxWrapper["explosion"]   = [](sfx_proxy* sfx, u64 seed) { return sfx->explosion(seed); };
+    sfxWrapper["powerup"]     = [](sfx_proxy* sfx, u64 seed) { return sfx->powerup(seed); };
+    sfxWrapper["hit_hurt"]    = [](sfx_proxy* sfx, u64 seed) { return sfx->hit_hurt(seed); };
+    sfxWrapper["jump"]        = [](sfx_proxy* sfx, u64 seed) { return sfx->jump(seed); };
+    sfxWrapper["blip_select"] = [](sfx_proxy* sfx, u64 seed) { return sfx->blip_select(seed); };
+    sfxWrapper["random"]      = [](sfx_proxy* sfx, u64 seed) { return sfx->random(seed); };
 }
 
-auto engine::create_gfx() -> bool
+auto engine::create_gfx(gfx::texture* sprTexture, gfx::texture* bgTexture) -> bool
 {
     struct tex_def {
         u32                ID {0};
@@ -384,10 +354,9 @@ auto engine::create_gfx() -> bool
     if (function<string> func; _table.try_get(func, "get_background")) {
         auto const bgSize {size_i {VIRTUAL_SCREEN_SIZE}};
 
-        auto& tex {_sharedState.BackgroundTexture};
+        auto* tex {bgTexture};
         tex->resize(bgSize, 1, gfx::texture::format::RGBA8);
-        tex->regions()["default"]                             = {.UVRect = {0, 0, 1, 1}, .Level = 0};
-        _sharedState.BackgroundMaterial->first_pass().Texture = tex;
+        tex->regions()["default"] = {.UVRect = {0, 0, 1, 1}, .Level = 0};
 
         gfx::image bgImg {gfx::image::CreateEmpty(bgSize, gfx::image::format::RGBA)};
 
@@ -430,64 +399,37 @@ auto engine::create_gfx() -> bool
         // draw textures
         point_i pen {PAD, PAD};
 
-        auto& tex {_sharedState.SpriteTexture};
+        auto* tex {sprTexture};
         tex->resize(texImgSize, 1, gfx::texture::format::RGBA8);
-        _sharedState.SpriteMaterial->first_pass().Texture = tex;
 
         gfx::image texImg {gfx::image::CreateEmpty(texImgSize, gfx::image::format::RGBA)};
         for (auto const& texDef : texDefs) {
+            auto& assTex {_textures[texDef.ID]};
+            assTex.Size   = size_f {texDef.Size};
+            assTex.Region = std::to_string(texDef.ID);
+            assTex.Alpha  = grid<u8> {texDef.Size};
+
             auto const dots {get_texture(texDef.BitmapString, texDef.Size)};
             isize      i {0};
             for (i32 y {0}; y < texDef.Size.Height; ++y) {
                 for (i32 x {0}; x < texDef.Size.Width; ++x) {
-                    auto const idx {dots[i++]};
-                    if (texDef.Transparent && *texDef.Transparent == idx) {
-                        texImg.set_pixel(pen + point_i {x, y}, colors::Transparent);
-                    } else {
-                        texImg.set_pixel(pen + point_i {x, y}, PALETTE[idx]);
-                    }
+                    auto const  idx {dots[i++]};
+                    color const color {texDef.Transparent && *texDef.Transparent == idx ? colors::Transparent : PALETTE[idx]};
+                    texImg.set_pixel(pen + point_i {x, y}, color);
+                    assTex.Alpha[x, y] = color.A;
                 }
             }
 
-            auto& assTex {_textures[texDef.ID]};
-            assTex.Size   = size_f {texDef.Size};
-            assTex.Region = std::to_string(texDef.ID);
-
             tex->regions()[assTex.Region] =
-                {.UVRect = {{static_cast<f32>(pen.X) / texImgSize.Width,
-                             static_cast<f32>(pen.Y) / texImgSize.Height},
-                            {static_cast<f32>(texDef.Size.Width) / texImgSize.Width,
-                             static_cast<f32>(texDef.Size.Height) / texImgSize.Height}},
+                {.UVRect = {static_cast<f32>(pen.X) / static_cast<f32>(texImgSize.Width),
+                            static_cast<f32>(pen.Y) / static_cast<f32>(texImgSize.Height),
+                            static_cast<f32>(texDef.Size.Width) / static_cast<f32>(texImgSize.Width),
+                            static_cast<f32>(texDef.Size.Height) / static_cast<f32>(texImgSize.Height)},
                  .Level  = 0};
 
             pen.X += texDef.Size.Width + (PAD * 2);
         }
         tex->update_data(texImg, 0);
-
-        // get alpha
-        static auto const extractAlpha {[](gfx::image const& img, rect_f const& uv) -> grid<u8> {
-            auto const& info {img.info()};
-            rect_i      rect;
-            rect.Position.X  = static_cast<i32>(uv.Position.X * info.Size.Width);
-            rect.Position.Y  = static_cast<i32>(uv.Position.Y * info.Size.Height);
-            rect.Size.Width  = static_cast<i32>(uv.Size.Width * info.Size.Width);
-            rect.Size.Height = static_cast<i32>(uv.Size.Height * info.Size.Height);
-
-            grid<u8> retValue {rect.Size};
-
-            for (i32 y {0}; y < rect.height(); ++y) {
-                for (i32 x {0}; x < rect.width(); ++x) {
-                    retValue[x, y] = img.get_pixel(rect.Position + point_i {x, y}).A;
-                }
-            }
-
-            return retValue;
-        }};
-
-        for (auto& texture : _textures) {
-            auto const& textureRegion {tex->regions()[texture.second.Region]};
-            texture.second.Alpha = extractAlpha(texImg, textureRegion.UVRect);
-        }
     } else {
         return false;
     }
@@ -514,7 +456,7 @@ void engine::set_texture(sprite* sprite, u32 texID)
 {
     sprite->TexID = texID;
 
-    auto const& texture {_textures[sprite->TexID]}; // TODO: error check
+    auto& texture {_textures[sprite->TexID]}; // TODO: error check
     sprite->Texture              = &texture;
     sprite->Shape->TextureRegion = texture.Region;
     if (sprite->WrapCopy) { sprite->WrapCopy->TextureRegion = texture.Region; }
@@ -522,18 +464,18 @@ void engine::set_texture(sprite* sprite, u32 texID)
 
 ////////////////////////////////////////////////////////////
 
-dmd_proxy::dmd_proxy(shared_state& state)
-    : _sharedState {state}
+dmd_proxy::dmd_proxy(prop<grid<u8>>& dmd)
+    : _dmd {dmd}
 {
 }
 void dmd_proxy::clear()
 {
-    _sharedState.DMD = grid<u8> {{DMD_WIDTH, DMD_HEIGHT}, 0};
+    _dmd = grid<u8> {{DMD_WIDTH, DMD_HEIGHT}};
 }
 void dmd_proxy::blit(rect_i const& rect, string const& dotStr)
 {
     auto const dots {get_texture(dotStr, rect.Size)};
-    _sharedState.DMD.mutate([&](auto& dmd) { dmd.blit(rect, dots); });
+    _dmd.mutate([&](auto& dmd) { dmd.blit(rect, dots); });
 }
 
 ////////////////////////////////////////////////////////////

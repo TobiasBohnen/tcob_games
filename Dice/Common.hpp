@@ -54,10 +54,10 @@ struct sprite {
     gfx::rect_shape* Shape {nullptr};
     gfx::rect_shape* WrapCopy {nullptr};
 
-    u32            TexID {0};
-    texture const* Texture {nullptr};
-    bool           IsCollidable {true};
-    bool           IsWrappable {true};
+    u32      TexID {0};
+    texture* Texture {nullptr};
+    bool     IsCollidable {true};
+    bool     IsWrappable {true};
 
     scripting::table Owner;
 };
@@ -68,15 +68,14 @@ struct collision_event {
 };
 
 struct shared_state {
-    rng            Rng;
-    bool           CanStart {false};
+    rng Rng;
+
+    signal<>                      Start;
+    signal<collision_event const> Collision;
+    signal<slot* const>           SlotDieChanged;
+
+    prop<bool>     CanStart {false};
     prop<i32>      Score;
     prop<grid<u8>> DMD {grid<u8> {{DMD_WIDTH, DMD_HEIGHT}, 0}};
     prop<rect_f>   DMDBounds;
-
-    asset_owner_ptr<gfx::material> SpriteMaterial;
-    asset_owner_ptr<gfx::texture>  SpriteTexture;
-
-    asset_owner_ptr<gfx::material> BackgroundMaterial;
-    asset_owner_ptr<gfx::texture>  BackgroundTexture;
 };

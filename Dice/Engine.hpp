@@ -11,14 +11,14 @@
 
 class dmd_proxy {
 public:
-    dmd_proxy(shared_state& state);
+    dmd_proxy(prop<grid<u8>>& dmd);
 
     void clear();
 
     void blit(rect_i const& rect, string const& dotStr);
 
 private:
-    shared_state& _sharedState;
+    prop<grid<u8>>& _dmd;
 };
 
 ////////////////////////////////////////////////////////////
@@ -52,9 +52,14 @@ class engine {
     };
 
 public:
-    engine(base_game& game, shared_state& state);
+    struct init {
+        base_game&    Game;
+        shared_state& State;
+    };
 
-    void run(string const& file);
+    engine(init const& init);
+
+    void run(string const& file, gfx::texture* sprTexture, gfx::texture* bgTexture);
 
     auto update(milliseconds deltaTime) -> bool;
     auto start_turn() -> bool;
@@ -69,7 +74,7 @@ private:
     void create_dmd_wrapper();
     void create_sfx_wrapper();
 
-    auto create_gfx() -> bool;
+    auto create_gfx(gfx::texture* sprTexture, gfx::texture* bgTexture) -> bool;
     auto create_sfx() -> bool;
 
     template <typename R = void>
@@ -84,9 +89,8 @@ private:
     scripting::table                                  _table;
     std::vector<scripting::native_closure_shared_ptr> _funcs;
 
-    base_game&    _game;
-    shared_state& _sharedState;
-    callbacks     _callbacks;
+    init      _init;
+    callbacks _callbacks;
 
     bool _running {false};
 

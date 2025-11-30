@@ -12,20 +12,22 @@ base_game::base_game(assets::group const& grp, size_f realWindowSize)
     , _background(&_spriteBatch.create_shape<gfx::rect_shape>())
     , _slots {_diceBatch, grp.get<gfx::font_family>("Poppins"), realWindowSize / DICE_SLOTS_REF_SIZE}
     , _dice {_diceBatch, realWindowSize / DICE_SLOTS_REF_SIZE}
-    , _engine {*this, _sharedState}
+    , _engine {engine::init {.Game = *this, .State = _sharedState}}
 {
     _background->Bounds   = {point_f::Zero, VIRTUAL_SCREEN_SIZE};
-    _background->Material = _sharedState.BackgroundMaterial;
+    _background->Material = _backgroundMaterial;
 
     auto const [w, h] {realWindowSize};
     rect_f const bgBounds {0, 0, h / 3.0f * 4.0f, h};
     rect_f const uiBounds {bgBounds.width(), 0.0f, w - bgBounds.width(), h};
 
     _form0 = std::make_unique<game_form>(uiBounds, grp, _sharedState);
-    _form0->StartTurn.connect([&]() { _engine.start_turn(); });
 
     _screenTexture->Size                  = size_i {VIRTUAL_SCREEN_SIZE};
     _screenMaterial->first_pass().Texture = _screenTexture;
+
+    _backgroundMaterial->first_pass().Texture = _backgroundTexture;
+    _spriteMaterial->first_pass().Texture     = _spriteTexture;
 
     gfx::quad q {};
     gfx::geometry::set_color(q, colors::White);
@@ -79,7 +81,7 @@ void base_game::on_mouse_button_up(input::mouse::button_event const& ev)
     switch (ev.Button) {
     case input::mouse::button::Left:
         if (_slots.try_insert(_dice.HoverDie)) {
-            SlotDieChanged(_slots.HoverSlot);
+            _sharedState.SlotDieChanged(_slots.HoverSlot);
         }
         break;
     case input::mouse::button::Right: break;
@@ -118,7 +120,7 @@ void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
     _slots.hover(getRect(), _dice.HoverDie, isButtonDown);
     if (isButtonDown) {
         if (auto* slot {_slots.try_remove(_dice.HoverDie)}) {
-            SlotDieChanged(slot);
+            _sharedState.SlotDieChanged(slot);
         }
         _dice.drag(mp, ui_bounds());
     }
@@ -128,12 +130,12 @@ void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
 
 void base_game::run(string const& file)
 {
-    _engine.run(file);
+    _engine.run(file, _spriteTexture.ptr(), _backgroundTexture.ptr());
 
     auto const filter {gfx::texture::filtering::Linear};
-    _screenTexture->Filtering                 = filter;
-    _sharedState.BackgroundTexture->Filtering = filter;
-    _sharedState.SpriteTexture->Filtering     = filter;
+    _screenTexture->Filtering     = filter;
+    _backgroundTexture->Filtering = filter;
+    _spriteTexture->Filtering     = filter;
 
     wrap_sprites();
 }
@@ -263,7 +265,7 @@ void base_game::collide_sprites()
     }
 
     for (auto const& event : events) {
-        Collision(event);
+        _sharedState.Collision(event);
     }
 }
 
@@ -282,11 +284,16 @@ auto base_game::add_sprite() -> sprite*
     auto  ptr {std::make_unique<sprite>()};
     auto* retValue {ptr.get()};
     _sprites.push_back(std::move(ptr));
+    retValue->Shape           = add_shape();
+    retValue->Shape->Material = _spriteMaterial;
+
     return retValue;
 }
 
 void base_game::remove_sprite(sprite* sprite)
 {
+    remove_shape(sprite->Shape);
+    if (sprite->WrapCopy) { remove_shape(sprite->WrapCopy); }
     std::erase_if(_sprites, [&sprite](auto const& spr) { return spr.get() == sprite; });
 }
 

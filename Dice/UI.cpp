@@ -41,7 +41,8 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
         auto& btn {layout.create_widget<button>(dock_style::Bottom, "btnTurn")};
         btn.Flex  = {.Width = 100_pct, .Height = 100_pct};
         btn.Label = "->";
-        btn.Click.connect([&]() { StartTurn(); });
+        btn.Click.connect([&]() { _sharedState.Start(); });
+        _sharedState.CanStart.Changed.connect([&btn](auto val) { val ? btn.enable() : btn.disable(); });
         btn.disable();
     }
 
@@ -50,12 +51,6 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
 
 void game_form::on_update(milliseconds deltaTime)
 {
-    if (_sharedState.CanStart) {
-        find_widget_by_name("btnTurn")->enable();
-    } else {
-        find_widget_by_name("btnTurn")->disable();
-    }
-
     if (_updateDmd) {
         dynamic_cast<dot_matrix_display*>(find_widget_by_name("dmd"))->Dots = *_sharedState.DMD;
         _updateDmd                                                          = false;
@@ -81,21 +76,19 @@ void game_form::gen_styles(assets::group const& grp)
     }
     {
         auto style {styles.create<button>("button", {})};
-        style->Border.Type         = border_type::Solid;
-        style->Border.Size         = 3_px;
-        style->Border.Radius       = 5_px;
-        style->Text.Style          = {.IsItalic = false, .Weight = font::weight::Normal};
-        style->Text.Font           = grp.get<font_family>("Poppins");
-        style->Text.Size           = 50_pct;
-        style->Text.Shadow.OffsetX = 0_px;
-        style->Text.Shadow.OffsetY = 1_px;
-        style->Text.AutoSize       = auto_size_mode::Always;
-        style->Text.Alignment      = {.Horizontal = horizontal_alignment::Centered, .Vertical = vertical_alignment::Middle};
-        style->Margin              = {10_px};
-        style->Padding             = {2_px};
-        style->Background          = colors::FireBrick;
-        style->Border.Background   = colors::Gray;
-        style->Text.Color          = colors::White;
+        style->Border.Type       = border_type::Solid;
+        style->Border.Size       = 1_pct;
+        style->Border.Radius     = 1_pct;
+        style->Text.Style        = {.IsItalic = false, .Weight = font::weight::Normal};
+        style->Text.Font         = grp.get<font_family>("Poppins");
+        style->Text.Size         = 50_pct;
+        style->Text.AutoSize     = auto_size_mode::Always;
+        style->Text.Alignment    = {.Horizontal = horizontal_alignment::Centered, .Vertical = vertical_alignment::Middle};
+        style->Margin            = {1_pct};
+        style->Padding           = {2_pct};
+        style->Background        = colors::FireBrick;
+        style->Border.Background = colors::Gray;
+        style->Text.Color        = colors::White;
 
         auto hoverStyle {styles.create<button>("button", {.Hover = true})};
         *hoverStyle                   = *style;
@@ -104,7 +97,7 @@ void game_form::gen_styles(assets::group const& grp)
 
         auto activeStyle {styles.create<button>("button", {.Focus = true, .Active = true})};
         *activeStyle                   = *style;
-        activeStyle->Margin            = {5_px, 5_px, 10_px, 0_px};
+        activeStyle->Margin            = {1_pct, 1_pct, 2_pct, 0_pct};
         activeStyle->Background        = colors::Black;
         activeStyle->Border.Background = colors::FireBrick;
 
