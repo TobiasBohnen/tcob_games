@@ -1,0 +1,5 @@
+- more games
+- better sound api
+- music api
+- select screen
+- splash/boot-up screen

@@ -300,19 +300,7 @@ void base_game::remove_sprite(sprite* sprite)
 
 auto base_game::add_slot(slot_face face) -> slot*
 {
-    rect_f const bounds {ui_bounds()};
-
-    usize const index {_slots.count()};
-    usize const col {index % 5};
-    usize const row {index / 5};
-
-    f32 const xStart {bounds.left() + (bounds.width() / 20.0f)};
-    f32 const xStep {bounds.width() / 6.0f};
-
-    f32 const y {bounds.top() + (bounds.height() / 2)};
-
-    point_f const pos {xStart + (col * xStep), y + (row * (bounds.height() * 0.12f))};
-    return _slots.add_slot(face, pos);
+    return _slots.add_slot(face);
 }
 
 auto base_game::get_slots() -> slots*

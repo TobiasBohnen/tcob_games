@@ -61,7 +61,7 @@
 ---@field DarkBlue color
 ---@field Blue color
 ---@field LightBlue color
-palette = {}
+Palette = {}
 
 --------------------------------
 -- Game Module
@@ -91,21 +91,23 @@ palette = {}
 --------------------------------
 
 ---@class sprite
----@field Position point
----@field Size size
----@field Bounds rect
----@field Rotation number
----@field Scale size
----@field Owner table
----@field Texture texture
+---@field position point
+---@field size size
+---@field bounds rect
+---@field rotation number
+---@field scale size
+---@field owner table @readonly
+---@field texture texture
 
 --------------------------------
 -- Slot
 --------------------------------
 
 ---@class slot
----@field IsEmpty boolean
----@field DieValue integer
+---@field position point
+---@field isEmpty boolean @readonly
+---@field dieValue integer @readonly
+---@field owner table @readonly
 
 --------------------------------
 -- Die
@@ -144,8 +146,8 @@ palette = {}
 
 ---@class engine
 ---
----@field DMD dmd
----@field SFX sfx
+---@field dmd dmd
+---@field sfx sfx
 ---
 ---@field random fun(self: engine, min: number, max: number): number
 ---@field random_int fun(self: engine, min: integer, max: integer): integer

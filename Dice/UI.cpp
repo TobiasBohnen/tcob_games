@@ -20,19 +20,23 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
 
     {
         auto& panel1 {create_container<ui::panel>(dock_style::Top, "panel1")};
-        panel1.Flex = {.Width = 100_pct, .Height = 90_pct};
+        panel1.Flex = {.Width = 100_pct, .Height = 71.5_pct};
         panel1.disable();
         auto& layout {panel1.create_layout<dock_layout>()};
 
         auto& ssd {layout.create_widget<seven_segment_display>(dock_style::Top, "ssd")};
-        ssd.Flex = {.Width = 100_pct, .Height = 7_pct};
+        ssd.Flex = {.Width = 100_pct, .Height = 8.6_pct};
         _sharedState.Score.Changed.connect([&]() { _updateSsd = true; });
         ssd.disable();
 
         auto& dmd {layout.create_widget<dot_matrix_display>(dock_style::Fill, "dmd")};
         _sharedState.DMD.Changed.connect([&]() { _updateDmd = true; });
         dmd.disable();
-        dmd.Bounds.Changed.connect([&](auto const& rect) { _sharedState.DMDBounds = rect; });
+        dmd.Bounds.Changed.connect([this, &panel1, &dmd](rect_f const& rect) {
+            _sharedState.DMDBounds = {
+                local_to_screen(dmd, rect.Position),
+                {dmd.content_bounds().width(), dmd.content_bounds().width() / DMD_WIDTH * DMD_HEIGHT}};
+        });
     }
     {
         auto& panel2 {create_container<ui::panel>(dock_style::Fill, "panel2")};
@@ -71,7 +75,7 @@ void game_form::gen_styles(assets::group const& grp)
         style->Border.Size = 2_pct;
         style->Padding     = {1_pct};
 
-        style->Background        = colors::DarkGray;
+        style->Background        = colors::LightSteelBlue;
         style->Border.Background = colors::White;
     }
     {
@@ -115,18 +119,16 @@ void game_form::gen_styles(assets::group const& grp)
         style->Background        = colors::Black;
         style->ActiveColor       = colors::Red;
         style->InactiveColor     = colors::Black;
-        style->Border.Background = colors::White;
+        style->Border.Background = colors::LightSteelBlue;
     }
     {
         auto style {styles.create<dot_matrix_display>("dot_matrix_display", {})};
-        style->Border.Size = 2_pct;
-        style->Type        = dot_matrix_display::dot_type::Disc;
+        style->Type = dot_matrix_display::dot_type::Disc;
         for (i32 i {0}; i < PALETTE.size(); ++i) {
             style->Colors[i] = PALETTE[i];
         }
 
-        style->Background        = colors::Black;
-        style->Border.Background = colors::White;
+        style->Background = colors::Black;
     }
     Styles = styles;
 }

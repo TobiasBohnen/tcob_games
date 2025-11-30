@@ -178,7 +178,7 @@ void engine::create_env(string const& path)
     palette["DarkBlue"]   = PALETTE[13];
     palette["Blue"]       = PALETTE[14];
     palette["LightBlue"]  = PALETTE[15];
-    env["palette"]        = palette;
+    env["Palette"]        = palette;
 
     _script.Environment = env;
 
@@ -223,9 +223,9 @@ void engine::create_wrappers()
 void engine::create_sprite_wrapper()
 {
     auto& spriteWrapper {*_script.create_wrapper<sprite>("sprite")};
-    spriteWrapper["Position"] = property {[this](sprite* sprite) { return world_to_normal(sprite->Shape->Bounds->Position); },
+    spriteWrapper["position"] = property {[this](sprite* sprite) { return world_to_normal(sprite->Shape->Bounds->Position); },
                                           [this](sprite* sprite, point_f p) { sprite->Shape->Bounds = {normal_to_world(p), sprite->Shape->Bounds->Size}; }};
-    spriteWrapper["Size"]     = property {
+    spriteWrapper["size"]     = property {
         [this](sprite* sprite) -> size_f {
             auto const size {world_to_normal({sprite->Shape->Bounds->Size.Width, sprite->Shape->Bounds->Size.Height})};
             return {size.X, size.Y};
@@ -234,27 +234,39 @@ void engine::create_sprite_wrapper()
             auto const size {normal_to_world({p.Width, p.Height})};
             sprite->Shape->Bounds = {sprite->Shape->Bounds->Position, {size.X, size.Y}};
         }};
-    spriteWrapper["Bounds"]   = getter {[this](sprite* sprite) {
+    spriteWrapper["bounds"]   = getter {[this](sprite* sprite) {
         rect_f const  bounds {*sprite->Shape->Bounds};
         point_f const tl {world_to_normal(bounds.top_left())};
         point_f const br {world_to_normal(bounds.bottom_right())};
         return rect_f::FromLTRB(tl.X, tl.Y, br.X, br.Y);
     }};
-    spriteWrapper["Rotation"] = property {[](sprite* sprite) { return sprite->Shape->Rotation->Value; },
+    spriteWrapper["rotation"] = property {[](sprite* sprite) { return sprite->Shape->Rotation->Value; },
                                           [](sprite* sprite, f32 p) { sprite->Shape->Rotation = degree_f {p}; }};
-    spriteWrapper["Scale"]    = property {[](sprite* sprite) { return *sprite->Shape->Scale; },
+    spriteWrapper["scale"]    = property {[](sprite* sprite) { return *sprite->Shape->Scale; },
                                        [](sprite* sprite, size_f factor) { sprite->Shape->Scale = factor; }};
-    spriteWrapper["Owner"]    = getter {[](sprite* sprite) { return sprite->Owner; }};
-    spriteWrapper["Texture"]  = property {[](sprite* sprite) { return sprite->TexID; },
+    spriteWrapper["owner"]    = getter {[](sprite* sprite) { return sprite->Owner; }};
+    spriteWrapper["texture"]  = property {[](sprite* sprite) { return sprite->TexID; },
                                          [this](sprite* sprite, u32 texID) { set_texture(sprite, texID); }};
 }
 
 void engine::create_slot_wrapper()
 {
     auto& slotWrapper {*_script.create_wrapper<slot>("slot")};
-    slotWrapper["Owner"]    = getter {[](slot* slot) { return slot->Owner; }};
-    slotWrapper["IsEmpty"]  = getter {[](slot* slot) { return slot->is_empty(); }};
-    slotWrapper["DieValue"] = getter {[](slot* slot) -> u8 { return slot->is_empty() ? 0 : slot->current_die()->current_face().Value; }};
+    slotWrapper["owner"]    = getter {[](slot* slot) { return slot->Owner; }};
+    slotWrapper["isEmpty"]  = getter {[](slot* slot) { return slot->is_empty(); }};
+    slotWrapper["dieValue"] = getter {[](slot* slot) -> u8 { return slot->is_empty() ? 0 : slot->current_die()->current_face().Value; }};
+    slotWrapper["position"] = property {[&](slot* slot) -> point_i {
+                                            auto const&   rect {*_init.State.DMDBounds};
+                                            point_f const pos {slot->bounds().Position};
+                                            return point_i {
+                                                static_cast<i32>(std::round((pos.X - rect.left()) / (rect.width() / DMD_WIDTH))),
+                                                static_cast<i32>(std::round((pos.Y - rect.top()) / (rect.height() / DMD_HEIGHT)))};
+                                        },
+                                        [this](slot* slot, point_i pos) {
+                                            auto const& rect {_init.State.DMDBounds};
+                                            slot->move_to({rect->left() + (pos.X * (rect->width() / DMD_WIDTH)),
+                                                           rect->top() + (pos.Y * (rect->height() / DMD_HEIGHT))});
+                                        }};
 }
 
 void engine::create_engine_wrapper()
@@ -265,10 +277,10 @@ void engine::create_engine_wrapper()
     engineWrapper["log"]           = [](string const& str) { logger::Info(str); };
     engineWrapper["create_sprite"] = [](engine* engine, table const& spriteDef) {
         auto* sprite {engine->_init.Game.add_sprite()};
+        sprite->Owner = spriteDef;
 
         spriteDef.try_get(sprite->IsCollidable, "collidable");
         spriteDef.try_get(sprite->IsWrappable, "wrappable");
-        sprite->Owner = spriteDef;
 
         auto const texID {spriteDef["texture"].as<u32>()};
         engine->set_texture(sprite, texID);
@@ -285,6 +297,7 @@ void engine::create_engine_wrapper()
 
         auto* slot {engine->_init.Game.add_slot(face)};
         slot->Owner = slotDef;
+
         return slot;
     };
     engineWrapper["create_dice"] = [](engine* engine, i32 count, table const& faces) {
@@ -317,8 +330,8 @@ void engine::create_engine_wrapper()
     };
     engineWrapper["give_score"] = [](engine* engine, i32 score) { engine->_init.State.Score += score; };
     engineWrapper["play_sound"] = [](engine* engine, u32 id) { engine->_sounds[id]->play(); };
-    engineWrapper["DMD"]        = getter {[](engine* engine) { return &engine->_dmdProxy; }};
-    engineWrapper["SFX"]        = getter {[](engine* engine) { return &engine->_sfxProxy; }};
+    engineWrapper["dmd"]        = getter {[](engine* engine) { return &engine->_dmdProxy; }};
+    engineWrapper["sfx"]        = getter {[](engine* engine) { return &engine->_sfxProxy; }};
 }
 
 void engine::create_dmd_wrapper()

@@ -21,8 +21,8 @@ constexpr size_f VIRTUAL_SCREEN_SIZE {640, 480};
 constexpr size_f DICE_SLOTS_REF_SIZE {1600, 900};
 constexpr size_f DICE_SIZE {62, 62};
 constexpr f32    DICE_OFFSET {72.f};
-constexpr i32    DMD_WIDTH {100};
-constexpr i32    DMD_HEIGHT {150};
+constexpr i32    DMD_WIDTH {80};
+constexpr i32    DMD_HEIGHT {120};
 
 constexpr std::array<color, 16> PALETTE {
     {{0, 0, 0, 255},

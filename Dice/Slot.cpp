@@ -81,6 +81,11 @@ void slot::update(milliseconds deltaTime) const
     case slot_state::Reject:  _shape->Color = colors::White; break;
     }
 }
+auto slot::bounds() const -> rect_f const& { return *_shape->Bounds; }
+void slot::move_to(point_f pos)
+{
+    _shape->Bounds = {pos, _shape->Bounds->Size};
+}
 
 ////////////////////////////////////////////////////////////
 
@@ -95,10 +100,10 @@ void slots::lock() { _locked = true; }
 
 void slots::unlock() { _locked = false; }
 
-auto slots::add_slot(slot_face face, point_f pos) -> slot*
+auto slots::add_slot(slot_face face) -> slot*
 {
     auto* shape {&_batch.create_shape<gfx::rect_shape>()};
-    shape->Bounds        = {pos, DICE_SIZE * _scale};
+    shape->Bounds        = {point_f::Zero, DICE_SIZE * _scale};
     shape->Material      = _painter.material();
     shape->TextureRegion = face.texture_region();
 

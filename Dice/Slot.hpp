@@ -37,6 +37,9 @@ public:
 
     void update(milliseconds deltaTime) const;
 
+    auto bounds() const -> rect_f const&;
+    void move_to(point_f pos);
+
 private:
     gfx::rect_shape* _shape {nullptr};
     die*             _die {nullptr};
@@ -56,7 +59,7 @@ public:
     void lock();
     void unlock();
 
-    auto add_slot(slot_face face, point_f pos) -> slot*;
+    auto add_slot(slot_face face) -> slot*;
     auto count() const -> usize;
 
     void hover(rect_f const& rect, die* die, bool isButtonDown);
