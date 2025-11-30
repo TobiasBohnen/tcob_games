@@ -113,17 +113,12 @@ void slot_painter::make_slot(slot_face face)
                         -68.f / texSize.Height}},
             .Level  = 0};
 
-        _pen += point_f {68, 0};
-        if (_pen.X >= texSize.Width) {
-            _pen.X = 2;
-            _pen.Y += 68;
-        }
+        _canvas.set_fill_style(face.Color == colors::Transparent ? colors::White : face.Color);
+        _canvas.set_stroke_width(2);
+        _canvas.set_stroke_style(colors::Gray);
 
         _canvas.path_2d(slotPath);
-        _canvas.set_fill_style(face.Color == colors::Transparent ? colors::White : face.Color);
         _canvas.fill(false);
-        _canvas.set_stroke_width(2);
-        _canvas.set_stroke_style(colors::Black);
         _canvas.stroke();
 
         if (face.Value != 0) {
@@ -131,16 +126,27 @@ void slot_painter::make_slot(slot_face face)
             switch (face.Op) {
             case op::Equal:    op = ""; break;
             case op::NotEqual: op = "!"; break;
-            case op::Greater:  op = "+"; break;
-            case op::Less:     op = "-"; break;
+            case op::Greater:  op = ">"; break;
+            case op::Less:     op = "<"; break;
             }
 
-            _canvas.set_font(_font->get_font({.IsItalic = false, .Weight = gfx::font::weight::Bold}, 32).ptr());
+            _canvas.set_fill_style(colors::Red);
+            _canvas.set_stroke_width(2);
+            _canvas.set_stroke_style(colors::DarkRed);
+
+            _canvas.set_font(_font->get_font({.IsItalic = false, .Weight = gfx::font::weight::Normal}, 38).ptr());
             _canvas.set_text_halign(gfx::horizontal_alignment::Centered);
             _canvas.set_text_valign(gfx::vertical_alignment::Middle);
-            _canvas.draw_text({0, 0, 68, 68}, std::format("{} {}", face.Value, op));
+            _canvas.fill_text({2, 2, 62, 62}, std::format("{} {}", op, face.Value));
+            _canvas.stroke();
         }
         _canvas.restore();
+
+        _pen += point_f {68, 0};
+        if (_pen.X >= texSize.Width) {
+            _pen.X = 2;
+            _pen.Y += 68;
+        }
     }
 
     _canvas.end_frame();

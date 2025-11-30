@@ -80,7 +80,7 @@ void game_form::gen_styles(assets::group const& grp)
         style->Border.Size       = 1_pct;
         style->Border.Radius     = 1_pct;
         style->Text.Style        = {.IsItalic = false, .Weight = font::weight::Normal};
-        style->Text.Font         = grp.get<font_family>("Poppins");
+        style->Text.Font         = grp.get<font_family>("Font");
         style->Text.Size         = 50_pct;
         style->Text.AutoSize     = auto_size_mode::Always;
         style->Text.Alignment    = {.Horizontal = horizontal_alignment::Centered, .Vertical = vertical_alignment::Middle};

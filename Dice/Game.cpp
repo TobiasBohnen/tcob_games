@@ -10,7 +10,7 @@ using namespace scripting;
 base_game::base_game(assets::group const& grp, size_f realWindowSize)
     : gfx::entity {update_mode::Both}
     , _background(&_spriteBatch.create_shape<gfx::rect_shape>())
-    , _slots {_diceBatch, grp.get<gfx::font_family>("Poppins"), realWindowSize / DICE_SLOTS_REF_SIZE}
+    , _slots {_diceBatch, grp.get<gfx::font_family>("Font"), realWindowSize / DICE_SLOTS_REF_SIZE}
     , _dice {_diceBatch, realWindowSize / DICE_SLOTS_REF_SIZE}
     , _engine {engine::init {.Game = *this, .State = _sharedState}}
 {
