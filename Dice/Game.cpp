@@ -12,7 +12,10 @@ base_game::base_game(assets::group const& grp, size_f realWindowSize)
     , _background(&_spriteBatch.create_shape<gfx::rect_shape>())
     , _slots {_diceBatch, grp.get<gfx::font_family>("Font"), realWindowSize / DICE_SLOTS_REF_SIZE}
     , _dice {_diceBatch, realWindowSize / DICE_SLOTS_REF_SIZE}
-    , _engine {engine::init {.Game = *this, .State = _sharedState}}
+    , _engine {engine::init {.Game              = *this,
+                             .State             = _sharedState,
+                             .SpriteTexture     = _spriteTexture.ptr(),
+                             .BackgroundTexture = _backgroundTexture.ptr()}}
 {
     _background->Bounds   = {point_f::Zero, VIRTUAL_SCREEN_SIZE};
     _background->Material = _backgroundMaterial;
@@ -24,6 +27,7 @@ base_game::base_game(assets::group const& grp, size_f realWindowSize)
     _form0 = std::make_unique<game_form>(uiBounds, grp, _sharedState);
 
     _screenTexture->Size                  = size_i {VIRTUAL_SCREEN_SIZE};
+    _screenTexture->Filtering             = gfx::texture::filtering::Linear;
     _screenMaterial->first_pass().Texture = _screenTexture;
 
     _backgroundMaterial->first_pass().Texture = _backgroundTexture;
@@ -131,12 +135,7 @@ void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
 
 void base_game::run(string const& file)
 {
-    _engine.run(file, _spriteTexture.ptr(), _backgroundTexture.ptr());
-
-    auto const filter {gfx::texture::filtering::Linear};
-    _screenTexture->Filtering     = filter;
-    _backgroundTexture->Filtering = filter;
-    _spriteTexture->Filtering     = filter;
+    _engine.run(file);
 
     wrap_sprites();
 }

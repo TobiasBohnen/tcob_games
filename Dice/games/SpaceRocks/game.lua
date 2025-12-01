@@ -14,24 +14,18 @@ local gfx                 = require('gfx')
 local sfx                 = require('sfx')
 
 local game                = {
-    --public:
-    get_background   = gfx.get_background,
-    get_textures     = gfx.get_textures,
-    get_sounds       = sfx.get_sounds,
-
-    --private:
     ship             = {
-        direction = 0,
-        linearVelocity = 0,
-        linearVelocityTarget = 0,
-        angularVelocity = 0,
+        direction             = 0,
+        linearVelocity        = 0,
+        linearVelocityTarget  = 0,
+        angularVelocity       = 0,
         angularVelocityTarget = 0,
-        sprite = nil, ---@type sprite
-        texture = 0, ---@type texture
-        hurtTexture = 1, ---@type texture
-        type = "ship",
-        health = 5,
-        invulnerable = false
+        sprite                = nil, ---@type sprite
+        texture               = 0, ---@type texture
+        hurtTexture           = 1, ---@type texture
+        type                  = "ship",
+        health                = 5,
+        invulnerable          = false
     },
 
     bullets          = {},
@@ -52,6 +46,10 @@ local game                = {
 
 ---@param engine engine
 function game:on_setup(engine)
+    engine:create_background(gfx.get_background(self, engine))
+    engine:create_textures(gfx.get_textures(self, engine))
+    engine:create_sounds(sfx.get_sounds(self, engine))
+
     self.ship.sprite          = engine:create_sprite(self.ship)
     self.ship.sprite.position = { x = 0.5, y = 0.5 }
 

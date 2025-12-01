@@ -6,8 +6,8 @@
 local gfx = {}
 
 ---@param engine engine
----@param size size
-function gfx.get_background(game, engine, size)
+function gfx.get_background(game, engine)
+    local size = ScreenSize
     local w, h = size.width, size.height
     local n    = w * h
 

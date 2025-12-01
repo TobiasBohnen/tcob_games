@@ -68,16 +68,14 @@
 ---@field LightBlue color
 Palette = {}
 
+
+ScreenSize = { width = 0, height = 0 } ---@type size
+
 --------------------------------
 -- Game Module
 --------------------------------
 
 ---@class game_module
----@
----@field get_background fun(self: game_module, engine: engine, size: size): string
----@field get_textures fun(self: game_module, engine: engine): table<texture, table>
----@
----@field get_sounds fun(self: game_module, engine: engine): table<sound, table>
 ---@
 ---@field on_setup fun(self: game_module, engine: engine)
 ---@
@@ -153,6 +151,10 @@ Palette = {}
 ---
 ---@field dmd dmd
 ---@field sfx sfx
+---
+---@field create_background fun(self: engine, string: string)
+---@field create_textures fun(self: engine, texMap: {[integer]: table})
+---@field create_sounds fun(self: engine, soundMap: {[integer]: table})
 ---
 ---@field random fun(self: engine, min: number, max: number): number
 ---@field random_int fun(self: engine, min: integer, max: integer): integer
