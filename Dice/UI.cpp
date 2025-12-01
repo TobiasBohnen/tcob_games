@@ -12,7 +12,7 @@ using namespace std::chrono_literals;
 
 ////////////////////////////////////////////////////////////
 
-game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_state& state)
+game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_state& state, event_bus& events)
     : form {{.Name = "game", .Bounds = rect_i {bounds}}}
     , _sharedState {state}
 {
@@ -45,7 +45,7 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
         auto& btn {layout.create_widget<button>(dock_style::Bottom, "btnTurn")};
         btn.Flex  = {.Width = 100_pct, .Height = 100_pct};
         btn.Label = "->";
-        btn.Click.connect([&]() { _sharedState.Start(); });
+        btn.Click.connect([&events]() { events.Start(); });
         _sharedState.CanStart.Changed.connect([&btn](auto val) { val ? btn.enable() : btn.disable(); });
         btn.disable();
     }

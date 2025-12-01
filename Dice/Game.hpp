@@ -61,6 +61,7 @@ private:
     gfx::quad_renderer                   _screenRenderer {gfx::buffer_usage_hint::StaticDraw};
 
     shared_state _sharedState;
+    event_bus    _events;
     engine       _engine;
 
     slots                                _slots;

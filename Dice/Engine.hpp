@@ -56,6 +56,7 @@ class engine {
 public:
     struct init {
         shared_state& State;
+        event_bus&    Events;
 
         base_game*    Game {nullptr};
         gfx::texture* SpriteTexture {nullptr};
@@ -85,9 +86,6 @@ private:
     template <typename R = void>
     auto call(callback<R> const& func, auto&&... args) -> R;
 
-    auto normal_to_world(point_f pos) const -> point_f;
-    auto world_to_normal(point_f pos) const -> point_f;
-
     void set_texture(sprite* sprite, u32 texID);
 
     scripting::script                    _script;
@@ -95,7 +93,8 @@ private:
     scripting::native_closure_shared_ptr _require;
     callbacks                            _callbacks;
 
-    init _init;
+    init        _init;
+    game_status _gameStatus {game_status::TurnEnded};
 
     dmd_proxy _dmdProxy;
     sfx_proxy _sfxProxy;

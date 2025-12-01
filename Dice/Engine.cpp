@@ -67,17 +67,17 @@ engine::engine(init const& init)
     create_env();
     create_wrappers();
 
-    _init.State.Collision.connect([this](auto const& ev) {
-        if (_init.State.GameStatus != game_status::Running) { return; }
+    _init.Events.Collision.connect([this](auto const& ev) {
+        if (_gameStatus != game_status::Running) { return; }
         call(_callbacks.OnCollision, ev.A, ev.B);
     });
 
-    _init.State.SlotDieChanged.connect([this](auto const& ev) {
-        if (_init.State.GameStatus != game_status::TurnEnded) { return; }
+    _init.Events.SlotDieChanged.connect([this](auto const& ev) {
+        if (_gameStatus != game_status::TurnEnded) { return; }
         call(_callbacks.OnDieChanged, ev);
     });
 
-    _init.State.Start.connect([&]() { start_turn(); });
+    _init.Events.Start.connect([this]() { start_turn(); });
 }
 
 template <typename R>
@@ -124,12 +124,12 @@ void engine::run(string const& file)
 
 auto engine::update(milliseconds deltaTime) -> bool
 {
-    _init.State.CanStart = _init.State.GameStatus == game_status::TurnEnded && call(_callbacks.CanStart);
+    _init.State.CanStart = _gameStatus == game_status::TurnEnded && call(_callbacks.CanStart);
 
-    if (_init.State.GameStatus != game_status::Running) { return false; }
+    if (_gameStatus != game_status::Running) { return false; }
 
     game_status const status {static_cast<game_status>(call(_callbacks.Update, deltaTime.count()))};
-    _init.State.GameStatus = status;
+    _gameStatus = status;
 
     switch (status) {
     case Running:   return true;
@@ -142,12 +142,12 @@ auto engine::update(milliseconds deltaTime) -> bool
 
 auto engine::start_turn() -> bool
 {
-    if (_init.State.GameStatus != game_status::TurnEnded) { return false; }
+    if (_gameStatus != game_status::TurnEnded) { return false; }
 
     if (call(_callbacks.CanStart)) {
         _init.Slots->lock();
         call(_callbacks.Start);
-        _init.State.GameStatus = game_status::Running;
+        _gameStatus = game_status::Running;
         return true;
     }
 
@@ -204,17 +204,6 @@ void engine::create_env()
     _script.Environment = env;
 }
 
-auto engine::normal_to_world(point_f pos) const -> point_f
-{
-    auto const& size {VIRTUAL_SCREEN_SIZE};
-    return {pos.X * size.Width, pos.Y * size.Height};
-}
-auto engine::world_to_normal(point_f pos) const -> point_f
-{
-    auto const& size {VIRTUAL_SCREEN_SIZE};
-    return {pos.X / size.Width, pos.Y / size.Height};
-}
-
 void engine::create_wrappers()
 {
     create_sprite_wrapper();
@@ -226,51 +215,69 @@ void engine::create_wrappers()
 
 void engine::create_sprite_wrapper()
 {
+    static auto normal_to_world {[](point_f pos) -> point_f {
+        auto const& size {VIRTUAL_SCREEN_SIZE};
+        return {pos.X * size.Width, pos.Y * size.Height};
+    }};
+    static auto world_to_normal {[](point_f pos) -> point_f {
+        auto const& size {VIRTUAL_SCREEN_SIZE};
+        return {pos.X / size.Width, pos.Y / size.Height};
+    }};
+
     auto& spriteWrapper {*_script.create_wrapper<sprite>("sprite")};
-    spriteWrapper["position"] = property {[this](sprite* sprite) { return world_to_normal(sprite->Shape->Bounds->Position); },
-                                          [this](sprite* sprite, point_f p) { sprite->Shape->Bounds = {normal_to_world(p), sprite->Shape->Bounds->Size}; }};
-    spriteWrapper["size"]     = property {
-        [this](sprite* sprite) -> size_f {
+    spriteWrapper["position"] = property {
+        [](sprite* sprite) { return world_to_normal(sprite->Shape->Bounds->Position); },
+        [](sprite* sprite, point_f p) { sprite->Shape->Bounds = {normal_to_world(p), sprite->Shape->Bounds->Size}; }};
+    spriteWrapper["size"] = property {
+        [](sprite* sprite) -> size_f {
             auto const size {world_to_normal({sprite->Shape->Bounds->Size.Width, sprite->Shape->Bounds->Size.Height})};
             return {size.X, size.Y};
         },
-        [this](sprite* sprite, size_f p) {
+        [](sprite* sprite, size_f p) {
             auto const size {normal_to_world({p.Width, p.Height})};
             sprite->Shape->Bounds = {sprite->Shape->Bounds->Position, {size.X, size.Y}};
         }};
-    spriteWrapper["bounds"]   = getter {[this](sprite* sprite) {
-        rect_f const  bounds {*sprite->Shape->Bounds};
-        point_f const tl {world_to_normal(bounds.top_left())};
-        point_f const br {world_to_normal(bounds.bottom_right())};
-        return rect_f::FromLTRB(tl.X, tl.Y, br.X, br.Y);
-    }};
-    spriteWrapper["rotation"] = property {[](sprite* sprite) { return sprite->Shape->Rotation->Value; },
-                                          [](sprite* sprite, f32 p) { sprite->Shape->Rotation = degree_f {p}; }};
-    spriteWrapper["scale"]    = property {[](sprite* sprite) { return *sprite->Shape->Scale; },
-                                       [](sprite* sprite, size_f factor) { sprite->Shape->Scale = factor; }};
-    spriteWrapper["owner"]    = getter {[](sprite* sprite) { return sprite->Owner; }};
-    spriteWrapper["texture"]  = property {[](sprite* sprite) { return sprite->TexID; },
-                                         [this](sprite* sprite, u32 texID) { set_texture(sprite, texID); }};
+    spriteWrapper["bounds"] = getter {
+        [](sprite* sprite) {
+            rect_f const  bounds {*sprite->Shape->Bounds};
+            point_f const tl {world_to_normal(bounds.top_left())};
+            point_f const br {world_to_normal(bounds.bottom_right())};
+            return rect_f::FromLTRB(tl.X, tl.Y, br.X, br.Y);
+        }};
+    spriteWrapper["rotation"] = property {
+        [](sprite* sprite) { return sprite->Shape->Rotation->Value; },
+        [](sprite* sprite, f32 p) { sprite->Shape->Rotation = degree_f {p}; }};
+    spriteWrapper["scale"] = property {
+        [](sprite* sprite) { return *sprite->Shape->Scale; },
+        [](sprite* sprite, size_f factor) { sprite->Shape->Scale = factor; }};
+    spriteWrapper["owner"] = getter {
+        [](sprite* sprite) { return sprite->Owner; }};
+    spriteWrapper["texture"] = property {
+        [](sprite* sprite) { return sprite->TexID; },
+        [this](sprite* sprite, u32 texID) { set_texture(sprite, texID); }};
 }
 
 void engine::create_slot_wrapper()
 {
     auto& slotWrapper {*_script.create_wrapper<slot>("slot")};
-    slotWrapper["owner"]    = getter {[](slot* slot) { return slot->Owner; }};
-    slotWrapper["isEmpty"]  = getter {[](slot* slot) { return slot->is_empty(); }};
-    slotWrapper["dieValue"] = getter {[](slot* slot) -> u8 { return slot->is_empty() ? 0 : slot->current_die()->current_face().Value; }};
-    slotWrapper["position"] = property {[&](slot* slot) -> point_i {
-                                            auto const&   rect {*_init.State.DMDBounds};
-                                            point_f const pos {slot->bounds().Position};
-                                            return point_i {
-                                                static_cast<i32>(std::round((pos.X - rect.left()) / (rect.width() / DMD_SIZE.Width))),
-                                                static_cast<i32>(std::round((pos.Y - rect.top()) / (rect.height() / DMD_SIZE.Height)))};
-                                        },
-                                        [this](slot* slot, point_i pos) {
-                                            auto const& rect {_init.State.DMDBounds};
-                                            slot->move_to({rect->left() + (pos.X * (rect->width() / DMD_SIZE.Width)),
-                                                           rect->top() + (pos.Y * (rect->height() / DMD_SIZE.Height))});
-                                        }};
+    slotWrapper["owner"] = getter {
+        [](slot* slot) { return slot->Owner; }};
+    slotWrapper["isEmpty"] = getter {
+        [](slot* slot) { return slot->is_empty(); }};
+    slotWrapper["dieValue"] = getter {
+        [](slot* slot) -> u8 { return slot->is_empty() ? 0 : slot->current_die()->current_face().Value; }};
+    slotWrapper["position"] = property {
+        [this](slot* slot) -> point_i {
+            auto const&   rect {_init.State.DMDBounds};
+            point_f const pos {slot->bounds().Position};
+            return {static_cast<i32>(std::round((pos.X - rect.left()) / (rect.width() / DMD_SIZE.Width))),
+                    static_cast<i32>(std::round((pos.Y - rect.top()) / (rect.height() / DMD_SIZE.Height)))};
+        },
+        [this](slot* slot, point_i pos) {
+            auto const& rect {_init.State.DMDBounds};
+            slot->move_to({rect.left() + (pos.X * (rect.width() / DMD_SIZE.Width)),
+                           rect.top() + (pos.Y * (rect.height() / DMD_SIZE.Height))});
+        }};
 }
 
 void engine::create_engine_wrapper()
@@ -387,7 +394,7 @@ void engine::create_engine_wrapper()
         return sprite;
     };
     engineWrapper["remove_sprite"] = [](engine* engine, sprite* sprite) { engine->_init.Game->remove_sprite(sprite); };
-    engineWrapper["create_slot"]   = [this](engine* engine, table const& slotDef) -> slot* {
+    engineWrapper["create_slot"]   = [](engine* engine, table const& slotDef) -> slot* {
         slot_face face;
         slotDef.try_get(face.Op, "op");
         slotDef.try_get(face.Value, "value");
@@ -433,8 +440,10 @@ void engine::create_engine_wrapper()
     engineWrapper["play_sound"] = [](engine* engine, u32 id) { engine->_sounds[id]->play(); };
 
     // properties
-    engineWrapper["dmd"] = getter {[](engine* engine) { return &engine->_dmdProxy; }};
-    engineWrapper["sfx"] = getter {[](engine* engine) { return &engine->_sfxProxy; }};
+    engineWrapper["dmd"] = getter {
+        [](engine* engine) { return &engine->_dmdProxy; }};
+    engineWrapper["sfx"] = getter {
+        [](engine* engine) { return &engine->_sfxProxy; }};
 }
 
 void engine::create_dmd_wrapper()

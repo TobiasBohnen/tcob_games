@@ -13,6 +13,7 @@ base_game::base_game(assets::group const& grp, size_f realWindowSize)
     , _slots {_diceBatch, grp.get<gfx::font_family>("Font"), realWindowSize / DICE_SLOTS_REF_SIZE}
     , _dice {_diceBatch, realWindowSize / DICE_SLOTS_REF_SIZE}
     , _engine {engine::init {.State             = _sharedState,
+                             .Events            = _events,
                              .Game              = this,
                              .SpriteTexture     = _spriteTexture.ptr(),
                              .BackgroundTexture = _backgroundTexture.ptr(),
@@ -26,7 +27,7 @@ base_game::base_game(assets::group const& grp, size_f realWindowSize)
     rect_f const bgBounds {0, 0, h / 3.0f * 4.0f, h};
     rect_f const uiBounds {bgBounds.width(), 0.0f, w - bgBounds.width(), h};
 
-    _form0 = std::make_unique<game_form>(uiBounds, grp, _sharedState);
+    _form0 = std::make_unique<game_form>(uiBounds, grp, _sharedState, _events);
 
     _screenTexture->Size                  = size_i {VIRTUAL_SCREEN_SIZE};
     _screenTexture->Filtering             = gfx::texture::filtering::Linear;
@@ -77,7 +78,7 @@ auto base_game::can_draw() const -> bool
 void base_game::on_key_down(input::keyboard::event const& ev)
 {
     switch (ev.ScanCode) {
-    case input::scan_code::SPACE: _sharedState.Start(); break;
+    case input::scan_code::SPACE: _events.Start(); break;
     default:                      break;
     }
 }
@@ -87,7 +88,7 @@ void base_game::on_mouse_button_up(input::mouse::button_event const& ev)
     switch (ev.Button) {
     case input::mouse::button::Left:
         if (_slots.try_insert_die(_dice.get_hovered())) {
-            _sharedState.SlotDieChanged(_slots.get_hovered());
+            _events.SlotDieChanged(_slots.get_hovered());
         }
         break;
     case input::mouse::button::Right: break;
@@ -127,7 +128,7 @@ void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
     _slots.hover(getRect(), hoverDie, isButtonDown);
     if (isButtonDown) {
         if (auto* slot {_slots.try_remove_die(hoverDie)}) {
-            _sharedState.SlotDieChanged(slot);
+            _events.SlotDieChanged(slot);
         }
         _dice.drag(mp, _form0->Bounds);
     }
@@ -267,7 +268,7 @@ void base_game::collide_sprites()
     }
 
     for (auto const& event : events) {
-        _sharedState.Collision(event);
+        _events.Collision(event);
     }
 }
 

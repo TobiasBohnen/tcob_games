@@ -55,16 +55,17 @@ struct collision_event {
     sprite* B;
 };
 
-struct shared_state {
-    rng Rng;
-
+struct event_bus {
     signal<>                      Start;
     signal<collision_event const> Collision;
     signal<slot* const>           SlotDieChanged;
+};
 
-    prop<bool>        CanStart {false};
-    prop<game_status> GameStatus {game_status::TurnEnded};
-    prop<i32>         Score;
-    prop<grid<u8>>    DMD {grid<u8> {DMD_SIZE, 0}};
-    prop<rect_f>      DMDBounds;
+struct shared_state {
+    rng    Rng;
+    rect_f DMDBounds;
+
+    prop<bool>     CanStart {false};
+    prop<i32>      Score;
+    prop<grid<u8>> DMD {grid<u8> {DMD_SIZE, 0}};
 };

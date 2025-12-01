@@ -11,7 +11,7 @@
 
 class game_form : public ui::form<ui::dock_layout> {
 public:
-    game_form(rect_f const& bounds, assets::group const& grp, shared_state& state);
+    game_form(rect_f const& bounds, assets::group const& grp, shared_state& state, event_bus& events);
 
 protected:
     void on_update(milliseconds deltaTime) override;
