@@ -79,6 +79,7 @@ void base_game::on_key_down(input::keyboard::event const& ev)
 {
     switch (ev.ScanCode) {
     case input::scan_code::SPACE: _events.Start(); break;
+    case input::scan_code::R:     Restart(); break;
     default:                      break;
     }
 }

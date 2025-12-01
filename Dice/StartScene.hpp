@@ -27,4 +27,5 @@ protected:
 
 private:
     std::shared_ptr<base_game> _currentGame {};
+    bool                       _startGame {true};
 };

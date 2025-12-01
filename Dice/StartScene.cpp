@@ -27,11 +27,7 @@ void start_scene::on_start()
     auto inis {io::enumerate("/", {.String = "*game.ini", .MatchWholePath = true}, true)};
 
     auto& win {window()};
-    win.ClearColor = colors::White;
-    _currentGame   = std::make_shared<base_game>(resGrp, size_f {win.bounds().Size});
-    _currentGame->run("dice/SpaceRocks/game.lua");
-
-    root_node().create_child().Entity = _currentGame;
+    win.ClearColor = colors::Black;
 
     locate_service<gfx::render_system>().statistics().reset();
 }
@@ -42,6 +38,20 @@ void start_scene::on_draw_to(gfx::render_target&)
 
 void start_scene::on_update(milliseconds)
 {
+    if (_startGame) {
+        _startGame = false;
+
+        auto& resMgr {library()};
+        auto& resGrp {resMgr.create_or_get_group("dice")};
+        _currentGame = std::make_shared<base_game>(resGrp, size_f {window().bounds().Size});
+
+        root_node().clear();
+        root_node().create_child().Entity = _currentGame;
+
+        _currentGame->Restart.connect([this]() { _startGame = true; });
+
+        _currentGame->run("dice/SpaceRocks/game.lua");
+    }
 }
 
 void start_scene::on_fixed_update(milliseconds deltaTime)

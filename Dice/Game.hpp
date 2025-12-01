@@ -19,6 +19,8 @@ class base_game : public gfx::entity {
 public:
     base_game(assets::group const& grp, size_f realWindowSize);
 
+    signal<> Restart;
+
     void run(string const& file);
 
     auto add_sprite() -> sprite*;
