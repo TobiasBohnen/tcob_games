@@ -35,7 +35,7 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
         dmd.Bounds.Changed.connect([this, &panel1, &dmd](rect_f const& rect) {
             _sharedState.DMDBounds = {
                 local_to_screen(dmd, rect.Position),
-                {dmd.content_bounds().width(), dmd.content_bounds().width() / DMD_WIDTH * DMD_HEIGHT}};
+                {dmd.content_bounds().width(), dmd.content_bounds().width() / DMD_SIZE.Width * DMD_SIZE.Height}};
         });
     }
     {

@@ -10,6 +10,7 @@
 #include "Die.hpp"
 #include "Engine.hpp"
 #include "Slot.hpp"
+#include "Sprite.hpp"
 #include "UI.hpp"
 
 ////////////////////////////////////////////////////////////
@@ -23,14 +24,7 @@ public:
     auto add_sprite() -> sprite*;
     void remove_sprite(sprite* sprite);
 
-    auto add_die(std::span<die_face const> faces) -> die*;
-
-    auto add_slot(slot_face face) -> slot*;
-    auto get_slots() -> slots*;
-
-    void roll();
-
-    auto ui_bounds() const -> rect_f const&;
+    auto get_random_die_position() -> point_f;
 
 protected:
     void on_update(milliseconds deltaTime) override;
@@ -47,8 +41,6 @@ protected:
 private:
     auto add_shape() -> gfx::rect_shape*;
     auto remove_shape(gfx::shape* shape) -> bool;
-
-    auto get_random_die_position() -> point_f;
 
     void wrap_sprites();
     void collide_sprites();

@@ -16,13 +16,13 @@ class die;
 class dice;
 class base_game;
 struct shared_assets;
+class sprite;
 
 constexpr size_f VIRTUAL_SCREEN_SIZE {640, 480};
 constexpr size_f DICE_SLOTS_REF_SIZE {1600, 900};
+constexpr size_i DMD_SIZE {80, 120};
 constexpr size_f DICE_SIZE {62, 62};
 constexpr f32    DICE_OFFSET {72.f};
-constexpr i32    DMD_WIDTH {80};
-constexpr i32    DMD_HEIGHT {120};
 
 constexpr std::array<color, 16> PALETTE {
     {{0, 0, 0, 255},
@@ -44,22 +44,10 @@ constexpr std::array<color, 16> PALETTE {
 
 ////////////////////////////////////////////////////////////
 
-struct texture {
-    size_f   Size;
-    string   Region;
-    grid<u8> Alpha;
-};
-
-struct sprite {
-    gfx::rect_shape* Shape {nullptr};
-    gfx::rect_shape* WrapCopy {nullptr};
-
-    u32      TexID {0};
-    texture* Texture {nullptr};
-    bool     IsCollidable {true};
-    bool     IsWrappable {true};
-
-    scripting::table Owner;
+enum game_status : u8 {
+    Running   = 0,
+    TurnEnded = 1,
+    GameOver  = 2
 };
 
 struct collision_event {
@@ -74,8 +62,9 @@ struct shared_state {
     signal<collision_event const> Collision;
     signal<slot* const>           SlotDieChanged;
 
-    prop<bool>     CanStart {false};
-    prop<i32>      Score;
-    prop<grid<u8>> DMD {grid<u8> {{DMD_WIDTH, DMD_HEIGHT}, 0}};
-    prop<rect_f>   DMDBounds;
+    prop<bool>        CanStart {false};
+    prop<game_status> GameStatus {game_status::TurnEnded};
+    prop<i32>         Score;
+    prop<grid<u8>>    DMD {grid<u8> {DMD_SIZE, 0}};
+    prop<rect_f>      DMDBounds;
 };

@@ -6,6 +6,7 @@
 #pragma once
 
 #include "Common.hpp" // IWYU pragma: keep
+#include "Sprite.hpp"
 
 ////////////////////////////////////////////////////////////
 
@@ -45,7 +46,8 @@ class engine {
         callback<>     OnCollision;
         callback<>     OnDieChanged;
         callback<>     OnSetup;
-        callback<bool> Update;
+        callback<>     OnTeardown;
+        callback<i32>  Update;
         callback<>     Finish;
         callback<bool> CanStart;
         callback<>     Start;
@@ -53,10 +55,13 @@ class engine {
 
 public:
     struct init {
-        base_game&    Game;
         shared_state& State;
-        gfx::texture* SpriteTexture;
-        gfx::texture* BackgroundTexture;
+
+        base_game*    Game {nullptr};
+        gfx::texture* SpriteTexture {nullptr};
+        gfx::texture* BackgroundTexture {nullptr};
+        slots*        Slots {nullptr};
+        dice*         Dice {nullptr};
     };
 
     engine(init const& init);
@@ -64,9 +69,10 @@ public:
     void run(string const& file);
 
     auto update(milliseconds deltaTime) -> bool;
-    auto start_turn() -> bool;
 
 private:
+    auto start_turn() -> bool;
+
     void create_env();
 
     void create_wrappers();
@@ -90,8 +96,6 @@ private:
     callbacks                            _callbacks;
 
     init _init;
-
-    bool _running {false};
 
     dmd_proxy _dmdProxy;
     sfx_proxy _sfxProxy;

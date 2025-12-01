@@ -12,10 +12,12 @@ base_game::base_game(assets::group const& grp, size_f realWindowSize)
     , _background(&_spriteBatch.create_shape<gfx::rect_shape>())
     , _slots {_diceBatch, grp.get<gfx::font_family>("Font"), realWindowSize / DICE_SLOTS_REF_SIZE}
     , _dice {_diceBatch, realWindowSize / DICE_SLOTS_REF_SIZE}
-    , _engine {engine::init {.Game              = *this,
-                             .State             = _sharedState,
+    , _engine {engine::init {.State             = _sharedState,
+                             .Game              = this,
                              .SpriteTexture     = _spriteTexture.ptr(),
-                             .BackgroundTexture = _backgroundTexture.ptr()}}
+                             .BackgroundTexture = _backgroundTexture.ptr(),
+                             .Slots             = &_slots,
+                             .Dice              = &_dice}}
 {
     _background->Bounds   = {point_f::Zero, VIRTUAL_SCREEN_SIZE};
     _background->Material = _backgroundMaterial;
@@ -75,7 +77,7 @@ auto base_game::can_draw() const -> bool
 void base_game::on_key_down(input::keyboard::event const& ev)
 {
     switch (ev.ScanCode) {
-    case input::scan_code::SPACE: _engine.start_turn(); break;
+    case input::scan_code::SPACE: _sharedState.Start(); break;
     default:                      break;
     }
 }
@@ -127,7 +129,7 @@ void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
         if (auto* slot {_slots.try_remove_die(hoverDie)}) {
             _sharedState.SlotDieChanged(slot);
         }
-        _dice.drag(mp, ui_bounds());
+        _dice.drag(mp, _form0->Bounds);
     }
 
     dynamic_cast<input::receiver*>(_form0.get())->on_mouse_motion(ev);
@@ -297,16 +299,6 @@ void base_game::remove_sprite(sprite* sprite)
     std::erase_if(_sprites, [&sprite](auto const& spr) { return spr.get() == sprite; });
 }
 
-auto base_game::add_slot(slot_face face) -> slot*
-{
-    return _slots.add_slot(face);
-}
-
-auto base_game::get_slots() -> slots*
-{
-    return &_slots;
-}
-
 auto base_game::get_random_die_position() -> point_f
 {
     rect_f area {_form0->Bounds};
@@ -317,19 +309,4 @@ auto base_game::get_random_die_position() -> point_f
     pos.Y = _sharedState.Rng(area.top(), area.bottom());
 
     return pos;
-}
-
-auto base_game::add_die(std::span<die_face const> faces) -> die*
-{
-    return _dice.add_die(get_random_die_position(), _sharedState.Rng, faces[0], faces);
-}
-
-void base_game::roll()
-{
-    _dice.roll();
-}
-
-auto base_game::ui_bounds() const -> rect_f const&
-{
-    return *_form0->Bounds;
 }

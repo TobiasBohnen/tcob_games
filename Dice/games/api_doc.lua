@@ -68,8 +68,15 @@
 ---@field LightBlue color
 Palette = {}
 
-
 ScreenSize = { width = 0, height = 0 } ---@type size
+DMDSize = { width = 0, height = 0 } ---@type size
+
+---@enum game_status
+GameStatus = {
+    Running = 0,
+    TurnEnded = 1,
+    GameOver = 2
+}
 
 --------------------------------
 -- Game Module
@@ -78,8 +85,9 @@ ScreenSize = { width = 0, height = 0 } ---@type size
 ---@class game_module
 ---@
 ---@field on_setup fun(self: game_module, engine: engine)
+---@field on_teardown fun(self: game_module, engine: engine)
 ---@
----@field update fun(self: game_module, deltaTime: number)
+---@field update fun(self: game_module, deltaTime: number): game_status
 ---@
 ---@field can_start fun(self: game_module, engine: engine): boolean
 ---@field start fun(self: game_module, engine: engine)

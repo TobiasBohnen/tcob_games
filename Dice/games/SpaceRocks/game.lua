@@ -91,7 +91,7 @@ end
 ---@param deltaTime number
 function game:update(engine, deltaTime)
     self.updateTime = self.updateTime + deltaTime
-    if self.updateTime >= DURATION then return false end
+    if self.updateTime >= DURATION then return GameStatus.TurnEnded end
 
     self:try_spawn_bullet(engine, deltaTime)
 
@@ -99,7 +99,9 @@ function game:update(engine, deltaTime)
     self:update_explosions(engine, deltaTime)
     self:update_bullets(engine, deltaTime)
     self:update_ship(deltaTime)
-    return true
+
+    if self.ship.health == 0 then return GameStatus.GameOver end
+    return GameStatus.Running
 end
 
 ---@param engine engine
@@ -155,6 +157,13 @@ function game:finish(engine)
     self.ship.invulnerable   = false
     self.ship.sprite.texture = self.ship.texture
 end
+
+---@param engine engine
+function game:on_teardown(engine)
+end
+
+------
+------
 
 ---@param engine engine
 function game:update_bullets(engine, deltaTime)

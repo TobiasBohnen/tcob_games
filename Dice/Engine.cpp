@@ -68,12 +68,12 @@ engine::engine(init const& init)
     create_wrappers();
 
     _init.State.Collision.connect([this](auto const& ev) {
-        if (!_running) { return; }
+        if (_init.State.GameStatus != game_status::Running) { return; }
         call(_callbacks.OnCollision, ev.A, ev.B);
     });
 
     _init.State.SlotDieChanged.connect([this](auto const& ev) {
-        if (_running) { return; }
+        if (_init.State.GameStatus != game_status::TurnEnded) { return; }
         call(_callbacks.OnDieChanged, ev);
     });
 
@@ -113,6 +113,7 @@ void engine::run(string const& file)
     _table.try_get(_callbacks.OnCollision, "on_collision");
     _table.try_get(_callbacks.OnDieChanged, "on_die_changed");
     _table.try_get(_callbacks.OnSetup, "on_setup");
+    _table.try_get(_callbacks.OnTeardown, "on_teardown");
     _table.try_get(_callbacks.Update, "update");
     _table.try_get(_callbacks.Finish, "finish");
     _table.try_get(_callbacks.CanStart, "can_start");
@@ -123,14 +124,17 @@ void engine::run(string const& file)
 
 auto engine::update(milliseconds deltaTime) -> bool
 {
-    _init.State.CanStart = !_running && call(_callbacks.CanStart);
+    _init.State.CanStart = _init.State.GameStatus == game_status::TurnEnded && call(_callbacks.CanStart);
 
-    if (!_running) { return false; }
+    if (_init.State.GameStatus != game_status::Running) { return false; }
 
-    if (!call(_callbacks.Update, deltaTime.count())) {
-        call(_callbacks.Finish);
-        _running = false;
-        return false;
+    game_status const status {static_cast<game_status>(call(_callbacks.Update, deltaTime.count()))};
+    _init.State.GameStatus = status;
+
+    switch (status) {
+    case Running:   return true;
+    case TurnEnded: call(_callbacks.Finish); return false;
+    case GameOver:  call(_callbacks.OnTeardown); return false;
     }
 
     return true;
@@ -138,12 +142,12 @@ auto engine::update(milliseconds deltaTime) -> bool
 
 auto engine::start_turn() -> bool
 {
-    if (_running) { return false; }
+    if (_init.State.GameStatus != game_status::TurnEnded) { return false; }
 
     if (call(_callbacks.CanStart)) {
-        _init.Game.get_slots()->lock();
+        _init.Slots->lock();
         call(_callbacks.Start);
-        _running = true;
+        _init.State.GameStatus = game_status::Running;
         return true;
     }
 
@@ -189,6 +193,13 @@ void engine::create_env()
     env["Palette"]        = palette;
 
     env["ScreenSize"] = VIRTUAL_SCREEN_SIZE;
+    env["DMDSize"]    = DMD_SIZE;
+
+    table gameStatus {_script.create_table()};
+    gameStatus["Running"]   = static_cast<i32>(game_status::Running);
+    gameStatus["TurnEnded"] = static_cast<i32>(game_status::TurnEnded);
+    gameStatus["GameOver"]  = static_cast<i32>(game_status::GameOver);
+    env["GameStatus"]       = gameStatus;
 
     _script.Environment = env;
 }
@@ -252,13 +263,13 @@ void engine::create_slot_wrapper()
                                             auto const&   rect {*_init.State.DMDBounds};
                                             point_f const pos {slot->bounds().Position};
                                             return point_i {
-                                                static_cast<i32>(std::round((pos.X - rect.left()) / (rect.width() / DMD_WIDTH))),
-                                                static_cast<i32>(std::round((pos.Y - rect.top()) / (rect.height() / DMD_HEIGHT)))};
+                                                static_cast<i32>(std::round((pos.X - rect.left()) / (rect.width() / DMD_SIZE.Width))),
+                                                static_cast<i32>(std::round((pos.Y - rect.top()) / (rect.height() / DMD_SIZE.Height)))};
                                         },
                                         [this](slot* slot, point_i pos) {
                                             auto const& rect {_init.State.DMDBounds};
-                                            slot->move_to({rect->left() + (pos.X * (rect->width() / DMD_WIDTH)),
-                                                           rect->top() + (pos.Y * (rect->height() / DMD_HEIGHT))});
+                                            slot->move_to({rect->left() + (pos.X * (rect->width() / DMD_SIZE.Width)),
+                                                           rect->top() + (pos.Y * (rect->height() / DMD_SIZE.Height))});
                                         }};
 }
 
@@ -363,7 +374,7 @@ void engine::create_engine_wrapper()
     engineWrapper["random_int"]    = [](engine* engine, i32 min, i32 max) { return engine->_init.State.Rng(min, max); };
     engineWrapper["log"]           = [](string const& str) { logger::Info(str); };
     engineWrapper["create_sprite"] = [](engine* engine, table const& spriteDef) {
-        auto* sprite {engine->_init.Game.add_sprite()};
+        auto* sprite {engine->_init.Game->add_sprite()};
         sprite->Owner = spriteDef;
 
         spriteDef.try_get(sprite->IsCollidable, "collidable");
@@ -375,14 +386,14 @@ void engine::create_engine_wrapper()
 
         return sprite;
     };
-    engineWrapper["remove_sprite"] = [](engine* engine, sprite* sprite) { engine->_init.Game.remove_sprite(sprite); };
+    engineWrapper["remove_sprite"] = [](engine* engine, sprite* sprite) { engine->_init.Game->remove_sprite(sprite); };
     engineWrapper["create_slot"]   = [this](engine* engine, table const& slotDef) -> slot* {
         slot_face face;
         slotDef.try_get(face.Op, "op");
         slotDef.try_get(face.Value, "value");
         slotDef.try_get(face.Color, "color");
 
-        auto* slot {engine->_init.Game.add_slot(face)};
+        auto* slot {engine->_init.Slots->add_slot(face)};
         slot->Owner = slotDef;
 
         return slot;
@@ -398,14 +409,17 @@ void engine::create_engine_wrapper()
             for (auto const& value : values) { vec.emplace_back(value, color); }
         }
         if (vec.empty()) { return; }
-        for (i32 i {0}; i < count; ++i) { engine->_init.Game.add_die(vec); }
+        auto& init {engine->_init};
+        for (i32 i {0}; i < count; ++i) {
+            init.Dice->add_die(init.Game->get_random_die_position(), init.State.Rng, vec[0], vec);
+        }
     };
-    engineWrapper["roll_dice"]   = [](engine* engine) { engine->_init.Game.roll(); };
+    engineWrapper["roll_dice"]   = [](engine* engine) { engine->_init.Dice->roll(); };
     engineWrapper["reset_slots"] = [](engine* engine, table const& slotsTable) {
         std::vector<slot*> slots;
         for (auto const& key : slotsTable.get_keys<string>()) { slots.push_back(slotsTable[key].as<slot*>()); }
 
-        auto* s {engine->_init.Game.get_slots()};
+        auto* s {engine->_init.Slots};
         s->unlock();
         s->reset(slots);
     };
@@ -413,7 +427,7 @@ void engine::create_engine_wrapper()
         std::vector<slot*> slots;
         for (auto const& key : slotsTable.get_keys<string>()) { slots.push_back(slotsTable[key].as<slot*>()); }
 
-        return engine->_init.Game.get_slots()->get_hand(slots);
+        return engine->_init.Slots->get_hand(slots);
     };
     engineWrapper["give_score"] = [](engine* engine, i32 score) { engine->_init.State.Score += score; };
     engineWrapper["play_sound"] = [](engine* engine, u32 id) { engine->_sounds[id]->play(); };
@@ -461,7 +475,7 @@ dmd_proxy::dmd_proxy(prop<grid<u8>>& dmd)
 }
 void dmd_proxy::clear()
 {
-    _dmd = grid<u8> {{DMD_WIDTH, DMD_HEIGHT}};
+    _dmd = grid<u8> {DMD_SIZE, 0};
 }
 void dmd_proxy::blit(rect_i const& rect, string const& dotStr)
 {
