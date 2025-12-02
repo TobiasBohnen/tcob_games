@@ -18,6 +18,8 @@ public:
 
     void blit(rect_i const& rect, string const& dotStr);
 
+    void print(point_i pos, string_view text, color color);
+
 private:
     prop<grid<u8>>& _dmd;
 };

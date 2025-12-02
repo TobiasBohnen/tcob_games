@@ -135,6 +135,7 @@ GameStatus = {
 ---
 ---@field blit fun(self: dmd, rect: rect, dots: string)
 ---@field clear fun(self: dmd)
+---@field print fun(self: dmd, pos: point, text: string, color: color|integer)
 
 --------------------------------
 -- SFX

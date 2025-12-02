@@ -93,20 +93,23 @@ inline auto engine::call(callback<R> const& func, auto&&... args) -> R
 void engine::run(string const& file)
 {
     // require
-    auto        path {io::get_parent_folder(file)};
-    auto const& env {**_script.Environment};
-    _require       = make_shared_closure(std::function {[env, path, this](string const& module) {
+    auto const path {io::get_parent_folder(file)};
+
+    _require = make_shared_closure(std::function {[this, path](string const& module) {
+        auto const& env {**_script.Environment};
         if (env.has("package", "loaded", module)) { return env["package"]["loaded"][module].as<table>(); }
-        string const pkgFile {std::format("{}/{}.lua", path, module)};
-        if (auto pkg {_script.run_file<table>(pkgFile)}) {
+
+        if (auto pkg {_script.run_file<table>(std::format("{}/{}.lua", path, module))}) {
             auto& val {pkg.value()};
             env["package"]["loaded"][module] = val;
             return val;
         }
+
         _script.raise_error(std::format("module {} not found", module));
         return _script.create_table();
     }});
-    env["require"] = _require.get();
+
+    (**_script.Environment)["require"] = _require.get();
 
     _table = *_script.run_file<table>(file);
 
@@ -451,6 +454,12 @@ void engine::create_dmd_wrapper()
     auto& dmdWrapper {*_script.create_wrapper<dmd_proxy>("dmd")};
     dmdWrapper["clear"] = [](dmd_proxy* dmd) { dmd->clear(); };
     dmdWrapper["blit"]  = [](dmd_proxy* dmd, rect_i const& rect, string const& dotStr) { dmd->blit(rect, dotStr); };
+    dmdWrapper["print"] = [](dmd_proxy* dmd, point_i pos, string_view text, std::variant<u8, color> col) {
+        std::visit(overloaded {
+                       [&](u8 col) { dmd->print(pos, text, PALETTE[col]); },
+                       [&](color col) { dmd->print(pos, text, col); }},
+                   col);
+    };
 }
 
 void engine::create_sfx_wrapper()
@@ -490,6 +499,100 @@ void dmd_proxy::blit(rect_i const& rect, string const& dotStr)
 {
     auto const dots {get_pixel(dotStr, rect.Size)};
     _dmd.mutate([&](auto& dmd) { dmd.blit(rect, dots); });
+}
+void dmd_proxy::print(point_i pos, string_view text, color color)
+{
+    static constexpr std::array<std::array<u8, 5>, 50> font5x5 {
+        {{0x1F, 0x11, 0x11, 0x11, 0x1F},
+         {0x07, 0x09, 0x11, 0x01, 0x01},
+         {0x1F, 0x01, 0x1F, 0x10, 0x1F},
+         {0x1F, 0x01, 0x1F, 0x01, 0x1F},
+         {0x10, 0x12, 0x1F, 0x02, 0x02},
+         {0x1F, 0x10, 0x1F, 0x01, 0x1F},
+         {0x1F, 0x10, 0x1F, 0x11, 0x1F},
+         {0x1F, 0x01, 0x01, 0x01, 0x01},
+         {0x1F, 0x11, 0x1F, 0x11, 0x1F},
+         {0x1F, 0x11, 0x1F, 0x01, 0x01},
+         {0x0E, 0x11, 0x1F, 0x11, 0x11},
+         {0x1E, 0x11, 0x1E, 0x11, 0x1E},
+         {0x0F, 0x10, 0x10, 0x10, 0x0F},
+         {0x1E, 0x11, 0x11, 0x11, 0x1E},
+         {0x1F, 0x10, 0x1F, 0x10, 0x1F},
+         {0x1F, 0x10, 0x1F, 0x10, 0x10},
+         {0x0E, 0x10, 0x17, 0x11, 0x0E},
+         {0x11, 0x11, 0x1F, 0x11, 0x11},
+         {0x1F, 0x04, 0x04, 0x04, 0x1F},
+         {0x0F, 0x01, 0x01, 0x11, 0x0E},
+         {0x11, 0x12, 0x1C, 0x12, 0x11},
+         {0x10, 0x10, 0x10, 0x10, 0x1F},
+         {0x11, 0x1B, 0x15, 0x11, 0x11},
+         {0x11, 0x19, 0x15, 0x13, 0x11},
+         {0x0E, 0x11, 0x11, 0x11, 0x0E},
+         {0x1E, 0x11, 0x1E, 0x10, 0x10},
+         {0x0E, 0x11, 0x15, 0x12, 0x0D},
+         {0x1E, 0x11, 0x1F, 0x12, 0x11},
+         {0x0F, 0x10, 0x0E, 0x01, 0x1E},
+         {0x1F, 0x04, 0x04, 0x04, 0x04},
+         {0x11, 0x11, 0x11, 0x11, 0x0E},
+         {0x11, 0x11, 0x11, 0x0A, 0x04},
+         {0x11, 0x11, 0x15, 0x1B, 0x11},
+         {0x11, 0x0A, 0x04, 0x0A, 0x11},
+         {0x11, 0x11, 0x0E, 0x04, 0x04},
+         {0x1F, 0x02, 0x04, 0x08, 0x1F},
+         {0x00, 0x0A, 0x04, 0x0A, 0x00},
+         {0x00, 0x04, 0x0E, 0x04, 0x00},
+         {0x00, 0x00, 0x04, 0x04, 0x08},
+         {0x00, 0x00, 0x0E, 0x00, 0x00},
+         {0x00, 0x00, 0x00, 0x00, 0x08},
+         {0x00, 0x02, 0x04, 0x08, 0x00},
+         {0x00, 0x04, 0x00, 0x04, 0x00},
+         {0x00, 0x04, 0x00, 0x04, 0x04},
+         {0x02, 0x04, 0x08, 0x04, 0x02},
+         {0x00, 0x1F, 0x00, 0x1F, 0x00},
+         {0x08, 0x04, 0x02, 0x04, 0x08},
+         {0x0E, 0x11, 0x06, 0x00, 0x04},
+         {0x04, 0x04, 0x04, 0x00, 0x04},
+         {0x1F, 0x11, 0x15, 0x11, 0x1F}}};
+
+    i32 colorIdx {-1};
+    for (i32 i {0}; i < PALETTE.size(); ++i) {
+        if (PALETTE[i] == color) {
+            colorIdx = i;
+            break;
+        }
+    }
+    if (colorIdx == -1) { return; }
+
+    _dmd.mutate([&](auto& dmd) {
+        for (i32 i {0}; i < text.size(); ++i) {
+            char c {text[i]};
+            i32  index {49};
+            if (c >= '0' && c <= '9') {
+                index = c - '0';
+            } else if (c >= 'A' && c <= 'Z') {
+                index = 10 + (c - 'A');
+            } else if (c >= 'a' && c <= 'z') {
+                index = 10 + (c - 'a');
+            } else if (c >= '*' && c <= '/') {
+                index = 36 + (c - '*');
+            } else if (c >= ':' && c <= '?') {
+                index = 42 + (c - ':');
+            } else if (c == '!') {
+                index = 48;
+            }
+
+            for (i32 y {0}; y < 5; ++y) {
+                u8 const row {font5x5[index][y]};
+                for (i32 x {0}; x < 5; ++x) {
+                    if ((row & (1 << (4 - x))) == 0) { continue; }
+                    point_i const p {pos.X + (i * 6) + x, pos.Y + (y)};
+                    if (p.X < DMD_SIZE.Width && p.Y < DMD_SIZE.Height) {
+                        dmd[p.X, p.Y] = static_cast<u8>(colorIdx);
+                    }
+                }
+            }
+        }
+    });
 }
 
 ////////////////////////////////////////////////////////////
