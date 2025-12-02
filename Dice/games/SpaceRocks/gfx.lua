@@ -146,6 +146,9 @@ function gfx.draw_dmd(dmd, game)
     dmd:blit({ x = slots.bullets.position.x, y = slots.bullets.position.y, width = 13, height = 13 }, string.rep("3", 13 * 13))
     dmd:blit({ x = slots.turn.position.x, y = slots.turn.position.y, width = 13, height = 13 }, string.rep("3", 13 * 13))
     dmd:blit({ x = slots.speed.position.x, y = slots.speed.position.y, width = 13, height = 13 }, string.rep("3", 13 * 13))
+    dmd:blit({ x = 0, y = 0, width = DMDSize.width, height = 1 }, string.rep("6", DMDSize.width))
+    dmd:blit({ x = 0, y = DMDSize.height - 2, width = DMDSize.width, height = 1 }, string.rep("3", DMDSize.width))
+    dmd:blit({ x = 0, y = DMDSize.height - 1, width = DMDSize.width, height = 1 }, string.rep("5", DMDSize.width))
 end
 
 return gfx

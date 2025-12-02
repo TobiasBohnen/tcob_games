@@ -9,7 +9,7 @@
 
 ////////////////////////////////////////////////////////////
 
-class game_form : public ui::form<ui::dock_layout> {
+class game_form : public ui::form<ui::grid_layout> {
 public:
     game_form(rect_f const& bounds, assets::group const& grp, shared_state& state, event_bus& events);
 

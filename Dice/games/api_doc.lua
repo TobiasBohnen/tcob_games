@@ -50,7 +50,6 @@
 ---@field slots slot[]
 
 ---@class palette
----@field Transparent color
 ---@field Black color
 ---@field Gray color
 ---@field White color
@@ -63,6 +62,7 @@
 ---@field DarkGreen color
 ---@field Green color
 ---@field LightGreen color
+---@field BlueGray color
 ---@field DarkBlue color
 ---@field Blue color
 ---@field LightBlue color

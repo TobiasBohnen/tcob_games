@@ -13,33 +13,31 @@ using namespace std::chrono_literals;
 ////////////////////////////////////////////////////////////
 
 game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_state& state, event_bus& events)
-    : form {{.Name = "game", .Bounds = rect_i {bounds}}}
+    : form {{.Name = "game", .Bounds = rect_i {bounds}}, size_i {100, 100}}
     , _sharedState {state}
 {
     gen_styles(grp);
 
     {
-        auto& panel1 {create_container<ui::panel>(dock_style::Top, "panel1")};
-        panel1.Flex = {.Width = 100_pct, .Height = 71.5_pct};
+        auto& panel1 {create_container<ui::panel>(rect_i {0, 0, 100, 73}, "panel1")};
         panel1.disable();
-        auto& layout {panel1.create_layout<dock_layout>()};
+        auto& layout {panel1.create_layout<grid_layout>(size_i {100, 100})};
 
-        auto& ssd {layout.create_widget<seven_segment_display>(dock_style::Top, "ssd")};
-        ssd.Flex = {.Width = 100_pct, .Height = 8.6_pct};
+        auto& ssd {layout.create_widget<seven_segment_display>({0, 0, 100, 8}, "ssd")};
         _sharedState.Score.Changed.connect([&]() { _updateSsd = true; });
         ssd.disable();
 
-        auto& dmd {layout.create_widget<dot_matrix_display>(dock_style::Fill, "dmd")};
+        auto& dmd {layout.create_widget<dot_matrix_display>({0, 10, 100, 90}, "dmd")};
         _sharedState.DMD.Changed.connect([&]() { _updateDmd = true; });
         dmd.disable();
         dmd.Bounds.Changed.connect([this, &panel1, &dmd](rect_f const& rect) {
             _sharedState.DMDBounds = {
-                local_to_screen(dmd, rect.Position),
+                local_to_screen(dmd, dmd.content_bounds().Position),
                 {dmd.content_bounds().width(), dmd.content_bounds().width() / DMD_SIZE.Width * DMD_SIZE.Height}};
         });
     }
     {
-        auto& panel2 {create_container<ui::panel>(dock_style::Fill, "panel2")};
+        auto& panel2 {create_container<ui::panel>(rect_i {0, 75, 100, 25}, "panel2")};
         auto& layout {panel2.create_layout<dock_layout>()};
 
         auto& btn {layout.create_widget<button>(dock_style::Bottom, "btnTurn")};
@@ -115,7 +113,7 @@ void game_form::gen_styles(assets::group const& grp)
         auto style {styles.create<seven_segment_display>("seven_segment_display", {})};
         style->Size              = 5_pct;
         style->Padding           = 1_pct;
-        style->Border.Size       = 2_pct;
+        style->Border.Size       = 1_pct;
         style->Background        = colors::Black;
         style->ActiveColor       = colors::Red;
         style->InactiveColor     = colors::Black;
