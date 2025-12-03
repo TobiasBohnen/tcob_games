@@ -22,5 +22,6 @@ private:
     shared_state& _sharedState;
 
     bool _updateDmd {true};
-    bool _updateSsd {true};
+    bool _updateSsd0 {true};
+    bool _updateSsd1 {true};
 };

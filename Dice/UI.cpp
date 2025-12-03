@@ -23,9 +23,13 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
         panel1.disable();
         auto& layout {panel1.create_layout<grid_layout>(size_i {100, 100})};
 
-        auto& ssd {layout.create_widget<seven_segment_display>({0, 0, 100, 8}, "ssd")};
-        _sharedState.Score.Changed.connect([&]() { _updateSsd = true; });
-        ssd.disable();
+        auto& ssd0 {layout.create_widget<seven_segment_display>({0, 0, 50, 10}, "ssd0")};
+        _sharedState.Score.Changed.connect([&]() { _updateSsd0 = true; });
+        ssd0.disable();
+
+        auto& ssd1 {layout.create_widget<seven_segment_display>({50, 0, 50, 10}, "ssd1")};
+        _sharedState.CustomValue.Changed.connect([&]() { _updateSsd1 = true; });
+        ssd1.disable();
 
         auto& dmd {layout.create_widget<dot_matrix_display>({0, 10, 100, 90}, "dmd")};
         _sharedState.DMD.Changed.connect([&]() { _updateDmd = true; });
@@ -37,7 +41,7 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
         });
     }
     {
-        auto& panel2 {create_container<ui::panel>(rect_i {0, 75, 100, 25}, "panel2")};
+        auto& panel2 {create_container<ui::panel>(rect_i {0, 73, 100, 25}, "panel2")};
         auto& layout {panel2.create_layout<dock_layout>()};
 
         auto& btn {layout.create_widget<button>(dock_style::Bottom, "btnTurn")};
@@ -57,11 +61,16 @@ void game_form::on_update(milliseconds deltaTime)
         dynamic_cast<dot_matrix_display*>(find_widget_by_name("dmd"))->Dots = *_sharedState.DMD;
         _updateDmd                                                          = false;
     }
-    if (_updateSsd) {
-        dynamic_cast<seven_segment_display*>(find_widget_by_name("ssd"))->draw_text(std::to_string(*_sharedState.Score));
-        _updateSsd = false;
+    if (_updateSsd0) {
+        auto* ssd {dynamic_cast<seven_segment_display*>(find_widget_by_name("ssd0"))};
+        ssd->draw_text(std::format("{:07}", std::clamp(*_sharedState.Score, 0, 9'999'999)));
+        _updateSsd0 = false;
     }
-
+    if (_updateSsd1) {
+        auto* ssd {dynamic_cast<seven_segment_display*>(find_widget_by_name("ssd1"))};
+        ssd->draw_text(std::format("{:7}", std::clamp(*_sharedState.CustomValue, 0, 9'999'999)));
+        _updateSsd1 = false;
+    }
     form_base::on_update(deltaTime);
 }
 
@@ -70,11 +79,12 @@ void game_form::gen_styles(assets::group const& grp)
     style_collection styles;
     {
         auto style {styles.create<panel>("panel", {})};
+        style->Padding     = 2_pct;
         style->Border.Size = 2_pct;
-        style->Padding     = {1_pct};
+        style->Border.Type = border_type::Cornered;
 
-        style->Background        = colors::LightSteelBlue;
-        style->Border.Background = colors::White;
+        style->Background        = colors::Beige;
+        style->Border.Background = colors::Maroon;
     }
     {
         auto style {styles.create<button>("button", {})};
@@ -111,13 +121,15 @@ void game_form::gen_styles(assets::group const& grp)
     }
     {
         auto style {styles.create<seven_segment_display>("seven_segment_display", {})};
-        style->Size              = 5_pct;
-        style->Padding           = 1_pct;
-        style->Border.Size       = 1_pct;
+        style->Size              = 11.0_pct;
+        style->Padding           = {3_pct, 0_pct, 2.5_pct, 0_pct};
+        style->Margin            = {0_pct, 0_pct, 1.5_pct, 2_pct};
+        style->Border.Size       = 2_pct;
         style->Background        = colors::Black;
-        style->ActiveColor       = colors::Red;
+        style->ActiveColor       = colors::FireBrick;
         style->InactiveColor     = colors::Black;
-        style->Border.Background = colors::LightSteelBlue;
+        style->Border.Type       = border_type::Inset;
+        style->Border.Background = colors::Gray;
     }
     {
         auto style {styles.create<dot_matrix_display>("dot_matrix_display", {})};
