@@ -59,6 +59,7 @@ struct event_bus {
     signal<>                      Start;
     signal<collision_event const> Collision;
     signal<slot* const>           SlotDieChanged;
+    signal<slot* const>           SlotHoverChanged;
 };
 
 struct shared_state {

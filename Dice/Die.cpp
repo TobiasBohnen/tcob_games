@@ -99,11 +99,10 @@ void die::move_by(point_f offset)
     });
 }
 
-void die::on_slotted(rect_f const& bounds, gfx::shape_batch& batch)
+void die::on_slotted(rect_f const& bounds)
 {
     _colorState    = die_state::Hovered;
     _shape->Bounds = bounds;
-    batch.send_to_back(*_shape);
 }
 
 ////////////////////////////////////////////////////////////
@@ -159,7 +158,7 @@ void dice::drag(point_f mousePos, rect_f const& winBounds)
     _hoverDie->_colorState    = die_state::Dragged;
 }
 
-void dice::hover(point_f mousePos)
+auto dice::hover(point_f mousePos) -> bool
 {
     auto const findDie {[&](point_f mp) -> die* {
         auto const vec {_batch.intersect({mp, size_f::One})};
@@ -183,7 +182,12 @@ void dice::hover(point_f mousePos)
         }
     }
 
-    _hoverDie = die;
+    if (_hoverDie != die) {
+        _hoverDie = die;
+        return true;
+    }
+
+    return false;
 }
 
 void dice::update(milliseconds deltaTime)

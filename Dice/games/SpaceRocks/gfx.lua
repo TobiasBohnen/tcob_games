@@ -114,7 +114,7 @@ local ship_pattern     = [[0i2b0r2b0q2d0p2d0p2d0o2f0n2f0m2h0l2h0l2h0k2j0j2j0j2j0
 
 ---@param dmd dmd
 function gfx.draw_dmd(dmd, game)
-    local slots        = game.slots
+    local slots        = game.slots ---@type {[string]: slot})
     local bulletsValue = slots.bullets.dieValue
     local speedValue   = slots.speed.dieValue
     local turnValue    = slots.turn.dieValue
@@ -143,9 +143,15 @@ function gfx.draw_dmd(dmd, game)
         dmd:blit(region, turn_patterns[turnValue])
     end
 
-    dmd:blit({ x = slots.bullets.position.x, y = slots.bullets.position.y, width = 13, height = 13 }, string.rep("3", 13 * 13))
-    dmd:blit({ x = slots.turn.position.x, y = slots.turn.position.y, width = 13, height = 13 }, string.rep("3", 13 * 13))
-    dmd:blit({ x = slots.speed.position.x, y = slots.speed.position.y, width = 13, height = 13 }, string.rep("3", 13 * 13))
+    local function draw_slot(pos, hovered)
+        local col = hovered and "3" or "9"
+        dmd:blit({ x = pos.x, y = pos.y, width = 13, height = 13 }, string.rep(col, 13 * 13))
+        dmd:blit({ x = pos.x + 1, y = pos.y + 1, width = 11, height = 11 }, string.rep("A", 11 * 11))
+    end
+    draw_slot(slots.bullets.position, slots.bullets.isHovered)
+    draw_slot(slots.turn.position, slots.turn.isHovered)
+    draw_slot(slots.speed.position, slots.speed.isHovered)
+
     dmd:blit({ x = 0, y = 0, width = DMDSize.width, height = 1 }, string.rep("6", DMDSize.width))
     dmd:blit({ x = 0, y = DMDSize.height - 2, width = DMDSize.width, height = 1 }, string.rep("3", DMDSize.width))
     dmd:blit({ x = 0, y = DMDSize.height - 1, width = DMDSize.width, height = 1 }, string.rep("5", DMDSize.width))

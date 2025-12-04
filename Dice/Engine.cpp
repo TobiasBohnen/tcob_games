@@ -74,7 +74,12 @@ engine::engine(init const& init)
 
     _init.Events.SlotDieChanged.connect([this](auto const& ev) {
         if (_gameStatus != game_status::TurnEnded) { return; }
-        call(_callbacks.OnDieChanged, ev);
+        call(_callbacks.OnDieChange, ev);
+    });
+
+    _init.Events.SlotHoverChanged.connect([this](auto const& ev) {
+        if (_gameStatus != game_status::TurnEnded) { return; }
+        call(_callbacks.OnHoverChange, ev);
     });
 
     _init.Events.Start.connect([this]() { start_turn(); });
@@ -114,29 +119,30 @@ void engine::run(string const& file)
     _table = *_script.run_file<table>(file);
 
     _table.try_get(_callbacks.OnCollision, "on_collision");
-    _table.try_get(_callbacks.OnDieChanged, "on_die_changed");
+    _table.try_get(_callbacks.OnDieChange, "on_die_change");
+    _table.try_get(_callbacks.OnHoverChange, "on_hover_change");
     _table.try_get(_callbacks.OnSetup, "on_setup");
     _table.try_get(_callbacks.OnTeardown, "on_teardown");
-    _table.try_get(_callbacks.Update, "update");
-    _table.try_get(_callbacks.Finish, "finish");
-    _table.try_get(_callbacks.CanStart, "can_start");
-    _table.try_get(_callbacks.Start, "start");
+    _table.try_get(_callbacks.OnTurnUpdate, "on_turn_update");
+    _table.try_get(_callbacks.OnTurnFinish, "on_turn_finish");
+    _table.try_get(_callbacks.CanStartTurn, "can_start_turn");
+    _table.try_get(_callbacks.OnTurnStart, "on_turn_start");
 
     call(_callbacks.OnSetup);
 }
 
 auto engine::update(milliseconds deltaTime) -> bool
 {
-    _init.State.CanStart = _gameStatus == game_status::TurnEnded && call(_callbacks.CanStart);
+    _init.State.CanStart = _gameStatus == game_status::TurnEnded && call(_callbacks.CanStartTurn);
 
     if (_gameStatus != game_status::Running) { return false; }
 
-    game_status const status {static_cast<game_status>(call(_callbacks.Update, deltaTime.count()))};
+    game_status const status {static_cast<game_status>(call(_callbacks.OnTurnUpdate, deltaTime.count()))};
     _gameStatus = status;
 
     switch (status) {
     case Running:   return true;
-    case TurnEnded: call(_callbacks.Finish); return false;
+    case TurnEnded: call(_callbacks.OnTurnFinish); return false;
     case GameOver:  call(_callbacks.OnTeardown); return false;
     }
 
@@ -147,9 +153,9 @@ auto engine::start_turn() -> bool
 {
     if (_gameStatus != game_status::TurnEnded) { return false; }
 
-    if (call(_callbacks.CanStart)) {
+    if (call(_callbacks.CanStartTurn)) {
         _init.Slots->lock();
-        call(_callbacks.Start);
+        call(_callbacks.OnTurnStart);
         _gameStatus = game_status::Running;
         return true;
     }
@@ -267,6 +273,8 @@ void engine::create_slot_wrapper()
         [](slot* slot) { return slot->Owner; }};
     slotWrapper["isEmpty"] = getter {
         [](slot* slot) { return slot->is_empty(); }};
+    slotWrapper["isHovered"] = getter {
+        [this](slot* slot) { return slot == _init.Slots->get_hovered(); }};
     slotWrapper["dieValue"] = getter {
         [](slot* slot) -> u8 { return slot->is_empty() ? 0 : slot->current_die()->current_face().Value; }};
     slotWrapper["position"] = property {

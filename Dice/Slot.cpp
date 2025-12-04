@@ -4,16 +4,14 @@
 // https://opensource.org/licenses/MIT
 
 #include <algorithm>
-#include <utility>
 
 #include "Die.hpp"
 #include "Slot.hpp"
 
 ////////////////////////////////////////////////////////////
 
-slot::slot(gfx::rect_shape* shape, slot_face face)
-    : _shape {shape}
-    , _face {face}
+slot::slot(slot_face face)
+    : _face {face}
 {
 }
 
@@ -54,8 +52,6 @@ auto slot::can_insert_die(die_face dieFace) const -> bool
 
 void slot::insert_die(die* die)
 {
-    _colorState = slot_state::Normal;
-
     _die = die;
     if (_die) { _die->freeze(); }
 }
@@ -71,28 +67,13 @@ void slot::remove_die()
     _die = nullptr;
 }
 
-void slot::update(milliseconds deltaTime) const
-{
-    // TODO: accept/reject texregion
-    switch (_colorState) {
-    case slot_state::Normal:  _shape->Color = colors::White; break;
-    case slot_state::Hovered: _shape->Color = colors::Gray; break;
-    case slot_state::Accept:  _shape->Color = colors::Gray; break;
-    case slot_state::Reject:  _shape->Color = colors::White; break;
-    }
-}
-auto slot::bounds() const -> rect_f const& { return *_shape->Bounds; }
-void slot::move_to(point_f pos)
-{
-    _shape->Bounds = {pos, _shape->Bounds->Size};
-}
+auto slot::bounds() const -> rect_f const& { return _bounds; }
+void slot::move_to(point_f pos) { _bounds = {pos, _bounds.Size}; }
 
 ////////////////////////////////////////////////////////////
 
-slots::slots(gfx::shape_batch& batch, asset_ptr<gfx::font_family> font, size_f scale)
-    : _batch {batch}
-    , _painter {{10, 50}, std::move(font)}
-    , _scale {scale}
+slots::slots(size_f scale)
+    : _scale {scale}
 {
 }
 
@@ -102,14 +83,8 @@ void slots::unlock() { _locked = false; }
 
 auto slots::add_slot(slot_face face) -> slot*
 {
-    auto* shape {&_batch.create_shape<gfx::rect_shape>()};
-    shape->Bounds        = {point_f::Zero, DICE_SIZE * _scale};
-    shape->Material      = _painter.material();
-    shape->TextureRegion = face.texture_region();
-
-    auto& retValue {_slots.emplace_back(std::make_unique<slot>(shape, face))};
-    _painter.make_slot(face);
-
+    auto& retValue {_slots.emplace_back(std::make_unique<slot>(face))};
+    retValue->_bounds = {point_f::Zero, DICE_SIZE * _scale};
     return retValue.get();
 }
 
@@ -118,20 +93,20 @@ auto slots::try_insert_die(die* hoverDie) -> bool
     if (_locked || !hoverDie || !_hoverSlot || !_hoverSlot->can_insert_die(hoverDie->current_face())) { return false; }
 
     _hoverSlot->insert_die(hoverDie);
-    hoverDie->on_slotted(*_hoverSlot->_shape->Bounds, _batch);
+    hoverDie->on_slotted(_hoverSlot->_bounds);
     return true;
 }
 
-void slots::hover(rect_f const& rect, die* die, bool isButtonDown)
+auto slots::hover(rect_f const& rect, die* die, bool isButtonDown) -> bool
 {
-    if (_locked) { return; }
+    if (_locked) { return false; }
 
     auto const find {[&](rect_f const& rect) -> slot* {
         slot* bestSlot {nullptr};
         f32   maxArea {0.0f};
 
         for (auto& s : _slots) {
-            auto const& slotRect {*s->_shape->Bounds};
+            auto const& slotRect {s->_bounds};
             auto const  interSect {rect.as_intersection_with(slotRect)};
             if (interSect.Size.area() > maxArea) {
                 maxArea  = interSect.Size.area();
@@ -143,16 +118,12 @@ void slots::hover(rect_f const& rect, die* die, bool isButtonDown)
     }};
 
     auto* slot {find(rect)};
-    if (slot) {
-        if (!die) {
-            slot->_colorState = slot_state::Hovered;
-        } else if (isButtonDown) {
-            slot->_colorState = slot->can_insert_die(die->current_face()) ? slot_state::Accept : slot_state::Reject;
-        }
+    if (_hoverSlot != slot) {
+        _hoverSlot = slot;
+        return true;
     }
-    if (slot != _hoverSlot && _hoverSlot) { _hoverSlot->_colorState = slot_state::Normal; }
 
-    _hoverSlot = slot;
+    return false;
 }
 
 auto slots::try_remove_die(die* die) -> slot*
@@ -175,7 +146,7 @@ void slots::reset(std::span<slot* const> slots)
         auto* die {slot->current_die()};
         if (!die) { continue; }
         slot->remove_die();
-        die->move_by({0, (*slot->_shape->Bounds).height()}); // TODO: random die movement
+        die->move_by({0, slot->_bounds.height()}); // TODO: random die movement
     }
 }
 
@@ -266,12 +237,6 @@ auto slots::are_filled() const -> bool
     return std::ranges::all_of(_slots, [](auto const& slot) { return !slot->is_empty(); });
 }
 
-void slots::update(milliseconds deltaTime)
-{
-    for (auto& slot : _slots) {
-        slot->update(deltaTime);
-    }
-}
 auto slots::count() const -> usize
 {
     return _slots.size();

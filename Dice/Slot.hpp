@@ -12,18 +12,28 @@
 
 ////////////////////////////////////////////////////////////
 
-enum class slot_state : u8 {
-    Normal,
-    Hovered,
-    Accept,
-    Reject
+enum class op : u8 {
+    Equal    = 0,
+    NotEqual = 1,
+    Greater  = 2,
+    Less     = 3
 };
+
+struct slot_face {
+    u8    Value {0};
+    color Color {colors::Transparent};
+    op    Op {op::Equal};
+
+    auto operator==(slot_face const& other) const -> bool = default;
+};
+
+////////////////////////////////////////////////////////////
 
 class slot {
     friend class slots;
 
 public:
-    slot(gfx::rect_shape* shape, slot_face face);
+    explicit slot(slot_face face);
 
     scripting::table Owner;
 
@@ -35,26 +45,23 @@ public:
     auto can_remove_die(die* die) const -> bool;
     void remove_die();
 
-    void update(milliseconds deltaTime) const;
-
     auto bounds() const -> rect_f const&;
     void move_to(point_f pos);
 
 private:
-    gfx::rect_shape* _shape {nullptr};
-    die*             _die {nullptr};
+    rect_f _bounds {};
+    die*   _die {nullptr};
 
     bool _locked {false};
 
-    slot_face  _face;
-    slot_state _colorState {slot_state::Normal};
+    slot_face _face;
 };
 
 ////////////////////////////////////////////////////////////
 
 class slots {
 public:
-    slots(gfx::shape_batch& batch, asset_ptr<gfx::font_family> font, size_f scale);
+    explicit slots(size_f scale);
 
     void lock();
     void unlock();
@@ -62,15 +69,13 @@ public:
     auto add_slot(slot_face face) -> slot*;
     auto count() const -> usize;
 
-    void hover(rect_f const& rect, die* die, bool isButtonDown);
+    auto hover(rect_f const& rect, die* die, bool isButtonDown) -> bool;
 
     auto try_insert_die(die* die) -> bool;
     auto try_remove_die(die* die) -> slot*;
 
     void reset(std::span<slot* const> slots);
     auto get_hand(std::span<slot* const> slots) const -> hand;
-
-    void update(milliseconds deltaTime);
 
     auto get_hovered() const -> slot*
     {
@@ -82,9 +87,7 @@ private:
 
     std::vector<std::unique_ptr<slot>> _slots {};
 
-    gfx::shape_batch& _batch;
-    slot_painter      _painter;
-    size_f            _scale;
+    size_f _scale;
 
     bool _locked {false};
 

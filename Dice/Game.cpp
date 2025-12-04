@@ -10,7 +10,7 @@ using namespace scripting;
 base_game::base_game(assets::group const& grp, size_f realWindowSize)
     : gfx::entity {update_mode::Both}
     , _background(&_spriteBatch.create_shape<gfx::rect_shape>())
-    , _slots {_diceBatch, grp.get<gfx::font_family>("Font"), realWindowSize / DICE_SLOTS_REF_SIZE}
+    , _slots {realWindowSize / DICE_SLOTS_REF_SIZE}
     , _dice {_diceBatch, realWindowSize / DICE_SLOTS_REF_SIZE}
     , _engine {engine::init {.State             = _sharedState,
                              .Events            = _events,
@@ -46,7 +46,6 @@ base_game::base_game(assets::group const& grp, size_f realWindowSize)
 void base_game::on_update(milliseconds deltaTime)
 {
     _dice.update(deltaTime);
-    _slots.update(deltaTime);
 
     _spriteBatch.update(deltaTime);
     _form0->update(deltaTime);
@@ -106,17 +105,13 @@ void base_game::on_mouse_button_down(input::mouse::button_event const& ev)
 
 void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
 {
-    auto const mp {point_f {ev.Position}};
-
     bool const isButtonDown {ev.Mouse->is_button_down(input::mouse::button::Left)};
-
-    if (!isButtonDown) {
-        _dice.hover(mp);
-    }
+    auto const mp {point_f {ev.Position}};
+    if (!isButtonDown) { _dice.hover(mp); }
 
     auto*      hoverDie {_dice.get_hovered()};
     auto const getRect {[&] -> rect_f {
-        if (hoverDie) {
+        if (hoverDie && isButtonDown) {
             rect_i const  bounds {hoverDie->bounds()};
             point_f const tl {bounds.top_left()};
             point_f const br {bounds.bottom_right()};
@@ -126,7 +121,10 @@ void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
         return {mp, size_f::One};
     }};
 
-    _slots.hover(getRect(), hoverDie, isButtonDown);
+    if (_slots.hover(getRect(), hoverDie, isButtonDown)) {
+        _events.SlotHoverChanged(_slots.get_hovered());
+    }
+
     if (isButtonDown) {
         if (auto* slot {_slots.try_remove_die(hoverDie)}) {
             _events.SlotDieChanged(slot);

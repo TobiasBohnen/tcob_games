@@ -87,15 +87,16 @@ GameStatus = {
 ---@field on_setup fun(self: game_module, engine: engine)
 ---@field on_teardown fun(self: game_module, engine: engine)
 ---@
----@field update fun(self: game_module, deltaTime: number): game_status
+---@field can_start_turn fun(self: game_module, engine: engine): boolean
+---@field on_turn_start fun(self: game_module, engine: engine)
 ---@
----@field can_start fun(self: game_module, engine: engine): boolean
----@field start fun(self: game_module, engine: engine)
+---@field on_turn_update fun(self: game_module, deltaTime: number): game_status
 ---@
----@field finish fun(self: game_module, engine: engine)
+---@field on_turn_finish fun(self: game_module, engine: engine)
 ---@
 ---@field on_collision fun(self: game_module, engine: engine, spriteA: sprite, spriteB: sprite)
----@field on_die_changed fun(self: game_module, engine: engine, slot: slot)
+---@field on_die_change fun(self: game_module, engine: engine, slot: slot)
+---@field on_hover_change fun(self: game_module, engine: engine, slot: slot)
 
 --------------------------------
 -- Sprite
@@ -115,10 +116,11 @@ GameStatus = {
 --------------------------------
 
 ---@class slot
----@field position point
----@field isEmpty boolean @readonly
----@field dieValue integer @readonly
 ---@field owner table @readonly
+---@field isEmpty boolean @readonly
+---@field isHovered boolean @readonly
+---@field dieValue integer @readonly
+---@field position point
 
 --------------------------------
 -- Die

@@ -70,13 +70,13 @@ function game:on_setup(engine)
 end
 
 ---@param engine engine
-function game:can_start(engine)
+function game:can_start_turn(engine)
     local s = self.slots
     return not (s.speed.isEmpty or s.turn.isEmpty or s.bullets.isEmpty)
 end
 
 ---@param engine engine
-function game:start(engine)
+function game:on_turn_start(engine)
     self.updateTime = 0
     self.bulletTime = 0
 
@@ -89,7 +89,7 @@ end
 
 ---@param engine engine
 ---@param deltaTime number
-function game:update(engine, deltaTime)
+function game:on_turn_update(engine, deltaTime)
     self.updateTime = self.updateTime + deltaTime
     if self.updateTime >= DURATION then return GameStatus.TurnEnded end
 
@@ -144,12 +144,18 @@ end
 
 ---@param engine engine
 ---@param slot slot
-function game:on_die_changed(engine, slot)
+function game:on_die_change(engine, slot)
     gfx.draw_dmd(engine.dmd, self)
 end
 
 ---@param engine engine
-function game:finish(engine)
+---@param slot slot
+function game:on_hover_change(engine, slot)
+    gfx.draw_dmd(engine.dmd, self)
+end
+
+---@param engine engine
+function game:on_turn_finish(engine)
     engine:reset_slots(self.slots)
     engine:roll_dice()
     gfx.draw_dmd(engine.dmd, self)
