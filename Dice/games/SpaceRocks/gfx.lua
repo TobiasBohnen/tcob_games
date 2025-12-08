@@ -1,8 +1,3 @@
--- Copyright (c) 2025 Tobias Bohnen
---
--- This software is released under the MIT License.
--- https://opensource.org/licenses/MIT
-
 local gfx = {}
 
 ---@param engine engine
@@ -33,7 +28,11 @@ function gfx.get_background(game, engine)
         end
     end
 
-    return table.concat(buf)
+    return {
+        [0] = {
+            bitmap = table.concat(buf)
+        }
+    }
 end
 
 local function square(x)
@@ -151,10 +150,6 @@ function gfx.draw_dmd(dmd, game)
     draw_slot(slots.bullets.position, slots.bullets.isHovered)
     draw_slot(slots.turn.position, slots.turn.isHovered)
     draw_slot(slots.speed.position, slots.speed.isHovered)
-
-    dmd:blit({ x = 0, y = 0, width = DMDSize.width, height = 1 }, string.rep("6", DMDSize.width))
-    dmd:blit({ x = 0, y = DMDSize.height - 2, width = DMDSize.width, height = 1 }, string.rep("3", DMDSize.width))
-    dmd:blit({ x = 0, y = DMDSize.height - 1, width = DMDSize.width, height = 1 }, string.rep("5", DMDSize.width))
 end
 
 return gfx

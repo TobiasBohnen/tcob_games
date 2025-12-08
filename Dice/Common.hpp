@@ -68,6 +68,7 @@ struct shared_state {
 
     prop<bool>     CanStart {false};
     prop<i32>      Score;
-    prop<i32>      CustomValue;
+    prop<string>   CustomValue;
     prop<grid<u8>> DMD {grid<u8> {DMD_SIZE, 0}};
+    prop<string>   Background {"default"};
 };

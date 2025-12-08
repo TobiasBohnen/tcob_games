@@ -163,9 +163,11 @@ GameStatus = {
 ---@field dmd dmd
 ---@field sfx sfx
 ---
----@field create_background fun(self: engine, string: string)
+---@field create_backgrounds fun(self: engine, bgMap: {[integer]: table})
 ---@field create_textures fun(self: engine, texMap: {[integer]: table})
 ---@field create_sounds fun(self: engine, soundMap: {[integer]: table})
+---
+---@field set_background fun(self: engine, idx: integer)
 ---
 ---@field random fun(self: engine, min: number, max: number): number
 ---@field random_int fun(self: engine, min: integer, max: integer): integer

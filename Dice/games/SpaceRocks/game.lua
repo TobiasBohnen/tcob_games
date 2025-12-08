@@ -1,10 +1,3 @@
--- Copyright (c) 2025 Tobias Bohnen
---
--- This software is released under the MIT License.
--- https://opensource.org/licenses/MIT
-
-------
-
 local DURATION            = 2500
 local HALF_DURATION       = DURATION * 0.5
 local INIT_ASTEROID_COUNT = 10
@@ -46,7 +39,7 @@ local game                = {
 
 ---@param engine engine
 function game:on_setup(engine)
-    engine:create_background(gfx.get_background(self, engine))
+    engine:create_backgrounds(gfx.get_background(self, engine))
     engine:create_textures(gfx.get_textures(self, engine))
     engine:create_sounds(sfx.get_sounds(self, engine))
 
@@ -152,6 +145,7 @@ end
 ---@param slot slot
 function game:on_hover_change(engine, slot)
     gfx.draw_dmd(engine.dmd, self)
+    engine:set_background(self.slots.bullets.isHovered and 1 or 0)
 end
 
 ---@param engine engine

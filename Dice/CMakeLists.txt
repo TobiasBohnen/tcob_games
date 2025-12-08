@@ -43,7 +43,7 @@ foreach(subdir ${GAMES_SUBDIRS})
             COMMAND ${CMAKE_COMMAND} -E tar
             "cf"
             "${TARGET_DIR}/${subdir}.die"
-            --format=zip
+            --format=7zip
             -- "${subdir}"
             WORKING_DIRECTORY "${GAMES_DIR}"
         )

@@ -41,6 +41,10 @@ base_game::base_game(assets::group const& grp, size_f realWindowSize)
     gfx::geometry::set_position(q, bgBounds);
     gfx::geometry::set_texcoords(q, {.UVRect = gfx::render_texture::UVRect(), .Level = 0});
     _screenRenderer.set_geometry(q, &_screenMaterial->first_pass());
+
+    _sharedState.Background.Changed.connect([&](auto const& val) {
+        _background->TextureRegion = val;
+    });
 }
 
 void base_game::on_update(milliseconds deltaTime)

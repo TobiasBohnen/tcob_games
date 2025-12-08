@@ -68,7 +68,7 @@ void game_form::on_update(milliseconds deltaTime)
     }
     if (_updateSsd1) {
         auto* ssd {dynamic_cast<seven_segment_display*>(find_widget_by_name("ssd1"))};
-        ssd->draw_text(std::format("{:7}", std::clamp(*_sharedState.CustomValue, 0, 9'999'999)));
+        ssd->draw_text(*_sharedState.CustomValue);
         _updateSsd1 = false;
     }
     form_base::on_update(deltaTime);

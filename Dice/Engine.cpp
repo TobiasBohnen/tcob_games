@@ -11,17 +11,16 @@
 
 using namespace scripting;
 
-static auto from_base26(string_view s) -> u32
-{
-    u32 n {0};
-    for (char c : s) {
-        n = (n * 26) + (c - 'a' + 1);
-    }
-    return n;
-}
-
 static auto get_pixel(string_view s, size_i size) -> std::vector<u8>
 {
+    static auto from_base26 {[](string_view s) -> u32 {
+        u32 n {0};
+        for (char c : s) {
+            n = (n * 26) + (c - 'a' + 1);
+        }
+        return n;
+    }};
+
     std::vector<u8> dots;
     dots.reserve(size.area());
 
@@ -295,23 +294,32 @@ void engine::create_engine_wrapper()
 {
     auto& engineWrapper {*_script.create_wrapper<engine>("engine")};
     // gfx
-    engineWrapper["create_background"] = [](engine* engine, string const& bitmap) {
+    engineWrapper["create_backgrounds"] = [](engine* engine, std::unordered_map<u32, table> const& bgMap) {
         auto const bgSize {size_i {VIRTUAL_SCREEN_SIZE}};
 
         auto* tex {engine->_init.BackgroundTexture};
-        tex->resize(bgSize, 1, gfx::texture::format::RGBA8);
+        tex->resize(bgSize, bgMap.size(), gfx::texture::format::RGBA8);
         tex->regions()["default"] = {.UVRect = {0, 0, 1, 1}, .Level = 0};
 
         gfx::image bgImg {gfx::image::CreateEmpty(bgSize, gfx::image::format::RGBA)};
+        u32        level {0};
+        for (auto const& [id, bgDefTable] : bgMap) {
+            string bitmap;
+            if (!bgDefTable.try_get(bitmap, "bitmap")) { return; }
+            engine->_backgrounds[id] = std::to_string(id);
 
-        auto const dots {get_pixel(bitmap, bgSize)};
-        isize      i {0};
-        for (i32 y {0}; y < bgSize.Height; ++y) {
-            for (i32 x {0}; x < bgSize.Width; ++x) {
-                bgImg.set_pixel({x, y}, PALETTE[dots[i++]]);
+            auto const dots {get_pixel(bitmap, bgSize)};
+            isize      i {0};
+            for (i32 y {0}; y < bgSize.Height; ++y) {
+                for (i32 x {0}; x < bgSize.Width; ++x) {
+                    bgImg.set_pixel({x, y}, PALETTE[dots[i++]]);
+                }
             }
+
+            tex->regions()[engine->_backgrounds[id]] = {.UVRect = {0, 0, 1, 1}, .Level = level};
+            tex->update_data(bgImg, level++);
         }
-        tex->update_data(bgImg, 0);
+
         tex->Filtering = gfx::texture::filtering::Linear;
     };
     engineWrapper["create_textures"] = [](engine* engine, std::unordered_map<u32, table> const& texMap) {
@@ -388,10 +396,11 @@ void engine::create_engine_wrapper()
     };
 
     // functions
-    engineWrapper["random"]        = [](engine* engine, f32 min, f32 max) { return engine->_init.State.Rng(min, max); };
-    engineWrapper["random_int"]    = [](engine* engine, i32 min, i32 max) { return engine->_init.State.Rng(min, max); };
-    engineWrapper["log"]           = [](string const& str) { logger::Info(str); };
-    engineWrapper["create_sprite"] = [](engine* engine, table const& spriteDef) {
+    engineWrapper["set_background"] = [](engine* engine, i32 idx) { engine->_init.State.Background = engine->_backgrounds[idx]; };
+    engineWrapper["random"]         = [](engine* engine, f32 min, f32 max) { return engine->_init.State.Rng(min, max); };
+    engineWrapper["random_int"]     = [](engine* engine, i32 min, i32 max) { return engine->_init.State.Rng(min, max); };
+    engineWrapper["log"]            = [](string const& str) { logger::Info(str); };
+    engineWrapper["create_sprite"]  = [](engine* engine, table const& spriteDef) {
         auto* sprite {engine->_init.Game->add_sprite()};
         sprite->Owner = spriteDef;
 
