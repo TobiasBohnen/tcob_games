@@ -88,7 +88,13 @@ template <typename R>
 inline auto engine::call(callback<R> const& func, auto&&... args) -> R
 {
     if (func) {
-        return (*func)(_table, this, args...);
+        auto& fn {*func};
+        auto  result {fn.protected_call(_table, this, args...)};
+        if (result) {
+            return result.value();
+        }
+
+        logger::Error("error calling function");
     }
 
     return R {};
@@ -290,11 +296,31 @@ void engine::create_slot_wrapper()
         }};
 }
 
+struct tex_def {
+    u32                ID {0};
+    size_i             Size {size_i::Zero};
+    string             Bitmap;
+    std::optional<u32> Transparent;
+    static auto constexpr Members()
+    {
+        return std::tuple {member<&tex_def::Size> {"size"}, member<&tex_def::Bitmap> {"bitmap"}, member<&tex_def::Transparent, std::nullopt> {"transparent"}};
+    }
+};
+struct bg_def {
+    string Bitmap;
+    static auto constexpr Members()
+    {
+        return std::tuple {member<&bg_def::Bitmap> {"bitmap"}};
+    }
+};
+
 void engine::create_engine_wrapper()
 {
     auto& engineWrapper {*_script.create_wrapper<engine>("engine")};
     // gfx
-    engineWrapper["create_backgrounds"] = [](engine* engine, std::unordered_map<u32, table> const& bgMap) {
+    engineWrapper["create_backgrounds"] = [](engine* engine, std::unordered_map<u32, bg_def> const& bgMap) {
+        engine->_backgrounds.clear();
+
         auto const bgSize {size_i {VIRTUAL_SCREEN_SIZE}};
 
         auto* tex {engine->_init.BackgroundTexture};
@@ -303,16 +329,13 @@ void engine::create_engine_wrapper()
 
         gfx::image bgImg {gfx::image::CreateEmpty(bgSize, gfx::image::format::RGBA)};
         u32        level {0};
-        for (auto const& [id, bgDefTable] : bgMap) {
-            string bitmap;
-            if (!bgDefTable.try_get(bitmap, "bitmap")) { return; }
+        for (auto const& [id, bgDef] : bgMap) {
             engine->_backgrounds[id] = std::to_string(id);
 
-            auto const dots {get_pixel(bitmap, bgSize)};
-            isize      i {0};
+            auto const dots {get_pixel(bgDef.Bitmap, bgSize)};
             for (i32 y {0}; y < bgSize.Height; ++y) {
                 for (i32 x {0}; x < bgSize.Width; ++x) {
-                    bgImg.set_pixel({x, y}, PALETTE[dots[i++]]);
+                    bgImg.set_pixel({x, y}, PALETTE[dots[x + (y * bgSize.Width)]]);
                 }
             }
 
@@ -322,28 +345,17 @@ void engine::create_engine_wrapper()
 
         tex->Filtering = gfx::texture::filtering::Linear;
     };
-    engineWrapper["create_textures"] = [](engine* engine, std::unordered_map<u32, table> const& texMap) {
+    engineWrapper["create_textures"] = [](engine* engine, std::unordered_map<u32, tex_def>& texMap) {
         engine->_textures.clear();
-
-        struct tex_def {
-            u32                ID {0};
-            size_i             Size {size_i::Zero};
-            string             BitmapString;
-            std::optional<u32> Transparent;
-        };
 
         constexpr i32        PAD {2};
         std::vector<tex_def> texDefs;
 
         // get canvas size
         size_i texImgSize {0, 0};
-        for (auto const& [id, texDefTable] : texMap) {
-            tex_def& texDef {texDefs.emplace_back()};
+        for (auto& [id, texDef] : texMap) {
             texDef.ID = id;
-            if (!texDefTable.try_get(texDef.Size, "size")) { return; }
-            if (!texDefTable.try_get(texDef.BitmapString, "bitmap")) { return; }
-            texDefTable.try_get(texDef.Transparent, "transparent");
-
+            texDefs.push_back(texDef);
             texImgSize.Width += texDef.Size.Width + (PAD * 2);
             texImgSize.Height = std::max(texImgSize.Height, static_cast<i32>(texDef.Size.Height + (PAD * 2)));
         }
@@ -364,22 +376,19 @@ void engine::create_engine_wrapper()
             assTex.Region = std::to_string(texDef.ID);
             assTex.Alpha  = grid<u8> {texDef.Size};
 
-            auto const dots {get_pixel(texDef.BitmapString, texDef.Size)};
-            isize      i {0};
+            auto const dots {get_pixel(texDef.Bitmap, texDef.Size)};
             for (i32 y {0}; y < texDef.Size.Height; ++y) {
                 for (i32 x {0}; x < texDef.Size.Width; ++x) {
-                    auto const  idx {dots[i++]};
-                    color const color {texDef.Transparent && *texDef.Transparent == idx ? colors::Transparent : PALETTE[idx]};
+                    auto const  idx {dots[x + (y * texDef.Size.Width)]};
+                    color const color {texDef.Transparent == idx ? colors::Transparent : PALETTE[idx]};
                     texImg.set_pixel(pen + point_i {x, y}, color);
                     assTex.Alpha[x, y] = color.A;
                 }
             }
 
             tex->regions()[assTex.Region] =
-                {.UVRect = {static_cast<f32>(pen.X) / static_cast<f32>(texImgSize.Width),
-                            static_cast<f32>(pen.Y) / static_cast<f32>(texImgSize.Height),
-                            static_cast<f32>(texDef.Size.Width) / static_cast<f32>(texImgSize.Width),
-                            static_cast<f32>(texDef.Size.Height) / static_cast<f32>(texImgSize.Height)},
+                {.UVRect = {static_cast<f32>(pen.X) / static_cast<f32>(texImgSize.Width), static_cast<f32>(pen.Y) / static_cast<f32>(texImgSize.Height),
+                            static_cast<f32>(texDef.Size.Width) / static_cast<f32>(texImgSize.Width), static_cast<f32>(texDef.Size.Height) / static_cast<f32>(texImgSize.Height)},
                  .Level  = 0};
 
             pen.X += texDef.Size.Width + (PAD * 2);
@@ -403,7 +412,6 @@ void engine::create_engine_wrapper()
     engineWrapper["create_sprite"]  = [](engine* engine, table const& spriteDef) {
         auto* sprite {engine->_init.Game->add_sprite()};
         sprite->Owner = spriteDef;
-
         spriteDef.try_get(sprite->IsCollidable, "collidable");
         spriteDef.try_get(sprite->IsWrappable, "wrappable");
 
