@@ -96,7 +96,7 @@ GameStatus = {
 ---@
 ---@field on_collision fun(self: game_module, engine: engine, spriteA: sprite, spriteB: sprite)
 ---@field on_die_change fun(self: game_module, engine: engine, slot: slot)
----@field on_hover_change fun(self: game_module, engine: engine, slot: slot)
+---@field on_hover_change fun(self: game_module, engine: engine, slot: slot, draggedDie: die)
 
 --------------------------------
 -- Sprite
@@ -127,7 +127,7 @@ GameStatus = {
 --------------------------------
 
 ---@class die
----@
+---@field value integer @readonly
 
 --------------------------------
 -- DMD

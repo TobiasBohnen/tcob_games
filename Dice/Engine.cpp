@@ -30,7 +30,7 @@ engine::engine(init const& init)
 
     _init.Events.SlotHoverChanged.connect([this](auto const& ev) {
         if (_gameStatus != game_status::TurnEnded) { return; }
-        call(_callbacks.OnHoverChange, ev);
+        call(_callbacks.OnHoverChange, ev.Slot, ev.DraggedDie);
     });
 
     _init.Events.Start.connect([this]() { start_turn(); });
@@ -42,9 +42,7 @@ inline auto engine::call(callback<R> const& func, auto&&... args) -> R
     if (func) {
         auto& fn {*func};
         auto  result {fn.protected_call(_table, this, args...)};
-        if (result) {
-            return result.value();
-        }
+        if (result) { return result.value(); }
 
         logger::Error("error calling function");
     }
@@ -174,6 +172,7 @@ void engine::create_wrappers()
 {
     create_sprite_wrapper();
     create_slot_wrapper();
+    create_die_wrapper();
     create_engine_wrapper();
     create_dmd_wrapper();
     create_sfx_wrapper();
@@ -246,6 +245,13 @@ void engine::create_slot_wrapper()
             slot->move_to({rect.left() + (pos.X * (rect.width() / DMD_SIZE.Width)),
                            rect.top() + (pos.Y * (rect.height() / DMD_SIZE.Height))});
         }};
+}
+
+void engine::create_die_wrapper()
+{
+    auto& dieWrapper {*_script.create_wrapper<die>("die")};
+    dieWrapper["value"] = getter {
+        [](die* die) -> u8 { return die->current_face().Value; }};
 }
 
 void engine::create_engine_wrapper()

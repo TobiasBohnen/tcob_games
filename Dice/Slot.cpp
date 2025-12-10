@@ -97,7 +97,7 @@ auto slots::try_insert_die(die* hoverDie) -> bool
     return true;
 }
 
-auto slots::hover(rect_f const& rect, die* die, bool isButtonDown) -> bool
+auto slots::hover(rect_f const& rect) -> bool
 {
     if (_locked) { return false; }
 

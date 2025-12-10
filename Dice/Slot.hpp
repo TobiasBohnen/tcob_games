@@ -69,7 +69,7 @@ public:
     auto add_slot(slot_face face) -> slot*;
     auto count() const -> usize;
 
-    auto hover(rect_f const& rect, die* die, bool isButtonDown) -> bool;
+    auto hover(rect_f const& rect) -> bool;
 
     auto try_insert_die(die* die) -> bool;
     auto try_remove_die(die* die) -> slot*;

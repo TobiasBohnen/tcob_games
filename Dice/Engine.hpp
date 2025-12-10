@@ -38,6 +38,7 @@ private:
     void create_wrappers();
     void create_sprite_wrapper();
     void create_slot_wrapper();
+    void create_die_wrapper();
     void create_engine_wrapper();
     void create_dmd_wrapper();
     void create_sfx_wrapper();

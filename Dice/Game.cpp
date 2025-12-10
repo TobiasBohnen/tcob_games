@@ -125,8 +125,8 @@ void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
         return {mp, size_f::One};
     }};
 
-    if (_slots.hover(getRect(), hoverDie, isButtonDown)) {
-        _events.SlotHoverChanged(_slots.get_hovered());
+    if (_slots.hover(getRect())) {
+        _events.SlotHoverChanged({.Slot = _slots.get_hovered(), .DraggedDie = isButtonDown ? hoverDie : nullptr});
     }
 
     if (isButtonDown) {
