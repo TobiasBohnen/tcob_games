@@ -65,7 +65,7 @@ end
 ---@param engine engine
 function game:can_start_turn(engine)
     local s = self.slots
-    return not (s.speed.isEmpty or s.turn.isEmpty or s.bullets.isEmpty)
+    return not (s.speed.is_empty or s.turn.is_empty or s.bullets.is_empty)
 end
 
 ---@param engine engine
@@ -75,9 +75,9 @@ function game:on_turn_start(engine)
 
     self:try_spawn_asteroid(engine)
 
-    self.ship.linearVelocityTarget  = self.slots.speed.dieValue / 12.0
-    self.ship.angularVelocityTarget = (self.slots.turn.dieValue - 3.5) / 25
-    self.bulletsLeft                = self.slots.bullets.dieValue
+    self.ship.linearVelocityTarget  = self.slots.speed.die_value / 12.0
+    self.ship.angularVelocityTarget = (self.slots.turn.die_value - 3.5) / 25
+    self.bulletsLeft                = self.slots.bullets.die_value
 end
 
 ---@param engine engine
@@ -145,7 +145,6 @@ end
 ---@param slot slot
 function game:on_hover_change(engine, slot)
     gfx.draw_dmd(engine.dmd, self)
-    engine:set_background(self.slots.bullets.isHovered and 1 or 0)
 end
 
 ---@param engine engine
@@ -286,7 +285,7 @@ function game:try_spawn_bullet(engine, deltaTime)
 
     bullet.sprite.position          = { x = bx, y = by }
 
-    self.bulletTime                 = HALF_DURATION / self.slots.bullets.dieValue
+    self.bulletTime                 = HALF_DURATION / self.slots.bullets.die_value
     self.bulletsLeft                = self.bulletsLeft - 1
 end
 

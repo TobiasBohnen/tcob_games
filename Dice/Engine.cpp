@@ -11,54 +11,6 @@
 
 using namespace scripting;
 
-static auto get_pixel(string_view s, size_i size) -> std::vector<u8>
-{
-    static auto from_base26 {[](string_view s) -> u32 {
-        u32 n {0};
-        for (char c : s) {
-            n = (n * 26) + (c - 'a' + 1);
-        }
-        return n;
-    }};
-
-    std::vector<u8> dots;
-    dots.reserve(size.area());
-
-    auto const isRLE {[](string_view s) -> bool {
-        return s.size() > 1 && (s[1] >= 'a' && s[1] <= 'z');
-    }};
-
-    if (isRLE(s)) {
-        usize i {0};
-        while (i < s.size()) {
-            char digitChar {s[i++]};
-            u8   val {0};
-            if (digitChar >= '0' && digitChar <= '9') {
-                val = digitChar - '0';
-            } else if (digitChar >= 'A' && digitChar <= 'F') {
-                val = 10 + (digitChar - 'A');
-            }
-
-            usize start {i};
-            while (i < s.size() && s[i] >= 'a' && s[i] <= 'z') { ++i; }
-
-            u32 const run {from_base26(std::string_view(s.data() + start, i - start))};
-
-            dots.insert(dots.end(), run, val);
-        }
-    } else {
-        for (char c : s) {
-            if (c >= '0' && c <= '9') {
-                dots.push_back(static_cast<u8>(c - '0'));
-            } else if (c >= 'A' && c <= 'F') {
-                dots.push_back(static_cast<u8>(10 + (c - 'A')));
-            }
-        }
-    }
-
-    return dots;
-}
-
 engine::engine(init const& init)
     : _init {init}
     , _dmdProxy {init.State.DMD}
@@ -276,11 +228,11 @@ void engine::create_slot_wrapper()
     auto& slotWrapper {*_script.create_wrapper<slot>("slot")};
     slotWrapper["owner"] = getter {
         [](slot* slot) { return slot->Owner; }};
-    slotWrapper["isEmpty"] = getter {
+    slotWrapper["is_empty"] = getter {
         [](slot* slot) { return slot->is_empty(); }};
-    slotWrapper["isHovered"] = getter {
+    slotWrapper["is_hovered"] = getter {
         [this](slot* slot) { return slot == _init.Slots->get_hovered(); }};
-    slotWrapper["dieValue"] = getter {
+    slotWrapper["die_value"] = getter {
         [](slot* slot) -> u8 { return slot->is_empty() ? 0 : slot->current_die()->current_face().Value; }};
     slotWrapper["position"] = property {
         [this](slot* slot) -> point_i {
@@ -296,106 +248,13 @@ void engine::create_slot_wrapper()
         }};
 }
 
-struct tex_def {
-    u32                ID {0};
-    size_i             Size {size_i::Zero};
-    string             Bitmap;
-    std::optional<u32> Transparent;
-    static auto constexpr Members()
-    {
-        return std::tuple {member<&tex_def::Size> {"size"}, member<&tex_def::Bitmap> {"bitmap"}, member<&tex_def::Transparent, std::nullopt> {"transparent"}};
-    }
-};
-struct bg_def {
-    string Bitmap;
-    static auto constexpr Members()
-    {
-        return std::tuple {member<&bg_def::Bitmap> {"bitmap"}};
-    }
-};
-
 void engine::create_engine_wrapper()
 {
     auto& engineWrapper {*_script.create_wrapper<engine>("engine")};
     // gfx
-    engineWrapper["create_backgrounds"] = [](engine* engine, std::unordered_map<u32, bg_def> const& bgMap) {
-        engine->_backgrounds.clear();
+    engineWrapper["create_backgrounds"] = [](engine* engine, std::unordered_map<u32, bg_def> const& bgMap) { engine->create_backgrounds(bgMap); };
+    engineWrapper["create_textures"]    = [](engine* engine, std::unordered_map<u32, tex_def>& texMap) { engine->create_textures(texMap); };
 
-        auto const bgSize {size_i {VIRTUAL_SCREEN_SIZE}};
-
-        auto* tex {engine->_init.BackgroundTexture};
-        tex->resize(bgSize, bgMap.size(), gfx::texture::format::RGBA8);
-        tex->regions()["default"] = {.UVRect = {0, 0, 1, 1}, .Level = 0};
-
-        gfx::image bgImg {gfx::image::CreateEmpty(bgSize, gfx::image::format::RGBA)};
-        u32        level {0};
-        for (auto const& [id, bgDef] : bgMap) {
-            engine->_backgrounds[id] = std::to_string(id);
-
-            auto const dots {get_pixel(bgDef.Bitmap, bgSize)};
-            for (i32 y {0}; y < bgSize.Height; ++y) {
-                for (i32 x {0}; x < bgSize.Width; ++x) {
-                    bgImg.set_pixel({x, y}, PALETTE[dots[x + (y * bgSize.Width)]]);
-                }
-            }
-
-            tex->regions()[engine->_backgrounds[id]] = {.UVRect = {0, 0, 1, 1}, .Level = level};
-            tex->update_data(bgImg, level++);
-        }
-
-        tex->Filtering = gfx::texture::filtering::Linear;
-    };
-    engineWrapper["create_textures"] = [](engine* engine, std::unordered_map<u32, tex_def>& texMap) {
-        engine->_textures.clear();
-
-        constexpr i32        PAD {2};
-        std::vector<tex_def> texDefs;
-
-        // get canvas size
-        size_i texImgSize {0, 0};
-        for (auto& [id, texDef] : texMap) {
-            texDef.ID = id;
-            texDefs.push_back(texDef);
-            texImgSize.Width += texDef.Size.Width + (PAD * 2);
-            texImgSize.Height = std::max(texImgSize.Height, static_cast<i32>(texDef.Size.Height + (PAD * 2)));
-        }
-
-        texImgSize.Width += PAD;
-        texImgSize.Height += PAD;
-
-        // draw textures
-        point_i pen {PAD, PAD};
-
-        auto* tex {engine->_init.SpriteTexture};
-        tex->resize(texImgSize, 1, gfx::texture::format::RGBA8);
-
-        gfx::image texImg {gfx::image::CreateEmpty(texImgSize, gfx::image::format::RGBA)};
-        for (auto const& texDef : texDefs) {
-            auto& assTex {engine->_textures[texDef.ID]};
-            assTex.Size   = size_f {texDef.Size};
-            assTex.Region = std::to_string(texDef.ID);
-            assTex.Alpha  = grid<u8> {texDef.Size};
-
-            auto const dots {get_pixel(texDef.Bitmap, texDef.Size)};
-            for (i32 y {0}; y < texDef.Size.Height; ++y) {
-                for (i32 x {0}; x < texDef.Size.Width; ++x) {
-                    auto const  idx {dots[x + (y * texDef.Size.Width)]};
-                    color const color {texDef.Transparent == idx ? colors::Transparent : PALETTE[idx]};
-                    texImg.set_pixel(pen + point_i {x, y}, color);
-                    assTex.Alpha[x, y] = color.A;
-                }
-            }
-
-            tex->regions()[assTex.Region] =
-                {.UVRect = {static_cast<f32>(pen.X) / static_cast<f32>(texImgSize.Width), static_cast<f32>(pen.Y) / static_cast<f32>(texImgSize.Height),
-                            static_cast<f32>(texDef.Size.Width) / static_cast<f32>(texImgSize.Width), static_cast<f32>(texDef.Size.Height) / static_cast<f32>(texImgSize.Height)},
-                 .Level  = 0};
-
-            pen.X += texDef.Size.Width + (PAD * 2);
-        }
-        tex->update_data(texImg, 0);
-        tex->Filtering = gfx::texture::filtering::Linear;
-    };
     // sfx
     engineWrapper["create_sounds"] = [](engine* engine, std::unordered_map<u32, audio::sound_wave> const& soundMap) {
         engine->_sounds.clear();
@@ -405,11 +264,10 @@ void engine::create_engine_wrapper()
     };
 
     // functions
-    engineWrapper["set_background"] = [](engine* engine, i32 idx) { engine->_init.State.Background = engine->_backgrounds[idx]; };
-    engineWrapper["random"]         = [](engine* engine, f32 min, f32 max) { return engine->_init.State.Rng(min, max); };
-    engineWrapper["random_int"]     = [](engine* engine, i32 min, i32 max) { return engine->_init.State.Rng(min, max); };
-    engineWrapper["log"]            = [](string const& str) { logger::Info(str); };
-    engineWrapper["create_sprite"]  = [](engine* engine, table const& spriteDef) {
+    engineWrapper["random"]        = [](engine* engine, f32 min, f32 max) { return engine->_init.State.Rng(min, max); };
+    engineWrapper["random_int"]    = [](engine* engine, i32 min, i32 max) { return engine->_init.State.Rng(min, max); };
+    engineWrapper["log"]           = [](string const& str) { logger::Info(str); };
+    engineWrapper["create_sprite"] = [](engine* engine, table const& spriteDef) {
         auto* sprite {engine->_init.Game->add_sprite()};
         sprite->Owner = spriteDef;
         spriteDef.try_get(sprite->IsCollidable, "collidable");
@@ -468,10 +326,22 @@ void engine::create_engine_wrapper()
     engineWrapper["play_sound"] = [](engine* engine, u32 id) { engine->_sounds[id]->play(); };
 
     // properties
-    engineWrapper["dmd"] = getter {
-        [](engine* engine) { return &engine->_dmdProxy; }};
-    engineWrapper["sfx"] = getter {
-        [](engine* engine) { return &engine->_sfxProxy; }};
+    engineWrapper["dmd"]        = getter {[](engine* engine) { return &engine->_dmdProxy; }};
+    engineWrapper["sfx"]        = getter {[](engine* engine) { return &engine->_sfxProxy; }};
+    engineWrapper["background"] = property {
+        [](engine* engine) -> u32 {
+            for (auto const& [k, v] : engine->_backgrounds) {
+                if (v == engine->_init.State.Background) { return k; }
+            }
+            return 0;
+        },
+        [](engine* engine, i32 idx) {
+            if (!engine->_backgrounds.contains(idx)) { engine->_script.raise_error("missing background"); }
+            engine->_init.State.Background = engine->_backgrounds[idx];
+        }};
+    engineWrapper["ssd_value"] = property {
+        [](engine* engine) { return *engine->_init.State.SSDValue; },
+        [](engine* engine, string const& val) { engine->_init.State.SSDValue = val; }};
 }
 
 void engine::create_dmd_wrapper()
@@ -510,125 +380,85 @@ void engine::set_texture(sprite* sprite, u32 texID)
     if (sprite->WrapCopy) { sprite->WrapCopy->TextureRegion = texture.Region; }
 }
 
-////////////////////////////////////////////////////////////
+void engine::create_backgrounds(std::unordered_map<u32, bg_def> const& bgMap)
+{
+    _backgrounds.clear();
 
-dmd_proxy::dmd_proxy(prop<grid<u8>>& dmd)
-    : _dmd {dmd}
-{
-}
-void dmd_proxy::clear()
-{
-    _dmd = grid<u8> {DMD_SIZE, 0};
-}
-void dmd_proxy::blit(rect_i const& rect, string const& dotStr)
-{
-    if (rect.right() > _dmd->width() || rect.bottom() > _dmd->height()) { return; }
-    auto const dots {get_pixel(dotStr, rect.Size)};
+    auto const bgSize {size_i {VIRTUAL_SCREEN_SIZE}};
 
-    _dmd.mutate([&](auto& dmd) { dmd.blit(rect, dots); });
-}
-void dmd_proxy::print(point_i pos, string_view text, color color)
-{
-    static constexpr std::array<std::array<u8, 5>, 50> font5x5 {
-        {{0x1F, 0x13, 0x15, 0x19, 0x1F},
-         {0x07, 0x09, 0x11, 0x01, 0x01},
-         {0x1F, 0x01, 0x1F, 0x10, 0x1F},
-         {0x1F, 0x01, 0x1F, 0x01, 0x1F},
-         {0x12, 0x12, 0x1F, 0x02, 0x02},
-         {0x1F, 0x10, 0x1F, 0x01, 0x1F},
-         {0x1F, 0x10, 0x1F, 0x11, 0x1F},
-         {0x1F, 0x01, 0x01, 0x01, 0x01},
-         {0x1F, 0x11, 0x1F, 0x11, 0x1F},
-         {0x1F, 0x11, 0x1F, 0x01, 0x01},
-         {0x0E, 0x11, 0x1F, 0x11, 0x11},
-         {0x1E, 0x11, 0x1E, 0x11, 0x1E},
-         {0x0F, 0x10, 0x10, 0x10, 0x0F},
-         {0x1E, 0x11, 0x11, 0x11, 0x1E},
-         {0x1F, 0x10, 0x1E, 0x10, 0x1F},
-         {0x1F, 0x10, 0x1F, 0x10, 0x10},
-         {0x0E, 0x10, 0x17, 0x11, 0x0E},
-         {0x11, 0x11, 0x1F, 0x11, 0x11},
-         {0x1F, 0x04, 0x04, 0x04, 0x1F},
-         {0x0F, 0x01, 0x01, 0x11, 0x0E},
-         {0x11, 0x12, 0x1C, 0x12, 0x11},
-         {0x10, 0x10, 0x10, 0x10, 0x1F},
-         {0x11, 0x1B, 0x15, 0x11, 0x11},
-         {0x11, 0x19, 0x15, 0x13, 0x11},
-         {0x0E, 0x11, 0x11, 0x11, 0x0E},
-         {0x1E, 0x11, 0x1E, 0x10, 0x10},
-         {0x0E, 0x11, 0x15, 0x12, 0x0D},
-         {0x1E, 0x11, 0x1F, 0x12, 0x11},
-         {0x0F, 0x10, 0x0E, 0x01, 0x1E},
-         {0x1F, 0x04, 0x04, 0x04, 0x04},
-         {0x11, 0x11, 0x11, 0x11, 0x0E},
-         {0x11, 0x11, 0x11, 0x0A, 0x04},
-         {0x11, 0x11, 0x15, 0x1B, 0x11},
-         {0x11, 0x0A, 0x04, 0x0A, 0x11},
-         {0x11, 0x11, 0x0E, 0x04, 0x04},
-         {0x1F, 0x02, 0x04, 0x08, 0x1F},
-         {0x00, 0x0A, 0x04, 0x0A, 0x00},
-         {0x00, 0x04, 0x0E, 0x04, 0x00},
-         {0x00, 0x00, 0x04, 0x04, 0x08},
-         {0x00, 0x00, 0x0E, 0x00, 0x00},
-         {0x00, 0x00, 0x00, 0x00, 0x08},
-         {0x00, 0x02, 0x04, 0x08, 0x00},
-         {0x00, 0x04, 0x00, 0x04, 0x00},
-         {0x00, 0x04, 0x00, 0x04, 0x04},
-         {0x02, 0x04, 0x08, 0x04, 0x02},
-         {0x00, 0x0E, 0x00, 0x0E, 0x00},
-         {0x08, 0x04, 0x02, 0x04, 0x08},
-         {0x0E, 0x11, 0x06, 0x00, 0x04},
-         {0x04, 0x04, 0x04, 0x00, 0x04},
-         {0x04, 0x0A, 0x15, 0x0A, 0x04}}};
+    auto* tex {_init.BackgroundTexture};
+    tex->resize(bgSize, bgMap.size(), gfx::texture::format::RGBA8);
+    tex->regions()["default"] = {.UVRect = {0, 0, 1, 1}, .Level = 0};
 
-    i32 colorIdx {-1};
-    for (i32 i {0}; i < PALETTE.size(); ++i) {
-        if (PALETTE[i] == color) {
-            colorIdx = i;
-            break;
+    gfx::image bgImg {gfx::image::CreateEmpty(bgSize, gfx::image::format::RGBA)};
+    u32        level {0};
+    for (auto const& [id, bgDef] : bgMap) {
+        _backgrounds[id] = std::to_string(id);
+
+        auto const dots {get_pixel(bgDef.Bitmap, bgSize)};
+        for (i32 y {0}; y < bgSize.Height; ++y) {
+            for (i32 x {0}; x < bgSize.Width; ++x) {
+                bgImg.set_pixel({x, y}, PALETTE[dots[x + (y * bgSize.Width)]]);
+            }
         }
+
+        tex->regions()[_backgrounds[id]] = {.UVRect = {0, 0, 1, 1}, .Level = level};
+        tex->update_data(bgImg, level++);
     }
-    if (colorIdx == -1) { return; }
 
-    _dmd.mutate([&](auto& dmd) {
-        for (i32 i {0}; i < text.size(); ++i) {
-            char c {text[i]};
-            i32  index {49};
-            if (c >= '0' && c <= '9') {
-                index = c - '0';
-            } else if (c >= 'A' && c <= 'Z') {
-                index = 10 + (c - 'A');
-            } else if (c >= 'a' && c <= 'z') {
-                index = 10 + (c - 'a');
-            } else if (c >= '*' && c <= '/') {
-                index = 36 + (c - '*');
-            } else if (c >= ':' && c <= '?') {
-                index = 42 + (c - ':');
-            } else if (c == '!') {
-                index = 48;
-            }
-
-            for (i32 y {0}; y < 5; ++y) {
-                u8 const row {font5x5[index][y]};
-                for (i32 x {0}; x < 5; ++x) {
-                    if ((row & (1 << (4 - x))) == 0) { continue; }
-                    point_i const p {pos.X + (i * 6) + x, pos.Y + (y)};
-                    if (p.X < DMD_SIZE.Width && p.Y < DMD_SIZE.Height) {
-                        dmd[p.X, p.Y] = static_cast<u8>(colorIdx);
-                    }
-                }
-            }
-        }
-    });
+    tex->Filtering = gfx::texture::filtering::Linear;
 }
 
-////////////////////////////////////////////////////////////
+void engine::create_textures(std::unordered_map<u32, tex_def>& texMap)
+{
+    _textures.clear();
 
-auto sfx_proxy::pickup_coin(u64 seed) -> audio::sound_wave { return audio::sound_generator {random::prng_split_mix_64 {seed}}.generate_pickup_coin(); }
-auto sfx_proxy::laser_shoot(u64 seed) -> audio::sound_wave { return audio::sound_generator {random::prng_split_mix_64 {seed}}.generate_laser_shoot(); }
-auto sfx_proxy::explosion(u64 seed) -> audio::sound_wave { return audio::sound_generator {random::prng_split_mix_64 {seed}}.generate_explosion(); }
-auto sfx_proxy::powerup(u64 seed) -> audio::sound_wave { return audio::sound_generator {random::prng_split_mix_64 {seed}}.generate_powerup(); }
-auto sfx_proxy::hit_hurt(u64 seed) -> audio::sound_wave { return audio::sound_generator {random::prng_split_mix_64 {seed}}.generate_hit_hurt(); }
-auto sfx_proxy::jump(u64 seed) -> audio::sound_wave { return audio::sound_generator {random::prng_split_mix_64 {seed}}.generate_jump(); }
-auto sfx_proxy::blip_select(u64 seed) -> audio::sound_wave { return audio::sound_generator {random::prng_split_mix_64 {seed}}.generate_blip_select(); }
-auto sfx_proxy::random(u64 seed) -> audio::sound_wave { return audio::sound_generator {random::prng_split_mix_64 {seed}}.generate_random(); }
+    constexpr i32        PAD {2};
+    std::vector<tex_def> texDefs;
+
+    // get canvas size
+    size_i texImgSize {0, 0};
+    for (auto& [id, texDef] : texMap) {
+        texDef.ID = id;
+        texDefs.push_back(texDef);
+        texImgSize.Width += texDef.Size.Width + (PAD * 2);
+        texImgSize.Height = std::max(texImgSize.Height, static_cast<i32>(texDef.Size.Height + (PAD * 2)));
+    }
+
+    texImgSize.Width += PAD;
+    texImgSize.Height += PAD;
+
+    // draw textures
+    point_i pen {PAD, PAD};
+
+    auto* tex {_init.SpriteTexture};
+    tex->resize(texImgSize, 1, gfx::texture::format::RGBA8);
+
+    gfx::image texImg {gfx::image::CreateEmpty(texImgSize, gfx::image::format::RGBA)};
+    for (auto const& texDef : texDefs) {
+        auto& assTex {_textures[texDef.ID]};
+        assTex.Size   = size_f {texDef.Size};
+        assTex.Region = std::to_string(texDef.ID);
+        assTex.Alpha  = grid<u8> {texDef.Size};
+
+        auto const dots {get_pixel(texDef.Bitmap, texDef.Size)};
+        for (i32 y {0}; y < texDef.Size.Height; ++y) {
+            for (i32 x {0}; x < texDef.Size.Width; ++x) {
+                auto const  idx {dots[x + (y * texDef.Size.Width)]};
+                color const color {texDef.Transparent == idx ? colors::Transparent : PALETTE[idx]};
+                texImg.set_pixel(pen + point_i {x, y}, color);
+                assTex.Alpha[x, y] = color.A;
+            }
+        }
+
+        tex->regions()[assTex.Region] =
+            {.UVRect = {static_cast<f32>(pen.X) / static_cast<f32>(texImgSize.Width), static_cast<f32>(pen.Y) / static_cast<f32>(texImgSize.Height),
+                        static_cast<f32>(texDef.Size.Width) / static_cast<f32>(texImgSize.Width), static_cast<f32>(texDef.Size.Height) / static_cast<f32>(texImgSize.Height)},
+             .Level  = 0};
+
+        pen.X += texDef.Size.Width + (PAD * 2);
+    }
+
+    tex->update_data(texImg, 0);
+    tex->Filtering = gfx::texture::filtering::Linear;
+}

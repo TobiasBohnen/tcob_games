@@ -74,3 +74,51 @@ void dice_painter::make_die(std::span<die_face const> faces)
     _canvas.end_frame();
     _tex->Filtering = gfx::texture::filtering::Linear;
 }
+
+auto get_pixel(string_view s, size_i size) -> std::vector<u8>
+{
+    static auto from_base26 {[](string_view s) -> u32 {
+        u32 n {0};
+        for (char c : s) {
+            n = (n * 26) + (c - 'a' + 1);
+        }
+        return n;
+    }};
+
+    std::vector<u8> dots;
+    dots.reserve(size.area());
+
+    auto const isRLE {[](string_view s) -> bool {
+        return s.size() > 1 && (s[1] >= 'a' && s[1] <= 'z');
+    }};
+
+    if (isRLE(s)) {
+        usize i {0};
+        while (i < s.size()) {
+            char digitChar {s[i++]};
+            u8   val {0};
+            if (digitChar >= '0' && digitChar <= '9') {
+                val = digitChar - '0';
+            } else if (digitChar >= 'A' && digitChar <= 'F') {
+                val = 10 + (digitChar - 'A');
+            }
+
+            usize start {i};
+            while (i < s.size() && s[i] >= 'a' && s[i] <= 'z') { ++i; }
+
+            u32 const run {from_base26(std::string_view(s.data() + start, i - start))};
+
+            dots.insert(dots.end(), run, val);
+        }
+    } else {
+        for (char c : s) {
+            if (c >= '0' && c <= '9') {
+                dots.push_back(static_cast<u8>(c - '0'));
+            } else if (c >= 'A' && c <= 'F') {
+                dots.push_back(static_cast<u8>(10 + (c - 'A')));
+            }
+        }
+    }
+
+    return dots;
+}

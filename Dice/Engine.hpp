@@ -6,56 +6,12 @@
 #pragma once
 
 #include "Common.hpp" // IWYU pragma: keep
+#include "EngineHelper.hpp"
 #include "Sprite.hpp"
 
 ////////////////////////////////////////////////////////////
 
-class dmd_proxy {
-public:
-    dmd_proxy(prop<grid<u8>>& dmd);
-
-    void clear();
-
-    void blit(rect_i const& rect, string const& dotStr);
-
-    void print(point_i pos, string_view text, color color);
-
-private:
-    prop<grid<u8>>& _dmd;
-};
-
-////////////////////////////////////////////////////////////
-
-class sfx_proxy {
-public:
-    auto pickup_coin(u64 seed) -> audio::sound_wave;
-    auto laser_shoot(u64 seed) -> audio::sound_wave;
-    auto explosion(u64 seed) -> audio::sound_wave;
-    auto powerup(u64 seed) -> audio::sound_wave;
-    auto hit_hurt(u64 seed) -> audio::sound_wave;
-    auto jump(u64 seed) -> audio::sound_wave;
-    auto blip_select(u64 seed) -> audio::sound_wave;
-    auto random(u64 seed) -> audio::sound_wave;
-};
-
-////////////////////////////////////////////////////////////
-
 class engine {
-    template <typename T = void>
-    using callback = std::optional<scripting::function<T>>;
-
-    struct callbacks {
-        callback<>     OnCollision;
-        callback<>     OnDieChange;
-        callback<>     OnHoverChange;
-        callback<>     OnSetup;
-        callback<>     OnTeardown;
-        callback<i32>  OnTurnUpdate;
-        callback<>     OnTurnFinish;
-        callback<bool> CanStartTurn;
-        callback<>     OnTurnStart;
-    };
-
 public:
     struct init {
         shared_state& State;
@@ -90,6 +46,9 @@ private:
     auto call(callback<R> const& func, auto&&... args) -> R;
 
     void set_texture(sprite* sprite, u32 texID);
+
+    void create_backgrounds(std::unordered_map<u32, bg_def> const& bgMap);
+    void create_textures(std::unordered_map<u32, tex_def>& texMap);
 
     scripting::script                    _script;
     scripting::table                     _table;

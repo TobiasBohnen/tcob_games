@@ -114,9 +114,9 @@ local ship_pattern     = [[0i2b0r2b0q2d0p2d0p2d0o2f0n2f0m2h0l2h0l2h0k2j0j2j0j2j0
 ---@param dmd dmd
 function gfx.draw_dmd(dmd, game)
     local slots        = game.slots ---@type {[string]: slot})
-    local bulletsValue = slots.bullets.dieValue
-    local speedValue   = slots.speed.dieValue
-    local turnValue    = slots.turn.dieValue
+    local bulletsValue = slots.bullets.die_value
+    local speedValue   = slots.speed.die_value
+    local turnValue    = slots.turn.die_value
 
     dmd:clear()
 
@@ -147,9 +147,9 @@ function gfx.draw_dmd(dmd, game)
         dmd:blit({ x = pos.x, y = pos.y, width = 13, height = 13 }, string.rep(col, 13 * 13))
         dmd:blit({ x = pos.x + 1, y = pos.y + 1, width = 11, height = 11 }, string.rep("A", 11 * 11))
     end
-    draw_slot(slots.bullets.position, slots.bullets.isHovered)
-    draw_slot(slots.turn.position, slots.turn.isHovered)
-    draw_slot(slots.speed.position, slots.speed.isHovered)
+    draw_slot(slots.bullets.position, slots.bullets.is_hovered)
+    draw_slot(slots.turn.position, slots.turn.is_hovered)
+    draw_slot(slots.speed.position, slots.speed.is_hovered)
 end
 
 return gfx

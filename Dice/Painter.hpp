@@ -39,3 +39,5 @@ private:
 };
 
 ////////////////////////////////////////////////////////////
+
+auto get_pixel(string_view s, size_i size) -> std::vector<u8>;
