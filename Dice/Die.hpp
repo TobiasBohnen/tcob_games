@@ -67,7 +67,7 @@ public:
 
     void drag(point_f mousePos, rect_f const& winBounds);
 
-    auto hover(point_f mousePos) -> bool;
+    auto hover(point_f mousePos) -> die*;
 
     void update(milliseconds deltaTime);
 

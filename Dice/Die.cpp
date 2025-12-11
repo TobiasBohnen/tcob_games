@@ -158,7 +158,7 @@ void dice::drag(point_f mousePos, rect_f const& winBounds)
     _hoverDie->_colorState    = die_state::Dragged;
 }
 
-auto dice::hover(point_f mousePos) -> bool
+auto dice::hover(point_f mousePos) -> die*
 {
     auto const findDie {[&](point_f mp) -> die* {
         auto const vec {_batch.intersect({mp, size_f::One})};
@@ -184,10 +184,10 @@ auto dice::hover(point_f mousePos) -> bool
 
     if (_hoverDie != die) {
         _hoverDie = die;
-        return true;
+        return _hoverDie;
     }
 
-    return false;
+    return nullptr;
 }
 
 void dice::update(milliseconds deltaTime)

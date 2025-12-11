@@ -27,7 +27,7 @@ auto slot::current_die() const -> die*
 
 auto slot::can_insert_die(die_face dieFace) const -> bool
 {
-    if (_die || _locked) { return false; }
+    if (_die) { return false; }
 
     if (_face.Value != 0) {
         switch (_face.Op) {
@@ -58,7 +58,7 @@ void slot::insert_die(die* die)
 
 auto slot::can_remove_die(die* die) const -> bool
 {
-    return !_locked && _die && die == _die;
+    return _die && die == _die;
 }
 
 void slot::remove_die()
@@ -88,18 +88,19 @@ auto slots::add_slot(slot_face face) -> slot*
     return retValue.get();
 }
 
-auto slots::try_insert_die(die* hoverDie) -> bool
+auto slots::try_insert_die(die* hoverDie) -> slot*
 {
-    if (_locked || !hoverDie || !_hoverSlot || !_hoverSlot->can_insert_die(hoverDie->current_face())) { return false; }
+    if (_locked || !hoverDie || !_hoverSlot || !_hoverSlot->can_insert_die(hoverDie->current_face())) { return nullptr; }
 
     _hoverSlot->insert_die(hoverDie);
+    _hoverSlot->State = slot_state::Idle;
     hoverDie->on_slotted(_hoverSlot->_bounds);
-    return true;
+    return _hoverSlot;
 }
 
-auto slots::hover(rect_f const& rect) -> bool
+auto slots::hover(rect_f const& rect) -> slot*
 {
-    if (_locked) { return false; }
+    if (_locked) { return nullptr; }
 
     auto const find {[&](rect_f const& rect) -> slot* {
         slot* bestSlot {nullptr};
@@ -119,25 +120,22 @@ auto slots::hover(rect_f const& rect) -> bool
 
     auto* slot {find(rect)};
     if (_hoverSlot != slot) {
+        if (_hoverSlot) {
+            _hoverSlot->State = slot_state::Idle;
+        }
         _hoverSlot = slot;
-        return true;
     }
 
-    return false;
+    return _hoverSlot;
 }
 
 auto slots::try_remove_die(die* die) -> slot*
 {
-    if (_locked || !die) { return nullptr; }
+    if (_locked || !die || !_hoverSlot || !_hoverSlot->can_remove_die(die)) { return nullptr; }
 
-    for (auto& slot : _slots) {
-        if (slot->can_remove_die(die)) {
-            slot->remove_die();
-            return slot.get();
-        }
-    }
-
-    return nullptr;
+    _hoverSlot->remove_die();
+    _hoverSlot->State = slot_state::Idle;
+    return _hoverSlot;
 }
 
 void slots::reset(std::span<slot* const> slots)

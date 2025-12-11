@@ -142,8 +142,7 @@ function game:on_die_change(engine, slot)
 end
 
 ---@param engine engine
----@param slot slot
-function game:on_hover_change(engine, slot, draggedDie)
+function game:on_die_motion(engine)
     gfx.draw_dmd(engine.dmd, self)
 end
 

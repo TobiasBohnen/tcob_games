@@ -78,6 +78,14 @@ GameStatus = {
     GameOver = 2
 }
 
+---@enum slot_state
+SlotState = {
+    Idle = 0,
+    Hover = 1,
+    Accept = 2,
+    Reject = 3
+}
+
 --------------------------------
 -- Game Module
 --------------------------------
@@ -96,7 +104,7 @@ GameStatus = {
 ---@
 ---@field on_collision fun(self: game_module, engine: engine, spriteA: sprite, spriteB: sprite)
 ---@field on_die_change fun(self: game_module, engine: engine, slot: slot)
----@field on_hover_change fun(self: game_module, engine: engine, slot: slot, draggedDie: die)
+---@field on_die_motion fun(self: game_module, engine: engine)
 
 --------------------------------
 -- Sprite
@@ -118,7 +126,7 @@ GameStatus = {
 ---@class slot
 ---@field owner table @readonly
 ---@field is_empty boolean @readonly
----@field is_hovered boolean @readonly
+---@field state slot_state @readonly
 ---@field die_value integer @readonly
 ---@field position point
 

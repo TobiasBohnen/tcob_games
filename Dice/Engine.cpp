@@ -27,10 +27,9 @@ engine::engine(init const& init)
         if (_gameStatus != game_status::TurnEnded) { return; }
         call(_callbacks.OnDieChange, ev);
     });
-
-    _init.Events.SlotHoverChanged.connect([this](auto const& ev) {
+    _init.Events.DieMotion.connect([this]() {
         if (_gameStatus != game_status::TurnEnded) { return; }
-        call(_callbacks.OnHoverChange, ev.Slot, ev.DraggedDie);
+        call(_callbacks.OnDieMotion);
     });
 
     _init.Events.Start.connect([this]() { start_turn(); });
@@ -75,7 +74,7 @@ void engine::run(string const& file)
 
     _table.try_get(_callbacks.OnCollision, "on_collision");
     _table.try_get(_callbacks.OnDieChange, "on_die_change");
-    _table.try_get(_callbacks.OnHoverChange, "on_hover_change");
+    _table.try_get(_callbacks.OnDieMotion, "on_die_motion");
     _table.try_get(_callbacks.OnSetup, "on_setup");
     _table.try_get(_callbacks.OnTeardown, "on_teardown");
     _table.try_get(_callbacks.OnTurnUpdate, "on_turn_update");
@@ -165,6 +164,13 @@ void engine::create_env()
     gameStatus["GameOver"]  = static_cast<i32>(game_status::GameOver);
     env["GameStatus"]       = gameStatus;
 
+    table slotState {_script.create_table()};
+    slotState["Idle"]   = static_cast<i32>(slot_state::Idle);
+    slotState["Accept"] = static_cast<i32>(slot_state::Accept);
+    slotState["Reject"] = static_cast<i32>(slot_state::Reject);
+    slotState["Hover"]  = static_cast<i32>(slot_state::Hover);
+    env["SlotState"]    = slotState;
+
     _script.Environment = env;
 }
 
@@ -229,8 +235,8 @@ void engine::create_slot_wrapper()
         [](slot* slot) { return slot->Owner; }};
     slotWrapper["is_empty"] = getter {
         [](slot* slot) { return slot->is_empty(); }};
-    slotWrapper["is_hovered"] = getter {
-        [this](slot* slot) { return slot == _init.Slots->get_hovered(); }};
+    slotWrapper["state"] = getter {
+        [this](slot* slot) { return static_cast<u8>(slot->State); }};
     slotWrapper["die_value"] = getter {
         [](slot* slot) -> u8 { return slot->is_empty() ? 0 : slot->current_die()->current_face().Value; }};
     slotWrapper["position"] = property {

@@ -12,6 +12,13 @@
 
 ////////////////////////////////////////////////////////////
 
+enum class slot_state : u8 {
+    Idle   = 0,
+    Hover  = 1,
+    Accept = 2,
+    Reject = 3
+};
+
 enum class op : u8 {
     Equal    = 0,
     NotEqual = 1,
@@ -36,6 +43,7 @@ public:
     explicit slot(slot_face face);
 
     scripting::table Owner;
+    slot_state       State {slot_state::Idle};
 
     auto is_empty() const -> bool;
     auto current_die() const -> die*;
@@ -52,8 +60,6 @@ private:
     rect_f _bounds {};
     die*   _die {nullptr};
 
-    bool _locked {false};
-
     slot_face _face;
 };
 
@@ -69,18 +75,13 @@ public:
     auto add_slot(slot_face face) -> slot*;
     auto count() const -> usize;
 
-    auto hover(rect_f const& rect) -> bool;
+    auto hover(rect_f const& rect) -> slot*;
 
-    auto try_insert_die(die* die) -> bool;
+    auto try_insert_die(die* die) -> slot*;
     auto try_remove_die(die* die) -> slot*;
 
     void reset(std::span<slot* const> slots);
     auto get_hand(std::span<slot* const> slots) const -> hand;
-
-    auto get_hovered() const -> slot*
-    {
-        return _hoverSlot;
-    }
 
 private:
     auto are_filled() const -> bool;

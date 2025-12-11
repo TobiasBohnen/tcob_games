@@ -142,14 +142,14 @@ function gfx.draw_dmd(dmd, game)
         dmd:blit(region, turn_patterns[turnValue])
     end
 
-    local function draw_slot(pos, hovered)
-        local col = hovered and "3" or "9"
+    local function draw_slot(pos, state)
+        local col = state == SlotState.Accept and "3" or "9"
         dmd:blit({ x = pos.x, y = pos.y, width = 13, height = 13 }, string.rep(col, 13 * 13))
         dmd:blit({ x = pos.x + 1, y = pos.y + 1, width = 11, height = 11 }, string.rep("A", 11 * 11))
     end
-    draw_slot(slots.bullets.position, slots.bullets.is_hovered)
-    draw_slot(slots.turn.position, slots.turn.is_hovered)
-    draw_slot(slots.speed.position, slots.speed.is_hovered)
+    draw_slot(slots.bullets.position, slots.bullets.state)
+    draw_slot(slots.turn.position, slots.turn.state)
+    draw_slot(slots.speed.position, slots.speed.state)
 end
 
 return gfx

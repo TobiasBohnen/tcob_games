@@ -54,16 +54,12 @@ struct collision_event {
     sprite* A {nullptr};
     sprite* B {nullptr};
 };
-struct slot_hover_event {
-    slot* Slot {nullptr};
-    die*  DraggedDie {nullptr};
-};
 
 struct event_bus {
-    signal<>                       Start;
-    signal<collision_event const>  Collision;
-    signal<slot* const>            SlotDieChanged;
-    signal<slot_hover_event const> SlotHoverChanged;
+    signal<>                      Start;
+    signal<collision_event const> Collision;
+    signal<slot* const>           SlotDieChanged;
+    signal<>                      DieMotion;
 };
 
 struct shared_state {
