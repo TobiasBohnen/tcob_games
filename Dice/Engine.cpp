@@ -55,7 +55,7 @@ void engine::run(string const& file)
     // require
     auto const path {io::get_parent_folder(file)};
 
-    _require = make_shared_closure(std::function {[this, path](string const& module) {
+    _require = make_shared_closure(std::function {[this, path](char const* module) {
         auto const& env {**_script.Environment};
         if (env.has("package", "loaded", module)) { return env["package"]["loaded"][module].as<table>(); }
 
@@ -65,7 +65,7 @@ void engine::run(string const& file)
             return val;
         }
 
-        _script.raise_error(std::format("module {} not found", module));
+        _script.view().error("module %s not found", module);
         return _script.create_table();
     }});
 
@@ -342,7 +342,7 @@ void engine::create_engine_wrapper()
             return 0;
         },
         [](engine* engine, i32 idx) {
-            if (!engine->_backgrounds.contains(idx)) { engine->_script.raise_error("missing background"); }
+            if (!engine->_backgrounds.contains(idx)) { engine->_script.view().error("missing background"); }
             engine->_init.State.Background = engine->_backgrounds[idx];
         }};
     engineWrapper["ssd_value"] = property {
