@@ -43,7 +43,6 @@ public:
     explicit slot(slot_face face);
 
     scripting::table Owner;
-    slot_state       State {slot_state::Idle};
 
     auto is_empty() const -> bool;
     auto current_die() const -> die*;
@@ -56,11 +55,15 @@ public:
     auto bounds() const -> rect_f const&;
     void move_to(point_f pos);
 
+    auto state() const -> slot_state;
+
 private:
     rect_f _bounds {};
     die*   _die {nullptr};
 
     slot_face _face;
+
+    slot_state _state {slot_state::Idle};
 };
 
 ////////////////////////////////////////////////////////////
@@ -75,15 +78,17 @@ public:
     auto add_slot(slot_face face) -> slot*;
     auto count() const -> usize;
 
-    auto hover(rect_f const& rect) -> slot*;
-
     auto try_insert_die(die* die) -> slot*;
     auto try_remove_die(die* die) -> slot*;
 
     void reset(std::span<slot* const> slots);
     auto get_hand(std::span<slot* const> slots) const -> hand;
 
+    void on_hover(point_f mp);
+    void on_drag(point_f mp, die* draggedDie);
+
 private:
+    auto hover(rect_f const& rect) -> slot*;
     auto are_filled() const -> bool;
 
     std::vector<std::unique_ptr<slot>> _slots {};

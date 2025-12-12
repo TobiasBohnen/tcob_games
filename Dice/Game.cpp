@@ -91,7 +91,7 @@ void base_game::on_mouse_button_up(input::mouse::button_event const& ev)
 {
     switch (ev.Button) {
     case input::mouse::button::Left:
-        if (auto* slot {_slots.try_insert_die(_dice.get_hovered())}) {
+        if (auto* slot {_slots.try_insert_die(_hoverDie)}) {
             _events.SlotDieChanged(slot);
         }
         break;
@@ -99,14 +99,14 @@ void base_game::on_mouse_button_up(input::mouse::button_event const& ev)
     default:                          break;
     }
 
-    if (!_dice.get_hovered()) {
+    if (!_hoverDie) {
         dynamic_cast<input::receiver*>(_form0.get())->on_mouse_button_up(ev);
     }
 }
 
 void base_game::on_mouse_button_down(input::mouse::button_event const& ev)
 {
-    if (!_dice.get_hovered()) {
+    if (!_hoverDie) {
         dynamic_cast<input::receiver*>(_form0.get())->on_mouse_button_down(ev);
     }
 }
@@ -116,37 +116,20 @@ void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
     bool const isButtonDown {ev.Mouse->is_button_down(input::mouse::button::Left)};
     auto const mp {point_f {ev.Position}};
 
-    die* hoverDie {_dice.get_hovered()};
-    if (!isButtonDown) { hoverDie = _dice.hover(mp); }
+    if (!isButtonDown) { _hoverDie = _dice.on_hover(mp); }
 
-    auto const getRect {[&] -> rect_f {
-        if (hoverDie && isButtonDown) {
-            rect_i const  bounds {hoverDie->bounds()};
-            point_f const tl {bounds.top_left()};
-            point_f const br {bounds.bottom_right()};
-            return rect_f::FromLTRB(tl.X, tl.Y, br.X, br.Y);
-        }
+    if (isButtonDown && _hoverDie) {
+        _slots.on_drag(mp, _hoverDie);
 
-        return {mp, size_f::One};
-    }};
-
-    if (auto* hoverSlot {_slots.hover(getRect())}) {
-        if (!hoverDie) {
-            hoverSlot->State = slot_state::Hover;
-        } else if (isButtonDown) {
-            hoverSlot->State = hoverSlot->can_insert_die(hoverDie->current_face()) ? slot_state::Accept : slot_state::Reject;
-        }
-    }
-
-    if (isButtonDown) {
-        if (auto* slot {_slots.try_remove_die(hoverDie)}) {
+        if (auto* slot {_slots.try_remove_die(_hoverDie)}) {
             _events.SlotDieChanged(slot);
         }
-        _dice.drag(mp, _form0->Bounds);
 
-        if (hoverDie) {
-            _events.DieMotion();
-        }
+        _dice.on_drag(mp, _form0->Bounds);
+
+        _events.DieMotion();
+    } else {
+        _slots.on_hover(mp);
     }
 
     dynamic_cast<input::receiver*>(_form0.get())->on_mouse_motion(ev);

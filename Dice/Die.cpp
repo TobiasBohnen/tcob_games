@@ -101,7 +101,7 @@ void die::move_by(point_f offset)
 
 void die::on_slotted(rect_f const& bounds)
 {
-    _colorState    = die_state::Hovered;
+    _colorState    = die_state::Normal;
     _shape->Bounds = bounds;
 }
 
@@ -128,37 +128,10 @@ auto dice::add_die(point_f pos, rng& rng, die_face currentFace, std::span<die_fa
 
 void dice::roll()
 {
-    _hoverDie = nullptr;
     for (auto& die : _dice) { die->roll(); }
 }
 
-void dice::drag(point_f mousePos, rect_f const& winBounds)
-{
-    if (!_hoverDie || _hoverDie->_frozen) { return; }
-
-    point_f const halfSize {DICE_SIZE.Width * _scale.Width / 2, DICE_SIZE.Height * _scale.Height / 2};
-    point_f       newPos {mousePos};
-
-    if (mousePos.X - halfSize.X < winBounds.left()) {
-        newPos.X = winBounds.left() + halfSize.X;
-    } else if (mousePos.X + halfSize.X > winBounds.right()) {
-        newPos.X = winBounds.right() - halfSize.X;
-    }
-
-    if (mousePos.Y - halfSize.Y < winBounds.top()) {
-        newPos.Y = winBounds.top() + halfSize.Y;
-    } else if (mousePos.Y + halfSize.Y > winBounds.bottom()) {
-        newPos.Y = winBounds.bottom() - halfSize.Y;
-    }
-
-    rect_f const newBounds {newPos - halfSize, DICE_SIZE * _scale};
-
-    _batch.bring_to_front(*_hoverDie->_shape);
-    _hoverDie->_shape->Bounds = newBounds;
-    _hoverDie->_colorState    = die_state::Dragged;
-}
-
-auto dice::hover(point_f mousePos) -> die*
+auto dice::on_hover(point_f mousePos) -> die*
 {
     auto const findDie {[&](point_f mp) -> die* {
         auto const vec {_batch.intersect({mp, size_f::One})};
@@ -182,12 +155,34 @@ auto dice::hover(point_f mousePos) -> die*
         }
     }
 
-    if (_hoverDie != die) {
-        _hoverDie = die;
-        return _hoverDie;
+    _hoverDie = die;
+    return _hoverDie;
+}
+
+void dice::on_drag(point_f mousePos, rect_f const& winBounds)
+{
+    if (!_hoverDie || _hoverDie->_frozen) { return; }
+
+    point_f const halfSize {DICE_SIZE.Width * _scale.Width / 2, DICE_SIZE.Height * _scale.Height / 2};
+    point_f       newPos {mousePos};
+
+    if (mousePos.X - halfSize.X < winBounds.left()) {
+        newPos.X = winBounds.left() + halfSize.X;
+    } else if (mousePos.X + halfSize.X > winBounds.right()) {
+        newPos.X = winBounds.right() - halfSize.X;
     }
 
-    return nullptr;
+    if (mousePos.Y - halfSize.Y < winBounds.top()) {
+        newPos.Y = winBounds.top() + halfSize.Y;
+    } else if (mousePos.Y + halfSize.Y > winBounds.bottom()) {
+        newPos.Y = winBounds.bottom() - halfSize.Y;
+    }
+
+    rect_f const newBounds {newPos - halfSize, DICE_SIZE * _scale};
+
+    _batch.bring_to_front(*_hoverDie->_shape);
+    _hoverDie->_shape->Bounds = newBounds;
+    _hoverDie->_colorState    = die_state::Dragged;
 }
 
 void dice::update(milliseconds deltaTime)

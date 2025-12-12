@@ -236,7 +236,7 @@ void engine::create_slot_wrapper()
     slotWrapper["is_empty"] = getter {
         [](slot* slot) { return slot->is_empty(); }};
     slotWrapper["state"] = getter {
-        [this](slot* slot) { return static_cast<u8>(slot->State); }};
+        [this](slot* slot) { return static_cast<u8>(slot->state()); }};
     slotWrapper["die_value"] = getter {
         [](slot* slot) -> u8 { return slot->is_empty() ? 0 : slot->current_die()->current_face().Value; }};
     slotWrapper["position"] = property {

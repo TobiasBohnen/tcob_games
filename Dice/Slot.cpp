@@ -69,6 +69,7 @@ void slot::remove_die()
 
 auto slot::bounds() const -> rect_f const& { return _bounds; }
 void slot::move_to(point_f pos) { _bounds = {pos, _bounds.Size}; }
+auto slot::state() const -> slot_state { return _state; }
 
 ////////////////////////////////////////////////////////////
 
@@ -93,7 +94,7 @@ auto slots::try_insert_die(die* hoverDie) -> slot*
     if (_locked || !hoverDie || !_hoverSlot || !_hoverSlot->can_insert_die(hoverDie->current_face())) { return nullptr; }
 
     _hoverSlot->insert_die(hoverDie);
-    _hoverSlot->State = slot_state::Idle;
+    _hoverSlot->_state = slot_state::Idle;
     hoverDie->on_slotted(_hoverSlot->_bounds);
     return _hoverSlot;
 }
@@ -121,7 +122,7 @@ auto slots::hover(rect_f const& rect) -> slot*
     auto* slot {find(rect)};
     if (_hoverSlot != slot) {
         if (_hoverSlot) {
-            _hoverSlot->State = slot_state::Idle;
+            _hoverSlot->_state = slot_state::Idle;
         }
         _hoverSlot = slot;
     }
@@ -134,7 +135,7 @@ auto slots::try_remove_die(die* die) -> slot*
     if (_locked || !die || !_hoverSlot || !_hoverSlot->can_remove_die(die)) { return nullptr; }
 
     _hoverSlot->remove_die();
-    _hoverSlot->State = slot_state::Idle;
+    _hoverSlot->_state = slot_state::Idle;
     return _hoverSlot;
 }
 
@@ -228,6 +229,31 @@ auto slots::get_hand(std::span<slot* const> slots) const -> hand
     }
 
     return result;
+}
+
+void slots::on_hover(point_f mp)
+{
+    auto const getRect {[&] -> rect_f {
+        return {mp, size_f::One};
+    }};
+
+    if (auto* hoverSlot {hover(getRect())}) {
+        hoverSlot->_state = slot_state::Hover;
+    }
+}
+
+void slots::on_drag(point_f mp, die* draggedDie)
+{
+    auto const getRect {[&] -> rect_f {
+        rect_i const  bounds {draggedDie->bounds()};
+        point_f const tl {bounds.top_left()};
+        point_f const br {bounds.bottom_right()};
+        return rect_f::FromLTRB(tl.X, tl.Y, br.X, br.Y);
+    }};
+
+    if (auto* hoverSlot {hover(getRect())}) {
+        hoverSlot->_state = hoverSlot->can_insert_die(draggedDie->current_face()) ? slot_state::Accept : slot_state::Reject;
+    }
 }
 
 auto slots::are_filled() const -> bool

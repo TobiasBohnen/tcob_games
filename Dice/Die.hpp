@@ -65,16 +65,11 @@ public:
 
     void roll();
 
-    void drag(point_f mousePos, rect_f const& winBounds);
+    auto on_hover(point_f mousePos) -> die*;
 
-    auto hover(point_f mousePos) -> die*;
+    void on_drag(point_f mousePos, rect_f const& winBounds);
 
     void update(milliseconds deltaTime);
-
-    auto get_hovered() const -> die*
-    {
-        return _hoverDie;
-    }
 
 private:
     std::vector<std::unique_ptr<die>> _dice;

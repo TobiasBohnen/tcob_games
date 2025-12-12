@@ -69,4 +69,6 @@ private:
     slots                                _slots;
     dice                                 _dice;
     std::vector<std::unique_ptr<sprite>> _sprites;
+
+    die* _hoverDie {nullptr};
 };
