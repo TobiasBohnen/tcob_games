@@ -30,7 +30,7 @@ base_game::base_game(assets::group const& grp, size_f realWindowSize)
     _form0 = std::make_unique<game_form>(uiBounds, grp, _sharedState, _events);
 
     _screenTexture->Size                  = size_i {VIRTUAL_SCREEN_SIZE};
-    _screenTexture->Filtering             = gfx::texture::filtering::Linear;
+    _screenTexture->Filtering             = gfx::texture::filtering::NearestNeighbor;
     _screenMaterial->first_pass().Texture = _screenTexture;
 
     _backgroundMaterial->first_pass().Texture = _backgroundTexture;
@@ -49,10 +49,9 @@ base_game::base_game(assets::group const& grp, size_f realWindowSize)
 
 void base_game::on_update(milliseconds deltaTime)
 {
-    _dice.update(deltaTime);
-
-    _spriteBatch.update(deltaTime);
     _form0->update(deltaTime);
+
+    _dice.update(deltaTime);
     _diceBatch.update(deltaTime);
 }
 
@@ -61,6 +60,7 @@ void base_game::on_fixed_update(milliseconds deltaTime)
     if (_engine.update(deltaTime)) {
         wrap_sprites();
         collide_sprites();
+        _spriteBatch.update(deltaTime);
     }
 }
 
@@ -140,6 +140,7 @@ void base_game::run(string const& file)
     _engine.run(file);
 
     wrap_sprites();
+    _spriteBatch.update(0ms);
 }
 
 void base_game::wrap_sprites()
