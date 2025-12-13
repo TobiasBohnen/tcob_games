@@ -44,7 +44,7 @@ function game:on_setup(engine)
     engine:create_sounds(sfx.get_sounds(self, engine))
 
     self.ship.sprite          = engine:create_sprite(self.ship)
-    self.ship.sprite.position = { x = 0.5, y = 0.5 }
+    self.ship.sprite.position = { x = ScreenSize.width / 2 - 12, y = ScreenSize.height / 2 - 12 }
 
     while #self.asteroids < INIT_ASTEROID_COUNT do
         self:try_spawn_asteroid(engine)
@@ -75,7 +75,7 @@ function game:on_turn_start(engine)
 
     self:try_spawn_asteroid(engine)
 
-    self.ship.linearVelocityTarget  = self.slots.speed.die_value / 12.0
+    self.ship.linearVelocityTarget  = self.slots.speed.die_value * 30
     self.ship.angularVelocityTarget = (self.slots.turn.die_value - 3.5) / 25
     self.bulletsLeft                = self.slots.bullets.die_value
 end
@@ -163,53 +163,6 @@ end
 ------
 ------
 
----@param engine engine
-function game:update_bullets(engine, deltaTime)
-    for i = #self.bullets, 1, -1 do
-        local b = self.bullets[i]
-        if b.lifetime < DURATION then
-            self:update_entity(b, deltaTime)
-        else
-            engine:remove_sprite(b.sprite)
-            table.remove(self.bullets, i)
-        end
-        b.lifetime = b.lifetime + deltaTime
-    end
-end
-
----@param engine engine
-function game:update_asteroids(engine, deltaTime)
-    for i = #self.asteroids, 1, -1 do
-        local a = self.asteroids[i]
-        if a.markedForDeath then
-            if a.size == "small" then
-                local explosion                       = {
-                    texture    = self.explosionTexture,
-                    collidable = false,
-                    lifetime   = 0,
-                }
-                explosion.sprite                      = engine:create_sprite(explosion)
-                explosion.sprite.position             = a.sprite.position
-                self.explosions[#self.explosions + 1] = explosion
-            else
-                local newSize = a.size == "medium" and "small" or "medium"
-                local aBounds = a.sprite.bounds
-
-                self:spawn_asteroid(engine, newSize, aBounds.x, aBounds.y)
-                self:spawn_asteroid(engine, newSize, aBounds.x + aBounds.width, aBounds.y + aBounds.height)
-            end
-
-            engine:remove_sprite(a.sprite)
-            table.remove(self.asteroids, i)
-            engine:play_sound(0)
-            engine:give_score(100)
-        else
-            a.sprite.rotation = a.sprite.rotation + 0.1 * deltaTime
-            self:update_entity(a, deltaTime)
-        end
-    end
-end
-
 function game:update_ship(deltaTime)
     local factor         = self.updateTime < HALF_DURATION
         and self.updateTime / HALF_DURATION
@@ -245,8 +198,22 @@ function game:update_entity(e, deltaTime)
     local vy          = math.sin(rad) * e.linearVelocity / 1000
 
     local pos         = e.sprite.position
-    e.sprite.position = { x = (pos.x + vx * deltaTime) % 1, y = (pos.y + vy * deltaTime) % 1 }
+    e.sprite.position = { x = (pos.x + vx * deltaTime) % ScreenSize.width, y = (pos.y + vy * deltaTime) % ScreenSize.height }
     e.sprite.rotation = (e.sprite.rotation + e.angularVelocity * deltaTime) % 360
+end
+
+---@param engine engine
+function game:update_bullets(engine, deltaTime)
+    for i = #self.bullets, 1, -1 do
+        local b = self.bullets[i]
+        if b.lifetime < DURATION then
+            self:update_entity(b, deltaTime)
+        else
+            engine:remove_sprite(b.sprite)
+            table.remove(self.bullets, i)
+        end
+        b.lifetime = b.lifetime + deltaTime
+    end
 end
 
 ---@param engine engine
@@ -257,7 +224,7 @@ function game:try_spawn_bullet(engine, deltaTime)
 
     local bullet                    = {
         direction       = self.ship.direction,
-        linearVelocity  = math.max(0.5, self.ship.linearVelocity * 1.5),
+        linearVelocity  = math.max(100, self.ship.linearVelocity * 1.2),
         angularVelocity = 0,
         texture         = self.bulletTexture,
         type            = "bullet",
@@ -289,6 +256,41 @@ function game:try_spawn_bullet(engine, deltaTime)
 end
 
 ---@param engine engine
+function game:update_asteroids(engine, deltaTime)
+    for i = #self.asteroids, 1, -1 do
+        local a = self.asteroids[i]
+        if a.markedForDeath then
+            if a.size == "small" then
+                local explosion                       = {
+                    texture    = self.explosionTexture,
+                    collidable = false,
+                    lifetime   = 0,
+                }
+                explosion.sprite                      = engine:create_sprite(explosion)
+                explosion.sprite.position             = a.sprite.position
+                self.explosions[#self.explosions + 1] = explosion
+            else
+                local newSize = a.size == "medium" and "small" or "medium"
+                local b       = a.sprite.bounds
+                local cx      = b.x + b.width * 0.5
+                local cy      = b.y + b.height * 0.5
+                local offset  = 8
+                self:spawn_asteroid(engine, newSize, cx - offset, cy - offset)
+                self:spawn_asteroid(engine, newSize, cx + offset, cy + offset)
+            end
+
+            engine:remove_sprite(a.sprite)
+            table.remove(self.asteroids, i)
+            engine:play_sound(0)
+            engine:give_score(100)
+        else
+            a.sprite.rotation = a.sprite.rotation + 0.1 * deltaTime
+            self:update_entity(a, deltaTime)
+        end
+    end
+end
+
+---@param engine engine
 function game:try_spawn_asteroid(engine)
     local count = #self.asteroids
     if count >= INIT_ASTEROID_COUNT then return end
@@ -296,17 +298,17 @@ function game:try_spawn_asteroid(engine)
     local edge = engine:random_int(1, 4)
     local x, y
     if edge == 1 then
-        x = engine:random(0.0, 0.05); y = engine:random(0.0, 1.0)
+        x = engine:random(0, 20); y = engine:random(0, 200)
     elseif edge == 2 then
-        x = engine:random(0.95, 1.0); y = engine:random(0.0, 1.0)
+        x = engine:random(280, 300); y = engine:random(0, 200)
     elseif edge == 3 then
-        x = engine:random(0.0, 1.0); y = engine:random(0.0, 0.05)
+        x = engine:random(0, 300); y = engine:random(0, 20)
     else
-        x = engine:random(0.0, 1.0); y = engine:random(0.95, 1.0)
+        x = engine:random(0, 300); y = engine:random(180, 200)
     end
 
     local sx, sy = self.ship.sprite.position.x, self.ship.sprite.position.y
-    if math.sqrt((sx - x) ^ 2 + (sy - y) ^ 2) < 0.15 then return end
+    if math.sqrt((sx - x) ^ 2 + (sy - y) ^ 2) < 45 then return end
 
     self:spawn_asteroid(engine, "large", x, y)
 end
@@ -315,7 +317,7 @@ end
 function game:spawn_asteroid(engine, size, x, y)
     local asteroid                      = {
         direction       = engine:random(0, 359),
-        linearVelocity  = engine:random(0.05, 0.15),
+        linearVelocity  = engine:random(20, 40),
         angularVelocity = engine:random(0.01, 0.15),
         size            = size,
         texture         = self.asteroidTextures[size],

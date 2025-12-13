@@ -58,16 +58,17 @@ private:
     asset_owner_ptr<gfx::texture>  _backgroundTexture;
     gfx::rect_shape*               _background;
 
+    asset_owner_ptr<gfx::material>       _screenMaterial;
     asset_owner_ptr<gfx::render_texture> _screenTexture;
-    asset_owner_ptr<gfx::material>       _screenMaterial {};
+    asset_owner_ptr<gfx::shader>         _screenShader;
     gfx::quad_renderer                   _screenRenderer {gfx::buffer_usage_hint::StaticDraw};
 
     shared_state _sharedState;
     event_bus    _events;
     engine       _engine;
+    slots        _slots;
+    dice         _dice;
 
-    slots                                _slots;
-    dice                                 _dice;
     std::vector<std::unique_ptr<sprite>> _sprites;
 
     die* _hoverDie {nullptr};

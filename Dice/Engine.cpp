@@ -186,35 +186,15 @@ void engine::create_wrappers()
 
 void engine::create_sprite_wrapper()
 {
-    static auto normal_to_world {[](point_f pos) -> point_f {
-        auto const& size {VIRTUAL_SCREEN_SIZE};
-        return {pos.X * size.Width, pos.Y * size.Height};
-    }};
-    static auto world_to_normal {[](point_f pos) -> point_f {
-        auto const& size {VIRTUAL_SCREEN_SIZE};
-        return {pos.X / size.Width, pos.Y / size.Height};
-    }};
-
     auto& spriteWrapper {*_script.create_wrapper<sprite>("sprite")};
     spriteWrapper["position"] = property {
-        [](sprite* sprite) { return world_to_normal(sprite->Shape->Bounds->Position); },
-        [](sprite* sprite, point_f p) { sprite->Shape->Bounds = {normal_to_world(p), sprite->Shape->Bounds->Size}; }};
+        [](sprite* sprite) { return sprite->Shape->Bounds->Position; },
+        [](sprite* sprite, point_f p) { sprite->Shape->Bounds = {p, sprite->Shape->Bounds->Size}; }};
     spriteWrapper["size"] = property {
-        [](sprite* sprite) -> size_f {
-            auto const size {world_to_normal({sprite->Shape->Bounds->Size.Width, sprite->Shape->Bounds->Size.Height})};
-            return {size.X, size.Y};
-        },
-        [](sprite* sprite, size_f p) {
-            auto const size {normal_to_world({p.Width, p.Height})};
-            sprite->Shape->Bounds = {sprite->Shape->Bounds->Position, {size.X, size.Y}};
-        }};
+        [](sprite* sprite) -> size_f { return sprite->Shape->Bounds->Size; },
+        [](sprite* sprite, size_f s) { sprite->Shape->Bounds = {sprite->Shape->Bounds->Position, s}; }};
     spriteWrapper["bounds"] = getter {
-        [](sprite* sprite) {
-            rect_f const  bounds {*sprite->Shape->Bounds};
-            point_f const tl {world_to_normal(bounds.top_left())};
-            point_f const br {world_to_normal(bounds.bottom_right())};
-            return rect_f::FromLTRB(tl.X, tl.Y, br.X, br.Y);
-        }};
+        [](sprite* sprite) { return *sprite->Shape->Bounds; }};
     spriteWrapper["rotation"] = property {
         [](sprite* sprite) { return sprite->Shape->Rotation->Value; },
         [](sprite* sprite, f32 p) { sprite->Shape->Rotation = degree_f {p}; }};
@@ -472,5 +452,5 @@ void engine::create_textures(std::unordered_map<u32, tex_def>& texMap)
     }
 
     tex->update_data(texImg, 0);
-    tex->Filtering = gfx::texture::filtering::Linear;
+    tex->Filtering = gfx::texture::filtering::NearestNeighbor;
 }

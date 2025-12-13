@@ -43,15 +43,15 @@ end
 function gfx.get_textures(game, engine)
     return {
         [game.ship.texture] = {
-            size        = square(24),
+            size        = square(16),
             bitmap      =
-            [[0j1d0t1d0s1f0r1b5b1b0q1c5b1c0p1b5d1b0o1c5d1c0n1b5f1b0m1c5f1c0l1b5h1b0k1c5c1b5c1c0j1b5b1f5b1b0j1b5a1h5a1b0i1p0h1p0g1r0f1r0e1c0a1l0a1c0d1b0c1j0c1b0c1c0e1f0e1c0b1b0g1d0g1b0a1c0r1e0t1d0t1b]],
+            [[0g1b0m1d0k1f0j1bEb1b0j1bEb1b0i1bEd1b0h1h0i1f0j1f0i1h0g1j0e1l0c1cDb1dDb1c0a1cDa0bDa1bDa0bDa1eDa0dDb0dDa1bDb0lDb]],
             transparent = 0,
         },
         [game.ship.hurtTexture] = {
-            size        = square(24),
+            size        = square(16),
             bitmap      =
-            [[0i3f0q3b1d3b0p3a1f3a0o3b1b5b1b3b0n3a1c5b1c3a0m3b1b5d1b3b0l3a1c5d1c3a0k3b1b5f1b3b0j3a1c5f1c3a0i3b1b5h1b3b0h3a1c5c1b5c1c3a0h3a1b5b1f5b1b3a0g3b1b5a1h5a1b3b0f3a1p3a0e3b1p3b0d3a1r3a0c3b1r3b0b3a1c3a1l3a1c3a0a3b1b3c1j3c1b3c1c3a0a3c1f3c0a3a1c3b1b3b0c3b1d3b0c3b1b3b1b3a0e3f0e3a1b3b1a3b0p3b1a3d0r3c]],
+            [[0e3f0i3b1d3b0h3a1f3a0h3a1bEb1b3a0g3b1bEb1b3b0f3a1bEd1b3a0f3a1h3a0f3b1f3b0f3b1f3b0e3b1h3b0c3b1j3b0a3b1l3c1cDb1dDb1c3b1bDa3bDa1bDa3bDa1b3b1aDa3dDb3dDa1a3e0b3d0b3d]],
             transparent = 0,
         },
         [game.bulletTexture] = {

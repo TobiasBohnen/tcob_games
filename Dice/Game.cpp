@@ -7,11 +7,109 @@
 
 using namespace scripting;
 
+auto* vert = R"(
+#version 450 core
+
+layout(location = 0)in vec2 vertInPos;
+layout(location = 1)in vec4 vertInColor;
+layout(location = 2)in vec3 vertInTexCoords;
+
+layout(std140, binding = 0)uniform Globals
+{
+	mat4 camera;
+	uvec2 view_size;
+	ivec2 mouse_pos;
+	float time;
+	bool debug; 
+} global;
+
+layout(std140, binding = 1)uniform Material
+{
+	vec4 color;
+	float point_size;
+} material;
+
+layout(location = 0)out VS_OUT
+{
+	vec4 color;
+	vec3 tex_coords;
+} vs_out;
+
+void main()
+{
+	vec4 pos = global.camera * vec4(vertInPos.xy, 0.0, 1.0);
+	gl_Position = vec4(((pos.x / global.view_size.x) * 2.0 - 1.0), (1.0 - 2.0 * (pos.y / global.view_size.y)), 0.0, 1.0);
+	vs_out.color = vertInColor;
+	vs_out.tex_coords = vertInTexCoords;
+}
+)";
+
+auto* frag = R"(
+#version 450 core
+
+layout(std140, binding = 1) uniform Material
+{
+    vec4 color;
+    float point_size;
+} material;
+
+layout(location = 0) out vec4 fragColor;
+
+layout(location = 0) in VS_OUT
+{
+    vec4 color;
+    vec3 tex_coords;
+} fs_in;
+
+layout(binding = 0) uniform sampler2DArray texture0;
+
+vec4 sample_tex_offset(ivec2 offset)
+{
+    ivec2 ts = textureSize(texture0, 0).xy;
+    vec2 uv  = fs_in.tex_coords.xy + vec2(offset) / vec2(ts);
+    return texture(texture0, vec3(uv, fs_in.tex_coords.z));
+}
+
+bool eq(vec4 a, vec4 b)
+{
+    return all(lessThan(abs(a - b), vec4(0.001)));
+}
+
+void main()
+{
+    vec4 center = sample_tex_offset(ivec2(0,0));
+    vec4 right  = sample_tex_offset(ivec2(1,0));
+    vec4 down   = sample_tex_offset(ivec2(0,1));
+
+    vec4 blended = center;
+
+    if (!eq(center, right))
+        blended = mix(center, right, 0.2);  // small horizontal mix
+    if (!eq(center, down))
+        blended = mix(blended, down, 0.2);  // small vertical mix
+
+    vec4 base = blended * fs_in.color * material.color;
+
+    vec2 fragPos = gl_FragCoord.xy;
+    float scan = 0.9 + 0.1 * sin(fragPos.y * 3.14159265);
+
+    float mask;
+    int col = int(mod(fragPos.x, 3.0));
+    if (col == 0)      mask = 1.00;
+    else if (col == 1) mask = 0.92;
+    else               mask = 0.85;
+
+    float intensity = scan * mask;
+
+    fragColor = vec4(base.rgb * intensity, base.a);
+}
+
+)";
+
 base_game::base_game(assets::group const& grp, size_f realWindowSize)
     : gfx::entity {update_mode::Both}
-    , _background(&_spriteBatch.create_shape<gfx::rect_shape>())
-    , _slots {realWindowSize / DICE_SLOTS_REF_SIZE}
-    , _dice {_diceBatch, realWindowSize / DICE_SLOTS_REF_SIZE}
+    , _background {&_spriteBatch.create_shape<gfx::rect_shape>()}
+    , _screenShader {"", vert, frag}
     , _engine {engine::init {.State             = _sharedState,
                              .Events            = _events,
                              .Game              = this,
@@ -19,6 +117,8 @@ base_game::base_game(assets::group const& grp, size_f realWindowSize)
                              .BackgroundTexture = _backgroundTexture.ptr(),
                              .Slots             = &_slots,
                              .Dice              = &_dice}}
+    , _slots {realWindowSize / DICE_SLOTS_REF_SIZE}
+    , _dice {_diceBatch, realWindowSize / DICE_SLOTS_REF_SIZE}
 {
     _background->Bounds   = {point_f::Zero, VIRTUAL_SCREEN_SIZE};
     _background->Material = _backgroundMaterial;
@@ -29,9 +129,12 @@ base_game::base_game(assets::group const& grp, size_f realWindowSize)
 
     _form0 = std::make_unique<game_form>(uiBounds, grp, _sharedState, _events);
 
-    _screenTexture->Size                  = size_i {VIRTUAL_SCREEN_SIZE};
-    _screenTexture->Filtering             = gfx::texture::filtering::NearestNeighbor;
-    _screenMaterial->first_pass().Texture = _screenTexture;
+    _screenTexture->Size      = size_i {VIRTUAL_SCREEN_SIZE};
+    _screenTexture->Filtering = gfx::texture::filtering::NearestNeighbor;
+
+    auto& firstPass {_screenMaterial->create_pass()};
+    // firstPass.Shader  = _screenShader;
+    firstPass.Texture = _screenTexture;
 
     _backgroundMaterial->first_pass().Texture = _backgroundTexture;
     _spriteMaterial->first_pass().Texture     = _spriteTexture;
