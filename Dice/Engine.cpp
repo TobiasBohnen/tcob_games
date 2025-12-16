@@ -195,12 +195,6 @@ void engine::create_sprite_wrapper()
         [](sprite* sprite, size_f s) { sprite->Shape->Bounds = {sprite->Shape->Bounds->Position, s}; }};
     spriteWrapper["bounds"] = getter {
         [](sprite* sprite) { return *sprite->Shape->Bounds; }};
-    spriteWrapper["rotation"] = property {
-        [](sprite* sprite) { return sprite->Shape->Rotation->Value; },
-        [](sprite* sprite, f32 p) { sprite->Shape->Rotation = degree_f {p}; }};
-    spriteWrapper["scale"] = property {
-        [](sprite* sprite) { return *sprite->Shape->Scale; },
-        [](sprite* sprite, size_f factor) { sprite->Shape->Scale = factor; }};
     spriteWrapper["owner"] = getter {
         [](sprite* sprite) { return sprite->Owner; }};
     spriteWrapper["texture"] = property {
@@ -315,7 +309,7 @@ void engine::create_engine_wrapper()
         return engine->_init.Slots->get_hand(slots);
     };
     engineWrapper["give_score"] = [](engine* engine, i32 score) { engine->_init.State.Score += score; };
-    engineWrapper["play_sound"] = [](engine* engine, u32 id) { engine->_sounds[id]->play(); };
+    engineWrapper["play_sound"] = [](engine* engine, u32 id) { engine->_sounds[id]->restart(); };
 
     // properties
     engineWrapper["dmd"]        = getter {[](engine* engine) { return &engine->_dmdProxy; }};

@@ -39,41 +39,55 @@ local function square(x)
     return { width = x, height = x }
 end
 
+local function ship_texture(bitmap)
+    return {
+        size        = square(16),
+        bitmap      = bitmap,
+        transparent = 0,
+    }
+end
+
+
+
 ---@param engine engine
 function gfx.get_textures(game, engine)
     return {
-        [game.ship.texture] = {
+        [game.ship.textures[0]]        = ship_texture([[0am1b0m1d0l1aEb1a0l1aEb1a0k1bEb1b0k1d0l1d0k1f0i1h0g1bDb1bDb1b0e1bDa0bDb0bDa1b0dDb0hDb0ah]]),
+        [game.ship.textures[45]]       = ship_texture([[0be1c0l1e0j1bEb1b0c1iEb1a0dDc1i0gDb1f0iDa1d0kDb1c0mDb1a0nDa1a0nDa1a0nDa1a0w]]),
+        [game.ship.textures[90]]       = ship_texture([[0ahDa1a0nDa1b0nDa1b0nDa1b0b1a0jDa1h0fDa1eEc1b0eDa1eEc1b0fDa1h0gDa1b0b1a0iDa1b0lDa1b0mDa1a0ar]]),
+        [game.ship.textures[135]]      = ship_texture([[0hDa1a0nDa1a0nDa1a0mDa1b0kDc1b0kDa1d0jDa1e0gDd1f0f1k0k1bEb1b0j1bEb1b0k1e0m1b0az]]),
+        [game.ship.textures[180]]      = ship_texture([[0ahDb0hDb0d1bDa0bDb0bDa1b0e1bDb1bDb1b0g1h0i1f0k1d0l1d0k1bEb1b0k1aEb1a0l1aEb1a0l1d0m1b0am]]),
+        [game.ship.textures[225]]      = ship_texture([[0w1aDa0n1aDa0n1aDa0n1aDb0m1cDb0k1dDa0i1fDb0g1iDc0d1aEb1i0c1bEb1b0j1e0l1c0be]]),
+        [game.ship.textures[270]]      = ship_texture([[0ar1aDa0m1bDa0l1bDa0i1a0b1bDa0g1hDa0f1bEc1eDa0e1bEc1eDa0f1hDa0j1a0b1bDa0n1bDa0n1bDa0n1aDa0ah]]),
+        [game.ship.textures[315]]      = ship_texture([[0az1b0m1e0k1bEb1b0j1bEb1b0k1k0f1fDd0g1eDa0j1dDa0k1bDc0k1bDa0m1aDa0n1aDa0n1aDa0h]]),
+
+        [game.ship.hurtTexture]        = {
             size        = square(16),
-            bitmap      =
-            [[0g1b0m1d0k1f0j1bEb1b0j1bEb1b0i1bEd1b0h1h0i1f0j1f0i1h0g1j0e1l0c1cDb1dDb1c0a1cDa0bDa1bDa0bDa1eDa0dDb0dDa1bDb0lDb]],
+            bitmap      = [[0al3d0j3h0g3j0f3j0e3l0d3l0d3l0d3l0e3j0f3j0g3h0j3d0al]],
             transparent = 0,
         },
-        [game.ship.hurtTexture] = {
-            size        = square(16),
-            bitmap      =
-            [[0e3f0i3b1d3b0h3a1f3a0h3a1bEb1b3a0g3b1bEb1b3b0f3a1bEd1b3a0f3a1h3a0f3b1f3b0f3b1f3b0e3b1h3b0c3b1j3b0a3b1l3c1cDb1dDb1c3b1bDa3bDa1bDa3bDa1b3b1aDa3dDb3dDa1a3e0b3d0b3d]],
-            transparent = 0,
-        },
-        [game.bulletTexture] = {
+        [game.bulletTexture]           = {
             size   = square(4),
             bitmap = [[0aFb0aFa8bFb8bFa0aFb0a]]
         },
-        [game.asteroidTextures.small] = {
+        [game.asteroidTextures.small]  = {
             size        = square(16),
-            bitmap      = [[0v6b0m6g0g6k0d6l0c6m0c6n0c6m0c6m0c6l0e6k0e6j0f6j0g6h0h6h0t]],
+            bitmap      = [[0f5c1a0i6a5a6c1b5a1c0d5b6e5c1b0c1e6d5a1d0a1g6g1a0a1f6h5a0a1b5b6d1b5a7a6b5a0a5b1a5a6c1c5b7a6a0b5a1c5a6a1d5c6a0b5a1i5c6b0a5a1i5d6a0a5b1h5d6a0b5a1g5a6b5a6b0c6a1a6b1d6d0e6d1b6b5a0j5c6a0f]],
             transparent = 0,
         },
         [game.asteroidTextures.medium] = {
             size        = square(24),
-            bitmap      = [[0be6c0t6i0n6l0j6o0h6q0f6r0e6s0e6t0e6s0e6s0e6s0e6r0g6q0g6p0i6o0i6n0j6n0k6l0l6l0m6j0bc]],
+            bitmap      =
+            [[0i5d1b0r5c1c0n6a5b6b1j0h5a6a5a6b1h6b1b0g5c6b1b5b1c6d1a0e1b5d1b5f1a6c1b0b1a5a1a5d1d5f6c1b0b5f1d6b1a5c1a6c1b0b5e1d6d5d6c1b0b5f6b1a6e5c6c1b0b5f6h5d6a1c0b5a1a5a1b5b6d1b6a1a5c1c0c1f5a6c1d6a1a5a1e0b5a1g6c1c6a1g0b5b1d5a1a6c1h5a1c0a5b1c5c1a6c1b6b1g0a5c1b5c1b6f1d5a1b0a5c1b5c1c6a1a5a6c1b5c0d5a1b5d1c5c6a1b5d0f1b5b1c5d1a6b5d0f6a1a6d5d6c5d0h6e1a5b1a6b5d0m5d6b0b5b0n5d6b0i]],
             transparent = 0,
         },
-        [game.asteroidTextures.large] = {
+        [game.asteroidTextures.large]  = {
             size        = square(32),
-            bitmap      = [[0dd6d0aa6k0t6n0q6q0m6s0l6u0j6w0h6x0g6y0g6z0g6y0g6y0g6y0g6y0g6x0i6w0i6v0k6u0k6t0m6s0m6r0n6r0o6p0p6p0q6n0s6l0db]],
+            bitmap      =
+            [[0l5h0t1e5h0r1g5b1a6b5c0o1k6d5f0j1f6c1d6d5f0i1a6a1b5b6b1f6d5f0e1c6c5c6b1b5d1a6e5e0c1c6d5d1b5g6d5e0c1c6c5d1d5g6c1a5d0c1a5b1a6a5d1f5g6a1c5c0c5h1e6c1a5d1a6a1d5b0c5g1e6f5d6b1c5c0b5b1a5e6b1b6f5e6a1c5b0c5a1c5d6k5d6a1d5b0b5a1c5e6j5e1d5b0b5a1c5a1b5b6f1b6b1a5c1e5c0a5a1c5b1b5b6c1e6b1a5b1d5d0a5a1c5b1d6d1e6a1h5c0a5a1d5b1d6d1k5a1a5c0a5b1b5c1a5b1a6d1j5f0a5d1a5a1a5d1a6d1b6c1d5f0a5d1c5d1b6h1e5e0a5e1b5d1c6h1d5d0b5f1a5e1c6a1a5b6c1c5d0f5c1a5b6a5b1d5d6a1c5e0f5e6c1d5e1b6b5e0g5d6e5g6b5f0i5d6e5e6b5f0l5c6h5h0p5b6g5f0s5b6d5d0v5e6c0l]],
             transparent = 0,
         },
-        [game.explosionTexture] = {
+        [game.explosionTexture]        = {
             size        = square(32),
             bitmap      =
             [[0p3a0ae3b0ac3a7a3a0ac3a7b3a0aa3a7c3a0aa3a7d3a0y3a7e3a0y3a7f3a0v3b7g3b0r3c7k3c0l3c7q3c0f3c7w3c0a3b7ac3a0a3b7z3b0d3b7v3b0h3a7t3a0k3b7p3b0n3b7l3b0r3a7j3a0t3a7j3a0t3a7k3a0s3a7k3a0s3a7k3a0s3a7k3a0s3a7l3a0q3a7f3a7f3a0q3a7d3b0a3b7d3a0q3a7c3a0e3b7b3a0q3a7b3a0h3a7b3a0p3c0j3c0p3a0n3a0am]],

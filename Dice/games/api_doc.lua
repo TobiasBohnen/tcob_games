@@ -114,8 +114,6 @@ SlotState = {
 ---@field position point
 ---@field size size
 ---@field bounds rect
----@field rotation number
----@field scale size
 ---@field owner table @readonly
 ---@field texture texture
 
