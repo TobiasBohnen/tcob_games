@@ -26,6 +26,7 @@ struct callbacks {
 
 struct bg_def {
     string Bitmap;
+
     static auto constexpr Members()
     {
         return std::tuple {member<&bg_def::Bitmap> {"bitmap"}};
@@ -39,9 +40,14 @@ struct tex_def {
     size_i             Size {size_i::Zero};
     string             Bitmap;
     std::optional<u32> Transparent;
+    std::optional<u32> Rotation;
+
     static auto constexpr Members()
     {
-        return std::tuple {member<&tex_def::Size> {"size"}, member<&tex_def::Bitmap> {"bitmap"}, member<&tex_def::Transparent, std::nullopt> {"transparent"}};
+        return std::tuple {member<&tex_def::Size> {"size"},
+                           member<&tex_def::Bitmap> {"bitmap"},
+                           member<&tex_def::Transparent, std::nullopt> {"transparent"},
+                           member<&tex_def::Rotation, std::nullopt> {"rotation"}};
     }
 };
 

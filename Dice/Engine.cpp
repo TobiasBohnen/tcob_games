@@ -171,6 +171,13 @@ void engine::create_env()
     slotState["Hover"]  = static_cast<i32>(slot_state::Hover);
     env["SlotState"]    = slotState;
 
+    table rotation {_script.create_table()};
+    rotation["R0"]   = 0;
+    rotation["R90"]  = 90;
+    rotation["R180"] = 180;
+    rotation["R270"] = 270;
+    env["Rot"]       = rotation;
+
     _script.Environment = env;
 }
 
@@ -427,13 +434,27 @@ void engine::create_textures(std::unordered_map<u32, tex_def>& texMap)
         assTex.Region = std::to_string(texDef.ID);
         assTex.Alpha  = grid<u8> {texDef.Size};
 
+        u32 const rotation {texDef.Rotation.value_or(0)};
+
         auto const dots {get_pixel(texDef.Bitmap, texDef.Size)};
-        for (i32 y {0}; y < texDef.Size.Height; ++y) {
-            for (i32 x {0}; x < texDef.Size.Width; ++x) {
-                auto const  idx {dots[x + (y * texDef.Size.Width)]};
-                color const color {texDef.Transparent == idx ? colors::Transparent : PALETTE[idx]};
-                texImg.set_pixel(pen + point_i {x, y}, color);
-                assTex.Alpha[x, y] = color.A;
+        auto const w {texDef.Size.Width};
+        auto const h {texDef.Size.Height};
+
+        auto const map_xy {[&](i32 x, i32 y) -> point_i {
+            switch (rotation) {
+            case 90:  return {h - 1 - y, x};
+            case 180: return {w - 1 - x, h - 1 - y};
+            case 270: return {y, w - 1 - x};
+            default:  return {x, y};
+            }
+        }};
+        for (i32 y {0}; y < h; ++y) {
+            for (i32 x {0}; x < w; ++x) {
+                auto const  idx {dots[x + (y * w)]};
+                color const col {texDef.Transparent == idx ? colors::Transparent : PALETTE[idx]};
+                auto const  dst {map_xy(x, y)};
+                texImg.set_pixel(pen + dst, col);
+                assTex.Alpha[dst.X, dst.Y] = col.A;
             }
         }
 

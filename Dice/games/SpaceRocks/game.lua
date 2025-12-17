@@ -239,7 +239,7 @@ function game:try_spawn_bullet(engine, deltaTime)
 
     local bullet                    = {
         direction      = ship.direction,
-        linearVelocity = math.max(100, ship.linearVelocity * 1.5),
+        linearVelocity = math.max(180, ship.linearVelocity * 1.5),
         texture        = self.bulletTexture,
         type           = "bullet",
         lifetime       = 0,
