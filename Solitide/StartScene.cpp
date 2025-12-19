@@ -135,9 +135,6 @@ X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X
 void start_scene::on_update(milliseconds)
 {
     if (_drawn && library().is_loading_complete()) {
-#if defined(TCOB_DEBUG)
-        std::ignore = window().copy_to_image().save("title.png");
-#endif
         parent().pop_current_scene();
         parent().push_scene<main_scene>();
     }

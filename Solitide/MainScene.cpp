@@ -187,11 +187,6 @@ void main_scene::on_key_down(input::keyboard::event const& ev)
         _currentRules = generate_rule(_sources->Settings.LastGame);
         ev.Handled    = true;
     }
-    if (ev.KeyCode == input::key_code::s && ev.KeyMods.alt()) {
-        static i32 i {0};
-        std::ignore = window().copy_to_image().save(std::format("img{}.png", i++));
-        ev.Handled  = true;
-    }
 #endif
 }
 
