@@ -81,7 +81,7 @@ public:
     auto try_insert_die(die* die) -> slot*;
     auto try_remove_die(die* die) -> slot*;
 
-    void reset(std::span<slot* const> slots);
+    void remove_dice(std::span<slot* const> slots);
     auto get_hand(std::span<slot* const> slots) const -> hand;
 
     void on_hover(point_f mp);

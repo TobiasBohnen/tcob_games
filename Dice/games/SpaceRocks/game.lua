@@ -14,12 +14,13 @@ local game                = {
         linearVelocityTarget = 0,
         sprite               = nil, ---@type sprite
         texture              = 0,
-        textures             = { [0] = 0, [45] = 1, [90] = 2, [135] = 3, [180] = 4, [225] = 5, [270] = 6, [315] = 7 }, --@type texture[]
-        hurtTexture          = 10, ---@type texture
         type                 = "ship",
         health               = 5,
         invulnerable         = false
     },
+
+    shipTextures     = { [0] = 0, [45] = 1, [90] = 2, [135] = 3, [180] = 4, [225] = 5, [270] = 6, [315] = 7 },         --@type texture[]
+    shipHurtTextures = { [0] = 10, [45] = 11, [90] = 12, [135] = 13, [180] = 14, [225] = 15, [270] = 16, [315] = 17 }, --@type texture[]
 
     bullets          = {},
     bulletTexture    = 20, ---@type texture
@@ -50,12 +51,9 @@ function game:on_setup(engine)
         self:try_spawn_asteroid(engine)
     end
 
-    self.slots.speed            = engine:create_slot({ value = 0, color = Palette.White })
-    self.slots.speed.position   = { x = 0, y = 75 }
-    self.slots.turn             = engine:create_slot({ value = 0, color = Palette.White })
-    self.slots.turn.position    = { x = 66, y = 75 }
-    self.slots.bullets          = engine:create_slot({ value = 0, color = Palette.White })
-    self.slots.bullets.position = { x = 30, y = 95 }
+    self.slots.speed   = engine:create_slot({ value = 0, color = Palette.White })
+    self.slots.turn    = engine:create_slot({ value = 0, color = Palette.White })
+    self.slots.bullets = engine:create_slot({ value = 0, color = Palette.White })
 
     engine:create_dice(4, { { values = { 1, 2, 3, 4, 5, 6 }, color = Palette.White } })
     engine:roll_dice()
@@ -121,22 +119,17 @@ function game:on_collision(engine, spriteA, spriteB)
         if not ship.invulnerable then
             ship.health         = ship.health - 1
             ship.invulnerable   = true
-            ship.sprite.texture = ship.hurtTexture
+            ship.sprite.texture = self.shipHurtTextures[ship.direction]
             gfx.draw_dmd(engine.dmd, self)
         end
 
         local asteroid          = first.type == "asteroid" and first or second
-        asteroid.direction      = ship.direction
-        asteroid.linearVelocity = ship.linearVelocity * 1.1
         asteroid.markedForDeath = true
     elseif key == "asteroid_bullet" then
         local asteroid          = first.type == "asteroid" and first or second
         local bullet            = first.type == "bullet" and first or second
         asteroid.markedForDeath = true
         bullet.lifetime         = DURATION - 1
-    elseif key == "asteroid_asteroid" then
-        first.direction  = (first.direction + engine:random(45, 135)) % 360
-        second.direction = (second.direction - engine:random(45, 135)) % 360
     end
 end
 
@@ -154,12 +147,11 @@ end
 ---@param engine engine
 function game:on_turn_finish(engine)
     engine:reset_slots(self.slots)
-    engine:roll_dice()
     gfx.draw_dmd(engine.dmd, self)
 
     local ship          = self.ship
     ship.invulnerable   = false
-    ship.sprite.texture = ship.textures[ship.direction]
+    ship.sprite.texture = self.shipTextures[ship.direction]
 end
 
 ---@param engine engine
@@ -186,9 +178,9 @@ function game:update_ship(deltaTime)
     end
 
     ship.direction = ship.direction % 360
-    if not ship.invulnerable then
-        ship.sprite.texture = ship.textures[ship.direction]
-    end
+    ship.sprite.texture = ship.invulnerable and
+        self.shipHurtTextures[ship.direction]
+        or self.shipTextures[ship.direction]
 
     self:update_entity(ship, deltaTime)
 end

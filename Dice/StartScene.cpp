@@ -63,7 +63,7 @@ void start_scene::on_fixed_update(milliseconds deltaTime)
     stream << " best FPS:" << stats.best_FPS();
     stream << " worst FPS:" << stats.worst_FPS();
 
-    window().Title = "Dice |" + stream.str();
+    window().Title = "Dice >| " + stream.str();
 }
 
 void start_scene::on_key_down(input::keyboard::event const& ev)
@@ -72,8 +72,14 @@ void start_scene::on_key_down(input::keyboard::event const& ev)
     case input::scan_code::BACKSPACE:
         parent().pop_current_scene();
         break;
-    case input::scan_code::R: {
-        auto _ = window().copy_to_image().save("screen01.webp");
+    case input::scan_code::S: {
+        auto const fileName {[]() {
+            for (i32 i {0};; ++i) {
+                auto const name {std::format("screen{:02}.webp", i)};
+                if (!io::exists(name)) { return name; }
+            }
+        }()};
+        std::ignore = window().copy_to_image().save(fileName);
     } break;
     default:
         break;

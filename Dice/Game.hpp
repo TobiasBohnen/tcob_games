@@ -60,7 +60,6 @@ private:
 
     asset_owner_ptr<gfx::material>       _screenMaterial;
     asset_owner_ptr<gfx::render_texture> _screenTexture;
-    asset_owner_ptr<gfx::shader>         _screenShader;
     gfx::quad_renderer                   _screenRenderer {gfx::buffer_usage_hint::StaticDraw};
 
     shared_state _sharedState;

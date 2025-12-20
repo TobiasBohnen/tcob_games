@@ -39,8 +39,10 @@ local ship_texture_0          =
 [[0am1b0m1d0l1aEb1a0l1aEb1a0k1bEb1b0k1d0l1d0k1f0i1h0g1bDb1bDb1b0e1bDa0bDb0bDa1b0dDb0hDb0ah]]
 local ship_texture_45         =
 [[0be1c0l1e0j1bEb1b0c1iEb1a0dDc1i0gDb1f0iDa1d0kDb1c0mDb1a0nDa1a0nDa1a0nDa1a0w]]
-local hurt_texture            =
-[[0al3d0j3h0g3j0f3j0e3l0d3l0d3l0d3l0e3j0f3j0g3h0j3d0al]]
+local hurt_texture_0          =
+[[0v3d0k3b1b3b0j3a1d3a0j3a1aEb1a3a0i3b1aEb1a3b0h3a1bEb1b3a0h3b1d3b0h3b1d3b0g3b1f3b0e3b1h3b0c3b1bDb1bDb1b3b0b3a1bDa3bDb3bDa1b3a0b3aDb3hDb3a0b3d0f3d0q]]
+local hurt_texture_45         =
+[[0an3e0j3b1c3b0h3b1e3a0b3g1bEb1b3a0b3a1hEb1a3b0b3aDb1i3a0c3cDb1f3b0e3bDa1d3c0g3aDb1c3a0i3cDb1a3a0k3bDa1a3a0l3aDa1a3a0l3aDa1a3a0l3d0f]]
 local bullet_texture          =
 [[0aFb0aFa8bFb8bFa0aFb0a]]
 local asteroid_small_texture  =
@@ -50,11 +52,11 @@ local asteroid_medium_texture =
 local asteroid_large_texture  =
 [[0l5h0t1e5h0r1g5b1a6b5c0o1k6d5f0j1f6c1d6d5f0i1a6a1b5b6b1f6d5f0e1c6c5c6b1b5d1a6e5e0c1c6d5d1b5g6d5e0c1c6c5d1d5g6c1a5d0c1a5b1a6a5d1f5g6a1c5c0c5h1e6c1a5d1a6a1d5b0c5g1e6f5d6b1c5c0b5b1a5e6b1b6f5e6a1c5b0c5a1c5d6k5d6a1d5b0b5a1c5e6j5e1d5b0b5a1c5a1b5b6f1b6b1a5c1e5c0a5a1c5b1b5b6c1e6b1a5b1d5d0a5a1c5b1d6d1e6a1h5c0a5a1d5b1d6d1k5a1a5c0a5b1b5c1a5b1a6d1j5f0a5d1a5a1a5d1a6d1b6c1d5f0a5d1c5d1b6h1e5e0a5e1b5d1c6h1d5d0b5f1a5e1c6a1a5b6c1c5d0f5c1a5b6a5b1d5d6a1c5e0f5e6c1d5e1b6b5e0g5d6e5g6b5f0i5d6e5e6b5f0l5c6h5h0p5b6g5f0s5b6d5d0v5e6c0l]]
 local explosion_texture       =
-[[0p3a0ae3b0ac3a7a3a0ac3a7b3a0aa3a7c3a0aa3a7d3a0y3a7e3a0y3a7f3a0v3b7g3b0r3c7k3c0l3c7q3c0f3c7w3c0a3b7ac3a0a3b7z3b0d3b7v3b0h3a7t3a0k3b7p3b0n3b7l3b0r3a7j3a0t3a7j3a0t3a7k3a0s3a7k3a0s3a7k3a0s3a7k3a0s3a7l3a0q3a7f3a7f3a0q3a7d3b0a3b7d3a0q3a7c3a0e3b7b3a0q3a7b3a0h3a7b3a0p3c0j3c0p3a0n3a0am]]
+[[0f3d0i6a3h1b0d5a3c7d3c1a0c1a3b7h3b1a0a1a3b7c8d7c3b0a1a3b7b8f7b3b0a3b7b8h7b3d7b8h7b3d7b8h7b3d7b8h7b3b5a3b7b8f7b3b0a5a3b7c8d7c3b0b5a3b7h3b6a0c6a3c7d3c6a0e6a3h0j3d0f]]
 
-local function square(x) return { width = x, height = x } end
 
 local function make_texture(size, tex, r)
+    local function square(x) return { width = x, height = x } end
     return {
         size        = square(size),
         bitmap      = tex,
@@ -66,17 +68,25 @@ end
 ---@param engine engine
 function gfx.get_textures(game, engine)
     return {
-        [game.ship.textures[0]]        = make_texture(16, ship_texture_0, Rot.R0),
-        [game.ship.textures[90]]       = make_texture(16, ship_texture_0, Rot.R90),
-        [game.ship.textures[180]]      = make_texture(16, ship_texture_0, Rot.R180),
-        [game.ship.textures[270]]      = make_texture(16, ship_texture_0, Rot.R270),
+        [game.shipTextures[0]]         = make_texture(16, ship_texture_0, Rot.R0),
+        [game.shipTextures[90]]        = make_texture(16, ship_texture_0, Rot.R90),
+        [game.shipTextures[180]]       = make_texture(16, ship_texture_0, Rot.R180),
+        [game.shipTextures[270]]       = make_texture(16, ship_texture_0, Rot.R270),
 
-        [game.ship.textures[45]]       = make_texture(16, ship_texture_45, Rot.R0),
-        [game.ship.textures[135]]      = make_texture(16, ship_texture_45, Rot.R90),
-        [game.ship.textures[225]]      = make_texture(16, ship_texture_45, Rot.R180),
-        [game.ship.textures[315]]      = make_texture(16, ship_texture_45, Rot.R270),
+        [game.shipTextures[45]]        = make_texture(16, ship_texture_45, Rot.R0),
+        [game.shipTextures[135]]       = make_texture(16, ship_texture_45, Rot.R90),
+        [game.shipTextures[225]]       = make_texture(16, ship_texture_45, Rot.R180),
+        [game.shipTextures[315]]       = make_texture(16, ship_texture_45, Rot.R270),
 
-        [game.ship.hurtTexture]        = make_texture(16, hurt_texture, Rot.R0),
+        [game.shipHurtTextures[0]]     = make_texture(16, hurt_texture_0, Rot.R0),
+        [game.shipHurtTextures[90]]    = make_texture(16, hurt_texture_0, Rot.R90),
+        [game.shipHurtTextures[180]]   = make_texture(16, hurt_texture_0, Rot.R180),
+        [game.shipHurtTextures[270]]   = make_texture(16, hurt_texture_0, Rot.R270),
+
+        [game.shipHurtTextures[45]]    = make_texture(16, hurt_texture_45, Rot.R0),
+        [game.shipHurtTextures[135]]   = make_texture(16, hurt_texture_45, Rot.R90),
+        [game.shipHurtTextures[225]]   = make_texture(16, hurt_texture_45, Rot.R180),
+        [game.shipHurtTextures[315]]   = make_texture(16, hurt_texture_45, Rot.R270),
 
         [game.bulletTexture]           = make_texture(4, bullet_texture, Rot.R0),
 
@@ -84,7 +94,7 @@ function gfx.get_textures(game, engine)
         [game.asteroidTextures.medium] = make_texture(24, asteroid_medium_texture, Rot.R0),
         [game.asteroidTextures.large]  = make_texture(32, asteroid_large_texture, Rot.R0),
 
-        [game.explosionTexture]        = make_texture(32, explosion_texture, Rot.R0),
+        [game.explosionTexture]        = make_texture(16, explosion_texture, Rot.R0),
     }
 end
 
@@ -130,31 +140,32 @@ function gfx.draw_dmd(dmd, game)
         dmd:blit({ x = 0, y = (i - 1) * 11, width = 10, height = 10 }, heart_pattern)
     end
 
-    dmd:blit({ x = 40, y = 23, width = 20, height = 23 }, ship_pattern)
+    dmd:blit({ x = 30, y = 50, width = 20, height = 23 }, ship_pattern)
 
     if bulletsValue > 0 then
-        dmd:blit({ x = 49, y = 5, width = 2, height = 17 }, bullets_patterns[bulletsValue])
-    end
-    if speedValue > 0 then
-        dmd:blit({ x = 45, y = 43, width = 10, height = 10 }, speed_patterns[speedValue])
+        dmd:blit({ x = 39, y = 32, width = 2, height = 17 }, bullets_patterns[bulletsValue])
     end
     if turnValue > 0 then
-        local region
-        if turnValue >= 1 and turnValue <= 3 then
-            region = { x = 30, y = 25, width = 10, height = 10 }
-        else
-            region = { x = 60, y = 25, width = 10, height = 10 }
-        end
-        dmd:blit(region, turn_patterns[turnValue])
+        dmd:blit({ x = 20, y = 42, width = 10, height = 10 }, turn_patterns[turnValue])
     end
+    if speedValue > 0 then
+        dmd:blit({ x = 35, y = 70, width = 10, height = 10 }, speed_patterns[speedValue])
+    end
+
 
     local function draw_slot(pos, state)
         local col = state == SlotState.Accept and "3" or "9"
         dmd:blit({ x = pos.x, y = pos.y, width = 13, height = 13 }, string.rep(col, 13 * 13))
         dmd:blit({ x = pos.x + 1, y = pos.y + 1, width = 11, height = 11 }, string.rep("A", 11 * 11))
     end
+
+    slots.bullets.position = { x = 55, y = 30 }
     draw_slot(slots.bullets.position, slots.bullets.state)
+
+    slots.turn.position = { x = 55, y = 50 }
     draw_slot(slots.turn.position, slots.turn.state)
+
+    slots.speed.position = { x = 55, y = 70 }
     draw_slot(slots.speed.position, slots.speed.state)
 end
 

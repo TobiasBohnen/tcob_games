@@ -305,9 +305,18 @@ void engine::create_engine_wrapper()
         std::vector<slot*> slots;
         for (auto const& key : slotsTable.get_keys<string>()) { slots.push_back(slotsTable[key].as<slot*>()); }
 
+        std::vector<die*> dice;
+        for (auto* slot : slots) {
+            if (auto* die {slot->current_die()}) { dice.push_back(die); }
+        }
+
         auto* s {engine->_init.Slots};
         s->unlock();
-        s->reset(slots);
+        s->remove_dice(slots);
+
+        for (auto* die : dice) {
+            die->roll();
+        }
     };
     engineWrapper["get_hand"] = [](engine* engine, table const& slotsTable) {
         std::vector<slot*> slots;

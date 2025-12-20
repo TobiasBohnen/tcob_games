@@ -139,7 +139,7 @@ auto slots::try_remove_die(die* die) -> slot*
     return _hoverSlot;
 }
 
-void slots::reset(std::span<slot* const> slots)
+void slots::remove_dice(std::span<slot* const> slots)
 {
     for (auto* slot : slots) {
         auto* die {slot->current_die()};
