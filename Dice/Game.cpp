@@ -7,10 +7,6 @@
 
 using namespace scripting;
 
-auto* vert = R"(
-
-)";
-
 base_game::base_game(assets::group const& grp, size_f realWindowSize)
     : gfx::entity {update_mode::Both}
     , _background {&_spriteBatch.create_shape<gfx::rect_shape>()}
