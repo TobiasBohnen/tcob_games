@@ -16,12 +16,14 @@ local game                = {
     bulletTexture    = 20, ---@type texture
     bulletsLeft      = 0,
     bulletTime       = 0,
+    bulletSound      = 2, ---@type sound
 
     asteroids        = {},
     asteroidTextures = { small = 30, medium = 31, large = 32 }, ---@type { [string]: texture }
 
     explosions       = {},
     explosionTexture = 40, ---@type texture
+    explosionSound   = 1, ---@type sound
 
     slots            = {}, ---@type { [string]: slot }
 
@@ -279,7 +281,7 @@ function game:try_spawn_bullet(engine, deltaTime)
     self.bulletTime                 = HALF_DURATION / self.slots.bullets.die_value
     self.bulletsLeft                = self.bulletsLeft - 1
 
-    engine:play_sound(1)
+    engine:play_sound(self.bulletSound)
 end
 
 ---@param engine engine
@@ -308,7 +310,7 @@ function game:update_asteroids(engine, deltaTime)
 
             engine:remove_sprite(a.sprite)
             table.remove(self.asteroids, i)
-            engine:play_sound(0)
+            engine:play_sound(self.explosionSound)
             engine:give_score(100)
         else
             self:update_entity(a, deltaTime)

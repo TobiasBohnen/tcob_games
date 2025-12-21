@@ -415,32 +415,32 @@ void engine::create_textures(std::unordered_map<u32, tex_def>& texMap)
 {
     _textures.clear();
 
-    constexpr i32        PAD {2};
-    std::vector<tex_def> texDefs;
+    constexpr i32 PAD {1};
 
-    // get canvas size
-    size_i texImgSize {0, 0};
-    for (auto& [id, texDef] : texMap) {
-        texDef.ID = id;
-        texDefs.push_back(texDef);
-        texImgSize.Width += texDef.Size.Width + (PAD * 2);
-        texImgSize.Height = std::max(texImgSize.Height, static_cast<i32>(texDef.Size.Height + (PAD * 2)));
-    }
-
-    texImgSize.Width += PAD;
-    texImgSize.Height += PAD;
-
-    // draw textures
-    point_i pen {PAD, PAD};
+    size_i const texImgSize {256, 256};
+    point_i      pen {PAD, PAD};
+    i32          rowHeight {0};
 
     auto* tex {_init.SpriteTexture};
     tex->resize(texImgSize, 1, gfx::texture::format::RGBA8);
 
     gfx::image texImg {gfx::image::CreateEmpty(texImgSize, gfx::image::format::RGBA)};
-    for (auto const& texDef : texDefs) {
-        auto& assTex {_textures[texDef.ID]};
+
+    for (auto& [id, texDef] : texMap) {
+        if (pen.X + texDef.Size.Width + PAD > texImgSize.Width) {
+            pen.X = PAD;
+            pen.Y += rowHeight + (PAD * 2);
+            rowHeight = 0;
+        }
+        if (pen.Y + texDef.Size.Height + PAD > texImgSize.Height) {
+            pen.Y     = PAD;
+            rowHeight = 0;
+            logger::Warning("tex overflow");
+        }
+
+        auto& assTex {_textures[id]};
         assTex.Size   = size_f {texDef.Size};
-        assTex.Region = std::to_string(texDef.ID);
+        assTex.Region = std::to_string(id);
         assTex.Alpha  = grid<u8> {texDef.Size};
 
         u32 const rotation {texDef.Rotation.value_or(0)};
@@ -472,6 +472,7 @@ void engine::create_textures(std::unordered_map<u32, tex_def>& texMap)
                         static_cast<f32>(texDef.Size.Width) / static_cast<f32>(texImgSize.Width), static_cast<f32>(texDef.Size.Height) / static_cast<f32>(texImgSize.Height)},
              .Level  = 0};
 
+        rowHeight = std::max(rowHeight, texDef.Size.Height);
         pen.X += texDef.Size.Width + (PAD * 2);
     }
 

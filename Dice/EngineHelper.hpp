@@ -24,6 +24,21 @@ struct callbacks {
 
 ////////////////////////////////////////////////////////////
 
+struct sprite_def {
+    u32  Texture {0};
+    bool IsCollidable {true};
+    bool IsWrappable {true};
+
+    static auto constexpr Members()
+    {
+        return std::tuple {member<&sprite_def::Texture> {"texture"},
+                           member<&sprite_def::IsCollidable, true> {"collidable"},
+                           member<&sprite_def::IsWrappable, true> {"wrappable"}};
+    }
+};
+
+////////////////////////////////////////////////////////////
+
 struct bg_def {
     string Bitmap;
 
@@ -36,7 +51,6 @@ struct bg_def {
 ////////////////////////////////////////////////////////////
 
 struct tex_def {
-    u32                ID {0};
     size_i             Size {size_i::Zero};
     string             Bitmap;
     std::optional<u32> Transparent;
