@@ -75,7 +75,7 @@ auto star::eat_check(point_i pos) -> bool
 {
     if (is_pos(pos)) { // eat star
         give_score(STAR_SCORE);
-        play_sound(audio::sound_generator {}.generate_powerup());
+        play_sound(audio::sound_generator {}.generate_powerup(clock::now().time_since_epoch().count()));
         hide();
         return true;
     }
@@ -98,7 +98,7 @@ auto bomb::eat_check(point_i pos) -> bool
 {
     if (is_pos(pos)) { // eat bomb
         fail();
-        play_sound(audio::sound_generator {}.generate_explosion());
+        play_sound(audio::sound_generator {}.generate_explosion(clock::now().time_since_epoch().count()));
         return true;
     }
 
@@ -120,7 +120,7 @@ auto food::eat_check(point_i pos) -> bool
 {
     if (is_pos(pos)) { // eat food
         give_score(FOOD_SCORE);
-        play_sound(audio::sound_generator {}.generate_pickup_coin());
+        play_sound(audio::sound_generator {}.generate_pickup_coin(clock::now().time_since_epoch().count()));
         hide();
         return true;
     }
@@ -161,7 +161,7 @@ auto snake::enforce_bounds() const -> bool
 {
     if (!_gridSize.contains(_headPos)) {
         _parent.fail();
-        _parent.play_sound(audio::sound_generator {}.generate_hit_hurt());
+        _parent.play_sound(audio::sound_generator {}.generate_hit_hurt(clock::now().time_since_epoch().count()));
         return false;
     }
 
@@ -191,7 +191,7 @@ void snake::move_body()
         // check hit tail
         if (std::ranges::find(_tail, _headPos) != _tail.end()) {
             _parent.fail();
-            _parent.play_sound(audio::sound_generator {}.generate_hit_hurt());
+            _parent.play_sound(audio::sound_generator {}.generate_hit_hurt(clock::now().time_since_epoch().count()));
             return;
         }
 

@@ -19,7 +19,7 @@ void dmd_proxy::clear()
 void dmd_proxy::blit(rect_i const& rect, string const& dotStr)
 {
     if (rect.right() > _dmd->width() || rect.bottom() > _dmd->height()) { return; }
-    auto const dots {get_pixel(dotStr, rect.Size)};
+    auto const dots {decode_texture_pixels(dotStr, rect.Size)};
 
     _dmd.mutate([&](auto& dmd) { dmd.blit(rect, dots); });
 }
@@ -122,11 +122,11 @@ void dmd_proxy::print(point_i pos, string_view text, color color)
 
 ////////////////////////////////////////////////////////////
 
-auto sfx_proxy::pickup_coin(u64 seed) -> audio::sound_wave { return audio::sound_generator {random::prng_split_mix_64 {seed}}.generate_pickup_coin(); }
-auto sfx_proxy::laser_shoot(u64 seed) -> audio::sound_wave { return audio::sound_generator {random::prng_split_mix_64 {seed}}.generate_laser_shoot(); }
-auto sfx_proxy::explosion(u64 seed) -> audio::sound_wave { return audio::sound_generator {random::prng_split_mix_64 {seed}}.generate_explosion(); }
-auto sfx_proxy::powerup(u64 seed) -> audio::sound_wave { return audio::sound_generator {random::prng_split_mix_64 {seed}}.generate_powerup(); }
-auto sfx_proxy::hit_hurt(u64 seed) -> audio::sound_wave { return audio::sound_generator {random::prng_split_mix_64 {seed}}.generate_hit_hurt(); }
-auto sfx_proxy::jump(u64 seed) -> audio::sound_wave { return audio::sound_generator {random::prng_split_mix_64 {seed}}.generate_jump(); }
-auto sfx_proxy::blip_select(u64 seed) -> audio::sound_wave { return audio::sound_generator {random::prng_split_mix_64 {seed}}.generate_blip_select(); }
-auto sfx_proxy::random(u64 seed) -> audio::sound_wave { return audio::sound_generator {random::prng_split_mix_64 {seed}}.generate_random(); }
+auto sfx_proxy::pickup_coin(u64 seed) -> audio::sound_wave { return audio::sound_generator {}.generate_pickup_coin(seed); }
+auto sfx_proxy::laser_shoot(u64 seed) -> audio::sound_wave { return audio::sound_generator {}.generate_laser_shoot(seed); }
+auto sfx_proxy::explosion(u64 seed) -> audio::sound_wave { return audio::sound_generator {}.generate_explosion(seed); }
+auto sfx_proxy::powerup(u64 seed) -> audio::sound_wave { return audio::sound_generator {}.generate_powerup(seed); }
+auto sfx_proxy::hit_hurt(u64 seed) -> audio::sound_wave { return audio::sound_generator {}.generate_hit_hurt(seed); }
+auto sfx_proxy::jump(u64 seed) -> audio::sound_wave { return audio::sound_generator {}.generate_jump(seed); }
+auto sfx_proxy::blip_select(u64 seed) -> audio::sound_wave { return audio::sound_generator {}.generate_blip_select(seed); }
+auto sfx_proxy::random(u64 seed) -> audio::sound_wave { return audio::sound_generator {}.generate_random(seed); }

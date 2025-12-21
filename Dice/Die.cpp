@@ -18,7 +18,7 @@ die::die(gfx::rect_shape* shape, rng& rng, std::span<die_face const> faces, die_
 
     audio::sound_generator gen {};
     audio::sound_wave      wv {ob["wave"].as<audio::sound_wave>()};
-    wv = gen.mutate_wave(wv);
+    wv = gen.mutate_wave(0, wv);
     auto buffer {gen.create_buffer(wv)};
     _sound = std::make_shared<audio::sound>(buffer);
 
