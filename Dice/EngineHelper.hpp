@@ -24,6 +24,19 @@ struct callbacks {
 
 ////////////////////////////////////////////////////////////
 
+struct die_faces {
+    std::vector<u8> Values {0};
+    color           Color {};
+
+    static auto constexpr Members()
+    {
+        return std::tuple {member<&die_faces::Values> {"values"},
+                           member<&die_faces::Color> {"color"}};
+    }
+};
+
+////////////////////////////////////////////////////////////
+
 struct sprite_def {
     u32  Texture {0};
     bool IsCollidable {true};

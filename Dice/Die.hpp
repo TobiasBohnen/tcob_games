@@ -10,6 +10,18 @@
 
 ////////////////////////////////////////////////////////////
 
+struct die_face {
+    u8    Value {0};
+    color Color {};
+
+    auto texture_region() const -> string
+    {
+        return std::format("d{}-{}", Value, Color.value());
+    }
+
+    auto operator==(die_face const& other) const -> bool = default;
+};
+
 enum class die_state : u8 {
     Normal,
     Hovered,

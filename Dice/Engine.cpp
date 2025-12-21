@@ -260,39 +260,30 @@ void engine::create_engine_wrapper()
     engineWrapper["random"]        = [](engine* engine, f32 min, f32 max) { return engine->_init.State.Rng(min, max); };
     engineWrapper["random_int"]    = [](engine* engine, i32 min, i32 max) { return engine->_init.State.Rng(min, max); };
     engineWrapper["log"]           = [](string const& str) { logger::Info(str); };
-    engineWrapper["create_sprite"] = [](engine* engine, table const& spriteDef) {
+    engineWrapper["create_sprite"] = [](engine* engine, table const& spriteOwner) {
         auto* sprite {engine->_init.Game->add_sprite()};
-        sprite->Owner = spriteDef;
-        spriteDef.try_get(sprite->IsCollidable, "collidable");
-        spriteDef.try_get(sprite->IsWrappable, "wrappable");
+        sprite->Owner = spriteOwner;
 
-        auto const texID {spriteDef["texture"].as<u32>()};
-        engine->set_texture(sprite, texID);
+        sprite_def def {spriteOwner.get<sprite_def>().value()};
+        sprite->IsCollidable = def.IsCollidable;
+        sprite->IsWrappable  = def.IsWrappable;
+        engine->set_texture(sprite, def.Texture);
         sprite->Shape->Bounds = rect_f {point_f::Zero, sprite->Texture->Size};
 
         return sprite;
     };
     engineWrapper["remove_sprite"] = [](engine* engine, sprite* sprite) { engine->_init.Game->remove_sprite(sprite); };
-    engineWrapper["create_slot"]   = [](engine* engine, table const& slotDef) -> slot* {
-        slot_face face;
-        slotDef.try_get(face.Op, "op");
-        slotDef.try_get(face.Value, "value");
-        slotDef.try_get(face.Color, "color");
-
-        auto* slot {engine->_init.Slots->add_slot(face)};
-        slot->Owner = slotDef;
-
+    engineWrapper["create_slot"]   = [](engine* engine, table const& slotOwner) -> slot* {
+        slot_face face {slotOwner.get<slot_face>().value()};
+        auto*     slot {engine->_init.Slots->add_slot(face)};
+        slot->Owner = slotOwner;
         return slot;
     };
     engineWrapper["create_dice"] = [](engine* engine, i32 count, table const& faces) {
         std::vector<die_face> vec;
         for (i32 i {1}; i <= faces.raw_length(); ++i) {
-            table            face {faces.get<table>(i).value()}; // TODO: error check
-            std::vector<i32> values;
-            face.try_get(values, "values");
-            color color;
-            face.try_get(color, "color");
-            for (auto const& value : values) { vec.emplace_back(value, color); }
+            auto const face {faces.get<die_faces>(i).value()}; // TODO: error check
+            for (auto const& value : face.Values) { vec.emplace_back(value, face.Color); }
         }
         if (vec.empty()) { return; }
         auto& init {engine->_init};
@@ -329,7 +320,7 @@ void engine::create_engine_wrapper()
 
     // properties
     engineWrapper["dmd"]        = getter {[](engine* engine) { return &engine->_dmdProxy; }};
-    engineWrapper["sfx"]        = getter {[](engine* engine) { return &engine->_sfxProxy; }};
+    engineWrapper["sfxr"]       = getter {[](engine* engine) { return &engine->_sfxProxy; }};
     engineWrapper["background"] = property {
         [](engine* engine) -> u32 {
             for (auto const& [k, v] : engine->_backgrounds) {
@@ -397,7 +388,7 @@ void engine::create_backgrounds(std::unordered_map<u32, bg_def> const& bgMap)
     for (auto const& [id, bgDef] : bgMap) {
         _backgrounds[id] = std::to_string(id);
 
-        auto const dots {get_pixel(bgDef.Bitmap, bgSize)};
+        auto const dots {decode_texture_pixels(bgDef.Bitmap, bgSize)};
         for (i32 y {0}; y < bgSize.Height; ++y) {
             for (i32 x {0}; x < bgSize.Width; ++x) {
                 bgImg.set_pixel({x, y}, PALETTE[dots[x + (y * bgSize.Width)]]);
@@ -445,7 +436,7 @@ void engine::create_textures(std::unordered_map<u32, tex_def>& texMap)
 
         u32 const rotation {texDef.Rotation.value_or(0)};
 
-        auto const dots {get_pixel(texDef.Bitmap, texDef.Size)};
+        auto const dots {decode_texture_pixels(texDef.Bitmap, texDef.Size)};
         auto const w {texDef.Size.Width};
         auto const h {texDef.Size.Height};
 

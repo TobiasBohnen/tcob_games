@@ -5,6 +5,8 @@
 
 #include "Painter.hpp"
 
+#include "Die.hpp"
+
 dice_painter::dice_painter(size_i texGrid)
     : _texGrid {texGrid}
 {
@@ -75,7 +77,7 @@ void dice_painter::make_die(std::span<die_face const> faces)
     _tex->Filtering = gfx::texture::filtering::Linear;
 }
 
-auto get_pixel(string_view s, size_i size) -> std::vector<u8>
+auto decode_texture_pixels(string_view s, size_i size) -> std::vector<u8>
 {
     static auto from_base26 {[](string_view s) -> u32 {
         u32 n {0};

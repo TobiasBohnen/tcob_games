@@ -9,18 +9,6 @@
 
 ////////////////////////////////////////////////////////////
 
-struct die_face {
-    u8    Value {0};
-    color Color {};
-
-    auto texture_region() const -> string
-    {
-        return std::format("d{}-{}", Value, Color.value());
-    }
-
-    auto operator==(die_face const& other) const -> bool = default;
-};
-
 class dice_painter {
 public:
     explicit dice_painter(size_i texGrid);
@@ -40,4 +28,4 @@ private:
 
 ////////////////////////////////////////////////////////////
 
-auto get_pixel(string_view s, size_i size) -> std::vector<u8>;
+auto decode_texture_pixels(string_view s, size_i size) -> std::vector<u8>;

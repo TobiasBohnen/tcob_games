@@ -3,10 +3,11 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
+#include "Slot.hpp"
+
 #include <algorithm>
 
 #include "Die.hpp"
-#include "Slot.hpp"
 
 ////////////////////////////////////////////////////////////
 
@@ -29,7 +30,7 @@ auto slot::can_insert_die(die_face dieFace) const -> bool
 {
     if (_die) { return false; }
 
-    if (_face.Value != 0) {
+    if (_face.Value != ANY_DIE_VALUE) {
         switch (_face.Op) {
         case op::Equal:
             if (dieFace.Value != _face.Value) { return false; }
@@ -46,8 +47,8 @@ auto slot::can_insert_die(die_face dieFace) const -> bool
         }
     }
 
-    if (_face.Color == colors::Transparent) { return true; }
-    return _face.Color == dieFace.Color;
+    if (_face.Color != ANY_DIE_COLOR) { return _face.Color == dieFace.Color; }
+    return true;
 }
 
 void slot::insert_die(die* die)

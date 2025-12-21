@@ -46,9 +46,9 @@ function game:on_setup(engine)
         self:try_spawn_asteroid(engine)
     end
 
-    self.slots.speed   = engine:create_slot({ value = 0, color = Palette.White })
-    self.slots.turn    = engine:create_slot({ value = 0, color = Palette.White })
-    self.slots.bullets = engine:create_slot({ value = 0, color = Palette.White })
+    self.slots.speed   = engine:create_slot({})
+    self.slots.turn    = engine:create_slot({})
+    self.slots.bullets = engine:create_slot({})
 
     engine:create_dice(4, { { values = { 1, 2, 3, 4, 5, 6 }, color = Palette.White } }) -- { 1, 1, 1, 1, 1, 1 }
     engine:roll_dice()

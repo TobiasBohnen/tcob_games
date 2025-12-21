@@ -31,8 +31,8 @@
 ---@field height number
 
 ---@class slot_owner
----@field color color
----@field value number
+---@field value? number
+---@field color? color
 ---@field op? string
 
 ---@class die_face
@@ -154,19 +154,19 @@ local Rot = {
 ---@field print fun(self: dmd, pos: point, text: string, color: color|integer)
 
 --------------------------------
--- SFX
+-- SFXR
 --------------------------------
 
----@class sfx
+---@class sfxr
 ---
----@field pickup_coin fun(self: sfx, seed: integer)
----@field laser_shoot fun(self: sfx, seed: integer)
----@field explosion fun(self: sfx, seed: integer)
----@field powerup fun(self: sfx, seed: integer)
----@field hit_hurt fun(self: sfx, seed: integer)
----@field jump fun(self: sfx, seed: integer)
----@field blip_select fun(self: sfx, seed: integer)
----@field random fun(self: sfx, seed: integer)
+---@field pickup_coin fun(self: sfxr, seed: integer)
+---@field laser_shoot fun(self: sfxr, seed: integer)
+---@field explosion fun(self: sfxr, seed: integer)
+---@field powerup fun(self: sfxr, seed: integer)
+---@field hit_hurt fun(self: sfxr, seed: integer)
+---@field jump fun(self: sfxr, seed: integer)
+---@field blip_select fun(self: sfxr, seed: integer)
+---@field random fun(self: sfxr, seed: integer)
 
 --------------------------------
 -- Engine
@@ -175,7 +175,7 @@ local Rot = {
 ---@class engine
 ---
 ---@field dmd dmd
----@field sfx sfx
+---@field sfxr sfxr
 ---@field background integer
 ---@field ssd_value string
 ---

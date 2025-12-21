@@ -8,7 +8,6 @@
 #include "Common.hpp" // IWYU pragma: keep
 
 #include "Hand.hpp"
-#include "Painter.hpp"
 
 ////////////////////////////////////////////////////////////
 
@@ -27,11 +26,18 @@ enum class op : u8 {
 };
 
 struct slot_face {
-    u8    Value {0};
-    color Color {colors::Transparent};
+    u8    Value {ANY_DIE_VALUE};
+    color Color {ANY_DIE_COLOR};
     op    Op {op::Equal};
 
     auto operator==(slot_face const& other) const -> bool = default;
+
+    static auto constexpr Members()
+    {
+        return std::tuple {member<&slot_face::Value, ANY_DIE_VALUE> {"value"},
+                           member<&slot_face::Color, ANY_DIE_COLOR> {"color"},
+                           member<&slot_face::Op, op::Equal> {"op"}};
+    }
 };
 
 ////////////////////////////////////////////////////////////
