@@ -7,17 +7,7 @@ local gfx                 = require('gfx')
 local sfx                 = require('sfx')
 
 local game                = {
-    ship             = {
-        direction            = 0,
-        directionTarget      = 0,
-        linearVelocity       = 0,
-        linearVelocityTarget = 0,
-        sprite               = nil, ---@type sprite
-        texture              = 0,
-        type                 = "ship",
-        health               = 5,
-        invulnerable         = false
-    },
+    ship             = {},
 
     shipTextures     = { [0] = 0, [45] = 1, [90] = 2, [135] = 3, [180] = 4, [225] = 5, [270] = 6, [315] = 7 },         --@type texture[]
     shipHurtTextures = { [0] = 10, [45] = 11, [90] = 12, [135] = 13, [180] = 14, [225] = 15, [270] = 16, [315] = 17 }, --@type texture[]
@@ -36,6 +26,8 @@ local game                = {
     slots            = {}, ---@type { [string]: slot }
 
     updateTime       = 0,
+
+    powerup          = false
 }
 
 ---@param engine engine
@@ -44,6 +36,7 @@ function game:on_setup(engine)
     engine:create_textures(gfx.get_textures(self, engine))
     engine:create_sounds(sfx.get_sounds(self, engine))
 
+    self.ship                 = self:create_ship()
     self.ship.sprite          = engine:create_sprite(self.ship)
     self.ship.sprite.position = { x = ScreenSize.width / 2 - 12, y = ScreenSize.height / 2 - 12 }
 
@@ -55,7 +48,7 @@ function game:on_setup(engine)
     self.slots.turn    = engine:create_slot({ value = 0, color = Palette.White })
     self.slots.bullets = engine:create_slot({ value = 0, color = Palette.White })
 
-    engine:create_dice(4, { { values = { 1, 2, 3, 4, 5, 6 }, color = Palette.White } })
+    engine:create_dice(4, { { values = { 1, 2, 3, 4, 5, 6 }, color = Palette.White } }) -- { 1, 1, 1, 1, 1, 1 }
     engine:roll_dice()
     gfx.draw_dmd(engine.dmd, self)
 end
@@ -73,14 +66,21 @@ function game:on_turn_start(engine)
 
     self:try_spawn_asteroid(engine)
 
-    self.ship.linearVelocityTarget = self.slots.speed.die_value * 30
+    local ship                = self.ship
+    ship.linearVelocityTarget = self.slots.speed.die_value * 30
 
-    local dirs                     = { -135, -90, -45, 45, 90, 135 }
-    local directionTarget          = dirs[self.slots.turn.die_value]
-    self.ship.turnStepsTotal       = directionTarget / 45
-    self.ship.turnStepsDone        = 0
+    local dirs                = { -135, -90, -45, 45, 90, 135 }
+    local directionTarget     = dirs[self.slots.turn.die_value]
+    ship.turnStepsTotal       = directionTarget / 45
+    ship.turnStepsDone        = 0
 
-    self.bulletsLeft               = self.slots.bullets.die_value
+    self.bulletsLeft          = self.slots.bullets.die_value
+
+    if engine:get_hand(self.slots).value == "ThreeOfAKind" then
+        ship:set_invulnerable(true)
+        self.powerup = true
+        gfx.draw_dmd(engine.dmd, self)
+    end
 end
 
 ---@param engine engine
@@ -94,7 +94,7 @@ function game:on_turn_update(engine, deltaTime)
     self:update_asteroids(engine, deltaTime)
     self:update_explosions(engine, deltaTime)
     self:update_bullets(engine, deltaTime)
-    self:update_ship(deltaTime)
+    self:update_ship(self.ship, deltaTime)
 
     if self.ship.health == 0 then return GameStatus.GameOver end
     return GameStatus.Running
@@ -117,9 +117,8 @@ function game:on_collision(engine, spriteA, spriteB)
     if key == "asteroid_ship" then
         local ship = self.ship
         if not ship.invulnerable then
-            ship.health         = ship.health - 1
-            ship.invulnerable   = true
-            ship.sprite.texture = self.shipHurtTextures[ship.direction]
+            ship.health = ship.health - 1
+            ship:set_invulnerable(true)
             gfx.draw_dmd(engine.dmd, self)
         end
 
@@ -147,42 +146,62 @@ end
 ---@param engine engine
 function game:on_turn_finish(engine)
     engine:reset_slots(self.slots)
-    gfx.draw_dmd(engine.dmd, self)
 
-    local ship          = self.ship
-    ship.invulnerable   = false
-    ship.sprite.texture = self.shipTextures[ship.direction]
+    self.powerup = false
+    self.ship:set_invulnerable(false)
+    gfx.draw_dmd(engine.dmd, self)
 end
 
 ---@param engine engine
 function game:on_teardown(engine)
+    gfx.draw_game_over(engine.dmd, self)
 end
 
 ------
 ------
 
-function game:update_ship(deltaTime)
-    local factor        = self.updateTime < HALF_DURATION
+function game:update_ship(ship, deltaTime)
+    local factor = self.updateTime < HALF_DURATION
         and self.updateTime / HALF_DURATION
         or 1 - ((self.updateTime - HALF_DURATION) / HALF_DURATION)
 
-    local ship          = self.ship
-    ship.linearVelocity = ship.linearVelocityTarget * factor
-
-    local stepsTodo     = math.floor(math.abs(ship.turnStepsTotal) * factor + 0.0001)
-    local stepsToApply  = stepsTodo - ship.turnStepsDone
-    if stepsToApply > 0 then
-        local sign         = ship.turnStepsTotal > 0 and 1 or -1
-        ship.direction     = ship.direction + sign * 45 * stepsToApply
-        ship.turnStepsDone = ship.turnStepsDone + stepsToApply
-    end
-
-    ship.direction = ship.direction % 360
-    ship.sprite.texture = ship.invulnerable and
-        self.shipHurtTextures[ship.direction]
-        or self.shipTextures[ship.direction]
+    ship:update(factor)
+    ship.sprite.texture = ship.invulnerable and self.shipHurtTextures[ship.direction] or self.shipTextures[ship.direction]
 
     self:update_entity(ship, deltaTime)
+end
+
+function game:create_ship()
+    return {
+        direction            = 0,
+        directionTarget      = 0,
+        linearVelocity       = 0,
+        linearVelocityTarget = 0,
+        sprite               = nil, ---@type sprite
+        texture              = 0,
+        type                 = "ship",
+        health               = 5,
+        invulnerable         = false,
+
+        set_invulnerable     = function(ship, val)
+            ship.invulnerable   = val
+            ship.sprite.texture = val and self.shipHurtTextures[ship.direction] or self.shipTextures[ship.direction]
+        end,
+
+        update               = function(ship, factor)
+            ship.linearVelocity = ship.linearVelocityTarget * factor
+
+            local stepsTodo     = math.floor(math.abs(ship.turnStepsTotal) * factor + 0.0001)
+            local stepsToApply  = stepsTodo - ship.turnStepsDone
+            if stepsToApply > 0 then
+                local sign         = ship.turnStepsTotal > 0 and 1 or -1
+                ship.direction     = ship.direction + sign * 45 * stepsToApply
+                ship.turnStepsDone = ship.turnStepsDone + stepsToApply
+            end
+
+            ship.direction = ship.direction % 360
+        end
+    }
 end
 
 function game:update_explosions(engine, deltaTime)

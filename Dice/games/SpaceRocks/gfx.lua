@@ -167,6 +167,16 @@ function gfx.draw_dmd(dmd, game)
 
     slots.speed.position = { x = 55, y = 70 }
     draw_slot(slots.speed.position, slots.speed.state)
+
+    if game.powerup then
+        dmd:print({ x = 7, y = 90 }, "3 OF A KIND", Palette.Green)
+    end
+end
+
+function gfx.draw_game_over(dmd, game)
+    dmd:clear()
+    dmd:print({ x = 12, y = 12 }, "GAME", Palette.DarkBlue)
+    dmd:print({ x = 36, y = 20 }, "OVER", Palette.BlueGray)
 end
 
 return gfx

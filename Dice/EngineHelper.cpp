@@ -102,6 +102,8 @@ void dmd_proxy::print(point_i pos, string_view text, color color)
                 index = 42 + (c - ':');
             } else if (c == '!') {
                 index = 48;
+            } else if (c == ' ') {
+                continue;
             }
 
             for (i32 y {0}; y < 5; ++y) {

@@ -103,14 +103,14 @@ void base_game::on_mouse_button_up(input::mouse::button_event const& ev)
     }
 
     if (!_hoverDie) {
-        dynamic_cast<input::receiver*>(_form0.get())->on_mouse_button_up(ev);
+        static_cast<input::receiver*>(_form0.get())->on_mouse_button_up(ev);
     }
 }
 
 void base_game::on_mouse_button_down(input::mouse::button_event const& ev)
 {
     if (!_hoverDie) {
-        dynamic_cast<input::receiver*>(_form0.get())->on_mouse_button_down(ev);
+        static_cast<input::receiver*>(_form0.get())->on_mouse_button_down(ev);
     }
 }
 
@@ -135,7 +135,7 @@ void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
         _slots.on_hover(mp);
     }
 
-    dynamic_cast<input::receiver*>(_form0.get())->on_mouse_motion(ev);
+    static_cast<input::receiver*>(_form0.get())->on_mouse_motion(ev);
 }
 
 void base_game::run(string const& file)
