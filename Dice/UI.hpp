@@ -17,11 +17,18 @@ protected:
     void on_update(milliseconds deltaTime) override;
 
 private:
-    void gen_styles(assets::group const& grp);
-
     shared_state& _sharedState;
 
     bool _updateDmd {true};
     bool _updateSsd0 {true};
     bool _updateSsd1 {true};
+};
+
+////////////////////////////////////////////////////////////
+
+class game_select_form : public ui::form<ui::manual_layout> {
+public:
+    signal<u32 const> StartGame;
+
+    game_select_form(rect_f const& bounds, assets::group const& grp, std::map<u32, game_def> const& games);
 };

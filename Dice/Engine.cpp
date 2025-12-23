@@ -32,7 +32,7 @@ engine::engine(init const& init)
         call(_callbacks.OnDieMotion);
     });
 
-    _init.Events.Start.connect([this]() { start_turn(); });
+    _init.Events.StartTurn.connect([this]() { start_turn(); });
 }
 
 template <typename R>

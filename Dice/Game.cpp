@@ -7,7 +7,7 @@
 
 using namespace scripting;
 
-base_game::base_game(assets::group const& grp, size_f realWindowSize)
+base_game::base_game(init const& init)
     : gfx::entity {update_mode::Both}
     , _background {&_spriteBatch.create_shape<gfx::rect_shape>()}
     , _engine {engine::init {.State             = _sharedState,
@@ -17,23 +17,23 @@ base_game::base_game(assets::group const& grp, size_f realWindowSize)
                              .BackgroundTexture = _backgroundTexture.ptr(),
                              .Slots             = &_slots,
                              .Dice              = &_dice}}
-    , _slots {realWindowSize / DICE_SLOTS_REF_SIZE}
-    , _dice {_diceBatch, realWindowSize / DICE_SLOTS_REF_SIZE}
+    , _slots {init.RealWindowSize / DICE_SLOTS_REF_SIZE}
+    , _dice {_diceBatch, init.RealWindowSize / DICE_SLOTS_REF_SIZE}
 {
     _background->Bounds   = {point_f::Zero, VIRTUAL_SCREEN_SIZE};
     _background->Material = _backgroundMaterial;
 
-    auto const [w, h] {realWindowSize};
+    auto const [w, h] {init.RealWindowSize};
     rect_f const bgBounds {0, 0, h / 3.0f * 4.0f, h};
     rect_f const uiBounds {bgBounds.width(), 0.0f, w - bgBounds.width(), h};
 
-    _form0 = std::make_unique<game_form>(uiBounds, grp, _sharedState, _events);
+    _form0 = std::make_unique<game_form>(uiBounds, init.Group, _sharedState, _events);
 
     _screenTexture->Size      = size_i {VIRTUAL_SCREEN_SIZE};
     _screenTexture->Filtering = gfx::texture::filtering::NearestNeighbor;
 
     auto& firstPass {_screenMaterial->create_pass()};
-    firstPass.Shader  = grp.get<gfx::shader>("CRT");
+    firstPass.Shader  = init.Group.get<gfx::shader>("CRT");
     firstPass.Texture = _screenTexture;
 
     _backgroundMaterial->first_pass().Texture = _backgroundTexture;
@@ -84,8 +84,9 @@ auto base_game::can_draw() const -> bool
 void base_game::on_key_down(input::keyboard::event const& ev)
 {
     switch (ev.ScanCode) {
-    case input::scan_code::SPACE: _events.Start(); break;
+    case input::scan_code::SPACE: _events.StartTurn(); break;
     case input::scan_code::R:     Restart(); break;
+    case input::scan_code::Q:     Quit(); break;
     default:                      break;
     }
 }

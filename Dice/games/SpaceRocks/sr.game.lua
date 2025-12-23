@@ -3,8 +3,8 @@ local HALF_DURATION       = DURATION * 0.5
 local INIT_ASTEROID_COUNT = 5
 local EXPLOSION_DURATION  = 750
 
-local gfx                 = require('gfx')
-local sfx                 = require('sfx')
+local gfx                 = require('sr.gfx')
+local sfx                 = require('sr.sfx')
 
 local game                = {
     ship             = {},

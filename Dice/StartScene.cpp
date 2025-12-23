@@ -9,12 +9,7 @@
 
 start_scene::start_scene(game& game)
     : scene {game}
-{
-}
-
-start_scene::~start_scene() = default;
-
-void start_scene::on_start()
+    , _gameNode(&root_node().create_child())
 {
     auto& resMgr {library()};
     auto& resGrp {resMgr.create_or_get_group("dice")};
@@ -23,12 +18,20 @@ void start_scene::on_start()
 
     auto modules {io::enumerate("/", {.String = "*.die", .MatchWholePath = true}, true)};
     for (auto const& module : modules) { resGrp.mount(module); }
-
-    auto inis {io::enumerate("/", {.String = "*game.ini", .MatchWholePath = true}, true)};
+    scan_games();
 
     auto& win {window()};
     win.ClearColor = colors::Black;
 
+    _selectForm = std::make_shared<game_select_form>(rect_f {win.bounds()}, resGrp, _games);
+    _selectForm->StartGame.connect([this](i32 id) { _startGameID = id; });
+    root_node().create_child().Entity = _selectForm;
+}
+
+start_scene::~start_scene() = default;
+
+void start_scene::on_start()
+{
     locate_service<gfx::render_system>().statistics().reset();
 }
 
@@ -38,19 +41,28 @@ void start_scene::on_draw_to(gfx::render_target&)
 
 void start_scene::on_update(milliseconds)
 {
-    if (_startGame) {
-        _startGame = false;
+    if (_games.contains(_startGameID)) {
+        _currentGameID = _startGameID;
+        _startGameID   = 0;
 
-        auto& resMgr {library()};
-        auto& resGrp {resMgr.create_or_get_group("dice")};
-        _currentGame = std::make_shared<base_game>(resGrp, size_f {window().bounds().Size});
+        auto* resGrp {library().get_group("dice")};
+        _currentGame = std::make_shared<base_game>(base_game::init {
+            .Group          = *resGrp,
+            .RealWindowSize = size_f {window().bounds().Size}});
 
-        root_node().clear();
-        root_node().create_child().Entity = _currentGame;
+        _currentGame->Restart.connect([this]() {
+            _startGameID = _currentGameID;
+        });
+        _currentGame->Quit.connect([this]() {
+            _gameNode->Entity = nullptr;
+            _gameNode->send_to_back();
+            _selectForm->show();
+        });
 
-        _currentGame->Restart.connect([this]() { _startGame = true; });
-
-        _currentGame->run("dice/SpaceRocks/game.lua");
+        _gameNode->Entity = _currentGame;
+        _gameNode->bring_to_front();
+        _selectForm->hide();
+        _currentGame->run(_games[_currentGameID].LuaPath);
     }
 }
 
@@ -69,10 +81,8 @@ void start_scene::on_fixed_update(milliseconds deltaTime)
 void start_scene::on_key_down(input::keyboard::event const& ev)
 {
     switch (ev.ScanCode) {
-    case input::scan_code::BACKSPACE:
-        parent().pop_current_scene();
-        break;
-    case input::scan_code::S: {
+    case input::scan_code::BACKSPACE: parent().pop_current_scene(); break;
+    case input::scan_code::S:         {
         auto const fileName {[]() {
             for (i32 i {0};; ++i) {
                 auto const name {std::format("screen{:02}.webp", i)};
@@ -83,5 +93,40 @@ void start_scene::on_key_down(input::keyboard::event const& ev)
     } break;
     default:
         break;
+    }
+}
+
+void start_scene::scan_games()
+{
+    auto inis {io::enumerate("/", {.String = "*game.ini", .MatchWholePath = true}, true)};
+    for (auto const& ini : inis) {
+        data::object obj;
+        // TODO: errors
+        if (!obj.load(ini)) { continue; }
+
+        game_def game {};
+        if (!obj.try_get(game.Number, "Number")) { continue; };
+        if (game.Number == 0) { continue; }
+        if (!obj.try_get(game.Name, "Name")) { continue; };
+        if (!obj.try_get(game.Genre, "Genre")) { continue; };
+
+        string cover;
+        if (!obj.try_get(cover, "Cover")) { continue; };
+        auto       imgCover {gfx::image::CreateEmpty(COVER_SIZE, gfx::image::format::RGBA)};
+        auto const dots {decode_texture_pixels(cover, COVER_SIZE)};
+        for (i32 y {0}; y < COVER_SIZE.Height; ++y) {
+            for (i32 x {0}; x < COVER_SIZE.Width; ++x) {
+                imgCover.set_pixel({x, y}, PALETTE[dots[x + (y * COVER_SIZE.Width)]]);
+            }
+        }
+        game.Cover->resize(COVER_SIZE, 1, gfx::texture::format::RGBA8);
+        game.Cover->update_data(imgCover, 0);
+        game.Cover->regions()["default"] = {.UVRect = {0, 0, 1, 1}, .Level = 0};
+
+        auto luas {io::enumerate(io::get_parent_folder(ini), {.String = "*game.lua", .MatchWholePath = true}, true)};
+        if (luas.size() != 1) { continue; }
+        game.LuaPath = *luas.begin();
+
+        _games[game.Number] = game;
     }
 }

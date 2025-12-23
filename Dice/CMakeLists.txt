@@ -40,7 +40,6 @@ set(ZIP_COMMANDS "")
 foreach(subdir ${GAMES_SUBDIRS})
     if(IS_DIRECTORY "${GAMES_DIR}/${subdir}")
         list(APPEND ZIP_COMMANDS
-            COMMAND ${CMAKE_COMMAND} -E make_directory "${TARGET_DIR}"
             COMMAND ${CMAKE_COMMAND} -E tar
             "cf"
             "${TARGET_DIR}/${subdir}.die"
@@ -52,6 +51,7 @@ foreach(subdir ${GAMES_SUBDIRS})
 endforeach()
 
 add_custom_target(Dice_copyFiles ALL
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${TARGET_DIR}"
     ${ZIP_COMMANDS}
     COMMAND ${CMAKE_COMMAND} -E copy
     ${CMAKE_CURRENT_SOURCE_DIR}/assets/dice.zip

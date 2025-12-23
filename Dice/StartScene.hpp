@@ -26,6 +26,14 @@ protected:
     void on_key_down(input::keyboard::event const& ev) override;
 
 private:
+    void scan_games();
+
+    std::shared_ptr<game_select_form> _selectForm {};
+
+    std::map<u32, game_def>    _games;
     std::shared_ptr<base_game> _currentGame {};
-    bool                       _startGame {true};
+    u32                        _currentGameID {0};
+    u32                        _startGameID {0};
+
+    scene_node* _gameNode {nullptr};
 };

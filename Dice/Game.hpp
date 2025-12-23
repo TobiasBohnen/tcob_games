@@ -17,9 +17,15 @@
 
 class base_game : public gfx::entity {
 public:
-    base_game(assets::group const& grp, size_f realWindowSize);
+    struct init {
+        assets::group& Group;
+        size_f         RealWindowSize;
+    };
 
+    signal<> Quit;
     signal<> Restart;
+
+    explicit base_game(init const& init);
 
     void run(string const& file);
 
@@ -64,9 +70,10 @@ private:
 
     shared_state _sharedState;
     event_bus    _events;
-    engine       _engine;
-    slots        _slots;
-    dice         _dice;
+
+    engine _engine;
+    slots  _slots;
+    dice   _dice;
 
     std::vector<std::unique_ptr<sprite>> _sprites;
 

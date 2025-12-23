@@ -10,71 +10,7 @@ using namespace tcob::gfx;
 using namespace tcob::ui;
 using namespace std::chrono_literals;
 
-////////////////////////////////////////////////////////////
-
-game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_state& state, event_bus& events)
-    : form {{.Name = "game", .Bounds = rect_i {bounds}}, size_i {100, 100}}
-    , _sharedState {state}
-{
-    gen_styles(grp);
-
-    {
-        auto& panel1 {create_container<ui::panel>(rect_i {0, 0, 100, 73}, "panel1")};
-        panel1.disable();
-        auto& layout {panel1.create_layout<grid_layout>(size_i {100, 100})};
-
-        auto& ssd0 {layout.create_widget<seven_segment_display>({0, 0, 50, 10}, "ssd0")};
-        _sharedState.Score.Changed.connect([&]() { _updateSsd0 = true; });
-        ssd0.disable();
-
-        auto& ssd1 {layout.create_widget<seven_segment_display>({50, 0, 50, 10}, "ssd1")};
-        _sharedState.SSDValue.Changed.connect([&]() { _updateSsd1 = true; });
-        ssd1.disable();
-
-        auto& dmd {layout.create_widget<dot_matrix_display>({0, 10, 100, 90}, "dmd")};
-        _sharedState.DMD.Changed.connect([&]() { _updateDmd = true; });
-        dmd.disable();
-        dmd.Bounds.Changed.connect([this, &panel1, &dmd](rect_f const& rect) {
-            _sharedState.DMDBounds = {
-                local_to_screen(dmd, dmd.content_bounds().Position),
-                {dmd.content_bounds().width(), dmd.content_bounds().width() / DMD_SIZE.Width * DMD_SIZE.Height}};
-        });
-    }
-    {
-        auto& panel2 {create_container<ui::panel>(rect_i {0, 73, 100, 25}, "panel2")};
-        auto& layout {panel2.create_layout<dock_layout>()};
-
-        auto& btn {layout.create_widget<button>(dock_style::Bottom, "btnTurn")};
-        btn.Flex  = {.Width = 100_pct, .Height = 100_pct};
-        btn.Label = "->";
-        btn.Click.connect([&events]() { events.Start(); });
-        _sharedState.CanStart.Changed.connect([&btn](auto val) { val ? btn.enable() : btn.disable(); });
-        btn.disable();
-    }
-
-    update(0ms);
-}
-
-void game_form::on_update(milliseconds deltaTime)
-{
-    if (_updateDmd) {
-        dynamic_cast<dot_matrix_display*>(find_widget_by_name("dmd"))->Dots = *_sharedState.DMD;
-        _updateDmd                                                          = false;
-    }
-    if (_updateSsd0) {
-        auto* ssd {dynamic_cast<seven_segment_display*>(find_widget_by_name("ssd0"))};
-        ssd->draw_text(std::format("{:07}", std::clamp(*_sharedState.Score, 0, 9'999'999)));
-        _updateSsd0 = false;
-    }
-    if (_updateSsd1) {
-        auto* ssd {dynamic_cast<seven_segment_display*>(find_widget_by_name("ssd1"))};
-        ssd->draw_text(*_sharedState.SSDValue);
-        _updateSsd1 = false;
-    }
-    form_base::on_update(deltaTime);
-}
-
-void game_form::gen_styles(assets::group const& grp)
+void gen_styles(form_base& base, assets::group const& grp)
 {
     style_collection styles;
     {
@@ -140,5 +76,107 @@ void game_form::gen_styles(assets::group const& grp)
 
         style->Background = colors::Black;
     }
-    Styles = styles;
+    {
+        auto style {styles.create<image_box>("image_box", {})};
+        style->Background        = colors::Black;
+        style->Margin            = 1_pct;
+        style->Alignment         = {.Horizontal = horizontal_alignment::Centered, .Vertical = vertical_alignment::Middle};
+        style->Border.Size       = 2_pct;
+        style->Border.Background = colors::Gray;
+
+        auto hoverStyle {styles.create<image_box>("image_box", {.Hover = true})};
+        *hoverStyle                   = *style;
+        hoverStyle->Background        = colors::FireBrick;
+        hoverStyle->Border.Background = colors::Black;
+    }
+    base.Styles = styles;
+}
+
+////////////////////////////////////////////////////////////
+
+game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_state& state, event_bus& events)
+    : form {{.Name = "game", .Bounds = rect_i {bounds}}, size_i {100, 100}}
+    , _sharedState {state}
+{
+    gen_styles(*this, grp);
+
+    {
+        auto& panel1 {create_container<ui::panel>(rect_i {0, 0, 100, 73}, "panel1")};
+        panel1.disable();
+        auto& layout {panel1.create_layout<grid_layout>(size_i {100, 100})};
+
+        auto& ssd0 {layout.create_widget<seven_segment_display>({0, 0, 50, 10}, "ssd0")};
+        _sharedState.Score.Changed.connect([&]() { _updateSsd0 = true; });
+        ssd0.disable();
+
+        auto& ssd1 {layout.create_widget<seven_segment_display>({50, 0, 50, 10}, "ssd1")};
+        _sharedState.SSDValue.Changed.connect([&]() { _updateSsd1 = true; });
+        ssd1.disable();
+
+        auto& dmd {layout.create_widget<dot_matrix_display>({0, 10, 100, 90}, "dmd")};
+        _sharedState.DMD.Changed.connect([&]() { _updateDmd = true; });
+        dmd.disable();
+        dmd.Bounds.Changed.connect([this, &panel1, &dmd](rect_f const& rect) {
+            _sharedState.DMDBounds = {
+                local_to_screen(dmd, dmd.content_bounds().Position),
+                {dmd.content_bounds().width(), dmd.content_bounds().width() / DMD_SIZE.Width * DMD_SIZE.Height}};
+        });
+    }
+    {
+        auto& panel2 {create_container<ui::panel>(rect_i {0, 73, 100, 25}, "panel2")};
+        auto& layout {panel2.create_layout<dock_layout>()};
+
+        auto& btn {layout.create_widget<button>(dock_style::Bottom, "btnTurn")};
+        btn.Flex  = {.Width = 100_pct, .Height = 100_pct};
+        btn.Label = "->";
+        btn.Click.connect([&events]() { events.StartTurn(); });
+        _sharedState.CanStart.Changed.connect([&btn](auto val) { val ? btn.enable() : btn.disable(); });
+        btn.disable();
+    }
+
+    update(0ms);
+}
+
+void game_form::on_update(milliseconds deltaTime)
+{
+    if (_updateDmd) {
+        dynamic_cast<dot_matrix_display*>(find_widget_by_name("dmd"))->Dots = *_sharedState.DMD;
+        _updateDmd                                                          = false;
+    }
+    if (_updateSsd0) {
+        auto* ssd {dynamic_cast<seven_segment_display*>(find_widget_by_name("ssd0"))};
+        ssd->draw_text(std::format("{:07}", std::clamp(*_sharedState.Score, 0, 9'999'999)));
+        _updateSsd0 = false;
+    }
+    if (_updateSsd1) {
+        auto* ssd {dynamic_cast<seven_segment_display*>(find_widget_by_name("ssd1"))};
+        ssd->draw_text(*_sharedState.SSDValue);
+        _updateSsd1 = false;
+    }
+    form_base::on_update(deltaTime);
+}
+
+////////////////////////////////////////////////////////////
+
+constexpr size_i NUM_BOXES {5, 5};
+
+game_select_form::game_select_form(rect_f const& bounds, assets::group const& grp, std::map<u32, game_def> const& games)
+    : form {{.Name = "game", .Bounds = rect_i {bounds}}}
+{
+    gen_styles(*this, grp);
+
+    {
+        auto& panel1 {create_container<ui::panel>(bounds, "panel1")};
+        auto& layout {panel1.create_layout<grid_layout>(NUM_BOXES)};
+        for (i32 i {0}; i < NUM_BOXES.area(); ++i) {
+            auto& imgBox {layout.create_widget<image_box>({i % NUM_BOXES.Width, i / NUM_BOXES.Width, 1, 1}, "")};
+            imgBox.Fit = fit_mode::Contain;
+            if (games.contains(i + 1)) {
+                imgBox.Image = {.Texture = games.at(i + 1).Cover};
+                imgBox.Click.connect([i, this] {
+                    StartGame(static_cast<u32>(i + 1));
+                });
+            }
+        }
+    }
 }
