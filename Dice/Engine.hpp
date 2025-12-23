@@ -7,7 +7,6 @@
 
 #include "Common.hpp" // IWYU pragma: keep
 #include "EngineHelper.hpp"
-#include "Sprite.hpp"
 
 ////////////////////////////////////////////////////////////
 
@@ -17,11 +16,11 @@ public:
         shared_state& State;
         event_bus&    Events;
 
-        base_game*    Game {nullptr};
         gfx::texture* SpriteTexture {nullptr};
         gfx::texture* BackgroundTexture {nullptr};
-        slots*        Slots {nullptr};
-        dice*         Dice {nullptr};
+
+        dice_game* Game {nullptr};
+        slots*     Slots {nullptr};
     };
 
     engine(init const& init);

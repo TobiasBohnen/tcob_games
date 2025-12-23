@@ -6,7 +6,6 @@
 #pragma once
 
 #include "Common.hpp" // IWYU pragma: keep
-#include "Painter.hpp"
 
 ////////////////////////////////////////////////////////////
 
@@ -65,6 +64,25 @@ private:
     die_face              _currentFace;
 
     die_state _colorState {die_state::Normal};
+};
+
+////////////////////////////////////////////////////////////
+
+class dice_painter {
+public:
+    explicit dice_painter(size_i texGrid);
+
+    auto material() -> asset_owner_ptr<gfx::material>;
+
+    void make_die(std::span<die_face const> faces);
+
+private:
+    gfx::canvas _canvas;
+
+    size_i                         _texGrid;
+    point_f                        _pen {2, 2};
+    asset_ptr<gfx::texture>        _tex;
+    asset_owner_ptr<gfx::material> _material;
 };
 
 ////////////////////////////////////////////////////////////

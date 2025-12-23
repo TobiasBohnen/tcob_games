@@ -7,7 +7,41 @@
 
 #include "Common.hpp" // IWYU pragma: keep
 
-#include "Hand.hpp"
+////////////////////////////////////////////////////////////
+
+enum class value_category : u8 {
+    None,
+    OnePair,
+    TwoPair,
+    ThreeOfAKind,
+    FullHouse,
+    Straight,
+    FourOfAKind,
+    FiveOfAKind,
+};
+
+enum class color_category : u8 {
+    None,
+    Flush,
+    Rainbow,
+};
+
+////////////////////////////////////////////////////////////
+
+struct hand {
+    value_category Value {value_category::None};
+    color_category Color {color_category::None};
+
+    std::vector<slot*> Slots;
+
+    static auto constexpr Members()
+    {
+        return std::tuple {
+            member<&hand::Value> {"value"},
+            member<&hand::Color> {"color"},
+            member<&hand::Slots> {"slots"}};
+    }
+};
 
 ////////////////////////////////////////////////////////////
 
@@ -87,8 +121,7 @@ public:
     auto try_insert_die(die* die) -> slot*;
     auto try_remove_die(die* die) -> slot*;
 
-    void remove_dice(std::span<slot* const> slots);
-    auto get_hand(std::span<slot* const> slots) const -> hand;
+    void reset();
 
     void on_hover(point_f mp);
     void on_drag(point_f mp, die* draggedDie);
@@ -105,3 +138,5 @@ private:
 
     slot* _hoverSlot {nullptr};
 };
+
+auto get_hand(std::span<slot* const> slots) -> hand;

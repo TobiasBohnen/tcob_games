@@ -15,7 +15,7 @@ class slots;
 class die;
 struct die_face;
 class dice;
-class base_game;
+class dice_game;
 struct shared_assets;
 class sprite;
 
@@ -46,21 +46,41 @@ constexpr std::array<color, 16> PALETTE {
      {49, 162, 242, 255},
      {178, 220, 239, 255}}};
 
+static std::unordered_map<string, usize> const PALETTE_MAP {
+    {"Black", 0x0},
+    {"Gray", 0x1},
+    {"White", 0x2},
+    {"Red", 0x3},
+    {"Pink", 0x4},
+    {"DarkBrown", 0x5},
+    {"Brown", 0x6},
+    {"Orange", 0x7},
+    {"Yellow", 0x8},
+    {"DarkGreen", 0x9},
+    {"Green", 0xA},
+    {"LightGreen", 0xB},
+    {"BlueGray", 0xC},
+    {"DarkBlue", 0xD},
+    {"Blue", 0xE},
+    {"LightBlue", 0xF},
+};
+
 ////////////////////////////////////////////////////////////
 
 struct game_def {
+    struct dice {
+        u32              Amount {0};
+        std::vector<i32> Values;
+        color            Color;
+    };
+
     string                        Name;
     u32                           Number {0};
     string                        Genre;
+    std::vector<dice>             Dice;
     asset_owner_ptr<gfx::texture> Cover;
 
     string LuaPath;
-};
-
-enum game_status : u8 {
-    Running   = 0,
-    TurnEnded = 1,
-    GameOver  = 2
 };
 
 struct collision_event {

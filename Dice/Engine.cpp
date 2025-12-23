@@ -83,6 +83,7 @@ void engine::run(string const& file)
     _table.try_get(_callbacks.OnTurnStart, "on_turn_start");
 
     call(_callbacks.OnSetup);
+    _init.Game->roll();
 }
 
 auto engine::update(milliseconds deltaTime) -> bool
@@ -96,8 +97,12 @@ auto engine::update(milliseconds deltaTime) -> bool
 
     switch (status) {
     case Running:   return true;
-    case TurnEnded: call(_callbacks.OnTurnFinish); return false;
-    case GameOver:  call(_callbacks.OnTeardown); return false;
+    case TurnEnded: {
+        _init.Slots->reset();
+        call(_callbacks.OnTurnFinish);
+        return false;
+    }
+    case GameOver: call(_callbacks.OnTeardown); return false;
     }
 
     return true;
@@ -137,23 +142,10 @@ void engine::create_env()
     env["tostring"]           = global["tostring"];
 
     table palette {_script.create_table()};
-    palette["Black"]      = PALETTE[0];
-    palette["Gray"]       = PALETTE[1];
-    palette["White"]      = PALETTE[2];
-    palette["Red"]        = PALETTE[3];
-    palette["Pink"]       = PALETTE[4];
-    palette["DarkBrown"]  = PALETTE[5];
-    palette["Brown"]      = PALETTE[6];
-    palette["Orange"]     = PALETTE[7];
-    palette["Yellow"]     = PALETTE[8];
-    palette["DarkGreen"]  = PALETTE[9];
-    palette["Green"]      = PALETTE[10];
-    palette["LightGreen"] = PALETTE[11];
-    palette["BlueGray"]   = PALETTE[12];
-    palette["DarkBlue"]   = PALETTE[13];
-    palette["Blue"]       = PALETTE[14];
-    palette["LightBlue"]  = PALETTE[15];
-    env["Palette"]        = palette;
+    for (auto const& color : PALETTE_MAP) {
+        palette[color.first] = PALETTE[color.second];
+    }
+    env["Palette"] = palette;
 
     env["ScreenSize"] = VIRTUAL_SCREEN_SIZE;
     env["DMDSize"]    = DMD_SIZE;
@@ -279,41 +271,11 @@ void engine::create_engine_wrapper()
         slot->Owner = slotOwner;
         return slot;
     };
-    engineWrapper["create_dice"] = [](engine* engine, i32 count, table const& faces) {
-        std::vector<die_face> vec;
-        for (i32 i {1}; i <= faces.raw_length(); ++i) {
-            auto const face {faces.get<die_faces>(i).value()}; // TODO: error check
-            for (auto const& value : face.Values) { vec.emplace_back(value, face.Color); }
-        }
-        if (vec.empty()) { return; }
-        auto& init {engine->_init};
-        for (i32 i {0}; i < count; ++i) {
-            init.Dice->add_die(init.Game->get_random_die_position(), init.State.Rng, vec[0], vec);
-        }
-    };
-    engineWrapper["roll_dice"]   = [](engine* engine) { engine->_init.Dice->roll(); };
-    engineWrapper["reset_slots"] = [](engine* engine, table const& slotsTable) {
-        std::vector<slot*> slots;
-        for (auto const& key : slotsTable.get_keys<string>()) { slots.push_back(slotsTable[key].as<slot*>()); }
-
-        std::vector<die*> dice;
-        for (auto* slot : slots) {
-            if (auto* die {slot->current_die()}) { dice.push_back(die); }
-        }
-
-        auto* s {engine->_init.Slots};
-        s->unlock();
-        s->remove_dice(slots);
-
-        for (auto* die : dice) {
-            die->roll();
-        }
-    };
     engineWrapper["get_hand"] = [](engine* engine, table const& slotsTable) {
         std::vector<slot*> slots;
         for (auto const& key : slotsTable.get_keys<string>()) { slots.push_back(slotsTable[key].as<slot*>()); }
 
-        return engine->_init.Slots->get_hand(slots);
+        return get_hand(slots);
     };
     engineWrapper["give_score"] = [](engine* engine, i32 score) { engine->_init.State.Score += score; };
     engineWrapper["play_sound"] = [](engine* engine, u32 id) { engine->_sounds[id]->restart(); };

@@ -140,19 +140,60 @@ auto slots::try_remove_die(die* die) -> slot*
     return _hoverSlot;
 }
 
-void slots::remove_dice(std::span<slot* const> slots)
+void slots::on_hover(point_f mp)
 {
-    for (auto* slot : slots) {
-        auto* die {slot->current_die()};
-        if (!die) { continue; }
-        slot->remove_die();
-        die->move_by({0, slot->_bounds.height()}); // TODO: random die movement
+    auto const getRect {[&] -> rect_f {
+        return {mp, size_f::One};
+    }};
+
+    if (auto* hoverSlot {hover(getRect())}) {
+        hoverSlot->_state = slot_state::Hover;
     }
 }
 
-auto slots::get_hand(std::span<slot* const> slots) const -> hand
+void slots::on_drag(point_f mp, die* draggedDie)
 {
-    if (!are_filled() || slots.size() > 5) { return {}; }
+    auto const getRect {[&] -> rect_f {
+        rect_i const  bounds {draggedDie->bounds()};
+        point_f const tl {bounds.top_left()};
+        point_f const br {bounds.bottom_right()};
+        return rect_f::FromLTRB(tl.X, tl.Y, br.X, br.Y);
+    }};
+
+    if (auto* hoverSlot {hover(getRect())}) {
+        hoverSlot->_state = hoverSlot->can_insert_die(draggedDie->current_face()) ? slot_state::Accept : slot_state::Reject;
+    }
+}
+
+auto slots::are_filled() const -> bool
+{
+    return std::ranges::all_of(_slots, [](auto const& slot) { return !slot->is_empty(); });
+}
+
+auto slots::count() const -> usize
+{
+    return _slots.size();
+}
+
+void slots::reset()
+{
+    unlock();
+
+    std::vector<die*> dice;
+    for (auto& slot : _slots) {
+        if (auto* die {slot->current_die()}) {
+            dice.push_back(die);
+            slot->remove_die();
+            die->move_by({0, slot->_bounds.height()}); // TODO: random die movement
+        }
+    }
+
+    for (auto* die : dice) { die->roll(); }
+}
+
+auto get_hand(std::span<slot* const> slots) -> hand
+{
+    if (!std::ranges::all_of(slots, [](auto const& slot) { return !slot->is_empty(); }) || slots.size() > 5) { return {}; }
 
     struct indexed_face {
         die_face Face;
@@ -230,39 +271,4 @@ auto slots::get_hand(std::span<slot* const> slots) const -> hand
     }
 
     return result;
-}
-
-void slots::on_hover(point_f mp)
-{
-    auto const getRect {[&] -> rect_f {
-        return {mp, size_f::One};
-    }};
-
-    if (auto* hoverSlot {hover(getRect())}) {
-        hoverSlot->_state = slot_state::Hover;
-    }
-}
-
-void slots::on_drag(point_f mp, die* draggedDie)
-{
-    auto const getRect {[&] -> rect_f {
-        rect_i const  bounds {draggedDie->bounds()};
-        point_f const tl {bounds.top_left()};
-        point_f const br {bounds.bottom_right()};
-        return rect_f::FromLTRB(tl.X, tl.Y, br.X, br.Y);
-    }};
-
-    if (auto* hoverSlot {hover(getRect())}) {
-        hoverSlot->_state = hoverSlot->can_insert_die(draggedDie->current_face()) ? slot_state::Accept : slot_state::Reject;
-    }
-}
-
-auto slots::are_filled() const -> bool
-{
-    return std::ranges::all_of(_slots, [](auto const& slot) { return !slot->is_empty(); });
-}
-
-auto slots::count() const -> usize
-{
-    return _slots.size();
 }

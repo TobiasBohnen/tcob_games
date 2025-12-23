@@ -14,7 +14,6 @@ function game:on_setup(engine)
     engine:create_textures(gfx.get_textures(self, engine))
     engine:create_sounds(sfx.get_sounds(self, engine))
 
-    engine:roll_dice()
     gfx.draw_dmd(engine.dmd, self)
 end
 
@@ -52,8 +51,6 @@ end
 
 ---@param engine engine
 function game:on_turn_finish(engine)
-    engine:reset_slots(self.slots)
-
     gfx.draw_dmd(engine.dmd, self)
 end
 

@@ -50,8 +50,6 @@ function game:on_setup(engine)
     self.slots.turn    = engine:create_slot({})
     self.slots.bullets = engine:create_slot({})
 
-    engine:create_dice(4, { { values = { 1, 2, 3, 4, 5, 6 }, color = Palette.White } }) -- { 1, 1, 1, 1, 1, 1 }
-    engine:roll_dice()
     gfx.draw_dmd(engine.dmd, self)
 end
 
@@ -147,8 +145,6 @@ end
 
 ---@param engine engine
 function game:on_turn_finish(engine)
-    engine:reset_slots(self.slots)
-
     self.powerup = false
     self.ship:set_invulnerable(false)
     gfx.draw_dmd(engine.dmd, self)

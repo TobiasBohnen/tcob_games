@@ -2,14 +2,13 @@ add_executable(Dice)
 
 target_sources(Dice PRIVATE
     main.cpp
-    StartScene.cpp
-    Painter.cpp
-    Game.cpp
+    Die.cpp
     Engine.cpp
     EngineHelper.cpp
-    UI.cpp
-    Die.cpp
+    Game.cpp
     Slot.cpp
+    StartScene.cpp
+    UI.cpp
 )
 
 set_target_properties(Dice PROPERTIES

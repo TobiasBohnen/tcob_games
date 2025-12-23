@@ -24,7 +24,7 @@ start_scene::start_scene(game& game)
     win.ClearColor = colors::Black;
 
     _selectForm = std::make_shared<game_select_form>(rect_f {win.bounds()}, resGrp, _games);
-    _selectForm->StartGame.connect([this](i32 id) { _startGameID = id; });
+    _selectForm->StartGame.connect([this](u32 id) { start_game(id); });
     root_node().create_child().Entity = _selectForm;
 }
 
@@ -41,28 +41,9 @@ void start_scene::on_draw_to(gfx::render_target&)
 
 void start_scene::on_update(milliseconds)
 {
-    if (_games.contains(_startGameID)) {
-        _currentGameID = _startGameID;
-        _startGameID   = 0;
-
-        auto* resGrp {library().get_group("dice")};
-        _currentGame = std::make_shared<base_game>(base_game::init {
-            .Group          = *resGrp,
-            .RealWindowSize = size_f {window().bounds().Size}});
-
-        _currentGame->Restart.connect([this]() {
-            _startGameID = _currentGameID;
-        });
-        _currentGame->Quit.connect([this]() {
-            _gameNode->Entity = nullptr;
-            _gameNode->send_to_back();
-            _selectForm->show();
-        });
-
-        _gameNode->Entity = _currentGame;
-        _gameNode->bring_to_front();
-        _selectForm->hide();
-        _currentGame->run(_games[_currentGameID].LuaPath);
+    if (_queuedGameID != 0) {
+        start_game(_queuedGameID);
+        _queuedGameID = 0;
     }
 }
 
@@ -96,37 +77,92 @@ void start_scene::on_key_down(input::keyboard::event const& ev)
     }
 }
 
+void start_scene::start_game(u32 id)
+{
+    if (!_games.contains(id)) { return; }
+
+    _currentGameID = id;
+
+    auto* resGrp {library().get_group("dice")};
+    _currentGame = std::make_shared<dice_game>(
+        dice_game::init {.Dice           = _games[_currentGameID].Dice,
+                         .Group          = *resGrp,
+                         .RealWindowSize = size_f {window().bounds().Size}});
+
+    _currentGame->Restart.connect([this]() {
+        _queuedGameID = _currentGameID;
+    });
+    _currentGame->Quit.connect([this]() {
+        _gameNode->Entity = nullptr;
+        _gameNode->send_to_back();
+        _selectForm->show();
+        _currentGameID = 0;
+    });
+
+    _gameNode->Entity = _currentGame;
+    _gameNode->bring_to_front();
+    _selectForm->hide();
+    _currentGame->run(_games[_currentGameID].LuaPath);
+}
+
 void start_scene::scan_games()
 {
     auto inis {io::enumerate("/", {.String = "*game.ini", .MatchWholePath = true}, true)};
     for (auto const& ini : inis) {
-        data::object obj;
-        // TODO: errors
-        if (!obj.load(ini)) { continue; }
-
-        game_def game {};
-        if (!obj.try_get(game.Number, "Number")) { continue; };
-        if (game.Number == 0) { continue; }
-        if (!obj.try_get(game.Name, "Name")) { continue; };
-        if (!obj.try_get(game.Genre, "Genre")) { continue; };
-
-        string cover;
-        if (!obj.try_get(cover, "Cover")) { continue; };
-        auto       imgCover {gfx::image::CreateEmpty(COVER_SIZE, gfx::image::format::RGBA)};
-        auto const dots {decode_texture_pixels(cover, COVER_SIZE)};
-        for (i32 y {0}; y < COVER_SIZE.Height; ++y) {
-            for (i32 x {0}; x < COVER_SIZE.Width; ++x) {
-                imgCover.set_pixel({x, y}, PALETTE[dots[x + (y * COVER_SIZE.Width)]]);
-            }
+        if (!scan_game(ini)) {
+            continue; // TODO: errors
         }
-        game.Cover->resize(COVER_SIZE, 1, gfx::texture::format::RGBA8);
-        game.Cover->update_data(imgCover, 0);
-        game.Cover->regions()["default"] = {.UVRect = {0, 0, 1, 1}, .Level = 0};
-
-        auto luas {io::enumerate(io::get_parent_folder(ini), {.String = "*game.lua", .MatchWholePath = true}, true)};
-        if (luas.size() != 1) { continue; }
-        game.LuaPath = *luas.begin();
-
-        _games[game.Number] = game;
     }
+}
+
+auto start_scene::scan_game(string const& ini) -> bool
+{
+    data::object obj;
+    // TODO: errors
+    if (!obj.load(ini)) { return false; }
+
+    game_def game {};
+    if (!obj.try_get(game.Number, "Number")) { return false; };
+    if (game.Number == 0) { return false; }
+    if (!obj.try_get(game.Name, "Name")) { return false; };
+    if (!obj.try_get(game.Genre, "Genre")) { return false; };
+
+    // Cover
+    string cover;
+    if (!obj.try_get(cover, "Cover")) { return false; };
+    auto       imgCover {gfx::image::CreateEmpty(COVER_SIZE, gfx::image::format::RGBA)};
+    auto const dots {decode_texture_pixels(cover, COVER_SIZE)};
+    for (i32 y {0}; y < COVER_SIZE.Height; ++y) {
+        for (i32 x {0}; x < COVER_SIZE.Width; ++x) {
+            imgCover.set_pixel({x, y}, PALETTE[dots[x + (y * COVER_SIZE.Width)]]);
+        }
+    }
+    game.Cover->resize(COVER_SIZE, 1, gfx::texture::format::RGBA8);
+    game.Cover->update_data(imgCover, 0);
+    game.Cover->regions()["default"] = {.UVRect = {0, 0, 1, 1}, .Level = 0};
+
+    // Dice
+    if (data::array arr; obj.try_get(arr, "Dice")) {
+        for (auto& a : arr) {
+            if (!a.is<data::object>()) { return false; }
+            auto& dice {game.Dice.emplace_back()};
+            auto  diceDef {a.as<data::object>()};
+            if (!diceDef.try_get(dice.Amount, "Amount")) { return false; }
+            if (!diceDef.try_get(dice.Values, "Values")) { return false; }
+            string color;
+            if (!diceDef.try_get(color, "Color")) { return false; }
+            if (!PALETTE_MAP.contains(color)) { return false; }
+            dice.Color = PALETTE[PALETTE_MAP.at(color)];
+        }
+    } else {
+        return false;
+    }
+
+    // lua script path
+    auto luas {io::enumerate(io::get_parent_folder(ini), {.String = "*game.lua", .MatchWholePath = true}, true)};
+    if (luas.size() != 1) { return false; }
+    game.LuaPath = *luas.begin();
+
+    _games[game.Number] = game;
+    return true;
 }

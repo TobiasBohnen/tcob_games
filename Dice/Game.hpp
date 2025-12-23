@@ -10,29 +10,43 @@
 #include "Die.hpp"
 #include "Engine.hpp"
 #include "Slot.hpp"
-#include "Sprite.hpp"
 #include "UI.hpp"
 
 ////////////////////////////////////////////////////////////
 
-class base_game : public gfx::entity {
+struct sprite {
+    gfx::rect_shape* Shape {nullptr};
+    gfx::rect_shape* WrapCopy {nullptr};
+
+    u32      TexID {0};
+    texture* Texture {nullptr};
+    bool     IsCollidable {true};
+    bool     IsWrappable {true};
+
+    scripting::table Owner;
+};
+
+////////////////////////////////////////////////////////////
+
+class dice_game : public gfx::entity {
 public:
     struct init {
-        assets::group& Group;
-        size_f         RealWindowSize;
+        std::vector<game_def::dice> Dice;
+        assets::group&              Group;
+        size_f                      RealWindowSize;
     };
 
     signal<> Quit;
     signal<> Restart;
 
-    explicit base_game(init const& init);
+    explicit dice_game(init const& init);
 
     void run(string const& file);
 
     auto add_sprite() -> sprite*;
     void remove_sprite(sprite* sprite);
 
-    auto get_random_die_position() -> point_f;
+    void roll();
 
 protected:
     void on_update(milliseconds deltaTime) override;
@@ -52,6 +66,8 @@ private:
 
     void wrap_sprites();
     void collide_sprites();
+
+    auto get_random_die_position() -> point_f;
 
     gfx::shape_batch           _diceBatch;
     gfx::shape_batch           _spriteBatch;

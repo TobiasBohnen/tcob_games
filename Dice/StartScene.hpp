@@ -26,14 +26,17 @@ protected:
     void on_key_down(input::keyboard::event const& ev) override;
 
 private:
+    void start_game(u32 id);
+
     void scan_games();
+    auto scan_game(string const& ini) -> bool;
 
     std::shared_ptr<game_select_form> _selectForm {};
 
     std::map<u32, game_def>    _games;
-    std::shared_ptr<base_game> _currentGame {};
+    std::shared_ptr<dice_game> _currentGame {};
     u32                        _currentGameID {0};
-    u32                        _startGameID {0};
+    u32                        _queuedGameID {0};
 
     scene_node* _gameNode {nullptr};
 };

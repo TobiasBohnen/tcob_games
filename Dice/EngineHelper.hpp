@@ -7,6 +7,24 @@
 
 #include "Common.hpp" // IWYU pragma: keep
 
+////////////////////////////////////////////////////////////
+
+struct texture {
+    size_f   Size;
+    string   Region;
+    grid<u8> Alpha;
+};
+
+////////////////////////////////////////////////////////////
+
+enum game_status : u8 {
+    Running   = 0,
+    TurnEnded = 1,
+    GameOver  = 2
+};
+
+////////////////////////////////////////////////////////////
+
 template <typename T = void>
 using callback = std::optional<scripting::function<T>>;
 
@@ -20,19 +38,6 @@ struct callbacks {
     callback<>     OnTurnFinish;
     callback<bool> CanStartTurn;
     callback<>     OnTurnStart;
-};
-
-////////////////////////////////////////////////////////////
-
-struct die_faces {
-    std::vector<u8> Values {0};
-    color           Color {};
-
-    static auto constexpr Members()
-    {
-        return std::tuple {member<&die_faces::Values> {"values"},
-                           member<&die_faces::Color> {"color"}};
-    }
 };
 
 ////////////////////////////////////////////////////////////
@@ -107,3 +112,7 @@ public:
     auto blip_select(u64 seed) -> audio::sound_wave;
     auto random(u64 seed) -> audio::sound_wave;
 };
+
+////////////////////////////////////////////////////////////
+
+auto decode_texture_pixels(string_view s, size_i size) -> std::vector<u8>;

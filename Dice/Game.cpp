@@ -7,16 +7,17 @@
 
 using namespace scripting;
 
-base_game::base_game(init const& init)
+dice_game::dice_game(init const& init)
     : gfx::entity {update_mode::Both}
     , _background {&_spriteBatch.create_shape<gfx::rect_shape>()}
-    , _engine {engine::init {.State             = _sharedState,
-                             .Events            = _events,
-                             .Game              = this,
-                             .SpriteTexture     = _spriteTexture.ptr(),
-                             .BackgroundTexture = _backgroundTexture.ptr(),
-                             .Slots             = &_slots,
-                             .Dice              = &_dice}}
+    , _engine {engine::init {
+          .State             = _sharedState,
+          .Events            = _events,
+          .SpriteTexture     = _spriteTexture.ptr(),
+          .BackgroundTexture = _backgroundTexture.ptr(),
+          .Game              = this,
+          .Slots             = &_slots,
+      }}
     , _slots {init.RealWindowSize / DICE_SLOTS_REF_SIZE}
     , _dice {_diceBatch, init.RealWindowSize / DICE_SLOTS_REF_SIZE}
 {
@@ -48,9 +49,20 @@ base_game::base_game(init const& init)
     _sharedState.Background.Changed.connect([&](auto const& val) {
         _background->TextureRegion = val;
     });
+
+    for (auto const& die : init.Dice) {
+        std::vector<die_face> vec;
+        vec.reserve(die.Values.size());
+        for (auto const& value : die.Values) { vec.emplace_back(value, die.Color); }
+
+        if (vec.empty()) { return; }
+        for (i32 i {0}; i < die.Amount; ++i) {
+            _dice.add_die(get_random_die_position(), _sharedState.Rng, vec[0], vec);
+        }
+    }
 }
 
-void base_game::on_update(milliseconds deltaTime)
+void dice_game::on_update(milliseconds deltaTime)
 {
     _form0->update(deltaTime);
 
@@ -58,7 +70,7 @@ void base_game::on_update(milliseconds deltaTime)
     _diceBatch.update(deltaTime);
 }
 
-void base_game::on_fixed_update(milliseconds deltaTime)
+void dice_game::on_fixed_update(milliseconds deltaTime)
 {
     if (_engine.update(deltaTime)) {
         wrap_sprites();
@@ -67,7 +79,7 @@ void base_game::on_fixed_update(milliseconds deltaTime)
     _spriteBatch.update(deltaTime);
 }
 
-void base_game::on_draw_to(gfx::render_target& target)
+void dice_game::on_draw_to(gfx::render_target& target)
 {
     _spriteBatch.draw_to(*_screenTexture);
     _screenRenderer.render_to_target(target);
@@ -76,12 +88,12 @@ void base_game::on_draw_to(gfx::render_target& target)
     _diceBatch.draw_to(target);
 }
 
-auto base_game::can_draw() const -> bool
+auto dice_game::can_draw() const -> bool
 {
     return true;
 }
 
-void base_game::on_key_down(input::keyboard::event const& ev)
+void dice_game::on_key_down(input::keyboard::event const& ev)
 {
     switch (ev.ScanCode) {
     case input::scan_code::SPACE: _events.StartTurn(); break;
@@ -91,7 +103,7 @@ void base_game::on_key_down(input::keyboard::event const& ev)
     }
 }
 
-void base_game::on_mouse_button_up(input::mouse::button_event const& ev)
+void dice_game::on_mouse_button_up(input::mouse::button_event const& ev)
 {
     switch (ev.Button) {
     case input::mouse::button::Left:
@@ -108,14 +120,14 @@ void base_game::on_mouse_button_up(input::mouse::button_event const& ev)
     }
 }
 
-void base_game::on_mouse_button_down(input::mouse::button_event const& ev)
+void dice_game::on_mouse_button_down(input::mouse::button_event const& ev)
 {
     if (!_hoverDie) {
         static_cast<input::receiver*>(_form0.get())->on_mouse_button_down(ev);
     }
 }
 
-void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
+void dice_game::on_mouse_motion(input::mouse::motion_event const& ev)
 {
     bool const isButtonDown {ev.Mouse->is_button_down(input::mouse::button::Left)};
     auto const mp {point_f {ev.Position}};
@@ -139,7 +151,7 @@ void base_game::on_mouse_motion(input::mouse::motion_event const& ev)
     static_cast<input::receiver*>(_form0.get())->on_mouse_motion(ev);
 }
 
-void base_game::run(string const& file)
+void dice_game::run(string const& file)
 {
     _engine.run(file);
 
@@ -147,7 +159,7 @@ void base_game::run(string const& file)
     _spriteBatch.update(0ms);
 }
 
-void base_game::wrap_sprites()
+void dice_game::wrap_sprites()
 {
     auto const fieldSize {_background->Bounds->Size};
 
@@ -191,7 +203,7 @@ void base_game::wrap_sprites()
     }
 }
 
-void base_game::collide_sprites()
+void dice_game::collide_sprites()
 {
     std::vector<collision_event> events;
 
@@ -276,17 +288,17 @@ void base_game::collide_sprites()
     }
 }
 
-auto base_game::add_shape() -> gfx::rect_shape*
+auto dice_game::add_shape() -> gfx::rect_shape*
 {
     return &_spriteBatch.create_shape<gfx::rect_shape>();
 }
 
-auto base_game::remove_shape(gfx::shape* shape) -> bool
+auto dice_game::remove_shape(gfx::shape* shape) -> bool
 {
     return _spriteBatch.remove_shape(*shape);
 }
 
-auto base_game::add_sprite() -> sprite*
+auto dice_game::add_sprite() -> sprite*
 {
     auto  ptr {std::make_unique<sprite>()};
     auto* retValue {ptr.get()};
@@ -297,14 +309,14 @@ auto base_game::add_sprite() -> sprite*
     return retValue;
 }
 
-void base_game::remove_sprite(sprite* sprite)
+void dice_game::remove_sprite(sprite* sprite)
 {
     remove_shape(sprite->Shape);
     if (sprite->WrapCopy) { remove_shape(sprite->WrapCopy); }
     std::erase_if(_sprites, [&sprite](auto const& spr) { return spr.get() == sprite; });
 }
 
-auto base_game::get_random_die_position() -> point_f
+auto dice_game::get_random_die_position() -> point_f
 {
     rect_f area {_form0->Bounds};
     area.Size -= DICE_SIZE;
@@ -314,4 +326,8 @@ auto base_game::get_random_die_position() -> point_f
     pos.Y = _sharedState.Rng(area.top(), area.bottom());
 
     return pos;
+}
+void dice_game::roll()
+{
+    _dice.roll();
 }
