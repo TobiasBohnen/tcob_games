@@ -19,7 +19,7 @@ class dice_game;
 struct shared_assets;
 class sprite;
 
-constexpr size_f VIRTUAL_SCREEN_SIZE {320, 240};
+constexpr size_f VIRTUAL_SCREEN_SIZE {240, 180};
 constexpr size_f DICE_SLOTS_REF_SIZE {1600, 900};
 constexpr size_i DMD_SIZE {80, 120};
 constexpr size_i COVER_SIZE {128, 128};

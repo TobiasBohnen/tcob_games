@@ -24,6 +24,8 @@ dice_game::dice_game(init const& init)
     _background->Bounds   = {point_f::Zero, VIRTUAL_SCREEN_SIZE};
     _background->Material = _backgroundMaterial;
 
+    // TODO: enforce int scaling for background
+    // TODO: 16:10 support
     auto const [w, h] {init.RealWindowSize};
     rect_f const bgBounds {0, 0, h / 3.0f * 4.0f, h};
     rect_f const uiBounds {bgBounds.width(), 0.0f, w - bgBounds.width(), h};

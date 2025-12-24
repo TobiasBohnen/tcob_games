@@ -102,7 +102,9 @@ auto engine::update(milliseconds deltaTime) -> bool
         call(_callbacks.OnTurnFinish);
         return false;
     }
-    case GameOver: call(_callbacks.OnTeardown); return false;
+    case GameOver:
+        call(_callbacks.OnTeardown);
+        return false;
     }
 
     return true;
@@ -270,6 +272,9 @@ void engine::create_engine_wrapper()
         auto*     slot {engine->_init.Slots->add_slot(face)};
         slot->Owner = slotOwner;
         return slot;
+    };
+    engineWrapper["remove_slot"] = [](engine* engine, slot* slot) {
+        engine->_init.Slots->remove_slot(slot);
     };
     engineWrapper["get_hand"] = [](engine* engine, table const& slotsTable) {
         std::vector<slot*> slots;

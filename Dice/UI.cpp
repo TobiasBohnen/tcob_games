@@ -183,7 +183,6 @@ game_select_form::game_select_form(rect_f const& bounds, assets::group const& gr
         auto&        layout {panel1.create_layout<grid_layout>(gridSize)};
 
         for (i32 i {0}; i < gridSize.area(); ++i) {
-
             i32 const x {((i % NUM_BOXES) * 4) + 1};
             i32 const y {(i / NUM_BOXES)};
 

@@ -192,6 +192,8 @@ local Rot = {
 ---@field remove_sprite fun(self: engine, sprite: sprite)
 ---
 ---@field create_slot fun(self: engine, owner: slot_owner): slot
+---@field remove_slot fun(self: engine, slot: slot)
+---
 ---@field get_hand fun(self: engine, slots: { [string]: slot }): hand
 ---
 ---@field give_score fun(self: engine, score: integer)

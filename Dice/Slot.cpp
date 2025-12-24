@@ -90,6 +90,14 @@ auto slots::add_slot(slot_face face) -> slot*
     return retValue.get();
 }
 
+void slots::remove_slot(slot* slot)
+{
+    if (slot->current_die()) {
+        slot->remove_die();
+    }
+    helper::erase_first(_slots, [&](auto const& s) { return s.get() == slot; });
+}
+
 auto slots::try_insert_die(die* hoverDie) -> slot*
 {
     if (_locked || !hoverDie || !_hoverSlot || !_hoverSlot->can_insert_die(hoverDie->current_face())) { return nullptr; }
@@ -100,9 +108,12 @@ auto slots::try_insert_die(die* hoverDie) -> slot*
     return _hoverSlot;
 }
 
-auto slots::hover(rect_f const& rect) -> slot*
+void slots::hover(rect_f const& rect)
 {
-    if (_locked) { return nullptr; }
+    if (_locked) {
+        _hoverSlot = nullptr;
+        return;
+    }
 
     auto const find {[&](rect_f const& rect) -> slot* {
         slot* bestSlot {nullptr};
@@ -127,8 +138,6 @@ auto slots::hover(rect_f const& rect) -> slot*
         }
         _hoverSlot = slot;
     }
-
-    return _hoverSlot;
 }
 
 auto slots::try_remove_die(die* die) -> slot*
@@ -146,8 +155,9 @@ void slots::on_hover(point_f mp)
         return {mp, size_f::One};
     }};
 
-    if (auto* hoverSlot {hover(getRect())}) {
-        hoverSlot->_state = slot_state::Hover;
+    hover(getRect());
+    if (_hoverSlot) {
+        _hoverSlot->_state = slot_state::Hover;
     }
 }
 
@@ -160,8 +170,9 @@ void slots::on_drag(point_f mp, die* draggedDie)
         return rect_f::FromLTRB(tl.X, tl.Y, br.X, br.Y);
     }};
 
-    if (auto* hoverSlot {hover(getRect())}) {
-        hoverSlot->_state = hoverSlot->can_insert_die(draggedDie->current_face()) ? slot_state::Accept : slot_state::Reject;
+    hover(getRect());
+    if (_hoverSlot) {
+        _hoverSlot->_state = _hoverSlot->can_insert_die(draggedDie->current_face()) ? slot_state::Accept : slot_state::Reject;
     }
 }
 

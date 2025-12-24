@@ -116,6 +116,7 @@ public:
     void unlock();
 
     auto add_slot(slot_face face) -> slot*;
+    void remove_slot(slot* slot);
     auto count() const -> usize;
 
     auto try_insert_die(die* die) -> slot*;
@@ -127,7 +128,7 @@ public:
     void on_drag(point_f mp, die* draggedDie);
 
 private:
-    auto hover(rect_f const& rect) -> slot*;
+    void hover(rect_f const& rect);
     auto are_filled() const -> bool;
 
     std::vector<std::unique_ptr<slot>> _slots {};

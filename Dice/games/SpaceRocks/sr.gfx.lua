@@ -175,8 +175,8 @@ end
 
 function gfx.draw_game_over(dmd, game)
     dmd:clear()
-    dmd:print({ x = 12, y = 12 }, "GAME", Palette.DarkBlue)
-    dmd:print({ x = 36, y = 20 }, "OVER", Palette.BlueGray)
+    dmd:print({ x = 12, y = 12 }, "GAME", Palette.LightBlue)
+    dmd:print({ x = 36, y = 20 }, "OVER", Palette.LightBlue)
 end
 
 return gfx

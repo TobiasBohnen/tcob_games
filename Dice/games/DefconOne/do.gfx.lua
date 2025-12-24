@@ -2,26 +2,37 @@ local gfx = {}
 
 ---@param engine engine
 function gfx.get_background(game, engine)
-    local size = ScreenSize
-    local w, h = size.width, size.height
-    local n    = w * h
+    local w, h  = ScreenSize.width, ScreenSize.height
+    local n     = w * h
+    local buf   = {}
 
-    local buf  = {}
-    for i = 1, n do
-        buf[i] = "0"
+    -- pre-generate stars
+    local stars = {}
+    for i = 1, 35 do
+        local x = math.floor(engine:random(0, 1) * w)
+        local y = math.floor(engine:random(0, 1) * h * 2 / 3)
+        local s = math.floor(engine:random(0, 1) * 2 + 1)
+        table.insert(stars, { x = x, y = y, s = s })
     end
 
-    local starCount = 75
-    for i = 1, starCount do
-        local x = math.floor(engine:random(0, 1) * w)
-        local y = math.floor(engine:random(0, 1) * h)
-        local s = math.floor(engine:random(0, 1) * 2 + 1)
+    for y = 0, h - 1 do
+        for x = 0, w - 1 do
+            local idx = y * w + x + 1
+            -- ground
+            if y >= h * 2 / 3 then
+                buf[idx] = "A"
+            else
+                buf[idx] = "C"
+            end
+        end
+    end
 
-        for dy = 0, s - 1 do
-            for dx = 0, s - 1 do
-                local xx = x + dx
-                local yy = y + dy
-                if xx >= 0 and xx < w and yy >= 0 and yy < h then
+    -- draw stars
+    for _, star in ipairs(stars) do
+        for dy = 0, star.s - 1 do
+            for dx = 0, star.s - 1 do
+                local xx, yy = star.x + dx, star.y + dy
+                if xx >= 0 and xx < w and yy >= 0 and yy < h * 2 / 3 then
                     buf[yy * w + xx + 1] = "2"
                 end
             end
@@ -29,9 +40,7 @@ function gfx.get_background(game, engine)
     end
 
     return {
-        [0] = {
-            bitmap = table.concat(buf)
-        }
+        [0] = { bitmap = table.concat(buf) }
     }
 end
 

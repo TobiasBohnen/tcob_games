@@ -50,6 +50,7 @@ function game:on_setup(engine)
     self.slots.turn    = engine:create_slot({})
     self.slots.bullets = engine:create_slot({})
 
+    engine.ssd_value   = tostring(#self.asteroids)
     gfx.draw_dmd(engine.dmd, self)
 end
 
@@ -96,6 +97,7 @@ function game:on_turn_update(engine, deltaTime)
     self:update_bullets(engine, deltaTime)
     self:update_ship(self.ship, deltaTime)
 
+    engine.ssd_value = tostring(#self.asteroids)
     if self.ship.health == 0 then return GameStatus.GameOver end
     return GameStatus.Running
 end
@@ -158,6 +160,15 @@ end
 ------
 ------
 
+function game:update_entity(e, deltaTime)
+    local rad         = math.rad((e.direction or 0) - 90)
+    local vx          = math.cos(rad) * e.linearVelocity / 1000
+    local vy          = math.sin(rad) * e.linearVelocity / 1000
+
+    local pos         = e.sprite.position
+    e.sprite.position = { x = (pos.x + vx * deltaTime) % ScreenSize.width, y = (pos.y + vy * deltaTime) % ScreenSize.height }
+end
+
 function game:update_ship(ship, deltaTime)
     local factor = self.updateTime < HALF_DURATION
         and self.updateTime / HALF_DURATION
@@ -213,15 +224,6 @@ function game:update_explosions(engine, deltaTime)
             table.remove(self.explosions, i)
         end
     end
-end
-
-function game:update_entity(e, deltaTime)
-    local rad         = math.rad((e.direction or 0) - 90)
-    local vx          = math.cos(rad) * e.linearVelocity / 1000
-    local vy          = math.sin(rad) * e.linearVelocity / 1000
-
-    local pos         = e.sprite.position
-    e.sprite.position = { x = (pos.x + vx * deltaTime) % ScreenSize.width, y = (pos.y + vy * deltaTime) % ScreenSize.height }
 end
 
 ---@param engine engine
@@ -317,7 +319,7 @@ end
 ---@param engine engine
 function game:try_spawn_asteroid(engine)
     local count = #self.asteroids
-    if count >= INIT_ASTEROID_COUNT then return end
+    if count >= INIT_ASTEROID_COUNT * 2 then return end
 
     local x = engine:random(0, ScreenSize.width)
     local y = engine:random(0, ScreenSize.height)
