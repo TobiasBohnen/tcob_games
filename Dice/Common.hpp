@@ -71,16 +71,43 @@ struct game_def {
     struct dice {
         u32              Amount {0};
         std::vector<i32> Values;
-        color            Color;
+        string           Color;
+
+        static auto constexpr Members()
+        {
+            return std::tuple {member<&dice::Amount> {"Amount"},
+                               member<&dice::Values> {"Values"},
+                               member<&dice::Color> {"Color"}};
+        }
+    };
+    struct info {
+        string Genre;
+        u32    Year;
+
+        static auto constexpr Members()
+        {
+            return std::tuple {member<&info::Genre> {"Genre"},
+                               member<&info::Year> {"Year"}};
+        }
     };
 
-    string                        Name;
-    u32                           Number {0};
-    string                        Genre;
-    std::vector<dice>             Dice;
-    asset_owner_ptr<gfx::texture> Cover;
+    string            Name;
+    u32               Number {0};
+    std::vector<dice> Dice;
+    string            Cover;
+    info              Info;
 
-    string LuaPath;
+    static auto constexpr Members()
+    {
+        return std::tuple {member<&game_def::Name> {"Name"},
+                           member<&game_def::Number> {"Number"},
+                           member<&game_def::Dice> {"Dice"},
+                           member<&game_def::Cover> {"Cover"},
+                           member<&game_def::Info> {"Info"}};
+    }
+
+    string                        LuaPath;
+    asset_owner_ptr<gfx::texture> CoverTex;
 };
 
 struct collision_event {

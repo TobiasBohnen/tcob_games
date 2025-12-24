@@ -121,42 +121,21 @@ auto start_scene::scan_game(string const& ini) -> bool
     // TODO: errors
     if (!obj.load(ini)) { return false; }
 
-    game_def game {};
-    if (!obj.try_get(game.Number, "Number")) { return false; };
-    if (game.Number == 0) { return false; }
-    if (!obj.try_get(game.Name, "Name")) { return false; };
-    if (!obj.try_get(game.Genre, "Genre")) { return false; };
+    auto gameDef {obj.get<game_def>()};
+    if (!gameDef) { return false; };
+    auto& game {*gameDef};
 
     // Cover
-    string cover;
-    if (!obj.try_get(cover, "Cover")) { return false; };
     auto       imgCover {gfx::image::CreateEmpty(COVER_SIZE, gfx::image::format::RGBA)};
-    auto const dots {decode_texture_pixels(cover, COVER_SIZE)};
+    auto const dots {decode_texture_pixels(game.Cover, COVER_SIZE)};
     for (i32 y {0}; y < COVER_SIZE.Height; ++y) {
         for (i32 x {0}; x < COVER_SIZE.Width; ++x) {
             imgCover.set_pixel({x, y}, PALETTE[dots[x + (y * COVER_SIZE.Width)]]);
         }
     }
-    game.Cover->resize(COVER_SIZE, 1, gfx::texture::format::RGBA8);
-    game.Cover->update_data(imgCover, 0);
-    game.Cover->regions()["default"] = {.UVRect = {0, 0, 1, 1}, .Level = 0};
-
-    // Dice
-    if (data::array arr; obj.try_get(arr, "Dice")) {
-        for (auto& a : arr) {
-            if (!a.is<data::object>()) { return false; }
-            auto& dice {game.Dice.emplace_back()};
-            auto  diceDef {a.as<data::object>()};
-            if (!diceDef.try_get(dice.Amount, "Amount")) { return false; }
-            if (!diceDef.try_get(dice.Values, "Values")) { return false; }
-            string color;
-            if (!diceDef.try_get(color, "Color")) { return false; }
-            if (!PALETTE_MAP.contains(color)) { return false; }
-            dice.Color = PALETTE[PALETTE_MAP.at(color)];
-        }
-    } else {
-        return false;
-    }
+    game.CoverTex->resize(COVER_SIZE, 1, gfx::texture::format::RGBA8);
+    game.CoverTex->update_data(imgCover, 0);
+    game.CoverTex->regions()["default"] = {.UVRect = {0, 0, 1, 1}, .Level = 0};
 
     // lua script path
     auto luas {io::enumerate(io::get_parent_folder(ini), {.String = "*game.lua", .MatchWholePath = true}, true)};

@@ -53,7 +53,10 @@ dice_game::dice_game(init const& init)
     for (auto const& die : init.Dice) {
         std::vector<die_face> vec;
         vec.reserve(die.Values.size());
-        for (auto const& value : die.Values) { vec.emplace_back(value, die.Color); }
+        for (auto const& value : die.Values) {
+            if (!PALETTE_MAP.contains(die.Color)) { continue; }
+            vec.emplace_back(value, PALETTE[PALETTE_MAP.at(die.Color)]);
+        }
 
         if (vec.empty()) { return; }
         for (i32 i {0}; i < die.Amount; ++i) {

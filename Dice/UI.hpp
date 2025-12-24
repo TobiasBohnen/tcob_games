@@ -17,6 +17,8 @@ protected:
     void on_update(milliseconds deltaTime) override;
 
 private:
+    void gen_styles(assets::group const& grp);
+
     shared_state& _sharedState;
 
     bool _updateDmd {true};
@@ -31,4 +33,10 @@ public:
     signal<u32 const> StartGame;
 
     game_select_form(rect_f const& bounds, assets::group const& grp, std::map<u32, game_def> const& games);
+
+private:
+    void gen_styles(assets::group const& grp);
+    auto make_tooltip(u32 id) -> std::shared_ptr<ui::tooltip>;
+
+    std::map<u32, game_def> _games;
 };
