@@ -5,7 +5,35 @@
 
 #include "Game.hpp"
 
+#include <utility>
+
 using namespace scripting;
+
+////////////////////////////////////////////////////////////
+
+sprite::sprite(init init)
+    : _init {std::move(init)}
+{
+}
+
+auto sprite::is_collidable() const -> bool { return _init.IsCollidable; }
+auto sprite::is_wrappable() const -> bool { return _init.IsWrappable; }
+auto sprite::owner() const -> scripting::table const& { return _init.Owner; }
+auto sprite::get_texture() const -> texture* { return _tex; }
+
+void sprite::set_bounds(point_f pos, size_f size)
+{
+    Bounds        = {pos, size};
+    Shape->Bounds = rect_f {rect_i {Bounds}};
+}
+void sprite::set_texture(texture* tex)
+{
+    _tex                 = tex;
+    Shape->TextureRegion = tex->Region;
+    if (WrapCopy) { WrapCopy->TextureRegion = tex->Region; }
+}
+
+////////////////////////////////////////////////////////////
 
 dice_game::dice_game(init const& init)
     : gfx::entity {update_mode::Both}
@@ -169,7 +197,14 @@ void dice_game::wrap_sprites()
     auto const fieldSize {_background->Bounds->Size};
 
     for (auto& s : _sprites) {
-        if (!s || !s->Shape || !s->IsWrappable) { continue; }
+        if (!s) { continue; }
+        if (!s->Shape || !s->is_wrappable()) {
+            if (s->WrapCopy) {
+                _spriteBatch.remove_shape(*s->WrapCopy);
+                s->WrapCopy = nullptr;
+            }
+            continue;
+        }
 
         auto b {*s->Shape->Bounds};
         b.Position.X -= _background->Bounds->left();
@@ -216,8 +251,8 @@ void dice_game::collide_sprites()
         rect_f const inter {a->aabb().as_intersection_with(b->aabb())};
         if (inter == rect_f::Zero) { return; }
 
-        auto const* texA {sA->Texture};
-        auto const* texB {sB->Texture};
+        auto const* texA {sA->get_texture()};
+        auto const* texB {sB->get_texture()};
 
         auto const& invA {a->transform().as_inverted()};
         auto const& invB {b->transform().as_inverted()};
@@ -268,14 +303,14 @@ void dice_game::collide_sprites()
 
     for (usize i {0}; i < _sprites.size(); ++i) {
         auto const& spriteA {_sprites[i]};
-        if (!spriteA->IsCollidable) { continue; }
+        if (!spriteA->is_collidable()) { continue; }
 
         std::array<gfx::rect_shape*, 2> shapesA {spriteA->Shape, spriteA->WrapCopy};
         i32                             countA {spriteA->WrapCopy ? 2 : 1};
 
         for (usize j {i + 1}; j < _sprites.size(); ++j) {
             auto const& spriteB {_sprites[j]};
-            if (!spriteB->IsCollidable) { continue; }
+            if (!spriteB->is_collidable()) { continue; }
 
             std::array<gfx::rect_shape*, 2> shapesB {spriteB->Shape, spriteB->WrapCopy};
             i32                             countB {spriteB->WrapCopy ? 2 : 1};
@@ -303,9 +338,9 @@ auto dice_game::remove_shape(gfx::shape* shape) -> bool
     return _spriteBatch.remove_shape(*shape);
 }
 
-auto dice_game::add_sprite() -> sprite*
+auto dice_game::add_sprite(sprite::init const& init) -> sprite*
 {
-    auto  ptr {std::make_unique<sprite>()};
+    auto  ptr {std::make_unique<sprite>(init)};
     auto* retValue {ptr.get()};
     _sprites.push_back(std::move(ptr));
     retValue->Shape           = add_shape();

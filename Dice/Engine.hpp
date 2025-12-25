@@ -45,8 +45,6 @@ private:
     template <typename R = void>
     auto call(callback<R> const& func, auto&&... args) -> R;
 
-    void set_texture(sprite* sprite, u32 texID);
-
     void create_backgrounds(std::unordered_map<u32, bg_def> const& bgMap);
     void create_textures(std::unordered_map<u32, tex_def>& texMap);
 

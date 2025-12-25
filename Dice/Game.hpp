@@ -14,16 +14,31 @@
 
 ////////////////////////////////////////////////////////////
 
-struct sprite {
+class sprite {
+public:
+    struct init {
+        bool             IsCollidable {true};
+        bool             IsWrappable {true};
+        scripting::table Owner;
+    };
+
+    explicit sprite(init init);
+
+    rect_f           Bounds;
     gfx::rect_shape* Shape {nullptr};
     gfx::rect_shape* WrapCopy {nullptr};
 
-    u32      TexID {0};
-    texture* Texture {nullptr};
-    bool     IsCollidable {true};
-    bool     IsWrappable {true};
+    auto is_collidable() const -> bool;
+    auto is_wrappable() const -> bool;
+    auto owner() const -> scripting::table const&;
+    auto get_texture() const -> texture*;
 
-    scripting::table Owner;
+    void set_bounds(point_f pos, size_f size);
+    void set_texture(texture* tex);
+
+private:
+    init     _init;
+    texture* _tex {nullptr};
 };
 
 ////////////////////////////////////////////////////////////
@@ -43,7 +58,7 @@ public:
 
     void run(string const& file);
 
-    auto add_sprite() -> sprite*;
+    auto add_sprite(sprite::init const& init) -> sprite*;
     void remove_sprite(sprite* sprite);
 
     void roll();

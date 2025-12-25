@@ -10,6 +10,7 @@
 ////////////////////////////////////////////////////////////
 
 struct texture {
+    u32      ID {0};
     size_f   Size;
     string   Region;
     grid<u8> Alpha;

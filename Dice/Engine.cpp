@@ -189,18 +189,18 @@ void engine::create_sprite_wrapper()
 {
     auto& spriteWrapper {*_script.create_wrapper<sprite>("sprite")};
     spriteWrapper["position"] = property {
-        [](sprite* sprite) { return sprite->Shape->Bounds->Position; },
-        [](sprite* sprite, point_f p) { sprite->Shape->Bounds = {p, sprite->Shape->Bounds->Size}; }};
+        [](sprite* sprite) { return sprite->Bounds.Position; },
+        [](sprite* sprite, point_f p) { sprite->set_bounds(p, sprite->Bounds.Size); }};
     spriteWrapper["size"] = property {
-        [](sprite* sprite) -> size_f { return sprite->Shape->Bounds->Size; },
-        [](sprite* sprite, size_f s) { sprite->Shape->Bounds = {sprite->Shape->Bounds->Position, s}; }};
+        [](sprite* sprite) -> size_f { return sprite->Bounds.Size; },
+        [](sprite* sprite, size_f s) { sprite->set_bounds(sprite->Bounds.Position, s); }};
     spriteWrapper["bounds"] = getter {
-        [](sprite* sprite) { return *sprite->Shape->Bounds; }};
+        [](sprite* sprite) { return sprite->Bounds; }};
     spriteWrapper["owner"] = getter {
-        [](sprite* sprite) { return sprite->Owner; }};
+        [](sprite* sprite) { return sprite->owner(); }};
     spriteWrapper["texture"] = property {
-        [](sprite* sprite) { return sprite->TexID; },
-        [this](sprite* sprite, u32 texID) { set_texture(sprite, texID); }};
+        [](sprite* sprite) { return sprite->get_texture()->ID; },
+        [this](sprite* sprite, u32 texID) { sprite->set_texture(&_textures[texID]); }}; // TODO: error check
 }
 
 void engine::create_slot_wrapper()
@@ -255,15 +255,12 @@ void engine::create_engine_wrapper()
     engineWrapper["random_int"]    = [](engine* engine, i32 min, i32 max) { return engine->_init.State.Rng(min, max); };
     engineWrapper["log"]           = [](string const& str) { logger::Info(str); };
     engineWrapper["create_sprite"] = [](engine* engine, table const& spriteOwner) {
-        auto* sprite {engine->_init.Game->add_sprite()};
-        sprite->Owner = spriteOwner;
-
         sprite_def def {spriteOwner.get<sprite_def>().value()};
-        sprite->IsCollidable = def.IsCollidable;
-        sprite->IsWrappable  = def.IsWrappable;
-        engine->set_texture(sprite, def.Texture);
-        sprite->Shape->Bounds = rect_f {point_f::Zero, sprite->Texture->Size};
-
+        auto*      sprite {engine->_init.Game->add_sprite({.IsCollidable = def.IsCollidable,
+                                                           .IsWrappable  = def.IsWrappable,
+                                                           .Owner        = spriteOwner})};
+        sprite->set_texture(&engine->_textures[def.Texture]); // TODO: error check
+        sprite->set_bounds(point_f::Zero, sprite->get_texture()->Size);
         return sprite;
     };
     engineWrapper["remove_sprite"] = [](engine* engine, sprite* sprite) { engine->_init.Game->remove_sprite(sprite); };
@@ -330,16 +327,6 @@ void engine::create_sfx_wrapper()
     sfxWrapper["random"]      = [](sfx_proxy* sfx, u64 seed) { return sfx->random(seed); };
 }
 
-void engine::set_texture(sprite* sprite, u32 texID)
-{
-    sprite->TexID = texID;
-
-    auto& texture {_textures[sprite->TexID]}; // TODO: error check
-    sprite->Texture              = &texture;
-    sprite->Shape->TextureRegion = texture.Region;
-    if (sprite->WrapCopy) { sprite->WrapCopy->TextureRegion = texture.Region; }
-}
-
 void engine::create_backgrounds(std::unordered_map<u32, bg_def> const& bgMap)
 {
     _backgrounds.clear();
@@ -397,6 +384,7 @@ void engine::create_textures(std::unordered_map<u32, tex_def>& texMap)
         }
 
         auto& assTex {_textures[id]};
+        assTex.ID     = id;
         assTex.Size   = size_f {texDef.Size};
         assTex.Region = std::to_string(id);
         assTex.Alpha  = grid<u8> {texDef.Size};
