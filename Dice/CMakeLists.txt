@@ -15,6 +15,15 @@ set_target_properties(Dice PROPERTIES
     CXX_STANDARD 23
     CXX_STANDARD_REQUIRED TRUE
 )
+target_compile_options(Dice PRIVATE
+    $<$<CXX_COMPILER_ID:MSVC>: /W4>
+    $<$<CXX_COMPILER_ID:Clang>: -Wall -Wextra -Wconversion -Wpedantic -Wshadow-all
+    -Wno-sign-conversion -Wunreachable-code
+    >
+    $<$<CXX_COMPILER_ID:GNU>: -Wall -Wextra -pedantic
+    -Wno-missing-field-initializers
+    >
+)
 
 if(NOT TCOB_BUILD_SHARED)
     target_link_libraries(Dice PRIVATE tcob_static)

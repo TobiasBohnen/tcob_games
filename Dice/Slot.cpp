@@ -47,7 +47,7 @@ auto slot::can_insert_die(die_face dieFace) const -> bool
         }
     }
 
-    if (_face.Color != ANY_DIE_COLOR) { return _face.Color == dieFace.Color; }
+    if (_face.Color != ANY_DIE_COLOR) { return PALETTE[_face.Color] == dieFace.Color; }
     return true;
 }
 
@@ -115,7 +115,7 @@ void slots::hover(rect_f const& rect)
         return;
     }
 
-    auto const find {[&](rect_f const& rect) -> slot* {
+    auto const find {[&]() -> slot* {
         slot* bestSlot {nullptr};
         f32   maxArea {0.0f};
 
@@ -131,7 +131,7 @@ void slots::hover(rect_f const& rect)
         return bestSlot;
     }};
 
-    auto* slot {find(rect)};
+    auto* slot {find()};
     if (_hoverSlot != slot) {
         if (_hoverSlot) {
             _hoverSlot->_state = slot_state::Idle;
@@ -161,7 +161,7 @@ void slots::on_hover(point_f mp)
     }
 }
 
-void slots::on_drag(point_f mp, die* draggedDie)
+void slots::on_drag(die* draggedDie)
 {
     auto const getRect {[&] -> rect_f {
         rect_i const  bounds {draggedDie->bounds()};
@@ -244,7 +244,7 @@ auto get_hand(std::span<slot* const> slots) -> hand
             }
         }};
         auto collectAll {[&](u8 targetCount) {
-            for (usize v {0}; v < 6; ++v) {
+            for (u8 v {0}; v < 6; ++v) {
                 if (counts[v] == targetCount) { collect(v + 1); }
             }
         }};

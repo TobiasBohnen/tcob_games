@@ -25,8 +25,6 @@ constexpr size_i DMD_SIZE {80, 120};
 constexpr size_i COVER_SIZE {128, 128};
 constexpr size_f DICE_SIZE {62, 62};
 constexpr f32    DICE_OFFSET {72.f};
-constexpr u32    ANY_DIE_VALUE {0};
-constexpr color  ANY_DIE_COLOR {colors::Transparent};
 
 constexpr std::array<color, 16> PALETTE {
     {{0, 0, 0, 255},
@@ -64,6 +62,9 @@ static std::unordered_map<string, usize> const PALETTE_MAP {
     {"Blue", 0xE},
     {"LightBlue", 0xF},
 };
+
+constexpr u32 ANY_DIE_VALUE {0};
+constexpr u8  ANY_DIE_COLOR {PALETTE.size()};
 
 ////////////////////////////////////////////////////////////
 

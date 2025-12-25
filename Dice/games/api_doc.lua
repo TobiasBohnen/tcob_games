@@ -9,16 +9,15 @@
 
 ---@alias texture integer
 ---@alias sound integer
-
----@class color
----@field r integer
----@field g integer
----@field b integer
----@field a? integer
+---@alias color integer
 
 ---@class point
 ---@field x number
 ---@field y number
+
+---@class size
+---@field width number
+---@field height number
 
 ---@class rect
 ---@field x number
@@ -26,28 +25,38 @@
 ---@field width number
 ---@field height number
 
----@class size
----@field width number
----@field height number
-
 ---@class slot_owner
----@field value? number
----@field color? color
----@field op? string
-
----@class die_face
----@field color color
----@field values integer[]
+---@description Defines the validation rules for dice placement.
+---@field value? number The value to compare against. If nil, any die value is accepted.
+---@field color? color The required color index. If nil, any die color is accepted.
+---@field op? "Equal"|"NotEqual"|"Greater"|"Less" The comparison logic. Only active if 'value' is provided.
 
 ---@class sprite_owner
----@field texture texture
----@field collidable? boolean
----@field wrappable? boolean
+---@description The initialization table used to define a new sprite's properties and behavior.
+---@field texture integer The ID of the texture to use from the sprite atlas.
+---@field collidable? boolean Whether the sprite should trigger collision events.
+---@field wrappable? boolean Whether the sprite wraps around the screen edges.
+
+---@alias value_category_str
+---| '"None"'
+---| '"OnePair"'
+---| '"TwoPair"'
+---| '"ThreeOfAKind"'
+---| '"FullHouse"'
+---| '"Straight"'
+---| '"FourOfAKind"'
+---| '"FiveOfAKind"'
+
+---@alias color_category_str
+---| '"None"'
+---| '"Flush"'
+---| '"Rainbow"'
 
 ---@class hand
----@field value string
----@field color string
----@field slots slot[]
+---@description The calculated result of the dice currently in the provided slots.
+---@field value value_category_str The identified value pattern (e.g., "FullHouse").
+---@field color color_category_str The identified color pattern (e.g., "Flush").
+---@field slots slot[] The subset of slots that actually form the hand (e.g., the 3 slots in a ThreeOfAKind).
 
 ---@class palette
 ---@field Black color
@@ -87,7 +96,7 @@ SlotState = {
 }
 
 ---@enum rotation
-local Rot = {
+Rot = {
     R0   = 0,
     R90  = 1,
     R180 = 2,
@@ -119,22 +128,24 @@ local Rot = {
 --------------------------------
 
 ---@class sprite
----@field position point
----@field size size
----@field bounds rect
----@field owner table @readonly
----@field texture texture
+---@description A graphical object managed by the game engine.
+---@field position point The world position of the sprite.
+---@field size size The width and height of the sprite in world units.
+---@field bounds rect The bounding rectangle of the sprite (Position + Size). @readonly
+---@field owner table The Lua table defining this sprite's behavior. @readonly
+---@field texture integer The ID of the texture from the packed atlas.
 
 --------------------------------
 -- Slot
 --------------------------------
 
 ---@class slot
----@field owner table @readonly
----@field is_empty boolean @readonly
----@field state slot_state @readonly
----@field die_value integer @readonly
----@field position point
+---@description A logical container for dice, mapped to the DMD coordinate system.
+---@field position point The integer coordinate on the DMD grid.
+---@field owner table The Lua table defining this slot's properties. @readonly
+---@field is_empty boolean Returns true if no die is currently placed in this slot. @readonly
+---@field state slot_state The current interaction state (e.g., Idle, Accept, Hover). @readonly
+---@field die_value integer The value (1-6) of the die in the slot, or 0 if empty. @readonly
 
 --------------------------------
 -- Die
@@ -146,19 +157,49 @@ local Rot = {
 --------------------------------
 -- DMD
 --------------------------------
-
 ---@class dmd
----
----@field blit fun(self: dmd, rect: rect, dots: string)
----@field clear fun(self: dmd)
----@field print fun(self: dmd, pos: point, text: string, color: color|integer)
+---@description Interface for drawing to the Dot Matrix Display. All color values should be between 0 and 15.
+local dmd = {}
+
+---Copies a raw string of dot data into the specified rectangle.
+---@param rect rect The destination area on the DMD.
+---@param dots string A string where each character represents a pixel/dot.
+function dmd:blit(rect, dots) end
+
+---Clears the entire DMD, setting all pixels to 0 (Black).
+function dmd:clear() end
+
+---Draws a line between two points.
+---@param start point The starting coordinate {x, y}.
+---@param end_point point The ending coordinate {x, y}.
+---@param color color The palette index.
+function dmd:line(start, end_point, color) end
+
+---Draws a circle centered at a specific point.
+---@param center point The center coordinate {x, y}.
+---@param radius integer The distance from the center to the edge.
+---@param color color The palette index.
+---@param fill boolean Whether to draw a solid circle or just the outline.
+function dmd:circle(center, radius, color, fill) end
+
+---Draws a rectangle based on a rect object.
+---@param rect rect The position and size of the rectangle.
+---@param color color The palette index.
+---@param fill boolean Whether to draw a solid rectangle or just the outline.
+function dmd:rect(rect, color, fill) end
+
+---Prints text at the specified position.
+---@param pos point The top-left coordinate for the text.
+---@param text string The string to display.
+---@param color color The palette index.
+function dmd:print(pos, text, color) end
 
 --------------------------------
 -- SFXR
 --------------------------------
 
 ---@class sfxr
----
+---@
 ---@field pickup_coin fun(self: sfxr, seed: integer)
 ---@field laser_shoot fun(self: sfxr, seed: integer)
 ---@field explosion fun(self: sfxr, seed: integer)
@@ -173,29 +214,76 @@ local Rot = {
 --------------------------------
 
 ---@class engine
----
----@field dmd dmd
----@field sfxr sfxr
----@field background integer
----@field ssd_value string
----
----@field create_backgrounds fun(self: engine, bgMap: {[integer]: table})
----@field create_textures fun(self: engine, texMap: {[integer]: table})
----@field create_sounds fun(self: engine, soundMap: {[integer]: table})
----
----@field random fun(self: engine, min: number, max: number): number
----@field random_int fun(self: engine, min: integer, max: integer): integer
----
----@field log fun(str: string)
----
----@field create_sprite fun(self: engine, owner: sprite_owner): sprite
----@field remove_sprite fun(self: engine, sprite: sprite)
----
----@field create_slot fun(self: engine, owner: slot_owner): slot
----@field remove_slot fun(self: engine, slot: slot)
----
----@field get_hand fun(self: engine, slots: { [string]: slot }): hand
----
----@field give_score fun(self: engine, score: integer)
----
----@field play_sound fun(self: engine, id: integer)
+---@field dmd dmd Access to the Dot Matrix Display drawing functions. @readonly
+---@field sfxr sfxr Access to the procedural sound effect generator. @readonly
+---@field background integer The ID of the currently active background.
+---@field ssd_value string The string value displayed on the Seven-Segment Display.
+---@description The main interface between the Lua script and the game engine hardware/state.
+local engine = {}
+
+---@section Asset Initialization
+
+---Initializes the background layers.
+---@param bgMap table<integer, table> Map of IDs to background definitions.
+function engine:create_backgrounds(bgMap) end
+
+---Initializes and packs textures into the sprite atlas.
+---@param texMap table<integer, table> Map of IDs to texture definitions.
+function engine:create_textures(texMap) end
+
+---Initializes the sound buffer cache.
+---@param soundMap table<integer, table> Map of IDs to sound wave data.
+function engine:create_sounds(soundMap) end
+
+---@section Utilities
+
+---Generates a random floating point number.
+---@param min number Minimum value (inclusive).
+---@param max number Maximum value (inclusive).
+---@return number
+function engine:random(min, max) end
+
+---Generates a random integer.
+---@param min integer Minimum value (inclusive).
+---@param max integer Maximum value (inclusive).
+---@return integer
+function engine:random_int(min, max) end
+
+---Prints a message to the engine's log.
+---@param str string The message to log.
+function engine:log(str) end
+
+---@section Object Management
+
+---Creates a new sprite and adds it to the game world.
+---@param owner sprite_owner The table defining the sprite's properties and behavior.
+---@return sprite
+function engine:create_sprite(owner) end
+
+---Removes a sprite from the game world.
+---@param sprite sprite The sprite instance to remove.
+function engine:remove_sprite(sprite) end
+
+---Creates a new slot for dice interaction.
+---@param owner slot_owner The table defining the slot's properties and behavior.
+---@return slot
+function engine:create_slot(owner) end
+
+---Removes a slot from the game world.
+---@param slot slot The slot instance to remove.
+function engine:remove_slot(slot) end
+
+---Analyzes the dice currently held in the provided slots to determine the "hand".
+---@param slots table<string, slot> A table of slots to check.
+---@return hand
+function engine:get_hand(slots) end
+
+---@section Game State
+
+---Adds points to the player's current score.
+---@param score integer The amount of points to add.
+function engine:give_score(score) end
+
+---Plays a sound effect by its ID.
+---@param id integer The ID of the sound defined in create_sounds.
+function engine:play_sound(id) end

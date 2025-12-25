@@ -173,6 +173,7 @@ function gfx.draw_dmd(dmd, game)
     end
 end
 
+---@param dmd dmd
 function gfx.draw_game_over(dmd, game)
     dmd:clear()
     dmd:print({ x = 12, y = 12 }, "GAME", Palette.LightBlue)

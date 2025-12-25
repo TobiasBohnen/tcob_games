@@ -89,7 +89,7 @@ dice_game::dice_game(init const& init)
         }
 
         if (vec.empty()) { return; }
-        for (i32 i {0}; i < die.Amount; ++i) {
+        for (u32 i {0}; i < die.Amount; ++i) {
             _dice.add_die(get_random_die_position(), _sharedState.Rng, vec[0], vec);
         }
     }
@@ -168,7 +168,7 @@ void dice_game::on_mouse_motion(input::mouse::motion_event const& ev)
     if (!isButtonDown) { _hoverDie = _dice.on_hover(mp); }
 
     if (isButtonDown && _hoverDie) {
-        _slots.on_drag(mp, _hoverDie);
+        _slots.on_drag(_hoverDie);
 
         if (auto* slot {_slots.try_remove_die(_hoverDie)}) {
             _events.SlotDieChanged(slot);
@@ -247,7 +247,7 @@ void dice_game::collide_sprites()
 {
     std::vector<collision_event> events;
 
-    auto const collide {[this, &events](gfx::rect_shape* a, gfx::rect_shape* b, sprite* sA, sprite* sB) {
+    auto const collide {[&events](gfx::rect_shape* a, gfx::rect_shape* b, sprite* sA, sprite* sB) {
         rect_f const inter {a->aabb().as_intersection_with(b->aabb())};
         if (inter == rect_f::Zero) { return; }
 

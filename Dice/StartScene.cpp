@@ -47,7 +47,7 @@ void start_scene::on_update(milliseconds)
     }
 }
 
-void start_scene::on_fixed_update(milliseconds deltaTime)
+void start_scene::on_fixed_update(milliseconds /* deltaTime */)
 {
     std::stringstream stream;
     stream << std::fixed << std::setprecision(2);

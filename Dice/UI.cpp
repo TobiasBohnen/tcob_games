@@ -34,7 +34,7 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
         auto& dmd {layout.create_widget<dot_matrix_display>({0, 10, 100, 90}, "dmd")};
         _sharedState.DMD.Changed.connect([&]() { _updateDmd = true; });
         dmd.disable();
-        dmd.Bounds.Changed.connect([this, &panel1, &dmd](rect_f const& rect) {
+        dmd.Bounds.Changed.connect([this, &dmd]() {
             _sharedState.DMDBounds = {
                 local_to_screen(dmd, dmd.content_bounds().Position),
                 {dmd.content_bounds().width(), dmd.content_bounds().width() / DMD_SIZE.Width * DMD_SIZE.Height}};
@@ -134,7 +134,7 @@ void game_form::gen_styles(assets::group const& grp)
     {
         auto style {styles.create<dot_matrix_display>("dot_matrix_display", {})};
         style->Type = dot_matrix_display::dot_type::Disc;
-        for (i32 i {0}; i < PALETTE.size(); ++i) {
+        for (u8 i {0}; i < PALETTE.size(); ++i) {
             style->Colors[i] = PALETTE[i];
         }
 

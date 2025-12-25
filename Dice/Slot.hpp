@@ -60,9 +60,9 @@ enum class op : u8 {
 };
 
 struct slot_face {
-    u8    Value {ANY_DIE_VALUE};
-    color Color {ANY_DIE_COLOR};
-    op    Op {op::Equal};
+    u8 Value {ANY_DIE_VALUE};
+    u8 Color {ANY_DIE_COLOR};
+    op Op {op::Equal};
 
     auto operator==(slot_face const& other) const -> bool = default;
 
@@ -125,7 +125,7 @@ public:
     void reset();
 
     void on_hover(point_f mp);
-    void on_drag(point_f mp, die* draggedDie);
+    void on_drag(die* draggedDie);
 
 private:
     void hover(rect_f const& rect);

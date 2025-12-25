@@ -13,13 +13,13 @@
 
 class my_game : public tcob::game {
 public:
-    my_game(char const* argv)
+    my_game(char const* /* argv */)
         : tcob::game {{.Name      = "Dice",
                        .LogFile   = "stdout",
                        .FixedStep = milliseconds {1000.f / 100.f}}}
     {
         auto& plt {locate_service<platform>()};
-        plt.FrameLimit = plt.displays().begin()->second.DesktopMode.RefreshRate;
+        plt.FrameLimit = static_cast<i32>(plt.displays().begin()->second.DesktopMode.RefreshRate);
 
         start();
     }
@@ -30,7 +30,7 @@ public:
     }
 };
 
-auto main(int argc, char* argv[]) -> int
+auto main(int /* argc */, char* argv[]) -> int
 {
     my_game m {argv[0]};
     return 0;

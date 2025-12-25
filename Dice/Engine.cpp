@@ -145,7 +145,7 @@ void engine::create_env()
 
     table palette {_script.create_table()};
     for (auto const& color : PALETTE_MAP) {
-        palette[color.first] = PALETTE[color.second];
+        palette[color.first] = color.second;
     }
     env["Palette"] = palette;
 
@@ -173,6 +173,9 @@ void engine::create_env()
     env["Rot"]       = rotation;
 
     _script.Environment = env;
+    _script.Warning.connect([](scripting::script::warning_event const& ev) {
+        logger::Warning(ev.Message);
+    });
 }
 
 void engine::create_wrappers()
@@ -211,7 +214,7 @@ void engine::create_slot_wrapper()
     slotWrapper["is_empty"] = getter {
         [](slot* slot) { return slot->is_empty(); }};
     slotWrapper["state"] = getter {
-        [this](slot* slot) { return static_cast<u8>(slot->state()); }};
+        [](slot* slot) { return static_cast<u8>(slot->state()); }};
     slotWrapper["die_value"] = getter {
         [](slot* slot) -> u8 { return slot->is_empty() ? 0 : slot->current_die()->current_face().Value; }};
     slotWrapper["position"] = property {
@@ -223,8 +226,8 @@ void engine::create_slot_wrapper()
         },
         [this](slot* slot, point_i pos) {
             auto const& rect {_init.State.DMDBounds};
-            slot->move_to({rect.left() + (pos.X * (rect.width() / DMD_SIZE.Width)),
-                           rect.top() + (pos.Y * (rect.height() / DMD_SIZE.Height))});
+            slot->move_to({rect.left() + (static_cast<f32>(pos.X) * (rect.width() / static_cast<f32>(DMD_SIZE.Width))),
+                           rect.top() + (static_cast<f32>(pos.Y) * (rect.height() / static_cast<f32>(DMD_SIZE.Height)))});
         }};
 }
 
@@ -273,7 +276,7 @@ void engine::create_engine_wrapper()
     engineWrapper["remove_slot"] = [](engine* engine, slot* slot) {
         engine->_init.Slots->remove_slot(slot);
     };
-    engineWrapper["get_hand"] = [](engine* engine, table const& slotsTable) {
+    engineWrapper["get_hand"] = [](engine*, table const& slotsTable) {
         std::vector<slot*> slots;
         for (auto const& key : slotsTable.get_keys<string>()) { slots.push_back(slotsTable[key].as<slot*>()); }
 
@@ -305,13 +308,13 @@ void engine::create_dmd_wrapper()
 {
     auto& dmdWrapper {*_script.create_wrapper<dmd_proxy>("dmd")};
     dmdWrapper["clear"] = [](dmd_proxy* dmd) { dmd->clear(); };
+
+    dmdWrapper["line"]   = [](dmd_proxy* dmd, point_i start, point_i end, u8 color) { dmd->line(start, end, color); };
+    dmdWrapper["circle"] = [](dmd_proxy* dmd, point_i center, i32 radius, u8 color, bool fill) { dmd->circle(center, radius, color, fill); };
+    dmdWrapper["rect"]   = [](dmd_proxy* dmd, rect_i const& rect, u8 color, bool fill) { dmd->rect(rect, color, fill); };
+
     dmdWrapper["blit"]  = [](dmd_proxy* dmd, rect_i const& rect, string const& dotStr) { dmd->blit(rect, dotStr); };
-    dmdWrapper["print"] = [](dmd_proxy* dmd, point_i pos, string_view text, std::variant<u8, color> col) {
-        std::visit(overloaded {
-                       [&](u8 col) { dmd->print(pos, text, PALETTE[col]); },
-                       [&](color col) { dmd->print(pos, text, col); }},
-                   col);
-    };
+    dmdWrapper["print"] = [](dmd_proxy* dmd, point_i pos, string_view text, u8 col) { dmd->print(pos, text, col); };
 }
 
 void engine::create_sfx_wrapper()
@@ -334,7 +337,7 @@ void engine::create_backgrounds(std::unordered_map<u32, bg_def> const& bgMap)
     auto const bgSize {size_i {VIRTUAL_SCREEN_SIZE}};
 
     auto* tex {_init.BackgroundTexture};
-    tex->resize(bgSize, bgMap.size(), gfx::texture::format::RGBA8);
+    tex->resize(bgSize, static_cast<u32>(bgMap.size()), gfx::texture::format::RGBA8);
     tex->regions()["default"] = {.UVRect = {0, 0, 1, 1}, .Level = 0};
 
     gfx::image bgImg {gfx::image::CreateEmpty(bgSize, gfx::image::format::RGBA)};

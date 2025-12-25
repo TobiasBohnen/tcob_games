@@ -92,9 +92,12 @@ public:
 
     void clear();
 
-    void blit(rect_i const& rect, string const& dotStr);
+    void line(point_i start, point_i end, u8 color);
+    void circle(point_i center, i32 radius, u8 color, bool fill);
+    void rect(rect_i const& rect, u8 color, bool fill);
 
-    void print(point_i pos, string_view text, color color);
+    void blit(rect_i const& rect, string const& dotStr);
+    void print(point_i pos, string_view text, u8 color);
 
 private:
     prop<grid<u8>>& _dmd;

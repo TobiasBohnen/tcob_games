@@ -46,7 +46,7 @@ void die::roll()
 
     _tween           = make_unique_tween<linear_tween<f32>>(milliseconds {_rng(MinRollTime, MaxRollTime)}, 0.0f, 1.0f);
     _tween->Interval = milliseconds {_rng(MinRollInterval, MaxRollInterval)};
-    _tween->Value.Changed.connect([&](auto val) {
+    _tween->Value.Changed.connect([&](auto) {
         _tween->Interval = *_tween->Interval + milliseconds {_rng(MinRollInterval / 2, MaxRollInterval / 2)};
 
         usize const idx {_rng(usize {0}, _faces.size() - 1)};
@@ -235,14 +235,14 @@ void dice_painter::make_die(std::span<die_face const> faces)
         _canvas.translate(_pen);
 
         _tex->regions()[face.texture_region()] = {
-            .UVRect = {{(_pen.X - 2) / texSize.Width,
-                        -(_pen.Y - 2) / texSize.Height},
-                       {68.f / texSize.Width,
-                        -68.f / texSize.Height}},
+            .UVRect = {{(_pen.X - 2) / static_cast<f32>(texSize.Width),
+                        -(_pen.Y - 2) / static_cast<f32>(texSize.Height)},
+                       {68.f / static_cast<f32>(texSize.Width),
+                        -68.f / static_cast<f32>(texSize.Height)}},
             .Level  = 0};
 
         _pen += point_f {68, 0};
-        if (_pen.X >= texSize.Width) {
+        if (_pen.X >= static_cast<f32>(texSize.Width)) {
             _pen.X = 2;
             _pen.Y += 68;
         }
