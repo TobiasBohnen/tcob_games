@@ -1,3 +1,7 @@
+-- Copyright (c) 2025 Tobias Bohnen
+-- MIT License
+-- https://opensource.org/licenses/MIT
+
 local DURATION      = 2500
 local HALF_DURATION = DURATION * 0.5
 

@@ -30,8 +30,8 @@ auto slot::can_insert_die(die_face dieFace) const -> bool
 {
     if (_die) { return false; }
 
-    if (_face.Value != ANY_DIE_VALUE) {
-        switch (_face.Op) {
+    if (_face.Value && _face.Op) {
+        switch (*_face.Op) {
         case op::Equal:
             if (dieFace.Value != _face.Value) { return false; }
             break;
@@ -47,7 +47,7 @@ auto slot::can_insert_die(die_face dieFace) const -> bool
         }
     }
 
-    if (_face.Color != ANY_DIE_COLOR) { return PALETTE[_face.Color] == dieFace.Color; }
+    if (_face.Color) { return PALETTE[*_face.Color] == dieFace.Color; }
     return true;
 }
 

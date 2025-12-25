@@ -60,17 +60,17 @@ enum class op : u8 {
 };
 
 struct slot_face {
-    u8 Value {ANY_DIE_VALUE};
-    u8 Color {ANY_DIE_COLOR};
-    op Op {op::Equal};
+    std::optional<u8> Value;
+    std::optional<u8> Color;
+    std::optional<op> Op;
 
     auto operator==(slot_face const& other) const -> bool = default;
 
     static auto constexpr Members()
     {
-        return std::tuple {member<&slot_face::Value, ANY_DIE_VALUE> {"value"},
-                           member<&slot_face::Color, ANY_DIE_COLOR> {"color"},
-                           member<&slot_face::Op, op::Equal> {"op"}};
+        return std::tuple {member<&slot_face::Value, std::nullopt> {"value"},
+                           member<&slot_face::Color, std::nullopt> {"color"},
+                           member<&slot_face::Op, std::nullopt> {"op"}};
     }
 };
 

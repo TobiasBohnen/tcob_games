@@ -1,3 +1,7 @@
+-- Copyright (c) 2025 Tobias Bohnen
+-- MIT License
+-- https://opensource.org/licenses/MIT
+
 local DURATION            = 2500
 local HALF_DURATION       = DURATION * 0.5
 local INIT_ASTEROID_COUNT = 5
@@ -50,7 +54,7 @@ function game:on_setup(engine)
     self.slots.turn    = engine:create_slot({})
     self.slots.bullets = engine:create_slot({})
 
-    engine.ssd_value   = tostring(#self.asteroids)
+    engine.ssd         = tostring(#self.asteroids)
     gfx.draw_dmd(engine.dmd, self)
 end
 
@@ -97,7 +101,7 @@ function game:on_turn_update(engine, deltaTime)
     self:update_bullets(engine, deltaTime)
     self:update_ship(self.ship, deltaTime)
 
-    engine.ssd_value = tostring(#self.asteroids)
+    engine.ssd = tostring(#self.asteroids)
     if self.ship.health == 0 then return GameStatus.GameOver end
     return GameStatus.Running
 end
@@ -321,8 +325,8 @@ function game:try_spawn_asteroid(engine)
     local count = #self.asteroids
     if count >= INIT_ASTEROID_COUNT * 2 then return end
 
-    local x = engine:random(0, ScreenSize.width)
-    local y = engine:random(0, ScreenSize.height)
+    local x = engine:rnd(0, ScreenSize.width)
+    local y = engine:rnd(0, ScreenSize.height)
 
     local sx, sy = self.ship.sprite.position.x, self.ship.sprite.position.y
     if math.sqrt((sx - x) ^ 2 + (sy - y) ^ 2) < 100 then return end
@@ -333,8 +337,8 @@ end
 ---@param engine engine
 function game:spawn_asteroid(engine, size, x, y)
     local asteroid                      = {
-        direction      = engine:random(0, 359),
-        linearVelocity = engine:random(15, 30),
+        direction      = engine:rnd(0, 359),
+        linearVelocity = engine:rnd(15, 30),
         size           = size,
         texture        = self.asteroidTextures[size],
         type           = "asteroid",

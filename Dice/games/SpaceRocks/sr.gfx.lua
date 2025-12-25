@@ -1,3 +1,7 @@
+-- Copyright (c) 2025 Tobias Bohnen
+-- MIT License
+-- https://opensource.org/licenses/MIT
+
 local gfx = {}
 
 ---@param engine engine
@@ -13,9 +17,9 @@ function gfx.get_background(game, engine)
 
     local starCount = 75
     for i = 1, starCount do
-        local x = math.floor(engine:random(0, 1) * w)
-        local y = math.floor(engine:random(0, 1) * h)
-        local s = math.floor(engine:random(0, 1) * 2 + 1)
+        local x = math.floor(engine:rnd(0, 1) * w)
+        local y = math.floor(engine:rnd(0, 1) * h)
+        local s = math.floor(engine:rnd(0, 1) * 2 + 1)
 
         for dy = 0, s - 1 do
             for dx = 0, s - 1 do

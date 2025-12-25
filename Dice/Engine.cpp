@@ -254,8 +254,7 @@ void engine::create_engine_wrapper()
     };
 
     // functions
-    engineWrapper["random"]        = [](engine* engine, f32 min, f32 max) { return engine->_init.State.Rng(min, max); };
-    engineWrapper["random_int"]    = [](engine* engine, i32 min, i32 max) { return engine->_init.State.Rng(min, max); };
+    engineWrapper["rnd"]           = [](engine* engine, f32 min, f32 max) { return engine->_init.State.Rng(min, max); };
     engineWrapper["log"]           = [](string const& str) { logger::Info(str); };
     engineWrapper["create_sprite"] = [](engine* engine, table const& spriteOwner) {
         sprite_def def {spriteOwner.get<sprite_def>().value()};
@@ -299,7 +298,7 @@ void engine::create_engine_wrapper()
             if (!engine->_backgrounds.contains(idx)) { engine->_script.view().error("missing background"); }
             engine->_init.State.Background = engine->_backgrounds[idx];
         }};
-    engineWrapper["ssd_value"] = property {
+    engineWrapper["ssd"] = property {
         [](engine* engine) { return *engine->_init.State.SSDValue; },
         [](engine* engine, string const& val) { engine->_init.State.SSDValue = val; }};
 }

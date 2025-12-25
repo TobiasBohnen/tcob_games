@@ -63,9 +63,6 @@ static std::unordered_map<string, usize> const PALETTE_MAP {
     {"LightBlue", 0xF},
 };
 
-constexpr u32 ANY_DIE_VALUE {0};
-constexpr u8  ANY_DIE_COLOR {PALETTE.size()};
-
 ////////////////////////////////////////////////////////////
 
 struct game_def {

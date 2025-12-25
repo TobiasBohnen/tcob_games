@@ -217,7 +217,7 @@ function dmd:print(pos, text, color) end
 ---@field dmd dmd Access to the Dot Matrix Display drawing functions. @readonly
 ---@field sfxr sfxr Access to the procedural sound effect generator. @readonly
 ---@field background integer The ID of the currently active background.
----@field ssd_value string The string value displayed on the Seven-Segment Display.
+---@field ssd string The string value displayed on the Seven-Segment Display.
 ---@description The main interface between the Lua script and the game engine hardware/state.
 local engine = {}
 
@@ -241,13 +241,7 @@ function engine:create_sounds(soundMap) end
 ---@param min number Minimum value (inclusive).
 ---@param max number Maximum value (inclusive).
 ---@return number
-function engine:random(min, max) end
-
----Generates a random integer.
----@param min integer Minimum value (inclusive).
----@param max integer Maximum value (inclusive).
----@return integer
-function engine:random_int(min, max) end
+function engine:rnd(min, max) end
 
 ---Prints a message to the engine's log.
 ---@param str string The message to log.

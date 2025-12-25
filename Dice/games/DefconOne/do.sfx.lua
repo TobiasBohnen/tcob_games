@@ -1,3 +1,7 @@
+-- Copyright (c) 2025 Tobias Bohnen
+-- MIT License
+-- https://opensource.org/licenses/MIT
+
 local sfx = {
 }
 ---@param engine engine
