@@ -13,7 +13,7 @@ start_scene::start_scene(game& game)
 {
     auto& resMgr {library()};
     auto& resGrp {resMgr.create_or_get_group("dice")};
-    resGrp.mount("./dice.zip");
+    resGrp.mount("./dice.7z");
     resMgr.load_all_groups();
 
     auto modules {io::enumerate("/", {.String = "*.die", .MatchWholePath = true}, true)};

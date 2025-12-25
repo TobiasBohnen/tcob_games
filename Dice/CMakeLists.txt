@@ -41,29 +41,30 @@ endif()
 set(GAMES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/games")
 set(TARGET_DIR "${CMAKE_BINARY_DIR}/../../x64/dice")
 
+# 1. Ensure the directory exists first
+file(MAKE_DIRECTORY "${TARGET_DIR}")
+
 file(GLOB GAMES_SUBDIRS RELATIVE "${GAMES_DIR}" "${GAMES_DIR}/*")
 
-set(ZIP_COMMANDS "")
+# 2. Create the target first
+add_custom_target(Dice_copyFiles ALL)
 
+# 3. Add each zip operation as a separate command to that target
 foreach(subdir ${GAMES_SUBDIRS})
     if(IS_DIRECTORY "${GAMES_DIR}/${subdir}")
-        list(APPEND ZIP_COMMANDS
-            COMMAND ${CMAKE_COMMAND} -E tar
-            "cf"
-            "${TARGET_DIR}/${subdir}.die"
-            --format=7zip
-            -- "${subdir}"
+        add_custom_command(TARGET Dice_copyFiles POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E tar "cf" "${TARGET_DIR}/${subdir}.die" --format=7zip -- "${subdir}"
             WORKING_DIRECTORY "${GAMES_DIR}"
+            COMMENT "Zipping ${subdir}..."
         )
     endif()
 endforeach()
 
-add_custom_target(Dice_copyFiles ALL
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${TARGET_DIR}"
-    ${ZIP_COMMANDS}
-    COMMAND ${CMAKE_COMMAND} -E copy
-    ${CMAKE_CURRENT_SOURCE_DIR}/assets/dice.zip
-    ${CMAKE_BINARY_DIR}/../../x64/
+# 4. Add the final zip command
+add_custom_command(TARGET Dice_copyFiles POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E tar "cf" "${TARGET_DIR}/../dice.7z" --format=7zip -- "."
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/assets/zip"
+    COMMENT "Creating dice.7z"
 )
 
 add_dependencies(Dice Dice_copyFiles)
