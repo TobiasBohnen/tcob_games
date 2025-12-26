@@ -247,9 +247,9 @@ void engine::create_engine_wrapper()
 
     // sfx
     engineWrapper["create_sounds"] = [](engine* engine, std::unordered_map<u32, audio::sound_wave> const& soundMap) {
-        engine->_sounds.clear();
+        engine->_soundBank.clear();
         for (auto const& [id, soundWave] : soundMap) {
-            engine->_sounds.emplace(id, std::make_unique<audio::sound>(audio::sound_generator {}.create_buffer(soundWave)));
+            engine->_soundBank.emplace(id, audio::sound_generator {}.create_buffer(soundWave));
         }
     };
 
@@ -282,7 +282,12 @@ void engine::create_engine_wrapper()
         return get_hand(slots);
     };
     engineWrapper["give_score"] = [](engine* engine, i32 score) { engine->_init.State.Score += score; };
-    engineWrapper["play_sound"] = [](engine* engine, u32 id) { engine->_sounds[id]->restart(); };
+    engineWrapper["play_sound"] = [](engine* engine, u32 id) {
+        auto& sound {engine->_sounds[engine->_currentSoundIdx++]};
+        sound = std::make_unique<audio::sound>(engine->_soundBank[id]);
+        sound->play();
+        engine->_currentSoundIdx = engine->_currentSoundIdx % engine->_sounds.size();
+    };
 
     // properties
     engineWrapper["dmd"]        = getter {[](engine* engine) { return &engine->_dmdProxy; }};

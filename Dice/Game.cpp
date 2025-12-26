@@ -254,9 +254,6 @@ void dice_game::collide_sprites()
         auto const* texA {sA->get_texture()};
         auto const* texB {sB->get_texture()};
 
-        auto const& invA {a->transform().as_inverted()};
-        auto const& invB {b->transform().as_inverted()};
-
         // cache bounds and dimensions
         f32 const aLeft {a->Bounds->left()};
         f32 const aTop {a->Bounds->top()};
@@ -277,8 +274,8 @@ void dice_game::collide_sprites()
                 f32 const wx {inter.left() + static_cast<f32>(x)};
 
                 // world -> local
-                point_f const localA {invA.transform_point({wx, wy})};
-                point_f const localB {invB.transform_point({wx, wy})};
+                point_f const localA {wx, wy};
+                point_f const localB {wx, wy};
 
                 i32 const ax {static_cast<i32>(localA.X - aLeft)};
                 i32 const ay {static_cast<i32>(localA.Y - aTop)};

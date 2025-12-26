@@ -59,7 +59,10 @@ private:
     dmd_proxy _dmdProxy;
     sfx_proxy _sfxProxy;
 
-    std::unordered_map<u32, texture>                       _textures;
-    std::unordered_map<u32, string>                        _backgrounds;
-    std::unordered_map<u32, std::unique_ptr<audio::sound>> _sounds;
+    std::unordered_map<u32, texture> _textures;
+    std::unordered_map<u32, string>  _backgrounds;
+
+    std::unordered_map<u32, audio::buffer>       _soundBank;
+    std::array<std::unique_ptr<audio::sound>, 8> _sounds;
+    u32                                          _currentSoundIdx {0};
 };
