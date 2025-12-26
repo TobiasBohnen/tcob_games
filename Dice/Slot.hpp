@@ -52,25 +52,16 @@ enum class slot_state : u8 {
     Reject = 3
 };
 
-enum class op : u8 {
-    Equal    = 0,
-    NotEqual = 1,
-    Greater  = 2,
-    Less     = 3
-};
-
 struct slot_face {
-    std::optional<u8> Value;
-    std::optional<u8> Color;
-    std::optional<op> Op;
+    std::optional<std::unordered_set<u8>> Values;
+    std::optional<std::unordered_set<u8>> Colors;
 
     auto operator==(slot_face const& other) const -> bool = default;
 
     static auto constexpr Members()
     {
-        return std::tuple {member<&slot_face::Value, std::nullopt> {"value"},
-                           member<&slot_face::Color, std::nullopt> {"color"},
-                           member<&slot_face::Op, std::nullopt> {"op"}};
+        return std::tuple {member<&slot_face::Values, std::nullopt> {"values"},
+                           member<&slot_face::Colors, std::nullopt> {"colors"}};
     }
 };
 
@@ -115,7 +106,7 @@ public:
     void lock();
     void unlock();
 
-    auto add_slot(slot_face face) -> slot*;
+    auto add_slot(slot_face const& face) -> slot*;
     void remove_slot(slot* slot);
     auto count() const -> usize;
 

@@ -50,9 +50,9 @@ function game:on_setup(engine)
         self:try_spawn_asteroid(engine)
     end
 
-    self.slots.speed   = engine:create_slot({})
-    self.slots.turn    = engine:create_slot({})
-    self.slots.bullets = engine:create_slot({})
+    self.slots.speed   = engine:create_slot { colors = { Palette.White } }
+    self.slots.turn    = engine:create_slot { colors = { Palette.White } }
+    self.slots.bullets = engine:create_slot { colors = { Palette.White, Palette.Red } }
 
     engine.ssd         = tostring(#self.asteroids)
     gfx.draw_dmd(engine.dmd, self)

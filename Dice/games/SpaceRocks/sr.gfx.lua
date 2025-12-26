@@ -158,8 +158,8 @@ function gfx.draw_dmd(dmd, game)
 
 
     local function draw_slot(pos, state)
-        local col = state == SlotState.Accept and "3" or "9"
-        dmd:blit({ x = pos.x, y = pos.y, width = 13, height = 13 }, string.rep(col, 13 * 13))
+        local colors = { [SlotState.Accept] = "9", [SlotState.Hover] = "1", [SlotState.Idle] = "1", [SlotState.Reject] = "3" }
+        dmd:blit({ x = pos.x, y = pos.y, width = 13, height = 13 }, string.rep(colors[state], 13 * 13))
         dmd:blit({ x = pos.x + 1, y = pos.y + 1, width = 11, height = 11 }, string.rep("A", 11 * 11))
     end
 

@@ -6,13 +6,14 @@
 #include "Slot.hpp"
 
 #include <algorithm>
+#include <utility>
 
 #include "Die.hpp"
 
 ////////////////////////////////////////////////////////////
 
 slot::slot(slot_face face)
-    : _face {face}
+    : _face {std::move(face)}
 {
 }
 
@@ -30,24 +31,17 @@ auto slot::can_insert_die(die_face dieFace) const -> bool
 {
     if (_die) { return false; }
 
-    if (_face.Value && _face.Op) {
-        switch (*_face.Op) {
-        case op::Equal:
-            if (dieFace.Value != _face.Value) { return false; }
-            break;
-        case op::NotEqual:
-            if (dieFace.Value == _face.Value) { return false; }
-            break;
-        case op::Greater:
-            if (dieFace.Value <= _face.Value) { return false; }
-            break;
-        case op::Less:
-            if (dieFace.Value >= _face.Value) { return false; }
-            break;
-        }
+    if (_face.Values && !_face.Values->empty()) {
+        if (!_face.Values->contains(dieFace.Value)) { return false; }
     }
 
-    if (_face.Color) { return PALETTE[*_face.Color] == dieFace.Color; }
+    if (_face.Colors && !_face.Colors->empty()) {
+        u8 idx {0};
+        for (; idx <= 15; ++idx) {
+            if (PALETTE[idx] == dieFace.Color) { break; }
+        }
+        if (!_face.Colors->contains(idx)) { return false; }
+    }
     return true;
 }
 
@@ -83,7 +77,7 @@ void slots::lock() { _locked = true; }
 
 void slots::unlock() { _locked = false; }
 
-auto slots::add_slot(slot_face face) -> slot*
+auto slots::add_slot(slot_face const& face) -> slot*
 {
     auto& retValue {_slots.emplace_back(std::make_unique<slot>(face))};
     retValue->_bounds = {point_f::Zero, DICE_SIZE * _scale};

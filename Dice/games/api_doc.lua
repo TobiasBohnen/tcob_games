@@ -27,9 +27,8 @@
 
 ---@class slot_owner
 ---@description Defines the validation rules for dice placement.
----@field value? number The value to compare against. If nil, any die value is accepted.
----@field color? color The required color index. If nil, any die color is accepted.
----@field op? "Equal"|"NotEqual"|"Greater"|"Less" The comparison logic. Only active if 'value' is provided.
+---@field values? number[] The values to compare against. If nil or empty, any die value is accepted.
+---@field colors? color[] The color indices to compare against. If nil or empty, any die color is accepted.
 
 ---@class sprite_owner
 ---@description The initialization table used to define a new sprite's properties and behavior.
