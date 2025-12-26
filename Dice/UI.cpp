@@ -42,14 +42,23 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
     }
     {
         auto& panel2 {create_container<ui::panel>(rect_i {0, 73, 100, 25}, "panel2")};
-        auto& layout {panel2.create_layout<dock_layout>()};
+        auto& layout {panel2.create_layout<grid_layout>(size_i {2, 4})};
 
-        auto& btn {layout.create_widget<button>(dock_style::Bottom, "btnTurn")};
-        btn.Flex  = {.Width = 100_pct, .Height = 100_pct};
-        btn.Label = "->";
-        btn.Click.connect([&events]() { events.StartTurn(); });
-        _sharedState.CanStart.Changed.connect([&btn](auto val) { val ? btn.enable() : btn.disable(); });
-        btn.disable();
+        auto& btn0 {layout.create_widget<button>({0, 0, 1, 4}, "btn0")};
+        btn0.Label = "GO";
+        btn0.Click.connect([&events]() { events.StartTurn(); });
+        _sharedState.CanStart.Changed.connect([&btn0](auto val) { val ? btn0.enable() : btn0.disable(); });
+        btn0.disable();
+
+        auto& btn1 {layout.create_widget<button>({1, 0, 1, 2}, "btn1")};
+        btn1.Label = "RESET";
+        btn1.Class = "button2";
+        btn1.Click.connect([&events]() { events.Restart(); });
+
+        auto& btn2 {layout.create_widget<button>({1, 2, 1, 2}, "btn2")};
+        btn2.Label = "OFF";
+        btn2.Class = "button2";
+        btn2.Click.connect([&events]() { events.Quit(); });
     }
 
     update(0ms);
@@ -89,7 +98,7 @@ void game_form::gen_styles(assets::group const& grp)
     {
         auto style {styles.create<button>("button", {})};
         style->Border.Type       = border_type::Solid;
-        style->Border.Size       = 1_pct;
+        style->Border.Size       = 3_pct;
         style->Border.Radius     = 1_pct;
         style->Text.Style        = {.IsItalic = false, .Weight = font::weight::Normal};
         style->Text.Font         = grp.get<font_family>("Font");
@@ -118,6 +127,33 @@ void game_form::gen_styles(assets::group const& grp)
         disableStyle->Background        = colors::Gray;
         disableStyle->Border.Background = colors::Black;
         disableStyle->Text.Color        = colors::Black;
+    }
+    {
+        auto style {styles.create<button>("button2", {})};
+        style->Border.Type       = border_type::Solid;
+        style->Border.Size       = 3_pct;
+        style->Border.Radius     = 10_pct;
+        style->Text.Style        = {.IsItalic = false, .Weight = font::weight::Normal};
+        style->Text.Font         = grp.get<font_family>("Font");
+        style->Text.Size         = 50_pct;
+        style->Text.AutoSize     = auto_size_mode::Always;
+        style->Text.Alignment    = {.Horizontal = horizontal_alignment::Centered, .Vertical = vertical_alignment::Middle};
+        style->Margin            = {5_pct};
+        style->Padding           = {2_pct};
+        style->Background        = colors::FireBrick;
+        style->Border.Background = colors::Gray;
+        style->Text.Color        = colors::White;
+
+        auto hoverStyle {styles.create<button>("button2", {.Hover = true})};
+        *hoverStyle                   = *style;
+        hoverStyle->Background        = colors::FireBrick;
+        hoverStyle->Border.Background = colors::Black;
+
+        auto activeStyle {styles.create<button>("button2", {.Focus = true, .Active = true})};
+        *activeStyle                   = *style;
+        activeStyle->Margin            = {1_pct, 1_pct, 2_pct, 0_pct};
+        activeStyle->Background        = colors::Black;
+        activeStyle->Border.Background = colors::FireBrick;
     }
     {
         auto style {styles.create<seven_segment_display>("seven_segment_display", {})};

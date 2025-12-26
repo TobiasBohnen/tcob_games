@@ -41,6 +41,15 @@ void start_scene::on_draw_to(gfx::render_target&)
 
 void start_scene::on_update(milliseconds)
 {
+    if (_quitQueued) {
+        _quitQueued       = false;
+        _gameNode->Entity = nullptr;
+        _gameNode->send_to_back();
+        _selectForm->show();
+        _currentGameID = 0;
+        _events        = nullptr;
+    }
+
     if (_queuedGameID != 0) {
         start_game(_queuedGameID);
         _queuedGameID = 0;
@@ -82,22 +91,17 @@ void start_scene::start_game(u32 id)
     if (!_games.contains(id)) { return; }
 
     _currentGameID = id;
+    _events        = std::make_unique<event_bus>();
 
     auto* resGrp {library().get_group("dice")};
     _currentGame = std::make_shared<dice_game>(
         dice_game::init {.Dice           = _games[_currentGameID].Dice,
                          .Group          = *resGrp,
-                         .RealWindowSize = size_f {window().bounds().Size}});
+                         .RealWindowSize = size_f {window().bounds().Size},
+                         .Events         = *_events});
 
-    _currentGame->Restart.connect([this]() {
-        _queuedGameID = _currentGameID;
-    });
-    _currentGame->Quit.connect([this]() {
-        _gameNode->Entity = nullptr;
-        _gameNode->send_to_back();
-        _selectForm->show();
-        _currentGameID = 0;
-    });
+    _events->Restart.connect([this]() { _queuedGameID = _currentGameID; });
+    _events->Quit.connect([this]() { _quitQueued = true; });
 
     _gameNode->Entity = _currentGame;
     _gameNode->bring_to_front();

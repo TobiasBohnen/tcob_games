@@ -38,9 +38,10 @@ void sprite::set_texture(texture* tex)
 dice_game::dice_game(init const& init)
     : gfx::entity {update_mode::Both}
     , _background {&_spriteBatch.create_shape<gfx::rect_shape>()}
+    , _init {init}
     , _engine {engine::init {
           .State             = _sharedState,
-          .Events            = _events,
+          .Events            = init.Events,
           .SpriteTexture     = _spriteTexture.ptr(),
           .BackgroundTexture = _backgroundTexture.ptr(),
           .Game              = this,
@@ -58,7 +59,7 @@ dice_game::dice_game(init const& init)
     rect_f const bgBounds {0, 0, h / 3.0f * 4.0f, h};
     rect_f const uiBounds {bgBounds.width(), 0.0f, w - bgBounds.width(), h};
 
-    _form0 = std::make_unique<game_form>(uiBounds, init.Group, _sharedState, _events);
+    _form0 = std::make_unique<game_form>(uiBounds, init.Group, _sharedState, _init.Events);
 
     _screenTexture->Size      = size_i {VIRTUAL_SCREEN_SIZE};
     _screenTexture->Filtering = gfx::texture::filtering::NearestNeighbor;
@@ -129,9 +130,9 @@ auto dice_game::can_draw() const -> bool
 void dice_game::on_key_down(input::keyboard::event const& ev)
 {
     switch (ev.ScanCode) {
-    case input::scan_code::SPACE: _events.StartTurn(); break;
-    case input::scan_code::R:     Restart(); break;
-    case input::scan_code::Q:     Quit(); break;
+    case input::scan_code::SPACE: _init.Events.StartTurn(); break;
+    case input::scan_code::R:     _init.Events.Restart(); break;
+    case input::scan_code::Q:     _init.Events.Quit(); break;
     default:                      break;
     }
 }
@@ -141,7 +142,7 @@ void dice_game::on_mouse_button_up(input::mouse::button_event const& ev)
     switch (ev.Button) {
     case input::mouse::button::Left:
         if (auto* slot {_slots.try_insert_die(_hoverDie)}) {
-            _events.SlotDieChanged(slot);
+            _init.Events.SlotDieChanged(slot);
         }
         break;
     case input::mouse::button::Right: break;
@@ -171,12 +172,12 @@ void dice_game::on_mouse_motion(input::mouse::motion_event const& ev)
         _slots.on_drag(_hoverDie);
 
         if (auto* slot {_slots.try_remove_die(_hoverDie)}) {
-            _events.SlotDieChanged(slot);
+            _init.Events.SlotDieChanged(slot);
         }
 
-        _dice.on_drag(mp, _form0->Bounds);
+        _dice.on_drag(mp, _sharedState.DMDBounds);
 
-        _events.DieMotion();
+        _init.Events.DieMotion();
     } else {
         _slots.on_hover(mp);
     }
@@ -321,7 +322,7 @@ void dice_game::collide_sprites()
     }
 
     for (auto const& event : events) {
-        _events.Collision(event);
+        _init.Events.Collision(event);
     }
 }
 
@@ -355,7 +356,7 @@ void dice_game::remove_sprite(sprite* sprite)
 
 auto dice_game::get_random_die_position() -> point_f
 {
-    rect_f area {_form0->Bounds};
+    rect_f area {_sharedState.DMDBounds};
     area.Size -= DICE_SIZE;
 
     point_f pos;

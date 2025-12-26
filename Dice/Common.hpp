@@ -114,7 +114,10 @@ struct collision_event {
 };
 
 struct event_bus {
-    signal<>                      StartTurn;
+    signal<> StartTurn;
+    signal<> Quit;
+    signal<> Restart;
+
     signal<collision_event const> Collision;
     signal<slot* const>           SlotDieChanged;
     signal<>                      DieMotion;

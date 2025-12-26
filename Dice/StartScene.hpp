@@ -37,6 +37,9 @@ private:
     std::shared_ptr<dice_game> _currentGame {};
     u32                        _currentGameID {0};
     u32                        _queuedGameID {0};
+    bool                       _quitQueued {false};
+
+    std::unique_ptr<event_bus> _events;
 
     scene_node* _gameNode {nullptr};
 };

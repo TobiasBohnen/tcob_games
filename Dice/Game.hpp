@@ -49,10 +49,8 @@ public:
         std::vector<game_def::dice> Dice;
         assets::group&              Group;
         size_f                      RealWindowSize;
+        event_bus&                  Events;
     };
-
-    signal<> Quit;
-    signal<> Restart;
 
     explicit dice_game(init const& init);
 
@@ -100,8 +98,8 @@ private:
     gfx::quad_renderer                   _screenRenderer {gfx::buffer_usage_hint::StaticDraw};
 
     shared_state _sharedState;
-    event_bus    _events;
 
+    init   _init;
     engine _engine;
     slots  _slots;
     dice   _dice;
