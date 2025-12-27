@@ -51,40 +51,39 @@ void main() {
 
     ivec2 tex_size      = textureSize(texture0, 0).xy;
     ivec2 pixel_coords  = ivec2(uv.x * tex_size.x, abs(uv.y) * tex_size.y);
-    float time_seed     = floor(global.time / 80.0); 
-    ivec2 block_id      = ivec2(pixel_coords.x / 24, pixel_coords.y / 1);
-    float glitch_roll   = hash(block_id * ivec2(127, 311) + ivec2(int(time_seed)));
+    ivec2 time_seed     = ivec2(int(floor(global.time / 80.0))); 
+    ivec2 block_id      = ivec2(pixel_coords.x / (12.0 + 12.0 * hash(time_seed)), pixel_coords.y);
+    float glitch_roll   = hash(block_id * ivec2(127, 311) + time_seed);
     
     float shift         = 0.0;
     float flicker       = 1.0;
     
-    if (glitch_roll < 0.01) {
+    if (glitch_roll < 0.008) {
         float jitter_time  = floor(global.time / 40.0);
-        ivec2 random_seed  = ivec2(int(jitter_time));
-        float h            = hash(block_id + random_seed);
-        ivec2 flicker_seed = ivec2(block_id.y + int(jitter_time), block_id.x);
-        flicker            = 0.8 + 0.4 * hash(flicker_seed);
-        shift              = (h * 2.0 - 1.0) * 0.015;
+        flicker            = 0.8 + 0.4 * hash(ivec2(block_id.y + int(jitter_time), block_id.x));
+        shift              = (hash(block_id + ivec2(int(jitter_time))) * 2.0 - 1.0) * 0.01;
     }
     
     float r   = texture(texture0, vec3(uv.x + shift, uv.y, fs_in.tex_coords.z)).r;
     float g   = texture(texture0, vec3(uv.x,         uv.y, fs_in.tex_coords.z)).g;
     float b   = texture(texture0, vec3(uv.x - shift, uv.y, fs_in.tex_coords.z)).b;
-    vec4 base = vec4(r, g, b, 1.0);
+    vec3 rgb  = vec3(r, g, b);
     
-    float scanline = (fract(float(pixel_coords.y) * 0.5) < 0.5) ? 1.0 : 0.7;
-    
-    vec3 masks[3] = vec3[3](
-        vec3(1.05, 0.95, 0.90),
-        vec3(0.90, 1.05, 0.95),
-        vec3(0.95, 0.90, 1.05)
-    );
-    vec3 mask     = masks[pixel_coords.x % 3];
-    
-    vec2 vignetteUV = vec2(uv.x, abs(uv.y));
-    vignetteUV      = vignetteUV * 2.0 - 1.0;
-    float vignette  = 1.0 - dot(vignetteUV, vignetteUV) * 0.55;
-    vignette        = pow(vignette, 0.8);    
+    vec3 ghost      = texture(texture0, vec3(uv.x - 0.008, uv.y, fs_in.tex_coords.z)).rgb * 0.1;
+    rgb += ghost;
 
-    fragColor = vec4(base.rgb * scanline * mask * flicker * vignette, base.a);
+    float dotcrawl  = sin((float(pixel_coords.x) + float(pixel_coords.y) + global.time / 0.5) * 3.14159) * 0.05 * length(rgb);
+    rgb += dotcrawl;
+
+    float noise     = (hash(pixel_coords + ivec2(int(global.time * 5.0))) - 0.5) * 0.02;
+    rgb += noise;
+
+    float scanline  = 0.92 + 0.08 * cos(float(pixel_coords.y) * 3.14159);
+
+    float mask      = 0.96 + 0.04 * sin(float(pixel_coords.x) * 2.094);  
+    
+    vec2 vignetteUV = vec2(uv.x, abs(uv.y)) * 2.0 - 1.0;
+    float vignette  = pow(1.0 - dot(vignetteUV, vignetteUV) * 0.55, 0.8);    
+    
+    fragColor = vec4(rgb * scanline * mask * flicker * vignette, 1);
 }
