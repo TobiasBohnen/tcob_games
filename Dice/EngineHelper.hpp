@@ -105,18 +105,4 @@ private:
 
 ////////////////////////////////////////////////////////////
 
-class sfx_proxy {
-public:
-    auto pickup_coin(u64 seed) -> audio::sound_wave;
-    auto laser_shoot(u64 seed) -> audio::sound_wave;
-    auto explosion(u64 seed) -> audio::sound_wave;
-    auto powerup(u64 seed) -> audio::sound_wave;
-    auto hit_hurt(u64 seed) -> audio::sound_wave;
-    auto jump(u64 seed) -> audio::sound_wave;
-    auto blip_select(u64 seed) -> audio::sound_wave;
-    auto random(u64 seed) -> audio::sound_wave;
-};
-
-////////////////////////////////////////////////////////////
-
 auto decode_texture_pixels(string_view s, size_i size) -> std::vector<u8>;

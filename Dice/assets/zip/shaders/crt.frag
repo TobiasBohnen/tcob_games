@@ -72,7 +72,7 @@ void main() {
     vec3 ghost      = texture(texture0, vec3(uv.x - 0.008, uv.y, fs_in.tex_coords.z)).rgb * 0.1;
     rgb += ghost;
 
-    float dotcrawl  = sin((float(pixel_coords.x) + float(pixel_coords.y) + global.time / 0.5) * 3.14159) * 0.05 * length(rgb);
+    float dotcrawl  = sin((float(pixel_coords.x) + float(pixel_coords.y) + global.time * 2) * 3.14159) * 0.05 * length(rgb);
     rgb += dotcrawl;
 
     float noise     = (hash(pixel_coords + ivec2(int(global.time * 5.0))) - 0.5) * 0.02;

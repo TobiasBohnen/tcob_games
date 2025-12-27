@@ -36,10 +36,9 @@ private:
     std::map<u32, game_def>    _games;
     std::shared_ptr<dice_game> _currentGame {};
     u32                        _currentGameID {0};
+    scene_node*                _gameNode {nullptr};
     u32                        _queuedGameID {0};
     bool                       _quitQueued {false};
 
     std::unique_ptr<event_bus> _events;
-
-    scene_node* _gameNode {nullptr};
 };

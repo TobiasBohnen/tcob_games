@@ -210,17 +210,6 @@ void dmd_proxy::print(point_i pos, string_view text, u8 color)
 
 ////////////////////////////////////////////////////////////
 
-auto sfx_proxy::pickup_coin(u64 seed) -> audio::sound_wave { return audio::sound_generator {}.generate_pickup_coin(seed); }
-auto sfx_proxy::laser_shoot(u64 seed) -> audio::sound_wave { return audio::sound_generator {}.generate_laser_shoot(seed); }
-auto sfx_proxy::explosion(u64 seed) -> audio::sound_wave { return audio::sound_generator {}.generate_explosion(seed); }
-auto sfx_proxy::powerup(u64 seed) -> audio::sound_wave { return audio::sound_generator {}.generate_powerup(seed); }
-auto sfx_proxy::hit_hurt(u64 seed) -> audio::sound_wave { return audio::sound_generator {}.generate_hit_hurt(seed); }
-auto sfx_proxy::jump(u64 seed) -> audio::sound_wave { return audio::sound_generator {}.generate_jump(seed); }
-auto sfx_proxy::blip_select(u64 seed) -> audio::sound_wave { return audio::sound_generator {}.generate_blip_select(seed); }
-auto sfx_proxy::random(u64 seed) -> audio::sound_wave { return audio::sound_generator {}.generate_random(seed); }
-
-////////////////////////////////////////////////////////////
-
 auto decode_texture_pixels(string_view s, size_i size) -> std::vector<u8>
 {
     static auto from_base26 {[](string_view sv) -> u32 {

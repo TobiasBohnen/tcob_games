@@ -194,30 +194,14 @@ function dmd:rect(rect, color, fill) end
 function dmd:print(pos, text, color) end
 
 --------------------------------
--- SFXR
---------------------------------
-
----@class sfxr
----@
----@field pickup_coin fun(self: sfxr, seed: integer)
----@field laser_shoot fun(self: sfxr, seed: integer)
----@field explosion fun(self: sfxr, seed: integer)
----@field powerup fun(self: sfxr, seed: integer)
----@field hit_hurt fun(self: sfxr, seed: integer)
----@field jump fun(self: sfxr, seed: integer)
----@field blip_select fun(self: sfxr, seed: integer)
----@field random fun(self: sfxr, seed: integer)
-
---------------------------------
 -- Engine
 --------------------------------
 
 ---@class engine
----@field dmd dmd Access to the Dot Matrix Display drawing functions. @readonly
----@field sfxr sfxr Access to the procedural sound effect generator. @readonly
----@field background integer The ID of the currently active background.
----@field ssd string The string value displayed on the Seven-Segment Display.
 ---@description The main interface between the Lua script and the game engine hardware/state.
+---@field dmd dmd Access to the Dot Matrix Display drawing functions. @readonly
+---@field bg integer The ID of the currently active background.
+---@field ssd string The string value displayed on the Seven-Segment Display.
 local engine = {}
 
 ---@section Asset Initialization

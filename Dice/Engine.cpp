@@ -185,7 +185,6 @@ void engine::create_wrappers()
     create_die_wrapper();
     create_engine_wrapper();
     create_dmd_wrapper();
-    create_sfx_wrapper();
 }
 
 void engine::create_sprite_wrapper()
@@ -283,16 +282,15 @@ void engine::create_engine_wrapper()
     };
     engineWrapper["give_score"] = [](engine* engine, i32 score) { engine->_init.State.Score += score; };
     engineWrapper["play_sound"] = [](engine* engine, u32 id) {
-        auto& sound {engine->_sounds[engine->_currentSoundIdx++]};
+        auto& sound {engine->_sounds[engine->_soundIdx++]};
         sound = std::make_unique<audio::sound>(engine->_soundBank[id]);
         sound->play();
-        engine->_currentSoundIdx = engine->_currentSoundIdx % engine->_sounds.size();
+        engine->_soundIdx = engine->_soundIdx % engine->_sounds.size();
     };
 
     // properties
-    engineWrapper["dmd"]        = getter {[](engine* engine) { return &engine->_dmdProxy; }};
-    engineWrapper["sfxr"]       = getter {[](engine* engine) { return &engine->_sfxProxy; }};
-    engineWrapper["background"] = property {
+    engineWrapper["dmd"] = getter {[](engine* engine) { return &engine->_dmdProxy; }};
+    engineWrapper["bg"]  = property {
         [](engine* engine) -> u32 {
             for (auto const& [k, v] : engine->_backgrounds) {
                 if (v == engine->_init.State.Background) { return k; }
@@ -321,32 +319,20 @@ void engine::create_dmd_wrapper()
     dmdWrapper["print"] = [](dmd_proxy* dmd, point_i pos, string_view text, u8 col) { dmd->print(pos, text, col); };
 }
 
-void engine::create_sfx_wrapper()
-{
-    auto& sfxWrapper {*_script.create_wrapper<sfx_proxy>("sfx")};
-    sfxWrapper["pickup_coin"] = [](sfx_proxy* sfx, u64 seed) { return sfx->pickup_coin(seed); };
-    sfxWrapper["laser_shoot"] = [](sfx_proxy* sfx, u64 seed) { return sfx->laser_shoot(seed); };
-    sfxWrapper["explosion"]   = [](sfx_proxy* sfx, u64 seed) { return sfx->explosion(seed); };
-    sfxWrapper["powerup"]     = [](sfx_proxy* sfx, u64 seed) { return sfx->powerup(seed); };
-    sfxWrapper["hit_hurt"]    = [](sfx_proxy* sfx, u64 seed) { return sfx->hit_hurt(seed); };
-    sfxWrapper["jump"]        = [](sfx_proxy* sfx, u64 seed) { return sfx->jump(seed); };
-    sfxWrapper["blip_select"] = [](sfx_proxy* sfx, u64 seed) { return sfx->blip_select(seed); };
-    sfxWrapper["random"]      = [](sfx_proxy* sfx, u64 seed) { return sfx->random(seed); };
-}
-
 void engine::create_backgrounds(std::unordered_map<u32, bg_def> const& bgMap)
 {
-    _backgrounds.clear();
-
     auto const bgSize {size_i {VIRTUAL_SCREEN_SIZE}};
 
     auto* tex {_init.BackgroundTexture};
-    tex->resize(bgSize, static_cast<u32>(bgMap.size()), gfx::texture::format::RGBA8);
+    tex->resize(bgSize, MAX_BACKGROUNDS, gfx::texture::format::RGBA8);
     tex->regions()["default"] = {.UVRect = {0, 0, 1, 1}, .Level = 0};
 
     gfx::image bgImg {gfx::image::CreateEmpty(bgSize, gfx::image::format::RGBA)};
-    u32        level {0};
     for (auto const& [id, bgDef] : bgMap) {
+        if (_backgroundLevel >= MAX_BACKGROUNDS) {
+            _backgroundLevel = _backgroundLevel % MAX_BACKGROUNDS;
+            logger::Warning("bg overflow");
+        }
         _backgrounds[id] = std::to_string(id);
 
         auto const dots {decode_texture_pixels(bgDef.Bitmap, bgSize)};
@@ -356,8 +342,8 @@ void engine::create_backgrounds(std::unordered_map<u32, bg_def> const& bgMap)
             }
         }
 
-        tex->regions()[_backgrounds[id]] = {.UVRect = {0, 0, 1, 1}, .Level = level};
-        tex->update_data(bgImg, level++);
+        tex->regions()[_backgrounds[id]] = {.UVRect = {0, 0, 1, 1}, .Level = _backgroundLevel};
+        tex->update_data(bgImg, _backgroundLevel++);
     }
 
     tex->Filtering = gfx::texture::filtering::Linear;
@@ -365,28 +351,20 @@ void engine::create_backgrounds(std::unordered_map<u32, bg_def> const& bgMap)
 
 void engine::create_textures(std::unordered_map<u32, tex_def>& texMap)
 {
-    _textures.clear();
-
-    constexpr i32 PAD {1};
-
-    size_i const texImgSize {256, 256};
-    point_i      pen {PAD, PAD};
-    i32          rowHeight {0};
+    i32 rowHeight {0};
 
     auto* tex {_init.SpriteTexture};
-    tex->resize(texImgSize, 1, gfx::texture::format::RGBA8);
-
-    gfx::image texImg {gfx::image::CreateEmpty(texImgSize, gfx::image::format::RGBA)};
+    tex->resize(TEXTURE_SIZE, 1, gfx::texture::format::RGBA8);
 
     for (auto& [id, texDef] : texMap) {
-        if (pen.X + texDef.Size.Width + PAD > texImgSize.Width) {
-            pen.X = PAD;
-            pen.Y += rowHeight + (PAD * 2);
+        if (_texturePen.X + texDef.Size.Width + TEX_PAD > TEXTURE_SIZE.Width) {
+            _texturePen.X = TEX_PAD;
+            _texturePen.Y += rowHeight + (TEX_PAD * 2);
             rowHeight = 0;
         }
-        if (pen.Y + texDef.Size.Height + PAD > texImgSize.Height) {
-            pen.Y     = PAD;
-            rowHeight = 0;
+        if (_texturePen.Y + texDef.Size.Height + TEX_PAD > TEXTURE_SIZE.Height) {
+            _texturePen.Y = TEX_PAD;
+            rowHeight     = 0;
             logger::Warning("tex overflow");
         }
 
@@ -415,20 +393,22 @@ void engine::create_textures(std::unordered_map<u32, tex_def>& texMap)
                 auto const  idx {dots[x + (y * w)]};
                 color const col {texDef.Transparent == idx ? colors::Transparent : PALETTE[idx]};
                 auto const  dst {map_xy(x, y)};
-                texImg.set_pixel(pen + dst, col);
+                _textureImage.set_pixel(_texturePen + dst, col);
                 assTex.Alpha[dst.X, dst.Y] = col.A;
             }
         }
 
         tex->regions()[assTex.Region] =
-            {.UVRect = {static_cast<f32>(pen.X) / static_cast<f32>(texImgSize.Width), static_cast<f32>(pen.Y) / static_cast<f32>(texImgSize.Height),
-                        static_cast<f32>(texDef.Size.Width) / static_cast<f32>(texImgSize.Width), static_cast<f32>(texDef.Size.Height) / static_cast<f32>(texImgSize.Height)},
+            {.UVRect = {static_cast<f32>(_texturePen.X) / static_cast<f32>(TEXTURE_SIZE.Width),
+                        static_cast<f32>(_texturePen.Y) / static_cast<f32>(TEXTURE_SIZE.Height),
+                        static_cast<f32>(texDef.Size.Width) / static_cast<f32>(TEXTURE_SIZE.Width),
+                        static_cast<f32>(texDef.Size.Height) / static_cast<f32>(TEXTURE_SIZE.Height)},
              .Level  = 0};
 
         rowHeight = std::max(rowHeight, texDef.Size.Height);
-        pen.X += texDef.Size.Width + (PAD * 2);
+        _texturePen.X += texDef.Size.Width + (TEX_PAD * 2);
     }
 
-    tex->update_data(texImg, 0);
+    tex->update_data(_textureImage, 0);
     tex->Filtering = gfx::texture::filtering::NearestNeighbor;
 }

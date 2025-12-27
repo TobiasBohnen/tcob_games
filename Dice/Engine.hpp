@@ -40,7 +40,6 @@ private:
     void create_die_wrapper();
     void create_engine_wrapper();
     void create_dmd_wrapper();
-    void create_sfx_wrapper();
 
     template <typename R = void>
     auto call(callback<R> const& func, auto&&... args) -> R;
@@ -57,12 +56,16 @@ private:
     game_status _gameStatus {game_status::TurnEnded};
 
     dmd_proxy _dmdProxy;
-    sfx_proxy _sfxProxy;
 
     std::unordered_map<u32, texture> _textures;
-    std::unordered_map<u32, string>  _backgrounds;
+    static constexpr i32             TEX_PAD {1};
+    point_i                          _texturePen {TEX_PAD, TEX_PAD};
+    gfx::image                       _textureImage {gfx::image::CreateEmpty(TEXTURE_SIZE, gfx::image::format::RGBA)};
+
+    std::unordered_map<u32, string> _backgrounds;
+    u32                             _backgroundLevel {0};
 
     std::unordered_map<u32, audio::buffer>       _soundBank;
     std::array<std::unique_ptr<audio::sound>, 8> _sounds;
-    u32                                          _currentSoundIdx {0};
+    u32                                          _soundIdx {0};
 };
