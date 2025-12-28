@@ -114,7 +114,7 @@ Rot = {
 ---@field can_start_turn fun(self: game_module, engine: engine): boolean
 ---@field on_turn_start fun(self: game_module, engine: engine)
 ---@
----@field on_turn_update fun(self: game_module, deltaTime: number): game_status
+---@field on_turn_update fun(self: game_module, deltaTime: number, turnTime: number): game_status
 ---@
 ---@field on_turn_finish fun(self: game_module, engine: engine)
 ---@
@@ -225,6 +225,12 @@ function engine:create_sounds(soundMap) end
 ---@param max number Maximum value (inclusive).
 ---@return number
 function engine:rnd(min, max) end
+
+---Generates a random integer number.
+---@param min integer Minimum value (inclusive).
+---@param max integer Maximum value (inclusive).
+---@return integer
+function engine:irnd(min, max) end
 
 ---Prints a message to the engine's log.
 ---@param str string The message to log.

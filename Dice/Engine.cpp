@@ -84,6 +84,8 @@ void engine::run(string const& file)
 
     call(_callbacks.OnSetup);
     _init.Game->roll();
+
+    _init.State.CanStart = call(_callbacks.CanStartTurn);
 }
 
 auto engine::update(milliseconds deltaTime) -> bool
@@ -92,7 +94,9 @@ auto engine::update(milliseconds deltaTime) -> bool
 
     if (_gameStatus != game_status::Running) { return false; }
 
-    game_status const status {static_cast<game_status>(call(_callbacks.OnTurnUpdate, deltaTime.count()))};
+    _turnTime += deltaTime.count();
+
+    game_status const status {static_cast<game_status>(call(_callbacks.OnTurnUpdate, deltaTime.count(), _turnTime))};
     _gameStatus = status;
 
     switch (status) {
@@ -100,6 +104,7 @@ auto engine::update(milliseconds deltaTime) -> bool
     case TurnEnded: {
         _init.Sockets->reset();
         call(_callbacks.OnTurnFinish);
+        _turnTime = 0;
         return false;
     }
     case GameOver:
@@ -254,14 +259,16 @@ void engine::create_engine_wrapper()
 
     // functions
     engineWrapper["rnd"]           = [](engine* engine, f32 min, f32 max) { return engine->_init.State.Rng(min, max); };
+    engineWrapper["irnd"]          = [](engine* engine, i32 min, i32 max) { return engine->_init.State.Rng(min, max); };
     engineWrapper["log"]           = [](string const& str) { logger::Info(str); };
     engineWrapper["create_sprite"] = [](engine* engine, table const& spriteOwner) {
         sprite_def def {spriteOwner.get<sprite_def>().value()};
         auto*      sprite {engine->_init.Game->add_sprite({.IsCollidable = def.IsCollidable,
                                                            .IsWrappable  = def.IsWrappable,
                                                            .Owner        = spriteOwner})};
+        // TODO sync texture and position between sprite and owner
         sprite->set_texture(&engine->_textures[def.Texture]); // TODO: error check
-        sprite->set_bounds(point_f::Zero, sprite->get_texture()->Size);
+        sprite->set_bounds(def.Position, sprite->get_texture()->Size);
         return sprite;
     };
     engineWrapper["remove_sprite"] = [](engine* engine, sprite* sprite) { engine->_init.Game->remove_sprite(sprite); };

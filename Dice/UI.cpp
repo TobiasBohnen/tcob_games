@@ -23,17 +23,14 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
         panel1.disable();
         auto& layout {panel1.create_layout<grid_layout>(size_i {100, 100})};
 
-        auto& ssd0 {layout.create_widget<seven_segment_display>({0, 0, 50, 10}, "ssd0")};
+        layout.create_widget<seven_segment_display>({0, 0, 50, 10}, "ssd0");
         _sharedState.Score.Changed.connect([&]() { _updateSsd0 = true; });
-        ssd0.disable();
 
-        auto& ssd1 {layout.create_widget<seven_segment_display>({50, 0, 50, 10}, "ssd1")};
+        layout.create_widget<seven_segment_display>({50, 0, 50, 10}, "ssd1");
         _sharedState.SSDValue.Changed.connect([&]() { _updateSsd1 = true; });
-        ssd1.disable();
 
         auto& dmd {layout.create_widget<dot_matrix_display>({0, 10, 100, 90}, "dmd")};
         _sharedState.DMD.Changed.connect([&]() { _updateDmd = true; });
-        dmd.disable();
         dmd.Bounds.Changed.connect([this, &dmd]() {
             _sharedState.DMDBounds = {
                 local_to_screen(dmd, dmd.content_bounds().Position),
@@ -47,7 +44,13 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
         auto& btn0 {layout.create_widget<button>({0, 0, 1, 4}, "btn0")};
         btn0.Label = "GO";
         btn0.Click.connect([&events]() { events.StartTurn(); });
-        _sharedState.CanStart.Changed.connect([&btn0](auto val) { val ? btn0.enable() : btn0.disable(); });
+        _sharedState.CanStart.Changed.connect([&btn0](auto val) {
+            if (val) {
+                btn0.enable();
+            } else {
+                btn0.disable();
+            }
+        });
         btn0.disable();
 
         auto& btn1 {layout.create_widget<button>({1, 0, 1, 2}, "btn1")};

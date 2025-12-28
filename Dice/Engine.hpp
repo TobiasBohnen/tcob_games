@@ -68,4 +68,6 @@ private:
     std::unordered_map<u32, audio::buffer>       _soundBank;
     std::array<std::unique_ptr<audio::sound>, 8> _sounds;
     u32                                          _soundIdx {0};
+
+    f64 _turnTime {0};
 };

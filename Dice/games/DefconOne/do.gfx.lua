@@ -65,6 +65,8 @@ local city_texture_destroyed =
 [[0ny1c0d1a0h1a0c1e0e1f0b1c0a1c0a1d0a1g0b1i0a1l0a1g0b1ad0a]]
 local gun_texture =
 [[0arCc0jCe3a0hCfDb0bCa0bCfDc0dCd9aCbDb0gCb9aCcDaEa0iCb0bCbDaEa0iCb0aCbDaEa0lCbDaEa0kCdDaEa0g1a2a1h2a1a0c1a2a1a2a1f2a1a2a1a0a1af]]
+local missile_texture =
+[[0b3d0e3b0c3a0a3d0a3d0b3f0b3d0a3d0a3a0c3b0e3d0b]]
 
 ---@param engine engine
 function gfx.get_textures(game, engine)
@@ -74,6 +76,7 @@ function gfx.get_textures(game, engine)
         [game.cityTextures.destroyed] = make_texture(32, 16, city_texture_destroyed),
         [game.gunTextures.left]       = make_texture(16, 16, gun_texture),
         [game.gunTextures.right]      = make_texture(16, 16, gun_texture, true),
+        [game.missileTexture]         = make_texture(8, 8, missile_texture),
     }
 end
 
