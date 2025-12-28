@@ -30,14 +30,16 @@ function game:on_setup(engine)
 
     for i = 1, CITY_COUNT do
         local city     = {
-            position = {
-                x = ((ScreenSize.width / CITY_COUNT) * i) - 40,
-                y = ScreenSize.height / 5 * 4
+            type = "city",
+            spriteInit = {
+                position = {
+                    x = ((ScreenSize.width / CITY_COUNT) * i) - 40,
+                    y = ScreenSize.height / 5 * 4
+                },
+                texture = self.cityTextures.normal,
+                wrappable = false,
+                collidable = true,
             },
-            texture = self.cityTextures.normal,
-            wrappable = false,
-            collidable = true,
-            type = "city"
         }
         local sprite   = engine:create_sprite(city)
         city.sprite    = sprite
@@ -49,19 +51,25 @@ function game:on_setup(engine)
     end
     self.guns = {
         left = {
-            sprite = engine:create_sprite({ texture = self.gunTextures.left, wrappable = false, collidable = false })
+            sprite = engine:create_sprite({
+                spriteInit = {
+                    texture = self.gunTextures.left,
+                    position = { x = 0, y = ScreenSize.height / 3 * 2 },
+                    wrappable = false,
+                    collidable = false
+                }
+            })
         },
         right = {
-            sprite = engine:create_sprite({ texture = self.gunTextures.right, wrappable = false, collidable = false })
+            sprite = engine:create_sprite({
+                spriteInit = {
+                    texture = self.gunTextures.right,
+                    position = { x = ScreenSize.width - 16, y = ScreenSize.height / 3 * 2 },
+                    wrappable = false,
+                    collidable = false
+                }
+            })
         }
-    }
-    self.guns.left.sprite.position = {
-        x = 0,
-        y = ScreenSize.height / 3 * 2
-    }
-    self.guns.right.sprite.position = {
-        x = ScreenSize.width - 16,
-        y = ScreenSize.height / 3 * 2
     }
 
     gfx.draw_dmd(engine.dmd, self)
@@ -145,20 +153,23 @@ function game:try_spawn_missile(engine)
     local count = #self.missiles
     if count >= CITY_COUNT * 2 then return end
 
-    local missile                     = {
-        target         = engine:irnd(1, #self.cities),
+    local missile     = {
+        target = engine:irnd(1, #self.cities),
         linearVelocity = engine:rnd(15, 30),
-        position       = { x = engine:rnd(0, ScreenSize.width), y = 0 },
-        texture        = self.missileTexture,
-        wrappable      = false,
-        collidable     = true,
-        type           = "missile"
+        type = "missile",
+        spriteInit = {
+            position   = { x = engine:rnd(0, ScreenSize.width), y = 0 },
+            texture    = self.missileTexture,
+            wrappable  = false,
+            collidable = true,
+        },
     }
-    local target                      = self.cities[missile.target]
+    local target      = self.cities[missile.target]
 
-    missile.direction                 = math.atan(target.center.y - missile.position.y - 4, target.center.x - missile.position.x - 4)
+    missile.sprite    = engine:create_sprite(missile)
+    missile.direction = math.atan(target.center.y - missile.sprite.position.y - 4, target.center.x - missile.sprite.position.x - 4)
 
-    missile.sprite                    = engine:create_sprite(missile)
+
     self.missiles[#self.missiles + 1] = missile
 end
 

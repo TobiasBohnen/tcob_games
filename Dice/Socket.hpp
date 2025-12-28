@@ -73,8 +73,6 @@ class socket {
 public:
     explicit socket(socket_face face);
 
-    scripting::table Owner;
-
     auto is_empty() const -> bool;
     auto current_die() const -> die*;
 

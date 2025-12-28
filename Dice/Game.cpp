@@ -142,6 +142,7 @@ void dice_game::on_mouse_button_up(input::mouse::button_event const& ev)
     switch (ev.Button) {
     case input::mouse::button::Left:
         if (auto* socket {_sockets.try_insert_die(_hoverDie)}) {
+            _diceBatch.send_to_back(*_hoverDie->shape());
             _init.Events.SocketDieChanged(socket);
         }
         break;

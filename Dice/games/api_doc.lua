@@ -25,14 +25,18 @@
 ---@field width number
 ---@field height number
 
----@class socket_owner
+---@class socket_init
 ---@description Defines the validation rules for dice placement.
 ---@field values? number[] The values to compare against. If nil or empty, any die value is accepted.
 ---@field colors? color[] The color indices to compare against. If nil or empty, any die color is accepted.
 
 ---@class sprite_owner
+---@field spriteInit? sprite_init
+
+---@class sprite_init
 ---@description The initialization table used to define a new sprite's properties and behavior.
----@field texture integer The ID of the texture to use from the sprite atlas.
+---@field texture? integer The ID of the texture to use from the sprite atlas.
+---@field position? point The world position of the sprite.
 ---@field collidable? boolean Whether the sprite should trigger collision events.
 ---@field wrappable? boolean Whether the sprite wraps around the screen edges.
 
@@ -141,7 +145,6 @@ Rot = {
 ---@class socket
 ---@description A logical container for dice, mapped to the DMD coordinate system.
 ---@field position point The integer coordinate on the DMD grid.
----@field owner table The Lua table defining this socket's properties. @readonly
 ---@field is_empty boolean Returns true if no die is currently placed in this socket. @readonly
 ---@field state socket_state The current interaction state (e.g., Idle, Accept, Hover). @readonly
 ---@field die_value integer The value (1-6) of the die in the socket, or 0 if empty. @readonly
@@ -248,9 +251,9 @@ function engine:create_sprite(owner) end
 function engine:remove_sprite(sprite) end
 
 ---Creates a new socket for dice interaction.
----@param owner socket_owner The table defining the socket's properties and behavior.
+---@param init socket_init The table defining the socket's properties and behavior.
 ---@return socket
-function engine:create_socket(owner) end
+function engine:create_socket(init) end
 
 ---Removes a socket from the game world.
 ---@param socket socket The socket instance to remove.

@@ -213,8 +213,6 @@ void engine::create_sprite_wrapper()
 void engine::create_socket_wrapper()
 {
     auto& socketWrapper {*_script.create_wrapper<socket>("socket")};
-    socketWrapper["owner"] = getter {
-        [](socket* socket) { return socket->Owner; }};
     socketWrapper["is_empty"] = getter {
         [](socket* socket) { return socket->is_empty(); }};
     socketWrapper["state"] = getter {
@@ -262,21 +260,18 @@ void engine::create_engine_wrapper()
     engineWrapper["irnd"]          = [](engine* engine, i32 min, i32 max) { return engine->_init.State.Rng(min, max); };
     engineWrapper["log"]           = [](string const& str) { logger::Info(str); };
     engineWrapper["create_sprite"] = [](engine* engine, table const& spriteOwner) {
-        sprite_def def {spriteOwner.get<sprite_def>().value()};
-        auto*      sprite {engine->_init.Game->add_sprite({.IsCollidable = def.IsCollidable,
-                                                           .IsWrappable  = def.IsWrappable,
-                                                           .Owner        = spriteOwner})};
-        // TODO sync texture and position between sprite and owner
+        sprite_def const def {spriteOwner["spriteInit"].get<sprite_def>().value_or({})};
+        auto*            sprite {engine->_init.Game->add_sprite({.IsCollidable = def.IsCollidable,
+                                                                 .IsWrappable  = def.IsWrappable,
+                                                                 .Owner        = spriteOwner})};
         sprite->set_texture(&engine->_textures[def.Texture]); // TODO: error check
         sprite->set_bounds(def.Position, sprite->get_texture()->Size);
         return sprite;
     };
     engineWrapper["remove_sprite"] = [](engine* engine, sprite* sprite) { engine->_init.Game->remove_sprite(sprite); };
-    engineWrapper["create_socket"] = [](engine* engine, table const& socketOwner) -> socket* {
-        socket_face face {socketOwner.get<socket_face>().value()};
-        auto*       socket {engine->_init.Sockets->add_socket(face)};
-        socket->Owner = socketOwner;
-        return socket;
+    engineWrapper["create_socket"] = [](engine* engine, table const& socketInit) -> socket* {
+        socket_face const face {socketInit.get<socket_face>().value_or({})};
+        return engine->_init.Sockets->add_socket(face);
     };
     engineWrapper["remove_socket"] = [](engine* engine, socket* socket) {
         engine->_init.Sockets->remove_socket(socket);

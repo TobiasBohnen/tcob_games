@@ -45,13 +45,13 @@ struct callbacks {
 
 struct sprite_def {
     u32     Texture {0};
+    point_f Position;
     bool    IsCollidable {true};
     bool    IsWrappable {true};
-    point_f Position;
 
     static auto constexpr Members()
     {
-        return std::tuple {member<&sprite_def::Texture> {"texture"},
+        return std::tuple {member<&sprite_def::Texture, 0> {"texture"},
                            member<&sprite_def::Position, point_f {0, 0}> {"position"},
                            member<&sprite_def::IsCollidable, true> {"collidable"},
                            member<&sprite_def::IsWrappable, true> {"wrappable"}};

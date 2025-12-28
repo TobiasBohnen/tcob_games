@@ -99,11 +99,13 @@ void die::move_by(point_f offset)
     });
 }
 
-void die::on_socketted(rect_f const& bounds)
+void die::on_socketed(rect_f const& bounds)
 {
     _colorState    = die_state::Normal;
     _shape->Bounds = bounds;
 }
+
+auto die::shape() const -> gfx::rect_shape* { return _shape; }
 
 ////////////////////////////////////////////////////////////
 
@@ -140,7 +142,7 @@ auto dice::on_hover(point_f mousePos) -> die*
             auto* shape {dynamic_cast<gfx::rect_shape*>(v)};
             for (auto& die : _dice) {
                 if (die->is_rolling()) { continue; }
-                if (die->_shape == shape) { return die.get(); }
+                if (die->shape() == shape) { return die.get(); }
             }
         }
         return nullptr;
@@ -180,9 +182,9 @@ void dice::on_drag(point_f mousePos, rect_f const& winBounds)
 
     rect_f const newBounds {newPos - halfSize, DICE_SIZE * _scale};
 
-    _batch.bring_to_front(*_hoverDie->_shape);
-    _hoverDie->_shape->Bounds = newBounds;
-    _hoverDie->_colorState    = die_state::Dragged;
+    _batch.bring_to_front(*_hoverDie->shape());
+    _hoverDie->shape()->Bounds = newBounds;
+    _hoverDie->_colorState     = die_state::Dragged;
 }
 
 void dice::update(milliseconds deltaTime)

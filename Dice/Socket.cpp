@@ -98,7 +98,7 @@ auto sockets::try_insert_die(die* hoverDie) -> socket*
 
     _hoverSocket->insert_die(hoverDie);
     _hoverSocket->_state = socket_state::Idle;
-    hoverDie->on_socketted(_hoverSocket->_bounds);
+    hoverDie->on_socketed(_hoverSocket->_bounds);
     return _hoverSocket;
 }
 
