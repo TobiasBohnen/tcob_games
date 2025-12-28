@@ -3,7 +3,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-#include "Slot.hpp"
+#include "Socket.hpp"
 
 #include <algorithm>
 #include <utility>
@@ -12,22 +12,22 @@
 
 ////////////////////////////////////////////////////////////
 
-slot::slot(slot_face face)
+socket::socket(socket_face face)
     : _face {std::move(face)}
 {
 }
 
-auto slot::is_empty() const -> bool
+auto socket::is_empty() const -> bool
 {
     return _die == nullptr;
 }
 
-auto slot::current_die() const -> die*
+auto socket::current_die() const -> die*
 {
     return _die;
 }
 
-auto slot::can_insert_die(die_face dieFace) const -> bool
+auto socket::can_insert_die(die_face dieFace) const -> bool
 {
     if (_die) { return false; }
 
@@ -45,117 +45,117 @@ auto slot::can_insert_die(die_face dieFace) const -> bool
     return true;
 }
 
-void slot::insert_die(die* die)
+void socket::insert_die(die* die)
 {
     _die = die;
     if (_die) { _die->freeze(); }
 }
 
-auto slot::can_remove_die(die* die) const -> bool
+auto socket::can_remove_die(die* die) const -> bool
 {
     return _die && die == _die;
 }
 
-void slot::remove_die()
+void socket::remove_die()
 {
     if (_die) { _die->unfreeze(); }
     _die = nullptr;
 }
 
-auto slot::bounds() const -> rect_f const& { return _bounds; }
-void slot::move_to(point_f pos) { _bounds = {pos, _bounds.Size}; }
-auto slot::state() const -> slot_state { return _state; }
+auto socket::bounds() const -> rect_f const& { return _bounds; }
+void socket::move_to(point_f pos) { _bounds = {pos, _bounds.Size}; }
+auto socket::state() const -> socket_state { return _state; }
 
 ////////////////////////////////////////////////////////////
 
-slots::slots(size_f scale)
+sockets::sockets(size_f scale)
     : _scale {scale}
 {
 }
 
-void slots::lock() { _locked = true; }
+void sockets::lock() { _locked = true; }
 
-void slots::unlock() { _locked = false; }
+void sockets::unlock() { _locked = false; }
 
-auto slots::add_slot(slot_face const& face) -> slot*
+auto sockets::add_socket(socket_face const& face) -> socket*
 {
-    auto& retValue {_slots.emplace_back(std::make_unique<slot>(face))};
+    auto& retValue {_sockets.emplace_back(std::make_unique<socket>(face))};
     retValue->_bounds = {point_f::Zero, DICE_SIZE * _scale};
     return retValue.get();
 }
 
-void slots::remove_slot(slot* slot)
+void sockets::remove_socket(socket* socket)
 {
-    if (slot->current_die()) {
-        slot->remove_die();
+    if (socket->current_die()) {
+        socket->remove_die();
     }
-    helper::erase_first(_slots, [&](auto const& s) { return s.get() == slot; });
+    helper::erase_first(_sockets, [&](auto const& s) { return s.get() == socket; });
 }
 
-auto slots::try_insert_die(die* hoverDie) -> slot*
+auto sockets::try_insert_die(die* hoverDie) -> socket*
 {
-    if (_locked || !hoverDie || !_hoverSlot || !_hoverSlot->can_insert_die(hoverDie->current_face())) { return nullptr; }
+    if (_locked || !hoverDie || !_hoverSocket || !_hoverSocket->can_insert_die(hoverDie->current_face())) { return nullptr; }
 
-    _hoverSlot->insert_die(hoverDie);
-    _hoverSlot->_state = slot_state::Idle;
-    hoverDie->on_slotted(_hoverSlot->_bounds);
-    return _hoverSlot;
+    _hoverSocket->insert_die(hoverDie);
+    _hoverSocket->_state = socket_state::Idle;
+    hoverDie->on_socketted(_hoverSocket->_bounds);
+    return _hoverSocket;
 }
 
-void slots::hover(rect_f const& rect)
+void sockets::hover(rect_f const& rect)
 {
     if (_locked) {
-        _hoverSlot = nullptr;
+        _hoverSocket = nullptr;
         return;
     }
 
-    auto const find {[&]() -> slot* {
-        slot* bestSlot {nullptr};
-        f32   maxArea {0.0f};
+    auto const find {[&]() -> socket* {
+        socket* bestSocket {nullptr};
+        f32     maxArea {0.0f};
 
-        for (auto& s : _slots) {
-            auto const& slotRect {s->_bounds};
-            auto const  interSect {rect.as_intersection_with(slotRect)};
+        for (auto& s : _sockets) {
+            auto const& socketRect {s->_bounds};
+            auto const  interSect {rect.as_intersection_with(socketRect)};
             if (interSect.Size.area() > maxArea) {
-                maxArea  = interSect.Size.area();
-                bestSlot = s.get();
+                maxArea    = interSect.Size.area();
+                bestSocket = s.get();
             }
         }
 
-        return bestSlot;
+        return bestSocket;
     }};
 
-    auto* slot {find()};
-    if (_hoverSlot != slot) {
-        if (_hoverSlot) {
-            _hoverSlot->_state = slot_state::Idle;
+    auto* socket {find()};
+    if (_hoverSocket != socket) {
+        if (_hoverSocket) {
+            _hoverSocket->_state = socket_state::Idle;
         }
-        _hoverSlot = slot;
+        _hoverSocket = socket;
     }
 }
 
-auto slots::try_remove_die(die* die) -> slot*
+auto sockets::try_remove_die(die* die) -> socket*
 {
-    if (_locked || !die || !_hoverSlot || !_hoverSlot->can_remove_die(die)) { return nullptr; }
+    if (_locked || !die || !_hoverSocket || !_hoverSocket->can_remove_die(die)) { return nullptr; }
 
-    _hoverSlot->remove_die();
-    _hoverSlot->_state = slot_state::Idle;
-    return _hoverSlot;
+    _hoverSocket->remove_die();
+    _hoverSocket->_state = socket_state::Idle;
+    return _hoverSocket;
 }
 
-void slots::on_hover(point_f mp)
+void sockets::on_hover(point_f mp)
 {
     auto const getRect {[&] -> rect_f {
         return {mp, size_f::One};
     }};
 
     hover(getRect());
-    if (_hoverSlot) {
-        _hoverSlot->_state = slot_state::Hover;
+    if (_hoverSocket) {
+        _hoverSocket->_state = socket_state::Hover;
     }
 }
 
-void slots::on_drag(die* draggedDie)
+void sockets::on_drag(die* draggedDie)
 {
     auto const getRect {[&] -> rect_f {
         rect_i const  bounds {draggedDie->bounds()};
@@ -165,52 +165,52 @@ void slots::on_drag(die* draggedDie)
     }};
 
     hover(getRect());
-    if (_hoverSlot) {
-        _hoverSlot->_state = _hoverSlot->can_insert_die(draggedDie->current_face()) ? slot_state::Accept : slot_state::Reject;
+    if (_hoverSocket) {
+        _hoverSocket->_state = _hoverSocket->can_insert_die(draggedDie->current_face()) ? socket_state::Accept : socket_state::Reject;
     }
 }
 
-auto slots::are_filled() const -> bool
+auto sockets::are_filled() const -> bool
 {
-    return std::ranges::all_of(_slots, [](auto const& slot) { return !slot->is_empty(); });
+    return std::ranges::all_of(_sockets, [](auto const& socket) { return !socket->is_empty(); });
 }
 
-auto slots::count() const -> usize
+auto sockets::count() const -> usize
 {
-    return _slots.size();
+    return _sockets.size();
 }
 
-void slots::reset()
+void sockets::reset()
 {
     unlock();
 
     std::vector<die*> dice;
-    for (auto& slot : _slots) {
-        if (auto* die {slot->current_die()}) {
+    for (auto& socket : _sockets) {
+        if (auto* die {socket->current_die()}) {
             dice.push_back(die);
-            slot->remove_die();
-            die->move_by({0, slot->_bounds.height()}); // TODO: random die movement
+            socket->remove_die();
+            die->move_by({0, socket->_bounds.height()}); // TODO: random die movement
         }
     }
 
     for (auto* die : dice) { die->roll(); }
 }
 
-auto get_hand(std::span<slot* const> slots) -> hand
+auto get_hand(std::span<socket* const> sockets) -> hand
 {
-    if (!std::ranges::all_of(slots, [](auto const& slot) { return !slot->is_empty(); }) || slots.size() > 5) { return {}; }
+    if (!std::ranges::all_of(sockets, [](auto const& socket) { return !socket->is_empty(); }) || sockets.size() > 5) { return {}; }
 
     struct indexed_face {
         die_face Face;
-        slot*    Slot;
+        socket*  Socket;
     };
 
     static auto const func {[](auto const& f) { return f.Face.Value; }};
 
     std::vector<indexed_face> faces;
-    faces.reserve(slots.size());
-    for (usize i {0}; i < slots.size(); ++i) {
-        faces.push_back({.Face = slots[i]->current_die()->current_face(), .Slot = slots[i]});
+    faces.reserve(sockets.size());
+    for (usize i {0}; i < sockets.size(); ++i) {
+        faces.push_back({.Face = sockets[i]->current_die()->current_face(), .Socket = sockets[i]});
     }
     std::ranges::stable_sort(faces, {}, func);
 
@@ -220,7 +220,7 @@ auto get_hand(std::span<slot* const> slots) -> hand
     if ((faces.back().Face.Value - faces.front().Face.Value == faces.size() - 1)
         && (std::ranges::adjacent_find(faces, {}, func) == faces.end())) {
         result.Value = value_category::Straight;
-        for (auto const& f : faces) { result.Slots.push_back(f.Slot); }
+        for (auto const& f : faces) { result.Sockets.push_back(f.Socket); }
     } else {
         std::array<i8, 6> counts {};
         std::array<i8, 4> groups {};
@@ -234,7 +234,7 @@ auto get_hand(std::span<slot* const> slots) -> hand
 
         auto collect {[&](u8 targetValue) {
             for (auto const& f : faces) {
-                if (f.Face.Value == targetValue) { result.Slots.push_back(f.Slot); }
+                if (f.Face.Value == targetValue) { result.Sockets.push_back(f.Socket); }
             }
         }};
         auto collectAll {[&](u8 targetCount) {

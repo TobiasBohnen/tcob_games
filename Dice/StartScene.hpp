@@ -41,4 +41,9 @@ private:
     bool                       _quitQueued {false};
 
     std::unique_ptr<event_bus> _events;
+
+    std::vector<gfx::image_frame> _frames;
+    milliseconds                  _frameTimer {0};
+    bool                          _startRecord {false};
+    std::future<bool>             _clipFtr;
 };

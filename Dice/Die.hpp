@@ -47,7 +47,7 @@ public:
     void move_to(point_f pos);
     void move_by(point_f offset);
 
-    void on_slotted(rect_f const& bounds);
+    void on_socketted(rect_f const& bounds);
 
 private:
     gfx::rect_shape* _shape {nullptr};

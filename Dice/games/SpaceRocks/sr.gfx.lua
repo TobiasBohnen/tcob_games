@@ -33,9 +33,7 @@ function gfx.get_background(game, engine)
     end
 
     return {
-        [0] = {
-            bitmap = table.concat(buf)
-        }
+        [0] = { bitmap = table.concat(buf) }
     }
 end
 
@@ -133,10 +131,10 @@ local ship_pattern     = [[0i2b0r2b0q2d0p2d0p2d0o2f0n2f0m2h0l2h0l2h0k2j0j2j0j2j0
 
 ---@param dmd dmd
 function gfx.draw_dmd(dmd, game)
-    local slots        = game.slots ---@type {[string]: slot})
-    local bulletsValue = slots.bullets.die_value
-    local speedValue   = slots.speed.die_value
-    local turnValue    = slots.turn.die_value
+    local sockets      = game.sockets ---@type {[string]: socket})
+    local bulletsValue = sockets.bullets.die_value
+    local speedValue   = sockets.speed.die_value
+    local turnValue    = sockets.turn.die_value
 
     dmd:clear()
 
@@ -157,20 +155,20 @@ function gfx.draw_dmd(dmd, game)
     end
 
 
-    local function draw_slot(pos, state)
-        local colors = { [SlotState.Accept] = "9", [SlotState.Hover] = "1", [SlotState.Idle] = "1", [SlotState.Reject] = "3" }
+    local function draw_socket(pos, state)
+        local colors = { [SocketState.Accept] = "9", [SocketState.Hover] = "1", [SocketState.Idle] = "1", [SocketState.Reject] = "3" }
         dmd:blit({ x = pos.x, y = pos.y, width = 13, height = 13 }, string.rep(colors[state], 13 * 13))
         dmd:blit({ x = pos.x + 1, y = pos.y + 1, width = 11, height = 11 }, string.rep("A", 11 * 11))
     end
 
-    slots.bullets.position = { x = 55, y = 30 }
-    draw_slot(slots.bullets.position, slots.bullets.state)
+    sockets.bullets.position = { x = 55, y = 30 }
+    draw_socket(sockets.bullets.position, sockets.bullets.state)
 
-    slots.turn.position = { x = 55, y = 50 }
-    draw_slot(slots.turn.position, slots.turn.state)
+    sockets.turn.position = { x = 55, y = 50 }
+    draw_socket(sockets.turn.position, sockets.turn.state)
 
-    slots.speed.position = { x = 55, y = 70 }
-    draw_slot(slots.speed.position, slots.speed.state)
+    sockets.speed.position = { x = 55, y = 70 }
+    draw_socket(sockets.speed.position, sockets.speed.state)
 
     if game.powerup then
         dmd:print({ x = 7, y = 90 }, "3 OF A KIND", Palette.Green)

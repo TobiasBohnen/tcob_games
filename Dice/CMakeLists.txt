@@ -6,7 +6,7 @@ target_sources(Dice PRIVATE
     Engine.cpp
     EngineHelper.cpp
     Game.cpp
-    Slot.cpp
+    Socket.cpp
     StartScene.cpp
     UI.cpp
 )

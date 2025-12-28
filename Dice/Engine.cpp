@@ -7,7 +7,7 @@
 
 #include "Die.hpp"
 #include "Game.hpp"
-#include "Slot.hpp"
+#include "Socket.hpp"
 
 using namespace scripting;
 
@@ -23,7 +23,7 @@ engine::engine(init const& init)
         call(_callbacks.OnCollision, ev.A, ev.B);
     });
 
-    _init.Events.SlotDieChanged.connect([this](auto const& ev) {
+    _init.Events.SocketDieChanged.connect([this](auto const& ev) {
         if (_gameStatus != game_status::TurnEnded) { return; }
         call(_callbacks.OnDieChange, ev);
     });
@@ -98,7 +98,7 @@ auto engine::update(milliseconds deltaTime) -> bool
     switch (status) {
     case Running:   return true;
     case TurnEnded: {
-        _init.Slots->reset();
+        _init.Sockets->reset();
         call(_callbacks.OnTurnFinish);
         return false;
     }
@@ -115,7 +115,7 @@ auto engine::start_turn() -> bool
     if (_gameStatus != game_status::TurnEnded) { return false; }
 
     if (call(_callbacks.CanStartTurn)) {
-        _init.Slots->lock();
+        _init.Sockets->lock();
         call(_callbacks.OnTurnStart);
         _gameStatus = game_status::Running;
         return true;
@@ -158,12 +158,12 @@ void engine::create_env()
     gameStatus["GameOver"]  = static_cast<i32>(game_status::GameOver);
     env["GameStatus"]       = gameStatus;
 
-    table slotState {_script.create_table()};
-    slotState["Idle"]   = static_cast<i32>(slot_state::Idle);
-    slotState["Accept"] = static_cast<i32>(slot_state::Accept);
-    slotState["Reject"] = static_cast<i32>(slot_state::Reject);
-    slotState["Hover"]  = static_cast<i32>(slot_state::Hover);
-    env["SlotState"]    = slotState;
+    table socketState {_script.create_table()};
+    socketState["Idle"]   = static_cast<i32>(socket_state::Idle);
+    socketState["Accept"] = static_cast<i32>(socket_state::Accept);
+    socketState["Reject"] = static_cast<i32>(socket_state::Reject);
+    socketState["Hover"]  = static_cast<i32>(socket_state::Hover);
+    env["SocketState"]    = socketState;
 
     table rotation {_script.create_table()};
     rotation["R0"]   = 0;
@@ -181,7 +181,7 @@ void engine::create_env()
 void engine::create_wrappers()
 {
     create_sprite_wrapper();
-    create_slot_wrapper();
+    create_socket_wrapper();
     create_die_wrapper();
     create_engine_wrapper();
     create_dmd_wrapper();
@@ -205,28 +205,28 @@ void engine::create_sprite_wrapper()
         [this](sprite* sprite, u32 texID) { sprite->set_texture(&_textures[texID]); }}; // TODO: error check
 }
 
-void engine::create_slot_wrapper()
+void engine::create_socket_wrapper()
 {
-    auto& slotWrapper {*_script.create_wrapper<slot>("slot")};
-    slotWrapper["owner"] = getter {
-        [](slot* slot) { return slot->Owner; }};
-    slotWrapper["is_empty"] = getter {
-        [](slot* slot) { return slot->is_empty(); }};
-    slotWrapper["state"] = getter {
-        [](slot* slot) { return static_cast<u8>(slot->state()); }};
-    slotWrapper["die_value"] = getter {
-        [](slot* slot) -> u8 { return slot->is_empty() ? 0 : slot->current_die()->current_face().Value; }};
-    slotWrapper["position"] = property {
-        [this](slot* slot) -> point_i {
+    auto& socketWrapper {*_script.create_wrapper<socket>("socket")};
+    socketWrapper["owner"] = getter {
+        [](socket* socket) { return socket->Owner; }};
+    socketWrapper["is_empty"] = getter {
+        [](socket* socket) { return socket->is_empty(); }};
+    socketWrapper["state"] = getter {
+        [](socket* socket) { return static_cast<u8>(socket->state()); }};
+    socketWrapper["die_value"] = getter {
+        [](socket* socket) -> u8 { return socket->is_empty() ? 0 : socket->current_die()->current_face().Value; }};
+    socketWrapper["position"] = property {
+        [this](socket* socket) -> point_i {
             auto const&   rect {_init.State.DMDBounds};
-            point_f const pos {slot->bounds().Position};
+            point_f const pos {socket->bounds().Position};
             return {static_cast<i32>(std::round((pos.X - rect.left()) / (rect.width() / DMD_SIZE.Width))),
                     static_cast<i32>(std::round((pos.Y - rect.top()) / (rect.height() / DMD_SIZE.Height)))};
         },
-        [this](slot* slot, point_i pos) {
+        [this](socket* socket, point_i pos) {
             auto const& rect {_init.State.DMDBounds};
-            slot->move_to({rect.left() + (static_cast<f32>(pos.X) * (rect.width() / static_cast<f32>(DMD_SIZE.Width))),
-                           rect.top() + (static_cast<f32>(pos.Y) * (rect.height() / static_cast<f32>(DMD_SIZE.Height)))});
+            socket->move_to({rect.left() + (static_cast<f32>(pos.X) * (rect.width() / static_cast<f32>(DMD_SIZE.Width))),
+                             rect.top() + (static_cast<f32>(pos.Y) * (rect.height() / static_cast<f32>(DMD_SIZE.Height)))});
         }};
 }
 
@@ -265,20 +265,20 @@ void engine::create_engine_wrapper()
         return sprite;
     };
     engineWrapper["remove_sprite"] = [](engine* engine, sprite* sprite) { engine->_init.Game->remove_sprite(sprite); };
-    engineWrapper["create_slot"]   = [](engine* engine, table const& slotOwner) -> slot* {
-        slot_face face {slotOwner.get<slot_face>().value()};
-        auto*     slot {engine->_init.Slots->add_slot(face)};
-        slot->Owner = slotOwner;
-        return slot;
+    engineWrapper["create_socket"] = [](engine* engine, table const& socketOwner) -> socket* {
+        socket_face face {socketOwner.get<socket_face>().value()};
+        auto*       socket {engine->_init.Sockets->add_socket(face)};
+        socket->Owner = socketOwner;
+        return socket;
     };
-    engineWrapper["remove_slot"] = [](engine* engine, slot* slot) {
-        engine->_init.Slots->remove_slot(slot);
+    engineWrapper["remove_socket"] = [](engine* engine, socket* socket) {
+        engine->_init.Sockets->remove_socket(socket);
     };
-    engineWrapper["get_hand"] = [](engine*, table const& slotsTable) {
-        std::vector<slot*> slots;
-        for (auto const& key : slotsTable.get_keys<string>()) { slots.push_back(slotsTable[key].as<slot*>()); }
+    engineWrapper["get_hand"] = [](engine*, table const& socketsTable) {
+        std::vector<socket*> sockets;
+        for (auto const& key : socketsTable.get_keys<string>()) { sockets.push_back(socketsTable[key].as<socket*>()); }
 
-        return get_hand(slots);
+        return get_hand(sockets);
     };
     engineWrapper["give_score"] = [](engine* engine, i32 score) { engine->_init.State.Score += score; };
     engineWrapper["play_sound"] = [](engine* engine, u32 id) {
@@ -374,18 +374,24 @@ void engine::create_textures(std::unordered_map<u32, tex_def>& texMap)
         assTex.Region = std::to_string(id);
         assTex.Alpha  = grid<u8> {texDef.Size};
 
-        u32 const rotation {texDef.Rotation.value_or(0)};
+        u32 const  rotation {texDef.Rotation.value_or(0)};
+        bool const flip_h {texDef.FlipH.value_or(false)};
+        bool const flip_v {texDef.FlipV.value_or(false)};
 
         auto const dots {decode_texture_pixels(texDef.Bitmap, texDef.Size)};
         auto const w {texDef.Size.Width};
         auto const h {texDef.Size.Height};
 
         auto const map_xy {[&](i32 x, i32 y) -> point_i {
+            i32 const r {w - 1};
+            i32 const b {h - 1};
+            i32 const fx {flip_h ? r - x : x};
+            i32 const fy {flip_v ? h - 1 - y : y};
             switch (rotation) {
-            case 90:  return {h - 1 - y, x};
-            case 180: return {w - 1 - x, h - 1 - y};
-            case 270: return {y, w - 1 - x};
-            default:  return {x, y};
+            case 90:  return {b - fy, fx};
+            case 180: return {r - fx, b - fy};
+            case 270: return {fy, r - fx};
+            default:  return {fx, fy};
             }
         }};
         for (i32 y {0}; y < h; ++y) {

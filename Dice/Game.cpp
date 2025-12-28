@@ -45,10 +45,10 @@ dice_game::dice_game(init const& init)
           .SpriteTexture     = _spriteTexture.ptr(),
           .BackgroundTexture = _backgroundTexture.ptr(),
           .Game              = this,
-          .Slots             = &_slots,
+          .Sockets           = &_sockets,
       }}
-    , _slots {init.RealWindowSize / DICE_SLOTS_REF_SIZE}
-    , _dice {_diceBatch, init.RealWindowSize / DICE_SLOTS_REF_SIZE}
+    , _sockets {init.RealWindowSize / DICE_SOCKETS_REF_SIZE}
+    , _dice {_diceBatch, init.RealWindowSize / DICE_SOCKETS_REF_SIZE}
 {
     _background->Bounds   = {point_f::Zero, VIRTUAL_SCREEN_SIZE};
     _background->Material = _backgroundMaterial;
@@ -141,8 +141,8 @@ void dice_game::on_mouse_button_up(input::mouse::button_event const& ev)
 {
     switch (ev.Button) {
     case input::mouse::button::Left:
-        if (auto* slot {_slots.try_insert_die(_hoverDie)}) {
-            _init.Events.SlotDieChanged(slot);
+        if (auto* socket {_sockets.try_insert_die(_hoverDie)}) {
+            _init.Events.SocketDieChanged(socket);
         }
         break;
     case input::mouse::button::Right: break;
@@ -169,17 +169,17 @@ void dice_game::on_mouse_motion(input::mouse::motion_event const& ev)
     if (!isButtonDown) { _hoverDie = _dice.on_hover(mp); }
 
     if (isButtonDown && _hoverDie) {
-        _slots.on_drag(_hoverDie);
+        _sockets.on_drag(_hoverDie);
 
-        if (auto* slot {_slots.try_remove_die(_hoverDie)}) {
-            _init.Events.SlotDieChanged(slot);
+        if (auto* socket {_sockets.try_remove_die(_hoverDie)}) {
+            _init.Events.SocketDieChanged(socket);
         }
 
         _dice.on_drag(mp, _sharedState.DMDBounds);
 
         _init.Events.DieMotion();
     } else {
-        _slots.on_hover(mp);
+        _sockets.on_hover(mp);
     }
 
     static_cast<input::receiver*>(_form0.get())->on_mouse_motion(ev);

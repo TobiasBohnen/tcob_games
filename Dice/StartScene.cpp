@@ -39,7 +39,7 @@ void start_scene::on_draw_to(gfx::render_target&)
 {
 }
 
-void start_scene::on_update(milliseconds)
+void start_scene::on_update(milliseconds deltaTime)
 {
     if (_quitQueued) {
         _quitQueued       = false;
@@ -53,6 +53,30 @@ void start_scene::on_update(milliseconds)
     if (_queuedGameID != 0) {
         start_game(_queuedGameID);
         _queuedGameID = 0;
+    }
+
+    if (_startRecord) {
+        if (_clipFtr.valid()) {
+            if (_clipFtr.wait_for(0ms) == std::future_status::ready) {
+                logger::Info("clip saved");
+                _startRecord = false;
+                _frames.clear();
+                _clipFtr = {};
+            }
+            return;
+        }
+
+        _frameTimer += deltaTime;
+        if (_frameTimer >= 50ms) {
+            auto                         img {window().copy_to_image()};
+            gfx::resize_nearest_neighbor filter {};
+            filter.NewSize = img.info().Size / 2;
+            _frames.push_back({.Image = filter(img), .Duration = _frameTimer});
+            _frameTimer = 0ms;
+        }
+        if (_frames.size() == 1000) {
+            _clipFtr = gfx::save_animation_async("clip.png", _frames);
+        }
     }
 }
 
@@ -80,6 +104,9 @@ void start_scene::on_key_down(input::keyboard::event const& ev)
             }
         }()};
         std::ignore = window().copy_to_image().save(fileName);
+    } break;
+    case input::scan_code::V: {
+        _startRecord = true;
     } break;
     default:
         break;

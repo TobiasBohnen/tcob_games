@@ -9,7 +9,7 @@
 
 #include "Die.hpp"
 #include "Engine.hpp"
-#include "Slot.hpp"
+#include "Socket.hpp"
 #include "UI.hpp"
 
 ////////////////////////////////////////////////////////////
@@ -99,10 +99,10 @@ private:
 
     shared_state _sharedState;
 
-    init   _init;
-    engine _engine;
-    slots  _slots;
-    dice   _dice;
+    init    _init;
+    engine  _engine;
+    sockets _sockets;
+    dice    _dice;
 
     std::vector<std::unique_ptr<sprite>> _sprites;
 

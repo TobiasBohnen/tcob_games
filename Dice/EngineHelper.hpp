@@ -70,17 +70,21 @@ struct bg_def {
 ////////////////////////////////////////////////////////////
 
 struct tex_def {
-    size_i             Size {size_i::Zero};
-    string             Bitmap;
-    std::optional<u32> Transparent;
-    std::optional<u32> Rotation;
+    size_i              Size {size_i::Zero};
+    string              Bitmap;
+    std::optional<u32>  Transparent;
+    std::optional<u32>  Rotation;
+    std::optional<bool> FlipH;
+    std::optional<bool> FlipV;
 
     static auto constexpr Members()
     {
         return std::tuple {member<&tex_def::Size> {"size"},
                            member<&tex_def::Bitmap> {"bitmap"},
                            member<&tex_def::Transparent, std::nullopt> {"transparent"},
-                           member<&tex_def::Rotation, std::nullopt> {"rotation"}};
+                           member<&tex_def::Rotation, std::nullopt> {"rotation"},
+                           member<&tex_def::FlipH, std::nullopt> {"flip_h"},
+                           member<&tex_def::FlipV, std::nullopt> {"flip_v"}};
     }
 };
 

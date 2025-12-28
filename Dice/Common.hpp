@@ -10,8 +10,8 @@
 using namespace tcob;
 using namespace std::chrono_literals;
 
-class slot;
-class slots;
+class socket;
+class sockets;
 class die;
 struct die_face;
 class dice;
@@ -20,12 +20,12 @@ struct shared_assets;
 class sprite;
 
 constexpr size_f VIRTUAL_SCREEN_SIZE {240, 180};
-constexpr size_f DICE_SLOTS_REF_SIZE {1600, 900};
+constexpr size_f DICE_SOCKETS_REF_SIZE {1600, 900};
 constexpr size_i DMD_SIZE {80, 120};
 constexpr size_i COVER_SIZE {128, 128};
 constexpr size_f DICE_SIZE {62, 62};
 constexpr f32    DICE_OFFSET {72.f};
-constexpr i32    MAX_BACKGROUNDS {6};
+constexpr i32    MAX_BACKGROUNDS {5};
 constexpr size_i TEXTURE_SIZE {256, 256};
 
 constexpr std::array<color, 16> PALETTE {
@@ -121,7 +121,7 @@ struct event_bus {
     signal<> Restart;
 
     signal<collision_event const> Collision;
-    signal<slot* const>           SlotDieChanged;
+    signal<socket* const>         SocketDieChanged;
     signal<>                      DieMotion;
 };
 

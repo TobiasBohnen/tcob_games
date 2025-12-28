@@ -43,8 +43,8 @@ function game:on_collision(engine, spriteA, spriteB)
 end
 
 ---@param engine engine
----@param slot slot
-function game:on_die_change(engine, slot)
+---@param socket socket
+function game:on_die_change(engine, socket)
     gfx.draw_dmd(engine.dmd, self)
 end
 

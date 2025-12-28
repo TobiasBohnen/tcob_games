@@ -99,7 +99,7 @@ void die::move_by(point_f offset)
     });
 }
 
-void die::on_slotted(rect_f const& bounds)
+void die::on_socketted(rect_f const& bounds)
 {
     _colorState    = die_state::Normal;
     _shape->Bounds = bounds;

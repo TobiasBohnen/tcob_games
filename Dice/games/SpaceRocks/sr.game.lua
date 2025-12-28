@@ -29,7 +29,7 @@ local game                = {
     explosionTexture = 40, ---@type texture
     explosionSound   = 1, ---@type sound
 
-    slots            = {}, ---@type { [string]: slot }
+    sockets          = {}, ---@type { [string]: socket }
 
     updateTime       = 0,
 
@@ -50,17 +50,17 @@ function game:on_setup(engine)
         self:try_spawn_asteroid(engine)
     end
 
-    self.slots.speed   = engine:create_slot { colors = { Palette.White } }
-    self.slots.turn    = engine:create_slot { colors = { Palette.White } }
-    self.slots.bullets = engine:create_slot { colors = { Palette.White, Palette.Red } }
+    self.sockets.speed   = engine:create_socket { colors = { Palette.White } }
+    self.sockets.turn    = engine:create_socket { colors = { Palette.White } }
+    self.sockets.bullets = engine:create_socket { colors = { Palette.White, Palette.Red } }
 
-    engine.ssd         = tostring(#self.asteroids)
+    engine.ssd           = tostring(#self.asteroids)
     gfx.draw_dmd(engine.dmd, self)
 end
 
 ---@param engine engine
 function game:can_start_turn(engine)
-    local s = self.slots
+    local s = self.sockets
     return not (s.speed.is_empty or s.turn.is_empty or s.bullets.is_empty)
 end
 
@@ -72,16 +72,16 @@ function game:on_turn_start(engine)
     self:try_spawn_asteroid(engine)
 
     local ship                = self.ship
-    ship.linearVelocityTarget = self.slots.speed.die_value * 30
+    ship.linearVelocityTarget = self.sockets.speed.die_value * 30
 
     local dirs                = { -135, -90, -45, 45, 90, 135 }
-    local directionTarget     = dirs[self.slots.turn.die_value]
+    local directionTarget     = dirs[self.sockets.turn.die_value]
     ship.turnStepsTotal       = directionTarget / 45
     ship.turnStepsDone        = 0
 
-    self.bulletsLeft          = self.slots.bullets.die_value
+    self.bulletsLeft          = self.sockets.bullets.die_value
 
-    if engine:get_hand(self.slots).value == "ThreeOfAKind" then
+    if engine:get_hand(self.sockets).value == "ThreeOfAKind" then
         ship:set_invulnerable(true)
         self.powerup = true
         gfx.draw_dmd(engine.dmd, self)
@@ -139,8 +139,8 @@ function game:on_collision(engine, spriteA, spriteB)
 end
 
 ---@param engine engine
----@param slot slot
-function game:on_die_change(engine, slot)
+---@param socket socket
+function game:on_die_change(engine, socket)
     gfx.draw_dmd(engine.dmd, self)
 end
 
@@ -280,7 +280,7 @@ function game:try_spawn_bullet(engine, deltaTime)
 
     bullet.sprite.position          = { x = bx, y = by }
 
-    self.bulletTime                 = HALF_DURATION / self.slots.bullets.die_value
+    self.bulletTime                 = HALF_DURATION / self.sockets.bullets.die_value
     self.bulletsLeft                = self.bulletsLeft - 1
 
     engine:play_sound(self.bulletSound)
@@ -329,7 +329,7 @@ function game:try_spawn_asteroid(engine)
     local y = engine:rnd(0, ScreenSize.height)
 
     local sx, sy = self.ship.sprite.position.x, self.ship.sprite.position.y
-    if math.sqrt((sx - x) ^ 2 + (sy - y) ^ 2) < 100 then return end
+    if math.sqrt((sx - x) ^ 2 + (sy - y) ^ 2) < 120 then return end
 
     self:spawn_asteroid(engine, "large", x, y)
 end

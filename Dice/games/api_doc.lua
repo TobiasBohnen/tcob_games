@@ -25,7 +25,7 @@
 ---@field width number
 ---@field height number
 
----@class slot_owner
+---@class socket_owner
 ---@description Defines the validation rules for dice placement.
 ---@field values? number[] The values to compare against. If nil or empty, any die value is accepted.
 ---@field colors? color[] The color indices to compare against. If nil or empty, any die color is accepted.
@@ -52,10 +52,10 @@
 ---| '"Rainbow"'
 
 ---@class hand
----@description The calculated result of the dice currently in the provided slots.
+---@description The calculated result of the dice currently in the provided sockets.
 ---@field value value_category_str The identified value pattern (e.g., "FullHouse").
 ---@field color color_category_str The identified color pattern (e.g., "Flush").
----@field slots slot[] The subset of slots that actually form the hand (e.g., the 3 slots in a ThreeOfAKind).
+---@field sockets socket[] The subset of sockets that actually form the hand (e.g., the 3 sockets in a ThreeOfAKind).
 
 ---@class palette
 ---@field Black color
@@ -86,8 +86,8 @@ GameStatus = {
     GameOver = 2
 }
 
----@enum slot_state
-SlotState = {
+---@enum socket_state
+SocketState = {
     Idle = 0,
     Hover = 1,
     Accept = 2,
@@ -119,7 +119,7 @@ Rot = {
 ---@field on_turn_finish fun(self: game_module, engine: engine)
 ---@
 ---@field on_collision fun(self: game_module, engine: engine, spriteA: sprite, spriteB: sprite)
----@field on_die_change fun(self: game_module, engine: engine, slot: slot)
+---@field on_die_change fun(self: game_module, engine: engine, socket: socket)
 ---@field on_die_motion fun(self: game_module, engine: engine)
 
 --------------------------------
@@ -135,16 +135,16 @@ Rot = {
 ---@field texture integer The ID of the texture from the packed atlas.
 
 --------------------------------
--- Slot
+-- Socket
 --------------------------------
 
----@class slot
+---@class socket
 ---@description A logical container for dice, mapped to the DMD coordinate system.
 ---@field position point The integer coordinate on the DMD grid.
----@field owner table The Lua table defining this slot's properties. @readonly
----@field is_empty boolean Returns true if no die is currently placed in this slot. @readonly
----@field state slot_state The current interaction state (e.g., Idle, Accept, Hover). @readonly
----@field die_value integer The value (1-6) of the die in the slot, or 0 if empty. @readonly
+---@field owner table The Lua table defining this socket's properties. @readonly
+---@field is_empty boolean Returns true if no die is currently placed in this socket. @readonly
+---@field state socket_state The current interaction state (e.g., Idle, Accept, Hover). @readonly
+---@field die_value integer The value (1-6) of the die in the socket, or 0 if empty. @readonly
 
 --------------------------------
 -- Die
@@ -241,19 +241,19 @@ function engine:create_sprite(owner) end
 ---@param sprite sprite The sprite instance to remove.
 function engine:remove_sprite(sprite) end
 
----Creates a new slot for dice interaction.
----@param owner slot_owner The table defining the slot's properties and behavior.
----@return slot
-function engine:create_slot(owner) end
+---Creates a new socket for dice interaction.
+---@param owner socket_owner The table defining the socket's properties and behavior.
+---@return socket
+function engine:create_socket(owner) end
 
----Removes a slot from the game world.
----@param slot slot The slot instance to remove.
-function engine:remove_slot(slot) end
+---Removes a socket from the game world.
+---@param socket socket The socket instance to remove.
+function engine:remove_socket(socket) end
 
----Analyzes the dice currently held in the provided slots to determine the "hand".
----@param slots table<string, slot> A table of slots to check.
+---Analyzes the dice currently held in the provided sockets to determine the "hand".
+---@param sockets table<string, socket> A table of sockets to check.
 ---@return hand
-function engine:get_hand(slots) end
+function engine:get_hand(sockets) end
 
 ---@section Game State
 

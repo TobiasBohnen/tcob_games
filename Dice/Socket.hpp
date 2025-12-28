@@ -32,46 +32,46 @@ struct hand {
     value_category Value {value_category::None};
     color_category Color {color_category::None};
 
-    std::vector<slot*> Slots;
+    std::vector<socket*> Sockets;
 
     static auto constexpr Members()
     {
         return std::tuple {
             member<&hand::Value> {"value"},
             member<&hand::Color> {"color"},
-            member<&hand::Slots> {"slots"}};
+            member<&hand::Sockets> {"sockets"}};
     }
 };
 
 ////////////////////////////////////////////////////////////
 
-enum class slot_state : u8 {
+enum class socket_state : u8 {
     Idle   = 0,
     Hover  = 1,
     Accept = 2,
     Reject = 3
 };
 
-struct slot_face {
+struct socket_face {
     std::optional<std::unordered_set<u8>> Values;
     std::optional<std::unordered_set<u8>> Colors;
 
-    auto operator==(slot_face const& other) const -> bool = default;
+    auto operator==(socket_face const& other) const -> bool = default;
 
     static auto constexpr Members()
     {
-        return std::tuple {member<&slot_face::Values, std::nullopt> {"values"},
-                           member<&slot_face::Colors, std::nullopt> {"colors"}};
+        return std::tuple {member<&socket_face::Values, std::nullopt> {"values"},
+                           member<&socket_face::Colors, std::nullopt> {"colors"}};
     }
 };
 
 ////////////////////////////////////////////////////////////
 
-class slot {
-    friend class slots;
+class socket {
+    friend class sockets;
 
 public:
-    explicit slot(slot_face face);
+    explicit socket(socket_face face);
 
     scripting::table Owner;
 
@@ -86,32 +86,32 @@ public:
     auto bounds() const -> rect_f const&;
     void move_to(point_f pos);
 
-    auto state() const -> slot_state;
+    auto state() const -> socket_state;
 
 private:
     rect_f _bounds {};
     die*   _die {nullptr};
 
-    slot_face _face;
+    socket_face _face;
 
-    slot_state _state {slot_state::Idle};
+    socket_state _state {socket_state::Idle};
 };
 
 ////////////////////////////////////////////////////////////
 
-class slots {
+class sockets {
 public:
-    explicit slots(size_f scale);
+    explicit sockets(size_f scale);
 
     void lock();
     void unlock();
 
-    auto add_slot(slot_face const& face) -> slot*;
-    void remove_slot(slot* slot);
+    auto add_socket(socket_face const& face) -> socket*;
+    void remove_socket(socket* socket);
     auto count() const -> usize;
 
-    auto try_insert_die(die* die) -> slot*;
-    auto try_remove_die(die* die) -> slot*;
+    auto try_insert_die(die* die) -> socket*;
+    auto try_remove_die(die* die) -> socket*;
 
     void reset();
 
@@ -122,13 +122,13 @@ private:
     void hover(rect_f const& rect);
     auto are_filled() const -> bool;
 
-    std::vector<std::unique_ptr<slot>> _slots {};
+    std::vector<std::unique_ptr<socket>> _sockets {};
 
     size_f _scale;
 
     bool _locked {false};
 
-    slot* _hoverSlot {nullptr};
+    socket* _hoverSocket {nullptr};
 };
 
-auto get_hand(std::span<slot* const> slots) -> hand;
+auto get_hand(std::span<socket* const> sockets) -> hand;
