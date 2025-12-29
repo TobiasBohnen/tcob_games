@@ -65,6 +65,7 @@ void socket::remove_die()
 auto socket::bounds() const -> rect_f const& { return _bounds; }
 void socket::move_to(point_f pos) { _bounds = {pos, _bounds.Size}; }
 auto socket::state() const -> socket_state { return _state; }
+auto socket::face() const -> socket_face const& { return _face; }
 
 ////////////////////////////////////////////////////////////
 

@@ -5,6 +5,8 @@
 
 #include "EngineHelper.hpp"
 
+#include "Socket.hpp"
+
 ////////////////////////////////////////////////////////////
 
 dmd_proxy::dmd_proxy(prop<grid<u8>>& dmd)
@@ -206,6 +208,72 @@ void dmd_proxy::print(point_i pos, string_view text, u8 color)
             }
         }
     });
+}
+
+void dmd_proxy::draw_socket(socket* socket, bool required, rect_f const& dmdBounds)
+{
+    std::unordered_map<socket_state, u8> borderColors {
+        {socket_state::Accept, 0xA},
+        {socket_state::Hover, 0x1},
+        {socket_state::Idle, 0x1},
+        {socket_state::Reject, 0x3},
+    };
+
+    point_f socketPos {socket->bounds().Position};
+    point_i pos {static_cast<i32>(std::round((socketPos.X - dmdBounds.left()) / (dmdBounds.width() / DMD_SIZE.Width))),
+                 static_cast<i32>(std::round((socketPos.Y - dmdBounds.top()) / (dmdBounds.height() / DMD_SIZE.Height)))};
+
+    rect_i box {pos, size_i {13, 13}};
+    box = box.as_inset_by(point_i {-1, -1});
+
+    if (required) {
+        rect(box, borderColors[socket->state()], false);
+    } else {
+        u8 const  color {borderColors[socket->state()]};
+        i32 const len {3};
+
+        i32 const x0 {box.Position.X};
+        i32 const y0 {box.Position.Y};
+        i32 const x1 {box.Position.X + box.Size.Width - 1};
+        i32 const y1 {box.Position.Y + box.Size.Height - 1};
+
+        line({x0, y0}, {x0 + len, y0}, color);
+        line({x0, y0}, {x0, y0 + len}, color);
+        line({x1, y0}, {x1 - len, y0}, color);
+        line({x1, y0}, {x1, y0 + len}, color);
+        line({x0, y1}, {x0 + len, y1}, color);
+        line({x0, y1}, {x0, y1 - len}, color);
+        line({x1, y1}, {x1 - len, y1}, color);
+        line({x1, y1}, {x1, y1 - len}, color);
+    }
+
+    box = box.as_inset_by(point_i {1, 1});
+
+    auto const& colorsOpt {socket->face().Colors};
+    if (!colorsOpt) {
+        rect(box, 0x2, true);
+    } else {
+        std::vector<u8> colors(colorsOpt->begin(), colorsOpt->end());
+        auto const      numColors {colors.size()};
+
+        if (numColors == 2) {
+            rect(box, colors[0], true);
+            for (i32 i {0}; i < box.Size.Height; ++i) {
+                point_i const start {box.Position.X + box.Size.Width - i, box.Position.Y + i};
+                point_i const end {box.Position.X + box.Size.Width - 1, box.Position.Y + i};
+                if (start.X < box.Position.X + box.Size.Width) {
+                    line(start, end, colors[1]);
+                }
+            }
+        } else {
+            i32 currentX {box.Position.X};
+            for (usize i {0}; i < numColors; ++i) {
+                i32 const nextX {box.Position.X + static_cast<i32>((i + 1) * box.Size.Width / numColors)};
+                rect({{currentX, box.Position.Y}, {nextX - currentX, box.Size.Height}}, colors[i], true);
+                currentX = nextX;
+            }
+        }
+    }
 }
 
 ////////////////////////////////////////////////////////////

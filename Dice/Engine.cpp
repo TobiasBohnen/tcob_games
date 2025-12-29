@@ -317,8 +317,9 @@ void engine::create_dmd_wrapper()
     dmdWrapper["circle"] = [](dmd_proxy* dmd, point_i center, i32 radius, u8 color, bool fill) { dmd->circle(center, radius, color, fill); };
     dmdWrapper["rect"]   = [](dmd_proxy* dmd, rect_i const& rect, u8 color, bool fill) { dmd->rect(rect, color, fill); };
 
-    dmdWrapper["blit"]  = [](dmd_proxy* dmd, rect_i const& rect, string const& dotStr) { dmd->blit(rect, dotStr); };
-    dmdWrapper["print"] = [](dmd_proxy* dmd, point_i pos, string_view text, u8 col) { dmd->print(pos, text, col); };
+    dmdWrapper["blit"]        = [](dmd_proxy* dmd, rect_i const& rect, string const& dotStr) { dmd->blit(rect, dotStr); };
+    dmdWrapper["print"]       = [](dmd_proxy* dmd, point_i pos, string_view text, u8 col) { dmd->print(pos, text, col); };
+    dmdWrapper["draw_socket"] = [this](dmd_proxy* dmd, socket* socket, bool required) { dmd->draw_socket(socket, required, _init.State.DMDBounds); };
 }
 
 void engine::create_backgrounds(std::unordered_map<u32, bg_def> const& bgMap)

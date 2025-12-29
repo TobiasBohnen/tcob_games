@@ -85,6 +85,7 @@ public:
     void move_to(point_f pos);
 
     auto state() const -> socket_state;
+    auto face() const -> socket_face const&;
 
 private:
     rect_f _bounds {};

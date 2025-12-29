@@ -54,7 +54,7 @@ function game:on_turn_update(engine, deltaTime, turnTime)
     if turnTime >= DURATION then return GameStatus.TurnEnded end
 
     for i = #self.missiles, 1, -1 do
-        self:update_missile(engine, i, deltaTime)
+        self.missiles[i]:update(i, deltaTime)
     end
 
     for i = 1, #self.cities do
@@ -69,26 +69,9 @@ end
 ---@param spriteA sprite
 ---@param spriteB sprite
 function game:on_collision(engine, spriteA, spriteB)
-    local a, b   = spriteA.owner, spriteB.owner
-    local tA, tB = a.type, b.type
-
-    local key, first, second
-    if tA < tB then
-        key, first, second = tA .. "_" .. tB, a, b
-    else
-        key, first, second = tB .. "_" .. tA, b, a
-    end
-
-    if key == "city_missile" then
-        local city = first.type == "city" and first or second
-        city:do_damage()
-
-        local missile          = first.type == "missile" and first or second
-        missile.markedForDeath = true
-    elseif key == "missile_missle" then
-        first.markedForDeath = true
-        second.markedForDeath = true
-    end
+    local a, b = spriteA.owner, spriteB.owner
+    if a.collide then a:collide(b) end
+    if b.collide then b:collide(a) end
 end
 
 ---@param engine engine
@@ -138,6 +121,12 @@ function game:create_city(i, engine)
         do_damage  = function(city)
             city.damage         = math.min(city.damage + 1, MAX_CITY_DAMAGE)
             city.sprite.texture = CITY_DAMAGE_TEXTURES[city.damage]
+        end,
+
+        collide    = function(city, b)
+            if b.type == "missile" then
+                city:do_damage()
+            end
         end
     }
 
@@ -185,32 +174,15 @@ function game:create_weapons(engine)
     }
 end
 
-function game:update_missile(engine, i, deltaTime)
-    local m = self.missiles[i]
-
-    if m.markedForDeath then
-        engine:remove_sprite(m.sprite)
-        table.remove(self.missiles, i)
-        return
-    end
-    local rad         = m.direction
-    local vx          = math.cos(rad) * m.linearVelocity / 1000
-    local vy          = math.sin(rad) * m.linearVelocity / 1000
-
-    local pos         = m.sprite.position
-    local newPos      = { x = (pos.x + vx * deltaTime), y = (pos.y + vy * deltaTime) }
-    m.sprite.position = newPos
-    if newPos.y > ScreenSize.height or newPos.x < 0 or newPos.x > ScreenSize.width then
-        m.markedForDeath = true
-    end
-end
-
 ---@param engine engine
 function game:try_spawn_missile(engine)
     local count = #self.missiles
     if count >= #self.cities * 2 then return end
+    self:create_missile(engine)
+end
 
-    local missile     = {
+function game:create_missile(engine)
+    local missile                     = {
         target = engine:irnd(1, #self.cities),
         linearVelocity = engine:rnd(15, 30),
         type = "missile",
@@ -221,12 +193,33 @@ function game:try_spawn_missile(engine)
             wrappable  = false,
             collidable = true,
         },
+        update = function(m, i, deltaTime)
+            if m.markedForDeath then
+                engine:remove_sprite(m.sprite)
+                table.remove(self.missiles, i)
+                return
+            end
+            local rad         = m.direction
+            local vx          = math.cos(rad) * m.linearVelocity / 1000
+            local vy          = math.sin(rad) * m.linearVelocity / 1000
+
+            local pos         = m.sprite.position
+            local newPos      = { x = (pos.x + vx * deltaTime), y = (pos.y + vy * deltaTime) }
+            m.sprite.position = newPos
+            if newPos.y > ScreenSize.height or newPos.x < 0 or newPos.x > ScreenSize.width then
+                m.markedForDeath = true
+            end
+        end,
+        collide = function(missile, b)
+            if b.type == "missile" or b.type == "city" then
+                missile.markedForDeath = true
+            end
+        end
     }
-    local target      = self.cities[missile.target]
+    local target                      = self.cities[missile.target]
 
-    missile.sprite    = engine:create_sprite(missile)
-    missile.direction = math.atan(target.center.y - missile.sprite.position.y - 4, target.center.x - missile.sprite.position.x - 4)
-
+    missile.sprite                    = engine:create_sprite(missile)
+    missile.direction                 = math.atan(target.center.y - missile.sprite.position.y - 4, target.center.x - missile.sprite.position.x - 4)
 
     self.missiles[#self.missiles + 1] = missile
 end

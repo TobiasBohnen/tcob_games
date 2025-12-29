@@ -119,32 +119,9 @@ end
 ---@param spriteA sprite
 ---@param spriteB sprite
 function game:on_collision(engine, spriteA, spriteB)
-    local a, b   = spriteA.owner, spriteB.owner
-    local tA, tB = a.type, b.type
-
-    local key, first, second
-    if tA < tB then
-        key, first, second = tA .. "_" .. tB, a, b
-    else
-        key, first, second = tB .. "_" .. tA, b, a
-    end
-
-    if key == "asteroid_ship" then
-        local ship = self.ship
-        if not ship.invulnerable then
-            ship.health = ship.health - 1
-            ship:set_invulnerable(true)
-            gfx.draw_dmd(engine.dmd, self)
-        end
-
-        local asteroid          = first.type == "asteroid" and first or second
-        asteroid.markedForDeath = true
-    elseif key == "asteroid_bullet" then
-        local asteroid          = first.type == "asteroid" and first or second
-        asteroid.markedForDeath = true
-        local bullet            = first.type == "bullet" and first or second
-        bullet.lifetime         = DURATION - 1
-    end
+    local a, b = spriteA.owner, spriteB.owner
+    if a.collide then a:collide(b) end
+    if b.collide then b:collide(a) end
 end
 
 ---@param engine engine
@@ -184,141 +161,13 @@ function game:update_entity(e, deltaTime)
 end
 
 ---@param engine engine
-function game:create_ship(engine)
-    local ship = {
-        direction            = 0,
-        linearVelocity       = 0,
-        linearVelocityTarget = 0,
-        sprite               = nil, ---@type sprite
-
-        type                 = "ship",
-        health               = 5,
-        invulnerable         = false,
-
-        spriteInit           = {
-            texture = 0,
-            position = { x = ScreenSize.width / 2 - 12, y = ScreenSize.height / 2 - 12 }
-        },
-
-        set_invulnerable     = function(ship, val)
-            ship.invulnerable   = val
-            ship.sprite.texture = val and self.textures.hurtShip[ship.direction] or self.textures.ship[ship.direction]
-        end,
-
-        update               = function(ship, deltaTime, updateTime)
-            local factor        = updateTime < HALF_DURATION
-                and updateTime / HALF_DURATION
-                or 1 - ((updateTime - HALF_DURATION) / HALF_DURATION)
-
-            ship.linearVelocity = ship.linearVelocityTarget * factor
-
-            local stepsTodo     = math.floor(math.abs(ship.turnStepsTotal) * factor + 0.0001)
-            local stepsToApply  = stepsTodo - ship.turnStepsDone
-            if stepsToApply > 0 then
-                local sign         = ship.turnStepsTotal > 0 and 1 or -1
-                ship.direction     = ship.direction + sign * 45 * stepsToApply
-                ship.turnStepsDone = ship.turnStepsDone + stepsToApply
-            end
-
-            ship.direction = ship.direction % 360
-            ship.sprite.texture = ship.invulnerable and self.textures.hurtShip[ship.direction] or self.textures.ship[ship.direction]
-            self:update_entity(ship, deltaTime)
-        end
-    }
-    ship.sprite = engine:create_sprite(ship)
-    self.ship = ship
-end
-
----@param engine engine
-function game:create_explosion(engine, asteroid)
-    local explosion                       = {
-        lifetime   = 0,
-        spriteInit = {
-            position   = asteroid.sprite.position,
-            texture    = self.textures.explosion,
-            collidable = false,
-        },
-
-        update     = function(e, i, deltaTime)
-            e.lifetime = e.lifetime + deltaTime
-            if e.lifetime >= EXPLOSION_DURATION then
-                engine:remove_sprite(e.sprite)
-                table.remove(self.explosions, i)
-            end
-        end
-    }
-
-    explosion.sprite                      = engine:create_sprite(explosion)
-    self.explosions[#self.explosions + 1] = explosion
-    engine:play_sound(self.sounds.explosion)
-end
-
----@param engine engine
-function game:try_spawn_bullet(engine, deltaTime)
-    if self.bulletsLeft <= 0 then return end
-    self.bulletTime = self.bulletTime - deltaTime
-    if self.bulletTime > 0 then return end
-
-    self:create_bullet(engine)
-end
-
----@param engine engine
-function game:create_bullet(engine)
-    local ship                      = self.ship
-
-    local bullet                    = {
-        direction      = ship.direction,
-        linearVelocity = math.max(MIN_BULLET_SPEED, ship.linearVelocity * 1.5),
-        type           = "bullet",
-        lifetime       = 0,
-        spriteInit     = {
-            texture = self.textures.bullet,
-        },
-
-        update         = function(b, i, deltaTime)
-            if b.lifetime < DURATION then
-                self:update_entity(b, deltaTime)
-            else
-                engine:remove_sprite(b.sprite)
-                table.remove(self.bullets, i)
-            end
-            b.lifetime = b.lifetime + deltaTime
-        end
-    }
-
-    bullet.sprite                   = engine:create_sprite(bullet)
-    self.bullets[#self.bullets + 1] = bullet
-
-    local shipSprite                = ship.sprite
-    local shipBounds                = shipSprite.bounds
-    local bulletBounds              = bullet.sprite.bounds
-    local rad                       = math.rad(ship.direction)
-
-    local bx                        =
-        shipBounds.x + shipBounds.width * 0.5
-        + math.sin(rad) * shipBounds.width * 0.5
-        - bulletBounds.width * 0.5
-
-    local by                        =
-        shipBounds.y + shipBounds.height * 0.5
-        - math.cos(rad) * shipBounds.height * 0.5
-        - bulletBounds.height * 0.5
-
-    bullet.sprite.position          = { x = bx, y = by }
-
-    self.bulletTime                 = HALF_DURATION / self.sockets.bullets.die_value
-    self.bulletsLeft                = self.bulletsLeft - 1
-    engine:play_sound(self.sounds.bullet)
-end
-
----@param engine engine
 function game:try_spawn_asteroid(engine)
     local count = #self.asteroids
     if count >= INIT_ASTEROID_COUNT * 2 then return end
 
     local x, y
-    local maxX = ScreenSize.width - gfx.largeAsteroidSize
-    local maxY = ScreenSize.height - gfx.largeAsteroidSize
+    local maxX, maxY = ScreenSize.width - gfx.largeAsteroidSize, ScreenSize.height - gfx.largeAsteroidSize
+
     local edge = engine:irnd(1, 4)
     if edge == 1 then
         x = engine:irnd(0, maxX)
@@ -380,10 +229,157 @@ function game:create_asteroid(engine, size, x, y)
             else
                 self:update_entity(a, deltaTime)
             end
+        end,
+
+        collide        = function(a, b)
+            if b.type == "bullet" or b.type == "ship" then
+                a.markedForDeath = true
+            end
         end
     }
     asteroid.sprite                     = engine:create_sprite(asteroid)
     self.asteroids[#self.asteroids + 1] = asteroid
+end
+
+---@param engine engine
+function game:try_spawn_bullet(engine, deltaTime)
+    if self.bulletsLeft <= 0 then return end
+    self.bulletTime = self.bulletTime - deltaTime
+    if self.bulletTime > 0 then return end
+
+    self:create_bullet(engine)
+end
+
+---@param engine engine
+function game:create_bullet(engine)
+    local ship                      = self.ship
+
+    local bullet                    = {
+        direction      = ship.direction,
+        linearVelocity = math.max(MIN_BULLET_SPEED, ship.linearVelocity * 1.5),
+        type           = "bullet",
+        lifetime       = 0,
+        spriteInit     = {
+            texture = self.textures.bullet,
+        },
+
+        update         = function(b, i, deltaTime)
+            if b.lifetime < DURATION then
+                self:update_entity(b, deltaTime)
+            else
+                engine:remove_sprite(b.sprite)
+                table.remove(self.bullets, i)
+            end
+            b.lifetime = b.lifetime + deltaTime
+        end,
+        collide        = function(bullet, b)
+            if b.type == "asteroid" then
+                bullet.lifetime = DURATION - 1
+            end
+        end
+    }
+
+    bullet.sprite                   = engine:create_sprite(bullet)
+    self.bullets[#self.bullets + 1] = bullet
+
+    local shipSprite                = ship.sprite
+    local shipBounds                = shipSprite.bounds
+    local bulletBounds              = bullet.sprite.bounds
+    local rad                       = math.rad(ship.direction)
+
+    local bx                        =
+        shipBounds.x + shipBounds.width * 0.5
+        + math.sin(rad) * shipBounds.width * 0.5
+        - bulletBounds.width * 0.5
+
+    local by                        =
+        shipBounds.y + shipBounds.height * 0.5
+        - math.cos(rad) * shipBounds.height * 0.5
+        - bulletBounds.height * 0.5
+
+    bullet.sprite.position          = { x = bx, y = by }
+
+    self.bulletTime                 = HALF_DURATION / self.sockets.bullets.die_value
+    self.bulletsLeft                = self.bulletsLeft - 1
+    engine:play_sound(self.sounds.bullet)
+end
+
+---@param engine engine
+function game:create_explosion(engine, asteroid)
+    local explosion                       = {
+        lifetime   = 0,
+        spriteInit = {
+            position   = asteroid.sprite.position,
+            texture    = self.textures.explosion,
+            collidable = false,
+        },
+
+        update     = function(e, i, deltaTime)
+            e.lifetime = e.lifetime + deltaTime
+            if e.lifetime >= EXPLOSION_DURATION then
+                engine:remove_sprite(e.sprite)
+                table.remove(self.explosions, i)
+            end
+        end
+    }
+
+    explosion.sprite                      = engine:create_sprite(explosion)
+    self.explosions[#self.explosions + 1] = explosion
+    engine:play_sound(self.sounds.explosion)
+end
+
+---@param engine engine
+function game:create_ship(engine)
+    local ship = {
+        direction            = 0,
+        linearVelocity       = 0,
+        linearVelocityTarget = 0,
+        sprite               = nil, ---@type sprite
+
+        type                 = "ship",
+        health               = 5,
+        invulnerable         = false,
+
+        spriteInit           = {
+            texture = 0,
+            position = { x = ScreenSize.width / 2 - 12, y = ScreenSize.height / 2 - 12 }
+        },
+
+        set_invulnerable     = function(ship, val)
+            ship.invulnerable   = val
+            ship.sprite.texture = val and self.textures.hurtShip[ship.direction] or self.textures.ship[ship.direction]
+        end,
+
+        update               = function(ship, deltaTime, updateTime)
+            local factor        = updateTime < HALF_DURATION
+                and updateTime / HALF_DURATION
+                or 1 - ((updateTime - HALF_DURATION) / HALF_DURATION)
+
+            ship.linearVelocity = ship.linearVelocityTarget * factor
+
+            local stepsToApply  = math.floor(math.abs(ship.turnStepsTotal) * factor + 0.5) - ship.turnStepsDone
+            if stepsToApply > 0 then
+                local sign         = ship.turnStepsTotal > 0 and 1 or -1
+                ship.direction     = ship.direction + sign * 45 * stepsToApply
+                ship.turnStepsDone = ship.turnStepsDone + stepsToApply
+            end
+
+            ship.direction = ship.direction % 360
+            ship.sprite.texture = ship.invulnerable and self.textures.hurtShip[ship.direction] or self.textures.ship[ship.direction]
+            self:update_entity(ship, deltaTime)
+        end,
+
+        collide              = function(ship, b)
+            if ship.invulnerable then return end
+            if b.type == "asteroid" then
+                ship.health = ship.health - 1
+                ship:set_invulnerable(true)
+                gfx.draw_dmd(engine.dmd, self)
+            end
+        end
+    }
+    ship.sprite = engine:create_sprite(ship)
+    self.ship = ship
 end
 
 return game

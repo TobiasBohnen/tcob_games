@@ -196,6 +196,8 @@ function dmd:rect(rect, color, fill) end
 ---@param color color The palette index.
 function dmd:print(pos, text, color) end
 
+function dmd:draw_socket(socket, required) end
+
 --------------------------------
 -- Engine
 --------------------------------

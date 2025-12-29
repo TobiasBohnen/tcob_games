@@ -105,6 +105,8 @@ public:
     void blit(rect_i const& rect, string const& dotStr);
     void print(point_i pos, string_view text, u8 color);
 
+    void draw_socket(socket* socket, bool required, rect_f const& dmdBounds);
+
 private:
     prop<grid<u8>>& _dmd;
 };

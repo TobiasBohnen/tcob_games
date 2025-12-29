@@ -156,21 +156,14 @@ function gfx.draw_dmd(dmd, game)
         dmd:blit({ x = 35, y = 70, width = 10, height = 10 }, speed_patterns[speedValue])
     end
 
-
-    local function draw_socket(pos, state)
-        local colors = { [SocketState.Accept] = "9", [SocketState.Hover] = "1", [SocketState.Idle] = "1", [SocketState.Reject] = "3" }
-        dmd:blit({ x = pos.x, y = pos.y, width = 13, height = 13 }, string.rep(colors[state], 13 * 13))
-        dmd:blit({ x = pos.x + 1, y = pos.y + 1, width = 11, height = 11 }, string.rep("A", 11 * 11))
-    end
-
     sockets.bullets.position = { x = 55, y = 30 }
-    draw_socket(sockets.bullets.position, sockets.bullets.state)
+    dmd:draw_socket(sockets.bullets, true)
 
     sockets.turn.position = { x = 55, y = 50 }
-    draw_socket(sockets.turn.position, sockets.turn.state)
+    dmd:draw_socket(sockets.turn, true)
 
     sockets.speed.position = { x = 55, y = 70 }
-    draw_socket(sockets.speed.position, sockets.speed.state)
+    dmd:draw_socket(sockets.speed, true)
 
     if game.powerup then
         dmd:print({ x = 7, y = 90 }, "3 OF A KIND", Palette.Green)
