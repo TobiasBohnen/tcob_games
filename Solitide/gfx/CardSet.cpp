@@ -124,10 +124,10 @@ auto card_set::is_loaded() const -> bool
     return _loaded;
 }
 
-auto card_set::pad_rect(rect_f const& rect) -> rect_f
+auto card_set::inset_rect(rect_f const& rect) -> rect_f
 {
-    auto const cardPad {rect.Size / 50};
-    return rect.as_padded_by(cardPad);
+    auto const cardPad {rect.Size / 100};
+    return rect.as_inset_by({cardPad.Width, cardPad.Height});
 }
 
 void card_set::set_suit_color(gfx::canvas& canvas, suit s)
@@ -280,7 +280,7 @@ void gen_cardset::create(assets::group& resGrp)
     // draw foundation/tableau marker
     {
         rect_f const rect {nextRect()};
-        draw_shape(canvas, pad_rect(rect), CardsetBackColorDefault, colors::Black);
+        draw_shape(canvas, inset_rect(rect), CardsetBackColorDefault, colors::Black);
 
         canvas.set_fill_style(colors::Green);
         canvas.begin_path();
@@ -300,7 +300,7 @@ void gen_cardset::create(assets::group& resGrp)
     // draw empty
     {
         rect_f const rect {nextRect()};
-        draw_shape(canvas, pad_rect(rect), CardsetBackColorDefault, colors::Black);
+        draw_shape(canvas, inset_rect(rect), CardsetBackColorDefault, colors::Black);
         addRegion("card_empty", rect);
     }
 
@@ -314,7 +314,7 @@ void gen_cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, ran
     canvas.save();
 
     size_f const  texSize {rect.Size};
-    rect_f const  cardRect {pad_rect(rect)};
+    rect_f const  cardRect {inset_rect(rect)};
     point_f const cardCenter {cardRect.center()};
 
     draw_shape(canvas, cardRect, CardsetBackColorDefault, colors::Black);
@@ -429,7 +429,7 @@ void gen_cardset::draw_card(gfx::canvas& canvas, fonts const& fonts, suit s, ran
         case rank::King:  {
             set_suit_color(canvas, s);
             canvas.set_font(fonts.LargeFont);
-            canvas.draw_text(pad_rect(rect), get_rank_symbol(r));
+            canvas.draw_text(inset_rect(rect), get_rank_symbol(r));
         } break;
         }
     }
@@ -441,11 +441,11 @@ void gen_cardset::draw_marker(gfx::canvas& canvas, fonts const& fonts, rank r, r
 {
     canvas.save();
 
-    draw_shape(canvas, pad_rect(rect), CardsetBackColorDefault, colors::Black);
+    draw_shape(canvas, inset_rect(rect), CardsetBackColorDefault, colors::Black);
 
     canvas.set_fill_style(colors::Green);
     canvas.set_font(fonts.LargeFont);
-    canvas.draw_text(pad_rect(rect), get_rank_symbol(r));
+    canvas.draw_text(inset_rect(rect), get_rank_symbol(r));
 
     canvas.restore();
 }
@@ -453,9 +453,10 @@ void gen_cardset::draw_marker(gfx::canvas& canvas, fonts const& fonts, rank r, r
 void gen_cardset::draw_back(gfx::canvas& canvas, rect_f const& rect)
 {
     canvas.save();
-    draw_shape(canvas, pad_rect(rect), colors::LightSteelBlue, colors::White);
+    draw_shape(canvas, inset_rect(rect), colors::LightSteelBlue, colors::White);
 
-    rect_f const backRect {rect.as_padded_by(rect.Size / 50 * 4)};
+    auto const   backPad {rect.Size / 25};
+    rect_f const backRect {rect.as_inset_by({backPad.Width, backPad.Height})};
 
     canvas.set_scissor(backRect);
 
@@ -572,7 +573,7 @@ void mini_cardset::create(assets::group& resGrp, size_f texSize)
     // draw foundation/tableau marker
     {
         rect_f const rect {nextRect()};
-        draw_shape(canvas, pad_rect(rect), CardsetBackColorMini, colors::Black);
+        draw_shape(canvas, inset_rect(rect), CardsetBackColorMini, colors::Black);
 
         canvas.set_fill_style(colors::Green);
         canvas.begin_path();
@@ -592,7 +593,7 @@ void mini_cardset::create(assets::group& resGrp, size_f texSize)
     // draw empty
     {
         rect_f const rect {nextRect()};
-        draw_shape(canvas, pad_rect(rect), CardsetBackColorMini, colors::Black);
+        draw_shape(canvas, inset_rect(rect), CardsetBackColorMini, colors::Black);
         addRegion("card_empty", rect);
     }
 
@@ -604,7 +605,7 @@ void mini_cardset::draw_card(gfx::canvas& canvas, gfx::font* font, suit s, rank 
 {
     canvas.save();
 
-    rect_f const cardRect {pad_rect(rect)};
+    rect_f const cardRect {inset_rect(rect)};
     f32 const    width {cardRect.width()};
     f32 const    height {cardRect.height()};
 
@@ -627,11 +628,11 @@ void mini_cardset::draw_marker(gfx::canvas& canvas, gfx::font* font, rank r, rec
 {
     canvas.save();
 
-    draw_shape(canvas, pad_rect(rect), CardsetBackColorMini, colors::Black);
+    draw_shape(canvas, inset_rect(rect), CardsetBackColorMini, colors::Black);
 
     canvas.set_fill_style(colors::Green);
     canvas.set_font(font);
-    canvas.draw_text(pad_rect(rect), get_rank_symbol(r));
+    canvas.draw_text(inset_rect(rect), get_rank_symbol(r));
 
     canvas.restore();
 }
@@ -639,11 +640,11 @@ void mini_cardset::draw_marker(gfx::canvas& canvas, gfx::font* font, rank r, rec
 void mini_cardset::draw_back(gfx::canvas& canvas, rect_f const& rect)
 {
     canvas.save();
-    rect_f const bounds {pad_rect(rect)};
+    rect_f const bounds {inset_rect(rect)};
     draw_shape(canvas, bounds, colors::LightSteelBlue, colors::White);
 
     canvas.begin_path();
-    canvas.rounded_rect(bounds.as_padded_by({3, 3}), 3);
+    canvas.rounded_rect(bounds.as_inset_by({1.5f, 1.5f}), 3);
     canvas.set_fill_style(colors::MidnightBlue);
     canvas.fill();
 

@@ -180,7 +180,7 @@ void foreground_canvas::draw_state()
     _canvas.set_stroke_width(5);
     _canvas.stroke();
 
-    bounds = bounds.as_padded_by(bounds.Size / 5);
+    bounds = bounds.as_inset_by({bounds.Size.Width / 10, bounds.Size.Height / 10});
     if (_lastStatus == game_status::Success) {
         f32 const width {bounds.width() / 15};
         _canvas.begin_path();

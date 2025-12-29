@@ -26,7 +26,7 @@ public:
 protected:
     auto is_loaded() const -> bool;
 
-    auto pad_rect(rect_f const& rect) -> rect_f;
+    auto inset_rect(rect_f const& rect) -> rect_f;
 
     void set_suit_color(gfx::canvas& canvas, suit s);
     void draw_suit(gfx::canvas& canvas, suit s, point_f center, f32 size);
