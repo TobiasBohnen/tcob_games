@@ -48,35 +48,45 @@ function gfx.get_background(game, engine)
     }
 end
 
-local function make_texture(w, h, tex, flip)
+local function make_texture(size, tex, flipH)
     return {
-        size        = { width = w, height = h },
+        size        = size,
         bitmap      = tex,
         transparent = 0,
-        flip_h      = flip
+        flip_h      = flipH
     }
 end
 
 local city_texture_normal =
 [[0bd1d0g1c0o1a0b1d0e1g0b1c0g1c0a1a8b1a0e1a8a1a8a1a8a1a0a1e0f1a8a1a0a1d0e1g0a1a8a1a8a1a0f1c0a1a8b1a0e1a8a1c8a1a0a1e0d1a0a1c0a1d0a1a0c1g0a1a8a1c0b1c0a1a8a1a0a1d0a1a0c1c8a1a8a1a0a1e0a1a8a1b0a1c0a1a8b1d0b1g0a1a8a1a8a1a0a1d0a1c0a1g0b1a8a1e0a1e0a1b8a1a0a1a8a1a0a1a8b1b8a1a0b1e8a1a0a1a8a1a8a1f0a1c0a1g0b1g0a1g8a1b0a1c0a1g0b1a8a1r8a1a0a1a8b1b8a1a0b1v0a1g0b1ad0a]]
-local city_texture_damaged =
+local city_texture_light_damage =
 [[0cy1a0c1b0x1a8a1a0c1c0f1a0p1c0c1a8a1a0f1c0l1c8a1a0a1e0d1a0a1c0l1e0a1a8a1c0b1c0a1a8a1a0a1a0j1a8a1a8a1a0a1e0a1a8a1b0a1c0a1a0i1a0a1d0a1a8a1a8a1a0a1d0a1c0a1b0g1a8a1a0a1c0a1e0a1b8a1a0a1a8a1a0a1a8b1b0d1e8a1a0a1a8a1a8a1f0a1c0a1d0a1a0c1g0a1g8a1b0a1c0a1g0b1a8a1r8a1a0a1a8b1b8a1a0b1v0a1g0b1ad0a]]
+local city_texture_heavy_damage =
+[[0gm1a0e1a0y1c0c1a0n1a0j1a8a1a0c1c0c1a0a1a0f1a0i1a0a1d0a1a8a1a0c1c0b1c0a1b0g1a8a1a0a1c0a1e0a1b8a1a0a1a8a1a0a1a8a0a1a0e1e8a1a0a1a8a1a8a1f0a1c0a1d0e1g0a1g8a1b0a1c0a1d0e1a8a1r8a1a0a1a8b1b0d1v0a1g0b1ad0a]]
 local city_texture_destroyed =
 [[0ny1c0d1a0h1a0c1e0e1f0b1c0a1c0a1d0a1g0b1i0a1l0a1g0b1ad0a]]
-local gun_texture =
+local weapon_texture =
 [[0arCc0jCe3a0hCfDb0bCa0bCfDc0dCd9aCbDb0gCb9aCcDaEa0iCb0bCbDaEa0iCb0aCbDaEa0lCbDaEa0kCdDaEa0g1a2a1h2a1a0c1a2a1a2a1f2a1a2a1a0a1af]]
+local weapon_center_texture =
+[[0t3a0c3a0c3a0gCa0cCa0cCa0fCbDa0aCbDa0aCbDa0eCbDa0aCbDa0aCbDa0eCbDa0aCbDa0aCbDa0eCbDa0aCbDa0aCbDa0eCbDa0aCbDa0aCbDa0eCbDa0aCbDa0aCbDa0eCbDa0aCbDa0aCbDa0eCbDa0aCbDa0aCbDa0dCl0d1a2a1h2a1a0c1a2a1a2a1f2a1a2a1a0a1af]]
 local missile_texture =
 [[0b3d0e3b0c3a0a3d0a3d0b3f0b3d0a3d0a3a0c3b0e3d0b]]
+
+gfx.citySize = { width = 32, height = 16 }
+gfx.weaponSize = { width = 16, height = 16 }
+gfx.missileSize = { width = 8, height = 8 }
 
 ---@param engine engine
 function gfx.get_textures(game, engine)
     return {
-        [game.cityTextures.normal]    = make_texture(32, 16, city_texture_normal),
-        [game.cityTextures.damaged]   = make_texture(32, 16, city_texture_damaged),
-        [game.cityTextures.destroyed] = make_texture(32, 16, city_texture_destroyed),
-        [game.gunTextures.left]       = make_texture(16, 16, gun_texture),
-        [game.gunTextures.right]      = make_texture(16, 16, gun_texture, true),
-        [game.missileTexture]         = make_texture(8, 8, missile_texture),
+        [game.cityTextures.normal]       = make_texture(gfx.citySize, city_texture_normal),
+        [game.cityTextures.light_damage] = make_texture(gfx.citySize, city_texture_light_damage),
+        [game.cityTextures.heavy_damage] = make_texture(gfx.citySize, city_texture_heavy_damage),
+        [game.cityTextures.destroyed]    = make_texture(gfx.citySize, city_texture_destroyed),
+        [game.weaponTextures.left]       = make_texture(gfx.weaponSize, weapon_texture),
+        [game.weaponTextures.right]      = make_texture(gfx.weaponSize, weapon_texture, true),
+        [game.weaponTextures.center]     = make_texture(gfx.weaponSize, weapon_center_texture),
+        [game.missileTexture]            = make_texture(gfx.missileSize, missile_texture),
     }
 end
 
@@ -85,6 +95,13 @@ end
 ---@param dmd dmd
 function gfx.draw_dmd(dmd, game)
 
+end
+
+---@param dmd dmd
+function gfx.draw_game_over(dmd, game)
+    dmd:clear()
+    dmd:print({ x = 36, y = 12 }, "GAME", Palette.Red)
+    dmd:print({ x = 36, y = 20 }, "OVER", Palette.Red)
 end
 
 return gfx

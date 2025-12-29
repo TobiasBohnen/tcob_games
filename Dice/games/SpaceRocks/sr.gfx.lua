@@ -67,6 +67,8 @@ local function make_texture(size, tex, r)
     }
 end
 
+gfx.largeAsteroidSize = 32
+
 ---@param engine engine
 function gfx.get_textures(game, engine)
     return {
@@ -92,9 +94,9 @@ function gfx.get_textures(game, engine)
 
         [game.bulletTexture]           = make_texture(4, bullet_texture, Rot.R0),
 
-        [game.asteroidTextures.small]  = make_texture(16, asteroid_small_texture, Rot.R0),
-        [game.asteroidTextures.medium] = make_texture(24, asteroid_medium_texture, Rot.R0),
-        [game.asteroidTextures.large]  = make_texture(32, asteroid_large_texture, Rot.R0),
+        [game.asteroidTextures.small]  = make_texture(gfx.largeAsteroidSize / 2, asteroid_small_texture, Rot.R0),
+        [game.asteroidTextures.medium] = make_texture(gfx.largeAsteroidSize / 4 * 3, asteroid_medium_texture, Rot.R0),
+        [game.asteroidTextures.large]  = make_texture(gfx.largeAsteroidSize, asteroid_large_texture, Rot.R0),
 
         [game.explosionTexture]        = make_texture(16, explosion_texture, Rot.R0),
     }

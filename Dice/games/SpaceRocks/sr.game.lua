@@ -7,7 +7,7 @@ local HALF_DURATION         = DURATION * 0.5
 local INIT_ASTEROID_COUNT   = 5
 local EXPLOSION_DURATION    = 750
 local MIN_BULLET_SPEED      = 180
-local MIN_SPAWN_DISTANCE    = 120
+local MIN_SPAWN_DISTANCE    = 80
 local MIN_SPAWN_DISTANCE_SQ = MIN_SPAWN_DISTANCE * MIN_SPAWN_DISTANCE
 local ASTEROID_SCORES       = {
     small = 100,
@@ -336,8 +336,23 @@ function game:try_spawn_asteroid(engine)
     local count = #self.asteroids
     if count >= INIT_ASTEROID_COUNT * 2 then return end
 
-    local x = engine:rnd(0, ScreenSize.width)
-    local y = engine:rnd(0, ScreenSize.height)
+    local x, y
+    local maxX = ScreenSize.width - gfx.largeAsteroidSize
+    local maxY = ScreenSize.height - gfx.largeAsteroidSize
+    local edge = engine:irnd(1, 4)
+    if edge == 1 then
+        x = engine:irnd(0, maxX)
+        y = 0
+    elseif edge == 2 then
+        x = maxX
+        y = engine:irnd(0, maxY)
+    elseif edge == 3 then
+        x = engine:irnd(0, maxX)
+        y = maxY
+    elseif edge == 4 then
+        x = 0
+        y = engine:irnd(0, maxY)
+    end
 
     local sx, sy = self.ship.sprite.position.x, self.ship.sprite.position.y
     local dx, dy = sx - x, sy - y
