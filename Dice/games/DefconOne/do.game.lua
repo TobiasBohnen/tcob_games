@@ -50,8 +50,8 @@ end
 
 ---@param engine engine
 ---@param deltaTime number
-function game:on_turn_update(engine, deltaTime, updateTime)
-    if updateTime >= DURATION then return GameStatus.TurnEnded end
+function game:on_turn_update(engine, deltaTime, turnTime)
+    if turnTime >= DURATION then return GameStatus.TurnEnded end
 
     for i = #self.missiles, 1, -1 do
         self:update_missile(engine, i, deltaTime)
