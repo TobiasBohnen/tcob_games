@@ -260,7 +260,7 @@ void engine::create_engine_wrapper()
     engineWrapper["irnd"]          = [](engine* engine, i32 min, i32 max) { return engine->_init.State.Rng(min, max); };
     engineWrapper["log"]           = [](string const& str) { logger::Info(str); };
     engineWrapper["create_sprite"] = [](engine* engine, table const& spriteOwner) {
-        sprite_def const def {spriteOwner["spriteInit"].get<sprite_def>().value_or({})};
+        sprite_def const def {spriteOwner["spriteInit"].get<sprite_def>().value_or(sprite_def {})};
         auto*            sprite {engine->_init.Game->add_sprite({.IsCollidable = def.IsCollidable,
                                                                  .IsWrappable  = def.IsWrappable,
                                                                  .Owner        = spriteOwner})};
@@ -270,7 +270,7 @@ void engine::create_engine_wrapper()
     };
     engineWrapper["remove_sprite"] = [](engine* engine, sprite* sprite) { engine->_init.Game->remove_sprite(sprite); };
     engineWrapper["create_socket"] = [](engine* engine, table const& socketInit) -> socket* {
-        socket_face const face {socketInit.get<socket_face>().value_or({})};
+        socket_face const face {socketInit.get<socket_face>().value_or(socket_face {})};
         return engine->_init.Sockets->add_socket(face);
     };
     engineWrapper["remove_socket"] = [](engine* engine, socket* socket) {
