@@ -11,17 +11,18 @@ local gfx             = require('do.gfx')
 local sfx             = require('do.sfx')
 
 local game            = {
-    cities         = {},
-    cityTextures   = { normal = 0, light_damage = 1, heavy_damage = 2, destroyed = 3 }, ---@type { [string]: texture }
+    cities = {},
+    weapons = {},
+    missiles = {},
 
-    weapons        = {},
-    weaponTextures = { left = 10, right = 11, center = 12 }, ---@type { [string]: texture }
-
-    missiles       = {},
-    missileTexture = 20,
-
-    updateTime     = 0,
+    textures = {
+        city = { undamaged = 0, light_damage = 1, heavy_damage = 2, destroyed = 3 }, ---@type { [string]: texture }
+        weapon = { left = 10, right = 11, center = 12 }, ---@type { [string]: texture }
+        missile = 20, ---@type texture
+    },
 }
+
+local cityOffset      = gfx.sizes.city.width + ((ScreenSize.width / CITY_COUNT) - gfx.sizes.city.width) / 2
 
 ---@param engine engine
 function game:on_setup(engine)
@@ -29,61 +30,10 @@ function game:on_setup(engine)
     engine:create_textures(gfx.get_textures(self, engine))
     engine:create_sounds(sfx.get_sounds(self, engine))
 
-    local offset = gfx.citySize.width + ((ScreenSize.width / CITY_COUNT) - gfx.citySize.width) / 2
     for i = 1, CITY_COUNT do
-        local city     = {
-            type       = "city",
-            damage     = 0,
-            spriteInit = {
-                position   = {
-                    x = ((ScreenSize.width / CITY_COUNT) * i) - offset,
-                    y = ScreenSize.height / 5 * 4
-                },
-                texture    = self.cityTextures.normal,
-                wrappable  = false,
-                collidable = true
-            },
-        }
-        local sprite   = engine:create_sprite(city)
-        city.sprite    = sprite
-        city.center    = {
-            x = sprite.position.x + sprite.size.width / 2,
-            y = sprite.position.y + sprite.size.height / 2
-        }
-        self.cities[i] = city
+        self:create_city(i, engine)
     end
-    self.weapons = {
-        left = {
-            sprite = engine:create_sprite({
-                spriteInit = {
-                    texture = self.weaponTextures.left,
-                    position = { x = 0, y = ScreenSize.height / 3 * 2 },
-                    wrappable = false,
-                    collidable = false
-                }
-            })
-        },
-        right = {
-            sprite = engine:create_sprite({
-                spriteInit = {
-                    texture = self.weaponTextures.right,
-                    position = { x = ScreenSize.width - gfx.weaponSize.width, y = ScreenSize.height / 3 * 2 },
-                    wrappable = false,
-                    collidable = false
-                }
-            })
-        },
-        center = {
-            sprite = engine:create_sprite({
-                spriteInit = {
-                    texture = self.weaponTextures.center,
-                    position = { x = (ScreenSize.width - gfx.weaponSize.width) / 2, y = ScreenSize.height / 3 * 2 },
-                    wrappable = false,
-                    collidable = false
-                }
-            })
-        }
-    }
+    self:create_weapons(engine)
 
     gfx.draw_dmd(engine.dmd, self)
 end
@@ -130,18 +80,11 @@ function game:on_collision(engine, spriteA, spriteB)
     end
 
     if key == "city_missile" then
-        local CITY_DAMAGE_TEXTURES = {
-            [0] = self.cityTextures.undamaged,
-            [1] = self.cityTextures.light_damage,
-            [2] = self.cityTextures.heavy_damage,
-            [3] = self.cityTextures.destroyed,
-        }
-        local city                 = first.type == "city" and first or second
-        city.damage                = math.min(city.damage + 1, MAX_CITY_DAMAGE)
-        city.sprite.texture        = CITY_DAMAGE_TEXTURES[city.damage]
+        local city = first.type == "city" and first or second
+        city:do_damage()
 
-        local missile              = first.type == "missile" and first or second
-        missile.markedForDeath     = true
+        local missile          = first.type == "missile" and first or second
+        missile.markedForDeath = true
     elseif key == "missile_missle" then
         first.markedForDeath = true
         second.markedForDeath = true
@@ -171,6 +114,76 @@ end
 
 ------
 ------
+
+function game:create_city(i, engine)
+    local CITY_DAMAGE_TEXTURES = {
+        [0] = self.textures.city.undamaged,
+        [1] = self.textures.city.light_damage,
+        [2] = self.textures.city.heavy_damage,
+        [3] = self.textures.city.destroyed,
+    }
+    local city                 = {
+        type       = "city",
+        damage     = 0,
+        spriteInit = {
+            position   = {
+                x = ((ScreenSize.width / CITY_COUNT) * i) - cityOffset,
+                y = ScreenSize.height / 5 * 4
+            },
+            texture    = CITY_DAMAGE_TEXTURES[0],
+            wrappable  = false,
+            collidable = true
+        },
+
+        do_damage  = function(city)
+            city.damage         = math.min(city.damage + 1, MAX_CITY_DAMAGE)
+            city.sprite.texture = CITY_DAMAGE_TEXTURES[city.damage]
+        end
+    }
+
+    local sprite               = engine:create_sprite(city)
+    city.sprite                = sprite
+    city.center                = {
+        x = sprite.position.x + sprite.size.width / 2,
+        y = sprite.position.y + sprite.size.height / 2
+    }
+    self.cities[i]             = city
+end
+
+function game:create_weapons(engine)
+    self.weapons = {
+        left = {
+            sprite = engine:create_sprite({
+                spriteInit = {
+                    texture = self.textures.weapon.left,
+                    position = { x = 0, y = ScreenSize.height / 3 * 2 },
+                    wrappable = false,
+                    collidable = false
+                }
+            })
+        },
+        right = {
+            sprite = engine:create_sprite({
+                spriteInit = {
+                    texture = self.textures.weapon.right,
+                    position = { x = ScreenSize.width - gfx.sizes.weapon.width, y = ScreenSize.height / 3 * 2 },
+                    wrappable = false,
+                    collidable = false
+                }
+            })
+        },
+        center = {
+            sprite = engine:create_sprite({
+                spriteInit = {
+                    texture = self.textures.weapon.center,
+                    position = { x = (ScreenSize.width - gfx.sizes.weapon.width) / 2, y = ScreenSize.height / 3 * 2 },
+                    wrappable = false,
+                    collidable = false
+                }
+            })
+        }
+    }
+end
 
 function game:update_missile(engine, i, deltaTime)
     local m = self.missiles[i]
@@ -204,7 +217,7 @@ function game:try_spawn_missile(engine)
         markedForDeath = false,
         spriteInit = {
             position   = { x = engine:rnd(0, ScreenSize.width), y = 0 },
-            texture    = self.missileTexture,
+            texture    = self.textures.missile,
             wrappable  = false,
             collidable = true,
         },

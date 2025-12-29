@@ -7,7 +7,7 @@ local sfx = {
 ---@param engine engine
 function sfx.get_sounds(game, engine)
     return {
-        [game.explosionSound] = {
+        [game.sounds.explosion] = {
             random_seed = 96324,
             sample_rate = 44100,
             wave_type = "Noise",
@@ -34,7 +34,7 @@ function sfx.get_sounds(game, engine)
             hpf_cutoff = 0.000000,
             hpf_cutoff_sweep = 0.000000
         },
-        [game.bulletSound] = {
+        [game.sounds.bullet] = {
             random_seed = 2478,
             sample_rate = 44100,
             wave_type = "Sawtooth",

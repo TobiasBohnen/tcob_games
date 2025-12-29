@@ -57,7 +57,7 @@ local function make_texture(size, tex, flipH)
     }
 end
 
-local city_texture_normal =
+local city_texture_undamaged =
 [[0bd1d0g1c0o1a0b1d0e1g0b1c0g1c0a1a8b1a0e1a8a1a8a1a8a1a0a1e0f1a8a1a0a1d0e1g0a1a8a1a8a1a0f1c0a1a8b1a0e1a8a1c8a1a0a1e0d1a0a1c0a1d0a1a0c1g0a1a8a1c0b1c0a1a8a1a0a1d0a1a0c1c8a1a8a1a0a1e0a1a8a1b0a1c0a1a8b1d0b1g0a1a8a1a8a1a0a1d0a1c0a1g0b1a8a1e0a1e0a1b8a1a0a1a8a1a0a1a8b1b8a1a0b1e8a1a0a1a8a1a8a1f0a1c0a1g0b1g0a1g8a1b0a1c0a1g0b1a8a1r8a1a0a1a8b1b8a1a0b1v0a1g0b1ad0a]]
 local city_texture_light_damage =
 [[0cy1a0c1b0x1a8a1a0c1c0f1a0p1c0c1a8a1a0f1c0l1c8a1a0a1e0d1a0a1c0l1e0a1a8a1c0b1c0a1a8a1a0a1a0j1a8a1a8a1a0a1e0a1a8a1b0a1c0a1a0i1a0a1d0a1a8a1a8a1a0a1d0a1c0a1b0g1a8a1a0a1c0a1e0a1b8a1a0a1a8a1a0a1a8b1b0d1e8a1a0a1a8a1a8a1f0a1c0a1d0a1a0c1g0a1g8a1b0a1c0a1g0b1a8a1r8a1a0a1a8b1b8a1a0b1v0a1g0b1ad0a]]
@@ -72,21 +72,24 @@ local weapon_center_texture =
 local missile_texture =
 [[0b3d0e3b0c3a0a3d0a3d0b3f0b3d0a3d0a3a0c3b0e3d0b]]
 
-gfx.citySize = { width = 32, height = 16 }
-gfx.weaponSize = { width = 16, height = 16 }
-gfx.missileSize = { width = 8, height = 8 }
+gfx.sizes = {
+    city = { width = 32, height = 16 },
+    weapon = { width = 16, height = 16 },
+    missile = { width = 8, height = 8 }
+}
+
 
 ---@param engine engine
 function gfx.get_textures(game, engine)
     return {
-        [game.cityTextures.normal]       = make_texture(gfx.citySize, city_texture_normal),
-        [game.cityTextures.light_damage] = make_texture(gfx.citySize, city_texture_light_damage),
-        [game.cityTextures.heavy_damage] = make_texture(gfx.citySize, city_texture_heavy_damage),
-        [game.cityTextures.destroyed]    = make_texture(gfx.citySize, city_texture_destroyed),
-        [game.weaponTextures.left]       = make_texture(gfx.weaponSize, weapon_texture),
-        [game.weaponTextures.right]      = make_texture(gfx.weaponSize, weapon_texture, true),
-        [game.weaponTextures.center]     = make_texture(gfx.weaponSize, weapon_center_texture),
-        [game.missileTexture]            = make_texture(gfx.missileSize, missile_texture),
+        [game.textures.city.undamaged]    = make_texture(gfx.sizes.city, city_texture_undamaged),
+        [game.textures.city.light_damage] = make_texture(gfx.sizes.city, city_texture_light_damage),
+        [game.textures.city.heavy_damage] = make_texture(gfx.sizes.city, city_texture_heavy_damage),
+        [game.textures.city.destroyed]    = make_texture(gfx.sizes.city, city_texture_destroyed),
+        [game.textures.weapon.left]       = make_texture(gfx.sizes.weapon, weapon_texture),
+        [game.textures.weapon.right]      = make_texture(gfx.sizes.weapon, weapon_texture, true),
+        [game.textures.weapon.center]     = make_texture(gfx.sizes.weapon, weapon_center_texture),
+        [game.textures.missile]           = make_texture(gfx.sizes.missile, missile_texture),
     }
 end
 

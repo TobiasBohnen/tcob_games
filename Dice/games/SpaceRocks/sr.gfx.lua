@@ -72,33 +72,33 @@ gfx.largeAsteroidSize = 32
 ---@param engine engine
 function gfx.get_textures(game, engine)
     return {
-        [game.shipTextures[0]]         = make_texture(16, ship_texture_0, Rot.R0),
-        [game.shipTextures[90]]        = make_texture(16, ship_texture_0, Rot.R90),
-        [game.shipTextures[180]]       = make_texture(16, ship_texture_0, Rot.R180),
-        [game.shipTextures[270]]       = make_texture(16, ship_texture_0, Rot.R270),
+        [game.textures.ship[0]]         = make_texture(16, ship_texture_0, Rot.R0),
+        [game.textures.ship[90]]        = make_texture(16, ship_texture_0, Rot.R90),
+        [game.textures.ship[180]]       = make_texture(16, ship_texture_0, Rot.R180),
+        [game.textures.ship[270]]       = make_texture(16, ship_texture_0, Rot.R270),
 
-        [game.shipTextures[45]]        = make_texture(16, ship_texture_45, Rot.R0),
-        [game.shipTextures[135]]       = make_texture(16, ship_texture_45, Rot.R90),
-        [game.shipTextures[225]]       = make_texture(16, ship_texture_45, Rot.R180),
-        [game.shipTextures[315]]       = make_texture(16, ship_texture_45, Rot.R270),
+        [game.textures.ship[45]]        = make_texture(16, ship_texture_45, Rot.R0),
+        [game.textures.ship[135]]       = make_texture(16, ship_texture_45, Rot.R90),
+        [game.textures.ship[225]]       = make_texture(16, ship_texture_45, Rot.R180),
+        [game.textures.ship[315]]       = make_texture(16, ship_texture_45, Rot.R270),
 
-        [game.shipHurtTextures[0]]     = make_texture(16, hurt_texture_0, Rot.R0),
-        [game.shipHurtTextures[90]]    = make_texture(16, hurt_texture_0, Rot.R90),
-        [game.shipHurtTextures[180]]   = make_texture(16, hurt_texture_0, Rot.R180),
-        [game.shipHurtTextures[270]]   = make_texture(16, hurt_texture_0, Rot.R270),
+        [game.textures.hurtShip[0]]     = make_texture(16, hurt_texture_0, Rot.R0),
+        [game.textures.hurtShip[90]]    = make_texture(16, hurt_texture_0, Rot.R90),
+        [game.textures.hurtShip[180]]   = make_texture(16, hurt_texture_0, Rot.R180),
+        [game.textures.hurtShip[270]]   = make_texture(16, hurt_texture_0, Rot.R270),
 
-        [game.shipHurtTextures[45]]    = make_texture(16, hurt_texture_45, Rot.R0),
-        [game.shipHurtTextures[135]]   = make_texture(16, hurt_texture_45, Rot.R90),
-        [game.shipHurtTextures[225]]   = make_texture(16, hurt_texture_45, Rot.R180),
-        [game.shipHurtTextures[315]]   = make_texture(16, hurt_texture_45, Rot.R270),
+        [game.textures.hurtShip[45]]    = make_texture(16, hurt_texture_45, Rot.R0),
+        [game.textures.hurtShip[135]]   = make_texture(16, hurt_texture_45, Rot.R90),
+        [game.textures.hurtShip[225]]   = make_texture(16, hurt_texture_45, Rot.R180),
+        [game.textures.hurtShip[315]]   = make_texture(16, hurt_texture_45, Rot.R270),
 
-        [game.bulletTexture]           = make_texture(4, bullet_texture, Rot.R0),
+        [game.textures.bullet]          = make_texture(4, bullet_texture, Rot.R0),
 
-        [game.asteroidTextures.small]  = make_texture(gfx.largeAsteroidSize / 2, asteroid_small_texture, Rot.R0),
-        [game.asteroidTextures.medium] = make_texture(gfx.largeAsteroidSize / 4 * 3, asteroid_medium_texture, Rot.R0),
-        [game.asteroidTextures.large]  = make_texture(gfx.largeAsteroidSize, asteroid_large_texture, Rot.R0),
+        [game.textures.asteroid.small]  = make_texture(gfx.largeAsteroidSize / 2, asteroid_small_texture, Rot.R0),
+        [game.textures.asteroid.medium] = make_texture(gfx.largeAsteroidSize / 4 * 3, asteroid_medium_texture, Rot.R0),
+        [game.textures.asteroid.large]  = make_texture(gfx.largeAsteroidSize, asteroid_large_texture, Rot.R0),
 
-        [game.explosionTexture]        = make_texture(16, explosion_texture, Rot.R0),
+        [game.textures.explosion]       = make_texture(16, explosion_texture, Rot.R0),
     }
 end
 
