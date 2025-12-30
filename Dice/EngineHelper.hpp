@@ -122,6 +122,8 @@ public:
     void circle(point_i center, i32 radius, u8 color, bool fill);
     void rect(rect_i const& rect, u8 color, bool fill);
 
+    void blit(rect_i const& rect, string const& dotStr);
+
 private:
     prop<gfx::image>& _img;
     color             _clear;

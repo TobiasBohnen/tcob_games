@@ -42,7 +42,6 @@ private:
     template <typename R = void>
     auto call(callback<R> const& func, auto&&... args) -> R;
 
-    void create_backgrounds(std::unordered_map<u32, bg_def> const& bgMap);
     void create_textures(std::unordered_map<u32, tex_def>& texMap);
 
     scripting::script                    _script;
@@ -55,14 +54,12 @@ private:
 
     dmd_proxy    _dmdProxy;
     screen_proxy _fgProxy;
+    screen_proxy _bgProxy;
 
     std::unordered_map<u32, texture> _textures;
     static constexpr i32             TEX_PAD {1};
     point_i                          _texturePen {TEX_PAD, TEX_PAD};
     gfx::image                       _textureImage {gfx::image::CreateEmpty(TEXTURE_SIZE, gfx::image::format::RGBA)};
-
-    std::unordered_map<u32, string> _backgrounds;
-    u32                             _backgroundLevel {0};
 
     std::unordered_map<u32, audio::buffer>       _soundBank;
     std::array<std::unique_ptr<audio::sound>, 8> _sounds;

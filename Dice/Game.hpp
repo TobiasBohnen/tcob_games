@@ -61,10 +61,6 @@ public:
 
     void roll();
 
-    auto get_background_texture() -> gfx::texture*
-    {
-        return _backgroundTexture.ptr();
-    }
     auto get_sprite_texture() -> gfx::texture*
     {
         return _spriteTexture.ptr();
@@ -101,11 +97,12 @@ private:
     asset_owner_ptr<gfx::material> _backgroundMaterial;
     asset_owner_ptr<gfx::texture>  _backgroundTexture;
     gfx::rect_shape*               _background;
+    bool                           _updateBackground {true};
 
     asset_owner_ptr<gfx::material> _foregroundMaterial;
     asset_owner_ptr<gfx::texture>  _foregroundTexture;
     gfx::rect_shape*               _foreground;
-    bool                           _updateForeground {false};
+    bool                           _updateForeground {true};
 
     asset_owner_ptr<gfx::material>       _screenMaterial;
     asset_owner_ptr<gfx::render_texture> _screenTexture;

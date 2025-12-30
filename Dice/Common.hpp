@@ -20,13 +20,12 @@ struct shared_assets;
 class sprite;
 
 constexpr size_f VIRTUAL_SCREEN_SIZE {240, 180};
-constexpr size_f DICE_SOCKETS_REF_SIZE {1600, 900};
 constexpr size_i DMD_SIZE {80, 120};
 constexpr size_i COVER_SIZE {128, 128};
-constexpr size_f DICE_SIZE {62, 62};
-constexpr f32    DICE_OFFSET {72.f};
-constexpr i32    MAX_BACKGROUNDS {5};
 constexpr size_i TEXTURE_SIZE {256, 256};
+
+constexpr size_f DICE_SIZE {62, 62};
+constexpr size_f DICE_REF_SIZE {1600, 900};
 
 constexpr std::array<color, 16> PALETTE {
     {{0, 0, 0, 255},
@@ -134,5 +133,5 @@ struct shared_state {
     prop<string>     SSDValue;
     prop<grid<u8>>   DMD {grid<u8> {DMD_SIZE, 0}};
     prop<gfx::image> Foreground;
-    prop<string>     Background {"default"};
+    prop<gfx::image> Background;
 };

@@ -43,9 +43,7 @@ function gfx.get_background(game, engine)
         end
     end
 
-    return {
-        [0] = { bitmap = table.concat(buf) }
-    }
+    return table.concat(buf)
 end
 
 local function make_texture(size, tex, flipH)

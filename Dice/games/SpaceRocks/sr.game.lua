@@ -49,7 +49,7 @@ local game                  = {
 
 ---@param engine engine
 function game:on_setup(engine)
-    engine:create_backgrounds(gfx.get_background(self, engine))
+    engine.bg:blit({ x = 0, y = 0, width = ScreenSize.width, height = ScreenSize.height }, gfx.get_background(self, engine))
     engine:create_textures(gfx.get_textures(self, engine))
     engine:create_sounds(sfx.get_sounds(self, engine))
 

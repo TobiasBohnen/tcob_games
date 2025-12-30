@@ -46,20 +46,27 @@ dice_game::dice_game(init const& init)
           .Game    = this,
           .Sockets = &_sockets,
       }}
-    , _sockets {init.RealWindowSize / DICE_SOCKETS_REF_SIZE}
-    , _dice {_diceBatch, init.RealWindowSize / DICE_SOCKETS_REF_SIZE}
+    , _sockets {init.RealWindowSize / DICE_REF_SIZE}
+    , _dice {_diceBatch, init.RealWindowSize / DICE_REF_SIZE}
 {
-    _sharedState.Foreground = gfx::image::CreateEmpty(size_i {VIRTUAL_SCREEN_SIZE}, gfx::image::format::RGBA);
 
     _background->Bounds                       = {point_f::Zero, VIRTUAL_SCREEN_SIZE};
     _backgroundMaterial->first_pass().Texture = _backgroundTexture;
     _background->Material                     = _backgroundMaterial;
+    _backgroundTexture->resize(size_i {VIRTUAL_SCREEN_SIZE}, 1, gfx::texture::format::RGBA8);
+    _backgroundTexture->regions()["default"] = gfx::texture_region {.UVRect = {0, 0, 1, 1}, .Level = 0};
+    _sharedState.Background                  = gfx::image::CreateEmpty(size_i {VIRTUAL_SCREEN_SIZE}, gfx::image::format::RGBA);
+    _sharedState.Background.Changed.connect([&](auto const&) { _updateBackground = true; });
 
     _foreground->Bounds                       = {point_f::Zero, VIRTUAL_SCREEN_SIZE};
     _foregroundMaterial->first_pass().Texture = _foregroundTexture;
     _foreground->Material                     = _foregroundMaterial;
     _foregroundTexture->resize(size_i {VIRTUAL_SCREEN_SIZE}, 1, gfx::texture::format::RGBA8);
     _foregroundTexture->regions()["default"] = gfx::texture_region {.UVRect = {0, 0, 1, 1}, .Level = 0};
+    _sharedState.Foreground                  = gfx::image::CreateEmpty(size_i {VIRTUAL_SCREEN_SIZE}, gfx::image::format::RGBA);
+    _sharedState.Foreground.Changed.connect([&](auto const&) { _updateForeground = true; });
+
+    _spriteMaterial->first_pass().Texture = _spriteTexture;
 
     // TODO: enforce int scaling for background
     // TODO: 16:10 support
@@ -76,21 +83,11 @@ dice_game::dice_game(init const& init)
     firstPass.Shader  = init.Group.get<gfx::shader>("CRT");
     firstPass.Texture = _screenTexture;
 
-    _spriteMaterial->first_pass().Texture = _spriteTexture;
-
     gfx::quad q {};
     gfx::geometry::set_color(q, colors::White);
     gfx::geometry::set_position(q, bgBounds);
     gfx::geometry::set_texcoords(q, {.UVRect = gfx::render_texture::UVRect(), .Level = 0});
     _screenRenderer.set_geometry(q, &_screenMaterial->first_pass());
-
-    _sharedState.Background.Changed.connect([&](auto const& val) {
-        _background->TextureRegion = val;
-    });
-
-    _sharedState.Foreground.Changed.connect([&](auto const&) {
-        _updateForeground = true;
-    });
 
     for (auto const& die : init.Dice) {
         std::vector<die_face> vec;
@@ -124,9 +121,9 @@ void dice_game::on_fixed_update(milliseconds deltaTime)
         _spriteBatch.send_to_back(*_background);
         _spriteBatch.bring_to_front(*_foreground);
     }
-    if (_updateForeground) {
-        _foregroundTexture->update_data(_sharedState.Foreground, 0);
-    }
+
+    if (_updateBackground) { _backgroundTexture->update_data(_sharedState.Background, 0); }
+    if (_updateForeground) { _foregroundTexture->update_data(_sharedState.Foreground, 0); }
     _spriteBatch.update(deltaTime);
 }
 

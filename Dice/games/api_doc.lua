@@ -204,6 +204,11 @@ function dmd:socket(socket) end
 ---@description Interface for drawing to the screen. All color values should be between 0 and 15.
 local screen = {}
 
+---Copies a raw string of dot data into the specified rectangle.
+---@param rect rect The destination area on the screen.
+---@param dots string A string where each character represents a pixel/dot.
+function screen:blit(rect, dots) end
+
 ---Clears the entire DMD, setting all pixels to transparent.
 function screen:clear() end
 
@@ -234,15 +239,11 @@ function screen:rect(rect, color, fill) end
 ---@description The main interface between the Lua script and the game engine hardware/state.
 ---@field dmd dmd Access to the Dot Matrix Display drawing functions. @readonly
 ---@field fg screen Access to the foreground drawing functions. @readonly
----@field bg integer The ID of the currently active background.
+---@field bg screen Access to the background drawing functions. @readonly
 ---@field ssd string The string value displayed on the Seven-Segment Display.
 local engine = {}
 
 ---@section Asset Initialization
-
----Initializes the background layers.
----@param bgMap table<integer, table> Map of IDs to background definitions.
-function engine:create_backgrounds(bgMap) end
 
 ---Initializes and packs textures into the sprite atlas.
 ---@param texMap table<integer, table> Map of IDs to texture definitions.

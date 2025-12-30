@@ -300,6 +300,7 @@ screen_proxy::screen_proxy(prop<gfx::image>& img, color clear)
     : _img {img}
     , _clear {clear}
 {
+    this->clear();
 }
 
 void screen_proxy::clear()
@@ -342,6 +343,24 @@ void screen_proxy::rect(rect_i const& rect, u8 color, bool fill)
                 img.set_pixel({x, y}, PALETTE[color]);
             }
         });
+    });
+}
+
+void screen_proxy::blit(rect_i const& rect, string const& dotStr)
+{
+    if (rect.right() > _img->info().Size.Width || rect.bottom() > _img->info().Size.Height) { return; }
+    auto const dots {decode_texture_pixels(dotStr, rect.Size)};
+
+    _img.mutate([&](auto& img) {
+        for (i32 y {0}; y < rect.Size.Height; ++y) {
+            for (i32 x {0}; x < rect.Size.Width; ++x) {
+                i32 const srcIdx {(y * rect.Size.Width) + x};
+                i32 const dstX {rect.left() + x};
+                i32 const dstY {rect.top() + y};
+
+                img.set_pixel({dstX, dstY}, PALETTE[dots[srcIdx]]);
+            }
+        }
     });
 }
 

@@ -15,6 +15,7 @@ engine::engine(init const& init)
     : _init {init}
     , _dmdProxy {init.State.DMD}
     , _fgProxy {init.State.Foreground, colors::Transparent}
+    , _bgProxy {init.State.Background, PALETTE[0]}
 {
     create_env();
     create_wrappers();
@@ -239,8 +240,7 @@ void engine::create_engine_wrapper()
 {
     auto& engineWrapper {*_script.create_wrapper<engine>("engine")};
     // gfx
-    engineWrapper["create_backgrounds"] = [](engine* engine, std::unordered_map<u32, bg_def> const& bgMap) { engine->create_backgrounds(bgMap); };
-    engineWrapper["create_textures"]    = [](engine* engine, std::unordered_map<u32, tex_def>& texMap) { engine->create_textures(texMap); };
+    engineWrapper["create_textures"] = [](engine* engine, std::unordered_map<u32, tex_def>& texMap) { engine->create_textures(texMap); };
 
     // sfx
     engineWrapper["create_sounds"] = [](engine* engine, std::unordered_map<u32, audio::sound_wave> const& soundMap) {
@@ -288,17 +288,7 @@ void engine::create_engine_wrapper()
     // properties
     engineWrapper["dmd"] = getter {[](engine* engine) { return &engine->_dmdProxy; }};
     engineWrapper["fg"]  = getter {[](engine* engine) { return &engine->_fgProxy; }};
-    engineWrapper["bg"]  = property {
-        [](engine* engine) -> u32 {
-            for (auto const& [k, v] : engine->_backgrounds) {
-                if (v == engine->_init.State.Background) { return k; }
-            }
-            return 0;
-        },
-        [](engine* engine, i32 idx) {
-            if (!engine->_backgrounds.contains(idx)) { engine->_script.view().error("missing background"); }
-            engine->_init.State.Background = engine->_backgrounds[idx];
-        }};
+    engineWrapper["bg"]  = getter {[](engine* engine) { return &engine->_bgProxy; }};
     engineWrapper["ssd"] = property {
         [](engine* engine) { return *engine->_init.State.SSDValue; },
         [](engine* engine, string const& val) { engine->_init.State.SSDValue = val; }};
@@ -321,40 +311,13 @@ void engine::create_dmd_wrapper()
 void engine::create_screen_wrapper()
 {
     auto& screenWrapper {*_script.create_wrapper<screen_proxy>("screen")};
-    screenWrapper["clear"]  = [](screen_proxy* scr) { scr->clear(); };
+    screenWrapper["clear"] = [](screen_proxy* scr) { scr->clear(); };
+
     screenWrapper["line"]   = [](screen_proxy* scr, point_i start, point_i end, u8 color) { scr->line(start, end, color); };
     screenWrapper["circle"] = [](screen_proxy* scr, point_i center, i32 radius, u8 color, bool fill) { scr->circle(center, radius, color, fill); };
     screenWrapper["rect"]   = [](screen_proxy* scr, rect_i const& rect, u8 color, bool fill) { scr->rect(rect, color, fill); };
-}
 
-void engine::create_backgrounds(std::unordered_map<u32, bg_def> const& bgMap)
-{
-    auto const bgSize {size_i {VIRTUAL_SCREEN_SIZE}};
-
-    auto* tex {_init.Game->get_background_texture()};
-    tex->resize(bgSize, MAX_BACKGROUNDS, gfx::texture::format::RGBA8);
-    tex->regions()["default"] = {.UVRect = {0, 0, 1, 1}, .Level = 0};
-
-    gfx::image bgImg {gfx::image::CreateEmpty(bgSize, gfx::image::format::RGBA)};
-    for (auto const& [id, bgDef] : bgMap) {
-        if (_backgroundLevel >= MAX_BACKGROUNDS) {
-            _backgroundLevel = _backgroundLevel % MAX_BACKGROUNDS;
-            logger::Warning("bg overflow");
-        }
-        _backgrounds[id] = std::to_string(id);
-
-        auto const dots {decode_texture_pixels(bgDef.Bitmap, bgSize)};
-        for (i32 y {0}; y < bgSize.Height; ++y) {
-            for (i32 x {0}; x < bgSize.Width; ++x) {
-                bgImg.set_pixel({x, y}, PALETTE[dots[x + (y * bgSize.Width)]]);
-            }
-        }
-
-        tex->regions()[_backgrounds[id]] = {.UVRect = {0, 0, 1, 1}, .Level = _backgroundLevel};
-        tex->update_data(bgImg, _backgroundLevel++);
-    }
-
-    tex->Filtering = gfx::texture::filtering::Linear;
+    screenWrapper["blit"] = [](screen_proxy* scr, rect_i const& rect, string const& dotStr) { scr->blit(rect, dotStr); };
 }
 
 void engine::create_textures(std::unordered_map<u32, tex_def>& texMap)

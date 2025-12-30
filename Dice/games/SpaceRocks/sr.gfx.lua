@@ -32,9 +32,7 @@ function gfx.get_background(game, engine)
         end
     end
 
-    return {
-        [0] = { bitmap = table.concat(buf) }
-    }
+    return table.concat(buf)
 end
 
 local ship_texture_0          =
