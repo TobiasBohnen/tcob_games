@@ -7,6 +7,93 @@
 
 #include "Socket.hpp"
 
+template <typename PlotFunc>
+void draw_line(point_i start, point_i end, PlotFunc plot)
+{
+    i32       x0 {start.X};
+    i32       y0 {start.Y};
+    i32 const x1 {end.X};
+    i32 const y1 {end.Y};
+
+    i32 const dx {std::abs(x1 - x0)};
+    i32 const sx {x0 < x1 ? 1 : -1};
+    i32 const dy {-std::abs(y1 - y0)};
+    i32 const sy {y0 < y1 ? 1 : -1};
+    i32       err {dx + dy};
+
+    for (;;) {
+        plot(x0, y0);
+
+        i32 const e2 {2 * err};
+        if (e2 >= dy) {
+            if (x0 == x1) { break; }
+            err += dy;
+            x0 += sx;
+        }
+        if (e2 <= dx) {
+            if (y0 == y1) { break; }
+            err += dx;
+            y0 += sy;
+        }
+    }
+}
+
+template <typename PlotFunc>
+void draw_circle(point_i center, i32 radius, bool fill, PlotFunc plot)
+{
+    i32 x {radius};
+    i32 y {0};
+    i32 err {0};
+
+    while (x >= y) {
+        if (fill) {
+            for (i32 i {center.X - x}; i <= center.X + x; ++i) {
+                plot(i, center.Y + y);
+                plot(i, center.Y - y);
+            }
+            for (i32 i {center.X - y}; i <= center.X + y; ++i) {
+                plot(i, center.Y + x);
+                plot(i, center.Y - x);
+            }
+        } else {
+            plot(center.X + x, center.Y + y);
+            plot(center.X + y, center.Y + x);
+            plot(center.X - y, center.Y + x);
+            plot(center.X - x, center.Y + y);
+            plot(center.X - x, center.Y - y);
+            plot(center.X - y, center.Y - x);
+            plot(center.X + y, center.Y - x);
+            plot(center.X + x, center.Y - y);
+        }
+
+        ++y;
+        if (err <= 0) {
+            err += (2 * y) + 1;
+        } else {
+            --x;
+            err += (2 * (y - x)) + 1;
+        }
+    }
+}
+
+template <typename PlotFunc>
+void draw_rect(rect_i const& rect, bool fill, PlotFunc plot)
+{
+    i32 const x0 {rect.left()};
+    i32 const y0 {rect.top()};
+    i32 const x1 {rect.right()};
+    i32 const y1 {rect.bottom()};
+
+    for (i32 y {y0}; y < y1; ++y) {
+        for (i32 x {x0}; x < x1; ++x) {
+            bool const isEdge {x == x0 || x == x1 - 1 || y == y0 || y == y1 - 1};
+            if (fill || isEdge) {
+                plot(x, y);
+            }
+        }
+    }
+}
+
 ////////////////////////////////////////////////////////////
 
 dmd_proxy::dmd_proxy(prop<grid<u8>>& dmd)
@@ -20,98 +107,33 @@ void dmd_proxy::clear()
 void dmd_proxy::line(point_i start, point_i end, u8 color)
 {
     _dmd.mutate([&](auto& dmd) {
-        i32       x0 {start.X};
-        i32       y0 {start.Y};
-        i32 const x1 {end.X};
-        i32 const y1 {end.Y};
-
-        i32 const dx {std::abs(x1 - x0)};
-        i32 const sx {x0 < x1 ? 1 : -1};
-        i32 const dy {-std::abs(y1 - y0)};
-        i32 const sy {y0 < y1 ? 1 : -1};
-        i32       err {dx + dy};
-
-        for (;;) {
-            if (x0 >= 0 && x0 < dmd.width() && y0 >= 0 && y0 < dmd.height()) {
-                dmd[x0, y0] = color;
+        draw_line(start, end, [&](i32 x, i32 y) {
+            if (x >= 0 && x < dmd.width() && y >= 0 && y < dmd.height()) {
+                dmd[x, y] = color;
             }
-
-            i32 const e2 {2 * err};
-            if (e2 >= dy) {
-                if (x0 == x1) { break; }
-                err += dy;
-                x0 += sx;
-            }
-            if (e2 <= dx) {
-                if (y0 == y1) { break; }
-                err += dx;
-                y0 += sy;
-            }
-        }
+        });
     });
 }
+
 void dmd_proxy::circle(point_i center, i32 radius, u8 color, bool fill)
 {
     _dmd.mutate([&](auto& dmd) {
-        i32 x {radius};
-        i32 y {0};
-        i32 err {0};
-
-        auto const plot {[&](i32 const px, i32 const py) {
-            if (px >= 0 && px < dmd.width() && py >= 0 && py < dmd.height()) {
-                dmd[px, py] = color;
+        draw_circle(center, radius, fill, [&](i32 x, i32 y) {
+            if (x >= 0 && x < dmd.width() && y >= 0 && y < dmd.height()) {
+                dmd[x, y] = color;
             }
-        }};
-
-        while (x >= y) {
-            if (fill) {
-                for (i32 i {center.X - x}; i <= center.X + x; ++i) {
-                    plot(i, center.Y + y);
-                    plot(i, center.Y - y);
-                }
-                for (i32 i {center.X - y}; i <= center.X + y; ++i) {
-                    plot(i, center.Y + x);
-                    plot(i, center.Y - x);
-                }
-            } else {
-                plot(center.X + x, center.Y + y);
-                plot(center.X + y, center.Y + x);
-                plot(center.X - y, center.Y + x);
-                plot(center.X - x, center.Y + y);
-                plot(center.X - x, center.Y - y);
-                plot(center.X - y, center.Y - x);
-                plot(center.X + y, center.Y - x);
-                plot(center.X + x, center.Y - y);
-            }
-
-            ++y;
-            if (err <= 0) {
-                err += (2 * y) + 1;
-            } else {
-                --x;
-                err += (2 * (y - x)) + 1;
-            }
-        }
+        });
     });
 }
+
 void dmd_proxy::rect(rect_i const& rect, u8 color, bool fill)
 {
     _dmd.mutate([&](auto& dmd) {
-        i32 const x0 {rect.left()};
-        i32 const y0 {rect.top()};
-        i32 const x1 {rect.right()};
-        i32 const y1 {rect.bottom()};
-
-        for (i32 y {y0}; y < y1; ++y) {
-            for (i32 x {x0}; x < x1; ++x) {
-                if (x < 0 || x >= dmd.width() || y < 0 || y >= dmd.height()) { continue; }
-
-                bool const isEdge {x == x0 || x == x1 - 1 || y == y0 || y == y1 - 1};
-                if (fill || isEdge) {
-                    dmd[x, y] = color;
-                }
+        draw_rect(rect, fill, [&](i32 x, i32 y) {
+            if (x >= 0 && x < dmd.width() && y >= 0 && y < dmd.height()) {
+                dmd[x, y] = color;
             }
-        }
+        });
     });
 }
 
@@ -270,6 +292,57 @@ void dmd_proxy::draw_socket(socket* socket, rect_f const& dmdBounds)
             }
         }
     }
+}
+
+////////////////////////////////////////////////////////////
+
+screen_proxy::screen_proxy(prop<gfx::image>& img, color clear)
+    : _img {img}
+    , _clear {clear}
+{
+}
+
+void screen_proxy::clear()
+{
+    _img.mutate([&](auto& img) {
+        img.fill({point_i::Zero, img.info().Size}, _clear);
+    });
+}
+
+void screen_proxy::line(point_i start, point_i end, u8 color)
+{
+    _img.mutate([&](auto& img) {
+        auto const size {img.info().Size};
+        draw_line(start, end, [&](i32 x, i32 y) {
+            if (x >= 0 && x < size.Width && y >= 0 && y < size.Height) {
+                img.set_pixel({x, y}, PALETTE[color]);
+            }
+        });
+    });
+}
+
+void screen_proxy::circle(point_i center, i32 radius, u8 color, bool fill)
+{
+    _img.mutate([&](auto& img) {
+        auto const size {img.info().Size};
+        draw_circle(center, radius, fill, [&](i32 x, i32 y) {
+            if (x >= 0 && x < size.Width && y >= 0 && y < size.Height) {
+                img.set_pixel({x, y}, PALETTE[color]);
+            }
+        });
+    });
+}
+
+void screen_proxy::rect(rect_i const& rect, u8 color, bool fill)
+{
+    _img.mutate([&](auto& img) {
+        auto const size {img.info().Size};
+        draw_rect(rect, fill, [&](i32 x, i32 y) {
+            if (x >= 0 && x < size.Width && y >= 0 && y < size.Height) {
+                img.set_pixel({x, y}, PALETTE[color]);
+            }
+        });
+    });
 }
 
 ////////////////////////////////////////////////////////////

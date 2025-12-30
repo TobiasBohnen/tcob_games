@@ -198,12 +198,42 @@ function dmd:print(pos, text, color) end
 function dmd:socket(socket) end
 
 --------------------------------
+-- SCREEN
+--------------------------------
+---@class screen
+---@description Interface for drawing to the screen. All color values should be between 0 and 15.
+local screen = {}
+
+---Clears the entire DMD, setting all pixels to transparent.
+function screen:clear() end
+
+---Draws a line between two points.
+---@param start point The starting coordinate {x, y}.
+---@param end_point point The ending coordinate {x, y}.
+---@param color color The palette index.
+function screen:line(start, end_point, color) end
+
+---Draws a circle centered at a specific point.
+---@param center point The center coordinate {x, y}.
+---@param radius integer The distance from the center to the edge.
+---@param color color The palette index.
+---@param fill boolean Whether to draw a solid circle or just the outline.
+function screen:circle(center, radius, color, fill) end
+
+---Draws a rectangle based on a rect object.
+---@param rect rect The position and size of the rectangle.
+---@param color color The palette index.
+---@param fill boolean Whether to draw a solid rectangle or just the outline.
+function screen:rect(rect, color, fill) end
+
+--------------------------------
 -- Engine
 --------------------------------
 
 ---@class engine
 ---@description The main interface between the Lua script and the game engine hardware/state.
 ---@field dmd dmd Access to the Dot Matrix Display drawing functions. @readonly
+---@field fg screen Access to the foreground drawing functions. @readonly
 ---@field bg integer The ID of the currently active background.
 ---@field ssd string The string value displayed on the Seven-Segment Display.
 local engine = {}

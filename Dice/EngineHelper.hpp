@@ -112,4 +112,21 @@ private:
 
 ////////////////////////////////////////////////////////////
 
+class screen_proxy {
+public:
+    screen_proxy(prop<gfx::image>& img, color clear);
+
+    void clear();
+
+    void line(point_i start, point_i end, u8 color);
+    void circle(point_i center, i32 radius, u8 color, bool fill);
+    void rect(rect_i const& rect, u8 color, bool fill);
+
+private:
+    prop<gfx::image>& _img;
+    color             _clear;
+};
+
+////////////////////////////////////////////////////////////
+
 auto decode_texture_pixels(string_view s, size_i size) -> std::vector<u8>;

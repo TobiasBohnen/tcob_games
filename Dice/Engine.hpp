@@ -16,9 +16,6 @@ public:
         shared_state& State;
         event_bus&    Events;
 
-        gfx::texture* SpriteTexture {nullptr};
-        gfx::texture* BackgroundTexture {nullptr};
-
         dice_game* Game {nullptr};
         sockets*   Sockets {nullptr};
     };
@@ -40,6 +37,7 @@ private:
     void create_die_wrapper();
     void create_engine_wrapper();
     void create_dmd_wrapper();
+    void create_screen_wrapper();
 
     template <typename R = void>
     auto call(callback<R> const& func, auto&&... args) -> R;
@@ -55,7 +53,8 @@ private:
     init        _init;
     game_status _gameStatus {game_status::TurnEnded};
 
-    dmd_proxy _dmdProxy;
+    dmd_proxy    _dmdProxy;
+    screen_proxy _fgProxy;
 
     std::unordered_map<u32, texture> _textures;
     static constexpr i32             TEX_PAD {1};

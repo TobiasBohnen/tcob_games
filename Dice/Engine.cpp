@@ -14,6 +14,7 @@ using namespace scripting;
 engine::engine(init const& init)
     : _init {init}
     , _dmdProxy {init.State.DMD}
+    , _fgProxy {init.State.Foreground, colors::Transparent}
 {
     create_env();
     create_wrappers();
@@ -87,6 +88,8 @@ void engine::run(string const& file)
 
 auto engine::update(milliseconds deltaTime) -> bool
 {
+    _init.State.CanStart = _gameStatus == game_status::TurnEnded;
+
     if (_gameStatus != game_status::Running) { return false; }
 
     _turnTime += deltaTime.count();
@@ -181,6 +184,7 @@ void engine::create_wrappers()
     create_die_wrapper();
     create_engine_wrapper();
     create_dmd_wrapper();
+    create_screen_wrapper();
 }
 
 void engine::create_sprite_wrapper()
@@ -283,6 +287,7 @@ void engine::create_engine_wrapper()
 
     // properties
     engineWrapper["dmd"] = getter {[](engine* engine) { return &engine->_dmdProxy; }};
+    engineWrapper["fg"]  = getter {[](engine* engine) { return &engine->_fgProxy; }};
     engineWrapper["bg"]  = property {
         [](engine* engine) -> u32 {
             for (auto const& [k, v] : engine->_backgrounds) {
@@ -313,11 +318,20 @@ void engine::create_dmd_wrapper()
     dmdWrapper["socket"] = [this](dmd_proxy* dmd, socket* socket) { dmd->draw_socket(socket, _init.State.DMDBounds); };
 }
 
+void engine::create_screen_wrapper()
+{
+    auto& screenWrapper {*_script.create_wrapper<screen_proxy>("screen")};
+    screenWrapper["clear"]  = [](screen_proxy* scr) { scr->clear(); };
+    screenWrapper["line"]   = [](screen_proxy* scr, point_i start, point_i end, u8 color) { scr->line(start, end, color); };
+    screenWrapper["circle"] = [](screen_proxy* scr, point_i center, i32 radius, u8 color, bool fill) { scr->circle(center, radius, color, fill); };
+    screenWrapper["rect"]   = [](screen_proxy* scr, rect_i const& rect, u8 color, bool fill) { scr->rect(rect, color, fill); };
+}
+
 void engine::create_backgrounds(std::unordered_map<u32, bg_def> const& bgMap)
 {
     auto const bgSize {size_i {VIRTUAL_SCREEN_SIZE}};
 
-    auto* tex {_init.BackgroundTexture};
+    auto* tex {_init.Game->get_background_texture()};
     tex->resize(bgSize, MAX_BACKGROUNDS, gfx::texture::format::RGBA8);
     tex->regions()["default"] = {.UVRect = {0, 0, 1, 1}, .Level = 0};
 
@@ -347,7 +361,7 @@ void engine::create_textures(std::unordered_map<u32, tex_def>& texMap)
 {
     i32 rowHeight {0};
 
-    auto* tex {_init.SpriteTexture};
+    auto* tex {_init.Game->get_sprite_texture()};
     tex->resize(TEXTURE_SIZE, 1, gfx::texture::format::RGBA8);
 
     for (auto& [id, texDef] : texMap) {

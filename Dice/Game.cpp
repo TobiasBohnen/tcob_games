@@ -38,20 +38,28 @@ void sprite::set_texture(texture* tex)
 dice_game::dice_game(init const& init)
     : gfx::entity {update_mode::Both}
     , _background {&_spriteBatch.create_shape<gfx::rect_shape>()}
+    , _foreground {&_spriteBatch.create_shape<gfx::rect_shape>()}
     , _init {init}
     , _engine {engine::init {
-          .State             = _sharedState,
-          .Events            = init.Events,
-          .SpriteTexture     = _spriteTexture.ptr(),
-          .BackgroundTexture = _backgroundTexture.ptr(),
-          .Game              = this,
-          .Sockets           = &_sockets,
+          .State   = _sharedState,
+          .Events  = init.Events,
+          .Game    = this,
+          .Sockets = &_sockets,
       }}
     , _sockets {init.RealWindowSize / DICE_SOCKETS_REF_SIZE}
     , _dice {_diceBatch, init.RealWindowSize / DICE_SOCKETS_REF_SIZE}
 {
-    _background->Bounds   = {point_f::Zero, VIRTUAL_SCREEN_SIZE};
-    _background->Material = _backgroundMaterial;
+    _sharedState.Foreground = gfx::image::CreateEmpty(size_i {VIRTUAL_SCREEN_SIZE}, gfx::image::format::RGBA);
+
+    _background->Bounds                       = {point_f::Zero, VIRTUAL_SCREEN_SIZE};
+    _backgroundMaterial->first_pass().Texture = _backgroundTexture;
+    _background->Material                     = _backgroundMaterial;
+
+    _foreground->Bounds                       = {point_f::Zero, VIRTUAL_SCREEN_SIZE};
+    _foregroundMaterial->first_pass().Texture = _foregroundTexture;
+    _foreground->Material                     = _foregroundMaterial;
+    _foregroundTexture->resize(size_i {VIRTUAL_SCREEN_SIZE}, 1, gfx::texture::format::RGBA8);
+    _foregroundTexture->regions()["default"] = gfx::texture_region {.UVRect = {0, 0, 1, 1}, .Level = 0};
 
     // TODO: enforce int scaling for background
     // TODO: 16:10 support
@@ -68,8 +76,7 @@ dice_game::dice_game(init const& init)
     firstPass.Shader  = init.Group.get<gfx::shader>("CRT");
     firstPass.Texture = _screenTexture;
 
-    _backgroundMaterial->first_pass().Texture = _backgroundTexture;
-    _spriteMaterial->first_pass().Texture     = _spriteTexture;
+    _spriteMaterial->first_pass().Texture = _spriteTexture;
 
     gfx::quad q {};
     gfx::geometry::set_color(q, colors::White);
@@ -79,6 +86,10 @@ dice_game::dice_game(init const& init)
 
     _sharedState.Background.Changed.connect([&](auto const& val) {
         _background->TextureRegion = val;
+    });
+
+    _sharedState.Foreground.Changed.connect([&](auto const&) {
+        _updateForeground = true;
     });
 
     for (auto const& die : init.Dice) {
@@ -109,6 +120,12 @@ void dice_game::on_fixed_update(milliseconds deltaTime)
     if (_engine.update(deltaTime)) {
         wrap_sprites();
         collide_sprites();
+
+        _spriteBatch.send_to_back(*_background);
+        _spriteBatch.bring_to_front(*_foreground);
+    }
+    if (_updateForeground) {
+        _foregroundTexture->update_data(_sharedState.Foreground, 0);
     }
     _spriteBatch.update(deltaTime);
 }

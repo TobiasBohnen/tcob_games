@@ -129,8 +129,10 @@ struct shared_state {
     rng    Rng;
     rect_f DMDBounds;
 
-    prop<i32>      Score;
-    prop<string>   SSDValue;
-    prop<grid<u8>> DMD {grid<u8> {DMD_SIZE, 0}};
-    prop<string>   Background {"default"};
+    prop<bool>       CanStart {false};
+    prop<i32>        Score;
+    prop<string>     SSDValue;
+    prop<grid<u8>>   DMD {grid<u8> {DMD_SIZE, 0}};
+    prop<gfx::image> Foreground;
+    prop<string>     Background {"default"};
 };
