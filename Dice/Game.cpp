@@ -394,14 +394,16 @@ void dice_game::reset_sockets()
 
 auto dice_game::next_die_position(usize count, usize idx) const -> point_f
 {
-    constexpr f32 DICE_PADDING {3.0f};
-    constexpr f32 ROW_PADDING {5.0f};
+    f32 const    scale {_init.RealWindowSize.Width / DICE_REF_SIZE.Width};
+    size_f const scaledDiceSize {DICE_SIZE * scale};
+    f32 const    colPadding {3.0f * scale};
+    f32 const    rowPadding {5.0f * scale};
 
     rect_f area {_sharedState.DMDBounds};
     area.Size.Height -= DICE_SIZE.Height;
 
-    f32 const   diceWidthWithPadding {DICE_SIZE.Width + DICE_PADDING};
-    f32 const   maxDicePerRow {std::floor((area.width() + DICE_PADDING) / diceWidthWithPadding)};
+    f32 const   diceWidth {scaledDiceSize.Width + colPadding};
+    f32 const   maxDicePerRow {std::floor((area.width() + colPadding) / diceWidth)};
     usize const dicePerRow {std::max(1u, static_cast<u32>(maxDicePerRow))};
 
     usize const row {idx / dicePerRow};
@@ -409,12 +411,11 @@ auto dice_game::next_die_position(usize count, usize idx) const -> point_f
 
     usize const diceInCurrentRow {std::min(dicePerRow, count - (row * dicePerRow))};
 
-    f32 const rowWidth {(diceInCurrentRow * DICE_SIZE.Width) + ((diceInCurrentRow - 1) * DICE_PADDING)};
+    f32 const rowWidth {(diceInCurrentRow * scaledDiceSize.Width) + ((diceInCurrentRow - 1) * colPadding)};
 
     f32 const rowStartX {(area.width() - rowWidth) / 2.0f};
-    f32 const x {rowStartX + (col * diceWidthWithPadding)};
 
-    f32 const y {area.bottom() - (row * (DICE_SIZE.Height + ROW_PADDING))};
-
+    f32 const x {rowStartX + (col * diceWidth)};
+    f32 const y {area.bottom() - (row * (scaledDiceSize.Height + rowPadding))};
     return {area.left() + x, y};
 }
