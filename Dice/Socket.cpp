@@ -190,7 +190,6 @@ void sockets::reset()
         if (auto* die {socket->current_die()}) {
             dice.push_back(die);
             socket->remove_die();
-            die->move_by({0, socket->_bounds.height()}); // TODO: random die movement
         }
     }
 

@@ -43,8 +43,6 @@ local game                  = {
         explosion = 1, ---@type sound
         bullet    = 2, ---@type sound
     },
-
-    powerup     = false,
 }
 
 ---@param engine engine
@@ -66,20 +64,14 @@ end
 
 ---@param engine engine
 function game:on_turn_start(engine)
-    self.bulletTime           = 0
+    self.bulletTime = 0
 
-    local ship                = self.ship
-    ship.linearVelocityTarget = self.sockets.speed.die_value * 30
+    self.ship:turn_start()
 
-    local dirs                = { [0] = 0, [1] = -135, [2] = -90, [3] = -45, [4] = 45, [5] = 90, [6] = 135 }
-    ship.turnStepsTotal       = dirs[self.sockets.turn.die_value] / 45
-    ship.turnStepsDone        = 0
-
-    self.bulletsLeft          = self.sockets.bullets.die_value
+    self.bulletsLeft = self.sockets.bullets.die_value
 
     if engine:get_hand(self.sockets).value == "ThreeOfAKind" then
-        ship:set_invulnerable(true)
-        self.powerup = true
+        ship:set_shield(true)
     end
 end
 
@@ -117,8 +109,6 @@ end
 
 ---@param engine engine
 function game:on_turn_finish(engine)
-    self.powerup = false
-    self.ship:set_invulnerable(false)
     self:try_spawn_asteroid(engine)
 end
 
@@ -322,15 +312,35 @@ function game:create_ship(engine)
 
         type                 = "ship",
         health               = 5,
-        invulnerable         = false,
+        shieldsUp            = false,
+        hitByAsteroid        = false,
+        engineStall          = false,
 
         spriteInit           = {
             texture = 0,
             position = { x = ScreenSize.width / 2 - 12, y = ScreenSize.height / 2 - 12 }
         },
 
-        set_invulnerable     = function(ship, val)
-            ship.invulnerable   = val
+        turn_start           = function(ship)
+            ship.linearVelocityTarget = self.sockets.speed.die_value * 30
+            if ship.linearVelocityTarget == 0 then
+                if ship.engineStall then
+                    ship.health = ship.health - 1
+                end
+                ship.engineStall = true
+            else
+                ship.engineStall = false
+            end
+
+            local dirs          = { [0] = 0, [1] = -135, [2] = -90, [3] = -45, [4] = 45, [5] = 90, [6] = 135 }
+            ship.turnStepsTotal = dirs[self.sockets.turn.die_value] / 45
+            ship.turnStepsDone  = 0
+
+            ship:set_shield(false)
+            ship.hitByAsteroid = false
+        end,
+        set_shield           = function(ship, val)
+            ship.shieldsUp      = val
             ship.sprite.texture = val and self.textures.hurtShip[ship.direction] or self.textures.ship[ship.direction]
         end,
 
@@ -349,15 +359,16 @@ function game:create_ship(engine)
             end
 
             ship.direction = ship.direction % 360
-            ship.sprite.texture = ship.invulnerable and self.textures.hurtShip[ship.direction] or self.textures.ship[ship.direction]
+            ship.sprite.texture = ship.shieldsUp and self.textures.hurtShip[ship.direction] or self.textures.ship[ship.direction]
             self:update_entity(ship, deltaTime)
         end,
 
         collide              = function(ship, b)
-            if ship.invulnerable then return end
+            if ship.shieldsUp then return end
             if b.type == "asteroid" then
-                ship.health = ship.health - 1
-                ship:set_invulnerable(true)
+                ship.health        = ship.health - 1
+                ship.hitByAsteroid = true
+                ship:set_shield(true)
                 gfx.draw_dmd(engine.dmd, self)
             end
         end

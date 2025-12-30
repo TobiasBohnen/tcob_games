@@ -101,7 +101,7 @@ auto engine::update(milliseconds deltaTime) -> bool
     switch (status) {
     case Running:   return true;
     case TurnEnded: {
-        _init.Sockets->reset();
+        _init.Game->reset_sockets();
         call(_callbacks.OnTurnFinish);
         call(_callbacks.DrawDMD);
         _turnTime = 0;

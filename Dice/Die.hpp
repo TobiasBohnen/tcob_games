@@ -94,6 +94,7 @@ public:
     dice(gfx::shape_batch& batch, size_f scale);
 
     auto add_die(point_f pos, rng& rng, die_face currentFace, std::span<die_face const> faces) -> die*;
+    void move_die(usize idx, point_f target);
 
     void roll();
 
@@ -102,6 +103,8 @@ public:
     void on_drag(point_f mousePos, rect_f const& winBounds);
 
     void update(milliseconds deltaTime);
+
+    auto count() const -> usize;
 
 private:
     std::vector<std::unique_ptr<die>> _dice;

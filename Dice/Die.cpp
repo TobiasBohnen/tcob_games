@@ -128,6 +128,11 @@ auto dice::add_die(point_f pos, rng& rng, die_face currentFace, std::span<die_fa
     return retValue.get();
 }
 
+void dice::move_die(usize idx, point_f target)
+{
+    _dice[idx]->move_to(target);
+}
+
 void dice::roll()
 {
     for (auto& die : _dice) { die->roll(); }
@@ -193,6 +198,8 @@ void dice::update(milliseconds deltaTime)
         die->update(deltaTime);
     }
 }
+
+auto dice::count() const -> usize { return _dice.size(); }
 
 ////////////////////////////////////////////////////////////
 

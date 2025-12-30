@@ -142,29 +142,35 @@ function gfx.draw_dmd(dmd, game)
         dmd:blit({ x = 0, y = (i - 1) * 11, width = 10, height = 10 }, heart_pattern)
     end
 
-    dmd:blit({ x = 30, y = 50, width = 20, height = 23 }, ship_pattern)
+    dmd:blit({ x = 30, y = 20, width = 20, height = 23 }, ship_pattern)
 
     if bulletsValue > 0 then
-        dmd:blit({ x = 39, y = 32, width = 2, height = 17 }, bullets_patterns[bulletsValue])
+        dmd:blit({ x = 39, y = 2, width = 2, height = 17 }, bullets_patterns[bulletsValue])
     end
     if turnValue > 0 then
-        dmd:blit({ x = 20, y = 42, width = 10, height = 10 }, turn_patterns[turnValue])
+        dmd:blit({ x = 20, y = 12, width = 10, height = 10 }, turn_patterns[turnValue])
     end
     if speedValue > 0 then
-        dmd:blit({ x = 35, y = 70, width = 10, height = 10 }, speed_patterns[speedValue])
+        dmd:blit({ x = 35, y = 40, width = 10, height = 10 }, speed_patterns[speedValue])
     end
 
-    sockets.bullets.position = { x = 55, y = 30 }
+    sockets.bullets.position = { x = 55, y = 2 }
     dmd:socket(sockets.bullets)
 
-    sockets.turn.position = { x = 55, y = 50 }
+    sockets.turn.position = { x = 55, y = 22 }
     dmd:socket(sockets.turn)
 
-    sockets.speed.position = { x = 55, y = 70 }
+    sockets.speed.position = { x = 55, y = 42 }
     dmd:socket(sockets.speed)
 
-    if game.powerup then
-        dmd:print({ x = 7, y = 90 }, "3 OF A KIND", Palette.Green)
+    if game.ship.hitByAsteroid then
+        dmd:print({ x = 1, y = 60 }, "HIT!", Palette.Red)
+    end
+    if game.ship.shieldsUp then
+        dmd:print({ x = 1, y = 70 }, "SHIELDS UP!", Palette.Blue)
+    end
+    if game.ship.engineStall then
+        dmd:print({ x = 1, y = 80 }, "ENGINE STALL!", Palette.Red)
     end
 end
 

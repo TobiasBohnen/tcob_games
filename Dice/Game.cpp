@@ -89,6 +89,15 @@ dice_game::dice_game(init const& init)
     gfx::geometry::set_texcoords(q, {.UVRect = gfx::render_texture::UVRect(), .Level = 0});
     _screenRenderer.set_geometry(q, &_screenMaterial->first_pass());
 
+    // dice
+    u32 totalDiceCount {0};
+    for (auto const& die : init.Dice) {
+        if (PALETTE_MAP.contains(die.Color)) {
+            totalDiceCount += die.Amount;
+        }
+    }
+
+    u32 idx {0};
     for (auto const& die : init.Dice) {
         std::vector<die_face> vec;
         vec.reserve(die.Values.size());
@@ -96,10 +105,11 @@ dice_game::dice_game(init const& init)
             if (!PALETTE_MAP.contains(die.Color)) { continue; }
             vec.emplace_back(value, PALETTE[PALETTE_MAP.at(die.Color)]);
         }
-
         if (vec.empty()) { return; }
+
         for (u32 i {0}; i < die.Amount; ++i) {
-            _dice.add_die(get_random_die_position(), _sharedState.Rng, vec[0], vec);
+            _dice.add_die(next_die_position(totalDiceCount, idx), _sharedState.Rng, vec[0], vec);
+            idx++;
         }
     }
 }
@@ -369,18 +379,42 @@ void dice_game::remove_sprite(sprite* sprite)
     std::erase_if(_sprites, [&sprite](auto const& spr) { return spr.get() == sprite; });
 }
 
-auto dice_game::get_random_die_position() -> point_f
-{
-    rect_f area {_sharedState.DMDBounds};
-    area.Size -= DICE_SIZE;
-
-    point_f pos;
-    pos.X = _sharedState.Rng(area.left(), area.right());
-    pos.Y = _sharedState.Rng(area.top(), area.bottom());
-
-    return pos;
-}
 void dice_game::roll()
 {
     _dice.roll();
+}
+
+void dice_game::reset_sockets()
+{
+    _sockets.reset();
+    for (usize i {0}; i < _dice.count(); ++i) {
+        _dice.move_die(i, next_die_position(_dice.count(), i));
+    }
+}
+
+auto dice_game::next_die_position(usize count, usize idx) const -> point_f
+{
+    constexpr f32 DICE_PADDING {3.0f};
+    constexpr f32 ROW_PADDING {5.0f};
+
+    rect_f area {_sharedState.DMDBounds};
+    area.Size.Height -= DICE_SIZE.Height;
+
+    f32 const   diceWidthWithPadding {DICE_SIZE.Width + DICE_PADDING};
+    f32 const   maxDicePerRow {std::floor((area.width() + DICE_PADDING) / diceWidthWithPadding)};
+    usize const dicePerRow {std::max(1u, static_cast<u32>(maxDicePerRow))};
+
+    usize const row {idx / dicePerRow};
+    usize const col {idx % dicePerRow};
+
+    usize const diceInCurrentRow {std::min(dicePerRow, count - (row * dicePerRow))};
+
+    f32 const rowWidth {(diceInCurrentRow * DICE_SIZE.Width) + ((diceInCurrentRow - 1) * DICE_PADDING)};
+
+    f32 const rowStartX {(area.width() - rowWidth) / 2.0f};
+    f32 const x {rowStartX + (col * diceWidthWithPadding)};
+
+    f32 const y {area.bottom() - (row * (DICE_SIZE.Height + ROW_PADDING))};
+
+    return {area.left() + x, y};
 }

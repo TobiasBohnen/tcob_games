@@ -60,6 +60,7 @@ public:
     void remove_sprite(sprite* sprite);
 
     void roll();
+    void reset_sockets();
 
     auto get_sprite_texture() -> gfx::texture*
     {
@@ -85,7 +86,7 @@ private:
     void wrap_sprites();
     void collide_sprites();
 
-    auto get_random_die_position() -> point_f;
+    auto next_die_position(usize count, usize idx) const -> point_f;
 
     gfx::shape_batch           _diceBatch;
     gfx::shape_batch           _spriteBatch;
