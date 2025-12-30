@@ -67,19 +67,13 @@ function game:on_setup(engine)
 end
 
 ---@param engine engine
-function game:can_start_turn(engine)
-    local s = self.sockets
-    return not (s.speed.is_empty or s.turn.is_empty or s.bullets.is_empty)
-end
-
----@param engine engine
 function game:on_turn_start(engine)
     self.bulletTime           = 0
 
     local ship                = self.ship
     ship.linearVelocityTarget = self.sockets.speed.die_value * 30
 
-    local dirs                = { -135, -90, -45, 45, 90, 135 }
+    local dirs                = { [0] = 0, [1] = -135, [2] = -90, [3] = -45, [4] = 45, [5] = 90, [6] = 135 }
     ship.turnStepsTotal       = dirs[self.sockets.turn.die_value] / 45
     ship.turnStepsDone        = 0
 

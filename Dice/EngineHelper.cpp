@@ -210,7 +210,7 @@ void dmd_proxy::print(point_i pos, string_view text, u8 color)
     });
 }
 
-void dmd_proxy::draw_socket(socket* socket, bool required, rect_f const& dmdBounds)
+void dmd_proxy::draw_socket(socket* socket, rect_f const& dmdBounds)
 {
     std::unordered_map<socket_state, u8> borderColors {
         {socket_state::Accept, 0xA},
@@ -226,26 +226,22 @@ void dmd_proxy::draw_socket(socket* socket, bool required, rect_f const& dmdBoun
     rect_i box {pos, size_i {13, 13}};
     box = box.as_inset_by(point_i {-1, -1});
 
-    if (required) {
-        rect(box, borderColors[socket->state()], false);
-    } else {
-        u8 const  color {borderColors[socket->state()]};
-        i32 const len {3};
+    u8 const  color {borderColors[socket->state()]};
+    i32 const len {3};
 
-        i32 const x0 {box.Position.X};
-        i32 const y0 {box.Position.Y};
-        i32 const x1 {box.Position.X + box.Size.Width - 1};
-        i32 const y1 {box.Position.Y + box.Size.Height - 1};
+    i32 const x0 {box.Position.X};
+    i32 const y0 {box.Position.Y};
+    i32 const x1 {box.Position.X + box.Size.Width - 1};
+    i32 const y1 {box.Position.Y + box.Size.Height - 1};
 
-        line({x0, y0}, {x0 + len, y0}, color);
-        line({x0, y0}, {x0, y0 + len}, color);
-        line({x1, y0}, {x1 - len, y0}, color);
-        line({x1, y0}, {x1, y0 + len}, color);
-        line({x0, y1}, {x0 + len, y1}, color);
-        line({x0, y1}, {x0, y1 - len}, color);
-        line({x1, y1}, {x1 - len, y1}, color);
-        line({x1, y1}, {x1, y1 - len}, color);
-    }
+    line({x0, y0}, {x0 + len, y0}, color);
+    line({x0, y0}, {x0, y0 + len}, color);
+    line({x1, y0}, {x1 - len, y0}, color);
+    line({x1, y0}, {x1, y0 + len}, color);
+    line({x0, y1}, {x0 + len, y1}, color);
+    line({x0, y1}, {x0, y1 - len}, color);
+    line({x1, y1}, {x1 - len, y1}, color);
+    line({x1, y1}, {x1, y1 - len}, color);
 
     box = box.as_inset_by(point_i {1, 1});
 

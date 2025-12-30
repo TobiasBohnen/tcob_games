@@ -157,13 +157,13 @@ function gfx.draw_dmd(dmd, game)
     end
 
     sockets.bullets.position = { x = 55, y = 30 }
-    dmd:draw_socket(sockets.bullets, true)
+    dmd:socket(sockets.bullets)
 
     sockets.turn.position = { x = 55, y = 50 }
-    dmd:draw_socket(sockets.turn, true)
+    dmd:socket(sockets.turn)
 
     sockets.speed.position = { x = 55, y = 70 }
-    dmd:draw_socket(sockets.speed, true)
+    dmd:socket(sockets.speed)
 
     if game.powerup then
         dmd:print({ x = 7, y = 90 }, "3 OF A KIND", Palette.Green)

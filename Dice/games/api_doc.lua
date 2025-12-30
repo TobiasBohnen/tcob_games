@@ -115,7 +115,6 @@ Rot = {
 ---@field on_setup fun(self: game_module, engine: engine)
 ---@field on_teardown fun(self: game_module, engine: engine)
 ---@
----@field can_start_turn fun(self: game_module, engine: engine): boolean
 ---@field on_turn_start fun(self: game_module, engine: engine)
 ---@
 ---@field on_turn_update fun(self: game_module, deltaTime: number, turnTime: number): game_status
@@ -196,7 +195,7 @@ function dmd:rect(rect, color, fill) end
 ---@param color color The palette index.
 function dmd:print(pos, text, color) end
 
-function dmd:draw_socket(socket, required) end
+function dmd:socket(socket) end
 
 --------------------------------
 -- Engine

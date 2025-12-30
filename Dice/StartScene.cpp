@@ -47,6 +47,7 @@ void start_scene::on_update(milliseconds deltaTime)
         _gameNode->send_to_back();
         _selectForm->show();
         _currentGameID = 0;
+        _currentGame   = nullptr;
         _events        = nullptr;
     }
 

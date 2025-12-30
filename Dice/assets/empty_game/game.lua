@@ -22,11 +22,6 @@ function game:on_setup(engine)
 end
 
 ---@param engine engine
-function game:can_start_turn(engine)
-    return true
-end
-
----@param engine engine
 function game:on_turn_start(engine)
 end
 

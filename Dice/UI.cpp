@@ -44,14 +44,6 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
         auto& btn0 {layout.create_widget<button>({0, 0, 1, 4}, "btn0")};
         btn0.Label = "GO";
         btn0.Click.connect([&events]() { events.StartTurn(); });
-        _sharedState.CanStart.Changed.connect([&btn0](auto val) {
-            if (val) {
-                btn0.enable();
-            } else {
-                btn0.disable();
-            }
-        });
-        btn0.disable();
 
         auto& btn1 {layout.create_widget<button>({1, 0, 1, 2}, "btn1")};
         btn1.Label = "RESET";
@@ -124,12 +116,6 @@ void game_form::gen_styles(assets::group const& grp)
         activeStyle->Margin            = {1_pct, 1_pct, 2_pct, 0_pct};
         activeStyle->Background        = colors::Black;
         activeStyle->Border.Background = colors::FireBrick;
-
-        auto disableStyle {styles.create<button>("button", {.Disabled = true})};
-        *disableStyle                   = *style;
-        disableStyle->Background        = colors::Gray;
-        disableStyle->Border.Background = colors::Black;
-        disableStyle->Text.Color        = colors::Black;
     }
     {
         auto style {styles.create<button>("button2", {})};

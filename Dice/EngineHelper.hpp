@@ -30,15 +30,14 @@ template <typename T = void>
 using callback = std::optional<scripting::function<T>>;
 
 struct callbacks {
-    callback<>     OnCollision;
-    callback<>     OnDieChange;
-    callback<>     OnDieMotion;
-    callback<>     OnSetup;
-    callback<>     OnTeardown;
-    callback<i32>  OnTurnUpdate;
-    callback<>     OnTurnFinish;
-    callback<bool> CanStartTurn;
-    callback<>     OnTurnStart;
+    callback<>    OnCollision;
+    callback<>    OnDieChange;
+    callback<>    OnDieMotion;
+    callback<>    OnSetup;
+    callback<>    OnTeardown;
+    callback<i32> OnTurnUpdate;
+    callback<>    OnTurnFinish;
+    callback<>    OnTurnStart;
 };
 
 ////////////////////////////////////////////////////////////
@@ -105,7 +104,7 @@ public:
     void blit(rect_i const& rect, string const& dotStr);
     void print(point_i pos, string_view text, u8 color);
 
-    void draw_socket(socket* socket, bool required, rect_f const& dmdBounds);
+    void draw_socket(socket* socket, rect_f const& dmdBounds);
 
 private:
     prop<grid<u8>>& _dmd;

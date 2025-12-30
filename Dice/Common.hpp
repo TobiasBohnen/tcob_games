@@ -129,7 +129,6 @@ struct shared_state {
     rng    Rng;
     rect_f DMDBounds;
 
-    prop<bool>     CanStart {false};
     prop<i32>      Score;
     prop<string>   SSDValue;
     prop<grid<u8>> DMD {grid<u8> {DMD_SIZE, 0}};

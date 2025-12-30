@@ -79,19 +79,14 @@ void engine::run(string const& file)
     _table.try_get(_callbacks.OnTeardown, "on_teardown");
     _table.try_get(_callbacks.OnTurnUpdate, "on_turn_update");
     _table.try_get(_callbacks.OnTurnFinish, "on_turn_finish");
-    _table.try_get(_callbacks.CanStartTurn, "can_start_turn");
     _table.try_get(_callbacks.OnTurnStart, "on_turn_start");
 
     call(_callbacks.OnSetup);
     _init.Game->roll();
-
-    _init.State.CanStart = call(_callbacks.CanStartTurn);
 }
 
 auto engine::update(milliseconds deltaTime) -> bool
 {
-    _init.State.CanStart = _gameStatus == game_status::TurnEnded && call(_callbacks.CanStartTurn);
-
     if (_gameStatus != game_status::Running) { return false; }
 
     _turnTime += deltaTime.count();
@@ -119,14 +114,10 @@ auto engine::start_turn() -> bool
 {
     if (_gameStatus != game_status::TurnEnded) { return false; }
 
-    if (call(_callbacks.CanStartTurn)) {
-        _init.Sockets->lock();
-        call(_callbacks.OnTurnStart);
-        _gameStatus = game_status::Running;
-        return true;
-    }
-
-    return false;
+    _init.Sockets->lock();
+    call(_callbacks.OnTurnStart);
+    _gameStatus = game_status::Running;
+    return true;
 }
 
 void engine::create_env()
@@ -317,9 +308,9 @@ void engine::create_dmd_wrapper()
     dmdWrapper["circle"] = [](dmd_proxy* dmd, point_i center, i32 radius, u8 color, bool fill) { dmd->circle(center, radius, color, fill); };
     dmdWrapper["rect"]   = [](dmd_proxy* dmd, rect_i const& rect, u8 color, bool fill) { dmd->rect(rect, color, fill); };
 
-    dmdWrapper["blit"]        = [](dmd_proxy* dmd, rect_i const& rect, string const& dotStr) { dmd->blit(rect, dotStr); };
-    dmdWrapper["print"]       = [](dmd_proxy* dmd, point_i pos, string_view text, u8 col) { dmd->print(pos, text, col); };
-    dmdWrapper["draw_socket"] = [this](dmd_proxy* dmd, socket* socket, bool required) { dmd->draw_socket(socket, required, _init.State.DMDBounds); };
+    dmdWrapper["blit"]   = [](dmd_proxy* dmd, rect_i const& rect, string const& dotStr) { dmd->blit(rect, dotStr); };
+    dmdWrapper["print"]  = [](dmd_proxy* dmd, point_i pos, string_view text, u8 col) { dmd->print(pos, text, col); };
+    dmdWrapper["socket"] = [this](dmd_proxy* dmd, socket* socket) { dmd->draw_socket(socket, _init.State.DMDBounds); };
 }
 
 void engine::create_backgrounds(std::unordered_map<u32, bg_def> const& bgMap)
