@@ -122,8 +122,8 @@ Rot = {
 ---@field on_turn_finish fun(self: game_module, engine: engine)
 ---@
 ---@field on_collision fun(self: game_module, engine: engine, spriteA: sprite, spriteB: sprite)
----@field on_die_change fun(self: game_module, engine: engine, socket: socket)
----@field on_die_motion fun(self: game_module, engine: engine)
+---@
+---@field draw_dmd fun(self: game_module, engine: engine)
 
 --------------------------------
 -- Sprite

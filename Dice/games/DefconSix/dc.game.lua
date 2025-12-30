@@ -7,8 +7,8 @@ local HALF_DURATION   = DURATION * 0.5
 local CITY_COUNT      = 4
 local MAX_CITY_DAMAGE = 3
 
-local gfx             = require('do.gfx')
-local sfx             = require('do.sfx')
+local gfx             = require('dc.gfx')
+local sfx             = require('dc.sfx')
 
 local game            = {
     cities = {},
@@ -34,8 +34,6 @@ function game:on_setup(engine)
         self:create_city(i, engine)
     end
     self:create_weapons(engine)
-
-    gfx.draw_dmd(engine.dmd, self)
 end
 
 ---@param engine engine
@@ -70,24 +68,17 @@ function game:on_collision(engine, spriteA, spriteB)
 end
 
 ---@param engine engine
----@param socket socket
-function game:on_die_change(engine, socket)
-    gfx.draw_dmd(engine.dmd, self)
-end
-
----@param engine engine
-function game:on_die_motion(engine)
-    gfx.draw_dmd(engine.dmd, self)
-end
-
----@param engine engine
 function game:on_turn_finish(engine)
-    gfx.draw_dmd(engine.dmd, self)
 end
 
 ---@param engine engine
 function game:on_teardown(engine)
     gfx.draw_game_over(engine.dmd, self)
+end
+
+---@param engine engine
+function game:draw_dmd(engine)
+    gfx.draw_dmd(engine.dmd, self)
 end
 
 ------

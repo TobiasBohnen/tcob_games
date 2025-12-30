@@ -31,13 +31,12 @@ using callback = std::optional<scripting::function<T>>;
 
 struct callbacks {
     callback<>    OnCollision;
-    callback<>    OnDieChange;
-    callback<>    OnDieMotion;
     callback<>    OnSetup;
     callback<>    OnTeardown;
     callback<i32> OnTurnUpdate;
     callback<>    OnTurnFinish;
     callback<>    OnTurnStart;
+    callback<>    DrawDMD;
 };
 
 ////////////////////////////////////////////////////////////

@@ -41,7 +41,7 @@ local game                  = {
 
     sounds      = {
         explosion = 1, ---@type sound
-        bullet = 2, ---@type sound
+        bullet    = 2, ---@type sound
     },
 
     powerup     = false,
@@ -62,8 +62,6 @@ function game:on_setup(engine)
     self.sockets.speed   = engine:create_socket { colors = { Palette.White } }
     self.sockets.turn    = engine:create_socket { colors = { Palette.White } }
     self.sockets.bullets = engine:create_socket { colors = { Palette.White, Palette.Red } }
-
-    gfx.draw_dmd(engine.dmd, self)
 end
 
 ---@param engine engine
@@ -82,7 +80,6 @@ function game:on_turn_start(engine)
     if engine:get_hand(self.sockets).value == "ThreeOfAKind" then
         ship:set_invulnerable(true)
         self.powerup = true
-        gfx.draw_dmd(engine.dmd, self)
     end
 end
 
@@ -119,27 +116,20 @@ function game:on_collision(engine, spriteA, spriteB)
 end
 
 ---@param engine engine
----@param socket socket
-function game:on_die_change(engine, socket)
-    gfx.draw_dmd(engine.dmd, self)
-end
-
----@param engine engine
-function game:on_die_motion(engine)
-    gfx.draw_dmd(engine.dmd, self)
-end
-
----@param engine engine
 function game:on_turn_finish(engine)
     self.powerup = false
     self.ship:set_invulnerable(false)
     self:try_spawn_asteroid(engine)
-    gfx.draw_dmd(engine.dmd, self)
 end
 
 ---@param engine engine
 function game:on_teardown(engine)
     gfx.draw_game_over(engine.dmd, self)
+end
+
+---@param engine engine
+function game:draw_dmd(engine)
+    gfx.draw_dmd(engine.dmd, self)
 end
 
 ------
