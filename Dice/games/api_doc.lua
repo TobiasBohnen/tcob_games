@@ -80,6 +80,7 @@
 ---@field LightBlue color
 Palette = {}
 
+ScreenRect = { x = 0, y = 0, width = 0, height = 0 } ---@type rect
 ScreenSize = { width = 0, height = 0 } ---@type size
 DMDSize = { width = 0, height = 0 } ---@type size
 

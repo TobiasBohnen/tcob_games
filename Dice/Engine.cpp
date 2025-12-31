@@ -151,6 +151,7 @@ void engine::create_env()
     }
     env["Palette"] = palette;
 
+    env["ScreenRect"] = rect_f {point_f::Zero, VIRTUAL_SCREEN_SIZE};
     env["ScreenSize"] = VIRTUAL_SCREEN_SIZE;
     env["DMDSize"]    = DMD_SIZE;
 
