@@ -47,8 +47,8 @@ local game                  = {
 
 ---@param engine engine
 function game:on_setup(engine)
-    engine.bg:blit(ScreenRect, gfx.get_background(self, engine))
-    engine:create_textures(gfx.get_textures(self, engine))
+    gfx.create_background(engine)
+    gfx.create_textures(self, engine)
     engine:create_sounds(sfx.get_sounds(self, engine))
 
     self:create_ship(engine)
@@ -125,22 +125,23 @@ end
 ------
 ------
 
-function game:update_entity(e, deltaTime)
+function game:update_entity(e, deltaTime, screenSize)
     local rad         = math.rad((e.direction or 0) - 90)
     local vx          = math.cos(rad) * e.linearVelocity / 1000
     local vy          = math.sin(rad) * e.linearVelocity / 1000
 
     local pos         = e.sprite.position
-    e.sprite.position = { x = (pos.x + vx * deltaTime) % ScreenSize.width, y = (pos.y + vy * deltaTime) % ScreenSize.height }
+    e.sprite.position = { x = (pos.x + vx * deltaTime) % screenSize.width, y = (pos.y + vy * deltaTime) % screenSize.height }
 end
 
 ---@param engine engine
 function game:try_spawn_asteroid(engine)
+    local screenSize = engine.screenSize
     local count = #self.asteroids
     if count >= INIT_ASTEROID_COUNT * 2 then return end
 
     local x, y
-    local maxX, maxY = ScreenSize.width - gfx.largeAsteroidSize, ScreenSize.height - gfx.largeAsteroidSize
+    local maxX, maxY = screenSize.width - gfx.largeAsteroidSize, screenSize.height - gfx.largeAsteroidSize
 
     local edge = engine:irnd(1, 4)
     if edge == 1 then
@@ -167,6 +168,7 @@ end
 
 ---@param engine engine
 function game:create_asteroid(engine, size, x, y)
+    local screenSize                    = engine.screenSize
     local asteroid                      = {
         direction      = engine:rnd(0, 359),
         linearVelocity = engine:rnd(15, 30),
@@ -201,7 +203,7 @@ function game:create_asteroid(engine, size, x, y)
                 engine:give_score(ASTEROID_SCORES[a.size])
                 engine.ssd = tostring(#self.asteroids)
             else
-                self:update_entity(a, deltaTime)
+                self:update_entity(a, deltaTime, screenSize)
             end
         end,
 
@@ -226,6 +228,7 @@ end
 
 ---@param engine engine
 function game:create_bullet(engine)
+    local screenSize                = engine.screenSize
     local ship                      = self.ship
 
     local bullet                    = {
@@ -239,7 +242,7 @@ function game:create_bullet(engine)
 
         update         = function(b, i, deltaTime)
             if b.lifetime < DURATION then
-                self:update_entity(b, deltaTime)
+                self:update_entity(b, deltaTime, screenSize)
             else
                 engine:remove_sprite(b.sprite)
                 table.remove(self.bullets, i)
@@ -304,6 +307,7 @@ end
 
 ---@param engine engine
 function game:create_ship(engine)
+    local screenSize = engine.screenSize
     local ship = {
         direction            = 0,
         linearVelocity       = 0,
@@ -318,7 +322,7 @@ function game:create_ship(engine)
 
         spriteInit           = {
             texture = 0,
-            position = { x = ScreenSize.width / 2 - 12, y = ScreenSize.height / 2 - 12 }
+            position = { x = screenSize.width / 2 - 12, y = screenSize.height / 2 - 12 }
         },
 
         turn_start           = function(ship)
@@ -360,7 +364,7 @@ function game:create_ship(engine)
 
             ship.direction = ship.direction % 360
             ship.sprite.texture = ship.shieldsUp and self.textures.hurtShip[ship.direction] or self.textures.ship[ship.direction]
-            self:update_entity(ship, deltaTime)
+            self:update_entity(ship, deltaTime, screenSize)
         end,
 
         collide              = function(ship, b)

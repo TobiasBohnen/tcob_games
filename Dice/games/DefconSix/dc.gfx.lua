@@ -5,8 +5,10 @@
 local gfx = {}
 
 ---@param engine engine
-function gfx.get_background(game, engine)
-    local w, h  = ScreenSize.width, ScreenSize.height
+function gfx.create_background(engine)
+    local bg    = engine.bg
+    local size  = bg.size
+    local w, h  = size.width, size.height
     local n     = w * h
     local buf   = {}
 
@@ -43,18 +45,7 @@ function gfx.get_background(game, engine)
         end
     end
 
-    return table.concat(buf)
-end
-
-local function make_texture(size, tex, flipH)
-    return {
-        size     = size,
-        bitmap   = tex,
-        settings = {
-            transparent = 0,
-            flip_h      = flipH
-        }
-    }
+    bg:blit(bg.bounds, table.concat(buf))
 end
 
 local city_texture_undamaged =
@@ -78,19 +69,46 @@ gfx.sizes = {
     missile = { width = 8, height = 8 }
 }
 
-
 ---@param engine engine
-function gfx.get_textures(game, engine)
-    return {
-        [game.textures.city.undamaged]    = make_texture(gfx.sizes.city, city_texture_undamaged),
-        [game.textures.city.light_damage] = make_texture(gfx.sizes.city, city_texture_light_damage),
-        [game.textures.city.heavy_damage] = make_texture(gfx.sizes.city, city_texture_heavy_damage),
-        [game.textures.city.destroyed]    = make_texture(gfx.sizes.city, city_texture_destroyed),
-        [game.textures.weapon.left]       = make_texture(gfx.sizes.weapon, weapon_texture),
-        [game.textures.weapon.right]      = make_texture(gfx.sizes.weapon, weapon_texture, true),
-        [game.textures.weapon.center]     = make_texture(gfx.sizes.weapon, weapon_center_texture),
-        [game.textures.missile]           = make_texture(gfx.sizes.missile, missile_texture),
-    }
+function gfx.create_textures(game, engine)
+    local spr       = engine.spr
+    local pen       = { x = 1, y = 1 }
+    local rowHeight = 0
+    local padding   = 2
+
+    local function make_texture(id, size, tex, flipH)
+        local width  = size.width
+        local height = size.height
+
+        if pen.x + width > spr.size.width then
+            pen.x     = 1
+            pen.y     = pen.y + rowHeight + padding
+            rowHeight = 0
+        end
+
+        spr:blit(
+            { x = pen.x, y = pen.y, width = width, height = height },
+            tex,
+            {
+                transparent = 0,
+                flip_h = flipH
+            }
+        )
+
+        engine:create_texture(id, { x = pen.x, y = pen.y, width = width, height = height })
+
+        pen.x = pen.x + width + padding
+        rowHeight = math.max(rowHeight, height)
+    end
+
+    make_texture(game.textures.city.undamaged, gfx.sizes.city, city_texture_undamaged)
+    make_texture(game.textures.city.light_damage, gfx.sizes.city, city_texture_light_damage)
+    make_texture(game.textures.city.heavy_damage, gfx.sizes.city, city_texture_heavy_damage)
+    make_texture(game.textures.city.destroyed, gfx.sizes.city, city_texture_destroyed)
+    make_texture(game.textures.weapon.left, gfx.sizes.weapon, weapon_texture)
+    make_texture(game.textures.weapon.right, gfx.sizes.weapon, weapon_texture, true)
+    make_texture(game.textures.weapon.center, gfx.sizes.weapon, weapon_center_texture)
+    make_texture(game.textures.missile, gfx.sizes.missile, missile_texture)
 end
 
 ------

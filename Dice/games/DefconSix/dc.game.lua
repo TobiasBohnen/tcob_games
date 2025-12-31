@@ -22,12 +22,10 @@ local game            = {
     },
 }
 
-local cityOffset      = gfx.sizes.city.width + ((ScreenSize.width / CITY_COUNT) - gfx.sizes.city.width) / 2
-
 ---@param engine engine
 function game:on_setup(engine)
-    engine.bg:blit(ScreenRect, gfx.get_background(self, engine))
-    engine:create_textures(gfx.get_textures(self, engine))
+    gfx.create_background(engine)
+    gfx.create_textures(self, engine)
     engine:create_sounds(sfx.get_sounds(self, engine))
 
     for i = 1, CITY_COUNT do
@@ -91,13 +89,15 @@ function game:create_city(i, engine)
         [2] = self.textures.city.heavy_damage,
         [3] = self.textures.city.destroyed,
     }
+    local screenSize           = engine.screenSize
+    local cityOffset           = gfx.sizes.city.width + ((screenSize.width / CITY_COUNT) - gfx.sizes.city.width) / 2
     local city                 = {
         type       = "city",
         damage     = 0,
         spriteInit = {
             position   = {
-                x = ((ScreenSize.width / CITY_COUNT) * i) - cityOffset,
-                y = ScreenSize.height / 5 * 4
+                x = ((screenSize.width / CITY_COUNT) * i) - cityOffset,
+                y = screenSize.height / 5 * 4
             },
             texture    = CITY_DAMAGE_TEXTURES[0],
             wrappable  = false,
@@ -126,12 +126,13 @@ function game:create_city(i, engine)
 end
 
 function game:create_weapons(engine)
+    local screenSize = engine.screenSize
     self.weapons = {
         left = {
             sprite = engine:create_sprite({
                 spriteInit = {
                     texture = self.textures.weapon.left,
-                    position = { x = 0, y = ScreenSize.height / 3 * 2 },
+                    position = { x = 0, y = screenSize.height / 3 * 2 },
                     wrappable = false,
                     collidable = false
                 }
@@ -141,7 +142,7 @@ function game:create_weapons(engine)
             sprite = engine:create_sprite({
                 spriteInit = {
                     texture = self.textures.weapon.right,
-                    position = { x = ScreenSize.width - gfx.sizes.weapon.width, y = ScreenSize.height / 3 * 2 },
+                    position = { x = screenSize.width - gfx.sizes.weapon.width, y = screenSize.height / 3 * 2 },
                     wrappable = false,
                     collidable = false
                 }
@@ -151,7 +152,7 @@ function game:create_weapons(engine)
             sprite = engine:create_sprite({
                 spriteInit = {
                     texture = self.textures.weapon.center,
-                    position = { x = (ScreenSize.width - gfx.sizes.weapon.width) / 2, y = ScreenSize.height / 3 * 2 },
+                    position = { x = (screenSize.width - gfx.sizes.weapon.width) / 2, y = screenSize.height / 3 * 2 },
                     wrappable = false,
                     collidable = false
                 }
@@ -168,13 +169,14 @@ function game:try_spawn_missile(engine)
 end
 
 function game:create_missile(engine)
+    local screenSize                  = engine.screenSize
     local missile                     = {
         target = engine:irnd(1, #self.cities),
         linearVelocity = engine:rnd(15, 30),
         type = "missile",
         markedForDeath = false,
         spriteInit = {
-            position   = { x = engine:rnd(0, ScreenSize.width), y = 0 },
+            position   = { x = engine:rnd(0, screenSize.width), y = 0 },
             texture    = self.textures.missile,
             wrappable  = false,
             collidable = true,
@@ -192,7 +194,7 @@ function game:create_missile(engine)
             local pos         = m.sprite.position
             local newPos      = { x = (pos.x + vx * deltaTime), y = (pos.y + vy * deltaTime) }
             m.sprite.position = newPos
-            if newPos.y > ScreenSize.height or newPos.x < 0 or newPos.x > ScreenSize.width then
+            if newPos.y > screenSize.height or newPos.x < 0 or newPos.x > screenSize.width then
                 m.markedForDeath = true
             end
         end,

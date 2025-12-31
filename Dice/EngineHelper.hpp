@@ -84,24 +84,13 @@ struct blit_settings {
     }
 };
 
-struct tex_def {
-    size_i                       Size {size_i::Zero};
-    string                       Bitmap;
-    std::optional<blit_settings> Settings;
-
-    static auto constexpr Members()
-    {
-        return std::tuple {member<&tex_def::Size> {"size"},
-                           member<&tex_def::Bitmap> {"bitmap"},
-                           member<&tex_def::Settings, std::nullopt> {"settings"}};
-    }
-};
-
 ////////////////////////////////////////////////////////////
 
 class dmd_proxy {
 public:
     dmd_proxy(prop<grid<u8>>& dmd);
+
+    auto size() const -> size_i;
 
     void clear();
 
@@ -120,9 +109,11 @@ private:
 
 ////////////////////////////////////////////////////////////
 
-class screen_proxy {
+class tex_proxy {
 public:
-    screen_proxy(prop<gfx::image>& img, color clear);
+    tex_proxy(prop<gfx::image>& img, color clear);
+
+    auto bounds() const -> rect_i;
 
     void clear();
 

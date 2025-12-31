@@ -134,4 +134,5 @@ struct shared_state {
     prop<grid<u8>>   DMD {grid<u8> {DMD_SIZE, 0}};
     prop<gfx::image> Foreground;
     prop<gfx::image> Background;
+    prop<gfx::image> SpriteTexture;
 };

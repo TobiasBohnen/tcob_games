@@ -16,6 +16,7 @@ engine::engine(init const& init)
     , _dmdProxy {init.State.DMD}
     , _fgProxy {init.State.Foreground, colors::Transparent}
     , _bgProxy {init.State.Background, PALETTE[0]}
+    , _texProxy {init.State.SpriteTexture, colors::Transparent}
 {
     create_env();
     create_wrappers();
@@ -151,10 +152,6 @@ void engine::create_env()
     }
     env["Palette"] = palette;
 
-    env["ScreenRect"] = rect_f {point_f::Zero, VIRTUAL_SCREEN_SIZE};
-    env["ScreenSize"] = VIRTUAL_SCREEN_SIZE;
-    env["DMDSize"]    = DMD_SIZE;
-
     table gameStatus {_script.create_table()};
     gameStatus["Running"]   = static_cast<i32>(game_status::Running);
     gameStatus["TurnEnded"] = static_cast<i32>(game_status::TurnEnded);
@@ -187,7 +184,7 @@ void engine::create_wrappers()
     create_socket_wrapper();
     create_engine_wrapper();
     create_dmd_wrapper();
-    create_screen_wrapper();
+    create_tex_wrapper();
 }
 
 void engine::create_sprite_wrapper()
@@ -235,7 +232,7 @@ void engine::create_engine_wrapper()
 {
     auto& engineWrapper {*_script.create_wrapper<engine>("engine")};
     // gfx
-    engineWrapper["create_textures"] = [](engine* engine, std::unordered_map<u32, tex_def>& texMap) { engine->create_textures(texMap); };
+    engineWrapper["create_texture"] = [](engine* engine, u32 id, rect_i const& uv) { engine->create_texture(id, uv); };
 
     // sfx
     engineWrapper["create_sounds"] = [](engine* engine, std::unordered_map<u32, audio::sound_wave> const& soundMap) {
@@ -281,10 +278,12 @@ void engine::create_engine_wrapper()
     };
 
     // properties
-    engineWrapper["dmd"] = getter {[](engine* engine) { return &engine->_dmdProxy; }};
-    engineWrapper["fg"]  = getter {[](engine* engine) { return &engine->_fgProxy; }};
-    engineWrapper["bg"]  = getter {[](engine* engine) { return &engine->_bgProxy; }};
-    engineWrapper["ssd"] = property {
+    engineWrapper["screenSize"] = getter {[]() -> size_i { return size_i {VIRTUAL_SCREEN_SIZE}; }};
+    engineWrapper["dmd"]        = getter {[](engine* engine) { return &engine->_dmdProxy; }};
+    engineWrapper["fg"]         = getter {[](engine* engine) { return &engine->_fgProxy; }};
+    engineWrapper["bg"]         = getter {[](engine* engine) { return &engine->_bgProxy; }};
+    engineWrapper["spr"]        = getter {[](engine* engine) { return &engine->_texProxy; }};
+    engineWrapper["ssd"]        = property {
         [](engine* engine) { return *engine->_init.State.SSDValue; },
         [](engine* engine, string const& val) { engine->_init.State.SSDValue = val; }};
 }
@@ -292,6 +291,8 @@ void engine::create_engine_wrapper()
 void engine::create_dmd_wrapper()
 {
     auto& dmdWrapper {*_script.create_wrapper<dmd_proxy>("dmd")};
+    dmdWrapper["size"] = getter {[](dmd_proxy* dmd) { return dmd->size(); }};
+
     dmdWrapper["clear"] = [](dmd_proxy* dmd) { dmd->clear(); };
 
     dmdWrapper["line"]   = [](dmd_proxy* dmd, point_i start, point_i end, u8 color) { dmd->line(start, end, color); };
@@ -303,96 +304,40 @@ void engine::create_dmd_wrapper()
     dmdWrapper["socket"] = [this](dmd_proxy* dmd, socket* socket) { dmd->draw_socket(socket, _init.State.DMDBounds); };
 }
 
-void engine::create_screen_wrapper()
+void engine::create_tex_wrapper()
 {
-    auto& screenWrapper {*_script.create_wrapper<screen_proxy>("screen")};
-    screenWrapper["clear"] = [](screen_proxy* scr) { scr->clear(); };
+    auto& texWrapper {*_script.create_wrapper<tex_proxy>("tex")};
+    texWrapper["bounds"] = getter {[](tex_proxy* tex) { return tex->bounds(); }};
+    texWrapper["size"]   = getter {[](tex_proxy* tex) { return tex->bounds().Size; }};
 
-    screenWrapper["line"]   = [](screen_proxy* scr, point_i start, point_i end, u8 color) { scr->line(start, end, color); };
-    screenWrapper["circle"] = [](screen_proxy* scr, point_i center, i32 radius, u8 color, bool fill) { scr->circle(center, radius, color, fill); };
-    screenWrapper["rect"]   = [](screen_proxy* scr, rect_i const& rect, u8 color, bool fill) { scr->rect(rect, color, fill); };
+    texWrapper["clear"] = [](tex_proxy* tex) { tex->clear(); };
 
-    screenWrapper["blit"] = [](screen_proxy* scr, rect_i const& rect, string const& dotStr, std::optional<blit_settings> settings) { scr->blit(rect, dotStr, settings ? *settings : blit_settings {}); };
+    texWrapper["line"]   = [](tex_proxy* tex, point_i start, point_i end, u8 color) { tex->line(start, end, color); };
+    texWrapper["circle"] = [](tex_proxy* tex, point_i center, i32 radius, u8 color, bool fill) { tex->circle(center, radius, color, fill); };
+    texWrapper["rect"]   = [](tex_proxy* tex, rect_i const& rect, u8 color, bool fill) { tex->rect(rect, color, fill); };
+
+    texWrapper["blit"] = [](tex_proxy* tex, rect_i const& rect, string const& dotStr, std::optional<blit_settings> settings) { tex->blit(rect, dotStr, settings ? *settings : blit_settings {}); };
 }
 
-void engine::create_textures(std::unordered_map<u32, tex_def>& texMap)
+void engine::create_texture(u32 id, rect_i const& uv)
 {
-    i32 rowHeight {0};
+    auto& tex {_textures[id]};
+    tex.ID     = id;
+    tex.Size   = size_f {uv.Size};
+    tex.Region = std::to_string(id);
+    tex.Alpha  = grid<u8> {uv.Size};
 
-    auto* tex {_init.Game->get_sprite_texture()};
-    tex->resize(SPRITE_TEXTURE_SIZE, 1, gfx::texture::format::RGBA8);
+    _init.Game->get_sprite_texture()->regions()[tex.Region] =
+        {.UVRect = {static_cast<f32>(uv.left()) / static_cast<f32>(SPRITE_TEXTURE_SIZE.Width),
+                    static_cast<f32>(uv.top()) / static_cast<f32>(SPRITE_TEXTURE_SIZE.Height),
+                    static_cast<f32>(uv.width()) / static_cast<f32>(SPRITE_TEXTURE_SIZE.Width),
+                    static_cast<f32>(uv.height()) / static_cast<f32>(SPRITE_TEXTURE_SIZE.Height)},
+         .Level  = 0};
 
-    for (auto& [id, texDef] : texMap) {
-        auto const blitSettings {texDef.Settings.value_or(blit_settings {})};
-        u32 const  rotation {blitSettings.Rotation.value_or(0)};
-        bool const flip_h {blitSettings.FlipH.value_or(false)};
-        bool const flip_v {blitSettings.FlipV.value_or(false)};
-
-        size_i const texSize {rotation == 90 || rotation == 270 ? size_i {texDef.Size.Height, texDef.Size.Width} : texDef.Size};
-
-        if (_texturePen.X + texSize.Width + TEX_PAD > SPRITE_TEXTURE_SIZE.Width) {
-            _texturePen.X = TEX_PAD;
-            _texturePen.Y += rowHeight + (TEX_PAD * 2);
-            rowHeight = 0;
+    for (i32 y {0}; y < uv.height(); ++y) {
+        for (i32 x {0}; x < uv.width(); ++x) {
+            color const col {_init.State.SpriteTexture->get_pixel(point_i {x, y} + uv.top_left())};
+            tex.Alpha[x, y] = col.A;
         }
-        if (_texturePen.Y + texSize.Height + TEX_PAD > SPRITE_TEXTURE_SIZE.Height) {
-            _texturePen.Y = TEX_PAD;
-            rowHeight     = 0;
-            logger::Warning("tex overflow");
-        }
-
-        auto& assTex {_textures[id]};
-        assTex.ID     = id;
-        assTex.Size   = size_f {texSize};
-        assTex.Region = std::to_string(id);
-        assTex.Alpha  = grid<u8> {texSize};
-
-        auto const dots {decode_texture_pixels(texDef.Bitmap, texDef.Size)};
-        i32 const  w {texDef.Size.Width};
-        i32 const  h {texDef.Size.Height};
-
-        auto const map_xy {[&](i32 x, i32 y) -> point_i {
-            i32 const r {w - 1};
-            i32 const b {h - 1};
-            i32 const fx {flip_h ? r - x : x};
-            i32 const fy {flip_v ? h - 1 - y : y};
-            switch (rotation) {
-            case 90:  return {b - fy, fx};
-            case 180: return {r - fx, b - fy};
-            case 270: return {fy, r - fx};
-            default:  return {fx, fy};
-            }
-        }};
-        auto       pixels {_textureImage.data()};
-        for (i32 y {0}; y < h; ++y) {
-            for (i32 x {0}; x < w; ++x) {
-                point_i const mapped {map_xy(x, y)};
-                point_i const dst {_texturePen + mapped};
-                if (!SPRITE_TEXTURE_SIZE.contains(dst)) { continue; }
-
-                u8 const    srcIdx {dots[x + (y * w)]};
-                isize const dstIdx {(dst.X + (dst.Y * SPRITE_TEXTURE_SIZE.Width)) * 4};
-                color const col {blitSettings.Transparent == srcIdx ? colors::Transparent : PALETTE[srcIdx]};
-                pixels[dstIdx + 0] = col.R;
-                pixels[dstIdx + 1] = col.G;
-                pixels[dstIdx + 2] = col.B;
-                pixels[dstIdx + 3] = col.A;
-
-                assTex.Alpha[mapped.X, mapped.Y] = col.A;
-            }
-        }
-
-        tex->regions()[assTex.Region] =
-            {.UVRect = {static_cast<f32>(_texturePen.X) / static_cast<f32>(SPRITE_TEXTURE_SIZE.Width),
-                        static_cast<f32>(_texturePen.Y) / static_cast<f32>(SPRITE_TEXTURE_SIZE.Height),
-                        static_cast<f32>(texSize.Width) / static_cast<f32>(SPRITE_TEXTURE_SIZE.Width),
-                        static_cast<f32>(texSize.Height) / static_cast<f32>(SPRITE_TEXTURE_SIZE.Height)},
-             .Level  = 0};
-
-        rowHeight = std::max(rowHeight, texSize.Height);
-        _texturePen.X += texSize.Width + (TEX_PAD * 2);
     }
-
-    tex->update_data(_textureImage, 0);
-    tex->Filtering = gfx::texture::filtering::NearestNeighbor;
 }

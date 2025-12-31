@@ -100,10 +100,17 @@ dmd_proxy::dmd_proxy(prop<grid<u8>>& dmd)
     : _dmd {dmd}
 {
 }
+
+auto dmd_proxy::size() const -> size_i
+{
+    return DMD_SIZE;
+}
+
 void dmd_proxy::clear()
 {
     _dmd = grid<u8> {DMD_SIZE, 0};
 }
+
 void dmd_proxy::line(point_i start, point_i end, u8 color)
 {
     _dmd.mutate([&](auto& dmd) {
@@ -144,6 +151,7 @@ void dmd_proxy::blit(rect_i const& rect, string const& dotStr)
 
     _dmd.mutate([&](auto& dmd) { dmd.blit(rect, dots); });
 }
+
 void dmd_proxy::print(point_i pos, string_view text, u8 color)
 {
     static constexpr std::array<std::array<u8, 5>, 50> font5x5 {
@@ -296,21 +304,23 @@ void dmd_proxy::draw_socket(socket* socket, rect_f const& dmdBounds)
 
 ////////////////////////////////////////////////////////////
 
-screen_proxy::screen_proxy(prop<gfx::image>& img, color clear)
+tex_proxy::tex_proxy(prop<gfx::image>& img, color clear)
     : _img {img}
     , _clear {clear}
 {
     this->clear();
 }
 
-void screen_proxy::clear()
+auto tex_proxy::bounds() const -> rect_i { return {point_i::Zero, _img->info().Size}; }
+
+void tex_proxy::clear()
 {
     _img.mutate([&](auto& img) {
         img.fill({point_i::Zero, img.info().Size}, _clear);
     });
 }
 
-void screen_proxy::line(point_i start, point_i end, u8 color)
+void tex_proxy::line(point_i start, point_i end, u8 color)
 {
     _img.mutate([&](auto& img) {
         auto const size {img.info().Size};
@@ -322,7 +332,7 @@ void screen_proxy::line(point_i start, point_i end, u8 color)
     });
 }
 
-void screen_proxy::circle(point_i center, i32 radius, u8 color, bool fill)
+void tex_proxy::circle(point_i center, i32 radius, u8 color, bool fill)
 {
     _img.mutate([&](auto& img) {
         auto const size {img.info().Size};
@@ -334,7 +344,7 @@ void screen_proxy::circle(point_i center, i32 radius, u8 color, bool fill)
     });
 }
 
-void screen_proxy::rect(rect_i const& rect, u8 color, bool fill)
+void tex_proxy::rect(rect_i const& rect, u8 color, bool fill)
 {
     _img.mutate([&](auto& img) {
         auto const size {img.info().Size};
@@ -346,7 +356,7 @@ void screen_proxy::rect(rect_i const& rect, u8 color, bool fill)
     });
 }
 
-void screen_proxy::blit(rect_i const& rect, string const& data, blit_settings settings)
+void tex_proxy::blit(rect_i const& rect, string const& data, blit_settings settings)
 {
     if (rect.right() > _img->info().Size.Width || rect.bottom() > _img->info().Size.Height) { return; }
     auto const dots {decode_texture_pixels(data, rect.Size)};

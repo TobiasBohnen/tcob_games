@@ -94,6 +94,7 @@ private:
 
     asset_owner_ptr<gfx::material> _spriteMaterial;
     asset_owner_ptr<gfx::texture>  _spriteTexture;
+    bool                           _updateSprites {true};
 
     asset_owner_ptr<gfx::material> _backgroundMaterial;
     asset_owner_ptr<gfx::texture>  _backgroundTexture;

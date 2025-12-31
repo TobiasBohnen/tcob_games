@@ -49,6 +49,10 @@ dice_game::dice_game(init const& init)
     , _sockets {init.RealWindowSize / DICE_REF_SIZE}
     , _dice {_diceBatch, init.RealWindowSize / DICE_REF_SIZE}
 {
+    _spriteMaterial->first_pass().Texture = _spriteTexture;
+    _spriteTexture->resize(SPRITE_TEXTURE_SIZE, 1, gfx::texture::format::RGBA8);
+    _sharedState.SpriteTexture = gfx::image::CreateEmpty(SPRITE_TEXTURE_SIZE, gfx::image::format::RGBA);
+    _sharedState.SpriteTexture.Changed.connect([&](auto const&) { _updateSprites = true; });
 
     _background->Bounds                       = {point_f::Zero, VIRTUAL_SCREEN_SIZE};
     _backgroundMaterial->first_pass().Texture = _backgroundTexture;
@@ -65,8 +69,6 @@ dice_game::dice_game(init const& init)
     _foregroundTexture->regions()["default"] = gfx::texture_region {.UVRect = {0, 0, 1, 1}, .Level = 0};
     _sharedState.Foreground                  = gfx::image::CreateEmpty(size_i {VIRTUAL_SCREEN_SIZE}, gfx::image::format::RGBA);
     _sharedState.Foreground.Changed.connect([&](auto const&) { _updateForeground = true; });
-
-    _spriteMaterial->first_pass().Texture = _spriteTexture;
 
     // TODO: enforce int scaling for background
     // TODO: 16:10 support
@@ -132,6 +134,7 @@ void dice_game::on_fixed_update(milliseconds deltaTime)
         _spriteBatch.bring_to_front(*_foreground);
     }
 
+    if (_updateSprites) { _spriteTexture->update_data(_sharedState.SpriteTexture, 0); }
     if (_updateBackground) { _backgroundTexture->update_data(_sharedState.Background, 0); }
     if (_updateForeground) { _foregroundTexture->update_data(_sharedState.Foreground, 0); }
     _spriteBatch.update(deltaTime);

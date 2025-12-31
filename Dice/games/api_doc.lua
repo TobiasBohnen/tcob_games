@@ -36,7 +36,7 @@
 ---@class sprite_init
 ---@description The initialization table used to define a new sprite's properties and behavior.
 ---@field texture? integer The ID of the texture to use from the sprite atlas.
----@field position? point The world position of the sprite.
+---@field position? point The position of the sprite.
 ---@field collidable? boolean Whether the sprite should trigger collision events.
 ---@field wrappable? boolean Whether the sprite wraps around the screen edges.
 
@@ -62,10 +62,10 @@
 ---@field sockets socket[] The subset of sockets that actually form the hand (e.g., the 3 sockets in a ThreeOfAKind).
 
 ---@class blit_settings
----@field transparent? boolean If true, treats certain pixel values as transparent (won't overwrite destination).
----@field rotation? rotation Rotates the pixel data before drawing (0, 90, 180, or 270 degrees).
----@field flip_h? boolean If true, flips the pixel data horizontally (mirrors left-right).
----@field flip_v? boolean If true, flips the pixel data vertically (mirrors top-bottom).
+---@field transparent? integer The palette index to treat as transparent.
+---@field rotation? rotation Rotation angle in degrees: 0, 90, 180, or 270.
+---@field flip_h? boolean Flip horizontally (mirror left-right).
+---@field flip_v? boolean Flip vertically (mirror top-bottom).
 
 ---@class palette
 ---@field Black color
@@ -85,10 +85,6 @@
 ---@field Blue color
 ---@field LightBlue color
 Palette = {}
-
-ScreenRect = { x = 0, y = 0, width = 0, height = 0 } ---@type rect
-ScreenSize = { width = 0, height = 0 } ---@type size
-DMDSize = { width = 0, height = 0 } ---@type size
 
 ---@enum game_status
 GameStatus = {
@@ -138,8 +134,8 @@ Rot = {
 
 ---@class sprite
 ---@description A graphical object managed by the game engine.
----@field position point The world position of the sprite.
----@field size size The width and height of the sprite in world units.
+---@field position point The position of the sprite.
+---@field size size The width and height of the sprite in pixels.
 ---@field bounds rect The bounding rectangle of the sprite (Position + Size). @readonly
 ---@field owner table The Lua table defining this sprite's behavior. @readonly
 ---@field texture integer The ID of the texture from the packed atlas.
@@ -198,39 +194,41 @@ function dmd:print(pos, text, color) end
 function dmd:socket(socket) end
 
 --------------------------------
--- SCREEN
+-- TEX
 --------------------------------
----@class screen
----@description Interface for drawing to the screen. All color values should be between 0 and 15.
-local screen = {}
+---@class tex
+---@description Interface for drawing a textures. All color values should be between 0 and 15.
+---@field size size The width and height of the texture in pixels.
+---@field bounds rect The bounding rectangle of the texture (Position + Size). @readonly
+local tex = {}
 
 ---Copies a raw string of dot data into the specified rectangle.
----@param rect rect The destination area on the screen.
+---@param rect rect The destination area on the texture.
 ---@param data string A string where each character represents a pixel.
 ---@param blitSettings? blit_settings Optional table controlling how the blit operation is performed.
-function screen:blit(rect, data, blitSettings) end
+function tex:blit(rect, data, blitSettings) end
 
 ---Clears the entire DMD, setting all pixels to transparent.
-function screen:clear() end
+function tex:clear() end
 
 ---Draws a line between two points.
 ---@param start point The starting coordinate {x, y}.
 ---@param end_point point The ending coordinate {x, y}.
 ---@param color color The palette index.
-function screen:line(start, end_point, color) end
+function tex:line(start, end_point, color) end
 
 ---Draws a circle centered at a specific point.
 ---@param center point The center coordinate {x, y}.
 ---@param radius integer The distance from the center to the edge.
 ---@param color color The palette index.
 ---@param fill boolean Whether to draw a solid circle or just the outline.
-function screen:circle(center, radius, color, fill) end
+function tex:circle(center, radius, color, fill) end
 
 ---Draws a rectangle based on a rect object.
 ---@param rect rect The position and size of the rectangle.
 ---@param color color The palette index.
 ---@param fill boolean Whether to draw a solid rectangle or just the outline.
-function screen:rect(rect, color, fill) end
+function tex:rect(rect, color, fill) end
 
 --------------------------------
 -- Engine
@@ -238,17 +236,20 @@ function screen:rect(rect, color, fill) end
 
 ---@class engine
 ---@description The main interface between the Lua script and the game engine hardware/state.
+---@field screenSize size The size of the screen textures. @readonly
 ---@field dmd dmd Access to the Dot Matrix Display drawing functions. @readonly
----@field fg screen Access to the foreground drawing functions. @readonly
----@field bg screen Access to the background drawing functions. @readonly
+---@field fg tex Access to the foreground drawing functions. @readonly
+---@field bg tex Access to the background drawing functions. @readonly
+---@field spr tex Access to the sprite drawing functions. @readonly
 ---@field ssd string The string value displayed on the Seven-Segment Display.
 local engine = {}
 
 ---@section Asset Initialization
 
----Initializes and packs textures into the sprite atlas.
----@param texMap table<integer, table> Map of IDs to texture definitions.
-function engine:create_textures(texMap) end
+---Defines a texture region from the sprite atlas.
+---@param id integer Unique identifier for this texture.
+---@param uv rect UV coordinates in pixel coordinates defining the texture region.
+function engine:create_texture(id, uv) end
 
 ---Initializes the sound buffer cache.
 ---@param soundMap table<integer, table> Map of IDs to sound wave data.
