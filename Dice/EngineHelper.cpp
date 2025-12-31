@@ -346,19 +346,46 @@ void screen_proxy::rect(rect_i const& rect, u8 color, bool fill)
     });
 }
 
-void screen_proxy::blit(rect_i const& rect, string const& dotStr)
+void screen_proxy::blit(rect_i const& rect, string const& data, blit_settings settings)
 {
     if (rect.right() > _img->info().Size.Width || rect.bottom() > _img->info().Size.Height) { return; }
-    auto const dots {decode_texture_pixels(dotStr, rect.Size)};
+    auto const dots {decode_texture_pixels(data, rect.Size)};
 
+    u32 const  rotation {settings.Rotation.value_or(0)};
+    bool const flip_h {settings.FlipH.value_or(false)};
+    bool const flip_v {settings.FlipV.value_or(false)};
+
+    i32 const w {rect.Size.Width};
+    i32 const h {rect.Size.Height};
+
+    auto const map_xy {[&](i32 x, i32 y) -> point_i {
+        i32 const r {w - 1};
+        i32 const b {h - 1};
+        i32 const fx {flip_h ? r - x : x};
+        i32 const fy {flip_v ? h - 1 - y : y};
+        switch (rotation) {
+        case 90:  return {b - fy, fx};
+        case 180: return {r - fx, b - fy};
+        case 270: return {fy, r - fx};
+        default:  return {fx, fy};
+        }
+    }};
+
+    auto const imgSize {_img->info().Size};
     _img.mutate([&](auto& img) {
-        for (i32 y {0}; y < rect.Size.Height; ++y) {
-            for (i32 x {0}; x < rect.Size.Width; ++x) {
-                i32 const srcIdx {(y * rect.Size.Width) + x};
-                i32 const dstX {rect.left() + x};
-                i32 const dstY {rect.top() + y};
+        auto pixels {img.data()};
+        for (i32 y {0}; y < h; ++y) {
+            for (i32 x {0}; x < w; ++x) {
+                point_i const dst {rect.top_left() + map_xy(x, y)};
+                if (!imgSize.contains(dst)) { continue; }
 
-                img.set_pixel({dstX, dstY}, PALETTE[dots[srcIdx]]);
+                u8 const    srcIdx {dots[x + (y * w)]};
+                isize const dstIdx {(dst.X + (dst.Y * imgSize.Width)) * 4};
+                color const col {settings.Transparent == srcIdx ? colors::Transparent : PALETTE[srcIdx]};
+                pixels[dstIdx + 0] = col.R;
+                pixels[dstIdx + 1] = col.G;
+                pixels[dstIdx + 2] = col.B;
+                pixels[dstIdx + 3] = col.A;
             }
         }
     });

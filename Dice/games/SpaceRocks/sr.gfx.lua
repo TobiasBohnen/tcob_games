@@ -58,10 +58,12 @@ local explosion_texture       =
 local function make_texture(size, tex, r)
     local function square(x) return { width = x, height = x } end
     return {
-        size        = square(size),
-        bitmap      = tex,
-        transparent = 0,
-        rotation    = r
+        size     = square(size),
+        bitmap   = tex,
+        settings = {
+            transparent = 0,
+            rotation    = r
+        }
     }
 end
 

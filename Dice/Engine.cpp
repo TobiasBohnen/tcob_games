@@ -185,7 +185,6 @@ void engine::create_wrappers()
 {
     create_sprite_wrapper();
     create_socket_wrapper();
-    create_die_wrapper();
     create_engine_wrapper();
     create_dmd_wrapper();
     create_screen_wrapper();
@@ -230,13 +229,6 @@ void engine::create_socket_wrapper()
             socket->move_to({rect.left() + (static_cast<f32>(pos.X) * (rect.width() / static_cast<f32>(DMD_SIZE.Width))),
                              rect.top() + (static_cast<f32>(pos.Y) * (rect.height() / static_cast<f32>(DMD_SIZE.Height)))});
         }};
-}
-
-void engine::create_die_wrapper()
-{
-    auto& dieWrapper {*_script.create_wrapper<die>("die")};
-    dieWrapper["value"] = getter {
-        [](die* die) -> u8 { return die->current_face().Value; }};
 }
 
 void engine::create_engine_wrapper()
@@ -320,7 +312,7 @@ void engine::create_screen_wrapper()
     screenWrapper["circle"] = [](screen_proxy* scr, point_i center, i32 radius, u8 color, bool fill) { scr->circle(center, radius, color, fill); };
     screenWrapper["rect"]   = [](screen_proxy* scr, rect_i const& rect, u8 color, bool fill) { scr->rect(rect, color, fill); };
 
-    screenWrapper["blit"] = [](screen_proxy* scr, rect_i const& rect, string const& dotStr) { scr->blit(rect, dotStr); };
+    screenWrapper["blit"] = [](screen_proxy* scr, rect_i const& rect, string const& dotStr, std::optional<blit_settings> settings) { scr->blit(rect, dotStr, settings ? *settings : blit_settings {}); };
 }
 
 void engine::create_textures(std::unordered_map<u32, tex_def>& texMap)
@@ -328,15 +320,22 @@ void engine::create_textures(std::unordered_map<u32, tex_def>& texMap)
     i32 rowHeight {0};
 
     auto* tex {_init.Game->get_sprite_texture()};
-    tex->resize(TEXTURE_SIZE, 1, gfx::texture::format::RGBA8);
+    tex->resize(SPRITE_TEXTURE_SIZE, 1, gfx::texture::format::RGBA8);
 
     for (auto& [id, texDef] : texMap) {
-        if (_texturePen.X + texDef.Size.Width + TEX_PAD > TEXTURE_SIZE.Width) {
+        auto const blitSettings {texDef.Settings.value_or(blit_settings {})};
+        u32 const  rotation {blitSettings.Rotation.value_or(0)};
+        bool const flip_h {blitSettings.FlipH.value_or(false)};
+        bool const flip_v {blitSettings.FlipV.value_or(false)};
+
+        size_i const texSize {rotation == 90 || rotation == 270 ? size_i {texDef.Size.Height, texDef.Size.Width} : texDef.Size};
+
+        if (_texturePen.X + texSize.Width + TEX_PAD > SPRITE_TEXTURE_SIZE.Width) {
             _texturePen.X = TEX_PAD;
             _texturePen.Y += rowHeight + (TEX_PAD * 2);
             rowHeight = 0;
         }
-        if (_texturePen.Y + texDef.Size.Height + TEX_PAD > TEXTURE_SIZE.Height) {
+        if (_texturePen.Y + texSize.Height + TEX_PAD > SPRITE_TEXTURE_SIZE.Height) {
             _texturePen.Y = TEX_PAD;
             rowHeight     = 0;
             logger::Warning("tex overflow");
@@ -344,17 +343,13 @@ void engine::create_textures(std::unordered_map<u32, tex_def>& texMap)
 
         auto& assTex {_textures[id]};
         assTex.ID     = id;
-        assTex.Size   = size_f {texDef.Size};
+        assTex.Size   = size_f {texSize};
         assTex.Region = std::to_string(id);
-        assTex.Alpha  = grid<u8> {texDef.Size};
-
-        u32 const  rotation {texDef.Rotation.value_or(0)};
-        bool const flip_h {texDef.FlipH.value_or(false)};
-        bool const flip_v {texDef.FlipV.value_or(false)};
+        assTex.Alpha  = grid<u8> {texSize};
 
         auto const dots {decode_texture_pixels(texDef.Bitmap, texDef.Size)};
-        auto const w {texDef.Size.Width};
-        auto const h {texDef.Size.Height};
+        i32 const  w {texDef.Size.Width};
+        i32 const  h {texDef.Size.Height};
 
         auto const map_xy {[&](i32 x, i32 y) -> point_i {
             i32 const r {w - 1};
@@ -368,25 +363,34 @@ void engine::create_textures(std::unordered_map<u32, tex_def>& texMap)
             default:  return {fx, fy};
             }
         }};
+        auto       pixels {_textureImage.data()};
         for (i32 y {0}; y < h; ++y) {
             for (i32 x {0}; x < w; ++x) {
-                auto const  idx {dots[x + (y * w)]};
-                color const col {texDef.Transparent == idx ? colors::Transparent : PALETTE[idx]};
-                auto const  dst {map_xy(x, y)};
-                _textureImage.set_pixel(_texturePen + dst, col);
-                assTex.Alpha[dst.X, dst.Y] = col.A;
+                point_i const mapped {map_xy(x, y)};
+                point_i const dst {_texturePen + mapped};
+                if (!SPRITE_TEXTURE_SIZE.contains(dst)) { continue; }
+
+                u8 const    srcIdx {dots[x + (y * w)]};
+                isize const dstIdx {(dst.X + (dst.Y * SPRITE_TEXTURE_SIZE.Width)) * 4};
+                color const col {blitSettings.Transparent == srcIdx ? colors::Transparent : PALETTE[srcIdx]};
+                pixels[dstIdx + 0] = col.R;
+                pixels[dstIdx + 1] = col.G;
+                pixels[dstIdx + 2] = col.B;
+                pixels[dstIdx + 3] = col.A;
+
+                assTex.Alpha[mapped.X, mapped.Y] = col.A;
             }
         }
 
         tex->regions()[assTex.Region] =
-            {.UVRect = {static_cast<f32>(_texturePen.X) / static_cast<f32>(TEXTURE_SIZE.Width),
-                        static_cast<f32>(_texturePen.Y) / static_cast<f32>(TEXTURE_SIZE.Height),
-                        static_cast<f32>(texDef.Size.Width) / static_cast<f32>(TEXTURE_SIZE.Width),
-                        static_cast<f32>(texDef.Size.Height) / static_cast<f32>(TEXTURE_SIZE.Height)},
+            {.UVRect = {static_cast<f32>(_texturePen.X) / static_cast<f32>(SPRITE_TEXTURE_SIZE.Width),
+                        static_cast<f32>(_texturePen.Y) / static_cast<f32>(SPRITE_TEXTURE_SIZE.Height),
+                        static_cast<f32>(texSize.Width) / static_cast<f32>(SPRITE_TEXTURE_SIZE.Width),
+                        static_cast<f32>(texSize.Height) / static_cast<f32>(SPRITE_TEXTURE_SIZE.Height)},
              .Level  = 0};
 
-        rowHeight = std::max(rowHeight, texDef.Size.Height);
-        _texturePen.X += texDef.Size.Width + (TEX_PAD * 2);
+        rowHeight = std::max(rowHeight, texSize.Height);
+        _texturePen.X += texSize.Width + (TEX_PAD * 2);
     }
 
     tex->update_data(_textureImage, 0);

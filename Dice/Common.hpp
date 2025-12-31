@@ -22,7 +22,7 @@ class sprite;
 constexpr size_f VIRTUAL_SCREEN_SIZE {240, 180};
 constexpr size_i DMD_SIZE {80, 120};
 constexpr size_i COVER_SIZE {128, 128};
-constexpr size_i TEXTURE_SIZE {256, 256};
+constexpr size_i SPRITE_TEXTURE_SIZE {256, 256};
 
 constexpr size_f DICE_SIZE {62, 62};
 constexpr size_f DICE_REF_SIZE {1600, 900};

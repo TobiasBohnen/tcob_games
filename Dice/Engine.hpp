@@ -34,7 +34,6 @@ private:
     void create_wrappers();
     void create_sprite_wrapper();
     void create_socket_wrapper();
-    void create_die_wrapper();
     void create_engine_wrapper();
     void create_dmd_wrapper();
     void create_screen_wrapper();
@@ -59,7 +58,7 @@ private:
     std::unordered_map<u32, texture> _textures;
     static constexpr i32             TEX_PAD {1};
     point_i                          _texturePen {TEX_PAD, TEX_PAD};
-    gfx::image                       _textureImage {gfx::image::CreateEmpty(TEXTURE_SIZE, gfx::image::format::RGBA)};
+    gfx::image                       _textureImage {gfx::image::CreateEmpty(SPRITE_TEXTURE_SIZE, gfx::image::format::RGBA)};
 
     std::unordered_map<u32, audio::buffer>       _soundBank;
     std::array<std::unique_ptr<audio::sound>, 8> _sounds;

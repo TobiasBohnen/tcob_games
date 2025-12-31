@@ -61,6 +61,12 @@
 ---@field color color_category_str The identified color pattern (e.g., "Flush").
 ---@field sockets socket[] The subset of sockets that actually form the hand (e.g., the 3 sockets in a ThreeOfAKind).
 
+---@class blit_settings
+---@field transparent? boolean If true, treats certain pixel values as transparent (won't overwrite destination).
+---@field rotation? rotation Rotates the pixel data before drawing (0, 90, 180, or 270 degrees).
+---@field flip_h? boolean If true, flips the pixel data horizontally (mirrors left-right).
+---@field flip_v? boolean If true, flips the pixel data vertically (mirrors top-bottom).
+
 ---@class palette
 ---@field Black color
 ---@field Gray color
@@ -150,13 +156,6 @@ Rot = {
 ---@field die_value integer The value (1-6) of the die in the socket, or 0 if empty. @readonly
 
 --------------------------------
--- Die
---------------------------------
-
----@class die
----@field value integer @readonly
-
---------------------------------
 -- DMD
 --------------------------------
 ---@class dmd
@@ -207,8 +206,9 @@ local screen = {}
 
 ---Copies a raw string of dot data into the specified rectangle.
 ---@param rect rect The destination area on the screen.
----@param dots string A string where each character represents a pixel/dot.
-function screen:blit(rect, dots) end
+---@param data string A string where each character represents a pixel.
+---@param blitSettings? blit_settings Optional table controlling how the blit operation is performed.
+function screen:blit(rect, data, blitSettings) end
 
 ---Clears the entire DMD, setting all pixels to transparent.
 function screen:clear() end

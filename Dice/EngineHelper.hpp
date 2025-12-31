@@ -69,9 +69,7 @@ struct bg_def {
 
 ////////////////////////////////////////////////////////////
 
-struct tex_def {
-    size_i              Size {size_i::Zero};
-    string              Bitmap;
+struct blit_settings {
     std::optional<u32>  Transparent;
     std::optional<u32>  Rotation;
     std::optional<bool> FlipH;
@@ -79,12 +77,23 @@ struct tex_def {
 
     static auto constexpr Members()
     {
+        return std::tuple {member<&blit_settings::Transparent, std::nullopt> {"transparent"},
+                           member<&blit_settings::Rotation, std::nullopt> {"rotation"},
+                           member<&blit_settings::FlipH, std::nullopt> {"flip_h"},
+                           member<&blit_settings::FlipV, std::nullopt> {"flip_v"}};
+    }
+};
+
+struct tex_def {
+    size_i                       Size {size_i::Zero};
+    string                       Bitmap;
+    std::optional<blit_settings> Settings;
+
+    static auto constexpr Members()
+    {
         return std::tuple {member<&tex_def::Size> {"size"},
                            member<&tex_def::Bitmap> {"bitmap"},
-                           member<&tex_def::Transparent, std::nullopt> {"transparent"},
-                           member<&tex_def::Rotation, std::nullopt> {"rotation"},
-                           member<&tex_def::FlipH, std::nullopt> {"flip_h"},
-                           member<&tex_def::FlipV, std::nullopt> {"flip_v"}};
+                           member<&tex_def::Settings, std::nullopt> {"settings"}};
     }
 };
 
@@ -121,7 +130,7 @@ public:
     void circle(point_i center, i32 radius, u8 color, bool fill);
     void rect(rect_i const& rect, u8 color, bool fill);
 
-    void blit(rect_i const& rect, string const& dotStr);
+    void blit(rect_i const& rect, string const& data, blit_settings settings);
 
 private:
     prop<gfx::image>& _img;

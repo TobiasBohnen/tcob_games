@@ -48,10 +48,12 @@ end
 
 local function make_texture(size, tex, flipH)
     return {
-        size        = size,
-        bitmap      = tex,
-        transparent = 0,
-        flip_h      = flipH
+        size     = size,
+        bitmap   = tex,
+        settings = {
+            transparent = 0,
+            flip_h      = flipH
+        }
     }
 end
 
