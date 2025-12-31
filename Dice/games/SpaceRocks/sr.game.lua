@@ -127,8 +127,8 @@ end
 
 function game:update_entity(e, deltaTime, screenSize)
     local rad         = math.rad((e.direction or 0) - 90)
-    local vx          = math.cos(rad) * e.linearVelocity / 1000
-    local vy          = math.sin(rad) * e.linearVelocity / 1000
+    local vx          = math.cos(rad) * e.linearSpeed / 1000
+    local vy          = math.sin(rad) * e.linearSpeed / 1000
 
     local pos         = e.sprite.position
     e.sprite.position = { x = (pos.x + vx * deltaTime) % screenSize.width, y = (pos.y + vy * deltaTime) % screenSize.height }
@@ -171,7 +171,7 @@ function game:create_asteroid(engine, size, x, y)
     local screenSize                    = engine.screenSize
     local asteroid                      = {
         direction      = engine:rnd(0, 359),
-        linearVelocity = engine:rnd(15, 30),
+        linearSpeed    = engine:rnd(15, 30),
         size           = size,
 
         type           = "asteroid",
@@ -232,15 +232,15 @@ function game:create_bullet(engine)
     local ship                      = self.ship
 
     local bullet                    = {
-        direction      = ship.direction,
-        linearVelocity = math.max(MIN_BULLET_SPEED, ship.linearVelocity * 1.5),
-        type           = "bullet",
-        lifetime       = 0,
-        spriteInit     = {
+        direction   = ship.direction,
+        linearSpeed = math.max(MIN_BULLET_SPEED, ship.linearSpeed * 1.5),
+        type        = "bullet",
+        lifetime    = 0,
+        spriteInit  = {
             texture = self.textures.bullet,
         },
 
-        update         = function(b, i, deltaTime)
+        update      = function(b, i, deltaTime)
             if b.lifetime < DURATION then
                 self:update_entity(b, deltaTime, screenSize)
             else
@@ -249,7 +249,7 @@ function game:create_bullet(engine)
             end
             b.lifetime = b.lifetime + deltaTime
         end,
-        collide        = function(bullet, b)
+        collide     = function(bullet, b)
             if b.type == "asteroid" then
                 bullet.lifetime = DURATION - 1
             end
@@ -309,25 +309,25 @@ end
 function game:create_ship(engine)
     local screenSize = engine.screenSize
     local ship = {
-        direction            = 0,
-        linearVelocity       = 0,
-        linearVelocityTarget = 0,
-        sprite               = nil, ---@type sprite
+        direction         = 0,
+        linearSpeed       = 0,
+        linearSpeedTarget = 0,
+        sprite            = nil, ---@type sprite
 
-        type                 = "ship",
-        health               = 5,
-        shieldsUp            = false,
-        hitByAsteroid        = false,
-        engineStall          = false,
+        type              = "ship",
+        health            = 5,
+        shieldsUp         = false,
+        hitByAsteroid     = false,
+        engineStall       = false,
 
-        spriteInit           = {
+        spriteInit        = {
             texture = 0,
             position = { x = screenSize.width / 2 - 12, y = screenSize.height / 2 - 12 }
         },
 
-        turn_start           = function(ship)
-            ship.linearVelocityTarget = self.sockets.speed.die_value * 30
-            if ship.linearVelocityTarget == 0 then
+        turn_start        = function(ship)
+            ship.linearSpeedTarget = self.sockets.speed.die_value * 30
+            if ship.linearSpeedTarget == 0 then
                 if ship.engineStall then
                     ship.health = ship.health - 1
                 end
@@ -343,19 +343,19 @@ function game:create_ship(engine)
             ship:set_shield(false)
             ship.hitByAsteroid = false
         end,
-        set_shield           = function(ship, val)
+        set_shield        = function(ship, val)
             ship.shieldsUp      = val
             ship.sprite.texture = val and self.textures.hurtShip[ship.direction] or self.textures.ship[ship.direction]
         end,
 
-        update               = function(ship, deltaTime, updateTime)
-            local factor        = updateTime < HALF_DURATION
+        update            = function(ship, deltaTime, updateTime)
+            local factor       = updateTime < HALF_DURATION
                 and updateTime / HALF_DURATION
                 or 1 - ((updateTime - HALF_DURATION) / HALF_DURATION)
 
-            ship.linearVelocity = ship.linearVelocityTarget * factor
+            ship.linearSpeed   = ship.linearSpeedTarget * factor
 
-            local stepsToApply  = math.floor(math.abs(ship.turnStepsTotal) * factor + 0.5) - ship.turnStepsDone
+            local stepsToApply = math.floor(math.abs(ship.turnStepsTotal) * factor + 0.5) - ship.turnStepsDone
             if stepsToApply > 0 then
                 local sign         = ship.turnStepsTotal > 0 and 1 or -1
                 ship.direction     = ship.direction + sign * 45 * stepsToApply
@@ -367,7 +367,7 @@ function game:create_ship(engine)
             self:update_entity(ship, deltaTime, screenSize)
         end,
 
-        collide              = function(ship, b)
+        collide           = function(ship, b)
             if ship.shieldsUp then return end
             if b.type == "asteroid" then
                 ship.health        = ship.health - 1
