@@ -1,4 +1,4 @@
--- Copyright (c) 2025 Tobias Bohnen
+-- Copyright (c) 2026 Tobias Bohnen
 -- MIT License
 -- https://opensource.org/licenses/MIT
 
@@ -115,7 +115,27 @@ end
 
 ---@param dmd dmd
 function gfx.draw_dmd(dmd, game)
+    local sockets = game.sockets
 
+    dmd:clear()
+
+    sockets.left.shots.position = { x = 3, y = 40 }
+    dmd:socket(sockets.left.shots)
+
+    sockets.center.shots.position = { x = 34, y = 40 }
+    dmd:socket(sockets.center.shots)
+
+    sockets.right.shots.position = { x = 63, y = 40 }
+    dmd:socket(sockets.right.shots)
+
+    sockets.left.power.position = { x = 3, y = 70 }
+    dmd:socket(sockets.left.power)
+
+    sockets.center.power.position = { x = 34, y = 70 }
+    dmd:socket(sockets.center.power)
+
+    sockets.right.power.position = { x = 63, y = 70 }
+    dmd:socket(sockets.right.power)
 end
 
 ---@param dmd dmd

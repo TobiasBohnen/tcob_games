@@ -1,4 +1,4 @@
--- Copyright (c) 2025 Tobias Bohnen
+-- Copyright (c) 2026 Tobias Bohnen
 -- MIT License
 
 ---@meta
@@ -149,7 +149,6 @@ Rot = {
 ---@class sprite
 ---@description A graphical object managed by the game engine.
 ---@field position point_f The position of the sprite.
----@field size size_f The width and height of the sprite in pixels.
 ---@field bounds rect_f The bounding rectangle of the sprite (Position + Size). @readonly
 ---@field owner table The Lua table defining this sprite's behavior. @readonly
 ---@field texture integer The ID of the texture from the packed atlas.

@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Tobias Bohnen
+// Copyright (c) 2026 Tobias Bohnen
 //
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
@@ -193,9 +193,6 @@ void engine::create_sprite_wrapper()
     spriteWrapper["position"] = property {
         [](sprite* sprite) -> point_f { return sprite->Bounds.Position; },
         [](sprite* sprite, point_f p) { sprite->set_bounds(p, sprite->Bounds.Size); }};
-    spriteWrapper["size"] = property {
-        [](sprite* sprite) -> size_f { return sprite->Bounds.Size; },
-        [](sprite* sprite, size_f s) { sprite->set_bounds(sprite->Bounds.Position, s); }};
     spriteWrapper["bounds"] = getter {
         [](sprite* sprite) -> rect_f { return sprite->Bounds; }};
     spriteWrapper["owner"] = getter {

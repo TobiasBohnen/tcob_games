@@ -1,4 +1,4 @@
--- Copyright (c) 2025 Tobias Bohnen
+-- Copyright (c) 2026 Tobias Bohnen
 -- MIT License
 -- https://opensource.org/licenses/MIT
 
@@ -22,6 +22,12 @@ local game               = {
     weapons         = {},
     missiles        = {},
 
+    sockets         = {
+        left = {}, ---@type { [string]: socket }
+        right = {}, ---@type { [string]: socket }
+        center = {}, ---@type { [string]: socket }
+    },
+
     textures        = {
         city = { undamaged = 0, light_damage = 1, heavy_damage = 2, destroyed = 3 }, ---@type { [string]: texture }
         weapon = { left = 10, right = 11, center = 12 }, ---@type { [string]: texture }
@@ -41,6 +47,13 @@ function game:on_setup(engine)
         self:create_city(i, engine)
     end
     self:create_weapons(engine)
+
+    self.sockets.left.shots   = engine:create_socket { colors = { Palette.White } }
+    self.sockets.left.power   = engine:create_socket { colors = { Palette.White } }
+    self.sockets.right.shots  = engine:create_socket { colors = { Palette.White } }
+    self.sockets.right.power  = engine:create_socket { colors = { Palette.White } }
+    self.sockets.center.shots = engine:create_socket { colors = { Palette.White } }
+    self.sockets.center.power = engine:create_socket { colors = { Palette.White } }
 end
 
 ---@param engine engine
@@ -132,8 +145,8 @@ function game:create_city(i, engine)
     local sprite        = engine:create_sprite(city)
     city.sprite         = sprite
     city.center         = {
-        x = sprite.position.x + sprite.size.width / 2,
-        y = sprite.position.y + sprite.size.height / 2
+        x = sprite.position.x + sprite.bounds.width / 2,
+        y = sprite.position.y + sprite.bounds.height / 2
     }
     self.cities[i]      = city
 end
@@ -197,7 +210,7 @@ function game:create_missile(engine, parent)
         },
 
         spriteInit     = {
-            position   = { x = engine:rnd(0, screenSize.width), y = 0 },
+            position   = { x = engine:rnd(0, screenSize.width - 1), y = 0 },
             texture    = self.textures.missile,
             wrappable  = false,
             collidable = true,

@@ -1,4 +1,4 @@
--- Copyright (c) 2025 Tobias Bohnen
+-- Copyright (c) 2026 Tobias Bohnen
 -- MIT License
 -- https://opensource.org/licenses/MIT
 
