@@ -191,17 +191,17 @@ void engine::create_sprite_wrapper()
 {
     auto& spriteWrapper {*_script.create_wrapper<sprite>("sprite")};
     spriteWrapper["position"] = property {
-        [](sprite* sprite) { return sprite->Bounds.Position; },
+        [](sprite* sprite) -> point_f { return sprite->Bounds.Position; },
         [](sprite* sprite, point_f p) { sprite->set_bounds(p, sprite->Bounds.Size); }};
     spriteWrapper["size"] = property {
         [](sprite* sprite) -> size_f { return sprite->Bounds.Size; },
         [](sprite* sprite, size_f s) { sprite->set_bounds(sprite->Bounds.Position, s); }};
     spriteWrapper["bounds"] = getter {
-        [](sprite* sprite) { return sprite->Bounds; }};
+        [](sprite* sprite) -> rect_f { return sprite->Bounds; }};
     spriteWrapper["owner"] = getter {
-        [](sprite* sprite) { return sprite->owner(); }};
+        [](sprite* sprite) -> table const& { return sprite->owner(); }};
     spriteWrapper["texture"] = property {
-        [](sprite* sprite) { return sprite->get_texture()->ID; },
+        [](sprite* sprite) -> u32 { return sprite->get_texture()->ID; },
         [this](sprite* sprite, u32 texID) { sprite->set_texture(&_textures[texID]); }}; // TODO: error check
 }
 
@@ -209,9 +209,9 @@ void engine::create_socket_wrapper()
 {
     auto& socketWrapper {*_script.create_wrapper<socket>("socket")};
     socketWrapper["is_empty"] = getter {
-        [](socket* socket) { return socket->is_empty(); }};
+        [](socket* socket) -> bool { return socket->is_empty(); }};
     socketWrapper["state"] = getter {
-        [](socket* socket) { return static_cast<u8>(socket->state()); }};
+        [](socket* socket) -> u8 { return static_cast<u8>(socket->state()); }};
     socketWrapper["die_value"] = getter {
         [](socket* socket) -> u8 { return socket->is_empty() ? 0 : socket->current_die()->current_face().Value; }};
     socketWrapper["position"] = property {
@@ -279,19 +279,19 @@ void engine::create_engine_wrapper()
 
     // properties
     engineWrapper["screenSize"] = getter {[]() -> size_i { return size_i {VIRTUAL_SCREEN_SIZE}; }};
-    engineWrapper["dmd"]        = getter {[](engine* engine) { return &engine->_dmdProxy; }};
-    engineWrapper["fg"]         = getter {[](engine* engine) { return &engine->_fgProxy; }};
-    engineWrapper["bg"]         = getter {[](engine* engine) { return &engine->_bgProxy; }};
-    engineWrapper["spr"]        = getter {[](engine* engine) { return &engine->_texProxy; }};
+    engineWrapper["dmd"]        = getter {[](engine* engine) -> dmd_proxy* { return &engine->_dmdProxy; }};
+    engineWrapper["fg"]         = getter {[](engine* engine) -> tex_proxy* { return &engine->_fgProxy; }};
+    engineWrapper["bg"]         = getter {[](engine* engine) -> tex_proxy* { return &engine->_bgProxy; }};
+    engineWrapper["spr"]        = getter {[](engine* engine) -> tex_proxy* { return &engine->_texProxy; }};
     engineWrapper["ssd"]        = property {
-        [](engine* engine) { return *engine->_init.State.SSDValue; },
+        [](engine* engine) -> string { return *engine->_init.State.SSDValue; },
         [](engine* engine, string const& val) { engine->_init.State.SSDValue = val; }};
 }
 
 void engine::create_dmd_wrapper()
 {
     auto& dmdWrapper {*_script.create_wrapper<dmd_proxy>("dmd")};
-    dmdWrapper["size"] = getter {[](dmd_proxy* dmd) { return dmd->size(); }};
+    dmdWrapper["size"] = getter {[](dmd_proxy* dmd) -> size_i { return dmd->size(); }};
 
     dmdWrapper["clear"] = [](dmd_proxy* dmd) { dmd->clear(); };
 
@@ -307,8 +307,8 @@ void engine::create_dmd_wrapper()
 void engine::create_tex_wrapper()
 {
     auto& texWrapper {*_script.create_wrapper<tex_proxy>("tex")};
-    texWrapper["bounds"] = getter {[](tex_proxy* tex) { return tex->bounds(); }};
-    texWrapper["size"]   = getter {[](tex_proxy* tex) { return tex->bounds().Size; }};
+    texWrapper["bounds"] = getter {[](tex_proxy* tex) -> rect_i { return tex->bounds(); }};
+    texWrapper["size"]   = getter {[](tex_proxy* tex) -> size_i { return tex->bounds().Size; }};
 
     texWrapper["clear"] = [](tex_proxy* tex) { tex->clear(); };
 

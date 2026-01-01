@@ -41,6 +41,11 @@ void draw_line(point_i start, point_i end, PlotFunc plot)
 template <typename PlotFunc>
 void draw_circle(point_i center, i32 radius, bool fill, PlotFunc plot)
 {
+    if (radius == 1) {
+        plot(center.X, center.Y);
+        return;
+    }
+
     i32 x {radius};
     i32 y {0};
     i32 err {0};

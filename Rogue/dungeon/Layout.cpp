@@ -1053,8 +1053,8 @@ auto maze_with_rooms::can_carve(point_i pos, point_i dir) -> bool
 
     if (!_grid.size().contains({x, y})) { return false; }
 
-    x = pos.X + dir.X * 2;
-    y = pos.Y + dir.Y * 2;
+    x = pos.X + (dir.X * 2);
+    y = pos.Y + (dir.Y * 2);
 
     if (!_grid.size().contains({x, y})) { return false; }
 

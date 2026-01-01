@@ -8,8 +8,9 @@ local CITY_COUNT         = 5
 local MAX_CITY_DAMAGE    = 3
 local MIN_CHANCE_TO_MIRV = 10
 local MAX_CHANCE_TO_MIRV = 40
+local MAX_MIRV           = 2
 local MIN_MISSILE_SPEED  = 10
-local MAX_MISSILE_SPEED  = 20
+local MAX_MISSILE_SPEED  = 15
 
 local gfx                = require('dc.gfx')
 local sfx                = require('dc.sfx')
@@ -44,8 +45,15 @@ end
 function game:on_turn_start(engine)
     self:try_spawn_missile(engine)
 
+    engine.fg:clear()
+
     for i = #self.missiles, 1, -1 do
-        self.missiles[i]:prime_mirv()
+        local m = self.missiles[i]
+        m:prime_mirv()
+
+        for key, value in pairs(m.trail) do
+            engine.fg:line(key, key, Palette.LightBlue)
+        end
     end
 end
 
@@ -58,6 +66,12 @@ function game:on_turn_update(engine, deltaTime, turnTime)
         local m = self.missiles[i]
         m:try_mirv(turnTime)
         m:update(i, deltaTime)
+        if not m.markedForDeath then
+            local bounds = m.sprite.bounds
+            local pos    = { x = math.floor(bounds.x + bounds.width / 2), y = math.floor(bounds.y + bounds.height / 2) }
+            m.trail[pos] = true
+            engine.fg:line(pos, pos, Palette.LightBlue)
+        end
     end
 
     if self.destroyedCities >= #self.cities then return GameStatus.GameOver end
@@ -187,6 +201,8 @@ function game:create_missile(engine, parent)
         target         = 0,
         id             = id,
 
+        trail          = {},
+
         mirv           = {
             chance = engine:irnd(MIN_CHANCE_TO_MIRV, MAX_CHANCE_TO_MIRV)
         },
@@ -227,7 +243,7 @@ function game:create_missile(engine, parent)
 
         try_mirv       = function(missile, turnTime)
             if missile.mirv and missile.mirv.time and turnTime >= missile.mirv.time and not missile.markedForDeath then
-                local count = engine:irnd(1, 3)
+                local count = engine:irnd(1, MAX_MIRV)
                 for i = 1, count do
                     self:create_missile(engine, missile)
                 end
