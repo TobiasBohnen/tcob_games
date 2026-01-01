@@ -115,8 +115,9 @@ public:
 
     auto bounds() const -> rect_i;
 
-    void clear();
+    void clear(std::optional<rect_i> const& rect);
 
+    void pixel(point_i pos, u8 color);
     void line(point_i start, point_i end, u8 color);
     void circle(point_i center, i32 radius, u8 color, bool fill);
     void rect(rect_i const& rect, u8 color, bool fill);

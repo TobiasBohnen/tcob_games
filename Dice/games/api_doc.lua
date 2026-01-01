@@ -223,13 +223,16 @@ local tex = {}
 function tex:blit(rect, data, blitSettings) end
 
 ---Clears the entire DMD, setting all pixels to transparent.
-function tex:clear() end
+---@param rect? rect_i The destination area on the texture.
+function tex:clear(rect) end
 
 ---Draws a line between two points.
----@param start point_i The starting coordinate {x, y}.
----@param end_point point_i The ending coordinate {x, y}.
+---@param startPoint point_i The starting coordinate {x, y}.
+---@param endPoint point_i The ending coordinate {x, y}.
 ---@param color color The palette index.
-function tex:line(start, end_point, color) end
+function tex:line(startPoint, endPoint, color) end
+
+function tex:pixel(point, color) end
 
 ---Draws a circle centered at a specific point.
 ---@param center point_i The center coordinate {x, y}.

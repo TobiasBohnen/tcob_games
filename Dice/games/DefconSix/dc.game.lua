@@ -48,12 +48,7 @@ function game:on_turn_start(engine)
     engine.fg:clear()
 
     for i = #self.missiles, 1, -1 do
-        local m = self.missiles[i]
-        m:prime_mirv()
-
-        for key, value in pairs(m.trail) do
-            engine.fg:line(key, key, Palette.LightBlue)
-        end
+        self.missiles[i]:turn_start()
     end
 end
 
@@ -63,15 +58,7 @@ function game:on_turn_update(engine, deltaTime, turnTime)
     if turnTime >= DURATION then return GameStatus.TurnEnded end
 
     for i = #self.missiles, 1, -1 do
-        local m = self.missiles[i]
-        m:try_mirv(turnTime)
-        m:update(i, deltaTime)
-        if not m.markedForDeath then
-            local bounds = m.sprite.bounds
-            local pos    = { x = math.floor(bounds.x + bounds.width / 2), y = math.floor(bounds.y + bounds.height / 2) }
-            m.trail[pos] = true
-            engine.fg:line(pos, pos, Palette.LightBlue)
-        end
+        self.missiles[i]:update(i, deltaTime, turnTime)
     end
 
     if self.destroyedCities >= #self.cities then return GameStatus.GameOver end
@@ -202,6 +189,7 @@ function game:create_missile(engine, parent)
         id             = id,
 
         trail          = {},
+        trailOrder     = {},
 
         mirv           = {
             chance = engine:irnd(MIN_CHANCE_TO_MIRV, MAX_CHANCE_TO_MIRV)
@@ -214,40 +202,64 @@ function game:create_missile(engine, parent)
             collidable = true,
         },
 
-        update         = function(missile, i, deltaTime)
+        update         = function(missile, i, deltaTime, turnTime)
             if missile.markedForDeath then
                 engine:remove_sprite(missile.sprite)
                 table.remove(self.missiles, i)
                 return
             end
+
+            --try mirv
+            if missile.mirv and missile.mirv.time and turnTime >= missile.mirv.time and not missile.markedForDeath then
+                local count = engine:irnd(1, MAX_MIRV)
+                for j = 1, count do
+                    self:create_missile(engine, missile)
+                end
+                missile.mirv = nil
+            end
+
+            local bounds            = missile.sprite.bounds
+
+            -- position
             local rad               = missile.direction
             local vx                = math.cos(rad) * missile.linearSpeed / 1000
             local vy                = math.sin(rad) * missile.linearSpeed / 1000
 
-            local pos               = missile.sprite.position
-            local newPos            = { x = pos.x + vx * deltaTime, y = pos.y + vy * deltaTime }
+            local newPos            = { x = bounds.x + vx * deltaTime, y = bounds.y + vy * deltaTime }
             missile.sprite.position = newPos
-            if newPos.y > screenSize.height or newPos.x < 0 or newPos.x > screenSize.width then
+            if newPos.y >= screenSize.height or newPos.x < 0 or newPos.x >= screenSize.width then
                 missile.markedForDeath = true
+                return
             end
+
+            -- trail
+            local trailPos = { x = math.floor(bounds.x + bounds.width / 2), y = math.floor(bounds.y + bounds.height / 2) }
+            local trailKey = trailPos.x + trailPos.y * engine.fg.size.width
+
+            if not missile.trail[trailKey] then
+                table.insert(missile.trailOrder, trailKey)
+                missile.trail[trailKey] = trailPos
+
+                if #missile.trailOrder > 100 then
+                    local oldKey = table.remove(missile.trailOrder, 1)
+                    engine.fg:clear({ x = missile.trail[oldKey].x, y = missile.trail[oldKey].y, width = 1, height = 1 })
+                    missile.trail[oldKey] = nil
+                end
+            end
+
+            engine.fg:pixel(trailPos, Palette.Red)
         end,
 
-        prime_mirv     = function(missile)
+        turn_start     = function(missile)
             local y = missile.sprite.position.y
             if missile.mirv and y > 5 and y < 80 then
                 if engine:irnd(1, 100) <= missile.mirv.chance then
                     missile.mirv.time = engine:rnd(0, DURATION / 4 * 3)
                 end
             end
-        end,
 
-        try_mirv       = function(missile, turnTime)
-            if missile.mirv and missile.mirv.time and turnTime >= missile.mirv.time and not missile.markedForDeath then
-                local count = engine:irnd(1, MAX_MIRV)
-                for i = 1, count do
-                    self:create_missile(engine, missile)
-                end
-                missile.mirv = nil
+            for key, value in pairs(missile.trail) do
+                engine.fg:pixel(value, Palette.Red)
             end
         end,
 

@@ -310,8 +310,9 @@ void engine::create_tex_wrapper()
     texWrapper["bounds"] = getter {[](tex_proxy* tex) -> rect_i { return tex->bounds(); }};
     texWrapper["size"]   = getter {[](tex_proxy* tex) -> size_i { return tex->bounds().Size; }};
 
-    texWrapper["clear"] = [](tex_proxy* tex) { tex->clear(); };
+    texWrapper["clear"] = [](tex_proxy* tex, std::optional<rect_i> const& rect) { tex->clear(rect); };
 
+    texWrapper["pixel"]  = [](tex_proxy* tex, point_i pos, u8 color) { tex->pixel(pos, color); };
     texWrapper["line"]   = [](tex_proxy* tex, point_i start, point_i end, u8 color) { tex->line(start, end, color); };
     texWrapper["circle"] = [](tex_proxy* tex, point_i center, i32 radius, u8 color, bool fill) { tex->circle(center, radius, color, fill); };
     texWrapper["rect"]   = [](tex_proxy* tex, rect_i const& rect, u8 color, bool fill) { tex->rect(rect, color, fill); };

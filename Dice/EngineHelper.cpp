@@ -313,15 +313,24 @@ tex_proxy::tex_proxy(prop<gfx::image>& img, color clear)
     : _img {img}
     , _clear {clear}
 {
-    this->clear();
+    this->clear(std::nullopt);
 }
 
 auto tex_proxy::bounds() const -> rect_i { return {point_i::Zero, _img->info().Size}; }
 
-void tex_proxy::clear()
+void tex_proxy::clear(std::optional<rect_i> const& rect)
 {
     _img.mutate([&](auto& img) {
-        img.fill({point_i::Zero, img.info().Size}, _clear);
+        img.fill(rect ? *rect : rect_i {point_i::Zero, img.info().Size}, _clear);
+    });
+}
+
+void tex_proxy::pixel(point_i pos, u8 color)
+{
+    _img.mutate([&](auto& img) {
+        if (img.info().Size.contains(pos)) {
+            img.set_pixel(pos, PALETTE[color]);
+        }
     });
 }
 
