@@ -7,19 +7,12 @@
 
 ////////////////////////////////////////////////////////////
 
-die::die(gfx::rect_shape* shape, rng& rng, std::span<die_face const> faces, die_face initFace)
+die::die(gfx::rect_shape* shape, audio::buffer const& buffer, rng& rng, std::span<die_face const> faces, die_face initFace)
     : _shape(shape)
     , _rng {rng}
     , _faces {faces.begin(), faces.end()}
     , _currentFace {initFace}
 {
-    data::object ob {};
-    ob.load("dice/dice.ini");
-
-    audio::sound_generator gen {};
-    audio::sound_wave      wv {ob["wave"].as<audio::sound_wave>()};
-    wv = gen.mutate_wave(0, wv);
-    auto buffer {gen.create_buffer(wv)};
     _sound = std::make_shared<audio::sound>(buffer);
 
     _shape->TextureRegion = _currentFace.texture_region();
@@ -114,6 +107,12 @@ dice::dice(gfx::shape_batch& batch, size_f scale)
     , _painter {{10, 50}}
     , _scale {scale}
 {
+    data::object ob {};
+    ob.load("dice/dice.ini");
+
+    audio::sound_generator gen {};
+    audio::sound_wave      wv {ob["wave"].as<audio::sound_wave>()};
+    _buffer = gen.create_buffer(wv);
 }
 
 auto dice::add_die(point_f pos, rng& rng, die_face currentFace, std::span<die_face const> faces) -> die*
@@ -122,7 +121,7 @@ auto dice::add_die(point_f pos, rng& rng, die_face currentFace, std::span<die_fa
     shape->Bounds   = {pos, DICE_SIZE * _scale};
     shape->Material = _painter.material();
 
-    auto& retValue {_dice.emplace_back(std::make_unique<die>(shape, rng, faces, currentFace))};
+    auto& retValue {_dice.emplace_back(std::make_unique<die>(shape, _buffer, rng, faces, currentFace))};
     _painter.make_die(faces);
 
     return retValue.get();

@@ -171,7 +171,7 @@ void game_form::gen_styles(assets::group const& grp)
     }
     {
         auto style {styles.create<dot_matrix_display>("dot_matrix_display", {})};
-        style->Type = dot_matrix_display::dot_type::Disc;
+        style->Type = dot_matrix_display::dot_type::Square;
         for (u8 i {0}; i < PALETTE.size(); ++i) {
             style->Colors[i] = PALETTE[i];
         }

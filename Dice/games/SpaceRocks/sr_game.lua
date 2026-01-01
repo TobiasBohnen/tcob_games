@@ -15,8 +15,8 @@ local ASTEROID_SCORES       = {
     large = 20
 }
 
-local gfx                   = require('sr.gfx')
-local sfx                   = require('sr.sfx')
+local gfx                   = require('sr_gfx')
+local sfx                   = require('sr_sfx')
 
 local game                  = {
     ship        = {},

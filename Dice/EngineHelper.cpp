@@ -334,38 +334,49 @@ void tex_proxy::pixel(point_i pos, u8 color)
     });
 }
 
-void tex_proxy::line(point_i start, point_i end, u8 color)
+void tex_proxy::draw(std::span<u8> data, i32 x, i32 y, size_i s, color col)
 {
+    if (x >= 0 && x < s.Width && y >= 0 && y < s.Height) {
+        isize const dstIdx {(x + (y * s.Width)) * 4};
+        data[dstIdx + 0] = col.R;
+        data[dstIdx + 1] = col.G;
+        data[dstIdx + 2] = col.B;
+        data[dstIdx + 3] = col.A;
+    }
+}
+
+void tex_proxy::line(point_i start, point_i end, u8 c)
+{
+    color const col {PALETTE[c]};
     _img.mutate([&](auto& img) {
+        auto       pixels {img.data()};
         auto const size {img.info().Size};
         draw_line(start, end, [&](i32 x, i32 y) {
-            if (x >= 0 && x < size.Width && y >= 0 && y < size.Height) {
-                img.set_pixel({x, y}, PALETTE[color]);
-            }
+            draw(pixels, x, y, size, col);
         });
     });
 }
 
-void tex_proxy::circle(point_i center, i32 radius, u8 color, bool fill)
+void tex_proxy::circle(point_i center, i32 radius, u8 c, bool fill)
 {
+    color const col {PALETTE[c]};
     _img.mutate([&](auto& img) {
+        auto       pixels {img.data()};
         auto const size {img.info().Size};
         draw_circle(center, radius, fill, [&](i32 x, i32 y) {
-            if (x >= 0 && x < size.Width && y >= 0 && y < size.Height) {
-                img.set_pixel({x, y}, PALETTE[color]);
-            }
+            draw(pixels, x, y, size, col);
         });
     });
 }
 
-void tex_proxy::rect(rect_i const& rect, u8 color, bool fill)
+void tex_proxy::rect(rect_i const& rect, u8 c, bool fill)
 {
+    color const col {PALETTE[c]};
     _img.mutate([&](auto& img) {
+        auto       pixels {img.data()};
         auto const size {img.info().Size};
         draw_rect(rect, fill, [&](i32 x, i32 y) {
-            if (x >= 0 && x < size.Width && y >= 0 && y < size.Height) {
-                img.set_pixel({x, y}, PALETTE[color]);
-            }
+            draw(pixels, x, y, size, col);
         });
     });
 }
@@ -395,21 +406,15 @@ void tex_proxy::blit(rect_i const& rect, string const& data, blit_settings setti
         }
     }};
 
-    auto const imgSize {_img->info().Size};
     _img.mutate([&](auto& img) {
-        auto pixels {img.data()};
+        auto const size {_img->info().Size};
+        auto       pixels {img.data()};
         for (i32 y {0}; y < h; ++y) {
             for (i32 x {0}; x < w; ++x) {
                 point_i const dst {rect.top_left() + map_xy(x, y)};
-                if (!imgSize.contains(dst)) { continue; }
-
-                u8 const    srcIdx {dots[x + (y * w)]};
-                isize const dstIdx {(dst.X + (dst.Y * imgSize.Width)) * 4};
-                color const col {settings.Transparent == srcIdx ? colors::Transparent : PALETTE[srcIdx]};
-                pixels[dstIdx + 0] = col.R;
-                pixels[dstIdx + 1] = col.G;
-                pixels[dstIdx + 2] = col.B;
-                pixels[dstIdx + 3] = col.A;
+                u8 const      srcIdx {dots[x + (y * w)]};
+                color const   col {settings.Transparent == srcIdx ? colors::Transparent : PALETTE[srcIdx]};
+                draw(pixels, dst.X, dst.Y, size, col);
             }
         }
     });

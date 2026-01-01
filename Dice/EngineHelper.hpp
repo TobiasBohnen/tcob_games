@@ -118,13 +118,15 @@ public:
     void clear(std::optional<rect_i> const& rect);
 
     void pixel(point_i pos, u8 color);
-    void line(point_i start, point_i end, u8 color);
-    void circle(point_i center, i32 radius, u8 color, bool fill);
-    void rect(rect_i const& rect, u8 color, bool fill);
+    void line(point_i start, point_i end, u8 c);
+    void circle(point_i center, i32 radius, u8 c, bool fill);
+    void rect(rect_i const& rect, u8 c, bool fill);
 
     void blit(rect_i const& rect, string const& data, blit_settings settings);
 
 private:
+    static void draw(std::span<u8> data, i32 x, i32 y, size_i s, color col);
+
     prop<gfx::image>& _img;
     color             _clear;
 };

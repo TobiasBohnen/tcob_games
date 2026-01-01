@@ -31,7 +31,7 @@ class die {
     friend class dice;
 
 public:
-    die(gfx::rect_shape* shape, rng& rng, std::span<die_face const> faces, die_face initFace);
+    die(gfx::rect_shape* shape, audio::buffer const& buffer, rng& rng, std::span<die_face const> faces, die_face initFace);
 
     auto current_face() const -> die_face;
 
@@ -114,4 +114,6 @@ private:
     size_f            _scale;
 
     die* _hoverDie {nullptr};
+
+    audio::buffer _buffer;
 };

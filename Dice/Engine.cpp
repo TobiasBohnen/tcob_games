@@ -236,7 +236,6 @@ void engine::create_engine_wrapper()
 
     // sfx
     engineWrapper["create_sounds"] = [](engine* engine, std::unordered_map<u32, audio::sound_wave> const& soundMap) {
-        engine->_soundBank.clear();
         for (auto const& [id, soundWave] : soundMap) {
             engine->_soundBank.emplace(id, audio::sound_generator {}.create_buffer(soundWave));
         }

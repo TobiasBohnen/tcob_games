@@ -6,14 +6,16 @@ local DURATION           = 2500
 local HALF_DURATION      = DURATION * 0.5
 local CITY_COUNT         = 5
 local MAX_CITY_DAMAGE    = 3
-local MIN_CHANCE_TO_MIRV = 10
-local MAX_CHANCE_TO_MIRV = 40
+local MIN_CHANCE_TO_MIRV = 20
+local MAX_CHANCE_TO_MIRV = 60
+local MIRV_ZONE_TOP      = 5
+local MIRV_ZONE_BOTTOM   = 80
 local MAX_MIRV           = 2
 local MIN_MISSILE_SPEED  = 10
 local MAX_MISSILE_SPEED  = 15
 
-local gfx                = require('dc.gfx')
-local sfx                = require('dc.sfx')
+local gfx                = require('dc_gfx')
+local sfx                = require('dc_sfx')
 
 local game               = {
     cities          = {},
@@ -186,7 +188,6 @@ function game:create_missile(engine, parent)
         type           = "missile",
         markedForDeath = false,
         target         = 0,
-        id             = id,
 
         trail          = {},
         trailOrder     = {},
@@ -252,9 +253,11 @@ function game:create_missile(engine, parent)
 
         turn_start     = function(missile)
             local y = missile.sprite.position.y
-            if missile.mirv and y > 5 and y < 80 then
+            if missile.mirv and y >= MIRV_ZONE_TOP and y <= MIRV_ZONE_BOTTOM then
                 if engine:irnd(1, 100) <= missile.mirv.chance then
                     missile.mirv.time = engine:rnd(0, DURATION / 4 * 3)
+                else
+                    missile.mirv = nil
                 end
             end
 
