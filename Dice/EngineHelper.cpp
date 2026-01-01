@@ -386,9 +386,9 @@ void tex_proxy::blit(rect_i const& rect, string const& data, blit_settings setti
     if (rect.right() > _img->info().Size.Width || rect.bottom() > _img->info().Size.Height) { return; }
     auto const dots {decode_texture_pixels(data, rect.Size)};
 
-    u32 const  rotation {settings.Rotation.value_or(0)};
-    bool const flip_h {settings.FlipH.value_or(false)};
-    bool const flip_v {settings.FlipV.value_or(false)};
+    u32 const  rotation {settings.Rotation};
+    bool const flip_h {settings.FlipH};
+    bool const flip_v {settings.FlipV};
 
     i32 const w {rect.Size.Width};
     i32 const h {rect.Size.Height};

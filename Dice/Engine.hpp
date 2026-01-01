@@ -6,7 +6,9 @@
 #pragma once
 
 #include "Common.hpp" // IWYU pragma: keep
+
 #include "EngineHelper.hpp"
+#include "Sprite.hpp"
 
 ////////////////////////////////////////////////////////////
 

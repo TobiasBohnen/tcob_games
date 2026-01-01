@@ -11,30 +11,6 @@ using namespace scripting;
 
 ////////////////////////////////////////////////////////////
 
-sprite::sprite(init init)
-    : _init {std::move(init)}
-{
-}
-
-auto sprite::is_collidable() const -> bool { return _init.IsCollidable; }
-auto sprite::is_wrappable() const -> bool { return _init.IsWrappable; }
-auto sprite::owner() const -> scripting::table const& { return _init.Owner; }
-auto sprite::get_texture() const -> texture* { return _tex; }
-
-void sprite::set_bounds(point_f pos, size_f size)
-{
-    Bounds        = {pos, size};
-    Shape->Bounds = rect_f {rect_i {Bounds}};
-}
-void sprite::set_texture(texture* tex)
-{
-    _tex                 = tex;
-    Shape->TextureRegion = tex->Region;
-    if (WrapCopy) { WrapCopy->TextureRegion = tex->Region; }
-}
-
-////////////////////////////////////////////////////////////
-
 dice_game::dice_game(init const& init)
     : gfx::entity {update_mode::Both}
     , _background {&_spriteBatch.create_shape<gfx::rect_shape>()}
@@ -281,9 +257,10 @@ void dice_game::collide_sprites()
         if (inter == rect_f::Zero) { return; }
 
         auto const* texA {sA->get_texture()};
+        assert(texA->Alpha.size() == size_i {a->Bounds->Size});
         auto const* texB {sB->get_texture()};
+        assert(texB->Alpha.size() == size_i {b->Bounds->Size});
 
-        // cache bounds and dimensions
         f32 const aLeft {a->Bounds->left()};
         f32 const aTop {a->Bounds->top()};
         f32 const aWidth {a->Bounds->width()};
@@ -300,16 +277,13 @@ void dice_game::collide_sprites()
         for (i32 y {0}; y < iHeight; ++y) {
             f32 const wy {inter.top() + static_cast<f32>(y)};
             for (i32 x {0}; x < iWidth; ++x) {
-                f32 const wx {inter.left() + static_cast<f32>(x)};
+                f32 const     wx {inter.left() + static_cast<f32>(x)};
+                point_f const local {wx, wy};
 
-                // world -> local
-                point_f const localA {wx, wy};
-                point_f const localB {wx, wy};
-
-                i32 const ax {static_cast<i32>(localA.X - aLeft)};
-                i32 const ay {static_cast<i32>(localA.Y - aTop)};
-                i32 const bx {static_cast<i32>(localB.X - bLeft)};
-                i32 const by {static_cast<i32>(localB.Y - bTop)};
+                i32 const ax {static_cast<i32>(local.X - aLeft)};
+                i32 const ay {static_cast<i32>(local.Y - aTop)};
+                i32 const bx {static_cast<i32>(local.X - bLeft)};
+                i32 const by {static_cast<i32>(local.Y - bTop)};
 
                 if (ax < 0 || ay < 0 || bx < 0 || by < 0
                     || ax >= static_cast<i32>(aWidth)
@@ -371,7 +345,10 @@ auto dice_game::add_sprite(sprite::init const& init) -> sprite*
     _sprites.push_back(std::move(ptr));
     retValue->Shape           = add_shape();
     retValue->Shape->Material = _spriteMaterial;
-
+    if (init.Texture) {
+        retValue->set_texture(init.Texture);
+        retValue->set_bounds(init.Def.Position, init.Texture->Size);
+    }
     return retValue;
 }
 

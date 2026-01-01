@@ -244,12 +244,14 @@ void engine::create_engine_wrapper()
     engineWrapper["log"]           = [](string const& str) { logger::Info(str); };
     engineWrapper["create_sprite"] = [](engine* engine, table const& spriteOwner) {
         sprite_def const def {spriteOwner["spriteInit"].get<sprite_def>().value_or(sprite_def {})};
-        auto*            sprite {engine->_init.Game->add_sprite({.IsCollidable = def.IsCollidable,
-                                                                 .IsWrappable  = def.IsWrappable,
-                                                                 .Owner        = spriteOwner})};
-        sprite->set_texture(&engine->_textures[def.Texture]); // TODO: error check
-        sprite->set_bounds(def.Position, sprite->get_texture()->Size);
-        return sprite;
+
+        texture*   tex {nullptr};
+        auto const texID {def.TexID};
+        if (texID && engine->_textures.contains(*texID)) {
+            tex = &engine->_textures[*texID];
+        }
+
+        return engine->_init.Game->add_sprite({.Def = def, .Texture = tex, .Owner = spriteOwner});
     };
     engineWrapper["remove_sprite"] = [](engine* engine, sprite* sprite) { engine->_init.Game->remove_sprite(sprite); };
     engineWrapper["create_socket"] = [](engine* engine, table const& socketInit) -> socket* {

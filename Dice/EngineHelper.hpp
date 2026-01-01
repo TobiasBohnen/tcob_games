@@ -9,15 +9,6 @@
 
 ////////////////////////////////////////////////////////////
 
-struct texture {
-    u32      ID {0};
-    size_f   Size;
-    string   Region;
-    grid<u8> Alpha;
-};
-
-////////////////////////////////////////////////////////////
-
 enum game_status : u8 {
     Running   = 0,
     TurnEnded = 1,
@@ -41,23 +32,6 @@ struct callbacks {
 
 ////////////////////////////////////////////////////////////
 
-struct sprite_def {
-    u32     Texture {0};
-    point_f Position;
-    bool    IsCollidable {true};
-    bool    IsWrappable {true};
-
-    static auto constexpr Members()
-    {
-        return std::tuple {member<&sprite_def::Texture, 0> {"texture"},
-                           member<&sprite_def::Position, point_f {0, 0}> {"position"},
-                           member<&sprite_def::IsCollidable, true> {"collidable"},
-                           member<&sprite_def::IsWrappable, true> {"wrappable"}};
-    }
-};
-
-////////////////////////////////////////////////////////////
-
 struct bg_def {
     string Bitmap;
 
@@ -70,17 +44,17 @@ struct bg_def {
 ////////////////////////////////////////////////////////////
 
 struct blit_settings {
-    std::optional<u32>  Transparent;
-    std::optional<u32>  Rotation;
-    std::optional<bool> FlipH;
-    std::optional<bool> FlipV;
+    std::optional<u32> Transparent;
+    u32                Rotation {0};
+    bool               FlipH {false};
+    bool               FlipV {false};
 
     static auto constexpr Members()
     {
         return std::tuple {member<&blit_settings::Transparent, std::nullopt> {"transparent"},
-                           member<&blit_settings::Rotation, std::nullopt> {"rotation"},
-                           member<&blit_settings::FlipH, std::nullopt> {"flip_h"},
-                           member<&blit_settings::FlipV, std::nullopt> {"flip_v"}};
+                           member<&blit_settings::Rotation, 0> {"rotation"},
+                           member<&blit_settings::FlipH, false> {"flip_h"},
+                           member<&blit_settings::FlipV, false> {"flip_v"}};
     }
 };
 

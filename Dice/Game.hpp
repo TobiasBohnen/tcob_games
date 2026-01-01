@@ -10,36 +10,8 @@
 #include "Die.hpp"
 #include "Engine.hpp"
 #include "Socket.hpp"
+#include "Sprite.hpp"
 #include "UI.hpp"
-
-////////////////////////////////////////////////////////////
-
-class sprite {
-public:
-    struct init {
-        bool             IsCollidable {true};
-        bool             IsWrappable {true};
-        scripting::table Owner;
-    };
-
-    explicit sprite(init init);
-
-    rect_f           Bounds;
-    gfx::rect_shape* Shape {nullptr};
-    gfx::rect_shape* WrapCopy {nullptr};
-
-    auto is_collidable() const -> bool;
-    auto is_wrappable() const -> bool;
-    auto owner() const -> scripting::table const&;
-    auto get_texture() const -> texture*;
-
-    void set_bounds(point_f pos, size_f size);
-    void set_texture(texture* tex);
-
-private:
-    init     _init;
-    texture* _tex {nullptr};
-};
 
 ////////////////////////////////////////////////////////////
 
