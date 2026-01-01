@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Tobias Bohnen
+// Copyright (c) 2026 Tobias Bohnen
 //
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
@@ -45,10 +45,10 @@ auto card::name() const -> std::string
     std::string retValue {std::format("{:02}", static_cast<u8>(_rank))};
 
     switch (_suit) {
-    case suit::Hearts: retValue += "h"; break;
+    case suit::Hearts:   retValue += "h"; break;
     case suit::Diamonds: retValue += "d"; break;
-    case suit::Clubs: retValue += "c"; break;
-    case suit::Spades: retValue += "s"; break;
+    case suit::Clubs:    retValue += "c"; break;
+    case suit::Spades:   retValue += "s"; break;
     }
 
     return retValue;
@@ -109,19 +109,19 @@ auto get_suit_color(suit s) -> suit_color
 auto get_rank_symbol(rank r) -> std::string
 {
     switch (r) {
-    case rank::Ace: return "A";
-    case rank::Two: return "2";
+    case rank::Ace:   return "A";
+    case rank::Two:   return "2";
     case rank::Three: return "3";
-    case rank::Four: return "4";
-    case rank::Five: return "5";
-    case rank::Six: return "6";
+    case rank::Four:  return "4";
+    case rank::Five:  return "5";
+    case rank::Six:   return "6";
     case rank::Seven: return "7";
     case rank::Eight: return "8";
-    case rank::Nine: return "9";
-    case rank::Ten: return "10";
-    case rank::Jack: return "J";
+    case rank::Nine:  return "9";
+    case rank::Ten:   return "10";
+    case rank::Jack:  return "J";
     case rank::Queen: return "Q";
-    case rank::King: return "K";
+    case rank::King:  return "K";
     }
 
     return "";
@@ -130,19 +130,19 @@ auto get_rank_symbol(rank r) -> std::string
 auto get_rank_name(rank r) -> std::string
 {
     switch (r) {
-    case rank::Ace: return "Ace";
-    case rank::Two: return "Two";
+    case rank::Ace:   return "Ace";
+    case rank::Two:   return "Two";
     case rank::Three: return "Three";
-    case rank::Four: return "Four";
-    case rank::Five: return "Five";
-    case rank::Six: return "Six";
+    case rank::Four:  return "Four";
+    case rank::Five:  return "Five";
+    case rank::Six:   return "Six";
     case rank::Seven: return "Seven";
     case rank::Eight: return "Eight";
-    case rank::Nine: return "Nine";
-    case rank::Ten: return "Ten";
-    case rank::Jack: return "Jack";
+    case rank::Nine:  return "Nine";
+    case rank::Ten:   return "Ten";
+    case rank::Jack:  return "Jack";
     case rank::Queen: return "Queen";
-    case rank::King: return "King";
+    case rank::King:  return "King";
     }
 
     return "";

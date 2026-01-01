@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Tobias Bohnen
+// Copyright (c) 2026 Tobias Bohnen
 //
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
@@ -14,7 +14,7 @@ auto tile::is_passable() const -> bool
     if (Monster) { return false; }
 
     switch (Type) {
-    case tile_type::Wall: return false;
+    case tile_type::Wall:  return false;
     case tile_type::Glass: return false;
     case tile_type::Floor: break;
     }
@@ -25,7 +25,7 @@ auto tile::is_passable() const -> bool
 auto tile::is_transparent() const -> bool
 {
     switch (Type) {
-    case tile_type::Wall: return false;
+    case tile_type::Wall:  return false;
     case tile_type::Floor:
     case tile_type::Glass: break;
     }
