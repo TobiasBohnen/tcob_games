@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Tobias Bohnen
+// Copyright (c) 2026 Tobias Bohnen
 //
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
@@ -171,7 +171,7 @@ void game_form::gen_styles(assets::group const& grp)
     }
     {
         auto style {styles.create<dot_matrix_display>("dot_matrix_display", {})};
-        style->Type = dot_matrix_display::dot_type::Square;
+        style->Type = dot_matrix_display::dot_type::Disc;
         for (u8 i {0}; i < PALETTE.size(); ++i) {
             style->Colors[i] = PALETTE[i];
         }
