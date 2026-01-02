@@ -23,9 +23,11 @@ local game               = {
     missiles        = {},
 
     sockets         = {
-        left = {}, ---@type { [string]: socket }
-        right = {}, ---@type { [string]: socket }
+        left   = {}, ---@type { [string]: socket }
+        right  = {}, ---@type { [string]: socket }
         center = {}, ---@type { [string]: socket }
+        energy = nil, ---@type socket
+        aim    = nil, ---@type socket
     },
 
     textures        = {
@@ -48,12 +50,15 @@ function game:on_setup(engine)
     end
     self:create_weapons(engine)
 
-    self.sockets.left.shots   = engine:create_socket { colors = { Palette.White } }
-    self.sockets.left.power   = engine:create_socket { colors = { Palette.White } }
-    self.sockets.right.shots  = engine:create_socket { colors = { Palette.White } }
-    self.sockets.right.power  = engine:create_socket { colors = { Palette.White } }
-    self.sockets.center.shots = engine:create_socket { colors = { Palette.White } }
-    self.sockets.center.power = engine:create_socket { colors = { Palette.White } }
+    self.sockets.left.shots     = engine:create_socket { colors = { Palette.White } }
+    self.sockets.left.cooling   = engine:create_socket { colors = { Palette.White } }
+    self.sockets.right.shots    = engine:create_socket { colors = { Palette.White } }
+    self.sockets.right.cooling  = engine:create_socket { colors = { Palette.White } }
+    self.sockets.center.shots   = engine:create_socket { colors = { Palette.White } }
+    self.sockets.center.cooling = engine:create_socket { colors = { Palette.White } }
+
+    self.sockets.energy         = engine:create_socket { colors = { Palette.White } }
+    self.sockets.aim            = engine:create_socket { colors = { Palette.White } }
 end
 
 ---@param engine engine
@@ -99,7 +104,7 @@ function game:on_teardown(engine)
 end
 
 ---@param engine engine
-function game:draw_dmd(engine)
+function game:on_draw_dmd(engine)
     gfx.draw_dmd(engine.dmd, self)
 end
 
@@ -154,32 +159,38 @@ end
 function game:create_weapons(engine)
     local screenSize = engine.screenSize
     self.weapons = {
-        left = {
-            sprite = engine:create_sprite({
+        left   = {
+            heat      = 0,
+            shotsLeft = 0,
+            sprite    = engine:create_sprite({
                 spriteInit = {
-                    texture = self.textures.weapon.left,
-                    position = { x = 0, y = screenSize.height / 3 * 2 },
-                    wrappable = false,
+                    texture    = self.textures.weapon.left,
+                    position   = { x = 0, y = screenSize.height / 3 * 2 },
+                    wrappable  = false,
                     collidable = false
                 }
             })
         },
-        right = {
-            sprite = engine:create_sprite({
+        right  = {
+            heat      = 0,
+            shotsLeft = 0,
+            sprite    = engine:create_sprite({
                 spriteInit = {
-                    texture = self.textures.weapon.right,
-                    position = { x = screenSize.width - gfx.sizes.weapon.width, y = screenSize.height / 3 * 2 },
-                    wrappable = false,
+                    texture    = self.textures.weapon.right,
+                    position   = { x = screenSize.width - gfx.sizes.weapon.width, y = screenSize.height / 3 * 2 },
+                    wrappable  = false,
                     collidable = false
                 }
             })
         },
         center = {
-            sprite = engine:create_sprite({
+            heat      = 0,
+            shotsLeft = 0,
+            sprite    = engine:create_sprite({
                 spriteInit = {
-                    texture = self.textures.weapon.center,
-                    position = { x = (screenSize.width - gfx.sizes.weapon.width) / 2, y = screenSize.height / 3 * 2 },
-                    wrappable = false,
+                    texture    = self.textures.weapon.center,
+                    position   = { x = (screenSize.width - gfx.sizes.weapon.width) / 2, y = screenSize.height / 3 * 2 },
+                    wrappable  = false,
                     collidable = false
                 }
             })

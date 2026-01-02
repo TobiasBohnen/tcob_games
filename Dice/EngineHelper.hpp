@@ -27,7 +27,7 @@ struct callbacks {
     callback<i32> OnTurnUpdate;
     callback<>    OnTurnFinish;
     callback<>    OnTurnStart;
-    callback<>    DrawDMD;
+    callback<>    OnDrawDMD;
 };
 
 ////////////////////////////////////////////////////////////

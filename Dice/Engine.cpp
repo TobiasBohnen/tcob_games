@@ -28,11 +28,11 @@ engine::engine(init const& init)
 
     _init.Events.SocketDieChanged.connect([this](auto const& ev) {
         if (_gameStatus != game_status::TurnEnded) { return; }
-        call(_callbacks.DrawDMD, ev);
+        call(_callbacks.OnDrawDMD, ev);
     });
     _init.Events.DieMotion.connect([this]() {
         if (_gameStatus != game_status::TurnEnded) { return; }
-        call(_callbacks.DrawDMD);
+        call(_callbacks.OnDrawDMD);
     });
 
     _init.Events.StartTurn.connect([this]() { start_turn(); });
@@ -81,10 +81,10 @@ void engine::run(string const& file)
     _table.try_get(_callbacks.OnTurnUpdate, "on_turn_update");
     _table.try_get(_callbacks.OnTurnFinish, "on_turn_finish");
     _table.try_get(_callbacks.OnTurnStart, "on_turn_start");
-    _table.try_get(_callbacks.DrawDMD, "draw_dmd");
+    _table.try_get(_callbacks.OnDrawDMD, "on_draw_dmd");
 
     call(_callbacks.OnSetup);
-    call(_callbacks.DrawDMD);
+    call(_callbacks.OnDrawDMD);
     _init.Game->roll();
 }
 
@@ -104,7 +104,7 @@ auto engine::update(milliseconds deltaTime) -> bool
     case TurnEnded: {
         _init.Game->reset_sockets();
         call(_callbacks.OnTurnFinish);
-        call(_callbacks.DrawDMD);
+        call(_callbacks.OnDrawDMD);
         _turnTime = 0;
         return false;
     }
@@ -122,7 +122,7 @@ auto engine::start_turn() -> bool
 
     _init.Sockets->lock();
     call(_callbacks.OnTurnStart);
-    call(_callbacks.DrawDMD);
+    call(_callbacks.OnDrawDMD);
     _gameStatus = game_status::Running;
     return true;
 }

@@ -19,19 +19,17 @@ local gfx                   = require('sr_gfx')
 local sfx                   = require('sr_sfx')
 
 local game                  = {
-    ship        = {},
+    ship       = {},
 
-    bullets     = {},
-    bulletsLeft = 0,
-    bulletTime  = 0,
+    bullets    = {},
 
-    asteroids   = {},
+    asteroids  = {},
 
-    explosions  = {},
+    explosions = {},
 
-    sockets     = {}, ---@type { [string]: socket }
+    sockets    = {}, ---@type { [string]: socket }
 
-    textures    = {
+    textures   = {
         ship      = { [0] = 0, [45] = 1, [90] = 2, [135] = 3, [180] = 4, [225] = 5, [270] = 6, [315] = 7 }, ---@type { [number]: texture }
         hurtShip  = { [0] = 10, [45] = 11, [90] = 12, [135] = 13, [180] = 14, [225] = 15, [270] = 16, [315] = 17 }, ---@type { [number]: texture }
         bullet    = 20, ---@type texture
@@ -39,7 +37,7 @@ local game                  = {
         explosion = 40, ---@type texture
     },
 
-    sounds      = {
+    sounds     = {
         explosion = 1, ---@type sound
         bullet    = 2, ---@type sound
     },
@@ -66,12 +64,13 @@ end
 function game:on_turn_start(engine)
     self.bulletTime = 0
 
-    self.ship:turn_start()
+    local ship = self.ship
+    ship:turn_start()
 
-    self.bulletsLeft = self.sockets.bullets.die_value
+    ship.bulletsLeft = self.sockets.bullets.die_value
 
     if engine:get_hand(self.sockets).value == "ThreeOfAKind" then
-        self.ship:set_shield(true)
+        ship:set_shield(true)
     end
 end
 
@@ -118,7 +117,7 @@ function game:on_teardown(engine)
 end
 
 ---@param engine engine
-function game:draw_dmd(engine)
+function game:on_draw_dmd(engine)
     gfx.draw_dmd(engine.dmd, self)
 end
 
@@ -219,9 +218,10 @@ end
 
 ---@param engine engine
 function game:try_spawn_bullet(engine, deltaTime)
-    if self.bulletsLeft <= 0 then return end
-    self.bulletTime = self.bulletTime - deltaTime
-    if self.bulletTime > 0 then return end
+    local ship = self.ship
+    if ship.bulletsLeft <= 0 then return end
+    ship.bulletTime = ship.bulletTime - deltaTime
+    if ship.bulletTime > 0 then return end
 
     self:create_bullet(engine)
 end
@@ -276,8 +276,8 @@ function game:create_bullet(engine)
 
     bullet.sprite.position          = { x = bx, y = by }
 
-    self.bulletTime                 = HALF_DURATION / self.sockets.bullets.die_value
-    self.bulletsLeft                = self.bulletsLeft - 1
+    ship.bulletTime                 = HALF_DURATION / self.sockets.bullets.die_value
+    ship.bulletsLeft                = ship.bulletsLeft - 1
     engine:play_sound(self.sounds.bullet)
 end
 
@@ -313,6 +313,9 @@ function game:create_ship(engine)
         speed         = 0,
         speedTarget   = 0,
         sprite        = nil, ---@type sprite
+
+        bulletsLeft   = 0,
+        bulletTime    = 0,
 
         type          = "ship",
         health        = 5,

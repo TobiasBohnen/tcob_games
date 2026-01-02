@@ -121,21 +121,24 @@ function gfx.draw_dmd(dmd, game)
 
     sockets.left.shots.position = { x = 22, y = 20 }
     dmd:socket(sockets.left.shots)
+    sockets.left.cooling.position = { x = 22, y = 38 }
+    dmd:socket(sockets.left.cooling)
 
     sockets.center.shots.position = { x = 43, y = 20 }
     dmd:socket(sockets.center.shots)
+    sockets.center.cooling.position = { x = 43, y = 38 }
+    dmd:socket(sockets.center.cooling)
 
     sockets.right.shots.position = { x = 64, y = 20 }
     dmd:socket(sockets.right.shots)
+    sockets.right.cooling.position = { x = 64, y = 38 }
+    dmd:socket(sockets.right.cooling)
 
-    sockets.left.power.position = { x = 22, y = 38 }
-    dmd:socket(sockets.left.power)
+    sockets.energy.position = { x = 64, y = 74 }
+    dmd:socket(sockets.energy)
 
-    sockets.center.power.position = { x = 43, y = 38 }
-    dmd:socket(sockets.center.power)
-
-    sockets.right.power.position = { x = 64, y = 38 }
-    dmd:socket(sockets.right.power)
+    sockets.aim.position = { x = 43, y = 74 }
+    dmd:socket(sockets.aim)
 end
 
 ---@param dmd dmd
