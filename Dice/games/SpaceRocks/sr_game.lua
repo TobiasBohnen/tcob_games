@@ -92,7 +92,6 @@ function game:on_turn_update(engine, deltaTime, turnTime)
     end
     self.ship:update(deltaTime, turnTime)
 
-    engine.ssd = tostring(#self.asteroids)
     if self.ship.health == 0 then return GameStatus.GameOver end
     return GameStatus.Running
 end
@@ -187,12 +186,10 @@ function game:create_asteroid(engine, size, x, y)
                     self:create_explosion(engine, a)
                 else
                     local newSize = a.size == "medium" and "small" or "medium"
-                    local b       = a.sprite.bounds
-                    local cx      = b.x + b.width * 0.5
-                    local cy      = b.y + b.height * 0.5
+                    local b       = a.sprite.center
                     local offset  = 8
-                    self:create_asteroid(engine, newSize, cx - offset, cy - offset)
-                    self:create_asteroid(engine, newSize, cx + offset, cy + offset)
+                    self:create_asteroid(engine, newSize, b.x - offset, b.y - offset)
+                    self:create_asteroid(engine, newSize, b.x + offset, b.y + offset)
                     engine:play_sound(self.sounds.explosion)
                 end
 
@@ -260,19 +257,20 @@ function game:create_bullet(engine)
     self.bullets[#self.bullets + 1] = bullet
 
     local shipSprite                = ship.sprite
-    local shipBounds                = shipSprite.bounds
-    local bulletBounds              = bullet.sprite.bounds
+    local shipCenter                = shipSprite.center
+    local shipSize                  = shipSprite.size
+    local bulletSize                = bullet.sprite.size
     local rad                       = math.rad(ship.direction)
 
     local bx                        =
-        shipBounds.x + shipBounds.width * 0.5
-        + math.sin(rad) * shipBounds.width * 0.5
-        - bulletBounds.width * 0.5
+        shipCenter.x
+        + math.sin(rad) * shipSize.width * 0.5
+        - bulletSize.width * 0.5
 
     local by                        =
-        shipBounds.y + shipBounds.height * 0.5
-        - math.cos(rad) * shipBounds.height * 0.5
-        - bulletBounds.height * 0.5
+        shipCenter.y
+        - math.cos(rad) * shipSize.height * 0.5
+        - bulletSize.height * 0.5
 
     bullet.sprite.position          = { x = bx, y = by }
 

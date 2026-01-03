@@ -56,16 +56,16 @@ local city_texture_heavy_damage =
 [[0gm1a0e1a0y1c0c1a0n1a0j1a8a1a0c1c0c1a0a1a0f1a0i1a0a1d0a1a8a1a0c1c0b1c0a1b0g1a8a1a0a1c0a1e0a1b8a1a0a1a8a1a0a1a8a0a1a0e1e8a1a0a1a8a1a8a1f0a1c0a1d0e1g0a1g8a1b0a1c0a1d0e1a8a1r8a1a0a1a8b1b0d1v0a1g0b1ad0a]]
 local city_texture_destroyed =
 [[0ny1c0d1a0h1a0c1e0e1f0b1c0a1c0a1d0a1g0b1i0a1l0a1g0b1ad0a]]
-local weapon_texture =
+local cannon_texture =
 [[0arCc0jCe3a0hCfDb0bCa0bCfDc0dCd9aCbDb0gCb9aCcDaEa0iCb0bCbDaEa0iCb0aCbDaEa0lCbDaEa0kCdDaEa0g1a2a1h2a1a0c1a2a1a2a1f2a1a2a1a0a1af]]
-local weapon_center_texture =
+local cannon_center_texture =
 [[0t3a0c3a0c3a0gCa0cCa0cCa0fCbDa0aCbDa0aCbDa0eCbDa0aCbDa0aCbDa0eCbDa0aCbDa0aCbDa0eCbDa0aCbDa0aCbDa0eCbDa0aCbDa0aCbDa0eCbDa0aCbDa0aCbDa0eCbDa0aCbDa0aCbDa0eCbDa0aCbDa0aCbDa0dCl0d1a2a1h2a1a0c1a2a1a2a1f2a1a2a1a0a1af]]
 local missile_texture =
 [[0b3d0e3b0c3a0a3d0a3d0b3f0b3d0a3d0a3a0c3b0e3d0b]]
 
 gfx.sizes = {
     city = { width = 32, height = 16 },
-    weapon = { width = 16, height = 16 },
+    cannon = { width = 16, height = 16 },
     missile = { width = 8, height = 8 }
 }
 
@@ -105,40 +105,68 @@ function gfx.create_textures(game, engine)
     make_texture(game.textures.city.light_damage, gfx.sizes.city, city_texture_light_damage)
     make_texture(game.textures.city.heavy_damage, gfx.sizes.city, city_texture_heavy_damage)
     make_texture(game.textures.city.destroyed, gfx.sizes.city, city_texture_destroyed)
-    make_texture(game.textures.weapon.left, gfx.sizes.weapon, weapon_texture)
-    make_texture(game.textures.weapon.right, gfx.sizes.weapon, weapon_texture, true)
-    make_texture(game.textures.weapon.center, gfx.sizes.weapon, weapon_center_texture)
+    make_texture(game.textures.cannon.left, gfx.sizes.cannon, cannon_texture)
+    make_texture(game.textures.cannon.right, gfx.sizes.cannon, cannon_texture, true)
+    make_texture(game.textures.cannon.center, gfx.sizes.cannon, cannon_center_texture)
     make_texture(game.textures.missile, gfx.sizes.missile, missile_texture)
 end
 
 ------
+
+local cannon_pattern = {
+    left = [[0f2a0e2a0e2a0e2a0e2a0e2a0e2g]],
+    right = [[2a0g2a0g2a0g2a0g2a0g2a0a2g]],
+    center = [[0c2a0f2a0f2a0f2a0f2a0f2a0c2g]],
+}
+
+local charge_pattern = [[3b4i3d4i3q4i3d4i3d4i3q4i3d4i3d4i3q4i3d4i3b]]
+local cooling_pattern = [[00000D0D000000D0D00D00D0D000D00DDD00D00000D00D00D000D000D0D0D000D0D000DDD000D0DDDDDD0DDDDDD0D000DDD000D0D000D0D0D000D000D00D00D00000D00DDD00D000D0D00D00D0D000000D0D00000]]
 
 ---@param dmd dmd
 function gfx.draw_dmd(dmd, game)
     local sockets = game.sockets
 
     dmd:clear()
+    local offset = 18
 
-    sockets.left.shots.position = { x = 22, y = 20 }
-    dmd:socket(sockets.left.shots)
-    sockets.left.cooling.position = { x = 22, y = 38 }
-    dmd:socket(sockets.left.cooling)
+    local function draw_cannon(type, x)
+        local y = 2
 
-    sockets.center.shots.position = { x = 43, y = 20 }
-    dmd:socket(sockets.center.shots)
-    sockets.center.cooling.position = { x = 43, y = 38 }
-    dmd:socket(sockets.center.cooling)
+        dmd:blit({ x = x + 3, y = y, width = 7, height = 7 }, cannon_pattern[type])
+        y = y + 14
 
-    sockets.right.shots.position = { x = 64, y = 20 }
-    dmd:socket(sockets.right.shots)
-    sockets.right.cooling.position = { x = 64, y = 38 }
-    dmd:socket(sockets.right.cooling)
+        dmd:blit({ x = 2, y = y, width = 13, height = 13 }, charge_pattern)
+        sockets[type].chargeRate.position = { x = x, y = y }
+        dmd:socket(sockets[type].chargeRate)
 
-    sockets.energy.position = { x = 64, y = 74 }
-    dmd:socket(sockets.energy)
+        y = y + offset
 
-    sockets.aim.position = { x = 43, y = 74 }
-    dmd:socket(sockets.aim)
+        dmd:blit({ x = 2, y = y, width = 13, height = 13 }, cooling_pattern)
+        sockets[type].coolRate.position = { x = x, y = y }
+        dmd:socket(sockets[type].coolRate)
+
+        y = y + offset * 2
+
+        local nrgy = math.floor(game.cannons[type].relCharge * offset)
+        dmd:rect({ x = x + 1, y = y - offset, width = 5, height = offset - nrgy }, Palette.DarkBrown, true)
+        dmd:rect({ x = x + 1, y = y - nrgy, width = 5, height = nrgy }, Palette.Red, true)
+
+        local heat = math.floor(game.cannons[type].relHeat * offset)
+        dmd:rect({ x = x + 7, y = y - offset, width = 5, height = offset - heat }, Palette.DarkBlue, true)
+        dmd:rect({ x = x + 7, y = y - heat, width = 5, height = heat }, Palette.Blue, true)
+    end
+
+    draw_cannon("left", 22)
+    draw_cannon("center", 43)
+    draw_cannon("right", 64)
+
+    sockets.energyRestore.position = { x = 64, y = 80 }
+    dmd:socket(sockets.energyRestore)
+
+    local energySize = 14
+    local energy     = math.floor(game.relEnergyReserve * energySize)
+    dmd:rect({ x = 43, y = 80, width = energySize, height = energySize - energy }, Palette.DarkGreen, true)
+    dmd:rect({ x = 43, y = 80 - energy + energySize, width = energySize, height = energy }, Palette.Green, true)
 end
 
 ---@param dmd dmd

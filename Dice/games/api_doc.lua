@@ -11,33 +11,19 @@
 ---@alias sound integer
 ---@alias color integer
 
----@class point_f
+---@class point
 ---@field x number
 ---@field y number
 
----@class point_i
----@field x integer
----@field y integer
-
----@class size_f
+---@class size
 ---@field width number
 ---@field height number
 
----@class size_i
----@field width integer
----@field height integer
-
----@class rect_f
+---@class rect
 ---@field x number
 ---@field y number
 ---@field width number
 ---@field height number
-
----@class rect_i
----@field x integer
----@field y integer
----@field width integer
----@field height integer
 
 ---@class socket_init
 ---@description Defines the validation rules for dice placement.
@@ -50,7 +36,7 @@
 ---@class sprite_init
 ---@description The initialization table used to define a new sprite's properties and behavior.
 ---@field texture? integer The ID of the texture to use from the sprite atlas.
----@field position? point_f The position of the sprite.
+---@field position? point The position of the sprite.
 ---@field collidable? boolean Whether the sprite should trigger collision events.
 ---@field wrappable? boolean Whether the sprite wraps around the screen edges.
 
@@ -140,7 +126,7 @@ Rot = {
 ---@
 ---@field on_collision fun(self: game_module, engine: engine, spriteA: sprite, spriteB: sprite)
 ---@
----@field draw_dmd fun(self: game_module, engine: engine)
+---@field on_draw_dmd fun(self: game_module, engine: engine)
 
 --------------------------------
 -- Sprite
@@ -148,8 +134,9 @@ Rot = {
 
 ---@class sprite
 ---@description A graphical object managed by the game engine.
----@field position point_f The position of the sprite.
----@field bounds rect_f The bounding rectangle of the sprite (Position + Size). @readonly
+---@field position point The position of the sprite.
+---@field size size The size of the sprite. @readonly
+---@field center point The center of the sprite. @readonly
 ---@field owner table The Lua table defining this sprite's behavior. @readonly
 ---@field texture integer The ID of the texture from the packed atlas.
 
@@ -159,7 +146,7 @@ Rot = {
 
 ---@class socket
 ---@description A logical container for dice, mapped to the DMD coordinate system.
----@field position point_i The integer coordinate on the DMD grid.
+---@field position point The integer coordinate on the DMD grid.
 ---@field is_empty boolean Returns true if no die is currently placed in this socket. @readonly
 ---@field state socket_state The current interaction state (e.g., Idle, Accept, Hover). @readonly
 ---@field die_value integer The value (1-6) of the die in the socket, or 0 if empty. @readonly
@@ -172,7 +159,7 @@ Rot = {
 local dmd = {}
 
 ---Copies a raw string of dot data into the specified rectangle.
----@param rect rect_i The destination area on the DMD.
+---@param rect rect The destination area on the DMD.
 ---@param dots string A string where each character represents a pixel/dot.
 function dmd:blit(rect, dots) end
 
@@ -180,26 +167,26 @@ function dmd:blit(rect, dots) end
 function dmd:clear() end
 
 ---Draws a line between two points.
----@param start point_i The starting coordinate {x, y}.
----@param end_point point_i The ending coordinate {x, y}.
+---@param start point The starting coordinate {x, y}.
+---@param end_point point The ending coordinate {x, y}.
 ---@param color color The palette index.
 function dmd:line(start, end_point, color) end
 
 ---Draws a circle centered at a specific point.
----@param center point_i The center coordinate {x, y}.
+---@param center point The center coordinate {x, y}.
 ---@param radius integer The distance from the center to the edge.
 ---@param color color The palette index.
 ---@param fill boolean Whether to draw a solid circle or just the outline.
 function dmd:circle(center, radius, color, fill) end
 
 ---Draws a rectangle based on a rect object.
----@param rect rect_i The position and size of the rectangle.
+---@param rect rect The position and size of the rectangle.
 ---@param color color The palette index.
 ---@param fill boolean Whether to draw a solid rectangle or just the outline.
 function dmd:rect(rect, color, fill) end
 
 ---Prints text at the specified position.
----@param pos point_i The top-left coordinate for the text.
+---@param pos point The top-left coordinate for the text.
 ---@param text string The string to display.
 ---@param color color The palette index.
 function dmd:print(pos, text, color) end
@@ -211,37 +198,37 @@ function dmd:socket(socket) end
 --------------------------------
 ---@class tex
 ---@description Interface for drawing a textures. All color values should be between 0 and 15.
----@field size size_i The width and height of the texture in pixels.
----@field bounds rect_i The bounding rectangle of the texture (Position + Size). @readonly
+---@field size size The width and height of the texture in pixels.
+---@field bounds rect The bounding rectangle of the texture (Position + Size). @readonly
 local tex = {}
 
 ---Copies a raw string of dot data into the specified rectangle.
----@param rect rect_i The destination area on the texture.
+---@param rect rect The destination area on the texture.
 ---@param data string A string where each character represents a pixel.
 ---@param blitSettings? blit_settings Optional table controlling how the blit operation is performed.
 function tex:blit(rect, data, blitSettings) end
 
 ---Clears the entire DMD, setting all pixels to transparent.
----@param rect? rect_i The destination area on the texture.
+---@param rect? rect The destination area on the texture.
 function tex:clear(rect) end
 
 ---Draws a line between two points.
----@param startPoint point_i The starting coordinate {x, y}.
----@param endPoint point_i The ending coordinate {x, y}.
+---@param startPoint point The starting coordinate {x, y}.
+---@param endPoint point The ending coordinate {x, y}.
 ---@param color color The palette index.
 function tex:line(startPoint, endPoint, color) end
 
 function tex:pixel(point, color) end
 
 ---Draws a circle centered at a specific point.
----@param center point_i The center coordinate {x, y}.
+---@param center point The center coordinate {x, y}.
 ---@param radius integer The distance from the center to the edge.
 ---@param color color The palette index.
 ---@param fill boolean Whether to draw a solid circle or just the outline.
 function tex:circle(center, radius, color, fill) end
 
 ---Draws a rectangle based on a rect object.
----@param rect rect_i The position and size of the rectangle.
+---@param rect rect The position and size of the rectangle.
 ---@param color color The palette index.
 ---@param fill boolean Whether to draw a solid rectangle or just the outline.
 function tex:rect(rect, color, fill) end
@@ -252,7 +239,7 @@ function tex:rect(rect, color, fill) end
 
 ---@class engine
 ---@description The main interface between the Lua script and the game engine hardware/state.
----@field screenSize size_i The size of the screen textures. @readonly
+---@field screenSize size The size of the screen textures. @readonly
 ---@field dmd dmd Access to the Dot Matrix Display drawing functions. @readonly
 ---@field fg tex Access to the foreground drawing functions. @readonly
 ---@field bg tex Access to the background drawing functions. @readonly
@@ -264,7 +251,7 @@ local engine = {}
 
 ---Defines a texture region from the sprite atlas.
 ---@param id integer Unique identifier for this texture.
----@param uv rect_i UV coordinates in pixel coordinates defining the texture region.
+---@param uv rect UV coordinates in pixel coordinates defining the texture region.
 function engine:create_texture(id, uv) end
 
 ---Initializes the sound buffer cache.

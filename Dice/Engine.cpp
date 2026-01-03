@@ -193,8 +193,10 @@ void engine::create_sprite_wrapper()
     spriteWrapper["position"] = property {
         [](sprite* sprite) -> point_f { return sprite->Bounds.Position; },
         [](sprite* sprite, point_f p) { sprite->set_bounds(p, sprite->Bounds.Size); }};
-    spriteWrapper["bounds"] = getter {
-        [](sprite* sprite) -> rect_f { return sprite->Bounds; }};
+    spriteWrapper["size"] = getter {
+        [](sprite* sprite) -> size_f { return sprite->Bounds.Size; }};
+    spriteWrapper["center"] = getter {
+        [](sprite* sprite) -> point_f { return sprite->Bounds.center(); }};
     spriteWrapper["owner"] = getter {
         [](sprite* sprite) -> table const& { return sprite->owner(); }};
     spriteWrapper["texture"] = property {
@@ -308,14 +310,18 @@ void engine::create_tex_wrapper()
     texWrapper["bounds"] = getter {[](tex_proxy* tex) -> rect_i { return tex->bounds(); }};
     texWrapper["size"]   = getter {[](tex_proxy* tex) -> size_i { return tex->bounds().Size; }};
 
-    texWrapper["clear"] = [](tex_proxy* tex, std::optional<rect_i> const& rect) { tex->clear(rect); };
+    texWrapper["clear"] = [](tex_proxy* tex, std::optional<rect_f> const& rect) {
+        std::optional<rect_i> r {std::nullopt};
+        if (rect) { r = rect_i {*rect}; }
+        tex->clear(r);
+    };
 
-    texWrapper["pixel"]  = [](tex_proxy* tex, point_i pos, u8 color) { tex->pixel(pos, color); };
-    texWrapper["line"]   = [](tex_proxy* tex, point_i start, point_i end, u8 color) { tex->line(start, end, color); };
-    texWrapper["circle"] = [](tex_proxy* tex, point_i center, i32 radius, u8 color, bool fill) { tex->circle(center, radius, color, fill); };
-    texWrapper["rect"]   = [](tex_proxy* tex, rect_i const& rect, u8 color, bool fill) { tex->rect(rect, color, fill); };
+    texWrapper["pixel"]  = [](tex_proxy* tex, point_f pos, u8 color) { tex->pixel(point_i {pos}, color); };
+    texWrapper["line"]   = [](tex_proxy* tex, point_f start, point_f end, u8 color) { tex->line(point_i {start}, point_i {end}, color); };
+    texWrapper["circle"] = [](tex_proxy* tex, point_f center, i32 radius, u8 color, bool fill) { tex->circle(point_i {center}, radius, color, fill); };
+    texWrapper["rect"]   = [](tex_proxy* tex, rect_f const& rect, u8 color, bool fill) { tex->rect(rect_i {rect}, color, fill); };
 
-    texWrapper["blit"] = [](tex_proxy* tex, rect_i const& rect, string const& dotStr, std::optional<blit_settings> settings) { tex->blit(rect, dotStr, settings ? *settings : blit_settings {}); };
+    texWrapper["blit"] = [](tex_proxy* tex, rect_f const& rect, string const& dotStr, std::optional<blit_settings> settings) { tex->blit(rect_i {rect}, dotStr, settings ? *settings : blit_settings {}); };
 }
 
 void engine::create_texture(u32 id, rect_i const& uv)

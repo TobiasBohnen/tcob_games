@@ -76,7 +76,7 @@ void start_scene::on_update(milliseconds deltaTime)
             _frameTimer = 0ms;
         }
         if (_frames.size() == 1000) {
-            _clipFtr = gfx::save_animation_async("clip.png", _frames);
+            _clipFtr = gfx::save_animation_async("clip.webp", _frames);
         }
     }
 }
