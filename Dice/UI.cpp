@@ -198,7 +198,7 @@ auto game_select_form::make_tooltip(u32 id) -> std::shared_ptr<tooltip>
     retValue->Popup.connect([this, &tooltipLabel, id, tt = retValue.get()](auto const& event) -> void {
         auto* const widget {event.Widget};
         auto const& game {_games[id]};
-        tooltipLabel.Label = std::format("{}\n{} - {}", game.Name, game.Info.Genre, game.Info.Year);
+        tooltipLabel.Label = std::format("{}\n{}", game.Name, game.Info.Genre);
 
         rect_f const bounds {widget->Bounds};
         auto const*  style {dynamic_cast<label::style const*>(tooltipLabel.current_style())};

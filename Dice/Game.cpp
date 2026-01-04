@@ -27,7 +27,6 @@ dice_game::dice_game(init const& init)
 {
     _spriteMaterial->first_pass().Texture = _spriteTexture;
     _spriteTexture->resize(SPRITE_TEXTURE_SIZE, 1, gfx::texture::format::RGBA8);
-    _sharedState.SpriteTexture = gfx::image::CreateEmpty(SPRITE_TEXTURE_SIZE, gfx::image::format::RGBA);
     _sharedState.SpriteTexture.Changed.connect([&](auto const&) { _updateSprites = true; });
 
     _background->Bounds                       = {point_f::Zero, VIRTUAL_SCREEN_SIZE};
@@ -35,7 +34,6 @@ dice_game::dice_game(init const& init)
     _background->Material                     = _backgroundMaterial;
     _backgroundTexture->resize(size_i {VIRTUAL_SCREEN_SIZE}, 1, gfx::texture::format::RGBA8);
     _backgroundTexture->regions()["default"] = gfx::texture_region {.UVRect = {0, 0, 1, 1}, .Level = 0};
-    _sharedState.Background                  = gfx::image::CreateEmpty(size_i {VIRTUAL_SCREEN_SIZE}, gfx::image::format::RGBA);
     _sharedState.Background.Changed.connect([&](auto const&) { _updateBackground = true; });
 
     _foreground->Bounds                       = {point_f::Zero, VIRTUAL_SCREEN_SIZE};
@@ -43,7 +41,6 @@ dice_game::dice_game(init const& init)
     _foreground->Material                     = _foregroundMaterial;
     _foregroundTexture->resize(size_i {VIRTUAL_SCREEN_SIZE}, 1, gfx::texture::format::RGBA8);
     _foregroundTexture->regions()["default"] = gfx::texture_region {.UVRect = {0, 0, 1, 1}, .Level = 0};
-    _sharedState.Foreground                  = gfx::image::CreateEmpty(size_i {VIRTUAL_SCREEN_SIZE}, gfx::image::format::RGBA);
     _sharedState.Foreground.Changed.connect([&](auto const&) { _updateForeground = true; });
 
     // TODO: enforce int scaling for background

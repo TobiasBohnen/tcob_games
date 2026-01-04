@@ -160,9 +160,11 @@ auto start_scene::scan_game(string const& ini) -> bool
     // Cover
     auto       imgCover {gfx::image::CreateEmpty(COVER_SIZE, gfx::image::format::RGBA)};
     auto const dots {decode_texture_pixels(game.Cover, COVER_SIZE)};
-    for (i32 y {0}; y < COVER_SIZE.Height; ++y) {
-        for (i32 x {0}; x < COVER_SIZE.Width; ++x) {
-            imgCover.set_pixel({x, y}, PALETTE[dots[x + (y * COVER_SIZE.Width)]]);
+    if (dots.size() == COVER_SIZE.area()) {
+        for (i32 y {0}; y < COVER_SIZE.Height; ++y) {
+            for (i32 x {0}; x < COVER_SIZE.Width; ++x) {
+                imgCover.set_pixel({x, y}, PALETTE[dots[x + (y * COVER_SIZE.Width)]]);
+            }
         }
     }
     game.CoverTex->resize(COVER_SIZE, 1, gfx::texture::format::RGBA8);

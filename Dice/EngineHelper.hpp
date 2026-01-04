@@ -102,6 +102,7 @@ private:
     static void draw(std::span<u8> data, i32 x, i32 y, size_i s, color col);
 
     prop<gfx::image>& _img;
+    size_i            _imgSize;
     color             _clear;
 };
 

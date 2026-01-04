@@ -81,12 +81,10 @@ struct game_def {
     };
     struct info {
         string Genre;
-        u32    Year;
 
         static auto constexpr Members()
         {
-            return std::tuple {member<&info::Genre> {"Genre"},
-                               member<&info::Year> {"Year"}};
+            return std::tuple {member<&info::Genre> {"Genre"}};
         }
     };
 
@@ -132,7 +130,7 @@ struct shared_state {
     prop<i32>        Score;
     prop<string>     SSDValue;
     prop<grid<u8>>   DMD {grid<u8> {DMD_SIZE, 0}};
-    prop<gfx::image> Foreground;
-    prop<gfx::image> Background;
-    prop<gfx::image> SpriteTexture;
+    prop<gfx::image> Foreground {gfx::image::CreateEmpty(size_i {VIRTUAL_SCREEN_SIZE}, gfx::image::format::RGBA)};
+    prop<gfx::image> Background {gfx::image::CreateEmpty(size_i {VIRTUAL_SCREEN_SIZE}, gfx::image::format::RGBA)};
+    prop<gfx::image> SpriteTexture {gfx::image::CreateEmpty(SPRITE_TEXTURE_SIZE, gfx::image::format::RGBA)};
 };

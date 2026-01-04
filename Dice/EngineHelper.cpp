@@ -311,12 +311,13 @@ void dmd_proxy::draw_socket(socket* socket, rect_f const& dmdBounds)
 
 tex_proxy::tex_proxy(prop<gfx::image>& img, color clear)
     : _img {img}
+    , _imgSize {_img->info().Size}
     , _clear {clear}
 {
     this->clear(std::nullopt);
 }
 
-auto tex_proxy::bounds() const -> rect_i { return {point_i::Zero, _img->info().Size}; }
+auto tex_proxy::bounds() const -> rect_i { return {point_i::Zero, _imgSize}; }
 
 void tex_proxy::clear(std::optional<rect_i> const& rect)
 {
@@ -383,8 +384,9 @@ void tex_proxy::rect(rect_i const& rect, u8 c, bool fill)
 
 void tex_proxy::blit(rect_i const& rect, string const& data, blit_settings settings)
 {
-    if (rect.right() > _img->info().Size.Width || rect.bottom() > _img->info().Size.Height) { return; }
+    if (rect.right() > _imgSize.Width || rect.bottom() > _imgSize.Height) { return; }
     auto const dots {decode_texture_pixels(data, rect.Size)};
+    if (std::ssize(dots) != rect.Size.area()) { return; } // TODO: error
 
     u32 const  rotation {settings.Rotation};
     bool const flip_h {settings.FlipH};
@@ -407,14 +409,13 @@ void tex_proxy::blit(rect_i const& rect, string const& data, blit_settings setti
     }};
 
     _img.mutate([&](auto& img) {
-        auto const size {_img->info().Size};
-        auto       pixels {img.data()};
+        auto pixels {img.data()};
         for (i32 y {0}; y < h; ++y) {
             for (i32 x {0}; x < w; ++x) {
                 point_i const dst {rect.top_left() + map_xy(x, y)};
                 u8 const      srcIdx {dots[x + (y * w)]};
                 color const   col {settings.Transparent == srcIdx ? colors::Transparent : PALETTE[srcIdx]};
-                draw(pixels, dst.X, dst.Y, size, col);
+                draw(pixels, dst.X, dst.Y, _imgSize, col);
             }
         }
     });
