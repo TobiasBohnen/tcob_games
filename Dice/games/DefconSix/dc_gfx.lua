@@ -163,10 +163,11 @@ function gfx.draw_dmd(dmd, game)
     sockets.energyRestore.position = { x = 64, y = 80 }
     dmd:socket(sockets.energyRestore)
 
-    local energySize = 14
-    local energy     = math.floor(game.relEnergyReserve * energySize)
-    dmd:rect({ x = 43, y = 80, width = energySize, height = energySize - energy }, Palette.DarkGreen, true)
-    dmd:rect({ x = 43, y = 80 - energy + energySize, width = energySize, height = energy }, Palette.Green, true)
+    local energyWidth  = 15
+    local energyHeight = 20
+    local energy       = math.floor(game.relEnergyReserve * energyHeight)
+    dmd:rect({ x = 43, y = 75, width = energyWidth, height = energyHeight - energy }, Palette.DarkGreen, true)
+    dmd:rect({ x = 43, y = 75 - energy + energyHeight, width = energyWidth, height = energy }, Palette.Green, true)
 end
 
 ---@param dmd dmd

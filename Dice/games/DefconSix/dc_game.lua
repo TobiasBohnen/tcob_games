@@ -3,22 +3,25 @@
 -- https://opensource.org/licenses/MIT
 
 local DURATION                    = 2500
-local BASE_ENERGY_RESERVE_RESTORE = 400
-local MAX_ENERGY_RESERVE          = 1800
+
 local CITY_COUNT                  = 5
 local MAX_CITY_DAMAGE             = 3
-local MIN_CHANCE_TO_MIRV          = 20
-local MAX_CHANCE_TO_MIRV          = 60
+local MIN_CHANCE_TO_MIRV          = 0.2
+local MAX_CHANCE_TO_MIRV          = 0.6
 local MIRV_ZONE_TOP               = 5
 local MIRV_ZONE_BOTTOM            = 80
 local MAX_MIRV                    = 2
 local MIN_MISSILE_SPEED           = 10
 local MAX_MISSILE_SPEED           = 15
+
+local BASE_ENERGY_RESERVE_RESTORE = 400
+local MAX_ENERGY_RESERVE          = 2400
 local CANNON_CHARGE_DURATION      = DURATION / 4 * 3
 local MAX_CANNON_CHARGE           = 100
 local MAX_HEAT                    = 100
 local SHOT_HEAT_GAIN              = 10
 local HEAT_LOSS_FACTOR            = 10
+local BASE_HEAT_LOSS              = 10
 
 local gfx                         = require('dc_gfx')
 local sfx                         = require('dc_sfx')
@@ -53,7 +56,7 @@ local game                        = {
     energyReserve    = 0,
     relEnergyReserve = 0,
 
-    destroyedCities  = 0
+    destroyedCities  = 0,
 }
 
 ---@param engine engine
@@ -101,7 +104,7 @@ function game:on_turn_update(engine, deltaTime, turnTime)
         self.missiles[i]:update(i, deltaTime, turnTime)
     end
 
-    self.cannons:update(deltaTime, turnTime)
+    self.cannons:update(deltaTime)
 
     if self.destroyedCities >= #self.cities then return GameStatus.GameOver end
     return GameStatus.Running
@@ -120,7 +123,11 @@ end
 function game:on_turn_finish(engine)
     self:set_energy_reserve(engine, self.energyReserve + self.sockets.energyRestore.die_value * 100 + BASE_ENERGY_RESERVE_RESTORE)
     self.cannons:turn_end()
-    self:try_spawn_missile(engine)
+
+    local count = engine:irnd(1, 3)
+    for i = 1, count do
+        self:try_spawn_missile(engine)
+    end
 end
 
 ---@param engine engine
@@ -160,9 +167,9 @@ function game:create_cannons(engine)
             end
         end,
 
-        update     = function(cannons, deltaTime, turnTime)
-            local order = { 1, 2, 3 }
-            local i = engine:irnd(1, 3)
+        update     = function(cannons, deltaTime)
+            local order        = { 1, 2, 3 }
+            local i            = engine:irnd(1, 3)
             order[1], order[i] = order[i], order[1]
 
             for _, idx in ipairs(order) do
@@ -256,21 +263,20 @@ function game:create_cannon(engine, type, pos, range, muzzle)
             end
 
             if targetMissile then
-                local dx             = targetMissile.sprite.center.x - cannon.sprite.center.x
-                local dy             = targetMissile.sprite.center.y - cannon.sprite.center.y
+                local muzzlePos      = { x = cannon.sprite.position.x + cannon.muzzle.x, y = cannon.sprite.position.y + cannon.muzzle.y }
+
+                local dx             = targetMissile.sprite.center.x - muzzlePos.x
+                local dy             = targetMissile.sprite.center.y - muzzlePos.y
                 local distance       = math.sqrt(dx * dx + dy * dy)
 
                 local distanceFactor = math.max(0.2, 1.0 - (distance / engine.screenSize.height))
-                local heatFactor     = (MAX_HEAT - cannon.heat) / MAX_HEAT
+                local heatFactor     = math.sqrt((MAX_HEAT - cannon.heat) / MAX_HEAT)
                 local toHit          = distanceFactor * heatFactor
 
-
-                cannon.shotsLeft = cannon.shotsLeft - 1
-                cannon.heat      = math.min(MAX_HEAT, cannon.heat + SHOT_HEAT_GAIN)
-
-                local muzzlePos  = { x = cannon.sprite.position.x + cannon.muzzle.x, y = cannon.sprite.position.y + cannon.muzzle.y }
                 engine.fg:line(muzzlePos, targetMissile.sprite.center, Palette.LightBlue)
                 engine:play_sound(self.sounds.cannon)
+                cannon.shotsLeft = cannon.shotsLeft - 1
+                cannon.heat      = math.min(MAX_HEAT, cannon.heat + SHOT_HEAT_GAIN)
 
                 if engine:rnd(0, 1) <= toHit then
                     engine:give_score(100)
@@ -286,7 +292,7 @@ function game:create_cannon(engine, type, pos, range, muzzle)
         end,
 
         cool        = function(cannon)
-            cannon.heat      = math.max(0, cannon.heat - cannon.coolRate)
+            cannon.heat      = math.max(0, cannon.heat - cannon.coolRate - BASE_HEAT_LOSS)
 
             cannon.relHeat   = cannon.heat / MAX_HEAT
             cannon.relCharge = cannon.charge / 100
@@ -345,7 +351,7 @@ end
 ---@param engine engine
 function game:try_spawn_missile(engine)
     local count = #self.missiles
-    if count >= #self.cities * 2 then return end
+    if count >= #self.cities * 4 then return end
     self:create_missile(engine)
 end
 
@@ -363,7 +369,7 @@ function game:create_missile(engine, parent)
         trailOrder     = {},
 
         mirv           = {
-            chance = engine:irnd(MIN_CHANCE_TO_MIRV, MAX_CHANCE_TO_MIRV)
+            chance = engine:rnd(MIN_CHANCE_TO_MIRV, MAX_CHANCE_TO_MIRV)
         },
 
         spriteInit     = {
@@ -376,7 +382,7 @@ function game:create_missile(engine, parent)
         turn_start     = function(missile)
             local y = missile.sprite.position.y
             if missile.mirv and y >= MIRV_ZONE_TOP and y <= MIRV_ZONE_BOTTOM then
-                if engine:irnd(1, 100) <= missile.mirv.chance then
+                if engine:rnd(0, 1) <= missile.mirv.chance then
                     missile.mirv.time = engine:rnd(0, DURATION / 4 * 3)
                 else
                     missile.mirv = nil
