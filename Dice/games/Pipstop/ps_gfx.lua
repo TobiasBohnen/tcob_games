@@ -14,6 +14,7 @@ local COLORS         = {
         sun          = Palette.Yellow,
         cloud        = Palette.White,
         city         = Palette.Gray,
+        window       = Palette.DarkBlue,
         ground       = Palette.Green,
         road         = Palette.Gray,
         centerLine   = Palette.White,
@@ -27,6 +28,7 @@ local COLORS         = {
         sun          = Palette.Yellow,
         cloud        = Palette.White,
         city         = Palette.DarkBlue,
+        window       = Palette.Orange,
         ground       = Palette.White,
         road         = Palette.Gray,
         centerLine   = Palette.White,
@@ -40,6 +42,7 @@ local COLORS         = {
         sun          = Palette.Red,
         cloud        = Palette.Gray,
         city         = Palette.Black,
+        window       = Palette.LightBlue,
         ground       = Palette.DarkGreen,
         road         = Palette.BlueGray,
         centerLine   = Palette.Gray,
@@ -53,11 +56,26 @@ local COLORS         = {
         sun          = Palette.Orange,
         cloud        = Palette.White,
         city         = Palette.BlueGray,
+        window       = Palette.Black,
         ground       = Palette.DarkBrown,
         road         = Palette.Gray,
         centerLine   = Palette.White,
         curb1        = Palette.Red,
         curb2        = Palette.White
+    },
+    night = {
+        sky          = Palette.Black,
+        horizonLine1 = Palette.DarkBlue,
+        horizonLine2 = Palette.BlueGray,
+        sun          = Palette.White,
+        cloud        = Palette.DarkBlue,
+        city         = Palette.Black,
+        window       = Palette.Yellow,
+        ground       = Palette.DarkGreen,
+        road         = Palette.Black,
+        centerLine   = Palette.Yellow,
+        curb1        = Palette.Brown,
+        curb2        = Palette.Gray
     }
 }
 
@@ -66,14 +84,15 @@ local worldRotation  = 0
 local city           = nil
 local clouds         = nil
 
+
 ---@param engine engine
 function gfx.create_background(engine, curveAmount, trackOffset, theme)
-    local bg          = engine.bg
-    local size        = bg.size
-    local w, h        = size.width, size.height
+    local bg     = engine.bg
+    local size   = bg.size
+    local w, h   = size.width, size.height
 
-    local themes      = { "normal", "dusk", "fall", "winter" }
-    local colors      = COLORS[themes[theme]]
+    local colors = COLORS[theme]
+
 
     local WORLD_WIDTH = w * 4
     local SUN_SPEED   = 0.5
@@ -122,6 +141,14 @@ function gfx.create_background(engine, curveAmount, trackOffset, theme)
         local yPos  = HORIZON_HEIGHT - b.h + 1
         bg:rect({ x = drawX, y = yPos, width = b.w, height = b.h }, colors.city, true)
         bg:rect({ x = wrapX, y = yPos, width = b.w, height = b.h }, colors.city, true)
+
+        -- Windows
+        for wy = yPos + 2, yPos + b.h - 2, 3 do
+            for wx = 1, b.w - 2, 2 do
+                bg:pixel({ x = drawX + wx, y = wy }, colors.window)
+                bg:pixel({ x = wrapX + wx, y = wy }, colors.window)
+            end
+        end
     end
 
     -- clouds
@@ -136,10 +163,10 @@ function gfx.create_background(engine, curveAmount, trackOffset, theme)
         end
     end
 
-    local cSpan = WORLD_WIDTH * CLOUD_SPEED
+    local cloudSpan = WORLD_WIDTH * CLOUD_SPEED
     for idx, cloud in ipairs(clouds) do
         local drawX = get_draw_x(cloud.x, CLOUD_SPEED)
-        local wrapX = (drawX > 0) and (drawX - cSpan) or (drawX + cSpan)
+        local wrapX = (drawX > 0) and (drawX - cloudSpan) or (drawX + cloudSpan)
 
         bg:rect({ x = drawX, y = cloud.y, width = cloud.width, height = cloud.height }, colors.cloud, true)
         bg:rect({ x = wrapX, y = cloud.y, width = cloud.width, height = cloud.height }, colors.cloud, true)
