@@ -20,6 +20,8 @@ public:
     {
         auto& plt {locate_service<platform>()};
         plt.FrameLimit = static_cast<i32>(plt.displays().begin()->second.DesktopMode.RefreshRate);
+        auto& rs {locate_service<gfx::render_system>()};
+        rs.window().VSync = false;
 
         start();
     }

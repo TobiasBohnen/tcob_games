@@ -84,15 +84,13 @@ local worldRotation  = 0
 local city           = nil
 local clouds         = nil
 
-
 ---@param engine engine
 function gfx.create_background(engine, curveAmount, trackOffset, theme)
-    local bg     = engine.bg
-    local size   = bg.size
-    local w, h   = size.width, size.height
+    local bg          = engine.bg
+    local size        = bg.size
+    local w, h        = size.width, size.height
 
-    local colors = COLORS[theme]
-
+    local colors      = COLORS[theme]
 
     local WORLD_WIDTH = w * 4
     local SUN_SPEED   = 0.5

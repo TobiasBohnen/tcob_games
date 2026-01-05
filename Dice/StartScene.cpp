@@ -59,7 +59,7 @@ void start_scene::on_update(milliseconds deltaTime)
     if (_startRecord) {
         if (_clipFtr.valid()) {
             if (_clipFtr.wait_for(0ms) == std::future_status::ready) {
-                logger::Info("clip saved");
+                logger::Info("capture saved");
                 _startRecord = false;
                 _frames.clear();
                 _clipFtr = {};
@@ -68,14 +68,13 @@ void start_scene::on_update(milliseconds deltaTime)
         }
 
         _frameTimer += deltaTime;
-        if (_frameTimer >= 50ms) {
-            auto                         img {window().copy_to_image()};
-            gfx::resize_nearest_neighbor filter {};
-            filter.NewSize = img.info().Size / 2;
-            _frames.push_back({.Image = filter(img), .Duration = _frameTimer});
+        if (_frameTimer >= 200ms) {
+            auto img {window().copy_to_image()};
+            _frames.push_back({.Image = img, .Duration = _frameTimer});
             _frameTimer = 0ms;
         }
-        if (_frames.size() == 1000) {
+        if (_frames.size() == 100) {
+            logger::Info("capture done. saving...");
             _clipFtr = gfx::save_animation_async("clip.webp", _frames);
         }
     }
