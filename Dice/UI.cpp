@@ -203,7 +203,7 @@ auto game_select_form::make_tooltip(u32 id) -> std::shared_ptr<tooltip>
         rect_f const bounds {widget->Bounds};
         auto const*  style {dynamic_cast<label::style const*>(tooltipLabel.current_style())};
         assert(style);
-        auto* const font {style->Text.Font->get_font(style->Text.Style, style->Text.calc_font_size(bounds.height() * 0.5f)).ptr()};
+        auto* const font {style->Text.Font->get_font(style->Text.Style, style->Text.calc_font_size(bounds.height() * 0.2f)).ptr()};
         tt->Bounds = {point_f::Zero, gfx::text_formatter::measure(*tooltipLabel.Label, *font, -1, true)};
     });
     return retValue;
@@ -216,8 +216,8 @@ game_select_form::game_select_form(rect_f const& bounds, assets::group const& gr
     gen_styles(grp);
 
     {
-        auto&        panel1 {create_container<ui::panel>(bounds, "panel1")};
-        size_i const gridSize {NUM_BOXES * 4, NUM_BOXES};
+        auto&        panel1 {create_container<ui::panel>(rect_f {bounds.Position, {bounds.width(), bounds.height() / 2}}, "panel1")};
+        size_i const gridSize {NUM_BOXES * 4, 1};
         auto&        layout {panel1.create_layout<grid_layout>(gridSize)};
 
         for (i32 i {0}; i < gridSize.area(); ++i) {

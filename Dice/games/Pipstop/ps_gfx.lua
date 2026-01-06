@@ -5,9 +5,12 @@
 local gfx            = {}
 
 local HORIZON_HEIGHT = 100
+local SUN_SPEED      = 0.5
+local CITY_SPEED     = 0.8
+local CLOUD_SPEED    = 1.5
 
-local COLORS         = {
-    normal = {
+local THEMES         = {
+    day = {
         sky          = Palette.Blue,
         horizonLine1 = Palette.LightBlue,
         horizonLine2 = Palette.White,
@@ -16,6 +19,52 @@ local COLORS         = {
         city         = Palette.Gray,
         window       = Palette.DarkBlue,
         ground       = Palette.Green,
+        road         = Palette.Gray,
+        centerLine   = Palette.White,
+        curb1        = Palette.Red,
+        curb2        = Palette.White,
+
+        sunScale     = 1
+    },
+    dusk = {
+        sky          = Palette.BlueGray,
+        horizonLine1 = Palette.DarkBlue,
+        horizonLine2 = Palette.Blue,
+        sun          = Palette.Red,
+        cloud        = Palette.Gray,
+        city         = Palette.Black,
+        window       = Palette.LightBlue,
+        ground       = Palette.DarkGreen,
+        road         = Palette.DarkBlue,
+        centerLine   = Palette.Gray,
+        curb1        = Palette.Brown,
+        curb2        = Palette.Gray,
+
+        sunScale     = 1
+    },
+    night = {
+        sky          = Palette.Black,
+        horizonLine1 = Palette.DarkBlue,
+        horizonLine2 = Palette.BlueGray,
+        sun          = Palette.White,
+        cloud        = Palette.DarkBlue,
+        city         = Palette.Black,
+        window       = Palette.Yellow,
+        ground       = Palette.DarkGreen,
+        road         = Palette.Black,
+        centerLine   = Palette.Yellow,
+        curb1        = Palette.Brown,
+        curb2        = Palette.Gray
+    },
+    fall = {
+        sky          = Palette.Gray,
+        horizonLine1 = Palette.White,
+        horizonLine2 = Palette.Yellow,
+        sun          = Palette.Orange,
+        cloud        = Palette.White,
+        city         = Palette.BlueGray,
+        window       = Palette.Black,
+        ground       = Palette.DarkBrown,
         road         = Palette.Gray,
         centerLine   = Palette.White,
         curb1        = Palette.Red,
@@ -35,143 +84,115 @@ local COLORS         = {
         curb1        = Palette.Red,
         curb2        = Palette.White
     },
-    dusk = {
-        sky          = Palette.BlueGray,
-        horizonLine1 = Palette.DarkBlue,
-        horizonLine2 = Palette.Blue,
-        sun          = Palette.Red,
-        cloud        = Palette.Gray,
-        city         = Palette.Black,
-        window       = Palette.LightBlue,
-        ground       = Palette.DarkGreen,
-        road         = Palette.BlueGray,
-        centerLine   = Palette.Gray,
-        curb1        = Palette.Brown,
-        curb2        = Palette.Gray
-    },
-    fall = {
-        sky          = Palette.DarkBlue,
-        horizonLine1 = Palette.Blue,
-        horizonLine2 = Palette.Yellow,
-        sun          = Palette.Orange,
-        cloud        = Palette.White,
-        city         = Palette.BlueGray,
-        window       = Palette.Black,
-        ground       = Palette.DarkBrown,
+    desert = {
+        sky          = Palette.Blue,
+        horizonLine1 = Palette.Yellow,
+        horizonLine2 = Palette.Orange,
+        sun          = Palette.Yellow,
+        ground       = Palette.Yellow,
         road         = Palette.Gray,
         centerLine   = Palette.White,
         curb1        = Palette.Red,
         curb2        = Palette.White
     },
-    night = {
-        sky          = Palette.Black,
-        horizonLine1 = Palette.DarkBlue,
-        horizonLine2 = Palette.BlueGray,
-        sun          = Palette.White,
-        cloud        = Palette.DarkBlue,
-        city         = Palette.Black,
-        window       = Palette.Yellow,
-        ground       = Palette.DarkGreen,
-        road         = Palette.Black,
-        centerLine   = Palette.Yellow,
-        curb1        = Palette.Brown,
-        curb2        = Palette.Gray
-    }
 }
 
 local worldRotation  = 0
 
-local city           = nil
-local clouds         = nil
+local city           = {}
+local clouds         = {}
+
+local function create_objects(engine, worldWidth)
+    if #clouds == 0 then
+        for i = 1, 25 do
+            clouds[#clouds + 1] = {
+                x = engine:rnd(0, 1) * (worldWidth * CLOUD_SPEED),
+                y = math.floor(engine:rnd(0, 1) * HORIZON_HEIGHT / 4 * 3),
+                w = engine:irnd(12, 22),
+                h = engine:irnd(3, 6)
+            }
+        end
+    end
+
+    if #city == 0 then
+        for i = 1, 15 do
+            city[#city + 1] = {
+                x = engine:rnd(0, 1) * 120,
+                w = engine:rnd(3, 10),
+                h = engine:rnd(12, 20)
+            }
+        end
+    end
+end
 
 ---@param engine engine
-function gfx.create_background(engine, curveAmount, trackOffset, theme)
-    local bg          = engine.bg
-    local size        = bg.size
-    local w, h        = size.width, size.height
+function gfx.create_background(engine, curveAmount, trackOffset, biome)
+    local bg           = engine.bg
+    local size         = bg.size
+    local w, h         = size.width, size.height
+    local worldWidth   = w * 4
+    local currentTheme = THEMES[biome]
 
-    local colors      = COLORS[theme]
+    worldRotation      = (worldRotation + curveAmount) % worldWidth
 
-    local WORLD_WIDTH = w * 4
-    local SUN_SPEED   = 0.5
-    local CITY_SPEED  = 0.8
-    local CLOUD_SPEED = 1.5
-
-    worldRotation     = (worldRotation + curveAmount) % WORLD_WIDTH
+    create_objects(engine, worldWidth)
 
     local function get_draw_x(objectX, speedMult)
-        local span = WORLD_WIDTH * speedMult
+        local span = worldWidth * speedMult
         local offset = worldRotation * speedMult
         return ((objectX - offset + span / 2) % span) - span / 2
     end
 
     -- sky
-    bg:rect({ x = 0, y = 0, width = w, height = HORIZON_HEIGHT }, colors.sky, true)
-    bg:rect({ x = 0, y = HORIZON_HEIGHT - 3, width = w, height = 2 }, colors.horizonLine1, true)
-    bg:rect({ x = 0, y = HORIZON_HEIGHT - 1, width = w, height = 1 }, colors.horizonLine2, true)
+    bg:rect({ x = 0, y = 0, width = w, height = HORIZON_HEIGHT }, currentTheme.sky, true)
+    bg:rect({ x = 0, y = HORIZON_HEIGHT - 3, width = w, height = 2 }, currentTheme.horizonLine1, true)
+    bg:rect({ x = 0, y = HORIZON_HEIGHT - 1, width = w, height = 1 }, currentTheme.horizonLine2, true)
 
     -- sun
     local sunX    = get_draw_x(30, SUN_SPEED)
-    local sunSpan = WORLD_WIDTH * SUN_SPEED
+    local sunSpan = worldWidth * SUN_SPEED
     local sunWrap = (sunX > 0) and (sunX - sunSpan) or (sunX + sunSpan)
 
-    bg:circle({ x = sunX, y = 20 }, 10, colors.sun, true)
-    bg:circle({ x = sunWrap, y = 20 }, 10, colors.sun, true)
+    bg:circle({ x = sunX, y = 20 }, 10, currentTheme.sun, true)
+    bg:circle({ x = sunWrap, y = 20 }, 10, currentTheme.sun, true)
 
     -- city
-    if not city then
-        city = {}
-        for i = 1, 15 do
-            local bw = engine:rnd(3, 10)
-            local bh = engine:rnd(12, 20)
-            table.insert(city, {
-                x = engine:rnd(0, 1) * 120,
-                w = bw,
-                h = bh
-            })
-        end
-    end
+    if currentTheme.city then
+        local citySpan = worldWidth * CITY_SPEED
+        for _, b in ipairs(city) do
+            local drawX = get_draw_x(b.x, CITY_SPEED)
+            local wrapX = (drawX > 0) and (drawX - citySpan) or (drawX + citySpan)
+            local yPos  = HORIZON_HEIGHT - b.h + 1
 
-    local citySpan = WORLD_WIDTH * CITY_SPEED
-    for _, b in ipairs(city) do
-        local drawX = get_draw_x(b.x, CITY_SPEED)
-        local wrapX = (drawX > 0) and (drawX - citySpan) or (drawX + citySpan)
-        local yPos  = HORIZON_HEIGHT - b.h + 1
-        bg:rect({ x = drawX, y = yPos, width = b.w, height = b.h }, colors.city, true)
-        bg:rect({ x = wrapX, y = yPos, width = b.w, height = b.h }, colors.city, true)
+            -- buildings
+            bg:rect({ x = drawX, y = yPos, width = b.w, height = b.h }, currentTheme.city, true)
+            bg:rect({ x = wrapX, y = yPos, width = b.w, height = b.h }, currentTheme.city, true)
 
-        -- Windows
-        for wy = yPos + 2, yPos + b.h - 2, 3 do
-            for wx = 1, b.w - 2, 2 do
-                bg:pixel({ x = drawX + wx, y = wy }, colors.window)
-                bg:pixel({ x = wrapX + wx, y = wy }, colors.window)
+            -- windows
+            for wy = yPos + 2, yPos + b.h - 2, 3 do
+                for wx = 1, b.w - 2, 2 do
+                    bg:pixel({ x = drawX + wx, y = wy }, currentTheme.window)
+                    bg:pixel({ x = wrapX + wx, y = wy }, currentTheme.window)
+                end
             end
         end
     end
 
     -- clouds
-    if not clouds then
-        clouds = {}
-        for i = 1, 25 do
-            local cx = engine:rnd(0, 1) * (WORLD_WIDTH * CLOUD_SPEED)
-            local cy = math.floor(engine:rnd(0, 1) * HORIZON_HEIGHT / 4 * 3)
-            local cw = engine:irnd(12, 22)
-            local ch = engine:irnd(3, 6)
-            table.insert(clouds, { x = cx, y = cy, width = cw, height = ch })
+    if currentTheme.cloud then
+        local cloudSpan = worldWidth * CLOUD_SPEED
+        for idx, cloud in ipairs(clouds) do
+            local drawX = get_draw_x(cloud.x, CLOUD_SPEED)
+            local wrapX = (drawX > 0) and (drawX - cloudSpan) or (drawX + cloudSpan)
+
+            bg:rect({ x = drawX, y = cloud.y, width = cloud.w, height = cloud.h }, currentTheme.cloud, true)
+            bg:rect({ x = wrapX, y = cloud.y, width = cloud.w, height = cloud.h }, currentTheme.cloud, true)
         end
     end
 
-    local cloudSpan = WORLD_WIDTH * CLOUD_SPEED
-    for idx, cloud in ipairs(clouds) do
-        local drawX = get_draw_x(cloud.x, CLOUD_SPEED)
-        local wrapX = (drawX > 0) and (drawX - cloudSpan) or (drawX + cloudSpan)
-
-        bg:rect({ x = drawX, y = cloud.y, width = cloud.width, height = cloud.height }, colors.cloud, true)
-        bg:rect({ x = wrapX, y = cloud.y, width = cloud.width, height = cloud.height }, colors.cloud, true)
-    end
 
     -- ground
-    bg:rect({ x = 0, y = HORIZON_HEIGHT, width = w, height = h - HORIZON_HEIGHT }, colors.ground, true)
+    bg:rect({ x = 0, y = HORIZON_HEIGHT, width = w, height = h - HORIZON_HEIGHT }, currentTheme.ground, true)
 
     -- road
     for y = HORIZON_HEIGHT, h - 1 do
@@ -186,7 +207,7 @@ function gfx.create_background(engine, curveAmount, trackOffset, theme)
         local leftEdge      = centerX - math.floor(roadWidth / 2)
         local rightEdge     = centerX + math.floor(roadWidth / 2)
 
-        bg:line({ x = leftEdge, y = y }, { x = rightEdge, y = y }, colors.road)
+        bg:line({ x = leftEdge, y = y }, { x = rightEdge, y = y }, currentTheme.road)
 
         -- stripes
         local stripeWidth = math.max(0.5, roadWidth / 50)
@@ -194,17 +215,24 @@ function gfx.create_background(engine, curveAmount, trackOffset, theme)
         local distance    = (((math.log(1 + t * 10) / math.log(11)) - trackOffset) * 100) % 100
 
         if distance % 30 < 20 then
-            bg:line({ x = math.ceil(centerX - stripeWidth), y = y }, { x = math.floor(centerX + stripeWidth), y = y }, colors.centerLine)
+            bg:line({ x = math.ceil(centerX - stripeWidth), y = y }, { x = math.floor(centerX + stripeWidth), y = y }, currentTheme.centerLine)
         end
         if distance % 20 < 10 then
-            bg:line({ x = leftEdge - stripeWidth, y = y }, { x = leftEdge + stripeWidth, y = y }, colors.curb1)
-            bg:line({ x = rightEdge - stripeWidth, y = y }, { x = rightEdge + stripeWidth, y = y }, colors.curb1)
+            bg:line({ x = leftEdge - stripeWidth, y = y }, { x = leftEdge + stripeWidth, y = y }, currentTheme.curb1)
+            bg:line({ x = rightEdge - stripeWidth, y = y }, { x = rightEdge + stripeWidth, y = y }, currentTheme.curb1)
         else
-            bg:line({ x = leftEdge - stripeWidth, y = y }, { x = leftEdge + stripeWidth, y = y }, colors.curb2)
-            bg:line({ x = rightEdge - stripeWidth, y = y }, { x = rightEdge + stripeWidth, y = y }, colors.curb2)
+            bg:line({ x = leftEdge - stripeWidth, y = y }, { x = leftEdge + stripeWidth, y = y }, currentTheme.curb2)
+            bg:line({ x = rightEdge - stripeWidth, y = y }, { x = rightEdge + stripeWidth, y = y }, currentTheme.curb2)
         end
     end
 end
+
+local car_texture =
+[[2bd0h2aaCc2b0a3a0aDb0a3a0a2bCc2uCe2a0a3a0aDb0a3a0a2aCe2tCc1aCa2a0a3a0aCb0a3a0a2aCa1aCc2tCc0d3a0aCb0a3a0dCc2tCc1a0a3a0cCb0c3a0a1aCc2t0c3c0aCf0a3c0c2t0a3e0aCf0a3e0a2q0h3a0aCf0a3a0h2n0aDf0cCf0cDf0a2n0bDe0bCh0bDe0b2kCc0cDt0cCc2gCe0bDt0bCe2eCh0aDr0aCh2dCf1aCa0iDb0iCa1aCf2dCf0kDb0kCf2dCf0kDb0kCf2dCf1aCa0a2c0a3a0h3a0a2c0aCa1aCf2dCh0e3a0h3a0eCh2eCg2d0c2f0c2dCg2fCf2vCf2c]]
+
+gfx.sizes = {
+    car = { width = 40, height = 22 },
+}
 
 ---@param engine engine
 function gfx.create_textures(game, engine)
@@ -214,13 +242,11 @@ function gfx.create_textures(game, engine)
     local rowHeight = 0
     local padding   = 2
 
-    local function make_texture(id, size, tex, rot)
-        local width  = size
-        local height = size
+    ---@param size size
+    local function make_texture(id, size, tex, tp)
+        local width  = size.width
+        local height = size.height
 
-        if rot == Rot.R90 or rot == Rot.R270 then
-            width, height = height, width
-        end
         if pen.x + width > spr.size.width then
             pen.x     = 1
             pen.y     = pen.y + rowHeight + padding
@@ -228,11 +254,10 @@ function gfx.create_textures(game, engine)
         end
 
         spr:blit(
-            { x = pen.x, y = pen.y, width = size, height = size },
+            { x = pen.x, y = pen.y, width = width, height = height },
             tex,
             {
-                transparent = 0,
-                rotation = rot
+                transparent = tp
             }
         )
 
@@ -241,6 +266,8 @@ function gfx.create_textures(game, engine)
         pen.x = pen.x + width + padding
         rowHeight = math.max(rowHeight, height)
     end
+
+    make_texture(game.textures.car, gfx.sizes.car, car_texture, Palette.White)
 end
 
 ------

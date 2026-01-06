@@ -34,6 +34,11 @@ local game                        = {
 
     missiles         = {}, ---@type [missile]
 
+    energyReserve    = 0,
+    relEnergyReserve = 0,
+
+    destroyedCities  = 0,
+
     sockets          = {
         left          = {}, ---@type { [string]: socket }
         right         = {}, ---@type { [string]: socket }
@@ -52,11 +57,6 @@ local game                        = {
         cityExplosion    = 2, ---@type sound
         cannon           = 3, ---@type sound
     },
-
-    energyReserve    = 0,
-    relEnergyReserve = 0,
-
-    destroyedCities  = 0,
 }
 
 ---@param engine engine

@@ -94,9 +94,8 @@ auto engine::update(milliseconds deltaTime) -> bool
 
     if (_gameStatus != game_status::Running) { return false; }
 
-    _turnTime += deltaTime.count();
-
     game_status const status {static_cast<game_status>(call(_callbacks.OnTurnUpdate, deltaTime.count(), _turnTime))};
+    _turnTime += deltaTime.count();
     _gameStatus = status;
 
     switch (status) {
