@@ -2,12 +2,17 @@
 -- MIT License
 -- https://opensource.org/licenses/MIT
 
-local sfx = {
+local sfx = {}
+
+sfx.sounds = {
+    explosion = 1, ---@type sound
+    bullet    = 2, ---@type sound
 }
+
 ---@param engine engine
 function sfx.get_sounds(game, engine)
     return {
-        [game.sounds.explosion] = {
+        [sfx.sounds.explosion] = {
             random_seed      = 96324,
             sample_rate      = 44100,
             wave_type        = "Noise",
@@ -34,7 +39,7 @@ function sfx.get_sounds(game, engine)
             hpf_cutoff       = 0.0,
             hpf_cutoff_sweep = 0.0
         },
-        [game.sounds.bullet] = {
+        [sfx.sounds.bullet] = {
             random_seed      = 2478,
             sample_rate      = 44100,
             wave_type        = "Sawtooth",

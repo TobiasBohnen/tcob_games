@@ -9,11 +9,7 @@ local EXPLOSION_DURATION    = 750
 local MIN_BULLET_SPEED      = 180
 local MIN_SPAWN_DISTANCE    = 80
 local MIN_SPAWN_DISTANCE_SQ = MIN_SPAWN_DISTANCE * MIN_SPAWN_DISTANCE
-local ASTEROID_SCORES       = {
-    small = 100,
-    medium = 50,
-    large = 20
-}
+local ASTEROID_SCORES       = { small = 100, medium = 50, large = 20 }
 
 local gfx                   = require('sr_gfx')
 local sfx                   = require('sr_sfx')
@@ -31,19 +27,6 @@ local game                  = {
         speed   = nil, ---@type socket
         turn    = nil, ---@type socket
         bullets = nil, ---@type socket
-    },
-
-    textures   = {
-        ship      = { [0] = 0, [45] = 1, [90] = 2, [135] = 3, [180] = 4, [225] = 5, [270] = 6, [315] = 7 }, ---@type { [number]: texture }
-        hurtShip  = { [0] = 10, [45] = 11, [90] = 12, [135] = 13, [180] = 14, [225] = 15, [270] = 16, [315] = 17 }, ---@type { [number]: texture }
-        bullet    = 20, ---@type texture
-        asteroid  = { small = 30, medium = 31, large = 32 }, ---@type { [string]: texture }
-        explosion = 40, ---@type texture
-    },
-
-    sounds     = {
-        explosion = 1, ---@type sound
-        bullet    = 2, ---@type sound
     },
 }
 
@@ -85,15 +68,9 @@ function game:on_turn_update(engine, deltaTime, turnTime)
 
     self:try_spawn_bullet(engine, deltaTime)
 
-    for i = #self.asteroids, 1, -1 do
-        self.asteroids[i]:update(i, deltaTime)
-    end
-    for i = #self.explosions, 1, -1 do
-        self.explosions[i]:update(i, deltaTime)
-    end
-    for i = #self.bullets, 1, -1 do
-        self.bullets[i]:update(i, deltaTime)
-    end
+    for i = #self.asteroids, 1, -1 do self.asteroids[i]:update(i, deltaTime) end
+    for i = #self.explosions, 1, -1 do self.explosions[i]:update(i, deltaTime) end
+    for i = #self.bullets, 1, -1 do self.bullets[i]:update(i, deltaTime) end
     self.ship:update(deltaTime, turnTime)
 
     if self.ship.health == 0 then return GameStatus.GameOver end
@@ -181,7 +158,7 @@ function game:create_asteroid(engine, size, x, y)
 
         spriteInit     = {
             position = { x = x, y = y },
-            texture  = self.textures.asteroid[size],
+            texture  = gfx.textures.asteroid[size],
         },
 
         update         = function(a, i, deltaTime)
@@ -194,7 +171,7 @@ function game:create_asteroid(engine, size, x, y)
                     local offset  = 8
                     self:create_asteroid(engine, newSize, b.x - offset, b.y - offset)
                     self:create_asteroid(engine, newSize, b.x + offset, b.y + offset)
-                    engine:play_sound(self.sounds.explosion)
+                    engine:play_sound(sfx.sounds.explosion)
                 end
 
                 engine:remove_sprite(a.sprite)
@@ -238,7 +215,7 @@ function game:create_bullet(engine)
         type       = "bullet",
         lifetime   = 0,
         spriteInit = {
-            texture = self.textures.bullet,
+            texture = gfx.textures.bullet,
         },
 
         update     = function(b, i, deltaTime)
@@ -280,7 +257,7 @@ function game:create_bullet(engine)
 
     ship.bulletTime                 = HALF_DURATION / self.sockets.bullets.die_value
     ship.bulletsLeft                = ship.bulletsLeft - 1
-    engine:play_sound(self.sounds.bullet)
+    engine:play_sound(sfx.sounds.bullet)
 end
 
 ---@param engine engine
@@ -289,7 +266,7 @@ function game:create_explosion(engine, asteroid)
         lifetime   = 0,
         spriteInit = {
             position   = asteroid.sprite.position,
-            texture    = self.textures.explosion,
+            texture    = gfx.textures.explosion,
             collidable = false,
         },
 
@@ -304,7 +281,7 @@ function game:create_explosion(engine, asteroid)
 
     explosion.sprite                      = engine:create_sprite(explosion)
     self.explosions[#self.explosions + 1] = explosion
-    engine:play_sound(self.sounds.explosion)
+    engine:play_sound(sfx.sounds.explosion)
 end
 
 ---@param engine engine
@@ -348,9 +325,10 @@ function game:create_ship(engine)
             ship:set_shield(false)
             ship.hitByAsteroid = false
         end,
+
         set_shield    = function(ship, val)
             ship.shieldsUp      = val
-            ship.sprite.texture = val and self.textures.hurtShip[ship.direction] or self.textures.ship[ship.direction]
+            ship.sprite.texture = val and gfx.textures.hurtShip[ship.direction] or gfx.textures.ship[ship.direction]
         end,
 
         update        = function(ship, deltaTime, updateTime)
@@ -368,7 +346,7 @@ function game:create_ship(engine)
             end
 
             ship.direction      = ship.direction % 360
-            ship.sprite.texture = ship.shieldsUp and self.textures.hurtShip[ship.direction] or self.textures.ship[ship.direction]
+            ship.sprite.texture = ship.shieldsUp and gfx.textures.hurtShip[ship.direction] or gfx.textures.ship[ship.direction]
             self:update_entity(ship, deltaTime, screenSize)
         end,
 

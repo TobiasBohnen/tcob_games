@@ -198,7 +198,7 @@ void sockets::reset()
 
 auto get_hand(std::span<socket* const> sockets) -> hand
 {
-    if (!std::ranges::all_of(sockets, [](auto const& socket) { return !socket->is_empty(); }) || sockets.size() > 5) { return {}; }
+    if (sockets.size() > 5) { return {}; }
 
     struct indexed_face {
         die_face Face;
@@ -210,6 +210,7 @@ auto get_hand(std::span<socket* const> sockets) -> hand
     std::vector<indexed_face> faces;
     faces.reserve(sockets.size());
     for (usize i {0}; i < sockets.size(); ++i) {
+        if (sockets[i]->is_empty()) { continue; }
         faces.push_back({.Face = sockets[i]->current_die()->current_face(), .Socket = sockets[i]});
     }
     std::ranges::stable_sort(faces, {}, func);
@@ -217,7 +218,7 @@ auto get_hand(std::span<socket* const> sockets) -> hand
     hand result {};
 
     // value
-    if ((faces.back().Face.Value - faces.front().Face.Value == faces.size() - 1)
+    if (sockets.size() >= 5 && (faces.back().Face.Value - faces.front().Face.Value == faces.size() - 1)
         && (std::ranges::adjacent_find(faces, {}, func) == faces.end())) {
         result.Value = value_category::Straight;
         for (auto const& f : faces) { result.Sockets.push_back(f.Socket); }
@@ -232,12 +233,12 @@ auto get_hand(std::span<socket* const> sockets) -> hand
             }
         }
 
-        auto collect {[&](u8 targetValue) {
+        auto const collect {[&](u8 targetValue) {
             for (auto const& f : faces) {
                 if (f.Face.Value == targetValue) { result.Sockets.push_back(f.Socket); }
             }
         }};
-        auto collectAll {[&](u8 targetCount) {
+        auto const collectAll {[&](u8 targetCount) {
             for (u8 v {0}; v < 6; ++v) {
                 if (counts[v] == targetCount) { collect(v + 1); }
             }
@@ -276,4 +277,16 @@ auto get_hand(std::span<socket* const> sockets) -> hand
     }
 
     return result;
+}
+auto get_value(std::span<socket* const> sockets) -> u32
+{
+    u32 retValue {0};
+
+    for (auto* const socket : sockets) {
+        if (!socket->is_empty()) {
+            retValue += socket->current_die()->current_face().Value;
+        }
+    }
+
+    return retValue;
 }

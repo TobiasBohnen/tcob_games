@@ -6,19 +6,9 @@ local DURATION       = 5000
 local SEGMENT_LENGTH = 300
 local BIOMES         = { "day", "dusk", "night", "fall", "winter", "desert", }
 
-local EVENTS         = {
-    --[[
-Police Radar
-Curve
-Traffic
-Obstacles
-Damage
-Fuel
-]]
-}
-
 local gfx            = require('ps_gfx')
 local sfx            = require('ps_sfx')
+local events         = require('ps_events')
 
 local game           = {
     car             = {},
@@ -34,20 +24,6 @@ local game           = {
     sockets         = {
         speed = nil, ---@type socket
         control = nil, ---@type socket
-
-        events = {} ---@type { [string]: socket }
-    },
-
-    textures        = {
-        car = {
-            straight = 1,
-            left     = 2,
-            right    = 3
-        }
-    },
-
-    sounds          = {
-        car = 1
     },
 }
 
@@ -64,7 +40,7 @@ end
 
 ---@param engine engine
 function game:on_turn_start(engine)
-    engine:play_sound(self.sounds.car)
+    engine:play_sound(sfx.sounds.car)
 end
 
 ---@param engine engine
@@ -80,7 +56,7 @@ function game:on_turn_update(engine, deltaTime, turnTime)
     self.car.sprite.position = { x = x, y = pos.y }
 
     if turnTime == 2500 then
-        engine:play_sound(self.sounds.car)
+        engine:play_sound(sfx.sounds.car)
     end
 
     self:update_background(engine, curveAmount)
@@ -162,11 +138,12 @@ end
 function game:create_car(engine)
     local car = {
         speed      = 3,
+        handling   = 10,
         health     = 10,
 
         spriteInit = {
             position  = { x = 120, y = 140 },
-            texture   = self.textures.car.straight,
+            texture   = gfx.textures.car.straight,
             wrappable = false
         },
     }

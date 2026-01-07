@@ -301,6 +301,11 @@ function engine:remove_socket(socket) end
 ---@return hand
 function engine:get_hand(sockets) end
 
+---Calculates the total sum of the current die face values across all provided sockets.
+---@param sockets table<string, socket> A table of sockets to check.
+---@return integer
+function engine:get_value(sockets) end
+
 ---@section Game State
 
 ---Adds points to the player's current score.

@@ -262,11 +262,19 @@ void engine::create_engine_wrapper()
     engineWrapper["remove_socket"] = [](engine* engine, socket* socket) {
         engine->_init.Sockets->remove_socket(socket);
     };
-    engineWrapper["get_hand"] = [](engine*, table const& socketsTable) {
+    engineWrapper["get_hand"] = [](engine*, std::unordered_map<std::variant<i32, string>, socket*> const& socketMap) -> hand {
         std::vector<socket*> sockets;
-        for (auto const& key : socketsTable.get_keys<string>()) { sockets.push_back(socketsTable[key].as<socket*>()); }
+        sockets.reserve(socketMap.size());
+        for (auto const& key : socketMap) { sockets.push_back(key.second); }
 
         return get_hand(sockets);
+    };
+    engineWrapper["get_value"] = [](engine*, std::unordered_map<std::variant<i32, string>, socket*> const& socketMap) -> u32 {
+        std::vector<socket*> sockets;
+        sockets.reserve(socketMap.size());
+        for (auto const& key : socketMap) { sockets.push_back(key.second); }
+
+        return get_value(sockets);
     };
     engineWrapper["give_score"] = [](engine* engine, i32 score) { engine->_init.State.Score += score; };
     engineWrapper["play_sound"] = [](engine* engine, u32 id) {

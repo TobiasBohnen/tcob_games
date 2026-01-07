@@ -29,6 +29,13 @@ local BASE_HEAT_LOSS              = 20
 local gfx                         = require('dc_gfx')
 local sfx                         = require('dc_sfx')
 
+local CITY_TEXTURES               = {
+    [0] = gfx.textures.city.undamaged,
+    [1] = gfx.textures.city.light_damage,
+    [2] = gfx.textures.city.heavy_damage,
+    [3] = gfx.textures.city.destroyed,
+}
+
 local game                        = {
     cities          = {}, ---@type [city]
 
@@ -48,18 +55,6 @@ local game                        = {
         energyRestore = nil, ---@type socket
     },
 
-    textures        = {
-        city = { undamaged = 0, light_damage = 1, heavy_damage = 2, destroyed = 3 }, ---@type { [string]: texture }
-        cannon = { left = 10, right = 11, center = 12 }, ---@type { [string]: texture }
-        missile = 20, ---@type texture
-    },
-
-    sounds          = {
-        missileExplosion = 1, ---@type sound
-        cityExplosion    = 2, ---@type sound
-        cannon           = 3, ---@type sound
-    },
-
     dmdInfo         = {
         energyReserveRel = 0,
         energyChangeRel  = 0,
@@ -76,7 +71,6 @@ local game                        = {
             heatRel   = 0,
             chargeRel = 0,
         },
-
     }
 }
 
@@ -247,7 +241,7 @@ function game:create_cannon(engine, type, pos, range, muzzle)
         muzzle     = muzzle,
 
         spriteInit = {
-            texture    = self.textures.cannon[type],
+            texture    = gfx.textures.cannon[type],
             position   = pos,
             wrappable  = false,
             collidable = false
@@ -301,13 +295,13 @@ function game:create_cannon(engine, type, pos, range, muzzle)
                 local toHit          = distanceFactor * heatFactor
 
                 engine.fg:line(muzzlePos, targetMissile.sprite.center, Palette.LightBlue)
-                engine:play_sound(self.sounds.cannon)
+                engine:play_sound(sfx.sounds.cannon)
                 cannon.shotsLeft = cannon.shotsLeft - 1
                 cannon.heat      = math.min(MAX_HEAT, cannon.heat + SHOT_HEAT_GAIN)
 
                 if engine:rnd(0, 1) <= toHit then
                     engine:give_score(100)
-                    engine:play_sound(self.sounds.missileExplosion)
+                    engine:play_sound(sfx.sounds.missileExplosion)
                     targetMissile.markedForDeath = true
                     engine.fg:circle(targetMissile.sprite.center, 2, Palette.LightBlue, true)
                 end
@@ -330,15 +324,9 @@ end
 ---@param i integer
 ---@param engine engine
 function game:create_city(i, engine)
-    local CITY_TEXTURES = {
-        [0] = self.textures.city.undamaged,
-        [1] = self.textures.city.light_damage,
-        [2] = self.textures.city.heavy_damage,
-        [3] = self.textures.city.destroyed,
-    }
-    local screenSize    = engine.screenSize
-    local cityOffset    = gfx.sizes.city.width + ((screenSize.width / CITY_COUNT) - gfx.sizes.city.width) / 2
-    local city          = { ---@class city: sprite_owner
+    local screenSize = engine.screenSize
+    local cityOffset = gfx.sizes.city.width + ((screenSize.width / CITY_COUNT) - gfx.sizes.city.width) / 2
+    local city       = { ---@class city: sprite_owner
         type       = "city",
         damage     = 0,
         spriteInit = {
@@ -357,7 +345,7 @@ function game:create_city(i, engine)
 
                 city.damage         = city.damage + 1
                 city.sprite.texture = CITY_TEXTURES[city.damage]
-                engine:play_sound(self.sounds.cityExplosion)
+                engine:play_sound(sfx.sounds.cityExplosion)
                 if city.damage == MAX_CITY_DAMAGE then
                     self.destroyedCities = self.destroyedCities + 1
                 end
@@ -365,10 +353,10 @@ function game:create_city(i, engine)
         end
     }
 
-    local sprite        = engine:create_sprite(city)
-    city.sprite         = sprite
-    city.center         = sprite.center
-    self.cities[i]      = city
+    local sprite     = engine:create_sprite(city)
+    city.sprite      = sprite
+    city.center      = sprite.center
+    self.cities[i]   = city
 end
 
 ---@param engine engine
@@ -397,7 +385,7 @@ function game:create_missile(engine, parent)
 
         spriteInit     = {
             position   = { x = engine:rnd(0, screenSize.width - 1), y = 0 },
-            texture    = self.textures.missile,
+            texture    = gfx.textures.missile,
             wrappable  = false,
             collidable = true,
         },

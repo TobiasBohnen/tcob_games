@@ -97,6 +97,14 @@ local THEMES         = {
     },
 }
 
+gfx.textures         = {
+    car = {
+        straight = 1,
+        left     = 2,
+        right    = 3
+    }
+}
+
 local worldRotation  = 0
 
 local city           = {}
@@ -270,9 +278,9 @@ function gfx.create_textures(game, engine)
         rowHeight = math.max(rowHeight, height)
     end
 
-    make_texture(game.textures.car.straight, gfx.sizes.car, car_texture, Palette.White, false)
-    make_texture(game.textures.car.right, gfx.sizes.car, car_turn_right, Palette.White, false)
-    make_texture(game.textures.car.left, gfx.sizes.car, car_turn_right, Palette.White, true)
+    make_texture(gfx.textures.car.straight, gfx.sizes.car, car_texture, Palette.White, false)
+    make_texture(gfx.textures.car.right, gfx.sizes.car, car_turn_right, Palette.White, false)
+    make_texture(gfx.textures.car.left, gfx.sizes.car, car_turn_right, Palette.White, true)
 end
 
 ------

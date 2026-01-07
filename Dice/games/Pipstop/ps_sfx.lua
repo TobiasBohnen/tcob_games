@@ -2,12 +2,16 @@
 -- MIT License
 -- https://opensource.org/licenses/MIT
 
-local sfx = {
+local sfx  = {}
+
+sfx.sounds = {
+    car = 1
 }
+
 ---@param engine engine
 function sfx.get_sounds(game, engine)
     return {
-        [game.sounds.car] = {
+        [sfx.sounds.car] = {
             random_seed      = 0,
             sample_rate      = 44100,
             wave_type        = "Square",

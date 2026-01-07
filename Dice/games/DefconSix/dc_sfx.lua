@@ -2,12 +2,18 @@
 -- MIT License
 -- https://opensource.org/licenses/MIT
 
-local sfx = {
+local sfx  = {}
+
+sfx.sounds = {
+    missileExplosion = 1, ---@type sound
+    cityExplosion    = 2, ---@type sound
+    cannon           = 3, ---@type sound
 }
+
 ---@param engine engine
 function sfx.get_sounds(game, engine)
     return {
-        [game.sounds.missileExplosion] = {
+        [sfx.sounds.missileExplosion] = {
             random_seed      = 0,
             sample_rate      = 44100,
             wave_type        = "Noise",
@@ -34,7 +40,7 @@ function sfx.get_sounds(game, engine)
             hpf_cutoff       = 0.0,
             hpf_cutoff_sweep = 0.0
         },
-        [game.sounds.cityExplosion] = {
+        [sfx.sounds.cityExplosion] = {
             random_seed      = 0,
             sample_rate      = 44100,
             wave_type        = "Noise",
@@ -61,7 +67,7 @@ function sfx.get_sounds(game, engine)
             hpf_cutoff       = 0.0,
             hpf_cutoff_sweep = 0.0
         },
-        [game.sounds.cannon] = {
+        [sfx.sounds.cannon] = {
             random_seed      = 0,
             sample_rate      = 44100,
             wave_type        = "Sawtooth",
