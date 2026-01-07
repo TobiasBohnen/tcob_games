@@ -17,12 +17,14 @@ local MAX_MISSILE_SPEED           = 15
 local BASE_ENERGY_RESERVE_RESTORE = 50
 local DIE_ENERGY_RESERVE_RESTORE  = 100
 local MAX_ENERGY_RESERVE          = 2000
-local CANNON_CHARGE_DURATION      = DURATION / 4 * 3
+
+local MAX_CANNON_CHARGE_DURATION  = DURATION / 4 * 3
 local MAX_CANNON_CHARGE           = 100
+
 local MAX_HEAT                    = 100
 local SHOT_HEAT_GAIN              = 10
-local HEAT_LOSS_FACTOR            = 10
-local BASE_HEAT_LOSS              = 10
+local DIE_HEAT_LOSS               = 10
+local BASE_HEAT_LOSS              = 20
 
 local gfx                         = require('dc_gfx')
 local sfx                         = require('dc_sfx')
@@ -141,7 +143,7 @@ function game:on_turn_finish(engine)
     local energyRestore =
         (self.sockets.energyRestore.die_value * DIE_ENERGY_RESERVE_RESTORE) +
         ((CITY_COUNT - self.destroyedCities) * BASE_ENERGY_RESERVE_RESTORE)
-    print(self.sockets.energyRestore)
+
     self:set_energy_reserve(engine, self.energyReserve + energyRestore)
 
     self.cannons:turn_finish()
@@ -184,8 +186,11 @@ function game:create_cannons(engine)
             for _, value in ipairs(self.cannonTypes) do
                 local cannon      = cannons[value]
                 cannon.shotsLeft  = self.sockets[value].chargeRate.die_value
-                cannon.chargeRate = (MAX_CANNON_CHARGE * cannon.shotsLeft) / CANNON_CHARGE_DURATION
-                cannon.coolRate   = self.sockets[value].coolRate.die_value * HEAT_LOSS_FACTOR
+                cannon.chargeRate = (MAX_CANNON_CHARGE * cannon.shotsLeft) / MAX_CANNON_CHARGE_DURATION
+                cannon.coolRate   = self.sockets[value].coolRate.die_value * DIE_HEAT_LOSS
+                if cannon.shotsLeft == 0 then
+                    cannon.coolRate = cannon.coolRate + BASE_HEAT_LOSS
+                end
             end
         end,
 
@@ -312,7 +317,7 @@ function game:create_cannon(engine, type, pos, range, muzzle)
         end,
 
         cool       = function(cannon)
-            cannon.heat                = math.max(0, cannon.heat - cannon.coolRate - BASE_HEAT_LOSS)
+            cannon.heat                = math.max(0, cannon.heat - cannon.coolRate)
             self.dmdInfo[type].heatRel = cannon.heat / MAX_HEAT
         end,
     }
