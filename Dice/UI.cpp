@@ -39,9 +39,9 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
     }
     {
         auto& panel2 {create_container<ui::panel>(rect_i {0, 73, 100, 25}, "panel2")};
-        auto& layout {panel2.create_layout<grid_layout>(size_i {2, 4})};
+        auto& layout {panel2.create_layout<grid_layout>(size_i {4, 4})};
 
-        auto& btn0 {layout.create_widget<button>({0, 0, 1, 4}, "btn0")};
+        auto& btn0 {layout.create_widget<button>({0, 0, 3, 4}, "btn0")};
         btn0.Label = "GO";
         btn0.Click.connect([&events]() { events.StartTurn(); });
         _sharedState.CanStart.Changed.connect([&btn0](auto val) {
@@ -52,12 +52,12 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
             }
         });
 
-        auto& btn1 {layout.create_widget<button>({1, 0, 1, 2}, "btn1")};
+        auto& btn1 {layout.create_widget<button>({3, 0, 1, 2}, "btn1")};
         btn1.Label = "RESET";
         btn1.Class = "button2";
         btn1.Click.connect([&events]() { events.Restart(); });
 
-        auto& btn2 {layout.create_widget<button>({1, 2, 1, 2}, "btn2")};
+        auto& btn2 {layout.create_widget<button>({3, 2, 1, 2}, "btn2")};
         btn2.Label = "OFF";
         btn2.Class = "button2";
         btn2.Click.connect([&events]() { events.Quit(); });

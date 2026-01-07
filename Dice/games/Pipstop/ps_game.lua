@@ -6,11 +6,21 @@ local DURATION       = 5000
 local SEGMENT_LENGTH = 300
 local BIOMES         = { "day", "dusk", "night", "fall", "winter", "desert", }
 
+local EVENTS         = {
+    --[[
+Police Radar
+Curve
+Traffic
+Obstacles
+Damage
+Fuel
+]]
+}
+
 local gfx            = require('ps_gfx')
 local sfx            = require('ps_sfx')
 
-
-local game = {
+local game           = {
     car             = {},
 
     currentBiome    = 1,
@@ -19,7 +29,14 @@ local game = {
     trackIndex      = 1,
     segmentProgress = 0,
 
-    sockets         = {}, ---@type { [string]: socket }
+    eventQueue      = {},
+
+    sockets         = {
+        speed = nil, ---@type socket
+        control = nil, ---@type socket
+
+        events = {} ---@type { [string]: socket }
+    },
 
     textures        = {
         car = 1

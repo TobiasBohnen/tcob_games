@@ -93,7 +93,7 @@ local THEMES         = {
         road         = Palette.Gray,
         centerLine   = Palette.White,
         curb1        = Palette.Red,
-        curb2        = Palette.White
+        curb2        = Palette.Yellow
     },
 }
 

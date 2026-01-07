@@ -14,8 +14,9 @@ local MAX_MIRV                    = 2
 local MIN_MISSILE_SPEED           = 10
 local MAX_MISSILE_SPEED           = 15
 
-local BASE_ENERGY_RESERVE_RESTORE = 400
-local MAX_ENERGY_RESERVE          = 2400
+local BASE_ENERGY_RESERVE_RESTORE = 50
+local DIE_ENERGY_RESERVE_RESTORE  = 100
+local MAX_ENERGY_RESERVE          = 2000
 local CANNON_CHARGE_DURATION      = DURATION / 4 * 3
 local MAX_CANNON_CHARGE           = 100
 local MAX_HEAT                    = 100
@@ -27,36 +28,54 @@ local gfx                         = require('dc_gfx')
 local sfx                         = require('dc_sfx')
 
 local game                        = {
-    cities           = {}, ---@type [city]
+    cities          = {}, ---@type [city]
 
-    cannons          = {}, ---@type cannons
-    cannonTypes      = { "left", "right", "center" },
+    cannons         = {}, ---@type cannons
+    cannonTypes     = { "left", "right", "center" },
 
-    missiles         = {}, ---@type [missile]
+    missiles        = {}, ---@type [missile]
 
-    energyReserve    = 0,
-    relEnergyReserve = 0,
+    energyReserve   = 0,
 
-    destroyedCities  = 0,
+    destroyedCities = 0,
 
-    sockets          = {
+    sockets         = {
         left          = {}, ---@type { [string]: socket }
         right         = {}, ---@type { [string]: socket }
         center        = {}, ---@type { [string]: socket }
         energyRestore = nil, ---@type socket
     },
 
-    textures         = {
+    textures        = {
         city = { undamaged = 0, light_damage = 1, heavy_damage = 2, destroyed = 3 }, ---@type { [string]: texture }
         cannon = { left = 10, right = 11, center = 12 }, ---@type { [string]: texture }
         missile = 20, ---@type texture
     },
 
-    sounds           = {
+    sounds          = {
         missileExplosion = 1, ---@type sound
         cityExplosion    = 2, ---@type sound
         cannon           = 3, ---@type sound
     },
+
+    dmdInfo         = {
+        energyReserveRel = 0,
+        energyChangeRel  = 0,
+
+        left             = {
+            heatRel   = 0,
+            chargeRel = 0,
+        },
+        right            = {
+            heatRel   = 0,
+            chargeRel = 0,
+        },
+        center           = {
+            heatRel   = 0,
+            chargeRel = 0,
+        },
+
+    }
 }
 
 ---@param engine engine
@@ -71,14 +90,12 @@ function game:on_setup(engine)
         self:try_spawn_missile(engine)
     end
 
-    self.sockets.left.chargeRate   = engine:create_socket { colors = { Palette.White } }
-    self.sockets.left.coolRate     = engine:create_socket { colors = { Palette.White } }
-    self.sockets.right.chargeRate  = engine:create_socket { colors = { Palette.White } }
-    self.sockets.right.coolRate    = engine:create_socket { colors = { Palette.White } }
-    self.sockets.center.chargeRate = engine:create_socket { colors = { Palette.White } }
-    self.sockets.center.coolRate   = engine:create_socket { colors = { Palette.White } }
+    self.sockets.energyRestore = engine:create_socket { colors = { Palette.White } }
 
-    self.sockets.energyRestore     = engine:create_socket { colors = { Palette.White } }
+    for _, cannonType in ipairs(self.cannonTypes) do
+        self.sockets[cannonType].chargeRate = engine:create_socket { colors = { Palette.White } }
+        self.sockets[cannonType].coolRate   = engine:create_socket { colors = { Palette.White } }
+    end
 
     self:set_energy_reserve(engine, MAX_ENERGY_RESERVE)
 end
@@ -121,8 +138,13 @@ end
 
 ---@param engine engine
 function game:on_turn_finish(engine)
-    self:set_energy_reserve(engine, self.energyReserve + self.sockets.energyRestore.die_value * 100 + BASE_ENERGY_RESERVE_RESTORE)
-    self.cannons:turn_end()
+    local energyRestore =
+        (self.sockets.energyRestore.die_value * DIE_ENERGY_RESERVE_RESTORE) +
+        ((CITY_COUNT - self.destroyedCities) * BASE_ENERGY_RESERVE_RESTORE)
+    print(self.sockets.energyRestore)
+    self:set_energy_reserve(engine, self.energyReserve + energyRestore)
+
+    self.cannons:turn_finish()
 
     local count = engine:irnd(1, 3)
     for i = 1, count do
@@ -137,16 +159,16 @@ end
 
 ---@param engine engine
 function game:on_draw_dmd(engine)
-    gfx.draw_dmd(engine.dmd, self)
+    gfx.draw_dmd(engine.dmd, self, self.dmdInfo)
 end
 
 ------
 ------
 
 function game:set_energy_reserve(engine, val)
-    self.energyReserve    = math.min(val, MAX_ENERGY_RESERVE)
-    self.relEnergyReserve = self.energyReserve / MAX_ENERGY_RESERVE
-    gfx.draw_dmd(engine.dmd, self)
+    self.energyReserve            = math.min(math.max(0, math.ceil(val)), MAX_ENERGY_RESERVE)
+    self.dmdInfo.energyReserveRel = self.energyReserve / MAX_ENERGY_RESERVE
+    self:on_draw_dmd(engine)
 end
 
 ---@param engine engine
@@ -154,30 +176,32 @@ function game:create_cannons(engine)
     local screenSize = engine.screenSize
 
     local cannons    = { ---@class cannons
-        left       = {},
-        right      = {},
-        center     = {},
+        left        = {},
+        right       = {},
+        center      = {},
 
-        turn_start = function(cannons)
+        turn_start  = function(cannons)
             for _, value in ipairs(self.cannonTypes) do
                 local cannon      = cannons[value]
                 cannon.shotsLeft  = self.sockets[value].chargeRate.die_value
-                cannon.chargeRate = (100 * cannon.shotsLeft) / CANNON_CHARGE_DURATION
+                cannon.chargeRate = (MAX_CANNON_CHARGE * cannon.shotsLeft) / CANNON_CHARGE_DURATION
                 cannon.coolRate   = self.sockets[value].coolRate.die_value * HEAT_LOSS_FACTOR
             end
         end,
 
-        update     = function(cannons, deltaTime)
+        update      = function(cannons, deltaTime)
             local order        = { 1, 2, 3 }
             local i            = engine:irnd(1, 3)
             order[1], order[i] = order[i], order[1]
 
             for _, idx in ipairs(order) do
-                cannons[self.cannonTypes[idx]]:gain_energy(deltaTime)
+                cannons[self.cannonTypes[idx]]:power_up(deltaTime)
             end
+
+            self:on_draw_dmd(engine)
         end,
 
-        turn_end   = function(cannons)
+        turn_finish = function(cannons)
             for _, value in ipairs(self.cannonTypes) do
                 cannons[value]:cool()
             end
@@ -206,33 +230,31 @@ end
 ---@param engine engine
 function game:create_cannon(engine, type, pos, range, muzzle)
     local cannon = {
-        heat        = 0,
-        relHeat     = 0,
-        coolRate    = 0,
-        charge      = 0,
-        relCharge   = 0,
-        chargeRate  = 0,
+        heat       = 0,
+        coolRate   = 0,
+        charge     = 0,
+        chargeRate = 0,
 
-        shotsLeft   = 0,
+        shotsLeft  = 0,
 
-        type        = type,
-        range       = range,
-        muzzle      = muzzle,
+        type       = type,
+        range      = range,
+        muzzle     = muzzle,
 
-        spriteInit  = {
+        spriteInit = {
             texture    = self.textures.cannon[type],
             position   = pos,
             wrappable  = false,
             collidable = false
         },
 
-        sprite      = nil, ---@type sprite
+        sprite     = nil, ---@type sprite
 
-        gain_energy = function(cannon, deltaTime)
+        power_up   = function(cannon, deltaTime)
             if cannon.shotsLeft <= 0 then return end
 
             local gain    = cannon.chargeRate * deltaTime
-            gain          = math.min(self.energyReserve, math.min(100 - cannon.charge, gain))
+            gain          = math.min(self.energyReserve, math.min(MAX_CANNON_CHARGE - cannon.charge, gain))
             cannon.charge = cannon.charge + gain
 
             self:set_energy_reserve(engine, self.energyReserve - gain)
@@ -241,11 +263,11 @@ function game:create_cannon(engine, type, pos, range, muzzle)
                 cannon:fire()
             end
 
-            cannon.relHeat   = cannon.heat / MAX_HEAT
-            cannon.relCharge = cannon.charge / MAX_CANNON_CHARGE
+            self.dmdInfo[type].heatRel   = cannon.heat / MAX_HEAT
+            self.dmdInfo[type].chargeRel = cannon.charge / MAX_CANNON_CHARGE
         end,
 
-        fire        = function(cannon)
+        fire       = function(cannon)
             local targetMissile = nil
             local lowestY       = 0
 
@@ -287,15 +309,11 @@ function game:create_cannon(engine, type, pos, range, muzzle)
 
                 cannon.charge = 0
             end
-
-            gfx.draw_dmd(engine.dmd, self)
         end,
 
-        cool        = function(cannon)
-            cannon.heat      = math.max(0, cannon.heat - cannon.coolRate - BASE_HEAT_LOSS)
-
-            cannon.relHeat   = cannon.heat / MAX_HEAT
-            cannon.relCharge = cannon.charge / 100
+        cool       = function(cannon)
+            cannon.heat                = math.max(0, cannon.heat - cannon.coolRate - BASE_HEAT_LOSS)
+            self.dmdInfo[type].heatRel = cannon.heat / MAX_HEAT
         end,
     }
 

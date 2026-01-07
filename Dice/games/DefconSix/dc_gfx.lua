@@ -123,7 +123,7 @@ local charge_pattern = [[3b4i3d4i3q4i3d4i3d4i3q4i3d4i3d4i3q4i3d4i3b]]
 local cooling_pattern = [[00000D0D000000D0D00D00D0D000D00DDD00D00000D00D00D000D000D0D0D000D0D000DDD000D0DDDDDD0DDDDDD0D000DDD000D0D000D0D0D000D000D00D00D00000D00DDD00D000D0D00D00D0D000000D0D00000]]
 
 ---@param dmd dmd
-function gfx.draw_dmd(dmd, game)
+function gfx.draw_dmd(dmd, game, dmdInfo)
     local sockets = game.sockets
 
     dmd:clear()
@@ -147,11 +147,11 @@ function gfx.draw_dmd(dmd, game)
 
         y = y + offset * 2
 
-        local nrgy = math.floor(game.cannons[type].relCharge * offset)
+        local nrgy = math.floor(dmdInfo[type].chargeRel * offset)
         dmd:rect({ x = x + 1, y = y - offset, width = 5, height = offset - nrgy }, Palette.DarkBrown, true)
         dmd:rect({ x = x + 1, y = y - nrgy, width = 5, height = nrgy }, Palette.Red, true)
 
-        local heat = math.floor(game.cannons[type].relHeat * offset)
+        local heat = math.floor(dmdInfo[type].heatRel * offset)
         dmd:rect({ x = x + 7, y = y - offset, width = 5, height = offset - heat }, Palette.DarkBlue, true)
         dmd:rect({ x = x + 7, y = y - heat, width = 5, height = heat }, Palette.Blue, true)
     end
@@ -160,14 +160,18 @@ function gfx.draw_dmd(dmd, game)
     draw_cannon("center", 43)
     draw_cannon("right", 64)
 
-    sockets.energyRestore.position = { x = 64, y = 80 }
+    sockets.energyRestore.position = { x = 43, y = 78 }
     dmd:socket(sockets.energyRestore)
 
-    local energyWidth  = 15
-    local energyHeight = 20
-    local energy       = math.floor(game.relEnergyReserve * energyHeight)
-    dmd:rect({ x = 43, y = 75, width = energyWidth, height = energyHeight - energy }, Palette.DarkGreen, true)
-    dmd:rect({ x = 43, y = 75 - energy + energyHeight, width = energyWidth, height = energy }, Palette.Green, true)
+    local barWidth     = 16
+    local barHeight    = 20
+    local barLeft      = 60
+    local barTop       = 75
+
+    local energyHeight = math.ceil(dmdInfo.energyReserveRel * barHeight)
+    local energyTop    = barTop - energyHeight + barHeight
+    dmd:rect({ x = barLeft, y = barTop, width = barWidth, height = barHeight - energyHeight }, Palette.DarkGreen, true)
+    dmd:rect({ x = barLeft, y = energyTop, width = barWidth, height = energyHeight }, Palette.Green, true)
 end
 
 ---@param dmd dmd

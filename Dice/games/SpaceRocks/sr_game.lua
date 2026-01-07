@@ -27,7 +27,11 @@ local game                  = {
 
     explosions = {},
 
-    sockets    = {}, ---@type { [string]: socket }
+    sockets    = {
+        speed   = nil, ---@type socket
+        turn    = nil, ---@type socket
+        bullets = nil, ---@type socket
+    },
 
     textures   = {
         ship      = { [0] = 0, [45] = 1, [90] = 2, [135] = 3, [180] = 4, [225] = 5, [270] = 6, [315] = 7 }, ---@type { [number]: texture }
@@ -374,7 +378,7 @@ function game:create_ship(engine)
                 ship.health        = ship.health - 1
                 ship.hitByAsteroid = true
                 ship:set_shield(true)
-                gfx.draw_dmd(engine.dmd, self)
+                self:on_draw_dmd(engine)
             end
         end
     }
