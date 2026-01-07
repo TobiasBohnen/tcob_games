@@ -228,7 +228,9 @@ function gfx.create_background(engine, curveAmount, trackOffset, biome)
 end
 
 local car_texture =
-[[2bd0h2aaCc2b0a3a0aDb0a3a0a2bCc2uCe2a0a3a0aDb0a3a0a2aCe2tCc1aCa2a0a3a0aCb0a3a0a2aCa1aCc2tCc0d3a0aCb0a3a0dCc2tCc1a0a3a0cCb0c3a0a1aCc2t0c3c0aCf0a3c0c2t0a3e0aCf0a3e0a2q0h3a0aCf0a3a0h2n0aDf0cCf0cDf0a2n0bDe0bCh0bDe0b2kCc0cDt0cCc2gCe0bDt0bCe2eCh0aDr0aCh2dCf1aCa0iDb0iCa1aCf2dCf0kDb0kCf2dCf0kDb0kCf2dCf1aCa0a2c0a3a0h3a0a2c0aCa1aCf2dCh0e3a0h3a0eCh2eCg2d0c2f0c2dCg2fCf2vCf2c]]
+[[2bd0h2aaCc2b0a3a0aDb0a3a0a2bCc2uCe2a0a3a0aDb0a3a0a2aCe2tCc1aCa2a0a3a0aCb0a3a0a2aCa1aCc2tCc0d3a0aCb0a3a0dCc2tCc1a0a3a0cCb0c3a0a1aCc2t0c3c0aCf0a3c0c2t0a3e0aCf0a3e0a2q0h3a0aCf0a3a0h2n0aDf0cCf0cDf0a2n0aDf0bCh0bDf0a2kCc0bDv0bCc2gCe0cDr0cCe2eCh0aDr0aCh2dCf1aCa0iDb0iCa1aCf2dCf0kDb0kCf2dCf0kDb0kCf2dCf1aCa0a2c0a3a0h3a0a2c0aCa1aCf2dCh0e3a0h3a0eCh2eCg2d0c2f0c2dCg2fCf2vCf2c]]
+local car_turn_right =
+[[2bg0h2aaCc2b0a3a0aDb0a3a0a2bCd2tCe2a0a3a0aDb0a3a0a2aCf2sCb1bCa2a0a3a0d3a0a2aCc1bCa2rCc0d3a0bCa0a3a0cCc0a1aCa2rCc1a0a3a0cCb0c3a0aCc1aCa2s0c3c0aCf0a3c0c2t0a3e0aCf0a3e0a2p0h3a0aCf0a3a0h2n0aDf0cCf0cDf0a2n0aDf0bCh0bDf0a2jCd0bDv0bCb2gCf0cDr0cCd2eCh2a0aDr0aCg2dCd1bCb2a0iDb0iCd1bCa2dCd0mDb0iCe0a1aCa2dCd0mDb0iCe0a1aCa2dCd1bCb0a2c0a3a0h3a0a2c0aCe1bCa2dCh0e3a0h3a0eCh2eCg2d0c2f0c2dCg2fCf2vCf2c]]
 
 gfx.sizes = {
     car = { width = 40, height = 22 },
@@ -243,7 +245,7 @@ function gfx.create_textures(game, engine)
     local padding   = 2
 
     ---@param size size
-    local function make_texture(id, size, tex, tp)
+    local function make_texture(id, size, tex, tp, flipH)
         local width  = size.width
         local height = size.height
 
@@ -257,7 +259,8 @@ function gfx.create_textures(game, engine)
             { x = pen.x, y = pen.y, width = width, height = height },
             tex,
             {
-                transparent = tp
+                transparent = tp,
+                flip_h = flipH
             }
         )
 
@@ -267,7 +270,9 @@ function gfx.create_textures(game, engine)
         rowHeight = math.max(rowHeight, height)
     end
 
-    make_texture(game.textures.car, gfx.sizes.car, car_texture, Palette.White)
+    make_texture(game.textures.car.straight, gfx.sizes.car, car_texture, Palette.White, false)
+    make_texture(game.textures.car.right, gfx.sizes.car, car_turn_right, Palette.White, false)
+    make_texture(game.textures.car.left, gfx.sizes.car, car_turn_right, Palette.White, true)
 end
 
 ------

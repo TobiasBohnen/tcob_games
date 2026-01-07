@@ -39,7 +39,11 @@ local game           = {
     },
 
     textures        = {
-        car = 1
+        car = {
+            straight = 1,
+            left     = 2,
+            right    = 3
+        }
     },
 
     sounds          = {
@@ -72,6 +76,7 @@ function game:on_turn_update(engine, deltaTime, turnTime)
     local pos                = self.car.sprite.position
     local roadWidth          = engine.screenSize.width / 3
     local x                  = math.max(roadWidth / 2, math.min(engine.screenSize.width - roadWidth / 2 - gfx.sizes.car.width, pos.x - curveAmount))
+
     self.car.sprite.position = { x = x, y = pos.y }
 
     if turnTime == 2500 then
@@ -161,7 +166,7 @@ function game:create_car(engine)
 
         spriteInit = {
             position  = { x = 120, y = 140 },
-            texture   = self.textures.car,
+            texture   = self.textures.car.straight,
             wrappable = false
         },
     }
