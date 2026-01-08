@@ -9,7 +9,7 @@ local SUN_SPEED      = 0.5
 local CITY_SPEED     = 0.8
 local CLOUD_SPEED    = 1.5
 
-local THEMES         = {
+local BIOMES         = {
     day = {
         sky          = Palette.Blue,
         horizonLine1 = Palette.LightBlue,
@@ -97,14 +97,6 @@ local THEMES         = {
     },
 }
 
-gfx.textures         = {
-    car = {
-        straight = 1,
-        left     = 2,
-        right    = 3
-    }
-}
-
 local worldRotation  = 0
 
 local city           = {}
@@ -139,7 +131,7 @@ function gfx.create_background(engine, curveAmount, trackOffset, biome)
     local size         = bg.size
     local w, h         = size.width, size.height
     local worldWidth   = w * 4
-    local currentTheme = THEMES[biome]
+    local currentBiome = BIOMES[biome]
 
     worldRotation      = (worldRotation + curveAmount) % worldWidth
 
@@ -152,20 +144,20 @@ function gfx.create_background(engine, curveAmount, trackOffset, biome)
     end
 
     -- sky
-    bg:rect({ x = 0, y = 0, width = w, height = HORIZON_HEIGHT }, currentTheme.sky, true)
-    bg:rect({ x = 0, y = HORIZON_HEIGHT - 3, width = w, height = 2 }, currentTheme.horizonLine1, true)
-    bg:rect({ x = 0, y = HORIZON_HEIGHT - 1, width = w, height = 1 }, currentTheme.horizonLine2, true)
+    bg:rect({ x = 0, y = 0, width = w, height = HORIZON_HEIGHT }, currentBiome.sky, true)
+    bg:rect({ x = 0, y = HORIZON_HEIGHT - 3, width = w, height = 2 }, currentBiome.horizonLine1, true)
+    bg:rect({ x = 0, y = HORIZON_HEIGHT - 1, width = w, height = 1 }, currentBiome.horizonLine2, true)
 
     -- sun
     local sunX    = get_draw_x(30, SUN_SPEED)
     local sunSpan = worldWidth * SUN_SPEED
     local sunWrap = (sunX > 0) and (sunX - sunSpan) or (sunX + sunSpan)
 
-    bg:circle({ x = sunX, y = 20 }, 10, currentTheme.sun, true)
-    bg:circle({ x = sunWrap, y = 20 }, 10, currentTheme.sun, true)
+    bg:circle({ x = sunX, y = 20 }, 10, currentBiome.sun, true)
+    bg:circle({ x = sunWrap, y = 20 }, 10, currentBiome.sun, true)
 
     -- city
-    if currentTheme.city then
+    if currentBiome.city then
         local citySpan = worldWidth * CITY_SPEED
         for _, b in ipairs(city) do
             local drawX = get_draw_x(b.x, CITY_SPEED)
@@ -173,34 +165,34 @@ function gfx.create_background(engine, curveAmount, trackOffset, biome)
             local yPos  = HORIZON_HEIGHT - b.h + 1
 
             -- buildings
-            bg:rect({ x = drawX, y = yPos, width = b.w, height = b.h }, currentTheme.city, true)
-            bg:rect({ x = wrapX, y = yPos, width = b.w, height = b.h }, currentTheme.city, true)
+            bg:rect({ x = drawX, y = yPos, width = b.w, height = b.h }, currentBiome.city, true)
+            bg:rect({ x = wrapX, y = yPos, width = b.w, height = b.h }, currentBiome.city, true)
 
             -- windows
             for wy = yPos + 2, yPos + b.h - 2, 3 do
                 for wx = 1, b.w - 2, 2 do
-                    bg:pixel({ x = drawX + wx, y = wy }, currentTheme.window)
-                    bg:pixel({ x = wrapX + wx, y = wy }, currentTheme.window)
+                    bg:pixel({ x = drawX + wx, y = wy }, currentBiome.window)
+                    bg:pixel({ x = wrapX + wx, y = wy }, currentBiome.window)
                 end
             end
         end
     end
 
     -- clouds
-    if currentTheme.cloud then
+    if currentBiome.cloud then
         local cloudSpan = worldWidth * CLOUD_SPEED
         for idx, cloud in ipairs(clouds) do
             local drawX = get_draw_x(cloud.x, CLOUD_SPEED)
             local wrapX = (drawX > 0) and (drawX - cloudSpan) or (drawX + cloudSpan)
 
-            bg:rect({ x = drawX, y = cloud.y, width = cloud.w, height = cloud.h }, currentTheme.cloud, true)
-            bg:rect({ x = wrapX, y = cloud.y, width = cloud.w, height = cloud.h }, currentTheme.cloud, true)
+            bg:rect({ x = drawX, y = cloud.y, width = cloud.w, height = cloud.h }, currentBiome.cloud, true)
+            bg:rect({ x = wrapX, y = cloud.y, width = cloud.w, height = cloud.h }, currentBiome.cloud, true)
         end
     end
 
 
     -- ground
-    bg:rect({ x = 0, y = HORIZON_HEIGHT, width = w, height = h - HORIZON_HEIGHT }, currentTheme.ground, true)
+    bg:rect({ x = 0, y = HORIZON_HEIGHT, width = w, height = h - HORIZON_HEIGHT }, currentBiome.ground, true)
 
     -- road
     for y = HORIZON_HEIGHT, h - 1 do
@@ -215,7 +207,7 @@ function gfx.create_background(engine, curveAmount, trackOffset, biome)
         local leftEdge      = centerX - math.floor(roadWidth / 2)
         local rightEdge     = centerX + math.floor(roadWidth / 2)
 
-        bg:line({ x = leftEdge, y = y }, { x = rightEdge, y = y }, currentTheme.road)
+        bg:line({ x = leftEdge, y = y }, { x = rightEdge, y = y }, currentBiome.road)
 
         -- stripes
         local stripeWidth = math.max(0.5, roadWidth / 50)
@@ -223,24 +215,32 @@ function gfx.create_background(engine, curveAmount, trackOffset, biome)
         local distance    = (((math.log(1 + t * 10) / math.log(11)) - trackOffset) * 100) % 100
 
         if distance % 30 < 20 then
-            bg:line({ x = math.ceil(centerX - stripeWidth), y = y }, { x = math.floor(centerX + stripeWidth), y = y }, currentTheme.centerLine)
+            bg:line({ x = math.ceil(centerX - stripeWidth), y = y }, { x = math.floor(centerX + stripeWidth), y = y }, currentBiome.centerLine)
         end
         if distance % 20 < 10 then
-            bg:line({ x = leftEdge - stripeWidth, y = y }, { x = leftEdge + stripeWidth, y = y }, currentTheme.curb1)
-            bg:line({ x = rightEdge - stripeWidth, y = y }, { x = rightEdge + stripeWidth, y = y }, currentTheme.curb1)
+            bg:line({ x = leftEdge - stripeWidth, y = y }, { x = leftEdge + stripeWidth, y = y }, currentBiome.curb1)
+            bg:line({ x = rightEdge - stripeWidth, y = y }, { x = rightEdge + stripeWidth, y = y }, currentBiome.curb1)
         else
-            bg:line({ x = leftEdge - stripeWidth, y = y }, { x = leftEdge + stripeWidth, y = y }, currentTheme.curb2)
-            bg:line({ x = rightEdge - stripeWidth, y = y }, { x = rightEdge + stripeWidth, y = y }, currentTheme.curb2)
+            bg:line({ x = leftEdge - stripeWidth, y = y }, { x = leftEdge + stripeWidth, y = y }, currentBiome.curb2)
+            bg:line({ x = rightEdge - stripeWidth, y = y }, { x = rightEdge + stripeWidth, y = y }, currentBiome.curb2)
         end
     end
 end
 
-local car_texture =
+local car_texture    =
 [[2bd0h2aaCc2b0a3a0aDb0a3a0a2bCc2uCe2a0a3a0aDb0a3a0a2aCe2tCc1aCa2a0a3a0aCb0a3a0a2aCa1aCc2tCc0d3a0aCb0a3a0dCc2tCc1a0a3a0cCb0c3a0a1aCc2t0c3c0aCf0a3c0c2t0a3e0aCf0a3e0a2q0h3a0aCf0a3a0h2n0aDf0cCf0cDf0a2n0aDf0bCh0bDf0a2kCc0bDv0bCc2gCe0cDr0cCe2eCh0aDr0aCh2dCf1aCa0iDb0iCa1aCf2dCf0kDb0kCf2dCf0kDb0kCf2dCf1aCa0a2c0a3a0h3a0a2c0aCa1aCf2dCh0e3a0h3a0eCh2eCg2d0c2f0c2dCg2fCf2vCf2c]]
 local car_turn_right =
 [[2bg0h2aaCc2b0a3a0aDb0a3a0a2bCd2tCe2a0a3a0aDb0a3a0a2aCf2sCb1bCa2a0a3a0d3a0a2aCc1bCa2rCc0d3a0bCa0a3a0cCc0a1aCa2rCc1a0a3a0cCb0c3a0aCc1aCa2s0c3c0aCf0a3c0c2t0a3e0aCf0a3e0a2p0h3a0aCf0a3a0h2n0aDf0cCf0cDf0a2n0aDf0bCh0bDf0a2jCd0bDv0bCb2gCf0cDr0cCd2eCh2a0aDr0aCg2dCd1bCb2a0iDb0iCd1bCa2dCd0mDb0iCe0a1aCa2dCd0mDb0iCe0a1aCa2dCd1bCb0a2c0a3a0h3a0a2c0aCe1bCa2dCh0e3a0h3a0eCh2eCg2d0c2f0c2dCg2fCf2vCf2c]]
 
-gfx.sizes = {
+gfx.textures         = {
+    car = {
+        straight = 1,
+        left     = 2,
+        right    = 3
+    }
+}
+
+gfx.sizes            = {
     car = { width = 40, height = 22 },
 }
 
