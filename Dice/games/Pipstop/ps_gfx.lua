@@ -211,9 +211,7 @@ function gfx.create_background(engine, curveAmount, trackOffset, biome)
 
         -- stripes
         local stripeWidth = math.max(0.5, roadWidth / 50)
-
-        local distance    = (((math.log(1 + t * 10) / math.log(11)) - trackOffset) * 100) % 100
-
+        local distance    = (math.sqrt(t) - trackOffset) * 100 % 100
         if distance % 30 < 20 then
             bg:line({ x = math.ceil(centerX - stripeWidth), y = y }, { x = math.floor(centerX + stripeWidth), y = y }, currentBiome.centerLine)
         end
