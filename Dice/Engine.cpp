@@ -345,7 +345,12 @@ void engine::create_tex_wrapper()
     texWrapper["circle"] = [](tex_proxy* tex, point_f center, i32 radius, u8 color, bool fill) { tex->circle(point_i {center}, radius, color, fill); };
     texWrapper["rect"]   = [](tex_proxy* tex, rect_f const& rect, u8 color, bool fill) { tex->rect(rect_i {rect}, color, fill); };
 
-    texWrapper["blit"] = [](tex_proxy* tex, rect_f const& rect, string const& dotStr, std::optional<blit_settings> settings) { tex->blit(rect_i {rect}, dotStr, settings ? *settings : blit_settings {}); };
+    texWrapper["blit"] = [](tex_proxy* tex, rect_f const& rect, string const& dotStr, std::optional<blit_settings> settings) {
+        tex->blit(rect_i {rect}, dotStr, settings ? *settings : blit_settings {});
+    };
+    texWrapper["print"] = [](tex_proxy* tex, point_i pos, string_view text, u8 col, std::optional<font_type> fontType) {
+        tex->print(pos, text, col, fontType ? *fontType : font_type::Font5x5);
+    };
 }
 
 void engine::create_texture(u32 id, rect_i const& uv)

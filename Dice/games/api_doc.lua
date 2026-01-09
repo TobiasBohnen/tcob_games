@@ -250,6 +250,13 @@ function tex:circle(center, radius, color, fill) end
 ---@param fill boolean Whether to draw a solid rectangle or just the outline.
 function tex:rect(rect, color, fill) end
 
+---Prints text at the specified position.
+---@param pos point The top-left coordinate for the text.
+---@param text string The string to display.
+---@param color color The palette index.
+---@param font? string
+function tex:print(pos, text, color, font) end
+
 --------------------------------
 -- Engine
 --------------------------------

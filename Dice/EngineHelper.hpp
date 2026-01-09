@@ -61,6 +61,8 @@ struct blit_settings {
 ////////////////////////////////////////////////////////////
 
 enum class font_type : u8 {
+    Font8x8,
+    Font5x7,
     Font5x5,
     Font5x4,
     Font4x5,
@@ -100,14 +102,15 @@ public:
     void clear(std::optional<rect_i> const& rect);
 
     void pixel(point_i pos, u8 color);
-    void line(point_i start, point_i end, u8 c);
-    void circle(point_i center, i32 radius, u8 c, bool fill);
-    void rect(rect_i const& rect, u8 c, bool fill);
+    void line(point_i start, point_i end, u8 color);
+    void circle(point_i center, i32 radius, u8 ccolor, bool fill);
+    void rect(rect_i const& rect, u8 color, bool fill);
 
     void blit(rect_i const& rect, string const& data, blit_settings settings);
+    void print(point_i pos, string_view text, u8 color, font_type type);
 
 private:
-    static void draw(std::span<u8> data, i32 x, i32 y, size_i s, color col);
+    static void draw(std::span<u8> data, i32 x, i32 y, size_i s, color color);
 
     prop<gfx::image>& _img;
     size_i            _imgSize;
