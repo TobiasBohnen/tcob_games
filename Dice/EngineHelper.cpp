@@ -103,17 +103,8 @@ void draw_rect(rect_i const& rect, bool fill, PlotFunc plot)
 template <typename PlotFunc>
 void draw_print(point_i pos, string_view text, font_type type, PlotFunc plot)
 {
-    size_i size {};
-    switch (type) {
-    case font_type::Font3x5: size = {3, 5}; break;
-    case font_type::Font4x5: size = {4, 5}; break;
-    case font_type::Font4x4: size = {4, 4}; break;
-    case font_type::Font5x5: size = {5, 5}; break;
-    case font_type::Font5x4: size = {5, 4}; break;
-    case font_type::Font8x8: size = {8, 8}; break;
-    case font_type::Font5x7: size = {5, 7}; break;
-    }
-    i32 const stride {size.Width + 1};
+    auto const font {get_font(type)};
+    i32 const  stride {font.Size.Width + 1};
 
     for (usize i {0}; i < text.size(); ++i) {
         char c {text[i]};
@@ -134,19 +125,10 @@ void draw_print(point_i pos, string_view text, font_type type, PlotFunc plot)
             continue;
         }
 
-        for (i32 y {0}; y < size.Height; ++y) {
-            u8 row {0};
-            switch (type) {
-            case font_type::Font3x5: row = font3x5[index][y]; break;
-            case font_type::Font4x5: row = font4x5[index][y]; break;
-            case font_type::Font4x4: row = font4x4[index][y]; break;
-            case font_type::Font5x5: row = font5x5[index][y]; break;
-            case font_type::Font5x4: row = font5x4[index][y]; break;
-            case font_type::Font8x8: row = font8x8[index][y]; break;
-            case font_type::Font5x7: row = font5x7[index][y]; break;
-            }
-            for (i32 x {0}; x < size.Width; ++x) {
-                if ((row & (1 << (size.Width - 1 - x))) == 0) { continue; }
+        for (i32 y {0}; y < font.Size.Height; ++y) {
+            u8 const row {font.Ptr[(index * font.Size.Height) + y]};
+            for (i32 x {0}; x < font.Size.Width; ++x) {
+                if ((row & (1 << (font.Size.Width - 1 - x))) == 0) { continue; }
                 point_i const p {static_cast<i32>(pos.X + (i * stride) + x), pos.Y + y};
                 plot(p.X, p.Y);
             }

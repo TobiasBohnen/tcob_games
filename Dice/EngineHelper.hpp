@@ -62,9 +62,11 @@ struct blit_settings {
 
 enum class font_type : u8 {
     Font8x8,
+    Font6x8,
     Font5x7,
     Font5x5,
     Font5x4,
+    Font4x6,
     Font4x5,
     Font4x4,
     Font3x5,
