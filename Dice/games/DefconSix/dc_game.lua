@@ -124,15 +124,6 @@ function game:on_turn_update(engine, deltaTime, turnTime)
 end
 
 ---@param engine engine
----@param spriteA sprite
----@param spriteB sprite
-function game:on_collision(engine, spriteA, spriteB)
-    local a, b = spriteA.owner, spriteB.owner
-    if a.collide then a:collide(b) end
-    if b.collide then b:collide(a) end
-end
-
----@param engine engine
 function game:on_turn_finish(engine)
     local energyRestore =
         (self.sockets.energyRestore.die_value * DIE_ENERGY_RESERVE_RESTORE) +
@@ -151,6 +142,15 @@ end
 ---@param engine engine
 function game:on_teardown(engine)
     gfx.draw_game_over(engine.dmd, self)
+end
+
+---@param engine engine
+---@param spriteA sprite
+---@param spriteB sprite
+function game:on_collision(engine, spriteA, spriteB)
+    local a, b = spriteA.owner, spriteB.owner
+    if a.collide then a:collide(b) end
+    if b.collide then b:collide(a) end
 end
 
 ---@param engine engine

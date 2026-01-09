@@ -42,10 +42,6 @@ end
 
 ---@param engine engine
 function game:on_turn_start(engine)
-    if self.car.speed > 0 then
-        engine:play_sound(sfx.sounds.car)
-    end
-
     for i = #self.eventQueue, 1, -1 do
         local event = self.eventQueue[i]
         if event.finished then
@@ -54,21 +50,28 @@ function game:on_turn_start(engine)
             event:turn_start(self, engine)
         end
     end
+
+    if self.car.speed > 0 then
+        engine:play_sound(sfx.sounds.car)
+    end
 end
 
 ---@param engine engine
 ---@param deltaTime number
 function game:on_turn_update(engine, deltaTime, turnTime)
     if turnTime >= DURATION then return GameStatus.TurnEnded end
+    local car         = self.car
+    local carStopped  = car.speed == 0
 
-    engine:give_score(self.car.speed)
+    local curveAmount = self:get_curve(car.speed)
+    car:update(turnTime, curveAmount)
 
-    local halfRoadWidth      = engine.screenSize.width / 6
-    local curveAmount        = self:get_curve(self.car.speed)
-    local pos                = self.car.sprite.position
-    local newX               = math.max(halfRoadWidth, math.min(engine.screenSize.width - halfRoadWidth - gfx.sizes.car.width, pos.x - curveAmount))
+    if car.speed > 0 and carStopped then
+        engine:play_sound(sfx.sounds.car)
+        carStopped = false
+    end
 
-    self.car.sprite.position = { x = newX, y = pos.y }
+    engine:give_score(math.floor(car.speed))
 
     for i = #self.eventQueue, 1, -1 do
         self.eventQueue[i]:update(self, engine, deltaTime, turnTime)
@@ -81,18 +84,9 @@ function game:on_turn_update(engine, deltaTime, turnTime)
 end
 
 ---@param engine engine
----@param spriteA sprite
----@param spriteB sprite
-function game:on_collision(engine, spriteA, spriteB)
-    local a, b = spriteA.owner, spriteB.owner
-    if a.collide then a:collide(b) end
-    if b.collide then b:collide(a) end
-end
-
----@param engine engine
 function game:on_turn_finish(engine)
     -- change biome
-    if self.car.speed > 0 then
+    if self.car.speed > 0 then --TODO: use distance instead
         if engine:irnd(1, 5) == 1 then
             local old = self.currentBiome
             repeat
@@ -107,6 +101,15 @@ end
 ---@param engine engine
 function game:on_teardown(engine)
     gfx.draw_game_over(engine.dmd, self)
+end
+
+---@param engine engine
+---@param spriteA sprite
+---@param spriteB sprite
+function game:on_collision(engine, spriteA, spriteB)
+    local a, b = spriteA.owner, spriteB.owner
+    if a.collide then a:collide(b) end
+    if b.collide then b:collide(a) end
 end
 
 ---@param engine engine
@@ -162,15 +165,29 @@ end
 ---@param engine engine
 function game:create_car(engine)
     local car = {
-        speed      = 0,
-        handling   = 10,
-        health     = 10,
+        speed       = 0,
+        speedTarget = 0,
+        lateral     = 0,
 
-        spriteInit = {
+        handling    = 10,
+        health      = 10,
+
+        spriteInit  = {
             position  = { x = 120, y = 140 },
             texture   = gfx.textures.car.straight,
             wrappable = false
         },
+
+        update      = function(car, turnTime, curveAmount)
+            local factor        = turnTime / DURATION
+            car.speed           = car.speed + ((car.speedTarget - car.speed) * factor)
+
+            local halfRoadWidth = engine.screenSize.width / 6
+            local pos           = car.sprite.position
+            local newX          = math.max(halfRoadWidth, math.min(engine.screenSize.width - halfRoadWidth - gfx.sizes.car.width, pos.x - curveAmount))
+
+            car.sprite.position = { x = newX, y = pos.y }
+        end
     }
     car.sprite = engine:create_sprite(car)
 

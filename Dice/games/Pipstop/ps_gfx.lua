@@ -287,18 +287,20 @@ end
 function gfx.draw_dmd(dmd, game)
     dmd:clear()
 
-    local xStart = 2
-    local x      = xStart
-    local y      = 2
-    local offset = 16
+    local xStart, yStart = 1, 1
+    local offset         = 16
+
+    local y              = yStart
 
     for _, event in ipairs(game.eventQueue) do
-        if event.finished then
-            dmd:print({ x = x, y = y }, "DONE", Palette.Red, "Font5x5")
-        else
-            dmd:print({ x = x, y = y }, event.title, Palette.LightBlue, "Font3x5")
-        end
+        local x        = xStart
+        local texColor = event.finished and Palette.Red or Palette.LightBlue
 
+        dmd:print({ x = x, y = y }, event.title, texColor, "Font3x5")
+        y = y + 7
+        dmd:print({ x = x, y = y }, event.value .. "->" .. event.target, texColor, "Font3x5")
+        y = y + 7
+        dmd:print({ x = x, y = y }, "turns left=" .. event.turnsLeft, texColor, "Font3x5")
         y = y + 7
 
         for _, socket in ipairs(event.sockets or {}) do
@@ -307,7 +309,6 @@ function gfx.draw_dmd(dmd, game)
             x = x + offset
         end
 
-        x = xStart
         y = y + offset
     end
 end

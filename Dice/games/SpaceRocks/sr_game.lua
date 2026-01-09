@@ -78,15 +78,6 @@ function game:on_turn_update(engine, deltaTime, turnTime)
 end
 
 ---@param engine engine
----@param spriteA sprite
----@param spriteB sprite
-function game:on_collision(engine, spriteA, spriteB)
-    local a, b = spriteA.owner, spriteB.owner
-    if a.collide then a:collide(b) end
-    if b.collide then b:collide(a) end
-end
-
----@param engine engine
 function game:on_turn_finish(engine)
     self:try_spawn_asteroid(engine)
 end
@@ -94,6 +85,15 @@ end
 ---@param engine engine
 function game:on_teardown(engine)
     gfx.draw_game_over(engine.dmd, self)
+end
+
+---@param engine engine
+---@param spriteA sprite
+---@param spriteB sprite
+function game:on_collision(engine, spriteA, spriteB)
+    local a, b = spriteA.owner, spriteB.owner
+    if a.collide then a:collide(b) end
+    if b.collide then b:collide(a) end
 end
 
 ---@param engine engine
@@ -331,10 +331,10 @@ function game:create_ship(engine)
             ship.sprite.texture = val and gfx.textures.hurtShip[ship.direction] or gfx.textures.ship[ship.direction]
         end,
 
-        update        = function(ship, deltaTime, updateTime)
-            local factor       = updateTime < HALF_DURATION
-                and updateTime / HALF_DURATION
-                or 1 - ((updateTime - HALF_DURATION) / HALF_DURATION)
+        update        = function(ship, deltaTime, turnTime)
+            local factor       = turnTime < HALF_DURATION
+                and turnTime / HALF_DURATION
+                or 1 - ((turnTime - HALF_DURATION) / HALF_DURATION)
 
             ship.speed         = ship.speedTarget * factor
 

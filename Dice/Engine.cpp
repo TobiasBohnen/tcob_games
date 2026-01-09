@@ -136,6 +136,7 @@ void engine::create_env()
     env["math"]               = global["math"];
     env["math"]["random"]     = nullptr;
     env["math"]["randomseed"] = nullptr;
+    env["assert"]             = global["assert"];
     env["pairs"]              = global["pairs"];
     env["ipairs"]             = global["ipairs"];
     env["print"]              = global["print"];
