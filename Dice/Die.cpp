@@ -78,7 +78,12 @@ void die::update(milliseconds deltaTime)
     if (_tween) { _tween->update(deltaTime); }
 }
 
-auto die::bounds() const -> rect_f const& { return *_shape->Bounds; }
+auto die::get_bounds() const -> rect_f const& { return *_shape->Bounds; }
+void die::set_bounds(rect_f const& bounds)
+{
+    _colorState    = die_state::Normal;
+    _shape->Bounds = bounds;
+}
 
 void die::move_to(point_f pos)
 {
@@ -92,12 +97,6 @@ void die::move_by(point_f offset)
     _shape->Bounds.mutate([&](rect_f& bounds) {
         bounds.Position += offset;
     });
-}
-
-void die::on_socketed(rect_f const& bounds)
-{
-    _colorState    = die_state::Normal;
-    _shape->Bounds = bounds;
 }
 
 auto die::shape() const -> gfx::rect_shape* { return _shape; }

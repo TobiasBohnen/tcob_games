@@ -109,6 +109,22 @@ Rot = {
     R270 = 3,
 }
 
+---Analyzes the dice currently held in the provided sockets to determine the hand.
+---@param sockets socket[] A table of sockets to check.
+---@return hand
+function get_hand(sockets) end
+
+---Returns the arithmetic sum of all die face values.
+---@param sockets socket[] A table of sockets to check.
+---@return integer
+function get_sum(sockets) end
+
+---Returns the weighted score by combining the hand's base value and the dice sum.
+---@param sockets socket[] A table of sockets to check.
+---@param baseHandValue? integer
+---@return integer
+function get_value(sockets, baseHandValue) end
+
 --------------------------------
 -- Game Module
 --------------------------------
@@ -296,22 +312,6 @@ function engine:create_socket(init) end
 ---Removes a socket from the game world.
 ---@param socket socket The socket instance to remove.
 function engine:remove_socket(socket) end
-
----Analyzes the dice currently held in the provided sockets to determine the hand.
----@param sockets socket[] A table of sockets to check.
----@return hand
-function engine:get_hand(sockets) end
-
----Returns the arithmetic sum of all die face values.
----@param sockets socket[] A table of sockets to check.
----@return integer
-function engine:get_sum(sockets) end
-
----Returns the weighted score by combining the hand's base value and the dice sum.
----@param sockets socket[] A table of sockets to check.
----@param baseHandValue? integer
----@return integer
-function engine:get_value(sockets, baseHandValue) end
 
 ---@section Game State
 

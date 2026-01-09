@@ -48,7 +48,10 @@ auto socket::can_insert_die(die_face dieFace) const -> bool
 void socket::insert_die(die* die)
 {
     _die = die;
-    if (_die) { _die->lock(); }
+    if (_die) {
+        _die->lock();
+        _die->set_bounds(_bounds);
+    }
 }
 
 auto socket::can_remove_die(die* die) const -> bool
@@ -100,7 +103,6 @@ auto sockets::try_insert_die(die* hoverDie) -> socket*
 
     _hoverSocket->insert_die(hoverDie);
     _hoverSocket->_state = socket_state::Idle;
-    hoverDie->on_socketed(_hoverSocket->_bounds);
     return _hoverSocket;
 }
 
@@ -147,14 +149,8 @@ auto sockets::try_remove_die(die* die) -> socket*
 
 void sockets::on_drag(die* draggedDie)
 {
-    auto const getRect {[&] -> rect_f {
-        rect_i const  bounds {draggedDie->bounds()};
-        point_f const tl {bounds.top_left()};
-        point_f const br {bounds.bottom_right()};
-        return rect_f::FromLTRB(tl.X, tl.Y, br.X, br.Y);
-    }};
-
-    hover(getRect());
+    if (!draggedDie) { return; }
+    hover(draggedDie->get_bounds());
     if (_hoverSocket) {
         _hoverSocket->_state = _hoverSocket->can_insert_die(draggedDie->current_face()) ? socket_state::Accept : socket_state::Reject;
     }

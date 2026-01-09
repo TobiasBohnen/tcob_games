@@ -44,11 +44,10 @@ public:
 
     void update(milliseconds deltaTime);
 
-    auto bounds() const -> rect_f const&;
+    auto get_bounds() const -> rect_f const&;
+    void set_bounds(rect_f const& bounds);
     void move_to(point_f pos);
     void move_by(point_f offset);
-
-    void on_socketed(rect_f const& bounds);
 
     auto shape() const -> gfx::rect_shape*;
 

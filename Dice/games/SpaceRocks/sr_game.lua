@@ -56,7 +56,7 @@ function game:on_turn_start(engine)
 
     ship.bulletsLeft = self.sockets.bullets.die_value
 
-    if engine:get_hand(self.sockets).value == "ThreeOfAKind" then
+    if get_hand(self.sockets).value == "ThreeOfAKind" then
         ship:set_shield(true)
     end
 end

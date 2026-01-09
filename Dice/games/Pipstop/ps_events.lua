@@ -26,7 +26,7 @@ local event_base = {
 
     ---@param engine engine
     turn_start = function(event, game, engine)
-        event.value     = event.value + engine:get_value(event.sockets)
+        event.value     = event.value + get_value(event.sockets)
         event.turnsLeft = event.turnsLeft - 1
 
         if event.turnsLeft == 0 then

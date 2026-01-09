@@ -169,6 +169,37 @@ void engine::create_env()
     rotation["R270"] = 270;
     env["Rot"]       = rotation;
 
+    static auto const convert_sockets {[](std::unordered_map<std::variant<i32, string>, socket*> const& socketMap) {
+        std::vector<socket*> sockets;
+        sockets.reserve(socketMap.size());
+        for (auto const& key : socketMap) { sockets.push_back(key.second); }
+        return sockets;
+    }};
+    env["get_hand"] = +[](std::unordered_map<std::variant<i32, string>, socket*> const& sockets) -> hand {
+        return get_hand(convert_sockets(sockets));
+    };
+    env["get_sum"] = +[](std::unordered_map<std::variant<i32, string>, socket*> const& sockets) -> u32 {
+        return get_sum(convert_sockets(sockets));
+    };
+    env["get_value"] = +[](std::unordered_map<std::variant<i32, string>, socket*> const& sockets, std::optional<i32> baseHandValue) -> u32 {
+        auto retValue {get_sum(convert_sockets(sockets))};
+
+        i32 const  base {baseHandValue ? *baseHandValue : 50};
+        auto const hand {get_hand(convert_sockets(sockets))};
+        switch (hand.Value) {
+        case value_category::None:         break;
+        case value_category::OnePair:      retValue += base * 2; break;
+        case value_category::TwoPair:      retValue += base * 3; break;
+        case value_category::ThreeOfAKind: retValue += base * 4; break;
+        case value_category::Straight:     retValue += base * 5; break;
+        case value_category::FullHouse:    retValue += base * 6; break;
+        case value_category::FourOfAKind:  retValue += base * 8; break;
+        case value_category::FiveOfAKind:  retValue += base * 10; break;
+        }
+
+        return retValue;
+    };
+
     _script.Environment = env;
     _script.Warning.connect([](scripting::script::warning_event const& ev) {
         logger::Warning(ev.Message);
@@ -226,13 +257,6 @@ void engine::create_socket_wrapper()
 
 void engine::create_engine_wrapper()
 {
-    static auto const convert_sockets {[](std::unordered_map<std::variant<i32, string>, socket*> const& socketMap) {
-        std::vector<socket*> sockets;
-        sockets.reserve(socketMap.size());
-        for (auto const& key : socketMap) { sockets.push_back(key.second); }
-        return sockets;
-    }};
-
     auto& engineWrapper {*_script.create_wrapper<engine>("engine")};
     // gfx
     engineWrapper["create_texture"] = [](engine* engine, u32 id, rect_i const& uv) { engine->create_texture(id, uv); };
@@ -266,30 +290,6 @@ void engine::create_engine_wrapper()
     };
     engineWrapper["remove_socket"] = [](engine* engine, socket* socket) {
         engine->_init.Game->remove_socket(socket);
-    };
-    engineWrapper["get_hand"] = [](engine*, std::unordered_map<std::variant<i32, string>, socket*> const& sockets) -> hand {
-        return get_hand(convert_sockets(sockets));
-    };
-    engineWrapper["get_sum"] = [](engine*, std::unordered_map<std::variant<i32, string>, socket*> const& sockets) -> u32 {
-        return get_sum(convert_sockets(sockets));
-    };
-    engineWrapper["get_value"] = [](engine*, std::unordered_map<std::variant<i32, string>, socket*> const& sockets, std::optional<i32> baseHandValue) -> u32 {
-        auto retValue {get_sum(convert_sockets(sockets))};
-
-        i32 const  base {baseHandValue ? *baseHandValue : 50};
-        auto const hand {get_hand(convert_sockets(sockets))};
-        switch (hand.Value) {
-        case value_category::None:         break;
-        case value_category::OnePair:      retValue += base * 2; break;
-        case value_category::TwoPair:      retValue += base * 3; break;
-        case value_category::ThreeOfAKind: retValue += base * 4; break;
-        case value_category::Straight:     retValue += base * 5; break;
-        case value_category::FullHouse:    retValue += base * 6; break;
-        case value_category::FourOfAKind:  retValue += base * 8; break;
-        case value_category::FiveOfAKind:  retValue += base * 10; break;
-        }
-
-        return retValue;
     };
     engineWrapper["give_score"] = [](engine* engine, i32 score) { engine->_init.State.Score += score; };
     engineWrapper["play_sound"] = [](engine* engine, u32 id) {
