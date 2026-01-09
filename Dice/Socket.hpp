@@ -114,12 +114,10 @@ public:
 
     void reset();
 
-    void on_hover(point_f mp);
     void on_drag(die* draggedDie);
 
 private:
     void hover(rect_f const& rect);
-    auto are_filled() const -> bool;
 
     std::vector<std::unique_ptr<socket>> _sockets {};
 

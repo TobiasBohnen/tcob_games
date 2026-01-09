@@ -118,8 +118,9 @@ struct event_bus {
     signal<> Restart;
 
     signal<collision_event const> Collision;
-    signal<socket* const>         SocketDieChanged;
-    signal<>                      DieMotion;
+
+    signal<socket* const> SocketDieChanged;
+    signal<>              DieMotion;
 };
 
 struct shared_state {
@@ -128,7 +129,7 @@ struct shared_state {
 
     prop<bool>       CanStart {false};
     prop<i32>        Score;
-    prop<string>     SSDValue;
+    prop<string>     SSD;
     prop<grid<u8>>   DMD {grid<u8> {DMD_SIZE, 0}};
     prop<gfx::image> Foreground {gfx::image::CreateEmpty(size_i {VIRTUAL_SCREEN_SIZE}, gfx::image::format::RGBA)};
     prop<gfx::image> Background {gfx::image::CreateEmpty(size_i {VIRTUAL_SCREEN_SIZE}, gfx::image::format::RGBA)};

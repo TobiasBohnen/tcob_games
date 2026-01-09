@@ -20,16 +20,18 @@ die::die(gfx::rect_shape* shape, audio::buffer const& buffer, rng& rng, std::spa
 
 auto die::current_face() const -> die_face { return _currentFace; }
 
-void die::freeze() { _frozen = true; }
+void die::mark_for_reroll() { _reroll = true; }
 
-void die::unfreeze() { _frozen = false; }
+void die::lock() { _locked = true; }
+
+void die::unlock() { _locked = false; }
 
 auto die::is_rolling() const -> bool { return _rolling; }
 
 void die::roll()
 {
-    if (_frozen || _rolling) { return; }
-
+    if (!_reroll || _locked || _rolling) { return; }
+    _reroll  = false;
     _rolling = true;
 
     constexpr i32 MinRollTime {250};
@@ -167,7 +169,7 @@ auto dice::on_hover(point_f mousePos) -> die*
 
 void dice::on_drag(point_f mousePos, rect_f const& winBounds)
 {
-    if (!_hoverDie || _hoverDie->_frozen) { return; }
+    if (!_hoverDie || _hoverDie->_locked) { return; }
 
     point_f const halfSize {DICE_SIZE.Width * _scale.Width / 2, DICE_SIZE.Height * _scale.Height / 2};
     point_f       newPos {mousePos};

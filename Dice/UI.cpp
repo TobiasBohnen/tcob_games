@@ -27,7 +27,7 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
         _sharedState.Score.Changed.connect([&]() { _updateSsd0 = true; });
 
         layout.create_widget<seven_segment_display>({50, 0, 50, 10}, "ssd1");
-        _sharedState.SSDValue.Changed.connect([&]() { _updateSsd1 = true; });
+        _sharedState.SSD.Changed.connect([&]() { _updateSsd1 = true; });
 
         auto& dmd {layout.create_widget<dot_matrix_display>({0, 10, 100, 90}, "dmd")};
         _sharedState.DMD.Changed.connect([&]() { _updateDmd = true; });
@@ -79,7 +79,7 @@ void game_form::on_update(milliseconds deltaTime)
     }
     if (_updateSsd1) {
         auto* ssd {dynamic_cast<seven_segment_display*>(find_widget_by_name("ssd1"))};
-        ssd->draw_text(*_sharedState.SSDValue);
+        ssd->draw_text(*_sharedState.SSD);
         _updateSsd1 = false;
     }
     form_base::on_update(deltaTime);

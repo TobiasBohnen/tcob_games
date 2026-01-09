@@ -19,7 +19,6 @@ public:
         event_bus&    Events;
 
         dice_game* Game {nullptr};
-        sockets*   Sockets {nullptr};
     };
 
     engine(init const& init);

@@ -48,7 +48,7 @@ auto socket::can_insert_die(die_face dieFace) const -> bool
 void socket::insert_die(die* die)
 {
     _die = die;
-    if (_die) { _die->freeze(); }
+    if (_die) { _die->lock(); }
 }
 
 auto socket::can_remove_die(die* die) const -> bool
@@ -58,7 +58,7 @@ auto socket::can_remove_die(die* die) const -> bool
 
 void socket::remove_die()
 {
-    if (_die) { _die->unfreeze(); }
+    if (_die) { _die->unlock(); }
     _die = nullptr;
 }
 
@@ -89,7 +89,7 @@ void sockets::remove_socket(socket* socket)
 {
     if (auto* die {socket->current_die()}) {
         socket->remove_die();
-        die->roll(); // FIXME: mark for reroll
+        die->mark_for_reroll();
     }
     helper::erase_first(_sockets, [&](auto const& s) { return s.get() == socket; });
 }
@@ -145,18 +145,6 @@ auto sockets::try_remove_die(die* die) -> socket*
     return _hoverSocket;
 }
 
-void sockets::on_hover(point_f mp)
-{
-    auto const getRect {[&] -> rect_f {
-        return {mp, size_f::One};
-    }};
-
-    hover(getRect());
-    if (_hoverSocket) {
-        _hoverSocket->_state = socket_state::Hover;
-    }
-}
-
 void sockets::on_drag(die* draggedDie)
 {
     auto const getRect {[&] -> rect_f {
@@ -172,11 +160,6 @@ void sockets::on_drag(die* draggedDie)
     }
 }
 
-auto sockets::are_filled() const -> bool
-{
-    return std::ranges::all_of(_sockets, [](auto const& socket) { return !socket->is_empty(); });
-}
-
 auto sockets::count() const -> usize
 {
     return _sockets.size();
@@ -186,15 +169,12 @@ void sockets::reset()
 {
     unlock();
 
-    std::vector<die*> dice;
     for (auto& socket : _sockets) {
         if (auto* die {socket->current_die()}) {
-            dice.push_back(die);
             socket->remove_die();
+            die->mark_for_reroll();
         }
     }
-
-    for (auto* die : dice) { die->roll(); } // FIXME: mark for reroll
 }
 
 auto get_hand(std::span<socket* const> sockets) -> hand

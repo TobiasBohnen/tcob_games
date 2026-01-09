@@ -17,10 +17,9 @@ dice_game::dice_game(init const& init)
     , _foreground {&_spriteBatch.create_shape<gfx::rect_shape>()}
     , _init {init}
     , _engine {engine::init {
-          .State   = _sharedState,
-          .Events  = init.Events,
-          .Game    = this,
-          .Sockets = &_sockets,
+          .State  = _sharedState,
+          .Events = init.Events,
+          .Game   = this,
       }}
     , _sockets {init.RealWindowSize / DICE_REF_SIZE}
     , _dice {_diceBatch, init.RealWindowSize / DICE_REF_SIZE}
@@ -87,6 +86,8 @@ dice_game::dice_game(init const& init)
             idx++;
         }
     }
+
+    _init.Events.StartTurn.connect([this]() { _sockets.lock(); });
 }
 
 void dice_game::on_update(milliseconds deltaTime)
@@ -179,8 +180,6 @@ void dice_game::on_mouse_motion(input::mouse::motion_event const& ev)
         _dice.on_drag(mp, _sharedState.DMDBounds);
 
         _init.Events.DieMotion();
-    } else {
-        _sockets.on_hover(mp);
     }
 
     static_cast<input::receiver*>(_form0.get())->on_mouse_motion(ev);
@@ -357,9 +356,23 @@ void dice_game::remove_sprite(sprite* sprite)
     std::erase_if(_sprites, [&sprite](auto const& spr) { return spr.get() == sprite; });
 }
 
+auto dice_game::add_socket(socket_face const& face) -> socket*
+{
+    return _sockets.add_socket(face);
+}
+
+void dice_game::remove_socket(socket* socket)
+{
+    _sockets.remove_socket(socket);
+    for (usize i {0}; i < _dice.count(); ++i) {
+        _dice.move_die(i, next_die_position(_dice.count(), i));
+    }
+}
+
 void dice_game::reset_sockets()
 {
     _sockets.reset();
+    _dice.roll();
     for (usize i {0}; i < _dice.count(); ++i) {
         _dice.move_die(i, next_die_position(_dice.count(), i));
     }

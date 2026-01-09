@@ -118,7 +118,6 @@ auto engine::start_turn() -> bool
 {
     if (_gameStatus != game_status::TurnEnded) { return false; }
 
-    _init.Sockets->lock();
     call(_callbacks.OnTurnStart);
     call(_callbacks.OnDrawDMD);
     _gameStatus = game_status::Running;
@@ -263,10 +262,10 @@ void engine::create_engine_wrapper()
     engineWrapper["remove_sprite"] = [](engine* engine, sprite* sprite) { engine->_init.Game->remove_sprite(sprite); };
     engineWrapper["create_socket"] = [](engine* engine, table const& socketInit) -> socket* {
         socket_face const face {socketInit.get<socket_face>().value_or(socket_face {})};
-        return engine->_init.Sockets->add_socket(face);
+        return engine->_init.Game->add_socket(face);
     };
     engineWrapper["remove_socket"] = [](engine* engine, socket* socket) {
-        engine->_init.Sockets->remove_socket(socket);
+        engine->_init.Game->remove_socket(socket);
     };
     engineWrapper["get_hand"] = [](engine*, std::unordered_map<std::variant<i32, string>, socket*> const& sockets) -> hand {
         return get_hand(convert_sockets(sockets));
@@ -307,8 +306,8 @@ void engine::create_engine_wrapper()
     engineWrapper["bg"]         = getter {[](engine* engine) -> tex_proxy* { return &engine->_bgProxy; }};
     engineWrapper["spr"]        = getter {[](engine* engine) -> tex_proxy* { return &engine->_texProxy; }};
     engineWrapper["ssd"]        = property {
-        [](engine* engine) -> string { return *engine->_init.State.SSDValue; },
-        [](engine* engine, string const& val) { engine->_init.State.SSDValue = val; }};
+        [](engine* engine) -> string { return *engine->_init.State.SSD; },
+        [](engine* engine, string const& val) { engine->_init.State.SSD = val; }};
 }
 
 void engine::create_dmd_wrapper()

@@ -35,8 +35,9 @@ public:
 
     auto current_face() const -> die_face;
 
-    void freeze();
-    void unfreeze();
+    void mark_for_reroll();
+    void lock();
+    void unlock();
 
     void roll();
     auto is_rolling() const -> bool;
@@ -56,7 +57,8 @@ private:
 
     rng& _rng;
     bool _rolling {false};
-    bool _frozen {false};
+    bool _locked {false};
+    bool _reroll {true};
 
     std::unique_ptr<linear_tween<f32>> _tween;
 

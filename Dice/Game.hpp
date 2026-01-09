@@ -31,6 +31,9 @@ public:
     auto add_sprite(sprite::init const& init) -> sprite*;
     void remove_sprite(sprite* sprite);
 
+    auto add_socket(socket_face const& face) -> socket*;
+    void remove_socket(socket* socket);
+
     void reset_sockets();
 
     auto get_sprite_texture() -> gfx::texture*
