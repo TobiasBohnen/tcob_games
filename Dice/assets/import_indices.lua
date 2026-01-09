@@ -2,10 +2,10 @@ local img = app.image
 if not img then
     return app.alert("No active image")
 end
-local w, h = img.width, img.height
+local w, h     = img.width, img.height
 local expected = w * h
 
-local content = app.clipboard.text
+local content  = app.clipboard.text
 if not content or #content == 0 then
     return app.alert("Clipboard is empty")
 end
@@ -29,7 +29,7 @@ end
 local flat = {}
 
 if use_rle then
-    local i = 1
+    local i   = 1
     local len = #content
     while i <= len do
         local digit = content:sub(i, i)

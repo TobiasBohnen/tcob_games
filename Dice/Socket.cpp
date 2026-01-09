@@ -87,8 +87,9 @@ auto sockets::add_socket(socket_face const& face) -> socket*
 
 void sockets::remove_socket(socket* socket)
 {
-    if (socket->current_die()) {
+    if (auto* die {socket->current_die()}) {
         socket->remove_die();
+        die->roll(); // FIXME: mark for reroll
     }
     helper::erase_first(_sockets, [&](auto const& s) { return s.get() == socket; });
 }
@@ -193,12 +194,12 @@ void sockets::reset()
         }
     }
 
-    for (auto* die : dice) { die->roll(); }
+    for (auto* die : dice) { die->roll(); } // FIXME: mark for reroll
 }
 
 auto get_hand(std::span<socket* const> sockets) -> hand
 {
-    if (sockets.size() > 5) { return {}; }
+    if (sockets.size() > 5 || sockets.empty()) { return {}; }
 
     struct indexed_face {
         die_face Face;
@@ -278,7 +279,7 @@ auto get_hand(std::span<socket* const> sockets) -> hand
 
     return result;
 }
-auto get_value(std::span<socket* const> sockets) -> u32
+auto get_sum(std::span<socket* const> sockets) -> u32
 {
     u32 retValue {0};
 

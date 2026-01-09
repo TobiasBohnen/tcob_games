@@ -189,6 +189,7 @@ void dice_game::on_mouse_motion(input::mouse::motion_event const& ev)
 void dice_game::run(string const& file)
 {
     _engine.run(file);
+    _dice.roll();
 
     wrap_sprites();
     _spriteBatch.update(0ms);
@@ -354,11 +355,6 @@ void dice_game::remove_sprite(sprite* sprite)
     remove_shape(sprite->Shape);
     if (sprite->WrapCopy) { remove_shape(sprite->WrapCopy); }
     std::erase_if(_sprites, [&sprite](auto const& spr) { return spr.get() == sprite; });
-}
-
-void dice_game::roll()
-{
-    _dice.roll();
 }
 
 void dice_game::reset_sockets()

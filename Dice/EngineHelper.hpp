@@ -60,6 +60,14 @@ struct blit_settings {
 
 ////////////////////////////////////////////////////////////
 
+enum class font_type : u8 {
+    Font5x5,
+    Font5x4,
+    Font4x5,
+    Font4x4,
+    Font3x5,
+};
+
 class dmd_proxy {
 public:
     dmd_proxy(prop<grid<u8>>& dmd);
@@ -73,7 +81,7 @@ public:
     void rect(rect_i const& rect, u8 color, bool fill);
 
     void blit(rect_i const& rect, string const& dotStr);
-    void print(point_i pos, string_view text, u8 color);
+    void print(point_i pos, string_view text, u8 color, font_type type);
 
     void draw_socket(socket* socket, rect_f const& dmdBounds);
 

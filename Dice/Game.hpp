@@ -31,7 +31,6 @@ public:
     auto add_sprite(sprite::init const& init) -> sprite*;
     void remove_sprite(sprite* sprite);
 
-    void roll();
     void reset_sockets();
 
     auto get_sprite_texture() -> gfx::texture*

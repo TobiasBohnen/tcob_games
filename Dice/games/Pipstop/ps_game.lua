@@ -2,7 +2,7 @@
 -- MIT License
 -- https://opensource.org/licenses/MIT
 
-local DURATION       = 5000
+local DURATION       = 2500
 local SEGMENT_LENGTH = 300
 local BIOMES         = { "day", "dusk", "night", "fall", "winter", "desert", }
 
@@ -19,7 +19,7 @@ local game           = {
     trackIndex      = 1,
     segmentProgress = 0,
 
-    eventQueue      = {},
+    eventQueue      = {}, ---@type event_base[]
 
     sockets         = {
         speed = nil, ---@type socket
@@ -36,11 +36,24 @@ function game:on_setup(engine)
     engine:create_sounds(sfx.get_sounds(self, engine))
 
     self:create_car(engine)
+
+    self:queue_event(engine, events:get_start(self, engine))
 end
 
 ---@param engine engine
 function game:on_turn_start(engine)
-    engine:play_sound(sfx.sounds.car)
+    if self.car.speed > 0 then
+        engine:play_sound(sfx.sounds.car)
+    end
+
+    for i = #self.eventQueue, 1, -1 do
+        local event = self.eventQueue[i]
+        if event.finished then
+            table.remove(self.eventQueue, i)
+        else
+            event:turn_start(self, engine)
+        end
+    end
 end
 
 ---@param engine engine
@@ -48,18 +61,21 @@ end
 function game:on_turn_update(engine, deltaTime, turnTime)
     if turnTime >= DURATION then return GameStatus.TurnEnded end
 
+    engine:give_score(self.car.speed)
+
+    local halfRoadWidth      = engine.screenSize.width / 6
     local curveAmount        = self:get_curve(self.car.speed)
     local pos                = self.car.sprite.position
-    local roadWidth          = engine.screenSize.width / 3
-    local x                  = math.max(roadWidth / 2, math.min(engine.screenSize.width - roadWidth / 2 - gfx.sizes.car.width, pos.x - curveAmount))
+    local newX               = math.max(halfRoadWidth, math.min(engine.screenSize.width - halfRoadWidth - gfx.sizes.car.width, pos.x - curveAmount))
 
-    self.car.sprite.position = { x = x, y = pos.y }
+    self.car.sprite.position = { x = newX, y = pos.y }
 
-    if turnTime == 2500 then
-        engine:play_sound(sfx.sounds.car)
+    for i = #self.eventQueue, 1, -1 do
+        self.eventQueue[i]:update(self, engine, deltaTime, turnTime)
     end
 
     self:update_background(engine, curveAmount)
+
     if self.car.health == 0 then return GameStatus.GameOver end
     return GameStatus.Running
 end
@@ -75,11 +91,14 @@ end
 
 ---@param engine engine
 function game:on_turn_finish(engine)
-    if engine:irnd(1, 5) == 1 then
-        local old = self.currentBiome
-        repeat
-            self.currentBiome = engine:irnd(1, #BIOMES)
-        until self.currentBiome ~= old
+    -- change biome
+    if self.car.speed > 0 then
+        if engine:irnd(1, 5) == 1 then
+            local old = self.currentBiome
+            repeat
+                self.currentBiome = engine:irnd(1, #BIOMES)
+            until self.currentBiome ~= old
+        end
     end
 
     self:update_background(engine, self:get_curve(0))
@@ -115,6 +134,12 @@ function game:create_track(engine)
 end
 
 ---@param engine engine
+function game:queue_event(engine, event)
+    self.eventQueue[#self.eventQueue + 1] = event
+    event:init(self, engine)
+end
+
+---@param engine engine
 function game:update_background(engine, curveAmount)
     gfx.create_background(engine, curveAmount, self.segmentProgress / SEGMENT_LENGTH, BIOMES[self.currentBiome])
 end
@@ -137,7 +162,7 @@ end
 ---@param engine engine
 function game:create_car(engine)
     local car = {
-        speed      = 3,
+        speed      = 0,
         handling   = 10,
         health     = 10,
 

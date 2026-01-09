@@ -131,4 +131,4 @@ private:
 };
 
 auto get_hand(std::span<socket* const> sockets) -> hand;
-auto get_value(std::span<socket* const> sockets) -> u32;
+auto get_sum(std::span<socket* const> sockets) -> u32;

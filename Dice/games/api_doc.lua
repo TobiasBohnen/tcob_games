@@ -189,7 +189,8 @@ function dmd:rect(rect, color, fill) end
 ---@param pos point The top-left coordinate for the text.
 ---@param text string The string to display.
 ---@param color color The palette index.
-function dmd:print(pos, text, color) end
+---@param font? string
+function dmd:print(pos, text, color, font) end
 
 function dmd:socket(socket) end
 
@@ -296,15 +297,21 @@ function engine:create_socket(init) end
 ---@param socket socket The socket instance to remove.
 function engine:remove_socket(socket) end
 
----Analyzes the dice currently held in the provided sockets to determine the "hand".
----@param sockets table<string, socket> A table of sockets to check.
+---Analyzes the dice currently held in the provided sockets to determine the hand.
+---@param sockets socket[] A table of sockets to check.
 ---@return hand
 function engine:get_hand(sockets) end
 
----Calculates the total sum of the current die face values across all provided sockets.
----@param sockets table<string, socket> A table of sockets to check.
+---Returns the arithmetic sum of all die face values.
+---@param sockets socket[] A table of sockets to check.
 ---@return integer
-function engine:get_value(sockets) end
+function engine:get_sum(sockets) end
+
+---Returns the weighted score by combining the hand's base value and the dice sum.
+---@param sockets socket[] A table of sockets to check.
+---@param baseHandValue? integer
+---@return integer
+function engine:get_value(sockets, baseHandValue) end
 
 ---@section Game State
 

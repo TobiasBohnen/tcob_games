@@ -14,8 +14,12 @@
 class my_game : public tcob::game {
 public:
     my_game(char const* /* argv */)
-        : tcob::game {{.Name      = "Dice",
-                       .LogFile   = "stdout",
+        : tcob::game {{.Name = "Dice",
+#if defined(TCOB_DEBUG)
+                       .LogFile = "stdout",
+#else
+                       .LogFile = "dice.log",
+#endif
                        .FixedStep = milliseconds {1000.f / 100.f}}}
     {
         auto& plt {locate_service<platform>()};

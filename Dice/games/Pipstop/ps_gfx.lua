@@ -285,7 +285,31 @@ end
 
 ---@param dmd dmd
 function gfx.draw_dmd(dmd, game)
-    local sockets = game.sockets ---@type {[string]: socket})
+    dmd:clear()
+
+    local xStart = 2
+    local x      = xStart
+    local y      = 2
+    local offset = 16
+
+    for _, event in ipairs(game.eventQueue) do
+        if event.finished then
+            dmd:print({ x = x, y = y }, "DONE", Palette.Red, "Font5x5")
+        else
+            dmd:print({ x = x, y = y }, event.title, Palette.LightBlue, "Font3x5")
+        end
+
+        y = y + 7
+
+        for _, socket in ipairs(event.sockets or {}) do
+            socket.position = { x = x, y = y }
+            dmd:socket(socket)
+            x = x + offset
+        end
+
+        x = xStart
+        y = y + offset
+    end
 end
 
 ---@param dmd dmd

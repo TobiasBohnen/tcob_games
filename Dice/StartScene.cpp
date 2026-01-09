@@ -82,6 +82,7 @@ void start_scene::on_update(milliseconds deltaTime)
 
 void start_scene::on_fixed_update(milliseconds /* deltaTime */)
 {
+#if defined(TCOB_DEBUG)
     std::stringstream stream;
     stream << std::fixed << std::setprecision(2);
     auto const& stats {locate_service<gfx::render_system>().statistics()};
@@ -90,6 +91,7 @@ void start_scene::on_fixed_update(milliseconds /* deltaTime */)
     stream << " worst FPS:" << stats.worst_FPS();
 
     window().Title = "Dice >| " + stream.str();
+#endif
 }
 
 void start_scene::on_key_down(input::keyboard::event const& ev)

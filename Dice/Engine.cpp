@@ -85,7 +85,6 @@ void engine::run(string const& file)
 
     call(_callbacks.OnSetup);
     call(_callbacks.OnDrawDMD);
-    _init.Game->roll();
 }
 
 auto engine::update(milliseconds deltaTime) -> bool
@@ -102,8 +101,8 @@ auto engine::update(milliseconds deltaTime) -> bool
     case Running:   return true;
     case TurnEnded: {
         call(_callbacks.OnTurnFinish);
-        call(_callbacks.OnDrawDMD);
         _init.Game->reset_sockets();
+        call(_callbacks.OnDrawDMD);
         _turnTime = 0;
         return false;
     }
@@ -228,6 +227,13 @@ void engine::create_socket_wrapper()
 
 void engine::create_engine_wrapper()
 {
+    static auto const convert_sockets {[](std::unordered_map<std::variant<i32, string>, socket*> const& socketMap) {
+        std::vector<socket*> sockets;
+        sockets.reserve(socketMap.size());
+        for (auto const& key : socketMap) { sockets.push_back(key.second); }
+        return sockets;
+    }};
+
     auto& engineWrapper {*_script.create_wrapper<engine>("engine")};
     // gfx
     engineWrapper["create_texture"] = [](engine* engine, u32 id, rect_i const& uv) { engine->create_texture(id, uv); };
@@ -262,19 +268,29 @@ void engine::create_engine_wrapper()
     engineWrapper["remove_socket"] = [](engine* engine, socket* socket) {
         engine->_init.Sockets->remove_socket(socket);
     };
-    engineWrapper["get_hand"] = [](engine*, std::unordered_map<std::variant<i32, string>, socket*> const& socketMap) -> hand {
-        std::vector<socket*> sockets;
-        sockets.reserve(socketMap.size());
-        for (auto const& key : socketMap) { sockets.push_back(key.second); }
-
-        return get_hand(sockets);
+    engineWrapper["get_hand"] = [](engine*, std::unordered_map<std::variant<i32, string>, socket*> const& sockets) -> hand {
+        return get_hand(convert_sockets(sockets));
     };
-    engineWrapper["get_value"] = [](engine*, std::unordered_map<std::variant<i32, string>, socket*> const& socketMap) -> u32 {
-        std::vector<socket*> sockets;
-        sockets.reserve(socketMap.size());
-        for (auto const& key : socketMap) { sockets.push_back(key.second); }
+    engineWrapper["get_sum"] = [](engine*, std::unordered_map<std::variant<i32, string>, socket*> const& sockets) -> u32 {
+        return get_sum(convert_sockets(sockets));
+    };
+    engineWrapper["get_value"] = [](engine*, std::unordered_map<std::variant<i32, string>, socket*> const& sockets, std::optional<i32> baseHandValue) -> u32 {
+        auto retValue {get_sum(convert_sockets(sockets))};
 
-        return get_value(sockets);
+        i32 const  base {baseHandValue ? *baseHandValue : 50};
+        auto const hand {get_hand(convert_sockets(sockets))};
+        switch (hand.Value) {
+        case value_category::None:         break;
+        case value_category::OnePair:      retValue += base * 2; break;
+        case value_category::TwoPair:      retValue += base * 3; break;
+        case value_category::ThreeOfAKind: retValue += base * 4; break;
+        case value_category::Straight:     retValue += base * 5; break;
+        case value_category::FullHouse:    retValue += base * 6; break;
+        case value_category::FourOfAKind:  retValue += base * 8; break;
+        case value_category::FiveOfAKind:  retValue += base * 10; break;
+        }
+
+        return retValue;
     };
     engineWrapper["give_score"] = [](engine* engine, i32 score) { engine->_init.State.Score += score; };
     engineWrapper["play_sound"] = [](engine* engine, u32 id) {
@@ -306,8 +322,10 @@ void engine::create_dmd_wrapper()
     dmdWrapper["circle"] = [](dmd_proxy* dmd, point_i center, i32 radius, u8 color, bool fill) { dmd->circle(center, radius, color, fill); };
     dmdWrapper["rect"]   = [](dmd_proxy* dmd, rect_i const& rect, u8 color, bool fill) { dmd->rect(rect, color, fill); };
 
-    dmdWrapper["blit"]   = [](dmd_proxy* dmd, rect_i const& rect, string const& dotStr) { dmd->blit(rect, dotStr); };
-    dmdWrapper["print"]  = [](dmd_proxy* dmd, point_i pos, string_view text, u8 col) { dmd->print(pos, text, col); };
+    dmdWrapper["blit"]  = [](dmd_proxy* dmd, rect_i const& rect, string const& dotStr) { dmd->blit(rect, dotStr); };
+    dmdWrapper["print"] = [](dmd_proxy* dmd, point_i pos, string_view text, u8 col, std::optional<font_type> fontType) {
+        dmd->print(pos, text, col, fontType ? *fontType : font_type::Font5x5);
+    };
     dmdWrapper["socket"] = [this](dmd_proxy* dmd, socket* socket) { dmd->draw_socket(socket, _init.State.DMDBounds); };
 }
 
