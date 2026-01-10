@@ -132,7 +132,7 @@ void draw_print(point_i pos, string_view text, font_type type, auto&& plot)
     }
 }
 
-void draw_socket(socket* socket, rect_f const& dmdBounds, auto&& line, auto&& rect)
+void draw_socket(socket* socket, rect_f const& hudBounds, auto&& line, auto&& rect)
 {
     std::unordered_map<socket_state, u8> borderColors {
         {socket_state::Accept, 0xA},
@@ -142,8 +142,8 @@ void draw_socket(socket* socket, rect_f const& dmdBounds, auto&& line, auto&& re
     };
 
     point_f socketPos {socket->bounds().Position};
-    point_i pos {static_cast<i32>(std::round((socketPos.X - dmdBounds.left()) / (dmdBounds.width() / DMD_SIZE.Width))),
-                 static_cast<i32>(std::round((socketPos.Y - dmdBounds.top()) / (dmdBounds.height() / DMD_SIZE.Height)))};
+    point_i pos {static_cast<i32>(std::round((socketPos.X - hudBounds.left()) / (hudBounds.width() / HUD_SIZE.Width))),
+                 static_cast<i32>(std::round((socketPos.Y - hudBounds.top()) / (hudBounds.height() / HUD_SIZE.Height)))};
 
     rect_i box {pos, size_i {13, 13}};
     box = box.as_inset_by(point_i {-1, -1});
@@ -323,10 +323,10 @@ void tex_proxy::print(point_i pos, string_view text, u8 color, font_type type)
     });
 }
 
-void tex_proxy::socket(class socket* socket, rect_f const& dmdBounds)
+void tex_proxy::socket(class socket* socket, rect_f const& hudBounds)
 {
     draw_socket(
-        socket, dmdBounds,
+        socket, hudBounds,
         [&](point_i start, point_i end, u8 color) { line(start, end, color); },
         [&](rect_i const& r, u8 color, bool fill) { rect(r, color, fill); });
 }

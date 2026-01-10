@@ -20,7 +20,7 @@ struct shared_assets;
 class sprite;
 
 constexpr size_f VIRTUAL_SCREEN_SIZE {240, 180};
-constexpr size_i DMD_SIZE {80, 120};
+constexpr size_i HUD_SIZE {80, 120};
 constexpr size_i COVER_SIZE {128, 128};
 constexpr size_i SPRITE_TEXTURE_SIZE {256, 256};
 
@@ -125,13 +125,13 @@ struct event_bus {
 
 struct shared_state {
     rng    Rng;
-    rect_f DMDBounds;
+    rect_f HUDBounds;
 
     prop<bool>   CanStart {false};
     prop<i32>    Score;
     prop<string> SSD;
 
-    prop<gfx::image> DMD {gfx::image::CreateEmpty(DMD_SIZE, gfx::image::format::RGBA)};
+    prop<gfx::image> HUD {gfx::image::CreateEmpty(HUD_SIZE, gfx::image::format::RGBA)};
     prop<gfx::image> Foreground {gfx::image::CreateEmpty(size_i {VIRTUAL_SCREEN_SIZE}, gfx::image::format::RGBA)};
     prop<gfx::image> Background {gfx::image::CreateEmpty(size_i {VIRTUAL_SCREEN_SIZE}, gfx::image::format::RGBA)};
     prop<gfx::image> Sprites {gfx::image::CreateEmpty(SPRITE_TEXTURE_SIZE, gfx::image::format::RGBA)};

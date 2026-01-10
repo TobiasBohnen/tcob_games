@@ -155,56 +155,56 @@ local bullets_patterns = {
 local heart_pattern    = [[0b3a0d3a0c3c0b3c0a3ad0a3h0b3h0c3f0e3d0g3b0d]]
 local ship_pattern     = [[0i2b0r2b0q2d0p2d0p2d0o2f0n2f0m2h0l2h0l2h0k2j0j2j0j2j0i2l0h2l0h2l0g2f0b2f0f2e0d2e0e2e0f2e0d2d0h2d0d2c0j2c0c2c0l2c0b2b0n2b0a]]
 
----@param dmd tex
-function gfx.draw_dmd(dmd, game)
+---@param hud tex
+function gfx.draw_hud(hud, game)
     local sockets      = game.sockets ---@type {[string]: socket})
     local bulletsValue = sockets.bullets.die_value
     local speedValue   = sockets.speed.die_value
     local turnValue    = sockets.turn.die_value
 
-    dmd:clear()
+    hud:clear()
 
     for i = 1, game.ship.health do
-        dmd:blit({ x = 0, y = (i - 1) * 11, width = 10, height = 10 }, heart_pattern)
+        hud:blit({ x = 0, y = (i - 1) * 11, width = 10, height = 10 }, heart_pattern)
     end
 
-    dmd:blit({ x = 30, y = 20, width = 20, height = 23 }, ship_pattern)
+    hud:blit({ x = 30, y = 20, width = 20, height = 23 }, ship_pattern)
 
     if bulletsValue > 0 then
-        dmd:blit({ x = 39, y = 2, width = 2, height = 17 }, bullets_patterns[bulletsValue])
+        hud:blit({ x = 39, y = 2, width = 2, height = 17 }, bullets_patterns[bulletsValue])
     end
     if turnValue > 0 then
-        dmd:blit({ x = 20, y = 12, width = 10, height = 10 }, turn_patterns[turnValue])
+        hud:blit({ x = 20, y = 12, width = 10, height = 10 }, turn_patterns[turnValue])
     end
     if speedValue > 0 then
-        dmd:blit({ x = 35, y = 40, width = 10, height = 10 }, speed_patterns[speedValue])
+        hud:blit({ x = 35, y = 40, width = 10, height = 10 }, speed_patterns[speedValue])
     end
 
     sockets.bullets.position = { x = 55, y = 2 }
-    dmd:socket(sockets.bullets)
+    hud:socket(sockets.bullets)
 
     sockets.turn.position = { x = 55, y = 22 }
-    dmd:socket(sockets.turn)
+    hud:socket(sockets.turn)
 
     sockets.speed.position = { x = 55, y = 42 }
-    dmd:socket(sockets.speed)
+    hud:socket(sockets.speed)
 
     if game.ship.hitByAsteroid then
-        dmd:print({ x = 1, y = 60 }, "HIT!", Palette.Red)
+        hud:print({ x = 1, y = 60 }, "HIT!", Palette.Red)
     end
     if game.ship.shieldsUp then
-        dmd:print({ x = 1, y = 70 }, "SHIELDS UP!", Palette.Blue)
+        hud:print({ x = 1, y = 70 }, "SHIELDS UP!", Palette.Blue)
     end
     if game.ship.engineStall then
-        dmd:print({ x = 1, y = 80 }, "ENGINE STALL!", Palette.Red)
+        hud:print({ x = 1, y = 80 }, "ENGINE STALL!", Palette.Red)
     end
 end
 
----@param dmd tex
-function gfx.draw_game_over(dmd, game)
-    dmd:clear()
-    dmd:print({ x = 12, y = 12 }, "GAME", Palette.LightBlue)
-    dmd:print({ x = 36, y = 20 }, "OVER", Palette.LightBlue)
+---@param hud tex
+function gfx.draw_game_over(hud, game)
+    hud:clear()
+    hud:print({ x = 12, y = 12 }, "GAME", Palette.LightBlue)
+    hud:print({ x = 36, y = 20 }, "OVER", Palette.LightBlue)
 end
 
 return gfx

@@ -13,7 +13,7 @@ using namespace scripting;
 
 engine::engine(init const& init)
     : _init {init}
-    , _dmdProxy {init.State.DMD, PALETTE[0]}
+    , _hudProxy {init.State.HUD, PALETTE[0]}
     , _fgProxy {init.State.Foreground, colors::Transparent}
     , _bgProxy {init.State.Background, PALETTE[0]}
     , _texProxy {init.State.Sprites, colors::Transparent}
@@ -33,11 +33,11 @@ engine::engine(init const& init)
 
     _init.Events.SocketDieChanged.connect([this](auto const& ev) {
         if (_gameStatus != game_status::TurnEnded) { return; }
-        call(_callbacks.OnDrawDMD, ev);
+        call(_callbacks.OnDrawHUD, ev);
     });
     _init.Events.DieMotion.connect([this]() {
         if (_gameStatus != game_status::TurnEnded) { return; }
-        call(_callbacks.OnDrawDMD);
+        call(_callbacks.OnDrawHUD);
     });
 
     _init.Events.StartTurn.connect([this]() { start_turn(); });
@@ -86,10 +86,10 @@ void engine::run(string const& file)
     _table.try_get(_callbacks.OnTurnUpdate, "on_turn_update");
     _table.try_get(_callbacks.OnTurnFinish, "on_turn_finish");
     _table.try_get(_callbacks.OnTurnStart, "on_turn_start");
-    _table.try_get(_callbacks.OnDrawDMD, "on_draw_dmd");
+    _table.try_get(_callbacks.OnDrawHUD, "on_draw_hud");
 
     call(_callbacks.OnSetup);
-    call(_callbacks.OnDrawDMD);
+    call(_callbacks.OnDrawHUD);
 }
 
 auto engine::update(milliseconds deltaTime) -> bool
@@ -111,7 +111,7 @@ auto engine::update(milliseconds deltaTime) -> bool
     case TurnEnded: {
         call(_callbacks.OnTurnFinish);
         _init.Game->reset_sockets();
-        call(_callbacks.OnDrawDMD);
+        call(_callbacks.OnDrawHUD);
         _turnTime = 0;
         return false;
     }
@@ -128,7 +128,7 @@ auto engine::start_turn() -> bool
     if (_gameStatus != game_status::TurnEnded) { return false; }
 
     call(_callbacks.OnTurnStart);
-    call(_callbacks.OnDrawDMD);
+    call(_callbacks.OnDrawHUD);
     _gameStatus = game_status::Running;
     return true;
 }
@@ -155,6 +155,8 @@ void engine::create_env()
     for (auto const& color : PALETTE_MAP) {
         env["Palette"][color.first] = color.second;
     }
+
+    env["ScreenSize"] = VIRTUAL_SCREEN_SIZE;
 
     env["GameStatus"]["Running"]   = static_cast<i32>(game_status::Running);
     env["GameStatus"]["TurnEnded"] = static_cast<i32>(game_status::TurnEnded);
@@ -259,17 +261,28 @@ void engine::create_socket_wrapper()
         [](socket* socket) -> u8 { return static_cast<u8>(socket->state()); }};
     socketWrapper["die_value"] = getter {
         [](socket* socket) -> u8 { return socket->is_empty() ? 0 : socket->current_die()->current_face().Value; }};
+    socketWrapper["die_color"] = getter {
+        [](socket* socket) -> std::optional<u8> {
+            if (socket->is_empty()) { return std::nullopt; }
+            auto const color {socket->current_die()->current_face().Color};
+            for (usize i {0}; i < PALETTE.size(); ++i) {
+                if (PALETTE[i] == color) {
+                    return static_cast<u8>(i);
+                }
+            }
+            return std::nullopt;
+        }};
     socketWrapper["position"] = property {
         [this](socket* socket) -> point_i {
-            auto const&   rect {_init.State.DMDBounds};
+            auto const&   rect {_init.State.HUDBounds};
             point_f const pos {socket->bounds().Position};
-            return {static_cast<i32>(std::round((pos.X - rect.left()) / (rect.width() / DMD_SIZE.Width))),
-                    static_cast<i32>(std::round((pos.Y - rect.top()) / (rect.height() / DMD_SIZE.Height)))};
+            return {static_cast<i32>(std::round((pos.X - rect.left()) / (rect.width() / HUD_SIZE.Width))),
+                    static_cast<i32>(std::round((pos.Y - rect.top()) / (rect.height() / HUD_SIZE.Height)))};
         },
         [this](socket* socket, point_i pos) {
-            auto const& rect {_init.State.DMDBounds};
-            socket->move_to({rect.left() + (static_cast<f32>(pos.X) * (rect.width() / static_cast<f32>(DMD_SIZE.Width))),
-                             rect.top() + (static_cast<f32>(pos.Y) * (rect.height() / static_cast<f32>(DMD_SIZE.Height)))});
+            auto const& rect {_init.State.HUDBounds};
+            socket->move_to({rect.left() + (static_cast<f32>(pos.X) * (rect.width() / static_cast<f32>(HUD_SIZE.Width))),
+                             rect.top() + (static_cast<f32>(pos.Y) * (rect.height() / static_cast<f32>(HUD_SIZE.Height)))});
         }};
     socketWrapper["remove"] = [this](socket* socket) { _init.Game->remove_socket(socket); };
 }
@@ -284,13 +297,6 @@ void engine::create_engine_wrapper()
     engineWrapper["define_sound"] = [](engine* engine, u32 id, audio::sound_wave soundWave) {
         engine->_soundBank.emplace(id, audio::sound_generator {}.create_buffer(soundWave));
     };
-
-    // functions
-    engineWrapper["rnd"]  = [](engine* engine, f32 min, f32 max) { return engine->_init.State.Rng(min, max); };
-    engineWrapper["irnd"] = [](engine* engine, i32 min, i32 max) { return engine->_init.State.Rng(min, max); };
-    engineWrapper["log"]  = [](engine*, string const& str) { logger::Info(str); };
-
-    engineWrapper["give_score"] = [](engine* engine, i32 score) { engine->_init.State.Score += score; };
     engineWrapper["play_sound"] = [](engine* engine, u32 soundID, std::optional<u8> channelID, std::optional<bool> now) {
         if (channelID >= engine->_soundChannels.size()) {
             logger::Warning("Invalid channel id: {}", *channelID);
@@ -306,13 +312,19 @@ void engine::create_engine_wrapper()
         }
     };
 
+    // functions
+    engineWrapper["rnd"]  = [](engine* engine, f32 min, f32 max) { return engine->_init.State.Rng(min, max); };
+    engineWrapper["irnd"] = [](engine* engine, i32 min, i32 max) { return engine->_init.State.Rng(min, max); };
+    engineWrapper["log"]  = [](engine*, string const& str) { logger::Info(str); };
+
+    engineWrapper["give_score"] = [](engine* engine, i32 score) { engine->_init.State.Score += score; };
+
     // properties
-    engineWrapper["screenSize"] = getter {[]() -> size_i { return size_i {VIRTUAL_SCREEN_SIZE}; }};
-    engineWrapper["dmd"]        = getter {[](engine* engine) -> tex_proxy* { return &engine->_dmdProxy; }};
-    engineWrapper["fg"]         = getter {[](engine* engine) -> tex_proxy* { return &engine->_fgProxy; }};
-    engineWrapper["bg"]         = getter {[](engine* engine) -> tex_proxy* { return &engine->_bgProxy; }};
-    engineWrapper["spr"]        = getter {[](engine* engine) -> tex_proxy* { return &engine->_texProxy; }};
-    engineWrapper["ssd"]        = property {
+    engineWrapper["hud"] = getter {[](engine* engine) -> tex_proxy* { return &engine->_hudProxy; }};
+    engineWrapper["fg"]  = getter {[](engine* engine) -> tex_proxy* { return &engine->_fgProxy; }};
+    engineWrapper["bg"]  = getter {[](engine* engine) -> tex_proxy* { return &engine->_bgProxy; }};
+    engineWrapper["spr"] = getter {[](engine* engine) -> tex_proxy* { return &engine->_texProxy; }};
+    engineWrapper["ssd"] = property {
         [](engine* engine) -> string { return *engine->_init.State.SSD; },
         [](engine* engine, string const& val) { engine->_init.State.SSD = val; }};
 }
@@ -331,16 +343,16 @@ void engine::create_tex_wrapper()
 
     texWrapper["pixel"]  = [](tex_proxy* tex, point_f pos, u8 color) { tex->pixel(point_i {pos}, color); };
     texWrapper["line"]   = [](tex_proxy* tex, point_f start, point_f end, u8 color) { tex->line(point_i {start}, point_i {end}, color); };
-    texWrapper["circle"] = [](tex_proxy* tex, point_f center, i32 radius, u8 color, bool fill) { tex->circle(point_i {center}, radius, color, fill); };
+    texWrapper["circle"] = [](tex_proxy* tex, point_f center, f32 radius, u8 color, bool fill) { tex->circle(point_i {center}, static_cast<i32>(radius), color, fill); };
     texWrapper["rect"]   = [](tex_proxy* tex, rect_f const& rect, u8 color, bool fill) { tex->rect(rect_i {rect}, color, fill); };
 
     texWrapper["blit"] = [](tex_proxy* tex, rect_f const& rect, string const& dotStr, std::optional<blit_settings> settings) {
         tex->blit(rect_i {rect}, dotStr, settings ? *settings : blit_settings {});
     };
-    texWrapper["print"] = [](tex_proxy* tex, point_i pos, string_view text, u8 col, std::optional<font_type> fontType) {
-        tex->print(pos, text, col, fontType ? *fontType : font_type::Font5x5);
+    texWrapper["print"] = [](tex_proxy* tex, point_f pos, string_view text, u8 color, std::optional<font_type> fontType) {
+        tex->print(point_i {pos}, text, color, fontType ? *fontType : font_type::Font5x5);
     };
-    texWrapper["socket"] = [this](tex_proxy* tex, socket* socket) { tex->socket(socket, _init.State.DMDBounds); };
+    texWrapper["socket"] = [this](tex_proxy* tex, socket* socket) { tex->socket(socket, _init.State.HUDBounds); };
 }
 
 void engine::define_texture(u32 id, rect_i const& uv)

@@ -125,6 +125,12 @@ function get_sum(sockets) end
 ---@return integer
 function get_value(sockets, baseHandValue) end
 
+---@type size
+ScreenSize = {
+    width = 0,
+    height = 0,
+}
+
 --------------------------------
 -- Game Module
 --------------------------------
@@ -142,7 +148,7 @@ function get_value(sockets, baseHandValue) end
 ---@
 ---@field on_collision fun(self: game_module, engine: engine, spriteA: sprite, spriteB: sprite)
 ---@
----@field on_draw_dmd fun(self: game_module, engine: engine)
+---@field on_draw_hud fun(self: game_module, engine: engine)
 
 --------------------------------
 -- Sprite
@@ -169,11 +175,12 @@ function sprite:remove() end
 --------------------------------
 
 ---@class socket
----@description A logical container for dice, mapped to the DMD coordinate system.
----@field position point The integer coordinate on the DMD grid.
+---@description A logical container for dice, mapped to the HUD coordinate system.
+---@field position point The integer coordinate on the HUD grid.
 ---@field is_empty boolean Returns true if no die is currently placed in this socket. @readonly
 ---@field state socket_state The current interaction state (e.g., Idle, Accept, Hover). @readonly
 ---@field die_value integer The value (1-6) of the die in the socket, or 0 if empty. @readonly
+---@field die_color integer Color palette index of the die in the socket, or nil if empty. @readonly
 
 ---Creates a new socket for dice interaction.
 ---@param init socket_init The table defining the socket's properties and behavior.
@@ -238,8 +245,7 @@ function tex:socket(socket) end
 
 ---@class engine
 ---@description The main interface between the Lua script and the game engine hardware/state.
----@field screenSize size The size of the screen textures. @readonly
----@field dmd tex Access to the Dot Matrix Display drawing functions. @readonly
+---@field hud tex Access to the Dot Matrix Display drawing functions. @readonly
 ---@field fg tex Access to the foreground drawing functions. @readonly
 ---@field bg tex Access to the background drawing functions. @readonly
 ---@field spr tex Access to the sprite drawing functions. @readonly

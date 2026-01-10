@@ -55,7 +55,7 @@ local game                        = {
         energyRestore = nil, ---@type socket
     },
 
-    dmdInfo         = {
+    hudInfo         = {
         energyReserveRel = 0,
         energyChangeRel  = 0,
 
@@ -140,7 +140,7 @@ end
 
 ---@param engine engine
 function game:on_teardown(engine)
-    gfx.draw_game_over(engine.dmd, self)
+    gfx.draw_game_over(engine.hud, self)
 end
 
 ---@param engine engine
@@ -153,8 +153,8 @@ function game:on_collision(engine, spriteA, spriteB)
 end
 
 ---@param engine engine
-function game:on_draw_dmd(engine)
-    gfx.draw_dmd(engine.dmd, self, self.dmdInfo)
+function game:on_draw_hud(engine)
+    gfx.draw_hud(engine.hud, self, self.hudInfo)
 end
 
 ------
@@ -162,15 +162,13 @@ end
 
 function game:set_energy_reserve(engine, val)
     self.energyReserve            = math.min(math.max(0, math.ceil(val)), MAX_ENERGY_RESERVE)
-    self.dmdInfo.energyReserveRel = self.energyReserve / MAX_ENERGY_RESERVE
-    self:on_draw_dmd(engine)
+    self.hudInfo.energyReserveRel = self.energyReserve / MAX_ENERGY_RESERVE
+    self:on_draw_hud(engine)
 end
 
 ---@param engine engine
 function game:create_cannons(engine)
-    local screenSize = engine.screenSize
-
-    local cannons    = { ---@class cannons
+    local cannons = { ---@class cannons
         left        = {},
         right       = {},
         center      = {},
@@ -196,7 +194,7 @@ function game:create_cannons(engine)
                 cannons[self.cannonTypes[idx]]:power_up(deltaTime)
             end
 
-            self:on_draw_dmd(engine)
+            self:on_draw_hud(engine)
         end,
 
         turn_finish = function(cannons)
@@ -206,22 +204,22 @@ function game:create_cannons(engine)
         end,
     }
 
-    self.cannons     = cannons
+    self.cannons  = cannons
 
     self:create_cannon(
         engine, "left",
-        { x = 0, y = screenSize.height / 3 * 2 },
-        { min = 0, max = screenSize.width / 3 },
+        { x = 0, y = ScreenSize.height / 3 * 2 },
+        { min = 0, max = ScreenSize.width / 3 },
         { x = 14, y = 3 })
     self:create_cannon(
         engine, "right",
-        { x = screenSize.width - gfx.sizes.cannon.width, y = screenSize.height / 3 * 2 },
-        { min = screenSize.width / 3 * 2, max = screenSize.width },
+        { x = ScreenSize.width - gfx.sizes.cannon.width, y = ScreenSize.height / 3 * 2 },
+        { min = ScreenSize.width / 3 * 2, max = ScreenSize.width },
         { x = 1, y = 3 })
     self:create_cannon(
         engine, "center",
-        { x = (screenSize.width - gfx.sizes.cannon.width) / 2, y = screenSize.height / 3 * 2 },
-        { min = screenSize.width / 3, max = screenSize.width / 3 * 2 },
+        { x = (ScreenSize.width - gfx.sizes.cannon.width) / 2, y = ScreenSize.height / 3 * 2 },
+        { min = ScreenSize.width / 3, max = ScreenSize.width / 3 * 2 },
         { x = 8, y = 1 })
 end
 
@@ -261,8 +259,8 @@ function game:create_cannon(engine, type, pos, range, muzzle)
                 cannon:fire()
             end
 
-            self.dmdInfo[type].heatRel   = cannon.heat / MAX_HEAT
-            self.dmdInfo[type].chargeRel = cannon.charge / MAX_CANNON_CHARGE
+            self.hudInfo[type].heatRel   = cannon.heat / MAX_HEAT
+            self.hudInfo[type].chargeRel = cannon.charge / MAX_CANNON_CHARGE
         end,
 
         fire       = function(cannon)
@@ -289,7 +287,7 @@ function game:create_cannon(engine, type, pos, range, muzzle)
                 local dy             = targetMissile.sprite.center.y - muzzlePos.y
                 local distance       = math.sqrt(dx * dx + dy * dy)
 
-                local distanceFactor = math.max(0.2, 1.0 - (distance / engine.screenSize.height))
+                local distanceFactor = math.max(0.2, 1.0 - (distance / ScreenSize.height))
                 local heatFactor     = math.sqrt((MAX_HEAT - cannon.heat) / MAX_HEAT)
                 local toHit          = distanceFactor * heatFactor
 
@@ -311,7 +309,7 @@ function game:create_cannon(engine, type, pos, range, muzzle)
 
         cool       = function(cannon)
             cannon.heat                = math.max(0, cannon.heat - cannon.coolRate)
-            self.dmdInfo[type].heatRel = cannon.heat / MAX_HEAT
+            self.hudInfo[type].heatRel = cannon.heat / MAX_HEAT
         end,
     }
 
@@ -323,15 +321,14 @@ end
 ---@param i integer
 ---@param engine engine
 function game:create_city(i, engine)
-    local screenSize = engine.screenSize
-    local cityOffset = gfx.sizes.city.width + ((screenSize.width / CITY_COUNT) - gfx.sizes.city.width) / 2
+    local cityOffset = gfx.sizes.city.width + ((ScreenSize.width / CITY_COUNT) - gfx.sizes.city.width) / 2
     local city       = { ---@class city: sprite_owner
         type       = "city",
         damage     = 0,
         spriteInit = {
             position   = {
-                x = ((screenSize.width / CITY_COUNT) * i) - cityOffset,
-                y = screenSize.height / 5 * 4
+                x = ((ScreenSize.width / CITY_COUNT) * i) - cityOffset,
+                y = ScreenSize.height / 5 * 4
             },
             texture    = CITY_TEXTURES[0],
             wrappable  = false,
@@ -368,7 +365,6 @@ end
 ---@param engine engine
 ---@param parent? missile
 function game:create_missile(engine, parent)
-    local screenSize = engine.screenSize
     local missile    = { ---@class missile: sprite_owner
         linearSpeed    = engine:rnd(MIN_MISSILE_SPEED, MAX_MISSILE_SPEED),
         type           = "missile",
@@ -383,7 +379,7 @@ function game:create_missile(engine, parent)
         },
 
         spriteInit     = {
-            position   = { x = engine:rnd(0, screenSize.width - 1), y = 0 },
+            position   = { x = engine:rnd(0, ScreenSize.width - 1), y = 0 },
             texture    = gfx.textures.missile,
             wrappable  = false,
             collidable = true,
@@ -428,7 +424,7 @@ function game:create_missile(engine, parent)
             local vy     = math.sin(rad) * missile.linearSpeed / 1000
 
             local newPos = { x = pos.x + vx * deltaTime, y = pos.y + vy * deltaTime }
-            if newPos.y < screenSize.height and newPos.x >= 0 and newPos.x < screenSize.width then
+            if newPos.y < ScreenSize.height and newPos.x >= 0 and newPos.x < ScreenSize.width then
                 missile.sprite.position = newPos
             else
                 missile.markedForDeath = true
@@ -447,7 +443,7 @@ function game:create_missile(engine, parent)
                     local oldKey = table.remove(missile.trailOrder, 1)
                     local trailX = missile.trail[oldKey].x
                     local trailY = missile.trail[oldKey].y
-                    if trailY < screenSize.height and trailX >= 0 and trailX < screenSize.width then
+                    if trailY < ScreenSize.height and trailX >= 0 and trailX < ScreenSize.width then
                         engine.fg:clear({ x = trailX, y = trailY, width = 1, height = 1 })
                     end
                     missile.trail[oldKey] = nil

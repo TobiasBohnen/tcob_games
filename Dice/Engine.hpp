@@ -22,7 +22,7 @@ struct callbacks {
     callback<i32> OnTurnUpdate;
     callback<>    OnTurnFinish;
     callback<>    OnTurnStart;
-    callback<>    OnDrawDMD;
+    callback<>    OnDrawHUD;
 };
 
 ////////////////////////////////////////////////////////////
@@ -76,7 +76,7 @@ private:
     init        _init;
     game_status _gameStatus {game_status::TurnEnded};
 
-    tex_proxy _dmdProxy;
+    tex_proxy _hudProxy;
     tex_proxy _fgProxy;
     tex_proxy _bgProxy;
     tex_proxy _texProxy;

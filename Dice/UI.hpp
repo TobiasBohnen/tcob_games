@@ -21,8 +21,8 @@ private:
 
     shared_state& _sharedState;
 
-    bool                          _updateDmd {true};
-    asset_owner_ptr<gfx::texture> _dmdTexture;
+    bool                          _updateHud {true};
+    asset_owner_ptr<gfx::texture> _hudTexture;
     bool                          _updateSsd0 {true};
     bool                          _updateSsd1 {true};
 };

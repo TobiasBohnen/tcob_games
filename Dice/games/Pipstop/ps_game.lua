@@ -66,7 +66,7 @@ function game:on_turn_update(engine, deltaTime, turnTime)
 
     self:update_background(engine, curveAmount)
 
-    self:on_draw_dmd(engine)
+    self:on_draw_hud(engine)
 
     if self.car.health == 0 then return GameStatus.GameOver end
     assert(turnTime <= DURATION)
@@ -91,7 +91,7 @@ end
 
 ---@param engine engine
 function game:on_teardown(engine)
-    gfx.draw_game_over(engine.dmd, self)
+    gfx.draw_game_over(engine.hud, self)
 end
 
 ---@param engine engine
@@ -104,8 +104,8 @@ function game:on_collision(engine, spriteA, spriteB)
 end
 
 ---@param engine engine
-function game:on_draw_dmd(engine)
-    gfx.draw_dmd(engine.dmd, self)
+function game:on_draw_hud(engine)
+    gfx.draw_hud(engine.hud, self)
 end
 
 ------
@@ -182,9 +182,9 @@ function game:create_car(engine)
                 car.speed = car.speedOld + ((car.speedTarget - car.speedOld) * factor)
             end
 
-            local halfRoadWidth = engine.screenSize.width / 6
+            local halfRoadWidth = ScreenSize.width / 6
             local pos           = car.sprite.position
-            local newX          = math.max(halfRoadWidth, math.min(engine.screenSize.width - halfRoadWidth - gfx.sizes.car.width, pos.x - curveAmount))
+            local newX          = math.max(halfRoadWidth, math.min(ScreenSize.width - halfRoadWidth - gfx.sizes.car.width, pos.x - curveAmount))
 
             car.sprite.position = { x = newX, y = pos.y }
             car:play_sound()

@@ -128,40 +128,40 @@ local cannon_pattern = {
 local charge_pattern = [[3b4i3d4i3q4i3d4i3d4i3q4i3d4i3d4i3q4i3d4i3b]]
 local cooling_pattern = [[00000D0D000000D0D00D00D0D000D00DDD00D00000D00D00D000D000D0D0D000D0D000DDD000D0DDDDDD0DDDDDD0D000DDD000D0D000D0D0D000D000D00D00D00000D00DDD00D000D0D00D00D0D000000D0D00000]]
 
----@param dmd tex
-function gfx.draw_dmd(dmd, game, dmdInfo)
+---@param hud tex
+function gfx.draw_hud(hud, game, hudInfo)
     local sockets = game.sockets
 
-    dmd:clear()
+    hud:clear()
     local offset = 18
 
     local function draw_cannon(type, x)
         local y = 4
 
-        dmd:blit({ x = x + 3, y = y, width = 7, height = 7 }, cannon_pattern[type])
+        hud:blit({ x = x + 3, y = y, width = 7, height = 7 }, cannon_pattern[type])
         y = y + 12
 
-        dmd:blit({ x = 2, y = y, width = 13, height = 13 }, charge_pattern)
+        hud:blit({ x = 2, y = y, width = 13, height = 13 }, charge_pattern)
         sockets[type].chargeRate.position = { x = x, y = y }
-        dmd:socket(sockets[type].chargeRate)
+        hud:socket(sockets[type].chargeRate)
 
         y = y + offset
 
-        dmd:blit({ x = 2, y = y, width = 13, height = 13 }, cooling_pattern)
+        hud:blit({ x = 2, y = y, width = 13, height = 13 }, cooling_pattern)
         sockets[type].coolRate.position = { x = x, y = y }
-        dmd:socket(sockets[type].coolRate)
+        hud:socket(sockets[type].coolRate)
 
         local barHeight = 10
         local barWidth  = 5
         y               = y + offset + barHeight
 
-        local nrgy      = math.floor(dmdInfo[type].chargeRel * barHeight)
-        dmd:rect({ x = x, y = y - barHeight, width = barWidth, height = barHeight - nrgy }, Palette.DarkBrown, true)
-        dmd:rect({ x = x, y = y - nrgy, width = barWidth, height = nrgy }, Palette.Red, true)
+        local nrgy      = math.floor(hudInfo[type].chargeRel * barHeight)
+        hud:rect({ x = x, y = y - barHeight, width = barWidth, height = barHeight - nrgy }, Palette.DarkBrown, true)
+        hud:rect({ x = x, y = y - nrgy, width = barWidth, height = nrgy }, Palette.Red, true)
 
-        local heat = math.floor(dmdInfo[type].heatRel * barHeight)
-        dmd:rect({ x = x + barWidth + 2, y = y - barHeight, width = barWidth, height = barHeight - heat }, Palette.DarkBlue, true)
-        dmd:rect({ x = x + barWidth + 2, y = y - heat, width = barWidth, height = heat }, Palette.Blue, true)
+        local heat = math.floor(hudInfo[type].heatRel * barHeight)
+        hud:rect({ x = x + barWidth + 2, y = y - barHeight, width = barWidth, height = barHeight - heat }, Palette.DarkBlue, true)
+        hud:rect({ x = x + barWidth + 2, y = y - heat, width = barWidth, height = heat }, Palette.Blue, true)
     end
 
     draw_cannon("left", 22)
@@ -169,26 +169,26 @@ function gfx.draw_dmd(dmd, game, dmdInfo)
     draw_cannon("right", 64)
 
     sockets.energyRestore.position = { x = 22, y = 73 }
-    dmd:socket(sockets.energyRestore)
+    hud:socket(sockets.energyRestore)
 
     local reserveBarWidth  = 20
     local reserveBarHeight = 10
     local reserveBarLeft   = 40
     local reserveBarTop    = 75
-    dmd:rect({ x = reserveBarLeft, y = reserveBarTop, width = reserveBarWidth, height = reserveBarHeight }, Palette.Brown, true)
+    hud:rect({ x = reserveBarLeft, y = reserveBarTop, width = reserveBarWidth, height = reserveBarHeight }, Palette.Brown, true)
 
-    local energyWidth  = math.ceil(dmdInfo.energyReserveRel * reserveBarWidth) - 2
+    local energyWidth  = math.ceil(hudInfo.energyReserveRel * reserveBarWidth) - 2
     local energyHeight = reserveBarHeight - 2
     local energyLeft   = reserveBarLeft + 1
     local energyTop    = reserveBarTop + 1
-    dmd:rect({ x = energyLeft, y = energyTop, width = energyWidth, height = energyHeight }, Palette.Yellow, true)
+    hud:rect({ x = energyLeft, y = energyTop, width = energyWidth, height = energyHeight }, Palette.Yellow, true)
 end
 
----@param dmd tex
-function gfx.draw_game_over(dmd, game)
-    dmd:clear()
-    dmd:print({ x = 36, y = 12 }, "GAME", Palette.Red)
-    dmd:print({ x = 36, y = 20 }, "OVER", Palette.Red)
+---@param hud tex
+function gfx.draw_game_over(hud, game)
+    hud:clear()
+    hud:print({ x = 36, y = 12 }, "GAME", Palette.Red)
+    hud:print({ x = 36, y = 20 }, "OVER", Palette.Red)
 end
 
 return gfx

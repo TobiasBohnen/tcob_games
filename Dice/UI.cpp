@@ -18,9 +18,9 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
 {
     gen_styles(grp);
 
-    _dmdTexture->resize(DMD_SIZE, 1, gfx::texture::format::RGBA8);
-    _dmdTexture->regions()["default"] = texture_region {.UVRect = {0, 0, 1, 1}, .Level = 0};
-    // _dmdTexture->Filtering            = gfx::texture::filtering::Linear;
+    _hudTexture->resize(HUD_SIZE, 1, gfx::texture::format::RGBA8);
+    _hudTexture->regions()["default"] = texture_region {.UVRect = {0, 0, 1, 1}, .Level = 0};
+    // _hudTexture->Filtering            = gfx::texture::filtering::Linear;
 
     {
         auto& panel1 {create_container<ui::panel>(rect_i {0, 0, 100, 73}, "panel1")};
@@ -33,13 +33,13 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
         layout.create_widget<seven_segment_display>({50, 0, 50, 10}, "ssd1");
         _sharedState.SSD.Changed.connect([&]() { _updateSsd1 = true; });
 
-        auto& dmd {layout.create_widget<image_box>({0, 10, 100, 90}, "dmd")};
-        dmd.Image = {.Texture = _dmdTexture};
-        _sharedState.DMD.Changed.connect([&]() { _updateDmd = true; });
-        dmd.Bounds.Changed.connect([this, &dmd]() {
-            _sharedState.DMDBounds = {
-                local_to_screen(dmd, dmd.content_bounds().Position),
-                {dmd.content_bounds().width(), dmd.content_bounds().width() / DMD_SIZE.Width * DMD_SIZE.Height}};
+        auto& hud {layout.create_widget<image_box>({0, 10, 100, 90}, "hud")};
+        hud.Image = {.Texture = _hudTexture};
+        _sharedState.HUD.Changed.connect([&]() { _updateHud = true; });
+        hud.Bounds.Changed.connect([this, &hud]() {
+            _sharedState.HUDBounds = {
+                local_to_screen(hud, hud.content_bounds().Position),
+                {hud.content_bounds().width(), hud.content_bounds().width() / HUD_SIZE.Width * HUD_SIZE.Height}};
         });
     }
     {
@@ -73,10 +73,10 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
 
 void game_form::on_update(milliseconds deltaTime)
 {
-    if (_updateDmd) {
-        _dmdTexture->update_data(*_sharedState.DMD, 0);
-        _updateDmd = false;
-        find_widget_by_name("dmd")->queue_redraw();
+    if (_updateHud) {
+        _hudTexture->update_data(*_sharedState.HUD, 0);
+        _updateHud = false;
+        find_widget_by_name("hud")->queue_redraw();
     }
     if (_updateSsd0) {
         auto* ssd {dynamic_cast<seven_segment_display*>(find_widget_by_name("ssd0"))};

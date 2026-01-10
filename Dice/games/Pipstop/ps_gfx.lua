@@ -283,27 +283,27 @@ end
 
 ------
 
----@param dmd tex
-function gfx.draw_dmd(dmd, game)
-    dmd:clear()
-    gfx.draw_hud(dmd, game)
-    gfx.draw_events(dmd, game)
+---@param hud tex
+function gfx.draw_hud(hud, game)
+    hud:clear()
+    gfx.draw_car_info(hud, game)
+    gfx.draw_events(hud, game)
 end
 
----@param dmd tex
-function gfx.draw_hud(dmd, game)
+---@param hud tex
+function gfx.draw_car_info(hud, game)
     local xStart, yStart = 1, 1
     local offset         = 16
 
     local y              = yStart
     local x              = xStart
 
-    dmd:print({ x = x, y = y }, "speed=" .. game.car:get_display_speed(), Palette.Green, "Font3x5")
+    hud:print({ x = x, y = y }, "speed=" .. game.car:get_display_speed(), Palette.Green, "Font3x5")
     y = y + 7
 end
 
----@param dmd tex
-function gfx.draw_events(dmd, game)
+---@param hud tex
+function gfx.draw_events(hud, game)
     local xStart, yStart = 1, 8
     local offset         = 16
 
@@ -314,16 +314,16 @@ function gfx.draw_events(dmd, game)
         x              = xStart
         local texColor = event.finished and Palette.Red or Palette.LightBlue
 
-        dmd:print({ x = x, y = y }, event.title, texColor, "Font3x5")
+        hud:print({ x = x, y = y }, event.title, texColor, "Font3x5")
         y = y + 7
-        dmd:print({ x = x, y = y }, event.value .. "->" .. event.target, texColor, "Font3x5")
+        hud:print({ x = x, y = y }, event.value .. "->" .. event.target, texColor, "Font3x5")
         y = y + 7
-        dmd:print({ x = x, y = y }, "turns left=" .. event.turnsLeft, texColor, "Font3x5")
+        hud:print({ x = x, y = y }, "turns left=" .. event.turnsLeft, texColor, "Font3x5")
         y = y + 7
 
         for _, socket in ipairs(event.sockets or {}) do
             socket.position = { x = x, y = y }
-            dmd:socket(socket)
+            hud:socket(socket)
             x = x + offset
         end
 
@@ -331,10 +331,10 @@ function gfx.draw_events(dmd, game)
     end
 end
 
----@param dmd tex
-function gfx.draw_game_over(dmd, game)
-    dmd:clear()
-    dmd:print({ x = 12, y = 12 }, "DNF", Palette.Red)
+---@param hud tex
+function gfx.draw_game_over(hud, game)
+    hud:clear()
+    hud:print({ x = 12, y = 12 }, "DNF", Palette.Red)
 end
 
 return gfx
