@@ -283,6 +283,7 @@ end
 
 ------
 
+---@param dmd tex
 function gfx.draw_dmd(dmd, game)
     dmd:clear()
     gfx.draw_hud(dmd, game)
@@ -297,7 +298,7 @@ function gfx.draw_hud(dmd, game)
     local y              = yStart
     local x              = xStart
 
-    dmd:print({ x = x, y = y }, "speed=" .. math.floor(game.car.speed * 20 + 0.5), Palette.Green, "Font3x5")
+    dmd:print({ x = x, y = y }, "speed=" .. game.car:get_display_speed(), Palette.Green, "Font3x5")
     y = y + 7
 end
 

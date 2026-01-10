@@ -31,7 +31,7 @@ function sfx.get_sounds(game, engine)
             sustain_punch    = 0.3,
             decay_time       = 0.0256, -- 2ms
 
-            start_frequency  = 0.08 + (speed - 1) * 0.06,
+            start_frequency  = 0.02 + (speed - 1) * 0.06,
             min_frequency    = 0.0,
             slide            = 0.4 + (speed - 1) * 0.04,
             delta_slide      = -0.15 - (speed - 1) * 0.01,

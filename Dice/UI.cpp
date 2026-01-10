@@ -176,7 +176,7 @@ void game_form::gen_styles(assets::group const& grp)
     }
     {
         auto style {styles.create<image_box>("image_box", {})};
-        style->Background = colors::Black;
+        style->Background = colors::Transparent;
     }
     Styles = styles;
 }

@@ -5,6 +5,7 @@
 local DURATION       = 2500
 local SEGMENT_LENGTH = 300
 local BIOMES         = { "day", "dusk", "night", "fall", "winter", "desert", }
+local MAX_CAR_SPEED  = 250
 
 local gfx            = require('ps_gfx')
 local sfx            = require('ps_sfx')
@@ -55,8 +56,8 @@ end
 ---@param engine engine
 ---@param deltaTime number
 function game:on_turn_update(engine, deltaTime, turnTime)
-    local car = self.car
-    local curveAmount = self:get_curve(car.speed)
+    local car         = self.car
+    local curveAmount = self:get_curve(car.speed / 20)
     car:update(turnTime, curveAmount)
 
     for i = #self.eventQueue, 1, -1 do
@@ -155,22 +156,25 @@ end
 ---@param engine engine
 function game:create_car(engine)
     local car = {
-        speed        = 0,
-        speedOld     = 0,
-        speedTarget  = 0,
-        lateral      = 0,
+        speed             = 0,
+        speedOld          = 0,
+        speedTarget       = 0,
+        lateral           = 0,
+        lateralTarget     = 0,
 
-        handling     = 10,
-        health       = 10,
+        health            = 100,
 
-        spriteInit   = {
+        spriteInit        = {
             position  = { x = 120, y = 140 },
             texture   = gfx.textures.car.straight,
             wrappable = false
         },
 
-        update       = function(car, turnTime, curveAmount)
-            local factor = math.min(turnTime / DURATION, 1.0)
+        update            = function(car, turnTime, curveAmount)
+            local healthFactor     = 0.1 + (car.health / 100.0) * 1.9
+            local adjustedDuration = DURATION / healthFactor
+            local factor           = turnTime / adjustedDuration
+
             if factor >= 1.0 then
                 car.speed    = car.speedTarget
                 car.speedOld = car.speedTarget
@@ -188,15 +192,20 @@ function game:create_car(engine)
             engine:give_score(math.floor(car.speed))
         end,
 
-        target_speed = function(car, target)
+        set_target_speed  = function(car, target)
             car.speedOld    = car.speed
             car.speedTarget = target
         end,
+        get_display_speed = function(car)
+            return math.floor(game.car.speed + 0.5)
+        end,
 
-        play_sound   = function(car)
-            local sndIdx = math.floor(car.speed + 0.5)
-            if sndIdx > 0 then
-                local sound = "car_speed_" .. sndIdx
+        play_sound        = function(car)
+            if car.speed > 0 then
+                local sndIdx = math.floor((car.speed / MAX_CAR_SPEED) * 10) + 1
+                sndIdx       = math.min(sndIdx, 10)
+
+                local sound  = "car_speed_" .. sndIdx
                 engine:play_sound(sfx.sounds[sound], 0, false)
             end
         end

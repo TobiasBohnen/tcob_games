@@ -91,19 +91,19 @@ local events = {
 
             on_resolve  = function(event)
                 local value = event.value
-                local speed = 1
+                local speed = 10
                 if     value >= 22 then
-                    speed = 6
+                    speed = 100
                 elseif value >= 18 then
-                    speed = 5
+                    speed = 80
                 elseif value >= 12 then
-                    speed = 4
+                    speed = 60
                 elseif value >= 10 then
-                    speed = 3
+                    speed = 30
                 elseif value >= 3 then
-                    speed = 2
+                    speed = 20
                 end
-                game.car:target_speed(speed)
+                game.car:set_target_speed(speed)
             end
         })
     end,
