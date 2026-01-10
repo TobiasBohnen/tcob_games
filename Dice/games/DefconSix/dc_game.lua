@@ -78,7 +78,7 @@ local game                        = {
 function game:on_setup(engine)
     gfx.create_background(engine)
     gfx.create_textures(self, engine)
-    engine:create_sounds(sfx.get_sounds(self, engine))
+    sfx.create_sounds(self, engine)
 
     self:create_cannons(engine)
     for i = 1, CITY_COUNT do
@@ -86,11 +86,11 @@ function game:on_setup(engine)
         self:try_spawn_missile(engine)
     end
 
-    self.sockets.energyRestore = engine:create_socket { colors = { Palette.White } }
+    self.sockets.energyRestore = socket.new { colors = { Palette.White } }
 
     for _, cannonType in ipairs(self.cannonTypes) do
-        self.sockets[cannonType].chargeRate = engine:create_socket { colors = { Palette.White } }
-        self.sockets[cannonType].coolRate   = engine:create_socket { colors = { Palette.White } }
+        self.sockets[cannonType].chargeRate = socket.new { colors = { Palette.White } }
+        self.sockets[cannonType].coolRate   = socket.new { colors = { Palette.White } }
     end
 
     self:set_energy_reserve(engine, MAX_ENERGY_RESERVE)
@@ -315,7 +315,7 @@ function game:create_cannon(engine, type, pos, range, muzzle)
         end,
     }
 
-    cannon.sprite = engine:create_sprite(cannon)
+    cannon.sprite = sprite.new(cannon)
 
     self.cannons[type] = cannon
 end
@@ -352,7 +352,7 @@ function game:create_city(i, engine)
         end
     }
 
-    local sprite     = engine:create_sprite(city)
+    local sprite     = sprite.new(city)
     city.sprite      = sprite
     city.center      = sprite.center
     self.cities[i]   = city
@@ -406,7 +406,7 @@ function game:create_missile(engine, parent)
 
         update         = function(missile, i, deltaTime, turnTime)
             if missile.markedForDeath then
-                engine:remove_sprite(missile.sprite)
+                missile.sprite:remove()
                 table.remove(self.missiles, i)
                 engine.ssd = tostring(#self.missiles)
                 return
@@ -470,7 +470,7 @@ function game:create_missile(engine, parent)
 
     local targetCity = self.cities[missile.target]
 
-    missile.sprite   = engine:create_sprite(missile)
+    missile.sprite   = sprite.new(missile)
     if parent then
         missile.mirv = nil
         missile.sprite.position = parent.sprite.position

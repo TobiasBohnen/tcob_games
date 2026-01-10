@@ -20,6 +20,7 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
 
     _dmdTexture->resize(DMD_SIZE, 1, gfx::texture::format::RGBA8);
     _dmdTexture->regions()["default"] = texture_region {.UVRect = {0, 0, 1, 1}, .Level = 0};
+    // _dmdTexture->Filtering            = gfx::texture::filtering::Linear;
 
     {
         auto& panel1 {create_container<ui::panel>(rect_i {0, 0, 100, 73}, "panel1")};

@@ -82,7 +82,7 @@ function gfx.create_textures(game, engine)
     local rowHeight = 0
     local padding   = 2
 
-    local function make_texture(id, size, tex, flipH)
+    local function create(id, size, tex, flipH)
         local width  = size.width
         local height = size.height
 
@@ -101,20 +101,20 @@ function gfx.create_textures(game, engine)
             }
         )
 
-        engine:create_texture(id, { x = pen.x, y = pen.y, width = width, height = height })
+        engine:define_texture(id, { x = pen.x, y = pen.y, width = width, height = height })
 
         pen.x = pen.x + width + padding
         rowHeight = math.max(rowHeight, height)
     end
 
-    make_texture(gfx.textures.city.undamaged, gfx.sizes.city, city_texture_undamaged)
-    make_texture(gfx.textures.city.light_damage, gfx.sizes.city, city_texture_light_damage)
-    make_texture(gfx.textures.city.heavy_damage, gfx.sizes.city, city_texture_heavy_damage)
-    make_texture(gfx.textures.city.destroyed, gfx.sizes.city, city_texture_destroyed)
-    make_texture(gfx.textures.cannon.left, gfx.sizes.cannon, cannon_texture)
-    make_texture(gfx.textures.cannon.right, gfx.sizes.cannon, cannon_texture, true)
-    make_texture(gfx.textures.cannon.center, gfx.sizes.cannon, cannon_center_texture)
-    make_texture(gfx.textures.missile, gfx.sizes.missile, missile_texture)
+    create(gfx.textures.city.undamaged, gfx.sizes.city, city_texture_undamaged)
+    create(gfx.textures.city.light_damage, gfx.sizes.city, city_texture_light_damage)
+    create(gfx.textures.city.heavy_damage, gfx.sizes.city, city_texture_heavy_damage)
+    create(gfx.textures.city.destroyed, gfx.sizes.city, city_texture_destroyed)
+    create(gfx.textures.cannon.left, gfx.sizes.cannon, cannon_texture)
+    create(gfx.textures.cannon.right, gfx.sizes.cannon, cannon_texture, true)
+    create(gfx.textures.cannon.center, gfx.sizes.cannon, cannon_center_texture)
+    create(gfx.textures.missile, gfx.sizes.missile, missile_texture)
 end
 
 ------

@@ -64,11 +64,13 @@ private:
     template <typename R = void>
     auto call(callback<R> const& func, auto&&... args) -> R;
 
-    void create_texture(u32 id, rect_i const& uv);
+    void define_texture(u32 id, rect_i const& uv);
 
     scripting::script                    _script;
     scripting::table                     _table;
-    scripting::native_closure_shared_ptr _require;
+    scripting::native_closure_unique_ptr _require;
+    scripting::native_closure_unique_ptr _newSprite;
+    scripting::native_closure_unique_ptr _newSocket;
     callbacks                            _callbacks;
 
     init        _init;

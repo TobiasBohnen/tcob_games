@@ -156,6 +156,14 @@ function get_value(sockets, baseHandValue) end
 ---@field owner table The Lua table defining this sprite's behavior. @readonly
 ---@field texture integer The ID of the texture from the packed atlas.
 
+---Creates a new sprite and adds it to the game world.
+---@param owner sprite_owner The table defining the sprite's properties and behavior.
+---@return sprite
+function sprite.new(owner) end
+
+---Removes a sprite from the game world.
+function sprite:remove() end
+
 --------------------------------
 -- Socket
 --------------------------------
@@ -166,6 +174,14 @@ function get_value(sockets, baseHandValue) end
 ---@field is_empty boolean Returns true if no die is currently placed in this socket. @readonly
 ---@field state socket_state The current interaction state (e.g., Idle, Accept, Hover). @readonly
 ---@field die_value integer The value (1-6) of the die in the socket, or 0 if empty. @readonly
+
+---Creates a new socket for dice interaction.
+---@param init socket_init The table defining the socket's properties and behavior.
+---@return socket
+function socket.new(init) end
+
+---Removes a socket from the game world.
+function socket:remove() end
 
 --------------------------------
 -- TEX
@@ -235,11 +251,12 @@ local engine = {}
 ---Defines a texture region from the sprite atlas.
 ---@param id integer Unique identifier for this texture.
 ---@param uv rect UV coordinates in pixel coordinates defining the texture region.
-function engine:create_texture(id, uv) end
+function engine:define_texture(id, uv) end
 
 ---Initializes the sound buffer cache.
----@param soundMap table<integer, table> Map of IDs to sound wave data.
-function engine:create_sounds(soundMap) end
+---@param id integer Unique identifier for this sound.
+---@param soundwave table
+function engine:define_sound(id, soundwave) end
 
 ---@section Utilities
 
@@ -259,26 +276,6 @@ function engine:irnd(min, max) end
 ---@param str string The message to log.
 function engine:log(str) end
 
----@section Object Management
-
----Creates a new sprite and adds it to the game world.
----@param owner sprite_owner The table defining the sprite's properties and behavior.
----@return sprite
-function engine:create_sprite(owner) end
-
----Removes a sprite from the game world.
----@param sprite sprite The sprite instance to remove.
-function engine:remove_sprite(sprite) end
-
----Creates a new socket for dice interaction.
----@param init socket_init The table defining the socket's properties and behavior.
----@return socket
-function engine:create_socket(init) end
-
----Removes a socket from the game world.
----@param socket socket The socket instance to remove.
-function engine:remove_socket(socket) end
-
 ---@section Game State
 
 ---Adds points to the player's current score.
@@ -286,7 +283,7 @@ function engine:remove_socket(socket) end
 function engine:give_score(score) end
 
 ---Plays a sound effect by its ID.
----@param id integer The ID of the sound defined in create_sounds.
+---@param id integer The ID of the sound defined in define_sound.
 ---@param channel? integer
 ---@param playNow? boolean
 function engine:play_sound(id, channel, playNow) end

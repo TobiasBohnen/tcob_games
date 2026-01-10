@@ -251,7 +251,7 @@ function gfx.create_textures(game, engine)
     local padding   = 2
 
     ---@param size size
-    local function make_texture(id, size, tex, tp, flipH)
+    local function create(id, size, tex, tp, flipH)
         local width  = size.width
         local height = size.height
 
@@ -270,15 +270,15 @@ function gfx.create_textures(game, engine)
             }
         )
 
-        engine:create_texture(id, { x = pen.x, y = pen.y, width = width, height = height })
+        engine:define_texture(id, { x = pen.x, y = pen.y, width = width, height = height })
 
         pen.x = pen.x + width + padding
         rowHeight = math.max(rowHeight, height)
     end
 
-    make_texture(gfx.textures.car.straight, gfx.sizes.car, car_texture, Palette.White, false)
-    make_texture(gfx.textures.car.right, gfx.sizes.car, car_turn_right, Palette.White, false)
-    make_texture(gfx.textures.car.left, gfx.sizes.car, car_turn_right, Palette.White, true)
+    create(gfx.textures.car.straight, gfx.sizes.car, car_texture, Palette.White, false)
+    create(gfx.textures.car.right, gfx.sizes.car, car_turn_right, Palette.White, false)
+    create(gfx.textures.car.left, gfx.sizes.car, car_turn_right, Palette.White, true)
 end
 
 ------

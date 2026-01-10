@@ -34,7 +34,7 @@ local game                  = {
 function game:on_setup(engine)
     gfx.create_background(engine)
     gfx.create_textures(self, engine)
-    engine:create_sounds(sfx.get_sounds(self, engine))
+    sfx.create_sounds(self, engine)
 
     self:create_ship(engine)
 
@@ -42,9 +42,9 @@ function game:on_setup(engine)
         self:try_spawn_asteroid(engine)
     end
 
-    self.sockets.speed   = engine:create_socket { colors = { Palette.White } }
-    self.sockets.turn    = engine:create_socket { colors = { Palette.White } }
-    self.sockets.bullets = engine:create_socket { colors = { Palette.White, Palette.Red } }
+    self.sockets.speed   = socket.new { colors = { Palette.White } }
+    self.sockets.turn    = socket.new { colors = { Palette.White } }
+    self.sockets.bullets = socket.new { colors = { Palette.White, Palette.Red } }
 end
 
 ---@param engine engine
@@ -173,7 +173,7 @@ function game:create_asteroid(engine, size, x, y)
                     engine:play_sound(sfx.sounds.explosion)
                 end
 
-                engine:remove_sprite(a.sprite)
+                a.sprite:remove()
                 table.remove(self.asteroids, i)
 
                 engine:give_score(ASTEROID_SCORES[a.size])
@@ -189,7 +189,7 @@ function game:create_asteroid(engine, size, x, y)
             end
         end
     }
-    asteroid.sprite                     = engine:create_sprite(asteroid)
+    asteroid.sprite                     = sprite.new(asteroid)
     self.asteroids[#self.asteroids + 1] = asteroid
 end
 
@@ -221,7 +221,7 @@ function game:create_bullet(engine)
             if b.lifetime < DURATION then
                 self:update_entity(b, deltaTime, screenSize)
             else
-                engine:remove_sprite(b.sprite)
+                b.sprite:remove()
                 table.remove(self.bullets, i)
             end
             b.lifetime = b.lifetime + deltaTime
@@ -233,7 +233,7 @@ function game:create_bullet(engine)
         end
     }
 
-    bullet.sprite                   = engine:create_sprite(bullet)
+    bullet.sprite                   = sprite.new(bullet)
     self.bullets[#self.bullets + 1] = bullet
 
     local shipSprite                = ship.sprite
@@ -272,13 +272,13 @@ function game:create_explosion(engine, asteroid)
         update     = function(e, i, deltaTime)
             e.lifetime = e.lifetime + deltaTime
             if e.lifetime >= EXPLOSION_DURATION then
-                engine:remove_sprite(e.sprite)
+                e.sprite:remove()
                 table.remove(self.explosions, i)
             end
         end
     }
 
-    explosion.sprite                      = engine:create_sprite(explosion)
+    explosion.sprite                      = sprite.new(explosion)
     self.explosions[#self.explosions + 1] = explosion
     engine:play_sound(sfx.sounds.explosion)
 end
@@ -359,7 +359,7 @@ function game:create_ship(engine)
             end
         end
     }
-    ship.sprite = engine:create_sprite(ship)
+    ship.sprite = sprite.new(ship)
     self.ship = ship
 end
 

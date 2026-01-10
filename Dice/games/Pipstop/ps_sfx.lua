@@ -18,10 +18,9 @@ sfx.sounds = {
 }
 
 ---@param engine engine
-function sfx.get_sounds(game, engine)
-    local tab = {}
+function sfx.create_sounds(game, engine)
     for speed = 1, 10 do
-        tab[sfx.sounds["car_speed_" .. speed]] = {
+        local tab = {
             random_seed      = 0,
             sample_rate      = 44100,
             wave_type        = "Square",
@@ -56,9 +55,9 @@ function sfx.get_sounds(game, engine)
             hpf_cutoff       = 0.05 + (speed - 1) * 0.015,
             hpf_cutoff_sweep = 0.02 + (speed - 1) * 0.003
         }
-    end
 
-    return tab
+        engine:define_sound(sfx.sounds["car_speed_" .. speed], tab)
+    end
 end
 
 return sfx

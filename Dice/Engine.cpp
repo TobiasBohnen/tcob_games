@@ -18,6 +18,11 @@ engine::engine(init const& init)
     , _bgProxy {init.State.Background, PALETTE[0]}
     , _texProxy {init.State.Sprites, colors::Transparent}
 {
+    _script.open_libraries(library::Table, library::String, library::Math);
+    _script.Warning.connect([](script::warning_event const& ev) {
+        logger::Warning(ev.Message);
+    });
+
     create_env();
     create_wrappers();
 
@@ -57,7 +62,7 @@ void engine::run(string const& file)
     // require
     auto const path {io::get_parent_folder(file)};
 
-    _require = make_shared_closure(std::function {[this, path](char const* module) {
+    _require = make_unique_closure(std::function {[this, path](char const* module) {
         auto const& env {**_script.Environment};
         if (env.has("package", "loaded", module)) { return env["package"]["loaded"][module].as<table>(); }
 
@@ -130,7 +135,6 @@ auto engine::start_turn() -> bool
 
 void engine::create_env()
 {
-    _script.open_libraries(library::Table, library::String, library::Math);
     auto& global {_script.global_table()};
 
     // create environment
@@ -148,31 +152,23 @@ void engine::create_env()
     env["tonumber"]           = global["tonumber"];
     env["tostring"]           = global["tostring"];
 
-    table palette {_script.create_table()};
     for (auto const& color : PALETTE_MAP) {
-        palette[color.first] = color.second;
+        env["Palette"][color.first] = color.second;
     }
-    env["Palette"] = palette;
 
-    table gameStatus {_script.create_table()};
-    gameStatus["Running"]   = static_cast<i32>(game_status::Running);
-    gameStatus["TurnEnded"] = static_cast<i32>(game_status::TurnEnded);
-    gameStatus["GameOver"]  = static_cast<i32>(game_status::GameOver);
-    env["GameStatus"]       = gameStatus;
+    env["GameStatus"]["Running"]   = static_cast<i32>(game_status::Running);
+    env["GameStatus"]["TurnEnded"] = static_cast<i32>(game_status::TurnEnded);
+    env["GameStatus"]["GameOver"]  = static_cast<i32>(game_status::GameOver);
 
-    table socketState {_script.create_table()};
-    socketState["Idle"]   = static_cast<i32>(socket_state::Idle);
-    socketState["Accept"] = static_cast<i32>(socket_state::Accept);
-    socketState["Reject"] = static_cast<i32>(socket_state::Reject);
-    socketState["Hover"]  = static_cast<i32>(socket_state::Hover);
-    env["SocketState"]    = socketState;
+    env["SocketState"]["Idle"]   = static_cast<i32>(socket_state::Idle);
+    env["SocketState"]["Accept"] = static_cast<i32>(socket_state::Accept);
+    env["SocketState"]["Reject"] = static_cast<i32>(socket_state::Reject);
+    env["SocketState"]["Hover"]  = static_cast<i32>(socket_state::Hover);
 
-    table rotation {_script.create_table()};
-    rotation["R0"]   = 0;
-    rotation["R90"]  = 90;
-    rotation["R180"] = 180;
-    rotation["R270"] = 270;
-    env["Rot"]       = rotation;
+    env["Rot"]["R0"]   = 0;
+    env["Rot"]["R90"]  = 90;
+    env["Rot"]["R180"] = 180;
+    env["Rot"]["R270"] = 270;
 
     static auto const convert_sockets {[](std::unordered_map<std::variant<i32, string>, socket*> const& socketMap) {
         std::vector<socket*> sockets;
@@ -205,9 +201,6 @@ void engine::create_env()
     };
 
     _script.Environment = env;
-    _script.Warning.connect([](scripting::script::warning_event const& ev) {
-        logger::Warning(ev.Message);
-    });
 }
 
 void engine::create_wrappers()
@@ -220,6 +213,20 @@ void engine::create_wrappers()
 
 void engine::create_sprite_wrapper()
 {
+    _newSprite                               = make_unique_closure(std::function {
+        [this](table const& spriteOwner) -> sprite* {
+            sprite_def const def {spriteOwner["spriteInit"].get<sprite_def>().value_or(sprite_def {})};
+
+            texture*   tex {nullptr};
+            auto const texID {def.TexID};
+            if (texID && _textures.contains(*texID)) {
+                tex = &_textures[*texID];
+            }
+
+            return _init.Game->add_sprite({.Def = def, .Texture = tex, .Owner = spriteOwner});
+        }});
+    (**_script.Environment)["sprite"]["new"] = _newSprite.get();
+
     auto& spriteWrapper {*_script.create_wrapper<sprite>("sprite")};
     spriteWrapper["position"] = property {
         [](sprite* sprite) -> point_f { return sprite->Bounds.Position; },
@@ -233,10 +240,18 @@ void engine::create_sprite_wrapper()
     spriteWrapper["texture"] = property {
         [](sprite* sprite) -> u32 { return sprite->get_texture()->ID; },
         [this](sprite* sprite, u32 texID) { sprite->set_texture(&_textures[texID]); }}; // TODO: error check
+    spriteWrapper["remove"] = [this](sprite* sprite) { _init.Game->remove_sprite(sprite); };
 }
 
 void engine::create_socket_wrapper()
 {
+    _newSocket                               = make_unique_closure(std::function {
+        [this](table const& socketInit) -> socket* {
+            socket_face const face {socketInit.get<socket_face>().value_or(socket_face {})};
+            return _init.Game->add_socket(face);
+        }});
+    (**_script.Environment)["socket"]["new"] = _newSocket.get();
+
     auto& socketWrapper {*_script.create_wrapper<socket>("socket")};
     socketWrapper["is_empty"] = getter {
         [](socket* socket) -> bool { return socket->is_empty(); }};
@@ -256,44 +271,25 @@ void engine::create_socket_wrapper()
             socket->move_to({rect.left() + (static_cast<f32>(pos.X) * (rect.width() / static_cast<f32>(DMD_SIZE.Width))),
                              rect.top() + (static_cast<f32>(pos.Y) * (rect.height() / static_cast<f32>(DMD_SIZE.Height)))});
         }};
+    socketWrapper["remove"] = [this](socket* socket) { _init.Game->remove_socket(socket); };
 }
 
 void engine::create_engine_wrapper()
 {
     auto& engineWrapper {*_script.create_wrapper<engine>("engine")};
     // gfx
-    engineWrapper["create_texture"] = [](engine* engine, u32 id, rect_i const& uv) { engine->create_texture(id, uv); };
+    engineWrapper["define_texture"] = [](engine* engine, u32 id, rect_i const& uv) { engine->define_texture(id, uv); };
 
     // sfx
-    engineWrapper["create_sounds"] = [](engine* engine, std::unordered_map<u32, audio::sound_wave> const& soundMap) {
-        for (auto const& [id, soundWave] : soundMap) {
-            engine->_soundBank.emplace(id, audio::sound_generator {}.create_buffer(soundWave));
-        }
+    engineWrapper["define_sound"] = [](engine* engine, u32 id, audio::sound_wave soundWave) {
+        engine->_soundBank.emplace(id, audio::sound_generator {}.create_buffer(soundWave));
     };
 
     // functions
-    engineWrapper["rnd"]           = [](engine* engine, f32 min, f32 max) { return engine->_init.State.Rng(min, max); };
-    engineWrapper["irnd"]          = [](engine* engine, i32 min, i32 max) { return engine->_init.State.Rng(min, max); };
-    engineWrapper["log"]           = [](string const& str) { logger::Info(str); };
-    engineWrapper["create_sprite"] = [](engine* engine, table const& spriteOwner) {
-        sprite_def const def {spriteOwner["spriteInit"].get<sprite_def>().value_or(sprite_def {})};
+    engineWrapper["rnd"]  = [](engine* engine, f32 min, f32 max) { return engine->_init.State.Rng(min, max); };
+    engineWrapper["irnd"] = [](engine* engine, i32 min, i32 max) { return engine->_init.State.Rng(min, max); };
+    engineWrapper["log"]  = [](engine*, string const& str) { logger::Info(str); };
 
-        texture*   tex {nullptr};
-        auto const texID {def.TexID};
-        if (texID && engine->_textures.contains(*texID)) {
-            tex = &engine->_textures[*texID];
-        }
-
-        return engine->_init.Game->add_sprite({.Def = def, .Texture = tex, .Owner = spriteOwner});
-    };
-    engineWrapper["remove_sprite"] = [](engine* engine, sprite* sprite) { engine->_init.Game->remove_sprite(sprite); };
-    engineWrapper["create_socket"] = [](engine* engine, table const& socketInit) -> socket* {
-        socket_face const face {socketInit.get<socket_face>().value_or(socket_face {})};
-        return engine->_init.Game->add_socket(face);
-    };
-    engineWrapper["remove_socket"] = [](engine* engine, socket* socket) {
-        engine->_init.Game->remove_socket(socket);
-    };
     engineWrapper["give_score"] = [](engine* engine, i32 score) { engine->_init.State.Score += score; };
     engineWrapper["play_sound"] = [](engine* engine, u32 soundID, std::optional<u8> channelID, std::optional<bool> now) {
         if (channelID >= engine->_soundChannels.size()) {
@@ -347,7 +343,7 @@ void engine::create_tex_wrapper()
     texWrapper["socket"] = [this](tex_proxy* tex, socket* socket) { tex->socket(socket, _init.State.DMDBounds); };
 }
 
-void engine::create_texture(u32 id, rect_i const& uv)
+void engine::define_texture(u32 id, rect_i const& uv)
 {
     auto& tex {_textures[id]};
     tex.ID     = id;

@@ -20,7 +20,7 @@ local event_base = {
     init        = function(event, game, engine)
         assert(event.socketCount <= 5)
         for i = 1, event.socketCount do
-            event.sockets[#event.sockets + 1] = engine:create_socket { colors = { Palette.White } }
+            event.sockets[#event.sockets + 1] = socket.new { colors = { Palette.White } }
         end
 
         if event.on_init then
@@ -52,7 +52,7 @@ local event_base = {
         end
 
         for key, value in pairs(event.sockets) do
-            engine:remove_socket(value)
+            value:remove()
         end
         event.sockets  = nil
         event.finished = true

@@ -34,7 +34,7 @@ function game:on_setup(engine)
 
     self:update_background(engine, 0)
     gfx.create_textures(self, engine)
-    engine:create_sounds(sfx.get_sounds(self, engine))
+    sfx.create_sounds(self, engine)
 
     self:create_car(engine)
 
@@ -189,7 +189,7 @@ function game:create_car(engine)
             car.sprite.position = { x = newX, y = pos.y }
             car:play_sound()
 
-            engine:give_score(math.floor(car.speed))
+            engine:give_score(math.floor(car.speed / 10))
         end,
 
         set_target_speed  = function(car, target)
@@ -210,7 +210,7 @@ function game:create_car(engine)
             end
         end
     }
-    car.sprite = engine:create_sprite(car)
+    car.sprite = sprite.new(car)
 
     self.car = car
 end
