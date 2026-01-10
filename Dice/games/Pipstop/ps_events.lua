@@ -5,20 +5,19 @@
 
 ---@class event_base
 local event_base = {
-    title         = "",
-    value         = 0,
-    target        = 0,
-    outcome       = "",
-    turnsLeft     = 0,
+    title       = "",
+    value       = 0,
+    target      = 0,
+    outcome     = "",
+    turnsLeft   = 0,
 
-    sockets       = {},
-    socketCount   = 0,
-    baseHandValue = 50,
+    sockets     = {},
+    socketCount = 0,
 
-    finished      = false,
+    finished    = false,
 
     ---@param engine engine
-    init          = function(event, game, engine)
+    init        = function(event, game, engine)
         assert(event.socketCount <= 5)
         for i = 1, event.socketCount do
             event.sockets[#event.sockets + 1] = engine:create_socket { colors = { Palette.White } }
@@ -30,8 +29,8 @@ local event_base = {
     end,
 
     ---@param engine engine
-    turn_start    = function(event, game, engine)
-        event.value     = event.value + get_value(event.sockets, event.baseHandValue)
+    turn_start  = function(event, game, engine)
+        event.value     = event.value + get_value(event.sockets, 5)
         event.turnsLeft = event.turnsLeft - 1
 
         if event.turnsLeft == 0 then
@@ -40,14 +39,14 @@ local event_base = {
     end,
 
     ---@param engine engine
-    update        = function(event, game, engine, deltaTime, turnTime)
+    update      = function(event, game, engine, deltaTime, turnTime)
         if event.on_update then
             event:on_update(deltaTime, turnTime)
         end
     end,
 
     ---@param engine engine
-    resolve       = function(event, game, engine)
+    resolve     = function(event, game, engine)
         if event.on_resolve then
             event:on_resolve()
         end
@@ -84,14 +83,13 @@ end
 local events = {
     get_start = function(self, game, engine)
         return event_base:create({
-            title         = "START YOUR ENGINE!",
-            target        = 22,
-            turnsLeft     = 1,
+            title       = "START YOUR ENGINE!",
+            target      = 22,
+            turnsLeft   = 1,
 
-            socketCount   = 2,
-            baseHandValue = 5,
+            socketCount = 2,
 
-            on_resolve    = function(event)
+            on_resolve  = function(event)
                 local value = event.value
                 local speed = 1
                 if     value >= 22 then
@@ -105,7 +103,7 @@ local events = {
                 elseif value >= 3 then
                     speed = 2
                 end
-                game.car.speedTarget = speed
+                game.car:target_speed(speed)
             end
         })
     end,

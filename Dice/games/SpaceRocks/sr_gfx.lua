@@ -155,7 +155,7 @@ local bullets_patterns = {
 local heart_pattern    = [[0b3a0d3a0c3c0b3c0a3ad0a3h0b3h0c3f0e3d0g3b0d]]
 local ship_pattern     = [[0i2b0r2b0q2d0p2d0p2d0o2f0n2f0m2h0l2h0l2h0k2j0j2j0j2j0i2l0h2l0h2l0g2f0b2f0f2e0d2e0e2e0f2e0d2d0h2d0d2c0j2c0c2c0l2c0b2b0n2b0a]]
 
----@param dmd dmd
+---@param dmd tex
 function gfx.draw_dmd(dmd, game)
     local sockets      = game.sockets ---@type {[string]: socket})
     local bulletsValue = sockets.bullets.die_value
@@ -200,7 +200,7 @@ function gfx.draw_dmd(dmd, game)
     end
 end
 
----@param dmd dmd
+---@param dmd tex
 function gfx.draw_game_over(dmd, game)
     dmd:clear()
     dmd:print({ x = 12, y = 12 }, "GAME", Palette.LightBlue)

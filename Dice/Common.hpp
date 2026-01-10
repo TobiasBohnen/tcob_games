@@ -127,11 +127,12 @@ struct shared_state {
     rng    Rng;
     rect_f DMDBounds;
 
-    prop<bool>       CanStart {false};
-    prop<i32>        Score;
-    prop<string>     SSD;
-    prop<grid<u8>>   DMD {grid<u8> {DMD_SIZE, 0}};
+    prop<bool>   CanStart {false};
+    prop<i32>    Score;
+    prop<string> SSD;
+
+    prop<gfx::image> DMD {gfx::image::CreateEmpty(DMD_SIZE, gfx::image::format::RGBA)};
     prop<gfx::image> Foreground {gfx::image::CreateEmpty(size_i {VIRTUAL_SCREEN_SIZE}, gfx::image::format::RGBA)};
     prop<gfx::image> Background {gfx::image::CreateEmpty(size_i {VIRTUAL_SCREEN_SIZE}, gfx::image::format::RGBA)};
-    prop<gfx::image> SpriteTexture {gfx::image::CreateEmpty(SPRITE_TEXTURE_SIZE, gfx::image::format::RGBA)};
+    prop<gfx::image> Sprites {gfx::image::CreateEmpty(SPRITE_TEXTURE_SIZE, gfx::image::format::RGBA)};
 };

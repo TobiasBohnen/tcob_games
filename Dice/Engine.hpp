@@ -7,8 +7,31 @@
 
 #include "Common.hpp" // IWYU pragma: keep
 
-#include "EngineHelper.hpp"
 #include "Sprite.hpp"
+#include "TexProxy.hpp"
+
+////////////////////////////////////////////////////////////
+
+template <typename T = void>
+using callback = std::optional<scripting::function<T>>;
+
+struct callbacks {
+    callback<>    OnCollision;
+    callback<>    OnSetup;
+    callback<>    OnTeardown;
+    callback<i32> OnTurnUpdate;
+    callback<>    OnTurnFinish;
+    callback<>    OnTurnStart;
+    callback<>    OnDrawDMD;
+};
+
+////////////////////////////////////////////////////////////
+
+enum game_status : u8 {
+    Running   = 0,
+    TurnEnded = 1,
+    GameOver  = 2
+};
 
 ////////////////////////////////////////////////////////////
 
@@ -36,7 +59,6 @@ private:
     void create_sprite_wrapper();
     void create_socket_wrapper();
     void create_engine_wrapper();
-    void create_dmd_wrapper();
     void create_tex_wrapper();
 
     template <typename R = void>
@@ -52,16 +74,15 @@ private:
     init        _init;
     game_status _gameStatus {game_status::TurnEnded};
 
-    dmd_proxy _dmdProxy;
+    tex_proxy _dmdProxy;
     tex_proxy _fgProxy;
     tex_proxy _bgProxy;
     tex_proxy _texProxy;
 
     std::unordered_map<u32, texture> _textures;
 
-    std::unordered_map<u32, audio::buffer>       _soundBank;
-    std::array<std::unique_ptr<audio::sound>, 8> _sounds;
-    u32                                          _soundIdx {0};
+    std::unordered_map<u32, audio::buffer> _soundBank;
+    std::array<audio::sound_channel, 8>    _soundChannels;
 
     f64 _turnTime {0};
 };

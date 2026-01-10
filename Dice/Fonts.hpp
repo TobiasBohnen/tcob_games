@@ -6,7 +6,7 @@
 #pragma once
 
 #include "Common.hpp" // IWYU pragma: keep
-#include "EngineHelper.hpp"
+#include "TexProxy.hpp"
 
 inline constexpr std::array<std::array<u8, 5>, 50> font3x5 {
     {{0x07, 0x05, 0x05, 0x05, 0x07},

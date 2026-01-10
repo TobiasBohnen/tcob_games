@@ -128,7 +128,7 @@ local cannon_pattern = {
 local charge_pattern = [[3b4i3d4i3q4i3d4i3d4i3q4i3d4i3d4i3q4i3d4i3b]]
 local cooling_pattern = [[00000D0D000000D0D00D00D0D000D00DDD00D00000D00D00D000D000D0D0D000D0D000DDD000D0DDDDDD0DDDDDD0D000DDD000D0D000D0D0D000D000D00D00D00000D00DDD00D000D0D00D00D0D000000D0D00000]]
 
----@param dmd dmd
+---@param dmd tex
 function gfx.draw_dmd(dmd, game, dmdInfo)
     local sockets = game.sockets
 
@@ -184,7 +184,7 @@ function gfx.draw_dmd(dmd, game, dmdInfo)
     dmd:rect({ x = energyLeft, y = energyTop, width = energyWidth, height = energyHeight }, Palette.Yellow, true)
 end
 
----@param dmd dmd
+---@param dmd tex
 function gfx.draw_game_over(dmd, game)
     dmd:clear()
     dmd:print({ x = 36, y = 12 }, "GAME", Palette.Red)

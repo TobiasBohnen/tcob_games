@@ -212,7 +212,7 @@ function gfx.create_background(engine, curveAmount, trackOffset, biome)
         -- stripes
         local stripeWidth = math.max(0.5, roadWidth / 50)
         local distance    = (math.sqrt(t) - trackOffset) * 100 % 100
-        if distance % 30 < 20 then
+        if distance % 20 < 15 then
             bg:line({ x = math.ceil(centerX - stripeWidth), y = y }, { x = math.floor(centerX + stripeWidth), y = y }, currentBiome.centerLine)
         end
         if distance % 20 < 10 then
@@ -283,17 +283,34 @@ end
 
 ------
 
----@param dmd dmd
 function gfx.draw_dmd(dmd, game)
     dmd:clear()
+    gfx.draw_hud(dmd, game)
+    gfx.draw_events(dmd, game)
+end
 
+---@param dmd tex
+function gfx.draw_hud(dmd, game)
     local xStart, yStart = 1, 1
     local offset         = 16
 
     local y              = yStart
+    local x              = xStart
+
+    dmd:print({ x = x, y = y }, "speed=" .. math.floor(game.car.speed * 20 + 0.5), Palette.Green, "Font3x5")
+    y = y + 7
+end
+
+---@param dmd tex
+function gfx.draw_events(dmd, game)
+    local xStart, yStart = 1, 8
+    local offset         = 16
+
+    local y              = yStart
+    local x              = xStart
 
     for _, event in ipairs(game.eventQueue) do
-        local x        = xStart
+        x              = xStart
         local texColor = event.finished and Palette.Red or Palette.LightBlue
 
         dmd:print({ x = x, y = y }, event.title, texColor, "Font3x5")
@@ -313,7 +330,7 @@ function gfx.draw_dmd(dmd, game)
     end
 end
 
----@param dmd dmd
+---@param dmd tex
 function gfx.draw_game_over(dmd, game)
     dmd:clear()
     dmd:print({ x = 12, y = 12 }, "DNF", Palette.Red)

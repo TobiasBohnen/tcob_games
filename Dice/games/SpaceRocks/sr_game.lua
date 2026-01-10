@@ -64,8 +64,6 @@ end
 ---@param engine engine
 ---@param deltaTime number
 function game:on_turn_update(engine, deltaTime, turnTime)
-    if turnTime >= DURATION then return GameStatus.TurnEnded end
-
     self:try_spawn_bullet(engine, deltaTime)
 
     for i = #self.asteroids, 1, -1 do self.asteroids[i]:update(i, deltaTime) end
@@ -74,6 +72,7 @@ function game:on_turn_update(engine, deltaTime, turnTime)
     self.ship:update(deltaTime, turnTime)
 
     if self.ship.health == 0 then return GameStatus.GameOver end
+    if turnTime >= DURATION then return GameStatus.TurnEnded end
     return GameStatus.Running
 end
 
@@ -257,7 +256,7 @@ function game:create_bullet(engine)
 
     ship.bulletTime                 = HALF_DURATION / self.sockets.bullets.die_value
     ship.bulletsLeft                = ship.bulletsLeft - 1
-    engine:play_sound(sfx.sounds.bullet)
+    engine:play_sound(sfx.sounds.bullet, 1, false)
 end
 
 ---@param engine engine

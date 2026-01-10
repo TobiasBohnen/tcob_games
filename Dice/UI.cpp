@@ -18,6 +18,9 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
 {
     gen_styles(grp);
 
+    _dmdTexture->resize(DMD_SIZE, 1, gfx::texture::format::RGBA8);
+    _dmdTexture->regions()["default"] = texture_region {.UVRect = {0, 0, 1, 1}, .Level = 0};
+
     {
         auto& panel1 {create_container<ui::panel>(rect_i {0, 0, 100, 73}, "panel1")};
         panel1.disable();
@@ -29,7 +32,8 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
         layout.create_widget<seven_segment_display>({50, 0, 50, 10}, "ssd1");
         _sharedState.SSD.Changed.connect([&]() { _updateSsd1 = true; });
 
-        auto& dmd {layout.create_widget<dot_matrix_display>({0, 10, 100, 90}, "dmd")};
+        auto& dmd {layout.create_widget<image_box>({0, 10, 100, 90}, "dmd")};
+        dmd.Image = {.Texture = _dmdTexture};
         _sharedState.DMD.Changed.connect([&]() { _updateDmd = true; });
         dmd.Bounds.Changed.connect([this, &dmd]() {
             _sharedState.DMDBounds = {
@@ -69,8 +73,9 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
 void game_form::on_update(milliseconds deltaTime)
 {
     if (_updateDmd) {
-        dynamic_cast<dot_matrix_display*>(find_widget_by_name("dmd"))->Dots = *_sharedState.DMD;
-        _updateDmd                                                          = false;
+        _dmdTexture->update_data(*_sharedState.DMD, 0);
+        _updateDmd = false;
+        find_widget_by_name("dmd")->queue_redraw();
     }
     if (_updateSsd0) {
         auto* ssd {dynamic_cast<seven_segment_display*>(find_widget_by_name("ssd0"))};
@@ -165,17 +170,12 @@ void game_form::gen_styles(assets::group const& grp)
         style->Border.Size       = 2_pct;
         style->Background        = colors::Black;
         style->ActiveColor       = colors::FireBrick;
-        style->InactiveColor     = colors::Black;
+        style->InactiveColor     = colors::Transparent;
         style->Border.Type       = border_type::Inset;
         style->Border.Background = colors::Gray;
     }
     {
-        auto style {styles.create<dot_matrix_display>("dot_matrix_display", {})};
-        style->Type = dot_matrix_display::dot_type::Disc;
-        for (u8 i {0}; i < PALETTE.size(); ++i) {
-            style->Colors[i] = PALETTE[i];
-        }
-
+        auto style {styles.create<image_box>("image_box", {})};
         style->Background = colors::Black;
     }
     Styles = styles;

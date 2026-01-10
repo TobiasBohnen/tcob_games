@@ -13,10 +13,10 @@ using namespace scripting;
 
 engine::engine(init const& init)
     : _init {init}
-    , _dmdProxy {init.State.DMD}
+    , _dmdProxy {init.State.DMD, PALETTE[0]}
     , _fgProxy {init.State.Foreground, colors::Transparent}
     , _bgProxy {init.State.Background, PALETTE[0]}
-    , _texProxy {init.State.SpriteTexture, colors::Transparent}
+    , _texProxy {init.State.Sprites, colors::Transparent}
 {
     create_env();
     create_wrappers();
@@ -92,6 +92,10 @@ auto engine::update(milliseconds deltaTime) -> bool
     _init.State.CanStart = _gameStatus == game_status::TurnEnded;
 
     if (_gameStatus != game_status::Running) { return false; }
+
+    for (auto& channel : _soundChannels) {
+        channel.update();
+    }
 
     game_status const status {static_cast<game_status>(call(_callbacks.OnTurnUpdate, deltaTime.count(), _turnTime))};
     _turnTime += deltaTime.count();
@@ -182,20 +186,19 @@ void engine::create_env()
     env["get_sum"] = +[](std::unordered_map<std::variant<i32, string>, socket*> const& sockets) -> u32 {
         return get_sum(convert_sockets(sockets));
     };
-    env["get_value"] = +[](std::unordered_map<std::variant<i32, string>, socket*> const& sockets, std::optional<i32> baseHandValue) -> u32 {
+    env["get_value"] = +[](std::unordered_map<std::variant<i32, string>, socket*> const& sockets, i32 baseHandValue) -> u32 {
         auto retValue {get_sum(convert_sockets(sockets))};
 
-        i32 const  base {baseHandValue ? *baseHandValue : 50};
         auto const hand {get_hand(convert_sockets(sockets))};
         switch (hand.Value) {
         case value_category::None:         break;
-        case value_category::OnePair:      retValue += base * 2; break;
-        case value_category::TwoPair:      retValue += base * 3; break;
-        case value_category::ThreeOfAKind: retValue += base * 4; break;
-        case value_category::Straight:     retValue += base * 5; break;
-        case value_category::FullHouse:    retValue += base * 6; break;
-        case value_category::FourOfAKind:  retValue += base * 8; break;
-        case value_category::FiveOfAKind:  retValue += base * 10; break;
+        case value_category::OnePair:      retValue += baseHandValue * 2; break;
+        case value_category::TwoPair:      retValue += baseHandValue * 3; break;
+        case value_category::ThreeOfAKind: retValue += baseHandValue * 4; break;
+        case value_category::Straight:     retValue += baseHandValue * 5; break;
+        case value_category::FullHouse:    retValue += baseHandValue * 6; break;
+        case value_category::FourOfAKind:  retValue += baseHandValue * 8; break;
+        case value_category::FiveOfAKind:  retValue += baseHandValue * 10; break;
         }
 
         return retValue;
@@ -212,7 +215,6 @@ void engine::create_wrappers()
     create_sprite_wrapper();
     create_socket_wrapper();
     create_engine_wrapper();
-    create_dmd_wrapper();
     create_tex_wrapper();
 }
 
@@ -293,40 +295,30 @@ void engine::create_engine_wrapper()
         engine->_init.Game->remove_socket(socket);
     };
     engineWrapper["give_score"] = [](engine* engine, i32 score) { engine->_init.State.Score += score; };
-    engineWrapper["play_sound"] = [](engine* engine, u32 id) {
-        auto& sound {engine->_sounds[engine->_soundIdx++]};
-        sound = std::make_unique<audio::sound>(engine->_soundBank[id]);
-        sound->play();
-        engine->_soundIdx = engine->_soundIdx % engine->_sounds.size();
+    engineWrapper["play_sound"] = [](engine* engine, u32 soundID, std::optional<u8> channelID, std::optional<bool> now) {
+        if (channelID >= engine->_soundChannels.size()) {
+            logger::Warning("Invalid channel id: {}", *channelID);
+            return;
+        }
+
+        auto     sound {std::make_unique<audio::sound>(engine->_soundBank[soundID])};
+        u8 const channel {channelID.value_or(0)};
+        if (now.value_or(true)) {
+            engine->_soundChannels[channel].play_now(std::move(sound));
+        } else {
+            engine->_soundChannels[channel].play_queued(std::move(sound));
+        }
     };
 
     // properties
     engineWrapper["screenSize"] = getter {[]() -> size_i { return size_i {VIRTUAL_SCREEN_SIZE}; }};
-    engineWrapper["dmd"]        = getter {[](engine* engine) -> dmd_proxy* { return &engine->_dmdProxy; }};
+    engineWrapper["dmd"]        = getter {[](engine* engine) -> tex_proxy* { return &engine->_dmdProxy; }};
     engineWrapper["fg"]         = getter {[](engine* engine) -> tex_proxy* { return &engine->_fgProxy; }};
     engineWrapper["bg"]         = getter {[](engine* engine) -> tex_proxy* { return &engine->_bgProxy; }};
     engineWrapper["spr"]        = getter {[](engine* engine) -> tex_proxy* { return &engine->_texProxy; }};
     engineWrapper["ssd"]        = property {
         [](engine* engine) -> string { return *engine->_init.State.SSD; },
         [](engine* engine, string const& val) { engine->_init.State.SSD = val; }};
-}
-
-void engine::create_dmd_wrapper()
-{
-    auto& dmdWrapper {*_script.create_wrapper<dmd_proxy>("dmd")};
-    dmdWrapper["size"] = getter {[](dmd_proxy* dmd) -> size_i { return dmd->size(); }};
-
-    dmdWrapper["clear"] = [](dmd_proxy* dmd) { dmd->clear(); };
-
-    dmdWrapper["line"]   = [](dmd_proxy* dmd, point_i start, point_i end, u8 color) { dmd->line(start, end, color); };
-    dmdWrapper["circle"] = [](dmd_proxy* dmd, point_i center, i32 radius, u8 color, bool fill) { dmd->circle(center, radius, color, fill); };
-    dmdWrapper["rect"]   = [](dmd_proxy* dmd, rect_i const& rect, u8 color, bool fill) { dmd->rect(rect, color, fill); };
-
-    dmdWrapper["blit"]  = [](dmd_proxy* dmd, rect_i const& rect, string const& dotStr) { dmd->blit(rect, dotStr); };
-    dmdWrapper["print"] = [](dmd_proxy* dmd, point_i pos, string_view text, u8 col, std::optional<font_type> fontType) {
-        dmd->print(pos, text, col, fontType ? *fontType : font_type::Font5x5);
-    };
-    dmdWrapper["socket"] = [this](dmd_proxy* dmd, socket* socket) { dmd->draw_socket(socket, _init.State.DMDBounds); };
 }
 
 void engine::create_tex_wrapper()
@@ -352,6 +344,7 @@ void engine::create_tex_wrapper()
     texWrapper["print"] = [](tex_proxy* tex, point_i pos, string_view text, u8 col, std::optional<font_type> fontType) {
         tex->print(pos, text, col, fontType ? *fontType : font_type::Font5x5);
     };
+    texWrapper["socket"] = [this](tex_proxy* tex, socket* socket) { tex->socket(socket, _init.State.DMDBounds); };
 }
 
 void engine::create_texture(u32 id, rect_i const& uv)
@@ -371,7 +364,7 @@ void engine::create_texture(u32 id, rect_i const& uv)
 
     for (i32 y {0}; y < uv.height(); ++y) {
         for (i32 x {0}; x < uv.width(); ++x) {
-            color const col {_init.State.SpriteTexture->get_pixel(point_i {x, y} + uv.top_left())};
+            color const col {_init.State.Sprites->get_pixel(point_i {x, y} + uv.top_left())};
             tex.Alpha[x, y] = col.A;
         }
     }

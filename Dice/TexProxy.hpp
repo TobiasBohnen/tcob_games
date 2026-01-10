@@ -9,40 +9,6 @@
 
 ////////////////////////////////////////////////////////////
 
-enum game_status : u8 {
-    Running   = 0,
-    TurnEnded = 1,
-    GameOver  = 2
-};
-
-////////////////////////////////////////////////////////////
-
-template <typename T = void>
-using callback = std::optional<scripting::function<T>>;
-
-struct callbacks {
-    callback<>    OnCollision;
-    callback<>    OnSetup;
-    callback<>    OnTeardown;
-    callback<i32> OnTurnUpdate;
-    callback<>    OnTurnFinish;
-    callback<>    OnTurnStart;
-    callback<>    OnDrawDMD;
-};
-
-////////////////////////////////////////////////////////////
-
-struct bg_def {
-    string Bitmap;
-
-    static auto constexpr Members()
-    {
-        return std::tuple {member<&bg_def::Bitmap> {"bitmap"}};
-    }
-};
-
-////////////////////////////////////////////////////////////
-
 struct blit_settings {
     std::optional<u32> Transparent;
     u32                Rotation {0};
@@ -72,27 +38,6 @@ enum class font_type : u8 {
     Font3x5,
 };
 
-class dmd_proxy {
-public:
-    dmd_proxy(prop<grid<u8>>& dmd);
-
-    auto size() const -> size_i;
-
-    void clear();
-
-    void line(point_i start, point_i end, u8 color);
-    void circle(point_i center, i32 radius, u8 color, bool fill);
-    void rect(rect_i const& rect, u8 color, bool fill);
-
-    void blit(rect_i const& rect, string const& dotStr);
-    void print(point_i pos, string_view text, u8 color, font_type type);
-
-    void draw_socket(socket* socket, rect_f const& dmdBounds);
-
-private:
-    prop<grid<u8>>& _dmd;
-};
-
 ////////////////////////////////////////////////////////////
 
 class tex_proxy {
@@ -111,6 +56,8 @@ public:
     void blit(rect_i const& rect, string const& data, blit_settings settings);
     void print(point_i pos, string_view text, u8 color, font_type type);
 
+    void socket(socket* socket, rect_f const& dmdBounds);
+
 private:
     static void draw(std::span<u8> data, i32 x, i32 y, size_i s, color color);
 
@@ -122,3 +69,5 @@ private:
 ////////////////////////////////////////////////////////////
 
 auto decode_texture_pixels(string_view s, size_i size) -> std::vector<u8>;
+
+////////////////////////////////////////////////////////////

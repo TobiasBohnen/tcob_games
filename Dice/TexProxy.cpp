@@ -3,13 +3,12 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-#include "EngineHelper.hpp"
+#include "TexProxy.hpp"
 
 #include "Fonts.hpp"
 #include "Socket.hpp"
 
-template <typename PlotFunc>
-void draw_line(point_i start, point_i end, PlotFunc plot)
+void draw_line(point_i start, point_i end, auto&& plot)
 {
     i32       x0 {start.X};
     i32       y0 {start.Y};
@@ -39,8 +38,7 @@ void draw_line(point_i start, point_i end, PlotFunc plot)
     }
 }
 
-template <typename PlotFunc>
-void draw_circle(point_i center, i32 radius, bool fill, PlotFunc plot)
+void draw_circle(point_i center, i32 radius, bool fill, auto&& plot)
 {
     if (radius == 1) {
         plot(center.X, center.Y);
@@ -82,8 +80,7 @@ void draw_circle(point_i center, i32 radius, bool fill, PlotFunc plot)
     }
 }
 
-template <typename PlotFunc>
-void draw_rect(rect_i const& rect, bool fill, PlotFunc plot)
+void draw_rect(rect_i const& rect, bool fill, auto&& plot)
 {
     i32 const x0 {rect.left()};
     i32 const y0 {rect.top()};
@@ -100,8 +97,7 @@ void draw_rect(rect_i const& rect, bool fill, PlotFunc plot)
     }
 }
 
-template <typename PlotFunc>
-void draw_print(point_i pos, string_view text, font_type type, PlotFunc plot)
+void draw_print(point_i pos, string_view text, font_type type, auto&& plot)
 {
     auto const font {get_font(type)};
     i32 const  stride {font.Size.Width + 1};
@@ -136,76 +132,7 @@ void draw_print(point_i pos, string_view text, font_type type, PlotFunc plot)
     }
 }
 
-////////////////////////////////////////////////////////////
-
-dmd_proxy::dmd_proxy(prop<grid<u8>>& dmd)
-    : _dmd {dmd}
-{
-}
-
-auto dmd_proxy::size() const -> size_i
-{
-    return DMD_SIZE;
-}
-
-void dmd_proxy::clear()
-{
-    _dmd = grid<u8> {DMD_SIZE, 0};
-}
-
-void dmd_proxy::line(point_i start, point_i end, u8 color)
-{
-    _dmd.mutate([&](auto& dmd) {
-        draw_line(start, end, [&](i32 x, i32 y) {
-            if (x >= 0 && x < dmd.width() && y >= 0 && y < dmd.height()) {
-                dmd[x, y] = color;
-            }
-        });
-    });
-}
-
-void dmd_proxy::circle(point_i center, i32 radius, u8 color, bool fill)
-{
-    _dmd.mutate([&](auto& dmd) {
-        draw_circle(center, radius, fill, [&](i32 x, i32 y) {
-            if (x >= 0 && x < dmd.width() && y >= 0 && y < dmd.height()) {
-                dmd[x, y] = color;
-            }
-        });
-    });
-}
-
-void dmd_proxy::rect(rect_i const& rect, u8 color, bool fill)
-{
-    _dmd.mutate([&](auto& dmd) {
-        draw_rect(rect, fill, [&](i32 x, i32 y) {
-            if (x >= 0 && x < dmd.width() && y >= 0 && y < dmd.height()) {
-                dmd[x, y] = color;
-            }
-        });
-    });
-}
-
-void dmd_proxy::blit(rect_i const& rect, string const& dotStr)
-{
-    if (rect.right() > _dmd->width() || rect.bottom() > _dmd->height()) { return; }
-    auto const dots {decode_texture_pixels(dotStr, rect.Size)};
-
-    _dmd.mutate([&](auto& dmd) { dmd.blit(rect, dots); });
-}
-
-void dmd_proxy::print(point_i pos, string_view text, u8 color, font_type type)
-{
-    _dmd.mutate([&](auto& dmd) {
-        draw_print(pos, text, type, [&](i32 x, i32 y) {
-            if (x >= 0 && x < dmd.width() && y >= 0 && y < dmd.height()) {
-                dmd[x, y] = color;
-            }
-        });
-    });
-}
-
-void dmd_proxy::draw_socket(socket* socket, rect_f const& dmdBounds)
+void draw_socket(socket* socket, rect_f const& dmdBounds, auto&& line, auto&& rect)
 {
     std::unordered_map<socket_state, u8> borderColors {
         {socket_state::Accept, 0xA},
@@ -394,6 +321,14 @@ void tex_proxy::print(point_i pos, string_view text, u8 color, font_type type)
             draw(pixels, x, y, size, c);
         });
     });
+}
+
+void tex_proxy::socket(class socket* socket, rect_f const& dmdBounds)
+{
+    draw_socket(
+        socket, dmdBounds,
+        [&](point_i start, point_i end, u8 color) { line(start, end, color); },
+        [&](rect_i const& r, u8 color, bool fill) { rect(r, color, fill); });
 }
 
 ////////////////////////////////////////////////////////////

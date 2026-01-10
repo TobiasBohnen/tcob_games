@@ -26,7 +26,7 @@ dice_game::dice_game(init const& init)
 {
     _spriteMaterial->first_pass().Texture = _spriteTexture;
     _spriteTexture->resize(SPRITE_TEXTURE_SIZE, 1, gfx::texture::format::RGBA8);
-    _sharedState.SpriteTexture.Changed.connect([&](auto const&) { _updateSprites = true; });
+    _sharedState.Sprites.Changed.connect([&](auto const&) { _updateSprites = true; });
 
     _background->Bounds                       = {point_f::Zero, VIRTUAL_SCREEN_SIZE};
     _backgroundMaterial->first_pass().Texture = _backgroundTexture;
@@ -108,7 +108,7 @@ void dice_game::on_fixed_update(milliseconds deltaTime)
         _spriteBatch.bring_to_front(*_foreground);
     }
 
-    if (_updateSprites) { _spriteTexture->update_data(_sharedState.SpriteTexture, 0); }
+    if (_updateSprites) { _spriteTexture->update_data(_sharedState.Sprites, 0); }
     if (_updateBackground) { _backgroundTexture->update_data(_sharedState.Background, 0); }
     if (_updateForeground) { _foregroundTexture->update_data(_sharedState.Foreground, 0); }
     _spriteBatch.update(deltaTime);

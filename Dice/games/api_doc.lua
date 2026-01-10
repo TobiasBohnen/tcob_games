@@ -168,55 +168,12 @@ function get_value(sockets, baseHandValue) end
 ---@field die_value integer The value (1-6) of the die in the socket, or 0 if empty. @readonly
 
 --------------------------------
--- DMD
---------------------------------
----@class dmd
----@description Interface for drawing to the Dot Matrix Display. All color values should be between 0 and 15.
-local dmd = {}
-
----Copies a raw string of dot data into the specified rectangle.
----@param rect rect The destination area on the DMD.
----@param dots string A string where each character represents a pixel/dot.
-function dmd:blit(rect, dots) end
-
----Clears the entire DMD, setting all pixels to 0 (Black).
-function dmd:clear() end
-
----Draws a line between two points.
----@param start point The starting coordinate {x, y}.
----@param end_point point The ending coordinate {x, y}.
----@param color color The palette index.
-function dmd:line(start, end_point, color) end
-
----Draws a circle centered at a specific point.
----@param center point The center coordinate {x, y}.
----@param radius integer The distance from the center to the edge.
----@param color color The palette index.
----@param fill boolean Whether to draw a solid circle or just the outline.
-function dmd:circle(center, radius, color, fill) end
-
----Draws a rectangle based on a rect object.
----@param rect rect The position and size of the rectangle.
----@param color color The palette index.
----@param fill boolean Whether to draw a solid rectangle or just the outline.
-function dmd:rect(rect, color, fill) end
-
----Prints text at the specified position.
----@param pos point The top-left coordinate for the text.
----@param text string The string to display.
----@param color color The palette index.
----@param font? string
-function dmd:print(pos, text, color, font) end
-
-function dmd:socket(socket) end
-
---------------------------------
 -- TEX
 --------------------------------
 ---@class tex
 ---@description Interface for drawing a textures. All color values should be between 0 and 15.
----@field size size The width and height of the texture in pixels.
 ---@field bounds rect The bounding rectangle of the texture (Position + Size). @readonly
+---@field size size The width and height of the texture in pixels.
 local tex = {}
 
 ---Copies a raw string of dot data into the specified rectangle.
@@ -225,7 +182,7 @@ local tex = {}
 ---@param blitSettings? blit_settings Optional table controlling how the blit operation is performed.
 function tex:blit(rect, data, blitSettings) end
 
----Clears the entire DMD, setting all pixels to transparent.
+---Clears the entire texture, setting all pixels to transparent/black.
 ---@param rect? rect The destination area on the texture.
 function tex:clear(rect) end
 
@@ -257,6 +214,8 @@ function tex:rect(rect, color, fill) end
 ---@param font? string
 function tex:print(pos, text, color, font) end
 
+function tex:socket(socket) end
+
 --------------------------------
 -- Engine
 --------------------------------
@@ -264,7 +223,7 @@ function tex:print(pos, text, color, font) end
 ---@class engine
 ---@description The main interface between the Lua script and the game engine hardware/state.
 ---@field screenSize size The size of the screen textures. @readonly
----@field dmd dmd Access to the Dot Matrix Display drawing functions. @readonly
+---@field dmd tex Access to the Dot Matrix Display drawing functions. @readonly
 ---@field fg tex Access to the foreground drawing functions. @readonly
 ---@field bg tex Access to the background drawing functions. @readonly
 ---@field spr tex Access to the sprite drawing functions. @readonly
@@ -328,4 +287,6 @@ function engine:give_score(score) end
 
 ---Plays a sound effect by its ID.
 ---@param id integer The ID of the sound defined in create_sounds.
-function engine:play_sound(id) end
+---@param channel? integer
+---@param playNow? boolean
+function engine:play_sound(id, channel, playNow) end

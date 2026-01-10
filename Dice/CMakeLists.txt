@@ -4,11 +4,11 @@ target_sources(Dice PRIVATE
     main.cpp
     Die.cpp
     Engine.cpp
-    EngineHelper.cpp
     Game.cpp
     Sprite.cpp
     Socket.cpp
     StartScene.cpp
+    TexProxy.cpp
     UI.cpp
 )
 
