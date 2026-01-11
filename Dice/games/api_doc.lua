@@ -64,6 +64,7 @@
 ---@class blit_settings
 ---@field transparent? integer The palette index to treat as transparent.
 ---@field rotation? rotation Rotation angle in degrees: 0, 90, 180, or 270.
+---@field scale? number
 ---@field flip_h? boolean Flip horizontally (mirror left-right).
 ---@field flip_v? boolean Flip vertically (mirror top-bottom).
 
