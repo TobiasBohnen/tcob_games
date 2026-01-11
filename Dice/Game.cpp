@@ -108,9 +108,18 @@ void dice_game::on_fixed_update(milliseconds deltaTime)
         _spriteBatch.bring_to_front(*_foreground);
     }
 
-    if (_updateSprites) { _spriteTexture->update_data(_sharedState.Sprites, 0); }
-    if (_updateBackground) { _backgroundTexture->update_data(_sharedState.Background, 0); }
-    if (_updateForeground) { _foregroundTexture->update_data(_sharedState.Foreground, 0); }
+    if (_updateSprites) {
+        _updateSprites = false;
+        _spriteTexture->update_data(_sharedState.Sprites, 0);
+    }
+    if (_updateBackground) {
+        _updateBackground = false;
+        _backgroundTexture->update_data(_sharedState.Background, 0);
+    }
+    if (_updateForeground) {
+        _updateForeground = false;
+        _foregroundTexture->update_data(_sharedState.Foreground, 0);
+    }
     _spriteBatch.update(deltaTime);
 }
 

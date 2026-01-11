@@ -274,9 +274,7 @@ void tex_proxy::rect(rect_i const& rect, u8 color, bool fill)
 
 void tex_proxy::blit(rect_i const& rect, string const& data, blit_settings settings)
 {
-    if (rect.right() > _imgSize.Width || rect.bottom() > _imgSize.Height) { return; }
     auto const dots {decode_texture_pixels(data, rect.Size)};
-    if (std::ssize(dots) != rect.Size.area()) { return; } // TODO: error
 
     i32 const w {rect.Size.Width};
     i32 const h {rect.Size.Height};

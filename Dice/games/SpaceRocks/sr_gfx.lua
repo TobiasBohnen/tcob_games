@@ -90,7 +90,7 @@ function gfx.create_textures(game, engine)
             tex,
             {
                 transparent = 0,
-                rotation = rot
+                rotation    = rot
             }
         )
 
@@ -165,7 +165,7 @@ function gfx.draw_hud(hud, game)
     hud:clear()
 
     for i = 1, game.ship.health do
-        hud:blit({ x = 0, y = (i - 1) * 11, width = 10, height = 10 }, heart_pattern)
+        hud:blit({ x = 2, y = (i - 1) * 13 + 2, width = 10, height = 10 }, heart_pattern)
     end
 
     hud:blit({ x = 30, y = 20, width = 20, height = 23 }, ship_pattern)
@@ -180,13 +180,13 @@ function gfx.draw_hud(hud, game)
         hud:blit({ x = 35, y = 40, width = 10, height = 10 }, speed_patterns[speedValue])
     end
 
-    sockets.bullets.position = { x = 55, y = 2 }
+    sockets.bullets.position = { x = 55, y = 5 }
     hud:socket(sockets.bullets)
 
-    sockets.turn.position = { x = 55, y = 22 }
+    sockets.turn.position = { x = 55, y = 25 }
     hud:socket(sockets.turn)
 
-    sockets.speed.position = { x = 55, y = 42 }
+    sockets.speed.position = { x = 55, y = 45 }
     hud:socket(sockets.speed)
 
     if game.ship.hitByAsteroid then

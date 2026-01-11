@@ -10,14 +10,13 @@
 using namespace tcob;
 using namespace std::chrono_literals;
 
-class socket;
-class sockets;
 class die;
 struct die_face;
 class dice;
 class dice_game;
-struct shared_assets;
 class sprite;
+class socket;
+class sockets;
 
 constexpr size_f VIRTUAL_SCREEN_SIZE {240, 180};
 constexpr size_i HUD_SIZE {80, 120};
@@ -72,20 +71,12 @@ struct game_def {
         std::vector<i32> Values;
         string           Color;
 
-        static auto constexpr Members()
-        {
-            return std::tuple {member<&dice::Amount> {"Amount"},
-                               member<&dice::Values> {"Values"},
-                               member<&dice::Color> {"Color"}};
-        }
+        static auto constexpr Members() { return std::tuple {member<&dice::Amount> {"Amount"}, member<&dice::Values> {"Values"}, member<&dice::Color> {"Color"}}; }
     };
     struct info {
         string Genre;
 
-        static auto constexpr Members()
-        {
-            return std::tuple {member<&info::Genre> {"Genre"}};
-        }
+        static auto constexpr Members() { return std::tuple {member<&info::Genre> {"Genre"}}; }
     };
 
     string            Name;
@@ -94,14 +85,7 @@ struct game_def {
     string            Cover;
     info              Info;
 
-    static auto constexpr Members()
-    {
-        return std::tuple {member<&game_def::Name> {"Name"},
-                           member<&game_def::Number> {"Number"},
-                           member<&game_def::Dice> {"Dice"},
-                           member<&game_def::Cover> {"Cover"},
-                           member<&game_def::Info> {"Info"}};
-    }
+    static auto constexpr Members() { return std::tuple {member<&game_def::Name> {"Name"}, member<&game_def::Number> {"Number"}, member<&game_def::Dice> {"Dice"}, member<&game_def::Cover> {"Cover"}, member<&game_def::Info> {"Info"}}; }
 
     string                        LuaPath;
     asset_owner_ptr<gfx::texture> CoverTex;

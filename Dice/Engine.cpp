@@ -221,9 +221,7 @@ void engine::create_sprite_wrapper()
 
             texture*   tex {nullptr};
             auto const texID {def.TexID};
-            if (texID && _textures.contains(*texID)) {
-                tex = &_textures[*texID];
-            }
+            if (texID && _textures.contains(*texID)) { tex = &_textures[*texID]; }
 
             return _init.Game->add_sprite({.Def = def, .Texture = tex, .Owner = spriteOwner});
         }});
@@ -241,17 +239,20 @@ void engine::create_sprite_wrapper()
         [](sprite* sprite) -> table const& { return sprite->owner(); }};
     spriteWrapper["texture"] = property {
         [](sprite* sprite) -> u32 { return sprite->get_texture()->ID; },
-        [this](sprite* sprite, u32 texID) { sprite->set_texture(&_textures[texID]); }}; // TODO: error check
+        [this](sprite* sprite, u32 texID) {
+            if (!_textures.contains(texID)) {
+                logger::Error("Invalid texture id: {}", texID);
+                return;
+            }
+            sprite->set_texture(&_textures[texID]);
+        }};
     spriteWrapper["remove"] = [this](sprite* sprite) { _init.Game->remove_sprite(sprite); };
 }
 
 void engine::create_socket_wrapper()
 {
     _newSocket                               = make_unique_closure(std::function {
-        [this](table const& socketInit) -> socket* {
-            socket_face const face {socketInit.get<socket_face>().value_or(socket_face {})};
-            return _init.Game->add_socket(face);
-        }});
+        [this](table const& socketInit) -> socket* { return _init.Game->add_socket(socketInit.get<socket_face>().value_or(socket_face {})); }});
     (**_script.Environment)["socket"]["new"] = _newSocket.get();
 
     auto& socketWrapper {*_script.create_wrapper<socket>("socket")};
@@ -266,9 +267,7 @@ void engine::create_socket_wrapper()
             if (socket->is_empty()) { return std::nullopt; }
             auto const color {socket->current_die()->current_face().Color};
             for (usize i {0}; i < PALETTE.size(); ++i) {
-                if (PALETTE[i] == color) {
-                    return static_cast<u8>(i);
-                }
+                if (PALETTE[i] == color) { return static_cast<u8>(i); }
             }
             return std::nullopt;
         }};
@@ -291,7 +290,7 @@ void engine::create_engine_wrapper()
 {
     auto& engineWrapper {*_script.create_wrapper<engine>("engine")};
     // gfx
-    engineWrapper["define_texture"] = [](engine* engine, u32 id, rect_i const& uv) { engine->define_texture(id, uv); };
+    engineWrapper["define_texture"] = [](engine* engine, u32 id, rect_f const& uv) { engine->define_texture(id, rect_i {uv}); };
 
     // sfx
     engineWrapper["define_sound"] = [](engine* engine, u32 id, audio::sound_wave soundWave) {
@@ -299,7 +298,7 @@ void engine::create_engine_wrapper()
     };
     engineWrapper["play_sound"] = [](engine* engine, u32 soundID, std::optional<u8> channelID, std::optional<bool> now) {
         if (channelID >= engine->_soundChannels.size()) {
-            logger::Warning("Invalid channel id: {}", *channelID);
+            logger::Error("Invalid channel id: {}", *channelID);
             return;
         }
 
