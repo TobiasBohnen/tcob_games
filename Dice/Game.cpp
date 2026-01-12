@@ -88,6 +88,11 @@ dice_game::dice_game(init const& init)
     }
 
     _init.Events.StartTurn.connect([this]() { _sockets.lock(); });
+    _init.Events.YSort.connect([this]() {
+        _spriteBatch.sort_by_y_position();
+        _spriteBatch.send_to_back(*_background);
+        _spriteBatch.bring_to_front(*_foreground);
+    });
 }
 
 void dice_game::on_update(milliseconds deltaTime)
@@ -103,7 +108,6 @@ void dice_game::on_fixed_update(milliseconds deltaTime)
     if (_engine.update(deltaTime)) {
         wrap_sprites();
         collide_sprites();
-
         _spriteBatch.send_to_back(*_background);
         _spriteBatch.bring_to_front(*_foreground);
     }

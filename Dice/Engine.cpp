@@ -62,7 +62,7 @@ void engine::run(string const& file)
     // require
     auto const path {io::get_parent_folder(file)};
 
-    _require = make_unique_closure(std::function {[this, path](char const* module) {
+    auto func {make_unique_closure(std::function {[this, path](char const* module) {
         auto const& env {**_script.Environment};
         if (env.has("package", "loaded", module)) { return env["package"]["loaded"][module].as<table>(); }
 
@@ -74,9 +74,9 @@ void engine::run(string const& file)
 
         _script.view().error("module %s not found", module);
         return _script.create_table();
-    }});
-
-    (**_script.Environment)["require"] = _require.get();
+    }})};
+    (**_script.Environment)["require"] = func.get();
+    _funcs.push_back(std::move(func));
 
     _table = *_script.run_file<table>(file);
 
@@ -215,7 +215,7 @@ void engine::create_wrappers()
 
 void engine::create_sprite_wrapper()
 {
-    _newSprite                               = make_unique_closure(std::function {
+    auto newFunc {make_unique_closure(std::function {
         [this](table const& spriteOwner) -> sprite* {
             sprite_def const def {spriteOwner["spriteInit"].get<sprite_def>().value_or(sprite_def {})};
 
@@ -224,8 +224,13 @@ void engine::create_sprite_wrapper()
             if (texID && _textures.contains(*texID)) { tex = &_textures[*texID]; }
 
             return _init.Game->add_sprite({.Def = def, .Texture = tex, .Owner = spriteOwner});
-        }});
-    (**_script.Environment)["sprite"]["new"] = _newSprite.get();
+        }})};
+    (**_script.Environment)["sprite"]["new"] = newFunc.get();
+    _funcs.push_back(std::move(newFunc));
+
+    auto sortFunc {make_unique_closure(std::function {[this]() { _init.Events.YSort(); }})};
+    (**_script.Environment)["sprite"]["y_sort"] = sortFunc.get();
+    _funcs.push_back(std::move(sortFunc));
 
     auto& spriteWrapper {*_script.create_wrapper<sprite>("sprite")};
     spriteWrapper["position"] = property {
@@ -251,9 +256,10 @@ void engine::create_sprite_wrapper()
 
 void engine::create_socket_wrapper()
 {
-    _newSocket                               = make_unique_closure(std::function {
-        [this](table const& socketInit) -> socket* { return _init.Game->add_socket(socketInit.get<socket_face>().value_or(socket_face {})); }});
-    (**_script.Environment)["socket"]["new"] = _newSocket.get();
+    auto func {make_unique_closure(std::function {
+        [this](table const& socketInit) -> socket* { return _init.Game->add_socket(socketInit.get<socket_face>().value_or(socket_face {})); }})};
+    (**_script.Environment)["socket"]["new"] = func.get();
+    _funcs.push_back(std::move(func));
 
     auto& socketWrapper {*_script.create_wrapper<socket>("socket")};
     socketWrapper["is_empty"] = getter {

@@ -2,14 +2,15 @@
 -- MIT License
 -- https://opensource.org/licenses/MIT
 
-local gfx            = {}
+local gfx           = {}
 
-local HORIZON_HEIGHT = 100
-local SUN_SPEED      = 0.5
-local CITY_SPEED     = 0.8
-local CLOUD_SPEED    = 1.5
+gfx.horizonHeight   = 100
 
-local BIOMES         = {
+local SUN_SPEED     = 0.5
+local CITY_SPEED    = 0.8
+local CLOUD_SPEED   = 1.5
+
+local THEMES        = {
     day = {
         sky          = Palette.Blue,
         horizonLine1 = Palette.LightBlue,
@@ -97,17 +98,17 @@ local BIOMES         = {
     },
 }
 
-local worldRotation  = 0
+local worldRotation = 0
 
-local city           = {}
-local clouds         = {}
+local city          = {}
+local clouds        = {}
 
 local function create_objects(engine, worldWidth)
     if #clouds == 0 then
         for i = 1, 25 do
             clouds[#clouds + 1] = {
                 x = engine:rnd(0, 1) * (worldWidth * CLOUD_SPEED),
-                y = math.floor(engine:rnd(0, 1) * HORIZON_HEIGHT / 4 * 3),
+                y = math.floor(engine:rnd(0, 1) * gfx.horizonHeight / 4 * 3),
                 w = engine:irnd(12, 22),
                 h = engine:irnd(3, 6)
             }
@@ -125,13 +126,19 @@ local function create_objects(engine, worldWidth)
     end
 end
 
+local roadData = {}
+
+function gfx.get_road_at_y(y)
+    return roadData[math.floor(y)] or roadData[gfx.horizonHeight]
+end
+
 ---@param engine engine
-function gfx.create_background(engine, curveAmount, trackOffset, biome)
+function gfx.create_background(engine, curveAmount, trackOffset, theme)
     local bg           = engine.bg
     local size         = bg.size
     local w, h         = size.width, size.height
     local worldWidth   = w * 4
-    local currentBiome = BIOMES[biome]
+    local currentTheme = THEMES[theme]
 
     worldRotation      = (worldRotation + curveAmount) % worldWidth
 
@@ -144,59 +151,59 @@ function gfx.create_background(engine, curveAmount, trackOffset, biome)
     end
 
     -- sky
-    bg:rect({ x = 0, y = 0, width = w, height = HORIZON_HEIGHT }, currentBiome.sky, true)
-    bg:rect({ x = 0, y = HORIZON_HEIGHT - 3, width = w, height = 2 }, currentBiome.horizonLine1, true)
-    bg:rect({ x = 0, y = HORIZON_HEIGHT - 1, width = w, height = 1 }, currentBiome.horizonLine2, true)
+    bg:rect({ x = 0, y = 0, width = w, height = gfx.horizonHeight }, currentTheme.sky, true)
+    bg:rect({ x = 0, y = gfx.horizonHeight - 3, width = w, height = 2 }, currentTheme.horizonLine1, true)
+    bg:rect({ x = 0, y = gfx.horizonHeight - 1, width = w, height = 1 }, currentTheme.horizonLine2, true)
 
     -- sun
     local sunX    = get_draw_x(30, SUN_SPEED)
     local sunSpan = worldWidth * SUN_SPEED
     local sunWrap = (sunX > 0) and (sunX - sunSpan) or (sunX + sunSpan)
 
-    bg:circle({ x = sunX, y = 20 }, 10, currentBiome.sun, true)
-    bg:circle({ x = sunWrap, y = 20 }, 10, currentBiome.sun, true)
+    bg:circle({ x = sunX, y = 20 }, 10, currentTheme.sun, true)
+    bg:circle({ x = sunWrap, y = 20 }, 10, currentTheme.sun, true)
 
     -- city
-    if currentBiome.city then
+    if currentTheme.city then
         local citySpan = worldWidth * CITY_SPEED
         for _, b in ipairs(city) do
             local drawX = get_draw_x(b.x, CITY_SPEED)
             local wrapX = (drawX > 0) and (drawX - citySpan) or (drawX + citySpan)
-            local yPos  = HORIZON_HEIGHT - b.h + 1
+            local yPos  = gfx.horizonHeight - b.h + 1
 
             -- buildings
-            bg:rect({ x = drawX, y = yPos, width = b.w, height = b.h }, currentBiome.city, true)
-            bg:rect({ x = wrapX, y = yPos, width = b.w, height = b.h }, currentBiome.city, true)
+            bg:rect({ x = drawX, y = yPos, width = b.w, height = b.h }, currentTheme.city, true)
+            bg:rect({ x = wrapX, y = yPos, width = b.w, height = b.h }, currentTheme.city, true)
 
             -- windows
             for wy = yPos + 2, yPos + b.h - 2, 3 do
                 for wx = 1, b.w - 2, 2 do
-                    bg:pixel({ x = drawX + wx, y = wy }, currentBiome.window)
-                    bg:pixel({ x = wrapX + wx, y = wy }, currentBiome.window)
+                    bg:pixel({ x = drawX + wx, y = wy }, currentTheme.window)
+                    bg:pixel({ x = wrapX + wx, y = wy }, currentTheme.window)
                 end
             end
         end
     end
 
     -- clouds
-    if currentBiome.cloud then
+    if currentTheme.cloud then
         local cloudSpan = worldWidth * CLOUD_SPEED
         for idx, cloud in ipairs(clouds) do
             local drawX = get_draw_x(cloud.x, CLOUD_SPEED)
             local wrapX = (drawX > 0) and (drawX - cloudSpan) or (drawX + cloudSpan)
 
-            bg:rect({ x = drawX, y = cloud.y, width = cloud.w, height = cloud.h }, currentBiome.cloud, true)
-            bg:rect({ x = wrapX, y = cloud.y, width = cloud.w, height = cloud.h }, currentBiome.cloud, true)
+            bg:rect({ x = drawX, y = cloud.y, width = cloud.w, height = cloud.h }, currentTheme.cloud, true)
+            bg:rect({ x = wrapX, y = cloud.y, width = cloud.w, height = cloud.h }, currentTheme.cloud, true)
         end
     end
 
 
     -- ground
-    bg:rect({ x = 0, y = HORIZON_HEIGHT, width = w, height = h - HORIZON_HEIGHT }, currentBiome.ground, true)
+    bg:rect({ x = 0, y = gfx.horizonHeight, width = w, height = h - gfx.horizonHeight }, currentTheme.ground, true)
 
     -- road
-    for y = HORIZON_HEIGHT, h - 1 do
-        local t             = (y - HORIZON_HEIGHT) / (h - HORIZON_HEIGHT)
+    for y = gfx.horizonHeight, h - 1 do
+        local t             = (y - gfx.horizonHeight) / (h - gfx.horizonHeight)
         local roadWidth     = math.floor(20 + t * (w / 3 * 2))
 
         local oneMinusT     = 1.0 - t
@@ -207,39 +214,49 @@ function gfx.create_background(engine, curveAmount, trackOffset, biome)
         local leftEdge      = centerX - math.floor(roadWidth / 2)
         local rightEdge     = centerX + math.floor(roadWidth / 2)
 
-        bg:line({ x = leftEdge, y = y }, { x = rightEdge, y = y }, currentBiome.road)
+        roadData[y]         = {
+            leftEdge  = leftEdge,
+            rightEdge = rightEdge,
+            centerX   = centerX,
+            roadWidth = roadWidth
+        }
+
+        bg:line({ x = leftEdge, y = y }, { x = rightEdge, y = y }, currentTheme.road)
 
         -- stripes
         local stripeWidth = math.max(0.5, roadWidth / 50)
         local distance    = (math.sqrt(t) - trackOffset) * 100 % 100
         if distance % 20 < 15 then
-            bg:line({ x = math.ceil(centerX - stripeWidth), y = y }, { x = math.floor(centerX + stripeWidth), y = y }, currentBiome.centerLine)
+            bg:line({ x = math.ceil(centerX - stripeWidth), y = y }, { x = math.floor(centerX + stripeWidth), y = y }, currentTheme.centerLine)
         end
         if distance % 20 < 10 then
-            bg:line({ x = leftEdge - stripeWidth, y = y }, { x = leftEdge + stripeWidth, y = y }, currentBiome.curb1)
-            bg:line({ x = rightEdge - stripeWidth, y = y }, { x = rightEdge + stripeWidth, y = y }, currentBiome.curb1)
+            bg:line({ x = leftEdge - stripeWidth, y = y }, { x = leftEdge + stripeWidth, y = y }, currentTheme.curb1)
+            bg:line({ x = rightEdge - stripeWidth, y = y }, { x = rightEdge + stripeWidth, y = y }, currentTheme.curb1)
         else
-            bg:line({ x = leftEdge - stripeWidth, y = y }, { x = leftEdge + stripeWidth, y = y }, currentBiome.curb2)
-            bg:line({ x = rightEdge - stripeWidth, y = y }, { x = rightEdge + stripeWidth, y = y }, currentBiome.curb2)
+            bg:line({ x = leftEdge - stripeWidth, y = y }, { x = leftEdge + stripeWidth, y = y }, currentTheme.curb2)
+            bg:line({ x = rightEdge - stripeWidth, y = y }, { x = rightEdge + stripeWidth, y = y }, currentTheme.curb2)
         end
     end
 end
 
-local car_texture    =
-[[2bd0h2aaCc2b0a3a0aDb0a3a0a2bCc2uCe2a0a3a0aDb0a3a0a2aCe2tCc1aCa2a0a3a0aCb0a3a0a2aCa1aCc2tCc0d3a0aCb0a3a0dCc2tCc1a0a3a0cCb0c3a0a1aCc2t0c3c0aCf0a3c0c2t0a3e0aCf0a3e0a2q0h3a0aCf0a3a0h2n0aDf0cCf0cDf0a2n0aDf0bCh0bDf0a2kCc0bDv0bCc2gCe0cDr0cCe2eCh0aDr0aCh2dCf1aCa0iDb0iCa1aCf2dCf0kDb0kCf2dCf0kDb0kCf2dCf1aCa0a2c0a3a0h3a0a2c0aCa1aCf2dCh0e3a0h3a0eCh2eCg2d0c2f0c2dCg2fCf2vCf2c]]
-local car_turn_right =
-[[2bg0h2aaCc2b0a3a0aDb0a3a0a2bCd2tCe2a0a3a0aDb0a3a0a2aCf2sCb1bCa2a0a3a0d3a0a2aCc1bCa2rCc0d3a0bCa0a3a0cCc0a1aCa2rCc1a0a3a0cCb0c3a0aCc1aCa2s0c3c0aCf0a3c0c2t0a3e0aCf0a3e0a2p0h3a0aCf0a3a0h2n0aDf0cCf0cDf0a2n0aDf0bCh0bDf0a2jCd0bDv0bCb2gCf0cDr0cCd2eCh2a0aDr0aCg2dCd1bCb2a0iDb0iCd1bCa2dCd0mDb0iCe0a1aCa2dCd0mDb0iCe0a1aCa2dCd1bCb0a2c0a3a0h3a0a2c0aCe1bCa2dCh0e3a0h3a0eCh2eCg2d0c2f0c2dCg2fCf2vCf2c]]
+local car_texture     =
+[[2i0p2q0b9n0b2o0b9p0b2m0b9r0b2k0c9r0c2i0z2g0ab2e0ad2cCa0c3d0p3d0cCa2aCb0c3d0p3d0cCd0adCd0k1h0kCd0k1h0kCd0fDb0vCd0fDb0vCd0adCh0vCf2aCe2vCe2a]]
+local opp_car_texture =
+[[2i7p2q7b5n7b2o7b5p7b2m7b5r7b2k0a7b5r7b0a2i0a7x0a2h7z2g7ab2dCb7c3b7r3b7cCb2aCb7c3d7p3d7cCd7d3b7r3b7dCd7k1h7kCe7j1h7jCf7abCh7b0c7sCj7c0a7tCk2b7r2bCf2aCe2vCe2a]]
 
-gfx.textures         = {
-    car = {
-        straight = 1,
-        left     = 2,
-        right    = 3
+gfx.textures          = {
+    car = 1,
+    opp_car = {
+        { 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 },
+        { 20, 21, 22, 23, 24, 25, 26, 27, 28, 29 },
+        { 30, 31, 32, 33, 34, 35, 36, 37, 38, 39 },
+        { 40, 41, 42, 43, 44, 45, 46, 47, 48, 49 },
+        { 50, 51, 52, 53, 54, 55, 56, 57, 58, 59 },
     }
 }
 
-gfx.sizes            = {
-    car = { width = 40, height = 22 },
+gfx.sizes             = {
+    car = { width = 34, height = 18 }
 }
 
 ---@param engine engine
@@ -251,22 +268,23 @@ function gfx.create_textures(game, engine)
     local padding   = 2
 
     ---@param size size
-    local function create(id, size, tex, tp, flipH)
-        local width  = size.width
-        local height = size.height
+    local function create(id, size, tex, tp, scale, swap)
+        local width  = size.width * scale
+        local height = size.height * scale
 
-        if pen.x + width > spr.size.width then
+        if pen.x + width >= spr.size.width then
             pen.x     = 1
             pen.y     = pen.y + rowHeight + padding
             rowHeight = 0
         end
 
         spr:blit(
-            { x = pen.x, y = pen.y, width = width, height = height },
+            { x = pen.x, y = pen.y, width = size.width, height = size.height },
             tex,
             {
                 transparent = tp,
-                flip_h = flipH
+                scale       = scale,
+                swap        = swap
             }
         )
 
@@ -276,9 +294,16 @@ function gfx.create_textures(game, engine)
         rowHeight = math.max(rowHeight, height)
     end
 
-    create(gfx.textures.car.straight, gfx.sizes.car, car_texture, Palette.White, false)
-    create(gfx.textures.car.right, gfx.sizes.car, car_turn_right, Palette.White, false)
-    create(gfx.textures.car.left, gfx.sizes.car, car_turn_right, Palette.White, true)
+    create(gfx.textures.car, gfx.sizes.car, car_texture, Palette.White, 1)
+
+    for i = 1, 10 do
+        local scale = math.sqrt(i / 10)
+        create(gfx.textures.opp_car[1][i], gfx.sizes.car, opp_car_texture, Palette.White, scale)
+        create(gfx.textures.opp_car[2][i], gfx.sizes.car, opp_car_texture, Palette.White, scale, { [Palette.Orange] = Palette.Pink })
+        create(gfx.textures.opp_car[3][i], gfx.sizes.car, opp_car_texture, Palette.White, scale, { [Palette.Orange] = Palette.Yellow })
+        create(gfx.textures.opp_car[4][i], gfx.sizes.car, opp_car_texture, Palette.White, scale, { [Palette.Orange] = Palette.Green })
+        create(gfx.textures.opp_car[5][i], gfx.sizes.car, opp_car_texture, Palette.White, scale, { [Palette.Orange] = Palette.Blue })
+    end
 end
 
 ------
@@ -298,7 +323,7 @@ function gfx.draw_car_info(hud, game)
     local y              = yStart
     local x              = xStart
 
-    hud:print({ x = x, y = y }, "speed=" .. game.car:get_display_speed(), Palette.Green, "Font3x5")
+    hud:print({ x = x, y = y }, "speed=" .. math.floor(game.car.speed.current + 0.5), Palette.Green, "Font3x5")
     y = y + 7
 end
 

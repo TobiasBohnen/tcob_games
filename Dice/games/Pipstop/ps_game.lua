@@ -4,25 +4,33 @@
 
 local DURATION       = 2500
 local SEGMENT_LENGTH = 300
-local BIOMES         = { "day", "dusk", "night", "fall", "winter", "desert", }
+local THEMES         = { "day", "dusk", "night", "fall", "winter", "desert", }
 local MAX_CAR_SPEED  = 250
+local CAR_Y          = 140
 
 local gfx            = require('ps_gfx')
 local sfx            = require('ps_sfx')
 local events         = require('ps_events')
 
 local game           = {
-    car             = {},
+    car        = {},
 
-    currentBiome    = 1,
+    opponents  = {},
 
-    track           = {},
-    trackIndex      = 1,
-    segmentProgress = 0,
+    track      = {
+        segments = {},
+        themes = {},
 
-    eventQueue      = {}, ---@type event_base[]
+        currentIndex = 1,
+        currentTheme = 1,
+        currentCurve = 0,
 
-    sockets         = {
+        segmentProgress = 0,
+    },
+
+    eventQueue = {}, ---@type event_base[]
+
+    sockets    = {
         speed = nil, ---@type socket
         control = nil, ---@type socket
     },
@@ -32,7 +40,7 @@ local game           = {
 function game:on_setup(engine)
     self:create_track(engine)
 
-    self:update_background(engine, 0)
+    self:update_background(engine)
     gfx.create_textures(self, engine)
     sfx.create_sounds(self, engine)
 
@@ -56,37 +64,44 @@ end
 ---@param engine engine
 ---@param deltaTime number
 function game:on_turn_update(engine, deltaTime, turnTime)
-    local car         = self.car
-    local curveAmount = self:get_curve(car.speed / 20)
-    car:update(turnTime, curveAmount)
+    if turnTime >= DURATION then return GameStatus.TurnEnded end
+
+    local car = self.car
+    self:update_track(car.speed.current / 60)
+    car:update(deltaTime, turnTime)
+
+    if engine:irnd(0, 1000) == 1 then
+        print("ok")
+        self:try_spawn_opponent(engine)
+    end
+
+    for i = #self.opponents, 1, -1 do
+        local opponent = self.opponents[i]
+        opponent:update(turnTime)
+
+        if opponent.markedForDeath then
+            opponent.sprite:remove()
+            table.remove(self.opponents, i)
+        end
+    end
 
     for i = #self.eventQueue, 1, -1 do
         self.eventQueue[i]:update(self, engine, deltaTime, turnTime)
     end
 
-    self:update_background(engine, curveAmount)
+    self:update_background(engine)
 
     self:on_draw_hud(engine)
 
+    sprite.y_sort()
+
     if self.car.health == 0 then return GameStatus.GameOver end
-    assert(turnTime <= DURATION)
-    if turnTime >= DURATION then return GameStatus.TurnEnded end
     return GameStatus.Running
 end
 
 ---@param engine engine
 function game:on_turn_finish(engine)
-    -- change biome
-    if self.car.speed > 0 then --TODO: use distance instead
-        if engine:irnd(1, 5) == 1 then
-            local old = self.currentBiome
-            repeat
-                self.currentBiome = engine:irnd(1, #BIOMES)
-            until self.currentBiome ~= old
-        end
-    end
-
-    self:update_background(engine, self:get_curve(0))
+    self:update_background(engine)
 end
 
 ---@param engine engine
@@ -112,19 +127,183 @@ end
 ------
 
 ---@param engine engine
-function game:create_track(engine)
-    local track = {}
-    track[1] = 0
-    for i = 1, 30 do
-        if i % 3 == 0 then
-            track[#track + 1] = 0
-            track[#track + 1] = 0
-        else
-            track[#track + 1] = engine:irnd(-10, 10) * 0.1
+function game:create_car(engine)
+    local car = {
+        speed         = {
+            current = 0,
+            target  = 0
+        },
+
+        lateral       = 0,
+        lateralTarget = 0,
+
+        handling      = 100,
+        health        = 100,
+
+        type          = "car",
+
+        spriteInit    = {
+            position  = { x = (ScreenSize.width - gfx.sizes.car.width) / 2, y = CAR_Y },
+            texture   = gfx.textures.car,
+            wrappable = false
+        },
+
+        update        = function(car, deltaTime, turnTime)
+            if car.speed.current ~= car.speed.target then
+                local healthFactor  = 0.1 + (car.health / 100.0) * 1.9
+                local baseAccelRate = 0.01
+                local accelRate     = baseAccelRate * healthFactor
+                local deltaSpeed    = accelRate * deltaTime
+
+                if car.speed.current < car.speed.target then
+                    car.speed.current = math.min(car.speed.target, car.speed.current + deltaSpeed)
+                else
+                    car.speed.current = math.max(car.speed.target, car.speed.current - deltaSpeed)
+                end
+            end
+
+            local halfRoadWidth = ScreenSize.width / 6
+            local pos           = car.sprite.position
+            local newX          = math.max(halfRoadWidth, math.min(ScreenSize.width - halfRoadWidth - gfx.sizes.car.width, pos.x - self.track.currentCurve))
+
+            car.sprite.position = { x = newX, y = pos.y }
+            car:play_sound()
+
+            engine:give_score(math.floor(car.speed.current / 40))
+        end,
+
+        play_sound    = function(car)
+            if car.speed.current > 0 then
+                local sndIdx = math.min(math.floor((car.speed.current / MAX_CAR_SPEED) * 10) + 1, 10)
+                local sound  = "car_speed_" .. sndIdx
+                engine:play_sound(sfx.sounds[sound], 0, false)
+            end
+        end
+    }
+    car.sprite = sprite.new(car)
+
+    self.car = car
+end
+
+local LANES = { 0.25, 0.5, 0.75 }
+
+---@param engine engine
+function game:try_spawn_opponent(engine)
+    local availableLanes = {}
+
+    for _, laneX in ipairs(LANES) do
+        local laneOccupied = false
+
+        for _, opp in ipairs(self.opponents) do
+            if opp.lane == laneX then
+                laneOccupied = true
+                break
+            end
+        end
+
+        if not laneOccupied then
+            availableLanes[#availableLanes + 1] = laneX
         end
     end
 
-    self.track = track
+    if #availableLanes == 0 then return end
+
+    self:create_opponent(engine, availableLanes[engine:irnd(1, #availableLanes)])
+end
+
+---@param engine engine
+function game:create_opponent(engine, lane)
+    local opponent = {
+        distance       = 0,
+        speed          = self.car.speed.current - engine:irnd(10, 30),
+        lane           = lane,
+
+        markedForDeath = false,
+
+        color          = engine:irnd(1, #gfx.textures.opp_car),
+
+        spriteInit     = {},
+
+        type           = "opponent",
+
+        update         = function(opponent, turnTime)
+            local relativeSpeed = self.car.speed.current - opponent.speed
+            opponent.distance   = opponent.distance + (relativeSpeed / MAX_CAR_SPEED) * 0.1
+
+            if opponent.distance < -0.5 or opponent.distance > 20 then
+                opponent.markedForDeath = true
+                return
+            end
+
+            local scaleIndex         = math.max(1, math.min(10, math.floor(opponent.distance) + 1))
+            opponent.sprite.texture  = gfx.textures.opp_car[opponent.color][scaleIndex]
+
+            local baseY              = gfx.horizonHeight + (opponent.distance * (CAR_Y - gfx.horizonHeight) / 10)
+            local rd                 = gfx.get_road_at_y(baseY)
+            opponent.sprite.position = { x = rd.leftEdge + (lane * rd.roadWidth) - opponent.sprite.size.width / 2, y = baseY }
+        end,
+
+        collide        = function(opponent, b)
+
+        end
+    }
+    opponent.spriteInit = {
+        texture   = gfx.textures.opp_car[opponent.color][1],
+        wrappable = false
+    }
+
+    opponent.sprite = sprite.new(opponent)
+
+    self.opponents[#self.opponents + 1] = opponent
+end
+
+---@param engine engine
+function game:create_track(engine)
+    local segments = {}
+    segments[1]    = 0
+    local themes   = {}
+    themes[1]      = 1
+
+    for i = 1, 30 do
+        local theme = themes[#themes]
+        if engine:irnd(1, 5) == 1 then
+            repeat
+                theme = engine:irnd(1, #THEMES)
+            until theme ~= themes[#themes]
+        end
+
+        if i % 3 == 0 then
+            segments[#segments + 1] = 0
+            segments[#segments + 1] = 0
+
+            themes[#themes + 1] = theme
+            themes[#themes + 1] = theme
+        else
+            segments[#segments + 1] = engine:irnd(-10, 10) * 0.1
+
+            themes[#themes + 1] = theme
+        end
+    end
+
+    self.track.segments = segments
+    self.track.themes   = themes
+    assert(#segments == #themes)
+end
+
+function game:update_track(speed)
+    self.track.segmentProgress = self.track.segmentProgress + speed
+
+    if self.track.segmentProgress >= SEGMENT_LENGTH then
+        self.track.segmentProgress = self.track.segmentProgress - SEGMENT_LENGTH
+        self.track.currentIndex    = (self.track.currentIndex % #self.track.segments) + 1
+        self.track.currentTheme    = self.track.themes[self.track.currentIndex]
+    end
+
+    local currentCurve      = self.track.segments[self.track.currentIndex]
+    local nextCurve         = self.track.segments[(self.track.currentIndex % #self.track.segments) + 1]
+
+    local t                 = self.track.segmentProgress / SEGMENT_LENGTH
+    self.track.currentCurve = currentCurve + (nextCurve - currentCurve) * t
 end
 
 ---@param engine engine
@@ -134,85 +313,8 @@ function game:queue_event(engine, event)
 end
 
 ---@param engine engine
-function game:update_background(engine, curveAmount)
-    gfx.create_background(engine, curveAmount, self.segmentProgress / SEGMENT_LENGTH, BIOMES[self.currentBiome])
-end
-
-function game:get_curve(speed)
-    self.segmentProgress = self.segmentProgress + speed
-
-    if self.segmentProgress >= SEGMENT_LENGTH then
-        self.segmentProgress = self.segmentProgress - SEGMENT_LENGTH
-        self.trackIndex = (self.trackIndex % #self.track) + 1
-    end
-
-    local currentCurve = self.track[self.trackIndex]
-    local nextCurve    = self.track[(self.trackIndex % #self.track) + 1]
-
-    local t            = self.segmentProgress / SEGMENT_LENGTH
-    return currentCurve + (nextCurve - currentCurve) * t
-end
-
----@param engine engine
-function game:create_car(engine)
-    local car = {
-        speed             = 0,
-        speedOld          = 0,
-        speedTarget       = 0,
-        lateral           = 0,
-        lateralTarget     = 0,
-
-        health            = 100,
-
-        spriteInit        = {
-            position  = { x = 120, y = 140 },
-            texture   = gfx.textures.car.straight,
-            wrappable = false
-        },
-
-        update            = function(car, turnTime, curveAmount)
-            local healthFactor     = 0.1 + (car.health / 100.0) * 1.9
-            local adjustedDuration = DURATION / healthFactor
-            local factor           = turnTime / adjustedDuration
-
-            if factor >= 1.0 then
-                car.speed    = car.speedTarget
-                car.speedOld = car.speedTarget
-            else
-                car.speed = car.speedOld + ((car.speedTarget - car.speedOld) * factor)
-            end
-
-            local halfRoadWidth = ScreenSize.width / 6
-            local pos           = car.sprite.position
-            local newX          = math.max(halfRoadWidth, math.min(ScreenSize.width - halfRoadWidth - gfx.sizes.car.width, pos.x - curveAmount))
-
-            car.sprite.position = { x = newX, y = pos.y }
-            car:play_sound()
-
-            engine:give_score(math.floor(car.speed / 10))
-        end,
-
-        set_target_speed  = function(car, target)
-            car.speedOld    = car.speed
-            car.speedTarget = target
-        end,
-        get_display_speed = function(car)
-            return math.floor(game.car.speed + 0.5)
-        end,
-
-        play_sound        = function(car)
-            if car.speed > 0 then
-                local sndIdx = math.floor((car.speed / MAX_CAR_SPEED) * 10) + 1
-                sndIdx       = math.min(sndIdx, 10)
-
-                local sound  = "car_speed_" .. sndIdx
-                engine:play_sound(sfx.sounds[sound], 0, false)
-            end
-        end
-    }
-    car.sprite = sprite.new(car)
-
-    self.car = car
+function game:update_background(engine)
+    gfx.create_background(engine, self.track.currentCurve, self.track.segmentProgress / SEGMENT_LENGTH, THEMES[self.track.currentTheme])
 end
 
 return game

@@ -68,14 +68,14 @@ void start_scene::on_update(milliseconds deltaTime)
         }
 
         _frameTimer += deltaTime;
-        if (_frameTimer >= 200ms) {
+        if (_frameTimer >= 50ms) {
             auto img {window().copy_to_image()};
             _frames.push_back({.Image = img, .Duration = _frameTimer});
             _frameTimer = 0ms;
         }
-        if (_frames.size() == 100) {
+        if (_frames.size() == 500) {
             logger::Info("capture done. saving...");
-            _clipFtr = gfx::save_animation_async("clip.webp", _frames);
+            _clipFtr = gfx::save_animation_async("clip.png", _frames);
         }
     }
 }

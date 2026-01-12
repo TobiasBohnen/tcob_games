@@ -168,6 +168,8 @@ ScreenSize = {
 ---@return sprite
 function sprite.new(owner) end
 
+function sprite.y_sort() end
+
 ---Removes a sprite from the game world.
 function sprite:remove() end
 

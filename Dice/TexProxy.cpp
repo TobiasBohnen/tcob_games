@@ -276,15 +276,19 @@ void tex_proxy::blit(rect_i const& rect, string const& data, blit_settings setti
 {
     auto const dots {decode_texture_pixels(data, rect.Size)};
 
-    i32 const w {rect.Size.Width};
-    i32 const h {rect.Size.Height};
+    i32 const imgWidth {rect.Size.Width};
+    i32 const imgHeight {rect.Size.Height};
 
     f32 const scale {settings.Scale <= 0.0f ? 1.0f : settings.Scale};
-    i32 const sw {static_cast<i32>(w * scale)};
-    i32 const sh {static_cast<i32>(h * scale)};
-    i32 const sr {sw - 1};
-    i32 const sb {sh - 1};
-    if (sw <= 0 || sh <= 0) { return; }
+    i32 const newWidth {static_cast<i32>(std::floor((imgWidth * scale) + 0.5f))};
+    i32 const newHeight {static_cast<i32>(std::floor((imgHeight * scale) + 0.5f))};
+    i32 const sr {newWidth - 1};
+    i32 const sb {newHeight - 1};
+
+    f64 const xFactor {static_cast<f64>(imgWidth) / newWidth};
+    f64 const yFactor {static_cast<f64>(imgHeight) / newHeight};
+
+    if (newWidth <= 0 || newHeight <= 0) { return; }
 
     auto const map_dst {[&](i32 sx, i32 sy) -> point_i {
         i32 const fx {settings.FlipH ? sr - sx : sx};
@@ -299,14 +303,18 @@ void tex_proxy::blit(rect_i const& rect, string const& data, blit_settings setti
 
     _img.mutate([&](auto& img) {
         auto pixels {img.data()};
-        for (i32 y {0}; y < sh; ++y) {
-            for (i32 x {0}; x < sw; ++x) {
-                i32 const srcIdx {static_cast<i32>(static_cast<f32>(x) / scale)
-                                  + (static_cast<i32>(static_cast<f32>(y) / scale) * w)};
-                assert(srcIdx < std::ssize(dots));
-                u8 const    palIndex {dots[srcIdx]};
-                color const col {settings.Transparent == palIndex ? colors::Transparent : PALETTE[palIndex]};
+        for (i32 y {0}; y < newHeight; ++y) {
+            for (i32 x {0}; x < newWidth; ++x) {
+                i32 const sx {static_cast<i32>(std::round(x * xFactor))};
+                i32 const sy {static_cast<i32>(std::round(y * yFactor))};
+                i32 const srcIdx {sx + (sy * imgWidth)};
 
+                assert(srcIdx >= 0 && srcIdx < std::ssize(dots));
+                u8 palIndex {dots[srcIdx]};
+                if (settings.Swap && settings.Swap->contains(palIndex)) {
+                    palIndex = (*settings.Swap)[palIndex];
+                }
+                color const   col {settings.Transparent == palIndex ? colors::Transparent : PALETTE[palIndex]};
                 point_i const dst {rect.top_left() + map_dst(x, y)};
                 draw(pixels, dst.X, dst.Y, _imgSize, col);
             }

@@ -66,12 +66,10 @@ private:
 
     void define_texture(u32 id, rect_i const& uv);
 
-    scripting::script                    _script;
-    scripting::table                     _table;
-    scripting::native_closure_unique_ptr _require;
-    scripting::native_closure_unique_ptr _newSprite;
-    scripting::native_closure_unique_ptr _newSocket;
-    callbacks                            _callbacks;
+    scripting::script                                 _script;
+    scripting::table                                  _table;
+    std::vector<scripting::native_closure_unique_ptr> _funcs;
+    callbacks                                         _callbacks;
 
     init        _init;
     game_status _gameStatus {game_status::TurnEnded};

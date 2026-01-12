@@ -10,19 +10,23 @@
 ////////////////////////////////////////////////////////////
 
 struct blit_settings {
-    std::optional<u32> Transparent;
-    u32                Rotation {0};
-    f32                Scale {1};
-    bool               FlipH {false};
-    bool               FlipV {false};
+    std::optional<u32>                        Transparent;
+    u32                                       Rotation {0};
+    f32                                       Scale {1};
+    bool                                      FlipH {false};
+    bool                                      FlipV {false};
+    std::optional<std::unordered_map<u8, u8>> Swap;
 
     static auto constexpr Members()
     {
-        return std::tuple {member<&blit_settings::Transparent, std::nullopt> {"transparent"},
-                           member<&blit_settings::Rotation, 0> {"rotation"},
-                           member<&blit_settings::Scale, 1.0f> {"scale"},
-                           member<&blit_settings::FlipH, false> {"flip_h"},
-                           member<&blit_settings::FlipV, false> {"flip_v"}};
+        return std::tuple {
+            member<&blit_settings::Transparent, std::nullopt> {"transparent"},
+            member<&blit_settings::Rotation, 0> {"rotation"},
+            member<&blit_settings::Scale, 1.0f> {"scale"},
+            member<&blit_settings::FlipH, false> {"flip_h"},
+            member<&blit_settings::FlipV, false> {"flip_v"},
+            member<&blit_settings::Swap, std::nullopt> {"swap"},
+        };
     }
 };
 

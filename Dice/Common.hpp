@@ -105,6 +105,8 @@ struct event_bus {
 
     signal<socket* const> SocketDieChanged;
     signal<>              DieMotion;
+
+    signal<> YSort;
 };
 
 struct shared_state {
