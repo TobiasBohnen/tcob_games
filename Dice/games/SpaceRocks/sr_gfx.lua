@@ -180,13 +180,13 @@ function gfx.draw_hud(hud, game)
         hud:blit({ x = 35, y = 40, width = 10, height = 10 }, speed_patterns[speedValue])
     end
 
-    sockets.bullets.position = { x = 55, y = 5 }
+    sockets.bullets.position = { x = 54, y = 4 }
     hud:socket(sockets.bullets)
 
-    sockets.turn.position = { x = 55, y = 25 }
+    sockets.turn.position = { x = 54, y = 24 }
     hud:socket(sockets.turn)
 
-    sockets.speed.position = { x = 55, y = 45 }
+    sockets.speed.position = { x = 54, y = 44 }
     hud:socket(sockets.speed)
 
     if game.ship.hitByAsteroid then

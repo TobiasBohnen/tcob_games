@@ -72,7 +72,7 @@ auto die::get_bounds() const -> rect_f const& { return *_shape->Bounds; }
 void die::set_bounds(rect_f const& bounds)
 {
     _colorState    = die_state::Normal;
-    _shape->Bounds = bounds;
+    _shape->Bounds = _shape->Bounds->as_centered_at(bounds.center());
 }
 
 void die::move_to(point_f pos)

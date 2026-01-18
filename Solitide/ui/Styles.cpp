@@ -91,10 +91,10 @@ struct converter<ui::dimensions> {
             auto l {get_length_values(config)};
             switch (l.size()) {
             case 1:
-                value = {l[0], l[0]};
+                value = {.Width = l[0], .Height = l[0]};
                 return true;
             case 2:
-                value = {l[0], l[1]};
+                value = {.Width = l[0], .Height = l[1]};
                 return true;
             default:
                 return false;
@@ -263,7 +263,7 @@ void styles::parse(data::object const& obj, grid_view::style* style)
 void styles::parse(data::object const& obj, image_box::style* style)
 {
     parse_widget_style(obj, style);
-    obj.try_get(style->Alignment, "alignment");
+    obj.try_get(style->DragAlpha, "drag_alpha");
 }
 
 void styles::parse(data::object const& obj, label::style* style)

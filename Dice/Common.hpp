@@ -19,7 +19,7 @@ class socket;
 class sockets;
 
 constexpr size_f VIRTUAL_SCREEN_SIZE {240, 180};
-constexpr size_i HUD_SIZE {80, 120};
+constexpr size_i HUD_SIZE {90, 140};
 constexpr size_i COVER_SIZE {128, 128};
 constexpr size_i SPRITE_TEXTURE_SIZE {256, 256};
 

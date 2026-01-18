@@ -5,8 +5,6 @@
 
 #include "StartScene.hpp"
 
-#include <iomanip>
-
 start_scene::start_scene(game& game)
     : scene {game}
     , _gameNode(&root_node().create_child())
@@ -83,14 +81,11 @@ void start_scene::on_update(milliseconds deltaTime)
 void start_scene::on_fixed_update(milliseconds /* deltaTime */)
 {
 #if defined(TCOB_DEBUG)
-    std::stringstream stream;
-    stream << std::fixed << std::setprecision(2);
     auto const& stats {locate_service<gfx::render_system>().statistics()};
-    stream << "avg FPS:" << stats.average_FPS();
-    stream << " best FPS:" << stats.best_FPS();
-    stream << " worst FPS:" << stats.worst_FPS();
-
-    window().Title = "Dice >| " + stream.str();
+    auto const& mouse {locate_service<input::system>().mouse().get_position()};
+    window().Title = std::format("Dice | FPS avg:{:.2f} best:{:.2f} worst:{:.2f} | x:{} y:{} ",
+                                 stats.average_FPS(), stats.best_FPS(), stats.worst_FPS(),
+                                 mouse.X, mouse.Y);
 #endif
 }
 

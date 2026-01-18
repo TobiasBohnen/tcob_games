@@ -207,10 +207,6 @@
     "header_items:hover": {},
     "header_items:active": {},
     "image_box": {
-        "alignment": {
-            "horizontal": "Centered",
-            "vertical": "Middle"
-        },
         "padding": "2px"
     },
     "inner_panel#panel": {

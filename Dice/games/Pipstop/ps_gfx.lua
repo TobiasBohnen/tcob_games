@@ -330,7 +330,7 @@ end
 ---@param hud tex
 function gfx.draw_events(hud, game)
     local xStart, yStart = 1, 8
-    local offset         = 16
+    local offset         = 18
 
     local y              = yStart
     local x              = xStart

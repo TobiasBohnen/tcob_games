@@ -21,53 +21,50 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
     _hudTexture->resize(HUD_SIZE, 1, gfx::texture::format::RGBA8);
     _hudTexture->regions()["default"] = texture_region {.UVRect = {0, 0, 1, 1}, .Level = 0};
 
-    {
-        auto& panel1 {create_container<ui::panel>(rect_i {0, 0, 100, 73}, "panel1")};
-        panel1.disable();
-        auto& layout {panel1.create_layout<grid_layout>(size_i {100, 100})};
+    auto& panel1 {create_container<ui::panel>(rect_i {0, 0, 100, 73}, "panel1")};
+    panel1.disable();
+    auto& layout1 {panel1.create_layout<grid_layout>(size_i {100, 100})};
 
-        layout.create_widget<seven_segment_display>({0, 0, 50, 10}, "ssd0");
-        _sharedState.Score.Changed.connect([&]() { _updateSsd0 = true; });
+    layout1.create_widget<seven_segment_display>({0, 0, 50, 10}, "ssd0");
+    _sharedState.Score.Changed.connect([&]() { _updateSsd0 = true; });
 
-        layout.create_widget<seven_segment_display>({50, 0, 50, 10}, "ssd1");
-        _sharedState.SSD.Changed.connect([&]() { _updateSsd1 = true; });
+    layout1.create_widget<seven_segment_display>({50, 0, 50, 10}, "ssd1");
+    _sharedState.SSD.Changed.connect([&]() { _updateSsd1 = true; });
 
-        auto& hud {layout.create_widget<image_box>({0, 10, 100, 90}, "hud")};
-        hud.Image = {.Texture = _hudTexture};
+    auto& hud {layout1.create_widget<image_box>({0, 10, 100, 90}, "hud")};
+    hud.Image     = {.Texture = _hudTexture};
+    hud.Fit       = fit_mode::PixelPerfect;
+    hud.Alignment = {.Horizontal = horizontal_alignment::Centered, .Vertical = vertical_alignment::Middle};
+    _sharedState.HUD.Changed.connect([&]() { _updateHud = true; });
 
-        _sharedState.HUD.Changed.connect([&]() { _updateHud = true; });
-        hud.Bounds.Changed.connect([this, &hud]() {
-            auto const img {hud.image_bounds()};
-            _sharedState.HUDBounds = rect_f {local_to_screen(hud, img.Position), img.Size};
-        });
-    }
-    {
-        auto& panel2 {create_container<ui::panel>(rect_i {0, 73, 100, 25}, "panel2")};
-        auto& layout {panel2.create_layout<grid_layout>(size_i {4, 4})};
+    auto& panel2 {create_container<ui::panel>(rect_i {0, 73, 100, 25}, "panel2")};
+    auto& layout2 {panel2.create_layout<grid_layout>(size_i {4, 4})};
 
-        auto& btn0 {layout.create_widget<button>({0, 0, 3, 4}, "btn0")};
-        btn0.Label = "GO";
-        btn0.Click.connect([&events]() { events.StartTurn(); });
-        _sharedState.CanStart.Changed.connect([&btn0](auto val) {
-            if (val) {
-                btn0.enable();
-            } else {
-                btn0.disable();
-            }
-        });
+    auto& btn0 {layout2.create_widget<button>({0, 0, 3, 4}, "btn0")};
+    btn0.Label = "GO";
+    btn0.Click.connect([&events]() { events.StartTurn(); });
+    _sharedState.CanStart.Changed.connect([&btn0](auto val) {
+        if (val) {
+            btn0.enable();
+        } else {
+            btn0.disable();
+        }
+    });
 
-        auto& btn1 {layout.create_widget<button>({3, 0, 1, 2}, "btn1")};
-        btn1.Label = "RESET";
-        btn1.Class = "button2";
-        btn1.Click.connect([&events]() { events.Restart(); });
+    auto& btn1 {layout2.create_widget<button>({3, 0, 1, 2}, "btn1")};
+    btn1.Label = "RESET";
+    btn1.Class = "button2";
+    btn1.Click.connect([&events]() { events.Restart(); });
 
-        auto& btn2 {layout.create_widget<button>({3, 2, 1, 2}, "btn2")};
-        btn2.Label = "OFF";
-        btn2.Class = "button2";
-        btn2.Click.connect([&events]() { events.Quit(); });
-    }
+    auto& btn2 {layout2.create_widget<button>({3, 2, 1, 2}, "btn2")};
+    btn2.Label = "OFF";
+    btn2.Class = "button2";
+    btn2.Click.connect([&events]() { events.Quit(); });
 
     update(0ms);
+
+    auto const img {hud.image_bounds()};
+    _sharedState.HUDBounds = rect_f {local_to_screen(hud, img.Position), img.Size};
 }
 
 void game_form::on_update(milliseconds deltaTime)
@@ -177,7 +174,6 @@ void game_form::gen_styles(assets::group const& grp)
     {
         auto style {styles.create<image_box>("image_box", {})};
         style->Background = colors::Transparent;
-        style->Alignment  = {.Horizontal = horizontal_alignment::Centered, .Vertical = vertical_alignment::Middle};
     }
     Styles = styles;
 }
@@ -226,7 +222,8 @@ game_select_form::game_select_form(rect_f const& bounds, assets::group const& gr
             i32 const y {(i / NUM_BOXES)};
 
             auto& imgBox {layout.create_widget<image_box>({x, y, 3, 1}, "")};
-            imgBox.Fit = fit_mode::Contain;
+            imgBox.Fit       = fit_mode::Contain;
+            imgBox.Alignment = {.Horizontal = horizontal_alignment::Centered, .Vertical = vertical_alignment::Middle};
             auto& imgBoxLbl {layout.create_widget<label>({x - 1, y, 1, 1}, "")};
 
             u32 const gameNumber {static_cast<u32>(i + 1)};
@@ -269,7 +266,6 @@ void game_select_form::gen_styles(assets::group const& grp)
         auto style {styles.create<image_box>("image_box", {})};
         style->Background = colors::LightGray;
         style->Margin     = 1_pct;
-        style->Alignment  = {.Horizontal = horizontal_alignment::Centered, .Vertical = vertical_alignment::Middle};
 
         auto hoverStyle {styles.create<image_box>("image_box", {.Hover = true})};
         *hoverStyle            = *style;

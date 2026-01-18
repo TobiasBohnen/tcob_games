@@ -142,13 +142,13 @@ function gfx.draw_hud(hud, game, hudInfo)
         y = y + 12
 
         hud:blit({ x = 2, y = y, width = 13, height = 13 }, charge_pattern)
-        sockets[type].chargeRate.position = { x = x, y = y }
+        sockets[type].chargeRate.position = { x = x - 1, y = y - 2 }
         hud:socket(sockets[type].chargeRate)
 
         y = y + offset
 
         hud:blit({ x = 2, y = y, width = 13, height = 13 }, cooling_pattern)
-        sockets[type].coolRate.position = { x = x, y = y }
+        sockets[type].coolRate.position = { x = x - 1, y = y - 2 }
         hud:socket(sockets[type].coolRate)
 
         local barHeight = 10
@@ -168,7 +168,7 @@ function gfx.draw_hud(hud, game, hudInfo)
     draw_cannon("center", 43)
     draw_cannon("right", 64)
 
-    sockets.energyRestore.position = { x = 22, y = 73 }
+    sockets.energyRestore.position = { x = 21, y = 72 }
     hud:socket(sockets.energyRestore)
 
     local reserveBarWidth  = 20

@@ -275,9 +275,10 @@ void engine::create_socket_wrapper()
         [](socket* socket) -> point_i { return socket->HUDPosition; },
         [this](socket* socket, point_f pos) {
             socket->HUDPosition = point_i {pos};
-            auto const& rect {_init.State.HUDBounds};
-            socket->move_to({rect.left() + (rect.width() * (pos.X / static_cast<f32>(HUD_SIZE.Width))),
-                             rect.top() + (rect.height() * (pos.Y / static_cast<f32>(HUD_SIZE.Height)))});
+            auto const&   rect {_init.State.HUDBounds};
+            point_f const spos {rect.left() + (rect.width() * (pos.X / static_cast<f32>(HUD_SIZE.Width))),
+                                rect.top() + (rect.height() * (pos.Y / static_cast<f32>(HUD_SIZE.Height)))};
+            socket->move_to(spos);
         }};
     socketWrapper["remove"] = [this](socket* socket) { _init.Game->remove_socket(socket); };
 }

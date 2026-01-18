@@ -145,8 +145,7 @@ void draw_socket(socket* socket, auto&& line, auto&& rect)
 
     point_i pos {socket->HUDPosition};
 
-    rect_i box {pos, size_i {13, 13}};
-    box = box.as_inset_by(point_i {-1, -1});
+    rect_i box {pos, size_i {16, 16}};
 
     u8 const  color {borderColors[socket->state()]};
     i32 const len {3};
