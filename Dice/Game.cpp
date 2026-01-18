@@ -22,7 +22,7 @@ dice_game::dice_game(init const& init)
           .Game   = this,
       }}
     , _sockets {init.RealWindowSize / DICE_REF_SIZE}
-    , _dice {_diceBatch, init.RealWindowSize / DICE_REF_SIZE}
+    , _dice {_init.Group, _diceBatch, init.RealWindowSize / DICE_REF_SIZE}
 {
     _spriteMaterial->first_pass().Texture = _spriteTexture;
     _spriteTexture->resize(SPRITE_TEXTURE_SIZE, 1, gfx::texture::format::RGBA8);
@@ -77,7 +77,7 @@ dice_game::dice_game(init const& init)
         vec.reserve(die.Values.size());
         for (auto const& value : die.Values) {
             if (!PALETTE_MAP.contains(die.Color)) { continue; }
-            vec.emplace_back(value, PALETTE[PALETTE_MAP.at(die.Color)]);
+            vec.emplace_back(value, PALETTE_MAP.at(die.Color));
         }
         if (vec.empty()) { return; }
 

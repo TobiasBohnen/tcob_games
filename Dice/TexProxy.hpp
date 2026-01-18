@@ -62,7 +62,7 @@ public:
     void blit(rect_i const& rect, string const& data, blit_settings settings);
     void print(point_i pos, string_view text, u8 color, font_type type);
 
-    void socket(socket* socket, rect_f const& hudBounds);
+    void socket(socket* socket);
 
 private:
     static void draw(std::span<u8> data, i32 x, i32 y, size_i s, color color);

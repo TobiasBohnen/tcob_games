@@ -347,7 +347,7 @@ function gfx.draw_events(hud, game)
         y = y + 7
 
         for _, socket in ipairs(event.sockets or {}) do
-            socket.position = { x = x, y = y }
+            socket.position = { x = x + 1, y = y }
             hud:socket(socket)
             x = x + offset
         end

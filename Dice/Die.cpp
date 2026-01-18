@@ -15,7 +15,7 @@ die::die(gfx::rect_shape* shape, audio::buffer const& buffer, rng& rng, std::spa
 {
     _sound = std::make_shared<audio::sound>(buffer);
 
-    _shape->TextureRegion = _currentFace.texture_region();
+    _shape->TextureRegion = _currentFace.texture_region(_colorState);
 }
 
 auto die::current_face() const -> die_face { return _currentFace; }
@@ -50,9 +50,7 @@ void die::roll()
         _currentFace.Color = face.Color;
         _currentFace.Value = face.Value;
 
-        if (auto texRegion {_currentFace.texture_region()}; _shape->TextureRegion != texRegion) {
-            _shape->TextureRegion = texRegion;
-
+        if (auto texRegion {_currentFace.texture_region(_colorState)}; _shape->TextureRegion != texRegion) {
             if (_sound && _sound->state() != playback_state::Running) {
                 _sound->play();
             }
@@ -64,18 +62,10 @@ void die::roll()
 
 void die::update(milliseconds deltaTime)
 {
-    switch (_colorState) {
-    case die_state::Normal:
-        _shape->Color = colors::White;
-        break;
-    case die_state::Hovered:
-    case die_state::Dragged:
-        _shape->Color = colors::DarkGray;
-        break;
+    if (_rolling) {
+        if (_tween) { _tween->update(deltaTime); }
     }
-
-    if (!_rolling) { return; }
-    if (_tween) { _tween->update(deltaTime); }
+    _shape->TextureRegion = _currentFace.texture_region(_colorState);
 }
 
 auto die::get_bounds() const -> rect_f const& { return *_shape->Bounds; }
@@ -103,9 +93,9 @@ auto die::shape() const -> gfx::rect_shape* { return _shape; }
 
 ////////////////////////////////////////////////////////////
 
-dice::dice(gfx::shape_batch& batch, size_f scale)
-    : _batch {batch}
-    , _painter {{10, 50}}
+dice::dice(assets::group& group, gfx::shape_batch& batch, size_f scale)
+    : _material {group.get<gfx::material>("dice")}
+    , _batch {batch}
     , _scale {scale}
 {
     data::object ob {};
@@ -120,11 +110,9 @@ auto dice::add_die(point_f pos, rng& rng, die_face currentFace, std::span<die_fa
 {
     auto* shape {&_batch.create_shape<gfx::rect_shape>()};
     shape->Bounds   = {pos, DICE_SIZE * _scale};
-    shape->Material = _painter.material();
+    shape->Material = _material;
 
     auto& retValue {_dice.emplace_back(std::make_unique<die>(shape, _buffer, rng, faces, currentFace))};
-    _painter.make_die(faces);
-
     return retValue.get();
 }
 
@@ -200,75 +188,3 @@ void dice::update(milliseconds deltaTime)
 }
 
 auto dice::count() const -> usize { return _dice.size(); }
-
-////////////////////////////////////////////////////////////
-
-dice_painter::dice_painter(size_i texGrid)
-    : _texGrid {texGrid}
-{
-    _tex = _canvas.get_texture(0);
-
-    _material->first_pass().Texture = _tex;
-}
-
-auto dice_painter::material() -> asset_owner_ptr<gfx::material>
-{
-    return _material;
-}
-
-void dice_painter::make_die(std::span<die_face const> faces)
-{
-    static auto const dicePath {*gfx::path2d::Parse("m 15,0 h 34 c 8,0 15,7 15,15 v 34 c 0,8 -7,15 -15,15 H 15 C 7,64 0,57 0,49 V 15 C 0,7 7,0 15,0 Z")};
-    auto const        paintDie {[&](color fg, color bg) {
-        _canvas.path_2d(dicePath);
-        _canvas.set_fill_style(fg);
-        _canvas.fill(false);
-        _canvas.set_stroke_width(2);
-        _canvas.set_stroke_style(bg);
-        _canvas.stroke();
-    }};
-    auto const        paintDots {[&](color fg, auto... dots) {
-        _canvas.set_fill_style(fg);
-        _canvas.begin_path();
-        (_canvas.circle(dots, 6), ...);
-        _canvas.fill();
-    }};
-
-    auto const texSize {_texGrid * 68};
-    _canvas.begin_frame(texSize, 1, 0, false);
-    for (auto const& face : faces) {
-        if (_tex->regions().contains(face.texture_region())) { continue; }
-
-        _canvas.save();
-
-        _canvas.translate(_pen);
-
-        _tex->regions()[face.texture_region()] = {
-            .UVRect = {{(_pen.X - 2) / static_cast<f32>(texSize.Width),
-                        -(_pen.Y - 2) / static_cast<f32>(texSize.Height)},
-                       {68.f / static_cast<f32>(texSize.Width),
-                        -68.f / static_cast<f32>(texSize.Height)}},
-            .Level  = 0};
-
-        _pen += point_f {68, 0};
-        if (_pen.X >= static_cast<f32>(texSize.Width)) {
-            _pen.X = 2;
-            _pen.Y += 68;
-        }
-
-        paintDie(face.Color, colors::Black);
-
-        switch (face.Value) {
-        case 1: paintDots(colors::Black, point_f {32, 32}); break;
-        case 2: paintDots(colors::Black, point_f {16, 16}, point_f {48, 48}); break;
-        case 3: paintDots(colors::Black, point_f {16, 16}, point_f {32, 32}, point_f {48, 48}); break;
-        case 4: paintDots(colors::Black, point_f {16, 16}, point_f {48, 16}, point_f {16, 48}, point_f {48, 48}); break;
-        case 5: paintDots(colors::Black, point_f {16, 16}, point_f {48, 16}, point_f {32, 32}, point_f {16, 48}, point_f {48, 48}); break;
-        case 6: paintDots(colors::Black, point_f {16, 16}, point_f {48, 16}, point_f {16, 32}, point_f {48, 32}, point_f {16, 48}, point_f {48, 48}); break;
-        }
-
-        _canvas.restore();
-    }
-    _canvas.end_frame();
-    _tex->Filtering = gfx::texture::filtering::Linear;
-}

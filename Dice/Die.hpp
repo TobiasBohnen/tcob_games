@@ -9,22 +9,30 @@
 
 ////////////////////////////////////////////////////////////
 
-struct die_face {
-    u8    Value {0};
-    color Color {};
-
-    auto texture_region() const -> string
-    {
-        return std::format("d{}-{}", Value, Color.value());
-    }
-
-    auto operator==(die_face const& other) const -> bool = default;
-};
-
 enum class die_state : u8 {
     Normal,
     Hovered,
     Dragged
+};
+
+struct die_face {
+    u8 Value {0};
+    u8 Color {};
+
+    auto texture_region(die_state state) const -> string
+    {
+        string suffix;
+        switch (state) {
+        case die_state::Normal: break;
+        case die_state::Hovered:
+        case die_state::Dragged:
+            suffix = "-hover";
+            break;
+        }
+        return std::format("d{}-{:X}{}", Value, Color, suffix);
+    }
+
+    auto operator==(die_face const& other) const -> bool = default;
 };
 
 class die {
@@ -71,28 +79,9 @@ private:
 
 ////////////////////////////////////////////////////////////
 
-class dice_painter {
-public:
-    explicit dice_painter(size_i texGrid);
-
-    auto material() -> asset_owner_ptr<gfx::material>;
-
-    void make_die(std::span<die_face const> faces);
-
-private:
-    gfx::canvas _canvas;
-
-    size_i                         _texGrid;
-    point_f                        _pen {2, 2};
-    asset_ptr<gfx::texture>        _tex;
-    asset_owner_ptr<gfx::material> _material;
-};
-
-////////////////////////////////////////////////////////////
-
 class dice {
 public:
-    dice(gfx::shape_batch& batch, size_f scale);
+    dice(assets::group& group, gfx::shape_batch& batch, size_f scale);
 
     auto add_die(point_f pos, rng& rng, die_face currentFace, std::span<die_face const> faces) -> die*;
     void move_die(usize idx, point_f target);
@@ -110,9 +99,9 @@ public:
 private:
     std::vector<std::unique_ptr<die>> _dice;
 
-    gfx::shape_batch& _batch;
-    dice_painter      _painter;
-    size_f            _scale;
+    asset_ptr<gfx::material> _material;
+    gfx::shape_batch&        _batch;
+    size_f                   _scale;
 
     die* _hoverDie {nullptr};
 

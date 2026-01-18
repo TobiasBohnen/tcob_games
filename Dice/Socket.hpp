@@ -73,6 +73,8 @@ class socket {
 public:
     explicit socket(socket_face face);
 
+    point_i HUDPosition {point_i::Zero};
+
     auto is_empty() const -> bool;
     auto current_die() const -> die*;
 
@@ -81,7 +83,6 @@ public:
     auto can_remove_die(die* die) const -> bool;
     void remove_die();
 
-    auto bounds() const -> rect_f const&;
     void move_to(point_f pos);
 
     auto state() const -> socket_state;

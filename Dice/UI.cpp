@@ -20,7 +20,6 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
 
     _hudTexture->resize(HUD_SIZE, 1, gfx::texture::format::RGBA8);
     _hudTexture->regions()["default"] = texture_region {.UVRect = {0, 0, 1, 1}, .Level = 0};
-    // _hudTexture->Filtering            = gfx::texture::filtering::Linear;
 
     {
         auto& panel1 {create_container<ui::panel>(rect_i {0, 0, 100, 73}, "panel1")};
@@ -35,11 +34,11 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
 
         auto& hud {layout.create_widget<image_box>({0, 10, 100, 90}, "hud")};
         hud.Image = {.Texture = _hudTexture};
+
         _sharedState.HUD.Changed.connect([&]() { _updateHud = true; });
         hud.Bounds.Changed.connect([this, &hud]() {
-            _sharedState.HUDBounds = {
-                local_to_screen(hud, hud.content_bounds().Position),
-                {hud.content_bounds().width(), hud.content_bounds().width() / HUD_SIZE.Width * HUD_SIZE.Height}};
+            auto const img {hud.image_bounds()};
+            _sharedState.HUDBounds = rect_f {local_to_screen(hud, img.Position), img.Size};
         });
     }
     {
@@ -167,7 +166,7 @@ void game_form::gen_styles(assets::group const& grp)
         auto style {styles.create<seven_segment_display>("seven_segment_display", {})};
         style->Size              = 11.0_pct;
         style->Padding           = {3_pct, 0_pct, 2.5_pct, 0_pct};
-        style->Margin            = {0_pct, 0_pct, 1.5_pct, 2_pct};
+        style->Margin            = {1_pct, 1_pct, 1.5_pct, 2_pct};
         style->Border.Size       = 2_pct;
         style->Background        = colors::Black;
         style->ActiveColor       = colors::FireBrick;
@@ -178,6 +177,7 @@ void game_form::gen_styles(assets::group const& grp)
     {
         auto style {styles.create<image_box>("image_box", {})};
         style->Background = colors::Transparent;
+        style->Alignment  = {.Horizontal = horizontal_alignment::Centered, .Vertical = vertical_alignment::Middle};
     }
     Styles = styles;
 }

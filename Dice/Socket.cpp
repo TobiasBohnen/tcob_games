@@ -36,11 +36,7 @@ auto socket::can_insert_die(die_face dieFace) const -> bool
     }
 
     if (_face.Colors && !_face.Colors->empty()) {
-        u8 idx {0};
-        for (; idx <= 15; ++idx) {
-            if (PALETTE[idx] == dieFace.Color) { break; }
-        }
-        if (!_face.Colors->contains(idx)) { return false; }
+        if (!_face.Colors->contains(dieFace.Color)) { return false; }
     }
     return true;
 }
@@ -65,7 +61,6 @@ void socket::remove_die()
     _die = nullptr;
 }
 
-auto socket::bounds() const -> rect_f const& { return _bounds; }
 void socket::move_to(point_f pos) { _bounds = {pos, _bounds.Size}; }
 auto socket::state() const -> socket_state { return _state; }
 auto socket::face() const -> socket_face const& { return _face; }
@@ -106,6 +101,21 @@ auto sockets::try_insert_die(die* hoverDie) -> socket*
     return _hoverSocket;
 }
 
+auto sockets::try_remove_die(die* die) -> socket*
+{
+    if (_locked || !die) { return nullptr; }
+
+    for (auto& socket : _sockets) {
+        if (socket->can_remove_die(die)) {
+            socket->remove_die();
+            socket->_state = socket_state::Idle;
+            return socket.get();
+        }
+    }
+
+    return nullptr;
+}
+
 void sockets::hover(rect_f const& rect)
 {
     if (_locked) {
@@ -118,6 +128,8 @@ void sockets::hover(rect_f const& rect)
         f32     maxArea {0.0f};
 
         for (auto& s : _sockets) {
+            if (!s->is_empty()) { continue; }
+
             auto const& socketRect {s->_bounds};
             auto const  interSect {rect.as_intersection_with(socketRect)};
             if (interSect.Size.area() > maxArea) {
@@ -136,15 +148,6 @@ void sockets::hover(rect_f const& rect)
         }
         _hoverSocket = socket;
     }
-}
-
-auto sockets::try_remove_die(die* die) -> socket*
-{
-    if (_locked || !die || !_hoverSocket || !_hoverSocket->can_remove_die(die)) { return nullptr; }
-
-    _hoverSocket->remove_die();
-    _hoverSocket->_state = socket_state::Idle;
-    return _hoverSocket;
 }
 
 void sockets::on_drag(die* draggedDie)
@@ -244,7 +247,7 @@ auto get_hand(std::span<socket* const> sockets) -> hand
     }
 
     // color
-    std::unordered_set<color> uniqueColors;
+    std::unordered_set<u8> uniqueColors;
     for (auto const& f : faces) { uniqueColors.insert(f.Face.Color); }
 
     switch (uniqueColors.size()) {

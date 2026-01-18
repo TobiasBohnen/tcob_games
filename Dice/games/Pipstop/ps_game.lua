@@ -56,7 +56,7 @@ function game:on_turn_start(engine)
         if event.finished then
             table.remove(self.eventQueue, i)
         else
-            event:turn_start(self, engine)
+            event:turn_start()
         end
     end
 end
@@ -70,10 +70,6 @@ function game:on_turn_update(engine, deltaTime, turnTime)
     self:update_track(car.speed.current / 60)
     car:update(deltaTime, turnTime)
 
-    if engine:irnd(0, 1000) == 1 then
-        print("ok")
-        self:try_spawn_opponent(engine)
-    end
 
     for i = #self.opponents, 1, -1 do
         local opponent = self.opponents[i]
@@ -86,7 +82,7 @@ function game:on_turn_update(engine, deltaTime, turnTime)
     end
 
     for i = #self.eventQueue, 1, -1 do
-        self.eventQueue[i]:update(self, engine, deltaTime, turnTime)
+        self.eventQueue[i]:update(deltaTime, turnTime)
     end
 
     self:update_background(engine)

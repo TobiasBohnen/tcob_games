@@ -16,8 +16,7 @@ local event_base = {
 
     finished    = false,
 
-    ---@param engine engine
-    init        = function(event, game, engine)
+    init        = function(event)
         assert(event.socketCount <= 5)
         for i = 1, event.socketCount do
             event.sockets[#event.sockets + 1] = socket.new { colors = { Palette.White } }
@@ -28,25 +27,23 @@ local event_base = {
         end
     end,
 
-    ---@param engine engine
-    turn_start  = function(event, game, engine)
-        event.value     = event.value + get_value(event.sockets, 5)
+    turn_start  = function(event)
+        local s, h      = socket.get_value(event.sockets)
+        event.value     = event.value + (s + h * 5)
         event.turnsLeft = event.turnsLeft - 1
 
         if event.turnsLeft == 0 then
-            event:resolve(game, engine)
+            event:resolve()
         end
     end,
 
-    ---@param engine engine
-    update      = function(event, game, engine, deltaTime, turnTime)
+    update      = function(event, deltaTime, turnTime)
         if event.on_update then
             event:on_update(deltaTime, turnTime)
         end
     end,
 
-    ---@param engine engine
-    resolve     = function(event, game, engine)
+    resolve     = function(event)
         if event.on_resolve then
             event:on_resolve()
         end
@@ -80,41 +77,66 @@ end
 ------
 ------
 
+---@param engine engine
+local function start_event(game, engine)
+    return event_base:create({
+        title       = "START YOUR ENGINE!",
+        target      = 22,
+        turnsLeft   = 1,
+
+        socketCount = 2,
+
+        on_resolve  = function(event)
+            local value = event.value
+            local factor = 1
+            if     value >= 22 then
+                factor = 6
+            elseif value >= 18 then
+                factor = 5
+            elseif value >= 12 then
+                factor = 4
+            elseif value >= 10 then
+                factor = 3
+            elseif value >= 3 then
+                factor = 2
+            end
+            game.car.speed.target = factor * 40
+        end
+    })
+end
+
+---@param engine engine
+local function traffic_event(game, engine)
+    local traffic_1 = event_base:create({
+        title       = "TRAFFIC AHEAD!",
+        target      = 22,
+        turnsLeft   = 3,
+
+        socketCount = 3,
+
+        on_init     = function(event)
+        end,
+
+        on_update   = function(event, deltaTime, turnTime)
+            if engine:irnd(0, 1000) == 1 then
+                self:try_spawn_opponent(engine)
+            end
+        end,
+
+        on_resolve  = function(event)
+        end
+    })
+
+    return traffic_1
+end
+
 local events = {
     get_start = function(self, game, engine)
-        return event_base:create({
-            title       = "START YOUR ENGINE!",
-            target      = 22,
-            turnsLeft   = 1,
-
-            socketCount = 2,
-
-            on_resolve  = function(event)
-                local value = event.value
-                local gear = 1
-                if     value >= 22 then
-                    gear = 6
-                elseif value >= 18 then
-                    gear = 5
-                elseif value >= 12 then
-                    gear = 4
-                elseif value >= 10 then
-                    gear = 3
-                elseif value >= 3 then
-                    gear = 2
-                end
-                game.car.speed.target = gear * 40
-            end
-        })
+        return start_event(game, engine)
     end,
 
     get_next = function(self, game, engine) ---@return event_base
-        return event_base:create({
-            name        = "Sharp Curve",
-            turnsLeft   = 2,
-            socketCount = 1,
-
-        })
+        return traffic_event(game, engine)
     end
 }
 

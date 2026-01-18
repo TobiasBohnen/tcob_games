@@ -172,36 +172,6 @@ void engine::create_env()
     env["Rot"]["R180"] = 180;
     env["Rot"]["R270"] = 270;
 
-    static auto const convert_sockets {[](std::unordered_map<std::variant<i32, string>, socket*> const& socketMap) {
-        std::vector<socket*> sockets;
-        sockets.reserve(socketMap.size());
-        for (auto const& key : socketMap) { sockets.push_back(key.second); }
-        return sockets;
-    }};
-    env["get_hand"] = +[](std::unordered_map<std::variant<i32, string>, socket*> const& sockets) -> hand {
-        return get_hand(convert_sockets(sockets));
-    };
-    env["get_sum"] = +[](std::unordered_map<std::variant<i32, string>, socket*> const& sockets) -> u32 {
-        return get_sum(convert_sockets(sockets));
-    };
-    env["get_value"] = +[](std::unordered_map<std::variant<i32, string>, socket*> const& sockets, i32 baseHandValue) -> u32 {
-        auto retValue {get_sum(convert_sockets(sockets))};
-
-        auto const hand {get_hand(convert_sockets(sockets))};
-        switch (hand.Value) {
-        case value_category::None:         break;
-        case value_category::OnePair:      retValue += baseHandValue * 2; break;
-        case value_category::TwoPair:      retValue += baseHandValue * 3; break;
-        case value_category::ThreeOfAKind: retValue += baseHandValue * 4; break;
-        case value_category::Straight:     retValue += baseHandValue * 5; break;
-        case value_category::FullHouse:    retValue += baseHandValue * 6; break;
-        case value_category::FourOfAKind:  retValue += baseHandValue * 8; break;
-        case value_category::FiveOfAKind:  retValue += baseHandValue * 10; break;
-        }
-
-        return retValue;
-    };
-
     _script.Environment = env;
 }
 
@@ -256,10 +226,37 @@ void engine::create_sprite_wrapper()
 
 void engine::create_socket_wrapper()
 {
+    auto env {**_script.Environment};
+
     auto func {make_unique_closure(std::function {
         [this](table const& socketInit) -> socket* { return _init.Game->add_socket(socketInit.get<socket_face>().value_or(socket_face {})); }})};
-    (**_script.Environment)["socket"]["new"] = func.get();
+    env["socket"]["new"] = func.get();
     _funcs.push_back(std::move(func));
+    static auto const convert_sockets {[](std::unordered_map<std::variant<i32, string>, socket*> const& socketMap) {
+        std::vector<socket*> sockets;
+        sockets.reserve(socketMap.size());
+        for (auto const& key : socketMap) { sockets.push_back(key.second); }
+        return sockets;
+    }};
+    env["socket"]["get_hand"] = +[](std::unordered_map<std::variant<i32, string>, socket*> const& sockets) -> hand {
+        return get_hand(convert_sockets(sockets));
+    };
+    env["socket"]["get_value"] = +[](std::unordered_map<std::variant<i32, string>, socket*> const& sockets) -> std::pair<u32, u32> {
+        auto const sum {get_sum(convert_sockets(sockets))};
+        i32        hand {0};
+        switch (get_hand(convert_sockets(sockets)).Value) {
+        case value_category::None:         hand = 1; break;
+        case value_category::OnePair:      hand = 2; break;
+        case value_category::TwoPair:      hand = 3; break;
+        case value_category::ThreeOfAKind: hand = 4; break;
+        case value_category::Straight:     hand = 5; break;
+        case value_category::FullHouse:    hand = 6; break;
+        case value_category::FourOfAKind:  hand = 8; break;
+        case value_category::FiveOfAKind:  hand = 10; break;
+        }
+
+        return {sum, hand};
+    };
 
     auto& socketWrapper {*_script.create_wrapper<socket>("socket")};
     socketWrapper["is_empty"] = getter {
@@ -272,22 +269,15 @@ void engine::create_socket_wrapper()
         [](socket* socket) -> std::optional<u8> {
             if (socket->is_empty()) { return std::nullopt; }
             auto const color {socket->current_die()->current_face().Color};
-            for (usize i {0}; i < PALETTE.size(); ++i) {
-                if (PALETTE[i] == color) { return static_cast<u8>(i); }
-            }
-            return std::nullopt;
+            return PALETTE.size() < color ? std::optional<u8> {color} : std::nullopt;
         }};
     socketWrapper["position"] = property {
-        [this](socket* socket) -> point_i {
-            auto const&   rect {_init.State.HUDBounds};
-            point_f const pos {socket->bounds().Position};
-            return {static_cast<i32>(std::round((pos.X - rect.left()) / (rect.width() / HUD_SIZE.Width))),
-                    static_cast<i32>(std::round((pos.Y - rect.top()) / (rect.height() / HUD_SIZE.Height)))};
-        },
-        [this](socket* socket, point_i pos) {
+        [](socket* socket) -> point_i { return socket->HUDPosition; },
+        [this](socket* socket, point_f pos) {
+            socket->HUDPosition = point_i {pos};
             auto const& rect {_init.State.HUDBounds};
-            socket->move_to({rect.left() + (static_cast<f32>(pos.X) * (rect.width() / static_cast<f32>(HUD_SIZE.Width))),
-                             rect.top() + (static_cast<f32>(pos.Y) * (rect.height() / static_cast<f32>(HUD_SIZE.Height)))});
+            socket->move_to({rect.left() + (rect.width() * (pos.X / static_cast<f32>(HUD_SIZE.Width))),
+                             rect.top() + (rect.height() * (pos.Y / static_cast<f32>(HUD_SIZE.Height)))});
         }};
     socketWrapper["remove"] = [this](socket* socket) { _init.Game->remove_socket(socket); };
 }
@@ -357,7 +347,7 @@ void engine::create_tex_wrapper()
     texWrapper["print"] = [](tex_proxy* tex, point_f pos, string_view text, u8 color, std::optional<font_type> fontType) {
         tex->print(point_i {pos}, text, color, fontType ? *fontType : font_type::Font5x5);
     };
-    texWrapper["socket"] = [this](tex_proxy* tex, socket* socket) { tex->socket(socket, _init.State.HUDBounds); };
+    texWrapper["socket"] = [](tex_proxy* tex, socket* socket) { tex->socket(socket); };
 }
 
 void engine::define_texture(u32 id, rect_i const& uv)

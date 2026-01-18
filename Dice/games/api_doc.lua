@@ -62,11 +62,12 @@
 ---@field sockets socket[] The subset of sockets that actually form the hand (e.g., the 3 sockets in a ThreeOfAKind).
 
 ---@class blit_settings
----@field transparent? integer The palette index to treat as transparent.
+---@field transparent? integer The palette index (color ID) to be rendered as transparent.
 ---@field rotation? rotation Rotation angle in degrees: 0, 90, 180, or 270.
----@field scale? number
----@field flip_h? boolean Flip horizontally (mirror left-right).
----@field flip_v? boolean Flip vertically (mirror top-bottom).
+---@field scale? number The multiplier for the draw size (e.g., 2.0 for double size). Defaults to 1.
+---@field flip_h? boolean If true, mirrors the image along the vertical axis (left-to-right).
+---@field flip_v? boolean If true, mirrors the image along the horizontal axis (top-to-bottom).
+---@field swap? table<integer, integer> A map for color remapping (e.g., `{ [original_idx] = new_idx }`).
 
 ---@class palette
 ---@field Black color
@@ -109,22 +110,6 @@ Rot = {
     R180 = 2,
     R270 = 3,
 }
-
----Analyzes the dice currently held in the provided sockets to determine the hand.
----@param sockets socket[] A table of sockets to check.
----@return hand
-function get_hand(sockets) end
-
----Returns the arithmetic sum of all die face values.
----@param sockets socket[] A table of sockets to check.
----@return integer
-function get_sum(sockets) end
-
----Returns the weighted score by combining the hand's base value and the dice sum.
----@param sockets socket[] A table of sockets to check.
----@param baseHandValue? integer
----@return integer
-function get_value(sockets, baseHandValue) end
 
 ---@type size
 ScreenSize = {
@@ -189,6 +174,17 @@ function sprite:remove() end
 ---@param init socket_init The table defining the socket's properties and behavior.
 ---@return socket
 function socket.new(init) end
+
+---Analyzes the dice currently held in the provided sockets to determine the hand.
+---@param sockets socket[] A table of sockets to check.
+---@return hand
+function socket.get_hand(sockets) end
+
+---Returns the weighted score by combining the hand's base value and the dice sum.
+---@param sockets socket[] A table of sockets to check.
+---@param baseHandValue? integer
+---@return integer, integer
+function socket.get_value(sockets, baseHandValue) end
 
 ---Removes a socket from the game world.
 function socket:remove() end
