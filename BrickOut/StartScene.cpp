@@ -5,8 +5,6 @@
 
 #include "StartScene.hpp"
 
-#include <iomanip>
-
 namespace BrickOut {
 
 start_scene::start_scene(game& game)
@@ -92,21 +90,21 @@ void start_scene::on_update(milliseconds)
 
 void start_scene::on_fixed_update(milliseconds deltaTime)
 {
-    std::stringstream stream;
-    stream << std::fixed << std::setprecision(2);
-    auto const& stats {locate_service<gfx::render_system>().statistics()};
-    stream << "avg FPS:" << stats.average_FPS();
-    stream << " best FPS:" << stats.best_FPS();
-    stream << " worst FPS:" << stats.worst_FPS();
+    string state;
 
     if (_playField->state() == game_state::Failure) {
-        stream << "| GAME OVER ";
+        state = "| GAME OVER ";
     }
     if (_playField->state() == game_state::Success) {
-        stream << "| A WINNER IS YOU ";
+        state = "| A WINNER IS YOU ";
     }
 
-    window().Title = "BrickOut |" + stream.str();
+    auto const& stats {locate_service<gfx::render_system>().statistics()};
+    auto const& mouse {locate_service<input::system>().mouse().get_position()};
+    window().Title = std::format("BrickOut | FPS avg:{:.2f} best:{:.2f} worst:{:.2f} | x:{} y:{} {} ",
+                                 stats.average_FPS(), stats.best_FPS(), stats.worst_FPS(),
+                                 mouse.X, mouse.Y,
+                                 state);
 }
 
 void start_scene::on_key_down(input::keyboard::event const& ev)
