@@ -73,7 +73,7 @@ void start_scene::on_update(milliseconds deltaTime)
         }
         if (_frames.size() == 500) {
             logger::Info("capture done. saving...");
-            _clipFtr = gfx::save_animation_async("clip.png", _frames);
+            _clipFtr = gfx::save_animation_async("clip.gif", _frames);
         }
     }
 }

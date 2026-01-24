@@ -59,11 +59,12 @@ inline auto engine::call(callback<R> const& func, auto&&... args) -> R
 
 void engine::run(string const& file)
 {
+    auto env {**_script.Environment};
+
     // require
     auto const path {io::get_parent_folder(file)};
 
-    auto func {make_unique_closure(std::function {[this, path](char const* module) {
-        auto const& env {**_script.Environment};
+    auto func {make_unique_closure(std::function {[this, path, &env](char const* module) {
         if (env.has("package", "loaded", module)) { return env["package"]["loaded"][module].as<table>(); }
 
         if (auto pkg {_script.run_file<table>(std::format("{}/{}.lua", path, module))}) {
@@ -75,7 +76,7 @@ void engine::run(string const& file)
         _script.view().error("module %s not found", module);
         return _script.create_table();
     }})};
-    (**_script.Environment)["require"] = func.get();
+    env["require"] = func.get();
     _funcs.push_back(std::move(func));
 
     _table = *_script.run_file<table>(file);
@@ -185,6 +186,8 @@ void engine::create_wrappers()
 
 void engine::create_sprite_wrapper()
 {
+    auto env {**_script.Environment};
+
     auto newFunc {make_unique_closure(std::function {
         [this](table const& spriteOwner) -> sprite* {
             sprite_def const def {spriteOwner["spriteInit"].get<sprite_def>().value_or(sprite_def {})};
@@ -195,11 +198,11 @@ void engine::create_sprite_wrapper()
 
             return _init.Game->add_sprite({.Def = def, .Texture = tex, .Owner = spriteOwner});
         }})};
-    (**_script.Environment)["sprite"]["new"] = newFunc.get();
+    env["sprite"]["new"] = newFunc.get();
     _funcs.push_back(std::move(newFunc));
 
     auto sortFunc {make_unique_closure(std::function {[this]() { _init.Events.YSort(); }})};
-    (**_script.Environment)["sprite"]["y_sort"] = sortFunc.get();
+    env["sprite"]["y_sort"] = sortFunc.get();
     _funcs.push_back(std::move(sortFunc));
 
     auto& spriteWrapper {*_script.create_wrapper<sprite>("sprite")};
