@@ -103,8 +103,9 @@ auto engine::update(milliseconds deltaTime) -> bool
         channel.update();
     }
 
-    game_status const status {static_cast<game_status>(call(_callbacks.OnTurnUpdate, deltaTime.count(), _turnTime))};
-    _turnTime += deltaTime.count();
+    auto const dt {deltaTime.count()};
+    _turnTime += dt;
+    game_status const status {static_cast<game_status>(call(_callbacks.OnTurnUpdate, dt, _turnTime))};
     _gameStatus = status;
 
     switch (status) {

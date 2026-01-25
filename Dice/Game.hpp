@@ -60,7 +60,7 @@ private:
     void wrap_sprites();
     void collide_sprites();
 
-    auto next_die_position(usize count, usize idx) const -> point_f;
+    auto get_die_position(usize count, usize idx) const -> point_f;
 
     gfx::shape_batch           _diceBatch;
     gfx::shape_batch           _spriteBatch;

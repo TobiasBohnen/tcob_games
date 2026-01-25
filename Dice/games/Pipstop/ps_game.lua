@@ -85,7 +85,6 @@ function game:on_turn_update(engine, deltaTime, turnTime)
     end
 
     self:update_background(engine)
-
     self:on_draw_hud(engine)
 
     sprite.y_sort()

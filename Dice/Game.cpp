@@ -82,7 +82,7 @@ dice_game::dice_game(init const& init)
         if (vec.empty()) { return; }
 
         for (u32 i {0}; i < die.Amount; ++i) {
-            _dice.add_die(next_die_position(totalDiceCount, idx), _sharedState.Rng, vec[0], vec);
+            _dice.add_die(get_die_position(totalDiceCount, idx), _sharedState.Rng, vec[0], vec);
             idx++;
         }
     }
@@ -268,38 +268,30 @@ void dice_game::collide_sprites()
 
         auto const* texA {sA->get_texture()};
         assert(texA->Alpha.size() == size_i {a->Bounds->Size});
+
         auto const* texB {sB->get_texture()};
         assert(texB->Alpha.size() == size_i {b->Bounds->Size});
 
-        f32 const aLeft {a->Bounds->left()};
-        f32 const aTop {a->Bounds->top()};
-        f32 const aWidth {a->Bounds->width()};
-        f32 const aHeight {a->Bounds->height()};
+        auto const [leftA, topA] {a->Bounds->Position};
+        auto const [widthA, heightA] {a->Bounds->Size};
 
-        f32 const bLeft {b->Bounds->left()};
-        f32 const bTop {b->Bounds->top()};
-        f32 const bWidth {b->Bounds->width()};
-        f32 const bHeight {b->Bounds->height()};
+        auto const [leftB, topB] {b->Bounds->Position};
+        auto const [widthB, heightB] {b->Bounds->Size};
 
-        i32 const iWidth {static_cast<i32>(inter.width())};
-        i32 const iHeight {static_cast<i32>(inter.height())};
+        i32 const bottomI {static_cast<i32>(inter.bottom())};
+        i32 const rightI {static_cast<i32>(inter.right())};
 
-        for (i32 y {0}; y < iHeight; ++y) {
-            f32 const wy {inter.top() + static_cast<f32>(y)};
-            for (i32 x {0}; x < iWidth; ++x) {
-                f32 const     wx {inter.left() + static_cast<f32>(x)};
-                point_f const local {wx, wy};
+        for (i32 y {static_cast<i32>(inter.top())}; y < bottomI; ++y) {
+            for (i32 x {static_cast<i32>(inter.left())}; x < rightI; ++x) {
+                i32 const ax {static_cast<i32>(x - leftA)};
+                i32 const ay {static_cast<i32>(y - topA)};
+                i32 const bx {static_cast<i32>(x - leftB)};
+                i32 const by {static_cast<i32>(y - topB)};
 
-                i32 const ax {static_cast<i32>(local.X - aLeft)};
-                i32 const ay {static_cast<i32>(local.Y - aTop)};
-                i32 const bx {static_cast<i32>(local.X - bLeft)};
-                i32 const by {static_cast<i32>(local.Y - bTop)};
-
-                if (ax < 0 || ay < 0 || bx < 0 || by < 0
-                    || ax >= static_cast<i32>(aWidth)
-                    || ay >= static_cast<i32>(aHeight)
-                    || bx >= static_cast<i32>(bWidth)
-                    || by >= static_cast<i32>(bHeight)) {
+                if (ax < 0 || ax >= static_cast<i32>(widthA)
+                    || ay < 0 || ay >= static_cast<i32>(heightA)
+                    || bx < 0 || bx >= static_cast<i32>(widthB)
+                    || by < 0 || by >= static_cast<i32>(heightB)) {
                     continue;
                 }
 
@@ -311,14 +303,15 @@ void dice_game::collide_sprites()
         }
     }};
 
-    for (usize i {0}; i < _sprites.size(); ++i) {
+    usize const spriteCount {_sprites.size()};
+    for (usize i {0}; i < spriteCount; ++i) {
         auto const& spriteA {_sprites[i]};
         if (!spriteA->is_collidable()) { continue; }
 
         std::array<gfx::rect_shape*, 2> shapesA {spriteA->Shape, spriteA->WrapCopy};
         i32                             countA {spriteA->WrapCopy ? 2 : 1};
 
-        for (usize j {i + 1}; j < _sprites.size(); ++j) {
+        for (usize j {i + 1}; j < spriteCount; ++j) {
             auto const& spriteB {_sprites[j]};
             if (!spriteB->is_collidable()) { continue; }
 
@@ -378,7 +371,7 @@ void dice_game::remove_socket(socket* socket)
 {
     _sockets.remove_socket(socket);
     for (usize i {0}; i < _dice.count(); ++i) {
-        _dice.move_die(i, next_die_position(_dice.count(), i));
+        _dice.move_die(i, get_die_position(_dice.count(), i));
     }
 }
 
@@ -387,11 +380,11 @@ void dice_game::reset_sockets()
     _sockets.reset();
     _dice.roll();
     for (usize i {0}; i < _dice.count(); ++i) {
-        _dice.move_die(i, next_die_position(_dice.count(), i));
+        _dice.move_die(i, get_die_position(_dice.count(), i));
     }
 }
 
-auto dice_game::next_die_position(usize count, usize idx) const -> point_f
+auto dice_game::get_die_position(usize count, usize idx) const -> point_f
 {
     f32 const    scale {_init.RealWindowSize.Width / DICE_REF_SIZE.Width};
     size_f const scaledDiceSize {DICE_SIZE * scale};
