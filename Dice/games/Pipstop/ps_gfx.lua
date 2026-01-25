@@ -133,19 +133,19 @@ function gfx.get_road_at_y(y)
 end
 
 ---@param engine engine
-function gfx.create_background(engine, curveAmount, trackOffset, theme)
+function gfx.create_background(engine, curveAmount, speedFactor, trackOffset, theme)
     local bg           = engine.bg
     local size         = bg.size
     local w, h         = size.width, size.height
     local worldWidth   = w * 4
     local currentTheme = THEMES[theme]
 
-    worldRotation      = (worldRotation + curveAmount) % worldWidth
+    worldRotation      = (worldRotation + (curveAmount * speedFactor)) % worldWidth
 
     create_objects(engine, worldWidth)
 
     local function get_draw_x(objectX, speedMult)
-        local span = worldWidth * speedMult
+        local span   = worldWidth * speedMult
         local offset = worldRotation * speedMult
         return ((objectX - offset + span / 2) % span) - span / 2
     end
@@ -311,39 +311,75 @@ end
 ---@param hud tex
 function gfx.draw_hud(hud, game)
     hud:clear()
-    gfx.draw_car_info(hud, game)
-    gfx.draw_events(hud, game)
+    local y = gfx.draw_car_info(hud, game)
+    gfx.draw_events(hud, game, y)
 end
 
 ---@param hud tex
 function gfx.draw_car_info(hud, game)
-    local xStart, yStart = 1, 1
-    local offset         = 16
+    local y      = 3
+    local xStart = (hud.size.width - (12 * 6)) / 2
+    local x      = xStart
 
-    local y              = yStart
-    local x              = xStart
+    -- speed
+    for i = 1, 12 do
+        local carSlower = game.car.speed.current < i * (100 / 12)
+        local col
+        if carSlower then
+            col = Palette.DarkBrown
+        else
+            if i <= 4 then
+                col = Palette.Green
+            elseif i <= 8 then
+                col = Palette.Yellow
+            else
+                col = Palette.Red
+            end
+        end
 
-    hud:print({ x = x, y = y }, "speed=" .. math.floor(game.car.speed.current + 0.5), Palette.Green, "Font3x5")
+        local off = (12 - i) // 2
+        hud:rect({ x = x, y = y + off, width = 5, height = 7 - off }, col, true)
+        x = x + 6
+    end
+    y = y + 8
+    x = xStart
+
+    -- fuel
+    for i = 1, 12 do
+        local col
+        if i <= game.car.fuel / 100 * 12 then
+            col = Palette.Brown
+        else
+            col = Palette.DarkBrown
+        end
+
+        hud:rect({ x = x, y = y, width = 5, height = 4 }, col, true)
+        x = x + 6
+    end
+
     y = y + 7
+    return y
 end
 
 ---@param hud tex
-function gfx.draw_events(hud, game)
-    local xStart, yStart = 1, 8
-    local offset         = 18
-
-    local y              = yStart
-    local x              = xStart
+function gfx.draw_events(hud, game, y)
+    local xStart = 1
+    local offset = 18
 
     for _, event in ipairs(game.eventQueue) do
-        x              = xStart
+        hud:rect({ x = 0, y = y, width = hud.size.width, height = (offset + 1) * 2 + 1 }, Palette.DarkBlue, true)
+        y              = y + 1
+
+        local x        = xStart
         local texColor = event.finished and Palette.Red or Palette.LightBlue
 
         hud:print({ x = x, y = y }, event.title, texColor, "Font3x5")
         y = y + 7
-        hud:print({ x = x, y = y }, event.value .. "->" .. event.target, texColor, "Font3x5")
+
+        hud:print({ x = x, y = y }, event.value .. " / " .. event.target, texColor, "Font3x5")
         y = y + 7
-        hud:print({ x = x, y = y }, "turns left=" .. event.turnsLeft, texColor, "Font3x5")
+
+        hud:print({ x = x, y = y }, "turns left = " .. event.turnsLeft, texColor, "Font3x5")
         y = y + 7
 
         for _, socket in ipairs(event.sockets or {}) do

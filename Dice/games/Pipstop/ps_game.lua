@@ -5,8 +5,8 @@
 local DURATION       = 2500
 local SEGMENT_LENGTH = 300
 local THEMES         = { "day", "dusk", "night", "fall", "winter", "desert", }
-local MAX_CAR_SPEED  = 250
 local CAR_Y          = 140
+local FUEL_PER_MS    = 0.04
 
 local gfx            = require('ps_gfx')
 local sfx            = require('ps_sfx')
@@ -38,13 +38,13 @@ local game           = {
 
 ---@param engine engine
 function game:on_setup(engine)
-    self:create_track(engine)
-
-    self:update_background(engine)
     gfx.create_textures(self, engine)
     sfx.create_sounds(self, engine)
 
+    self:create_track(engine)
     self:create_car(engine)
+
+    self:update_background(engine)
 
     self:queue_event(engine, events:get_start(self, engine))
 end
@@ -64,12 +64,11 @@ end
 ---@param engine engine
 ---@param deltaTime number
 function game:on_turn_update(engine, deltaTime, turnTime)
-    if turnTime >= DURATION then return GameStatus.TurnEnded end
+    if turnTime > DURATION then return GameStatus.TurnEnded end
 
     local car = self.car
-    self:update_track(car.speed.current / 60)
     car:update(deltaTime, turnTime)
-
+    self:update_track(car.speed.current / 20)
 
     for i = #self.opponents, 1, -1 do
         local opponent = self.opponents[i]
@@ -91,7 +90,7 @@ function game:on_turn_update(engine, deltaTime, turnTime)
 
     sprite.y_sort()
 
-    if self.car.health == 0 then return GameStatus.GameOver end
+    if self.car.fuel == 0 then return GameStatus.GameOver end
     return GameStatus.Running
 end
 
@@ -126,6 +125,7 @@ end
 function game:create_car(engine)
     local car = {
         speed         = {
+            start   = nil,
             current = 0,
             target  = 0
         },
@@ -134,7 +134,7 @@ function game:create_car(engine)
         lateralTarget = 0,
 
         handling      = 100,
-        health        = 100,
+        fuel          = 100,
 
         type          = "car",
 
@@ -144,36 +144,51 @@ function game:create_car(engine)
             wrappable = false
         },
 
-        update        = function(car, deltaTime, turnTime)
-            if car.speed.current ~= car.speed.target then
-                local healthFactor  = 0.1 + (car.health / 100.0) * 1.9
-                local baseAccelRate = 0.01
-                local accelRate     = baseAccelRate * healthFactor
-                local deltaSpeed    = accelRate * deltaTime
 
-                if car.speed.current < car.speed.target then
-                    car.speed.current = math.min(car.speed.target, car.speed.current + deltaSpeed)
-                else
-                    car.speed.current = math.max(car.speed.target, car.speed.current - deltaSpeed)
-                end
+        update           = function(car, deltaTime, turnTime)
+            local progress    = math.min(1.0, turnTime / DURATION)
+            local speedFactor = car.speed.current / 100
+
+            -- speed
+            if car.speed.current ~= car.speed.target and car.speed.start then
+                car.speed.current = car.speed.start + (car.speed.target - car.speed.start) * progress
             end
+            if progress >= 1.0 then
+                car.speed.start = nil
+            end
+
+            -- fuel
+            if car.fuel > 0 then
+                local fuelLoss = speedFactor * FUEL_PER_MS
+                car.fuel = math.max(0, car.fuel - fuelLoss)
+            else
+                car.speed.target = 0
+            end
+
 
             local halfRoadWidth = ScreenSize.width / 6
             local pos           = car.sprite.position
-            local newX          = math.max(halfRoadWidth, math.min(ScreenSize.width - halfRoadWidth - gfx.sizes.car.width, pos.x - self.track.currentCurve))
+            local newX          = math.max(halfRoadWidth,
+                math.min(ScreenSize.width - halfRoadWidth - gfx.sizes.car.width,
+                    pos.x - self.track.currentCurve * speedFactor))
 
             car.sprite.position = { x = newX, y = pos.y }
             car:play_sound()
 
-            engine:give_score(math.floor(car.speed.current / 40))
+            engine:give_score(math.floor(speedFactor * 5))
         end,
 
-        play_sound    = function(car)
+        play_sound       = function(car)
             if car.speed.current > 0 then
-                local sndIdx = math.min(math.floor((car.speed.current / MAX_CAR_SPEED) * 10) + 1, 10)
+                local sndIdx = math.min(math.floor(car.speed.current / 10) + 1, 10)
                 local sound  = "car_speed_" .. sndIdx
                 engine:play_sound(sfx.sounds[sound], 0, false)
             end
+        end,
+
+        set_target_speed = function(car, speed)
+            car.speed.start  = car.speed.current
+            car.speed.target = math.min(speed, 100)
         end
     }
     car.sprite = sprite.new(car)
@@ -224,7 +239,7 @@ function game:create_opponent(engine, lane)
 
         update         = function(opponent, turnTime)
             local relativeSpeed = self.car.speed.current - opponent.speed
-            opponent.distance   = opponent.distance + (relativeSpeed / MAX_CAR_SPEED) * 0.1
+            opponent.distance   = opponent.distance + (relativeSpeed / 100) * 0.1
 
             if opponent.distance < -0.5 or opponent.distance > 20 then
                 opponent.markedForDeath = true
@@ -310,7 +325,7 @@ end
 
 ---@param engine engine
 function game:update_background(engine)
-    gfx.create_background(engine, self.track.currentCurve, self.track.segmentProgress / SEGMENT_LENGTH, THEMES[self.track.currentTheme])
+    gfx.create_background(engine, self.track.currentCurve, (self.car.speed.current / 100), self.track.segmentProgress / SEGMENT_LENGTH, THEMES[self.track.currentTheme])
 end
 
 return game

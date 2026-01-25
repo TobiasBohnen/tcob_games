@@ -45,7 +45,8 @@ local event_base = {
 
     resolve     = function(event)
         if event.on_resolve then
-            event:on_resolve()
+            local factor = event.value / event.target
+            event:on_resolve(factor)
         end
 
         for key, value in pairs(event.sockets) do
@@ -86,21 +87,8 @@ local function start_event(game, engine)
 
         socketCount = 2,
 
-        on_resolve  = function(event)
-            local value = event.value
-            local factor = 1
-            if     value >= 22 then
-                factor = 6
-            elseif value >= 18 then
-                factor = 5
-            elseif value >= 12 then
-                factor = 4
-            elseif value >= 10 then
-                factor = 3
-            elseif value >= 3 then
-                factor = 2
-            end
-            game.car.speed.target = factor * 40
+        on_resolve  = function(event, factor)
+            game.car:set_target_speed(factor * 100)
         end
     })
 end
@@ -123,7 +111,7 @@ local function traffic_event(game, engine)
             end
         end,
 
-        on_resolve  = function(event)
+        on_resolve  = function(event, factor)
         end
     })
 

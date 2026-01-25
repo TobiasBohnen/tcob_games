@@ -245,9 +245,12 @@ void engine::create_socket_wrapper()
         return get_hand(convert_sockets(sockets));
     };
     env["socket"]["get_value"] = +[](std::unordered_map<std::variant<i32, string>, socket*> const& sockets) -> std::pair<u32, u32> {
-        auto const sum {get_sum(convert_sockets(sockets))};
-        i32        hand {0};
-        switch (get_hand(convert_sockets(sockets)).Value) {
+        auto socketVec {convert_sockets(sockets)};
+
+        auto const sum {get_sum(socketVec)};
+
+        i32 hand {0};
+        switch (get_hand(socketVec).Value) {
         case value_category::None:         hand = 1; break;
         case value_category::OnePair:      hand = 2; break;
         case value_category::TwoPair:      hand = 3; break;
@@ -269,11 +272,7 @@ void engine::create_socket_wrapper()
     socketWrapper["die_value"] = getter {
         [](socket* socket) -> u8 { return socket->is_empty() ? 0 : socket->current_die()->current_face().Value; }};
     socketWrapper["die_color"] = getter {
-        [](socket* socket) -> std::optional<u8> {
-            if (socket->is_empty()) { return std::nullopt; }
-            auto const color {socket->current_die()->current_face().Color};
-            return PALETTE.size() < color ? std::optional<u8> {color} : std::nullopt;
-        }};
+        [](socket* socket) -> std::optional<u8> { return socket->is_empty() ? std::nullopt : std::optional<u8> {socket->current_die()->current_face().Color}; }};
     socketWrapper["position"] = property {
         [](socket* socket) -> point_i { return socket->HUDPosition; },
         [this](socket* socket, point_f pos) {

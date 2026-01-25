@@ -64,7 +64,7 @@ end
 ---@param engine engine
 ---@param deltaTime number
 function game:on_turn_update(engine, deltaTime, turnTime)
-    if turnTime >= DURATION then return GameStatus.TurnEnded end
+    if turnTime > DURATION then return GameStatus.TurnEnded end
 
     self:try_spawn_bullet(engine, deltaTime)
 
