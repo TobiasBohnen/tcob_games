@@ -16,21 +16,20 @@ template <typename T = void>
 using callback = std::optional<scripting::function<T>>;
 
 struct callbacks {
-    callback<>    OnCollision;
     callback<>    OnSetup;
-    callback<>    OnTeardown;
     callback<i32> OnTurnUpdate;
     callback<>    OnTurnFinish;
     callback<>    OnTurnStart;
     callback<>    OnDrawHUD;
+    callback<>    OnCollision;
 };
 
 ////////////////////////////////////////////////////////////
 
 enum game_status : u8 {
-    Running   = 0,
-    TurnEnded = 1,
-    GameOver  = 2
+    Running  = 0,
+    Waiting  = 1,
+    GameOver = 2
 };
 
 ////////////////////////////////////////////////////////////
@@ -65,6 +64,7 @@ private:
     auto call(callback<R> const& func, auto&&... args) -> R;
 
     void define_texture(u32 id, rect_i const& uv);
+    void update_hud();
 
     scripting::script                                 _script;
     scripting::table                                  _table;
@@ -72,7 +72,8 @@ private:
     callbacks                                         _callbacks;
 
     init        _init;
-    game_status _gameStatus {game_status::TurnEnded};
+    game_status _gameStatus {game_status::Waiting};
+    bool        _updateHUD {false};
 
     tex_proxy _hudProxy;
     tex_proxy _fgProxy;

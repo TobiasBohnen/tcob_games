@@ -103,8 +103,9 @@ struct event_bus {
 
     signal<collision_event const> Collision;
 
-    signal<socket* const> SocketDieChanged;
-    signal<>              DieMotion;
+    signal<socket* const> SocketDieInserted;
+    signal<socket* const> SocketDieRemoved;
+    signal<die* const>    DieMotion;
 
     signal<> YSort;
 };

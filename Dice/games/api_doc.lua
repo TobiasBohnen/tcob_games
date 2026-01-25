@@ -90,15 +90,15 @@ Palette = {}
 
 ---@enum game_status
 GameStatus = {
-    Running = 0,
-    TurnEnded = 1,
+    Running  = 0,
+    Waiting  = 1,
     GameOver = 2
 }
 
 ---@enum socket_state
 SocketState = {
-    Idle = 0,
-    Hover = 1,
+    Idle   = 0,
+    Hover  = 1,
     Accept = 2,
     Reject = 3
 }
@@ -124,7 +124,6 @@ ScreenSize = {
 ---@class game_module
 ---@
 ---@field on_setup fun(self: game_module, engine: engine)
----@field on_teardown fun(self: game_module, engine: engine)
 ---@
 ---@field on_turn_start fun(self: game_module, engine: engine)
 ---@
@@ -134,7 +133,7 @@ ScreenSize = {
 ---@
 ---@field on_collision fun(self: game_module, engine: engine, spriteA: sprite, spriteB: sprite)
 ---@
----@field on_draw_hud fun(self: game_module, engine: engine)
+---@field on_draw_hud fun(self: game_module, engine: engine, hud: tex)
 
 --------------------------------
 -- Sprite
@@ -244,11 +243,11 @@ function tex:socket(socket) end
 
 ---@class engine
 ---@description The main interface between the Lua script and the game engine hardware/state.
----@field hud tex Access to the Dot Matrix Display drawing functions. @readonly
 ---@field fg tex Access to the foreground drawing functions. @readonly
 ---@field bg tex Access to the background drawing functions. @readonly
 ---@field spr tex Access to the sprite drawing functions. @readonly
 ---@field ssd string The string value displayed on the Seven-Segment Display.
+---@field is_game_over boolean
 local engine = {}
 
 ---@section Asset Initialization
@@ -292,3 +291,5 @@ function engine:give_score(score) end
 ---@param channel? integer
 ---@param playNow? boolean
 function engine:play_sound(id, channel, playNow) end
+
+function engine:update_hud() end

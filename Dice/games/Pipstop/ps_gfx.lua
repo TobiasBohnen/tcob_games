@@ -393,7 +393,7 @@ function gfx.draw_events(hud, game, y)
 end
 
 ---@param hud tex
-function gfx.draw_game_over(hud, game)
+function gfx.draw_game_over(hud)
     hud:clear()
     hud:print({ x = 12, y = 12 }, "DNF", Palette.Red)
 end

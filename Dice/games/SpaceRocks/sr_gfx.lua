@@ -201,7 +201,7 @@ function gfx.draw_hud(hud, game)
 end
 
 ---@param hud tex
-function gfx.draw_game_over(hud, game)
+function gfx.draw_game_over(hud)
     hud:clear()
     hud:print({ x = 12, y = 12 }, "GAME", Palette.LightBlue)
     hud:print({ x = 36, y = 20 }, "OVER", Palette.LightBlue)

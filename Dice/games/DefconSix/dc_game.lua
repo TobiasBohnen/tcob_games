@@ -94,6 +94,7 @@ function game:on_setup(engine)
     end
 
     self:set_energy_reserve(engine, MAX_ENERGY_RESERVE)
+    engine:update_hud()
 end
 
 ---@param engine engine
@@ -105,13 +106,14 @@ function game:on_turn_start(engine)
     end
 
     self.cannons:turn_start()
+    engine:update_hud()
 end
 
 ---@param engine engine
 ---@param deltaTime number
 ---@param turnTime number
 function game:on_turn_update(engine, deltaTime, turnTime)
-    if turnTime > DURATION then return GameStatus.TurnEnded end
+    if turnTime > DURATION then return GameStatus.Waiting end
 
     for i = #self.missiles, 1, -1 do
         self.missiles[i]:update(i, deltaTime, turnTime)
@@ -137,11 +139,7 @@ function game:on_turn_finish(engine)
     for i = 1, count do
         self:try_spawn_missile(engine)
     end
-end
-
----@param engine engine
-function game:on_teardown(engine)
-    gfx.draw_game_over(engine.hud, self)
+    engine:update_hud()
 end
 
 ---@param engine engine
@@ -154,8 +152,13 @@ function game:on_collision(engine, spriteA, spriteB)
 end
 
 ---@param engine engine
-function game:on_draw_hud(engine)
-    gfx.draw_hud(engine.hud, self, self.hudInfo)
+---@param hud tex
+function game:on_draw_hud(engine, hud)
+    if engine.is_game_over then
+        gf.draw_game_over(hud)
+    else
+        gfx.draw_hud(hud, self, self.hudInfo)
+    end
 end
 
 ------
@@ -164,7 +167,7 @@ end
 function game:set_energy_reserve(engine, val)
     self.energyReserve            = math.min(math.max(0, math.ceil(val)), MAX_ENERGY_RESERVE)
     self.hudInfo.energyReserveRel = self.energyReserve / MAX_ENERGY_RESERVE
-    self:on_draw_hud(engine)
+    engine:update_hud()
 end
 
 ---@param engine engine
@@ -195,7 +198,7 @@ function game:create_cannons(engine)
                 cannons[self.cannonTypes[idx]]:power_up(deltaTime)
             end
 
-            self:on_draw_hud(engine)
+            engine:update_hud()
         end,
 
         turn_finish = function(cannons)

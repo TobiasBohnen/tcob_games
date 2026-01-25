@@ -157,7 +157,7 @@ void dice_game::on_mouse_button_up(input::mouse::button_event const& ev)
     case input::mouse::button::Left:
         if (auto* socket {_sockets.try_insert_die(_hoverDie)}) {
             _diceBatch.send_to_back(*_hoverDie->shape());
-            _init.Events.SocketDieChanged(socket);
+            _init.Events.SocketDieInserted(socket);
         }
         break;
     case input::mouse::button::Right: break;
@@ -187,12 +187,12 @@ void dice_game::on_mouse_motion(input::mouse::motion_event const& ev)
         _sockets.on_drag(_hoverDie);
 
         if (auto* socket {_sockets.try_remove_die(_hoverDie)}) {
-            _init.Events.SocketDieChanged(socket);
+            _init.Events.SocketDieRemoved(socket);
         }
 
         _dice.on_drag(mp, _sharedState.HUDBounds);
 
-        _init.Events.DieMotion();
+        _init.Events.DieMotion(_hoverDie);
     }
 
     static_cast<input::receiver*>(_form0.get())->on_mouse_motion(ev);

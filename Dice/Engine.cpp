@@ -31,13 +31,20 @@ engine::engine(init const& init)
         call(_callbacks.OnCollision, ev.A, ev.B);
     });
 
-    _init.Events.SocketDieChanged.connect([this](auto const& ev) {
-        if (_gameStatus != game_status::TurnEnded) { return; }
-        call(_callbacks.OnDrawHUD, ev);
+    _init.Events.SocketDieInserted.connect([this]([[maybe_unused]] socket const* socket) {
+        if (_gameStatus == game_status::Waiting) {
+            _updateHUD = true;
+        }
     });
-    _init.Events.DieMotion.connect([this]() {
-        if (_gameStatus != game_status::TurnEnded) { return; }
-        call(_callbacks.OnDrawHUD);
+    _init.Events.SocketDieRemoved.connect([this]([[maybe_unused]] socket const* socket) {
+        if (_gameStatus == game_status::Waiting) {
+            _updateHUD = true;
+        }
+    });
+    _init.Events.DieMotion.connect([this]([[maybe_unused]] die const* die) {
+        if (_gameStatus == game_status::Waiting) {
+            _updateHUD = true;
+        }
     });
 
     _init.Events.StartTurn.connect([this]() { start_turn(); });
@@ -81,21 +88,21 @@ void engine::run(string const& file)
 
     _table = *_script.run_file<table>(file);
 
-    _table.try_get(_callbacks.OnCollision, "on_collision");
     _table.try_get(_callbacks.OnSetup, "on_setup");
-    _table.try_get(_callbacks.OnTeardown, "on_teardown");
     _table.try_get(_callbacks.OnTurnUpdate, "on_turn_update");
     _table.try_get(_callbacks.OnTurnFinish, "on_turn_finish");
     _table.try_get(_callbacks.OnTurnStart, "on_turn_start");
     _table.try_get(_callbacks.OnDrawHUD, "on_draw_hud");
+    _table.try_get(_callbacks.OnCollision, "on_collision");
 
     call(_callbacks.OnSetup);
-    call(_callbacks.OnDrawHUD);
 }
 
 auto engine::update(milliseconds deltaTime) -> bool
 {
-    _init.State.CanStart = _gameStatus == game_status::TurnEnded;
+    update_hud();
+
+    _init.State.CanStart = _gameStatus == game_status::Waiting;
 
     if (_gameStatus != game_status::Running) { return false; }
 
@@ -109,16 +116,15 @@ auto engine::update(milliseconds deltaTime) -> bool
     _gameStatus = status;
 
     switch (status) {
-    case Running:   return true;
-    case TurnEnded: {
+    case Running: return true;
+    case Waiting: {
         call(_callbacks.OnTurnFinish);
         _init.Game->reset_sockets();
-        call(_callbacks.OnDrawHUD);
         _turnTime = 0;
         return false;
     }
     case GameOver:
-        call(_callbacks.OnTeardown);
+        _updateHUD = true;
         return false;
     }
 
@@ -127,10 +133,9 @@ auto engine::update(milliseconds deltaTime) -> bool
 
 auto engine::start_turn() -> bool
 {
-    if (_gameStatus != game_status::TurnEnded) { return false; }
+    if (_gameStatus != game_status::Waiting) { return false; }
 
     call(_callbacks.OnTurnStart);
-    call(_callbacks.OnDrawHUD);
     _gameStatus = game_status::Running;
     return true;
 }
@@ -160,9 +165,9 @@ void engine::create_env()
 
     env["ScreenSize"] = VIRTUAL_SCREEN_SIZE;
 
-    env["GameStatus"]["Running"]   = static_cast<i32>(game_status::Running);
-    env["GameStatus"]["TurnEnded"] = static_cast<i32>(game_status::TurnEnded);
-    env["GameStatus"]["GameOver"]  = static_cast<i32>(game_status::GameOver);
+    env["GameStatus"]["Running"]  = static_cast<i32>(game_status::Running);
+    env["GameStatus"]["Waiting"]  = static_cast<i32>(game_status::Waiting);
+    env["GameStatus"]["GameOver"] = static_cast<i32>(game_status::GameOver);
 
     env["SocketState"]["Idle"]   = static_cast<i32>(socket_state::Idle);
     env["SocketState"]["Accept"] = static_cast<i32>(socket_state::Accept);
@@ -317,15 +322,16 @@ void engine::create_engine_wrapper()
     engineWrapper["log"]  = [](engine*, string const& str) { logger::Info(str); };
 
     engineWrapper["give_score"] = [](engine* engine, i32 score) { engine->_init.State.Score += score; };
+    engineWrapper["update_hud"] = [](engine* engine) { engine->_updateHUD = true; };
 
     // properties
-    engineWrapper["hud"] = getter {[](engine* engine) -> tex_proxy* { return &engine->_hudProxy; }};
     engineWrapper["fg"]  = getter {[](engine* engine) -> tex_proxy* { return &engine->_fgProxy; }};
     engineWrapper["bg"]  = getter {[](engine* engine) -> tex_proxy* { return &engine->_bgProxy; }};
     engineWrapper["spr"] = getter {[](engine* engine) -> tex_proxy* { return &engine->_texProxy; }};
     engineWrapper["ssd"] = property {
         [](engine* engine) -> string { return *engine->_init.State.SSD; },
         [](engine* engine, string const& val) { engine->_init.State.SSD = val; }};
+    engineWrapper["is_game_over"] = getter {[](engine* engine) -> bool { return engine->_gameStatus == game_status::GameOver; }};
 }
 
 void engine::create_tex_wrapper()
@@ -374,5 +380,13 @@ void engine::define_texture(u32 id, rect_i const& uv)
             color const col {_init.State.Sprites->get_pixel(point_i {x, y} + uv.top_left())};
             tex.Alpha[x, y] = col.A;
         }
+    }
+}
+
+void engine::update_hud()
+{
+    if (_updateHUD) {
+        call(_callbacks.OnDrawHUD, &_hudProxy);
+        _updateHUD = false;
     }
 }

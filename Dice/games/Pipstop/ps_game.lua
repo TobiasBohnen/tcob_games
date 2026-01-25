@@ -47,6 +47,7 @@ function game:on_setup(engine)
     self:update_background(engine)
 
     self:queue_event(engine, events:get_start(self, engine))
+    engine:update_hud()
 end
 
 ---@param engine engine
@@ -59,12 +60,13 @@ function game:on_turn_start(engine)
             event:turn_start()
         end
     end
+    engine:update_hud()
 end
 
 ---@param engine engine
 ---@param deltaTime number
 function game:on_turn_update(engine, deltaTime, turnTime)
-    if turnTime > DURATION then return GameStatus.TurnEnded end
+    if turnTime > DURATION then return GameStatus.Waiting end
 
     local car = self.car
     car:update(deltaTime, turnTime)
@@ -85,7 +87,7 @@ function game:on_turn_update(engine, deltaTime, turnTime)
     end
 
     self:update_background(engine)
-    self:on_draw_hud(engine)
+    engine:update_hud()
 
     sprite.y_sort()
 
@@ -96,11 +98,7 @@ end
 ---@param engine engine
 function game:on_turn_finish(engine)
     self:update_background(engine)
-end
-
----@param engine engine
-function game:on_teardown(engine)
-    gfx.draw_game_over(engine.hud, self)
+    engine:update_hud()
 end
 
 ---@param engine engine
@@ -113,8 +111,13 @@ function game:on_collision(engine, spriteA, spriteB)
 end
 
 ---@param engine engine
-function game:on_draw_hud(engine)
-    gfx.draw_hud(engine.hud, self)
+---@param hud tex
+function game:on_draw_hud(engine, hud)
+    if engine.is_game_over then
+        gf.draw_game_over(hud)
+    else
+        gfx.draw_hud(hud, self)
+    end
 end
 
 ------

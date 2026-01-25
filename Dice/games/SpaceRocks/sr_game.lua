@@ -45,6 +45,7 @@ function game:on_setup(engine)
     self.sockets.speed   = socket.new { colors = { Palette.White } }
     self.sockets.turn    = socket.new { colors = { Palette.White } }
     self.sockets.bullets = socket.new { colors = { Palette.White, Palette.Red } }
+    engine:update_hud()
 end
 
 ---@param engine engine
@@ -59,12 +60,13 @@ function game:on_turn_start(engine)
     if socket.get_hand(self.sockets).value == "ThreeOfAKind" then
         ship:set_shield(true)
     end
+    engine:update_hud()
 end
 
 ---@param engine engine
 ---@param deltaTime number
 function game:on_turn_update(engine, deltaTime, turnTime)
-    if turnTime > DURATION then return GameStatus.TurnEnded end
+    if turnTime > DURATION then return GameStatus.Waiting end
 
     self:try_spawn_bullet(engine, deltaTime)
 
@@ -80,11 +82,7 @@ end
 ---@param engine engine
 function game:on_turn_finish(engine)
     self:try_spawn_asteroid(engine)
-end
-
----@param engine engine
-function game:on_teardown(engine)
-    gfx.draw_game_over(engine.hud, self)
+    engine:update_hud()
 end
 
 ---@param engine engine
@@ -97,8 +95,13 @@ function game:on_collision(engine, spriteA, spriteB)
 end
 
 ---@param engine engine
-function game:on_draw_hud(engine)
-    gfx.draw_hud(engine.hud, self)
+---@param hud tex
+function game:on_draw_hud(engine, hud)
+    if engine.is_game_over then
+        gf.draw_game_over(hud)
+    else
+        gfx.draw_hud(hud, self)
+    end
 end
 
 ------
@@ -352,7 +355,7 @@ function game:create_ship(engine)
                 ship.health        = ship.health - 1
                 ship.hitByAsteroid = true
                 ship:set_shield(true)
-                self:on_draw_hud(engine)
+                engine:update_hud()
             end
         end
     }
