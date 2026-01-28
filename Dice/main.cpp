@@ -11,19 +11,51 @@
     #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #endif
 
+#if defined(__EMSCRIPTEN__)
+
+auto get_config() -> tcob::data::object
+{
+    tcob::data::object config;
+
+    tcob::gfx::video_config video;
+    video.FullScreen           = false;
+    video.UseDesktopResolution = false;
+    video.VSync                = true;
+    video.Resolution           = tcob::size_i {800, 450};
+    video.RenderSystem         = "OPENGLES30";
+    config["video"]            = video;
+    return config;
+}
+
+class my_game : public tcob::game {
+public:
+    my_game(char const* /* argv */)
+        : tcob::game {
+              {.Name           = "Dice",
+               .LogFile        = "stdout",
+               .ConfigDefaults = get_config(),
+               .WorkerThreads  = 8,
+               .FixedStep      = milliseconds {1000.f / 50.f}}}
+    {
+#else
 class my_game : public tcob::game {
 public:
     my_game(char const* /* argv */)
         : tcob::game {{.Name = "Dice",
-#if defined(TCOB_DEBUG)
+    #if defined(TCOB_DEBUG)
                        .LogFile = "stdout",
-#else
+    #else
                        .LogFile = "dice.log",
-#endif
+    #endif
                        .FixedStep = milliseconds {1000.f / 100.f}}}
     {
+#endif
         auto& plt {locate_service<platform>()};
+#if defined(__EMSCRIPTEN__)
+        plt.FrameLimit = 60;
+#else
         plt.FrameLimit = static_cast<i32>(plt.displays().begin()->second.DesktopMode.RefreshRate);
+#endif
         auto& rs {locate_service<gfx::render_system>()};
         rs.window().VSync = false;
 

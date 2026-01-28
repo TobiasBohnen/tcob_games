@@ -71,7 +71,7 @@ void start_scene::on_update(milliseconds deltaTime)
             _frames.push_back({.Image = img, .Duration = _frameTimer});
             _frameTimer = 0ms;
         }
-        if (_frames.size() == 500) {
+        if (_frames.size() == 200) {
             logger::Info("capture done. saving...");
             _clipFtr = gfx::save_animation_async("clip.gif", _frames);
         }

@@ -1,9 +1,10 @@
 if(NOT EMSCRIPTEN)
     add_subdirectory(BrickOut)
-    add_subdirectory(Dice)
     add_subdirectory(FallingPixels)
     add_subdirectory(Mines)
     add_subdirectory(Rogue)
     add_subdirectory(Snake)
     add_subdirectory(Solitide)
 endif()
+
+add_subdirectory(Dice)
