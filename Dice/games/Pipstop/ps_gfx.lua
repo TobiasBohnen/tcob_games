@@ -240,9 +240,9 @@ function gfx.create_background(engine, curveAmount, speedFactor, trackOffset, th
 end
 
 local car_texture     =
-[[2i0p2q0b9n0b2o0b9p0b2m0b9r0b2k0c9r0c2i0z2g0ab2e0ad2cCa0c3d0p3d0cCa2aCb0c3d0p3d0cCd0adCd0k1h0kCd0k1h0kCd0fDb0vCd0fDb0vCd0adCh0vCf2aCe2vCe2a]]
+[[!2i0p2q0b9n0b2o0b9p0b2m0b9r0b2k0c9r0c2i0z2g0ab2e0ad2cC0c3d0p3d0cC2Cb0c3d0p3d0cCd0adCd0k1h0kCd0k1h0kCd0fDb0vCd0fDb0vCd0adCh0vCf2Ce2vCe2]]
 local opp_car_texture =
-[[2i7p2q7b5n7b2o7b5p7b2m7b5r7b2k0a7b5r7b0a2i0a7x0a2h7z2g7ab2dCb7c3b7r3b7cCb2aCb7c3d7p3d7cCd7d3b7r3b7dCd7k1h7kCe7j1h7jCf7abCh7b0c7sCj7c0a7tCk2b7r2bCf2aCe2vCe2a]]
+[[!2i7p2q7b5n7b2o7b5p7b2m7b5r7b2k07b5r7b02i07x02h7z2g7ab2dCb7c3b7r3b7cCb2Cb7c3d7p3d7cCd7d3b7r3b7dCd7k1h7kCe7j1h7jCf7abCh7b0c7sCj7c07tCk2b7r2bCf2Ce2vCe2]]
 
 gfx.textures          = {
     car = 1,

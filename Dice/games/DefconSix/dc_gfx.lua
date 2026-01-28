@@ -55,19 +55,19 @@ gfx.textures                    = {
 }
 
 local city_texture_undamaged    =
-[[0bd1d0g1c0o1a0b1d0e1g0b1c0g1c0a1a8b1a0e1a8a1a8a1a8a1a0a1e0f1a8a1a0a1d0e1g0a1a8a1a8a1a0f1c0a1a8b1a0e1a8a1c8a1a0a1e0d1a0a1c0a1d0a1a0c1g0a1a8a1c0b1c0a1a8a1a0a1d0a1a0c1c8a1a8a1a0a1e0a1a8a1b0a1c0a1a8b1d0b1g0a1a8a1a8a1a0a1d0a1c0a1g0b1a8a1e0a1e0a1b8a1a0a1a8a1a0a1a8b1b8a1a0b1e8a1a0a1a8a1a8a1f0a1c0a1g0b1g0a1g8a1b0a1c0a1g0b1a8a1r8a1a0a1a8b1b8a1a0b1v0a1g0b1ad0a]]
+[[!0bd1d0g1c0o10b1d0e1g0b1c0g1c018b10e181818101e0f18101d0e1g0181810f1c018b10e181c8101e0d101c01d010c1g0181c0b1c018101d010c1c818101e0181b01c018b1d0b1g01818101d01c01g0b181e01e01b810181018b1b810b1e81018181f01c01g0b1g01g81b01c01g0b181r81018b1b810b1v01g0b1ad0]]
 local city_texture_light_damage =
-[[0cy1a0c1b0x1a8a1a0c1c0f1a0p1c0c1a8a1a0f1c0l1c8a1a0a1e0d1a0a1c0l1e0a1a8a1c0b1c0a1a8a1a0a1a0j1a8a1a8a1a0a1e0a1a8a1b0a1c0a1a0i1a0a1d0a1a8a1a8a1a0a1d0a1c0a1b0g1a8a1a0a1c0a1e0a1b8a1a0a1a8a1a0a1a8b1b0d1e8a1a0a1a8a1a8a1f0a1c0a1d0a1a0c1g0a1g8a1b0a1c0a1g0b1a8a1r8a1a0a1a8b1b8a1a0b1v0a1g0b1ad0a]]
+[[!0cy10c1b0x1810c1c0f10p1c0c1810f1c0l1c8101e0d101c0l1e0181c0b1c0181010j1818101e0181b01c010i101d01818101d01c01b0g18101c01e01b810181018b1b0d1e81018181f01c01d010c1g01g81b01c01g0b181r81018b1b810b1v01g0b1ad0]]
 local city_texture_heavy_damage =
-[[0gm1a0e1a0y1c0c1a0n1a0j1a8a1a0c1c0c1a0a1a0f1a0i1a0a1d0a1a8a1a0c1c0b1c0a1b0g1a8a1a0a1c0a1e0a1b8a1a0a1a8a1a0a1a8a0a1a0e1e8a1a0a1a8a1a8a1f0a1c0a1d0e1g0a1g8a1b0a1c0a1d0e1a8a1r8a1a0a1a8b1b0d1v0a1g0b1ad0a]]
+[[!0gm10e10y1c0c10n10j1810c1c0c1010f10i101d01810c1c0b1c01b0g18101c01e01b810181018010e1e81018181f01c01d0e1g01g81b01c01d0e181r81018b1b0d1v01g0b1ad0]]
 local city_texture_destroyed    =
-[[0ny1c0d1a0h1a0c1e0e1f0b1c0a1c0a1d0a1g0b1i0a1l0a1g0b1ad0a]]
+[[!0ny1c0d10h10c1e0e1f0b1c01c01d01g0b1i01l01g0b1ad0]]
 local cannon_texture            =
-[[0arCc0jCe3a0hCfDb0bCa0bCfDc0dCd9aCbDb0gCb9aCcDaEa0iCb0bCbDaEa0iCb0aCbDaEa0lCbDaEa0kCdDaEa0g1a2a1h2a1a0c1a2a1a2a1f2a1a2a1a0a1af]]
+[[!0arCc0jCe30hCfDb0bC0bCfDc0dCd9CbDb0gCb9CcDE0iCb0bCbDE0iCb0CbDE0lCbDE0kCdDE0g121h210c12121f212101af]]
 local cannon_center_texture     =
-[[0t3a0c3a0c3a0gCa0cCa0cCa0fCbDa0aCbDa0aCbDa0eCbDa0aCbDa0aCbDa0eCbDa0aCbDa0aCbDa0eCbDa0aCbDa0aCbDa0eCbDa0aCbDa0aCbDa0eCbDa0aCbDa0aCbDa0eCbDa0aCbDa0aCbDa0eCbDa0aCbDa0aCbDa0dCl0d1a2a1h2a1a0c1a2a1a2a1f2a1a2a1a0a1af]]
+[[!0t30c30c30gC0cC0cC0fCbD0CbD0CbD0eCbD0CbD0CbD0eCbD0CbD0CbD0eCbD0CbD0CbD0eCbD0CbD0CbD0eCbD0CbD0CbD0eCbD0CbD0CbD0eCbD0CbD0CbD0dCl0d121h210c12121f212101af]]
 local missile_texture           =
-[[0b3d0e3b0c3a0a3d0a3d0b3f0b3d0a3d0a3a0c3b0e3d0b]]
+[[!0b3d0e3b0c303d03d0b3f0b3d03d030c3b0e3d0b]]
 
 gfx.sizes                       = {
     city = { width = 32, height = 16 },
@@ -120,13 +120,13 @@ end
 ------
 
 local cannon_pattern = {
-    left = [[0f2a0e2a0e2a0e2a0e2a0e2a0e2g]],
-    right = [[2a0g2a0g2a0g2a0g2a0g2a0a2g]],
-    center = [[0c2a0f2a0f2a0f2a0f2a0f2a0c2g]],
+    left = [[!0f20e20e20e20e20e20e2g]],
+    right = [[!20g20g20g20g20g202g]],
+    center = [[!0c20f20f20f20f20f20c2g]],
 }
 
-local charge_pattern = [[3b4i3d4i3q4i3d4i3d4i3q4i3d4i3d4i3q4i3d4i3b]]
-local cooling_pattern = [[00000D0D000000D0D00D00D0D000D00DDD00D00000D00D00D000D000D0D0D000D0D000DDD000D0DDDDDD0DDDDDD0D000DDD000D0D000D0D0D000D000D00D00D00000D00DDD00D000D0D00D00D0D000000D0D00000]]
+local charge_pattern = [[!3b4i3d4i3q4i3d4i3d4i3q4i3d4i3d4i3q4i3d4i3b]]
+local cooling_pattern = [[!0eD0D0fD0D0bD0bD0D0cD0bDc0bD0eD0bD0bD0cD0cD0D0D0cD0D0cDc0cD0Df0Df0D0cDc0cD0D0cD0D0D0cD0cD0bD0bD0eD0bDc0bD0cD0D0bD0bD0D0fD0D0e]]
 
 ---@param hud tex
 function gfx.draw_hud(hud, game, hudInfo)

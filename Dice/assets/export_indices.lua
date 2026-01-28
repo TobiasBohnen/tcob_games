@@ -22,26 +22,35 @@ for y = 0, h - 1 do
     end
 end
 
-local n        = #data
-local finalOut = {}
-local rleLen   = 0
-local rawLen   = n
+local n      = #data
+local rleLen = 0
+local rawLen = n
+local rle    = {}
+local i      = 1
 
-local rle      = {}
-local i        = 1
 while i <= n do
     local digit = data[i]
     local count = 1
     while (i + count <= n) and (data[i + count] == digit) do
         count = count + 1
     end
-    local rleCount = toBase26Letters(count)
-    rleLen         = rleLen + 1 + #rleCount
-    rle[#rle + 1]  = digit .. rleCount
-    i              = i + count
+
+    if count == 1 then
+        rle[#rle + 1] = digit
+        rleLen = rleLen + 1
+    else
+        local rleCount = toBase26Letters(count)
+        rle[#rle + 1] = digit .. rleCount
+        rleLen = rleLen + 1 + #rleCount
+    end
+
+    i = i + count
 end
 
 local usedRLE = rleLen < rawLen
-
-app.clipboard.text = table.concat(usedRLE and rle or data)
+if usedRLE then
+    app.clipboard.text = "!" .. table.concat(rle)
+else
+    app.clipboard.text = table.concat(data)
+end
 app.alert("Exported " .. w .. "x" .. h .. " indices to clipboard. RLE used: " .. tostring(usedRLE))

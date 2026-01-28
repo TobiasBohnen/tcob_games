@@ -356,12 +356,9 @@ auto decode_texture_pixels(string_view s, size_i size) -> std::vector<u8>
     std::vector<u8> dots;
     dots.reserve(size.area());
 
-    auto const isRLE {[](string_view sv) -> bool {
-        return sv.size() > 1 && (sv[1] >= 'a' && sv[1] <= 'z');
-    }};
-
-    if (isRLE(s)) {
-        usize i {0};
+    bool const isRLE {!s.empty() && s[0] == '!'};
+    if (isRLE) {
+        usize i {1};
         while (i < s.size()) {
             char digitChar {s[i++]};
             u8   val {0};
@@ -371,12 +368,14 @@ auto decode_texture_pixels(string_view s, size_i size) -> std::vector<u8>
                 val = 10 + (digitChar - 'A');
             }
 
-            usize start {i};
-            while (i < s.size() && s[i] >= 'a' && s[i] <= 'z') { ++i; }
-
-            u32 const run {from_base26(std::string_view(s.data() + start, i - start))};
-
-            dots.insert(dots.end(), run, val);
+            if (i < s.size() && s[i] >= 'a' && s[i] <= 'z') {
+                usize start {i};
+                while (i < s.size() && s[i] >= 'a' && s[i] <= 'z') { ++i; }
+                u32 const run {from_base26(std::string_view(s.data() + start, i - start))};
+                dots.insert(dots.end(), run, val);
+            } else {
+                dots.push_back(val);
+            }
         }
     } else {
         for (char c : s) {

@@ -12,7 +12,11 @@ end
 
 content = content:gsub("%s+", "")
 
-local use_rle = content:find("%x[a-z]") ~= nil
+local use_rle = false
+if content:sub(1, 1) == "!" then
+    use_rle = true
+    content = content:sub(2)
+end
 
 local function fromBase26Letters(s)
     local n = 0
@@ -33,20 +37,22 @@ if use_rle then
     local len = #content
     while i <= len do
         local digit = content:sub(i, i)
-        if not digit:match("[0-9A-F]") then
+        local val = tonumber(digit, 16)
+        if not val then
             return app.alert("Invalid HEX digit at pos " .. i .. ": " .. digit)
         end
         i = i + 1
 
-        local start = i
-        while i <= len and content:sub(i, i):match("[a-z]") do
-            i = i + 1
+        if i <= len and content:sub(i, i):match("[a-z]") then
+            local start = i
+            while i <= len and content:sub(i, i):match("[a-z]") do
+                i = i + 1
+            end
+            local run = fromBase26Letters(content:sub(start, i - 1))
+            for _ = 1, run do flat[#flat + 1] = val end
+        else
+            flat[#flat + 1] = val
         end
-        if start == i then return app.alert("Missing run-length after " .. digit .. " at pos " .. (i - 1)) end
-
-        local run = fromBase26Letters(content:sub(start, i - 1))
-        local val = tonumber(digit, 16)
-        for _ = 1, run do flat[#flat + 1] = val end
     end
 else
     for i = 1, #content do
