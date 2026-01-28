@@ -1,5 +1,4 @@
 add_executable(Dice)
-
 target_sources(Dice PRIVATE
     main.cpp
     Die.cpp
@@ -13,16 +12,39 @@ target_sources(Dice PRIVATE
 )
 
 if(EMSCRIPTEN)
-    # TODO: create 7z from asset files and include games instead of creating individual .die files
     target_compile_options(Dice PRIVATE -fexperimental-library -pthread)
-    configure_file(dice.7z ${CMAKE_BINARY_DIR}/dice.7z COPYONLY)
-    target_link_options(Dice PRIVATE -sFULL_ES3 -sASSERTIONS -sPTHREAD_POOL_SIZE=64 -sASYNCIFY -pthread --embed-file dice.7z)
+
+    set(ASSETS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets/zip")
+    set(GAMES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/games")
+    set(DICE_7Z "${CMAKE_BINARY_DIR}/dice.7z")
+    set(STAGING_DIR "${CMAKE_BINARY_DIR}/dice_staging")
+
+    add_custom_target(Dice_copyFiles ALL
+        COMMAND ${CMAKE_COMMAND} -E rm -rf "${STAGING_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${STAGING_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${ASSETS_DIR}" "${STAGING_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${GAMES_DIR}" "${STAGING_DIR}/games"
+        COMMAND ${CMAKE_COMMAND} -E chdir "${STAGING_DIR}"
+        ${CMAKE_COMMAND} -E tar "cf" "${DICE_7Z}" --format=7zip -- "."
+        BYPRODUCTS ${DICE_7Z}
+        COMMENT "Creating dice.7z for EMSCRIPTEN..."
+    )
+
+    add_dependencies(Dice Dice_copyFiles)
+
+    target_link_options(Dice PRIVATE
+        -sFULL_ES3
+        -sASSERTIONS
+        -sPTHREAD_POOL_SIZE=64
+        -sASYNCIFY
+        -pthread
+        "--embed-file=${CMAKE_BINARY_DIR}/dice.7z@dice.7z"
+    )
 else()
     set(TARGET_DIR "${CMAKE_BINARY_DIR}/../../x64/dice")
     set(GAMES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/games")
     file(MAKE_DIRECTORY "${TARGET_DIR}")
     file(GLOB GAMES_SUBDIRS RELATIVE "${GAMES_DIR}" "${GAMES_DIR}/*")
-
     add_custom_target(Dice_copyFiles ALL)
 
     foreach(subdir ${GAMES_SUBDIRS})
@@ -40,7 +62,6 @@ else()
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/assets/zip"
         COMMENT "Creating dice.7z"
     )
-
     add_dependencies(Dice Dice_copyFiles)
 endif()
 

@@ -18,6 +18,7 @@ auto get_config() -> tcob::data::object
     tcob::data::object config;
 
     tcob::gfx::video_config video;
+    video.FrameLimit           = 60;
     video.FullScreen           = false;
     video.UseDesktopResolution = false;
     video.VSync                = true;
@@ -35,7 +36,7 @@ public:
                .LogFile        = "stdout",
                .ConfigDefaults = get_config(),
                .WorkerThreads  = 8,
-               .FixedStep      = milliseconds {1000.f / 50.f}}}
+               .FixedStep      = milliseconds {1000.f / 100.f}}}
     {
 #else
 class my_game : public tcob::game {
@@ -50,10 +51,9 @@ public:
                        .FixedStep = milliseconds {1000.f / 100.f}}}
     {
 #endif
+
+#if !defined(__EMSCRIPTEN__)
         auto& plt {locate_service<platform>()};
-#if defined(__EMSCRIPTEN__)
-        plt.FrameLimit = 60;
-#else
         plt.FrameLimit = static_cast<i32>(plt.displays().begin()->second.DesktopMode.RefreshRate);
 #endif
         auto& rs {locate_service<gfx::render_system>()};
