@@ -15,10 +15,10 @@ using namespace std::chrono_literals;
 ////////////////////////////////////////////////////////////
 
 elements_form::elements_form(rect_i const& bounds, std::vector<element_def> const& elements)
-    : form {{"elements", bounds}}
+    : form {{.Name = "elements", .Bounds = bounds}}
     , _font {"trim", "trim"}
 {
-    font_family::SingleFont(*_font.ptr(), trim_ttf);
+    font_family::SingleFont(*_font.ptr(), std::as_bytes(std::span {trim_ttf}));
     gen_styles();
 
     auto& mainPanel {create_container<panel>(dock_style::Fill, "main")};
