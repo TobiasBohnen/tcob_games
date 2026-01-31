@@ -172,7 +172,7 @@ void card_table::move_camera(rect_f const& cardBounds)
 {
     using namespace tcob::gfx;
 
-    auto const winSize {_camera.viewport().Size};
+    auto const winSize {size_f {_camera.viewport().Size}};
 
     f32 const     hDiff {static_cast<f32>(winSize.Height - Bounds->height())};
     f32 const     zoom {std::min(winSize.Width / cardBounds.width(), (winSize.Height - hDiff) / cardBounds.height())};
