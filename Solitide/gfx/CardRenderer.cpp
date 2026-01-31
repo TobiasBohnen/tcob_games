@@ -10,9 +10,45 @@
 
 namespace solitaire {
 
+quad_renderer::quad_renderer()
+    : _vertexArray {gfx::buffer_usage_hint::DynamicDraw}
+{
+}
+
+void quad_renderer::set_geometry(std::span<gfx::quad const> quads, gfx::pass const* pass)
+{
+    prepare(quads.size());
+    _vertexArray.update_data(quads, 0);
+    _numQuads = quads.size();
+    _pass     = pass;
+}
+
+void quad_renderer::prepare(usize quadCount)
+{
+    if (quadCount > _numQuads) {
+        usize const vertCount {quadCount * 4};
+        usize const indCount {quadCount * 6};
+        _vertexArray.resize(vertCount, indCount);
+        _vertexArray.update_data(gfx::geometry::get_indices(quadCount), 0);
+    }
+}
+
+void quad_renderer::on_render_to_target(gfx::render_target& target)
+{
+    if (_numQuads == 0 || !_pass) {
+        return;
+    }
+
+    target.bind_pass(*_pass);
+    _vertexArray.draw_elements(gfx::primitive_type::Triangles, _numQuads * 6, 0);
+    target.unbind_pass();
+}
+
+////////////////////////////////////////////////////////////
+
 card_renderer::card_renderer(card_table& parent)
     : _parent {parent}
-    , _cardRenderer {gfx::buffer_usage_hint::DynamicDraw}
+    , _cardRenderer {}
 {
 }
 

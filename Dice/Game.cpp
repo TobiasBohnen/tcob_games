@@ -61,7 +61,7 @@ dice_game::dice_game(init const& init)
     gfx::geometry::set_color(q, colors::White);
     gfx::geometry::set_position(q, bgBounds);
     gfx::geometry::set_texcoords(q, {.UVRect = gfx::render_texture::UVRect(), .Level = 0});
-    _screenRenderer.set_geometry(q, &_screenMaterial->first_pass());
+    _screenRenderer.set_geometry({.Vertices = q, .Indices = gfx::QuadIndicies, .Type = gfx::primitive_type::Triangles}, &_screenMaterial->first_pass());
 
     // dice
     u32 totalDiceCount {0};

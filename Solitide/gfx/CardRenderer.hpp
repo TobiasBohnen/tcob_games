@@ -18,6 +18,24 @@ namespace solitaire {
 
 ////////////////////////////////////////////////////////////
 
+class quad_renderer final : public gfx::renderer {
+public:
+    explicit quad_renderer();
+
+    void set_geometry(std::span<gfx::quad const> quads, gfx::pass const* pass);
+
+private:
+    void prepare(usize quadCount);
+    void on_render_to_target(gfx::render_target& target) override;
+
+    gfx::pass const* _pass {nullptr};
+    usize            _numQuads {0};
+
+    gfx::vertex_array _vertexArray;
+};
+
+////////////////////////////////////////////////////////////
+
 class card_renderer {
 public:
     card_renderer(card_table& parent);
@@ -42,7 +60,7 @@ private:
 
     card_set const*        _cardSet {nullptr};
     gfx::shape_batch       _markerSprites;
-    gfx::quad_renderer     _cardRenderer;
+    quad_renderer          _cardRenderer;
     std::vector<gfx::quad> _cardQuads;
     bool                   _renderDirty {true};
 };
