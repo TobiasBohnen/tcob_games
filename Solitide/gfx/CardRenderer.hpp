@@ -18,7 +18,7 @@ namespace solitaire {
 
 ////////////////////////////////////////////////////////////
 
-class quad_renderer final : public gfx::renderer {
+class quad_renderer final : public gfx::renderer_base {
 public:
     explicit quad_renderer();
 

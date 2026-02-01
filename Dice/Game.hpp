@@ -82,7 +82,7 @@ private:
 
     asset_owner_ptr<gfx::material>       _screenMaterial;
     asset_owner_ptr<gfx::render_texture> _screenTexture;
-    gfx::polygon_renderer                _screenRenderer {gfx::buffer_usage_hint::StaticDraw};
+    gfx::renderer                        _screenRenderer {gfx::buffer_usage_hint::StaticDraw};
 
     shared_state _sharedState;
 
