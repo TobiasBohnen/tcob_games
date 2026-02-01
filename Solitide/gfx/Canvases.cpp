@@ -60,7 +60,7 @@ void foreground_canvas::draw(gfx::render_target& target)
         _canvasDirty = false;
     }
 
-    _renderer.add_layer(0);
+    _renderer.queue_layer(0);
     _renderer.render_to_target(target);
 }
 
@@ -250,7 +250,7 @@ void background_canvas::draw(gfx::render_target& target)
         _canvasDirty = false;
     }
 
-    _renderer.add_layer(0);
+    _renderer.queue_layer(0);
     _renderer.render_to_target(target);
 }
 

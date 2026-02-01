@@ -128,7 +128,7 @@ X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X
         _drawn       = true;
     }
 
-    _renderer.add_layer(0);
+    _renderer.queue_layer(0);
     _renderer.render_to_target(target);
 }
 
