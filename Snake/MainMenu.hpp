@@ -21,7 +21,7 @@ protected:
 private:
     void gen_styles();
 
-    asset_ptr<gfx::font_family> _font;
+    asset_owner_ptr<gfx::font_family> _font;
 };
 
 }

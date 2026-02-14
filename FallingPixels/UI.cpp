@@ -5,7 +5,7 @@
 
 #include "UI.hpp"
 
-#include "Trim.hpp"
+#include "../_common/Trim.hpp"
 
 using namespace tcob::literals;
 using namespace tcob::gfx;

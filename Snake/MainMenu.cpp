@@ -5,6 +5,8 @@
 
 #include "MainMenu.hpp"
 
+#include "../_common/Trim.hpp"
+
 using namespace tcob::ui;
 using namespace tcob::gfx;
 using namespace tcob::literals;
@@ -13,8 +15,10 @@ namespace Snake {
 
 main_menu::main_menu(assets::group const& resGrp, rect_i const& bounds)
     : form {{.Name = "MainMenu", .Bounds = bounds}}
-    , _font {resGrp.get<gfx::font_family>("Poppins")}
+    , _font {"trim", "trim"}
 {
+    gfx::font_family::SingleFont(*_font.ptr(), std::as_bytes(std::span {trim_ttf}));
+
     gen_styles();
 
     auto& mainPanel {create_container<panel>(dock_style::Fill, "main")};
@@ -57,10 +61,9 @@ void main_menu::gen_styles()
         style->Border.Type    = border_type::Solid;
         style->Border.Size    = 3_px;
         style->Border.Radius  = 10_px;
-        style->Text.Style     = {.IsItalic = true, .Weight = font::weight::ExtraBold};
         style->Text.Font      = _font;
         style->Text.Size      = 50_pct;
-        style->Text.Alignment = {.Horizontal = horizontal_alignment::Centered, .Vertical = vertical_alignment::Middle};
+        style->Text.Alignment = {.Horizontal = horizontal_alignment::Centered, .Vertical = vertical_alignment::Top};
         style->Text.AutoSize  = auto_size_mode::OnlyShrink;
         style->Margin         = {2_px};
         style->Padding        = {2_px};
@@ -87,7 +90,6 @@ void main_menu::gen_styles()
         auto style {styles.create<label>("label", {})};
         style->Border.Type    = border_type::Double;
         style->Border.Size    = 3_px;
-        style->Text.Style     = {.IsItalic = false, .Weight = font::weight::Normal};
         style->Text.Font      = _font;
         style->Text.Size      = 40_pct;
         style->Text.Alignment = {.Horizontal = horizontal_alignment::Centered, .Vertical = vertical_alignment::Middle};

@@ -1,4 +1,5 @@
 #include "UIHelper.hpp"
+#include "Trim.hpp"
 
 ////////////////////////////////////////////////////////////
 
@@ -159,8 +160,10 @@ void color_theme::apply(std::shared_ptr<nav_arrows_style> const& style) const
     style->NavArrow.Border.Background = Border;
 }
 
-void create_styles(assets::group const& resGrp, style_collection& styles)
+void create_styles(asset_ptr<gfx::font_family> const& font, style_collection& styles)
 {
+    gfx::font_family::SingleFont(*font.ptr(), std::as_bytes(std::span {trim_ttf}));
+
     using namespace tcob::literals;
     using namespace std::chrono_literals;
 
@@ -233,12 +236,12 @@ void create_styles(assets::group const& resGrp, style_collection& styles)
         style->Border.Type          = border_type::Solid;
         style->Border.Size          = 3_px;
         style->Border.Radius        = 5_px;
-        style->Text.Style           = {false, gfx::font::weight::Normal};
-        style->Text.Font            = resGrp.get<gfx::font_family>("Poppins");
-        style->Text.Size            = 16_px;
+        style->Text.Style           = {.IsItalic = false, .Weight = gfx::font::weight::Normal};
+        style->Text.Font            = font;
+        style->Text.Size            = 50_px;
         style->Text.Shadow.OffsetX  = 0_px;
         style->Text.Shadow.OffsetY  = 1_px;
-        style->Text.Alignment       = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
+        style->Text.Alignment       = {.Horizontal = gfx::horizontal_alignment::Centered, .Vertical = gfx::vertical_alignment::Middle};
         style->Text.Decoration.Size = {3_px};
         style->Text.AutoSize        = auto_size_mode::Always;
         style->Margin               = {5_px};
@@ -269,20 +272,20 @@ void create_styles(assets::group const& resGrp, style_collection& styles)
     }
     {
         auto style {styles.create<label>("label", {})};
-        style->Text.Style     = {false, gfx::font::weight::Normal};
-        style->Text.Font      = resGrp.get<gfx::font_family>("Poppins");
+        style->Text.Style     = {.IsItalic = false, .Weight = gfx::font::weight::Normal};
+        style->Text.Font      = font;
         style->Text.Size      = 50_pct;
-        style->Text.Alignment = {gfx::horizontal_alignment::Left, gfx::vertical_alignment::Middle};
+        style->Text.Alignment = {.Horizontal = gfx::horizontal_alignment::Left, .Vertical = gfx::vertical_alignment::Middle};
         style->Text.AutoSize  = auto_size_mode::OnlyShrink;
 
         normal.apply(style);
     }
     {
         auto style {styles.create<label>("label-small", {})};
-        style->Text.Style     = {false, gfx::font::weight::Normal};
-        style->Text.Font      = resGrp.get<gfx::font_family>("Poppins");
+        style->Text.Style     = {.IsItalic = false, .Weight = gfx::font::weight::Normal};
+        style->Text.Font      = font;
         style->Text.Size      = 16_px;
-        style->Text.Alignment = {gfx::horizontal_alignment::Centered, gfx::vertical_alignment::Middle};
+        style->Text.Alignment = {.Horizontal = gfx::horizontal_alignment::Centered, .Vertical = gfx::vertical_alignment::Middle};
         style->Text.AutoSize  = auto_size_mode::OnlyShrink;
         normal.apply(style);
         style->Text.Color = colors::White;
@@ -346,10 +349,10 @@ void create_styles(assets::group const& resGrp, style_collection& styles)
     {
         auto style {styles.create<item_style>("list_items", {}, {})};
         style->Item.Padding        = {2_px};
-        style->Item.Text.Style     = {false, gfx::font::weight::Normal};
-        style->Item.Text.Font      = resGrp.get<gfx::font_family>("Poppins");
+        style->Item.Text.Style     = {.IsItalic = false, .Weight = gfx::font::weight::Normal};
+        style->Item.Text.Font      = font;
         style->Item.Text.Size      = 50_pct;
-        style->Item.Text.Alignment = {gfx::horizontal_alignment::Left, gfx::vertical_alignment::Middle};
+        style->Item.Text.Alignment = {.Horizontal = gfx::horizontal_alignment::Left, .Vertical = gfx::vertical_alignment::Middle};
         style->Item.Border.Size    = 3_px;
 
         auto hoverStyle {styles.create<item_style>("list_items", {.Hover = true})};

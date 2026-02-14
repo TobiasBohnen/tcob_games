@@ -29,7 +29,7 @@ void start_scene::on_start()
     _playField = std::make_shared<field>(resGrp.get<gfx::material>("mat-mines-tiles"));
 
     rect_i const menuBounds {windowSize.Height, 0, windowSize.Width - windowSize.Height, windowSize.Height};
-    _mainForm = std::make_shared<main_menu>(resGrp, menuBounds);
+    _mainForm = std::make_shared<main_menu>(menuBounds);
     _mainForm->BtnStart->Click.connect([&, windowSize](auto const&) {
         _playField->start(
             {static_cast<i32>(_mainForm->SldWidth->Value), static_cast<i32>(_mainForm->SldHeight->Value)},

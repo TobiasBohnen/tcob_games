@@ -7,7 +7,7 @@
 
 #include "Common.hpp" // IWYU pragma: keep
 
-void create_styles(assets::group const& resGrp, style_collection& styles);
+void create_styles(asset_ptr<gfx::font_family> const& font, style_collection& styles);
 
 struct color_theme {
     color Background {colors::Transparent};

@@ -9,10 +9,10 @@
 
 namespace BrickOut {
 
-main_menu::main_menu(assets::group const& resGrp, rect_i const& bounds)
+main_menu::main_menu(rect_i const& bounds)
     : form {{.Name = "MainMenu", .Bounds = bounds}}
 {
-    Styles.mutate([&](auto& styles) { create_styles(resGrp, styles); });
+    Styles.mutate([&](auto& styles) { create_styles(_font, styles); });
 
     auto& mainPanel {create_container<panel>(dock_style::Fill, "main")};
 
