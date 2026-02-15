@@ -31,8 +31,7 @@ local game           = {
     eventQueue = {}, ---@type event_base[]
 
     sockets    = {
-        speed = nil, ---@type socket
-        control = nil, ---@type socket
+        wheel = nil, ---@type socket
     },
 }
 
@@ -47,6 +46,10 @@ function game:on_setup(engine)
     self:update_background(engine)
 
     self:queue_event(engine, events:get_start(self, engine))
+    self:queue_event(engine, events:get_next(self, engine))
+    self:queue_event(engine, events:get_next(self, engine))
+    self.sockets.wheel = socket.new { colors = { Palette.Red, Palette.White } }
+
     engine:update_hud()
 end
 

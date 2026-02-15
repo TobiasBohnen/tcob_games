@@ -11,12 +11,14 @@ local event_base = {
     outcome     = "",
     turnsLeft   = 0,
 
-    sockets     = {},
+    sockets     = nil,
     socketCount = 0,
 
     finished    = false,
 
     init        = function(event)
+        event.sockets = {}
+
         assert(event.socketCount <= 5)
         for i = 1, event.socketCount do
             event.sockets[#event.sockets + 1] = socket.new { colors = { Palette.White } }
@@ -93,6 +95,11 @@ local function start_event(game, engine)
     })
 end
 
+--TODO events:
+-- shift gears -> trigger: target speed reaced -> speed up on success
+-- speed trap  -> trigger: speed above 180     -> speed down on failure
+-- maintenance -> speed down/lose fuel on failure
+-- gas station -> trigger: below 10% fuel
 ---@param engine engine
 local function traffic_event(game, engine)
     local traffic_1 = event_base:create({
@@ -107,7 +114,7 @@ local function traffic_event(game, engine)
 
         on_update   = function(event, deltaTime, turnTime)
             if engine:irnd(0, 1000) == 1 then
-                self:try_spawn_opponent(engine)
+                --game:try_spawn_opponent(engine)
             end
         end,
 

@@ -119,13 +119,13 @@ end
 
 ------
 
-local cannon_pattern = {
-    left = [[!0f20e20e20e20e20e20e2g]],
-    right = [[!20g20g20g20g20g202g]],
+local cannon_pattern  = {
+    left   = [[!0f20e20e20e20e20e20e2g]],
+    right  = [[!20g20g20g20g20g202g]],
     center = [[!0c20f20f20f20f20f20c2g]],
 }
 
-local charge_pattern = [[!3b4i3d4i3q4i3d4i3d4i3q4i3d4i3d4i3q4i3d4i3b]]
+local charge_pattern  = [[!3b4i3d4i3q4i3d4i3d4i3q4i3d4i3d4i3q4i3d4i3b]]
 local cooling_pattern = [[!0eD0D0fD0D0bD0bD0D0cD0bDc0bD0eD0bD0bD0cD0cD0D0D0cD0D0cDc0cD0Df0Df0D0cDc0cD0D0cD0D0D0cD0cD0bD0bD0eD0bDc0bD0cD0D0bD0bD0D0fD0D0e]]
 
 ---@param hud tex

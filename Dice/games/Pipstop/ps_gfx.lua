@@ -342,9 +342,10 @@ function gfx.draw_car_info(hud, game)
         x = x + 6
     end
     y = y + 8
-    x = xStart
+
 
     -- fuel
+    x = xStart
     for i = 1, 12 do
         local col
         if i <= game.car.fuel / 100 * 12 then
@@ -356,8 +357,14 @@ function gfx.draw_car_info(hud, game)
         hud:rect({ x = x, y = y, width = 5, height = 4 }, col, true)
         x = x + 6
     end
+    y = y + 6
 
-    y = y + 7
+    x = xStart
+    game.sockets.wheel.position = { x = x + 1, y = y }
+    hud:socket(game.sockets.wheel)
+
+    y = y + 18
+
     return y
 end
 
@@ -367,7 +374,7 @@ function gfx.draw_events(hud, game, y)
     local offset = 18
 
     for _, event in ipairs(game.eventQueue) do
-        hud:rect({ x = 0, y = y, width = hud.size.width, height = (offset + 1) * 2 + 1 }, Palette.DarkBlue, true)
+        hud:rect({ x = 0, y = y, width = hud.size.width, height = offset + 15 }, Palette.DarkBlue, true)
         y              = y + 1
 
         local x        = xStart
@@ -376,10 +383,9 @@ function gfx.draw_events(hud, game, y)
         hud:print({ x = x, y = y }, event.title, texColor, "Font3x5")
         y = y + 7
 
-        hud:print({ x = x, y = y }, event.value .. " / " .. event.target, texColor, "Font3x5")
-        y = y + 7
+        hud:print({ x = x + 55, y = y }, event.value .. " / " .. event.target, texColor, "Font3x5")
 
-        hud:print({ x = x, y = y }, "turns left = " .. event.turnsLeft, texColor, "Font3x5")
+        hud:print({ x = x, y = y }, "turns = " .. event.turnsLeft, texColor, "Font3x5")
         y = y + 7
 
         for _, socket in ipairs(event.sockets or {}) do
@@ -388,7 +394,7 @@ function gfx.draw_events(hud, game, y)
             x = x + offset
         end
 
-        y = y + offset
+        y = y + offset + 1
     end
 end
 
