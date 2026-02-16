@@ -73,10 +73,11 @@ dice_game::dice_game(init const& init)
 
     u32 idx {0};
     for (auto const& die : init.Dice) {
+        if (!PALETTE_MAP.contains(die.Color)) { continue; }
+
         std::vector<die_face> vec;
         vec.reserve(die.Values.size());
-        for (auto const& value : die.Values) {
-            if (!PALETTE_MAP.contains(die.Color)) { continue; }
+        for (u8 value : die.Values) {
             vec.emplace_back(value, PALETTE_MAP.at(die.Color));
         }
         if (vec.empty()) { return; }

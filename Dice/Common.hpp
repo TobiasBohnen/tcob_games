@@ -67,9 +67,9 @@ static std::unordered_map<string, usize> const PALETTE_MAP {
 
 struct game_def {
     struct dice {
-        u32              Amount {0};
-        std::vector<i32> Values;
-        string           Color;
+        u32             Amount {0};
+        std::vector<u8> Values;
+        string          Color;
 
         static auto constexpr Members() { return std::tuple {member<&dice::Amount> {"Amount"}, member<&dice::Values> {"Values"}, member<&dice::Color> {"Color"}}; }
     };
