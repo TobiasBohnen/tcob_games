@@ -27,6 +27,8 @@ constexpr size_i SPRITE_TEXTURE_SIZE {256, 256};
 constexpr size_f DICE_SIZE {62, 62};
 constexpr size_f DICE_REF_SIZE {1600, 900};
 
+static constexpr usize MAX_SOUND_CHANNELS {8};
+
 constexpr std::array<color, 16> PALETTE {
     {{0, 0, 0, 255},
      {157, 157, 157, 255},
@@ -112,13 +114,12 @@ struct event_bus {
     signal<die* const>    DieMotion;
 };
 
-struct shared_state {
-    rng    Rng;
-    rect_f HUDBounds;
+struct ui_state {
+    prop<bool> CanStartTurn {false};
 
-    prop<bool>   CanStart {false};
     prop<i32>    Score;
     prop<string> SSD;
 
     prop<gfx::image> HUD {gfx::image::CreateEmpty(HUD_SIZE, gfx::image::format::RGBA)};
+    rect_f           HUDBounds;
 };

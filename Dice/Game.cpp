@@ -14,15 +14,15 @@ using namespace scripting;
 dice_game::dice_game(init init)
     : gfx::entity {update_mode::Both}
     , _init {std::move(init)}
-    , _sprites {sprite_manager::init {
-          .Events = _init.Events}}
+    , _sprites {_init.Events}
     , _sockets {_init.RealWindowSize / DICE_REF_SIZE}
     , _dice {_init.Group, _diceBatch, _init.RealWindowSize / DICE_REF_SIZE}
     , _engine {engine::init {
-          .State     = _sharedState,
+          .UIState   = _uiState,
           .Events    = _init.Events,
-          .SpriteMgr = &_sprites,
-          .Sockets   = &_sockets}}
+          .Rng       = _rng,
+          .SpriteMgr = _sprites,
+          .Sockets   = _sockets}}
 {
     // TODO: enforce int scaling for background
     // TODO: 16:10 support
@@ -30,7 +30,7 @@ dice_game::dice_game(init init)
     rect_f const bgBounds {0, 0, h / 3.0f * 4.0f, h};
     rect_f const uiBounds {bgBounds.width(), 0.0f, w - bgBounds.width(), h};
 
-    _form0 = std::make_unique<game_form>(uiBounds, _init.Group, _sharedState, _init.Events);
+    _form0 = std::make_unique<game_form>(uiBounds, _init.Group, _uiState, _init.Events);
 
     _screenTexture->Size      = size_i {VIRTUAL_SCREEN_SIZE};
     _screenTexture->Filtering = gfx::texture::filtering::NearestNeighbor;
@@ -65,7 +65,7 @@ dice_game::dice_game(init init)
         if (vec.empty()) { return; }
 
         for (u32 i {0}; i < die.Amount; ++i) {
-            _dice.add(get_die_position(totalDiceCount, idx), _sharedState.Rng, vec[0], vec);
+            _dice.add(get_die_position(totalDiceCount, idx), _rng, vec[0], vec);
             idx++;
         }
     }
@@ -164,7 +164,7 @@ void dice_game::on_mouse_motion(input::mouse::motion_event const& ev)
             _init.Events.DieRemove(socket);
         }
 
-        _dice.on_drag(mp, _sharedState.HUDBounds);
+        _dice.on_drag(mp, _uiState.HUDBounds);
 
         _init.Events.DieMotion(_hoverDie);
     }
@@ -187,7 +187,7 @@ auto dice_game::get_die_position(usize count, usize idx) const -> point_f
     f32 const    colPadding {3.0f * scale};
     f32 const    rowPadding {5.0f * scale};
 
-    rect_f area {_sharedState.HUDBounds};
+    rect_f area {_uiState.HUDBounds};
     area.Size.Height -= DICE_SIZE.Height;
 
     f32 const   diceWidth {scaledDiceSize.Width + colPadding};

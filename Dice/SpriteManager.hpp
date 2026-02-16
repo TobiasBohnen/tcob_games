@@ -13,11 +13,7 @@
 
 class sprite_manager {
 public:
-    struct init {
-        event_bus& Events;
-    };
-
-    explicit sprite_manager(init const& init);
+    explicit sprite_manager(event_bus& events);
 
     prop<gfx::image> Foreground {gfx::image::CreateEmpty(size_i {VIRTUAL_SCREEN_SIZE}, gfx::image::format::RGBA)};
     prop<gfx::image> Background {gfx::image::CreateEmpty(size_i {VIRTUAL_SCREEN_SIZE}, gfx::image::format::RGBA)};
@@ -62,5 +58,5 @@ private:
 
     std::vector<std::unique_ptr<sprite>> _sprites;
 
-    init _init;
+    event_bus& _events;
 };

@@ -51,8 +51,9 @@ private:
     asset_owner_ptr<gfx::render_texture> _screenTexture;
     gfx::renderer                        _screenRenderer {gfx::buffer_usage_hint::StaticDraw};
 
-    shared_state _sharedState;
+    ui_state _uiState;
 
+    rng            _rng;
     init           _init;
     sprite_manager _sprites;
     sockets        _sockets;

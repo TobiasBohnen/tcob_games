@@ -13,10 +13,10 @@ using namespace scripting;
 
 engine::engine(init init)
     : _init {init}
-    , _hudProxy {_init.State.HUD, PALETTE[0]}
-    , _fgProxy {_init.SpriteMgr->Foreground, colors::Transparent}
-    , _bgProxy {_init.SpriteMgr->Background, PALETTE[0]}
-    , _texProxy {_init.SpriteMgr->Sprites, colors::Transparent}
+    , _hudProxy {_init.UIState.HUD, PALETTE[0]}
+    , _fgProxy {_init.SpriteMgr.Foreground, colors::Transparent}
+    , _bgProxy {_init.SpriteMgr.Background, PALETTE[0]}
+    , _texProxy {_init.SpriteMgr.Sprites, colors::Transparent}
 {
     _script.open_libraries(library::Table, library::String, library::Math);
     _script.Warning.connect([](script::warning_event const& ev) {
@@ -89,9 +89,9 @@ void engine::run(string const& file)
     _table = *_script.run_file<table>(file);
 
     _table.try_get(_callbacks.OnSetup, "on_setup");
+    _table.try_get(_callbacks.OnTurnStart, "on_turn_start");
     _table.try_get(_callbacks.OnTurnUpdate, "on_turn_update");
     _table.try_get(_callbacks.OnTurnFinish, "on_turn_finish");
-    _table.try_get(_callbacks.OnTurnStart, "on_turn_start");
     _table.try_get(_callbacks.OnDrawHUD, "on_draw_hud");
     _table.try_get(_callbacks.OnCollision, "on_collision");
 
@@ -102,7 +102,7 @@ auto engine::update(milliseconds deltaTime) -> bool
 {
     update_hud();
 
-    _init.State.CanStart = _gameStatus == game_status::Waiting;
+    _init.UIState.CanStartTurn = _gameStatus == game_status::Waiting;
 
     if (_gameStatus != game_status::Running) { return false; }
 
@@ -112,22 +112,22 @@ auto engine::update(milliseconds deltaTime) -> bool
 
     auto const dt {deltaTime.count()};
     _turnTime += dt;
-    game_status const status {static_cast<game_status>(call(_callbacks.OnTurnUpdate, dt, _turnTime))};
-    _gameStatus = status;
+    _gameStatus = static_cast<game_status>(call(_callbacks.OnTurnUpdate, dt, _turnTime));
 
-    switch (status) {
-    case Running: return true;
-    case Waiting: {
+    switch (_gameStatus) {
+    case game_status::Running: return true;
+    case game_status::Waiting: {
         call(_callbacks.OnTurnFinish);
         _turnTime = 0;
-        _init.Sockets->reset();
+        _init.Sockets.reset();
         _init.Events.TurnFinish();
         return false;
     }
-    case GameOver:
+    case game_status::GameOver: {
         _updateHUD = true;
         _init.Events.GameOver();
         return false;
+    }
     }
 
     return true;
@@ -199,12 +199,12 @@ void engine::create_sprite_wrapper()
             auto const texID {def.TexID};
             if (texID && _textures.contains(*texID)) { tex = &_textures[*texID]; }
 
-            return _init.SpriteMgr->add({.Def = def, .Texture = tex, .Owner = spriteOwner});
+            return _init.SpriteMgr.add({.Def = def, .Texture = tex, .Owner = spriteOwner});
         }})};
     env["sprite"]["new"] = newFunc.get();
     _funcs.push_back(std::move(newFunc));
 
-    auto sortFunc {make_unique_closure(std::function {[this]() { _init.SpriteMgr->sort_by_y(); }})};
+    auto sortFunc {make_unique_closure(std::function {[this]() { _init.SpriteMgr.sort_by_y(); }})};
     env["sprite"]["y_sort"] = sortFunc.get();
     _funcs.push_back(std::move(sortFunc));
 
@@ -227,7 +227,7 @@ void engine::create_sprite_wrapper()
             }
             sprite->set_texture(&_textures[texID]);
         }};
-    spriteWrapper["remove"] = [this](sprite* sprite) { _init.SpriteMgr->remove(sprite); };
+    spriteWrapper["remove"] = [this](sprite* sprite) { _init.SpriteMgr.remove(sprite); };
 }
 
 void engine::create_socket_wrapper()
@@ -235,7 +235,7 @@ void engine::create_socket_wrapper()
     auto env {**_script.Environment};
 
     auto func {make_unique_closure(std::function {
-        [this](table const& socketInit) -> socket* { return _init.Sockets->add(socketInit.get<socket_face>().value_or(socket_face {})); }})};
+        [this](table const& socketInit) -> socket* { return _init.Sockets.add(socketInit.get<socket_face>().value_or(socket_face {})); }})};
     env["socket"]["new"] = func.get();
     _funcs.push_back(std::move(func));
     static auto const convert_sockets {[](std::unordered_map<std::variant<i32, string>, socket*> const& socketMap) {
@@ -278,12 +278,12 @@ void engine::create_socket_wrapper()
         [](socket* socket) -> point_i { return socket->HUDPosition; },
         [this](socket* socket, point_f pos) {
             socket->HUDPosition = point_i {pos};
-            auto const&   rect {_init.State.HUDBounds};
+            auto const&   rect {_init.UIState.HUDBounds};
             point_f const spos {rect.left() + (rect.width() * (pos.X / static_cast<f32>(HUD_SIZE.Width))),
                                 rect.top() + (rect.height() * (pos.Y / static_cast<f32>(HUD_SIZE.Height)))};
             socket->move_to(spos);
         }};
-    socketWrapper["remove"] = [this](socket* socket) { _init.Sockets->remove(socket); };
+    socketWrapper["remove"] = [this](socket* socket) { _init.Sockets.remove(socket); };
 }
 
 void engine::create_engine_wrapper()
@@ -312,11 +312,11 @@ void engine::create_engine_wrapper()
     };
 
     // functions
-    engineWrapper["rnd"]  = [](engine* engine, f32 min, f32 max) { return engine->_init.State.Rng(min, max); };
-    engineWrapper["irnd"] = [](engine* engine, i32 min, i32 max) { return engine->_init.State.Rng(min, max); };
+    engineWrapper["rnd"]  = [](engine* engine, f32 min, f32 max) { return engine->_init.Rng(min, max); };
+    engineWrapper["irnd"] = [](engine* engine, i32 min, i32 max) { return engine->_init.Rng(min, max); };
     engineWrapper["log"]  = [](engine*, string const& str) { logger::Info(str); };
 
-    engineWrapper["give_score"] = [](engine* engine, i32 score) { engine->_init.State.Score += score; };
+    engineWrapper["give_score"] = [](engine* engine, i32 score) { engine->_init.UIState.Score += score; };
     engineWrapper["update_hud"] = [](engine* engine) { engine->_updateHUD = true; };
 
     // properties
@@ -324,8 +324,8 @@ void engine::create_engine_wrapper()
     engineWrapper["bg"]  = getter {[](engine* engine) -> tex_proxy* { return &engine->_bgProxy; }};
     engineWrapper["spr"] = getter {[](engine* engine) -> tex_proxy* { return &engine->_texProxy; }};
     engineWrapper["ssd"] = property {
-        [](engine* engine) -> string { return *engine->_init.State.SSD; },
-        [](engine* engine, string const& val) { engine->_init.State.SSD = val; }};
+        [](engine* engine) -> string { return *engine->_init.UIState.SSD; },
+        [](engine* engine, string const& val) { engine->_init.UIState.SSD = val; }};
     engineWrapper["is_game_over"] = getter {[](engine* engine) -> bool { return engine->_gameStatus == game_status::GameOver; }};
 }
 
@@ -363,11 +363,11 @@ void engine::define_texture(u32 id, rect_i const& uv)
     tex.Region = std::to_string(id);
     tex.Alpha  = grid<u8> {uv.Size};
 
-    _init.SpriteMgr->define_texture_region(tex.Region, uv);
+    _init.SpriteMgr.define_texture_region(tex.Region, uv);
 
     for (i32 y {0}; y < uv.height(); ++y) {
         for (i32 x {0}; x < uv.width(); ++x) {
-            color const col {_init.SpriteMgr->Sprites->get_pixel(point_i {x, y} + uv.top_left())};
+            color const col {_init.SpriteMgr.Sprites->get_pixel(point_i {x, y} + uv.top_left())};
             tex.Alpha[x, y] = col.A;
         }
     }

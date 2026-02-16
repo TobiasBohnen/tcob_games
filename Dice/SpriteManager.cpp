@@ -5,10 +5,10 @@
 
 #include "SpriteManager.hpp"
 
-sprite_manager::sprite_manager(init const& init)
+sprite_manager::sprite_manager(event_bus& events)
     : _background {&_spriteBatch.create_shape<gfx::rect_shape>()}
     , _foreground {&_spriteBatch.create_shape<gfx::rect_shape>()}
-    , _init {init}
+    , _events {events}
 {
     _spriteMaterial->first_pass().Texture = _spriteTexture;
     _spriteTexture->resize(SPRITE_TEXTURE_SIZE, 1, gfx::texture::format::RGBA8);
@@ -238,6 +238,6 @@ void sprite_manager::collide()
     }
 
     for (auto const& event : events) {
-        _init.Events.SpriteCollision(event);
+        _events.SpriteCollision(event);
     }
 }

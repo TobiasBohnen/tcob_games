@@ -17,16 +17,16 @@ using callback = std::optional<scripting::function<T>>;
 
 struct callbacks {
     callback<>    OnSetup;
+    callback<>    OnTurnStart;
     callback<i32> OnTurnUpdate;
     callback<>    OnTurnFinish;
-    callback<>    OnTurnStart;
     callback<>    OnDrawHUD;
     callback<>    OnCollision;
 };
 
 ////////////////////////////////////////////////////////////
 
-enum game_status : u8 {
+enum class game_status : u8 {
     Running  = 0,
     Waiting  = 1,
     GameOver = 2
@@ -37,11 +37,12 @@ enum game_status : u8 {
 class engine {
 public:
     struct init {
-        shared_state& State;
-        event_bus&    Events;
+        ui_state&  UIState;
+        event_bus& Events;
+        rng&       Rng;
 
-        sprite_manager* SpriteMgr {nullptr};
-        sockets*        Sockets {nullptr};
+        sprite_manager& SpriteMgr;
+        sockets&        Sockets;
     };
 
     explicit engine(init init);
@@ -83,8 +84,8 @@ private:
 
     std::unordered_map<u32, texture> _textures;
 
-    std::unordered_map<u32, audio::buffer> _soundBank;
-    std::array<audio::sound_channel, 8>    _soundChannels;
+    std::unordered_map<u32, audio::buffer>               _soundBank;
+    std::array<audio::sound_channel, MAX_SOUND_CHANNELS> _soundChannels;
 
     f64 _turnTime {0};
 };

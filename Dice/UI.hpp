@@ -11,7 +11,7 @@
 
 class game_form : public ui::form<ui::grid_layout> {
 public:
-    game_form(rect_f const& bounds, assets::group const& grp, shared_state& state, event_bus& events);
+    game_form(rect_f const& bounds, assets::group const& grp, ui_state& state, event_bus& events);
 
 protected:
     void on_update(milliseconds deltaTime) override;
@@ -19,7 +19,7 @@ protected:
 private:
     void gen_styles(assets::group const& grp);
 
-    shared_state& _sharedState;
+    ui_state& _state;
 
     bool                          _updateHud {true};
     asset_owner_ptr<gfx::texture> _hudTexture;

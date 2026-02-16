@@ -12,9 +12,9 @@ using namespace std::chrono_literals;
 
 ////////////////////////////////////////////////////////////
 
-game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_state& state, event_bus& events)
+game_form::game_form(rect_f const& bounds, assets::group const& grp, ui_state& state, event_bus& events)
     : form {{.Name = "game", .Bounds = rect_i {bounds}}, size_i {100, 100}}
-    , _sharedState {state}
+    , _state {state}
 {
     gen_styles(grp);
 
@@ -26,16 +26,16 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
     auto& layout1 {panel1.create_layout<grid_layout>(size_i {100, 100})};
 
     layout1.create_widget<seven_segment_display>({0, 0, 50, 10}, "ssd0");
-    _sharedState.Score.Changed.connect([&]() { _updateSsd0 = true; });
+    _state.Score.Changed.connect([&]() { _updateSsd0 = true; });
 
     layout1.create_widget<seven_segment_display>({50, 0, 50, 10}, "ssd1");
-    _sharedState.SSD.Changed.connect([&]() { _updateSsd1 = true; });
+    _state.SSD.Changed.connect([&]() { _updateSsd1 = true; });
 
     auto& hud {layout1.create_widget<image_box>({0, 10, 100, 90}, "hud")};
     hud.Image     = {.Texture = _hudTexture};
     hud.Fit       = fit_mode::PixelPerfect;
     hud.Alignment = {.Horizontal = horizontal_alignment::Centered, .Vertical = vertical_alignment::Middle};
-    _sharedState.HUD.Changed.connect([&]() { _updateHud = true; });
+    _state.HUD.Changed.connect([&]() { _updateHud = true; });
 
     auto& panel2 {create_container<ui::panel>(rect_i {0, 73, 100, 25}, "panel2")};
     auto& layout2 {panel2.create_layout<grid_layout>(size_i {4, 4})};
@@ -43,7 +43,7 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
     auto& btn0 {layout2.create_widget<button>({0, 0, 3, 4}, "btn0")};
     btn0.Label = "GO";
     btn0.Click.connect([&events]() { events.TurnStart(); });
-    _sharedState.CanStart.Changed.connect([&btn0](auto val) {
+    _state.CanStartTurn.Changed.connect([&btn0](auto val) {
         if (val) {
             btn0.enable();
         } else {
@@ -64,24 +64,24 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
     update(0ms);
 
     auto const img {hud.image_bounds()};
-    _sharedState.HUDBounds = rect_f {local_to_screen(hud, img.Position), img.Size};
+    _state.HUDBounds = rect_f {local_to_screen(hud, img.Position), img.Size};
 }
 
 void game_form::on_update(milliseconds deltaTime)
 {
     if (_updateHud) {
-        _hudTexture->update_data(*_sharedState.HUD, 0);
+        _hudTexture->update_data(*_state.HUD, 0);
         _updateHud = false;
         find_widget_by_name("hud")->queue_redraw();
     }
     if (_updateSsd0) {
         auto* ssd {dynamic_cast<seven_segment_display*>(find_widget_by_name("ssd0"))};
-        ssd->draw_text(std::format("{:07}", std::clamp(*_sharedState.Score, 0, 9'999'999)));
+        ssd->draw_text(std::format("{:07}", std::clamp(*_state.Score, 0, 9'999'999)));
         _updateSsd0 = false;
     }
     if (_updateSsd1) {
         auto* ssd {dynamic_cast<seven_segment_display*>(find_widget_by_name("ssd1"))};
-        ssd->draw_text(*_sharedState.SSD);
+        ssd->draw_text(*_state.SSD);
         _updateSsd1 = false;
     }
     form_base::on_update(deltaTime);
