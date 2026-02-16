@@ -18,7 +18,7 @@ die::die(gfx::rect_shape* shape, audio::buffer const& buffer, rng& rng, std::spa
     _shape->TextureRegion = _currentFace.texture_region(_colorState);
 }
 
-auto die::current_face() const -> die_face { return _currentFace; }
+auto die::face() const -> die_face { return _currentFace; }
 
 void die::mark_for_reroll() { _reroll = true; }
 
@@ -82,13 +82,6 @@ void die::move_to(point_f pos)
     });
 }
 
-void die::move_by(point_f offset)
-{
-    _shape->Bounds.mutate([&](rect_f& bounds) {
-        bounds.Position += offset;
-    });
-}
-
 auto die::shape() const -> gfx::rect_shape* { return _shape; }
 
 ////////////////////////////////////////////////////////////
@@ -106,7 +99,7 @@ dice::dice(assets::group& group, gfx::shape_batch& batch, size_f scale)
     _buffer = gen.create_buffer(wv);
 }
 
-auto dice::add_die(point_f pos, rng& rng, die_face currentFace, std::span<die_face const> faces) -> die*
+auto dice::add(point_f pos, rng& rng, die_face currentFace, std::span<die_face const> faces) -> die*
 {
     auto* shape {&_batch.create_shape<gfx::rect_shape>()};
     shape->Bounds   = {pos, DICE_SIZE * _scale};
@@ -116,7 +109,7 @@ auto dice::add_die(point_f pos, rng& rng, die_face currentFace, std::span<die_fa
     return retValue.get();
 }
 
-void dice::move_die(usize idx, point_f target)
+void dice::move(usize idx, point_f target)
 {
     _dice[idx]->move_to(target);
 }

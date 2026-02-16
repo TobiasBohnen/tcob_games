@@ -41,7 +41,7 @@ class die {
 public:
     die(gfx::rect_shape* shape, audio::buffer const& buffer, rng& rng, std::span<die_face const> faces, die_face initFace);
 
-    auto current_face() const -> die_face;
+    auto face() const -> die_face;
 
     void mark_for_reroll();
     void lock();
@@ -55,7 +55,6 @@ public:
     auto get_bounds() const -> rect_f const&;
     void set_bounds(rect_f const& bounds);
     void move_to(point_f pos);
-    void move_by(point_f offset);
 
     auto shape() const -> gfx::rect_shape*;
 
@@ -83,8 +82,8 @@ class dice {
 public:
     dice(assets::group& group, gfx::shape_batch& batch, size_f scale);
 
-    auto add_die(point_f pos, rng& rng, die_face currentFace, std::span<die_face const> faces) -> die*;
-    void move_die(usize idx, point_f target);
+    auto add(point_f pos, rng& rng, die_face currentFace, std::span<die_face const> faces) -> die*;
+    void move(usize idx, point_f target);
 
     void roll();
 

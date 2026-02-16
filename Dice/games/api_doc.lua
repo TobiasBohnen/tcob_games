@@ -95,14 +95,6 @@ GameStatus = {
     GameOver = 2
 }
 
----@enum socket_state
-SocketState = {
-    Idle   = 0,
-    Hover  = 1,
-    Accept = 2,
-    Reject = 3
-}
-
 ---@enum rotation
 Rot = {
     R0   = 0,
@@ -165,7 +157,6 @@ function sprite:remove() end
 ---@description A logical container for dice, mapped to the HUD coordinate system.
 ---@field position point The integer coordinate on the HUD grid.
 ---@field is_empty boolean Returns true if no die is currently placed in this socket. @readonly
----@field state socket_state The current interaction state (e.g., Idle, Accept, Hover). @readonly
 ---@field die_value integer The value (1-6) of the die in the socket, or 0 if empty. @readonly
 ---@field die_color integer Color palette index of the die in the socket, or nil if empty. @readonly
 

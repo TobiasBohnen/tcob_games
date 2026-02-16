@@ -40,10 +40,11 @@ public:
         shared_state& State;
         event_bus&    Events;
 
-        dice_game* Game {nullptr};
+        sprite_manager* SpriteMgr {nullptr};
+        sockets*        Sockets {nullptr};
     };
 
-    engine(init const& init);
+    explicit engine(init init);
 
     void run(string const& file);
 

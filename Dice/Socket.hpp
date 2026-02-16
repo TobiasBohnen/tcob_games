@@ -106,8 +106,8 @@ public:
     void lock();
     void unlock();
 
-    auto add_socket(socket_face const& face) -> socket*;
-    void remove_socket(socket* socket);
+    auto add(socket_face const& face) -> socket*;
+    void remove(socket* socket);
     auto count() const -> usize;
 
     auto try_insert_die(die* die) -> socket*;

@@ -11,50 +11,32 @@ using namespace scripting;
 
 ////////////////////////////////////////////////////////////
 
-dice_game::dice_game(init const& init)
+dice_game::dice_game(init init)
     : gfx::entity {update_mode::Both}
-    , _background {&_spriteBatch.create_shape<gfx::rect_shape>()}
-    , _foreground {&_spriteBatch.create_shape<gfx::rect_shape>()}
-    , _init {init}
+    , _init {std::move(init)}
+    , _sprites {sprite_manager::init {
+          .Events = _init.Events}}
+    , _sockets {_init.RealWindowSize / DICE_REF_SIZE}
+    , _dice {_init.Group, _diceBatch, _init.RealWindowSize / DICE_REF_SIZE}
     , _engine {engine::init {
-          .State  = _sharedState,
-          .Events = init.Events,
-          .Game   = this,
-      }}
-    , _sockets {init.RealWindowSize / DICE_REF_SIZE}
-    , _dice {_init.Group, _diceBatch, init.RealWindowSize / DICE_REF_SIZE}
+          .State     = _sharedState,
+          .Events    = _init.Events,
+          .SpriteMgr = &_sprites,
+          .Sockets   = &_sockets}}
 {
-    _spriteMaterial->first_pass().Texture = _spriteTexture;
-    _spriteTexture->resize(SPRITE_TEXTURE_SIZE, 1, gfx::texture::format::RGBA8);
-    _sharedState.Sprites.Changed.connect([&](auto const&) { _updateSprites = true; });
-
-    _background->Bounds                       = {point_f::Zero, VIRTUAL_SCREEN_SIZE};
-    _backgroundMaterial->first_pass().Texture = _backgroundTexture;
-    _background->Material                     = _backgroundMaterial;
-    _backgroundTexture->resize(size_i {VIRTUAL_SCREEN_SIZE}, 1, gfx::texture::format::RGBA8);
-    _backgroundTexture->regions()["default"] = gfx::texture_region {.UVRect = {0, 0, 1, 1}, .Level = 0};
-    _sharedState.Background.Changed.connect([&](auto const&) { _updateBackground = true; });
-
-    _foreground->Bounds                       = {point_f::Zero, VIRTUAL_SCREEN_SIZE};
-    _foregroundMaterial->first_pass().Texture = _foregroundTexture;
-    _foreground->Material                     = _foregroundMaterial;
-    _foregroundTexture->resize(size_i {VIRTUAL_SCREEN_SIZE}, 1, gfx::texture::format::RGBA8);
-    _foregroundTexture->regions()["default"] = gfx::texture_region {.UVRect = {0, 0, 1, 1}, .Level = 0};
-    _sharedState.Foreground.Changed.connect([&](auto const&) { _updateForeground = true; });
-
     // TODO: enforce int scaling for background
     // TODO: 16:10 support
-    auto const [w, h] {init.RealWindowSize};
+    auto const [w, h] {_init.RealWindowSize};
     rect_f const bgBounds {0, 0, h / 3.0f * 4.0f, h};
     rect_f const uiBounds {bgBounds.width(), 0.0f, w - bgBounds.width(), h};
 
-    _form0 = std::make_unique<game_form>(uiBounds, init.Group, _sharedState, _init.Events);
+    _form0 = std::make_unique<game_form>(uiBounds, _init.Group, _sharedState, _init.Events);
 
     _screenTexture->Size      = size_i {VIRTUAL_SCREEN_SIZE};
     _screenTexture->Filtering = gfx::texture::filtering::NearestNeighbor;
 
     auto& firstPass {_screenMaterial->create_pass()};
-    firstPass.Shader  = init.Group.get<gfx::shader>("CRT");
+    firstPass.Shader  = _init.Group.get<gfx::shader>("CRT");
     firstPass.Texture = _screenTexture;
 
     gfx::quad q {};
@@ -65,14 +47,14 @@ dice_game::dice_game(init const& init)
 
     // dice
     u32 totalDiceCount {0};
-    for (auto const& die : init.Dice) {
+    for (auto const& die : _init.Dice) {
         if (PALETTE_MAP.contains(die.Color)) {
             totalDiceCount += die.Amount;
         }
     }
 
     u32 idx {0};
-    for (auto const& die : init.Dice) {
+    for (auto const& die : _init.Dice) {
         if (!PALETTE_MAP.contains(die.Color)) { continue; }
 
         std::vector<die_face> vec;
@@ -83,17 +65,24 @@ dice_game::dice_game(init const& init)
         if (vec.empty()) { return; }
 
         for (u32 i {0}; i < die.Amount; ++i) {
-            _dice.add_die(get_die_position(totalDiceCount, idx), _sharedState.Rng, vec[0], vec);
+            _dice.add(get_die_position(totalDiceCount, idx), _sharedState.Rng, vec[0], vec);
             idx++;
         }
     }
 
-    _init.Events.StartTurn.connect([this]() { _sockets.lock(); });
-    _init.Events.YSort.connect([this]() {
-        _spriteBatch.sort_by_y_position();
-        _spriteBatch.send_to_back(*_background);
-        _spriteBatch.bring_to_front(*_foreground);
+    _init.Events.TurnStart.connect([this]() { _sockets.lock(); });
+    _init.Events.TurnFinish.connect([this]() {
+        _dice.roll();
+        for (usize i {0}; i < _dice.count(); ++i) {
+            _dice.move(i, get_die_position(_dice.count(), i));
+        }
     });
+}
+
+dice_game::~dice_game()
+{
+    // remove sprites before lua gets destroyed
+    _sprites.clear();
 }
 
 void dice_game::on_update(milliseconds deltaTime)
@@ -107,30 +96,14 @@ void dice_game::on_update(milliseconds deltaTime)
 void dice_game::on_fixed_update(milliseconds deltaTime)
 {
     if (_engine.update(deltaTime)) {
-        wrap_sprites();
-        collide_sprites();
-        _spriteBatch.send_to_back(*_background);
-        _spriteBatch.bring_to_front(*_foreground);
+        _sprites.wrap_and_collide();
     }
-
-    if (_updateSprites) {
-        _updateSprites = false;
-        _spriteTexture->update_data(_sharedState.Sprites, 0);
-    }
-    if (_updateBackground) {
-        _updateBackground = false;
-        _backgroundTexture->update_data(_sharedState.Background, 0);
-    }
-    if (_updateForeground) {
-        _updateForeground = false;
-        _foregroundTexture->update_data(_sharedState.Foreground, 0);
-    }
-    _spriteBatch.update(deltaTime);
+    _sprites.update(deltaTime);
 }
 
 void dice_game::on_draw_to(gfx::render_target& target)
 {
-    _spriteBatch.draw_to(*_screenTexture);
+    _sprites.draw_to(*_screenTexture);
     _screenRenderer.render_to_target(target);
 
     _form0->draw_to(target);
@@ -145,9 +118,9 @@ auto dice_game::can_draw() const -> bool
 void dice_game::on_key_down(input::keyboard::event const& ev)
 {
     switch (ev.ScanCode) {
-    case input::scan_code::SPACE: _init.Events.StartTurn(); break;
-    case input::scan_code::R:     _init.Events.Restart(); break;
-    case input::scan_code::Q:     _init.Events.Quit(); break;
+    case input::scan_code::SPACE: _init.Events.TurnStart(); break;
+    case input::scan_code::R:     _init.Events.GameRestart(); break;
+    case input::scan_code::Q:     _init.Events.GameQuit(); break;
     default:                      break;
     }
 }
@@ -158,7 +131,7 @@ void dice_game::on_mouse_button_up(input::mouse::button_event const& ev)
     case input::mouse::button::Left:
         if (auto* socket {_sockets.try_insert_die(_hoverDie)}) {
             _diceBatch.send_to_back(*_hoverDie->shape());
-            _init.Events.SocketDieInserted(socket);
+            _init.Events.DieInsert(socket);
         }
         break;
     case input::mouse::button::Right: break;
@@ -188,7 +161,7 @@ void dice_game::on_mouse_motion(input::mouse::motion_event const& ev)
         _sockets.on_drag(_hoverDie);
 
         if (auto* socket {_sockets.try_remove_die(_hoverDie)}) {
-            _init.Events.SocketDieRemoved(socket);
+            _init.Events.DieRemove(socket);
         }
 
         _dice.on_drag(mp, _sharedState.HUDBounds);
@@ -204,185 +177,7 @@ void dice_game::run(string const& file)
     _engine.run(file);
     _dice.roll();
 
-    wrap_sprites();
-    _spriteBatch.update(0ms);
-}
-
-void dice_game::wrap_sprites()
-{
-    auto const fieldSize {_background->Bounds->Size};
-
-    for (auto& s : _sprites) {
-        if (!s) { continue; }
-        if (!s->Shape || !s->is_wrappable()) {
-            if (s->WrapCopy) {
-                _spriteBatch.remove_shape(*s->WrapCopy);
-                s->WrapCopy = nullptr;
-            }
-            continue;
-        }
-
-        auto b {*s->Shape->Bounds};
-        b.Position.X -= _background->Bounds->left();
-        bool const needs_copy_x {(b.left() < 0.f) || (b.right() > fieldSize.Width)};
-        bool const needs_copy_y {(b.top() < 0.f) || (b.bottom() > fieldSize.Height)};
-
-        if (needs_copy_x || needs_copy_y) {
-            if (!s->WrapCopy) {
-                s->WrapCopy                = &_spriteBatch.create_shape<gfx::rect_shape>();
-                s->WrapCopy->Material      = *s->Shape->Material;
-                s->WrapCopy->TextureRegion = *s->Shape->TextureRegion;
-            }
-
-            f32 copyX {b.left()};
-            f32 copyY {b.top()};
-
-            if (b.left() < 0.f) {
-                copyX = b.left() + fieldSize.Width;
-            } else if (b.right() > fieldSize.Width) {
-                copyX = b.left() - fieldSize.Width;
-            }
-            if (b.top() < 0.f) {
-                copyY = b.top() + fieldSize.Height;
-            } else if (b.bottom() > fieldSize.Height) {
-                copyY = b.top() - fieldSize.Height;
-            }
-
-            s->WrapCopy->Bounds   = {{copyX + _background->Bounds->left(), copyY}, s->Shape->Bounds->Size};
-            s->WrapCopy->Rotation = *s->Shape->Rotation;
-        } else {
-            if (s->WrapCopy) {
-                _spriteBatch.remove_shape(*s->WrapCopy);
-                s->WrapCopy = nullptr;
-            }
-        }
-    }
-}
-
-void dice_game::collide_sprites()
-{
-    std::vector<collision_event> events;
-
-    auto const collide {[&events](gfx::rect_shape* a, gfx::rect_shape* b, sprite* sA, sprite* sB) {
-        rect_f const inter {a->aabb().as_intersection_with(b->aabb())};
-        if (inter == rect_f::Zero) { return; }
-
-        auto const* texA {sA->get_texture()};
-        assert(texA->Alpha.size() == size_i {a->Bounds->Size});
-
-        auto const* texB {sB->get_texture()};
-        assert(texB->Alpha.size() == size_i {b->Bounds->Size});
-
-        auto const [leftA, topA] {a->Bounds->Position};
-        auto const [widthA, heightA] {a->Bounds->Size};
-
-        auto const [leftB, topB] {b->Bounds->Position};
-        auto const [widthB, heightB] {b->Bounds->Size};
-
-        i32 const bottomI {static_cast<i32>(inter.bottom())};
-        i32 const rightI {static_cast<i32>(inter.right())};
-
-        for (i32 y {static_cast<i32>(inter.top())}; y < bottomI; ++y) {
-            for (i32 x {static_cast<i32>(inter.left())}; x < rightI; ++x) {
-                i32 const ax {static_cast<i32>(x - leftA)};
-                i32 const ay {static_cast<i32>(y - topA)};
-                i32 const bx {static_cast<i32>(x - leftB)};
-                i32 const by {static_cast<i32>(y - topB)};
-
-                if (ax < 0 || ax >= static_cast<i32>(widthA)
-                    || ay < 0 || ay >= static_cast<i32>(heightA)
-                    || bx < 0 || bx >= static_cast<i32>(widthB)
-                    || by < 0 || by >= static_cast<i32>(heightB)) {
-                    continue;
-                }
-
-                if (texA->Alpha[ax, ay] > 250 && texB->Alpha[bx, by] > 250) {
-                    events.push_back({.A = sA, .B = sB});
-                    return;
-                }
-            }
-        }
-    }};
-
-    usize const spriteCount {_sprites.size()};
-    for (usize i {0}; i < spriteCount; ++i) {
-        auto const& spriteA {_sprites[i]};
-        if (!spriteA->is_collidable()) { continue; }
-
-        std::array<gfx::rect_shape*, 2> shapesA {spriteA->Shape, spriteA->WrapCopy};
-        i32                             countA {spriteA->WrapCopy ? 2 : 1};
-
-        for (usize j {i + 1}; j < spriteCount; ++j) {
-            auto const& spriteB {_sprites[j]};
-            if (!spriteB->is_collidable()) { continue; }
-
-            std::array<gfx::rect_shape*, 2> shapesB {spriteB->Shape, spriteB->WrapCopy};
-            i32                             countB {spriteB->WrapCopy ? 2 : 1};
-
-            for (i32 a {0}; a < countA; ++a) {
-                for (i32 b {0}; b < countB; ++b) {
-                    collide(shapesA[a], shapesB[b], spriteA.get(), spriteB.get());
-                }
-            }
-        }
-    }
-
-    for (auto const& event : events) {
-        _init.Events.Collision(event);
-    }
-}
-
-auto dice_game::add_shape() -> gfx::rect_shape*
-{
-    return &_spriteBatch.create_shape<gfx::rect_shape>();
-}
-
-auto dice_game::remove_shape(gfx::shape* shape) -> bool
-{
-    return _spriteBatch.remove_shape(*shape);
-}
-
-auto dice_game::add_sprite(sprite::init const& init) -> sprite*
-{
-    auto  ptr {std::make_unique<sprite>(init)};
-    auto* retValue {ptr.get()};
-    _sprites.push_back(std::move(ptr));
-    retValue->Shape           = add_shape();
-    retValue->Shape->Material = _spriteMaterial;
-    if (init.Texture) {
-        retValue->set_texture(init.Texture);
-        retValue->set_bounds(init.Def.Position, init.Texture->Size);
-    }
-    return retValue;
-}
-
-void dice_game::remove_sprite(sprite* sprite)
-{
-    remove_shape(sprite->Shape);
-    if (sprite->WrapCopy) { remove_shape(sprite->WrapCopy); }
-    std::erase_if(_sprites, [&sprite](auto const& spr) { return spr.get() == sprite; });
-}
-
-auto dice_game::add_socket(socket_face const& face) -> socket*
-{
-    return _sockets.add_socket(face);
-}
-
-void dice_game::remove_socket(socket* socket)
-{
-    _sockets.remove_socket(socket);
-    for (usize i {0}; i < _dice.count(); ++i) {
-        _dice.move_die(i, get_die_position(_dice.count(), i));
-    }
-}
-
-void dice_game::reset_sockets()
-{
-    _sockets.reset();
-    _dice.roll();
-    for (usize i {0}; i < _dice.count(); ++i) {
-        _dice.move_die(i, get_die_position(_dice.count(), i));
-    }
+    _sprites.wrap_and_update();
 }
 
 auto dice_game::get_die_position(usize count, usize idx) const -> point_f

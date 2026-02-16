@@ -42,7 +42,7 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
 
     auto& btn0 {layout2.create_widget<button>({0, 0, 3, 4}, "btn0")};
     btn0.Label = "GO";
-    btn0.Click.connect([&events]() { events.StartTurn(); });
+    btn0.Click.connect([&events]() { events.TurnStart(); });
     _sharedState.CanStart.Changed.connect([&btn0](auto val) {
         if (val) {
             btn0.enable();
@@ -54,12 +54,12 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, shared_stat
     auto& btn1 {layout2.create_widget<button>({3, 0, 1, 2}, "btn1")};
     btn1.Label = "RESET";
     btn1.Class = "button2";
-    btn1.Click.connect([&events]() { events.Restart(); });
+    btn1.Click.connect([&events]() { events.GameRestart(); });
 
     auto& btn2 {layout2.create_widget<button>({3, 2, 1, 2}, "btn2")};
     btn2.Label = "OFF";
     btn2.Class = "button2";
-    btn2.Click.connect([&events]() { events.Quit(); });
+    btn2.Click.connect([&events]() { events.GameQuit(); });
 
     update(0ms);
 

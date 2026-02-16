@@ -83,14 +83,14 @@ void sockets::lock() { _locked = true; }
 
 void sockets::unlock() { _locked = false; }
 
-auto sockets::add_socket(socket_face const& face) -> socket*
+auto sockets::add(socket_face const& face) -> socket*
 {
     auto& retValue {_sockets.emplace_back(std::make_unique<socket>(face))};
     retValue->_bounds = {point_f::Zero, DICE_SIZE * _scale};
     return retValue.get();
 }
 
-void sockets::remove_socket(socket* socket)
+void sockets::remove(socket* socket)
 {
     if (auto* die {socket->current_die()}) {
         socket->remove_die();
@@ -101,7 +101,7 @@ void sockets::remove_socket(socket* socket)
 
 auto sockets::try_insert_die(die* hoverDie) -> socket*
 {
-    if (_locked || !hoverDie || !_hoverSocket || !_hoverSocket->can_insert_die(hoverDie->current_face())) { return nullptr; }
+    if (_locked || !hoverDie || !_hoverSocket || !_hoverSocket->can_insert_die(hoverDie->face())) { return nullptr; }
 
     _hoverSocket->insert_die(hoverDie);
     _hoverSocket->_state = socket_state::Idle;
@@ -162,7 +162,7 @@ void sockets::on_drag(die* draggedDie)
     if (!draggedDie) { return; }
     hover(draggedDie->get_bounds());
     if (_hoverSocket) {
-        _hoverSocket->_state = _hoverSocket->can_insert_die(draggedDie->current_face()) ? socket_state::Accept : socket_state::Reject;
+        _hoverSocket->_state = _hoverSocket->can_insert_die(draggedDie->face()) ? socket_state::Accept : socket_state::Reject;
     }
 }
 
@@ -198,7 +198,7 @@ auto get_hand(std::span<socket* const> sockets) -> hand
     faces.reserve(sockets.size());
     for (usize i {0}; i < sockets.size(); ++i) {
         if (sockets[i]->is_empty()) { continue; }
-        faces.push_back({.Face = sockets[i]->current_die()->current_face(), .Socket = sockets[i]});
+        faces.push_back({.Face = sockets[i]->current_die()->face(), .Socket = sockets[i]});
     }
     std::ranges::stable_sort(faces, {}, func);
 
@@ -271,7 +271,7 @@ auto get_sum(std::span<socket* const> sockets) -> u32
 
     for (auto* const socket : sockets) {
         if (!socket->is_empty()) {
-            retValue += socket->current_die()->current_face().Value;
+            retValue += socket->current_die()->face().Value;
         }
     }
 

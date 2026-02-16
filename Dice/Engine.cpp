@@ -6,17 +6,17 @@
 #include "Engine.hpp"
 
 #include "Die.hpp"
-#include "Game.hpp"
 #include "Socket.hpp"
+#include "SpriteManager.hpp"
 
 using namespace scripting;
 
-engine::engine(init const& init)
+engine::engine(init init)
     : _init {init}
-    , _hudProxy {init.State.HUD, PALETTE[0]}
-    , _fgProxy {init.State.Foreground, colors::Transparent}
-    , _bgProxy {init.State.Background, PALETTE[0]}
-    , _texProxy {init.State.Sprites, colors::Transparent}
+    , _hudProxy {_init.State.HUD, PALETTE[0]}
+    , _fgProxy {_init.SpriteMgr->Foreground, colors::Transparent}
+    , _bgProxy {_init.SpriteMgr->Background, PALETTE[0]}
+    , _texProxy {_init.SpriteMgr->Sprites, colors::Transparent}
 {
     _script.open_libraries(library::Table, library::String, library::Math);
     _script.Warning.connect([](script::warning_event const& ev) {
@@ -26,17 +26,17 @@ engine::engine(init const& init)
     create_env();
     create_wrappers();
 
-    _init.Events.Collision.connect([this](auto const& ev) {
+    _init.Events.SpriteCollision.connect([this](auto const& ev) {
         if (_gameStatus != game_status::Running) { return; }
         call(_callbacks.OnCollision, ev.A, ev.B);
     });
 
-    _init.Events.SocketDieInserted.connect([this]([[maybe_unused]] socket const* socket) {
+    _init.Events.DieInsert.connect([this]([[maybe_unused]] socket const* socket) {
         if (_gameStatus == game_status::Waiting) {
             _updateHUD = true;
         }
     });
-    _init.Events.SocketDieRemoved.connect([this]([[maybe_unused]] socket const* socket) {
+    _init.Events.DieRemove.connect([this]([[maybe_unused]] socket const* socket) {
         if (_gameStatus == game_status::Waiting) {
             _updateHUD = true;
         }
@@ -47,7 +47,7 @@ engine::engine(init const& init)
         }
     });
 
-    _init.Events.StartTurn.connect([this]() { start_turn(); });
+    _init.Events.TurnStart.connect([this]() { start_turn(); });
 }
 
 template <typename R>
@@ -119,12 +119,14 @@ auto engine::update(milliseconds deltaTime) -> bool
     case Running: return true;
     case Waiting: {
         call(_callbacks.OnTurnFinish);
-        _init.Game->reset_sockets();
         _turnTime = 0;
+        _init.Sockets->reset();
+        _init.Events.TurnFinish();
         return false;
     }
     case GameOver:
         _updateHUD = true;
+        _init.Events.GameOver();
         return false;
     }
 
@@ -169,11 +171,6 @@ void engine::create_env()
     env["GameStatus"]["Waiting"]  = static_cast<i32>(game_status::Waiting);
     env["GameStatus"]["GameOver"] = static_cast<i32>(game_status::GameOver);
 
-    env["SocketState"]["Idle"]   = static_cast<i32>(socket_state::Idle);
-    env["SocketState"]["Accept"] = static_cast<i32>(socket_state::Accept);
-    env["SocketState"]["Reject"] = static_cast<i32>(socket_state::Reject);
-    env["SocketState"]["Hover"]  = static_cast<i32>(socket_state::Hover);
-
     env["Rot"]["R0"]   = 0;
     env["Rot"]["R90"]  = 90;
     env["Rot"]["R180"] = 180;
@@ -202,12 +199,12 @@ void engine::create_sprite_wrapper()
             auto const texID {def.TexID};
             if (texID && _textures.contains(*texID)) { tex = &_textures[*texID]; }
 
-            return _init.Game->add_sprite({.Def = def, .Texture = tex, .Owner = spriteOwner});
+            return _init.SpriteMgr->add({.Def = def, .Texture = tex, .Owner = spriteOwner});
         }})};
     env["sprite"]["new"] = newFunc.get();
     _funcs.push_back(std::move(newFunc));
 
-    auto sortFunc {make_unique_closure(std::function {[this]() { _init.Events.YSort(); }})};
+    auto sortFunc {make_unique_closure(std::function {[this]() { _init.SpriteMgr->sort_by_y(); }})};
     env["sprite"]["y_sort"] = sortFunc.get();
     _funcs.push_back(std::move(sortFunc));
 
@@ -230,7 +227,7 @@ void engine::create_sprite_wrapper()
             }
             sprite->set_texture(&_textures[texID]);
         }};
-    spriteWrapper["remove"] = [this](sprite* sprite) { _init.Game->remove_sprite(sprite); };
+    spriteWrapper["remove"] = [this](sprite* sprite) { _init.SpriteMgr->remove(sprite); };
 }
 
 void engine::create_socket_wrapper()
@@ -238,7 +235,7 @@ void engine::create_socket_wrapper()
     auto env {**_script.Environment};
 
     auto func {make_unique_closure(std::function {
-        [this](table const& socketInit) -> socket* { return _init.Game->add_socket(socketInit.get<socket_face>().value_or(socket_face {})); }})};
+        [this](table const& socketInit) -> socket* { return _init.Sockets->add(socketInit.get<socket_face>().value_or(socket_face {})); }})};
     env["socket"]["new"] = func.get();
     _funcs.push_back(std::move(func));
     static auto const convert_sockets {[](std::unordered_map<std::variant<i32, string>, socket*> const& socketMap) {
@@ -273,12 +270,10 @@ void engine::create_socket_wrapper()
     auto& socketWrapper {*_script.create_wrapper<socket>("socket")};
     socketWrapper["is_empty"] = getter {
         [](socket* socket) -> bool { return socket->is_empty(); }};
-    socketWrapper["state"] = getter {
-        [](socket* socket) -> u8 { return static_cast<u8>(socket->state()); }};
     socketWrapper["die_value"] = getter {
-        [](socket* socket) -> u8 { return socket->is_empty() ? 0 : socket->current_die()->current_face().Value; }};
+        [](socket* socket) -> u8 { return socket->is_empty() ? 0 : socket->current_die()->face().Value; }};
     socketWrapper["die_color"] = getter {
-        [](socket* socket) -> std::optional<u8> { return socket->is_empty() ? std::nullopt : std::optional<u8> {socket->current_die()->current_face().Color}; }};
+        [](socket* socket) -> std::optional<u8> { return socket->is_empty() ? std::nullopt : std::optional<u8> {socket->current_die()->face().Color}; }};
     socketWrapper["position"] = property {
         [](socket* socket) -> point_i { return socket->HUDPosition; },
         [this](socket* socket, point_f pos) {
@@ -288,7 +283,7 @@ void engine::create_socket_wrapper()
                                 rect.top() + (rect.height() * (pos.Y / static_cast<f32>(HUD_SIZE.Height)))};
             socket->move_to(spos);
         }};
-    socketWrapper["remove"] = [this](socket* socket) { _init.Game->remove_socket(socket); };
+    socketWrapper["remove"] = [this](socket* socket) { _init.Sockets->remove(socket); };
 }
 
 void engine::create_engine_wrapper()
@@ -368,16 +363,11 @@ void engine::define_texture(u32 id, rect_i const& uv)
     tex.Region = std::to_string(id);
     tex.Alpha  = grid<u8> {uv.Size};
 
-    _init.Game->get_sprite_texture()->regions()[tex.Region] =
-        {.UVRect = {static_cast<f32>(uv.left()) / static_cast<f32>(SPRITE_TEXTURE_SIZE.Width),
-                    static_cast<f32>(uv.top()) / static_cast<f32>(SPRITE_TEXTURE_SIZE.Height),
-                    static_cast<f32>(uv.width()) / static_cast<f32>(SPRITE_TEXTURE_SIZE.Width),
-                    static_cast<f32>(uv.height()) / static_cast<f32>(SPRITE_TEXTURE_SIZE.Height)},
-         .Level  = 0};
+    _init.SpriteMgr->define_texture_region(tex.Region, uv);
 
     for (i32 y {0}; y < uv.height(); ++y) {
         for (i32 x {0}; x < uv.width(); ++x) {
-            color const col {_init.State.Sprites->get_pixel(point_i {x, y} + uv.top_left())};
+            color const col {_init.SpriteMgr->Sprites->get_pixel(point_i {x, y} + uv.top_left())};
             tex.Alpha[x, y] = col.A;
         }
     }

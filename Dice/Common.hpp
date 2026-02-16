@@ -15,6 +15,7 @@ struct die_face;
 class dice;
 class dice_game;
 class sprite;
+class sprite_manager;
 class socket;
 class sockets;
 
@@ -97,17 +98,18 @@ struct collision_event {
 };
 
 struct event_bus {
-    signal<> StartTurn;
-    signal<> Quit;
-    signal<> Restart;
+    signal<> TurnStart;
+    signal<> TurnFinish;
 
-    signal<collision_event const> Collision;
+    signal<> GameQuit;
+    signal<> GameRestart;
+    signal<> GameOver;
 
-    signal<socket* const> SocketDieInserted;
-    signal<socket* const> SocketDieRemoved;
+    signal<collision_event const> SpriteCollision;
+
+    signal<socket* const> DieInsert;
+    signal<socket* const> DieRemove;
     signal<die* const>    DieMotion;
-
-    signal<> YSort;
 };
 
 struct shared_state {
@@ -119,7 +121,4 @@ struct shared_state {
     prop<string> SSD;
 
     prop<gfx::image> HUD {gfx::image::CreateEmpty(HUD_SIZE, gfx::image::format::RGBA)};
-    prop<gfx::image> Foreground {gfx::image::CreateEmpty(size_i {VIRTUAL_SCREEN_SIZE}, gfx::image::format::RGBA)};
-    prop<gfx::image> Background {gfx::image::CreateEmpty(size_i {VIRTUAL_SCREEN_SIZE}, gfx::image::format::RGBA)};
-    prop<gfx::image> Sprites {gfx::image::CreateEmpty(SPRITE_TEXTURE_SIZE, gfx::image::format::RGBA)};
 };

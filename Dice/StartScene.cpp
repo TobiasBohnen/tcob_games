@@ -124,8 +124,8 @@ void start_scene::start_game(u32 id)
                          .RealWindowSize = size_f {window().bounds().Size},
                          .Events         = *_events});
 
-    _events->Restart.connect([this]() { _queuedGameID = _currentGameID; });
-    _events->Quit.connect([this]() { _quitQueued = true; });
+    _events->GameRestart.connect([this]() { _queuedGameID = _currentGameID; });
+    _events->GameQuit.connect([this]() { _quitQueued = true; });
 
     _gameNode->Entity = _currentGame;
     _gameNode->bring_to_front();

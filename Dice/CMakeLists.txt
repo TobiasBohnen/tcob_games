@@ -5,6 +5,7 @@ target_sources(Dice PRIVATE
     Engine.cpp
     Game.cpp
     Sprite.cpp
+    SpriteManager.cpp
     Socket.cpp
     StartScene.cpp
     TexProxy.cpp

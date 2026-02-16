@@ -51,8 +51,8 @@ local event_base = {
             event:on_resolve(factor)
         end
 
-        for key, value in pairs(event.sockets) do
-            value:remove()
+        for _, socket in pairs(event.sockets) do
+            socket:remove()
         end
         event.sockets  = nil
         event.finished = true
