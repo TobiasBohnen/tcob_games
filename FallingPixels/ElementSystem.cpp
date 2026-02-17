@@ -13,7 +13,7 @@ auto comp(comp_op op, T a, T b) -> bool
     case comp_op::LessThan:           return a < b;
     case comp_op::LessThanOrEqual:    return a <= b;
     case comp_op::GreaterThan:        return a > b;
-    case comp_op::GreaterThanOrEqual: return a > b;
+    case comp_op::GreaterThanOrEqual: return a >= b;
     }
 
     return false;
@@ -63,7 +63,7 @@ void element_system::draw_heatmap(gfx::texture& tex) const
         for (i32 y {0}; y < size.Height; ++y) {
             point_i const pos {x, y};
             f32           temp {_grid.temperature(pos)};
-            temp = 0.5f + temp / (temp < 0 ? 400 : 1200); // -200 to 600
+            temp = 0.5f + (temp / (temp < 0 ? 400 : 1200)); // -200 to 600
             temp = std::clamp(temp, 0.f, 1.f);
             img.set_pixel(pos, colors[static_cast<u8>(temp * 255)]);
         }
