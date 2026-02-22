@@ -5,6 +5,7 @@ precision highp sampler2DArray;
 
 layout(std140) uniform Globals {
     mat4  camera;
+    mat4  model;
     uvec2 view_size;
     ivec2 mouse_pos;
     float time;

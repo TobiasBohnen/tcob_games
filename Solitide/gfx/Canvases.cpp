@@ -61,7 +61,7 @@ void foreground_canvas::draw(gfx::render_target& target)
     }
 
     _renderer.queue_layer(0);
-    _renderer.render_to_target(target);
+    _renderer.render_to_target(target, transform::Identity);
 }
 
 void foreground_canvas::update(milliseconds)
@@ -251,7 +251,7 @@ void background_canvas::draw(gfx::render_target& target)
     }
 
     _renderer.queue_layer(0);
-    _renderer.render_to_target(target);
+    _renderer.render_to_target(target, transform::Identity);
 }
 
 void background_canvas::update(milliseconds /* deltaTime */)

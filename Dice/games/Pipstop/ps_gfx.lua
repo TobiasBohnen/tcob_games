@@ -308,15 +308,19 @@ end
 
 ------
 
+local wheel_patterns = {
+    [1] = [[0000000000000000000000E00000000EE0000000EEEEEE00000EE000E00000E0000E0000000000E0000000000E000000000E]],
+    [2] = [[0000000000000000000000000E00000000EE0000000EEEE0000000EE0E0000000E00E0000000000E000000000E000000000E]],
+    [3] = [[000000000000000000000000000E00000000EE0000000EEEEE000000EE0E0000000E0E000000000E000000000E000000000E]],
+    [4] = [[0000000000000000000000E000000000EE000000EEEEE00000E0EE000000E0E0000000E000000000E000000000E000000000]],
+    [5] = [[000000000000000000000000E000000000EE0000000EEEE00000E0EE00000E00E00000E000000000E000000000E000000000]],
+    [6] = [[000000000000000000000000000E000000000EE00000EEEEEE000E000EE000E0000E000E00000000E000000000E000000000]],
+}
+
 ---@param hud tex
 function gfx.draw_hud(hud, game)
     hud:clear()
-    local y = gfx.draw_car_info(hud, game)
-    gfx.draw_events(hud, game, y)
-end
 
----@param hud tex
-function gfx.draw_car_info(hud, game)
     local y      = 3
     local xStart = (hud.size.width - (12 * 6)) / 2
     local x      = xStart
@@ -357,15 +361,21 @@ function gfx.draw_car_info(hud, game)
         hud:rect({ x = x, y = y, width = 5, height = 4 }, col, true)
         x = x + 6
     end
-    y = y + 6
+    y                = y + 6
 
-    x = xStart
-    game.sockets.wheel.position = { x = x + 1, y = y }
-    hud:socket(game.sockets.wheel)
+    -- wheel
+    x                = (hud.size.width - 16) / 2
+    local wheel      = game.sockets.wheel
+    local wheelValue = wheel.die_value
+    wheel.position   = { x = x, y = y }
+    hud:socket(wheel)
+    if wheelValue > 0 then
+        hud:blit({ x = wheelValue < 4 and x - 20 or x + 20, y = y, width = 10, height = 10 }, wheel_patterns[wheelValue])
+    end
 
     y = y + 18
 
-    return y
+    gfx.draw_events(hud, game, y)
 end
 
 ---@param hud tex

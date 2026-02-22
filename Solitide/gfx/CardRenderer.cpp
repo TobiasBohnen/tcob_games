@@ -102,20 +102,20 @@ void card_renderer::draw_cards(gfx::render_target& target)
             }
 
             _cardRenderer.set_geometry({_cardQuads.begin(), quadIt}, &pass);
-            _cardRenderer.render_to_target(target);
+            _cardRenderer.render_to_target(target, transform::Identity);
         }
         if (dragPile) {
             auto quadIt {_cardQuads.begin()};
             get_pile_quads(quadIt, dragPile);
 
             _cardRenderer.set_geometry({_cardQuads.begin(), quadIt}, &pass);
-            _cardRenderer.render_to_target(target);
+            _cardRenderer.render_to_target(target, transform::Identity);
         }
 
         _renderDirty = false;
     } else {
         _cardRenderer.set_geometry(_cardQuads, &pass);
-        _cardRenderer.render_to_target(target);
+        _cardRenderer.render_to_target(target, transform::Identity);
     }
 }
 

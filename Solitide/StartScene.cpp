@@ -129,7 +129,7 @@ X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X
     }
 
     _renderer.queue_layer(0);
-    _renderer.render_to_target(target);
+    _renderer.render_to_target(target, transform::Identity);
 }
 
 void start_scene::on_update(milliseconds)

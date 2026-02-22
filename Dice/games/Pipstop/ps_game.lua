@@ -63,6 +63,14 @@ function game:on_turn_start(engine)
             event:turn_start()
         end
     end
+
+    local car   = self.car
+    local wheel = self.sockets.wheel.die_value
+    if wheel > 0 then
+        car.lateral = wheel <= 3 and wheel - 4 or wheel - 3
+        car.lateral = car.lateral / 15
+    end
+
     engine:update_hud()
 end
 
@@ -129,21 +137,18 @@ end
 ---@param engine engine
 function game:create_car(engine)
     local car = {
-        speed         = {
+        speed      = {
             start   = nil,
             current = 0,
             target  = 0
         },
+        lateral    = 0,
 
-        lateral       = 0,
-        lateralTarget = 0,
+        fuel       = 100,
 
-        handling      = 100,
-        fuel          = 100,
+        type       = "car",
 
-        type          = "car",
-
-        spriteInit    = {
+        spriteInit = {
             position  = { x = (ScreenSize.width - gfx.sizes.car.width) / 2, y = CAR_Y },
             texture   = gfx.textures.car,
             wrappable = false
@@ -151,8 +156,7 @@ function game:create_car(engine)
 
 
         update           = function(car, deltaTime, turnTime)
-            local progress    = math.min(1.0, turnTime / DURATION)
-            local speedFactor = car.speed.current / 100
+            local progress = math.min(1.0, turnTime / DURATION)
 
             -- speed
             if car.speed.current ~= car.speed.target and car.speed.start then
@@ -162,20 +166,26 @@ function game:create_car(engine)
                 car.speed.start = nil
             end
 
+            local speedFactor = car.speed.current / 100
+
             -- fuel
             if car.fuel > 0 then
                 local fuelLoss = speedFactor * FUEL_PER_MS
-                car.fuel = math.max(0, car.fuel - fuelLoss)
+                car.fuel       = math.max(0, car.fuel - fuelLoss)
             else
                 car.speed.target = 0
             end
 
 
-            local halfRoadWidth = ScreenSize.width / 6
-            local pos           = car.sprite.position
-            local newX          = math.max(halfRoadWidth,
-                math.min(ScreenSize.width - halfRoadWidth - gfx.sizes.car.width,
-                    pos.x - self.track.currentCurve * speedFactor))
+            local roadWidth = ScreenSize.width / 6
+            local leftEdge  = roadWidth
+            local rightEdge = ScreenSize.width - roadWidth - gfx.sizes.car.width
+            local pos       = car.sprite.position
+            local newX      = math.max(leftEdge, math.min(rightEdge, pos.x - self.track.currentCurve * speedFactor + car.lateral))
+
+            if newX == leftEdge or newX == rightEdge then
+                car.speed.current = car.speed.current - 5
+            end
 
             car.sprite.position = { x = newX, y = pos.y }
             car:play_sound()

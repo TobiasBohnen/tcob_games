@@ -104,7 +104,7 @@ void dice_game::on_fixed_update(milliseconds deltaTime)
 void dice_game::on_draw_to(gfx::render_target& target)
 {
     _sprites.draw_to(*_screenTexture);
-    _screenRenderer.render_to_target(target);
+    _screenRenderer.render_to_target(target, transform::Identity);
 
     _form0->draw_to(target);
     _diceBatch.draw_to(target);

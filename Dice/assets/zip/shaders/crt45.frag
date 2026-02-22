@@ -1,6 +1,7 @@
 #version 450 core
 layout(std140, binding = 0) uniform Globals {
     mat4  camera;
+    mat4  model;
     uvec2 view_size;
     ivec2 mouse_pos;
     float time;
