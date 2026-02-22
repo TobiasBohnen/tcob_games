@@ -64,7 +64,7 @@ void wizard_scene::on_start()
     root_node().create_child().Entity = _formWizard;
 }
 
-void wizard_scene::on_draw_to(gfx::render_target&, transform&)
+void wizard_scene::on_draw_to(gfx::render_target&, transform const&)
 {
 }
 

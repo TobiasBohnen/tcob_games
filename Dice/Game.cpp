@@ -101,7 +101,7 @@ void dice_game::on_fixed_update(milliseconds deltaTime)
     _sprites.update(deltaTime);
 }
 
-void dice_game::on_draw_to(gfx::render_target& target, transform& xform)
+void dice_game::on_draw_to(gfx::render_target& target, transform const& xform)
 {
     _sprites.draw_to(*_screenTexture);
     _screenRenderer.render_to_target(target, transform::Identity);

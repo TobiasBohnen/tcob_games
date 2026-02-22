@@ -34,7 +34,7 @@ protected:
     void on_fixed_update(milliseconds deltaTime) override;
 
     auto can_draw() const -> bool override;
-    void on_draw_to(gfx::render_target& target, transform& xform) override;
+    void on_draw_to(gfx::render_target& target, transform const& xform) override;
 
 private:
     void update_image();
@@ -63,7 +63,7 @@ protected:
     void on_start() override;
     void on_finish() override;
 
-    void on_draw_to(gfx::render_target& target, transform& xform) override;
+    void on_draw_to(gfx::render_target& target, transform const& xform) override;
 
     void on_update(milliseconds deltaTime) override;
     void on_fixed_update(milliseconds deltaTime) override;

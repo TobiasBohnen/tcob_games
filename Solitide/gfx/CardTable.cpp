@@ -160,7 +160,7 @@ void card_table::on_update(milliseconds deltaTime)
     if (_camZoomTween) { _camZoomTween->update(deltaTime); }
 }
 
-void card_table::on_draw_to(gfx::render_target& target, transform&)
+void card_table::on_draw_to(gfx::render_target& target, transform const&)
 {
     _bgCanvas.draw(target);
     if (_hovered.Pile && _hovered.Pile->IsDragging) { _cardRenderer.mark_dirty(); }

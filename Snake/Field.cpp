@@ -73,7 +73,7 @@ void field::on_fixed_update(milliseconds deltaTime)
 {
 }
 
-void field::on_draw_to(gfx::render_target& target, transform& xform)
+void field::on_draw_to(gfx::render_target& target, transform const& xform)
 {
     _map.draw_to(target, xform);
 }
