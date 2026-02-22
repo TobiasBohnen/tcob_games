@@ -61,7 +61,8 @@ void card_renderer::start()
 
 void card_renderer::draw(gfx::render_target& target)
 {
-    _markerSprites.draw_to(target);
+    transform xform;
+    _markerSprites.draw_to(target, xform);
     draw_cards(target);
 }
 

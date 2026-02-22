@@ -162,10 +162,10 @@ void field::on_fixed_update(milliseconds deltaTime)
     }
 }
 
-void field::on_draw_to(gfx::render_target& target)
+void field::on_draw_to(gfx::render_target& target, transform& xform)
 {
-    _spriteBatch.draw_to(target);
-    _lightingSystem.draw_to(target);
+    _spriteBatch.draw_to(target, xform);
+    _lightingSystem.draw_to(target, xform);
 }
 
 auto field::can_draw() const -> bool

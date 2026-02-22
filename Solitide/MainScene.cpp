@@ -140,7 +140,7 @@ void main_scene::save()
     config[SETTINGS_NAME] = _sources->Settings;
 }
 
-void main_scene::on_draw_to(gfx::render_target&)
+void main_scene::on_draw_to(gfx::render_target&, transform&)
 {
 }
 

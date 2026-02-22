@@ -47,7 +47,7 @@ void start_scene::on_start()
     locate_service<gfx::render_system>().statistics().reset();
 }
 
-void start_scene::on_draw_to(gfx::render_target&)
+void start_scene::on_draw_to(gfx::render_target&, transform& xform)
 {
 }
 

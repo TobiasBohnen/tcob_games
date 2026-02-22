@@ -105,7 +105,8 @@ void sprite_manager::update(milliseconds deltaTime)
 
 void sprite_manager::draw_to(gfx::render_target& target)
 {
-    _spriteBatch.draw_to(target);
+    transform xform;
+    _spriteBatch.draw_to(target, xform);
 }
 
 auto sprite_manager::add_shape() -> gfx::rect_shape*

@@ -44,7 +44,7 @@ protected:
     void on_update(milliseconds deltaTime) override;
     void on_fixed_update(milliseconds deltaTime) override;
 
-    void on_draw_to(gfx::render_target& target) override;
+    void on_draw_to(gfx::render_target& target, transform& xform) override;
     auto can_draw() const -> bool override;
 
     void on_key_down(input::keyboard::event const& ev) override;

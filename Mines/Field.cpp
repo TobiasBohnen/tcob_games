@@ -198,9 +198,9 @@ void field::on_fixed_update(milliseconds deltaTime)
 {
 }
 
-void field::on_draw_to(gfx::render_target& target)
+void field::on_draw_to(gfx::render_target& target, transform& xform)
 {
-    _map.draw_to(target);
+    _map.draw_to(target, xform);
 }
 
 auto field::can_draw() const -> bool

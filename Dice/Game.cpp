@@ -101,13 +101,13 @@ void dice_game::on_fixed_update(milliseconds deltaTime)
     _sprites.update(deltaTime);
 }
 
-void dice_game::on_draw_to(gfx::render_target& target)
+void dice_game::on_draw_to(gfx::render_target& target, transform& xform)
 {
     _sprites.draw_to(*_screenTexture);
     _screenRenderer.render_to_target(target, transform::Identity);
 
-    _form0->draw_to(target);
-    _diceBatch.draw_to(target);
+    _form0->draw_to(target, xform);
+    _diceBatch.draw_to(target, xform);
 }
 
 auto dice_game::can_draw() const -> bool

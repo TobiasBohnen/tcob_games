@@ -52,7 +52,7 @@ void game_object::update(milliseconds deltaTime)
 
         if (_shadowCaster) {
             auto const& spriteBounds {*_sprite->Bounds};
-            auto const& xform {_sprite->transform()};
+            auto const& xform {_sprite->get_transform()};
             _shadowCaster->Polygon = {xform * spriteBounds.top_left(), xform * spriteBounds.bottom_left(),
                                       xform * spriteBounds.bottom_right(), xform * spriteBounds.top_right()};
         }

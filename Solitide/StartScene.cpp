@@ -24,7 +24,7 @@ void start_scene::on_start()
 {
 }
 
-void start_scene::on_draw_to(gfx::render_target& target)
+void start_scene::on_draw_to(gfx::render_target& target, transform& xform)
 {
     if (_canvasDirty) {
         rect_f bounds {point_f::Zero, size_f {_windowSize}};

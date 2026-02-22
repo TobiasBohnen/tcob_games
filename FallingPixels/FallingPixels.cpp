@@ -45,9 +45,9 @@ auto elements_entity::can_draw() const -> bool
     return _elementSystem != nullptr;
 }
 
-void elements_entity::on_draw_to(gfx::render_target& target)
+void elements_entity::on_draw_to(gfx::render_target& target, transform& xform)
 {
-    _layer0.draw_to(target);
+    _layer0.draw_to(target, xform);
 }
 
 void elements_entity::update_image()
@@ -161,7 +161,7 @@ void main_scene::on_finish()
 {
 }
 
-void main_scene::on_draw_to(gfx::render_target& target)
+void main_scene::on_draw_to(gfx::render_target& target, transform& xform)
 {
 }
 
