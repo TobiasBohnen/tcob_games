@@ -41,6 +41,11 @@ public:
     void set_theme(color_themes const& theme);
     void set_cardset(card_set const& cardset);
 
+    auto bounds() const -> rect_f override
+    {
+        return rect_f::Zero;
+    }
+
 protected:
     void on_update(milliseconds deltaTime) override;
 

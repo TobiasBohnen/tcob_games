@@ -26,6 +26,11 @@ public:
     void set_tile(point_i pos, gfx::tile_index_t idx);
     auto get_random_tile() -> point_i;
 
+    auto bounds() const -> rect_f override
+    {
+        return rect_f::Zero;
+    }
+
 protected:
     void on_update(milliseconds deltaTime) override;
     void on_fixed_update(milliseconds deltaTime) override;

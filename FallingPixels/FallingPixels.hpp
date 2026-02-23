@@ -36,6 +36,11 @@ protected:
     auto can_draw() const -> bool override;
     void on_draw_to(gfx::render_target& target, transform const& xform) override;
 
+    auto bounds() const -> rect_f override
+    {
+        return rect_f::Zero;
+    }
+
 private:
     void update_image();
 

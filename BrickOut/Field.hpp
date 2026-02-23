@@ -47,6 +47,11 @@ protected:
     void on_draw_to(gfx::render_target& target, transform const& xform) override;
     auto can_draw() const -> bool override;
 
+    auto bounds() const -> rect_f override
+    {
+        return rect_f::Zero;
+    }
+
     void on_key_down(input::keyboard::event const& ev) override;
     void on_key_up(input::keyboard::event const& ev) override;
     void on_controller_button_down(input::controller::button_event const& ev) override;

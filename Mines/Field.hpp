@@ -35,6 +35,11 @@ public:
 
     auto state() const -> game_state;
 
+    auto bounds() const -> rect_f override
+    {
+        return rect_f::Zero;
+    }
+
 protected:
     void on_update(milliseconds deltaTime) override;
     void on_fixed_update(milliseconds deltaTime) override;
