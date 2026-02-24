@@ -488,7 +488,7 @@ void form_menu::create_game_details(dock_layout& panelLayout)
         auto& accRules {tabPanelLayout.create_widget<accordion>({1, 7, 38, 22}, "gvRules")};
 
         _sources->SelectedRules.Changed.connect([&accRules](data::object const& piles) {
-            accRules.clear_sections();
+            accRules.clear();
 
             for (auto const& pile : piles) {
                 auto const& name {pile.first};
