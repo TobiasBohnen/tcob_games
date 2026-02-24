@@ -175,7 +175,7 @@ void sprite_manager::collide()
     std::vector<collision_event> events;
 
     auto const collide {[&events](gfx::rect_shape* a, gfx::rect_shape* b, sprite* sA, sprite* sB) {
-        rect_f const inter {a->aabb(transform::Identity).as_intersection_with(b->aabb(transform::Identity))};
+        rect_f const inter {a->aabb().as_intersection_with(b->aabb())};
         if (inter == rect_f::Zero) { return; }
 
         auto const* texA {sA->get_texture()};
