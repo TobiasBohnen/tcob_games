@@ -69,6 +69,8 @@ function game:on_turn_start(engine)
     if wheel > 0 then
         car.lateral = wheel <= 3 and wheel - 4 or wheel - 3
         car.lateral = car.lateral / 15
+    else
+        car.lateral = 0
     end
 
     engine:update_hud()
@@ -125,7 +127,7 @@ end
 ---@param hud tex
 function game:on_draw_hud(engine, hud)
     if engine.is_game_over then
-        gf.draw_game_over(hud)
+        gfx.draw_game_over(hud)
     else
         gfx.draw_hud(hud, self)
     end
@@ -138,7 +140,6 @@ end
 function game:create_car(engine)
     local car = {
         speed      = {
-            start   = nil,
             current = 0,
             target  = 0
         },
@@ -156,17 +157,22 @@ function game:create_car(engine)
 
 
         update           = function(car, deltaTime, turnTime)
-            local progress = math.min(1.0, turnTime / DURATION)
+            local speedFactor = car.speed.current / 100
+
+            -- lateral
+            local roadWidth   = ScreenSize.width / 6
+            local leftEdge    = roadWidth
+            local rightEdge   = ScreenSize.width - roadWidth - gfx.sizes.car.width
+            local pos         = car.sprite.position
+            local newX        = math.max(leftEdge, math.min(rightEdge, pos.x - self.track.currentCurve * speedFactor + car.lateral))
 
             -- speed
-            if car.speed.current ~= car.speed.target and car.speed.start then
-                car.speed.current = car.speed.start + (car.speed.target - car.speed.start) * progress
+            if newX <= leftEdge + 5 or newX >= rightEdge - 5 then
+                car.speed.current = math.max(10, car.speed.current - 0.1)
+                print(car.speed.current)
+            else
+                car.speed.current = car.speed.current + (car.speed.target - car.speed.current) * (deltaTime * 0.002)
             end
-            if progress >= 1.0 then
-                car.speed.start = nil
-            end
-
-            local speedFactor = car.speed.current / 100
 
             -- fuel
             if car.fuel > 0 then
@@ -176,21 +182,10 @@ function game:create_car(engine)
                 car.speed.target = 0
             end
 
-
-            local roadWidth = ScreenSize.width / 6
-            local leftEdge  = roadWidth
-            local rightEdge = ScreenSize.width - roadWidth - gfx.sizes.car.width
-            local pos       = car.sprite.position
-            local newX      = math.max(leftEdge, math.min(rightEdge, pos.x - self.track.currentCurve * speedFactor + car.lateral))
-
-            if newX == leftEdge or newX == rightEdge then
-                car.speed.current = car.speed.current - 5
-            end
-
+            engine:give_score(math.floor(speedFactor * speedFactor * 20 + speedFactor))
             car.sprite.position = { x = newX, y = pos.y }
-            car:play_sound()
 
-            engine:give_score(math.floor(speedFactor * 5))
+            car:play_sound()
         end,
 
         play_sound       = function(car)
@@ -202,7 +197,6 @@ function game:create_car(engine)
         end,
 
         set_target_speed = function(car, speed)
-            car.speed.start  = car.speed.current
             car.speed.target = math.min(speed, 100)
         end
     }

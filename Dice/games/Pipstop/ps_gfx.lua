@@ -321,13 +321,15 @@ local wheel_patterns = {
 function gfx.draw_hud(hud, game)
     hud:clear()
 
-    local y      = 3
-    local xStart = (hud.size.width - (12 * 6)) / 2
-    local x      = xStart
+    local y          = 3
+    local xStart     = (hud.size.width - (12 * 6)) / 2
+    local x          = xStart
 
     -- speed
+    local carTarget  = math.floor(game.car.speed.target / 100 * 12)
+    local carTargetX = 0
     for i = 1, 12 do
-        local carSlower = game.car.speed.current < i * (100 / 12)
+        local carSlower = math.ceil(game.car.speed.current) < i * (100 / 12)
         local col
         if carSlower then
             col = Palette.DarkBrown
@@ -343,8 +345,16 @@ function gfx.draw_hud(hud, game)
 
         local off = (12 - i) // 2
         hud:rect({ x = x, y = y + off, width = 5, height = 7 - off }, col, true)
+        if i == carTarget then
+            carTargetX = x
+        end
         x = x + 6
     end
+    if game.car.speed.target > 0 then
+        hud:rect({ x = carTargetX + 2, y = y, width = 1, height = 7 }, Palette.Blue, true)
+    end
+
+
     y = y + 8
 
 

@@ -155,7 +155,7 @@ end
 ---@param hud tex
 function game:on_draw_hud(engine, hud)
     if engine.is_game_over then
-        gf.draw_game_over(hud)
+        gfx.draw_game_over(hud)
     else
         gfx.draw_hud(hud, self, self.hudInfo)
     end
@@ -339,8 +339,8 @@ function game:create_city(i, engine)
             collidable = true
         },
 
-        collide    = function(city, b)
-            if b.type == "missile" then
+        collide    = function(city, other)
+            if other.type == "missile" then
                 if city.damage == MAX_CITY_DAMAGE then return end
 
                 city.damage         = city.damage + 1
@@ -457,8 +457,8 @@ function game:create_missile(engine, parent)
             engine.fg:pixel(trailPos, Palette.Red)
         end,
 
-        collide        = function(missile, b)
-            if b.type == "city" then
+        collide        = function(missile, other)
+            if other.type == "city" then
                 missile.markedForDeath = true
             end
         end

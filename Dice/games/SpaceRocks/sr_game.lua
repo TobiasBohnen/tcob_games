@@ -98,7 +98,7 @@ end
 ---@param hud tex
 function game:on_draw_hud(engine, hud)
     if engine.is_game_over then
-        gf.draw_game_over(hud)
+        gfx.draw_game_over(hud)
     else
         gfx.draw_hud(hud, self)
     end
@@ -185,8 +185,8 @@ function game:create_asteroid(engine, size, x, y)
             end
         end,
 
-        collide        = function(a, b)
-            if b.type == "bullet" or b.type == "ship" then
+        collide        = function(a, other)
+            if other.type == "bullet" or other.type == "ship" then
                 a.markedForDeath = true
             end
         end
@@ -227,8 +227,8 @@ function game:create_bullet(engine)
             end
             b.lifetime = b.lifetime + deltaTime
         end,
-        collide    = function(bullet, b)
-            if b.type == "asteroid" then
+        collide    = function(bullet, other)
+            if other.type == "asteroid" then
                 bullet.lifetime = DURATION - 1
             end
         end
@@ -349,9 +349,9 @@ function game:create_ship(engine)
             self:update_entity(ship, deltaTime)
         end,
 
-        collide       = function(ship, b)
+        collide       = function(ship, other)
             if ship.shieldsUp then return end
-            if b.type == "asteroid" then
+            if other.type == "asteroid" then
                 ship.health        = ship.health - 1
                 ship.hitByAsteroid = true
                 ship:set_shield(true)
