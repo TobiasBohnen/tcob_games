@@ -165,7 +165,7 @@ end
 ------
 
 function game:set_energy_reserve(engine, val)
-    self.energyReserve            = math.min(math.max(0, math.ceil(val)), MAX_ENERGY_RESERVE)
+    self.energyReserve            = math.clamp(math.ceil(val), 0, MAX_ENERGY_RESERVE)
     self.hudInfo.energyReserveRel = self.energyReserve / MAX_ENERGY_RESERVE
     engine:update_hud()
 end

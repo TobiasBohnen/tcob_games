@@ -96,7 +96,7 @@ local function start_event(game, engine)
 end
 
 --TODO events:
--- shift gears -> trigger: target speed reaced -> speed up on success
+-- shift gears -> trigger: target speed reached -> speed up on success
 -- speed trap  -> trigger: speed above 180     -> speed down on failure
 -- maintenance -> speed down/lose fuel on failure
 -- gas station -> trigger: below 10% fuel

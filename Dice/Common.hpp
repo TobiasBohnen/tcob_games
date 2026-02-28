@@ -122,4 +122,5 @@ struct ui_state {
 
     prop<gfx::image> HUD {gfx::image::CreateEmpty(HUD_SIZE, gfx::image::format::RGBA)};
     rect_f           HUDBounds;
+    rect_f           DiceArea;
 };

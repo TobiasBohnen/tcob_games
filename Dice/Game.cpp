@@ -164,7 +164,7 @@ void dice_game::on_mouse_motion(input::mouse::motion_event const& ev)
             _init.Events.DieRemove(socket);
         }
 
-        _dice.on_drag(mp, _uiState.HUDBounds);
+        _dice.on_drag(mp, _uiState.DiceArea);
 
         _init.Events.DieMotion(_hoverDie);
     }
@@ -187,7 +187,7 @@ auto dice_game::get_die_position(usize count, usize idx) const -> point_f
     f32 const    colPadding {3.0f * scale};
     f32 const    rowPadding {5.0f * scale};
 
-    rect_f area {_uiState.HUDBounds};
+    rect_f area {_uiState.DiceArea};
     area.Size.Height -= DICE_SIZE.Height;
 
     f32 const   diceWidth {scaledDiceSize.Width + colPadding};

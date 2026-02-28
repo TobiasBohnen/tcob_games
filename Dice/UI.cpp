@@ -37,7 +37,7 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, ui_state& s
     hud.Alignment = {.Horizontal = horizontal_alignment::Centered, .Vertical = vertical_alignment::Middle};
     _state.HUD.Changed.connect([&]() { _updateHud = true; });
 
-    auto& panel2 {create_container<ui::panel>(rect_i {0, 73, 100, 25}, "panel2")};
+    auto& panel2 {create_container<ui::panel>(rect_i {0, 85, 100, 14}, "panel2")};
     auto& layout2 {panel2.create_layout<grid_layout>(size_i {4, 4})};
 
     auto& btn0 {layout2.create_widget<button>({0, 0, 3, 4}, "btn0")};
@@ -65,6 +65,7 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, ui_state& s
 
     auto const img {hud.image_bounds()};
     _state.HUDBounds = rect_f {local_to_screen(hud, img.Position), img.Size};
+    _state.DiceArea  = rect_f {bounds.Position, {bounds.width(), bounds.height() * 0.85f}};
 }
 
 void game_form::on_update(milliseconds deltaTime)

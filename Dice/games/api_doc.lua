@@ -4,9 +4,27 @@
 ---@meta
 
 --------------------------------
+-- Libary addons
+--------------------------------
+---@param v number
+---@param l number
+---@param h number
+---@return number
+function math.clamp(v, l, h) end
+
+---@param a number
+---@param b number
+---@param t number
+---@return number
+function math.lerp(a, b, t) end
+
+---@param v number
+---@return number
+function math.round(v) end
+
+--------------------------------
 -- Basic Types
 --------------------------------
-
 ---@alias texture integer
 ---@alias sound integer
 ---@alias color integer

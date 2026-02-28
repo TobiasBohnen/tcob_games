@@ -2,30 +2,34 @@
 -- MIT License
 -- https://opensource.org/licenses/MIT
 
-local DURATION       = 2500
-local SEGMENT_LENGTH = 300
-local THEMES         = { "day", "dusk", "night", "fall", "winter", "desert", }
-local CAR_Y          = 140
-local FUEL_PER_MS    = 0.04
+local DURATION            = 2500
+local SEGMENT_LENGTH      = 300
+local THEMES              = { "day", "dusk", "night", "fall", "winter", "desert", }
+local CAR_Y               = 140
+local FUEL_PER_MS         = 0.04
+local ACCELERATION_PER_MS = 0.015
 
-local gfx            = require('ps_gfx')
-local sfx            = require('ps_sfx')
-local events         = require('ps_events')
+local gfx                 = require('ps_gfx')
+local sfx                 = require('ps_sfx')
+local events              = require('ps_events')
 
-local game           = {
+local game                = {
     car        = {},
 
     opponents  = {},
 
     track      = {
-        segments = {},
-        themes = {},
+        segments        = {},
+        themes          = {},
 
-        currentIndex = 1,
-        currentTheme = 1,
-        currentCurve = 0,
+        currentIndex    = 1,
+        currentTheme    = 1,
+        currentCurve    = 0,
 
         segmentProgress = 0,
+
+        leftEdge        = 0,
+        rightEdge       = 0,
     },
 
     eventQueue = {}, ---@type event_base[]
@@ -42,6 +46,9 @@ function game:on_setup(engine)
 
     self:create_track(engine)
     self:create_car(engine)
+
+    self.track.leftEdge  = ScreenSize.width / 6
+    self.track.rightEdge = ScreenSize.width - self.track.leftEdge - gfx.sizes.car.width
 
     self:update_background(engine)
 
@@ -157,22 +164,21 @@ function game:create_car(engine)
 
 
         update           = function(car, deltaTime, turnTime)
-            local speedFactor = car.speed.current / 100
-
             -- lateral
-            local roadWidth   = ScreenSize.width / 6
-            local leftEdge    = roadWidth
-            local rightEdge   = ScreenSize.width - roadWidth - gfx.sizes.car.width
-            local pos         = car.sprite.position
-            local newX        = math.max(leftEdge, math.min(rightEdge, pos.x - self.track.currentCurve * speedFactor + car.lateral))
+            local pos  = car.sprite.position
+            local newX = math.clamp(pos.x - self.track.currentCurve * (car.speed.current / 100) + car.lateral, self.track.leftEdge, self.track.rightEdge)
 
             -- speed
-            if newX <= leftEdge + 5 or newX >= rightEdge - 5 then
+            if newX <= self.track.leftEdge + 10 or newX >= self.track.rightEdge - 10 then
                 car.speed.current = math.max(10, car.speed.current - 0.1)
-                print(car.speed.current)
             else
-                car.speed.current = car.speed.current + (car.speed.target - car.speed.current) * (deltaTime * 0.002)
+                local diff = car.speed.target - car.speed.current
+                if diff ~= 0 then
+                    local step        = ACCELERATION_PER_MS * deltaTime
+                    car.speed.current = car.speed.current + math.clamp(diff, -step, step)
+                end
             end
+            local speedFactor = car.speed.current / 100
 
             -- fuel
             if car.fuel > 0 then
@@ -182,7 +188,7 @@ function game:create_car(engine)
                 car.speed.target = 0
             end
 
-            engine:give_score(math.floor(speedFactor * speedFactor * 20 + speedFactor))
+            engine:give_score(math.floor(speedFactor * speedFactor * 20 + speedFactor * 5))
             car.sprite.position = { x = newX, y = pos.y }
 
             car:play_sound()
@@ -255,7 +261,7 @@ function game:create_opponent(engine, lane)
                 return
             end
 
-            local scaleIndex         = math.max(1, math.min(10, math.floor(opponent.distance) + 1))
+            local scaleIndex         = math.clamp(math.floor(opponent.distance) + 1, 1, 10)
             opponent.sprite.texture  = gfx.textures.opp_car[opponent.color][scaleIndex]
 
             local baseY              = gfx.horizonHeight + (opponent.distance * (CAR_Y - gfx.horizonHeight) / 10)
@@ -323,7 +329,7 @@ function game:update_track(speed)
     local nextCurve         = self.track.segments[(self.track.currentIndex % #self.track.segments) + 1]
 
     local t                 = self.track.segmentProgress / SEGMENT_LENGTH
-    self.track.currentCurve = currentCurve + (nextCurve - currentCurve) * t
+    self.track.currentCurve = math.lerp(currentCurve, nextCurve, t)
 end
 
 ---@param engine engine

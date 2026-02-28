@@ -19,6 +19,7 @@ engine::engine(init init)
     , _texProxy {_init.SpriteMgr.Sprites, colors::Transparent}
 {
     _script.open_libraries(library::Table, library::String, library::Math);
+    _script.open_addons();
     _script.Warning.connect([](script::warning_event const& ev) {
         logger::Warning(ev.Message);
     });
