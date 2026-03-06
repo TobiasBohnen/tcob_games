@@ -17,7 +17,6 @@ layout(std140, binding = 0)uniform Globals
 layout(std140, binding = 1)uniform Material
 {
 	vec4 color;
-	float point_size;
 } material;
 
 layout(location = 0)out VS_OUT

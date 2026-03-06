@@ -14,7 +14,6 @@ layout(std140) uniform Globals {
 
 layout(std140) uniform Material {
     vec4  color;
-    float point_size;
 } material;
 
 out vec4 fragColor;
