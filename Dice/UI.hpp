@@ -41,3 +41,12 @@ private:
 
     std::map<u32, game_def> _games;
 };
+////////////////////////////////////////////////////////////
+
+class debug_form : public ui::form<ui::dock_layout> {
+public:
+    debug_form(rect_f const& bounds, assets::group const& grp);
+
+private:
+    void gen_styles(assets::group const& grp);
+};

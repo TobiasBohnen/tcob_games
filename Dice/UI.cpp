@@ -282,3 +282,70 @@ void game_select_form::gen_styles(assets::group const& grp)
     }
     Styles = styles;
 }
+
+////////////////////////////////////////////////////////////
+
+debug_form::debug_form(rect_f const& bounds, assets::group const& grp)
+    : form {{.Name = "debug", .Bounds = rect_i {bounds}}}
+{
+    gen_styles(grp);
+}
+
+void debug_form::gen_styles(assets::group const& grp)
+{
+    style_collection styles;
+
+    {
+        auto style {styles.create<tree_view>("tree_view", {})};
+        style->Border.Size                     = 3_px;
+        style->Border.Radius                   = 5_px;
+        style->Margin                          = {5_px};
+        style->Padding                         = {5_px};
+        style->DropShadow.Color                = color {0, 0, 0, 128};
+        style->MaxVisibleRows                  = 20;
+        style->ItemClasses                     = {"row_items_0"};
+        style->NavArrowClass                   = "tree_nav_arrows";
+        style->VScrollBar.ThumbClass           = "scrollbar_thumb";
+        style->VScrollBar.Bar.Size             = 5_pct;
+        style->VScrollBar.Bar.Border.Size      = 2_px;
+        style->VScrollBar.Bar.Delay            = 250ms;
+        style->VScrollBar.Bar.HigherBackground = colors::Silver;
+        style->VScrollBar.Bar.LowerBackground  = colors::Silver;
+        style->Background                      = colors::DarkGray;
+    }
+    {
+        auto style {styles.create<thumb_style>("scrollbar_thumb", {}, {})};
+        style->Thumb.Type        = thumb_type::Rect;
+        style->Thumb.LongSide    = 25_pct;
+        style->Thumb.ShortSide   = 80_pct;
+        style->Thumb.Border.Size = 3_px;
+        style->Thumb.Background  = colors::Black;
+    }
+    {
+        auto style {styles.create<nav_arrows_style>("tree_nav_arrows", {}, {})};
+        style->NavArrow.Size.Height    = {0.50f, length::type::Relative};
+        style->NavArrow.Size.Width     = {0.05f, length::type::Relative};
+        style->NavArrow.Border.Size    = 1_px;
+        style->NavArrow.Border.Radius  = 0_px;
+        style->NavArrow.Padding        = 1_px;
+        style->NavArrow.Type           = nav_arrow_type::Arrow;
+        style->NavArrow.DownBackground = colors::LightSteelBlue;
+        style->NavArrow.UpBackground   = colors::LightSteelBlue;
+        style->NavArrow.Foreground     = colors::SlateGray;
+    }
+    {
+        auto style                 = styles.create<item_style>("row_items_0", {}, {});
+        style->Item.Padding        = {2_px};
+        style->Item.Text.Style     = {.IsItalic = false, .Weight = font::weight::Normal};
+        style->Item.Text.Font      = grp.get<font_family>("Font");
+        style->Item.Text.AutoSize  = auto_size_mode::OnlyShrink;
+        style->Item.Text.Size      = 20_px;
+        style->Item.Text.Color     = colors::Black;
+        style->Item.Text.Alignment = {.Horizontal = horizontal_alignment::Left, .Vertical = vertical_alignment::Middle};
+        style->Item.Border.Size    = 2_px;
+
+        style->Item.Background = colors::LightSteelBlue;
+    }
+
+    Styles = styles;
+}

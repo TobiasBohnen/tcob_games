@@ -45,12 +45,14 @@ protected:
     void on_mouse_button_up(input::mouse::button_event const& ev) override;
     void on_mouse_button_down(input::mouse::button_event const& ev) override;
     void on_mouse_motion(input::mouse::motion_event const& ev) override;
+    void on_mouse_wheel(input::mouse::wheel_event const& ev) override;
 
 private:
     auto get_die_position(usize count, usize idx) const -> point_f;
 
-    gfx::shape_batch           _diceBatch;
-    std::unique_ptr<game_form> _form0;
+    gfx::shape_batch            _diceBatch;
+    std::unique_ptr<game_form>  _form0;
+    std::unique_ptr<debug_form> _formD;
 
     asset_owner_ptr<gfx::material>       _screenMaterial;
     asset_owner_ptr<gfx::render_texture> _screenTexture;

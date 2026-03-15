@@ -88,6 +88,9 @@ dice_game::~dice_game()
 void dice_game::on_update(milliseconds deltaTime)
 {
     _form0->update(deltaTime);
+    if (_formD) {
+        _formD->update(deltaTime);
+    }
 
     _dice.update(deltaTime);
     _diceBatch.update(deltaTime);
@@ -107,6 +110,9 @@ void dice_game::on_draw_to(gfx::render_target& target, transform const& xform)
     _screenRenderer.render_to_target(target, transform::Identity);
 
     _form0->draw_to(target, xform);
+    if (_formD) {
+        _formD->draw_to(target, xform);
+    }
     _diceBatch.draw_to(target, xform);
 }
 
@@ -121,7 +127,40 @@ void dice_game::on_key_down(input::keyboard::event const& ev)
     case input::scan_code::SPACE: _init.Events.TurnStart(); break;
     case input::scan_code::R:     _init.Events.GameRestart(); break;
     case input::scan_code::Q:     _init.Events.GameQuit(); break;
-    default:                      break;
+    case input::scan_code::D:     {
+        auto const [w, h] {_init.RealWindowSize};
+
+        if (_formD) {
+            rect_f const bgBounds {0, 0, h / 3.0f * 4.0f, h};
+            gfx::quad    q {};
+            gfx::geometry::set_color(q, colors::White);
+            gfx::geometry::set_position(q, bgBounds);
+            gfx::geometry::set_texcoords(q, {.UVRect = gfx::render_texture::UVRect(), .Level = 0});
+            _screenRenderer.set_geometry({.Vertices = q, .Indices = gfx::QuadIndicies, .Type = gfx::primitive_type::Triangles}, &_screenMaterial->first_pass());
+
+            _engine.disable_debug();
+            _formD = nullptr;
+        } else {
+            f32 const debugWidth {_form0->Bounds->width()};
+            f32 const gameWidth {w - (debugWidth * 2)};
+            f32 const gameHeight {gameWidth / 4.0f * 3.0f};
+            f32 const offsetY {(h - gameHeight) / 2.0f};
+
+            rect_f const bgBounds {debugWidth, offsetY, gameWidth, gameHeight};
+            gfx::quad    q {};
+            gfx::geometry::set_color(q, colors::White);
+            gfx::geometry::set_position(q, bgBounds);
+            gfx::geometry::set_texcoords(q, {.UVRect = gfx::render_texture::UVRect(), .Level = 0});
+            _screenRenderer.set_geometry({.Vertices = q, .Indices = gfx::QuadIndicies, .Type = gfx::primitive_type::Triangles}, &_screenMaterial->first_pass());
+
+            _formD = std::make_unique<debug_form>(rect_f {0, 0, debugWidth, static_cast<f32>(h)}, _init.Group);
+            _engine.enable_debug(*_formD);
+        }
+    }
+
+    break;
+
+    default: break;
     }
 }
 
@@ -141,12 +180,18 @@ void dice_game::on_mouse_button_up(input::mouse::button_event const& ev)
     if (!_hoverDie) {
         static_cast<input::receiver*>(_form0.get())->on_mouse_button_up(ev);
     }
+    if (_formD) {
+        static_cast<input::receiver*>(_formD.get())->on_mouse_button_up(ev);
+    }
 }
 
 void dice_game::on_mouse_button_down(input::mouse::button_event const& ev)
 {
     if (!_hoverDie) {
         static_cast<input::receiver*>(_form0.get())->on_mouse_button_down(ev);
+    }
+    if (_formD) {
+        static_cast<input::receiver*>(_formD.get())->on_mouse_button_down(ev);
     }
 }
 
@@ -170,6 +215,16 @@ void dice_game::on_mouse_motion(input::mouse::motion_event const& ev)
     }
 
     static_cast<input::receiver*>(_form0.get())->on_mouse_motion(ev);
+    if (_formD) {
+        static_cast<input::receiver*>(_formD.get())->on_mouse_motion(ev);
+    }
+}
+
+void dice_game::on_mouse_wheel(input::mouse::wheel_event const& ev)
+{
+    if (_formD) {
+        static_cast<input::receiver*>(_formD.get())->on_mouse_wheel(ev);
+    }
 }
 
 void dice_game::run(string const& file)

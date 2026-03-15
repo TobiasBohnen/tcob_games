@@ -51,6 +51,11 @@ engine::engine(init init)
     _init.Events.TurnStart.connect([this]() { start_turn(); });
 }
 
+engine::~engine()
+{
+    _script.remove_hook();
+}
+
 template <typename R>
 inline auto engine::call(callback<R> const& func, auto&&... args) -> R
 {
@@ -132,6 +137,113 @@ auto engine::update(milliseconds deltaTime) -> bool
     }
 
     return true;
+}
+
+void engine::enable_debug(ui::form<ui::dock_layout>& form)
+{
+    using namespace tcob::ui;
+    auto& overlay {form.create_container<panel>(dock_style::Fill, "DebugOverlay")};
+    auto& layout {overlay.create_layout<dock_layout>()};
+    auto& tv {layout.create_widget<tree_view>(dock_style::Fill, "DebugTree")};
+
+    _script.set_hook([&tv, last = clock::now()](debug const& dbg) mutable {
+        auto const now {clock::now()};
+        if (now - last < 3ms) { return; }
+        last = now;
+
+        auto const info {dbg.get_info()};
+        string     source {info.ShortSource};
+        auto&      vw {dbg.view()};
+
+        std::function<tree_view::node(table const&, string const&)> make_table_node {
+            [&](table const& t, string const& label) -> tree_view::node {
+                tree_view::node tableNode {.Item = {.Text = label + " = {table}"}, .Expanded = false};
+                for (auto const& key : t.get_keys<std::variant<i32, string>>()) {
+                    string const keyStr {std::visit([](auto const& k) { return std::format("{}", k); }, key)};
+                    if (t.is<table>(key)) {
+                        auto const inner {t[key].template as<table>()};
+                        tableNode.Children.push_back(make_table_node(inner, keyStr));
+                    } else if (sprite* sprite {nullptr}; t.try_get(sprite, key)) {
+                        rect_f const                       bounds {sprite->Bounds};
+                        std::vector<tree_view::node> const spriteProp {
+                            {.Item = {.Text = std::format("x = {:.2f}", bounds.left())}},
+                            {.Item = {.Text = std::format("y = {:.2f}", bounds.top())}},
+                            {.Item = {.Text = std::format("w = {:.2f}", bounds.width())}},
+                            {.Item = {.Text = std::format("h = {:.2f}", bounds.height())}},
+                        };
+                        tableNode.Children.push_back({.Item = {.Text = std::format("{} = {{sprite}}", keyStr)}, .Children = spriteProp});
+                    } else if (socket* socket {nullptr}; t.try_get(socket, key)) {
+                        std::vector<tree_view::node> const socketProp {
+                            {.Item = {.Text = std::format("die value = {}", socket->is_empty() ? 0 : socket->current_die()->face().Value)}},
+                        };
+                        tableNode.Children.push_back({.Item = {.Text = std::format("{} = {{socket}}", keyStr)}, .Children = socketProp});
+                    } else if (f64 dVal {0}; t.try_get(dVal, key)) {
+                        tableNode.Children.push_back({.Item = {.Text = std::format("{} = {:.4f}", keyStr, dVal)}});
+                    } else if (string strVal; t.try_get(strVal, key)) {
+                        tableNode.Children.push_back({.Item = {.Text = std::format("{} = {}", keyStr, strVal)}});
+                    }
+                }
+                return tableNode;
+            }};
+
+        std::function<void(tree_view::node&, tree_view::node const&)> preserve_expanded {
+            [&](tree_view::node& dst, tree_view::node const& src) {
+                dst.Expanded = src.Expanded;
+                for (auto& dstChild : dst.Children) {
+                    auto const cit {std::ranges::find_if(src.Children, [&](auto const& c) { return c.Item.Text == dstChild.Item.Text; })};
+                    if (cit != src.Children.end()) { preserve_expanded(dstChild, *cit); }
+                }
+            }};
+
+        tree_view::node sourceNode {.Item = {.Text = std::format("{}:{}", source, info.CurrentLine)}, .Expanded = true};
+
+        for (i32 i {1};; ++i) {
+            auto name {dbg.get_local(i)};
+            if (name.empty()) { break; }
+            if (name[0] == '(') {
+                vw.pop(1);
+                continue;
+            }
+
+            auto const t {vw.get_type(-1)};
+            if (t == type::Table) {
+                table tab {table::Acquire(vw, -1)};
+                sourceNode.Children.push_back(make_table_node(tab, name));
+            } else if (t == type::Userdata || t == type::LightUserdata) {
+                // ignore for now
+            } else if (t == type::Function) {
+                // ignore
+            } else if (t == type::Number) {
+                f64 value {};
+                i32 idx {-1};
+                if (base_converter<f64>::From(vw, idx, value)) {
+                    sourceNode.Children.push_back({.Item = {.Text = std::format("{} = {:.4f}", name, value)}});
+                }
+            } else {
+                string value;
+                i32    idx {-1};
+                if (!base_converter<string>::From(vw, idx, value)) {
+                    value = "<" + string {vw.type_name(-1)} + ">";
+                }
+                sourceNode.Children.push_back({.Item = {.Text = std::format("{} = {}", name, value)}});
+            }
+            vw.pop(1);
+        }
+
+        tv.Nodes.mutate([&](auto& nodes) {
+            auto it {std::ranges::find_if(nodes, [&](auto const& n) {
+                return n.Item.Text.starts_with(source);
+            })};
+            if (it != nodes.end()) {
+                preserve_expanded(sourceNode, *it);
+                *it = sourceNode;
+            } else {
+                nodes.push_back(sourceNode);
+            }
+            return true;
+        });
+    },
+                     scripting::debug_mask {.Call = false, .Return = false, .Line = true, .Count = false});
 }
 
 auto engine::start_turn() -> bool
