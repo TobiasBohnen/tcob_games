@@ -48,6 +48,7 @@ public:
     rect_f           Bounds;
     gfx::rect_shape* Shape {nullptr};
     gfx::rect_shape* WrapCopy {nullptr};
+    bool             MarkedForDeletion {false};
 
     auto is_collidable() const -> bool;
     auto is_wrappable() const -> bool;

@@ -96,7 +96,7 @@ void sockets::remove(socket* socket)
         socket->remove_die();
         die->mark_for_reroll();
     }
-    helper::erase_first(_sockets, [&](auto const& s) { return s.get() == socket; });
+    socket->MarkedForDeletion = true;
 }
 
 auto sockets::try_insert_die(die* hoverDie) -> socket*
@@ -174,6 +174,8 @@ auto sockets::count() const -> usize
 void sockets::reset()
 {
     unlock();
+
+    std::erase_if(_sockets, [&](auto const& s) { return s->MarkedForDeletion; });
 
     for (auto& socket : _sockets) {
         if (auto* die {socket->current_die()}) {

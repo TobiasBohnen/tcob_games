@@ -246,6 +246,11 @@ void engine::enable_debug(ui::form<ui::dock_layout>& form)
                      scripting::debug_mask {.Call = false, .Return = false, .Line = true, .Count = false});
 }
 
+void engine::disable_debug()
+{
+    _script.remove_hook();
+}
+
 auto engine::start_turn() -> bool
 {
     if (_gameStatus != game_status::Waiting) { return false; }

@@ -99,6 +99,7 @@ void dice_game::on_update(milliseconds deltaTime)
 void dice_game::on_fixed_update(milliseconds deltaTime)
 {
     if (_engine.update(deltaTime)) {
+        _sprites.cleanup();
         _sprites.wrap_and_collide();
     }
     _sprites.update(deltaTime);

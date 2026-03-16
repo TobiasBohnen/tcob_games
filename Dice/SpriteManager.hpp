@@ -33,6 +33,8 @@ public:
     void update(milliseconds deltaTime);
     void draw_to(gfx::render_target& target);
 
+    void cleanup();
+
 private:
     auto add_shape() -> gfx::rect_shape*;
     auto remove_shape(gfx::shape* shape) -> bool;

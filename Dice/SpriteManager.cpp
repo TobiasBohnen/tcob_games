@@ -46,8 +46,11 @@ auto sprite_manager::add(sprite::init const& init) -> sprite*
 void sprite_manager::remove(sprite* sprite)
 {
     remove_shape(sprite->Shape);
+    sprite->Shape = nullptr;
     if (sprite->WrapCopy) { remove_shape(sprite->WrapCopy); }
-    std::erase_if(_sprites, [&sprite](auto const& spr) { return spr.get() == sprite; });
+    sprite->WrapCopy = nullptr;
+
+    sprite->MarkedForDeletion = true;
 }
 
 void sprite_manager::clear()
@@ -109,6 +112,11 @@ void sprite_manager::draw_to(gfx::render_target& target)
     _spriteBatch.draw_to(target, xform);
 }
 
+void sprite_manager::cleanup()
+{
+    std::erase_if(_sprites, [&](auto const& spr) { return spr->MarkedForDeletion; });
+}
+
 auto sprite_manager::add_shape() -> gfx::rect_shape*
 {
     return &_spriteBatch.create_shape<gfx::rect_shape>();
@@ -124,7 +132,7 @@ void sprite_manager::wrap()
     auto const fieldSize {_background->Bounds->Size};
 
     for (auto& s : _sprites) {
-        if (!s) { continue; }
+        if (!s || s->MarkedForDeletion) { continue; }
         if (!s->Shape || !s->is_wrappable()) {
             if (s->WrapCopy) {
                 _spriteBatch.remove_shape(*s->WrapCopy);
@@ -218,6 +226,7 @@ void sprite_manager::collide()
     usize const spriteCount {_sprites.size()};
     for (usize i {0}; i < spriteCount; ++i) {
         auto const& spriteA {_sprites[i]};
+        if (spriteA->MarkedForDeletion) { continue; }
         if (!spriteA->is_collidable()) { continue; }
 
         std::array<gfx::rect_shape*, 2> shapesA {spriteA->Shape, spriteA->WrapCopy};
@@ -225,6 +234,7 @@ void sprite_manager::collide()
 
         for (usize j {i + 1}; j < spriteCount; ++j) {
             auto const& spriteB {_sprites[j]};
+            if (spriteB->MarkedForDeletion) { continue; }
             if (!spriteB->is_collidable()) { continue; }
 
             std::array<gfx::rect_shape*, 2> shapesB {spriteB->Shape, spriteB->WrapCopy};

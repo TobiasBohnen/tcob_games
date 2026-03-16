@@ -74,6 +74,7 @@ public:
     explicit socket(socket_face face);
 
     point_i HUDPosition {point_i::Zero};
+    bool    MarkedForDeletion {false};
 
     auto is_empty() const -> bool;
     auto current_die() const -> die*;
