@@ -139,7 +139,6 @@ void dice_game::on_key_down(input::keyboard::event const& ev)
             gfx::geometry::set_texcoords(q, {.UVRect = gfx::render_texture::UVRect(), .Level = 0});
             _screenRenderer.set_geometry({.Vertices = q, .Indices = gfx::QuadIndicies, .Type = gfx::primitive_type::Triangles}, &_screenMaterial->first_pass());
 
-            _engine.disable_debug();
             _formD = nullptr;
         } else {
             f32 const debugWidth {_form0->Bounds->width()};
@@ -155,7 +154,6 @@ void dice_game::on_key_down(input::keyboard::event const& ev)
             _screenRenderer.set_geometry({.Vertices = q, .Indices = gfx::QuadIndicies, .Type = gfx::primitive_type::Triangles}, &_screenMaterial->first_pass());
 
             _formD = std::make_unique<debug_form>(rect_f {0, 0, debugWidth, static_cast<f32>(h)}, _init.Group);
-            _engine.enable_debug(*_formD);
         }
     }
 

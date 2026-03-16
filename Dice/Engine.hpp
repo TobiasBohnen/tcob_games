@@ -52,9 +52,6 @@ public:
 
     auto update(milliseconds deltaTime) -> bool;
 
-    void enable_debug(ui::form<ui::dock_layout>& form);
-    void disable_debug();
-
 private:
     auto start_turn() -> bool;
 
