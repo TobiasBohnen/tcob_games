@@ -57,6 +57,7 @@ private:
     asset_owner_ptr<gfx::material>       _screenMaterial;
     asset_owner_ptr<gfx::render_texture> _screenTexture;
     gfx::renderer                        _screenRenderer {gfx::buffer_usage_hint::StaticDraw};
+    rect_f                               _bgBounds;
 
     ui_state _uiState;
 

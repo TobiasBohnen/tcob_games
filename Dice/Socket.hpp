@@ -102,7 +102,7 @@ private:
 
 class sockets {
 public:
-    explicit sockets(size_f scale);
+    sockets();
 
     void lock();
     void unlock();
@@ -122,8 +122,6 @@ private:
     void hover(rect_f const& rect);
 
     std::vector<std::unique_ptr<socket>> _sockets {};
-
-    size_f _scale;
 
     bool _locked {false};
 

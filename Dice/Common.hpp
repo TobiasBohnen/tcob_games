@@ -25,7 +25,6 @@ constexpr size_i COVER_SIZE {128, 128};
 constexpr size_i SPRITE_TEXTURE_SIZE {256, 256};
 
 constexpr size_f DICE_SIZE {62, 62};
-constexpr size_f DICE_REF_SIZE {1600, 900};
 
 static constexpr usize MAX_SOUND_CHANNELS {8};
 

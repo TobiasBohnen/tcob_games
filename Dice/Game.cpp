@@ -15,8 +15,8 @@ dice_game::dice_game(init init)
     : gfx::entity {update_mode::Both}
     , _init {std::move(init)}
     , _sprites {_init.Events}
-    , _sockets {_init.RealWindowSize / DICE_REF_SIZE}
-    , _dice {_init.Group, _diceBatch, _init.RealWindowSize / DICE_REF_SIZE}
+    , _sockets {}
+    , _dice {_init.Group, _diceBatch}
     , _engine {engine::init {
           .UIState   = _uiState,
           .Events    = _init.Events,
@@ -24,11 +24,14 @@ dice_game::dice_game(init init)
           .SpriteMgr = _sprites,
           .Sockets   = _sockets}}
 {
-    // TODO: enforce int scaling for background
-    // TODO: 16:10 support
     auto const [w, h] {_init.RealWindowSize};
-    rect_f const bgBounds {0, 0, h / 3.0f * 4.0f, h};
-    rect_f const uiBounds {bgBounds.width(), 0.0f, w - bgBounds.width(), h};
+
+    rect_f const uiBounds {w - (h / 9.0f * 4.0f), 0, h / 9.0f * 4.0f, h};
+
+    f32 const bgMaxWidth {w - uiBounds.width()};
+    f32 const bgWidth {std::min(h / 3.0f * 4.0f, bgMaxWidth)};
+    f32 const bgHeight {bgWidth / 4.0f * 3.0f};
+    _bgBounds = {(bgMaxWidth - bgWidth) / 2.0f, (h - bgHeight) / 2.0f, bgWidth, bgHeight}; // TODO: enforce int scaling for background
 
     _form0 = std::make_unique<game_form>(uiBounds, _init.Group, _uiState, _init.Events);
 
@@ -41,7 +44,7 @@ dice_game::dice_game(init init)
 
     gfx::quad q {};
     gfx::geometry::set_color(q, colors::White);
-    gfx::geometry::set_position(q, bgBounds);
+    gfx::geometry::set_position(q, _bgBounds);
     gfx::geometry::set_texcoords(q, {.UVRect = gfx::render_texture::UVRect(), .Level = 0});
     _screenRenderer.set_geometry({.Vertices = q, .Indices = gfx::QuadIndicies, .Type = gfx::primitive_type::Triangles}, &_screenMaterial->first_pass());
 
@@ -132,10 +135,9 @@ void dice_game::on_key_down(input::keyboard::event const& ev)
         auto const [w, h] {_init.RealWindowSize};
 
         if (_formD) {
-            rect_f const bgBounds {0, 0, h / 3.0f * 4.0f, h};
-            gfx::quad    q {};
+            gfx::quad q {};
             gfx::geometry::set_color(q, colors::White);
-            gfx::geometry::set_position(q, bgBounds);
+            gfx::geometry::set_position(q, _bgBounds);
             gfx::geometry::set_texcoords(q, {.UVRect = gfx::render_texture::UVRect(), .Level = 0});
             _screenRenderer.set_geometry({.Vertices = q, .Indices = gfx::QuadIndicies, .Type = gfx::primitive_type::Triangles}, &_screenMaterial->first_pass());
 
@@ -236,10 +238,9 @@ void dice_game::run(string const& file)
 
 auto dice_game::get_die_position(usize count, usize idx) const -> point_f
 {
-    f32 const    scale {_init.RealWindowSize.Width / DICE_REF_SIZE.Width};
-    size_f const scaledDiceSize {DICE_SIZE * scale};
-    f32 const    colPadding {3.0f * scale};
-    f32 const    rowPadding {5.0f * scale};
+    size_f const scaledDiceSize {DICE_SIZE};
+    f32 const    colPadding {3.0f};
+    f32 const    rowPadding {5.0f};
 
     rect_f area {_uiState.DiceArea};
     area.Size.Height -= DICE_SIZE.Height;

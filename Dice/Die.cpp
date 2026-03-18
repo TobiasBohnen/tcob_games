@@ -86,10 +86,9 @@ auto die::shape() const -> gfx::rect_shape* { return _shape; }
 
 ////////////////////////////////////////////////////////////
 
-dice::dice(assets::group& group, gfx::shape_batch& batch, size_f scale)
+dice::dice(assets::group& group, gfx::shape_batch& batch)
     : _material {group.get<gfx::material>("dice")}
     , _batch {batch}
-    , _scale {scale}
 {
     data::object ob {};
     ob.load("dice/dice.ini");
@@ -102,7 +101,7 @@ dice::dice(assets::group& group, gfx::shape_batch& batch, size_f scale)
 auto dice::add(point_f pos, rng& rng, die_face currentFace, std::span<die_face const> faces) -> die*
 {
     auto* shape {&_batch.create_shape<gfx::rect_shape>()};
-    shape->Bounds   = {pos, DICE_SIZE * _scale};
+    shape->Bounds   = {pos, DICE_SIZE};
     shape->Material = _material;
 
     auto& retValue {_dice.emplace_back(std::make_unique<die>(shape, _buffer, rng, faces, currentFace))};
@@ -151,7 +150,7 @@ void dice::on_drag(point_f mousePos, rect_f const& winBounds)
 {
     if (!_hoverDie || _hoverDie->_locked) { return; }
 
-    point_f const halfSize {DICE_SIZE.Width * _scale.Width / 2, DICE_SIZE.Height * _scale.Height / 2};
+    point_f const halfSize {DICE_SIZE.Width / 2, DICE_SIZE.Height / 2};
     point_f       newPos {mousePos};
 
     if (mousePos.X - halfSize.X < winBounds.left()) {
@@ -166,7 +165,7 @@ void dice::on_drag(point_f mousePos, rect_f const& winBounds)
         newPos.Y = winBounds.bottom() - halfSize.Y;
     }
 
-    rect_f const newBounds {newPos - halfSize, DICE_SIZE * _scale};
+    rect_f const newBounds {newPos - halfSize, DICE_SIZE};
 
     _batch.bring_to_front(*_hoverDie->shape());
     _hoverDie->shape()->Bounds = newBounds;

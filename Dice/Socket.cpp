@@ -74,10 +74,7 @@ auto socket::face() const -> socket_face const& { return _face; }
 
 ////////////////////////////////////////////////////////////
 
-sockets::sockets(size_f scale)
-    : _scale {scale}
-{
-}
+sockets::sockets() = default;
 
 void sockets::lock() { _locked = true; }
 
@@ -86,7 +83,7 @@ void sockets::unlock() { _locked = false; }
 auto sockets::add(socket_face const& face) -> socket*
 {
     auto& retValue {_sockets.emplace_back(std::make_unique<socket>(face))};
-    retValue->_bounds = {point_f::Zero, DICE_SIZE * _scale};
+    retValue->_bounds = {point_f::Zero, DICE_SIZE};
     return retValue.get();
 }
 

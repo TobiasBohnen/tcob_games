@@ -80,7 +80,7 @@ private:
 
 class dice {
 public:
-    dice(assets::group& group, gfx::shape_batch& batch, size_f scale);
+    dice(assets::group& group, gfx::shape_batch& batch);
 
     auto add(point_f pos, rng& rng, die_face currentFace, std::span<die_face const> faces) -> die*;
     void move(usize idx, point_f target);
@@ -100,7 +100,6 @@ private:
 
     asset_ptr<gfx::material> _material;
     gfx::shape_batch&        _batch;
-    size_f                   _scale;
 
     die* _hoverDie {nullptr};
 
