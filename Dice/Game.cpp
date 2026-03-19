@@ -68,7 +68,7 @@ dice_game::dice_game(init init)
         if (vec.empty()) { return; }
 
         for (u32 i {0}; i < die.Amount; ++i) {
-            _dice.add(get_die_position(totalDiceCount, idx), _rng, vec[0], vec);
+            _dice.add(get_die_position(totalDiceCount, idx), _rng, vec[0], vec, _uiState.get_dice_scale());
             idx++;
         }
     }
@@ -238,14 +238,14 @@ void dice_game::run(string const& file)
 
 auto dice_game::get_die_position(usize count, usize idx) const -> point_f
 {
-    size_f const scaledDiceSize {DICE_SIZE};
-    f32 const    colPadding {3.0f};
-    f32 const    rowPadding {5.0f};
+    f32 const scaledDiceSize {DICE_SIZE * _uiState.get_dice_scale()};
+    f32 const colPadding {3.0f};
+    f32 const rowPadding {5.0f};
 
     rect_f area {_uiState.DiceArea};
-    area.Size.Height -= DICE_SIZE.Height;
+    area.Size.Height -= scaledDiceSize;
 
-    f32 const   diceWidth {scaledDiceSize.Width + colPadding};
+    f32 const   diceWidth {scaledDiceSize + colPadding};
     f32 const   maxDicePerRow {std::floor((area.width() + colPadding) / diceWidth)};
     usize const dicePerRow {std::max(1u, static_cast<u32>(maxDicePerRow))};
 
@@ -254,11 +254,11 @@ auto dice_game::get_die_position(usize count, usize idx) const -> point_f
 
     usize const diceInCurrentRow {std::min(dicePerRow, count - (row * dicePerRow))};
 
-    f32 const rowWidth {(diceInCurrentRow * scaledDiceSize.Width) + ((diceInCurrentRow - 1) * colPadding)};
+    f32 const rowWidth {(diceInCurrentRow * scaledDiceSize) + ((diceInCurrentRow - 1) * colPadding)};
 
     f32 const rowStartX {(area.width() - rowWidth) / 2.0f};
 
     f32 const x {rowStartX + (col * diceWidth)};
-    f32 const y {area.bottom() - (row * (scaledDiceSize.Height + rowPadding))};
+    f32 const y {area.bottom() - (row * (scaledDiceSize + rowPadding))};
     return {area.left() + x, y};
 }

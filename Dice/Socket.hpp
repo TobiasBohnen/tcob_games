@@ -107,7 +107,7 @@ public:
     void lock();
     void unlock();
 
-    auto add(socket_face const& face) -> socket*;
+    auto add(socket_face const& face, f32 scale) -> socket*;
     void remove(socket* socket);
     auto count() const -> usize;
 

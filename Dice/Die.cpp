@@ -98,10 +98,10 @@ dice::dice(assets::group& group, gfx::shape_batch& batch)
     _buffer = gen.create_buffer(wv);
 }
 
-auto dice::add(point_f pos, rng& rng, die_face currentFace, std::span<die_face const> faces) -> die*
+auto dice::add(point_f pos, rng& rng, die_face currentFace, std::span<die_face const> faces, f32 scale) -> die*
 {
     auto* shape {&_batch.create_shape<gfx::rect_shape>()};
-    shape->Bounds   = {pos, DICE_SIZE};
+    shape->Bounds   = {pos, {DICE_SIZE * scale, DICE_SIZE * scale}};
     shape->Material = _material;
 
     auto& retValue {_dice.emplace_back(std::make_unique<die>(shape, _buffer, rng, faces, currentFace))};
@@ -150,22 +150,22 @@ void dice::on_drag(point_f mousePos, rect_f const& winBounds)
 {
     if (!_hoverDie || _hoverDie->_locked) { return; }
 
-    point_f const halfSize {DICE_SIZE.Width / 2, DICE_SIZE.Height / 2};
-    point_f       newPos {mousePos};
+    f32 const halfSize {_hoverDie->_shape->Bounds->width() / 2};
+    point_f   newPos {mousePos};
 
-    if (mousePos.X - halfSize.X < winBounds.left()) {
-        newPos.X = winBounds.left() + halfSize.X;
-    } else if (mousePos.X + halfSize.X > winBounds.right()) {
-        newPos.X = winBounds.right() - halfSize.X;
+    if (mousePos.X - halfSize < winBounds.left()) {
+        newPos.X = winBounds.left() + halfSize;
+    } else if (mousePos.X + halfSize > winBounds.right()) {
+        newPos.X = winBounds.right() - halfSize;
     }
 
-    if (mousePos.Y - halfSize.Y < winBounds.top()) {
-        newPos.Y = winBounds.top() + halfSize.Y;
-    } else if (mousePos.Y + halfSize.Y > winBounds.bottom()) {
-        newPos.Y = winBounds.bottom() - halfSize.Y;
+    if (mousePos.Y - halfSize < winBounds.top()) {
+        newPos.Y = winBounds.top() + halfSize;
+    } else if (mousePos.Y + halfSize > winBounds.bottom()) {
+        newPos.Y = winBounds.bottom() - halfSize;
     }
 
-    rect_f const newBounds {newPos - halfSize, DICE_SIZE};
+    rect_f const newBounds {newPos - point_f {halfSize, halfSize}, _hoverDie->_shape->Bounds->Size};
 
     _batch.bring_to_front(*_hoverDie->shape());
     _hoverDie->shape()->Bounds = newBounds;

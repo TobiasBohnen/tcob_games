@@ -82,7 +82,7 @@ class dice {
 public:
     dice(assets::group& group, gfx::shape_batch& batch);
 
-    auto add(point_f pos, rng& rng, die_face currentFace, std::span<die_face const> faces) -> die*;
+    auto add(point_f pos, rng& rng, die_face currentFace, std::span<die_face const> faces, f32 scale) -> die*;
     void move(usize idx, point_f target);
 
     void roll();

@@ -24,7 +24,7 @@ constexpr size_i HUD_SIZE {90, 140};
 constexpr size_i COVER_SIZE {128, 128};
 constexpr size_i SPRITE_TEXTURE_SIZE {256, 256};
 
-constexpr size_f DICE_SIZE {62, 62};
+constexpr f32 DICE_SIZE {16};
 
 static constexpr usize MAX_SOUND_CHANNELS {8};
 
@@ -122,4 +122,9 @@ struct ui_state {
     prop<gfx::image> HUD {gfx::image::CreateEmpty(HUD_SIZE, gfx::image::format::RGBA)};
     rect_f           HUDBounds;
     rect_f           DiceArea;
+
+    auto get_dice_scale() const -> f32
+    {
+        return HUDBounds.width() / HUD_SIZE.Width;
+    }
 };

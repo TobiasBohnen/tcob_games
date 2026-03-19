@@ -241,7 +241,7 @@ void engine::create_socket_wrapper()
     auto env {**_script.Environment};
 
     auto func {make_unique_closure(std::function {
-        [this](table const& socketInit) -> socket* { return _init.Sockets.add(socketInit.get<socket_face>().value_or(socket_face {})); }})};
+        [this](table const& socketInit) -> socket* { return _init.Sockets.add(socketInit.get<socket_face>().value_or(socket_face {}), _init.UIState.get_dice_scale()); }})};
     env["socket"]["new"] = func.get();
     _funcs.push_back(std::move(func));
     static auto const convert_sockets {[](std::unordered_map<std::variant<i32, string>, socket*> const& socketMap) {

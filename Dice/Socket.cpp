@@ -80,10 +80,10 @@ void sockets::lock() { _locked = true; }
 
 void sockets::unlock() { _locked = false; }
 
-auto sockets::add(socket_face const& face) -> socket*
+auto sockets::add(socket_face const& face, f32 scale) -> socket*
 {
     auto& retValue {_sockets.emplace_back(std::make_unique<socket>(face))};
-    retValue->_bounds = {point_f::Zero, DICE_SIZE};
+    retValue->_bounds = {point_f::Zero, {DICE_SIZE * scale, DICE_SIZE * scale}};
     return retValue.get();
 }
 
@@ -264,6 +264,7 @@ auto get_hand(std::span<socket* const> sockets) -> hand
 
     return result;
 }
+
 auto get_sum(std::span<socket* const> sockets) -> u32
 {
     u32 retValue {0};
