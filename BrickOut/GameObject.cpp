@@ -118,7 +118,6 @@ paddle::paddle(field& parent, assets::group& resGrp)
 {
     set_material(resGrp.get<gfx::material>("paddleBlu"));
     auto& body {get_body()};
-    body.UserData = "Paddle";
 }
 
 void paddle::reset()
@@ -194,7 +193,6 @@ ball::ball(field& parent, assets::group& resGrp)
 {
     set_material(resGrp.get<gfx::material>("ballBlue"));
     auto& body {get_body()};
-    body.UserData = "Ball";
 }
 
 void ball::reset()
@@ -287,7 +285,6 @@ brick::brick(field& parent, assets::group& resGrp, brick_def def)
 
     set_material(resGrp.get<gfx::material>(matName));
     auto& body {get_body()};
-    body.UserData = "Brick";
 }
 
 void brick::reset()

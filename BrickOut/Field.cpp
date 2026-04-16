@@ -51,11 +51,9 @@ field::field(assets::group& resGrp, i32 padding, size_i windowSize)
     leftEdgeSprite->Material = _edgeMat;
     auto* rightEdgeSprite(create_sprite());
     rightEdgeSprite->Bounds   = rect_f {static_cast<f32>(windowSize.Height) + (padding / 2.f), 0,
-                                      static_cast<f32>(windowSize.Width - windowSize.Height), static_cast<f32>(windowSize.Height)};
+                                        static_cast<f32>(windowSize.Width - windowSize.Height), static_cast<f32>(windowSize.Height)};
     rightEdgeSprite->Color    = colors::Gray;
     rightEdgeSprite->Material = _edgeMat;
-
-    groundBody.UserData = "Ground";
 }
 
 void field::start(std::span<brick_def const> bricks)
