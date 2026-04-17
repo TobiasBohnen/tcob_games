@@ -142,7 +142,7 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
         auto&        tab {mainLayout.create_widget<tab_container>({0, 20, 30, 60}, "Piles")};
         size_i const boxSize {2, 12};
         {
-            auto& pnl {tab.create_tab<panel>("Stock", {.Text = "Stock", .Icon = {}, .UserData = {}})};
+            auto& pnl {tab.create_tab<panel>("Stock", {.Text = "Stock"})};
             auto& layout {pnl.create_layout<box_layout>(boxSize)};
 
             createLabel(layout, "Deal");
@@ -163,7 +163,7 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
             spnRedeals.Value = 1;
         }
         {
-            auto& pnl {tab.create_tab<panel>("Waste", {.Text = "Waste", .Icon = {}, .UserData = {}})};
+            auto& pnl {tab.create_tab<panel>("Waste", {.Text = "Waste"})};
             auto& layout {pnl.create_layout<box_layout>(boxSize)};
 
             createPileSize(layout, "Waste");
@@ -188,14 +188,14 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
             createPileRule(layout, "FreeCell", {.base = "Any", .build = "None", .move = "Top"});
         }
         {
-            auto& pnl {tab.create_tab<panel>("Foundation", {.Text = "Foundation", .Icon = {}, .UserData = {}})};
+            auto& pnl {tab.create_tab<panel>("Foundation", {.Text = "Foundation"})};
             auto& layout {pnl.create_layout<box_layout>(boxSize)};
 
             createPileLayout(layout, "Foundation");
             createPileRule(layout, "Foundation", {.base = "Ace", .build = "UpInSuit", .move = "Top"});
         }
         {
-            auto& pnl {tab.create_tab<panel>("Tableau", {.Text = "Tableau", .Icon = {}, .UserData = {}})};
+            auto& pnl {tab.create_tab<panel>("Tableau", {.Text = "Tableau"})};
             auto& layout {pnl.create_layout<box_layout>(boxSize)};
 
             createPileSize(layout, "Tableau");
