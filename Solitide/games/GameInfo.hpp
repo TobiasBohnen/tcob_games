@@ -97,7 +97,7 @@ struct game_state {
 };
 
 ////////////////////////////////////////////////////////////
-using rng = random::shuffle<card, random::xoshiro_256_plus_plus>;
+using rng = random::shuffle<random::xoshiro_256_plus_plus>;
 
 inline auto get_time_seed() -> rng::seed_type
 {

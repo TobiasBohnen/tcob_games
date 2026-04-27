@@ -98,7 +98,7 @@ auto dungeon::is_passable(point_i pos) const -> bool
 
 auto dungeon::find_path(point_i start, point_i target) const -> std::vector<point_i>
 {
-    ai::astar_pathfinding path {true, ai::astar_pathfinding::heuristic::Chebyshev};
+    ai::astar_pathfinding path {true};
 
     struct grid_path {
         grid<tile> const* Parent;
@@ -106,7 +106,7 @@ auto dungeon::find_path(point_i start, point_i target) const -> std::vector<poin
         auto get_cost(point_i from, point_i to) const -> u64
         {
             auto const& tile {(*Parent)[to]};
-            if (!tile.is_passable() || !tile.Seen) { return ai::astar_pathfinding::IMPASSABLE_COST; }
+            if (!tile.is_passable() || !tile.Seen) { return ai::pathfinding::IMPASSABLE_COST; }
             bool const diagonal {(from.X != to.X) && (from.Y != to.Y)};
             return diagonal ? 14 : 10;
         }
