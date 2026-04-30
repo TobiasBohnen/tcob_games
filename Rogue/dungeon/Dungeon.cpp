@@ -98,7 +98,7 @@ auto dungeon::is_passable(point_i pos) const -> bool
 
 auto dungeon::find_path(point_i start, point_i target) const -> std::vector<point_i>
 {
-    ai::astar_pathfinding path {true};
+    ai::pathfinding::astar path {true};
 
     struct grid_path {
         grid<tile> const* Parent;
