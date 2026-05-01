@@ -104,6 +104,7 @@ auto get_suit_color(suit s) -> suit_color
     case suit::Spades:
         return suit_color::Black;
     }
+    std::unreachable();
 }
 
 auto get_rank_symbol(rank r) -> std::string
