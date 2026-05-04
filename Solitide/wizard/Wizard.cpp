@@ -30,31 +30,34 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
 
         createLabel(layout, "Deck Count");
         auto& spnDecks {layout.create_widget<spinner>("Decks")};
-        spnDecks.Flex  = {.Width = 30_pct, .Height = 100_pct};
-        spnDecks.Min   = 1;
-        spnDecks.Max   = 4;
-        spnDecks.Step  = 1;
-        spnDecks.Value = 1;
+        spnDecks.Flex      = {.Width = 30_pct, .Height = 100_pct};
+        spnDecks.Min       = 1;
+        spnDecks.Max       = 4;
+        spnDecks.Step      = 1;
+        spnDecks.Value     = 1;
+        spnDecks.Precision = 0;
     }
 
     {
         auto const createPileSize {[&](auto&& layout, std::string const& name) {
             createLabel(layout, "# of Piles");
             auto& spn {layout.template create_widget<spinner>(name + "Size")};
-            spn.Flex  = {30_pct, 100_pct};
-            spn.Min   = 0;
-            spn.Max   = 20;
-            spn.Step  = 1;
-            spn.Value = 0;
+            spn.Flex      = {30_pct, 100_pct};
+            spn.Min       = 0;
+            spn.Max       = 20;
+            spn.Step      = 1;
+            spn.Value     = 0;
+            spn.Precision = 0;
         }};
         auto const createCardCount {[&](auto&& layout, std::string const& name) {
             createLabel(layout, "# of Cards");
             auto& spn {layout.template create_widget<spinner>(name + "CardCount")};
-            spn.Flex  = {30_pct, 100_pct};
-            spn.Min   = 0;
-            spn.Max   = 208;
-            spn.Step  = 1;
-            spn.Value = 0;
+            spn.Flex      = {30_pct, 100_pct};
+            spn.Min       = 0;
+            spn.Max       = 208;
+            spn.Step      = 1;
+            spn.Value     = 0;
+            spn.Precision = 0;
         }};
         auto const createCardFace {[&](auto&& layout, std::string const& name) {
             createLabel(layout, "Orientation");
