@@ -362,7 +362,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
             secPanel.Class = "inner_panel";
             auto& secPanelLayout {secPanel.create_layout<dock_layout>()};
             _sources->Translator.bind(
-                [tabC = &acc, tabP = &secPanel](std::string const& val) { tabC->change_section_label(tabP, val); },
+                [acc = &acc, panel = &secPanel](std::string const& val) { acc->change_section_label(acc->get_section_index(*panel), val); },
                 "family", family);
             createListBox(secPanelLayout, [family](auto const& gameInfo) { return gameInfo.Family.contains(family); });
         }};
