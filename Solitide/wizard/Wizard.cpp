@@ -23,7 +23,7 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
 
     {
         auto& pnl {mainLayout.create_widget<panel>({0, 0, 30, 10}, "GameInfo")};
-        auto& layout {pnl.create_layout<box_layout>(size_i {2, 2})};
+        auto& layout {pnl.create_layout<tile_layout>(size_i {2, 2})};
 
         createLabel(layout, "Name");
         layout.create_widget<text_box>("Name");
@@ -146,7 +146,7 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
         size_i const boxSize {2, 12};
         {
             auto& pnl {tab.create_tab<panel>("Stock", {.Text = "Stock"})};
-            auto& layout {pnl.create_layout<box_layout>(boxSize)};
+            auto& layout {pnl.create_layout<tile_layout>(boxSize)};
 
             createLabel(layout, "Deal");
             auto& cybStockTarget {layout.create_widget<cycle_button>("StockTarget")};
@@ -167,14 +167,14 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
         }
         {
             auto& pnl {tab.create_tab<panel>("Waste", {.Text = "Waste"})};
-            auto& layout {pnl.create_layout<box_layout>(boxSize)};
+            auto& layout {pnl.create_layout<tile_layout>(boxSize)};
 
             createPileSize(layout, "Waste");
             createPileLayout(layout, "Waste");
         }
         {
             auto& pnl {tab.create_tab<panel>("Reserve", {"Reserve", {}, {}})};
-            auto& layout {pnl.create_layout<box_layout>(boxSize)};
+            auto& layout {pnl.create_layout<tile_layout>(boxSize)};
 
             createPileSize(layout, "Reserve");
             createCardCount(layout, "Reserve");
@@ -183,7 +183,7 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
         }
         {
             auto& pnl {tab.create_tab<panel>("FreeCell", {"FreeCell", {}, {}})};
-            auto& layout {pnl.create_layout<box_layout>(boxSize)};
+            auto& layout {pnl.create_layout<tile_layout>(boxSize)};
 
             createPileSize(layout, "FreeCell");
             createCardCount(layout, "FreeCell");
@@ -192,14 +192,14 @@ form_wizard::form_wizard(gfx::window& window, assets::group& resGrp)
         }
         {
             auto& pnl {tab.create_tab<panel>("Foundation", {.Text = "Foundation"})};
-            auto& layout {pnl.create_layout<box_layout>(boxSize)};
+            auto& layout {pnl.create_layout<tile_layout>(boxSize)};
 
             createPileLayout(layout, "Foundation");
             createPileRule(layout, "Foundation", {.base = "Ace", .build = "UpInSuit", .move = "Top"});
         }
         {
             auto& pnl {tab.create_tab<panel>("Tableau", {.Text = "Tableau"})};
-            auto& layout {pnl.create_layout<box_layout>(boxSize)};
+            auto& layout {pnl.create_layout<tile_layout>(boxSize)};
 
             createPileSize(layout, "Tableau");
             createCardCount(layout, "Tableau");

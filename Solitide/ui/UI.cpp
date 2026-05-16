@@ -740,7 +740,7 @@ void form_menu::create_section_cardset(tab_container& parent)
     auto const cardsetChanged {[this, &lbxCardsets, &panelCards](auto const& val) {
         lbxCardsets.select_item(val);
 
-        auto& layout {panelCards.create_layout<box_layout>(size_i {13, 4})};
+        auto& layout {panelCards.create_layout<tile_layout>(size_i {13, 4})};
 
         auto const& cards {_sources->CardSets.at(val)};
         auto const& tex {cards->get_material()->first_pass().Texture};

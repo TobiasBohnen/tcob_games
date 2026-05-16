@@ -27,18 +27,18 @@ elements_form::elements_form(rect_i const& bounds, std::vector<element_def> cons
     auto& acc {mainPanelLayout.create_widget<accordion>(dock_style::Fill, "accordion")};
 
     auto& secSolid {acc.create_section<panel>("Solid")};
-    auto& secSolidLayout {secSolid.create_layout<box_layout>(size_i {4, 5})};
+    auto& secSolidLayout {secSolid.create_layout<tile_layout>(size_i {4, 5})};
     auto& secPowder {acc.create_section<panel>("Powder")};
-    auto& secPowderLayout {secPowder.create_layout<box_layout>(size_i {4, 5})};
+    auto& secPowderLayout {secPowder.create_layout<tile_layout>(size_i {4, 5})};
     auto& secLiquid {acc.create_section<panel>("Liquid")};
-    auto& secLiquidLayout {secLiquid.create_layout<box_layout>(size_i {4, 5})};
+    auto& secLiquidLayout {secLiquid.create_layout<tile_layout>(size_i {4, 5})};
     auto& secGas {acc.create_section<panel>("Gas")};
-    auto& secGasLayout {secGas.create_layout<box_layout>(size_i {4, 5})};
+    auto& secGasLayout {secGas.create_layout<tile_layout>(size_i {4, 5})};
 
     acc.ActiveSectionIndex = 0;
     auto makeButton {
         [&](i32 id, element_type type, std::string const& name) {
-            box_layout* layout {nullptr};
+            tile_layout* layout {nullptr};
             switch (type) {
             case element_type::None:
             case element_type::Solid:
