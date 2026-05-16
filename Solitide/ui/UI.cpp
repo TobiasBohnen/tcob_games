@@ -92,7 +92,7 @@ form_controls::form_controls(gfx::window& window, assets::group& resGrp, std::sh
     // menu
     {
         auto& menuPanel {mainPanelLayout.create_widget<panel>(dock_style::Top, "menu")};
-        menuPanel.Flex = {.Width = 100_pct, .Height = 5_pct};
+        menuPanel.RelativeSize = {.Width = 100_pct, .Height = 5_pct};
         auto& menuPanelLayout {menuPanel.create_layout<grid_layout>(size_i {20, 1})};
 
         auto const create {[&](rect_i const& bounds, std::string const& name, std::string const& tex) -> button& {
@@ -114,7 +114,7 @@ form_controls::form_controls(gfx::window& window, assets::group& resGrp, std::sh
     // status
     {
         auto& statusPanel {mainPanelLayout.create_widget<panel>(dock_style::Bottom, "status")};
-        statusPanel.Flex = {.Width = 100_pct, .Height = 10_pct};
+        statusPanel.RelativeSize = {.Width = 100_pct, .Height = 10_pct};
         auto& statusPanelLayout {statusPanel.create_layout<grid_layout>(size_i {40, 8})};
 
         i32        lbID {0};
@@ -236,8 +236,8 @@ form_menu::form_menu(gfx::window& window, assets::group& resGrp, std::shared_ptr
     _tooltip = make_tooltip(*_sources, this);
 
     auto& tabContainer {create_container<tab_container>(dock_style::Right, "tabMenu")};
-    tabContainer.Class = "tab_container_hidden";
-    tabContainer.Flex  = {.Width = 85_pct, .Height = 100_pct};
+    tabContainer.Class        = "tab_container_hidden";
+    tabContainer.RelativeSize = {.Width = 85_pct, .Height = 100_pct};
 
     create_section_games(tabContainer);
     create_section_settings(tabContainer);
@@ -269,8 +269,8 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
 {
     // filter
     auto& panelFilter {panelLayout.create_widget<panel>(dock_style::Top, "panelFilter")};
-    panelFilter.Class = "inner_panel";
-    panelFilter.Flex  = {.Width = 100_pct, .Height = 5_pct};
+    panelFilter.Class        = "inner_panel";
+    panelFilter.RelativeSize = {.Width = 100_pct, .Height = 5_pct};
 
     auto& panelFilterLayout {panelFilter.create_layout<grid_layout>(size_i {10, 1})};
     auto& txbFilter {panelFilterLayout.create_widget<text_box>({0, 0, 9, 1}, "txbFilter")};
@@ -283,7 +283,7 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
     // games
     std::vector<list_box*> listBoxes;
     auto&                  tabGames {panelLayout.create_widget<tab_container>(dock_style::Left, "tabGames")};
-    tabGames.Flex = {.Width = 50_pct, .Height = 100_pct};
+    tabGames.RelativeSize = {.Width = 50_pct, .Height = 100_pct};
 
     i32        lbID {0};
     auto const createListBox {[&](dock_layout& tabPanelLayout, auto&& pred) -> list_box* {
@@ -426,9 +426,9 @@ void form_menu::create_game_lists(dock_layout& panelLayout)
 void form_menu::create_game_details(dock_layout& panelLayout)
 {
     auto& panelGameDetails {panelLayout.create_widget<panel>(dock_style::Right, "panelGameDetails")};
-    panelGameDetails.Class  = "inner_panel";
-    panelGameDetails.Flex   = {.Width = 50_pct, .Height = 100_pct};
-    panelGameDetails.ZOrder = 1;
+    panelGameDetails.Class        = "inner_panel";
+    panelGameDetails.RelativeSize = {.Width = 50_pct, .Height = 100_pct};
+    panelGameDetails.ZOrder       = 1;
     auto& panelGameStatsLayout {panelGameDetails.create_layout<grid_layout>(size_i {20, 40})};
 
     auto& lblSeed {panelGameStatsLayout.create_widget<label>({1, 33, 4, 2}, "lblSeed")};
@@ -720,8 +720,8 @@ void form_menu::create_section_cardset(tab_container& parent)
 
     // listbox
     auto& lbxCardsets {panelLayout.create_widget<list_box>(dock_style::Top, "lbxCardsets")};
-    lbxCardsets.Class = "list_box_log";
-    lbxCardsets.Flex  = {.Width = 50_pct, .Height = 25_pct};
+    lbxCardsets.Class        = "list_box_log";
+    lbxCardsets.RelativeSize = {.Width = 50_pct, .Height = 25_pct};
     lbxCardsets.Items.mutate([&](auto& items) {
         for (auto const& cardSet : _sources->CardSets) { items.push_back({cardSet.first}); }
     });
@@ -734,8 +734,8 @@ void form_menu::create_section_cardset(tab_container& parent)
 
     // preview
     auto& panelCards {panelLayout.create_widget<panel>(dock_style::Bottom, "panelCardsets")};
-    panelCards.Flex   = {.Width = 100_pct, .Height = 75_pct};
-    panelCards.ZOrder = 1;
+    panelCards.RelativeSize = {.Width = 100_pct, .Height = 75_pct};
+    panelCards.ZOrder       = 1;
 
     auto const cardsetChanged {[this, &lbxCardsets, &panelCards](auto const& val) {
         lbxCardsets.select_item(val);
