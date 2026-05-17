@@ -233,19 +233,19 @@ void create_styles(asset_ptr<gfx::font_family> const& font, style_collection& st
     }
     {
         auto style {styles.create<button>("button", {})};
-        style->Border.Type          = border_type::Solid;
-        style->Border.Size          = 3_px;
-        style->Border.Radius        = 5_px;
-        style->Text.Style           = {.IsItalic = false, .Weight = gfx::font::weight::Normal};
-        style->Text.Font            = font;
-        style->Text.Size            = 50_px;
-        style->Text.Shadow.OffsetX  = 0_px;
-        style->Text.Shadow.OffsetY  = 1_px;
-        style->Text.Alignment       = {.Horizontal = gfx::horizontal_alignment::Centered, .Vertical = gfx::vertical_alignment::Middle};
-        style->Text.Decoration.Size = {3_px};
-        style->Text.AutoSize        = auto_size_mode::Always;
-        style->Margin               = {5_px};
-        style->Padding              = {1_px};
+        style->Border.Type                 = border_type::Solid;
+        style->Border.Size                 = 3_px;
+        style->Border.Radius               = 5_px;
+        style->Text.Style                  = {.IsItalic = false, .Weight = gfx::font::weight::Normal};
+        style->Text.Font                   = font;
+        style->Text.Size                   = 50_px;
+        style->Text.Shadow.OffsetX         = 0_px;
+        style->Text.Shadow.OffsetY         = 1_px;
+        style->Text.Alignment              = {.Horizontal = gfx::horizontal_alignment::Centered, .Vertical = gfx::vertical_alignment::Middle};
+        style->Text.Decoration.StrokeWidth = {3_px};
+        style->Text.AutoSize               = auto_size_mode::Always;
+        style->Margin                      = {5_px};
+        style->Padding                     = {1_px};
 
         auto hoverStyle {styles.create<button>("button", {.Hover = true})};
         *hoverStyle = *style;
