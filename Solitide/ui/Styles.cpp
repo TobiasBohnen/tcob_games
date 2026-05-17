@@ -407,7 +407,7 @@ void styles::parse_element(data::object const& obj, bar_element* bar)
 void styles::parse_element(data::object const& obj, caret_element* caret)
 {
     obj.try_get(caret->Color, "color");
-    obj.try_get(caret->Width, "width");
+    obj.try_get(caret->Size, "size");
     obj.try_get(caret->BlinkRate, "blink_rate");
 }
 
