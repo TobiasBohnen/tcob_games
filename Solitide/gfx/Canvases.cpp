@@ -270,4 +270,4 @@ void background_canvas::mark_dirty()
     _canvasDirty = true;
 }
 
-} // namespace solitaire
+}

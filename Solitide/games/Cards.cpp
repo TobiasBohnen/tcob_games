@@ -149,4 +149,4 @@ auto get_rank_name(rank r) -> std::string
     return "";
 }
 
-} // namespace solitaire
+}

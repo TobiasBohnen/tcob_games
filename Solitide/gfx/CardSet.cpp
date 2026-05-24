@@ -678,4 +678,4 @@ mini_v_cardset::mini_v_cardset(assets::group& resGrp)
     }
 }
 
-} // namespace solitaire
+}

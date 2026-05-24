@@ -424,4 +424,4 @@ void styles::parse_widget_style(object const& obj, widget_style* style)
     if (object el; obj.try_get(el, "drop_shadow")) { parse_element(el, &style->DropShadow); }
 }
 
-} // namespace solitaire
+}

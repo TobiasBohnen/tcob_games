@@ -58,4 +58,4 @@ void translator::bind_grid_header(grid_view* gv, std::string const& id)
          "columns", id);
 }
 
-} // namespace solitaire
+}

@@ -374,4 +374,4 @@ void master_control::draw_detail(renderer& renderer)
     renderer.draw_cell({x, y++}, "1 2 3");
 }
 
-} // namespace Rogue
+}

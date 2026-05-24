@@ -153,4 +153,4 @@ auto card_renderer::get_card_size() const -> size_f
     return _cardSet->get_card_size();
 }
 
-} // namespace solitaire
+}

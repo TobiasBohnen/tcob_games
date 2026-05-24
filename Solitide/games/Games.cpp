@@ -555,4 +555,4 @@ void lua_script_game::CreateAPI(script_host* host, scripting::script& script, st
     global["Sol"]["Layout"] = env["Sol"]["Layout"];
 }
 
-} // namespace solitaire
+}

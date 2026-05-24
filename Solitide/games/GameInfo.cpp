@@ -23,4 +23,4 @@ auto game_rng::seed() const -> rng::seed_type const&
     return _seed;
 }
 
-} // namespace solitaire
+}
