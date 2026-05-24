@@ -209,8 +209,8 @@ void main_scene::on_key_down(input::keyboard::event const& ev)
 void main_scene::on_mouse_motion(input::mouse::motion_event const& ev)
 {
     if (_mouseDown == input::mouse::button::Right) {
-        auto&      camera {window().camera()};
-        auto const zoom {camera.Zoom};
+        auto&       camera {window().camera()};
+        auto const& zoom {*camera.Zoom};
         camera.move_by(-(point_f {ev.RelativeMotion} / point_f {zoom.Width, zoom.Height}));
     }
 }

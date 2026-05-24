@@ -323,7 +323,7 @@ void card_table::drag_cards(input::mouse::motion_event const& ev)
         return;
     }
 
-    auto const    zoom {_camera.Zoom};
+    auto const&   zoom {*_camera.Zoom};
     point_f const off {ev.RelativeMotion.X / zoom.Width, ev.RelativeMotion.Y / zoom.Height};
     for (isize i {_hovered.Index}; i < std::ssize(cards); ++i) {
         cards[i].Bounds.move_by(off);
