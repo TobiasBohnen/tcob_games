@@ -63,7 +63,7 @@ void main_menu::gen_styles()
         style->Border.Radius  = 10_px;
         style->Text.Font      = _font;
         style->Text.Size      = 50_pct;
-        style->Text.Alignment = {.Horizontal = horizontal_alignment::Centered, .Vertical = vertical_alignment::Top};
+        style->Text.Alignment = {.Horizontal = horizontal_alignment::Center, .Vertical = vertical_alignment::Top};
         style->Text.AutoSize  = auto_size_mode::OnlyShrink;
         style->Margin         = {2_px};
         style->Padding        = {2_px};
@@ -92,7 +92,7 @@ void main_menu::gen_styles()
         style->Border.Size    = 3_px;
         style->Text.Font      = _font;
         style->Text.Size      = 40_pct;
-        style->Text.Alignment = {.Horizontal = horizontal_alignment::Centered, .Vertical = vertical_alignment::Middle};
+        style->Text.Alignment = {.Horizontal = horizontal_alignment::Center, .Vertical = vertical_alignment::Middle};
         style->Text.AutoSize  = auto_size_mode::OnlyShrink;
         style->Margin         = {2_px};
         style->Padding        = {5_px, 5_px, 0_px, 0_px};

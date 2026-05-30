@@ -749,7 +749,7 @@ void form_menu::create_section_cardset(tab_container& parent)
             for (u8 r {static_cast<u8>(rank::Ace)}; r <= static_cast<u8>(rank::King); ++r) {
                 auto& imgBox {layout.create_widget<image_box>("")};
                 imgBox.Image     = {tex, card {static_cast<suit>(s), static_cast<rank>(r), 0, false}.get_texture_name()};
-                imgBox.Alignment = {.Horizontal = gfx::horizontal_alignment::Centered, .Vertical = gfx::vertical_alignment::Middle};
+                imgBox.Alignment = {.Horizontal = gfx::horizontal_alignment::Center, .Vertical = gfx::vertical_alignment::Middle};
             }
         }
     }};

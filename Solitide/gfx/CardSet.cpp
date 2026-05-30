@@ -242,7 +242,7 @@ void gen_cardset::create(assets::group& resGrp)
     fonts const fonts {.NormalFont = fontFamily->get_font({false, gfx::font::weight::Normal}, static_cast<u32>(texSize.Height / 7.5f)).ptr(),
                        .LargeFont  = fontFamily->get_font({false, gfx::font::weight::Bold}, static_cast<u32>(texSize.Height / 2)).ptr()};
 
-    canvas.set_text_halign(gfx::horizontal_alignment::Centered);
+    canvas.set_text_halign(gfx::horizontal_alignment::Center);
     canvas.set_text_valign(gfx::vertical_alignment::Middle);
 
     auto tempTex {canvas.get_texture()};
@@ -535,7 +535,7 @@ void mini_cardset::create(assets::group& resGrp, size_f texSize)
                                           static_cast<u32>((isHori ? texSize.Height : texSize.Width) * 0.9f))
                          .ptr()};
 
-    canvas.set_text_halign(gfx::horizontal_alignment::Centered);
+    canvas.set_text_halign(gfx::horizontal_alignment::Center);
     canvas.set_text_valign(gfx::vertical_alignment::Middle);
 
     auto tempTex {canvas.get_texture()};

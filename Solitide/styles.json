@@ -29,7 +29,7 @@
         "padding": "1px",
         "text": {
             "alignment": {
-                "horizontal": "Centered",
+                "horizontal": "Center",
                 "vertical": "Middle"
             },
             "auto_size": "OnlyShrink",
@@ -192,7 +192,7 @@
         "padding": "2px",
         "text": {
             "alignment": {
-                "horizontal": "Centered",
+                "horizontal": "Center",
                 "vertical": "Middle"
             },
             "auto_size": "Always",
@@ -227,7 +227,7 @@
         "padding": "5px",
         "text": {
             "alignment": {
-                "horizontal": "Centered",
+                "horizontal": "Center",
                 "vertical": "Middle"
             },
             "auto_size": "OnlyShrink",
@@ -328,7 +328,7 @@
         "padding": "5px",
         "text": {
             "alignment": {
-                "horizontal": "Centered",
+                "horizontal": "Center",
                 "vertical": "Middle"
             },
             "auto_size": "Always",
@@ -360,7 +360,7 @@
         "padding": "2px",
         "text": {
             "alignment": {
-                "horizontal": "Centered",
+                "horizontal": "Center",
                 "vertical": "Middle"
             },
             "auto_size": "Always",
@@ -409,7 +409,7 @@
         "padding": "1px",
         "text": {
             "alignment": {
-                "horizontal": "Centered",
+                "horizontal": "Center",
                 "vertical": "Middle"
             },
             "auto_size": "Always",
@@ -432,7 +432,7 @@
         "margin": "3px",
         "text": {
             "alignment": {
-                "horizontal": "Centered",
+                "horizontal": "Center",
                 "vertical": "Middle"
             },
             "auto_size": "OnlyShrink",
@@ -480,7 +480,7 @@
         "padding": "2px",
         "text": {
             "alignment": {
-                "horizontal": "Centered",
+                "horizontal": "Center",
                 "vertical": "Middle"
             },
             "auto_size": "Always",
@@ -542,7 +542,7 @@
         },
         "text": {
             "alignment": {
-                "horizontal": "Centered",
+                "horizontal": "Center",
                 "vertical": "Middle"
             },
             "auto_size": "Always",

@@ -89,7 +89,7 @@ void elements_form::gen_styles()
         style->Text.Style     = {false, font::weight::Normal};
         style->Text.Font      = _font;
         style->Text.Size      = 50_pct;
-        style->Text.Alignment = {horizontal_alignment::Centered, vertical_alignment::Top};
+        style->Text.Alignment = {horizontal_alignment::Center, vertical_alignment::Top};
         style->Text.AutoSize  = auto_size_mode::OnlyShrink;
         style->Margin         = {5_px};
         style->Padding        = {8_px};
@@ -119,7 +119,7 @@ void elements_form::gen_styles()
         style->Text.Style     = {false, font::weight::Normal};
         style->Text.Font      = _font;
         style->Text.Size      = 40_pct;
-        style->Text.Alignment = {horizontal_alignment::Centered, vertical_alignment::Middle};
+        style->Text.Alignment = {horizontal_alignment::Center, vertical_alignment::Middle};
         style->Text.AutoSize  = auto_size_mode::OnlyShrink;
         style->Margin         = {2_px};
         style->Padding        = {2_px};
@@ -143,7 +143,7 @@ void elements_form::gen_styles()
         style->Item.Text.Style     = {false, font::weight::Normal};
         style->Item.Text.Font      = _font;
         style->Item.Text.Size      = 50_pct;
-        style->Item.Text.Alignment = {horizontal_alignment::Centered, vertical_alignment::Middle};
+        style->Item.Text.Alignment = {horizontal_alignment::Center, vertical_alignment::Middle};
         style->Item.Border.Size    = 3_px;
 
         style->Item.Background        = colors::LightGray;
@@ -209,7 +209,7 @@ void elements_form::gen_styles()
         style->Text.Style     = {false, font::weight::Normal};
         style->Text.Font      = _font;
         style->Text.Size      = 50_pct;
-        style->Text.Alignment = {horizontal_alignment::Centered, vertical_alignment::Middle};
+        style->Text.Alignment = {horizontal_alignment::Center, vertical_alignment::Middle};
         style->Text.AutoSize  = auto_size_mode::OnlyShrink;
         style->ItemHeight     = 100_pct;
         style->ItemClass      = "list_items";

@@ -241,7 +241,7 @@ void create_styles(asset_ptr<gfx::font_family> const& font, style_collection& st
         style->Text.Size                   = 50_px;
         style->Text.Shadow.OffsetX         = 0_px;
         style->Text.Shadow.OffsetY         = 1_px;
-        style->Text.Alignment              = {.Horizontal = gfx::horizontal_alignment::Centered, .Vertical = gfx::vertical_alignment::Middle};
+        style->Text.Alignment              = {.Horizontal = gfx::horizontal_alignment::Center, .Vertical = gfx::vertical_alignment::Middle};
         style->Text.Decoration.StrokeWidth = {3_px};
         style->Text.AutoSize               = auto_size_mode::Always;
         style->Margin                      = {5_px};
@@ -285,7 +285,7 @@ void create_styles(asset_ptr<gfx::font_family> const& font, style_collection& st
         style->Text.Style     = {.IsItalic = false, .Weight = gfx::font::weight::Normal};
         style->Text.Font      = font;
         style->Text.Size      = 16_px;
-        style->Text.Alignment = {.Horizontal = gfx::horizontal_alignment::Centered, .Vertical = gfx::vertical_alignment::Middle};
+        style->Text.Alignment = {.Horizontal = gfx::horizontal_alignment::Center, .Vertical = gfx::vertical_alignment::Middle};
         style->Text.AutoSize  = auto_size_mode::OnlyShrink;
         normal.apply(style);
         style->Text.Color = colors::White;

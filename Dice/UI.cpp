@@ -34,7 +34,7 @@ game_form::game_form(rect_f const& bounds, assets::group const& grp, ui_state& s
     auto& hud {layout1.create_widget<image_box>({0, 10, 100, 90}, "hud")};
     hud.Image     = {.Texture = _hudTexture};
     hud.Fit       = fit_mode::PixelPerfect;
-    hud.Alignment = {.Horizontal = horizontal_alignment::Centered, .Vertical = vertical_alignment::Middle};
+    hud.Alignment = {.Horizontal = horizontal_alignment::Center, .Vertical = vertical_alignment::Middle};
     _state.HUD.Changed.connect([&]() { _updateHud = true; });
 
     auto& panel2 {create_container<ui::panel>(rect_i {0, 85, 100, 14}, "panel2")};
@@ -109,7 +109,7 @@ void game_form::gen_styles(assets::group const& grp)
         style->Text.Font         = grp.get<font_family>("Font");
         style->Text.Size         = 50_pct;
         style->Text.AutoSize     = auto_size_mode::OnlyShrink;
-        style->Text.Alignment    = {.Horizontal = horizontal_alignment::Centered, .Vertical = vertical_alignment::Middle};
+        style->Text.Alignment    = {.Horizontal = horizontal_alignment::Center, .Vertical = vertical_alignment::Middle};
         style->Margin            = {1_pct};
         style->Padding           = {2_pct};
         style->Background        = colors::FireBrick;
@@ -142,7 +142,7 @@ void game_form::gen_styles(assets::group const& grp)
         style->Text.Font         = grp.get<font_family>("Font");
         style->Text.Size         = 50_pct;
         style->Text.AutoSize     = auto_size_mode::Always;
-        style->Text.Alignment    = {.Horizontal = horizontal_alignment::Centered, .Vertical = vertical_alignment::Middle};
+        style->Text.Alignment    = {.Horizontal = horizontal_alignment::Center, .Vertical = vertical_alignment::Middle};
         style->Margin            = {5_pct};
         style->Padding           = {2_pct};
         style->Background        = colors::FireBrick;
@@ -224,7 +224,7 @@ game_select_form::game_select_form(rect_f const& bounds, assets::group const& gr
 
             auto& imgBox {layout.create_widget<image_box>({x, y, 3, 1}, "")};
             imgBox.Fit       = fit_mode::Contain;
-            imgBox.Alignment = {.Horizontal = horizontal_alignment::Centered, .Vertical = vertical_alignment::Middle};
+            imgBox.Alignment = {.Horizontal = horizontal_alignment::Center, .Vertical = vertical_alignment::Middle};
             auto& imgBoxLbl {layout.create_widget<label>({x - 1, y, 1, 1}, "")};
 
             u32 const gameNumber {static_cast<u32>(i + 1)};
@@ -258,7 +258,7 @@ void game_select_form::gen_styles(assets::group const& grp)
         style->Text.Font      = grp.get<font_family>("Font");
         style->Text.Size      = 50_pct;
         style->Text.AutoSize  = auto_size_mode::Always;
-        style->Text.Alignment = {.Horizontal = horizontal_alignment::Centered, .Vertical = vertical_alignment::Middle};
+        style->Text.Alignment = {.Horizontal = horizontal_alignment::Center, .Vertical = vertical_alignment::Middle};
         style->Padding        = {2_pct};
         style->Background     = colors::DarkGray;
         style->Text.Color     = colors::White;
@@ -275,7 +275,7 @@ void game_select_form::gen_styles(assets::group const& grp)
     {
         auto style {styles.create<tooltip>("tooltip", {})};
         style->Border.Size = 1_pct;
-        style->Border.Type = border_type::Centered;
+        style->Border.Type = border_type::Center;
 
         style->Background        = colors::Black;
         style->Border.Background = colors::White;
