@@ -275,7 +275,7 @@ void game_select_form::gen_styles(assets::group const& grp)
     {
         auto style {styles.create<tooltip>("tooltip", {})};
         style->Border.Size = 1_pct;
-        style->Border.Type = border_type::Center;
+        style->Border.Type = border_type::Centered;
 
         style->Background        = colors::Black;
         style->Border.Background = colors::White;
