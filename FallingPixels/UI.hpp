@@ -15,7 +15,7 @@ class elements_form : public ui::form<ui::dock_layout> {
 public:
     elements_form(rect_i const& bounds, std::vector<element_def> const& elements);
 
-    signal<i32> SelectedElement;
+    signal<i32, elements_form> SelectedElement;
 
 private:
     void gen_styles();

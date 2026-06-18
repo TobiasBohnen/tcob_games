@@ -99,18 +99,18 @@ struct collision_event {
 };
 
 struct event_bus {
-    signal<> TurnStart;
-    signal<> TurnFinish;
+    signal<void, event_bus> TurnStart;
+    signal<void, event_bus> TurnFinish;
 
-    signal<> GameQuit;
-    signal<> GameRestart;
-    signal<> GameOver;
+    signal<void, event_bus> GameQuit;
+    signal<void, event_bus> GameRestart;
+    signal<void, event_bus> GameOver;
 
-    signal<collision_event const> SpriteCollision;
+    signal<collision_event const, event_bus> SpriteCollision;
 
-    signal<socket* const> DieInsert;
-    signal<socket* const> DieRemove;
-    signal<die* const>    DieMotion;
+    signal<socket* const, event_bus> DieInsert;
+    signal<socket* const, event_bus> DieRemove;
+    signal<die* const, event_bus>    DieMotion;
 };
 
 struct ui_state {

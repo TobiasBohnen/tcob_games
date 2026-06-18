@@ -15,8 +15,8 @@ class actor {
 public:
     virtual ~actor() = default;
 
-    signal<>                  FinishedAction;
-    signal<log_message const> Log;
+    signal<void, actor>              FinishedAction;
+    signal<log_message const, actor> Log;
 
     virtual auto position() const -> point_i = 0;
     virtual auto symbol() const -> string    = 0;

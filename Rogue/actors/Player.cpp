@@ -62,7 +62,7 @@ auto player::try_move(point_i pos) -> bool
 {
     if (parent().current_dungeon().is_passable(pos)) {
         _position = pos;
-        FinishedAction();
+        emit_signal(FinishedAction);
         return true;
     }
 
@@ -72,7 +72,7 @@ auto player::try_move(point_i pos) -> bool
 void player::search()
 {
     do_search();
-    FinishedAction();
+    emit_signal(FinishedAction);
 }
 
 void player::do_search()
@@ -81,7 +81,7 @@ void player::do_search()
     for (auto& tile : tiles) {
         if (!tile.InSight) { continue; }
         for (auto& obj : tile.Objects) {
-            Log(obj->on_search(*this));
+            emit_signal(Log, obj->on_search(*this));
         }
     }
 }
@@ -111,10 +111,10 @@ auto player::try_pickup(std::shared_ptr<item> const& item) -> bool
     }
 
     if (!message.Message.empty()) {
-        Log(message);
+        emit_signal(Log, message);
     }
 
-    FinishedAction();
+    emit_signal(FinishedAction);
     return true;
 }
 

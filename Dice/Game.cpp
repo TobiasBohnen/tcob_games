@@ -128,9 +128,9 @@ auto dice_game::can_draw() const -> bool
 void dice_game::on_key_down(input::keyboard::event const& ev)
 {
     switch (ev.ScanCode) {
-    case input::scan_code::SPACE: _init.Events.TurnStart(); break;
-    case input::scan_code::R:     _init.Events.GameRestart(); break;
-    case input::scan_code::Q:     _init.Events.GameQuit(); break;
+    case input::scan_code::SPACE: emit_signal(_init.Events.TurnStart); break;
+    case input::scan_code::R:     emit_signal(_init.Events.GameRestart); break;
+    case input::scan_code::Q:     emit_signal(_init.Events.GameQuit); break;
     case input::scan_code::D:     {
         auto const [w, h] {_init.RealWindowSize};
 
@@ -171,7 +171,7 @@ void dice_game::on_mouse_button_up(input::mouse::button_event const& ev)
     case input::mouse::button::Left:
         if (auto* socket {_sockets.try_insert_die(_hoverDie)}) {
             _diceBatch.send_to_back(*_hoverDie->shape());
-            _init.Events.DieInsert(socket);
+            emit_signal(_init.Events.DieInsert, socket);
         }
         break;
     case input::mouse::button::Right: break;
@@ -207,12 +207,12 @@ void dice_game::on_mouse_motion(input::mouse::motion_event const& ev)
         _sockets.on_drag(_hoverDie);
 
         if (auto* socket {_sockets.try_remove_die(_hoverDie)}) {
-            _init.Events.DieRemove(socket);
+            emit_signal(_init.Events.DieRemove, socket);
         }
 
         _dice.on_drag(mp, _uiState.DiceArea);
 
-        _init.Events.DieMotion(_hoverDie);
+        emit_signal(_init.Events.DieMotion, _hoverDie);
     }
 
     static_cast<input::receiver*>(_form0.get())->on_mouse_motion(ev);

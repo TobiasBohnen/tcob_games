@@ -249,6 +249,6 @@ void sprite_manager::collide()
     }
 
     for (auto const& event : events) {
-        _events.SpriteCollision(event);
+        emit_signal(_events.SpriteCollision, event);
     }
 }

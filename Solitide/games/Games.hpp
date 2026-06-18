@@ -26,8 +26,8 @@ public:
     std::vector<tableau>    Tableau;
     std::vector<foundation> Foundation;
 
-    prop<game_status> Status;
-    signal<>          Layout;
+    prop<game_status>       Status;
+    signal<void, base_game> Layout;
 
     auto state() const -> game_state const&;
     auto info() const -> game_info const&;

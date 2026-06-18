@@ -13,9 +13,9 @@ class main_menu : public form<dock_layout> {
 public:
     main_menu(assets::group const& resGrp, rect_i const& bounds);
 
-    signal<>             Start;
-    signal<>             Quit;
-    signal<string const> Score;
+    signal<void, main_menu>         Start;
+    signal<void, main_menu>         Quit;
+    signal<string const, main_menu> Score;
 
 protected:
 private:

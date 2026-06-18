@@ -15,7 +15,7 @@ class player : public actor {
 public:
     player(master_control& parent, profile profile);
 
-    signal<> FinishedPath;
+    signal<void, player> FinishedPath;
 
     void start_turn();
     void update(milliseconds deltaTime);

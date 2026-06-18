@@ -21,7 +21,7 @@ class wizard_scene : public scene {
 public:
     wizard_scene(game& game);
 
-    signal<ev_args const> GameGenerated;
+    signal<ev_args const, wizard_scene> GameGenerated;
 
     void update_theme(color_themes const& currentTheme);
 

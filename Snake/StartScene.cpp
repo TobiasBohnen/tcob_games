@@ -27,7 +27,7 @@ void start_scene::on_start()
     auto  windowSize {*win.Size};
 
     _playField = std::make_shared<field>(resGrp.get<gfx::material>("mat-tiles"), windowSize.Height);
-    _playField->Score.Changed.connect([&](auto val) { _mainForm->Score(std::to_string(val)); });
+    _playField->Score.Changed.connect([&](auto val) { emit_signal(_mainForm->Score, std::to_string(val)); });
 
     rect_i    menuBounds;
     i32 const menuWidth {(windowSize.Width - windowSize.Height) / 2};

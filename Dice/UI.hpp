@@ -31,7 +31,7 @@ private:
 
 class game_select_form : public ui::form<ui::manual_layout> {
 public:
-    signal<u32 const> StartGame;
+    signal<u32 const, game_select_form> StartGame;
 
     game_select_form(rect_f const& bounds, assets::group const& grp, std::map<u32, game_def> const& games);
 

@@ -291,7 +291,7 @@ void main_scene::start_wizard()
 
     _wizard->GameGenerated.connect([&](auto const& val) {
         if (_scriptHost->run_file(val.Path)) {
-            _sources->Events.GameAdded();
+            emit_signal(_sources->Events.GameAdded);
             _db.insert_games(_sources->Games);
             start_game(val.Name, start_reason::Resume, std::nullopt);
         }

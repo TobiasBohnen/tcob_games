@@ -126,12 +126,12 @@ auto engine::update(milliseconds deltaTime) -> bool
         call(_callbacks.OnTurnFinish);
         _turnTime = 0;
         _init.Sockets.reset();
-        _init.Events.TurnFinish();
+        emit_signal(_init.Events.TurnFinish);
         return false;
     }
     case game_status::GameOver: {
         _updateHUD = true;
-        _init.Events.GameOver();
+        emit_signal(_init.Events.GameOver);
         return false;
     }
     }

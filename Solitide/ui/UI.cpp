@@ -102,13 +102,13 @@ form_controls::form_controls(gfx::window& window, assets::group& resGrp, std::sh
             return retValue;
         }};
 
-        create({0, 0, 1, 1}, "btnMenu", "burger").Click.connect([&] { _sources->Events.ShowMenu(); });
-        create({2, 0, 1, 1}, "btnWizard", "wand").Click.connect([&] { _sources->Events.ShowWizard(); });
-        create({12, 0, 1, 1}, "btnNewGame", "newgame").Click.connect([&] { _sources->Events.RestartGame(); });
-        create({14, 0, 1, 1}, "btnHint", "hint").Click.connect([&] { _sources->Events.ShowHint(); });
-        create({15, 0, 1, 1}, "btnCollect", "collect").Click.connect([&] { _sources->Events.Collect(); });
-        create({16, 0, 1, 1}, "btnUndo", "undo").Click.connect([&] { _sources->Events.Undo(); });
-        create({19, 0, 1, 1}, "btnQuit", "exit").Click.connect([&] { _sources->Events.Quit(); });
+        create({0, 0, 1, 1}, "btnMenu", "burger").Click.connect([&] { emit_signal(_sources->Events.ShowMenu); });
+        create({2, 0, 1, 1}, "btnWizard", "wand").Click.connect([&] { emit_signal(_sources->Events.ShowWizard); });
+        create({12, 0, 1, 1}, "btnNewGame", "newgame").Click.connect([&] { emit_signal(_sources->Events.RestartGame); });
+        create({14, 0, 1, 1}, "btnHint", "hint").Click.connect([&] { emit_signal(_sources->Events.ShowHint); });
+        create({15, 0, 1, 1}, "btnCollect", "collect").Click.connect([&] { emit_signal(_sources->Events.Collect); });
+        create({16, 0, 1, 1}, "btnUndo", "undo").Click.connect([&] { emit_signal(_sources->Events.Undo); });
+        create({19, 0, 1, 1}, "btnQuit", "exit").Click.connect([&] { emit_signal(_sources->Events.Quit); });
     }
 
     // status
@@ -659,9 +659,10 @@ void form_menu::create_settings_video(tab_container& tabContainer)
     btnApplyVideoSettings.Tooltip = _tooltip;
     btnApplyVideoSettings.Click.connect([this] {
         auto const res {get_size(dynamic_cast<drop_down_list*>(find_widget_by_name("ddlResolution"))->selected_item().Text)};
-        _sources->Events.VideoSettingsChanged({.FullScreen = dynamic_cast<checkbox*>(find_widget_by_name("chkFullScreen"))->Checked,
-                                               .VSync      = dynamic_cast<checkbox*>(find_widget_by_name("chkVSync"))->Checked,
-                                               .Resolution = res});
+        emit_signal(_sources->Events.VideoSettingsChanged,
+                    video_settings {.FullScreen = dynamic_cast<checkbox*>(find_widget_by_name("chkFullScreen"))->Checked,
+                                    .VSync      = dynamic_cast<checkbox*>(find_widget_by_name("chkVSync"))->Checked,
+                                    .Resolution = res});
     });
 }
 
@@ -800,7 +801,7 @@ void form_menu::create_menubar(tab_container& parent)
 
 void form_menu::start_game()
 {
-    _sources->Events.StartGame(helper::to_number<u64>(*_txbSeed->Text));
+    emit_signal(_sources->Events.StartGame, helper::to_number<u64>(*_txbSeed->Text));
     _txbSeed->Text = "";
     hide();
 }

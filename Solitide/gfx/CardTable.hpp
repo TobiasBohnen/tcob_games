@@ -28,8 +28,8 @@ class card_table : public gfx::entity {
 public:
     card_table(gfx::camera& camera, assets::group& resGrp, settings* settings);
 
-    signal<pile* const> HoverChange;
-    prop<rect_f>        Bounds;
+    signal<pile* const, card_table> HoverChange;
+    prop<rect_f>                    Bounds;
 
     void start(std::shared_ptr<base_game> const& game, std::optional<u64> seed);
     void resume(std::shared_ptr<base_game> const& game, data::object& savegame);

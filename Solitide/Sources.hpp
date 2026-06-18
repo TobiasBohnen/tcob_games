@@ -20,20 +20,20 @@ struct video_settings {
 
 struct ui_events {
     // wizard
-    signal<> GameAdded;
+    signal<void, ui_events> GameAdded;
 
     // controls
-    signal<> ShowMenu;
-    signal<> ShowWizard;
-    signal<> RestartGame;
-    signal<> ShowHint;
-    signal<> Collect;
-    signal<> Undo;
-    signal<> Quit;
+    signal<void, ui_events> ShowMenu;
+    signal<void, ui_events> ShowWizard;
+    signal<void, ui_events> RestartGame;
+    signal<void, ui_events> ShowHint;
+    signal<void, ui_events> Collect;
+    signal<void, ui_events> Undo;
+    signal<void, ui_events> Quit;
 
     // menu
-    signal<std::optional<u64> const> StartGame;
-    signal<video_settings const>     VideoSettingsChanged;
+    signal<std::optional<u64> const, ui_events> StartGame;
+    signal<video_settings const, ui_events>     VideoSettingsChanged;
 };
 
 class settings {
