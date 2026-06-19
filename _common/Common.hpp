@@ -5,6 +5,8 @@
 
 #pragma once
 
+// IWYU pragma: always_keep
+
 #include <tcob/tcob.hpp>
 
 using namespace tcob;
