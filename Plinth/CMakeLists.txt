@@ -2,7 +2,9 @@ add_executable(Plinth)
 
 target_sources(Plinth PRIVATE
     main.cpp
+    Cache.cpp
     Plinth.cpp
+    Raycaster.cpp
 )
 
 set_target_properties(Plinth PROPERTIES

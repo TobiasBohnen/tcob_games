@@ -4,79 +4,36 @@
 // https://opensource.org/licenses/MIT
 
 #pragma once
+
 #include "../_common/Common.hpp"
 #include "Textures.hpp"
 
 ////////////////////////////////////////////////////////////
 
-template <size_i S, size_i T>
+struct texture_entry {
+    usize  Offset {};
+    size_i Size {};
+};
+
 class cache final {
 public:
-    auto screen() -> u32* { return _screen.data(); }
-    auto screen_size() const -> size_i { return S; }
+    explicit cache(size_i screenSize);
 
-    auto texture(i32 idx) -> u8* { return _textures[idx].data(); }
-    auto tex_size() const -> size_i { return T; }
+    auto screen() -> u32*;
 
-    auto tex_bpp() const -> i32 { return 3; };
+    auto texture(i32 idx) -> u8*;
+    auto texture_size(i32 idx) const -> size_i;
 
-    void load()
-    {
-        auto const loadTex {[&](i32 tex, string const& path) {
-            auto img {gfx::image::Load(path).value()};
+    void load();
 
-            gfx::filters::nearest_neighbor_resizer resize;
-            resize.NewSize = tex_size();
-            gfx::filters::color_changer magentafy;
-            magentafy.From = colors::Transparent;
-            magentafy.To   = colors::Magenta;
-            img            = gfx::filters::alpha_remover {}(resize(magentafy(img)));
-
-            for (isize idx {0}; idx < resize.NewSize.Width * resize.NewSize.Height * tex_bpp(); ++idx) {
-                texture(tex)[idx] = img.ptr()[idx];
-            }
-        }};
-        loadTex(0, "res/wall0.png");
-        loadTex(1, "res/wall1.png");
-        loadTex(2, "res/wall2.png");
-        loadTex(3, "res/wall3.png");
-        loadTex(4, "res/wall4.png");
-        loadTex(5, "res/wall5.png");
-        loadTex(6, "res/wall6.png");
-        loadTex(7, "res/wall7.png");
-
-        loadTex(floorTexture, "res/floor.png");
-        loadTex(ceilingTexture, "res/ceiling.png");
-
-        loadTex(sprite1Texture, "res/adventurer_idle.png");
-    }
-
-    static void copy(u32* dst, u8 const* src, i32 srcIdx)
-    {
-        set(dst, get(src, srcIdx), true);
-    }
+    static void copy(u32* dst, u8 const* src, i32 srcIdx);
 
 private:
-    static void set(u32* raw, color c, bool darken)
-    {
-        if (darken) {
-            c.R /= 2;
-            c.G /= 2;
-            c.B /= 2;
-        }
-        *raw = std::byteswap(c.value());
-    }
+    static void set(u32* raw, color c, bool darken);
+    static auto get(u8 const* img, usize idx) -> color;
 
-    static auto get(u8 const* img, usize idx) -> color
-    {
-        u8 const r {img[idx + 0]};
-        u8 const g {img[idx + 1]};
-        u8 const b {img[idx + 2]};
-        return {r, g, b, 255};
-    }
+    std::vector<u32> _screen;
 
-    std::array<u32, S.Width * S.Height> _screen;
-
-    using tex = std::array<u8, T.Width * T.Height * 3>;
-    std::array<tex, textureCount> _textures {};
+    std::vector<u8>                         _textures;  // contiguous storage for all texture pixel data
+    std::array<texture_entry, textureCount> _directory; // per-texture {offset, size} into _textures
 };

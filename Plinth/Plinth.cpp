@@ -7,8 +7,9 @@
 
 #include "Raycaster.hpp"
 
-constexpr i32 mapWidth {24};
-constexpr i32 mapHeight {24};
+constexpr size_i screenSize {800, 600};
+constexpr i32    mapWidth {24};
+constexpr i32    mapHeight {24};
 
 using world_map_t = static_grid<u8, mapWidth, mapHeight>;
 
@@ -40,18 +41,18 @@ world_map_t worldMap {
 
 Plinth::Plinth(game& game)
     : scene {game}
-    , _cache {std::make_unique<gfx_cache>()}
+    , _cache {std::make_unique<cache>(screenSize)}
 {
     _material->first_pass().Texture = _texture;
 
-    _texture->resize(_cache->screen_size(), 1, gfx::texture::format::RGBA8);
+    _texture->resize(screenSize, 1, gfx::texture::format::RGBA8);
     _texture->Filtering = gfx::texture::filtering::Linear;
 
     _screen    = _texture->info().Size;
-    _raycaster = std::make_unique<raycaster<gfx_cache, world_map_t>>(*_cache, _screen, 66.0);
+    _raycaster = std::make_unique<raycaster>(*_cache, _sprites, _screen, 66.0);
     _raycaster->set_world_map(worldMap);
     _raycaster->set_player_position({5, 5});
-    _raycaster->sprites().push_back({.Pos = {7, 4}, .Size = {1, 1}, .Texture = sprite1Texture});
+    _sprites.push_back({.Pos = {7, 4}, .Size = {1, 1}, .Texture = sprite1Texture});
 }
 
 Plinth::~Plinth() = default;

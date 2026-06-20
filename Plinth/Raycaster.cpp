@@ -3,7 +3,6 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-#pragma once
 #include "Raycaster.hpp"
 
 #include <algorithm>
@@ -11,14 +10,11 @@
 
 #include "Textures.hpp"
 
-template <typename Cache, typename WorldMap>
-inline raycaster<Cache, WorldMap>::raycaster(Cache& cache, size_i screenSize, f64 horizontalFovDegrees)
+raycaster::raycaster(cache& cache, std::vector<sprite>& sprites, size_i screenSize, f64 horizontalFovDegrees)
     : _cache {cache}
+    , _sprites {sprites}
     , _screenSize {screenSize}
-    , _texSize {_cache.tex_size()}
-    , _texBpp(_cache.tex_bpp())
 {
-
     _zBuffer.resize(_screenSize.Width);
 
     _rowDist.resize(_screenSize.Height);
@@ -37,17 +33,17 @@ inline raycaster<Cache, WorldMap>::raycaster(Cache& cache, size_i screenSize, f6
     _projPlaneDist = (_screenSize.Width / 2.0) / std::tan(fov / 2.0);
 }
 
-template <typename Cache, typename WorldMap>
-inline void raycaster<Cache, WorldMap>::set_player_position(point_d pos) { _pos = pos; }
+void raycaster::set_player_position(point_d pos)
+{
+    _pos = pos;
+}
 
-template <typename Cache, typename WorldMap>
-inline void raycaster<Cache, WorldMap>::set_world_map(WorldMap const& worldMap) { _worldMap = &worldMap; }
+void raycaster::set_world_map(world_map_t const& worldMap)
+{
+    _worldMap = &worldMap;
+}
 
-template <typename Cache, typename WorldMap>
-inline auto raycaster<Cache, WorldMap>::sprites() -> std::vector<sprite>& { return _sprites; }
-
-template <typename Cache, typename WorldMap>
-auto raycaster<Cache, WorldMap>::move(f64 forwardAmount, f64 strafeAmount, f64 rotateAmount) -> bool
+auto raycaster::move(f64 forwardAmount, f64 strafeAmount, f64 rotateAmount) -> bool
 {
     bool retValue {false};
 
@@ -104,8 +100,7 @@ auto raycaster<Cache, WorldMap>::move(f64 forwardAmount, f64 strafeAmount, f64 r
     return retValue;
 }
 
-template <typename Cache, typename WorldMap>
-void raycaster<Cache, WorldMap>::cast(i32 x, u32* screenBuf)
+void raycaster::cast(i32 x, u32* screenBuf)
 {
     // WALL CASTING
     // calculate ray position and direction
@@ -155,9 +150,7 @@ void raycaster<Cache, WorldMap>::cast(i32 x, u32* screenBuf)
             side = true;
         }
         // Check if ray has hit a wall
-        if ((*_worldMap)[map] > 0) {
-            break;
-        }
+        if ((*_worldMap)[map] > 0) { break; }
     }
 
     // Calculate distance projected on camera direction (Euclidean distance would give fisheye effect!)
@@ -175,25 +168,27 @@ void raycaster<Cache, WorldMap>::cast(i32 x, u32* screenBuf)
     // calculate value of wallX
     f64 wallX {!side ? _pos.Y + (perpWallDist * rayDir.Y) : _pos.X + (perpWallDist * rayDir.X)}; // where exactly the wall was hit
     wallX -= std::floor(wallX);
-    {                                                                                            // texturing calculations
-        i32 const   texNum {(*_worldMap)[map] - 1};                                              // 1 subtracted from it so that texture 0 can be used!
-        auto const* tex {_cache.texture(texNum)};
+    {
+        i32 const    texNum {(*_worldMap)[map] - 1};
+        auto const*  tex {_cache.texture(texNum)};
+        size_i const texSize {wallSize};
 
         // x coordinate on the texture
-        i32 texX {static_cast<i32>(wallX * static_cast<f64>(_texSize.Width))};
+        i32 texX {static_cast<i32>(wallX * static_cast<f64>(texSize.Width))};
         if ((!side && rayDir.X > 0) || (side && rayDir.Y < 0)) {
-            texX = _texSize.Width - texX - 1;
+            texX = texSize.Width - texX - 1;
         }
 
         // How much to increase the texture coordinate per screen pixel
-        f64 const texStep {1.0 * _texSize.Height / lineHeight};
+        f64 const texStep {1.0 * texSize.Height / lineHeight};
         // Starting texture coordinate
         f64       texPos {(drawStart - (_screenSize.Height / 2) + (lineHeight / 2)) * texStep};
         for (i32 y {drawStart}; y < drawEnd; y++) {
-            // Cast the texture coordinate to integer, and mask with (cache::TexSize.Height - 1) in case of overflow
-            i32 const texY {static_cast<i32>(texPos) & (_texSize.Height - 1)};
+            // Cast the texture coordinate to integer, and mask with (texSize.Height - 1) in case of
+            // overflow — requires texSize.Height to be a power of two
+            i32 const texY {static_cast<i32>(texPos) & (texSize.Height - 1)};
             texPos += texStep;
-            Cache::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), tex, (texX + (texY * _texSize.Width)) * _texBpp);
+            cache::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), tex, (texX + (texY * texSize.Width)) * textureBPP);
         }
     }
 
@@ -216,25 +211,32 @@ void raycaster<Cache, WorldMap>::cast(i32 x, u32* screenBuf)
     }
 
     // draw the floor from drawEnd to the bottom of the screen
-    f64 const   invPerpWallDist {1.0 / perpWallDist};
-    auto const* floorTex {_cache.texture(floorTexture)};
-    auto const* ceilTex {_cache.texture(ceilingTexture)};
+    f64 const    invPerpWallDist {1.0 / perpWallDist};
+    auto const*  floorTex {_cache.texture(floorTexture)};
+    size_i const floorSize {wallSize};
+    auto const*  ceilTex {_cache.texture(ceilingTexture)};
     for (i32 y {drawEnd}; y < _screenSize.Height; y++) {
         f64 const weight {std::min(_rowDist[y] * invPerpWallDist, 1.0)};
 
         point_d const currentFloor {(weight * floorWall.X) + ((1.0 - weight) * _pos.X), (weight * floorWall.Y) + ((1.0 - weight) * _pos.Y)};
 
-        i32 const texelX {static_cast<i32>(currentFloor.X * _texSize.Width) & (_texSize.Width - 1)};
-        i32 const texelY {static_cast<i32>(currentFloor.Y * _texSize.Height) & (_texSize.Height - 1)};
-        i32 const texelOffset {(texelX + (texelY * _texSize.Width)) * _texBpp};
+        i32 const texelX {static_cast<i32>(currentFloor.X * floorSize.Width) & (floorSize.Width - 1)};
+        i32 const texelY {static_cast<i32>(currentFloor.Y * floorSize.Height) & (floorSize.Height - 1)};
+        i32 const texelOffset {(texelX + (texelY * floorSize.Width)) * textureBPP};
 
-        Cache::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), floorTex, texelOffset);
-        Cache::copy(screenBuf + x + (y * _screenSize.Width), ceilTex, texelOffset);
+        cache::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), floorTex, texelOffset);
+        cache::copy(screenBuf + x + (y * _screenSize.Width), ceilTex, texelOffset);
     }
 }
 
-template <typename Cache, typename WorldMap>
-void raycaster<Cache, WorldMap>::draw_sprites(u32* screenBuf)
+static auto is_magenta(u8 const* tex, i32 offset) -> bool
+{
+    return tex[offset + 0] == colors::Magenta.R
+        && tex[offset + 1] == colors::Magenta.G
+        && tex[offset + 2] == colors::Magenta.B;
+}
+
+void raycaster::draw_sprites(u32* screenBuf)
 {
     // sort sprites from far to near
     std::vector<isize> order(_sprites.size());
@@ -260,10 +262,7 @@ void raycaster<Cache, WorldMap>::draw_sprites(u32* screenBuf)
         //   [ planeY   dirY ]       =  1/(planeX*dirY-dirX*planeY) *   [ -planeY  planeX ]
         f64 const transformX {invDet * ((_dir.Y * relPos.X) - (_dir.X * relPos.Y))};
         f64 const transformY {invDet * ((-_plane.Y * relPos.X) + (_plane.X * relPos.Y))}; // depth inside screen
-
-        if (transformY <= 0) {
-            continue;                                                                     // behind camera
-        }
+        if (transformY <= 0) { continue; }                                                // behind camera
 
         i32 const spriteScreenX {static_cast<i32>((_screenSize.Width / 2.0) * (1.0 + (transformX / transformY)))};
 
@@ -277,44 +276,42 @@ void raycaster<Cache, WorldMap>::draw_sprites(u32* screenBuf)
         i32 const drawStartX {std::max((-spriteWidth / 2) + spriteScreenX, 0)};
         i32 const drawEndX {std::min((spriteWidth / 2) + spriteScreenX, _screenSize.Width - 1)};
 
-        auto const* tex {_cache.texture(spr.Texture)};
+        auto const*  tex {_cache.texture(spr.Texture)};
+        size_i const texSize {_cache.texture_size(spr.Texture)};
+
+        i32 const spriteLeft {spriteScreenX - (spriteWidth / 2)};
+        i32 const spriteTop {(_screenSize.Height / 2) - (spriteHeight / 2)};
+
+        f64 const texStepY {1.0 * texSize.Height / spriteHeight};
+        f64 const texPosYStart {(drawStartY - spriteTop) * texStepY};
 
         for (i32 stripe {drawStartX}; stripe < drawEndX; ++stripe) {
-            i32 const texX {static_cast<i32>(((stripe - ((-spriteWidth / 2) + spriteScreenX)) * _texSize.Width) / spriteWidth)};
+            i32 const texX {((stripe - spriteLeft) * texSize.Width) / spriteWidth};
 
-            // only draw if in front of camera and in front of the wall z-buffer for this column
-            if (stripe < 0 || stripe >= _screenSize.Width || transformY >= _zBuffer[stripe]) {
-                continue;
-            }
+            if (transformY >= _zBuffer[stripe]) { continue; }
 
-            f64 const texStep {1.0 * _texSize.Height / spriteHeight};
-            f64       texPos {(drawStartY - ((-spriteHeight / 2) + (_screenSize.Height / 2))) * texStep};
-
+            f64 texPos {texPosYStart};
             for (i32 y {drawStartY}; y < drawEndY; ++y) {
-                i32 const texY {static_cast<i32>(texPos) & (_texSize.Height - 1)};
-                texPos += texStep;
+                i32 texY {static_cast<i32>(texPos) % texSize.Height};
+                if (texY < 0) { texY += texSize.Height; }
+                texPos += texStepY;
 
-                i32 const offset {(texX + (texY * _texSize.Width)) * _texBpp};
+                i32 const offset {(texX + (texY * texSize.Width)) * textureBPP};
 
-                // skip magenta texels
-                if (tex[offset + 0] == colors::Magenta.R
-                    && tex[offset + 1] == colors::Magenta.G
-                    && tex[offset + 2] == colors::Magenta.B) {
-                    continue;
-                }
-                Cache::copy(screenBuf + stripe + ((_screenSize.Height - y - 1) * _screenSize.Width), tex, offset);
+                if (is_magenta(tex, offset)) { continue; }
+
+                cache::copy(screenBuf + stripe + ((_screenSize.Height - y - 1) * _screenSize.Width), tex, offset);
             }
         }
     }
 }
 
-template <typename Cache, typename WorldMap>
-inline auto raycaster<Cache, WorldMap>::is_position_clear(point_d pos) const -> bool
+auto raycaster::is_position_clear(point_d pos) const -> bool
 {
     i32 const tileX {static_cast<i32>(pos.X)};
     i32 const tileY {static_cast<i32>(pos.Y)};
 
-    if (tileX < 0 || tileX >= WorldMap::Size.Width || tileY < 0 || tileY >= WorldMap::Size.Height) {
+    if (tileX < 0 || tileX >= world_map_t::Size.Width || tileY < 0 || tileY >= world_map_t::Size.Height) {
         return false;
     }
 

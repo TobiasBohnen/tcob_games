@@ -10,3 +10,6 @@ constexpr i32 floorTexture {8};
 constexpr i32 ceilingTexture {9};
 constexpr i32 sprite1Texture {10};
 constexpr i32 textureCount {11};
+constexpr i32 textureBPP {3};
+
+constexpr size_i wallSize {256, 256};
