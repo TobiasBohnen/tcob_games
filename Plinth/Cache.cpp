@@ -71,18 +71,16 @@ void cache::load()
     }
 }
 
-void cache::copy(u32* dst, u8 const* src, i32 srcIdx, bool darken)
+void cache::copy(u32* dst, u8 const* src, i32 srcIdx, f64 darken)
 {
     set(dst, get(src, srcIdx), darken);
 }
 
-void cache::set(u32* raw, color c, bool darken)
+void cache::set(u32* raw, color c, f64 darken)
 {
-    if (darken) {
-        c.R /= 2;
-        c.G /= 2;
-        c.B /= 2;
-    }
+    c.R  = static_cast<u8>(c.R * darken);
+    c.G  = static_cast<u8>(c.G * darken);
+    c.B  = static_cast<u8>(c.B * darken);
     *raw = std::byteswap(c.value());
 }
 

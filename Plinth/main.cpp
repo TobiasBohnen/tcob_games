@@ -35,7 +35,7 @@ auto main(int /* argc */, char* argv[]) -> int
 
     auto& resMgr {game.library()};
     auto& resGrp {resMgr.create_or_get_group("res")};
-    resGrp.mount("./plinth.zip");
+    resGrp.mount("./plinth-assets.zip");
     resMgr.load_all_groups();
 
     game.push_scene<Plinth>();

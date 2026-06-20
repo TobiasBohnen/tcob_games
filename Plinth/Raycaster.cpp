@@ -10,6 +10,9 @@
 
 #include "Textures.hpp"
 
+constexpr f64 fogFloor {0.2};
+constexpr f64 fogDistance {8.0};
+
 raycaster::raycaster(cache& cache, std::vector<sprite>& sprites, size_i screenSize, f64 horizontalFovDegrees)
     : _cache {cache}
     , _sprites {sprites}
@@ -183,12 +186,17 @@ void raycaster::cast(i32 x, u32* screenBuf)
         f64 const texStep {1.0 * texSize.Height / lineHeight};
         // Starting texture coordinate
         f64       texPos {(drawStart - (_screenSize.Height / 2) + (lineHeight / 2)) * texStep};
+
+        f64 const wallFaceFactor {side ? 0.5 : 1.0};
+        f64 const wallFogFactor {std::max(1.0 - (perpWallDist / fogDistance), fogFloor)};
+        f64 const wallDarkenFactor {wallFaceFactor * wallFogFactor};
+
         for (i32 y {drawStart}; y < drawEnd; y++) {
             // Cast the texture coordinate to integer, and mask with (texSize.Height - 1) in case of
             // overflow — requires texSize.Height to be a power of two
             i32 const texY {static_cast<i32>(texPos) & (texSize.Height - 1)};
             texPos += texStep;
-            cache::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), tex, (texX + (texY * texSize.Width)) * textureBPP, side);
+            cache::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), tex, (texX + (texY * texSize.Width)) * textureBPP, wallDarkenFactor);
         }
     }
 
@@ -215,17 +223,22 @@ void raycaster::cast(i32 x, u32* screenBuf)
     auto const*  floorTex {_cache.texture(floorTexture)};
     size_i const floorSize {wallSize};
     auto const*  ceilTex {_cache.texture(ceilingTexture)};
+
     for (i32 y {drawEnd}; y < _screenSize.Height; y++) {
         f64 const weight {std::min(_rowDist[y] * invPerpWallDist, 1.0)};
 
         point_d const currentFloor {(weight * floorWall.X) + ((1.0 - weight) * _pos.X), (weight * floorWall.Y) + ((1.0 - weight) * _pos.Y)};
 
+        point_d const delta {currentFloor.X - _pos.X, currentFloor.Y - _pos.Y};
+        f64 const     floorDist {std::sqrt((delta.X * delta.X) + (delta.Y * delta.Y))};
+        f64 const     fogFactor {std::max(1.0 - (floorDist / fogDistance), fogFloor)};
+
         i32 const texelX {static_cast<i32>(currentFloor.X * floorSize.Width) & (floorSize.Width - 1)};
         i32 const texelY {static_cast<i32>(currentFloor.Y * floorSize.Height) & (floorSize.Height - 1)};
         i32 const texelOffset {(texelX + (texelY * floorSize.Width)) * textureBPP};
 
-        cache::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), floorTex, texelOffset, false);
-        cache::copy(screenBuf + x + (y * _screenSize.Width), ceilTex, texelOffset, false);
+        cache::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), floorTex, texelOffset, fogFactor);
+        cache::copy(screenBuf + x + (y * _screenSize.Width), ceilTex, texelOffset, fogFactor);
     }
 }
 
@@ -285,6 +298,8 @@ void raycaster::draw_sprites(u32* screenBuf)
         f64 const texStepY {1.0 * texSize.Height / spriteHeight};
         f64 const texPosYStart {(drawStartY - spriteTop) * texStepY};
 
+        f64 const spriteFogFactor {std::max(1.0 - (transformY / fogDistance), fogFloor)};
+
         for (i32 stripe {drawStartX}; stripe < drawEndX; ++stripe) {
             i32 const texX {((stripe - spriteLeft) * texSize.Width) / spriteWidth};
 
@@ -300,7 +315,7 @@ void raycaster::draw_sprites(u32* screenBuf)
 
                 if (is_magenta(tex, offset)) { continue; }
 
-                cache::copy(screenBuf + stripe + ((_screenSize.Height - y - 1) * _screenSize.Width), tex, offset, false);
+                cache::copy(screenBuf + stripe + ((_screenSize.Height - y - 1) * _screenSize.Width), tex, offset, spriteFogFactor);
             }
         }
     }

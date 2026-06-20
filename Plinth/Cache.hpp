@@ -26,10 +26,10 @@ public:
 
     void load();
 
-    static void copy(u32* dst, u8 const* src, i32 srcIdx, bool darken);
+    static void copy(u32* dst, u8 const* src, i32 srcIdx, f64 darken);
 
 private:
-    static void set(u32* raw, color c, bool darken);
+    static void set(u32* raw, color c, f64 darken);
     static auto get(u8 const* img, usize idx) -> color;
 
     std::vector<u32> _screen;
