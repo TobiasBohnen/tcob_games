@@ -5,13 +5,9 @@
 
 #pragma once
 #include "../_common/Common.hpp"
+#include "Textures.hpp"
 
 ////////////////////////////////////////////////////////////
-
-constexpr i32 floorTexture {8};
-constexpr i32 ceilingTexture {9};
-constexpr i32 sprite1Texture {10};
-constexpr i32 textureCount {11};
 
 class cache_base {
 public:
@@ -29,11 +25,14 @@ public:
         auto const loadTex {[&](i32 tex, string const& path) {
             auto img {gfx::image::Load(path).value()};
 
-            gfx::bilinear_resizer filter;
-            filter.NewSize = tex_size();
-            img            = gfx::alpha_remover {}(filter(img));
+            gfx::filters::nearest_neighbor_resizer resize;
+            resize.NewSize = tex_size();
+            gfx::filters::color_changer magentafy;
+            magentafy.From = colors::Transparent;
+            magentafy.To   = colors::Magenta;
+            img            = gfx::filters::alpha_remover {}(resize(magentafy(img)));
 
-            for (isize idx {0}; idx < filter.NewSize.Width * filter.NewSize.Height * tex_bpp(); ++idx) {
+            for (isize idx {0}; idx < resize.NewSize.Width * resize.NewSize.Height * tex_bpp(); ++idx) {
                 texture(tex)[idx] = img.ptr()[idx];
             }
         }};
