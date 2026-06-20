@@ -26,7 +26,7 @@ public:
 
     void load();
 
-    static void copy(u32* dst, u8 const* src, i32 srcIdx);
+    static void copy(u32* dst, u8 const* src, i32 srcIdx, bool darken);
 
 private:
     static void set(u32* raw, color c, bool darken);

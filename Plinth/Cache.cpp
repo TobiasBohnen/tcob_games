@@ -71,9 +71,9 @@ void cache::load()
     }
 }
 
-void cache::copy(u32* dst, u8 const* src, i32 srcIdx)
+void cache::copy(u32* dst, u8 const* src, i32 srcIdx, bool darken)
 {
-    set(dst, get(src, srcIdx), true);
+    set(dst, get(src, srcIdx), darken);
 }
 
 void cache::set(u32* raw, color c, bool darken)

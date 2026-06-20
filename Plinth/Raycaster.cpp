@@ -188,7 +188,7 @@ void raycaster::cast(i32 x, u32* screenBuf)
             // overflow — requires texSize.Height to be a power of two
             i32 const texY {static_cast<i32>(texPos) & (texSize.Height - 1)};
             texPos += texStep;
-            cache::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), tex, (texX + (texY * texSize.Width)) * textureBPP);
+            cache::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), tex, (texX + (texY * texSize.Width)) * textureBPP, side);
         }
     }
 
@@ -224,8 +224,8 @@ void raycaster::cast(i32 x, u32* screenBuf)
         i32 const texelY {static_cast<i32>(currentFloor.Y * floorSize.Height) & (floorSize.Height - 1)};
         i32 const texelOffset {(texelX + (texelY * floorSize.Width)) * textureBPP};
 
-        cache::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), floorTex, texelOffset);
-        cache::copy(screenBuf + x + (y * _screenSize.Width), ceilTex, texelOffset);
+        cache::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), floorTex, texelOffset, false);
+        cache::copy(screenBuf + x + (y * _screenSize.Width), ceilTex, texelOffset, false);
     }
 }
 
@@ -300,7 +300,7 @@ void raycaster::draw_sprites(u32* screenBuf)
 
                 if (is_magenta(tex, offset)) { continue; }
 
-                cache::copy(screenBuf + stripe + ((_screenSize.Height - y - 1) * _screenSize.Width), tex, offset);
+                cache::copy(screenBuf + stripe + ((_screenSize.Height - y - 1) * _screenSize.Width), tex, offset, false);
             }
         }
     }
