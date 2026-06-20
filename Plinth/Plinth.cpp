@@ -48,8 +48,9 @@ Plinth::Plinth(game& game)
     _texture->Filtering = gfx::texture::filtering::Linear;
 
     _screen    = _texture->info().Size;
-    _raycaster = std::make_unique<raycaster<gfx_cache, world_map_t>>(*_cache, worldMap, _screen, 66.0);
-    _raycaster->set_position({5, 5});
+    _raycaster = std::make_unique<raycaster<gfx_cache, world_map_t>>(*_cache, _screen, 66.0);
+    _raycaster->set_world_map(worldMap);
+    _raycaster->set_player_position({5, 5});
     _raycaster->sprites().push_back({.Pos = {7, 4}, .Size = {1, 1}, .Texture = sprite1Texture});
 }
 

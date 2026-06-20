@@ -9,16 +9,16 @@
 
 ////////////////////////////////////////////////////////////
 
-class cache_base {
+template <size_i S, size_i T>
+class cache final {
 public:
-    virtual ~cache_base() = default;
+    auto screen() -> u32* { return _screen.data(); }
+    auto screen_size() const -> size_i { return S; }
 
-    auto virtual screen() -> u32*              = 0;
-    auto virtual screen_size() const -> size_i = 0;
+    auto texture(i32 idx) -> u8* { return _textures[idx].data(); }
+    auto tex_size() const -> size_i { return T; }
 
-    auto virtual texture(i32 idx) -> u8*    = 0;
-    auto virtual tex_size() const -> size_i = 0;
-    auto virtual tex_bpp() const -> i32 { return 3; };
+    auto tex_bpp() const -> i32 { return 3; };
 
     void load()
     {
@@ -74,18 +74,7 @@ private:
         u8 const b {img[idx + 2]};
         return {r, g, b, 255};
     }
-};
 
-template <size_i S, size_i T>
-class cache final : public cache_base {
-public:
-    auto screen() -> u32* override { return _screen.data(); }
-    auto screen_size() const -> size_i override { return S; }
-
-    auto texture(i32 idx) -> u8* override { return _textures[idx].data(); }
-    auto tex_size() const -> size_i override { return T; }
-
-private:
     std::array<u32, S.Width * S.Height> _screen;
 
     using tex = std::array<u8, T.Width * T.Height * 3>;

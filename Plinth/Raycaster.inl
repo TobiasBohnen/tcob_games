@@ -12,6 +12,41 @@
 #include "Textures.hpp"
 
 template <typename Cache, typename WorldMap>
+inline raycaster<Cache, WorldMap>::raycaster(Cache& cache, size_i screenSize, f64 horizontalFovDegrees)
+    : _cache {cache}
+    , _screenSize {screenSize}
+    , _texSize {_cache.tex_size()}
+    , _texBpp(_cache.tex_bpp())
+{
+
+    _zBuffer.resize(_screenSize.Width);
+
+    _rowDist.resize(_screenSize.Height);
+    for (i32 y {0}; y < _screenSize.Height; y++) {
+        if (2.0 * y == _screenSize.Height) {
+            _rowDist[y] = std::numeric_limits<f64>::infinity();
+            continue;
+        }
+        _rowDist[y] = _screenSize.Height / ((2.0 * y) - _screenSize.Height);
+    }
+
+    f64 const fov {horizontalFovDegrees * TAU / 360.0};
+    _dir   = {-1, 0};
+    _plane = {0, std::tan(fov / 2.0)};
+
+    _projPlaneDist = (_screenSize.Width / 2.0) / std::tan(fov / 2.0);
+}
+
+template <typename Cache, typename WorldMap>
+inline void raycaster<Cache, WorldMap>::set_player_position(point_d pos) { _pos = pos; }
+
+template <typename Cache, typename WorldMap>
+inline void raycaster<Cache, WorldMap>::set_world_map(WorldMap const& worldMap) { _worldMap = &worldMap; }
+
+template <typename Cache, typename WorldMap>
+inline auto raycaster<Cache, WorldMap>::sprites() -> std::vector<sprite>& { return _sprites; }
+
+template <typename Cache, typename WorldMap>
 auto raycaster<Cache, WorldMap>::move(f64 forwardAmount, f64 strafeAmount, f64 rotateAmount) -> bool
 {
     bool retValue {false};
@@ -120,7 +155,7 @@ void raycaster<Cache, WorldMap>::cast(i32 x, u32* screenBuf)
             side = true;
         }
         // Check if ray has hit a wall
-        if (_worldMap[map] > 0) {
+        if ((*_worldMap)[map] > 0) {
             break;
         }
     }
@@ -141,7 +176,7 @@ void raycaster<Cache, WorldMap>::cast(i32 x, u32* screenBuf)
     f64 wallX {!side ? _pos.Y + (perpWallDist * rayDir.Y) : _pos.X + (perpWallDist * rayDir.X)}; // where exactly the wall was hit
     wallX -= std::floor(wallX);
     {                                                                                            // texturing calculations
-        i32 const   texNum {_worldMap[map] - 1};                                                 // 1 subtracted from it so that texture 0 can be used!
+        i32 const   texNum {(*_worldMap)[map] - 1};                                              // 1 subtracted from it so that texture 0 can be used!
         auto const* tex {_cache.texture(texNum)};
 
         // x coordinate on the texture
@@ -271,4 +306,17 @@ void raycaster<Cache, WorldMap>::draw_sprites(u32* screenBuf)
             }
         }
     }
+}
+
+template <typename Cache, typename WorldMap>
+inline auto raycaster<Cache, WorldMap>::is_position_clear(point_d pos) const -> bool
+{
+    i32 const tileX {static_cast<i32>(pos.X)};
+    i32 const tileY {static_cast<i32>(pos.Y)};
+
+    if (tileX < 0 || tileX >= WorldMap::Size.Width || tileY < 0 || tileY >= WorldMap::Size.Height) {
+        return false;
+    }
+
+    return (*_worldMap)[point_i {tileX, tileY}] == 0;
 }
