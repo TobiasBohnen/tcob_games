@@ -11,9 +11,11 @@
 #include "Cache.hpp"
 
 struct sprite {
-    point_d Pos;
-    size_d  Size; // world-unit width/height; {1,1} = one full tile
-    i32     Texture {};
+    point_d  Pos;
+    size_d   Size {size_d::One}; // world-unit width/height; {1,1} = one full tile
+    i32      Texture {-1};
+    degree_f Facing {0};
+    bool     Solid {true};
 };
 
 using world_map_t = static_grid<u8, /*mapWidth*/ 24, /*mapHeight*/ 24>;
@@ -22,6 +24,7 @@ class raycaster {
 public:
     raycaster(cache& cache, std::vector<sprite>& sprites, size_i screenSize, f64 horizontalFovDegrees);
 
+    auto get_player_position() const -> point_d;
     void set_player_position(point_d pos);
     void set_world_map(world_map_t const& worldMap);
 
@@ -30,7 +33,7 @@ public:
     void draw_sprites(u32* screenBuf);
 
 private:
-    auto is_position_clear(point_d pos) const -> bool;
+    auto is_position_clear(point_d pos, f64 radius) const -> bool;
 
     cache&               _cache;
     std::vector<sprite>& _sprites;
@@ -45,5 +48,5 @@ private:
     std::vector<f64> _zBuffer;
     std::vector<f64> _rowDist;
 
-    static constexpr f64 CollisionMargin {0.4};
+    static constexpr f64 PlayerRadius {0.25};
 };

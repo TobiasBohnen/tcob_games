@@ -6,10 +6,12 @@
 #pragma once
 #include "../_common/Common.hpp"
 
-constexpr i32 floorTexture {8};
-constexpr i32 ceilingTexture {9};
-constexpr i32 sprite1Texture {10};
-constexpr i32 textureCount {11};
-constexpr i32 textureBPP {3};
+inline constexpr i32 floorTexture {8};
+inline constexpr i32 ceilingTexture {9};
+inline constexpr i32 sprite1Texture {10};
 
-constexpr size_i wallSize {64, 64};
+inline constexpr i32 textureCount {12};
+inline constexpr i32 textureBPP {3};
+inline constexpr i32 maxFacings {8};
+
+inline constexpr size_i wallSize {64, 64};

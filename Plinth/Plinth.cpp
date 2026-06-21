@@ -6,6 +6,7 @@
 #include "Plinth.hpp"
 
 #include "Raycaster.hpp"
+#include "Textures.hpp"
 
 constexpr size_i screenSize {800, 600};
 constexpr i32    mapWidth {24};
@@ -151,6 +152,12 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
     case input::scan_code::BACKSPACE:
         parent().pop_current_scene();
         break;
+    case input::scan_code::Q: {
+        auto& spr {_sprites[0]};
+        spr.Facing = spr.Pos.angle_to(_raycaster->get_player_position());
+        spr.Pos    = spr.Pos.moved_along(degree_d {spr.Facing.Value}, 0.1);
+        _update    = true;
+    } break;
     default:
 
         break;

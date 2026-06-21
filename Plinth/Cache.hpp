@@ -21,8 +21,8 @@ public:
 
     auto screen() -> u32*;
 
-    auto texture(i32 idx) -> u8*;
-    auto texture_size(i32 idx) const -> size_i;
+    auto texture(i32 idx, i32 facing) -> u8*;
+    auto texture_size(i32 idx, i32 facing) const -> size_i;
 
     void load();
 
@@ -32,8 +32,7 @@ private:
     static void set(u32* raw, color c, f64 darken);
     static auto get(u8 const* img, usize idx) -> color;
 
-    std::vector<u32> _screen;
-
-    std::vector<u8>                         _textures;  // contiguous storage for all texture pixel data
-    std::array<texture_entry, textureCount> _directory; // per-texture {offset, size} into _textures
+    std::vector<u32>                                                _screen;
+    std::vector<u8>                                                 _textures;
+    std::array<std::array<texture_entry, maxFacings>, textureCount> _directory {};
 };
