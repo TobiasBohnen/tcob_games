@@ -80,9 +80,9 @@ auto raycaster::is_position_clear(point_d pos, f64 radius) const -> bool
     return std::ranges::all_of(_sprites, [&](sprite const& spr) {
         if (!spr.Solid) { return true; }
 
-        f64 const combinedRadius {radius + (spr.Size.Width / 2.0)};
-        f64 const d {spr.Pos.distance_to(pos)};
-        return d * d >= combinedRadius * combinedRadius;
+        f64 const     combinedRadius {radius + (spr.Size.Width / 2.0)};
+        point_d const d {spr.Pos - pos};
+        return d.dot(d) >= combinedRadius * combinedRadius;
     });
 }
 
