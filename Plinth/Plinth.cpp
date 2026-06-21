@@ -8,7 +8,7 @@
 #include "Raycaster.hpp"
 #include "Textures.hpp"
 
-constexpr size_i screenSize {800, 600};
+constexpr size_i screenSize {640, 480};
 constexpr i32    mapWidth {24};
 constexpr i32    mapHeight {24};
 
@@ -52,8 +52,12 @@ Plinth::Plinth(game& game)
     _screen    = _texture->info().Size;
     _raycaster = std::make_unique<raycaster>(*_cache, _sprites, _screen, 66.0);
     _raycaster->set_world_map(worldMap);
-    _raycaster->set_player_position({5, 5});
-    _sprites.push_back({.Pos = {7, 4}, .Size = {1, 1}, .Texture = sprite1Texture});
+    _raycaster->set_player_position({6, 5});
+
+    rng rng;
+    _sprites.push_back({.Pos = {4, 5}, .Size = {1, 1}, .Texture = sprite1Texture});
+    _sprites.push_back({.Pos = {4, 6}, .Size = {1, 1}, .Texture = sprite1Texture});
+    _sprites.push_back({.Pos = {4, 7}, .Size = {1, 1}, .Texture = sprite1Texture});
 }
 
 Plinth::~Plinth() = default;
@@ -65,6 +69,12 @@ void Plinth::on_start()
 
 void Plinth::on_draw_to(gfx::render_target& target, transform const& xform)
 {
+    if (_update) {
+        draw();
+        _update = false;
+        _texture->update_data(_cache->screen(), 0);
+    }
+
     // aspect ratio correction
     size_i const size {*target.Size};
 
@@ -103,25 +113,18 @@ void Plinth::on_fixed_update(milliseconds deltaTime)
 void Plinth::on_update(milliseconds deltaTime)
 {
     _update = move(deltaTime) || _update;
-
-    if (_update) {
-        draw();
-        _update = false;
-        _texture->update_data(_cache->screen(), 0);
-    }
 }
 
 void Plinth::draw()
 {
+    _raycaster->prepare_draw();
+
     locate_service<task_manager>().run_parallel(
         [&](par_task const& ctx) {
-            for (isize x {ctx.Start}; x < ctx.End; x++) {
-                _raycaster->cast(static_cast<i32>(x), _cache->screen());
-            }
+            _raycaster->draw_walls(_cache->screen(), static_cast<i32>(ctx.Start), static_cast<i32>(ctx.End));
+            _raycaster->draw_sprites(_cache->screen(), static_cast<i32>(ctx.Start), static_cast<i32>(ctx.End));
         },
         _screen.Width);
-
-    _raycaster->draw_sprites(_cache->screen());
 }
 
 auto Plinth::move(milliseconds deltaTime) -> bool
@@ -157,6 +160,9 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
         spr.Facing = spr.Pos.angle_to(_raycaster->get_player_position());
         spr.Pos    = spr.Pos.moved_along(degree_d {spr.Facing.Value}, 0.1);
         _update    = true;
+    } break;
+    case input::scan_code::R: {
+        locate_service<gfx::render_system>().statistics().reset();
     } break;
     default:
 

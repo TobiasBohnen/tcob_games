@@ -29,8 +29,10 @@ public:
     void set_world_map(world_map_t const& worldMap);
 
     auto move(f64 forwardAmount, f64 strafeAmount, f64 rotateAmount) -> bool;
-    void cast(i32 x, u32* screenBuf);
-    void draw_sprites(u32* screenBuf);
+
+    void prepare_draw();
+    void draw_walls(u32* screenBuf, i32 columnStart, i32 columnEnd);
+    void draw_sprites(u32* screenBuf, i32 columnStart, i32 columnEnd);
 
 private:
     auto is_position_clear(point_d pos, f64 radius) const -> bool;
@@ -47,6 +49,7 @@ private:
 
     std::vector<f64> _zBuffer;
     std::vector<f64> _rowDist;
+    std::vector<f64> _spriteDepthBuffer;
 
     static constexpr f64 PlayerRadius {0.25};
 };
