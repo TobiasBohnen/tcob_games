@@ -42,16 +42,18 @@ void cache::load()
     };
 
     std::vector<pending_load> const loads {
-        {.Tex = 0, .Path = "res/wall0.png", .Size = wallSize},
-        {.Tex = 1, .Path = "res/wall1.png", .Size = wallSize},
-        {.Tex = 2, .Path = "res/wall2.png", .Size = wallSize},
-        {.Tex = 3, .Path = "res/wall3.png", .Size = wallSize},
-        {.Tex = 4, .Path = "res/wall4.png", .Size = wallSize},
-        {.Tex = 5, .Path = "res/wall5.png", .Size = wallSize},
-        {.Tex = 6, .Path = "res/wall6.png", .Size = wallSize},
-        {.Tex = 7, .Path = "res/wall7.png", .Size = wallSize},
+        {.Tex = 1, .Path = "res/wall0.png", .Size = wallSize},
+        {.Tex = 2, .Path = "res/wall1.png", .Size = wallSize},
+        {.Tex = 3, .Path = "res/wall2.png", .Size = wallSize},
+        {.Tex = 4, .Path = "res/wall3.png", .Size = wallSize},
+        {.Tex = 5, .Path = "res/wall4.png", .Size = wallSize},
+        {.Tex = 6, .Path = "res/wall5.png", .Size = wallSize},
+        {.Tex = 7, .Path = "res/wall6.png", .Size = wallSize},
+        {.Tex = 8, .Path = "res/wall7.png", .Size = wallSize},
+        {.Tex = door1Texture, .Path = "res/door.png", .Size = wallSize},
         {.Tex = floorTexture, .Path = "res/floor.png", .Size = wallSize},
         {.Tex = ceilingTexture, .Path = "res/ceiling.png", .Size = wallSize},
+
         {.Tex = sprite1Texture, .Path = "res/enemy0-0.png", .Size = {64, 64}, .Facing = 0},
         {.Tex = sprite1Texture, .Path = "res/enemy0-1.png", .Size = {64, 64}, .Facing = 1},
         {.Tex = sprite1Texture, .Path = "res/enemy0-2.png", .Size = {64, 64}, .Facing = 2},

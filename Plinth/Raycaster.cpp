@@ -75,12 +75,10 @@ auto raycaster::is_position_clear(point_d pos, f64 radius) const -> bool
             bool const isSolid {
                 overloaded_visit(
                     cell,
-                    [](normal_wall const& w) { return w.Texture != 0; },
-                    [](half_wall const& w) { return w.Texture != 0; },
-                    [](auto const& w) {
-                        if (w.Texture == 0) { return false; }
-                        return w.State != wall_state::Open;
-                    })};
+                    [](empty const&) { return false; },
+                    [](normal_wall const& w) { return true; },
+                    [](half_wall const& w) { return true; },
+                    [](auto const& w) { return w.State != wall_state::Open; })};
             if (!isSolid) { continue; }
 
             f64 const d {pos.distance_to({std::clamp(pos.X, static_cast<f64>(tx), static_cast<f64>(tx) + 1.0),
@@ -243,8 +241,7 @@ void raycaster::draw_walls(u32* screenBuf, i32 columnStart, i32 columnEnd)
             wallX -= std::floor(wallX);
         }
         {
-            i32 const    texNum {hitResult.Hit == hit_type::Special ? hitResult.Texture : std::visit([](auto&& c) { return c.Texture; }, (*_map)[map])};
-            auto const*  tex {_cache.texture(texNum - 1, 0)};
+            auto const*  tex {_cache.texture(hitResult.Texture, 0)};
             size_i const texSize {wallSize};
 
             // x coordinate on the texture

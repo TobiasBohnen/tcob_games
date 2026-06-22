@@ -5,9 +5,14 @@
 
 #include "Walls.hpp"
 
+auto empty::intersect(point_i, point_d, point_d) const -> wall_hit
+{
+    return {.Hit = hit_type::None};
+}
+
 auto normal_wall::intersect(point_i, point_d, point_d) const -> wall_hit
 {
-    return {.Hit = Texture > 0 ? hit_type::Normal : hit_type::None};
+    return {.Hit = Texture > 0 ? hit_type::Normal : hit_type::None, .Texture = Texture};
 }
 
 auto door_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir) const -> wall_hit
@@ -27,24 +32,28 @@ auto door_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir) const
 
         if (hitX < segStart || hitX > segEnd) { return {}; }
 
-        f64 const segmentT {(hitX - segStart) / (segEnd - segStart)};
+        f64 const segmentT {(hitX - segStart) / ((segEnd + exposedStart) - segStart)};
         return wall_hit {.Hit = hit_type::Special, .Distance = t, .SegmentT = segmentT, .Texture = Texture, .Side = true};
     }
 
-    f64 const lineX {cell.X + 0.5};
-    if (rayDir.X == 0.0) { return {}; }
+    if (Orientation == door_orientation::BlocksEastWest) {
+        f64 const lineX {cell.X + 0.5};
+        if (rayDir.X == 0.0) { return {}; }
 
-    f64 const t {(lineX - rayOrigin.X) / rayDir.X};
-    if (t < 0.0) { return {}; }
+        f64 const t {(lineX - rayOrigin.X) / rayDir.X};
+        if (t < 0.0) { return {}; }
 
-    f64 const hitY {rayOrigin.Y + (rayDir.Y * t)};
-    f64 const segStart {cell.Y + exposedStart};
-    f64 const segEnd {cell.Y + 1.0};
+        f64 const hitY {rayOrigin.Y + (rayDir.Y * t)};
+        f64 const segStart {cell.Y + exposedStart};
+        f64 const segEnd {cell.Y + 1.0};
 
-    if (hitY < segStart || hitY > segEnd) { return {}; }
+        if (hitY < segStart || hitY > segEnd) { return {}; }
 
-    f64 const segmentT {(hitY - segStart) / (segEnd - segStart)};
-    return wall_hit {.Hit = hit_type::Special, .Distance = t, .SegmentT = segmentT, .Texture = Texture, .Side = false};
+        f64 const segmentT {(hitY - segStart) / ((segEnd + exposedStart) - segStart)};
+        return wall_hit {.Hit = hit_type::Special, .Distance = t, .SegmentT = segmentT, .Texture = Texture, .Side = false};
+    }
+
+    return {};
 }
 
 auto push_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir) const -> wall_hit
@@ -150,6 +159,7 @@ auto update_special_walls(map_t& walls, milliseconds deltaSeconds) -> bool
     for (wall& wall : walls) {
         overloaded_visit(
             wall,
+            [](empty&) { },
             [](normal_wall&) { },
             [](half_wall&) { },
             [dt, &retValue](auto&& w) {
@@ -179,6 +189,7 @@ void toggle_special_wall(wall& wall)
 {
     overloaded_visit(
         wall,
+        [](empty&) { },
         [](normal_wall&) { },
         [](half_wall&) { },
         [](auto&& w) {

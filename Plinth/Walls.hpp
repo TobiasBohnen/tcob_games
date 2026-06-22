@@ -37,8 +37,12 @@ struct wall_hit {
 
     f64  Distance {0.0}; // ray parameter t at the intersection
     f64  SegmentT {0.0}; // 0..1 across the hit surface, for texture X coordinate
-    i32  Texture {-1};
+    i32  Texture {0};
     bool Side {false};
+};
+
+struct empty {
+    auto intersect(point_i, point_d, point_d) const -> wall_hit;
 };
 
 struct normal_wall {
@@ -81,7 +85,7 @@ struct half_wall {
     auto intersect(point_i cell, point_d rayOrigin, point_d rayDir) const -> wall_hit;
 };
 
-using wall = std::variant<normal_wall, door_wall, push_wall, half_wall>;
+using wall = std::variant<empty, normal_wall, door_wall, push_wall, half_wall>;
 
 inline constexpr i32 mapWidth {24};
 inline constexpr i32 mapHeight {24};

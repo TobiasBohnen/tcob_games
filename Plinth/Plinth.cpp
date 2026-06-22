@@ -50,12 +50,16 @@ Plinth::Plinth(game& game)
     _raycaster = std::make_unique<raycaster>(*_cache, _sprites, _screen, 66.0);
 
     for (i32 i {0}; i < map0.size(); ++i) {
-        worldMap[i] = normal_wall {.Texture = map0[i]};
+        if (map0[i] == 0) {
+            worldMap[i] = empty {};
+        } else {
+            worldMap[i] = normal_wall {.Texture = map0[i]};
+        }
     }
     worldMap[point_i {7, 9}]  = half_wall {.LocalBounds = {0.25, 0.25, 0.5, 0.5}, .Texture = 2};
-    worldMap[point_i {8, 5}]  = door_wall {.Orientation = door_orientation::BlocksNorthSouth, .Texture = 2};
+    worldMap[point_i {8, 5}]  = door_wall {.Orientation = door_orientation::BlocksNorthSouth, .Texture = door1Texture};
     worldMap[point_i {10, 5}] = push_wall {.PushDirection = {0, 5}, .Texture = 2};
-    worldMap[point_i {7, 7}]  = push_wall {.PushDirection = {2, 0}, .Texture = 2};
+    worldMap[point_i {7, 7}]  = door_wall {.Orientation = door_orientation::BlocksEastWest, .Texture = door1Texture};
 
     _raycaster->set_world_map(worldMap);
     _raycaster->set_player_position({6, 5});
