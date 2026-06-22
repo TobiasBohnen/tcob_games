@@ -9,6 +9,7 @@
 
 #include "../_common/Common.hpp"
 #include "Cache.hpp"
+#include "Walls.hpp"
 
 struct sprite {
     point_d  Pos;
@@ -18,15 +19,13 @@ struct sprite {
     bool     Solid {true};
 };
 
-using world_map_t = static_grid<u8, /*mapWidth*/ 24, /*mapHeight*/ 24>;
-
 class raycaster {
 public:
     raycaster(cache& cache, std::vector<sprite>& sprites, size_i screenSize, f64 horizontalFovDegrees);
 
     auto get_player_position() const -> point_d;
     void set_player_position(point_d pos);
-    void set_world_map(world_map_t const& worldMap);
+    void set_world_map(map_t const& map);
 
     auto move(f64 forwardAmount, f64 strafeAmount, f64 rotateAmount) -> bool;
 
@@ -39,7 +38,7 @@ private:
 
     cache&               _cache;
     std::vector<sprite>& _sprites;
-    world_map_t const*   _worldMap {nullptr};
+    map_t const*         _map {nullptr};
     size_i               _screenSize {};
 
     point_d _pos {};

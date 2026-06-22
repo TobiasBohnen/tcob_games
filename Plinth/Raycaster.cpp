@@ -9,6 +9,7 @@
 #include <cmath>
 
 #include "Textures.hpp"
+#include "Walls.hpp"
 
 constexpr f64 fogFloor {0.2};
 constexpr f64 fogDistance {8.0};
@@ -48,9 +49,9 @@ void raycaster::set_player_position(point_d pos)
     _pos = pos;
 }
 
-void raycaster::set_world_map(world_map_t const& worldMap)
+void raycaster::set_world_map(map_t const& map)
 {
-    _worldMap = &worldMap;
+    _map = &map;
 }
 
 auto raycaster::is_position_clear(point_d pos, f64 radius) const -> bool
@@ -68,8 +69,19 @@ auto raycaster::is_position_clear(point_d pos, f64 radius) const -> bool
 
     for (i32 ty {minTileY}; ty <= maxTileY; ++ty) {
         for (i32 tx {minTileX}; tx <= maxTileX; ++tx) {
-            if (tx < 0 || tx >= world_map_t::Size.Width || ty < 0 || ty >= world_map_t::Size.Height) { return false; }
-            if ((*_worldMap)[point_i {tx, ty}] == 0) { continue; }
+            if (tx < 0 || tx >= map_t::Size.Width || ty < 0 || ty >= map_t::Size.Height) { return false; }
+            auto const& cell {(*_map)[point_i {tx, ty}]};
+
+            bool const isSolid {
+                overloaded_visit(
+                    cell,
+                    [](normal_wall const& w) { return w.Texture != 0; },
+                    [](half_wall const& w) { return w.Texture != 0; },
+                    [](auto const& w) {
+                        if (w.Texture == 0) { return false; }
+                        return w.State != wall_state::Open;
+                    })};
+            if (!isSolid) { continue; }
 
             f64 const d {pos.distance_to({std::clamp(pos.X, static_cast<f64>(tx), static_cast<f64>(tx) + 1.0),
                                           std::clamp(pos.Y, static_cast<f64>(ty), static_cast<f64>(ty) + 1.0)})};
@@ -182,6 +194,8 @@ void raycaster::draw_walls(u32* screenBuf, i32 columnStart, i32 columnEnd)
 
         bool side {false}; // was a NS or a EW wall hit?
 
+        wall_hit hitResult {};
+
         // perform DDA
         for (;;) {
             // jump to next map square, either in x-direction, or in y-direction
@@ -194,12 +208,22 @@ void raycaster::draw_walls(u32* screenBuf, i32 columnStart, i32 columnEnd)
                 map.Y += step.Y;
                 side = true;
             }
-            // Check if ray has hit a wall
-            if ((*_worldMap)[map] > 0) { break; }
+
+            auto const  intersect {[&](auto&& c) { return c.intersect(map, _pos, rayDir); }};
+            auto const& cell {(*_map)[map]};
+            auto const  wallHit {std::visit(intersect, cell)};
+            if (wallHit.Hit != hit_type::None) {
+                hitResult = wallHit;
+                break;
+            }
         }
 
-        // Calculate distance projected on camera direction (Euclidean distance would give fisheye effect!)
-        f64 const perpWallDist {!side ? sideDist.X - deltaDist.X : sideDist.Y - deltaDist.Y};
+        f64 perpWallDist {0};
+        if (hitResult.Hit == hit_type::Special) {
+            perpWallDist = hitResult.Distance;
+        } else {
+            perpWallDist = !side ? sideDist.X - deltaDist.X : sideDist.Y - deltaDist.Y;
+        }
 
         _zBuffer[x] = perpWallDist;
 
@@ -211,16 +235,21 @@ void raycaster::draw_walls(u32* screenBuf, i32 columnStart, i32 columnEnd)
         i32 const drawEnd {std::min((lineHeight / 2) + (_screenSize.Height / 2), _screenSize.Height - 1)};
 
         // calculate value of wallX
-        f64 wallX {!side ? _pos.Y + (perpWallDist * rayDir.Y) : _pos.X + (perpWallDist * rayDir.X)}; // where exactly the wall was hit
-        wallX -= std::floor(wallX);
+        f64 wallX {0};
+        if (hitResult.Hit == hit_type::Special) {
+            wallX = hitResult.SegmentT;
+        } else {
+            wallX = !side ? _pos.Y + (perpWallDist * rayDir.Y) : _pos.X + (perpWallDist * rayDir.X); // where exactly the wall was hit
+            wallX -= std::floor(wallX);
+        }
         {
-            i32 const    texNum {(*_worldMap)[map] - 1};
-            auto const*  tex {_cache.texture(texNum, 0)};
+            i32 const    texNum {hitResult.Hit == hit_type::Special ? hitResult.Texture : std::visit([](auto&& c) { return c.Texture; }, (*_map)[map])};
+            auto const*  tex {_cache.texture(texNum - 1, 0)};
             size_i const texSize {wallSize};
 
             // x coordinate on the texture
             i32 texX {static_cast<i32>(wallX * static_cast<f64>(texSize.Width))};
-            if ((!side && rayDir.X > 0) || (side && rayDir.Y < 0)) {
+            if (hitResult.Hit == hit_type::Normal && ((!side && rayDir.X > 0) || (side && rayDir.Y < 0))) {
                 texX = texSize.Width - texX - 1;
             }
 
@@ -229,13 +258,12 @@ void raycaster::draw_walls(u32* screenBuf, i32 columnStart, i32 columnEnd)
             // Starting texture coordinate
             f64       texPos {(drawStart - (_screenSize.Height / 2) + (lineHeight / 2)) * texStep};
 
-            f64 const wallFaceFactor {side ? 0.5 : 1.0};
-            f64 const wallFogFactor {std::max(1.0 - (perpWallDist / fogDistance), fogFloor)};
-            f64 const wallDarkenFactor {wallFaceFactor * wallFogFactor};
+            bool const renderSide {hitResult.Hit == hit_type::Special ? hitResult.Side : side};
+            f64 const  wallFaceFactor {renderSide ? 0.5 : 1.0};
+            f64 const  wallFogFactor {std::max(1.0 - (perpWallDist / fogDistance), fogFloor)};
+            f64 const  wallDarkenFactor {wallFaceFactor * wallFogFactor};
 
             for (i32 y {drawStart}; y < drawEnd; y++) {
-                // Cast the texture coordinate to integer, and mask with (texSize.Height - 1) in case of
-                // overflow — requires texSize.Height to be a power of two
                 i32 const texY {static_cast<i32>(texPos) & (texSize.Height - 1)};
                 texPos += texStep;
                 cache::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), tex, (texX + (texY * texSize.Width)) * textureBPP, wallDarkenFactor);
@@ -245,8 +273,10 @@ void raycaster::draw_walls(u32* screenBuf, i32 columnStart, i32 columnEnd)
         // FLOOR CASTING (vertical version, directly after drawing the vertical wall stripe for the current x)
         point_d floorWall {}; // x, y position of the floor texel at the bottom of the wall
 
-        // 4 different wall directions possible
-        if (!side && rayDir.X > 0) {
+        if (hitResult.Hit == hit_type::Special) {
+            floorWall.X = _pos.X + (rayDir.X * perpWallDist);
+            floorWall.Y = _pos.Y + (rayDir.Y * perpWallDist);
+        } else if (!side && rayDir.X > 0) {
             floorWall.X = map.X;
             floorWall.Y = map.Y + wallX;
         } else if (!side && rayDir.X < 0) {

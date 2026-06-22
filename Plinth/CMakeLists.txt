@@ -5,6 +5,7 @@ target_sources(Plinth PRIVATE
     Cache.cpp
     Plinth.cpp
     Raycaster.cpp
+    Walls.cpp
 )
 
 set_target_properties(Plinth PROPERTIES
