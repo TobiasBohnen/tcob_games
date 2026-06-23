@@ -26,14 +26,8 @@ enum class door_orientation : u8 {
     BlocksEastWest    // door slab runs north-south, at x = cellX + 0.5
 };
 
-enum class hit_type : u8 {
-    None,
-    Normal,
-    Special
-};
-
 struct wall_hit {
-    hit_type Hit {hit_type::None};
+    bool Hit {false};
 
     f64  Distance {0.0}; // ray parameter t at the intersection
     f64  SegmentT {0.0}; // 0..1 across the hit surface, for texture X coordinate
@@ -42,13 +36,13 @@ struct wall_hit {
 };
 
 struct empty {
-    auto intersect(point_i, point_d, point_d) const -> wall_hit;
+    auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f32 dist) const -> wall_hit;
 };
 
 struct normal_wall {
     i32 Texture {0};
 
-    auto intersect(point_i, point_d, point_d) const -> wall_hit;
+    auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f32 dist) const -> wall_hit;
 };
 
 struct door_wall {
@@ -59,7 +53,7 @@ struct door_wall {
 
     i32 Texture {0};
 
-    auto intersect(point_i cell, point_d rayOrigin, point_d rayDir) const -> wall_hit;
+    auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f32 dist) const -> wall_hit;
 
     static constexpr f64 OpenSpeed {1.5};
 };
@@ -72,7 +66,7 @@ struct push_wall {
 
     i32 Texture {0};
 
-    auto intersect(point_i cell, point_d rayOrigin, point_d rayDir) const -> wall_hit;
+    auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f32 dist) const -> wall_hit;
 
     static constexpr f64 OpenSpeed {1.5};
 };
@@ -82,7 +76,7 @@ struct half_wall {
 
     i32 Texture {0};
 
-    auto intersect(point_i cell, point_d rayOrigin, point_d rayDir) const -> wall_hit;
+    auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f32 dist) const -> wall_hit;
 };
 
 using wall = std::variant<empty, normal_wall, door_wall, push_wall, half_wall>;

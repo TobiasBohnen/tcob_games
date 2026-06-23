@@ -190,12 +190,11 @@ void raycaster::draw_walls(u32* screenBuf, i32 columnStart, i32 columnEnd)
             sideDist.Y = (map.Y + 1.0 - _pos.Y) * deltaDist.Y;
         }
 
-        bool side {false}; // was a NS or a EW wall hit?
-
         wall_hit hitResult {};
 
         // perform DDA
         for (;;) {
+            bool side {false}; // was a NS or a EW wall hit?
             // jump to next map square, either in x-direction, or in y-direction
             if (sideDist.X < sideDist.Y) {
                 sideDist.X += deltaDist.X;
@@ -207,22 +206,16 @@ void raycaster::draw_walls(u32* screenBuf, i32 columnStart, i32 columnEnd)
                 side = true;
             }
 
-            auto const  intersect {[&](auto&& c) { return c.intersect(map, _pos, rayDir); }};
+            auto const  intersect {[&](auto&& c) { return c.intersect(map, _pos, rayDir, side, !side ? sideDist.X - deltaDist.X : sideDist.Y - deltaDist.Y); }};
             auto const& cell {(*_map)[map]};
             auto const  wallHit {std::visit(intersect, cell)};
-            if (wallHit.Hit != hit_type::None) {
+            if (wallHit.Hit) {
                 hitResult = wallHit;
                 break;
             }
         }
 
-        f64 perpWallDist {0};
-        if (hitResult.Hit == hit_type::Special) {
-            perpWallDist = hitResult.Distance;
-        } else {
-            perpWallDist = !side ? sideDist.X - deltaDist.X : sideDist.Y - deltaDist.Y;
-        }
-
+        f64 const perpWallDist {hitResult.Distance};
         _zBuffer[x] = perpWallDist;
 
         // Calculate height of line to draw on screen
@@ -233,20 +226,15 @@ void raycaster::draw_walls(u32* screenBuf, i32 columnStart, i32 columnEnd)
         i32 const drawEnd {std::min((lineHeight / 2) + (_screenSize.Height / 2), _screenSize.Height - 1)};
 
         // calculate value of wallX
-        f64 wallX {0};
-        if (hitResult.Hit == hit_type::Special) {
-            wallX = hitResult.SegmentT;
-        } else {
-            wallX = !side ? _pos.Y + (perpWallDist * rayDir.Y) : _pos.X + (perpWallDist * rayDir.X); // where exactly the wall was hit
-            wallX -= std::floor(wallX);
-        }
+        f64 const wallX {hitResult.SegmentT};
+
         {
             auto const*  tex {_cache.texture(hitResult.Texture, 0)};
             size_i const texSize {wallSize};
 
             // x coordinate on the texture
             i32 texX {static_cast<i32>(wallX * static_cast<f64>(texSize.Width))};
-            if (hitResult.Hit == hit_type::Normal && ((!side && rayDir.X > 0) || (side && rayDir.Y < 0))) {
+            if (hitResult.Hit && ((!hitResult.Side && rayDir.X > 0) || (hitResult.Side && rayDir.Y < 0))) {
                 texX = texSize.Width - texX - 1;
             }
 
@@ -255,10 +243,9 @@ void raycaster::draw_walls(u32* screenBuf, i32 columnStart, i32 columnEnd)
             // Starting texture coordinate
             f64       texPos {(drawStart - (_screenSize.Height / 2) + (lineHeight / 2)) * texStep};
 
-            bool const renderSide {hitResult.Hit == hit_type::Special ? hitResult.Side : side};
-            f64 const  wallFaceFactor {renderSide ? 0.5 : 1.0};
-            f64 const  wallFogFactor {std::max(1.0 - (perpWallDist / fogDistance), fogFloor)};
-            f64 const  wallDarkenFactor {wallFaceFactor * wallFogFactor};
+            f64 const wallFaceFactor {hitResult.Side ? 0.5 : 1.0};
+            f64 const wallFogFactor {std::max(1.0 - (perpWallDist / fogDistance), fogFloor)};
+            f64 const wallDarkenFactor {wallFaceFactor * wallFogFactor};
 
             for (i32 y {drawStart}; y < drawEnd; y++) {
                 i32 const texY {static_cast<i32>(texPos) & (texSize.Height - 1)};
@@ -268,24 +255,7 @@ void raycaster::draw_walls(u32* screenBuf, i32 columnStart, i32 columnEnd)
         }
 
         // FLOOR CASTING (vertical version, directly after drawing the vertical wall stripe for the current x)
-        point_d floorWall {}; // x, y position of the floor texel at the bottom of the wall
-
-        if (hitResult.Hit == hit_type::Special) {
-            floorWall.X = _pos.X + (rayDir.X * perpWallDist);
-            floorWall.Y = _pos.Y + (rayDir.Y * perpWallDist);
-        } else if (!side && rayDir.X > 0) {
-            floorWall.X = map.X;
-            floorWall.Y = map.Y + wallX;
-        } else if (!side && rayDir.X < 0) {
-            floorWall.X = map.X + 1.0;
-            floorWall.Y = map.Y + wallX;
-        } else if (side && rayDir.Y > 0) {
-            floorWall.X = map.X + wallX;
-            floorWall.Y = map.Y;
-        } else {
-            floorWall.X = map.X + wallX;
-            floorWall.Y = map.Y + 1.0;
-        }
+        point_d const floorWall {_pos + (rayDir * perpWallDist)};
 
         // draw the floor from drawEnd to the bottom of the screen
         f64 const    invPerpWallDist {1.0 / perpWallDist};
