@@ -75,6 +75,8 @@ auto push_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool 
     if (State == wall_state::Open) { return {}; }
 
     if (PushDirection.X != 0) {
+        if ((rayDir.X > 0 && PushDirection.X < 0) || (rayDir.X < 0 && PushDirection.X > 0)) { return {}; } // backface culling
+
         f64 const nearEdgeX {PushDirection.X > 0 ? static_cast<f64>(cell.X) : static_cast<f64>(cell.X) + 1.0};
         f64 const faceX {nearEdgeX + (PushDirection.X * Timer)};
 
@@ -94,6 +96,8 @@ auto push_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool 
     }
 
     if (PushDirection.Y != 0) {
+        if ((rayDir.Y > 0 && PushDirection.Y < 0) || (rayDir.Y < 0 && PushDirection.Y > 0)) { return {}; } // backface culling
+
         f64 const nearEdgeY {PushDirection.Y > 0 ? static_cast<f64>(cell.Y) : static_cast<f64>(cell.Y) + 1.0};
         f64 const faceY {nearEdgeY + (PushDirection.Y * Timer)};
 

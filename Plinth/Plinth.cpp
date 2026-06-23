@@ -218,6 +218,15 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
     case input::scan_code::R: {
         locate_service<gfx::render_system>().statistics().reset();
     } break;
+    case input::scan_code::F: {
+        auto const fileName {[]() {
+            for (i32 i {0};; ++i) {
+                auto const name {std::format("screen{:02}.png", i)};
+                if (!io::exists(name)) { return name; }
+            }
+        }()};
+        std::ignore = window().copy_to_image().save(fileName);
+    } break;
     case input::scan_code::E: {
         toggle_special_wall(worldMap[point_i {8, 5}]);
         toggle_special_wall(worldMap[point_i {7, 7}]);
