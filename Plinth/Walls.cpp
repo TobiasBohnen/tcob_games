@@ -5,12 +5,12 @@
 
 #include "Walls.hpp"
 
-auto empty::intersect(point_i, point_d, point_d, bool, f32) const -> wall_hit
+auto empty::intersect(point_i, point_d, point_d, bool, f64) const -> wall_hit
 {
     return {.Hit = false};
 }
 
-auto normal_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f32 dist) const -> wall_hit
+auto normal_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit
 {
     // wallX: fractional hit position on the wall face
     f64 wallX {!side
@@ -25,7 +25,7 @@ auto normal_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, boo
     return {.Hit = true, .Distance = dist, .SegmentT = segmentT, .Texture = Texture, .Side = side};
 }
 
-auto door_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f32 dist) const -> wall_hit
+auto door_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit
 {
     bool const isNS {Orientation == door_orientation::BlocksNorthSouth};
 
@@ -48,7 +48,7 @@ auto door_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool 
             f64 const segEnd {cCross + 1.0};
 
             if (hitCross >= segStart && hitCross <= segEnd) {
-                closestHit = {.Hit = true, .Distance = t, .SegmentT = hitCross - segStart, .Texture = Texture, .Side = isNS};
+                closestHit = {.Hit = true, .Distance = t, .SegmentT = hitCross - segStart, .Texture = Texture, .Side = side};
                 minT       = t;
             }
         }
@@ -60,7 +60,7 @@ auto door_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool 
             if (t >= 0.0 && t < minT) {
                 f64 const hitLeaf {roLeaf + (rdLeaf * t)};
                 if (hitLeaf >= cLeaf && hitLeaf <= cLeaf + 1.0) {
-                    closestHit = {.Hit = true, .Distance = t, .SegmentT = hitLeaf - cLeaf, .Texture = FrameTexture, .Side = !isNS};
+                    closestHit = {.Hit = true, .Distance = t, .SegmentT = hitLeaf - cLeaf, .Texture = FrameTexture, .Side = side};
                     minT       = t;
                 }
             }
@@ -70,7 +70,7 @@ auto door_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool 
     return closestHit;
 }
 
-auto push_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f32 dist) const -> wall_hit
+auto push_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit
 {
     if (State == wall_state::Open) { return {}; }
 
@@ -90,7 +90,7 @@ auto push_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool 
         if (hitY < segStart || hitY > segEnd) { return {}; }
 
         f64 const segmentT {hitY - segStart};
-        return wall_hit {.Hit = true, .Distance = t, .SegmentT = segmentT, .Texture = Texture, .Side = false};
+        return wall_hit {.Hit = true, .Distance = t, .SegmentT = segmentT, .Texture = Texture, .Side = side};
     }
 
     if (PushDirection.Y != 0) {
@@ -109,13 +109,13 @@ auto push_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool 
         if (hitX < segStart || hitX > segEnd) { return {}; }
 
         f64 const segmentT {hitX - segStart};
-        return wall_hit {.Hit = true, .Distance = t, .SegmentT = segmentT, .Texture = Texture, .Side = true};
+        return wall_hit {.Hit = true, .Distance = t, .SegmentT = segmentT, .Texture = Texture, .Side = side};
     }
 
     return {};
 }
 
-auto half_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f32 dist) const -> wall_hit
+auto half_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit
 {
     f64 const minX {cell.X + LocalBounds.left()};
     f64 const minY {cell.Y + LocalBounds.top()};
@@ -162,7 +162,7 @@ auto half_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool 
         segmentT = (hitX - minX) / (maxX - minX);
     }
 
-    return wall_hit {.Hit = true, .Distance = t, .SegmentT = segmentT, .Texture = Texture, .Side = (tMinX <= tMinY)};
+    return wall_hit {.Hit = true, .Distance = t, .SegmentT = segmentT, .Texture = Texture, .Side = side};
 }
 
 auto update_special_walls(map_t& walls, milliseconds deltaSeconds) -> bool

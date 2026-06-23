@@ -96,10 +96,13 @@ Plinth::Plinth(game& game)
             worldMap[i] = normal_wall {.Texture = map0[i]};
         }
     }
-    worldMap[point_i {7, 9}]  = half_wall {.LocalBounds = {0.25, 0.25, 0.5, 0.5}, .Texture = 2};
-    worldMap[point_i {8, 5}]  = door_wall {.Orientation = door_orientation::BlocksNorthSouth, .Texture = door1Texture, .FrameTexture = door1FrameTexture};
+    worldMap[point_i {7, 9}] = half_wall {.LocalBounds = {0.25, 0.25, 0.5, 0.5}, .Texture = 2};
+
+    worldMap[point_i {8, 5}] = door_wall {.Orientation = door_orientation::BlocksNorthSouth, .Texture = door1Texture, .FrameTexture = door1FrameTexture};
+    worldMap[point_i {7, 7}] = door_wall {.Orientation = door_orientation::BlocksEastWest, .Texture = door1Texture, .FrameTexture = door1FrameTexture};
+
     worldMap[point_i {10, 5}] = push_wall {.PushDirection = {0, 5}, .Texture = 2};
-    worldMap[point_i {7, 7}]  = door_wall {.Orientation = door_orientation::BlocksEastWest, .Texture = door1Texture, .FrameTexture = door1FrameTexture};
+    worldMap[point_i {7, 10}] = push_wall {.PushDirection = {5, 0}, .Texture = 2};
 
     _raycaster->set_world_map(worldMap);
     _raycaster->set_player_position({6, 5});
@@ -217,8 +220,10 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
     } break;
     case input::scan_code::E: {
         toggle_special_wall(worldMap[point_i {8, 5}]);
-        toggle_special_wall(worldMap[point_i {10, 5}]);
         toggle_special_wall(worldMap[point_i {7, 7}]);
+
+        toggle_special_wall(worldMap[point_i {10, 5}]);
+        toggle_special_wall(worldMap[point_i {7, 10}]);
     } break;
     default:
 

@@ -36,13 +36,13 @@ struct wall_hit {
 };
 
 struct empty {
-    auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f32 dist) const -> wall_hit;
+    auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit;
 };
 
 struct normal_wall {
     i32 Texture {0};
 
-    auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f32 dist) const -> wall_hit;
+    auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit;
 };
 
 struct door_wall {
@@ -54,7 +54,7 @@ struct door_wall {
     i32 Texture {0};
     i32 FrameTexture {0};
 
-    auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f32 dist) const -> wall_hit;
+    auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit;
 
     static constexpr f64 OpenSpeed {1.5};
 };
@@ -67,7 +67,7 @@ struct push_wall {
 
     i32 Texture {0};
 
-    auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f32 dist) const -> wall_hit;
+    auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit;
 
     static constexpr f64 OpenSpeed {1.5};
 };
@@ -77,7 +77,7 @@ struct half_wall {
 
     i32 Texture {0};
 
-    auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f32 dist) const -> wall_hit;
+    auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit;
 };
 
 using wall = std::variant<empty, normal_wall, door_wall, push_wall, half_wall>;

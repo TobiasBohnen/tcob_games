@@ -56,12 +56,7 @@ void raycaster::set_world_map(map_t const& map)
 
 auto raycaster::is_position_clear(point_d pos, f64 radius) const -> bool
 {
-    i32 const tileX {static_cast<i32>(std::floor(pos.X))};
-    i32 const tileY {static_cast<i32>(std::floor(pos.Y))};
-
-    f64 const localX {pos.X - tileX};
-    f64 const localY {pos.Y - tileY};
-
+    // wall collision
     i32 const minTileX {static_cast<i32>(std::floor(pos.X - radius))};
     i32 const maxTileX {static_cast<i32>(std::floor(pos.X + radius))};
     i32 const minTileY {static_cast<i32>(std::floor(pos.Y - radius))};
@@ -71,22 +66,34 @@ auto raycaster::is_position_clear(point_d pos, f64 radius) const -> bool
         for (i32 tx {minTileX}; tx <= maxTileX; ++tx) {
             if (tx < 0 || tx >= map_t::Size.Width || ty < 0 || ty >= map_t::Size.Height) { return false; }
             auto const& cell {(*_map)[point_i {tx, ty}]};
+            rect_d      clampRect {static_cast<f64>(tx), static_cast<f64>(ty), 1.0, 1.0};
+            bool const  isSolid {overloaded_visit(
+                cell,
+                [](empty const&) { return false; },
+                [](normal_wall const&) { return true; },
+                [&clampRect, tx, ty](half_wall const& w) {
+                    clampRect = w.LocalBounds;
+                    clampRect.move_by(point_i {tx, ty});
+                    return true;
+                },
+                [](auto const& w) {
+                    return (w.State != wall_state::Open);
+                })};
 
-            bool const isSolid {
-                overloaded_visit(
-                    cell,
-                    [](empty const&) { return false; },
-                    [](normal_wall const& w) { return true; },
-                    [](half_wall const& w) { return true; },
-                    [](auto const& w) { return w.State != wall_state::Open; })};
             if (!isSolid) { continue; }
 
-            f64 const d {pos.distance_to({std::clamp(pos.X, static_cast<f64>(tx), static_cast<f64>(tx) + 1.0),
-                                          std::clamp(pos.Y, static_cast<f64>(ty), static_cast<f64>(ty) + 1.0)})};
-            if (d * d < radius * radius) { return false; }
+            f64 const closestX {std::clamp(pos.X, clampRect.left(), clampRect.right())};
+            f64 const closestY {std::clamp(pos.Y, clampRect.top(), clampRect.bottom())};
+            f64 const dx {pos.X - closestX};
+            f64 const dy {pos.Y - closestY};
+
+            if (((dx * dx) + (dy * dy)) < (radius * radius)) {
+                return false;
+            }
         }
     }
 
+    // sprite collision check
     return std::ranges::all_of(_sprites, [&](sprite const& spr) {
         if (!spr.Solid) { return true; }
 
@@ -236,10 +243,7 @@ void raycaster::draw_walls(u32* screenBuf, i32 columnStart, i32 columnEnd)
             size_i const texSize {wallSize};
 
             // x coordinate on the texture
-            i32 texX {static_cast<i32>(wallX * static_cast<f64>(texSize.Width))};
-            if (hitResult.Hit && ((!hitResult.Side && rayDir.X > 0) || (hitResult.Side && rayDir.Y < 0))) {
-                texX = texSize.Width - texX - 1;
-            }
+            i32 const texX {static_cast<i32>(wallX * static_cast<f64>(texSize.Width))};
 
             // How much to increase the texture coordinate per screen pixel
             f64 const texStep {1.0 * texSize.Height / lineHeight};
