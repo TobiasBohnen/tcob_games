@@ -51,6 +51,7 @@ void cache::load()
         {.Tex = 7, .Path = "res/wall6.png", .Size = wallSize},
         {.Tex = 8, .Path = "res/wall7.png", .Size = wallSize},
         {.Tex = door1Texture, .Path = "res/door.png", .Size = wallSize},
+        {.Tex = door1FrameTexture, .Path = "res/door_frame.png", .Size = wallSize},
         {.Tex = floorTexture, .Path = "res/floor.png", .Size = wallSize},
         {.Tex = ceilingTexture, .Path = "res/ceiling.png", .Size = wallSize},
 

@@ -27,43 +27,47 @@ auto normal_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, boo
 
 auto door_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f32 dist) const -> wall_hit
 {
-    f64 const exposedStart {Timer}; // 0 (fully exposed) .. 1 (fully retracted)
+    bool const isNS {Orientation == door_orientation::BlocksNorthSouth};
 
-    if (Orientation == door_orientation::BlocksNorthSouth) {
-        f64 const lineY {cell.Y + 0.5};
-        if (rayDir.Y == 0.0) { return {}; }
+    f64 const rdLeaf {isNS ? rayDir.Y : rayDir.X};
+    f64 const roLeaf {isNS ? rayOrigin.Y : rayOrigin.X};
+    f64 const cLeaf {static_cast<f64>(isNS ? cell.Y : cell.X)};
 
-        f64 const t {(lineY - rayOrigin.Y) / rayDir.Y};
-        if (t < 0.0) { return {}; }
+    f64 const rdCross {isNS ? rayDir.X : rayDir.Y};
+    f64 const roCross {isNS ? rayOrigin.X : rayOrigin.Y};
+    f64 const cCross {static_cast<f64>(isNS ? cell.X : cell.Y)};
 
-        f64 const hitX {rayOrigin.X + (rayDir.X * t)};
-        f64 const segStart {cell.X + exposedStart};
-        f64 const segEnd {cell.X + 1.0};
+    wall_hit closestHit {};
+    f64      minT {1e30};
 
-        if (hitX < segStart || hitX > segEnd) { return {}; }
+    if (rdLeaf != 0.0) {
+        f64 const t = (cLeaf + 0.5 - roLeaf) / rdLeaf;
+        if (t >= 0.0 && t < minT) {
+            f64 const hitCross {roCross + (rdCross * t)};
+            f64 const segStart {cCross + Timer};
+            f64 const segEnd {cCross + 1.0};
 
-        f64 const segmentT {(hitX - segStart) / ((segEnd + exposedStart) - segStart)};
-        return wall_hit {.Hit = true, .Distance = t, .SegmentT = segmentT, .Texture = Texture, .Side = true};
+            if (hitCross >= segStart && hitCross <= segEnd) {
+                closestHit = {.Hit = true, .Distance = t, .SegmentT = hitCross - segStart, .Texture = Texture, .Side = isNS};
+                minT       = t;
+            }
+        }
     }
 
-    if (Orientation == door_orientation::BlocksEastWest) {
-        f64 const lineX {cell.X + 0.5};
-        if (rayDir.X == 0.0) { return {}; }
-
-        f64 const t {(lineX - rayOrigin.X) / rayDir.X};
-        if (t < 0.0) { return {}; }
-
-        f64 const hitY {rayOrigin.Y + (rayDir.Y * t)};
-        f64 const segStart {cell.Y + exposedStart};
-        f64 const segEnd {cell.Y + 1.0};
-
-        if (hitY < segStart || hitY > segEnd) { return {}; }
-
-        f64 const segmentT {(hitY - segStart) / ((segEnd + exposedStart) - segStart)};
-        return wall_hit {.Hit = true, .Distance = t, .SegmentT = segmentT, .Texture = Texture, .Side = false};
+    if (rdCross != 0.0) {
+        for (f64 const offset : {0.0, 1.0}) {
+            f64 const t {(cCross + offset - roCross) / rdCross};
+            if (t >= 0.0 && t < minT) {
+                f64 const hitLeaf {roLeaf + (rdLeaf * t)};
+                if (hitLeaf >= cLeaf && hitLeaf <= cLeaf + 1.0) {
+                    closestHit = {.Hit = true, .Distance = t, .SegmentT = hitLeaf - cLeaf, .Texture = FrameTexture, .Side = !isNS};
+                    minT       = t;
+                }
+            }
+        }
     }
 
-    return {};
+    return closestHit;
 }
 
 auto push_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f32 dist) const -> wall_hit

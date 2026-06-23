@@ -57,9 +57,9 @@ Plinth::Plinth(game& game)
         }
     }
     worldMap[point_i {7, 9}]  = half_wall {.LocalBounds = {0.25, 0.25, 0.5, 0.5}, .Texture = 2};
-    worldMap[point_i {8, 5}]  = door_wall {.Orientation = door_orientation::BlocksNorthSouth, .Texture = door1Texture};
+    worldMap[point_i {8, 5}]  = door_wall {.Orientation = door_orientation::BlocksNorthSouth, .Texture = door1Texture, .FrameTexture = door1FrameTexture};
     worldMap[point_i {10, 5}] = push_wall {.PushDirection = {0, 5}, .Texture = 2};
-    worldMap[point_i {7, 7}]  = door_wall {.Orientation = door_orientation::BlocksEastWest, .Texture = door1Texture};
+    worldMap[point_i {7, 7}]  = door_wall {.Orientation = door_orientation::BlocksEastWest, .Texture = door1Texture, .FrameTexture = door1FrameTexture};
 
     _raycaster->set_world_map(worldMap);
     _raycaster->set_player_position({6, 5});

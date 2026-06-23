@@ -52,6 +52,7 @@ struct door_wall {
     door_orientation Orientation {door_orientation::BlocksNorthSouth};
 
     i32 Texture {0};
+    i32 FrameTexture {0};
 
     auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f32 dist) const -> wall_hit;
 

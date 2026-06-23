@@ -192,26 +192,33 @@ void raycaster::draw_walls(u32* screenBuf, i32 columnStart, i32 columnEnd)
 
         wall_hit hitResult {};
 
-        // perform DDA
-        for (;;) {
-            bool side {false}; // was a NS or a EW wall hit?
-            // jump to next map square, either in x-direction, or in y-direction
-            if (sideDist.X < sideDist.Y) {
-                sideDist.X += deltaDist.X;
-                map.X += step.X;
-                side = false;
-            } else {
-                sideDist.Y += deltaDist.Y;
-                map.Y += step.Y;
-                side = true;
-            }
+        // check player cell
+        {
+            auto const intersect {[&](auto&& c) { return c.intersect(map, _pos, rayDir, false, 0.0); }};
+            auto const wallHit {std::visit(intersect, (*_map)[map])};
+            if (wallHit.Hit) { hitResult = wallHit; }
+        }
+        // DDA
+        if (!hitResult.Hit) {
+            for (;;) {
+                bool side {false}; // was a NS or a EW wall hit?
+                // jump to next map square, either in x-direction, or in y-direction
+                if (sideDist.X < sideDist.Y) {
+                    sideDist.X += deltaDist.X;
+                    map.X += step.X;
+                    side = false;
+                } else {
+                    sideDist.Y += deltaDist.Y;
+                    map.Y += step.Y;
+                    side = true;
+                }
 
-            auto const  intersect {[&](auto&& c) { return c.intersect(map, _pos, rayDir, side, !side ? sideDist.X - deltaDist.X : sideDist.Y - deltaDist.Y); }};
-            auto const& cell {(*_map)[map]};
-            auto const  wallHit {std::visit(intersect, cell)};
-            if (wallHit.Hit) {
-                hitResult = wallHit;
-                break;
+                auto const intersect {[&](auto&& c) { return c.intersect(map, _pos, rayDir, side, !side ? sideDist.X - deltaDist.X : sideDist.Y - deltaDist.Y); }};
+                auto const wallHit {std::visit(intersect, (*_map)[map])};
+                if (wallHit.Hit) {
+                    hitResult = wallHit;
+                    break;
+                }
             }
         }
 
