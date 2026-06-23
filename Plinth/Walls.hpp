@@ -82,8 +82,8 @@ struct half_wall {
 
 using wall = std::variant<empty, normal_wall, door_wall, push_wall, half_wall>;
 
-inline constexpr i32 mapWidth {24};
-inline constexpr i32 mapHeight {24};
+inline constexpr i32 mapWidth {64};
+inline constexpr i32 mapHeight {64};
 using map_t = static_grid<wall, mapWidth, mapHeight>;
 
 auto update_special_walls(map_t& walls, milliseconds deltaSeconds) -> bool;

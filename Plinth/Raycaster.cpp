@@ -162,19 +162,12 @@ void raycaster::draw_walls(u32* screenBuf, i32 columnStart, i32 columnEnd)
         f64 const     cameraX {(2.0 * x / _screenSize.Width) - 1.0}; // x-coordinate in camera space
         point_d const rayDir {_dir + (_plane * cameraX)};
 
-        // which box of the map we're in
         point_i map {static_cast<point_i>(_pos)};
 
-        // length of ray from one x or y-side to next x or y-side
         point_d const deltaDist {(rayDir.X == 0) ? 1e30 : std::abs(1 / rayDir.X), (rayDir.Y == 0) ? 1e30 : std::abs(1 / rayDir.Y)};
 
-        // what direction to step in x or y-direction (either +1 or -1)
         point_i step {};
-
-        // length of ray from current position to next x or y-side
         point_d sideDist {};
-
-        // calculate step and initial sideDist
         if (rayDir.X < 0) {
             step.X     = -1;
             sideDist.X = (_pos.X - map.X) * deltaDist.X;
@@ -200,8 +193,10 @@ void raycaster::draw_walls(u32* screenBuf, i32 columnStart, i32 columnEnd)
         }
         // DDA
         if (!hitResult.Hit) {
+            bool       side {false}; // was a NS or a EW wall hit?
+            auto const intersect {[&](auto&& c) -> wall_hit { return c.intersect(map, _pos, rayDir, side, !side ? sideDist.X - deltaDist.X : sideDist.Y - deltaDist.Y); }};
+
             for (;;) {
-                bool side {false}; // was a NS or a EW wall hit?
                 // jump to next map square, either in x-direction, or in y-direction
                 if (sideDist.X < sideDist.Y) {
                     sideDist.X += deltaDist.X;
@@ -213,7 +208,7 @@ void raycaster::draw_walls(u32* screenBuf, i32 columnStart, i32 columnEnd)
                     side = true;
                 }
 
-                auto const intersect {[&](auto&& c) { return c.intersect(map, _pos, rayDir, side, !side ? sideDist.X - deltaDist.X : sideDist.Y - deltaDist.Y); }};
+                if (!_map->size().contains(map)) { break; }
                 auto const wallHit {std::visit(intersect, (*_map)[map])};
                 if (wallHit.Hit) {
                     hitResult = wallHit;
@@ -222,6 +217,7 @@ void raycaster::draw_walls(u32* screenBuf, i32 columnStart, i32 columnEnd)
             }
         }
 
+        if (!hitResult.Hit) { continue; } // TODO: fake wall instead?
         f64 const perpWallDist {hitResult.Distance};
         _zBuffer[x] = perpWallDist;
 
