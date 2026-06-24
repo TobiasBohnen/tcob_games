@@ -60,7 +60,7 @@ auto door_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool 
             if (t >= 0.0 && t < minT) {
                 f64 const hitLeaf {roLeaf + (rdLeaf * t)};
                 if (hitLeaf >= cLeaf && hitLeaf <= cLeaf + 1.0) {
-                    closestHit = {.Hit = true, .Distance = t, .SegmentT = hitLeaf - cLeaf, .Texture = FrameTexture, .Side = side};
+                    closestHit = {.Hit = true, .Distance = t, .SegmentT = hitLeaf - cLeaf, .Texture = FrameTexture, .Side = !side};
                     minT       = t;
                 }
             }
@@ -166,7 +166,8 @@ auto half_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool 
         segmentT = (hitX - minX) / (maxX - minX);
     }
 
-    return wall_hit {.Hit = true, .Distance = t, .SegmentT = segmentT, .Texture = Texture, .Side = side};
+    bool const hitSide {tMinX > tMinY};
+    return wall_hit {.Hit = true, .Distance = t, .SegmentT = segmentT, .Texture = Texture, .Side = hitSide};
 }
 
 auto diagonal_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit
