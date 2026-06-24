@@ -166,7 +166,7 @@ auto half_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool,
         segmentT = (hitX - minX) / (maxX - minX);
     }
 
-    bool const hitSide {tMinX > tMinY};
+    bool const hitSide {tMinX <= tMinY};
     return wall_hit {.Hit = true, .Distance = t, .SegmentT = segmentT, .Texture = Texture, .Side = hitSide};
 }
 
@@ -211,4 +211,30 @@ auto diagonal_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, b
         .SegmentT = segmentT,
         .Texture  = Texture,
         .Side     = Orientation == orientation::SouthWestToNorthEast};
+}
+
+auto round_pillar::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit
+{
+    point_d const center {cell.X + 0.5, cell.Y + 0.5};
+    point_d const oc {rayOrigin.X - center.X, rayOrigin.Y - center.Y};
+
+    f64 const a {rayDir.dot(rayDir)};
+    f64 const b {2.0 * oc.dot(rayDir)};
+    f64 const c {oc.dot(oc) - (Radius * Radius)};
+    f64 const discriminant {(b * b) - (4.0 * a * c)};
+
+    if (discriminant < 0.0) { return {}; }
+
+    f64 const t {(-b - std::sqrt(discriminant)) / (2.0 * a)};
+    if (t < 0.0) { return {}; }
+
+    point_d const hit {rayOrigin.X + (rayDir.X * t), rayOrigin.Y + (rayDir.Y * t)};
+    f64 const     angle {std::atan2(hit.Y - center.Y, hit.X - center.X)};
+    f64 const     segmentT {(angle + std::numbers::pi) / (2.0 * std::numbers::pi)};
+
+    // side based on which quadrant the hit normal faces
+    point_d const normal {hit.X - center.X, hit.Y - center.Y};
+    bool const    hitSide {std::abs(normal.Y) > std::abs(normal.X)};
+
+    return wall_hit {.Hit = true, .Distance = t, .SegmentT = segmentT, .Texture = Texture, .Side = hitSide};
 }

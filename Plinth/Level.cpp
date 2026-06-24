@@ -109,6 +109,7 @@ auto level::update(milliseconds deltaSeconds) -> bool
             [](normal_wall&) { },
             [](half_wall&) { },
             [](diagonal_wall&) { },
+            [](round_pillar&) { },
             [dt, &retValue](auto&& w) {
                 using type = std::remove_cvref_t<decltype(w)>;
 
@@ -140,6 +141,7 @@ void level::toggle_wall(point_i p)
         [](normal_wall&) { },
         [](half_wall&) { },
         [](diagonal_wall&) { },
+        [](round_pillar&) { },
         [](auto&& w) {
             switch (w.State) {
             case wall_state::Closed:

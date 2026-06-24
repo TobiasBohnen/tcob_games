@@ -21,6 +21,13 @@ static auto closest_point_on_wall(level const& level, point_i cell, point_d pos)
             return point_d {std::clamp(pos.X, clampRect.left(), clampRect.right()),
                             std::clamp(pos.Y, clampRect.top(), clampRect.bottom())};
         },
+
+        [&](half_wall const& w) -> std::optional<point_d> {
+            rect_d r {w.LocalBounds};
+            r.move_by(cell);
+            return point_d {std::clamp(pos.X, r.left(), r.right()),
+                            std::clamp(pos.Y, r.top(), r.bottom())};
+        },
         [&](diagonal_wall const& w) -> std::optional<point_d> {
             f64 const     cX {static_cast<f64>(cell.X)};
             f64 const     cY {static_cast<f64>(cell.Y)};
@@ -31,11 +38,12 @@ static auto closest_point_on_wall(level const& level, point_i cell, point_d pos)
             f64 const     t {std::clamp(((pos.X - a.X) * ab.X + (pos.Y - a.Y) * ab.Y) / (ab.X * ab.X + ab.Y * ab.Y), 0.0, 1.0)};
             return point_d {a.X + (t * ab.X), a.Y + (t * ab.Y)};
         },
-        [&](half_wall const& w) -> std::optional<point_d> {
-            rect_d r {w.LocalBounds};
-            r.move_by(cell);
-            return point_d {std::clamp(pos.X, r.left(), r.right()),
-                            std::clamp(pos.Y, r.top(), r.bottom())};
+        [&](round_pillar const& w) -> std::optional<point_d> {
+            point_d const center {cell.X + 0.5, cell.Y + 0.5};
+            point_d const d {pos.X - center.X, pos.Y - center.Y};
+            f64 const     len {std::sqrt(d.dot(d))};
+            if (len == 0.0) { return center; }
+            return point_d {center.X + ((d.X / len) * w.Radius), center.Y + ((d.Y / len) * w.Radius)};
         },
         [&](auto const& w) -> std::optional<point_d> {
             if (w.State != wall_state::Open) {

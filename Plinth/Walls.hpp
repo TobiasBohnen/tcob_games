@@ -80,8 +80,7 @@ struct half_wall {
     auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit;
 };
 
-class diagonal_wall {
-public:
+struct diagonal_wall {
     enum class orientation : u8 {
         NorthWestToSouthEast,
         SouthWestToNorthEast
@@ -94,7 +93,15 @@ public:
     auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit;
 };
 
-using wall = std::variant<empty, normal_wall, door_wall, push_wall, half_wall, diagonal_wall>;
+struct round_pillar {
+    f64 Radius {0};
+
+    i32 Texture {0};
+
+    auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit;
+};
+
+using wall = std::variant<empty, normal_wall, door_wall, push_wall, half_wall, diagonal_wall, round_pillar>;
 
 inline constexpr i32 mapWidth {64};
 inline constexpr i32 mapHeight {64};
