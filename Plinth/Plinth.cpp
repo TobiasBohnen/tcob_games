@@ -18,7 +18,7 @@ Plinth::Plinth(game& game)
     _material->first_pass().Texture = _texture;
 
     _texture->resize(screenSize, 1, gfx::texture::format::RGBA8);
-    _texture->Filtering = gfx::texture::filtering::Linear;
+    _texture->Filtering = gfx::texture::filtering::NearestNeighbor;
 
     _screen    = _texture->info().Size;
     _raycaster = std::make_unique<raycaster>(*_cache, _screen);
@@ -100,22 +100,56 @@ void Plinth::draw()
 
 auto Plinth::move(milliseconds deltaTime) -> bool
 {
+    auto const& input {locate_service<input::system>()};
+
     f64 const moveSpeed {deltaTime.count() / 1000 * 4.0}; // squares/second
     f64 const rotSpeed {deltaTime.count() / 1000 * 3.0};  // radians/second
 
-    auto const& keyboard {locate_service<input::system>().keyboard()};
-
     f64 forwardAmount {0};
-    if (keyboard.is_key_down(input::scan_code::W) || keyboard.is_key_down(input::scan_code::UP)) { forwardAmount += moveSpeed; }
-    if (keyboard.is_key_down(input::scan_code::S) || keyboard.is_key_down(input::scan_code::DOWN)) { forwardAmount -= moveSpeed; }
-
     f64 strafeAmount {0};
-    if (keyboard.is_key_down(input::scan_code::D)) { strafeAmount -= moveSpeed; }
-    if (keyboard.is_key_down(input::scan_code::A)) { strafeAmount += moveSpeed; }
-
     f64 rotateAmount {0};
-    if (keyboard.is_key_down(input::scan_code::LEFT)) { rotateAmount += rotSpeed; }
-    if (keyboard.is_key_down(input::scan_code::RIGHT)) { rotateAmount -= rotSpeed; }
+
+    if (input.InputMode == input::mode::KeyboardMouse) {
+        auto const& keyboard {input.keyboard()}; // TODO: remap in ui
+
+        if (keyboard.is_key_down(input::scan_code::W) || keyboard.is_key_down(input::scan_code::UP)) { forwardAmount += moveSpeed; }
+        if (keyboard.is_key_down(input::scan_code::S) || keyboard.is_key_down(input::scan_code::DOWN)) { forwardAmount -= moveSpeed; }
+
+        if (keyboard.is_key_down(input::scan_code::D)) { strafeAmount -= moveSpeed; }
+        if (keyboard.is_key_down(input::scan_code::A)) { strafeAmount += moveSpeed; }
+
+        if (keyboard.is_key_down(input::scan_code::LEFT)) { rotateAmount += rotSpeed; }
+        if (keyboard.is_key_down(input::scan_code::RIGHT)) { rotateAmount -= rotSpeed; }
+    } else {
+        auto const& controller {input.first_controller()}; // TODO: controller select in ui
+
+        if (controller.is_button_pressed(input::controller::button::DPadUp)) { forwardAmount += moveSpeed; }
+        if (controller.is_button_pressed(input::controller::button::DPadDown)) { forwardAmount -= moveSpeed; }
+
+        if (controller.is_button_pressed(input::controller::button::DPadLeft)) { strafeAmount += moveSpeed; }
+        if (controller.is_button_pressed(input::controller::button::DPadRight)) { strafeAmount -= moveSpeed; }
+
+        constexpr f64 deadzone {5000.0}; // TODO: controller deadzone in ui
+        constexpr f64 maxAxisValue {32768.0};
+
+        auto const leftY {controller.get_axis_value(input::controller::axis::LeftY)};
+        if (std::abs(leftY) > deadzone) {
+            f64 const normalizedY {leftY / maxAxisValue};
+            forwardAmount += -normalizedY * moveSpeed;
+        }
+
+        auto const leftX {controller.get_axis_value(input::controller::axis::LeftX)};
+        if (std::abs(leftX) > deadzone) {
+            f64 const normalizedX {leftX / maxAxisValue};
+            strafeAmount += -normalizedX * moveSpeed;
+        }
+
+        auto const rightX {controller.get_axis_value(input::controller::axis::RightX)};
+        if (std::abs(rightX) > deadzone) {
+            f64 const normalizedRightX {rightX / maxAxisValue};
+            rotateAmount += -normalizedRightX * rotSpeed;
+        }
+    }
 
     return _player.move(*_level, forwardAmount, strafeAmount, rotateAmount);
 }
