@@ -8,15 +8,17 @@
 #include <algorithm>
 #include <cmath>
 
-#include "Textures.hpp"
+#include "Cache.hpp"
+#include "Common.hpp"
+#include "Level.hpp"
+#include "Player.hpp"
 #include "Walls.hpp"
 
 constexpr f64 fogFloor {0.2};
 constexpr f64 fogDistance {8.0};
 
-raycaster::raycaster(cache& cache, std::vector<sprite>& sprites, size_i screenSize, f64 horizontalFovDegrees)
+raycaster::raycaster(cache& cache, size_i screenSize)
     : _cache {cache}
-    , _sprites {sprites}
     , _screenSize {screenSize}
 {
     _zBuffer.resize(_screenSize.Width);
@@ -31,129 +33,6 @@ raycaster::raycaster(cache& cache, std::vector<sprite>& sprites, size_i screenSi
     }
 
     _spriteDepthBuffer.resize(static_cast<usize>(_screenSize.Width) * _screenSize.Height);
-
-    f64 const fov {horizontalFovDegrees * TAU / 360.0};
-    _dir   = {-1, 0};
-    _plane = {0, std::tan(fov / 2.0)};
-
-    _projPlaneDist = (_screenSize.Width / 2.0) / std::tan(fov / 2.0);
-}
-
-auto raycaster::get_player_position() const -> point_d
-{
-    return _pos;
-}
-
-void raycaster::set_player_position(point_d pos)
-{
-    _pos = pos;
-}
-
-void raycaster::set_world_map(map_t const& map)
-{
-    _map = &map;
-}
-
-auto raycaster::is_position_clear(point_d pos, f64 radius) const -> bool
-{
-    // wall collision
-    i32 const minTileX {static_cast<i32>(std::floor(pos.X - radius))};
-    i32 const maxTileX {static_cast<i32>(std::floor(pos.X + radius))};
-    i32 const minTileY {static_cast<i32>(std::floor(pos.Y - radius))};
-    i32 const maxTileY {static_cast<i32>(std::floor(pos.Y + radius))};
-
-    for (i32 ty {minTileY}; ty <= maxTileY; ++ty) {
-        for (i32 tx {minTileX}; tx <= maxTileX; ++tx) {
-            if (tx < 0 || tx >= map_t::Size.Width || ty < 0 || ty >= map_t::Size.Height) { return false; }
-            auto const& cell {(*_map)[point_i {tx, ty}]};
-            rect_d      clampRect {static_cast<f64>(tx), static_cast<f64>(ty), 1.0, 1.0};
-            bool const  isSolid {overloaded_visit(
-                cell,
-                [](empty const&) { return false; },
-                [](normal_wall const&) { return true; },
-                [&clampRect, tx, ty](half_wall const& w) {
-                    clampRect = w.LocalBounds;
-                    clampRect.move_by(point_i {tx, ty});
-                    return true;
-                },
-                [](auto const& w) {
-                    return (w.State != wall_state::Open);
-                })};
-
-            if (!isSolid) { continue; }
-
-            f64 const closestX {std::clamp(pos.X, clampRect.left(), clampRect.right())};
-            f64 const closestY {std::clamp(pos.Y, clampRect.top(), clampRect.bottom())};
-            f64 const dx {pos.X - closestX};
-            f64 const dy {pos.Y - closestY};
-
-            if (((dx * dx) + (dy * dy)) < (radius * radius)) {
-                return false;
-            }
-        }
-    }
-
-    // sprite collision check
-    return std::ranges::all_of(_sprites, [&](sprite const& spr) {
-        if (!spr.Solid) { return true; }
-
-        f64 const     combinedRadius {radius + (spr.Size.Width / 2.0)};
-        point_d const d {spr.Pos - pos};
-        return d.dot(d) >= combinedRadius * combinedRadius;
-    });
-}
-
-auto raycaster::move(f64 forwardAmount, f64 strafeAmount, f64 rotateAmount) -> bool
-{
-    bool retValue {false};
-
-    // Move Forward/Backward
-    if (forwardAmount != 0) {
-        point_d const newPos {_pos + (_dir * forwardAmount)};
-
-        if (is_position_clear(newPos, PlayerRadius)) {
-            _pos     = newPos;
-            retValue = true;
-        } else if (is_position_clear({_pos.X, newPos.Y}, PlayerRadius)) {
-            _pos.Y   = newPos.Y;
-            retValue = true;
-        } else if (is_position_clear({newPos.X, _pos.Y}, PlayerRadius)) {
-            _pos.X   = newPos.X;
-            retValue = true;
-        }
-    }
-
-    // Strafe Left/Right (perpendicular to _dir)
-    if (strafeAmount != 0) {
-        point_d const strafe {_dir.as_perpendicular()};
-        point_d const newPos {_pos + (strafe * strafeAmount)};
-
-        if (is_position_clear(newPos, PlayerRadius)) {
-            _pos     = newPos;
-            retValue = true;
-        } else if (is_position_clear({_pos.X, newPos.Y}, PlayerRadius)) {
-            _pos.Y   = newPos.Y;
-            retValue = true;
-        } else if (is_position_clear({newPos.X, _pos.Y}, PlayerRadius)) {
-            _pos.X   = newPos.X;
-            retValue = true;
-        }
-    }
-
-    // Rotate (both direction and plane vectors must rotate together)
-    if (rotateAmount != 0) {
-        f64 const old_dirX {_dir.X};
-        _dir.X = (_dir.X * std::cos(rotateAmount)) - (_dir.Y * std::sin(rotateAmount));
-        _dir.Y = (old_dirX * std::sin(rotateAmount)) + (_dir.Y * std::cos(rotateAmount));
-
-        f64 const oldPlaneX {_plane.X};
-        _plane.X = (_plane.X * std::cos(rotateAmount)) - (_plane.Y * std::sin(rotateAmount));
-        _plane.Y = (oldPlaneX * std::sin(rotateAmount)) + (_plane.Y * std::cos(rotateAmount));
-
-        retValue = true;
-    }
-
-    return retValue;
 }
 
 void raycaster::prepare_draw()
@@ -161,15 +40,21 @@ void raycaster::prepare_draw()
     std::ranges::fill(_spriteDepthBuffer, std::numeric_limits<f64>::infinity());
 }
 
-void raycaster::draw_walls(u32* screenBuf, i32 columnStart, i32 columnEnd)
+void raycaster::draw(level const& level, player const& player, u32* screenBuf, i32 columnStart, i32 columnEnd)
+{
+    draw_walls(level, player, screenBuf, columnStart, columnEnd);
+    draw_sprites(level, player, screenBuf, columnStart, columnEnd);
+}
+
+void raycaster::draw_walls(level const& level, player const& player, u32* screenBuf, i32 columnStart, i32 columnEnd)
 {
     for (isize x {columnStart}; x < columnEnd; x++) {
         // WALL CASTING
         // calculate ray position and direction
         f64 const     cameraX {(2.0 * x / _screenSize.Width) - 1.0}; // x-coordinate in camera space
-        point_d const rayDir {_dir + (_plane * cameraX)};
+        point_d const rayDir {player.Direction + (player.Plane * cameraX)};
 
-        point_i map {static_cast<point_i>(_pos)};
+        point_i map {static_cast<point_i>(player.Pos)};
 
         point_d const deltaDist {(rayDir.X == 0) ? 1e30 : std::abs(1 / rayDir.X), (rayDir.Y == 0) ? 1e30 : std::abs(1 / rayDir.Y)};
 
@@ -177,31 +62,31 @@ void raycaster::draw_walls(u32* screenBuf, i32 columnStart, i32 columnEnd)
         point_d sideDist {};
         if (rayDir.X < 0) {
             step.X     = -1;
-            sideDist.X = (_pos.X - map.X) * deltaDist.X;
+            sideDist.X = (player.Pos.X - map.X) * deltaDist.X;
         } else {
             step.X     = 1;
-            sideDist.X = (map.X + 1.0 - _pos.X) * deltaDist.X;
+            sideDist.X = (map.X + 1.0 - player.Pos.X) * deltaDist.X;
         }
         if (rayDir.Y < 0) {
             step.Y     = -1;
-            sideDist.Y = (_pos.Y - map.Y) * deltaDist.Y;
+            sideDist.Y = (player.Pos.Y - map.Y) * deltaDist.Y;
         } else {
             step.Y     = 1;
-            sideDist.Y = (map.Y + 1.0 - _pos.Y) * deltaDist.Y;
+            sideDist.Y = (map.Y + 1.0 - player.Pos.Y) * deltaDist.Y;
         }
 
         wall_hit hitResult {};
 
         // check player cell
         {
-            auto const intersect {[&](auto&& c) { return c.intersect(map, _pos, rayDir, false, 0.0); }};
-            auto const wallHit {std::visit(intersect, (*_map)[map])};
+            auto const intersect {[&](auto&& c) { return c.intersect(map, player.Pos, rayDir, false, 0.0); }};
+            auto const wallHit {std::visit(intersect, level.Map[map])};
             if (wallHit.Hit) { hitResult = wallHit; }
         }
         // DDA
         if (!hitResult.Hit) {
             bool       side {false}; // was a NS or a EW wall hit?
-            auto const intersect {[&](auto&& c) -> wall_hit { return c.intersect(map, _pos, rayDir, side, !side ? sideDist.X - deltaDist.X : sideDist.Y - deltaDist.Y); }};
+            auto const intersect {[&](auto&& c) -> wall_hit { return c.intersect(map, player.Pos, rayDir, side, !side ? sideDist.X - deltaDist.X : sideDist.Y - deltaDist.Y); }};
 
             for (;;) {
                 // jump to next map square, either in x-direction, or in y-direction
@@ -215,8 +100,8 @@ void raycaster::draw_walls(u32* screenBuf, i32 columnStart, i32 columnEnd)
                     side = true;
                 }
 
-                if (!_map->size().contains(map)) { break; }
-                auto const wallHit {std::visit(intersect, (*_map)[map])};
+                if (!map_t::Size.contains(map)) { break; }
+                auto const wallHit {std::visit(intersect, level.Map[map])};
                 if (wallHit.Hit) {
                     hitResult = wallHit;
                     break;
@@ -229,7 +114,7 @@ void raycaster::draw_walls(u32* screenBuf, i32 columnStart, i32 columnEnd)
         _zBuffer[x] = perpWallDist;
 
         // Calculate height of line to draw on screen
-        i32 const lineHeight {static_cast<i32>(_projPlaneDist / perpWallDist)};
+        i32 const lineHeight {static_cast<i32>(player.ProjPlaneDist / perpWallDist)};
 
         // calculate lowest and highest pixel to fill in current stripe
         i32 const drawStart {std::max((-lineHeight / 2) + (_screenSize.Height / 2), 0)};
@@ -262,7 +147,7 @@ void raycaster::draw_walls(u32* screenBuf, i32 columnStart, i32 columnEnd)
         }
 
         // FLOOR CASTING (vertical version, directly after drawing the vertical wall stripe for the current x)
-        point_d const floorWall {_pos + (rayDir * perpWallDist)};
+        point_d const floorWall {player.Pos + (rayDir * perpWallDist)};
 
         // draw the floor from drawEnd to the bottom of the screen
         f64 const    invPerpWallDist {1.0 / perpWallDist};
@@ -273,9 +158,9 @@ void raycaster::draw_walls(u32* screenBuf, i32 columnStart, i32 columnEnd)
         for (i32 y {drawEnd}; y < _screenSize.Height; y++) {
             f64 const weight {std::min(_rowDist[y] * invPerpWallDist, 1.0)};
 
-            point_d const currentFloor {(weight * floorWall.X) + ((1.0 - weight) * _pos.X), (weight * floorWall.Y) + ((1.0 - weight) * _pos.Y)};
+            point_d const currentFloor {(weight * floorWall.X) + ((1.0 - weight) * player.Pos.X), (weight * floorWall.Y) + ((1.0 - weight) * player.Pos.Y)};
 
-            point_d const delta {currentFloor.X - _pos.X, currentFloor.Y - _pos.Y};
+            point_d const delta {currentFloor.X - player.Pos.X, currentFloor.Y - player.Pos.Y};
             f64 const     floorDist {std::sqrt((delta.X * delta.X) + (delta.Y * delta.Y))};
             f64 const     fogFactor {std::max(1.0 - (floorDist / fogDistance), fogFloor)};
 
@@ -305,22 +190,22 @@ static auto sprite_facing_index(degree_d spriteFacing, point_d spritePos, point_
     return index;
 }
 
-void raycaster::draw_sprites(u32* screenBuf, i32 columnStart, i32 columnEnd)
+void raycaster::draw_sprites(level const& level, player const& player, u32* screenBuf, i32 columnStart, i32 columnEnd)
 {
     // camera plane determinant, used to "unrotate" sprite position into camera space
-    f64 const invDet {1.0 / _plane.cross(_dir)};
+    f64 const invDet {1.0 / player.Plane.cross(player.Direction)};
 
-    for (sprite const& spr : _sprites) {
+    for (sprite const& spr : level.Sprites) {
         // translate sprite position relative to camera
-        point_d const relPos {spr.Pos - _pos};
+        point_d const relPos {spr.Pos - player.Pos};
 
         // transform with the inverse camera matrix
-        f64 const transformX {invDet * relPos.cross(_dir)};
-        f64 const transformY {invDet * _plane.cross(relPos)};
-        if (transformY <= 0) { continue; }                 // behind camera
+        f64 const transformX {invDet * relPos.cross(player.Direction)};
+        f64 const transformY {invDet * player.Plane.cross(relPos)};
+        if (transformY <= 0) { continue; }                       // behind camera
 
         i32 const     spriteScreenX {static_cast<i32>((_screenSize.Width / 2.0) * (1.0 + (transformX / transformY)))};
-        f64 const     scale {_projPlaneDist / transformY}; // size of "one world unit" in screen pixels at this depth
+        f64 const     scale {player.ProjPlaneDist / transformY}; // size of "one world unit" in screen pixels at this depth
         size_i const  spriteSize {static_cast<i32>(std::abs(scale)) * size_i {spr.Size}};
         point_i const drawStart {std::max({(-spriteSize.Width / 2) + spriteScreenX, 0, columnStart}),
                                  std::max((-spriteSize.Height / 2) + (_screenSize.Height / 2), 0)};
@@ -331,7 +216,7 @@ void raycaster::draw_sprites(u32* screenBuf, i32 columnStart, i32 columnEnd)
         i32 const spriteLeft {spriteScreenX - (spriteSize.Width / 2)};
         i32 const spriteTop {(_screenSize.Height / 2) - (spriteSize.Height / 2)};
 
-        i32 const    facing {sprite_facing_index(spr.Facing, spr.Pos, _pos)};
+        i32 const    facing {sprite_facing_index(spr.Facing, spr.Pos, player.Pos)};
         auto const*  tex {_cache.texture(spr.Texture, facing)};
         size_i const texSize {_cache.texture_size(spr.Texture, facing)};
 

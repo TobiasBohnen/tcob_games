@@ -4,7 +4,8 @@
 // https://opensource.org/licenses/MIT
 
 #include "Cache.hpp"
-#include "Textures.hpp"
+
+#include "Common.hpp"
 
 cache::cache(size_i screenSize)
 {

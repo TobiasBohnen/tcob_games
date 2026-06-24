@@ -5,15 +5,9 @@
 
 #pragma once
 
-#include "../_common/Common.hpp"
-#include "Textures.hpp"
+#include "Common.hpp"
 
 ////////////////////////////////////////////////////////////
-
-struct texture_entry {
-    usize  Offset {};
-    size_i Size {};
-};
 
 class cache final {
 public:
@@ -32,7 +26,12 @@ private:
     static void set(u32* raw, color c, f64 darken);
     static auto get(u8 const* img, usize idx) -> color;
 
-    std::vector<u32>                                                _screen;
-    std::vector<u8>                                                 _textures;
+    std::vector<u32> _screen;
+    std::vector<u8>  _textures;
+
+    struct texture_entry {
+        usize  Offset {};
+        size_i Size {};
+    };
     std::array<std::array<texture_entry, maxFacings>, textureCount> _directory {};
 };

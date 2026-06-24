@@ -27,7 +27,7 @@ auto normal_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, boo
 
 auto door_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit
 {
-    bool const isNS {Orientation == door_orientation::BlocksNorthSouth};
+    bool const isNS {Orientation == orientation::BlocksNorthSouth};
 
     f64 const rdLeaf {isNS ? rayDir.Y : rayDir.X};
     f64 const roLeaf {isNS ? rayOrigin.Y : rayOrigin.X};
@@ -167,59 +167,4 @@ auto half_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool 
     }
 
     return wall_hit {.Hit = true, .Distance = t, .SegmentT = segmentT, .Texture = Texture, .Side = side};
-}
-
-auto update_special_walls(map_t& walls, milliseconds deltaSeconds) -> bool
-{
-    bool retValue {false};
-
-    f64 const dt {deltaSeconds.count() / 1000};
-    for (wall& wall : walls) {
-        overloaded_visit(
-            wall,
-            [](empty&) { },
-            [](normal_wall&) { },
-            [](half_wall&) { },
-            [dt, &retValue](auto&& w) {
-                using type = std::remove_cvref_t<decltype(w)>;
-
-                if (w.State == wall_state::Opening) {
-                    w.Timer += dt * type::OpenSpeed;
-                    if (w.Timer >= 1.0) {
-                        w.Timer = 1.0;
-                        w.State = wall_state::Open;
-                    }
-                    retValue = true;
-                } else if (w.State == wall_state::Closing) {
-                    w.Timer -= dt * type::OpenSpeed;
-                    if (w.Timer <= 0.0) {
-                        w.Timer = 0;
-                        w.State = wall_state::Closed;
-                    }
-                    retValue = true;
-                }
-            });
-    }
-    return retValue;
-}
-
-void toggle_special_wall(wall& wall)
-{
-    overloaded_visit(
-        wall,
-        [](empty&) { },
-        [](normal_wall&) { },
-        [](half_wall&) { },
-        [](auto&& w) {
-            switch (w.State) {
-            case wall_state::Closed:
-            case wall_state::Closing:
-                w.State = wall_state::Opening;
-                break;
-            case wall_state::Open:
-            case wall_state::Opening:
-                w.State = wall_state::Closing;
-                break;
-            }
-        });
 }

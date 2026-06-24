@@ -3,6 +3,8 @@ add_executable(Plinth)
 target_sources(Plinth PRIVATE
     main.cpp
     Cache.cpp
+    Level.cpp
+    Player.cpp
     Plinth.cpp
     Raycaster.cpp
     Walls.cpp

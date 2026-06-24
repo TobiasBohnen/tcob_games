@@ -7,8 +7,9 @@
 
 #include <memory>
 
-#include "../_common/Common.hpp"
 #include "Cache.hpp"
+#include "Common.hpp"
+#include "Player.hpp"
 #include "Raycaster.hpp"
 
 class Plinth final : public scene {
@@ -29,8 +30,9 @@ private:
     auto move(milliseconds deltaTime) -> bool;
 
     std::unique_ptr<cache>     _cache;
-    std::vector<sprite>        _sprites;
     std::unique_ptr<raycaster> _raycaster;
+    std::unique_ptr<level>     _level;
+    player                     _player;
 
     asset_owner_ptr<gfx::material> _material;
     asset_owner_ptr<gfx::texture>  _texture;

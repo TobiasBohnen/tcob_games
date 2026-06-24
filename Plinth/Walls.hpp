@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "../_common/Common.hpp"
+#include "Common.hpp"
 
 enum class wall_kind : u8 {
     Normal,
@@ -19,11 +19,6 @@ enum class wall_state : u8 {
     Opening = 1,
     Open    = 2,
     Closing = 3
-};
-
-enum class door_orientation : u8 {
-    BlocksNorthSouth, // door slab runs east-west, at y = cellY + 0.5
-    BlocksEastWest    // door slab runs north-south, at x = cellX + 0.5
 };
 
 struct wall_hit {
@@ -46,10 +41,15 @@ struct normal_wall {
 };
 
 struct door_wall {
+    enum class orientation : u8 {
+        BlocksNorthSouth, // door slab runs east-west, at y = cellY + 0.5
+        BlocksEastWest    // door slab runs north-south, at x = cellX + 0.5
+    };
+
     wall_state State {wall_state::Closed};
     f64        Timer {0.0}; // 0 = closed, 1 = fully open
 
-    door_orientation Orientation {door_orientation::BlocksNorthSouth};
+    orientation Orientation {orientation::BlocksNorthSouth};
 
     i32 Texture {0};
     i32 FrameTexture {0};
@@ -85,9 +85,5 @@ using wall = std::variant<empty, normal_wall, door_wall, push_wall, half_wall>;
 inline constexpr i32 mapWidth {64};
 inline constexpr i32 mapHeight {64};
 using map_t = static_grid<wall, mapWidth, mapHeight>;
-
-auto update_special_walls(map_t& walls, milliseconds deltaSeconds) -> bool;
-
-void toggle_special_wall(wall& wall);
 
 ////////////////////////////////////////////////////////////
