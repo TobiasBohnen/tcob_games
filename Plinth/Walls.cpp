@@ -25,7 +25,7 @@ auto normal_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, boo
     return {.Hit = true, .Distance = dist, .SegmentT = segmentT, .Texture = Texture, .Side = side};
 }
 
-auto door_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit
+auto door_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64) const -> wall_hit
 {
     bool const isNS {Orientation == orientation::BlocksNorthSouth};
 
@@ -70,7 +70,7 @@ auto door_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool 
     return closestHit;
 }
 
-auto push_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit
+auto push_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64) const -> wall_hit
 {
     if (State == wall_state::Open) { return {}; }
 
@@ -119,7 +119,7 @@ auto push_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool 
     return {};
 }
 
-auto half_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit
+auto half_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool, f64) const -> wall_hit
 {
     f64 const minX {cell.X + LocalBounds.left()};
     f64 const minY {cell.Y + LocalBounds.top()};
@@ -170,7 +170,7 @@ auto half_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool 
     return wall_hit {.Hit = true, .Distance = t, .SegmentT = segmentT, .Texture = Texture, .Side = hitSide};
 }
 
-auto diagonal_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit
+auto diagonal_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool, f64) const -> wall_hit
 {
     f64 const cX {static_cast<f64>(cell.X)};
     f64 const cY {static_cast<f64>(cell.Y)};
