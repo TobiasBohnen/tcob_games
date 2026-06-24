@@ -168,3 +168,46 @@ auto half_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool 
 
     return wall_hit {.Hit = true, .Distance = t, .SegmentT = segmentT, .Texture = Texture, .Side = side};
 }
+
+auto diagonal_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit
+{
+    f64 const cX {static_cast<f64>(cell.X)};
+    f64 const cY {static_cast<f64>(cell.Y)};
+
+    f64 t {-1.0};
+
+    if (Orientation == orientation::NorthWestToSouthEast) {
+        f64 const denom = rayDir.X - rayDir.Y;
+        if (std::abs(denom) > 1e-6) {
+            t = ((cX - cY) - (rayOrigin.X - rayOrigin.Y)) / denom;
+        }
+    } else {
+        f64 const denom = rayDir.X + rayDir.Y;
+        if (std::abs(denom) > 1e-6) {
+            t = ((cX + cY + 1.0) - (rayOrigin.X + rayOrigin.Y)) / denom;
+        }
+    }
+
+    if (t < 0.0) { return {}; }
+
+    f64 const hitX {rayOrigin.X + (rayDir.X * t)};
+    f64 const hitY {rayOrigin.Y + (rayDir.Y * t)};
+
+    if (hitX < cX || hitX > cX + 1.0 || hitY < cY || hitY > cY + 1.0) {
+        return {};
+    }
+
+    f64 segmentT {0.0};
+    if (Orientation == orientation::NorthWestToSouthEast) {
+        segmentT = hitX - cX;
+    } else {
+        segmentT = 1.0 - (hitX - cX);
+    }
+
+    return wall_hit {
+        .Hit      = true,
+        .Distance = t,
+        .SegmentT = segmentT,
+        .Texture  = Texture,
+        .Side     = Orientation == orientation::SouthWestToNorthEast};
+}

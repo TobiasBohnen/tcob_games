@@ -9,9 +9,45 @@
 #include "Level.hpp"
 #include "Walls.hpp"
 
+static auto closest_point_on_wall(level const& level, point_i cell, point_d pos) -> std::optional<point_d>
+{
+    auto const&  c {level.Map[cell]};
+    rect_d const clampRect {static_cast<f64>(cell.X), static_cast<f64>(cell.Y), 1.0, 1.0};
+
+    return overloaded_visit(
+        c,
+        [](empty const&) -> std::optional<point_d> { return std::nullopt; },
+        [&](normal_wall const&) -> std::optional<point_d> {
+            return point_d {std::clamp(pos.X, clampRect.left(), clampRect.right()),
+                            std::clamp(pos.Y, clampRect.top(), clampRect.bottom())};
+        },
+        [&](diagonal_wall const& w) -> std::optional<point_d> {
+            f64 const     cX {static_cast<f64>(cell.X)};
+            f64 const     cY {static_cast<f64>(cell.Y)};
+            bool const    nwSe {w.Orientation == diagonal_wall::orientation::NorthWestToSouthEast};
+            point_d const a {cX, nwSe ? cY : cY + 1.0};
+            point_d const b {cX + 1.0, nwSe ? cY + 1.0 : cY};
+            point_d const ab {b.X - a.X, b.Y - a.Y};
+            f64 const     t {std::clamp(((pos.X - a.X) * ab.X + (pos.Y - a.Y) * ab.Y) / (ab.X * ab.X + ab.Y * ab.Y), 0.0, 1.0)};
+            return point_d {a.X + (t * ab.X), a.Y + (t * ab.Y)};
+        },
+        [&](half_wall const& w) -> std::optional<point_d> {
+            rect_d r {w.LocalBounds};
+            r.move_by(cell);
+            return point_d {std::clamp(pos.X, r.left(), r.right()),
+                            std::clamp(pos.Y, r.top(), r.bottom())};
+        },
+        [&](auto const& w) -> std::optional<point_d> {
+            if (w.State != wall_state::Open) {
+                return point_d {std::clamp(pos.X, clampRect.left(), clampRect.right()),
+                                std::clamp(pos.Y, clampRect.top(), clampRect.bottom())};
+            }
+            return std::nullopt;
+        });
+}
+
 static auto is_position_clear(level const& level, point_d pos, f64 radius) -> bool
 {
-    // wall collision
     i32 const minTileX {static_cast<i32>(std::floor(pos.X - radius))};
     i32 const maxTileX {static_cast<i32>(std::floor(pos.X + radius))};
     i32 const minTileY {static_cast<i32>(std::floor(pos.Y - radius))};
@@ -20,38 +56,17 @@ static auto is_position_clear(level const& level, point_d pos, f64 radius) -> bo
     for (i32 ty {minTileY}; ty <= maxTileY; ++ty) {
         for (i32 tx {minTileX}; tx <= maxTileX; ++tx) {
             if (tx < 0 || tx >= map_t::Size.Width || ty < 0 || ty >= map_t::Size.Height) { return false; }
-            auto const& cell {level.Map[point_i {tx, ty}]};
-            rect_d      clampRect {static_cast<f64>(tx), static_cast<f64>(ty), 1.0, 1.0};
-            bool const  isSolid {overloaded_visit(
-                cell,
-                [](empty const&) { return false; },
-                [](normal_wall const&) { return true; },
-                [&clampRect, tx, ty](half_wall const& w) {
-                    clampRect = w.LocalBounds;
-                    clampRect.move_by(point_i {tx, ty});
-                    return true;
-                },
-                [](auto const& w) {
-                    return (w.State != wall_state::Open);
-                })};
 
-            if (!isSolid) { continue; }
+            auto const closest {closest_point_on_wall(level, {tx, ty}, pos)};
+            if (!closest) { continue; }
 
-            f64 const closestX {std::clamp(pos.X, clampRect.left(), clampRect.right())};
-            f64 const closestY {std::clamp(pos.Y, clampRect.top(), clampRect.bottom())};
-            f64 const dx {pos.X - closestX};
-            f64 const dy {pos.Y - closestY};
-
-            if (((dx * dx) + (dy * dy)) < (radius * radius)) {
-                return false;
-            }
+            point_d const d {pos.X - closest->X, pos.Y - closest->Y};
+            if (d.dot(d) < radius * radius) { return false; }
         }
     }
 
-    // sprite collision check
     return std::ranges::all_of(level.Sprites, [&](sprite const& spr) {
         if (!spr.Solid) { return true; }
-
         f64 const     combinedRadius {radius + (spr.Size.Width / 2.0)};
         point_d const d {spr.Pos - pos};
         return d.dot(d) >= combinedRadius * combinedRadius;
