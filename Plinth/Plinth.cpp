@@ -178,15 +178,21 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
         }()};
         std::ignore = window().copy_to_image().save(fileName);
     } break;
-    case input::scan_code::E: {
-        _level->toggle_wall(point_i {8, 5});
-        _level->toggle_wall(point_i {7, 7});
-
-        _level->toggle_wall(point_i {10, 5});
-        _level->toggle_wall(point_i {7, 10});
+    case input::scan_code::SPACE: {
+        _level->toggle_wall(point_i {_player.Pos + _player.Direction});
     } break;
     default:
 
         break;
+    }
+}
+
+void Plinth::on_controller_button_down(input::controller::button_event const& ev)
+{
+    switch (ev.Button) {
+    case tcob::input::controller::button::A:
+        _level->toggle_wall(point_i {_player.Pos + _player.Direction});
+        break;
+    default: break;
     }
 }

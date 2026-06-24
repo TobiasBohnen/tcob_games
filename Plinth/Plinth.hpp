@@ -24,6 +24,7 @@ public:
     void on_update(milliseconds deltaTime) override;
 
     void on_key_down(input::keyboard::event const& ev) override;
+    void on_controller_button_down(input::controller::button_event const& ev) override;
 
 private:
     void draw();

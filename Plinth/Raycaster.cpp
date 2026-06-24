@@ -79,7 +79,7 @@ void raycaster::draw_walls(level const& level, player const& player, u32* screen
 
         // check player cell
         {
-            auto const intersect {[&](auto&& c) { return c.intersect(map, player.Pos, rayDir, false, 0.0); }};
+            auto const intersect {[&](auto&& c) { return c.intersect(map, player.Pos, rayDir, sideDist.X < sideDist.Y, 0.0); }};
             auto const wallHit {std::visit(intersect, level.Map[map])};
             if (wallHit.Hit) { hitResult = wallHit; }
         }
