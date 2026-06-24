@@ -89,6 +89,10 @@ level::level()
 
     Map[point_i {10, 5}] = push_wall {.PushDirection = {0, 5}, .Texture = 2};
     Map[point_i {7, 10}] = push_wall {.PushDirection = {5, 0}, .Texture = 2};
+
+    Sprites.push_back({.Pos = {4, 5}, .Size = {1, 1}, .Texture = sprite1Texture});
+    Sprites.push_back({.Pos = {4, 6}, .Size = {1, 1}, .Texture = sprite1Texture});
+    Sprites.push_back({.Pos = {4, 7}, .Size = {1, 1}, .Texture = sprite1Texture});
 }
 
 auto level::update(milliseconds deltaSeconds) -> bool

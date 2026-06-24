@@ -29,11 +29,6 @@ Plinth::Plinth(game& game)
     _player.Direction     = {-1, 0};
     _player.Plane         = {0, std::tan(fov / 2.0)};
     _player.ProjPlaneDist = (screenSize.Width / 2.0) / std::tan(fov / 2.0);
-
-    rng rng;
-    _level->Sprites.push_back({.Pos = {4, 5}, .Size = {1, 1}, .Texture = sprite1Texture});
-    _level->Sprites.push_back({.Pos = {4, 6}, .Size = {1, 1}, .Texture = sprite1Texture});
-    _level->Sprites.push_back({.Pos = {4, 7}, .Size = {1, 1}, .Texture = sprite1Texture});
 }
 
 Plinth::~Plinth() = default;
