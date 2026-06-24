@@ -54,7 +54,11 @@ struct door_wall {
     i32 Texture {0};
     i32 FrameTexture {0};
 
+    bool SlideReverse {false};
+
     auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit;
+    auto update(f64 dt) -> bool;
+    void toggle();
 
     static constexpr f64 OpenSpeed {1.5};
 };
@@ -68,6 +72,8 @@ struct push_wall {
     i32 Texture {0};
 
     auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit;
+    auto update(f64 dt) -> bool;
+    void toggle();
 
     static constexpr f64 OpenSpeed {1.5};
 };

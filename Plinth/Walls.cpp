@@ -44,11 +44,11 @@ auto door_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool 
         f64 const t = (cLeaf + 0.5 - roLeaf) / rdLeaf;
         if (t >= 0.0 && t < minT) {
             f64 const hitCross {roCross + (rdCross * t)};
-            f64 const segStart {cCross + Timer};
-            f64 const segEnd {cCross + 1.0};
-
+            f64 const segStart {isNS ? cCross + Timer : cCross};
+            f64 const segEnd {isNS ? cCross + 1.0 : cCross + (1.0 - Timer)};
             if (hitCross >= segStart && hitCross <= segEnd) {
-                closestHit = {.Hit = true, .Distance = t, .SegmentT = hitCross - segStart, .Texture = Texture, .Side = side};
+                f64 const segmentT {isNS ? hitCross - segStart : segEnd - hitCross};
+                closestHit = {.Hit = true, .Distance = t, .SegmentT = segmentT, .Texture = Texture, .Side = side};
                 minT       = t;
             }
         }
@@ -68,6 +68,41 @@ auto door_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool 
     }
 
     return closestHit;
+}
+
+auto door_wall::update(f64 dt) -> bool
+{
+    if (State == wall_state::Opening) {
+        Timer += dt * OpenSpeed;
+        if (Timer >= 1.0) {
+            Timer = 1.0;
+            State = wall_state::Open;
+        }
+        return true;
+    }
+    if (State == wall_state::Closing) {
+        Timer -= dt * OpenSpeed;
+        if (Timer <= 0.0) {
+            Timer = 0;
+            State = wall_state::Closed;
+        }
+        return true;
+    }
+    return false;
+}
+
+void door_wall::toggle()
+{
+    switch (State) {
+    case wall_state::Closed:
+    case wall_state::Closing:
+        State = wall_state::Opening;
+        break;
+    case wall_state::Open:
+    case wall_state::Opening:
+        State = wall_state::Closing;
+        break;
+    }
 }
 
 auto push_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64) const -> wall_hit
@@ -117,6 +152,40 @@ auto push_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool 
     }
 
     return {};
+}
+
+auto push_wall::update(f64 dt) -> bool
+{
+    if (State == wall_state::Opening) {
+        Timer += dt * OpenSpeed;
+        if (Timer >= 1.0) {
+            Timer = 1.0;
+            State = wall_state::Open;
+        }
+        return true;
+    }
+    if (State == wall_state::Closing) {
+        Timer -= dt * OpenSpeed;
+        if (Timer <= 0.0) {
+            Timer = 0;
+            State = wall_state::Closed;
+        }
+        return true;
+    }
+    return false;
+}
+
+void push_wall::toggle()
+{
+    switch (State) {
+    case wall_state::Closed:
+    case wall_state::Closing:
+        State = wall_state::Opening;
+        break;
+    case wall_state::Open:
+    case wall_state::Opening:
+        break;
+    }
 }
 
 auto half_wall::intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool, f64) const -> wall_hit

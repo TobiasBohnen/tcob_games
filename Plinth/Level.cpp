@@ -103,55 +103,24 @@ auto level::update(milliseconds deltaSeconds) -> bool
 
     f64 const dt {deltaSeconds.count() / 1000};
     for (wall& wall : Map) {
-        overloaded_visit(
-            wall,
-            [](empty&) { },
-            [](normal_wall&) { },
-            [](half_wall&) { },
-            [](diagonal_wall&) { },
-            [](round_pillar&) { },
+        std::visit(
             [dt, &retValue](auto&& w) {
-                using type = std::remove_cvref_t<decltype(w)>;
-
-                if (w.State == wall_state::Opening) {
-                    w.Timer += dt * type::OpenSpeed;
-                    if (w.Timer >= 1.0) {
-                        w.Timer = 1.0;
-                        w.State = wall_state::Open;
-                    }
-                    retValue = true;
-                } else if (w.State == wall_state::Closing) {
-                    w.Timer -= dt * type::OpenSpeed;
-                    if (w.Timer <= 0.0) {
-                        w.Timer = 0;
-                        w.State = wall_state::Closed;
-                    }
-                    retValue = true;
+                if constexpr (requires { w.update(dt); }) {
+                    retValue = w.update(dt) || retValue;
                 }
-            });
+            },
+            wall);
     }
     return retValue;
 }
 
 void level::toggle_wall(point_i p)
 {
-    overloaded_visit(
-        Map[p],
-        [](empty&) { },
-        [](normal_wall&) { },
-        [](half_wall&) { },
-        [](diagonal_wall&) { },
-        [](round_pillar&) { },
+    std::visit(
         [](auto&& w) {
-            switch (w.State) {
-            case wall_state::Closed:
-            case wall_state::Closing:
-                w.State = wall_state::Opening;
-                break;
-            case wall_state::Open:
-            case wall_state::Opening:
-                w.State = wall_state::Closing;
-                break;
+            if constexpr (requires { w.toggle(); }) {
+                w.toggle();
             }
-        });
+        },
+        Map[p]);
 }
