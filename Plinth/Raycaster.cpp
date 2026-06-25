@@ -14,7 +14,7 @@
 #include "Player.hpp"
 #include "Walls.hpp"
 
-raycaster::raycaster(cache& cache, size_i screenSize)
+raycaster::raycaster(cache& cache, size_i screenSize, f64 projPlaneDist)
     : _cache {cache}
     , _screenSize {screenSize}
 {
@@ -26,7 +26,7 @@ raycaster::raycaster(cache& cache, size_i screenSize)
             _rowDist[y] = std::numeric_limits<f64>::infinity();
             continue;
         }
-        _rowDist[y] = _screenSize.Height / ((2.0 * y) - _screenSize.Height);
+        _rowDist[y] = projPlaneDist / ((2.0 * y) - _screenSize.Height);
     }
 
     _spriteDepthBuffer.resize(static_cast<usize>(_screenSize.Width) * _screenSize.Height);

@@ -20,15 +20,15 @@ Plinth::Plinth(game& game)
     _texture->resize(screenSize, 1, gfx::texture::format::RGBA8);
     _texture->Filtering = gfx::texture::filtering::NearestNeighbor;
 
-    _screen    = _texture->info().Size;
-    _raycaster = std::make_unique<raycaster>(*_cache, _screen);
-    _level     = std::make_unique<level>();
-
     _player.Pos = {6, 5};
     f64 const fov {FOV * TAU / 360.0};
     _player.Direction     = {-1, 0};
     _player.Plane         = {0, std::tan(fov / 2.0)};
     _player.ProjPlaneDist = (screenSize.Width / 2.0) / std::tan(fov / 2.0);
+
+    _screen    = _texture->info().Size;
+    _raycaster = std::make_unique<raycaster>(*_cache, _screen, _player.ProjPlaneDist);
+    _level     = std::make_unique<level>();
 }
 
 Plinth::~Plinth() = default;

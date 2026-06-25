@@ -11,7 +11,7 @@
 
 class raycaster {
 public:
-    raycaster(cache& cache, size_i screenSize);
+    raycaster(cache& cache, size_i screenSize, f64 projPlaneDist);
 
     void prepare_draw();
     void draw(level const& level, player const& player, u32* screenBuf, i32 columnStart, i32 columnEnd);

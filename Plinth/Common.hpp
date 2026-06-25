@@ -22,9 +22,9 @@ inline constexpr i32 textureBPP {3};
 inline constexpr i32 maxFacings {8};
 
 inline constexpr size_i wallSize {64, 64};
-inline constexpr size_i skySize {1024, 64};
+inline constexpr size_i skySize {512, 64};
 
-inline constexpr f64 FOV {66};
+inline constexpr f64 FOV {90};
 
 class cache;
 class level;
