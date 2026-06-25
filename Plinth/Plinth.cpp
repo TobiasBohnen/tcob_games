@@ -18,7 +18,7 @@ Plinth::Plinth(game& game)
     _material->first_pass().Texture = _texture;
 
     _texture->resize(screenSize, 1, gfx::texture::format::RGBA8);
-    _texture->Filtering = gfx::texture::filtering::NearestNeighbor;
+    _texture->Filtering = gfx::texture::filtering::Linear;
 
     _player.Pos = {6, 5};
     f64 const fov {FOV * TAU / 360.0};

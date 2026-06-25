@@ -31,6 +31,9 @@ struct wall_hit {
 };
 
 struct empty {
+    i32 FloorTexture {-1};
+    i32 CeilingTexture {-1};
+
     auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit;
 };
 
