@@ -148,9 +148,9 @@ void raycaster::draw_walls(level const& level, player const& player, u32* screen
 
         // draw the floor from drawEnd to the bottom of the screen
         f64 const    invPerpWallDist {1.0 / perpWallDist};
-        auto const*  floorTex {_cache.texture(floorTexture, 0)};
+        auto const*  floorTex {_cache.texture(level.FloorTexture, 0)};
         size_i const floorSize {wallSize};
-        auto const*  ceilTex {_cache.texture(ceilingTexture, 0)};
+        auto const*  ceilTex {_cache.texture(level.CeilingTexture, 0)};
 
         for (i32 y {drawEnd}; y < _screenSize.Height; y++) {
             f64 const weight {std::min(_rowDist[y] * invPerpWallDist, 1.0)};
@@ -166,7 +166,19 @@ void raycaster::draw_walls(level const& level, player const& player, u32* screen
             i32 const texelOffset {(texelX + (texelY * floorSize.Width)) * textureBPP};
 
             cache::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), floorTex, texelOffset, fogFactor);
-            cache::copy(screenBuf + x + (y * _screenSize.Width), ceilTex, texelOffset, fogFactor);
+
+            if (level.IsSkybox) {
+                f64 const skyU {std::fmod((std::atan2(rayDir.Y, rayDir.X) / TAU) + 1.0, 1.0)};
+                i32 const skyTexX {static_cast<i32>(skyU * skySize.Width) % skySize.Width};
+
+                f64 const skyV {std::min(static_cast<f64>(_screenSize.Height - y - 1) / static_cast<f64>(_screenSize.Height / 2), 1.0)};
+                i32 const skyTexY {static_cast<i32>(skyV * skySize.Height) & (skySize.Height - 1)};
+
+                i32 const skyOffset {(skyTexX + (skyTexY * skySize.Width)) * textureBPP};
+                cache::copy(screenBuf + x + (y * _screenSize.Width), ceilTex, skyOffset, 1.0);
+            } else {
+                cache::copy(screenBuf + x + (y * _screenSize.Width), ceilTex, texelOffset, fogFactor);
+            }
         }
     }
 }

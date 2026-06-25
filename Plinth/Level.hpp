@@ -18,12 +18,17 @@ struct sprite {
 
 class level {
 public:
+    level();
+
     map_t               Map;
     std::vector<sprite> Sprites;
-    f64                 FogMin {0.0};
-    f64                 FogDistance {12.0};
 
-    level();
+    f64 FogMin {0.0};
+    f64 FogDistance {12.0};
+
+    i32  FloorTexture {0};
+    i32  CeilingTexture {0};
+    bool IsSkybox {false};
 
     auto update(milliseconds deltaSeconds) -> bool;
     void toggle_wall(point_i p);

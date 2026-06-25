@@ -53,8 +53,9 @@ void cache::load()
         {.Tex = 8, .Path = "res/wall7.png", .Size = wallSize},
         {.Tex = door1Texture, .Path = "res/door.png", .Size = wallSize},
         {.Tex = door1FrameTexture, .Path = "res/door_frame.png", .Size = wallSize},
-        {.Tex = floorTexture, .Path = "res/floor.png", .Size = wallSize},
-        {.Tex = ceilingTexture, .Path = "res/ceiling.png", .Size = wallSize},
+        {.Tex = 9, .Path = "res/floor.png", .Size = wallSize},
+        {.Tex = 10, .Path = "res/ceiling.png", .Size = wallSize},
+        {.Tex = 14, .Path = "res/sky.png", .Size = skySize},
 
         {.Tex = sprite1Texture, .Path = "res/enemy0-0.png", .Size = {64, 64}, .Facing = 0},
         {.Tex = sprite1Texture, .Path = "res/enemy0-1.png", .Size = {64, 64}, .Facing = 1},

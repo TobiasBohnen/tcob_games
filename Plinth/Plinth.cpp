@@ -25,7 +25,7 @@ Plinth::Plinth(game& game)
     _level     = std::make_unique<level>();
 
     _player.Pos = {6, 5};
-    f64 const fov {66.0 * TAU / 360.0};
+    f64 const fov {FOV * TAU / 360.0};
     _player.Direction     = {-1, 0};
     _player.Plane         = {0, std::tan(fov / 2.0)};
     _player.ProjPlaneDist = (screenSize.Width / 2.0) / std::tan(fov / 2.0);
