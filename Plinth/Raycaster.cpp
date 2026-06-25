@@ -155,10 +155,10 @@ void raycaster::draw_walls(level const& level, player const& player, u32* screen
             i32 cellCeilTex {level.CeilingTexture};
             std::visit([&](auto&& w) {
                 if constexpr (requires { w.FloorTexture; }) {
-                    if (w.FloorTexture > 0) { cellFloorTex = w.FloorTexture; }
+                    if (w.FloorTexture >= 0) { cellFloorTex = w.FloorTexture; }
                 }
                 if constexpr (requires { w.CeilingTexture; }) {
-                    if (w.CeilingTexture > 0) { cellCeilTex = w.CeilingTexture; }
+                    if (w.CeilingTexture >= 0) { cellCeilTex = w.CeilingTexture; }
                 }
             },
                        level.Map[point_i {currentFloor}]);
