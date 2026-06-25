@@ -94,9 +94,9 @@ void cache::copy(u32* dst, u8 const* src, i32 srcIdx, f64 darken)
 
 void cache::set(u32* raw, color c, f64 darken)
 {
-    c.R  = static_cast<u8>(c.R * darken);
-    c.G  = static_cast<u8>(c.G * darken);
-    c.B  = static_cast<u8>(c.B * darken);
+    c.R  = static_cast<u8>(std::min(c.R * darken, 255.0));
+    c.G  = static_cast<u8>(std::min(c.G * darken, 255.0));
+    c.B  = static_cast<u8>(std::min(c.B * darken, 255.0));
     *raw = std::byteswap(c.value());
 }
 

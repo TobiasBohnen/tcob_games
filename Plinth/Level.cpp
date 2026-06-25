@@ -98,9 +98,9 @@ level::level()
     Sprites.push_back({.Pos = {4, 6}, .Size = {1, 1}, .Texture = sprite1Texture});
     Sprites.push_back({.Pos = {4, 7}, .Size = {1, 1}, .Texture = sprite1Texture});
 
-    CeilingTexture = 14;
+    CeilingTexture = 13;
     FloorTexture   = 9;
-    IsSkybox       = true;
+    IsSkybox       = false;
 }
 
 auto level::update(milliseconds deltaSeconds) -> bool
