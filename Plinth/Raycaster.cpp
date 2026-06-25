@@ -14,9 +14,6 @@
 #include "Player.hpp"
 #include "Walls.hpp"
 
-constexpr f64 fogFloor {0.2};
-constexpr f64 fogDistance {8.0};
-
 raycaster::raycaster(cache& cache, size_i screenSize)
     : _cache {cache}
     , _screenSize {screenSize}
@@ -136,7 +133,7 @@ void raycaster::draw_walls(level const& level, player const& player, u32* screen
             f64       texPos {(drawStart - (_screenSize.Height / 2) + (lineHeight / 2)) * texStep};
 
             f64 const wallFaceFactor {hitResult.Side ? 0.5 : 1.0};
-            f64 const wallFogFactor {std::max(1.0 - (perpWallDist / fogDistance), fogFloor)};
+            f64 const wallFogFactor {std::max(1.0 - (perpWallDist / level.FogDistance), level.FogMin)};
             f64 const wallDarkenFactor {wallFaceFactor * wallFogFactor};
 
             for (i32 y {drawStart}; y < drawEnd; y++) {
@@ -162,7 +159,7 @@ void raycaster::draw_walls(level const& level, player const& player, u32* screen
 
             point_d const delta {currentFloor.X - player.Pos.X, currentFloor.Y - player.Pos.Y};
             f64 const     floorDist {std::sqrt((delta.X * delta.X) + (delta.Y * delta.Y))};
-            f64 const     fogFactor {std::max(1.0 - (floorDist / fogDistance), fogFloor)};
+            f64 const     fogFactor {std::max(1.0 - (floorDist / level.FogDistance), level.FogMin)};
 
             i32 const texelX {static_cast<i32>(currentFloor.X * floorSize.Width) & (floorSize.Width - 1)};
             i32 const texelY {static_cast<i32>(currentFloor.Y * floorSize.Height) & (floorSize.Height - 1)};
@@ -223,7 +220,7 @@ void raycaster::draw_sprites(level const& level, player const& player, u32* scre
         f64 const texStepY {1.0 * texSize.Height / spriteSize.Height};
         f64 const texPosYStart {(drawStart.Y - spriteTop) * texStepY};
 
-        f64 const spriteFogFactor {std::max(1.0 - (transformY / fogDistance), fogFloor)};
+        f64 const spriteFogFactor {std::max(1.0 - (transformY / level.FogDistance), level.FogMin)};
 
         for (i32 stripe {drawStart.X}; stripe < drawEnd.X; ++stripe) {
             i32 const texX {((stripe - spriteLeft) * texSize.Width) / spriteSize.Width};

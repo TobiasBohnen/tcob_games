@@ -20,6 +20,8 @@ class level {
 public:
     map_t               Map;
     std::vector<sprite> Sprites;
+    f64                 FogMin {0.0};
+    f64                 FogDistance {12.0};
 
     level();
 
