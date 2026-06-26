@@ -45,6 +45,8 @@ void raycaster::draw(level const& level, player const& player, u32* screenBuf, i
 
 void raycaster::draw_walls(level const& level, player const& player, u32* screenBuf, i32 columnStart, i32 columnEnd)
 {
+    f64 const invFogDistance {1.0 / level.FogDistance};
+
     for (isize x {columnStart}; x < columnEnd; x++) {
         // WALL CASTING
         f64 const     cameraX {(2.0 * x / _screenSize.Width) - 1.0};
@@ -122,7 +124,7 @@ void raycaster::draw_walls(level const& level, player const& player, u32* screen
             f64          texPos {(drawStart - (_screenSize.Height / 2) + (lineHeight / 2)) * texStep};
 
             f64 const wallFaceFactor {hitResult.Side ? 0.5 : 1.0};
-            f64 const wallFogFactor {std::max(1.0 - (perpWallDist / level.FogDistance), level.FogMin)};
+            f64 const wallFogFactor {std::max(1.0 - (perpWallDist * invFogDistance), level.FogMin)};
             f64 const wallDarkenFactor {wallFaceFactor * wallFogFactor};
 
             for (i32 y {drawStart}; y < drawEnd; y++) {
@@ -137,6 +139,26 @@ void raycaster::draw_walls(level const& level, player const& player, u32* screen
         f64 const     invPerpWallDist {1.0 / perpWallDist};
         size_i const  floorSize {wallSize};
 
+        // skybox constants - invariant per column
+        i32 const   skyTexX {level.IsSkybox ? static_cast<i32>(std::fmod((std::atan2(rayDir.Y, rayDir.X) / TAU) + 1.0, 1.0) * skySize.Width) % skySize.Width : 0};
+        auto const* skyTex {level.IsSkybox ? _cache.texture(level.CeilingTexture, 0) : nullptr};
+
+        // floor/ceiling cell cache
+        point_i     lastFloorCell {-1, -1};
+        i32         cellFloorTex {level.FloorTexture};
+        i32         cellCeilTex {level.CeilingTexture};
+        auto const* cellFloorTexPtr {_cache.texture(cellFloorTex, 0)};
+        auto const* cellCeilTexPtr {_cache.texture(cellCeilTex, 0)};
+
+        auto const get_cell {[&](auto&& w) {
+            if constexpr (requires { w.FloorTexture; }) {
+                if (w.FloorTexture != INVALID_INDEX) { cellFloorTex = w.FloorTexture; }
+            }
+            if constexpr (requires { w.CeilingTexture; }) {
+                if (w.CeilingTexture != INVALID_INDEX) { cellCeilTex = w.CeilingTexture; }
+            }
+        }};
+
         for (i32 y {drawEnd}; y < _screenSize.Height; y++) {
             f64 const weight {std::min(_rowDist[y] * invPerpWallDist, 1.0)};
 
@@ -144,38 +166,30 @@ void raycaster::draw_walls(level const& level, player const& player, u32* screen
 
             point_d const delta {currentFloor.X - player.Pos.X, currentFloor.Y - player.Pos.Y};
             f64 const     floorDist {std::sqrt((delta.X * delta.X) + (delta.Y * delta.Y))};
-            f64 const     fogFactor {std::max(1.0 - (floorDist / level.FogDistance), level.FogMin)};
+            f64 const     fogFactor {std::max(1.0 - (floorDist * invFogDistance), level.FogMin)};
 
             i32 const texelX {static_cast<i32>(currentFloor.X * floorSize.Width) & (floorSize.Width - 1)};
             i32 const texelY {static_cast<i32>(currentFloor.Y * floorSize.Height) & (floorSize.Height - 1)};
             i32 const texelOffset {(texelX + (texelY * floorSize.Width)) * textureBPP};
 
-            // per-cell floor/ceiling textures
-            i32        cellFloorTex {level.FloorTexture};
-            i32        cellCeilTex {level.CeilingTexture};
-            auto const get_tex {[&](auto&& w) {
-                if constexpr (requires { w.FloorTexture; }) {
-                    if (w.FloorTexture != INVALID_INDEX) { cellFloorTex = w.FloorTexture; }
-                }
-                if constexpr (requires { w.CeilingTexture; }) {
-                    if (w.CeilingTexture != INVALID_INDEX) { cellCeilTex = w.CeilingTexture; }
-                }
-            }};
-            std::visit(get_tex, level.Map[point_i {currentFloor}]);
+            point_i const floorCell {static_cast<i32>(currentFloor.X), static_cast<i32>(currentFloor.Y)};
+            if (floorCell != lastFloorCell) {
+                lastFloorCell = floorCell;
+                cellFloorTex  = level.FloorTexture;
+                cellCeilTex   = level.CeilingTexture;
+                std::visit(get_cell, level.Map[floorCell]);
+                cellFloorTexPtr = _cache.texture(cellFloorTex, 0);
+                cellCeilTexPtr  = _cache.texture(cellCeilTex, 0);
+            }
 
-            cache::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), _cache.texture(cellFloorTex, 0), texelOffset, fogFactor);
+            cache::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), cellFloorTexPtr, texelOffset, fogFactor);
 
             if (level.IsSkybox) {
-                f64 const skyU {std::fmod((std::atan2(rayDir.Y, rayDir.X) / TAU) + 1.0, 1.0)};
-                i32 const skyTexX {static_cast<i32>(skyU * skySize.Width) % skySize.Width};
-
-                f64 const skyV {std::min(static_cast<f64>(_screenSize.Height - y - 1) / static_cast<f64>(_screenSize.Height / 2), 1.0)};
-                i32 const skyTexY {static_cast<i32>(skyV * skySize.Height) & (skySize.Height - 1)};
-
+                i32 const skyTexY {static_cast<i32>(std::min(static_cast<f64>(_screenSize.Height - y - 1) / static_cast<f64>(_screenSize.Height / 2), 1.0) * skySize.Height) & (skySize.Height - 1)};
                 i32 const skyOffset {(skyTexX + (skyTexY * skySize.Width)) * textureBPP};
-                cache::copy(screenBuf + x + (y * _screenSize.Width), _cache.texture(level.CeilingTexture, 0), skyOffset, 1.0);
+                cache::copy(screenBuf + x + (y * _screenSize.Width), skyTex, skyOffset, 1.0);
             } else {
-                cache::copy(screenBuf + x + (y * _screenSize.Width), _cache.texture(cellCeilTex, 0), texelOffset, fogFactor);
+                cache::copy(screenBuf + x + (y * _screenSize.Width), cellCeilTexPtr, texelOffset, fogFactor);
             }
         }
     }
