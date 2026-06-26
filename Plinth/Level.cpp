@@ -86,12 +86,17 @@ void set_light(map_t& map, point_i center, f64 intensity, f64 radius)
             auto&     w {map[p]};
             if (std::holds_alternative<empty_cell>(w)) {
                 w = cell {.Light = contribution};
-            } else if (auto* c {std::get_if<cell>(&w)}) {
-                c->Light = std::min(c->Light + contribution, 1.0);
+            } else {
+                std::visit([&](auto&& w) {
+                    if constexpr (requires { w.Light; }) {
+                        w.Light = std::min(w.Light + contribution, 1.0);
+                    } },
+                           w);
             }
         }
     }
 }
+
 level::level()
 {
     for (i32 i {0}; i < map0.size(); ++i) {
@@ -102,7 +107,7 @@ level::level()
         }
     }
 
-    Map[point_i {7, 9}] = half_wall {.LocalBounds = {0.25, 0.25, 0.5, 0.5}, .Texture = 2};
+    Map[point_i {7, 9}] = box_wall {.LocalBounds = {0.25, 0.25, 0.5, 0.5}, .Texture = 2};
 
     Map[point_i {8, 5}] = door_wall {.Orientation = door_wall::orientation::BlocksNorthSouth, .Texture = door1Texture, .FrameTexture = door1FrameTexture};
     Map[point_i {7, 7}] = door_wall {.Orientation = door_wall::orientation::BlocksEastWest, .Texture = door1Texture, .FrameTexture = door1FrameTexture};
@@ -112,8 +117,9 @@ level::level()
 
     Map[point_i {2, 2}] = diagonal_wall {.Orientation = diagonal_wall::orientation::NorthWestToSouthEast, .Texture = 2};
 
-    set_light(Map, {5, 5}, 1.0, 3.0);
+    Map[point_i {9, 9}] = thin_wall {.Orientation = thin_wall::orientation::BlocksNorthSouth, .Offset = 0.25, .Texture = 15};
 
+    set_light(Map, {5, 5}, 1.0, 5.0);
     Sprites.push_back({.Pos = {4, 5}, .Size = {1, 1}, .Texture = sprite1Texture});
     Sprites.push_back({.Pos = {4, 6}, .Size = {1, 1}, .Texture = sprite1Texture});
     Sprites.push_back({.Pos = {4, 7}, .Size = {1, 1}, .Texture = sprite1Texture});

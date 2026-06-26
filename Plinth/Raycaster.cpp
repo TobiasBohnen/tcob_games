@@ -43,6 +43,11 @@ void raycaster::draw(level const& level, player const& player, u32* screenBuf, i
     draw_sprites(level, player, screenBuf, columnStart, columnEnd);
 }
 
+static auto is_magenta(u8 const* tex, i32 offset) -> bool
+{
+    return tex[offset + 0] == 0x98 && tex[offset + 1] == 0x00 && tex[offset + 2] == 0x88;
+}
+
 void raycaster::draw_walls(level const& level, player const& player, u32* screenBuf, i32 columnStart, i32 columnEnd)
 {
     f64 const invFogDistance {1.0 / level.FogDistance};
@@ -73,9 +78,10 @@ void raycaster::draw_walls(level const& level, player const& player, u32* screen
             sideDist.Y = (map.Y + 1.0 - player.Pos.Y) * deltaDist.Y;
         }
 
-        wall_hit hitResult {};
-        f64      wallLight {0.0};
-        f64      prevLight {0.0};
+        wall_hit              hitResult {};
+        f64                   wallLight {0.0};
+        f64                   prevLight {0.0};
+        std::vector<wall_hit> transparentHits {};
 
         // check player cell
         {
@@ -83,15 +89,24 @@ void raycaster::draw_walls(level const& level, player const& player, u32* screen
                 if constexpr (requires { w.Light; }) { wallLight = w.Light; }
             },
                        level.Map[map]);
-            auto const intersect {[&](auto&& c) { return c.intersect(map, player.Pos, rayDir, sideDist.X < sideDist.Y, 0.0); }};
+            auto const intersect {[&](auto&& c) { return c.intersect({map, player.Pos, rayDir, sideDist.X < sideDist.Y, 0.0}); }};
             auto const wallHit {std::visit(intersect, level.Map[map])};
-            if (wallHit.Hit) { hitResult = wallHit; }
+            if (wallHit.Hit) {
+                if (wallHit.Transparent) {
+                    wall_hit h {wallHit};
+                    h.Light = wallLight;
+                    transparentHits.push_back(h);
+                } else {
+                    hitResult       = wallHit;
+                    hitResult.Light = wallLight;
+                }
+            }
         }
 
         // DDA
         if (!hitResult.Hit) {
             bool       side {false};
-            auto const intersect {[&](auto&& c) -> wall_hit { return c.intersect(map, player.Pos, rayDir, side, !side ? sideDist.X - deltaDist.X : sideDist.Y - deltaDist.Y); }};
+            auto const intersect {[&](auto&& c) -> wall_hit { return c.intersect({map, player.Pos, rayDir, side, !side ? sideDist.X - deltaDist.X : sideDist.Y - deltaDist.Y}); }};
 
             for (;;) {
                 if (sideDist.X < sideDist.Y) {
@@ -118,111 +133,138 @@ void raycaster::draw_walls(level const& level, player const& player, u32* screen
 
                 auto const wallHit {std::visit(intersect, level.Map[map])};
                 if (wallHit.Hit) {
-                    hitResult = wallHit;
-                    wallLight = prevLight;
-                    break;
+                    if (wallHit.Transparent) {
+                        wall_hit h {wallHit};
+                        h.Light = prevLight;
+                        transparentHits.push_back(h);
+                    } else {
+                        hitResult       = wallHit;
+                        hitResult.Light = prevLight;
+                        break;
+                    }
                 }
             }
         }
 
-        if (!hitResult.Hit) { continue; }
-        f64 const perpWallDist {hitResult.Distance};
-        _zBuffer[x] = perpWallDist;
+        // render solid wall
+        if (hitResult.Hit) {
+            f64 const perpWallDist {hitResult.Distance};
+            _zBuffer[x] = perpWallDist;
 
-        i32 const lineHeight {static_cast<i32>(player.ProjPlaneDist / perpWallDist)};
-        i32 const drawStart {std::max((-lineHeight / 2) + (_screenSize.Height / 2), 0)};
-        i32 const drawEnd {std::min((lineHeight / 2) + (_screenSize.Height / 2), _screenSize.Height - 1)};
-        f64 const wallX {hitResult.SegmentT};
+            i32 const lineHeight {static_cast<i32>(player.ProjPlaneDist / perpWallDist)};
+            i32 const drawStart {std::max((-lineHeight / 2) + (_screenSize.Height / 2), 0)};
+            i32 const drawEnd {std::min((lineHeight / 2) + (_screenSize.Height / 2), _screenSize.Height - 1)};
 
-        {
             auto const*  tex {_cache.texture(hitResult.Texture, 0)};
             size_i const texSize {wallSize};
-            i32 const    texX {static_cast<i32>(wallX * static_cast<f64>(texSize.Width))};
+            i32 const    texX {static_cast<i32>(hitResult.SegmentT * static_cast<f64>(texSize.Width))};
             f64 const    texStep {1.0 * texSize.Height / lineHeight};
             f64          texPos {(drawStart - (_screenSize.Height / 2) + (lineHeight / 2)) * texStep};
 
-            f64 const wallFaceFactor {hitResult.Side ? 0.5 : 1.0};
+            f64 const wallFaceFactor {hitResult.Shaded ? 0.5 : 1.0};
             f64 const wallFogFactor {std::max(1.0 - (perpWallDist * invFogDistance), level.FogMin)};
-            f64 const wallDarkenFactor {wallFaceFactor * wallFogFactor * (level.AmbientLight + wallLight)};
+            f64 const wallDarkenFactor {wallFaceFactor * wallFogFactor * (level.AmbientLight + hitResult.Light)};
 
             for (i32 y {drawStart}; y < drawEnd; y++) {
                 i32 const texY {static_cast<i32>(texPos) & (texSize.Height - 1)};
                 texPos += texStep;
                 cache::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), tex, (texX + (texY * texSize.Width)) * textureBPP, wallDarkenFactor);
             }
+
+            // FLOOR/CEILING CASTING
+            point_d const floorWall {player.Pos + (rayDir * perpWallDist)};
+            f64 const     invPerpWallDist {1.0 / perpWallDist};
+            size_i const  floorSize {wallSize};
+
+            i32 const   skyTexX {level.IsSkybox ? static_cast<i32>(std::fmod((std::atan2(rayDir.Y, rayDir.X) / TAU) + 1.0, 1.0) * skySize.Width) % skySize.Width : 0};
+            auto const* skyTex {level.IsSkybox ? _cache.texture(level.CeilingTexture, 0) : nullptr};
+
+            point_i     lastFloorCell {-1, -1};
+            i32         cellFloorTex {level.FloorTexture};
+            i32         cellCeilTex {level.CeilingTexture};
+            f64         cellLight {0.0};
+            auto const* cellFloorTexPtr {_cache.texture(cellFloorTex, 0)};
+            auto const* cellCeilTexPtr {_cache.texture(cellCeilTex, 0)};
+
+            auto const get_cell {[&](auto&& w) {
+                if constexpr (requires { w.FloorTexture; }) {
+                    if (w.FloorTexture != INVALID_INDEX) { cellFloorTex = w.FloorTexture; }
+                }
+                if constexpr (requires { w.CeilingTexture; }) {
+                    if (w.CeilingTexture != INVALID_INDEX) { cellCeilTex = w.CeilingTexture; }
+                }
+                if constexpr (requires { w.Light; }) {
+                    cellLight = w.Light;
+                }
+            }};
+
+            for (i32 y {drawEnd}; y < _screenSize.Height; y++) {
+                f64 const weight {std::min(_rowDist[y] * invPerpWallDist, 1.0)};
+
+                point_d const currentFloor {(weight * floorWall.X) + ((1.0 - weight) * player.Pos.X),
+                                            (weight * floorWall.Y) + ((1.0 - weight) * player.Pos.Y)};
+
+                point_d const delta {currentFloor.X - player.Pos.X, currentFloor.Y - player.Pos.Y};
+                f64 const     floorDist {std::sqrt((delta.X * delta.X) + (delta.Y * delta.Y))};
+                f64 const     fogFactor {std::max(1.0 - (floorDist * invFogDistance), level.FogMin)};
+
+                i32 const texelX {static_cast<i32>(currentFloor.X * floorSize.Width) & (floorSize.Width - 1)};
+                i32 const texelY {static_cast<i32>(currentFloor.Y * floorSize.Height) & (floorSize.Height - 1)};
+                i32 const texelOffset {(texelX + (texelY * floorSize.Width)) * textureBPP};
+
+                point_i const floorCell {static_cast<i32>(currentFloor.X), static_cast<i32>(currentFloor.Y)};
+                if (floorCell != lastFloorCell) {
+                    lastFloorCell = floorCell;
+                    cellFloorTex  = level.FloorTexture;
+                    cellCeilTex   = level.CeilingTexture;
+                    cellLight     = 0.0;
+                    std::visit(get_cell, level.Map[floorCell]);
+                    cellFloorTexPtr = _cache.texture(cellFloorTex, 0);
+                    cellCeilTexPtr  = _cache.texture(cellCeilTex, 0);
+                }
+
+                f64 const cellFogFactor {fogFactor * (level.AmbientLight + cellLight)};
+                cache::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), cellFloorTexPtr, texelOffset, cellFogFactor);
+
+                if (level.IsSkybox) {
+                    i32 const skyTexY {static_cast<i32>(std::min(static_cast<f64>(_screenSize.Height - y - 1) / static_cast<f64>(_screenSize.Height / 2), 1.0) * skySize.Height) & (skySize.Height - 1)};
+                    i32 const skyOffset {(skyTexX + (skyTexY * skySize.Width)) * textureBPP};
+                    cache::copy(screenBuf + x + (y * _screenSize.Width), skyTex, skyOffset, 1.0);
+                } else {
+                    cache::copy(screenBuf + x + (y * _screenSize.Width), cellCeilTexPtr, texelOffset, cellFogFactor);
+                }
+            }
         }
 
-        // FLOOR/CEILING CASTING
-        point_d const floorWall {player.Pos + (rayDir * perpWallDist)};
-        f64 const     invPerpWallDist {1.0 / perpWallDist};
-        size_i const  floorSize {wallSize};
+        // render transparent walls back to front
+        for (auto const& hit : transparentHits) {
+            f64 const perpWallDist {hit.Distance};
 
-        // skybox constants - invariant per column
-        i32 const   skyTexX {level.IsSkybox ? static_cast<i32>(std::fmod((std::atan2(rayDir.Y, rayDir.X) / TAU) + 1.0, 1.0) * skySize.Width) % skySize.Width : 0};
-        auto const* skyTex {level.IsSkybox ? _cache.texture(level.CeilingTexture, 0) : nullptr};
+            i32 const lineHeight {static_cast<i32>(player.ProjPlaneDist / perpWallDist)};
+            i32 const drawStart {std::max((-lineHeight / 2) + (_screenSize.Height / 2), 0)};
+            i32 const drawEnd {std::min((lineHeight / 2) + (_screenSize.Height / 2), _screenSize.Height - 1)};
 
-        // floor/ceiling cell cache
-        point_i     lastFloorCell {-1, -1};
-        i32         cellFloorTex {level.FloorTexture};
-        i32         cellCeilTex {level.CeilingTexture};
-        f64         cellLight {0.0};
-        auto const* cellFloorTexPtr {_cache.texture(cellFloorTex, 0)};
-        auto const* cellCeilTexPtr {_cache.texture(cellCeilTex, 0)};
+            auto const*  tex {_cache.texture(hit.Texture, 0)};
+            size_i const texSize {wallSize};
+            i32 const    texX {static_cast<i32>(hit.SegmentT * static_cast<f64>(texSize.Width))};
+            f64 const    texStep {1.0 * texSize.Height / lineHeight};
+            f64          texPos {(drawStart - (_screenSize.Height / 2) + (lineHeight / 2)) * texStep};
 
-        auto const get_cell {[&](auto&& w) {
-            if constexpr (requires { w.FloorTexture; }) {
-                if (w.FloorTexture != INVALID_INDEX) { cellFloorTex = w.FloorTexture; }
-            }
-            if constexpr (requires { w.CeilingTexture; }) {
-                if (w.CeilingTexture != INVALID_INDEX) { cellCeilTex = w.CeilingTexture; }
-            }
-            if constexpr (requires { w.Light; }) {
-                cellLight = w.Light;
-            }
-        }};
+            f64 const wallFaceFactor {hit.Shaded ? 0.5 : 1.0};
+            f64 const wallFogFactor {std::max(1.0 - (perpWallDist * invFogDistance), level.FogMin)};
+            f64 const wallDarkenFactor {wallFaceFactor * wallFogFactor * (level.AmbientLight + hit.Light)};
 
-        for (i32 y {drawEnd}; y < _screenSize.Height; y++) {
-            f64 const weight {std::min(_rowDist[y] * invPerpWallDist, 1.0)};
-
-            point_d const currentFloor {(weight * floorWall.X) + ((1.0 - weight) * player.Pos.X),
-                                        (weight * floorWall.Y) + ((1.0 - weight) * player.Pos.Y)};
-
-            point_d const delta {currentFloor.X - player.Pos.X, currentFloor.Y - player.Pos.Y};
-            f64 const     floorDist {std::sqrt((delta.X * delta.X) + (delta.Y * delta.Y))};
-            f64 const     fogFactor {std::max(1.0 - (floorDist * invFogDistance), level.FogMin)};
-
-            i32 const texelX {static_cast<i32>(currentFloor.X * floorSize.Width) & (floorSize.Width - 1)};
-            i32 const texelY {static_cast<i32>(currentFloor.Y * floorSize.Height) & (floorSize.Height - 1)};
-            i32 const texelOffset {(texelX + (texelY * floorSize.Width)) * textureBPP};
-
-            point_i const floorCell {static_cast<i32>(currentFloor.X), static_cast<i32>(currentFloor.Y)};
-            if (floorCell != lastFloorCell) {
-                lastFloorCell = floorCell;
-                cellFloorTex  = level.FloorTexture;
-                cellCeilTex   = level.CeilingTexture;
-                cellLight     = 0.0;
-                std::visit(get_cell, level.Map[floorCell]);
-                cellFloorTexPtr = _cache.texture(cellFloorTex, 0);
-                cellCeilTexPtr  = _cache.texture(cellCeilTex, 0);
-            }
-
-            f64 const cellFogFactor {fogFactor * (level.AmbientLight + cellLight)};
-            cache::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), cellFloorTexPtr, texelOffset, cellFogFactor);
-
-            if (level.IsSkybox) {
-                i32 const skyTexY {static_cast<i32>(std::min(static_cast<f64>(_screenSize.Height - y - 1) / static_cast<f64>(_screenSize.Height / 2), 1.0) * skySize.Height) & (skySize.Height - 1)};
-                i32 const skyOffset {(skyTexX + (skyTexY * skySize.Width)) * textureBPP};
-                cache::copy(screenBuf + x + (y * _screenSize.Width), skyTex, skyOffset, 1.0);
-            } else {
-                cache::copy(screenBuf + x + (y * _screenSize.Width), cellCeilTexPtr, texelOffset, cellFogFactor);
+            for (i32 y {drawStart}; y < drawEnd; y++) {
+                i32 const texY {static_cast<i32>(texPos) & (texSize.Height - 1)};
+                texPos += texStep;
+                i32 const srcIdx {(texX + (texY * texSize.Width)) * textureBPP};
+                if (is_magenta(tex, srcIdx)) { continue; }
+                isize const depthIndex {x + (static_cast<isize>(y) * _screenSize.Width)};
+                _spriteDepthBuffer[depthIndex] = std::min(_spriteDepthBuffer[depthIndex], perpWallDist);
+                cache::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), tex, srcIdx, wallDarkenFactor);
             }
         }
     }
-}
-
-static auto is_magenta(u8 const* tex, i32 offset) -> bool
-{
-    return tex[offset + 0] == 0x98 && tex[offset + 1] == 0x00 && tex[offset + 2] == 0x88;
 }
 
 static auto sprite_facing_index(degree_d spriteFacing, point_d spritePos, point_d cameraPos) -> i32
