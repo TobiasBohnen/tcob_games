@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "Common.hpp"
+#include "Walls.hpp"
 
 class raycaster {
 public:
@@ -18,6 +19,10 @@ public:
 
 private:
     void draw_walls(level const& level, player const& player, u32* screenBuf, i32 columnStart, i32 columnEnd);
+
+    void draw_wall_column(wall_hit const& hit, f64 invFogDistance, level const& level, player const& player, u32* screenBuf, isize x, bool transparent);
+    void draw_floor_ceiling_column(wall_hit const& hit, f64 invFogDistance, level const& level, player const& player, u32* screenBuf, isize x, point_d rayDir);
+
     void draw_sprites(level const& level, player const& player, u32* screenBuf, i32 columnStart, i32 columnEnd);
 
     cache& _cache;

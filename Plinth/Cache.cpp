@@ -17,20 +17,21 @@ auto cache::screen() -> u32*
     return _screen.data();
 }
 
+auto cache::get_entry(i32 idx, i32 facing) const -> texture_entry const&
+{
+    auto const& facings {_directory.at(idx)};
+    auto const  it {facings.find(facing)};
+    return it != facings.end() ? it->second : facings.at(0);
+}
+
 auto cache::texture(i32 idx, i32 facing) -> u8*
 {
-    texture_entry const& entry {_directory[idx][facing].Size.Width != 0
-                                    ? _directory[idx][facing]
-                                    : _directory[idx][0]};
-    return _textures.data() + entry.Offset;
+    return _textures.data() + get_entry(idx, facing).Offset;
 }
 
 auto cache::texture_size(i32 idx, i32 facing) const -> size_i
 {
-    texture_entry const& entry {_directory[idx][facing].Size.Width != 0
-                                    ? _directory[idx][facing]
-                                    : _directory[idx][0]};
-    return entry.Size;
+    return get_entry(idx, facing).Size;
 }
 
 void cache::load()
@@ -43,20 +44,20 @@ void cache::load()
     };
 
     std::vector<pending_load> const loads {
-        {.Tex = 1, .Path = "res/wall0.png", .Size = wallSize},
-        {.Tex = 2, .Path = "res/wall1.png", .Size = wallSize},
-        {.Tex = 3, .Path = "res/wall2.png", .Size = wallSize},
-        {.Tex = 4, .Path = "res/wall3.png", .Size = wallSize},
-        {.Tex = 5, .Path = "res/wall4.png", .Size = wallSize},
-        {.Tex = 6, .Path = "res/wall5.png", .Size = wallSize},
-        {.Tex = 7, .Path = "res/wall6.png", .Size = wallSize},
-        {.Tex = 8, .Path = "res/wall7.png", .Size = wallSize},
-        {.Tex = door1Texture, .Path = "res/door.png", .Size = wallSize},
-        {.Tex = door1FrameTexture, .Path = "res/door_frame.png", .Size = wallSize},
-        {.Tex = 9, .Path = "res/floor.png", .Size = wallSize},
-        {.Tex = 10, .Path = "res/ceiling.png", .Size = wallSize},
-        {.Tex = 14, .Path = "res/sky.png", .Size = skySize},
-        {.Tex = 15, .Path = "res/transparent.png", .Size = wallSize},
+        {.Tex = 1, .Path = "res/wall0.png", .Size = WALL_SIZE},
+        {.Tex = 2, .Path = "res/wall1.png", .Size = WALL_SIZE},
+        {.Tex = 3, .Path = "res/wall2.png", .Size = WALL_SIZE},
+        {.Tex = 4, .Path = "res/wall3.png", .Size = WALL_SIZE},
+        {.Tex = 5, .Path = "res/wall4.png", .Size = WALL_SIZE},
+        {.Tex = 6, .Path = "res/wall5.png", .Size = WALL_SIZE},
+        {.Tex = 7, .Path = "res/wall6.png", .Size = WALL_SIZE},
+        {.Tex = 8, .Path = "res/wall7.png", .Size = WALL_SIZE},
+        {.Tex = door1Texture, .Path = "res/door.png", .Size = WALL_SIZE},
+        {.Tex = door1FrameTexture, .Path = "res/door_frame.png", .Size = WALL_SIZE},
+        {.Tex = 9, .Path = "res/floor.png", .Size = WALL_SIZE},
+        {.Tex = 10, .Path = "res/ceiling.png", .Size = WALL_SIZE},
+        {.Tex = 14, .Path = "res/sky.png", .Size = SKY_SIZE},
+        {.Tex = 15, .Path = "res/transparent.png", .Size = WALL_SIZE},
 
         {.Tex = sprite1Texture, .Path = "res/enemy0-0.png", .Size = {64, 64}, .Facing = 0},
         {.Tex = sprite1Texture, .Path = "res/enemy0-1.png", .Size = {64, 64}, .Facing = 1},
@@ -72,7 +73,7 @@ void cache::load()
     for (auto const& l : loads) {
         _directory[l.Tex][l.Facing].Offset = totalBytes;
         _directory[l.Tex][l.Facing].Size   = l.Size;
-        totalBytes += static_cast<usize>(l.Size.Width) * l.Size.Height * textureBPP;
+        totalBytes += static_cast<usize>(l.Size.Width) * l.Size.Height * TEXTURE_BPP;
     }
     _textures.resize(totalBytes);
 
@@ -81,7 +82,7 @@ void cache::load()
         img = gfx::filters::alpha_remover {}(img);
 
         u8* const   dst {texture(l.Tex, l.Facing)};
-        isize const byteCount {static_cast<isize>(l.Size.Width) * l.Size.Height * textureBPP};
+        isize const byteCount {static_cast<isize>(l.Size.Width) * l.Size.Height * TEXTURE_BPP};
         for (isize idx {0}; idx < byteCount; ++idx) {
             dst[idx] = img.ptr()[idx];
         }

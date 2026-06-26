@@ -17,12 +17,13 @@ inline constexpr i32 sprite1Texture {11};
 inline constexpr i32 door1Texture {12};
 inline constexpr i32 door1FrameTexture {13};
 
-inline constexpr i32 textureCount {25};
-inline constexpr i32 textureBPP {3};
-inline constexpr i32 maxFacings {8};
+inline constexpr i32 TEXTURE_BPP {3};
 
-inline constexpr size_i wallSize {64, 64};
-inline constexpr size_i skySize {512, 64};
+inline constexpr size_i WALL_SIZE {64, 64};
+inline constexpr size_i FLOOR_SIZE {64, 64};
+inline constexpr size_i SKY_SIZE {512, 64};
+
+inline constexpr isize MAX_TRANSPARENT_WALLS {8};
 
 inline constexpr f64 FOV {90};
 

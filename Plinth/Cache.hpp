@@ -23,15 +23,18 @@ public:
     static void copy(u32* dst, u8 const* src, i32 srcIdx, f64 darken);
 
 private:
+    struct texture_entry {
+        usize  Offset {};
+        size_i Size {};
+    };
+
+    auto get_entry(i32 idx, i32 facing) const -> texture_entry const&;
+
     static void set(u32* raw, color c, f64 darken);
     static auto get(u8 const* img, usize idx) -> color;
 
     std::vector<u32> _screen;
     std::vector<u8>  _textures;
 
-    struct texture_entry {
-        usize  Offset {};
-        size_i Size {};
-    };
-    std::array<std::array<texture_entry, maxFacings>, textureCount> _directory {};
+    std::unordered_map<i32, std::unordered_map<i32, texture_entry>> _directory {};
 };
