@@ -237,7 +237,7 @@ void raycaster::draw_walls(level const& level, player const& player, u32* screen
         }
 
         // render transparent walls back to front
-        for (auto const& hit : transparentHits) {
+        for (auto const& hit : transparentHits | std::views::reverse) {
             f64 const perpWallDist {hit.Distance};
 
             i32 const lineHeight {static_cast<i32>(player.ProjPlaneDist / perpWallDist)};
@@ -281,6 +281,7 @@ static auto sprite_facing_index(degree_d spriteFacing, point_d spritePos, point_
 void raycaster::draw_sprites(level const& level, player const& player, u32* screenBuf, i32 columnStart, i32 columnEnd)
 {
     f64 const invDet {1.0 / player.Plane.cross(player.Direction)};
+    f64 const invFogDistance {1.0 / level.FogDistance};
 
     for (sprite const& spr : level.Sprites) {
         point_d const relPos {spr.Pos - player.Pos};
@@ -298,6 +299,7 @@ void raycaster::draw_sprites(level const& level, player const& player, u32* scre
         point_i const drawEnd {std::min({(spriteSize.Width / 2) + spriteScreenX, _screenSize.Width - 1, columnEnd}),
                                std::min((spriteSize.Height / 2) + (_screenSize.Height / 2), _screenSize.Height - 1)};
         if (drawStart.X >= drawEnd.X) { continue; }
+        if (drawStart.Y >= drawEnd.Y) { continue; }
 
         i32 const spriteLeft {spriteScreenX - (spriteSize.Width / 2)};
         i32 const spriteTop {(_screenSize.Height / 2) - (spriteSize.Height / 2)};
@@ -315,7 +317,7 @@ void raycaster::draw_sprites(level const& level, player const& player, u32* scre
         },
                    level.Map[point_i {spr.Pos}]);
 
-        f64 const spriteFogFactor {std::max(1.0 - (transformY / level.FogDistance), level.FogMin) * (level.AmbientLight + spriteLight)};
+        f64 const spriteFogFactor {std::max(1.0 - (transformY * invFogDistance), level.FogMin) * (level.AmbientLight + spriteLight)};
 
         for (i32 stripe {drawStart.X}; stripe < drawEnd.X; ++stripe) {
             i32 const texX {((stripe - spriteLeft) * texSize.Width) / spriteSize.Width};

@@ -117,7 +117,10 @@ level::level()
 
     Map[point_i {2, 2}] = diagonal_wall {.Orientation = diagonal_wall::orientation::NorthWestToSouthEast, .Texture = 2};
 
-    Map[point_i {9, 9}] = thin_wall {.Orientation = thin_wall::orientation::BlocksNorthSouth, .Offset = 0.25, .Texture = 15};
+    Map[point_i {9, 9}]   = thin_wall {.Orientation = thin_wall::orientation::BlocksNorthSouth, .Offset = 0.25, .Texture = 15};
+    Map[point_i {10, 9}]  = thin_wall {.Orientation = thin_wall::orientation::BlocksNorthSouth, .Offset = 0.25, .Texture = 15};
+    Map[point_i {9, 10}]  = thin_wall {.Orientation = thin_wall::orientation::BlocksNorthSouth, .Offset = 0.25, .Texture = 15};
+    Map[point_i {10, 10}] = thin_wall {.Orientation = thin_wall::orientation::BlocksNorthSouth, .Offset = 0.25, .Texture = 15};
 
     set_light(Map, {5, 5}, 1.0, 5.0);
     Sprites.push_back({.Pos = {4, 5}, .Size = {1, 1}, .Texture = sprite1Texture});
