@@ -9,14 +9,15 @@
 #include "Level.hpp"
 #include "Walls.hpp"
 
-static auto closest_point_on_wall(level const& level, point_i cell, point_d pos) -> std::optional<point_d>
+static auto closest_point_on_wall(level const& level, point_i map, point_d pos) -> std::optional<point_d>
 {
-    auto const&  c {level.Map[cell]};
-    rect_d const clampRect {static_cast<f64>(cell.X), static_cast<f64>(cell.Y), 1.0, 1.0};
+    auto const&  c {level.Map[map]};
+    rect_d const clampRect {static_cast<f64>(map.X), static_cast<f64>(map.Y), 1.0, 1.0};
 
     return overloaded_visit(
         c,
-        [](empty const&) -> std::optional<point_d> { return std::nullopt; },
+        [](empty_cell const&) -> std::optional<point_d> { return std::nullopt; },
+        [](cell const&) -> std::optional<point_d> { return std::nullopt; },
         [&](normal_wall const&) -> std::optional<point_d> {
             return point_d {std::clamp(pos.X, clampRect.left(), clampRect.right()),
                             std::clamp(pos.Y, clampRect.top(), clampRect.bottom())};
@@ -24,13 +25,13 @@ static auto closest_point_on_wall(level const& level, point_i cell, point_d pos)
 
         [&](half_wall const& w) -> std::optional<point_d> {
             rect_d r {w.LocalBounds};
-            r.move_by(cell);
+            r.move_by(map);
             return point_d {std::clamp(pos.X, r.left(), r.right()),
                             std::clamp(pos.Y, r.top(), r.bottom())};
         },
         [&](diagonal_wall const& w) -> std::optional<point_d> {
-            f64 const     cX {static_cast<f64>(cell.X)};
-            f64 const     cY {static_cast<f64>(cell.Y)};
+            f64 const     cX {static_cast<f64>(map.X)};
+            f64 const     cY {static_cast<f64>(map.Y)};
             bool const    nwSe {w.Orientation == diagonal_wall::orientation::NorthWestToSouthEast};
             point_d const a {cX, nwSe ? cY : cY + 1.0};
             point_d const b {cX + 1.0, nwSe ? cY + 1.0 : cY};
@@ -39,7 +40,7 @@ static auto closest_point_on_wall(level const& level, point_i cell, point_d pos)
             return point_d {a.X + (t * ab.X), a.Y + (t * ab.Y)};
         },
         [&](round_pillar const& w) -> std::optional<point_d> {
-            point_d const center {cell.X + 0.5, cell.Y + 0.5};
+            point_d const center {map.X + 0.5, map.Y + 0.5};
             point_d const d {pos.X - center.X, pos.Y - center.Y};
             f64 const     len {std::sqrt(d.dot(d))};
             if (len == 0.0) { return center; }

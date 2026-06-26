@@ -7,12 +7,7 @@
 
 #include "Common.hpp"
 
-enum class wall_kind : u8 {
-    Normal,
-    Door,
-    PushWall,
-    HalfWall
-};
+////////////////////////////////////////////////////////////
 
 enum class wall_state : u8 {
     Closed  = 0,
@@ -30,9 +25,15 @@ struct wall_hit {
     bool Side {false};
 };
 
-struct empty {
-    i32 FloorTexture {-1};
-    i32 CeilingTexture {-1};
+////////////////////////////////////////////////////////////
+
+struct empty_cell {
+    auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit;
+};
+
+struct cell {
+    i32 FloorTexture {INVALID_INDEX};
+    i32 CeilingTexture {INVALID_INDEX};
 
     auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit;
 };
@@ -56,6 +57,8 @@ struct door_wall {
 
     i32 Texture {0};
     i32 FrameTexture {0};
+    i32 FloorTexture {INVALID_INDEX};
+    i32 CeilingTexture {INVALID_INDEX};
 
     auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit;
     auto update(f64 dt) -> bool;
@@ -71,6 +74,8 @@ struct push_wall {
     point_i PushDirection {0, 0};
 
     i32 Texture {0};
+    i32 FloorTexture {INVALID_INDEX};
+    i32 CeilingTexture {INVALID_INDEX};
 
     auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit;
     auto update(f64 dt) -> bool;
@@ -83,6 +88,8 @@ struct half_wall {
     rect_d LocalBounds;
 
     i32 Texture {0};
+    i32 FloorTexture {INVALID_INDEX};
+    i32 CeilingTexture {INVALID_INDEX};
 
     auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit;
 };
@@ -96,6 +103,8 @@ struct diagonal_wall {
     orientation Orientation {orientation::NorthWestToSouthEast};
 
     i32 Texture {0};
+    i32 FloorTexture {INVALID_INDEX};
+    i32 CeilingTexture {INVALID_INDEX};
 
     auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit;
 };
@@ -104,11 +113,13 @@ struct round_pillar {
     f64 Radius {0};
 
     i32 Texture {0};
+    i32 FloorTexture {INVALID_INDEX};
+    i32 CeilingTexture {INVALID_INDEX};
 
     auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit;
 };
 
-using wall = std::variant<empty, normal_wall, door_wall, push_wall, half_wall, diagonal_wall, round_pillar>;
+using wall = std::variant<empty_cell, cell, normal_wall, door_wall, push_wall, half_wall, diagonal_wall, round_pillar>;
 
 inline constexpr i32 mapWidth {64};
 inline constexpr i32 mapHeight {64};

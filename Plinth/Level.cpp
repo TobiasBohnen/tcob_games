@@ -77,12 +77,12 @@ level::level()
 {
     for (i32 i {0}; i < map0.size(); ++i) {
         if (map0[i] == 0) {
-            Map[i] = empty {};
+            Map[i] = empty_cell {};
         } else {
             Map[i] = normal_wall {.Texture = map0[i]};
         }
     }
-    Map[point_i {6, 5}] = empty {.FloorTexture = 2, .CeilingTexture = 3};
+    Map[point_i {6, 5}] = cell {.FloorTexture = 2, .CeilingTexture = 3};
 
     Map[point_i {7, 9}] = half_wall {.LocalBounds = {0.25, 0.25, 0.5, 0.5}, .Texture = 2};
 

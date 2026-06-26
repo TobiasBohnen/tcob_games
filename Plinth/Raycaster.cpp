@@ -151,17 +151,17 @@ void raycaster::draw_walls(level const& level, player const& player, u32* screen
             i32 const texelOffset {(texelX + (texelY * floorSize.Width)) * textureBPP};
 
             // per-cell floor/ceiling textures
-            i32 cellFloorTex {level.FloorTexture};
-            i32 cellCeilTex {level.CeilingTexture};
-            std::visit([&](auto&& w) {
+            i32        cellFloorTex {level.FloorTexture};
+            i32        cellCeilTex {level.CeilingTexture};
+            auto const get_tex {[&](auto&& w) {
                 if constexpr (requires { w.FloorTexture; }) {
-                    if (w.FloorTexture >= 0) { cellFloorTex = w.FloorTexture; }
+                    if (w.FloorTexture != INVALID_INDEX) { cellFloorTex = w.FloorTexture; }
                 }
                 if constexpr (requires { w.CeilingTexture; }) {
-                    if (w.CeilingTexture >= 0) { cellCeilTex = w.CeilingTexture; }
+                    if (w.CeilingTexture != INVALID_INDEX) { cellCeilTex = w.CeilingTexture; }
                 }
-            },
-                       level.Map[point_i {currentFloor}]);
+            }};
+            std::visit(get_tex, level.Map[point_i {currentFloor}]);
 
             cache::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), _cache.texture(cellFloorTex, 0), texelOffset, fogFactor);
 

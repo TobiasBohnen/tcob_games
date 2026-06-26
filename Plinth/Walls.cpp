@@ -5,7 +5,12 @@
 
 #include "Walls.hpp"
 
-auto empty::intersect(point_i, point_d, point_d, bool, f64) const -> wall_hit
+auto empty_cell::intersect(point_i, point_d, point_d, bool, f64) const -> wall_hit
+{
+    return {.Hit = false};
+}
+
+auto cell::intersect(point_i, point_d, point_d, bool, f64) const -> wall_hit
 {
     return {.Hit = false};
 }
