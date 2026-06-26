@@ -34,6 +34,7 @@ struct empty_cell {
 struct cell {
     i32 FloorTexture {INVALID_INDEX};
     i32 CeilingTexture {INVALID_INDEX};
+    f64 Light {0.0};
 
     auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit;
 };
@@ -59,6 +60,7 @@ struct door_wall {
     i32 FrameTexture {0};
     i32 FloorTexture {INVALID_INDEX};
     i32 CeilingTexture {INVALID_INDEX};
+    f64 Light {0.0};
 
     auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit;
     auto update(f64 dt) -> bool;
@@ -76,6 +78,7 @@ struct push_wall {
     i32 Texture {0};
     i32 FloorTexture {INVALID_INDEX};
     i32 CeilingTexture {INVALID_INDEX};
+    f64 Light {0.0};
 
     auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit;
     auto update(f64 dt) -> bool;
@@ -90,6 +93,7 @@ struct half_wall {
     i32 Texture {0};
     i32 FloorTexture {INVALID_INDEX};
     i32 CeilingTexture {INVALID_INDEX};
+    f64 Light {0.0};
 
     auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit;
 };
@@ -105,6 +109,7 @@ struct diagonal_wall {
     i32 Texture {0};
     i32 FloorTexture {INVALID_INDEX};
     i32 CeilingTexture {INVALID_INDEX};
+    f64 Light {0.0};
 
     auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit;
 };
@@ -115,6 +120,7 @@ struct round_pillar {
     i32 Texture {0};
     i32 FloorTexture {INVALID_INDEX};
     i32 CeilingTexture {INVALID_INDEX};
+    f64 Light {0.0};
 
     auto intersect(point_i cell, point_d rayOrigin, point_d rayDir, bool side, f64 dist) const -> wall_hit;
 };

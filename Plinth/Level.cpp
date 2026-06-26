@@ -73,6 +73,25 @@ std::array<u8, mapWidth * mapHeight> map0 {
     4, 0, 0, 0, 0, 0, 0, 0, 0, 4, 6, 0, 6, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 1, 1, 2, 4, 5, 6, 3, 2, 1, 1, 1, 3, 4, 5, 6, 7, 3, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 7};
 
+void set_light(map_t& map, point_i center, f64 intensity, f64 radius)
+{
+    i32 const r {static_cast<i32>(std::ceil(radius))};
+    for (i32 dy {-r}; dy <= r; ++dy) {
+        for (i32 dx {-r}; dx <= r; ++dx) {
+            point_i const p {center.X + dx, center.Y + dy};
+            if (!map_t::Size.contains(p)) { continue; }
+            f64 const dist {std::sqrt(static_cast<f64>((dx * dx) + (dy * dy)))};
+            if (dist >= radius) { continue; }
+            f64 const contribution {intensity * (1.0 - (dist / radius))};
+            auto&     w {map[p]};
+            if (std::holds_alternative<empty_cell>(w)) {
+                w = cell {.Light = contribution};
+            } else if (auto* c {std::get_if<cell>(&w)}) {
+                c->Light = std::min(c->Light + contribution, 1.0);
+            }
+        }
+    }
+}
 level::level()
 {
     for (i32 i {0}; i < map0.size(); ++i) {
@@ -82,7 +101,6 @@ level::level()
             Map[i] = normal_wall {.Texture = map0[i]};
         }
     }
-    Map[point_i {6, 5}] = cell {.FloorTexture = 2, .CeilingTexture = 3};
 
     Map[point_i {7, 9}] = half_wall {.LocalBounds = {0.25, 0.25, 0.5, 0.5}, .Texture = 2};
 
@@ -93,6 +111,8 @@ level::level()
     Map[point_i {7, 10}] = push_wall {.PushDirection = {5, 0}, .Texture = 2};
 
     Map[point_i {2, 2}] = diagonal_wall {.Orientation = diagonal_wall::orientation::NorthWestToSouthEast, .Texture = 2};
+
+    set_light(Map, {5, 5}, 1.0, 3.0);
 
     Sprites.push_back({.Pos = {4, 5}, .Size = {1, 1}, .Texture = sprite1Texture});
     Sprites.push_back({.Pos = {4, 6}, .Size = {1, 1}, .Texture = sprite1Texture});

@@ -25,6 +25,7 @@ public:
 
     f64 FogMin {0.0};
     f64 FogDistance {12.0};
+    f64 AmbientLight {1.0};
 
     i32  FloorTexture {0};
     i32  CeilingTexture {0};
