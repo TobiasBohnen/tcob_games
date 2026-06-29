@@ -156,6 +156,8 @@ auto Plinth::move(milliseconds deltaTime) -> bool
 
 void Plinth::on_key_down(input::keyboard::event const& ev)
 {
+    if (ev.Repeat) { return; }
+
     switch (ev.ScanCode) { // NOLINT
     case input::scan_code::BACKSPACE:
         parent().pop_current_scene();

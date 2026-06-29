@@ -149,6 +149,14 @@ void raycaster::draw_walls(level const& level, player const& player, u32* screen
 {
     f64 const invFogDistance {1.0 / level.FogDistance};
 
+    auto const get_light {[&](point_i const& cell) -> f64 {
+        return std::visit([](auto&& w) -> f64 {
+            if constexpr (requires { w.Light; }) { return w.Light; }
+            return 0.0;
+        },
+                          level.Map[cell]);
+    }};
+
     for (isize x {columnStart}; x < columnEnd; x++) {
         f64 const     cameraX {(2.0 * x / _screenSize.Width) - 1.0};
         point_d const rayDir {player.Direction + (player.Plane * cameraX)};
@@ -176,31 +184,24 @@ void raycaster::draw_walls(level const& level, player const& player, u32* screen
 
         wall_hit hitResult {};
 
-        f64 wallLight {0.0};
-        f64 prevLight {0.0};
-
         std::array<wall_hit, MAX_TRANSPARENT_WALLS> transparentHits {};
         i32                                         transparentCount {0};
 
+        auto const process_hit {[&](wall_hit const& wallHit, point_i const& cell) {
+            wall_hit h {wallHit};
+            h.Light = get_light(cell);
+            if (h.Transparent) {
+                if (transparentCount < MAX_TRANSPARENT_WALLS) { transparentHits[transparentCount++] = h; }
+            } else {
+                hitResult = h;
+            }
+        }};
+
         // check player cell
         {
-            std::visit(
-                [&](auto&& w) {
-                    if constexpr (requires { w.Light; }) { wallLight = w.Light; }
-                },
-                level.Map[map]);
             auto const intersect {[&](auto&& c) { return c.intersect({map, player.Pos, rayDir, sideDist.X < sideDist.Y, 0.0}); }};
             auto const wallHit {std::visit(intersect, level.Map[map])};
-            if (wallHit.Hit) {
-                if (wallHit.Transparent) {
-                    wall_hit h {wallHit};
-                    h.Light = wallLight;
-                    if (transparentCount < MAX_TRANSPARENT_WALLS) { transparentHits[transparentCount++] = h; }
-                } else {
-                    hitResult       = wallHit;
-                    hitResult.Light = wallLight;
-                }
-            }
+            if (wallHit.Hit) { process_hit(wallHit, map); }
         }
 
         // DDA
@@ -221,28 +222,10 @@ void raycaster::draw_walls(level const& level, player const& player, u32* screen
 
                 if (!map_t::Size.contains(map)) { break; }
 
-                prevLight = wallLight;
-                wallLight = std::visit(
-                    [](auto&& w) {
-                        if constexpr (requires { w.Light; }) {
-                            return w.Light;
-                        } else {
-                            return 0.0;
-                        }
-                    },
-                    level.Map[map]);
-
                 auto const wallHit {std::visit(intersect, level.Map[map])};
                 if (wallHit.Hit) {
-                    if (wallHit.Transparent) {
-                        wall_hit h {wallHit};
-                        h.Light = prevLight;
-                        if (transparentCount < MAX_TRANSPARENT_WALLS) { transparentHits[transparentCount++] = h; }
-                    } else {
-                        hitResult       = wallHit;
-                        hitResult.Light = prevLight;
-                        break;
-                    }
+                    process_hit(wallHit, map);
+                    if (hitResult.Hit) { break; }
                 }
             }
         }
