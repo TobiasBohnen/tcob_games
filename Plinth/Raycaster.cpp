@@ -174,9 +174,11 @@ void raycaster::draw_walls(level const& level, player const& player, u32* screen
             sideDist.Y = (map.Y + 1.0 - player.Pos.Y) * deltaDist.Y;
         }
 
-        wall_hit                                    hitResult {};
-        f64                                         wallLight {0.0};
-        f64                                         prevLight {0.0};
+        wall_hit hitResult {};
+
+        f64 wallLight {0.0};
+        f64 prevLight {0.0};
+
         std::array<wall_hit, MAX_TRANSPARENT_WALLS> transparentHits {};
         i32                                         transparentCount {0};
 

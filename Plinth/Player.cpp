@@ -22,13 +22,6 @@ static auto closest_point_on_wall(level const& level, point_i map, point_d pos) 
             return point_d {std::clamp(pos.X, clampRect.left(), clampRect.right()),
                             std::clamp(pos.Y, clampRect.top(), clampRect.bottom())};
         },
-        [&](thin_wall const& w) -> std::optional<point_d> {
-            return w.Orientation == thin_wall::orientation::BlocksNorthSouth
-                ? point_d {std::clamp(pos.X, clampRect.left(), clampRect.right()),
-                           clampRect.top() + w.Offset}
-                : point_d {clampRect.left() + w.Offset,
-                           std::clamp(pos.Y, clampRect.top(), clampRect.bottom())};
-        },
         [&](box_wall const& w) -> std::optional<point_d> {
             rect_d r {w.LocalBounds};
             r.move_by(map);

@@ -234,14 +234,14 @@ auto box_wall::intersect(cell_intersect const& ci) const -> wall_hit
     f64 segmentT {0};
     if (tMinX > tMinY) {
         f64 const hitY {ci.RayOrigin.Y + (ci.RayDir.Y * t)};
-        segmentT = (hitY - minY) / (maxY - minY);
+        segmentT = (maxY > minY) ? (hitY - minY) / (maxY - minY) : 0.0;
     } else {
         f64 const hitX {ci.RayOrigin.X + (ci.RayDir.X * t)};
-        segmentT = (hitX - minX) / (maxX - minX);
+        segmentT = (maxX > minX) ? (hitX - minX) / (maxX - minX) : 0.0;
     }
 
     bool const hitSide {tMinX <= tMinY};
-    return wall_hit {.Distance = t, .SegmentT = segmentT, .Texture = Texture, .Hit = true, .Shaded = hitSide};
+    return wall_hit {.Distance = t, .SegmentT = segmentT, .Texture = Texture, .Hit = true, .Shaded = hitSide, .Transparent = Transparent};
 }
 
 auto diagonal_wall::intersect(cell_intersect const& ci) const -> wall_hit
@@ -279,7 +279,7 @@ auto diagonal_wall::intersect(cell_intersect const& ci) const -> wall_hit
         segmentT = 1.0 - (hitX - cX);
     }
 
-    return wall_hit {.Distance = t, .SegmentT = segmentT, .Texture = Texture, .Hit = true, .Shaded = Orientation == orientation::SouthWestToNorthEast};
+    return wall_hit {.Distance = t, .SegmentT = segmentT, .Texture = Texture, .Hit = true, .Shaded = Orientation == orientation::SouthWestToNorthEast, .Transparent = Transparent};
 }
 
 auto round_pillar::intersect(cell_intersect const& ci) const -> wall_hit
@@ -306,27 +306,4 @@ auto round_pillar::intersect(cell_intersect const& ci) const -> wall_hit
     bool const    hitSide {std::abs(normal.Y) > std::abs(normal.X)};
 
     return wall_hit {.Distance = t, .SegmentT = segmentT, .Texture = Texture, .Hit = true, .Shaded = hitSide};
-}
-
-auto thin_wall::intersect(cell_intersect const& ci) const -> wall_hit
-{
-    bool const isNS {Orientation == orientation::BlocksNorthSouth};
-    f64 const  rd {isNS ? ci.RayDir.Y : ci.RayDir.X};
-    f64 const  ro {isNS ? ci.RayOrigin.Y : ci.RayOrigin.X};
-    f64 const  c {static_cast<f64>(isNS ? ci.Cell.Y : ci.Cell.X)};
-    f64 const  roCross {isNS ? ci.RayOrigin.X : ci.RayOrigin.Y};
-    f64 const  rdCross {isNS ? ci.RayDir.X : ci.RayDir.Y};
-    f64 const  cCross {static_cast<f64>(isNS ? ci.Cell.X : ci.Cell.Y)};
-
-    if (rd == 0.0) { return {}; }
-
-    f64 const t {(c + Offset - ro) / rd};
-    if (t < 0.0) { return {}; }
-
-    f64 const hitCross {roCross + (rdCross * t)};
-    if (hitCross < cCross || hitCross > cCross + 1.0) { return {}; }
-
-    f64 const segmentT {hitCross - cCross};
-
-    return wall_hit {.Distance = t, .SegmentT = segmentT, .Texture = Texture, .Hit = true, .Transparent = true, .Shaded = !isNS};
 }

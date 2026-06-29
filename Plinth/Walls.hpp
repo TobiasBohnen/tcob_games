@@ -25,8 +25,8 @@ struct wall_hit {
     i32 Texture {0};
 
     bool Hit {false};
-    bool Transparent {false};
     bool Shaded {false};
+    bool Transparent {false};
 };
 
 struct cell_intersect {
@@ -102,6 +102,8 @@ struct push_wall {
 struct box_wall {
     rect_d LocalBounds;
 
+    bool Transparent {false};
+
     i32 Texture {0};
     i32 FloorTexture {INVALID_INDEX};
     i32 CeilingTexture {INVALID_INDEX};
@@ -117,6 +119,8 @@ struct diagonal_wall {
     };
 
     orientation Orientation {orientation::NorthWestToSouthEast};
+
+    bool Transparent {false};
 
     i32 Texture {0};
     i32 FloorTexture {INVALID_INDEX};
@@ -137,23 +141,7 @@ struct round_pillar {
     auto intersect(cell_intersect const& ci) const -> wall_hit;
 };
 
-struct thin_wall {
-    enum class orientation : u8 {
-        BlocksNorthSouth,
-        BlocksEastWest
-    };
-    orientation Orientation {orientation::BlocksNorthSouth};
-    f64         Offset {0.5};
-
-    i32 Texture {0};
-    i32 FloorTexture {-1};
-    i32 CeilingTexture {-1};
-    f64 Light {0.0};
-
-    auto intersect(cell_intersect const& ci) const -> wall_hit;
-};
-
-using wall = std::variant<empty_cell, cell, normal_wall, door_wall, push_wall, box_wall, diagonal_wall, round_pillar, thin_wall>;
+using wall = std::variant<empty_cell, cell, normal_wall, door_wall, push_wall, box_wall, diagonal_wall, round_pillar>;
 
 inline constexpr i32 mapWidth {64};
 inline constexpr i32 mapHeight {64};
