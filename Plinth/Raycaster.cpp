@@ -48,6 +48,16 @@ static auto is_magenta(u8 const* tex, i32 offset) -> bool
     return tex[offset + 0] == 0x98 && tex[offset + 1] == 0x00 && tex[offset + 2] == 0x88;
 }
 
+static auto shade_from_side(hit_side side) -> f64
+{
+    switch (side) {
+    case hit_side::NorthSouth: return 1.0;
+    case hit_side::WestEast:   return 0.5;
+    case hit_side::Diagonal:   return 0.75;
+    }
+    std::unreachable();
+}
+
 void raycaster::draw_wall_column(wall_hit const& hit, f64 invFogDistance, level const& level, player const& player, u32* screenBuf, isize x, bool transparent)
 {
     i32 const lineHeight {static_cast<i32>(player.ProjPlaneDist / hit.Distance)};
@@ -59,9 +69,8 @@ void raycaster::draw_wall_column(wall_hit const& hit, f64 invFogDistance, level 
     f64 const   texStep {1.0 * WALL_SIZE.Height / lineHeight};
     f64         texPos {(drawStart - (_screenSize.Height / 2) + (lineHeight / 2)) * texStep};
 
-    f64 const wallFaceFactor {hit.Shaded ? 0.5 : 1.0};
     f64 const wallFogFactor {std::max(1.0 - (hit.Distance * invFogDistance), level.FogMin)};
-    f64 const wallDarkenFactor {wallFaceFactor * wallFogFactor * (level.AmbientLight + hit.Light)};
+    f64 const wallDarkenFactor {shade_from_side(hit.Side) * wallFogFactor * (level.AmbientLight + hit.Light)};
 
     for (i32 y {drawStart}; y < drawEnd; y++) {
         i32 const texY {static_cast<i32>(texPos) & (WALL_SIZE.Height - 1)};

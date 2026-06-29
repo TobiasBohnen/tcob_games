@@ -7,12 +7,12 @@
 
 auto empty_cell::intersect(cell_intersect const& ci) const -> wall_hit
 {
-    return {.Hit = false};
+    return {};
 }
 
-auto cell::intersect(cell_intersect const& ci4) const -> wall_hit
+auto cell::intersect(cell_intersect const& ci) const -> wall_hit
 {
-    return {.Hit = false};
+    return {};
 }
 
 auto normal_wall::intersect(cell_intersect const& ci) const -> wall_hit
@@ -27,7 +27,7 @@ auto normal_wall::intersect(cell_intersect const& ci) const -> wall_hit
     bool const mirror {(!ci.Side && ci.RayDir.X > 0) || (ci.Side && ci.RayDir.Y < 0)};
     f64 const  segmentT {mirror ? 1.0 - wallX : wallX};
 
-    return {.Distance = ci.Distance, .SegmentT = segmentT, .Texture = Texture, .Hit = true, .Shaded = ci.Side};
+    return {.Distance = ci.Distance, .SegmentT = segmentT, .Side = ci.Side ? hit_side::WestEast : hit_side::NorthSouth, .Texture = Texture, .Hit = true};
 }
 
 auto door_wall::intersect(cell_intersect const& ci) const -> wall_hit
@@ -53,7 +53,7 @@ auto door_wall::intersect(cell_intersect const& ci) const -> wall_hit
             f64 const segEnd {isNS ? cCross + 1.0 : cCross + (1.0 - Timer)};
             if (hitCross >= segStart && hitCross <= segEnd) {
                 f64 const segmentT {isNS ? hitCross - segStart : segEnd - hitCross};
-                closestHit = {.Distance = t, .SegmentT = segmentT, .Texture = Texture, .Hit = true, .Shaded = ci.Side};
+                closestHit = {.Distance = t, .SegmentT = segmentT, .Side = ci.Side ? hit_side::WestEast : hit_side::NorthSouth, .Texture = Texture, .Hit = true};
                 minT       = t;
             }
         }
@@ -65,7 +65,7 @@ auto door_wall::intersect(cell_intersect const& ci) const -> wall_hit
             if (t >= 0.0 && t < minT) {
                 f64 const hitLeaf {roLeaf + (rdLeaf * t)};
                 if (hitLeaf >= cLeaf && hitLeaf <= cLeaf + 1.0) {
-                    closestHit = {.Distance = t, .SegmentT = hitLeaf - cLeaf, .Texture = FrameTexture, .Hit = true, .Shaded = !ci.Side};
+                    closestHit = {.Distance = t, .SegmentT = hitLeaf - cLeaf, .Side = ci.Side ? hit_side::NorthSouth : hit_side::WestEast, .Texture = FrameTexture, .Hit = true};
                     minT       = t;
                 }
             }
@@ -132,7 +132,7 @@ auto push_wall::intersect(cell_intersect const& ci) const -> wall_hit
         if (hitY < segStart || hitY > segEnd) { return {}; }
 
         f64 const segmentT {hitY - segStart};
-        return wall_hit {.Distance = t, .SegmentT = segmentT, .Texture = Texture, .Hit = true, .Shaded = ci.Side};
+        return wall_hit {.Distance = t, .SegmentT = segmentT, .Side = ci.Side ? hit_side::WestEast : hit_side::NorthSouth, .Texture = Texture, .Hit = true};
     }
 
     if (PushDirection.Y != 0) {
@@ -153,7 +153,7 @@ auto push_wall::intersect(cell_intersect const& ci) const -> wall_hit
         if (hitX < segStart || hitX > segEnd) { return {}; }
 
         f64 const segmentT {hitX - segStart};
-        return wall_hit {.Distance = t, .SegmentT = segmentT, .Texture = Texture, .Hit = true, .Shaded = ci.Side};
+        return wall_hit {.Distance = t, .SegmentT = segmentT, .Side = ci.Side ? hit_side::WestEast : hit_side::NorthSouth, .Texture = Texture, .Hit = true};
     }
 
     return {};
@@ -241,7 +241,7 @@ auto box_wall::intersect(cell_intersect const& ci) const -> wall_hit
     }
 
     bool const hitSide {tMinX <= tMinY};
-    return wall_hit {.Distance = t, .SegmentT = segmentT, .Texture = Texture, .Hit = true, .Shaded = hitSide, .Transparent = Transparent};
+    return wall_hit {.Distance = t, .SegmentT = segmentT, .Side = hitSide ? hit_side::WestEast : hit_side::NorthSouth, .Texture = Texture, .Hit = true, .Transparent = Transparent};
 }
 
 auto diagonal_wall::intersect(cell_intersect const& ci) const -> wall_hit
@@ -279,7 +279,7 @@ auto diagonal_wall::intersect(cell_intersect const& ci) const -> wall_hit
         segmentT = 1.0 - (hitX - cX);
     }
 
-    return wall_hit {.Distance = t, .SegmentT = segmentT, .Texture = Texture, .Hit = true, .Shaded = Orientation == orientation::SouthWestToNorthEast, .Transparent = Transparent};
+    return wall_hit {.Distance = t, .SegmentT = segmentT, .Side = hit_side::Diagonal, .Texture = Texture, .Hit = true, .Transparent = Transparent};
 }
 
 auto round_pillar::intersect(cell_intersect const& ci) const -> wall_hit
@@ -305,5 +305,5 @@ auto round_pillar::intersect(cell_intersect const& ci) const -> wall_hit
     point_d const normal {hit.X - center.X, hit.Y - center.Y};
     bool const    hitSide {std::abs(normal.Y) > std::abs(normal.X)};
 
-    return wall_hit {.Distance = t, .SegmentT = segmentT, .Texture = Texture, .Hit = true, .Shaded = hitSide};
+    return wall_hit {.Distance = t, .SegmentT = segmentT, .Side = hitSide ? hit_side::WestEast : hit_side::NorthSouth, .Texture = Texture, .Hit = true};
 }

@@ -16,16 +16,22 @@ enum class wall_state : u8 {
     Closing = 3
 };
 
+enum class hit_side : u8 {
+    NorthSouth,
+    WestEast,
+    Diagonal
+};
+
 struct wall_hit {
     f64 Distance {0.0}; // ray parameter t at the intersection
     f64 SegmentT {0.0}; // 0..1 across the hit surface, for texture X coordinate
 
-    f64 Light {0.0};
+    f64      Light {0.0};
+    hit_side Side {};
 
     i32 Texture {0};
 
     bool Hit {false};
-    bool Shaded {false};
     bool Transparent {false};
 };
 

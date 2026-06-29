@@ -115,7 +115,16 @@ level::level()
     Map[point_i {10, 5}] = push_wall {.PushDirection = {0, 5}, .Texture = 2};
     Map[point_i {7, 10}] = push_wall {.PushDirection = {5, 0}, .Texture = 2};
 
-    Map[point_i {2, 2}] = diagonal_wall {.Orientation = diagonal_wall::orientation::NorthWestToSouthEast, .Transparent = true, .Texture = 15};
+    Map[point_i {3, 23}] = normal_wall {.Texture = 2};
+    Map[point_i {3, 24}] = normal_wall {.Texture = 2};
+    Map[point_i {3, 25}] = normal_wall {.Texture = 2};
+    Map[point_i {2, 24}] = normal_wall {.Texture = 2};
+    Map[point_i {4, 24}] = normal_wall {.Texture = 2};
+
+    Map[point_i {2, 23}] = diagonal_wall {.Orientation = diagonal_wall::orientation::SouthWestToNorthEast, .Transparent = true, .Texture = 15};
+    Map[point_i {4, 23}] = diagonal_wall {.Orientation = diagonal_wall::orientation::NorthWestToSouthEast, .Transparent = true, .Texture = 15};
+    Map[point_i {2, 25}] = diagonal_wall {.Orientation = diagonal_wall::orientation::NorthWestToSouthEast, .Transparent = true, .Texture = 15};
+    Map[point_i {4, 25}] = diagonal_wall {.Orientation = diagonal_wall::orientation::SouthWestToNorthEast, .Transparent = true, .Texture = 15};
 
     Map[point_i {10, 9}] = box_wall {.LocalBounds = {0.0, 0.5, 1.0, 0.0}, .Transparent = true, .Texture = 15};
     Map[point_i {9, 9}]  = box_wall {.LocalBounds = {0.5, 0.0, 0.0, 0.5}, .Transparent = true, .Texture = 15};
