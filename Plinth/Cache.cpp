@@ -99,7 +99,7 @@ void cache::set(u32* raw, color c, f64 darken)
     c.R  = static_cast<u8>(std::min(c.R * darken, 255.0));
     c.G  = static_cast<u8>(std::min(c.G * darken, 255.0));
     c.B  = static_cast<u8>(std::min(c.B * darken, 255.0));
-    *raw = std::byteswap(c.value());
+    *raw = c.to_abgr();
 }
 
 auto cache::get(u8 const* img, usize idx) -> color
