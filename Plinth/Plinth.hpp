@@ -7,10 +7,10 @@
 
 #include <memory>
 
-#include "Cache.hpp"
 #include "Common.hpp"
 #include "Player.hpp"
 #include "Raycaster.hpp"
+#include "TextureCache.hpp"
 
 class Plinth final : public scene {
 public:
@@ -30,15 +30,14 @@ private:
     void draw();
     auto move(milliseconds deltaTime) -> bool;
 
-    std::unique_ptr<cache>     _cache;
-    std::unique_ptr<raycaster> _raycaster;
-    std::unique_ptr<level>     _level;
-    player                     _player;
+    std::unique_ptr<texture_cache> _cache;
+    std::unique_ptr<raycaster>     _raycaster;
+    std::unique_ptr<level>         _level;
+    player                         _player;
 
     asset_owner_ptr<gfx::material> _material;
     asset_owner_ptr<gfx::texture>  _texture;
     gfx::renderer                  _renderer {gfx::buffer_usage_hint::StaticDraw};
 
-    size_i _screen {};
-    bool   _update {true};
+    bool _update {true};
 };

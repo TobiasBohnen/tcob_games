@@ -8,15 +8,17 @@
 #include <algorithm>
 #include <cmath>
 
-#include "Cache.hpp"
 #include "Common.hpp"
 #include "Level.hpp"
 #include "Player.hpp"
+#include "TextureCache.hpp"
 #include "Walls.hpp"
 
-raycaster::raycaster(cache& cache, size_i screenSize, f64 projPlaneDist)
+raycaster::raycaster(texture_cache& cache, size_i screenSize, f64 projPlaneDist)
     : _cache {cache}
+    , _screen(screenSize.area())
     , _screenSize {screenSize}
+    , _projPlaneDist {projPlaneDist}
 {
     _zBuffer.resize(_screenSize.Width);
 
@@ -37,10 +39,15 @@ void raycaster::prepare_draw()
     std::ranges::fill(_spriteDepthBuffer, std::numeric_limits<f64>::infinity());
 }
 
-void raycaster::draw(level const& level, player const& player, u32* screenBuf, i32 columnStart, i32 columnEnd)
+void raycaster::draw(level const& level, player const& player, i32 columnStart, i32 columnEnd)
 {
-    draw_walls(level, player, screenBuf, columnStart, columnEnd);
-    draw_sprites(level, player, screenBuf, columnStart, columnEnd);
+    draw_walls(level, player, columnStart, columnEnd);
+    draw_sprites(level, player, columnStart, columnEnd);
+}
+
+auto raycaster::screen() const -> u32 const*
+{
+    return _screen.data();
 }
 
 static auto is_magenta(u8 const* tex, i32 offset) -> bool
@@ -58,9 +65,9 @@ static auto shade_from_side(hit_side side) -> f64
     std::unreachable();
 }
 
-void raycaster::draw_wall_column(wall_hit const& hit, f64 invFogDistance, level const& level, player const& player, u32* screenBuf, isize x, bool transparent)
+void raycaster::draw_wall_column(wall_hit const& hit, f64 invFogDistance, level const& level, player const& player, isize x, bool transparent)
 {
-    i32 const lineHeight {static_cast<i32>(player.ProjPlaneDist / hit.Distance)};
+    i32 const lineHeight {static_cast<i32>(_projPlaneDist / hit.Distance)};
     i32 const drawStart {std::max((-lineHeight / 2) + (_screenSize.Height / 2), 0)};
     i32 const drawEnd {std::min((lineHeight / 2) + (_screenSize.Height / 2), _screenSize.Height - 1)};
 
@@ -72,6 +79,7 @@ void raycaster::draw_wall_column(wall_hit const& hit, f64 invFogDistance, level 
     f64 const wallFogFactor {std::max(1.0 - (hit.Distance * invFogDistance), level.FogMin)};
     f64 const wallDarkenFactor {shade_from_side(hit.Side) * wallFogFactor * (level.AmbientLight + hit.Light)};
 
+    u32* screenBuf {_screen.data()};
     for (i32 y {drawStart}; y < drawEnd; y++) {
         i32 const texY {static_cast<i32>(texPos) & (WALL_SIZE.Height - 1)};
         texPos += texStep;
@@ -81,17 +89,16 @@ void raycaster::draw_wall_column(wall_hit const& hit, f64 invFogDistance, level 
             isize const depthIndex {x + (static_cast<isize>(y) * _screenSize.Width)};
             _spriteDepthBuffer[depthIndex] = std::min(_spriteDepthBuffer[depthIndex], hit.Distance);
         }
-        cache::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), tex, srcIdx, wallDarkenFactor);
+        raycaster::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), tex, srcIdx, wallDarkenFactor);
     }
 }
 
-void raycaster::draw_floor_ceiling_column(wall_hit const& hit, f64 invFogDistance, level const& level, player const& player, u32* screenBuf, isize x, point_d rayDir)
+void raycaster::draw_floor_ceiling_column(wall_hit const& hit, f64 invFogDistance, level const& level, player const& player, isize x, point_d rayDir)
 {
-    i32 const lineHeight {static_cast<i32>(player.ProjPlaneDist / hit.Distance)};
-    i32 const drawStart {std::max((-lineHeight / 2) + (_screenSize.Height / 2), 0)};
+    i32 const lineHeight {static_cast<i32>(_projPlaneDist / hit.Distance)};
     i32 const drawEnd {std::min((lineHeight / 2) + (_screenSize.Height / 2), _screenSize.Height - 1)};
 
-    point_d const floorWall {player.Pos + (rayDir * hit.Distance)};
+    point_d const floorWall {player.Position + (rayDir * hit.Distance)};
     f64 const     invPerpWallDist {1.0 / hit.Distance};
 
     i32 const   skyTexX {level.IsSkybox ? static_cast<i32>(std::fmod((std::atan2(rayDir.Y, rayDir.X) / TAU) + 1.0, 1.0) * SKY_SIZE.Width) % SKY_SIZE.Width : 0};
@@ -116,13 +123,15 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, f64 invFogDistanc
         }
     }};
 
+    u32* screenBuf {_screen.data()};
+
     for (i32 y {drawEnd}; y < _screenSize.Height; y++) {
         f64 const weight {std::min(_rowDist[y] * invPerpWallDist, 1.0)};
 
-        point_d const currentFloor {(weight * floorWall.X) + ((1.0 - weight) * player.Pos.X),
-                                    (weight * floorWall.Y) + ((1.0 - weight) * player.Pos.Y)};
+        point_d const currentFloor {(weight * floorWall.X) + ((1.0 - weight) * player.Position.X),
+                                    (weight * floorWall.Y) + ((1.0 - weight) * player.Position.Y)};
 
-        point_d const delta {currentFloor.X - player.Pos.X, currentFloor.Y - player.Pos.Y};
+        point_d const delta {currentFloor.X - player.Position.X, currentFloor.Y - player.Position.Y};
         f64 const     floorDist {std::sqrt((delta.X * delta.X) + (delta.Y * delta.Y))};
         f64 const     fogFactor {std::max(1.0 - (floorDist * invFogDistance), level.FogMin)};
 
@@ -142,19 +151,19 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, f64 invFogDistanc
         }
 
         f64 const cellFogFactor {fogFactor * (level.AmbientLight + cellLight)};
-        cache::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), cellFloorTexPtr, texelOffset, cellFogFactor);
+        raycaster::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), cellFloorTexPtr, texelOffset, cellFogFactor);
 
         if (level.IsSkybox) {
             i32 const skyTexY {static_cast<i32>(std::min(static_cast<f64>(_screenSize.Height - y - 1) / static_cast<f64>(_screenSize.Height / 2), 1.0) * SKY_SIZE.Height) & (SKY_SIZE.Height - 1)};
             i32 const skyOffset {(skyTexX + (skyTexY * SKY_SIZE.Width)) * TEXTURE_BPP};
-            cache::copy(screenBuf + x + (y * _screenSize.Width), skyTex, skyOffset, 1.0);
+            raycaster::copy(screenBuf + x + (y * _screenSize.Width), skyTex, skyOffset, 1.0);
         } else {
-            cache::copy(screenBuf + x + (y * _screenSize.Width), cellCeilTexPtr, texelOffset, cellFogFactor);
+            raycaster::copy(screenBuf + x + (y * _screenSize.Width), cellCeilTexPtr, texelOffset, cellFogFactor);
         }
     }
 }
 
-void raycaster::draw_walls(level const& level, player const& player, u32* screenBuf, i32 columnStart, i32 columnEnd)
+void raycaster::draw_walls(level const& level, player const& player, i32 columnStart, i32 columnEnd)
 {
     f64 const invFogDistance {1.0 / level.FogDistance};
 
@@ -170,7 +179,7 @@ void raycaster::draw_walls(level const& level, player const& player, u32* screen
         f64 const     cameraX {(2.0 * x / _screenSize.Width) - 1.0};
         point_d const rayDir {player.Direction + (player.Plane * cameraX)};
 
-        point_i map {player.Pos};
+        point_i map {player.Position};
 
         point_d const deltaDist {(rayDir.X == 0) ? 1e30 : std::abs(1 / rayDir.X), (rayDir.Y == 0) ? 1e30 : std::abs(1 / rayDir.Y)};
 
@@ -178,17 +187,17 @@ void raycaster::draw_walls(level const& level, player const& player, u32* screen
         point_d sideDist {};
         if (rayDir.X < 0) {
             step.X     = -1;
-            sideDist.X = (player.Pos.X - map.X) * deltaDist.X;
+            sideDist.X = (player.Position.X - map.X) * deltaDist.X;
         } else {
             step.X     = 1;
-            sideDist.X = (map.X + 1.0 - player.Pos.X) * deltaDist.X;
+            sideDist.X = (map.X + 1.0 - player.Position.X) * deltaDist.X;
         }
         if (rayDir.Y < 0) {
             step.Y     = -1;
-            sideDist.Y = (player.Pos.Y - map.Y) * deltaDist.Y;
+            sideDist.Y = (player.Position.Y - map.Y) * deltaDist.Y;
         } else {
             step.Y     = 1;
-            sideDist.Y = (map.Y + 1.0 - player.Pos.Y) * deltaDist.Y;
+            sideDist.Y = (map.Y + 1.0 - player.Position.Y) * deltaDist.Y;
         }
 
         wall_hit hitResult {};
@@ -208,7 +217,7 @@ void raycaster::draw_walls(level const& level, player const& player, u32* screen
 
         // check player cell
         {
-            auto const intersect {[&](auto&& c) { return c.intersect({map, player.Pos, rayDir, sideDist.X < sideDist.Y, 0.0}); }};
+            auto const intersect {[&](auto&& c) { return c.intersect({map, player.Position, rayDir, sideDist.X < sideDist.Y, 0.0}); }};
             auto const wallHit {std::visit(intersect, level.Map[map])};
             if (wallHit.Hit) { process_hit(wallHit, map); }
         }
@@ -216,7 +225,7 @@ void raycaster::draw_walls(level const& level, player const& player, u32* screen
         // DDA
         if (!hitResult.Hit) {
             bool       side {false};
-            auto const intersect {[&](auto&& c) -> wall_hit { return c.intersect({map, player.Pos, rayDir, side, !side ? sideDist.X - deltaDist.X : sideDist.Y - deltaDist.Y}); }};
+            auto const intersect {[&](auto&& c) -> wall_hit { return c.intersect({map, player.Position, rayDir, side, !side ? sideDist.X - deltaDist.X : sideDist.Y - deltaDist.Y}); }};
 
             for (;;) {
                 if (sideDist.X < sideDist.Y) {
@@ -242,11 +251,11 @@ void raycaster::draw_walls(level const& level, player const& player, u32* screen
         if (!hitResult.Hit) { continue; }
 
         _zBuffer[x] = hitResult.Distance;
-        draw_wall_column(hitResult, invFogDistance, level, player, screenBuf, x, false);
-        draw_floor_ceiling_column(hitResult, invFogDistance, level, player, screenBuf, x, rayDir);
+        draw_wall_column(hitResult, invFogDistance, level, player, x, false);
+        draw_floor_ceiling_column(hitResult, invFogDistance, level, player, x, rayDir);
 
         for (i32 i {transparentCount - 1}; i >= 0; --i) {
-            draw_wall_column(transparentHits[i], invFogDistance, level, player, screenBuf, x, true);
+            draw_wall_column(transparentHits[i], invFogDistance, level, player, x, true);
         }
     }
 }
@@ -262,20 +271,21 @@ static auto sprite_facing_index(degree_d spriteFacing, point_d spritePos, point_
     return index;
 }
 
-void raycaster::draw_sprites(level const& level, player const& player, u32* screenBuf, i32 columnStart, i32 columnEnd)
+void raycaster::draw_sprites(level const& level, player const& player, i32 columnStart, i32 columnEnd)
 {
     f64 const invDet {1.0 / player.Plane.cross(player.Direction)};
     f64 const invFogDistance {1.0 / level.FogDistance};
 
+    u32* screenBuf {_screen.data()};
     for (sprite const& spr : level.Sprites) {
-        point_d const relPos {spr.Pos - player.Pos};
+        point_d const relPos {spr.Position - player.Position};
 
         f64 const transformX {invDet * relPos.cross(player.Direction)};
         f64 const transformY {invDet * player.Plane.cross(relPos)};
         if (transformY <= 0) { continue; }
 
         i32 const    spriteScreenX {static_cast<i32>((_screenSize.Width / 2.0) * (1.0 + (transformX / transformY)))};
-        f64 const    scale {player.ProjPlaneDist / transformY};
+        f64 const    scale {_projPlaneDist / transformY};
         size_i const spriteSize {static_cast<i32>(std::abs(scale)) * size_i {spr.Size}};
 
         point_i const drawStart {std::max({(-spriteSize.Width / 2) + spriteScreenX, 0, columnStart}),
@@ -288,7 +298,7 @@ void raycaster::draw_sprites(level const& level, player const& player, u32* scre
         i32 const spriteLeft {spriteScreenX - (spriteSize.Width / 2)};
         i32 const spriteTop {(_screenSize.Height / 2) - (spriteSize.Height / 2)};
 
-        i32 const    facing {sprite_facing_index(spr.Facing, spr.Pos, player.Pos)};
+        i32 const    facing {sprite_facing_index(spr.Facing, spr.Position, player.Position)};
         auto const*  tex {_cache.texture(spr.Texture, facing)};
         size_i const texSize {_cache.texture_size(spr.Texture, facing)};
 
@@ -299,7 +309,7 @@ void raycaster::draw_sprites(level const& level, player const& player, u32* scre
         std::visit([&](auto&& w) {
             if constexpr (requires { w.Light; }) { spriteLight = w.Light; }
         },
-                   level.Map[point_i {spr.Pos}]);
+                   level.Map[point_i {spr.Position}]);
 
         f64 const spriteFogFactor {std::max(1.0 - (transformY * invFogDistance), level.FogMin) * (level.AmbientLight + spriteLight)};
 
@@ -319,9 +329,30 @@ void raycaster::draw_sprites(level const& level, player const& player, u32* scre
                 isize const depthIndex {stripe + (static_cast<isize>(y) * _screenSize.Width)};
                 if (transformY < _spriteDepthBuffer[depthIndex]) {
                     _spriteDepthBuffer[depthIndex] = transformY;
-                    cache::copy(screenBuf + stripe + ((_screenSize.Height - y - 1) * _screenSize.Width), tex, offset, spriteFogFactor);
+                    raycaster::copy(screenBuf + stripe + ((_screenSize.Height - y - 1) * _screenSize.Width), tex, offset, spriteFogFactor);
                 }
             }
         }
     }
+}
+
+void raycaster::copy(u32* dst, u8 const* src, i32 srcIdx, f64 darken)
+{
+    set(dst, get(src, srcIdx), darken);
+}
+
+void raycaster::set(u32* raw, color c, f64 darken)
+{
+    c.R  = static_cast<u8>(std::min(c.R * darken, 255.0));
+    c.G  = static_cast<u8>(std::min(c.G * darken, 255.0));
+    c.B  = static_cast<u8>(std::min(c.B * darken, 255.0));
+    *raw = c.to_abgr();
+}
+
+auto raycaster::get(u8 const* img, usize idx) -> color
+{
+    u8 const r {img[idx + 0]};
+    u8 const g {img[idx + 1]};
+    u8 const b {img[idx + 2]};
+    return {r, g, b, 255};
 }

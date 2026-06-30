@@ -10,12 +10,9 @@
 #include <tcob/tcob.hpp>
 
 using namespace tcob;
+using namespace tcob::literals;
 using namespace tcob::ui;
 using namespace std::chrono_literals;
-
-inline constexpr i32 sprite1Texture {11};
-inline constexpr i32 door1Texture {12};
-inline constexpr i32 door1FrameTexture {13};
 
 inline constexpr i32 TEXTURE_BPP {3};
 
@@ -27,6 +24,6 @@ inline constexpr isize MAX_TRANSPARENT_WALLS {8};
 
 inline constexpr f64 FOV {90};
 
-class cache;
+class texture_cache;
 class level;
 class player;

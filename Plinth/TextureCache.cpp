@@ -3,38 +3,28 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-#include "Cache.hpp"
+#include "TextureCache.hpp"
 
 #include "Common.hpp"
 
-cache::cache(size_i screenSize)
-{
-    _screen.resize(screenSize.area());
-}
-
-auto cache::screen() -> u32*
-{
-    return _screen.data();
-}
-
-auto cache::get_entry(i32 idx, i32 facing) const -> texture_entry const&
+auto texture_cache::get_entry(i32 idx, i32 facing) const -> texture_entry const&
 {
     auto const& facings {_directory.at(idx)};
     auto const  it {facings.find(facing)};
     return it != facings.end() ? it->second : facings.at(0);
 }
 
-auto cache::texture(i32 idx, i32 facing) -> u8*
+auto texture_cache::texture(i32 idx, i32 facing) -> u8*
 {
     return _textures.data() + get_entry(idx, facing).Offset;
 }
 
-auto cache::texture_size(i32 idx, i32 facing) const -> size_i
+auto texture_cache::texture_size(i32 idx, i32 facing) const -> size_i
 {
     return get_entry(idx, facing).Size;
 }
 
-void cache::load()
+void texture_cache::load()
 {
     struct pending_load {
         i32    Tex {0};
@@ -87,25 +77,4 @@ void cache::load()
             dst[idx] = img.ptr()[idx];
         }
     }
-}
-
-void cache::copy(u32* dst, u8 const* src, i32 srcIdx, f64 darken)
-{
-    set(dst, get(src, srcIdx), darken);
-}
-
-void cache::set(u32* raw, color c, f64 darken)
-{
-    c.R  = static_cast<u8>(std::min(c.R * darken, 255.0));
-    c.G  = static_cast<u8>(std::min(c.G * darken, 255.0));
-    c.B  = static_cast<u8>(std::min(c.B * darken, 255.0));
-    *raw = c.to_abgr();
-}
-
-auto cache::get(u8 const* img, usize idx) -> color
-{
-    u8 const r {img[idx + 0]};
-    u8 const g {img[idx + 1]};
-    u8 const b {img[idx + 2]};
-    return {r, g, b, 255};
 }

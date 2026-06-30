@@ -9,7 +9,7 @@
 #include "Walls.hpp"
 
 struct sprite {
-    point_d  Pos;
+    point_d  Position;
     size_d   Size {size_d::One}; // world-unit width/height; {1,1} = one full tile
     i32      Texture {-1};
     degree_f Facing {0};

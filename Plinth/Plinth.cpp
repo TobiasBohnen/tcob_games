@@ -9,26 +9,26 @@
 #include "Level.hpp"
 #include "Raycaster.hpp"
 
-constexpr size_i screenSize {640, 480};
+constexpr size_i screenSize {640, 360};
 
 Plinth::Plinth(game& game)
     : scene {game}
-    , _cache {std::make_unique<cache>(screenSize)}
+    , _cache {std::make_unique<texture_cache>()}
+    , _level {std::make_unique<level>()}
 {
     _material->first_pass().Texture = _texture;
 
     _texture->resize(screenSize, 1, gfx::texture::format::RGBA8);
     _texture->Filtering = gfx::texture::filtering::Linear;
 
-    _player.Pos = {6, 5};
+    _player.Position = {6, 5};
+    degree_d const angle {90};
+    radian_d const rad {angle - degree_d {90}};
+    _player.Direction = point_d::FromDirection(angle);
     f64 const fov {FOV * TAU / 360.0};
-    _player.Direction     = {-1, 0};
-    _player.Plane         = {0, std::tan(fov / 2.0)};
-    _player.ProjPlaneDist = (screenSize.Width / 2.0) / std::tan(fov / 2.0);
+    _player.Plane = {rad.sin() * std::tan(fov / 2.0), -rad.cos() * std::tan(fov / 2.0)};
 
-    _screen    = _texture->info().Size;
-    _raycaster = std::make_unique<raycaster>(*_cache, _screen, _player.ProjPlaneDist);
-    _level     = std::make_unique<level>();
+    _raycaster = std::make_unique<raycaster>(*_cache, screenSize, (screenSize.Width / 2.0) / std::tan(fov / 2.0));
 }
 
 Plinth::~Plinth() = default;
@@ -43,13 +43,13 @@ void Plinth::on_draw_to(gfx::render_target& target, transform const& xform)
     if (_update) {
         draw();
         _update = false;
-        _texture->update_data(_cache->screen(), 0);
+        _texture->update_data(_raycaster->screen(), 0);
     }
 
     // aspect ratio correction
     size_i const size {*target.Size};
 
-    f32 const srcAspect {static_cast<f32>(_screen.Width) / static_cast<f32>(_screen.Height)};
+    f32 const srcAspect {static_cast<f32>(screenSize.Width) / static_cast<f32>(screenSize.Height)};
     f32 const dstAspect {static_cast<f32>(size.Width) / static_cast<f32>(size.Height)};
 
     f32 destWidth {static_cast<f32>(size.Width)};
@@ -61,12 +61,9 @@ void Plinth::on_draw_to(gfx::render_target& target, transform const& xform)
         destHeight = destWidth / srcAspect;
     }
 
-    f32 const offsetX {(static_cast<f32>(size.Width) - destWidth) / 2.0f};
-    f32 const offsetY {(static_cast<f32>(size.Height) - destHeight) / 2.0f};
-
     gfx::quad q {};
     gfx::geometry::set_color(q, colors::White);
-    gfx::geometry::set_position(q, {offsetX, offsetY, destWidth, destHeight});
+    gfx::geometry::set_position(q, {0, 0, destWidth, destHeight});
     gfx::geometry::set_texcoords(q, {.UVRect = gfx::render_texture::UVRect(), .Level = 0});
     _renderer.set_geometry({.Vertices = q, .Indices = gfx::QuadIndicies, .Type = gfx::primitive_type::Triangles}, &_material->first_pass());
     _renderer.render_to_target(target, transform::Identity);
@@ -93,9 +90,9 @@ void Plinth::draw()
 
     locate_service<task_manager>().run_parallel(
         [&](par_task const& ctx) {
-            _raycaster->draw(*_level, _player, _cache->screen(), static_cast<i32>(ctx.Start), static_cast<i32>(ctx.End));
+            _raycaster->draw(*_level, _player, static_cast<i32>(ctx.Start), static_cast<i32>(ctx.End));
         },
-        _screen.Width);
+        screenSize.Width);
 }
 
 auto Plinth::move(milliseconds deltaTime) -> bool
@@ -164,9 +161,9 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
         break;
     case input::scan_code::Q: {
         auto& spr {_level->Sprites[0]};
-        spr.Facing = spr.Pos.angle_to(_player.Pos);
-        spr.Pos    = spr.Pos.moved_along(degree_d {spr.Facing.Value}, 0.1);
-        _update    = true;
+        spr.Facing   = spr.Position.angle_to(_player.Position);
+        spr.Position = spr.Position.moved_along(degree_d {spr.Facing.Value}, 0.1);
+        _update      = true;
     } break;
     case input::scan_code::R: {
         locate_service<gfx::render_system>().statistics().reset();
@@ -188,7 +185,7 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
         _level->toggle_wall(point_i {7, 10});
     } break;
     case input::scan_code::SPACE: {
-        _level->toggle_wall(point_i {_player.Pos + _player.Direction});
+        _level->toggle_wall(point_i {_player.Position + _player.Direction});
     } break;
     default:
 
@@ -200,7 +197,7 @@ void Plinth::on_controller_button_down(input::controller::button_event const& ev
 {
     switch (ev.Button) {
     case tcob::input::controller::button::A:
-        _level->toggle_wall(point_i {_player.Pos + _player.Direction});
+        _level->toggle_wall(point_i {_player.Position + _player.Direction});
         break;
     default: break;
     }

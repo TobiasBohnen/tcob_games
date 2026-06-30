@@ -76,7 +76,7 @@ static auto is_position_clear(level const& level, point_d pos, f64 radius) -> bo
     return std::ranges::all_of(level.Sprites, [&](sprite const& spr) {
         if (!spr.Solid) { return true; }
         f64 const     combinedRadius {radius + (spr.Size.Width / 2.0)};
-        point_d const d {spr.Pos - pos};
+        point_d const d {spr.Position - pos};
         return d.dot(d) >= combinedRadius * combinedRadius;
     });
 }
@@ -87,42 +87,42 @@ auto player::move(level const& level, f64 forwardAmount, f64 strafeAmount, f64 r
 
     // Move Forward/Backward
     if (forwardAmount != 0) {
-        point_d const newPos {Pos + (Direction * forwardAmount)};
+        point_d const newPos {Position + (Direction * forwardAmount)};
 
         if (is_position_clear(level, newPos, Radius)) {
-            Pos      = newPos;
+            Position = newPos;
             retValue = true;
-        } else if (is_position_clear(level, {Pos.X, newPos.Y}, Radius)) {
-            Pos.Y    = newPos.Y;
-            retValue = true;
-        } else if (is_position_clear(level, {newPos.X, Pos.Y}, Radius)) {
-            Pos.X    = newPos.X;
-            retValue = true;
+        } else if (is_position_clear(level, {Position.X, newPos.Y}, Radius)) {
+            Position.Y = newPos.Y;
+            retValue   = true;
+        } else if (is_position_clear(level, {newPos.X, Position.Y}, Radius)) {
+            Position.X = newPos.X;
+            retValue   = true;
         }
     }
 
     // Strafe Left/Right (perpendicular to _dir)
     if (strafeAmount != 0) {
         point_d const strafe {Direction.as_perpendicular()};
-        point_d const newPos {Pos + (strafe * strafeAmount)};
+        point_d const newPos {Position + (strafe * strafeAmount)};
 
         if (is_position_clear(level, newPos, Radius)) {
-            Pos      = newPos;
+            Position = newPos;
             retValue = true;
-        } else if (is_position_clear(level, {Pos.X, newPos.Y}, Radius)) {
-            Pos.Y    = newPos.Y;
-            retValue = true;
-        } else if (is_position_clear(level, {newPos.X, Pos.Y}, Radius)) {
-            Pos.X    = newPos.X;
-            retValue = true;
+        } else if (is_position_clear(level, {Position.X, newPos.Y}, Radius)) {
+            Position.Y = newPos.Y;
+            retValue   = true;
+        } else if (is_position_clear(level, {newPos.X, Position.Y}, Radius)) {
+            Position.X = newPos.X;
+            retValue   = true;
         }
     }
 
     // Rotate (both direction and plane vectors must rotate together)
     if (rotateAmount != 0) {
-        f64 const old_dirX {Direction.X};
+        f64 const oldDirX {Direction.X};
         Direction.X = (Direction.X * std::cos(rotateAmount)) - (Direction.Y * std::sin(rotateAmount));
-        Direction.Y = (old_dirX * std::sin(rotateAmount)) + (Direction.Y * std::cos(rotateAmount));
+        Direction.Y = (oldDirX * std::sin(rotateAmount)) + (Direction.Y * std::cos(rotateAmount));
 
         f64 const oldPlaneX {Plane.X};
         Plane.X = (Plane.X * std::cos(rotateAmount)) - (Plane.Y * std::sin(rotateAmount));

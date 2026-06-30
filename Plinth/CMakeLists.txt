@@ -2,7 +2,7 @@ add_executable(Plinth)
 
 target_sources(Plinth PRIVATE
     main.cpp
-    Cache.cpp
+    TextureCache.cpp
     Level.cpp
     Player.cpp
     Plinth.cpp

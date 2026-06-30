@@ -6,6 +6,7 @@
 #include "Level.hpp"
 
 #include "Common.hpp"
+#include "TextureCache.hpp"
 
 std::array<u8, mapWidth * mapHeight> map0 {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 7, 7, 7, 7, 7, 7, 7, 7, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 7, 7, 7, 7, 7, 7, 7, 7, 4, 4, 4, 4, 4, 4, 4, 4, 7, 7, 7, 7, 7, 7, 7, 7,
@@ -130,9 +131,9 @@ level::level()
     Map[point_i {9, 9}]  = box_wall {.LocalBounds = {0.5, 0.0, 0.0, 0.5}, .Transparent = true, .Texture = 15};
 
     set_light(Map, {5, 5}, 1.0, 5.0);
-    Sprites.push_back({.Pos = {4, 5}, .Size = {1, 1}, .Texture = sprite1Texture});
-    Sprites.push_back({.Pos = {4, 6}, .Size = {1, 1}, .Texture = sprite1Texture});
-    Sprites.push_back({.Pos = {4, 7}, .Size = {1, 1}, .Texture = sprite1Texture});
+    Sprites.push_back({.Position = {4, 5}, .Size = {1, 1}, .Texture = sprite1Texture});
+    Sprites.push_back({.Position = {4, 6}, .Size = {1, 1}, .Texture = sprite1Texture});
+    Sprites.push_back({.Position = {4, 7}, .Size = {1, 1}, .Texture = sprite1Texture});
 
     CeilingTexture = 13;
     FloorTexture   = 9;
