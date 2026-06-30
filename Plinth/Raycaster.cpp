@@ -14,42 +14,6 @@
 #include "TextureCache.hpp"
 #include "Walls.hpp"
 
-raycaster::raycaster(texture_cache& cache, size_i screenSize, f64 projPlaneDist)
-    : _cache {cache}
-    , _screen(screenSize.area())
-    , _screenSize {screenSize}
-    , _projPlaneDist {projPlaneDist}
-{
-    _zBuffer.resize(_screenSize.Width);
-
-    _rowDist.resize(_screenSize.Height);
-    for (i32 y {0}; y < _screenSize.Height; y++) {
-        if (2.0 * y == _screenSize.Height) {
-            _rowDist[y] = std::numeric_limits<f64>::infinity();
-            continue;
-        }
-        _rowDist[y] = projPlaneDist / ((2.0 * y) - _screenSize.Height);
-    }
-
-    _spriteDepthBuffer.resize(static_cast<usize>(_screenSize.Width) * _screenSize.Height);
-}
-
-void raycaster::prepare_draw()
-{
-    std::ranges::fill(_spriteDepthBuffer, std::numeric_limits<f64>::infinity());
-}
-
-void raycaster::draw(level const& level, player const& player, i32 columnStart, i32 columnEnd)
-{
-    draw_walls(level, player, columnStart, columnEnd);
-    draw_sprites(level, player, columnStart, columnEnd);
-}
-
-auto raycaster::screen() const -> u32 const*
-{
-    return _screen.data();
-}
-
 static auto is_magenta(u8 const* tex, i32 offset) -> bool
 {
     return tex[offset + 0] == 0x98 && tex[offset + 1] == 0x00 && tex[offset + 2] == 0x88;
@@ -71,6 +35,57 @@ static void set_pixel(u32* dst, u8 const* src, i32 srcIdx, f64 darken)
     u8 const g {static_cast<u8>(std::min(src[srcIdx + 1] * darken, 255.0))};
     u8 const b {static_cast<u8>(std::min(src[srcIdx + 2] * darken, 255.0))};
     *dst = (0xFF000000u) | (static_cast<u32>(b) << 16) | (static_cast<u32>(g) << 8) | static_cast<u32>(r);
+}
+
+static auto sprite_facing_index(degree_d spriteFacing, point_d spritePos, point_d cameraPos) -> i32
+{
+    auto const viewAngle {spritePos.angle_to(cameraPos)};
+    auto const relativeAngle {(viewAngle - spriteFacing).as_normalized(angle_normalize::PositiveFullTurn)};
+
+    constexpr f64 wedge {360.0 / 8.0};
+    i32 const     index {static_cast<i32>((relativeAngle.Value + (wedge / 2.0)) / wedge) % 8};
+
+    return index;
+}
+
+raycaster::raycaster(texture_cache& cache, size_i screenSize, f64 projPlaneDist)
+    : _cache {cache}
+    , _screen(screenSize.area())
+    , _screenSize {screenSize}
+    , _projPlaneDist {projPlaneDist}
+{
+    _zBuffer.resize(_screenSize.Width);
+
+    _rowDist.resize(_screenSize.Height);
+    for (i32 y {0}; y < _screenSize.Height; y++) {
+        if (2.0 * y == _screenSize.Height) {
+            _rowDist[y] = std::numeric_limits<f64>::infinity();
+            continue;
+        }
+        _rowDist[y] = projPlaneDist / ((2.0 * y) - _screenSize.Height);
+    }
+
+    _spriteDepthBuffer.resize(_screenSize.area());
+}
+
+void raycaster::draw(level const& level, player const& player)
+{
+    std::ranges::fill(_spriteDepthBuffer, std::numeric_limits<f64>::infinity());
+
+    locate_service<task_manager>().run_parallel(
+        [&](par_task const& ctx) {
+            draw_walls(level, player, static_cast<i32>(ctx.Start), static_cast<i32>(ctx.End));
+            draw_sprites(level, player, static_cast<i32>(ctx.Start), static_cast<i32>(ctx.End));
+        },
+        _screenSize.Width);
+
+    draw_weapon(player);
+    draw_hud(player);
+}
+
+auto raycaster::screen() const -> u32 const*
+{
+    return _screen.data();
 }
 
 void raycaster::draw_wall_column(wall_hit const& hit, f64 invFogDistance, level const& level, player const& player, isize x, bool transparent)
@@ -268,17 +283,6 @@ void raycaster::draw_walls(level const& level, player const& player, i32 columnS
     }
 }
 
-static auto sprite_facing_index(degree_d spriteFacing, point_d spritePos, point_d cameraPos) -> i32
-{
-    auto const viewAngle {spritePos.angle_to(cameraPos)};
-    auto const relativeAngle {(viewAngle - spriteFacing).as_normalized(angle_normalize::PositiveFullTurn)};
-
-    constexpr f64 wedge {360.0 / 8.0};
-    i32 const     index {static_cast<i32>((relativeAngle.Value + (wedge / 2.0)) / wedge) % 8};
-
-    return index;
-}
-
 void raycaster::draw_sprites(level const& level, player const& player, i32 columnStart, i32 columnEnd)
 {
     f64 const invDet {1.0 / player.Plane.cross(player.Direction)};
@@ -342,4 +346,12 @@ void raycaster::draw_sprites(level const& level, player const& player, i32 colum
             }
         }
     }
+}
+
+void raycaster::draw_weapon(player const& player)
+{
+}
+
+void raycaster::draw_hud(player const& player)
+{
 }

@@ -27,7 +27,6 @@ public:
     void on_controller_button_down(input::controller::button_event const& ev) override;
 
 private:
-    void draw();
     auto move(milliseconds deltaTime) -> bool;
 
     std::unique_ptr<texture_cache> _cache;

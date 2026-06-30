@@ -41,7 +41,7 @@ void Plinth::on_start()
 void Plinth::on_draw_to(gfx::render_target& target, transform const& xform)
 {
     if (_update) {
-        draw();
+        _raycaster->draw(*_level, _player);
         _update = false;
         _texture->update_data(_raycaster->screen(), 0);
     }
@@ -82,17 +82,6 @@ void Plinth::on_update(milliseconds deltaTime)
 {
     _update = move(deltaTime) || _update;
     _update = _level->update(deltaTime) || _update;
-}
-
-void Plinth::draw()
-{
-    _raycaster->prepare_draw();
-
-    locate_service<task_manager>().run_parallel(
-        [&](par_task const& ctx) {
-            _raycaster->draw(*_level, _player, static_cast<i32>(ctx.Start), static_cast<i32>(ctx.End));
-        },
-        screenSize.Width);
 }
 
 auto Plinth::move(milliseconds deltaTime) -> bool

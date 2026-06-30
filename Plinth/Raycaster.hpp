@@ -14,8 +14,7 @@ class raycaster {
 public:
     raycaster(texture_cache& cache, size_i screenSize, f64 projPlaneDist);
 
-    void prepare_draw();
-    void draw(level const& level, player const& player, i32 columnStart, i32 columnEnd);
+    void draw(level const& level, player const& player);
 
     auto screen() const -> u32 const*;
 
@@ -26,6 +25,9 @@ private:
     void draw_floor_ceiling_column(wall_hit const& hit, f64 invFogDistance, level const& level, player const& player, isize x, point_d rayDir);
 
     void draw_sprites(level const& level, player const& player, i32 columnStart, i32 columnEnd);
+
+    void draw_weapon(player const& player);
+    void draw_hud(player const& player);
 
     std::vector<u32> _screen;
 

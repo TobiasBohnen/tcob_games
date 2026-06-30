@@ -63,7 +63,7 @@ void texture_cache::load()
     for (auto const& l : loads) {
         _directory[l.Tex][l.Facing].Offset = totalBytes;
         _directory[l.Tex][l.Facing].Size   = l.Size;
-        totalBytes += static_cast<usize>(l.Size.Width) * l.Size.Height * TEXTURE_BPP;
+        totalBytes += l.Size.area() * TEXTURE_BPP;
     }
     _textures.resize(totalBytes);
 
@@ -72,7 +72,7 @@ void texture_cache::load()
         img = gfx::filters::alpha_remover {}(img);
 
         u8* const   dst {texture(l.Tex, l.Facing)};
-        isize const byteCount {static_cast<isize>(l.Size.Width) * l.Size.Height * TEXTURE_BPP};
+        isize const byteCount {l.Size.area() * TEXTURE_BPP};
         for (isize idx {0}; idx < byteCount; ++idx) {
             dst[idx] = img.ptr()[idx];
         }
