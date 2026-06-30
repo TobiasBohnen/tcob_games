@@ -65,6 +65,14 @@ static auto shade_from_side(hit_side side) -> f64
     std::unreachable();
 }
 
+static void set_pixel(u32* dst, u8 const* src, i32 srcIdx, f64 darken)
+{
+    u8 const r {static_cast<u8>(std::min(src[srcIdx + 0] * darken, 255.0))};
+    u8 const g {static_cast<u8>(std::min(src[srcIdx + 1] * darken, 255.0))};
+    u8 const b {static_cast<u8>(std::min(src[srcIdx + 2] * darken, 255.0))};
+    *dst = (0xFF000000u) | (static_cast<u32>(b) << 16) | (static_cast<u32>(g) << 8) | static_cast<u32>(r);
+}
+
 void raycaster::draw_wall_column(wall_hit const& hit, f64 invFogDistance, level const& level, player const& player, isize x, bool transparent)
 {
     i32 const lineHeight {static_cast<i32>(_projPlaneDist / hit.Distance)};
@@ -89,7 +97,7 @@ void raycaster::draw_wall_column(wall_hit const& hit, f64 invFogDistance, level 
             isize const depthIndex {x + (static_cast<isize>(y) * _screenSize.Width)};
             _spriteDepthBuffer[depthIndex] = std::min(_spriteDepthBuffer[depthIndex], hit.Distance);
         }
-        raycaster::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), tex, srcIdx, wallDarkenFactor);
+        set_pixel(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), tex, srcIdx, wallDarkenFactor);
     }
 }
 
@@ -151,14 +159,14 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, f64 invFogDistanc
         }
 
         f64 const cellFogFactor {fogFactor * (level.AmbientLight + cellLight)};
-        raycaster::copy(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), cellFloorTexPtr, texelOffset, cellFogFactor);
+        set_pixel(screenBuf + x + ((_screenSize.Height - y - 1) * _screenSize.Width), cellFloorTexPtr, texelOffset, cellFogFactor);
 
         if (level.IsSkybox) {
             i32 const skyTexY {static_cast<i32>(std::min(static_cast<f64>(_screenSize.Height - y - 1) / static_cast<f64>(_screenSize.Height / 2), 1.0) * SKY_SIZE.Height) & (SKY_SIZE.Height - 1)};
             i32 const skyOffset {(skyTexX + (skyTexY * SKY_SIZE.Width)) * TEXTURE_BPP};
-            raycaster::copy(screenBuf + x + (y * _screenSize.Width), skyTex, skyOffset, 1.0);
+            set_pixel(screenBuf + x + (y * _screenSize.Width), skyTex, skyOffset, 1.0);
         } else {
-            raycaster::copy(screenBuf + x + (y * _screenSize.Width), cellCeilTexPtr, texelOffset, cellFogFactor);
+            set_pixel(screenBuf + x + (y * _screenSize.Width), cellCeilTexPtr, texelOffset, cellFogFactor);
         }
     }
 }
@@ -329,30 +337,9 @@ void raycaster::draw_sprites(level const& level, player const& player, i32 colum
                 isize const depthIndex {stripe + (static_cast<isize>(y) * _screenSize.Width)};
                 if (transformY < _spriteDepthBuffer[depthIndex]) {
                     _spriteDepthBuffer[depthIndex] = transformY;
-                    raycaster::copy(screenBuf + stripe + ((_screenSize.Height - y - 1) * _screenSize.Width), tex, offset, spriteFogFactor);
+                    set_pixel(screenBuf + stripe + ((_screenSize.Height - y - 1) * _screenSize.Width), tex, offset, spriteFogFactor);
                 }
             }
         }
     }
-}
-
-void raycaster::copy(u32* dst, u8 const* src, i32 srcIdx, f64 darken)
-{
-    set(dst, get(src, srcIdx), darken);
-}
-
-void raycaster::set(u32* raw, color c, f64 darken)
-{
-    c.R  = static_cast<u8>(std::min(c.R * darken, 255.0));
-    c.G  = static_cast<u8>(std::min(c.G * darken, 255.0));
-    c.B  = static_cast<u8>(std::min(c.B * darken, 255.0));
-    *raw = c.to_abgr();
-}
-
-auto raycaster::get(u8 const* img, usize idx) -> color
-{
-    u8 const r {img[idx + 0]};
-    u8 const g {img[idx + 1]};
-    u8 const b {img[idx + 2]};
-    return {r, g, b, 255};
 }

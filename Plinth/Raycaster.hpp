@@ -27,10 +27,6 @@ private:
 
     void draw_sprites(level const& level, player const& player, i32 columnStart, i32 columnEnd);
 
-    static void copy(u32* dst, u8 const* src, i32 srcIdx, f64 darken);
-    static void set(u32* raw, color c, f64 darken);
-    static auto get(u8 const* img, usize idx) -> color;
-
     std::vector<u32> _screen;
 
     std::vector<f64> _zBuffer;
