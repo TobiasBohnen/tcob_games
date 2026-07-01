@@ -203,19 +203,18 @@ void raycaster::draw_wall_column(wall_hit const& hit, level const& level, player
         i32 const mirroredY {(2 * screenCenterY) - y};
         i32 const srcIdx {(texX + (texY * WALL_SIZE.Width)) * TEXTURE_BPP};
 
+        bool const inBounds {mirroredY >= 0 && mirroredY < _screenSize.Height};
+
         if (transparent) {
             if (is_magenta(tex, srcIdx)) { continue; }
-
-            isize const depthIndex {x + (static_cast<isize>(mirroredY) * _screenSize.Width)};
-            _spriteDepthBuffer[depthIndex] = std::min(_spriteDepthBuffer[depthIndex], hit.Distance);
-
-            if (mirroredY >= 0 && mirroredY < _screenSize.Height) {
-                set_pixel(screenBuf + x + (mirroredY * _screenSize.Width), tex, srcIdx, wallDarkenFactor);
+            if (inBounds) {
+                isize const depthIndex {x + (static_cast<isize>(mirroredY) * _screenSize.Width)};
+                _spriteDepthBuffer[depthIndex] = std::min(_spriteDepthBuffer[depthIndex], hit.Distance);
             }
-        } else {
-            if (mirroredY >= 0 && mirroredY < _screenSize.Height) {
-                set_pixel(screenBuf + x + (mirroredY * _screenSize.Width), tex, srcIdx, wallDarkenFactor);
-            }
+        }
+
+        if (inBounds) {
+            set_pixel(screenBuf + x + (mirroredY * _screenSize.Width), tex, srcIdx, wallDarkenFactor);
         }
     }
 }
@@ -229,6 +228,7 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
     point_d const floorWall {player.Position + (rayDir * hit.Distance)};
     f64 const     invPerpWallDist {1.0 / hit.Distance};
 
+    i32 const   fixedCenterY {_screenSize.Height / 2};
     i32 const   skyTexX {level.IsSkybox ? static_cast<i32>(std::fmod((std::atan2(rayDir.Y, rayDir.X) / TAU) + 1.0, 1.0) * SKY_SIZE.Width) % SKY_SIZE.Width : 0};
     auto const* skyTex {level.IsSkybox ? _cache.texture(level.CeilingTexture, 0) : nullptr};
 
@@ -292,7 +292,7 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
 
         if (y >= 0 && y < _screenSize.Height) {
             if (level.IsSkybox) {
-                i32 const skyTexY {static_cast<i32>(std::min(static_cast<f64>(y - screenCenterY) / static_cast<f64>(_screenSize.Height - screenCenterY), 1.0) * SKY_SIZE.Height) & (SKY_SIZE.Height - 1)};
+                i32 const skyTexY {static_cast<i32>(std::min(static_cast<f64>(y - fixedCenterY) / static_cast<f64>(_screenSize.Height - fixedCenterY), 1.0) * SKY_SIZE.Height) & (SKY_SIZE.Height - 1)};
                 i32 const skyOffset {(skyTexX + (skyTexY * SKY_SIZE.Width)) * TEXTURE_BPP};
                 set_pixel(screenBuf + x + (y * _screenSize.Width), skyTex, skyOffset, 1.0);
             } else {
@@ -361,14 +361,12 @@ void raycaster::draw_sprites(level const& level, player const& player, f64 invFo
                 if (is_magenta(tex, offset)) { continue; }
 
                 i32 const mirroredY {(2 * screenCenterY) - y};
+                if (mirroredY < 0 || mirroredY >= _screenSize.Height) { continue; }
 
                 isize const depthIndex {stripe + (static_cast<isize>(mirroredY) * _screenSize.Width)};
                 if (transformY < _spriteDepthBuffer[depthIndex]) {
                     _spriteDepthBuffer[depthIndex] = transformY;
-
-                    if (mirroredY >= 0 && mirroredY < _screenSize.Height) {
-                        set_pixel(screenBuf + stripe + (mirroredY * _screenSize.Width), tex, offset, spriteFogFactor);
-                    }
+                    set_pixel(screenBuf + stripe + (mirroredY * _screenSize.Width), tex, offset, spriteFogFactor);
                 }
             }
         }
