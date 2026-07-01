@@ -83,21 +83,21 @@ static auto is_position_clear(level const& level, point_d pos, f64 radius) -> bo
 
 auto player::move(level const& level, f64 forwardAmount, f64 strafeAmount, f64 rotateAmount) -> bool
 {
-    bool retValue {false};
+    _isMoving = false;
 
     // Move Forward/Backward
     if (forwardAmount != 0) {
         point_d const newPos {Position + (Direction * forwardAmount)};
 
         if (is_position_clear(level, newPos, Radius)) {
-            Position = newPos;
-            retValue = true;
+            Position  = newPos;
+            _isMoving = true;
         } else if (is_position_clear(level, {Position.X, newPos.Y}, Radius)) {
             Position.Y = newPos.Y;
-            retValue   = true;
+            _isMoving  = true;
         } else if (is_position_clear(level, {newPos.X, Position.Y}, Radius)) {
             Position.X = newPos.X;
-            retValue   = true;
+            _isMoving  = true;
         }
     }
 
@@ -107,14 +107,14 @@ auto player::move(level const& level, f64 forwardAmount, f64 strafeAmount, f64 r
         point_d const newPos {Position + (strafe * strafeAmount)};
 
         if (is_position_clear(level, newPos, Radius)) {
-            Position = newPos;
-            retValue = true;
+            Position  = newPos;
+            _isMoving = true;
         } else if (is_position_clear(level, {Position.X, newPos.Y}, Radius)) {
             Position.Y = newPos.Y;
-            retValue   = true;
+            _isMoving  = true;
         } else if (is_position_clear(level, {newPos.X, Position.Y}, Radius)) {
             Position.X = newPos.X;
-            retValue   = true;
+            _isMoving  = true;
         }
     }
 
@@ -128,8 +128,28 @@ auto player::move(level const& level, f64 forwardAmount, f64 strafeAmount, f64 r
         Plane.X = (Plane.X * std::cos(rotateAmount)) - (Plane.Y * std::sin(rotateAmount));
         Plane.Y = (oldPlaneX * std::sin(rotateAmount)) + (Plane.Y * std::cos(rotateAmount));
 
-        retValue = true;
+        _isMoving = true;
     }
 
-    return retValue;
+    return _isMoving;
+}
+
+auto player::bob(milliseconds deltaTime) -> bool
+{
+    constexpr f64 bobSpeed {8.0};
+    constexpr f64 bobHeight {6.0}; // pixels
+
+    auto const dt {deltaTime.count() / 1000};
+
+    if (_isMoving) {
+        _bobPhase += dt * bobSpeed;
+        BobAmount = std::abs(std::sin(_bobPhase)) * bobHeight;
+        return true;
+    }
+    if (BobAmount != 0.0) {
+        _bobPhase = 0.0;
+        BobAmount = std::max(BobAmount - (dt * bobHeight * 4.0), 0.0);
+        return true;
+    }
+    return false;
 }

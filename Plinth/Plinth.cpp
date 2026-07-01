@@ -41,9 +41,8 @@ void Plinth::on_start()
 void Plinth::on_draw_to(gfx::render_target& target, transform const& xform)
 {
     if (_update) {
-        _raycaster->draw(*_level, _player);
         _update = false;
-        _texture->update_data(_raycaster->screen(), 0);
+        _texture->update_data(_raycaster->draw(*_level, _player), 0);
     }
 
     // aspect ratio correction
@@ -82,14 +81,15 @@ void Plinth::on_update(milliseconds deltaTime)
 {
     _update = move(deltaTime) || _update;
     _update = _level->update(deltaTime) || _update;
+    _update = _player.bob(deltaTime) || _update;
 }
 
 auto Plinth::move(milliseconds deltaTime) -> bool
 {
     auto const& input {locate_service<input::system>()};
 
-    f64 const moveSpeed {deltaTime.count() / 1000 * 4.0}; // squares/second
-    f64 const rotSpeed {deltaTime.count() / 1000 * 3.0};  // radians/second
+    f64 const moveSpeed {deltaTime.count() / 1000 * _player.MoveSpeed};  // squares/second
+    f64 const rotSpeed {deltaTime.count() / 1000 * _player.RotateSpeed}; // radians/second
 
     f64 forwardAmount {0};
     f64 strafeAmount {0};
