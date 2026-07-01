@@ -29,41 +29,41 @@ void texture_cache::load()
     struct pending_load {
         i32    Tex {0};
         string Path;
-        size_i Size;
         i32    Facing {0};
     };
 
     std::vector<pending_load> const loads {
-        {.Tex = 1, .Path = "res/wall0.png", .Size = WALL_SIZE},
-        {.Tex = 2, .Path = "res/wall1.png", .Size = WALL_SIZE},
-        {.Tex = 3, .Path = "res/wall2.png", .Size = WALL_SIZE},
-        {.Tex = 4, .Path = "res/wall3.png", .Size = WALL_SIZE},
-        {.Tex = 5, .Path = "res/wall4.png", .Size = WALL_SIZE},
-        {.Tex = 6, .Path = "res/wall5.png", .Size = WALL_SIZE},
-        {.Tex = 7, .Path = "res/wall6.png", .Size = WALL_SIZE},
-        {.Tex = 8, .Path = "res/wall7.png", .Size = WALL_SIZE},
-        {.Tex = door1Texture, .Path = "res/door.png", .Size = WALL_SIZE},
-        {.Tex = door1FrameTexture, .Path = "res/door_frame.png", .Size = WALL_SIZE},
-        {.Tex = 9, .Path = "res/floor.png", .Size = WALL_SIZE},
-        {.Tex = 10, .Path = "res/ceiling.png", .Size = WALL_SIZE},
-        {.Tex = 14, .Path = "res/sky.png", .Size = SKY_SIZE},
-        {.Tex = 15, .Path = "res/transparent.png", .Size = WALL_SIZE},
+        {.Tex = 1, .Path = "res/wall0.png"},
+        {.Tex = 2, .Path = "res/wall1.png"},
+        {.Tex = 3, .Path = "res/wall2.png"},
+        {.Tex = 4, .Path = "res/wall3.png"},
+        {.Tex = 5, .Path = "res/wall4.png"},
+        {.Tex = 6, .Path = "res/wall5.png"},
+        {.Tex = 7, .Path = "res/wall6.png"},
+        {.Tex = 8, .Path = "res/wall7.png"},
+        {.Tex = door1Texture, .Path = "res/door.png"},
+        {.Tex = door1FrameTexture, .Path = "res/door_frame.png"},
+        {.Tex = 9, .Path = "res/floor.png"},
+        {.Tex = 10, .Path = "res/ceiling.png"},
+        {.Tex = 14, .Path = "res/sky.png"},
+        {.Tex = 15, .Path = "res/transparent.png"},
 
-        {.Tex = sprite1Texture, .Path = "res/enemy0-0.png", .Size = {64, 64}, .Facing = 0},
-        {.Tex = sprite1Texture, .Path = "res/enemy0-1.png", .Size = {64, 64}, .Facing = 1},
-        {.Tex = sprite1Texture, .Path = "res/enemy0-2.png", .Size = {64, 64}, .Facing = 2},
-        {.Tex = sprite1Texture, .Path = "res/enemy0-3.png", .Size = {64, 64}, .Facing = 3},
-        {.Tex = sprite1Texture, .Path = "res/enemy0-4.png", .Size = {64, 64}, .Facing = 4},
-        {.Tex = sprite1Texture, .Path = "res/enemy0-5.png", .Size = {64, 64}, .Facing = 5},
-        {.Tex = sprite1Texture, .Path = "res/enemy0-6.png", .Size = {64, 64}, .Facing = 6},
-        {.Tex = sprite1Texture, .Path = "res/enemy0-7.png", .Size = {64, 64}, .Facing = 7},
+        {.Tex = sprite1Texture, .Path = "res/enemy0-0.png", .Facing = 0},
+        {.Tex = sprite1Texture, .Path = "res/enemy0-1.png", .Facing = 1},
+        {.Tex = sprite1Texture, .Path = "res/enemy0-2.png", .Facing = 2},
+        {.Tex = sprite1Texture, .Path = "res/enemy0-3.png", .Facing = 3},
+        {.Tex = sprite1Texture, .Path = "res/enemy0-4.png", .Facing = 4},
+        {.Tex = sprite1Texture, .Path = "res/enemy0-5.png", .Facing = 5},
+        {.Tex = sprite1Texture, .Path = "res/enemy0-6.png", .Facing = 6},
+        {.Tex = sprite1Texture, .Path = "res/enemy0-7.png", .Facing = 7},
     };
 
     usize totalBytes {0};
     for (auto const& l : loads) {
         _directory[l.Tex][l.Facing].Offset = totalBytes;
-        _directory[l.Tex][l.Facing].Size   = l.Size;
-        totalBytes += l.Size.area() * TEXTURE_BPP;
+        auto const size {gfx::image::LoadInfo(l.Path)->Size};
+        _directory[l.Tex][l.Facing].Size = size;
+        totalBytes += size.area() * TEXTURE_BPP;
     }
     _textures.resize(totalBytes);
 
@@ -72,7 +72,7 @@ void texture_cache::load()
         img = gfx::filters::alpha_remover {}(img);
 
         u8* const   dst {texture(l.Tex, l.Facing)};
-        isize const byteCount {l.Size.area() * TEXTURE_BPP};
+        isize const byteCount {img.info().Size.area() * TEXTURE_BPP};
         for (isize idx {0}; idx < byteCount; ++idx) {
             dst[idx] = img.ptr()[idx];
         }

@@ -17,8 +17,6 @@ using namespace std::chrono_literals;
 inline constexpr i32 TEXTURE_BPP {3};
 
 inline constexpr size_i WALL_SIZE {64, 64};
-inline constexpr size_i FLOOR_SIZE {64, 64};
-inline constexpr size_i SKY_SIZE {512, 64};
 
 inline constexpr isize MAX_TRANSPARENT_WALLS {8};
 
