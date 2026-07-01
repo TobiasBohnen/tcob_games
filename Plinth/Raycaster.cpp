@@ -292,7 +292,7 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
 
         if (y >= 0 && y < _screenSize.Height) {
             if (level.IsSkybox) {
-                i32 const skyTexY {static_cast<i32>(std::min(static_cast<f64>(y - fixedCenterY) / static_cast<f64>(_screenSize.Height - fixedCenterY), 1.0) * SKY_SIZE.Height) & (SKY_SIZE.Height - 1)};
+                i32 const skyTexY {static_cast<i32>(std::min(1.0 - (static_cast<f64>(y - fixedCenterY) / static_cast<f64>(_screenSize.Height - fixedCenterY)), 1.0) * SKY_SIZE.Height) & (SKY_SIZE.Height - 1)};
                 i32 const skyOffset {(skyTexX + (skyTexY * SKY_SIZE.Width)) * TEXTURE_BPP};
                 set_pixel(screenBuf + x + (y * _screenSize.Width), skyTex, skyOffset, 1.0);
             } else {
