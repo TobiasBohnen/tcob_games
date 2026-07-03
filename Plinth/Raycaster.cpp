@@ -187,7 +187,7 @@ void raycaster::draw_wall_column(wall_hit const& hit, level const& level, player
     if (drawStart >= drawEnd) { return; }
 
     auto const* tex {_cache.texture(hit.Texture, 0)};
-    i32 const   texX {static_cast<i32>(hit.SegmentT * static_cast<f64>(WALL_SIZE.Width))};
+    i32 const   texX {static_cast<i32>((1.0 - hit.SegmentT) * static_cast<f64>(WALL_SIZE.Width))};
     f64 const   texStep {1.0 * WALL_SIZE.Height / lineHeight};
 
     i32 const rawDrawStart {(-lineHeight / 2) + screenCenterY};
