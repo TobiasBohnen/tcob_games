@@ -58,7 +58,7 @@ raycaster::raycaster(texture_cache& cache, size_i screenSize, f64 projPlaneDist)
     _spriteDepthBuffer.resize(_screenSize.area());
 }
 
-auto raycaster::draw(level const& level, player const& player) -> u32 const*
+auto raycaster::draw(level& level, player const& player) -> u32 const*
 {
     std::ranges::fill(_spriteDepthBuffer, std::numeric_limits<f64>::infinity());
     f64 const invFogDistance {1.0 / level.FogDistance};
@@ -76,7 +76,7 @@ auto raycaster::draw(level const& level, player const& player) -> u32 const*
     return _screen.data();
 }
 
-void raycaster::draw_columns(level const& level, player const& player, f64 invFogDistance, i32 columnStart, i32 columnEnd)
+void raycaster::draw_columns(level& level, player const& player, f64 invFogDistance, i32 columnStart, i32 columnEnd)
 {
     auto const get_light {[&](point_i const& cell) -> f64 {
         return std::visit([](auto&& w) -> f64 {
@@ -148,7 +148,7 @@ void raycaster::draw_columns(level const& level, player const& player, f64 invFo
                     map.Y += step.Y;
                     side = true;
                 }
-
+                level.Seen[map] = true;
                 if (!map_t::Size.contains(map)) { break; }
 
                 auto const wallHit {std::visit(intersect, level.Map[map])};

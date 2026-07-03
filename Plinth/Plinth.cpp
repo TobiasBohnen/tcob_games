@@ -42,11 +42,12 @@ void Plinth::on_start()
 
 void Plinth::on_draw_to(gfx::render_target& target, transform const& xform)
 {
-    if (_drawMap) {
-        _texture->update_data(_mapRenderer->draw(*_level, _player), 0);
-    } else if (_draw) {
+    if (_draw) {
         _draw = false;
         _texture->update_data(_raycaster->draw(*_level, _player), 0);
+    }
+    if (_drawMap) {
+        _texture->update_data(_mapRenderer->draw(*_level, _player), 0);
     }
 
     // aspect ratio correction

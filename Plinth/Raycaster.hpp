@@ -14,10 +14,10 @@ class raycaster {
 public:
     raycaster(texture_cache& cache, size_i screenSize, f64 projPlaneDist);
 
-    auto draw(level const& level, player const& player) -> u32 const*;
+    auto draw(level& level, player const& player) -> u32 const*;
 
 private:
-    void draw_columns(level const& level, player const& player, f64 invFogDistance, i32 columnStart, i32 columnEnd);
+    void draw_columns(level& level, player const& player, f64 invFogDistance, i32 columnStart, i32 columnEnd);
 
     void draw_wall_column(wall_hit const& hit, level const& level, player const& player, isize x, f64 invFogDistance, bool transparent);
     void draw_floor_ceiling_column(wall_hit const& hit, level const& level, player const& player, isize x, point_d rayDir, f64 invFogDistance);
