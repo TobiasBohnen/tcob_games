@@ -8,6 +8,7 @@
 #include <memory>
 
 #include "Common.hpp"
+#include "MapRenderer.hpp"
 #include "Player.hpp"
 #include "Raycaster.hpp"
 #include "TextureCache.hpp"
@@ -27,16 +28,18 @@ public:
     void on_controller_button_down(input::controller::button_event const& ev) override;
 
 private:
-    auto move(milliseconds deltaTime) -> bool;
+    auto move_player(milliseconds deltaTime) -> bool;
 
     std::unique_ptr<texture_cache> _cache;
-    std::unique_ptr<raycaster>     _raycaster;
     std::unique_ptr<level>         _level;
     player                         _player;
+    std::unique_ptr<raycaster>     _raycaster;
+    std::unique_ptr<map_renderer>  _mapRenderer;
 
     asset_owner_ptr<gfx::material> _material;
     asset_owner_ptr<gfx::texture>  _texture;
     gfx::renderer                  _renderer {gfx::buffer_usage_hint::StaticDraw};
 
-    bool _update {true};
+    bool _draw {true};
+    bool _drawMap {false};
 };

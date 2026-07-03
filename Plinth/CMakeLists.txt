@@ -4,6 +4,7 @@ target_sources(Plinth PRIVATE
     main.cpp
     TextureCache.cpp
     Level.cpp
+    MapRenderer.cpp
     Player.cpp
     Plinth.cpp
     Raycaster.cpp

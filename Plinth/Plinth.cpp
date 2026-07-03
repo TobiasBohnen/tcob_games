@@ -7,6 +7,7 @@
 
 #include "Common.hpp"
 #include "Level.hpp"
+#include "MapRenderer.hpp"
 #include "Raycaster.hpp"
 
 constexpr size_i screenSize {640, 360};
@@ -28,7 +29,8 @@ Plinth::Plinth(game& game)
     f64 const fov {FOV * TAU / 360.0};
     _player.Plane = {rad.sin() * std::tan(fov / 2.0), -rad.cos() * std::tan(fov / 2.0)};
 
-    _raycaster = std::make_unique<raycaster>(*_cache, screenSize, (screenSize.Width / 2.0) / std::tan(fov / 2.0));
+    _raycaster   = std::make_unique<raycaster>(*_cache, screenSize, (screenSize.Width / 2.0) / std::tan(fov / 2.0));
+    _mapRenderer = std::make_unique<map_renderer>(*_cache, screenSize);
 }
 
 Plinth::~Plinth() = default;
@@ -40,8 +42,10 @@ void Plinth::on_start()
 
 void Plinth::on_draw_to(gfx::render_target& target, transform const& xform)
 {
-    if (_update) {
-        _update = false;
+    if (_drawMap) {
+        _texture->update_data(_mapRenderer->draw(*_level, _player), 0);
+    } else if (_draw) {
+        _draw = false;
         _texture->update_data(_raycaster->draw(*_level, _player), 0);
     }
 
@@ -79,12 +83,12 @@ void Plinth::on_fixed_update(milliseconds deltaTime)
 
 void Plinth::on_update(milliseconds deltaTime)
 {
-    _update = move(deltaTime) || _update;
-    _update = _level->update(deltaTime) || _update;
-    _update = _player.bob(deltaTime) || _update;
+    _draw = move_player(deltaTime) || _draw;
+    _draw = _player.bob(deltaTime) || _draw;
+    _draw = _level->update(deltaTime) || _draw;
 }
 
-auto Plinth::move(milliseconds deltaTime) -> bool
+auto Plinth::move_player(milliseconds deltaTime) -> bool
 {
     auto const& input {locate_service<input::system>()};
 
@@ -152,7 +156,7 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
         auto& spr {_level->Sprites[0]};
         spr.Facing   = spr.Position.angle_to(_player.Position);
         spr.Position = spr.Position.moved_along(degree_d {spr.Facing.Value}, 0.1);
-        _update      = true;
+        _draw        = true;
     } break;
     case input::scan_code::R: {
         locate_service<gfx::render_system>().statistics().reset();
@@ -166,15 +170,12 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
         }()};
         std::ignore = window().copy_to_image().save(fileName);
     } break;
-    case input::scan_code::E: {
-        _level->toggle_wall(point_i {8, 5});
-        _level->toggle_wall(point_i {7, 7});
-
-        _level->toggle_wall(point_i {10, 5});
-        _level->toggle_wall(point_i {7, 10});
-    } break;
     case input::scan_code::SPACE: {
         _level->toggle_wall(point_i {_player.Position + _player.Direction});
+    } break;
+    case input::scan_code::TAB: {
+        _drawMap = !_drawMap;
+        _draw    = true;
     } break;
     default:
 
