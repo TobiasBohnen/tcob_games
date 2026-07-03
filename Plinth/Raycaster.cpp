@@ -178,20 +178,18 @@ void raycaster::draw_wall_column(wall_hit const& hit, level const& level, player
     i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
     i32 const lineHeight {static_cast<i32>(_projPlaneDist / hit.Distance)};
 
-    i32 const yMinBound {(2 * screenCenterY) - _screenSize.Height + 1};
-    i32 const yMaxBound {2 * screenCenterY};
+    i32 const wallTop {(-lineHeight / 2) + screenCenterY};
+    i32 const wallBottom {(lineHeight / 2) + screenCenterY};
 
-    i32 const drawStart {std::max((-lineHeight / 2) + screenCenterY, yMinBound)};
-    i32 const drawEnd {std::min((lineHeight / 2) + screenCenterY, yMaxBound + 1)};
+    i32 const drawStart {std::max(wallTop, 0)};
+    i32 const drawEnd {std::min(wallBottom, _screenSize.Height)};
 
     if (drawStart >= drawEnd) { return; }
 
     auto const* tex {_cache.texture(hit.Texture, 0)};
-    i32 const   texX {static_cast<i32>((1.0 - hit.SegmentT) * static_cast<f64>(WALL_SIZE.Width))};
+    i32 const   texX {static_cast<i32>(hit.SegmentT * static_cast<f64>(WALL_SIZE.Width))};
     f64 const   texStep {1.0 * WALL_SIZE.Height / lineHeight};
-
-    i32 const rawDrawStart {(-lineHeight / 2) + screenCenterY};
-    f64       texPos {(drawStart - rawDrawStart) * texStep};
+    f64         texPos {(drawStart - wallTop) * texStep};
 
     f64 const wallFogFactor {std::max(1.0 - (hit.Distance * invFogDistance), level.FogMin)};
     f64 const wallDarkenFactor {shade_from_side(hit.Side) * wallFogFactor * (level.AmbientLight + hit.Light)};
@@ -202,17 +200,12 @@ void raycaster::draw_wall_column(wall_hit const& hit, level const& level, player
         texPos += texStep;
         i32 const srcIdx {(texX + (texY * WALL_SIZE.Width)) * TEXTURE_BPP};
 
-        bool const inBounds {y >= 0 && y < _screenSize.Height};
-        if (inBounds) {
-            if (transparent) {
-                if (is_magenta(tex, srcIdx)) { continue; }
-
-                isize const depthIndex {x + (y * _screenSize.Width)};
-                _spriteDepthBuffer[depthIndex] = std::min(_spriteDepthBuffer[depthIndex], hit.Distance);
-            }
-
-            set_pixel(screenBuf + x + (y * _screenSize.Width), tex, srcIdx, wallDarkenFactor);
+        if (transparent) {
+            if (is_magenta(tex, srcIdx)) { continue; }
+            isize const depthIndex {x + (static_cast<isize>(y) * _screenSize.Width)};
+            _spriteDepthBuffer[depthIndex] = std::min(_spriteDepthBuffer[depthIndex], hit.Distance);
         }
+        set_pixel(screenBuf + x + (y * _screenSize.Width), tex, srcIdx, wallDarkenFactor);
     }
 }
 
@@ -220,7 +213,12 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
 {
     i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
     i32 const lineHeight {static_cast<i32>(_projPlaneDist / hit.Distance)};
-    i32 const drawEnd {std::min((lineHeight / 2) + (screenCenterY), _screenSize.Height - 1)};
+
+    i32 const wallTop {(-lineHeight / 2) + screenCenterY};
+    i32 const wallBottom {(lineHeight / 2) + screenCenterY};
+
+    i32 const ceilingEnd {std::clamp(wallTop, 0, _screenSize.Height)};
+    i32 const floorStart {std::clamp(wallBottom, 0, _screenSize.Height)};
 
     point_d const floorWall {player.Position + (rayDir * hit.Distance)};
     f64 const     invPerpWallDist {1.0 / hit.Distance};
@@ -251,11 +249,10 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
 
     u32* screenBuf {_screen.data()};
 
-    i32 const maxFloorExtension {std::max(_screenSize.Height, (2 * screenCenterY)) + 1};
-
-    for (i32 y {drawEnd}; y < maxFloorExtension; y++) {
-        f64 const rowDist {y == screenCenterY ? std::numeric_limits<f64>::infinity()
-                                              : _projPlaneDist / ((2.0 * y) - (2.0 * screenCenterY))};
+    auto const sample_and_draw {[&](i32 y, bool isFloor) {
+        i32 const effectiveY {isFloor ? y : (2 * screenCenterY) - y};
+        f64 const rowDist {effectiveY == screenCenterY ? std::numeric_limits<f64>::infinity()
+                                                       : _projPlaneDist / ((2.0 * effectiveY) - (2.0 * screenCenterY))};
         f64 const weight {std::min(rowDist * invPerpWallDist, 1.0)};
 
         point_d const currentFloor {(weight * floorWall.X) + ((1.0 - weight) * player.Position.X),
@@ -275,27 +272,32 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
             cellFloorTex  = level.FloorTexture;
             cellCeilTex   = level.CeilingTexture;
             cellLight     = 0.0;
-            std::visit(get_cell, level.Map[floorCell]);
+            if (map_t::Size.contains(floorCell)) {
+                std::visit(get_cell, level.Map[floorCell]);
+            }
             cellFloorTexPtr = _cache.texture(cellFloorTex, 0);
             cellCeilTexPtr  = _cache.texture(cellCeilTex, 0);
         }
 
         f64 const cellFogFactor {fogFactor * (level.AmbientLight + cellLight)};
-        i32 const mirroredY {(2 * screenCenterY) - y};
 
-        if (y >= 0 && y < _screenSize.Height) {
+        if (isFloor) {
             set_pixel(screenBuf + x + (y * _screenSize.Width), cellFloorTexPtr, texelOffset, cellFogFactor);
+        } else if (level.IsSkybox) {
+            i32 const skyTexY {static_cast<i32>(std::min(1.0 - (static_cast<f64>(y - fixedCenterY) / static_cast<f64>(_screenSize.Height - fixedCenterY)), 1.0) * texSize.Height) % texSize.Height};
+            i32 const skyOffset {(skyTexX + (skyTexY * texSize.Width)) * TEXTURE_BPP};
+            set_pixel(screenBuf + x + (y * _screenSize.Width), skyTex, skyOffset, 1.0);
+        } else {
+            set_pixel(screenBuf + x + (y * _screenSize.Width), cellCeilTexPtr, texelOffset, cellFogFactor);
         }
+    }};
 
-        if (mirroredY >= 0 && mirroredY < _screenSize.Height) {
-            if (level.IsSkybox) {
-                i32 const skyTexY {static_cast<i32>(std::min(1.0 - (static_cast<f64>(mirroredY - fixedCenterY) / static_cast<f64>(_screenSize.Height - fixedCenterY)), 1.0) * texSize.Height) % texSize.Height};
-                i32 const skyOffset {(skyTexX + (skyTexY * texSize.Width)) * TEXTURE_BPP};
-                set_pixel(screenBuf + x + (mirroredY * _screenSize.Width), skyTex, skyOffset, 1.0);
-            } else {
-                set_pixel(screenBuf + x + (mirroredY * _screenSize.Width), cellCeilTexPtr, texelOffset, cellFogFactor);
-            }
-        }
+    for (i32 y {floorStart}; y < _screenSize.Height; y++) {
+        sample_and_draw(y, true);
+    }
+
+    for (i32 y {0}; y < ceilingEnd; y++) {
+        sample_and_draw(y, false);
     }
 }
 
