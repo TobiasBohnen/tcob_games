@@ -318,12 +318,12 @@ void raycaster::draw_sprites(level const& level, player const& player, f64 invFo
         f64 const    scale {_projPlaneDist / transformY};
         size_i const spriteSize {static_cast<i32>(std::abs(scale)) * size_i {spr.Size}};
 
-        i32 const yMinBound {(2 * screenCenterY) - _screenSize.Height + 1};
-        i32 const yMaxBound {2 * screenCenterY};
+        i32 const yMinBound {0};
+        i32 const yMaxBound {_screenSize.Height - 1};
 
         point_i const drawStart {std::max({(-spriteSize.Width / 2) + spriteScreenX, 0, columnStart}),
                                  std::max((-spriteSize.Height / 2) + screenCenterY, yMinBound)};
-        point_i const drawEnd {std::min({(spriteSize.Width / 2) + spriteScreenX, _screenSize.Width - 1, columnEnd}),
+        point_i const drawEnd {std::min({(spriteSize.Width / 2) + spriteScreenX, _screenSize.Width, columnEnd}),
                                std::min((spriteSize.Height / 2) + screenCenterY, yMaxBound + 1)};
         if (drawStart.X >= drawEnd.X) { continue; }
         if (drawStart.Y >= drawEnd.Y) { continue; }
