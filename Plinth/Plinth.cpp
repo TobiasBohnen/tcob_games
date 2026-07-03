@@ -68,7 +68,7 @@ void Plinth::on_draw_to(gfx::render_target& target, transform const& xform)
     gfx::quad q {};
     gfx::geometry::set_color(q, colors::White);
     gfx::geometry::set_position(q, {0, 0, destWidth, destHeight});
-    gfx::geometry::set_texcoords(q, {.UVRect = gfx::render_texture::UVRect(), .Level = 0});
+    gfx::geometry::set_texcoords(q, {.UVRect = {0, 0, 1, 1}, .Level = 0});
     _renderer.set_geometry({.Vertices = q, .Indices = gfx::QuadIndicies, .Type = gfx::primitive_type::Triangles}, &_material->first_pass());
     _renderer.render_to_target(target, transform::Identity);
 }
