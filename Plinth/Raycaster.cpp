@@ -40,7 +40,7 @@ static void set_pixel(u32* dst, u8 const* src, i32 srcIdx, f64 darken)
 static auto sprite_facing_index(degree_d spriteFacing, point_d spritePos, point_d cameraPos) -> i32
 {
     auto const viewAngle {spritePos.angle_to(cameraPos)};
-    auto const relativeAngle {(viewAngle - spriteFacing).as_normalized(angle_normalize::PositiveFullTurn)};
+    auto const relativeAngle {(spriteFacing - viewAngle).as_normalized(angle_normalize::PositiveFullTurn)};
 
     constexpr f64 wedge {360.0 / 8.0};
     i32 const     index {static_cast<i32>((relativeAngle.Value + (wedge / 2.0)) / wedge) % 8};
@@ -281,15 +281,15 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
         }
 
         f64 const cellFogFactor {fogFactor * (level.AmbientLight + cellLight)};
+        i32 const mirroredY {(2 * screenCenterY) - y};
 
         if (y >= 0 && y < _screenSize.Height) {
             set_pixel(screenBuf + x + (y * _screenSize.Width), cellFloorTexPtr, texelOffset, cellFogFactor);
         }
 
-        if (y >= 0 && y < _screenSize.Height) {
-            i32 const mirroredY {(2 * screenCenterY) - y};
+        if (mirroredY >= 0 && mirroredY < _screenSize.Height) {
             if (level.IsSkybox) {
-                i32 const skyTexY {static_cast<i32>(std::min(1.0 - (static_cast<f64>(y - fixedCenterY) / static_cast<f64>(_screenSize.Height - fixedCenterY)), 1.0) * texSize.Height) % texSize.Height};
+                i32 const skyTexY {static_cast<i32>(std::min(1.0 - (static_cast<f64>(mirroredY - fixedCenterY) / static_cast<f64>(_screenSize.Height - fixedCenterY)), 1.0) * texSize.Height) % texSize.Height};
                 i32 const skyOffset {(skyTexX + (skyTexY * texSize.Width)) * TEXTURE_BPP};
                 set_pixel(screenBuf + x + (mirroredY * _screenSize.Width), skyTex, skyOffset, 1.0);
             } else {
@@ -329,7 +329,8 @@ void raycaster::draw_sprites(level const& level, player const& player, f64 invFo
         i32 const spriteLeft {spriteScreenX - (spriteSize.Width / 2)};
         i32 const spriteTop {(screenCenterY) - (spriteSize.Height / 2)};
 
-        i32 const    facing {sprite_facing_index(spr.Facing, spr.Position, player.Position)};
+        i32 const facing {sprite_facing_index(spr.Facing, spr.Position, player.Position)};
+        assert(facing < 8);
         auto const*  tex {_cache.texture(spr.Texture, facing)};
         size_i const texSize {_cache.texture_size(spr.Texture, facing)};
 

@@ -103,7 +103,7 @@ auto player::move(level const& level, f64 forwardAmount, f64 strafeAmount, f64 r
 
     // Strafe Left/Right (perpendicular to _dir)
     if (strafeAmount != 0) {
-        point_d const strafe {Direction.as_perpendicular()};
+        point_d const strafe {-Direction.as_perpendicular()};
         point_d const newPos {Position + (strafe * strafeAmount)};
 
         if (is_position_clear(level, newPos, Radius)) {

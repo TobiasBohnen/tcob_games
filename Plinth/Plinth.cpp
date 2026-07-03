@@ -27,7 +27,7 @@ Plinth::Plinth(game& game)
     radian_d const rad {angle - degree_d {90}};
     _player.Direction = point_d::FromDirection(angle);
     f64 const fov {FOV * TAU / 360.0};
-    _player.Plane = {rad.sin() * std::tan(fov / 2.0), -rad.cos() * std::tan(fov / 2.0)};
+    _player.Plane = {-rad.sin() * std::tan(fov / 2.0), rad.cos() * std::tan(fov / 2.0)};
 
     _raycaster   = std::make_unique<raycaster>(*_cache, screenSize, (screenSize.Width / 2.0) / std::tan(fov / 2.0));
     _mapRenderer = std::make_unique<map_renderer>(*_cache, screenSize);
@@ -109,8 +109,8 @@ auto Plinth::move_player(milliseconds deltaTime) -> bool
         if (keyboard.is_key_down(input::scan_code::D)) { strafeAmount -= moveSpeed; }
         if (keyboard.is_key_down(input::scan_code::A)) { strafeAmount += moveSpeed; }
 
-        if (keyboard.is_key_down(input::scan_code::LEFT)) { rotateAmount += rotSpeed; }
-        if (keyboard.is_key_down(input::scan_code::RIGHT)) { rotateAmount -= rotSpeed; }
+        if (keyboard.is_key_down(input::scan_code::LEFT)) { rotateAmount -= rotSpeed; }
+        if (keyboard.is_key_down(input::scan_code::RIGHT)) { rotateAmount += rotSpeed; }
     } else {
         auto const& controller {input.first_controller()}; // TODO: controller select in ui
 
@@ -138,7 +138,7 @@ auto Plinth::move_player(milliseconds deltaTime) -> bool
         auto const rightX {controller.get_axis_value(input::controller::axis::RightX)};
         if (std::abs(rightX) > deadzone) {
             f64 const normalizedRightX {rightX / maxAxisValue};
-            rotateAmount += -normalizedRightX * rotSpeed;
+            rotateAmount += normalizedRightX * rotSpeed;
         }
     }
 

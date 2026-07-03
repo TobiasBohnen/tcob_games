@@ -43,7 +43,7 @@ auto map_renderer::draw(level const& level, player const& player) -> u32 const*
     for (i32 y {0}; y < _screenSize.Height; ++y) {
         for (i32 x {0}; x < _screenSize.Height; ++x) {
             point_i const mapPos {static_cast<i32>(x / tileSize), static_cast<i32>(y / tileSize)};
-            i32 const     idx {(_screenSize.Width - x - 1) + (y * _screenSize.Width)};
+            i32 const     idx {x + (y * _screenSize.Width)};
             _screen[idx] = get_color(level, mapPos).to_abgr();
         }
     }
@@ -52,10 +52,8 @@ auto map_renderer::draw(level const& level, player const& player) -> u32 const*
     i32 const     radius {static_cast<i32>(tileSize / 4)};
 
     bresenham_circle(playerPos, radius, [&](point_i const& pt) {
-        i32 const screenX {_screenSize.Width - pt.X - 1};
-        i32 const screenY {pt.Y};
-        if (screenX >= 0 && screenX < _screenSize.Width && screenY >= 0 && screenY < _screenSize.Height) {
-            i32 const idx {static_cast<i32>(screenX + (screenY * _screenSize.Width))};
+        if (pt.X >= 0 && pt.X < _screenSize.Width && pt.Y >= 0 && pt.Y < _screenSize.Height) {
+            i32 const idx {static_cast<i32>(pt.X + (pt.Y * _screenSize.Width))};
             _screen[idx] = colors::Green.to_abgr();
         }
     });
