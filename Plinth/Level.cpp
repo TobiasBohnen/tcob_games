@@ -8,7 +8,7 @@
 #include "Common.hpp"
 #include "TextureCache.hpp"
 
-std::array<u8, mapWidth * mapHeight> map0 {
+std::array<u8, MAP_WIDTH * MAP_HEIGHT> map0 {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 7, 7, 7, 7, 7, 7, 7, 7, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 7, 7, 7, 7, 7, 7, 7, 7, 4, 4, 4, 4, 4, 4, 4, 4, 7, 7, 7, 7, 7, 7, 7, 7,
     4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 7,
     4, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 7,
@@ -102,42 +102,42 @@ level::level()
 {
     for (i32 i {0}; i < map0.size(); ++i) {
         if (map0[i] == 0) {
-            Map[i] = empty_cell {};
+            _map[i] = empty_cell {};
         } else {
-            Map[i] = normal_wall {.Texture = map0[i]};
+            _map[i] = normal_wall {.Texture = map0[i]};
         }
     }
 
-    Map[point_i {7, 9}] = box_wall {.LocalBounds = {0.25, 0.25, 0.5, 0.5}, .Texture = 2};
+    _map[point_i {7, 9}] = box_wall {.LocalBounds = {0.25, 0.25, 0.5, 0.5}, .Texture = 2};
 
-    Map[point_i {8, 5}] = door_wall {.Orientation = door_wall::orientation::BlocksNorthSouth, .Texture = door1Texture, .FrameTexture = door1FrameTexture};
-    Map[point_i {7, 7}] = door_wall {.Orientation = door_wall::orientation::BlocksEastWest, .Texture = door1Texture, .FrameTexture = door1FrameTexture};
+    _map[point_i {8, 5}] = door_wall {.Orientation = door_wall::orientation::BlocksNorthSouth, .Texture = door1Texture, .FrameTexture = door1FrameTexture};
+    _map[point_i {7, 7}] = door_wall {.Orientation = door_wall::orientation::BlocksEastWest, .Texture = door1Texture, .FrameTexture = door1FrameTexture};
 
-    Map[point_i {10, 5}] = push_wall {.PushDirection = {0, 5}, .Texture = 2};
-    Map[point_i {7, 10}] = push_wall {.PushDirection = {5, 0}, .Texture = 2};
+    _map[point_i {10, 5}] = push_wall {.PushDirection = {0, 5}, .Texture = 2};
+    _map[point_i {7, 10}] = push_wall {.PushDirection = {5, 0}, .Texture = 2};
 
-    Map[point_i {3, 23}] = normal_wall {.Texture = 2};
-    Map[point_i {3, 24}] = normal_wall {.Texture = 2};
-    Map[point_i {3, 25}] = normal_wall {.Texture = 2};
-    Map[point_i {2, 24}] = normal_wall {.Texture = 2};
-    Map[point_i {4, 24}] = normal_wall {.Texture = 2};
+    _map[point_i {3, 23}] = normal_wall {.Texture = 2};
+    _map[point_i {3, 24}] = normal_wall {.Texture = 2};
+    _map[point_i {3, 25}] = normal_wall {.Texture = 2};
+    _map[point_i {2, 24}] = normal_wall {.Texture = 2};
+    _map[point_i {4, 24}] = normal_wall {.Texture = 2};
 
-    Map[point_i {2, 23}] = diagonal_wall {.Orientation = diagonal_wall::orientation::SouthWestToNorthEast, .Transparent = true, .Texture = 15};
-    Map[point_i {4, 23}] = diagonal_wall {.Orientation = diagonal_wall::orientation::NorthWestToSouthEast, .Transparent = true, .Texture = 15};
-    Map[point_i {2, 25}] = diagonal_wall {.Orientation = diagonal_wall::orientation::NorthWestToSouthEast, .Transparent = true, .Texture = 15};
-    Map[point_i {4, 25}] = diagonal_wall {.Orientation = diagonal_wall::orientation::SouthWestToNorthEast, .Transparent = true, .Texture = 15};
+    _map[point_i {2, 23}] = diagonal_wall {.Orientation = diagonal_wall::orientation::SouthWestToNorthEast, .Transparent = true, .Texture = 15};
+    _map[point_i {4, 23}] = diagonal_wall {.Orientation = diagonal_wall::orientation::NorthWestToSouthEast, .Transparent = true, .Texture = 15};
+    _map[point_i {2, 25}] = diagonal_wall {.Orientation = diagonal_wall::orientation::NorthWestToSouthEast, .Transparent = true, .Texture = 15};
+    _map[point_i {4, 25}] = diagonal_wall {.Orientation = diagonal_wall::orientation::SouthWestToNorthEast, .Transparent = true, .Texture = 15};
 
-    Map[point_i {10, 9}] = box_wall {.LocalBounds = {0.0, 0.5, 1.0, 0.0}, .Transparent = true, .Texture = 15};
-    Map[point_i {9, 9}]  = box_wall {.LocalBounds = {0.5, 0.0, 0.0, 0.5}, .Transparent = true, .Texture = 15};
+    _map[point_i {10, 9}] = box_wall {.LocalBounds = {0.0, 0.5, 1.0, 0.0}, .Transparent = true, .Texture = 15};
+    _map[point_i {9, 9}]  = box_wall {.LocalBounds = {0.5, 0.0, 0.0, 0.5}, .Transparent = true, .Texture = 15};
 
-    set_light(Map, {5, 5}, 1.0, 5.0);
+    set_light(_map, {5, 5}, 1.0, 5.0);
     Sprites.push_back({.Position = {4, 5}, .Size = {1, 1}, .Texture = sprite1Texture});
     Sprites.push_back({.Position = {4, 6}, .Size = {1, 1}, .Texture = sprite1Texture});
     Sprites.push_back({.Position = {4, 7}, .Size = {1, 1}, .Texture = sprite1Texture});
 
-    CeilingTexture = 13;
-    FloorTexture   = 9;
-    IsSkybox       = false;
+    Settings.CeilingTexture = 13;
+    Settings.FloorTexture   = 9;
+    Settings.IsSkybox       = false;
 }
 
 auto level::update(milliseconds deltaSeconds) -> bool
@@ -145,16 +145,21 @@ auto level::update(milliseconds deltaSeconds) -> bool
     bool retValue {false};
 
     f64 const dt {deltaSeconds.count() / 1000};
-    for (wall& wall : Map) {
+    for (auto& tile : _map) {
         std::visit(
             [dt, &retValue](auto&& w) {
                 if constexpr (requires { w.update(dt); }) {
                     retValue = w.update(dt) || retValue;
                 }
             },
-            wall);
+            tile);
     }
     return retValue;
+}
+
+auto level::get_tile(point_i p) const -> tile const&
+{
+    return _map[p];
 }
 
 void level::toggle_wall(point_i p)
@@ -165,7 +170,13 @@ void level::toggle_wall(point_i p)
                 w.toggle();
             }
         },
-        Map[p]);
+        _map[p]);
+}
+
+auto level::is_seen(point_i cell) const -> bool
+{
+    if (!map_t::Size.contains(cell)) { return false; }
+    return _seen[cell];
 }
 
 void level::mark_seen(point_i cell, point_d playerPos)
@@ -176,8 +187,8 @@ void level::mark_seen(point_i cell, point_d playerPos)
     point_d const delta {cellCenter.X - playerPos.X, cellCenter.Y - playerPos.Y};
     f64 const     dist {std::sqrt((delta.X * delta.X) + (delta.Y * delta.Y))};
 
-    f64 const visibleRange {FogDistance * (1.0 - FogMin)};
+    f64 const visibleRange {Settings.FogDistance * (1.0 - Settings.FogMin)};
     if (dist < visibleRange) {
-        Seen[cell] = true;
+        _seen[cell] = true;
     }
 }

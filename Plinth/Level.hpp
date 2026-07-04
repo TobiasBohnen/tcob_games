@@ -16,14 +16,7 @@ struct sprite {
     bool     Solid {true};
 };
 
-class level {
-public:
-    level();
-
-    map_t                                  Map;
-    static_grid<bool, mapWidth, mapHeight> Seen;
-    std::vector<sprite>                    Sprites;
-
+struct level_settings {
     f64 FogMin {0.0};
     f64 FogDistance {12.0};
     f64 AmbientLight {1.0};
@@ -31,10 +24,27 @@ public:
     i32  FloorTexture {0};
     i32  CeilingTexture {0};
     bool IsSkybox {false};
+};
+
+class level {
+public:
+    level();
+
+    std::vector<sprite> Sprites;
+
+    level_settings Settings;
 
     auto update(milliseconds deltaSeconds) -> bool;
 
+    auto get_tile(point_i p) const -> tile const&;
+
     void toggle_wall(point_i p);
 
+    auto is_seen(point_i cell) const -> bool;
     void mark_seen(point_i cell, point_d playerPos);
+
+private:
+    map_t _map;
+
+    static_grid<bool, MAP_WIDTH, MAP_HEIGHT> _seen;
 };

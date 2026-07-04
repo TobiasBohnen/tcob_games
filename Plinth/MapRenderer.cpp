@@ -13,10 +13,10 @@
 
 static auto get_color(level const& level, point_i map) -> color
 {
-    if (!level.Seen[map]) { return colors::Black; };
+    if (!level.is_seen(map)) { return colors::Black; };
 
     return overloaded_visit(
-        level.Map[map],
+        level.get_tile(map),
         [](empty_cell const&) -> color { return colors::Silver; },
         [](cell const&) -> color { return colors::Silver; },
         [&](door_wall const&) -> color { return colors::Blue; },
@@ -38,7 +38,7 @@ auto map_renderer::draw(level const& level, player const& player) -> u32 const*
 {
     // walls
     _screen.clear();
-    f32 const tileSize {_screenSize.Height / static_cast<f32>(level.Map.height())};
+    f32 const tileSize {_screenSize.Height / static_cast<f32>(MAP_HEIGHT)};
     for (i32 y {0}; y < _screenSize.Height; ++y) {
         for (i32 x {0}; x < _screenSize.Height; ++x) {
             point_i const mapPos {static_cast<i32>(x / tileSize), static_cast<i32>(y / tileSize)};
@@ -92,7 +92,7 @@ auto map_renderer::draw(level const& level, player const& player) -> u32 const*
 
     // sprites
     for (auto const& spr : level.Sprites) {
-        if (!level.Seen[point_i {spr.Position}]) { continue; } // TODO: sprite map visibility and color
+        if (!level.is_seen(point_i {spr.Position})) { continue; } // TODO: sprite map visibility and color
 
         point_i const sprPos {spr.Position * tileSize};
         i32 const     radius {static_cast<i32>(tileSize / 2)};

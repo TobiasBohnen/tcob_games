@@ -11,11 +11,10 @@
 
 static auto closest_point_on_wall(level const& level, point_i map, point_d pos) -> std::optional<point_d>
 {
-    auto const&  c {level.Map[map]};
     rect_d const clampRect {static_cast<f64>(map.X), static_cast<f64>(map.Y), 1.0, 1.0};
 
     return overloaded_visit(
-        c,
+        level.get_tile(map),
         [](empty_cell const&) -> std::optional<point_d> { return std::nullopt; },
         [](cell const&) -> std::optional<point_d> { return std::nullopt; },
         [&](normal_wall const&) -> std::optional<point_d> {

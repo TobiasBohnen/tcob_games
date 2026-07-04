@@ -147,10 +147,10 @@ struct round_pillar {
     auto intersect(cell_intersect const& ci) const -> wall_hit;
 };
 
-using wall = std::variant<empty_cell, cell, normal_wall, door_wall, push_wall, box_wall, diagonal_wall, round_pillar>;
+using tile = std::variant<empty_cell, cell, normal_wall, door_wall, push_wall, box_wall, diagonal_wall, round_pillar>;
 
-inline constexpr i32 mapWidth {64};
-inline constexpr i32 mapHeight {64};
-using map_t = static_grid<wall, mapWidth, mapHeight>;
+inline constexpr i32 MAP_WIDTH {64};
+inline constexpr i32 MAP_HEIGHT {64};
+using map_t = static_grid<tile, MAP_WIDTH, MAP_HEIGHT>;
 
 ////////////////////////////////////////////////////////////
