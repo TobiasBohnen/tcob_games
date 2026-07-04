@@ -131,6 +131,7 @@ void raycaster::draw_columns(level& level, player const& player, f64 invFogDista
             auto const intersect {[&](auto&& c) { return c.intersect({map, player.Position, rayDir, sideDist.X < sideDist.Y, 0.0}); }};
             auto const wallHit {std::visit(intersect, level.Map[map])};
             if (wallHit.Hit) { process_hit(wallHit, map); }
+            level.mark_seen(map, player.Position);
         }
 
         // DDA
@@ -148,8 +149,10 @@ void raycaster::draw_columns(level& level, player const& player, f64 invFogDista
                     map.Y += step.Y;
                     side = true;
                 }
-                level.Seen[map] = true;
+
                 if (!map_t::Size.contains(map)) { break; }
+
+                level.mark_seen(map, player.Position);
 
                 auto const wallHit {std::visit(intersect, level.Map[map])};
                 if (wallHit.Hit) {

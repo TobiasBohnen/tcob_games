@@ -20,7 +20,7 @@ Plinth::Plinth(game& game)
     _material->first_pass().Texture = _texture;
 
     _texture->resize(screenSize, 1, gfx::texture::format::RGBA8);
-    _texture->Filtering = gfx::texture::filtering::Linear;
+    _texture->Filtering = gfx::texture::filtering::NearestNeighbor;
 
     _player.Position = {6, 5};
     degree_d const angle {90};

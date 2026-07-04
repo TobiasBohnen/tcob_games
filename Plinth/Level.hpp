@@ -33,5 +33,8 @@ public:
     bool IsSkybox {false};
 
     auto update(milliseconds deltaSeconds) -> bool;
+
     void toggle_wall(point_i p);
+
+    void mark_seen(point_i cell, point_d playerPos);
 };

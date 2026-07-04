@@ -167,3 +167,17 @@ void level::toggle_wall(point_i p)
         },
         Map[p]);
 }
+
+void level::mark_seen(point_i cell, point_d playerPos)
+{
+    if (!map_t::Size.contains(cell)) { return; }
+
+    point_d const cellCenter {cell.X + 0.5, cell.Y + 0.5};
+    point_d const delta {cellCenter.X - playerPos.X, cellCenter.Y - playerPos.Y};
+    f64 const     dist {std::sqrt((delta.X * delta.X) + (delta.Y * delta.Y))};
+
+    f64 const visibleRange {FogDistance * (1.0 - FogMin)};
+    if (dist < visibleRange) {
+        Seen[cell] = true;
+    }
+}
