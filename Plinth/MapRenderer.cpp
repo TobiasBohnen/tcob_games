@@ -36,6 +36,7 @@ map_renderer::map_renderer(texture_cache& cache, size_i screenSize)
 
 auto map_renderer::draw(level const& level, player const& player) -> u32 const*
 {
+    // walls
     _screen.clear();
     f32 const tileSize {_screenSize.Height / static_cast<f32>(level.Map.height())};
     for (i32 y {0}; y < _screenSize.Height; ++y) {
@@ -53,9 +54,8 @@ auto map_renderer::draw(level const& level, player const& player) -> u32 const*
         }
     }};
 
+    // player
     point_i const playerPos {player.Position * tileSize};
-
-    // direction triangle
     u32 const     triColor {colors::Red.to_abgr()};
     f64 const     triLength {tileSize};
     f64 const     triWidth {triLength * 0.5};
@@ -88,6 +88,15 @@ auto map_renderer::draw(level const& level, player const& player) -> u32 const*
         for (i32 x {xStart}; x <= xEnd; ++x) {
             plot(point_i {x, y}, triColor);
         }
+    }
+
+    // sprites
+    for (auto const& spr : level.Sprites) {
+        if (!level.Seen[point_i {spr.Position}]) { continue; } // TODO: sprite map visibility and color
+
+        point_i const sprPos {spr.Position * tileSize};
+        i32 const     radius {static_cast<i32>(tileSize / 2)};
+        bresenham_circle(sprPos, radius, [&](point_i const& pt) { plot(pt, colors::Green.to_abgr()); });
     }
 
     return _screen.data();
