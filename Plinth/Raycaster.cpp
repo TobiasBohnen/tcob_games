@@ -217,12 +217,6 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
     i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
     i32 const lineHeight {static_cast<i32>(_projPlaneDist / hit.Distance)};
 
-    i32 const wallTop {(-lineHeight / 2) + screenCenterY};
-    i32 const wallBottom {(lineHeight / 2) + screenCenterY};
-
-    i32 const ceilingEnd {std::clamp(wallTop, 0, _screenSize.Height)};
-    i32 const floorStart {std::clamp(wallBottom, 0, _screenSize.Height)};
-
     point_d const floorWall {player.Position + (rayDir * hit.Distance)};
     f64 const     invPerpWallDist {1.0 / hit.Distance};
 
@@ -284,24 +278,20 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
 
         f64 const tileFogFactor {fogFactor * (level.Settings.AmbientLight + tileLight)};
 
-        if (isFloor) {
-            set_pixel(screenBuf, x + (y * _screenSize.Width), tileFloorTexPtr, texelOffset, tileFogFactor);
-        } else if (level.Settings.IsSkybox) {
+        if (isFloor || !level.Settings.IsSkybox) {
+            set_pixel(screenBuf, x + (y * _screenSize.Width), isFloor ? tileFloorTexPtr : tileCeilTexPtr, texelOffset, tileFogFactor);
+        } else {
             i32 const skyTexY {static_cast<i32>(std::min(1.0 - (static_cast<f64>(y - fixedCenterY) / static_cast<f64>(_screenSize.Height - fixedCenterY)), 1.0) * texSize.Height) % texSize.Height};
             i32 const skyOffset {(skyTexX + (skyTexY * texSize.Width)) * TEXTURE_BPP};
             set_pixel(screenBuf, x + (y * _screenSize.Width), skyTex, skyOffset, 1.0);
-        } else {
-            set_pixel(screenBuf, x + (y * _screenSize.Width), tileCeilTexPtr, texelOffset, tileFogFactor);
         }
     }};
 
-    for (i32 y {floorStart}; y < _screenSize.Height; y++) {
-        sample_and_draw(y, true);
-    }
+    i32 const floorStart {std::clamp((lineHeight / 2) + screenCenterY, 0, _screenSize.Height)};
+    for (i32 y {floorStart}; y < _screenSize.Height; y++) { sample_and_draw(y, true); }
 
-    for (i32 y {0}; y < ceilingEnd; y++) {
-        sample_and_draw(y, false);
-    }
+    i32 const ceilingEnd {std::clamp((-lineHeight / 2) + screenCenterY, 0, _screenSize.Height)};
+    for (i32 y {0}; y < ceilingEnd; y++) { sample_and_draw(y, false); }
 }
 
 void raycaster::draw_sprites(level const& level, player const& player, f64 invFogDistance, i32 columnStart, i32 columnEnd)
