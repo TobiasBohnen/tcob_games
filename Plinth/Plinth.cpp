@@ -7,22 +7,185 @@
 
 #include "Common.hpp"
 #include "Level.hpp"
+#include "MapGenerator.hpp"
 #include "MapRenderer.hpp"
 #include "Raycaster.hpp"
 
 constexpr size_i screenSize {640, 360};
 
+// ASCII-art prefab authoring helper
+//
+// Legend:
+//   '#'  normal_wall
+//   '.'  floor_cell (open interior)
+//   'D'  door_wall, orientation auto-picked from which edge it sits on
+//   'P'  round_pillar
+//   'o'  connector (open floor cell; corridors may attach here)
+//   any other character -> floor_cell
+//
+// All rows must be the same length. Row 0 is the top (smallest Y).
+static auto build_prefab_from_ascii(std::vector<std::string_view> const& rows, i32 wallTexture, i32 floorTexture, i32 ceilingTexture) -> map_prefab
+{
+    assert(!rows.empty());
+    i32 const height {static_cast<i32>(rows.size())};
+    i32 const width {static_cast<i32>(rows[0].size())};
+
+    map_prefab prefab {};
+    prefab.Size = {width, height};
+    prefab.Cells.resize(static_cast<size_t>(width) * height);
+
+    for (i32 y {0}; y < height; ++y) {
+        assert(static_cast<i32>(rows[y].size()) == width && "all prefab rows must be the same length");
+
+        for (i32 x {0}; x < width; ++x) {
+            char const   symbol {rows[y][x]};
+            size_t const idx {static_cast<size_t>(x) + (static_cast<size_t>(y) * width)};
+
+            switch (symbol) {
+            case '#': {
+                normal_wall w {};
+                w.Texture         = wallTexture;
+                prefab.Cells[idx] = w;
+                break;
+            }
+            case 'D': {
+                door_wall d {};
+                d.Texture         = wallTexture;
+                d.FrameTexture    = wallTexture;
+                d.FloorTexture    = floorTexture;
+                d.CeilingTexture  = ceilingTexture;
+                // slab orientation follows whichever edge the door sits on:
+                // top/bottom edge -> slab runs east-west -> blocks north-south passage
+                // left/right edge -> slab runs north-south -> blocks east-west passage
+                d.Orientation     = (y == 0 || y == height - 1) ? door_wall::orientation::BlocksNorthSouth
+                                                                : door_wall::orientation::BlocksEastWest;
+                prefab.Cells[idx] = d;
+                prefab.Connectors.push_back({x, y});
+                break;
+            }
+            case 'o': {
+                floor_cell f {};
+                f.FloorTexture    = floorTexture;
+                f.CeilingTexture  = ceilingTexture;
+                prefab.Cells[idx] = f;
+                if (x == 0 || y == 0 || x == width - 1 || y == height - 1) { prefab.Connectors.push_back({x, y}); }
+                break;
+            }
+            case 'P': {
+                round_pillar p {};
+                p.Radius          = 0.3;
+                p.Texture         = wallTexture;
+                p.FloorTexture    = floorTexture;
+                p.CeilingTexture  = ceilingTexture;
+                prefab.Cells[idx] = p;
+                break;
+            }
+            case '.':
+            default:  {
+                floor_cell f {};
+                f.FloorTexture    = floorTexture;
+                f.CeilingTexture  = ceilingTexture;
+                prefab.Cells[idx] = f;
+                break;
+            }
+            }
+        }
+    }
+
+    return prefab;
+}
+
+////////////////////////////////////////////////////////////
+// Example prefab library
+//
+// A small starter set of hand-authored rooms.
+// Texture indices below are placeholders (0/1/2) — swap for real indices from your texture_cache.
+static auto make_example_prefab_library() -> std::vector<map_prefab>
+{
+    std::vector<map_prefab> library;
+
+    // --- Plain 7x5 room, one connector centered on each edge ---
+    {
+        std::vector<std::string_view> const rows {
+            "#..o..#",
+            "#.....#",
+            "o.....o",
+            "#.....#",
+            "#..o..#",
+        };
+        library.push_back(build_prefab_from_ascii(rows, 1, 1, 1));
+    }
+
+    // --- 7x7 room with two pillars ---
+    {
+        std::vector<std::string_view> const rows {
+            "#..o..#",
+            "#.....#",
+            "#..P..#",
+            "o.....o",
+            "#..P..#",
+            "#.....#",
+            "#..o..#",
+        };
+        library.push_back(build_prefab_from_ascii(rows, /*wallTex*/ 1, /*floorTex*/ 1, /*ceilingTex*/ 1));
+    }
+
+    // --- L-shaped room (7x7 bounding box, top-right corner walled off) ---
+    {
+        std::vector<std::string_view> const rows {
+            "###....",
+            "###....",
+            "###....",
+            "o......",
+            "#.....o",
+            "#......",
+            "#..o...",
+        };
+        library.push_back(build_prefab_from_ascii(rows, 1, 1, 1));
+    }
+
+    // --- Small room with a real door (guards the only entrance) ---
+    {
+        std::vector<std::string_view> const rows {
+            "#####",
+            "#...#",
+            "#...#",
+            "#...#",
+            "##D##",
+        };
+        library.push_back(build_prefab_from_ascii(rows, /*wallTex*/ 2, /*floorTex*/ 2, /*ceilingTex*/ 2));
+    }
+
+    return library;
+}
+
 Plinth::Plinth(game& game)
     : scene {game}
     , _cache {std::make_unique<texture_cache>()}
-    , _level {std::make_unique<level>()}
+
 {
+
+    map_generator gen {make_example_prefab_library()};
+    auto const    map {gen.generate({})};
+    _level = std::make_unique<level>(map);
+
     _material->first_pass().Texture = _texture;
 
     _texture->resize(screenSize, 1, gfx::texture::format::RGBA8);
     _texture->Filtering = gfx::texture::filtering::NearestNeighbor;
 
-    _player.Position = {6, 5};
+    auto const find_empty {[&]() {
+        for (i32 x {0}; x < MAP_WIDTH; ++x) {
+            for (i32 y {0}; y < MAP_HEIGHT; ++y) {
+                if (map[x, y].index() == 0) {
+                    return point_d {static_cast<f64>(x) + 0.5f, static_cast<f64>(y) + 0.5f};
+                }
+            }
+        }
+        return point_d {0, 0};
+    }};
+
+    _player.Position = find_empty();
     degree_d const angle {90};
     radian_d const rad {angle - degree_d {90}};
     _player.Direction = point_d::FromDirection(angle);

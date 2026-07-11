@@ -10,7 +10,7 @@
 
 struct sprite {
     point_d  Position;
-    size_d   Size {size_d::One}; // world-unit width/height; {1,1} = one full tile
+    size_d   Size {size_d::One}; // world-unit width/height; {1,1} = one full cell
     i32      Texture {-1};
     degree_f Facing {0};
     bool     Solid {true};
@@ -28,7 +28,7 @@ struct level_settings {
 
 class level {
 public:
-    level();
+    explicit level(map_t map);
 
     std::vector<sprite> Sprites;
 
@@ -36,7 +36,7 @@ public:
 
     auto update(milliseconds deltaSeconds) -> bool;
 
-    auto get_tile(point_i p) const -> tile const&;
+    auto get_cell(point_i p) const -> cell const&;
 
     void toggle_wall(point_i p);
 

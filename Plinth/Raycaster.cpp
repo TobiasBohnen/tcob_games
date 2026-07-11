@@ -78,12 +78,12 @@ auto raycaster::draw(level& level, player const& player) -> u32 const*
 
 void raycaster::draw_columns(level& level, player const& player, f64 invFogDistance, i32 columnStart, i32 columnEnd)
 {
-    auto const get_light {[&](point_i const& tile) -> f64 {
-        return std::visit([](auto&& tile) -> f64 {
-            if constexpr (requires { tile.Light; }) { return tile.Light; }
+    auto const get_light {[&](point_i const& cell) -> f64 {
+        return std::visit([](auto&& cell) -> f64 {
+            if constexpr (requires { cell.Light; }) { return cell.Light; }
             return 0.0;
         },
-                          level.get_tile(tile));
+                          level.get_cell(cell));
     }};
 
     for (isize x {columnStart}; x < columnEnd; x++) {
@@ -116,9 +116,9 @@ void raycaster::draw_columns(level& level, player const& player, f64 invFogDista
         std::array<wall_hit, MAX_TRANSPARENT_WALLS> transparentHits {};
         i32                                         transparentCount {0};
 
-        auto const process_hit {[&](wall_hit const& wallHit, point_i const& tile) {
+        auto const process_hit {[&](wall_hit const& wallHit, point_i const& cell) {
             wall_hit h {wallHit};
-            h.Light = get_light(tile);
+            h.Light = get_light(cell);
             if (h.Transparent) {
                 if (transparentCount < MAX_TRANSPARENT_WALLS) { transparentHits[transparentCount++] = h; }
             } else {
@@ -126,10 +126,10 @@ void raycaster::draw_columns(level& level, player const& player, f64 invFogDista
             }
         }};
 
-        // check player tile
+        // check player cell
         {
             auto const intersect {[&](auto&& c) { return c.intersect({map, player.Position, rayDir, sideDist.X < sideDist.Y, 0.0}); }};
-            auto const wallHit {std::visit(intersect, level.get_tile(map))};
+            auto const wallHit {std::visit(intersect, level.get_cell(map))};
             if (wallHit.Hit) { process_hit(wallHit, map); }
             level.mark_seen(map, player.Position);
         }
@@ -154,7 +154,7 @@ void raycaster::draw_columns(level& level, player const& player, f64 invFogDista
 
                 level.mark_seen(map, player.Position);
 
-                auto const wallHit {std::visit(intersect, level.get_tile(map))};
+                auto const wallHit {std::visit(intersect, level.get_cell(map))};
                 if (wallHit.Hit) {
                     process_hit(wallHit, map);
                     if (hitResult.Hit) { break; }
@@ -217,6 +217,12 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
     i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
     i32 const lineHeight {static_cast<i32>(_projPlaneDist / hit.Distance)};
 
+    i32 const wallTop {(-lineHeight / 2) + screenCenterY};
+    i32 const wallBottom {(lineHeight / 2) + screenCenterY};
+
+    i32 const ceilingEnd {std::clamp(wallTop, 0, _screenSize.Height)};
+    i32 const floorStart {std::clamp(wallBottom, 0, _screenSize.Height)};
+
     point_d const floorWall {player.Position + (rayDir * hit.Distance)};
     f64 const     invPerpWallDist {1.0 / hit.Distance};
 
@@ -225,22 +231,22 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
     i32 const    skyTexX {level.Settings.IsSkybox ? static_cast<i32>(std::fmod((std::atan2(rayDir.Y, rayDir.X) / TAU) + 1.0, 1.0) * texSize.Width) % texSize.Width : 0};
     auto const*  skyTex {level.Settings.IsSkybox ? _cache.texture(level.Settings.CeilingTexture, 0) : nullptr};
 
-    point_i     lastFloorTile {-1, -1};
-    i32         tileFloorTex {level.Settings.FloorTexture};
-    i32         tileCeilTex {level.Settings.CeilingTexture};
-    f64         tileLight {0.0};
-    auto const* tileFloorTexPtr {_cache.texture(tileFloorTex, 0)};
-    auto const* tileCeilTexPtr {_cache.texture(tileCeilTex, 0)};
+    point_i     lastFloorCell {-1, -1};
+    i32         cellFloorTex {level.Settings.FloorTexture};
+    i32         cellCeilTex {level.Settings.CeilingTexture};
+    f64         cellLight {0.0};
+    auto const* cellFloorTexPtr {_cache.texture(cellFloorTex, 0)};
+    auto const* cellCeilTexPtr {_cache.texture(cellCeilTex, 0)};
 
-    auto const get_tile {[&](auto&& tile) {
-        if constexpr (requires { tile.FloorTexture; }) {
-            if (tile.FloorTexture != INVALID_INDEX) { tileFloorTex = tile.FloorTexture; }
+    auto const get_cell {[&](auto&& cell) {
+        if constexpr (requires { cell.FloorTexture; }) {
+            if (cell.FloorTexture != INVALID_INDEX) { cellFloorTex = cell.FloorTexture; }
         }
-        if constexpr (requires { tile.CeilingTexture; }) {
-            if (tile.CeilingTexture != INVALID_INDEX) { tileCeilTex = tile.CeilingTexture; }
+        if constexpr (requires { cell.CeilingTexture; }) {
+            if (cell.CeilingTexture != INVALID_INDEX) { cellCeilTex = cell.CeilingTexture; }
         }
-        if constexpr (requires { tile.Light; }) {
-            tileLight = tile.Light;
+        if constexpr (requires { cell.Light; }) {
+            cellLight = cell.Light;
         }
     }};
 
@@ -263,35 +269,39 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
         i32 const texelY {static_cast<i32>(currentFloor.Y * WALL_SIZE.Height) & (WALL_SIZE.Height - 1)};
         i32 const texelOffset {(texelX + (texelY * WALL_SIZE.Width)) * TEXTURE_BPP};
 
-        point_i const floorTile {static_cast<i32>(currentFloor.X), static_cast<i32>(currentFloor.Y)};
-        if (floorTile != lastFloorTile) {
-            lastFloorTile = floorTile;
-            tileFloorTex  = level.Settings.FloorTexture;
-            tileCeilTex   = level.Settings.CeilingTexture;
-            tileLight     = 0.0;
-            if (map_t::Size.contains(floorTile)) {
-                std::visit(get_tile, level.get_tile(floorTile));
+        point_i const floorCell {static_cast<i32>(currentFloor.X), static_cast<i32>(currentFloor.Y)};
+        if (floorCell != lastFloorCell) {
+            lastFloorCell = floorCell;
+            cellFloorTex  = level.Settings.FloorTexture;
+            cellCeilTex   = level.Settings.CeilingTexture;
+            cellLight     = 0.0;
+            if (map_t::Size.contains(floorCell)) {
+                std::visit(get_cell, level.get_cell(floorCell));
             }
-            tileFloorTexPtr = _cache.texture(tileFloorTex, 0);
-            tileCeilTexPtr  = _cache.texture(tileCeilTex, 0);
+            cellFloorTexPtr = _cache.texture(cellFloorTex, 0);
+            cellCeilTexPtr  = _cache.texture(cellCeilTex, 0);
         }
 
-        f64 const tileFogFactor {fogFactor * (level.Settings.AmbientLight + tileLight)};
+        f64 const cellFogFactor {fogFactor * (level.Settings.AmbientLight + cellLight)};
 
-        if (isFloor || !level.Settings.IsSkybox) {
-            set_pixel(screenBuf, x + (y * _screenSize.Width), isFloor ? tileFloorTexPtr : tileCeilTexPtr, texelOffset, tileFogFactor);
-        } else {
+        if (isFloor) {
+            set_pixel(screenBuf, x + (y * _screenSize.Width), cellFloorTexPtr, texelOffset, cellFogFactor);
+        } else if (level.Settings.IsSkybox) {
             i32 const skyTexY {static_cast<i32>(std::min(1.0 - (static_cast<f64>(y - fixedCenterY) / static_cast<f64>(_screenSize.Height - fixedCenterY)), 1.0) * texSize.Height) % texSize.Height};
             i32 const skyOffset {(skyTexX + (skyTexY * texSize.Width)) * TEXTURE_BPP};
             set_pixel(screenBuf, x + (y * _screenSize.Width), skyTex, skyOffset, 1.0);
+        } else {
+            set_pixel(screenBuf, x + (y * _screenSize.Width), cellCeilTexPtr, texelOffset, cellFogFactor);
         }
     }};
 
-    i32 const floorStart {std::clamp((lineHeight / 2) + screenCenterY, 0, _screenSize.Height)};
-    for (i32 y {floorStart}; y < _screenSize.Height; y++) { sample_and_draw(y, true); }
+    for (i32 y {floorStart}; y < _screenSize.Height; y++) {
+        sample_and_draw(y, true);
+    }
 
-    i32 const ceilingEnd {std::clamp((-lineHeight / 2) + screenCenterY, 0, _screenSize.Height)};
-    for (i32 y {0}; y < ceilingEnd; y++) { sample_and_draw(y, false); }
+    for (i32 y {0}; y < ceilingEnd; y++) {
+        sample_and_draw(y, false);
+    }
 }
 
 void raycaster::draw_sprites(level const& level, player const& player, f64 invFogDistance, i32 columnStart, i32 columnEnd)
@@ -333,10 +343,10 @@ void raycaster::draw_sprites(level const& level, player const& player, f64 invFo
         f64 const texPosYStart {(drawStart.Y - spriteTop) * texStepY};
 
         f64 spriteLight {0.0};
-        std::visit([&](auto&& tile) {
-            if constexpr (requires { tile.Light; }) { spriteLight = tile.Light; }
+        std::visit([&](auto&& cell) {
+            if constexpr (requires { cell.Light; }) { spriteLight = cell.Light; }
         },
-                   level.get_tile(point_i {spr.Position}));
+                   level.get_cell(point_i {spr.Position}));
 
         f64 const spriteFogFactor {std::max(1.0 - (transformY * invFogDistance), level.Settings.FogMin) * (level.Settings.AmbientLight + spriteLight)};
 

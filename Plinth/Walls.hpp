@@ -45,11 +45,7 @@ struct cell_intersect {
 
 ////////////////////////////////////////////////////////////
 
-struct empty_cell {
-    auto intersect(cell_intersect const& ci) const -> wall_hit;
-};
-
-struct cell {
+struct floor_cell {
     i32 FloorTexture {INVALID_INDEX};
     i32 CeilingTexture {INVALID_INDEX};
     f64 Light {0.0};
@@ -147,10 +143,10 @@ struct round_pillar {
     auto intersect(cell_intersect const& ci) const -> wall_hit;
 };
 
-using tile = std::variant<empty_cell, cell, normal_wall, door_wall, push_wall, box_wall, diagonal_wall, round_pillar>;
+using cell = std::variant<floor_cell, normal_wall, door_wall, push_wall, box_wall, diagonal_wall, round_pillar>;
 
 inline constexpr i32 MAP_WIDTH {64};
 inline constexpr i32 MAP_HEIGHT {64};
-using map_t = static_grid<tile, MAP_WIDTH, MAP_HEIGHT>;
+using map_t = static_grid<cell, MAP_WIDTH, MAP_HEIGHT>;
 
 ////////////////////////////////////////////////////////////

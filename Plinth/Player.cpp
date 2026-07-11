@@ -14,9 +14,8 @@ static auto closest_point_on_wall(level const& level, point_i map, point_d pos) 
     rect_d const clampRect {static_cast<f64>(map.X), static_cast<f64>(map.Y), 1.0, 1.0};
 
     return overloaded_visit(
-        level.get_tile(map),
-        [](empty_cell const&) -> std::optional<point_d> { return std::nullopt; },
-        [](cell const&) -> std::optional<point_d> { return std::nullopt; },
+        level.get_cell(map),
+        [](floor_cell const&) -> std::optional<point_d> { return std::nullopt; },
         [&](normal_wall const&) -> std::optional<point_d> {
             return point_d {std::clamp(pos.X, clampRect.left(), clampRect.right()),
                             std::clamp(pos.Y, clampRect.top(), clampRect.bottom())};
@@ -55,13 +54,13 @@ static auto closest_point_on_wall(level const& level, point_i map, point_d pos) 
 
 static auto is_position_clear(level const& level, point_d pos, f64 radius) -> bool
 {
-    i32 const minTileX {static_cast<i32>(std::floor(pos.X - radius))};
-    i32 const maxTileX {static_cast<i32>(std::floor(pos.X + radius))};
-    i32 const minTileY {static_cast<i32>(std::floor(pos.Y - radius))};
-    i32 const maxTileY {static_cast<i32>(std::floor(pos.Y + radius))};
+    i32 const minCellX {static_cast<i32>(std::floor(pos.X - radius))};
+    i32 const maxCellX {static_cast<i32>(std::floor(pos.X + radius))};
+    i32 const minCellY {static_cast<i32>(std::floor(pos.Y - radius))};
+    i32 const maxCellY {static_cast<i32>(std::floor(pos.Y + radius))};
 
-    for (i32 ty {minTileY}; ty <= maxTileY; ++ty) {
-        for (i32 tx {minTileX}; tx <= maxTileX; ++tx) {
+    for (i32 ty {minCellY}; ty <= maxCellY; ++ty) {
+        for (i32 tx {minCellX}; tx <= maxCellX; ++tx) {
             if (tx < 0 || tx >= map_t::Size.Width || ty < 0 || ty >= map_t::Size.Height) { return false; }
 
             auto const closest {closest_point_on_wall(level, {tx, ty}, pos)};

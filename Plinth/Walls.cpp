@@ -5,12 +5,7 @@
 
 #include "Walls.hpp"
 
-auto empty_cell::intersect(cell_intersect const& ci) const -> wall_hit
-{
-    return {};
-}
-
-auto cell::intersect(cell_intersect const& ci) const -> wall_hit
+auto floor_cell::intersect(cell_intersect const& ci) const -> wall_hit
 {
     return {};
 }

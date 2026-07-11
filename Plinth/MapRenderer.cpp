@@ -16,15 +16,14 @@ static auto get_color(level const& level, point_i map) -> color
     if (!level.is_seen(map)) { return colors::Black; };
 
     return overloaded_visit(
-        level.get_tile(map),
-        [](empty_cell const&) -> color { return colors::Silver; },
-        [](cell const&) -> color { return colors::Silver; },
-        [&](door_wall const&) -> color { return colors::Blue; },
-        [&](push_wall const&) -> color { return colors::DimGray; },
-        [&](normal_wall const&) -> color { return colors::DimGray; },
-        [&](box_wall const& w) -> color { return colors::DimGray; },
-        [&](diagonal_wall const& w) -> color { return colors::DimGray; },
-        [&](round_pillar const& w) -> color { return colors::DimGray; });
+        level.get_cell(map),
+        [](floor_cell const&) -> color { return colors::Silver; },
+        [](door_wall const&) -> color { return colors::Blue; },
+        [](push_wall const&) -> color { return colors::DimGray; },
+        [](normal_wall const&) -> color { return colors::DimGray; },
+        [](box_wall const& w) -> color { return colors::DimGray; },
+        [](diagonal_wall const& w) -> color { return colors::DimGray; },
+        [](round_pillar const& w) -> color { return colors::DimGray; });
 }
 
 map_renderer::map_renderer(texture_cache& cache, size_i screenSize)
@@ -38,10 +37,10 @@ auto map_renderer::draw(level const& level, player const& player) -> u32 const*
 {
     // walls
     _screen.clear();
-    f32 const tileSize {_screenSize.Height / static_cast<f32>(MAP_HEIGHT)};
+    f32 const cellSize {_screenSize.Height / static_cast<f32>(MAP_HEIGHT)};
     for (i32 y {0}; y < _screenSize.Height; ++y) {
         for (i32 x {0}; x < _screenSize.Height; ++x) {
-            point_i const mapPos {static_cast<i32>(x / tileSize), static_cast<i32>(y / tileSize)};
+            point_i const mapPos {static_cast<i32>(x / cellSize), static_cast<i32>(y / cellSize)};
             i32 const     idx {x + (y * _screenSize.Width)};
             _screen[idx] = get_color(level, mapPos).to_abgr();
         }
@@ -55,9 +54,9 @@ auto map_renderer::draw(level const& level, player const& player) -> u32 const*
     }};
 
     // player
-    point_i const playerPos {player.Position * tileSize};
+    point_i const playerPos {player.Position * cellSize};
     u32 const     triColor {colors::Red.to_abgr()};
-    f64 const     triLength {tileSize};
+    f64 const     triLength {cellSize};
     f64 const     triWidth {triLength * 0.5};
     point_d const dir {player.Direction};
     point_d const perp {-dir.Y, dir.X};
@@ -94,8 +93,8 @@ auto map_renderer::draw(level const& level, player const& player) -> u32 const*
     for (auto const& spr : level.Sprites) {
         if (!level.is_seen(point_i {spr.Position})) { continue; } // TODO: sprite map visibility and color
 
-        point_i const sprPos {spr.Position * tileSize};
-        i32 const     radius {static_cast<i32>(tileSize / 2)};
+        point_i const sprPos {spr.Position * cellSize};
+        i32 const     radius {static_cast<i32>(cellSize / 2)};
         bresenham_circle(sprPos, radius, [&](point_i const& pt) { plot(pt, colors::Green.to_abgr()); });
     }
 
