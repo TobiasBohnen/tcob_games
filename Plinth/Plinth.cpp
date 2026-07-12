@@ -99,7 +99,6 @@ static auto build_prefab_from_ascii(std::vector<std::string_view> const& rows, i
 // Example prefab library
 //
 // A small starter set of hand-authored rooms.
-// Texture indices below are placeholders (0/1/2) — swap for real indices from your texture_cache.
 static auto make_example_prefab_library() -> std::vector<map_prefab>
 {
     std::vector<map_prefab> library;
