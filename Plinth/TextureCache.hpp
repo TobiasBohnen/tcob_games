@@ -12,6 +12,7 @@
 inline constexpr i32 sprite1Texture {11};
 inline constexpr i32 door1Texture {12};
 inline constexpr i32 door1FrameTexture {13};
+inline constexpr i32 handTexture {666};
 
 ////////////////////////////////////////////////////////////
 

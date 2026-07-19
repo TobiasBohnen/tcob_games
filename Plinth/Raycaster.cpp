@@ -360,15 +360,15 @@ void raycaster::draw_sprites(level const& level, player const& player, f64 invFo
                 i32 const texY {static_cast<i32>(texPos) & (texSize.Height - 1)};
                 texPos += texStepY;
 
-                i32 const offset {(texX + (texY * texSize.Width)) * TEXTURE_BPP};
-                if (is_magenta(tex, offset)) { continue; }
+                i32 const texOffset {(texX + (texY * texSize.Width)) * TEXTURE_BPP};
+                if (is_magenta(tex, texOffset)) { continue; }
 
                 if (y < 0 || y >= _screenSize.Height) { continue; }
 
                 isize const depthIndex {stripe + (static_cast<isize>(y) * _screenSize.Width)};
                 if (transformY < _spriteDepthBuffer[depthIndex]) {
                     _spriteDepthBuffer[depthIndex] = transformY;
-                    set_pixel(screenBuf, stripe + (y * _screenSize.Width), tex, offset, spriteFogFactor);
+                    set_pixel(screenBuf, stripe + (y * _screenSize.Width), tex, texOffset, spriteFogFactor);
                 }
             }
         }
@@ -377,6 +377,24 @@ void raycaster::draw_sprites(level const& level, player const& player, f64 invFo
 
 void raycaster::draw_weapon(player const& player)
 {
+    auto* const   tex {_cache.texture(handTexture, 0)};
+    auto const    texSize {_cache.texture_size(handTexture, 0)};
+    u32*          screenBuf {_screen.data()};
+    point_i const offset {static_cast<i32>((_screenSize.Width - texSize.Width) * 0.75),
+                          static_cast<i32>(_screenSize.Height - (texSize.Height * 0.75))};
+
+    for (i32 texX {0}; texX < texSize.Width; ++texX) {
+        for (i32 texY {0}; texY < texSize.Height; ++texY) {
+            i32 const texOffset {(texX + (texY * texSize.Width)) * TEXTURE_BPP};
+            if (is_magenta(tex, texOffset)) { continue; }
+
+            i32 const x {texX + offset.X};
+            i32 const y {texY + offset.Y};
+            if (x < 0 || x >= _screenSize.Width || y < 0 || y >= _screenSize.Height) { continue; }
+
+            set_pixel(screenBuf, x + (y * _screenSize.Width), tex, texOffset, 1.0);
+        }
+    }
 }
 
 void raycaster::draw_hud(player const& player)

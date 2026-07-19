@@ -163,6 +163,7 @@ Plinth::Plinth(game& game)
     , _cache {std::make_unique<texture_cache>()}
 
 {
+    window().SystemCursorEnabled = false;
 
     map_generator gen {make_example_prefab_library()};
     auto const    map {gen.generate({})};
@@ -183,7 +184,7 @@ Plinth::Plinth(game& game)
         }
         return point_d {0, 0};
     }};
-
+    _level->Sprites.push_back(sprite {.Position = find_empty() + point_i {1, 1}, .Size = {1, 1}, .Texture = sprite1Texture, .Facing = degree_f {0}, .Solid = true});
     _player.Position = find_empty();
     degree_d const angle {90};
     radian_d const rad {angle - degree_d {90}};
