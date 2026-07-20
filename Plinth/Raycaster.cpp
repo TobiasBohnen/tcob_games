@@ -377,22 +377,31 @@ void raycaster::draw_sprites(level const& level, player const& player, f64 invFo
 
 void raycaster::draw_weapon(player const& player)
 {
-    auto* const   tex {_cache.texture(handTexture, 0)};
-    auto const    texSize {_cache.texture_size(handTexture, 0)};
-    u32*          screenBuf {_screen.data()};
-    point_i const offset {static_cast<i32>((_screenSize.Width - texSize.Width) * 0.75),
-                          static_cast<i32>(_screenSize.Height - (texSize.Height * 0.75))};
+    auto* const tex {_cache.texture(handTexture, 0)};
+    auto const  texSize {_cache.texture_size(handTexture, 0)};
+    u32*        screenBuf {_screen.data()};
 
-    for (i32 texX {0}; texX < texSize.Width; ++texX) {
-        for (i32 texY {0}; texY < texSize.Height; ++texY) {
+    f64 const scale {_screenSize.Height / WEAPON_REFERENCE_HEIGHT};
+
+    size_i const drawSize {size_f {texSize} * scale};
+
+    i32 const bobOffsetY {static_cast<i32>(player.BobAmount * WEAPON_BOB_MULTIPLIER)};
+
+    point_i const offset {static_cast<i32>((_screenSize.Width - drawSize.Width) * 0.75),
+                          static_cast<i32>(_screenSize.Height - (drawSize.Height * 0.75)) + bobOffsetY};
+
+    for (i32 y {0}; y < drawSize.Height; ++y) {
+        i32 const texY {std::min(texSize.Height - 1, static_cast<i32>(y / scale))};
+        for (i32 x {0}; x < drawSize.Width; ++x) {
+            i32 const texX {std::min(texSize.Width - 1, static_cast<i32>(x / scale))};
             i32 const texOffset {(texX + (texY * texSize.Width)) * TEXTURE_BPP};
             if (is_magenta(tex, texOffset)) { continue; }
 
-            i32 const x {texX + offset.X};
-            i32 const y {texY + offset.Y};
-            if (x < 0 || x >= _screenSize.Width || y < 0 || y >= _screenSize.Height) { continue; }
+            i32 const screenX {x + offset.X};
+            i32 const screenY {y + offset.Y};
+            if (screenX < 0 || screenX >= _screenSize.Width || screenY < 0 || screenY >= _screenSize.Height) { continue; }
 
-            set_pixel(screenBuf, x + (y * _screenSize.Width), tex, texOffset, 1.0);
+            set_pixel(screenBuf, screenX + (screenY * _screenSize.Width), tex, texOffset, 1.0);
         }
     }
 }
