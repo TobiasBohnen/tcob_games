@@ -9,17 +9,19 @@
 
 ////////////////////////////////////////////////////////////
 
+// PLACEHOLDER START
 inline constexpr i32 sprite1Texture {11};
 inline constexpr i32 door1Texture {12};
 inline constexpr i32 door1FrameTexture {13};
 inline constexpr i32 handTexture {666};
+// PLACEHOLDER END
 
 ////////////////////////////////////////////////////////////
 
 class texture_cache final {
 public:
-    auto texture(i32 idx, i32 facing) -> u8*;
-    auto texture_size(i32 idx, i32 facing) const -> size_i;
+    auto texture(i32 idx, i32 variant) -> u8*;
+    auto texture_size(i32 idx, i32 variant) const -> size_i;
 
     void load();
 
@@ -29,7 +31,7 @@ private:
         size_i Size {};
     };
 
-    auto get_entry(i32 idx, i32 facing) const -> texture_entry const&;
+    auto get_entry(i32 idx, i32 variant) const -> texture_entry const&;
 
     std::vector<u8> _textures;
 

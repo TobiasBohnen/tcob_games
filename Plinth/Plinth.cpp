@@ -13,6 +13,7 @@
 
 constexpr size_i screenSize {640, 360};
 
+// PLACEHOLDER START
 // ASCII-art prefab authoring helper
 //
 // Legend:
@@ -157,6 +158,7 @@ static auto make_example_prefab_library() -> std::vector<map_prefab>
 
     return library;
 }
+// PLACEHOLDER END
 
 Plinth::Plinth(game& game)
     : scene {game}
@@ -165,14 +167,15 @@ Plinth::Plinth(game& game)
 {
     window().SystemCursorEnabled = false;
 
-    map_generator gen {make_example_prefab_library()};
-    auto const    map {gen.generate({})};
-    _level = std::make_unique<level>(map);
-
     _material->first_pass().Texture = _texture;
 
     _texture->resize(screenSize, 1, gfx::texture::format::RGBA8);
     _texture->Filtering = gfx::texture::filtering::NearestNeighbor;
+    // PLACEHOLDER START
+
+    map_generator gen {make_example_prefab_library()};
+    auto const    map {gen.generate({})};
+    _level = std::make_unique<level>(map);
 
     auto const find_empty {[&]() {
         for (i32 x {0}; x < MAP_WIDTH; ++x) {
@@ -189,6 +192,8 @@ Plinth::Plinth(game& game)
     degree_d const angle {90};
     radian_d const rad {angle - degree_d {90}};
     _player.Direction = point_d::FromDirection(angle);
+    // PLACEHOLDER END
+
     f64 const fov {FOV * TAU / 360.0};
     _player.Plane = {-rad.sin() * std::tan(fov / 2.0), rad.cos() * std::tan(fov / 2.0)};
 

@@ -153,7 +153,8 @@ void map_generator::connect_prefabs(map_t& map, map_gen_params const& params, st
 
 void map_generator::fill_remaining_with_wall(map_t& map, map_gen_params const& params)
 {
-    normal_wall const defaultWall {.Texture = params.DefaultWallTexture};
+    normal_wall defaultWall {};
+    defaultWall.Texture = params.DefaultWallTexture;
 
     for (i32 y {0}; y < MAP_HEIGHT; ++y) {
         for (i32 x {0}; x < MAP_WIDTH; ++x) {
