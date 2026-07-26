@@ -18,8 +18,8 @@ public:
 
     f64 BobAmount {0.0};
 
-    auto move(level const& level, f64 forwardAmount, f64 strafeAmount, f64 rotateAmount) -> bool;
-    auto bob(milliseconds deltaTime) -> bool;
+    void move(level const& level, f64 forwardAmount, f64 strafeAmount, f64 rotateAmount);
+    void bob(milliseconds deltaTime);
 
     static constexpr f64 Radius {0.25};
 

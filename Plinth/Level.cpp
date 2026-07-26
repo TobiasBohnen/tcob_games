@@ -15,21 +15,18 @@ level::level(map_t map)
     Settings.IsSkybox       = false;
 }
 
-auto level::update(milliseconds deltaSeconds) -> bool
+void level::update(milliseconds deltaSeconds)
 {
-    bool retValue {false};
-
     f64 const dt {deltaSeconds.count() / 1000};
     for (auto& cell : _map) {
         std::visit(
-            [dt, &retValue](auto&& w) {
+            [dt](auto&& w) {
                 if constexpr (requires { w.update(dt); }) {
-                    retValue = w.update(dt) || retValue;
+                    w.update(dt);
                 }
             },
             cell);
     }
-    return retValue;
 }
 
 auto level::get_cell(point_i p) const -> cell const&

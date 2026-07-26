@@ -79,7 +79,7 @@ static auto is_position_clear(level const& level, point_d pos, f64 radius) -> bo
     });
 }
 
-auto player::move(level const& level, f64 forwardAmount, f64 strafeAmount, f64 rotateAmount) -> bool
+void player::move(level const& level, f64 forwardAmount, f64 strafeAmount, f64 rotateAmount)
 {
     _isMoving = false;
 
@@ -128,11 +128,9 @@ auto player::move(level const& level, f64 forwardAmount, f64 strafeAmount, f64 r
 
         _isMoving = true;
     }
-
-    return _isMoving;
 }
 
-auto player::bob(milliseconds deltaTime) -> bool
+void player::bob(milliseconds deltaTime)
 {
     constexpr f64 bobSpeed {8.0};
     constexpr f64 bobHeight {6.0}; // pixels
@@ -142,12 +140,10 @@ auto player::bob(milliseconds deltaTime) -> bool
     if (_isMoving) {
         _bobPhase += dt * bobSpeed;
         BobAmount = std::abs(std::sin(_bobPhase)) * bobHeight;
-        return true;
+        return;
     }
     if (BobAmount != 0.0) {
         _bobPhase = 0.0;
         BobAmount = std::max(BobAmount - (dt * bobHeight * 4.0), 0.0);
-        return true;
     }
-    return false;
 }

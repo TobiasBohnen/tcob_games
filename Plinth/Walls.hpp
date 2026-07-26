@@ -77,7 +77,7 @@ struct door_wall {
     f64 Light {0.0};
 
     auto intersect(cell_intersect const& ci) const -> wall_hit;
-    auto update(f64 dt) -> bool;
+    void update(f64 dt);
     void toggle();
 
     static constexpr f64 OpenSpeed {1.5};
@@ -95,7 +95,7 @@ struct push_wall {
     f64 Light {0.0};
 
     auto intersect(cell_intersect const& ci) const -> wall_hit;
-    auto update(f64 dt) -> bool;
+    void update(f64 dt);
     void toggle();
 
     static constexpr f64 OpenSpeed {1.5};

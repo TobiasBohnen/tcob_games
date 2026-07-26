@@ -134,7 +134,7 @@ static auto make_example_prefab_library() -> std::vector<map_prefab>
     {
         std::vector<std::string_view> const rows {
             "###....",
-            "###....",
+            "#.D....",
             "###....",
             "o......",
             "#.....o",
@@ -210,10 +210,7 @@ void Plinth::on_start()
 
 void Plinth::on_draw_to(gfx::render_target& target, transform const& xform)
 {
-    if (_draw) {
-        _draw = false;
-        _texture->update_data(_raycaster->draw(*_level, _player), 0);
-    }
+    _texture->update_data(_raycaster->draw(*_level, _player), 0);
     if (_drawMap) {
         _texture->update_data(_mapRenderer->draw(*_level, _player), 0);
     }
@@ -252,12 +249,12 @@ void Plinth::on_fixed_update(milliseconds deltaTime)
 
 void Plinth::on_update(milliseconds deltaTime)
 {
-    _draw = move_player(deltaTime) || _draw;
-    _draw = _player.bob(deltaTime) || _draw;
-    _draw = _level->update(deltaTime) || _draw;
+    move_player(deltaTime);
+    _player.bob(deltaTime);
+    _level->update(deltaTime);
 }
 
-auto Plinth::move_player(milliseconds deltaTime) -> bool
+void Plinth::move_player(milliseconds deltaTime)
 {
     auto const& input {locate_service<input::system>()};
 
@@ -310,7 +307,7 @@ auto Plinth::move_player(milliseconds deltaTime) -> bool
         }
     }
 
-    return _player.move(*_level, forwardAmount, strafeAmount, rotateAmount);
+    _player.move(*_level, forwardAmount, strafeAmount, rotateAmount);
 }
 
 void Plinth::on_key_down(input::keyboard::event const& ev)
@@ -325,7 +322,6 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
         auto& spr {_level->Sprites[0]};
         spr.Facing   = spr.Position.angle_to(_player.Position);
         spr.Position = spr.Position.moved_along(degree_d {spr.Facing.Value}, 0.1);
-        _draw        = true;
     } break;
     case input::scan_code::R: {
         locate_service<gfx::render_system>().statistics().reset();
@@ -344,7 +340,6 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
     } break;
     case input::scan_code::TAB: {
         _drawMap = !_drawMap;
-        _draw    = true;
     } break;
     default:
 

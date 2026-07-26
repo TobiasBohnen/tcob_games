@@ -34,7 +34,7 @@ public:
 
     level_settings Settings;
 
-    auto update(milliseconds deltaSeconds) -> bool;
+    void update(milliseconds deltaSeconds);
 
     auto get_cell(point_i p) const -> cell const&;
 

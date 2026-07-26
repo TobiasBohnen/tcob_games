@@ -28,7 +28,7 @@ public:
     void on_controller_button_down(input::controller::button_event const& ev) override;
 
 private:
-    auto move_player(milliseconds deltaTime) -> bool;
+    void move_player(milliseconds deltaTime);
 
     std::unique_ptr<texture_cache> _cache;
     std::unique_ptr<level>         _level;
@@ -40,6 +40,5 @@ private:
     asset_owner_ptr<gfx::texture>  _texture;
     gfx::renderer                  _renderer {gfx::buffer_usage_hint::StaticDraw};
 
-    bool _draw {true};
     bool _drawMap {false};
 };

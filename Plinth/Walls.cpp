@@ -70,7 +70,7 @@ auto door_wall::intersect(cell_intersect const& ci) const -> wall_hit
     return closestHit;
 }
 
-auto door_wall::update(f64 dt) -> bool
+void door_wall::update(f64 dt)
 {
     if (State == wall_state::Opening) {
         Timer += dt * OpenSpeed;
@@ -78,7 +78,7 @@ auto door_wall::update(f64 dt) -> bool
             Timer = 1.0;
             State = wall_state::Open;
         }
-        return true;
+        return;
     }
     if (State == wall_state::Closing) {
         Timer -= dt * OpenSpeed;
@@ -86,9 +86,8 @@ auto door_wall::update(f64 dt) -> bool
             Timer = 0;
             State = wall_state::Closed;
         }
-        return true;
+        return;
     }
-    return false;
 }
 
 void door_wall::toggle()
@@ -154,7 +153,7 @@ auto push_wall::intersect(cell_intersect const& ci) const -> wall_hit
     return {};
 }
 
-auto push_wall::update(f64 dt) -> bool
+void push_wall::update(f64 dt)
 {
     if (State == wall_state::Opening) {
         Timer += dt * OpenSpeed;
@@ -162,7 +161,7 @@ auto push_wall::update(f64 dt) -> bool
             Timer = 1.0;
             State = wall_state::Open;
         }
-        return true;
+        return;
     }
     if (State == wall_state::Closing) {
         Timer -= dt * OpenSpeed;
@@ -170,9 +169,8 @@ auto push_wall::update(f64 dt) -> bool
             Timer = 0;
             State = wall_state::Closed;
         }
-        return true;
+        return;
     }
-    return false;
 }
 
 void push_wall::toggle()
