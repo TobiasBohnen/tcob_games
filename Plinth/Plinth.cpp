@@ -17,9 +17,14 @@ constexpr size_i screenSize {640, 360};
 // ASCII-art prefab authoring helper
 //
 // Legend:
-//   '#'  normal_wall
+//   '#'  normal_wall (uses wallTexture param)
+//   '1'-'9'  normal_wall with that literal texture index (ignores wallTexture param)
 //   '.'  floor_cell (open interior)
 //   'D'  door_wall, orientation auto-picked from which edge it sits on
+//   'S'  push_wall (secret door), PushDirection auto-picked from which edge it sits on
+//   'B'  box_wall, LocalBounds defaults to the full cell {0,0,1,1}
+//   '\'  diagonal_wall, orientation NorthWestToSouthEast
+//   '/'  diagonal_wall, orientation SouthWestToNorthEast
 //   'P'  round_pillar
 //   'o'  connector (open floor cell; corridors may attach here)
 //   any other character -> floor_cell
@@ -49,19 +54,74 @@ static auto build_prefab_from_ascii(std::vector<std::string_view> const& rows, i
                 prefab.Cells[idx] = w;
                 break;
             }
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9': {
+                normal_wall w {};
+                w.Texture         = symbol - '0';
+                prefab.Cells[idx] = w;
+                break;
+            }
             case 'D': {
                 door_wall d {};
                 d.Texture         = wallTexture;
                 d.FrameTexture    = wallTexture;
                 d.FloorTexture    = floorTexture;
                 d.CeilingTexture  = ceilingTexture;
-                // slab orientation follows whichever edge the door sits on:
-                // top/bottom edge -> slab runs east-west -> blocks north-south passage
-                // left/right edge -> slab runs north-south -> blocks east-west passage
                 d.Orientation     = (y == 0 || y == height - 1) ? door_wall::orientation::BlocksNorthSouth
                                                                 : door_wall::orientation::BlocksEastWest;
                 prefab.Cells[idx] = d;
                 prefab.Connectors.push_back({x, y});
+                break;
+            }
+            case 'S': {
+                push_wall s {};
+                s.Texture        = wallTexture;
+                s.FloorTexture   = floorTexture;
+                s.CeilingTexture = ceilingTexture;
+                if (y == 0) {
+                    s.PushDirection = {0, -1};
+                } else if (y == height - 1) {
+                    s.PushDirection = {0, 1};
+                } else if (x == 0) {
+                    s.PushDirection = {-1, 0};
+                } else if (x == width - 1) {
+                    s.PushDirection = {1, 0};
+                }
+                prefab.Cells[idx] = s;
+                break;
+            }
+            case 'B': {
+                box_wall b {};
+                b.LocalBounds     = {0.0, 0.0, 1.0, 1.0};
+                b.Texture         = wallTexture;
+                b.FloorTexture    = floorTexture;
+                b.CeilingTexture  = ceilingTexture;
+                prefab.Cells[idx] = b;
+                break;
+            }
+            case '\\': {
+                diagonal_wall dg {};
+                dg.Orientation    = diagonal_wall::orientation::NorthWestToSouthEast;
+                dg.Texture        = wallTexture;
+                dg.FloorTexture   = floorTexture;
+                dg.CeilingTexture = ceilingTexture;
+                prefab.Cells[idx] = dg;
+                break;
+            }
+            case '/': {
+                diagonal_wall dg {};
+                dg.Orientation    = diagonal_wall::orientation::SouthWestToNorthEast;
+                dg.Texture        = wallTexture;
+                dg.FloorTexture   = floorTexture;
+                dg.CeilingTexture = ceilingTexture;
+                prefab.Cells[idx] = dg;
                 break;
             }
             case 'o': {
@@ -107,11 +167,11 @@ static auto make_example_prefab_library() -> std::vector<map_prefab>
     // --- Plain 7x5 room, one connector centered on each edge ---
     {
         std::vector<std::string_view> const rows {
-            "#..o..#",
-            "#.....#",
+            "1..o..1",
+            "1.....1",
             "o.....o",
-            "#.....#",
-            "#..o..#",
+            "1.....1",
+            "1..o..1",
         };
         library.push_back(build_prefab_from_ascii(rows, 1, 1, 1));
     }
@@ -119,13 +179,13 @@ static auto make_example_prefab_library() -> std::vector<map_prefab>
     // --- 7x7 room with two pillars ---
     {
         std::vector<std::string_view> const rows {
-            "#..o..#",
-            "#.....#",
-            "#..P..#",
+            "2..o..2",
+            "2.....2",
+            "2..P..2",
             "o.....o",
-            "#..P..#",
-            "#.....#",
-            "#..o..#",
+            "2..P..2",
+            "2.....2",
+            "2..o..2",
         };
         library.push_back(build_prefab_from_ascii(rows, /*wallTex*/ 1, /*floorTex*/ 1, /*ceilingTex*/ 1));
     }
@@ -133,13 +193,13 @@ static auto make_example_prefab_library() -> std::vector<map_prefab>
     // --- L-shaped room (7x7 bounding box, top-right corner walled off) ---
     {
         std::vector<std::string_view> const rows {
-            "###....",
-            "#.D....",
-            "###....",
+            "333....",
+            "3.D....",
+            "333....",
             "o......",
-            "#.....o",
-            "#......",
-            "#..o...",
+            "3.....o",
+            "3......",
+            "3..o...",
         };
         library.push_back(build_prefab_from_ascii(rows, 1, 1, 1));
     }
@@ -147,13 +207,86 @@ static auto make_example_prefab_library() -> std::vector<map_prefab>
     // --- Small room with a real door (guards the only entrance) ---
     {
         std::vector<std::string_view> const rows {
-            "#####",
-            "#...#",
-            "#...#",
-            "#...#",
+            "44444",
+            "4...4",
+            "4...4",
+            "4...4",
             "##D##",
         };
         library.push_back(build_prefab_from_ascii(rows, /*wallTex*/ 2, /*floorTex*/ 2, /*ceilingTex*/ 2));
+    }
+
+    // --- Cross-shaped room ---
+    {
+        std::vector<std::string_view> const rows {
+            "555o555",
+            "555.555",
+            "o.....o",
+            "5.....5",
+            "o.....o",
+            "555.555",
+            "555o555",
+        };
+        library.push_back(build_prefab_from_ascii(rows, 1, 1, 1));
+    }
+
+    // --- Long corridor room with pillars ---
+    {
+        std::vector<std::string_view> const rows {
+            "o..........o",
+            "6.P..P..P..6",
+            "6..........6",
+            "o..........o",
+        };
+        library.push_back(build_prefab_from_ascii(rows, 1, 1, 1));
+    }
+
+    // --- Double-door vault (two separate entrances) ---
+    {
+        std::vector<std::string_view> const rows {
+            "77777D77777",
+            "7.........7",
+            "7....P....7",
+            "7.........7",
+            "77777D77777",
+        };
+        library.push_back(build_prefab_from_ascii(rows, /*wallTex*/ 2, /*floorTex*/ 2, /*ceilingTex*/ 2));
+    }
+
+    // --- Room with a secret push-wall exit (south edge) ---
+    {
+        std::vector<std::string_view> const rows {
+            "8..o..8",
+            "8.....8",
+            "8.....8",
+            "8.....8",
+            "8..S..8",
+        };
+        library.push_back(build_prefab_from_ascii(rows, 1, 1, 1));
+    }
+
+    // --- Room with a freestanding box obstacle (crate) in the middle ---
+    {
+        std::vector<std::string_view> const rows {
+            "9..o..9",
+            "9.....9",
+            "o..B..o",
+            "9.....9",
+            "9..o..9",
+        };
+        library.push_back(build_prefab_from_ascii(rows, 1, 1, 1));
+    }
+
+    // --- Octagon-ish room using diagonal walls to cut the corners ---
+    {
+        std::vector<std::string_view> const rows {
+            "\\..o..1",
+            "2.....3",
+            "o.....o",
+            "4.....5",
+            "6..o../",
+        };
+        library.push_back(build_prefab_from_ascii(rows, 1, 1, 1));
     }
 
     return library;

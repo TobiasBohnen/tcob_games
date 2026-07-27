@@ -10,9 +10,11 @@
 level::level(map_t map)
     : _map {map}
 {
-    Settings.CeilingTexture = 13;
-    Settings.FloorTexture   = 9;
+    // PLACEHOLDER START
+    Settings.CeilingTexture = 11;
+    Settings.FloorTexture   = 10;
     Settings.IsSkybox       = false;
+    // PLACEHOLDER END
 }
 
 void level::update(milliseconds deltaSeconds)

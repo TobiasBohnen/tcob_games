@@ -42,10 +42,11 @@ void texture_cache::load()
         {.Tex = 6, .Path = "res/wall5.png"},
         {.Tex = 7, .Path = "res/wall6.png"},
         {.Tex = 8, .Path = "res/wall7.png"},
+        {.Tex = 9, .Path = "res/wall7.png"},
         {.Tex = door1Texture, .Path = "res/door.png"},
         {.Tex = door1FrameTexture, .Path = "res/door_frame.png"},
-        {.Tex = 9, .Path = "res/floor.png"},
-        {.Tex = 10, .Path = "res/ceiling.png"},
+        {.Tex = 10, .Path = "res/floor.png"},
+        {.Tex = 11, .Path = "res/ceiling.png"},
         {.Tex = 14, .Path = "res/sky.png"},
         {.Tex = 15, .Path = "res/transparent.png"},
 
