@@ -12,13 +12,14 @@ struct map_prefab {
     size_i               Size {};
     std::vector<cell>    Cells;      // Size.Width * Size.Height entries, row-major (local coords)
     std::vector<point_i> Connectors; // local-space edge cells where a corridor may attach
+    i32                  Weight {1};
 };
 
 struct map_gen_params {
     size_i GenArea {MAP_WIDTH, MAP_HEIGHT}; // area within the fixed map_t grid to actively fill; rest becomes solid wall
     i32    PrefabCount {8};                 // how many prefabs to attempt to place
     i32    PlacementAttempts {30};          // per-prefab random-position retries before giving up
-    i32    CorridorWidth {1};
+    i32    CorridorRadius {1};
     i32    DefaultWallTexture {1};
     u64    Seed {0};
 };
@@ -35,10 +36,8 @@ private:
         point_i           Origin; // top-left in map space
     };
 
-    auto try_place_prefab(map_prefab const& prefab, map_gen_params const& params, rng& rng) -> std::optional<point_i>;
-    auto rect_free(point_i origin, size_i size) const -> bool;
-    void stamp_prefab(map_t& map, map_prefab const& prefab, point_i origin);
-    void carve_corridor(map_t& map, map_gen_params const& params, point_i from, point_i to);
+    auto find_corridor_path(point_i from, point_i to, static_grid<bool, MAP_WIDTH, MAP_HEIGHT> const& blocked) -> std::vector<point_i>;
+    void carve_corridor(map_t& map, map_gen_params const& params, point_i from, point_i to, static_grid<bool, MAP_WIDTH, MAP_HEIGHT> const& blocked);
     void connect_prefabs(map_t& map, map_gen_params const& params, std::vector<placed_prefab> const& placed, rng& rng);
     void fill_remaining_with_wall(map_t& map, map_gen_params const& params);
 

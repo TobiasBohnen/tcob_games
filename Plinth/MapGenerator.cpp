@@ -14,6 +14,39 @@ map_generator::map_generator(std::vector<map_prefab> prefabLibrary)
 
 auto map_generator::generate(map_gen_params const& params) -> map_t
 {
+    auto const stamp_prefab {[this](map_t& map, map_prefab const& prefab, point_i origin) {
+        for (i32 y {0}; y < prefab.Size.Height; ++y) {
+            for (i32 x {0}; x < prefab.Size.Width; ++x) {
+                point_i const world {origin.X + x, origin.Y + y};
+                map[world]       = prefab.Cells[x + (y * prefab.Size.Width)];
+                _occupied[world] = true;
+            }
+        }
+    }};
+    auto const try_place_prefab {[this](map_prefab const& prefab, map_gen_params const& params, rng& rng) -> std::optional<point_i> {
+        auto const rect_free {[this](point_i origin, size_i size) -> bool {
+            // pad by 1 cell on each side so prefabs never touch directly, leaving room for corridor carving
+            for (i32 y {origin.Y - 1}; y <= origin.Y + size.Height; ++y) {
+                for (i32 x {origin.X - 1}; x <= origin.X + size.Width; ++x) {
+                    point_i const cell {x, y};
+                    if (!map_t::Size.contains(cell)) { return false; }
+                    if (_occupied[cell]) { return false; }
+                }
+            }
+            return true;
+        }};
+
+        i32 const maxX {params.GenArea.Width - prefab.Size.Width - 1};
+        i32 const maxY {params.GenArea.Height - prefab.Size.Height - 1};
+        if (maxX < 1 || maxY < 1) { return std::nullopt; }
+
+        for (i32 attempt {0}; attempt < params.PlacementAttempts; ++attempt) {
+            point_i const origin {rng(1, maxX), rng(1, maxY)};
+            if (rect_free(origin, prefab.Size)) { return origin; }
+        }
+        return std::nullopt;
+    }};
+
     map_t map {};
     std::ranges::fill(_occupied, false);
 
@@ -21,11 +54,23 @@ auto map_generator::generate(map_gen_params const& params) -> map_t
 
     std::vector<placed_prefab> placed;
 
-    for (i32 i {0}; i < params.PrefabCount && !_library.empty(); ++i) {
-        map_prefab const& prefab {_library[rng(usize {0}, _library.size() - 1)]};
-        if (auto origin {try_place_prefab(prefab, params, rng)}) {
-            stamp_prefab(map, prefab, *origin);
-            placed.push_back({.Prefab = &prefab, .Origin = *origin});
+    i32 totalWeight {0};
+    for (auto const& p : _library) { totalWeight += p.Weight; }
+
+    for (i32 i {0}; i < params.PrefabCount && !_library.empty() && totalWeight > 0; ++i) {
+        i32               roll {rng(0, totalWeight - 1)};
+        map_prefab const* prefab {nullptr};
+        for (auto const& p : _library) {
+            roll -= p.Weight;
+            if (roll < 0) {
+                prefab = &p;
+                break;
+            }
+        }
+
+        if (auto origin {try_place_prefab(*prefab, params, rng)}) {
+            stamp_prefab(map, *prefab, *origin);
+            placed.push_back({.Prefab = prefab, .Origin = *origin});
         }
     }
 
@@ -35,52 +80,58 @@ auto map_generator::generate(map_gen_params const& params) -> map_t
     return map;
 }
 
-auto map_generator::try_place_prefab(map_prefab const& prefab, map_gen_params const& params, rng& rng) -> std::optional<point_i>
+auto map_generator::find_corridor_path(point_i from, point_i to, static_grid<bool, MAP_WIDTH, MAP_HEIGHT> const& blocked) -> std::vector<point_i>
 {
-    i32 const maxX {params.GenArea.Width - prefab.Size.Width - 1};
-    i32 const maxY {params.GenArea.Height - prefab.Size.Height - 1};
-    if (maxX < 1 || maxY < 1) { return std::nullopt; }
+    static_grid<point_i, MAP_WIDTH, MAP_HEIGHT> cameFrom {};
+    static_grid<bool, MAP_WIDTH, MAP_HEIGHT>    visited {};
 
-    for (i32 attempt {0}; attempt < params.PlacementAttempts; ++attempt) {
-        point_i const origin {rng(1, maxX), rng(1, maxY)};
-        if (rect_free(origin, prefab.Size)) { return origin; }
-    }
-    return std::nullopt;
-}
+    std::queue<point_i> frontier;
+    frontier.push(from);
+    visited[from] = true;
 
-auto map_generator::rect_free(point_i origin, size_i size) const -> bool
-{
-    // pad by 1 cell on each side so prefabs never touch directly, leaving room for corridor carving
-    for (i32 y {origin.Y - 1}; y <= origin.Y + size.Height; ++y) {
-        for (i32 x {origin.X - 1}; x <= origin.X + size.Width; ++x) {
-            point_i const cell {x, y};
-            if (!map_t::Size.contains(cell)) { return false; }
-            if (_occupied[cell]) { return false; }
+    constexpr std::array<point_i, 4> dirs {{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}};
+
+    bool found {false};
+    while (!frontier.empty()) {
+        point_i const cur {frontier.front()};
+        frontier.pop();
+
+        if (cur == to) {
+            found = true;
+            break;
+        }
+
+        for (auto const& d : dirs) {
+            point_i const next {cur.X + d.X, cur.Y + d.Y};
+            if (!map_t::Size.contains(next)) { continue; }
+            if (visited[next]) { continue; }
+            if (blocked[next] && next != to) { continue; } // allow stepping onto the destination even if it's "blocked" (it's the target room's own connector)
+
+            visited[next]  = true;
+            cameFrom[next] = cur;
+            frontier.push(next);
         }
     }
-    return true;
+
+    std::vector<point_i> path;
+    if (!found) { return path; } // no route around obstacles; caller decides fallback
+
+    for (point_i p {to}; p != from; p = cameFrom[p]) { path.push_back(p); }
+    path.push_back(from);
+    std::ranges::reverse(path);
+    return path;
 }
 
-void map_generator::stamp_prefab(map_t& map, map_prefab const& prefab, point_i origin)
+void map_generator::carve_corridor(map_t& map, map_gen_params const& params, point_i from, point_i to, static_grid<bool, MAP_WIDTH, MAP_HEIGHT> const& blocked)
 {
-    for (i32 y {0}; y < prefab.Size.Height; ++y) {
-        for (i32 x {0}; x < prefab.Size.Width; ++x) {
-            point_i const world {origin.X + x, origin.Y + y};
-            map[world]       = prefab.Cells[x + (y * prefab.Size.Width)];
-            _occupied[world] = true;
-        }
-    }
-}
-
-void map_generator::carve_corridor(map_t& map, map_gen_params const& params, point_i from, point_i to)
-{
-    i32 const halfWidth {params.CorridorWidth / 2};
+    i32 const halfWidth {params.CorridorRadius};
 
     auto const carve_point {[&](point_i p) {
         for (i32 dy {-halfWidth}; dy <= halfWidth; ++dy) {
             for (i32 dx {-halfWidth}; dx <= halfWidth; ++dx) {
                 point_i const cellPos {p.X + dx, p.Y + dy};
                 if (!map_t::Size.contains(cellPos)) { continue; }
+                if (blocked[cellPos]) { continue; }
 
                 map[cellPos]       = floor_cell {};
                 _occupied[cellPos] = true;
@@ -88,37 +139,49 @@ void map_generator::carve_corridor(map_t& map, map_gen_params const& params, poi
         }
     }};
 
-    point_i   cursor {from};
-    i32 const stepX {to.X > from.X ? 1 : (to.X < from.X ? -1 : 0)};
-    while (cursor.X != to.X) {
-        carve_point(cursor);
-        cursor.X += stepX;
+    std::vector<point_i> const path {find_corridor_path(from, to, blocked)};
+    if (path.empty()) {
+        // No route around obstacles (extremely tight layout) — fall back to the old straight-line
+        // carve so the rooms end up connected even if it cuts through something.
+        point_i   cursor {from};
+        i32 const stepX {to.X > from.X ? 1 : (to.X < from.X ? -1 : 0)};
+        while (cursor.X != to.X) {
+            carve_point(cursor);
+            cursor.X += stepX;
+        }
+        i32 const stepY {to.Y > from.Y ? 1 : (to.Y < from.Y ? -1 : 0)};
+        while (cursor.Y != to.Y) {
+            carve_point(cursor);
+            cursor.Y += stepY;
+        }
+        carve_point(to);
+        return;
     }
-    i32 const stepY {to.Y > from.Y ? 1 : (to.Y < from.Y ? -1 : 0)};
-    while (cursor.Y != to.Y) {
-        carve_point(cursor);
-        cursor.Y += stepY;
-    }
-    carve_point(to);
+
+    for (point_i const p : path) { carve_point(p); }
 }
 
 void map_generator::connect_prefabs(map_t& map, map_gen_params const& params, std::vector<placed_prefab> const& placed, rng& rng)
 {
     if (placed.size() < 2) { return; }
 
+    // Snapshot which cells belong to placed prefabs *before* any carving starts, so corridors
+    // are only ever blocked by rooms, never by earlier corridor segments overlapping later ones.
+    auto const prefabOccupied {_occupied};
+
     // Connect via minimum-spanning-tree over room centers so every room is guaranteed
     // reachable, rather than a fully random graph that could leave a room stranded.
     std::vector<bool> linked(placed.size(), false);
     linked[0] = true;
 
-    for (size_t linkedCount {1}; linkedCount < placed.size(); ++linkedCount) {
-        f64    bestDist {std::numeric_limits<f64>::infinity()};
-        size_t bestFrom {0};
-        size_t bestTo {0};
+    for (usize linkedCount {1}; linkedCount < placed.size(); ++linkedCount) {
+        f64   bestDist {std::numeric_limits<f64>::infinity()};
+        usize bestFrom {0};
+        usize bestTo {0};
 
-        for (size_t i {0}; i < placed.size(); ++i) {
+        for (usize i {0}; i < placed.size(); ++i) {
             if (!linked[i]) { continue; }
-            for (size_t j {0}; j < placed.size(); ++j) {
+            for (usize j {0}; j < placed.size(); ++j) {
                 if (linked[j]) { continue; }
 
                 point_i const centerI {placed[i].Origin.X + (placed[i].Prefab->Size.Width / 2),
@@ -146,7 +209,7 @@ void map_generator::connect_prefabs(map_t& map, map_gen_params const& params, st
             return point_i {p.Origin.X + local.X, p.Origin.Y + local.Y};
         }};
 
-        carve_corridor(map, params, pick_connector(placed[bestFrom]), pick_connector(placed[bestTo]));
+        carve_corridor(map, params, pick_connector(placed[bestFrom]), pick_connector(placed[bestTo]), prefabOccupied);
         linked[bestTo] = true;
     }
 }
