@@ -14,171 +14,31 @@
 constexpr size_i screenSize {640, 360};
 
 // PLACEHOLDER START
-// ASCII-art prefab authoring helper
-//
-// Legend:
-//   '#'  normal_wall (uses wallTexture param)
-//   '1'-'9'  normal_wall with that literal texture index (ignores wallTexture param)
-//   '.'  floor_cell (open interior)
-//   'D'  door_wall, orientation auto-picked from which edge it sits on
-//   'S'  push_wall (secret door), PushDirection auto-picked from which edge it sits on
-//   'B'  box_wall, LocalBounds defaults to the full cell {0,0,1,1}
-//   '\'  diagonal_wall, orientation NorthWestToSouthEast
-//   '/'  diagonal_wall, orientation SouthWestToNorthEast
-//   'P'  round_pillar
-//   'o'  connector (open floor cell; corridors may attach here)
-//   any other character -> floor_cell
-//
-// All rows must be the same length. Row 0 is the top (smallest Y).
-static auto build_prefab_from_ascii(std::vector<std::string_view> const& rows, i32 wallTexture, i32 floorTexture, i32 ceilingTexture) -> map_prefab
-{
-    assert(!rows.empty());
-    i32 const height {static_cast<i32>(rows.size())};
-    i32 const width {static_cast<i32>(rows[0].size())};
-
-    map_prefab prefab {};
-    prefab.Size = {width, height};
-    prefab.Cells.resize(static_cast<size_t>(width) * height);
-
-    for (i32 y {0}; y < height; ++y) {
-        assert(static_cast<i32>(rows[y].size()) == width && "all prefab rows must be the same length");
-
-        for (i32 x {0}; x < width; ++x) {
-            char const   symbol {rows[y][x]};
-            size_t const idx {static_cast<size_t>(x) + (static_cast<size_t>(y) * width)};
-
-            switch (symbol) {
-            case '#': {
-                normal_wall w {};
-                w.Texture         = wallTexture;
-                prefab.Cells[idx] = w;
-                break;
-            }
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9': {
-                normal_wall w {};
-                w.Texture         = symbol - '0';
-                prefab.Cells[idx] = w;
-                break;
-            }
-            case 'D': {
-                door_wall d {};
-                d.Texture         = wallTexture;
-                d.FrameTexture    = wallTexture;
-                d.FloorTexture    = floorTexture;
-                d.CeilingTexture  = ceilingTexture;
-                d.Orientation     = (y == 0 || y == height - 1) ? door_wall::orientation::BlocksNorthSouth
-                                                                : door_wall::orientation::BlocksEastWest;
-                prefab.Cells[idx] = d;
-                prefab.Connectors.push_back({x, y});
-                break;
-            }
-            case 'S': {
-                push_wall s {};
-                s.Texture        = wallTexture;
-                s.FloorTexture   = floorTexture;
-                s.CeilingTexture = ceilingTexture;
-                if (y == 0) {
-                    s.PushDirection = {0, -1};
-                } else if (y == height - 1) {
-                    s.PushDirection = {0, 1};
-                } else if (x == 0) {
-                    s.PushDirection = {-1, 0};
-                } else if (x == width - 1) {
-                    s.PushDirection = {1, 0};
-                }
-                prefab.Cells[idx] = s;
-                break;
-            }
-            case 'B': {
-                box_wall b {};
-                b.LocalBounds     = {0.0, 0.0, 1.0, 1.0};
-                b.Texture         = wallTexture;
-                b.FloorTexture    = floorTexture;
-                b.CeilingTexture  = ceilingTexture;
-                prefab.Cells[idx] = b;
-                break;
-            }
-            case '\\': {
-                diagonal_wall dg {};
-                dg.Orientation    = diagonal_wall::orientation::NorthWestToSouthEast;
-                dg.Texture        = wallTexture;
-                dg.FloorTexture   = floorTexture;
-                dg.CeilingTexture = ceilingTexture;
-                prefab.Cells[idx] = dg;
-                break;
-            }
-            case '/': {
-                diagonal_wall dg {};
-                dg.Orientation    = diagonal_wall::orientation::SouthWestToNorthEast;
-                dg.Texture        = wallTexture;
-                dg.FloorTexture   = floorTexture;
-                dg.CeilingTexture = ceilingTexture;
-                prefab.Cells[idx] = dg;
-                break;
-            }
-            case 'o': {
-                floor_cell f {};
-                f.FloorTexture    = floorTexture;
-                f.CeilingTexture  = ceilingTexture;
-                prefab.Cells[idx] = f;
-                if (x == 0 || y == 0 || x == width - 1 || y == height - 1) { prefab.Connectors.push_back({x, y}); }
-                break;
-            }
-            case 'P': {
-                round_pillar p {};
-                p.Radius          = 0.3;
-                p.Texture         = wallTexture;
-                p.FloorTexture    = floorTexture;
-                p.CeilingTexture  = ceilingTexture;
-                prefab.Cells[idx] = p;
-                break;
-            }
-            case '.':
-            default:  {
-                floor_cell f {};
-                f.FloorTexture    = floorTexture;
-                f.CeilingTexture  = ceilingTexture;
-                prefab.Cells[idx] = f;
-                break;
-            }
-            }
-        }
-    }
-
-    return prefab;
-}
 
 ////////////////////////////////////////////////////////////
 // Example prefab library
-//
-// A small starter set of hand-authored rooms.
+//// A small starter set of hand-authored rooms.
 static auto make_example_prefab_library() -> std::vector<map_prefab>
 {
     std::vector<map_prefab> library;
 
     // --- Plain 7x5 room, one connector centered on each edge ---
-    {
-        std::vector<std::string_view> const rows {
+    library.push_back({
+        .Rows {
             "1..o..1",
             "1.....1",
             "o.....o",
             "1.....1",
             "1..o..1",
-        };
-        library.push_back(build_prefab_from_ascii(rows, 1, 1, 1));
-    }
+        },
+        .WallTexture    = 1,
+        .FloorTexture   = 1,
+        .CeilingTexture = 1,
+    });
 
     // --- 7x7 room with two pillars ---
-    {
-        std::vector<std::string_view> const rows {
+    library.push_back({
+        .Rows {
             "2..o..2",
             "2.....2",
             "2..P..2",
@@ -186,13 +46,15 @@ static auto make_example_prefab_library() -> std::vector<map_prefab>
             "2..P..2",
             "2.....2",
             "2..o..2",
-        };
-        library.push_back(build_prefab_from_ascii(rows, /*wallTex*/ 1, /*floorTex*/ 1, /*ceilingTex*/ 1));
-    }
+        },
+        .WallTexture    = 1,
+        .FloorTexture   = 1,
+        .CeilingTexture = 1,
+    });
 
     // --- L-shaped room (7x7 bounding box, top-right corner walled off) ---
-    {
-        std::vector<std::string_view> const rows {
+    library.push_back({
+        .Rows {
             "333....",
             "3.D....",
             "333....",
@@ -200,25 +62,29 @@ static auto make_example_prefab_library() -> std::vector<map_prefab>
             "3.....o",
             "3......",
             "3..o...",
-        };
-        library.push_back(build_prefab_from_ascii(rows, 1, 1, 1));
-    }
+        },
+        .WallTexture    = 1,
+        .FloorTexture   = 1,
+        .CeilingTexture = 1,
+    });
 
     // --- Small room with a real door (guards the only entrance) ---
-    {
-        std::vector<std::string_view> const rows {
+    library.push_back({
+        .Rows {
             "44444",
             "4...4",
             "4...4",
             "4...4",
             "##D##",
-        };
-        library.push_back(build_prefab_from_ascii(rows, /*wallTex*/ 2, /*floorTex*/ 2, /*ceilingTex*/ 2));
-    }
+        },
+        .WallTexture    = 2,
+        .FloorTexture   = 2,
+        .CeilingTexture = 2,
+    });
 
     // --- Cross-shaped room ---
-    {
-        std::vector<std::string_view> const rows {
+    library.push_back({
+        .Rows {
             "555o555",
             "555.555",
             "o.....o",
@@ -226,68 +92,80 @@ static auto make_example_prefab_library() -> std::vector<map_prefab>
             "o.....o",
             "555.555",
             "555o555",
-        };
-        library.push_back(build_prefab_from_ascii(rows, 1, 1, 1));
-    }
+        },
+        .WallTexture    = 1,
+        .FloorTexture   = 1,
+        .CeilingTexture = 1,
+    });
 
     // --- Long corridor room with pillars ---
-    {
-        std::vector<std::string_view> const rows {
+    library.push_back({
+        .Rows {
             "o..........o",
             "6.P..P..P..6",
             "6..........6",
             "o..........o",
-        };
-        library.push_back(build_prefab_from_ascii(rows, 1, 1, 1));
-    }
+        },
+        .WallTexture    = 1,
+        .FloorTexture   = 1,
+        .CeilingTexture = 1,
+    });
 
     // --- Double-door vault (two separate entrances) ---
-    {
-        std::vector<std::string_view> const rows {
+    library.push_back({
+        .Rows {
             "77777D77777",
             "7.........7",
             "7....P....7",
             "7.........7",
             "77777D77777",
-        };
-        library.push_back(build_prefab_from_ascii(rows, /*wallTex*/ 2, /*floorTex*/ 2, /*ceilingTex*/ 2));
-    }
+        },
+        .WallTexture    = 2,
+        .FloorTexture   = 2,
+        .CeilingTexture = 2,
+    });
 
     // --- Room with a secret push-wall exit (south edge) ---
-    {
-        std::vector<std::string_view> const rows {
+    library.push_back({
+        .Rows {
             "8..o..8",
             "8.....8",
             "8.....8",
             "8.....8",
             "8..S..8",
-        };
-        library.push_back(build_prefab_from_ascii(rows, 1, 1, 1));
-    }
+        },
+        .WallTexture    = 1,
+        .FloorTexture   = 1,
+        .CeilingTexture = 1,
+    });
 
     // --- Room with a freestanding box obstacle (crate) in the middle ---
-    {
-        std::vector<std::string_view> const rows {
+    library.push_back({
+        .Rows {
             "9..o..9",
             "9.....9",
             "o..B..o",
             "9.....9",
             "9..o..9",
-        };
-        library.push_back(build_prefab_from_ascii(rows, 1, 1, 1));
-    }
+        },
+        .WallTexture    = 1,
+        .FloorTexture   = 1,
+        .CeilingTexture = 1,
+    });
 
     // --- Octagon-ish room using diagonal walls to cut the corners ---
-    {
-        std::vector<std::string_view> const rows {
+    library.push_back({
+        .Rows {
             "\\..o..1",
             "2.....3",
             "o.....o",
             "4.....5",
             "6..o../",
-        };
-        library.push_back(build_prefab_from_ascii(rows, 1, 1, 1));
-    }
+        },
+        .WallTexture    = 1,
+        .FloorTexture   = 1,
+        .CeilingTexture = 1,
+    });
 
     return library;
 }
