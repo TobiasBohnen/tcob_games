@@ -72,6 +72,7 @@ auto raycaster::draw(level& level, player const& player) -> u32 const*
 
     draw_weapon(player);
     draw_hud(player);
+    draw_message(level);
 
     return _screen.data();
 }
@@ -408,4 +409,46 @@ void raycaster::draw_weapon(player const& player)
 
 void raycaster::draw_hud(player const& player)
 {
+}
+
+void raycaster::draw_message(level const& level)
+{
+    auto const& msg {level.get_message()};
+    if (msg.empty()) { return; }
+
+    auto* const tex {_cache.texture(fontTexture, 0)};
+    auto const  texSize {_cache.texture_size(fontTexture, 0)};
+    auto const  charSize {texSize.Height};
+    u32*        screenBuf {_screen.data()};
+
+    point_i const offset {5, 5};
+
+    for (i32 i {0}; i < std::ssize(msg); ++i) {
+        char const c {msg[i]};
+        if (c == ' ') { continue; }
+
+        i32 index {0};
+        if (c >= '0' && c <= '9') {
+            index = c - '0';
+        } else if (c >= 'A' && c <= 'Z') {
+            index = 10 + (c - 'A');
+        } else if (c >= 'a' && c <= 'z') {
+            index = 10 + (c - 'a');
+        }
+
+        for (i32 y {0}; y < charSize; ++y) {
+            i32 const texY {y};
+            for (i32 x {0}; x < charSize; ++x) {
+                i32 const texX {static_cast<i32>(index * charSize) + x};
+                i32 const texOffset {(texX + (texY * texSize.Width)) * TEXTURE_BPP};
+                if (is_magenta(tex, texOffset)) { continue; }
+
+                i32 const screenX {x + offset.X + (i * (charSize + 1))};
+                i32 const screenY {y + offset.Y};
+                if (screenX < 0 || screenX >= _screenSize.Width || screenY < 0 || screenY >= _screenSize.Height) { continue; }
+
+                set_pixel(screenBuf, screenX + (screenY * _screenSize.Width), tex, texOffset, 1.0);
+            }
+        }
+    }
 }

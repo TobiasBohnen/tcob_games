@@ -18,6 +18,8 @@ public:
 
     f64 BobAmount {0.0};
 
+    bool Cheater {false};
+
     void move(level const& level, f64 forwardAmount, f64 strafeAmount, f64 rotateAmount);
     void bob(milliseconds deltaTime);
 

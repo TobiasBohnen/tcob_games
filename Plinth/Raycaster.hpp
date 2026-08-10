@@ -26,6 +26,7 @@ private:
 
     void draw_weapon(player const& player);
     void draw_hud(player const& player);
+    void draw_message(level const& level);
 
     std::vector<u32> _screen;
 

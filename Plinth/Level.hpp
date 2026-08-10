@@ -42,9 +42,16 @@ public:
 
     auto is_seen(point_i cell) const -> bool;
     void mark_seen(point_i cell, point_d playerPos);
+    void mark_all_seen();
+
+    void show_message(string const& msg);
+    auto get_message() const -> string const&;
 
 private:
     map_t _map;
 
     static_grid<bool, MAP_WIDTH, MAP_HEIGHT> _seen;
+
+    milliseconds _messageTimer {};
+    string       _message;
 };

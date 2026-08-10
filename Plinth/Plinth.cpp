@@ -321,6 +321,16 @@ void Plinth::move_player(milliseconds deltaTime)
     _player.move(*_level, forwardAmount, strafeAmount, rotateAmount);
 }
 
+void Plinth::toggle_wall()
+{
+    _level->toggle_wall(point_i {_player.Position + _player.Direction});
+}
+
+void Plinth::toggle_map()
+{
+    _drawMap = !_drawMap;
+}
+
 void Plinth::on_key_down(input::keyboard::event const& ev)
 {
     if (ev.Repeat) { return; }
@@ -329,15 +339,10 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
     case input::scan_code::BACKSPACE:
         parent().pop_current_scene();
         break;
-    case input::scan_code::Q: {
-        auto& spr {_level->Sprites[0]};
-        spr.Facing   = spr.Position.angle_to(_player.Position);
-        spr.Position = spr.Position.moved_along(degree_d {spr.Facing.Value}, 0.1);
-    } break;
     case input::scan_code::R: {
         locate_service<gfx::render_system>().statistics().reset();
     } break;
-    case input::scan_code::F: {
+    case input::scan_code::F12: {
         auto const fileName {[]() {
             for (i32 i {0};; ++i) {
                 auto const name {std::format("screen{:02}.png", i)};
@@ -347,10 +352,10 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
         std::ignore = window().copy_to_image().save(fileName);
     } break;
     case input::scan_code::SPACE: {
-        _level->toggle_wall(point_i {_player.Position + _player.Direction});
+        toggle_wall();
     } break;
     case input::scan_code::TAB: {
-        _drawMap = !_drawMap;
+        toggle_map();
     } break;
     default:
 
@@ -361,9 +366,27 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
 void Plinth::on_controller_button_down(input::controller::button_event const& ev)
 {
     switch (ev.Button) {
-    case tcob::input::controller::button::A:
-        _level->toggle_wall(point_i {_player.Position + _player.Direction});
+    case input::controller::button::A:
+        toggle_wall();
+        break;
+    case input::controller::button::Back:
+        toggle_map();
         break;
     default: break;
+    }
+}
+
+void Plinth::on_text_input(input::keyboard::text_input_event const& ev)
+{
+    _keyCache += ev.Text;
+    while (utf8::length(_keyCache) > 10) {
+        _keyCache = utf8::remove(_keyCache, 0);
+    }
+
+    if (_keyCache.ends_with("givemap")) {
+        _level->mark_all_seen();
+        _level->show_message("MAP REVEALED");
+        _keyCache.clear();
+        _player.Cheater = true;
     }
 }

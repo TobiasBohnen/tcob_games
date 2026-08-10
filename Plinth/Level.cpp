@@ -19,6 +19,11 @@ level::level(map_t map)
 
 void level::update(milliseconds deltaSeconds)
 {
+    _messageTimer -= deltaSeconds;
+    if (_messageTimer.count() <= 0) {
+        _message.clear();
+    }
+
     f64 const dt {deltaSeconds.count() / 1000};
     for (auto& cell : _map) {
         std::visit(
@@ -65,4 +70,18 @@ void level::mark_seen(point_i cell, point_d playerPos)
     if (dist < visibleRange) {
         _seen[cell] = true;
     }
+}
+
+void level::mark_all_seen()
+{
+    _seen.fill(true);
+}
+void level::show_message(string const& msg)
+{
+    _messageTimer = 2s;
+    _message      = msg;
+}
+auto level::get_message() const -> string const&
+{
+    return _message;
 }

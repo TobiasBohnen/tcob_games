@@ -50,6 +50,8 @@ void texture_cache::load()
         {.Tex = 14, .Path = "res/sky.png"},
         {.Tex = 15, .Path = "res/transparent.png"},
 
+        {.Tex = fontTexture, .Path = "res/font.png"},
+
         {.Tex = handTexture, .Path = "res/hand.png"},
 
         {.Tex = sprite1Texture, .Path = "res/enemy0-0.png", .Variant = 0},

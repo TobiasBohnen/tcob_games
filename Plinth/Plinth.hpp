@@ -27,8 +27,13 @@ public:
     void on_key_down(input::keyboard::event const& ev) override;
     void on_controller_button_down(input::controller::button_event const& ev) override;
 
+    void on_text_input(input::keyboard::text_input_event const&) override;
+
 private:
     void move_player(milliseconds deltaTime);
+
+    void toggle_wall();
+    void toggle_map();
 
     std::unique_ptr<texture_cache> _cache;
     std::unique_ptr<level>         _level;
@@ -41,4 +46,6 @@ private:
     gfx::renderer                  _renderer {gfx::buffer_usage_hint::StaticDraw};
 
     bool _drawMap {false};
+
+    utf8_string _keyCache;
 };
