@@ -12,6 +12,20 @@ struct parsed_cell {
     bool IsConnector {false};
 };
 
+// A neighbor position counts as "solid" for diagonal-wall orientation purposes if it's anything
+// other than open floor ('.' or 'o'), or if it falls outside the prefab's own rows (the prefab
+// boundary is treated as solid, matching how prefabs are meant to be authored — a corner cut at
+// the edge of a room).
+static auto is_blocking_neighbor(map_prefab const& prefab, i32 x, i32 y) -> bool
+{
+    i32 const height {static_cast<i32>(prefab.Rows.size())};
+    i32 const width {height > 0 ? static_cast<i32>(prefab.Rows[0].size()) : 0};
+    if (x < 0 || y < 0 || x >= width || y >= height) { return true; }
+
+    char const symbol {prefab.Rows[y][x]};
+    return symbol != '.' && symbol != 'o';
+}
+
 // ASCII legend:
 //   '#'  normal_wall (uses prefab.WallTexture)
 //   '1'-'9'  normal_wall with that literal texture index
@@ -20,8 +34,8 @@ struct parsed_cell {
 //        only if it sits on the prefab's boundary
 //   'S'  push_wall (secret door), PushDirection from which edge it sits on
 //   'B'  box_wall, LocalBounds defaults to the full cell {0,0,1,1}
-//   '\'  diagonal_wall NorthWestToSouthEast
-//   '/'  diagonal_wall SouthWestToNorthEast
+//   'X'  diagonal_wall — orientation auto-detected from which of its N/S/E/W neighbors are
+//        solid, so it chamfers whichever corner it's placed in without needing to specify direction
 //   'P'  round_pillar
 //   'o'  connector (open floor cell) — boundary only
 //   any other character -> floor_cell
@@ -92,24 +106,23 @@ static auto parse_ascii_cell(char symbol, i32 x, i32 y, i32 width, i32 height, m
         b.CeilingTexture = prefab.CeilingTexture;
         return {.Cell = b, .IsConnector = false};
     }
-    case '\\': {
+    case 'X': {
+        bool const north {is_blocking_neighbor(prefab, x, y - 1)};
+        bool const south {is_blocking_neighbor(prefab, x, y + 1)};
+        bool const west {is_blocking_neighbor(prefab, x - 1, y)};
+        bool const east {is_blocking_neighbor(prefab, x + 1, y)};
+
         diagonal_wall dg {};
-        dg.Orientation    = diagonal_wall::orientation::NorthWestToSouthEast;
         dg.Texture        = prefab.WallTexture;
         dg.FloorTexture   = prefab.FloorTexture;
         dg.CeilingTexture = prefab.CeilingTexture;
-        return {.Cell = dg, .IsConnector = false};
-    }
-    case '/': {
-        diagonal_wall dg {};
-        dg.Orientation    = diagonal_wall::orientation::SouthWestToNorthEast;
-        dg.Texture        = prefab.WallTexture;
-        dg.FloorTexture   = prefab.FloorTexture;
-        dg.CeilingTexture = prefab.CeilingTexture;
+        dg.Orientation    = (north && west) || (south && east)
+            ? diagonal_wall::orientation::SouthWestToNorthEast
+            : diagonal_wall::orientation::NorthWestToSouthEast; // also the fallback for an ambiguous/non-corner placement
         return {.Cell = dg, .IsConnector = false};
     }
     case 'o':
-        return {make_floor(), onEdge}; // (a) same boundary-only rule as doors
+        return {.Cell = make_floor(), .IsConnector = onEdge}; // (a) same boundary-only rule as doors
     case 'P': {
         round_pillar p {};
         p.Radius         = 0.3;
@@ -127,36 +140,6 @@ static auto parse_ascii_cell(char symbol, i32 x, i32 y, i32 width, i32 height, m
 map_generator::map_generator(std::vector<map_prefab> prefabLibrary)
     : _library {std::move(prefabLibrary)}
 {
-}
-
-auto map_generator::generate(map_gen_params const& params) -> map_t
-{
-    map_t map {};
-    _occupied.fill(false);
-
-    add_border_walls(map, params.DefaultWallTexture);
-
-    rng rng {params.Seed == 0 ? clock::now().time_since_epoch().count() : params.Seed};
-
-    std::vector<placed_prefab> placed;
-
-    i32 totalWeight {0};
-    for (auto const& p : _library) { totalWeight += p.Weight; }
-
-    for (i32 i {0}; i < params.PrefabCount && !_library.empty() && totalWeight > 0; ++i) {
-        map_prefab const* prefab {pick_weighted_prefab(rng, totalWeight)};
-        if (!prefab) { continue; }
-
-        if (auto origin {try_place_prefab(*prefab, params, rng)}) {
-            std::vector<point_i> connectors {stamp_prefab(map, *prefab, *origin)};
-            placed.push_back({.Prefab = prefab, .Origin = *origin, .Size = prefab_size(*prefab), .Connectors = std::move(connectors)});
-        }
-    }
-
-    connect_prefabs(map, params, placed, rng);
-    fill_remaining_with_wall(map, params);
-
-    return map;
 }
 
 auto map_generator::prefab_size(map_prefab const& prefab) -> size_i
@@ -240,6 +223,36 @@ auto map_generator::pick_weighted_prefab(rng& rng, i32 totalWeight) -> map_prefa
         if (roll < 0) { return &p; }
     }
     return nullptr;
+}
+
+auto map_generator::generate(map_gen_params const& params) -> map_t
+{
+    map_t map {};
+    _occupied.fill(false);
+
+    add_border_walls(map, params.DefaultWallTexture);
+
+    rng rng {params.Seed == 0 ? clock::now().time_since_epoch().count() : params.Seed};
+
+    std::vector<placed_prefab> placed;
+
+    i32 totalWeight {0};
+    for (auto const& p : _library) { totalWeight += p.Weight; }
+
+    for (i32 i {0}; i < params.PrefabCount && !_library.empty() && totalWeight > 0; ++i) {
+        map_prefab const* prefab {pick_weighted_prefab(rng, totalWeight)};
+        if (!prefab) { continue; }
+
+        if (auto origin {try_place_prefab(*prefab, params, rng)}) {
+            std::vector<point_i> connectors {stamp_prefab(map, *prefab, *origin)};
+            placed.push_back({.Prefab = prefab, .Origin = *origin, .Size = prefab_size(*prefab), .Connectors = std::move(connectors)});
+        }
+    }
+
+    connect_prefabs(map, params, placed, rng);
+    fill_remaining_with_wall(map, params);
+
+    return map;
 }
 
 auto map_generator::find_corridor_path(point_i from, point_i to, occupancy_grid const& blocked) -> std::vector<point_i>

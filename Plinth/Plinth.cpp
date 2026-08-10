@@ -156,11 +156,11 @@ static auto make_example_prefab_library() -> std::vector<map_prefab>
     // --- Octagon-ish room using diagonal walls to cut the corners ---
     library.push_back({
         .Rows {
-            "\\..o..1",
+            "X..o..1",
             "2.....3",
             "o.....o",
             "4.....5",
-            "6..o../",
+            "6..o..X",
         },
         .WallTexture    = 1,
         .FloorTexture   = 1,
