@@ -14,6 +14,15 @@
 #include "TextureCache.hpp"
 #include "Walls.hpp"
 
+static auto get_light(level const& level, point_i const& cell) -> f64
+{
+    return std::visit([](auto&& cell) -> f64 {
+        if constexpr (requires { cell.Light; }) { return cell.Light; }
+        return 0.0;
+    },
+                      level.get_cell(cell));
+}
+
 static auto is_magenta(u8 const* tex, i32 offset) -> bool
 {
     return tex[offset + 0] == 0x98 && tex[offset + 1] == 0x00 && tex[offset + 2] == 0x88;
@@ -80,14 +89,6 @@ auto raycaster::draw(level& level, player const& player) -> u32 const*
 
 void raycaster::draw_columns(level& level, player const& player, f64 invFogDistance, i32 columnStart, i32 columnEnd)
 {
-    auto const get_light {[&](point_i const& cell) -> f64 {
-        return std::visit([](auto&& cell) -> f64 {
-            if constexpr (requires { cell.Light; }) { return cell.Light; }
-            return 0.0;
-        },
-                          level.get_cell(cell));
-    }};
-
     for (isize x {columnStart}; x < columnEnd; x++) {
         f64 const     cameraX {(2.0 * x / _screenSize.Width) - 1.0};
         point_d const rayDir {player.Direction + (player.Plane * cameraX)};
@@ -120,7 +121,7 @@ void raycaster::draw_columns(level& level, player const& player, f64 invFogDista
 
         auto const process_hit {[&](wall_hit const& wallHit, point_i const& cell) {
             wall_hit h {wallHit};
-            h.Light = get_light(cell);
+            h.Light = get_light(level, cell);
             if (h.Transparent) {
                 if (transparentCount < MAX_TRANSPARENT_WALLS) { transparentHits[transparentCount++] = h; }
             } else {
@@ -344,11 +345,7 @@ void raycaster::draw_sprites(level const& level, player const& player, f64 invFo
         f64 const texStepY {1.0 * texSize.Height / spriteSize.Height};
         f64 const texPosYStart {(drawStart.Y - spriteTop) * texStepY};
 
-        f64 spriteLight {0.0};
-        std::visit([&](auto&& cell) {
-            if constexpr (requires { cell.Light; }) { spriteLight = cell.Light; }
-        },
-                   level.get_cell(point_i {spr.Position}));
+        f64 const spriteLight {get_light(level, point_i {spr.Position})};
 
         f64 const spriteFogFactor {std::max(1.0 - (transformY * invFogDistance), level.Settings.FogMin) * (level.Settings.AmbientLight + spriteLight)};
 

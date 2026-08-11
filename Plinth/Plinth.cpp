@@ -188,14 +188,16 @@ Plinth::Plinth(game& game)
     auto const    map {gen.generate({})};
     _level = std::make_unique<level>(map);
 
-    rng        rng;
-    auto const find_empty {[&]() {
+    rng                         rng;
+    std::unordered_set<point_i> used;
+    auto const                  find_empty {[&]() {
         i32 x {0}, y {0};
         for (;;) {
             x = rng(0, MAP_WIDTH - 1);
             y = rng(0, MAP_HEIGHT - 1);
-            if (map[x, y].index() == 0) { break; }
+            if (!used.contains(point_i {x, y}) && map[x, y].index() == 0) { break; }
         }
+        used.insert(point_i {x, y});
         return point_d {static_cast<f64>(x) + 0.5f, static_cast<f64>(y) + 0.5f};
     }};
 
