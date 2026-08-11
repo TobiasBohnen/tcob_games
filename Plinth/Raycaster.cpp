@@ -66,9 +66,10 @@ auto raycaster::draw(level& level, player const& player) -> u32 const*
     locate_service<task_manager>().run_parallel(
         [&](par_task const& ctx) {
             draw_columns(level, player, invFogDistance, static_cast<i32>(ctx.Start), static_cast<i32>(ctx.End));
-            draw_sprites(level, player, invFogDistance, static_cast<i32>(ctx.Start), static_cast<i32>(ctx.End));
         },
         _screenSize.Width);
+
+    draw_sprites(level, player, invFogDistance);
 
     draw_weapon(player);
     draw_hud(player);
@@ -305,7 +306,7 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
     }
 }
 
-void raycaster::draw_sprites(level const& level, player const& player, f64 invFogDistance, i32 columnStart, i32 columnEnd)
+void raycaster::draw_sprites(level const& level, player const& player, f64 invFogDistance)
 {
     f64 const invDet {1.0 / player.Plane.cross(player.Direction)};
     i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
@@ -325,9 +326,9 @@ void raycaster::draw_sprites(level const& level, player const& player, f64 invFo
         i32 const yMinBound {0};
         i32 const yMaxBound {_screenSize.Height - 1};
 
-        point_i const drawStart {std::max({(-spriteSize.Width / 2) + spriteScreenX, 0, columnStart}),
+        point_i const drawStart {std::max((-spriteSize.Width / 2) + spriteScreenX, 0),
                                  std::max((-spriteSize.Height / 2) + screenCenterY, yMinBound)};
-        point_i const drawEnd {std::min({(spriteSize.Width / 2) + spriteScreenX, _screenSize.Width, columnEnd}),
+        point_i const drawEnd {std::min((spriteSize.Width / 2) + spriteScreenX, _screenSize.Width),
                                std::min((spriteSize.Height / 2) + screenCenterY, yMaxBound + 1)};
         if (drawStart.X >= drawEnd.X) { continue; }
         if (drawStart.Y >= drawEnd.Y) { continue; }
@@ -352,19 +353,17 @@ void raycaster::draw_sprites(level const& level, player const& player, f64 invFo
         f64 const spriteFogFactor {std::max(1.0 - (transformY * invFogDistance), level.Settings.FogMin) * (level.Settings.AmbientLight + spriteLight)};
 
         for (i32 stripe {drawStart.X}; stripe < drawEnd.X; ++stripe) {
-            i32 const texX {((stripe - spriteLeft) * texSize.Width) / spriteSize.Width};
+            i32 const texX {std::clamp(((stripe - spriteLeft) * texSize.Width) / spriteSize.Width, 0, texSize.Width - 1)};
 
             if (transformY >= _zBuffer[stripe]) { continue; }
 
             f64 texPos {texPosYStart};
             for (i32 y {drawStart.Y}; y < drawEnd.Y; ++y) {
-                i32 const texY {static_cast<i32>(texPos) & (texSize.Height - 1)};
+                i32 const texY {std::clamp(static_cast<i32>(texPos), 0, texSize.Height - 1)};
                 texPos += texStepY;
 
                 i32 const texOffset {(texX + (texY * texSize.Width)) * TEXTURE_BPP};
                 if (is_magenta(tex, texOffset)) { continue; }
-
-                if (y < 0 || y >= _screenSize.Height) { continue; }
 
                 isize const depthIndex {stripe + (static_cast<isize>(y) * _screenSize.Width)};
                 if (transformY < _spriteDepthBuffer[depthIndex]) {

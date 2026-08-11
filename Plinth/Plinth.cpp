@@ -188,17 +188,21 @@ Plinth::Plinth(game& game)
     auto const    map {gen.generate({})};
     _level = std::make_unique<level>(map);
 
+    rng        rng;
     auto const find_empty {[&]() {
-        for (i32 x {0}; x < MAP_WIDTH; ++x) {
-            for (i32 y {0}; y < MAP_HEIGHT; ++y) {
-                if (map[x, y].index() == 0) {
-                    return point_d {static_cast<f64>(x) + 0.5f, static_cast<f64>(y) + 0.5f};
-                }
-            }
+        i32 x {0}, y {0};
+        for (;;) {
+            x = rng(0, MAP_WIDTH - 1);
+            y = rng(0, MAP_HEIGHT - 1);
+            if (map[x, y].index() == 0) { break; }
         }
-        return point_d {0, 0};
+        return point_d {static_cast<f64>(x) + 0.5f, static_cast<f64>(y) + 0.5f};
     }};
-    _level->Sprites.push_back(sprite {.Position = find_empty() + point_i {1, 1}, .Size = {1, 1}, .Texture = sprite1Texture, .Facing = degree_f {0}, .Solid = true});
+
+    for (i32 i {0}; i < 50; ++i) {
+        _level->Sprites.push_back(sprite {.Position = find_empty(), .Size = {1, 1}, .Texture = sprite1Texture, .Facing = degree_f {90.f * i}, .Solid = true});
+    }
+
     _player.Position = find_empty();
     degree_d const angle {90};
     radian_d const rad {angle - degree_d {90}};
