@@ -10,6 +10,7 @@
 #include "MapGenerator.hpp"
 #include "MapRenderer.hpp"
 #include "Raycaster.hpp"
+#include "Voxel.hpp"
 
 constexpr size_i screenSize {640, 360};
 
@@ -183,6 +184,12 @@ Plinth::Plinth(game& game)
     _texture->resize(screenSize, 1, gfx::texture::format::RGBA8);
     _texture->Filtering = gfx::texture::filtering::NearestNeighbor;
     // PLACEHOLDER START
+
+    auto voxels {load_vox_file("res/ball1.vox")};
+    auto facings {voxels->bake_facings(256, -90, 8)};
+    for (i32 i {0}; i < facings.size(); ++i) {
+        std::ignore = facings[i].save(std::format("test{}.png", i));
+    }
 
     map_generator gen {make_example_prefab_library()};
     auto const    map {gen.generate({})};

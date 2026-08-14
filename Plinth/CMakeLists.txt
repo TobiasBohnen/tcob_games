@@ -9,6 +9,7 @@ target_sources(Plinth PRIVATE
     Player.cpp
     Plinth.cpp
     Raycaster.cpp
+    Voxel.cpp
     Walls.cpp
 )
 
