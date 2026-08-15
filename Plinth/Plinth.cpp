@@ -10,7 +10,6 @@
 #include "MapGenerator.hpp"
 #include "MapRenderer.hpp"
 #include "Raycaster.hpp"
-#include "Voxel.hpp"
 
 constexpr size_i screenSize {640, 360};
 
@@ -184,13 +183,6 @@ Plinth::Plinth(game& game)
     _texture->resize(screenSize, 1, gfx::texture::format::RGBA8);
     _texture->Filtering = gfx::texture::filtering::NearestNeighbor;
     // PLACEHOLDER START
-
-    auto voxels {load_vox_file("res/ball1.vox")};
-    auto facings {voxels->bake_facings(256, -90, 8)};
-    for (i32 i {0}; i < facings.size(); ++i) {
-        std::ignore = facings[i].save(std::format("test{}.png", i));
-    }
-
     map_generator gen {make_example_prefab_library()};
     auto const    map {gen.generate({})};
     _level = std::make_unique<level>(map);
@@ -209,7 +201,7 @@ Plinth::Plinth(game& game)
     }};
 
     for (i32 i {0}; i < 50; ++i) {
-        _level->Sprites.push_back(sprite {.Position = find_empty(), .Size = {1, 1}, .Texture = sprite1Texture, .Facing = degree_f {90.f * i}, .Solid = true});
+        _level->Sprites.push_back(sprite {.Position = find_empty(), .Size = {0.5, 0.5}, .Texture = sprite1Texture, .Facing = degree_f {90.f * i}, .Solid = true});
     }
 
     _player.Position = find_empty();

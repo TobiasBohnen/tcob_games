@@ -134,8 +134,8 @@ static auto raycast_voxel_grid(voxel_grid const& grid, vec3_d const& origin, vec
         if (std::abs(d) < 1e-12) { return o >= lo && o <= hi; }
         f64 t0 {(lo - o) / d};
         f64 t1 {(hi - o) / d};
-        i32 s0 {d > 0 ? -1 : 1};
-        i32 s1 {d > 0 ? 1 : -1};
+        i32 s0 {-1};
+        i32 s1 {1};
         if (t0 > t1) {
             std::swap(t0, t1);
             std::swap(s0, s1);
@@ -273,16 +273,20 @@ static auto corner_ao(voxel_grid const& grid, vec3_i layer, i32 faceAxis, i32 cu
     return 3 - (static_cast<i32>(side1) + static_cast<i32>(side2) + static_cast<i32>(corner));
 }
 
-auto voxel_grid::bake_facings(i32 frameSize, f64 frontFacingDegrees, i32 numFacings, bake_lighting const& lighting) const -> std::vector<gfx::image>
+auto voxel_grid::bake_facings(i32 frameSize, f64 frontFacingDegrees, i32 numFacings, bake_lighting const& lighting) const -> std::vector<u8>
 {
-    std::vector<gfx::image> retValue {};
-    retValue.reserve(static_cast<usize>(numFacings));
+    std::vector<u8> retValue {};
+    retValue.resize(static_cast<usize>(numFacings * frameSize * frameSize * TEXTURE_BPP));
 
-    vec3_d const centerLocal {.X = Size.X * 0.5, .Y = Size.Y * 0.5, .Z = Size.Z * 0.5};
-    f64 const    footprintDiag {std::sqrt(static_cast<f64>((Size.X * Size.X) + (Size.Y * Size.Y)))};
-    f64 const    extent {std::max(footprintDiag, static_cast<f64>(Size.Z)) * 1.08};
-    f64 const    cameraDist {footprintDiag + static_cast<f64>(Size.Z) + 4.0};
-    f64 const    maxT {(cameraDist * 2.0) + extent};
+    f64 const extentVert {static_cast<f64>(Size.Z)};
+
+    f64 const extentHoriz {extentVert};
+
+    f64 const footprintDiag {std::sqrt(static_cast<f64>((Size.X * Size.X) + (Size.Y * Size.Y)))};
+    f64 const cameraDist {footprintDiag + extentVert + 4.0};
+    f64 const maxT {(cameraDist * 2.0) + extentVert};
+
+    vec3_d const centerLocal {.X = Size.X * 0.5, .Y = Size.Y * 0.5, .Z = extentVert * 0.5};
 
     vec3_d const keyLight {light_from_front(frontFacingDegrees, lighting.KeyAzimuthOffsetDeg, lighting.KeyElevationDeg)};
     vec3_d const fillLight {light_from_front(frontFacingDegrees, lighting.FillAzimuthOffsetDeg, lighting.FillElevationDeg)};
@@ -296,13 +300,13 @@ auto voxel_grid::bake_facings(i32 frameSize, f64 frontFacingDegrees, i32 numFaci
         vec3_d const up {.X = 0.0, .Y = 0.0, .Z = 1.0};
         vec3_d const rayDir {.X = -camDir.X, .Y = -camDir.Y, .Z = -camDir.Z};
 
-        gfx::image frame {gfx::image::CreateEmpty({frameSize, frameSize}, gfx::image::format::RGBA)};
-        auto       frameBuf {frame.data()};
+        auto* frameBuf {retValue.data() + (f * frameSize * frameSize * TEXTURE_BPP)};
 
         for (i32 py {0}; py < frameSize; ++py) {
-            f64 const v {(0.5 - ((py + 0.5) / frameSize)) * extent};
+            f64 const v {(0.5 - ((py + 0.5) / frameSize)) * extentVert};
+
             for (i32 px {0}; px < frameSize; ++px) {
-                f64 const u {(((px + 0.5) / frameSize) - 0.5) * extent};
+                f64 const u {(((px + 0.5) / frameSize) - 0.5) * extentHoriz};
 
                 vec3_d const rayOrigin {
                     .X = centerLocal.X + (camDir.X * cameraDist) + (right.X * u) + (up.X * v),
@@ -312,12 +316,11 @@ auto voxel_grid::bake_facings(i32 frameSize, f64 frontFacingDegrees, i32 numFaci
 
                 auto const hit {raycast_voxel_grid(*this, rayOrigin, rayDir, maxT)};
 
-                i32 const idx {((py * frameSize) + px) * 4};
+                i32 const idx {((py * frameSize) + px) * TEXTURE_BPP};
                 if (!hit.Hit) {
                     frameBuf[idx + 0] = 0x98;
                     frameBuf[idx + 1] = 0x00;
                     frameBuf[idx + 2] = 0x88;
-                    frameBuf[idx + 3] = 0xFF;
                     continue;
                 }
 
@@ -365,11 +368,8 @@ auto voxel_grid::bake_facings(i32 frameSize, f64 frontFacingDegrees, i32 numFaci
                 frameBuf[idx + 0] = static_cast<u8>(std::min(255.0, hit.Color.R * shade));
                 frameBuf[idx + 1] = static_cast<u8>(std::min(255.0, hit.Color.G * shade));
                 frameBuf[idx + 2] = static_cast<u8>(std::min(255.0, hit.Color.B * shade));
-                frameBuf[idx + 3] = 0xFF;
             }
         }
-
-        retValue.push_back(frame);
     }
 
     return retValue;

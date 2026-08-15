@@ -34,6 +34,9 @@ private:
 
     auto get_entry(i32 idx, i32 variant) const -> texture_entry const&;
 
+    void load_vox(i32 idx, string const& file);
+    void load_image(i32 idx, i32 variant, string const& file);
+
     std::vector<u8> _textures;
 
     std::unordered_map<i32, std::unordered_map<i32, texture_entry>> _directory {};

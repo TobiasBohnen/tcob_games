@@ -58,7 +58,7 @@ struct voxel_grid {
     vec3_i                         Size {};
     std::unordered_map<i64, color> Cells;
 
-    auto bake_facings(i32 frameSize, f64 frontFacingDegrees, i32 numFacings, bake_lighting const& lighting = {}) const -> std::vector<gfx::image>;
+    auto bake_facings(i32 frameSize, f64 frontFacingDegrees, i32 numFacings, bake_lighting const& lighting = {}) const -> std::vector<u8>;
 };
 
 ////////////////////////////////////////////////////////////

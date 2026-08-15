@@ -6,12 +6,70 @@
 #include "TextureCache.hpp"
 
 #include "Common.hpp"
+#include "Voxel.hpp"
 
 auto texture_cache::get_entry(i32 idx, i32 variant) const -> texture_entry const&
 {
     auto const& variants {_directory.at(idx)};
     auto const  it {variants.find(variant)};
     return it != variants.end() ? it->second : variants.at(0);
+}
+
+void texture_cache::load_vox(i32 idx, string const& file)
+{
+    usize const HEADER_SIZE {sizeof(u32) + sizeof(i32) + sizeof(i32)};
+
+    u32 const crc {io::file_hasher(file).crc32()};
+
+    string     inFile;
+    auto const checkCache {[&](string const& file) {
+        if (io::is_file(file)) {
+            io::ifstream str {file};
+            u32 const    cCrc {str.read<u32>()};
+            i32 const    cSize {str.read<i32>()};
+            i32 const    cFac {str.read<i32>()};
+
+            bool const retValue {cCrc == crc && cSize == VOXEL_SIZE && cFac == NUM_FACINGS};
+            if (retValue) { inFile = file; }
+            return retValue;
+        }
+        return false;
+    }};
+
+    string const outFile {"cache/" + io::get_filename(file) + ".blob"};
+    string const resFile {"res/cache/" + io::get_filename(file) + ".blob"};
+    if (!checkCache(outFile) && !checkCache(resFile)) {
+        io::delete_file(outFile);
+        io::ofstream str {outFile};
+        str.write<u32>(crc);
+        str.write<i32>(VOXEL_SIZE);
+        str.write<i32>(NUM_FACINGS);
+
+        auto const voxels {load_vox_file(file)};
+        auto       facings {voxels->bake_facings(VOXEL_SIZE, -90, NUM_FACINGS)};
+        str.write_filtered(std::as_bytes(std::span {facings}), io::zlib_filter {});
+        inFile = outFile;
+    }
+
+    for (i32 i {0}; i < NUM_FACINGS; ++i) {
+        _directory[idx][i].Offset = _textures.size() + (i * VOXEL_SIZE * VOXEL_SIZE * TEXTURE_BPP);
+        _directory[idx][i].Size   = {VOXEL_SIZE, VOXEL_SIZE};
+    }
+
+    io::ifstream str {inFile};
+    str.seek(HEADER_SIZE, io::seek_dir::Begin);
+    auto const bytes {str.read_filtered(str.size_in_bytes() - HEADER_SIZE, io::zlib_filter {})};
+    _textures.append_range(std::span<u8 const> {reinterpret_cast<u8 const*>(bytes.data()), bytes.size()});
+}
+
+void texture_cache::load_image(i32 idx, i32 variant, string const& file)
+{
+    auto img {*gfx::image::Load(file)};
+
+    _directory[idx][variant].Offset = _textures.size();
+    _directory[idx][variant].Size   = img.info().Size;
+
+    _textures.append_range(gfx::filters::alpha_remover {}(img).data());
 }
 
 auto texture_cache::texture(i32 idx, i32 variant) -> u8*
@@ -26,62 +84,31 @@ auto texture_cache::texture_size(i32 idx, i32 variant) const -> size_i
 
 void texture_cache::load()
 {
-    struct pending_load {
-        i32    Tex {0};
-        string Path;
-        i32    Variant {0};
-    };
+    io::create_folder("cache");
 
     // PLACEHOLDER START
-    std::vector<pending_load> const loads {
-        {.Tex = 1, .Path = "res/wall0.png"},
-        {.Tex = 2, .Path = "res/wall1.png"},
-        {.Tex = 3, .Path = "res/wall2.png"},
-        {.Tex = 4, .Path = "res/wall3.png"},
-        {.Tex = 5, .Path = "res/wall4.png"},
-        {.Tex = 6, .Path = "res/wall5.png"},
-        {.Tex = 7, .Path = "res/wall6.png"},
-        {.Tex = 8, .Path = "res/wall7.png"},
-        {.Tex = 9, .Path = "res/wall7.png"},
-        {.Tex = door1Texture, .Path = "res/door.png"},
-        {.Tex = door1FrameTexture, .Path = "res/door_frame.png"},
-        {.Tex = 10, .Path = "res/floor.png"},
-        {.Tex = 11, .Path = "res/ceiling.png"},
-        {.Tex = 14, .Path = "res/sky.png"},
-        {.Tex = 15, .Path = "res/transparent.png"},
 
-        {.Tex = fontTexture, .Path = "res/font.png"},
+    // SPRITES
+    load_image(1, 0, "res/wall0.png");
+    load_image(2, 0, "res/wall1.png");
+    load_image(3, 0, "res/wall2.png");
+    load_image(4, 0, "res/wall3.png");
+    load_image(5, 0, "res/wall4.png");
+    load_image(6, 0, "res/wall5.png");
+    load_image(7, 0, "res/wall7.png");
+    load_image(8, 0, "res/wall7.png");
+    load_image(9, 0, "res/wall7.png");
+    load_image(door1Texture, 0, "res/door.png");
+    load_image(door1FrameTexture, 0, "res/door_frame.png");
+    load_image(10, 0, "res/floor.png");
+    load_image(11, 0, "res/ceiling.png");
+    load_image(14, 0, "res/sky.png");
+    load_image(15, 0, "res/transparent.png");
+    load_image(fontTexture, 0, "res/font.png");
+    load_image(handTexture, 0, "res/hand.png");
 
-        {.Tex = handTexture, .Path = "res/hand.png"},
+    // VOXELS
+    load_vox(sprite1Texture, "res/chr_knight.vox");
 
-        {.Tex = sprite1Texture, .Path = "res/enemy0-0.png", .Variant = 0},
-        {.Tex = sprite1Texture, .Path = "res/enemy0-1.png", .Variant = 1},
-        {.Tex = sprite1Texture, .Path = "res/enemy0-2.png", .Variant = 2},
-        {.Tex = sprite1Texture, .Path = "res/enemy0-3.png", .Variant = 3},
-        {.Tex = sprite1Texture, .Path = "res/enemy0-4.png", .Variant = 4},
-        {.Tex = sprite1Texture, .Path = "res/enemy0-5.png", .Variant = 5},
-        {.Tex = sprite1Texture, .Path = "res/enemy0-6.png", .Variant = 6},
-        {.Tex = sprite1Texture, .Path = "res/enemy0-7.png", .Variant = 7},
-    };
     // PLACEHOLDER END
-
-    usize totalBytes {0};
-    for (auto const& l : loads) {
-        _directory[l.Tex][l.Variant].Offset = totalBytes;
-        auto const size {gfx::image::LoadInfo(l.Path)->Size};
-        _directory[l.Tex][l.Variant].Size = size;
-        totalBytes += size.area() * TEXTURE_BPP;
-    }
-    _textures.resize(totalBytes);
-
-    for (auto const& l : loads) {
-        auto img {gfx::image::Load(l.Path).value()};
-        img = gfx::filters::alpha_remover {}(img);
-
-        u8* const   dst {texture(l.Tex, l.Variant)};
-        isize const byteCount {img.info().Size.area() * TEXTURE_BPP};
-        for (isize idx {0}; idx < byteCount; ++idx) {
-            dst[idx] = img.ptr()[idx];
-        }
-    }
 }
