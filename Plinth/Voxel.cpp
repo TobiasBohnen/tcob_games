@@ -278,11 +278,10 @@ auto voxel_grid::bake_facings(i32 frameSize, f64 frontFacingDegrees, i32 numFaci
     std::vector<u8> retValue {};
     retValue.resize(static_cast<usize>(numFacings * frameSize * frameSize * TEXTURE_BPP));
 
-    f64 const extentVert {static_cast<f64>(Size.Z)};
-
-    f64 const extentHoriz {extentVert};
-
     f64 const footprintDiag {std::sqrt(static_cast<f64>((Size.X * Size.X) + (Size.Y * Size.Y)))};
+    f64 const extentVert {static_cast<f64>(Size.Z)};
+    f64 const extentHoriz {footprintDiag};
+
     f64 const cameraDist {footprintDiag + extentVert + 4.0};
     f64 const maxT {(cameraDist * 2.0) + extentVert};
 

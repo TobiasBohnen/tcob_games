@@ -201,7 +201,8 @@ Plinth::Plinth(game& game)
     }};
 
     for (i32 i {0}; i < 50; ++i) {
-        _level->Sprites.push_back(sprite {.Position = find_empty(), .Size = {0.5, 0.5}, .Texture = sprite1Texture, .Facing = degree_f {90.f * i}, .Solid = true});
+        f64 scale {rng(0.3, 1.)};
+        _level->Sprites.push_back(sprite {.Position = find_empty(), .Size = {scale, scale}, .Texture = sprite1Texture, .Facing = degree_f {90.f * i}, .Solid = true});
     }
 
     _player.Position = find_empty();
