@@ -60,6 +60,18 @@ public:
     auto bake_facings(i32 frameSize, f64 frontFacingDegrees, i32 numFacings, bake_lighting const& lighting = {}) const -> std::vector<u8>;
 
 private:
+    struct voxel_ray_hit {
+        bool   Hit {false};
+        f64    T {0.0};
+        color  Color {0, 0, 0};
+        i32    FaceAxis {0};
+        i32    FaceSign {1};
+        vec3_i Cell {};
+    };
+
+    auto raycast(vec3_d const& origin, vec3_d const& dir, f64 maxT) const -> voxel_ray_hit;
+    auto corner_ao(vec3_i layer, i32 faceAxis, i32 cu, i32 cv) const -> i32;
+
     auto flat_index(i32 x, i32 y, i32 z) const -> isize;
 
     std::vector<color> _cells;
