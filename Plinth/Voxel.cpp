@@ -85,10 +85,10 @@ auto load_vox_bytes(io::istream& stream) -> std::optional<voxel_grid>
     }
 
     if (!haveSize || !haveXyzi) { return std::nullopt; }
-    return {result};
+    return voxel_grid {result};
 }
 
-auto load_vox_file(std::string const& path) -> std::optional<voxel_grid>
+auto load_vox_file(string const& path) -> std::optional<voxel_grid>
 {
     io::ifstream file {path};
     return load_vox_bytes(file);
@@ -96,16 +96,21 @@ auto load_vox_file(std::string const& path) -> std::optional<voxel_grid>
 
 ////////////////////////////////////////////////////////////
 
-struct voxel_ray_hit {
-    bool   Hit {false};
-    f64    T {0.0};
-    color  Color {};
-    i32    FaceAxis {0};
-    i32    FaceSign {1};
-    vec3_i Cell {};
-};
+auto voxel_grid::flat_index(i32 x, i32 y, i32 z) const -> isize
+{
+    return x + (static_cast<isize>(y) * Size.X) + (static_cast<isize>(z) * Size.X * Size.Y);
+}
 
-static auto key(i32 x, i32 y, i32 z) -> i64 { return static_cast<i64>(x) | (static_cast<i64>(y) << 20) | (static_cast<i64>(z) << 40); }
+auto voxel_grid::occupied(i32 x, i32 y, i32 z) const -> bool
+{
+    if (x < 0 || y < 0 || z < 0 || x >= Size.X || y >= Size.Y || z >= Size.Z) { return false; }
+    return _occupied[static_cast<usize>(flat_index(x, y, z))];
+}
+
+auto voxel_grid::color_at(i32 x, i32 y, i32 z) const -> color
+{
+    return _cells[static_cast<usize>(flat_index(x, y, z))];
+}
 
 voxel_grid::voxel_grid(std::vector<voxel> const& voxels)
 {
@@ -115,20 +120,39 @@ voxel_grid::voxel_grid(std::vector<voxel> const& voxels)
         Size.X = std::max(Size.X, v.Position.X + 1);
         Size.Y = std::max(Size.Y, v.Position.Y + 1);
         Size.Z = std::max(Size.Z, v.Position.Z + 1);
-        Cells.insert_or_assign(key(v.Position.X, v.Position.Y, v.Position.Z), v.Color);
+    }
+
+    isize const cellCount {static_cast<isize>(Size.X) * Size.Y * Size.Z};
+    _cells.resize(static_cast<usize>(std::max<isize>(cellCount, 0)));
+    _occupied.resize(static_cast<usize>(std::max<isize>(cellCount, 0)), false);
+
+    for (voxel const& v : voxels) {
+        if (v.Position.X < 0 || v.Position.Y < 0 || v.Position.Z < 0) { continue; }
+        isize const idx {flat_index(v.Position.X, v.Position.Y, v.Position.Z)};
+        _cells[static_cast<usize>(idx)]    = v.Color;
+        _occupied[static_cast<usize>(idx)] = true;
     }
 }
+
+struct voxel_ray_hit {
+    bool   Hit {false};
+    f64    T {0.0};
+    color  Color {0, 0, 0};
+    i32    FaceAxis {0};
+    i32    FaceSign {1};
+    vec3_i Cell {};
+};
 
 static auto raycast_voxel_grid(voxel_grid const& grid, vec3_d const& origin, vec3_d const& dir, f64 maxT) -> voxel_ray_hit
 {
     voxel_ray_hit result {};
-    if (grid.Cells.empty()) { return result; }
+    if (grid.Size.X <= 0 || grid.Size.Y <= 0 || grid.Size.Z <= 0) { return result; }
 
     f64 tMin {0.0};
     f64 tMax {maxT};
 
-    i32 lastAxis {2};
-    i32 lastSign {1};
+    i32 entryAxis {2};
+    i32 entrySign {1};
 
     auto const clip_axis {[&](f64 o, f64 d, f64 lo, f64 hi, i32 axis) -> bool {
         if (std::abs(d) < 1e-12) { return o >= lo && o <= hi; }
@@ -141,9 +165,9 @@ static auto raycast_voxel_grid(voxel_grid const& grid, vec3_d const& origin, vec
             std::swap(s0, s1);
         }
         if (t0 > tMin) {
-            tMin     = t0;
-            lastAxis = axis;
-            lastSign = s0;
+            tMin      = t0;
+            entryAxis = axis;
+            entrySign = s0;
         }
         tMax = std::min(tMax, t1);
         return tMin <= tMax;
@@ -154,7 +178,8 @@ static auto raycast_voxel_grid(voxel_grid const& grid, vec3_d const& origin, vec
     if (!clip_axis(origin.Z, dir.Z, 0.0, static_cast<f64>(grid.Size.Z), 2)) { return result; }
     if (tMin > tMax) { return result; }
 
-    vec3_d const start {origin + (dir * std::max(tMin, 0.0))};
+    f64 const    entryT {std::max(tMin, 0.0)};
+    vec3_d const start {origin + (dir * entryT)};
 
     i32 voxelX {std::clamp(static_cast<i32>(std::floor(start.X)), 0, grid.Size.X - 1)};
     i32 voxelY {std::clamp(static_cast<i32>(std::floor(start.Y)), 0, grid.Size.Y - 1)};
@@ -180,40 +205,44 @@ static auto raycast_voxel_grid(voxel_grid const& grid, vec3_d const& origin, vec
     f64 const tDeltaY {t_delta(dir.Y)};
     f64 const tDeltaZ {t_delta(dir.Z)};
 
+    f64 currentT {entryT};
+    i32 currentAxis {entryAxis};
+    i32 currentSign {entrySign};
+
     for (;;) {
         if (voxelX < 0 || voxelX >= grid.Size.X || voxelY < 0 || voxelY >= grid.Size.Y || voxelZ < 0 || voxelZ >= grid.Size.Z) { break; }
 
-        if (auto const it {grid.Cells.find(key(voxelX, voxelY, voxelZ))}; it != grid.Cells.end()) {
+        if (grid.occupied(voxelX, voxelY, voxelZ)) {
             result.Hit      = true;
-            result.T        = std::max(tMin, 0.0);
-            result.Color    = it->second;
-            result.FaceAxis = lastAxis;
-            result.FaceSign = lastSign;
+            result.T        = currentT;
+            result.Color    = grid.color_at(voxelX, voxelY, voxelZ);
+            result.FaceAxis = currentAxis;
+            result.FaceSign = currentSign;
             result.Cell     = vec3_i {.X = voxelX, .Y = voxelY, .Z = voxelZ};
             return result;
         }
 
         if (tMaxX < tMaxY && tMaxX < tMaxZ) {
             voxelX += stepX;
-            tMin = tMaxX;
+            currentT = tMaxX;
             tMaxX += tDeltaX;
-            lastAxis = 0;
-            lastSign = -stepX;
+            currentAxis = 0;
+            currentSign = -stepX;
         } else if (tMaxY < tMaxZ) {
             voxelY += stepY;
-            tMin = tMaxY;
+            currentT = tMaxY;
             tMaxY += tDeltaY;
-            lastAxis = 1;
-            lastSign = -stepY;
+            currentAxis = 1;
+            currentSign = -stepY;
         } else {
             voxelZ += stepZ;
-            tMin = tMaxZ;
+            currentT = tMaxZ;
             tMaxZ += tDeltaZ;
-            lastAxis = 2;
-            lastSign = -stepZ;
+            currentAxis = 2;
+            currentSign = -stepZ;
         }
 
-        if (tMin > tMax) { break; }
+        if (currentT > tMax) { break; }
     }
 
     return result;
@@ -246,26 +275,24 @@ static auto face_normal(i32 axis, i32 sign) -> vec3_d
 
 static auto corner_ao(voxel_grid const& grid, vec3_i layer, i32 faceAxis, i32 cu, i32 cv) -> i32
 {
-    auto const occ {[&](i32 x, i32 y, i32 z) { return grid.Cells.contains(key(x, y, z)); }};
-
     bool side1 {false};
     bool side2 {false};
     bool corner {false};
     switch (faceAxis) {
     case 0:
-        side1  = occ(layer.X, layer.Y + cu, layer.Z);
-        side2  = occ(layer.X, layer.Y, layer.Z + cv);
-        corner = occ(layer.X, layer.Y + cu, layer.Z + cv);
+        side1  = grid.occupied(layer.X, layer.Y + cu, layer.Z);
+        side2  = grid.occupied(layer.X, layer.Y, layer.Z + cv);
+        corner = grid.occupied(layer.X, layer.Y + cu, layer.Z + cv);
         break;
     case 1:
-        side1  = occ(layer.X + cu, layer.Y, layer.Z);
-        side2  = occ(layer.X, layer.Y, layer.Z + cv);
-        corner = occ(layer.X + cu, layer.Y, layer.Z + cv);
+        side1  = grid.occupied(layer.X + cu, layer.Y, layer.Z);
+        side2  = grid.occupied(layer.X, layer.Y, layer.Z + cv);
+        corner = grid.occupied(layer.X + cu, layer.Y, layer.Z + cv);
         break;
     default:
-        side1  = occ(layer.X + cu, layer.Y, layer.Z);
-        side2  = occ(layer.X, layer.Y + cv, layer.Z);
-        corner = occ(layer.X + cu, layer.Y + cv, layer.Z);
+        side1  = grid.occupied(layer.X + cu, layer.Y, layer.Z);
+        side2  = grid.occupied(layer.X, layer.Y + cv, layer.Z);
+        corner = grid.occupied(layer.X + cu, layer.Y + cv, layer.Z);
         break;
     }
 
@@ -273,103 +300,164 @@ static auto corner_ao(voxel_grid const& grid, vec3_i layer, i32 faceAxis, i32 cu
     return 3 - (static_cast<i32>(side1) + static_cast<i32>(side2) + static_cast<i32>(corner));
 }
 
+struct facing_basis {
+    vec3_d CamDir {};
+    vec3_d Right {};
+    vec3_d RayDir {};
+    i32    PxMin {0};
+    i32    PxMax {0};
+    i32    PyMin {0};
+    i32    PyMax {0};
+};
+
+auto compute_facing_basis(vec3_d camDir, vec3_d right, vec3_i size, vec3_d centerLocal,
+                          f64 extentHoriz, f64 extentVert, i32 frameSize) -> facing_basis
+{
+    facing_basis fb {.CamDir = camDir, .Right = right, .RayDir = {.X = -camDir.X, .Y = -camDir.Y, .Z = -camDir.Z}};
+
+    f64 uMin {std::numeric_limits<f64>::infinity()};
+    f64 uMax {-std::numeric_limits<f64>::infinity()};
+    f64 vMin {std::numeric_limits<f64>::infinity()};
+    f64 vMax {-std::numeric_limits<f64>::infinity()};
+
+    for (i32 cx {0}; cx <= 1; ++cx) {
+        for (i32 cy {0}; cy <= 1; ++cy) {
+            for (i32 cz {0}; cz <= 1; ++cz) {
+                vec3_d const corner {
+                    .X = (cx ? static_cast<f64>(size.X) : 0.0) - centerLocal.X,
+                    .Y = (cy ? static_cast<f64>(size.Y) : 0.0) - centerLocal.Y,
+                    .Z = (cz ? static_cast<f64>(size.Z) : 0.0) - centerLocal.Z,
+                };
+                f64 const u {(corner.X * right.X) + (corner.Y * right.Y) + (corner.Z * right.Z)};
+                f64 const v {corner.Z};
+                uMin = std::min(uMin, u);
+                uMax = std::max(uMax, u);
+                vMin = std::min(vMin, v);
+                vMax = std::max(vMax, v);
+            }
+        }
+    }
+
+    auto const u_to_px {[&](f64 u) { return static_cast<i32>((frameSize * ((u / extentHoriz) + 0.5)) - 0.5); }};
+    auto const v_to_py {[&](f64 v) { return static_cast<i32>((frameSize * (0.5 - (v / extentVert))) - 0.5); }};
+
+    fb.PxMin = std::clamp(u_to_px(uMin) - 1, 0, frameSize - 1);
+    fb.PxMax = std::clamp(u_to_px(uMax) + 1, 0, frameSize - 1);
+    fb.PyMin = std::clamp(v_to_py(vMax) - 1, 0, frameSize - 1);
+    fb.PyMax = std::clamp(v_to_py(vMin) + 1, 0, frameSize - 1);
+
+    return fb;
+}
+
 auto voxel_grid::bake_facings(i32 frameSize, f64 frontFacingDegrees, i32 numFacings, bake_lighting const& lighting) const -> std::vector<u8>
 {
     std::vector<u8> retValue {};
     retValue.resize(static_cast<usize>(numFacings * frameSize * frameSize * TEXTURE_BPP));
 
+    f64 const extent {static_cast<f64>(Size.Z)};
+
     f64 const footprintDiag {std::sqrt(static_cast<f64>((Size.X * Size.X) + (Size.Y * Size.Y)))};
-    f64 const extentVert {static_cast<f64>(Size.Z)};
-    f64 const extentHoriz {footprintDiag};
+    f64 const cameraDist {footprintDiag + extent + 4.0};
+    f64 const maxT {(cameraDist * 2.0) + extent};
 
-    f64 const cameraDist {footprintDiag + extentVert + 4.0};
-    f64 const maxT {(cameraDist * 2.0) + extentVert};
-
-    vec3_d const centerLocal {.X = Size.X * 0.5, .Y = Size.Y * 0.5, .Z = extentVert * 0.5};
+    vec3_d const centerLocal {.X = Size.X * 0.5, .Y = Size.Y * 0.5, .Z = extent * 0.5};
 
     vec3_d const keyLight {light_from_front(frontFacingDegrees, lighting.KeyAzimuthOffsetDeg, lighting.KeyElevationDeg)};
     vec3_d const fillLight {light_from_front(frontFacingDegrees, lighting.FillAzimuthOffsetDeg, lighting.FillElevationDeg)};
 
+    std::vector<facing_basis> bases(static_cast<usize>(numFacings));
     for (i32 f {0}; f < numFacings; ++f) {
         f64 const thetaDeg {frontFacingDegrees + (static_cast<f64>(f) * (360.0 / numFacings))};
         f64 const theta {thetaDeg * (TAU / 360.0)};
 
         vec3_d const camDir {.X = std::cos(theta), .Y = std::sin(theta), .Z = 0.0};
         vec3_d const right {.X = -std::sin(theta), .Y = std::cos(theta), .Z = 0.0};
-        vec3_d const up {.X = 0.0, .Y = 0.0, .Z = 1.0};
-        vec3_d const rayDir {.X = -camDir.X, .Y = -camDir.Y, .Z = -camDir.Z};
-
-        auto* frameBuf {retValue.data() + (f * frameSize * frameSize * TEXTURE_BPP)};
-
-        for (i32 py {0}; py < frameSize; ++py) {
-            f64 const v {(0.5 - ((py + 0.5) / frameSize)) * extentVert};
-
-            for (i32 px {0}; px < frameSize; ++px) {
-                f64 const u {(((px + 0.5) / frameSize) - 0.5) * extentHoriz};
-
-                vec3_d const rayOrigin {
-                    .X = centerLocal.X + (camDir.X * cameraDist) + (right.X * u) + (up.X * v),
-                    .Y = centerLocal.Y + (camDir.Y * cameraDist) + (right.Y * u) + (up.Y * v),
-                    .Z = centerLocal.Z + (camDir.Z * cameraDist) + (right.Z * u) + (up.Z * v),
-                };
-
-                auto const hit {raycast_voxel_grid(*this, rayOrigin, rayDir, maxT)};
-
-                i32 const idx {((py * frameSize) + px) * TEXTURE_BPP};
-                if (!hit.Hit) {
-                    frameBuf[idx + 0] = 0x98;
-                    frameBuf[idx + 1] = 0x00;
-                    frameBuf[idx + 2] = 0x88;
-                    continue;
-                }
-
-                vec3_d const normal {face_normal(hit.FaceAxis, hit.FaceSign)};
-                f64 const    keyTerm {lighting.KeyDiffuse * std::max(0.0, normal.dot(keyLight))};
-                f64 const    fillTerm {lighting.FillDiffuse * std::max(0.0, normal.dot(fillLight))};
-                f64 const    ambientTerm {lighting.AmbientGround + ((lighting.AmbientSky - lighting.AmbientGround) * ((normal.Z * 0.5) + 0.5))};
-                f64 const    heightFactor {static_cast<f64>(hit.Cell.Z) / static_cast<f64>(std::max(1, Size.Z - 1))};
-                f64 const    heightMultiplier {1.0 - lighting.HeightBandingStrength + (lighting.HeightBandingStrength * heightFactor)};
-
-                vec3_i const layer {
-                    .X = hit.Cell.X + (hit.FaceAxis == 0 ? hit.FaceSign : 0),
-                    .Y = hit.Cell.Y + (hit.FaceAxis == 1 ? hit.FaceSign : 0),
-                    .Z = hit.Cell.Z + (hit.FaceAxis == 2 ? hit.FaceSign : 0),
-                };
-                i32 const ao00 {corner_ao(*this, layer, hit.FaceAxis, -1, -1)};
-                i32 const ao10 {corner_ao(*this, layer, hit.FaceAxis, +1, -1)};
-                i32 const ao01 {corner_ao(*this, layer, hit.FaceAxis, -1, +1)};
-                i32 const ao11 {corner_ao(*this, layer, hit.FaceAxis, +1, +1)};
-
-                vec3_d const hitPos {rayOrigin + (rayDir * hit.T)};
-                f64          fu {}, fv {};
-                switch (hit.FaceAxis) {
-                case 0:
-                    fu = hitPos.Y - hit.Cell.Y;
-                    fv = hitPos.Z - hit.Cell.Z;
-                    break;
-                case 1:
-                    fu = hitPos.X - hit.Cell.X;
-                    fv = hitPos.Z - hit.Cell.Z;
-                    break;
-                default:
-                    fu = hitPos.X - hit.Cell.X;
-                    fv = hitPos.Y - hit.Cell.Y;
-                    break;
-                }
-                fu = std::clamp(fu, 0.0, 1.0);
-                fv = std::clamp(fv, 0.0, 1.0);
-
-                f64 const aoInterp {(ao00 * (1.0 - fu) * (1.0 - fv)) + (ao10 * fu * (1.0 - fv)) + (ao01 * (1.0 - fu) * fv) + (ao11 * fu * fv)};
-                f64 const aoFactor {1.0 - (lighting.AoStrength * (1.0 - (aoInterp / 3.0)))};
-
-                f64 const shade {std::clamp((ambientTerm + keyTerm + fillTerm) * aoFactor * heightMultiplier, 0.0, 1.0)};
-
-                frameBuf[idx + 0] = static_cast<u8>(std::min(255.0, hit.Color.R * shade));
-                frameBuf[idx + 1] = static_cast<u8>(std::min(255.0, hit.Color.G * shade));
-                frameBuf[idx + 2] = static_cast<u8>(std::min(255.0, hit.Color.B * shade));
-            }
-        }
+        bases[static_cast<usize>(f)] = compute_facing_basis(camDir, right, Size, centerLocal, extent, extent, frameSize);
     }
+
+    for (isize i {0}; i < static_cast<isize>(retValue.size()); i += TEXTURE_BPP) {
+        retValue[static_cast<usize>(i) + 0] = 0x98;
+        retValue[static_cast<usize>(i) + 1] = 0x00;
+        retValue[static_cast<usize>(i) + 2] = 0x88;
+    }
+
+    constexpr vec3_d up {.X = 0.0, .Y = 0.0, .Z = 1.0};
+    isize const      totalRows {static_cast<isize>(numFacings) * frameSize};
+
+    locate_service<task_manager>().run_parallel(
+        [&](par_task const& ctx) {
+            for (isize row {static_cast<isize>(ctx.Start)}; row < static_cast<isize>(ctx.End); ++row) {
+                i32 const x {static_cast<i32>(row / frameSize)};
+                i32 const y {static_cast<i32>(row % frameSize)};
+
+                auto const& basis {bases[static_cast<usize>(x)]};
+                if (y < basis.PyMin || y > basis.PyMax) { continue; }
+
+                auto* frameBuf {retValue.data() + (static_cast<isize>(x) * frameSize * frameSize * TEXTURE_BPP)};
+
+                f64 const v {(0.5 - ((y + 0.5) / frameSize)) * extent};
+                for (i32 px {basis.PxMin}; px <= basis.PxMax; ++px) {
+                    f64 const u {(((px + 0.5) / frameSize) - 0.5) * extent};
+
+                    vec3_d const rayOrigin {
+                        .X = centerLocal.X + (basis.CamDir.X * cameraDist) + (basis.Right.X * u) + (up.X * v),
+                        .Y = centerLocal.Y + (basis.CamDir.Y * cameraDist) + (basis.Right.Y * u) + (up.Y * v),
+                        .Z = centerLocal.Z + (basis.CamDir.Z * cameraDist) + (basis.Right.Z * u) + (up.Z * v),
+                    };
+
+                    auto const hit {raycast_voxel_grid(*this, rayOrigin, basis.RayDir, maxT)};
+
+                    i32 const idx {((y * frameSize) + px) * TEXTURE_BPP};
+                    if (!hit.Hit) { continue; }
+
+                    vec3_d const normal {face_normal(hit.FaceAxis, hit.FaceSign)};
+                    f64 const    keyTerm {lighting.KeyDiffuse * std::max(0.0, normal.dot(keyLight))};
+                    f64 const    fillTerm {lighting.FillDiffuse * std::max(0.0, normal.dot(fillLight))};
+                    f64 const    ambientTerm {lighting.AmbientGround + ((lighting.AmbientSky - lighting.AmbientGround) * ((normal.Z * 0.5) + 0.5))};
+                    f64 const    heightFactor {static_cast<f64>(hit.Cell.Z) / static_cast<f64>(std::max(1, Size.Z - 1))};
+                    f64 const    heightMultiplier {1.0 - lighting.HeightBandingStrength + (lighting.HeightBandingStrength * heightFactor)};
+
+                    vec3_i const layer {
+                        .X = hit.Cell.X + (hit.FaceAxis == 0 ? hit.FaceSign : 0),
+                        .Y = hit.Cell.Y + (hit.FaceAxis == 1 ? hit.FaceSign : 0),
+                        .Z = hit.Cell.Z + (hit.FaceAxis == 2 ? hit.FaceSign : 0),
+                    };
+                    i32 const ao00 {corner_ao(*this, layer, hit.FaceAxis, -1, -1)};
+                    i32 const ao10 {corner_ao(*this, layer, hit.FaceAxis, +1, -1)};
+                    i32 const ao01 {corner_ao(*this, layer, hit.FaceAxis, -1, +1)};
+                    i32 const ao11 {corner_ao(*this, layer, hit.FaceAxis, +1, +1)};
+
+                    vec3_d const hitPos {rayOrigin + (basis.RayDir * hit.T)};
+                    f64          fu {}, fv {};
+                    switch (hit.FaceAxis) {
+                    case 0:
+                        fu = hitPos.Y - hit.Cell.Y;
+                        fv = hitPos.Z - hit.Cell.Z;
+                        break;
+                    case 1:
+                        fu = hitPos.X - hit.Cell.X;
+                        fv = hitPos.Z - hit.Cell.Z;
+                        break;
+                    default:
+                        fu = hitPos.X - hit.Cell.X;
+                        fv = hitPos.Y - hit.Cell.Y;
+                        break;
+                    }
+                    fu = std::clamp(fu, 0.0, 1.0);
+                    fv = std::clamp(fv, 0.0, 1.0);
+
+                    f64 const aoInterp {(ao00 * (1.0 - fu) * (1.0 - fv)) + (ao10 * fu * (1.0 - fv)) + (ao01 * (1.0 - fu) * fv) + (ao11 * fu * fv)};
+                    f64 const aoFactor {1.0 - (lighting.AoStrength * (1.0 - (aoInterp / 3.0)))};
+
+                    f64 const shade {std::clamp((ambientTerm + keyTerm + fillTerm) * aoFactor * heightMultiplier, 0.0, 1.0)};
+
+                    frameBuf[idx + 0] = static_cast<u8>(std::min(255.0, hit.Color.R * shade));
+                    frameBuf[idx + 1] = static_cast<u8>(std::min(255.0, hit.Color.G * shade));
+                    frameBuf[idx + 2] = static_cast<u8>(std::min(255.0, hit.Color.B * shade));
+                }
+            }
+        },
+        static_cast<i32>(totalRows));
 
     return retValue;
 }

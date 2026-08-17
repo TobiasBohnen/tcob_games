@@ -22,7 +22,7 @@ inline constexpr f64    WEAPON_REFERENCE_HEIGHT {360.0};
 inline constexpr f64    WEAPON_BOB_MULTIPLIER {2.0};
 
 inline constexpr i32 NUM_FACINGS {16};
-i32 const            VOXEL_SIZE {256};
+i32 const            VOXEL_SIZE {64};
 
 class texture_cache;
 class level;

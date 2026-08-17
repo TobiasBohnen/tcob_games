@@ -108,7 +108,7 @@ void texture_cache::load()
     load_image(handTexture, 0, "res/hand.png");
 
     // VOXELS
-    load_vox(sprite1Texture, "res/chr_knight.vox");
+    load_vox(sprite1Texture, "res/ball1.vox");
 
     // PLACEHOLDER END
 }

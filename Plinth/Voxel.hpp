@@ -4,13 +4,10 @@
 // https://opensource.org/licenses/MIT
 #pragma once
 
-#include <string>
-#include <unordered_map>
+#include <optional>
 #include <vector>
 
 #include "Common.hpp"
-
-////////////////////////////////////////////////////////////
 
 struct vec3_d {
     f64 X {0.0};
@@ -18,12 +15,11 @@ struct vec3_d {
     f64 Z {0.0};
 
     auto dot(vec3_d const& b) const -> f64;
-
     auto normalized() const -> vec3_d;
 
-    friend auto operator+(vec3_d const& a, vec3_d const& b) -> vec3_d { return {.X = a.X + b.X, .Y = a.Y + b.Y, .Z = a.Z + b.Z}; }
-    friend auto operator-(vec3_d const& a, vec3_d const& b) -> vec3_d { return {.X = a.X - b.X, .Y = a.Y - b.Y, .Z = a.Z - b.Z}; }
-    friend auto operator*(vec3_d const& a, f64 s) -> vec3_d { return {.X = a.X * s, .Y = a.Y * s, .Z = a.Z * s}; }
+    friend auto operator+(vec3_d const& a, vec3_d const& b) -> vec3_d { return {a.X + b.X, a.Y + b.Y, a.Z + b.Z}; }
+    friend auto operator-(vec3_d const& a, vec3_d const& b) -> vec3_d { return {a.X - b.X, a.Y - b.Y, a.Z - b.Z}; }
+    friend auto operator*(vec3_d const& a, f64 s) -> vec3_d { return {a.X * s, a.Y * s, a.Z * s}; }
 };
 
 struct vec3_i {
@@ -52,15 +48,24 @@ struct bake_lighting {
     f64 HeightBandingStrength {0.30};
 };
 
-struct voxel_grid {
-    voxel_grid(std::vector<voxel> const& voxels);
+class voxel_grid {
+public:
+    explicit voxel_grid(std::vector<voxel> const& voxels);
 
-    vec3_i                         Size {};
-    std::unordered_map<i64, color> Cells;
+    vec3_i Size {};
+
+    auto occupied(i32 x, i32 y, i32 z) const -> bool;
+    auto color_at(i32 x, i32 y, i32 z) const -> color; // caller must have already checked occupied()
 
     auto bake_facings(i32 frameSize, f64 frontFacingDegrees, i32 numFacings, bake_lighting const& lighting = {}) const -> std::vector<u8>;
+
+private:
+    auto flat_index(i32 x, i32 y, i32 z) const -> isize;
+
+    std::vector<color> _cells;
+    std::vector<bool>  _occupied; // separate from _cells -- avoids needing a sentinel "empty" color value
 };
 
-////////////////////////////////////////////////////////////
+                                  ////////////////////////////////////////////////////////////
 
-auto load_vox_file(std::string const& path) -> std::optional<voxel_grid>;
+auto load_vox_file(string const& path) -> std::optional<voxel_grid>;
