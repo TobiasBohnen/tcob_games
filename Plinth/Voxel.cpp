@@ -71,7 +71,7 @@ auto load_vox_bytes(io::istream& stream) -> std::optional<voxel_grid>
                 u8 const y {stream.read<u8>()};
                 u8 const z {stream.read<u8>()};
                 u8 const colorIndex {stream.read<u8>()};
-                if (x >= size.X || y >= size.Y || z >= size.Z) { continue; } // malformed entry, skip
+                if (x >= size.X || y >= size.Y || z >= size.Z) { continue; }
                 result.push_back(voxel {.Position = {.X = x, .Y = y, .Z = z}, .Color = color::FromABGR(palette[colorIndex])});
             }
             haveXyzi = true;
@@ -277,7 +277,7 @@ struct facing_basis {
 };
 
 static auto compute_facing_basis(vec3_d camDir, vec3_d right, vec3_i size, vec3_d centerLocal,
-                                 f64 extentHoriz, f64 extentVert, i32 frameSize) -> facing_basis
+                                 f64 maxExtent, i32 frameSize) -> facing_basis
 {
     facing_basis fb {.CamDir = camDir, .Right = right, .RayDir = {.X = -camDir.X, .Y = -camDir.Y, .Z = -camDir.Z}};
 
@@ -292,7 +292,7 @@ static auto compute_facing_basis(vec3_d camDir, vec3_d right, vec3_i size, vec3_
                 vec3_d const corner {
                     .X = (cx ? static_cast<f64>(size.X) : 0.0) - centerLocal.X,
                     .Y = (cy ? static_cast<f64>(size.Y) : 0.0) - centerLocal.Y,
-                    .Z = (cz ? static_cast<f64>(size.Z) : 0.0) - centerLocal.Z,
+                    .Z = (cz ? static_cast<f64>(size.Z) : 0.0),
                 };
                 f64 const u {(corner.X * right.X) + (corner.Y * right.Y) + (corner.Z * right.Z)};
                 f64 const v {corner.Z};
@@ -304,8 +304,8 @@ static auto compute_facing_basis(vec3_d camDir, vec3_d right, vec3_i size, vec3_
         }
     }
 
-    auto const u_to_px {[&](f64 u) { return static_cast<i32>((frameSize * ((u / extentHoriz) + 0.5)) - 0.5); }};
-    auto const v_to_py {[&](f64 v) { return static_cast<i32>((frameSize * (0.5 - (v / extentVert))) - 0.5); }};
+    auto const u_to_px {[&](f64 u) { return static_cast<i32>((frameSize * ((u / maxExtent) + 0.5)) - 0.5); }};
+    auto const v_to_py {[&](f64 v) { return static_cast<i32>((frameSize * (1.0 - (v / maxExtent))) - 0.5); }};
 
     fb.PxMin = std::clamp(u_to_px(uMin) - 1, 0, frameSize - 1);
     fb.PxMax = std::clamp(u_to_px(uMax) + 1, 0, frameSize - 1);
@@ -342,13 +342,12 @@ auto voxel_grid::bake_facings(i32 frameSize, f64 frontFacingDegrees, i32 numFaci
     std::vector<u8> retValue {};
     retValue.resize(static_cast<usize>(numFacings * frameSize * frameSize * TEXTURE_BPP));
 
-    f64 const extent {static_cast<f64>(Size.Z)};
+    f64 const maxExtent {static_cast<f64>(std::max({Size.X, Size.Y, Size.Z}))};
+    f64 const boundingDiag {std::sqrt(static_cast<f64>((Size.X * Size.X) + (Size.Y * Size.Y) + (Size.Z * Size.Z)))};
+    f64 const cameraDist {boundingDiag + 4.0};
+    f64 const maxT {(cameraDist * 2.0) + boundingDiag};
 
-    f64 const footprintDiag {std::sqrt(static_cast<f64>((Size.X * Size.X) + (Size.Y * Size.Y)))};
-    f64 const cameraDist {footprintDiag + extent + 4.0};
-    f64 const maxT {(cameraDist * 2.0) + extent};
-
-    vec3_d const centerLocal {.X = Size.X * 0.5, .Y = Size.Y * 0.5, .Z = extent * 0.5};
+    vec3_d const centerLocal {.X = Size.X * 0.5, .Y = Size.Y * 0.5, .Z = 0.0};
 
     vec3_d const keyLight {light_from_front(frontFacingDegrees, lighting.KeyAzimuthOffsetDeg, lighting.KeyElevationDeg)};
     vec3_d const fillLight {light_from_front(frontFacingDegrees, lighting.FillAzimuthOffsetDeg, lighting.FillElevationDeg)};
@@ -360,7 +359,7 @@ auto voxel_grid::bake_facings(i32 frameSize, f64 frontFacingDegrees, i32 numFaci
 
         vec3_d const camDir {.X = std::cos(theta), .Y = std::sin(theta), .Z = 0.0};
         vec3_d const right {.X = -std::sin(theta), .Y = std::cos(theta), .Z = 0.0};
-        bases[static_cast<usize>(f)] = compute_facing_basis(camDir, right, Size, centerLocal, extent, extent, frameSize);
+        bases[static_cast<usize>(f)] = compute_facing_basis(camDir, right, Size, centerLocal, maxExtent, frameSize);
     }
 
     for (isize i {0}; i < static_cast<isize>(retValue.size()); i += TEXTURE_BPP) {
@@ -369,8 +368,7 @@ auto voxel_grid::bake_facings(i32 frameSize, f64 frontFacingDegrees, i32 numFaci
         retValue[static_cast<usize>(i) + 2] = 0x88;
     }
 
-    constexpr vec3_d up {.X = 0.0, .Y = 0.0, .Z = 1.0};
-    isize const      totalRows {static_cast<isize>(numFacings) * frameSize};
+    isize const totalRows {static_cast<isize>(numFacings) * frameSize};
 
     locate_service<task_manager>().run_parallel(
         [&](par_task const& ctx) {
@@ -383,14 +381,14 @@ auto voxel_grid::bake_facings(i32 frameSize, f64 frontFacingDegrees, i32 numFaci
 
                 auto* frameBuf {retValue.data() + (static_cast<isize>(x) * frameSize * frameSize * TEXTURE_BPP)};
 
-                f64 const v {(0.5 - ((y + 0.5) / frameSize)) * extent};
+                f64 const v {(1.0 - ((y + 0.5) / frameSize)) * maxExtent};
                 for (i32 px {basis.PxMin}; px <= basis.PxMax; ++px) {
-                    f64 const u {(((px + 0.5) / frameSize) - 0.5) * extent};
+                    f64 const u {(((px + 0.5) / frameSize) - 0.5) * maxExtent};
 
                     vec3_d const rayOrigin {
-                        .X = centerLocal.X + (basis.CamDir.X * cameraDist) + (basis.Right.X * u) + (up.X * v),
-                        .Y = centerLocal.Y + (basis.CamDir.Y * cameraDist) + (basis.Right.Y * u) + (up.Y * v),
-                        .Z = centerLocal.Z + (basis.CamDir.Z * cameraDist) + (basis.Right.Z * u) + (up.Z * v),
+                        .X = centerLocal.X + (basis.CamDir.X * cameraDist) + (basis.Right.X * u),
+                        .Y = centerLocal.Y + (basis.CamDir.Y * cameraDist) + (basis.Right.Y * u),
+                        .Z = v,
                     };
 
                     auto const hit {raycast(rayOrigin, basis.RayDir, maxT)};

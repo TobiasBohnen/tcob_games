@@ -37,6 +37,10 @@ void texture_cache::load_vox(i32 idx, string const& file)
     }};
 
     string const outFile {"cache/" + io::get_filename(file) + ".blob"};
+    // PLACEHOLDER START
+    io::delete_file(outFile);
+    // PLACEHOLDER END
+
     string const resFile {"res/cache/" + io::get_filename(file) + ".blob"};
     if (!checkCache(outFile) && !checkCache(resFile)) {
         io::delete_file(outFile);
@@ -47,6 +51,11 @@ void texture_cache::load_vox(i32 idx, string const& file)
 
         auto const voxels {load_vox_file(file)};
         auto       facings {voxels->bake_facings(VOXEL_SIZE, -90, NUM_FACINGS)};
+
+        // PLACEHOLDER START
+        std::ignore = gfx::image::Create({VOXEL_SIZE, VOXEL_SIZE * NUM_FACINGS}, gfx::image::format::RGB, facings).save("test.png");
+        // PLACEHOLDER END
+
         str.write_filtered(std::as_bytes(std::span {facings}), io::zlib_filter {});
         inFile = outFile;
     }
@@ -108,7 +117,7 @@ void texture_cache::load()
     load_image(handTexture, 0, "res/hand.png");
 
     // VOXELS
-    load_vox(sprite1Texture, "res/ball1.vox");
+    load_vox(sprite1Texture, "res/chr_knight.vox");
 
     // PLACEHOLDER END
 }
