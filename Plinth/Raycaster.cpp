@@ -40,10 +40,11 @@ static auto shade_from_side(hit_side side) -> f64
 
 static void set_pixel(u32* dst, i32 dstIdx, u8 const* src, i32 srcIdx, f64 darken)
 {
-    u8 const r {static_cast<u8>(std::min(src[srcIdx + 0] * darken, 255.0))};
-    u8 const g {static_cast<u8>(std::min(src[srcIdx + 1] * darken, 255.0))};
-    u8 const b {static_cast<u8>(std::min(src[srcIdx + 2] * darken, 255.0))};
-    dst[dstIdx] = (0xFF000000u) | (static_cast<u32>(b) << 16) | (static_cast<u32>(g) << 8) | static_cast<u32>(r);
+    i32 const d {static_cast<i32>(darken * 256.0)};
+    i32 const r {std::min((src[srcIdx + 0] * d) >> 8, 255)};
+    i32 const g {std::min((src[srcIdx + 1] * d) >> 8, 255)};
+    i32 const b {std::min((src[srcIdx + 2] * d) >> 8, 255)};
+    dst[dstIdx] = 0xFF000000u | (static_cast<u32>(b) << 16) | (static_cast<u32>(g) << 8) | static_cast<u32>(r);
 }
 
 raycaster::raycaster(texture_cache& cache, size_i screenSize, f64 projPlaneDist)

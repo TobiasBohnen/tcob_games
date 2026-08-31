@@ -348,7 +348,7 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
     case input::scan_code::R: {
         locate_service<gfx::render_system>().statistics().reset();
     } break;
-    case input::scan_code::F12: {
+    case input::scan_code::F11: {
         auto const fileName {[]() {
             for (i32 i {0};; ++i) {
                 auto const name {std::format("screen{:02}.png", i)};

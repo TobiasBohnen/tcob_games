@@ -33,7 +33,12 @@ constexpr std::array<char, 3> SIGNATURE {'V', 'O', 'X'};
 
 auto load_vox_bytes(io::istream& stream) -> std::optional<voxel_grid>
 {
-    std::vector<voxel> result;
+    struct raw_voxel {
+        u8 X, Y, Z;
+        u8 ColorIndex;
+    };
+    std::vector<raw_voxel> rawVoxels;
+
     if (stream.size_in_bytes() < 20) { return std::nullopt; }
     std::array<char, 3> magic {};
     stream.read_to<char>(magic);
@@ -65,14 +70,14 @@ auto load_vox_bytes(io::istream& stream) -> std::optional<voxel_grid>
             haveSize = true;
         } else if (id == "XYZI" && haveSize && !haveXyzi) {
             u32 const numVoxels {stream.read<u32>()};
-            result.reserve(numVoxels);
+            rawVoxels.reserve(numVoxels);
             for (u32 i {0}; i < numVoxels; ++i) {
                 u8 const x {stream.read<u8>()};
                 u8 const y {stream.read<u8>()};
                 u8 const z {stream.read<u8>()};
                 u8 const colorIndex {stream.read<u8>()};
                 if (x >= size.X || y >= size.Y || z >= size.Z) { continue; }
-                result.push_back(voxel {.Position = {.X = x, .Y = y, .Z = z}, .Color = color::FromABGR(palette[colorIndex])});
+                rawVoxels.push_back({.X = x, .Y = y, .Z = z, .ColorIndex = colorIndex});
             }
             haveXyzi = true;
         } else if (id == "RGBA") {
@@ -85,6 +90,13 @@ auto load_vox_bytes(io::istream& stream) -> std::optional<voxel_grid>
     }
 
     if (!haveSize || !haveXyzi) { return std::nullopt; }
+
+    std::vector<voxel> result;
+    result.reserve(rawVoxels.size());
+    for (auto const& rv : rawVoxels) {
+        result.push_back(voxel {.Position = {.X = rv.X, .Y = rv.Y, .Z = rv.Z}, .Color = color::FromABGR(palette[rv.ColorIndex])});
+    }
+
     return voxel_grid {result};
 }
 
