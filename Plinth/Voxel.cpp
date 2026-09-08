@@ -108,22 +108,6 @@ auto load_vox_file(string const& path) -> std::optional<voxel_grid>
 
 ////////////////////////////////////////////////////////////
 
-auto voxel_grid::flat_index(i32 x, i32 y, i32 z) const -> isize
-{
-    return x + (static_cast<isize>(y) * Size.X) + (static_cast<isize>(z) * Size.X * Size.Y);
-}
-
-auto voxel_grid::occupied(i32 x, i32 y, i32 z) const -> bool
-{
-    if (x < 0 || y < 0 || z < 0 || x >= Size.X || y >= Size.Y || z >= Size.Z) { return false; }
-    return _occupied[static_cast<usize>(flat_index(x, y, z))];
-}
-
-auto voxel_grid::color_at(i32 x, i32 y, i32 z) const -> color
-{
-    return _cells[static_cast<usize>(flat_index(x, y, z))];
-}
-
 voxel_grid::voxel_grid(std::vector<voxel> const& voxels)
 {
     for (voxel const& v : voxels) {
@@ -144,6 +128,22 @@ voxel_grid::voxel_grid(std::vector<voxel> const& voxels)
         _cells[static_cast<usize>(idx)]    = v.Color;
         _occupied[static_cast<usize>(idx)] = true;
     }
+}
+
+auto voxel_grid::flat_index(i32 x, i32 y, i32 z) const -> isize
+{
+    return x + (static_cast<isize>(y) * Size.X) + (static_cast<isize>(z) * Size.X * Size.Y);
+}
+
+auto voxel_grid::occupied(i32 x, i32 y, i32 z) const -> bool
+{
+    if (x < 0 || y < 0 || z < 0 || x >= Size.X || y >= Size.Y || z >= Size.Z) { return false; }
+    return _occupied[static_cast<usize>(flat_index(x, y, z))];
+}
+
+auto voxel_grid::color_at(i32 x, i32 y, i32 z) const -> color
+{
+    return _cells[static_cast<usize>(flat_index(x, y, z))];
 }
 
 auto voxel_grid::raycast(vec3_d const& origin, vec3_d const& dir, f64 maxT) const -> voxel_ray_hit
@@ -276,189 +276,6 @@ auto voxel_grid::corner_ao(vec3_i layer, i32 faceAxis, i32 cu, i32 cv) const -> 
 
     if (side1 && side2) { return 0; }
     return 3 - (static_cast<i32>(side1) + static_cast<i32>(side2) + static_cast<i32>(corner));
-}
-
-struct facing_basis {
-    vec3_d CamDir {};
-    vec3_d Right {};
-    vec3_d RayDir {};
-    i32    PxMin {0};
-    i32    PxMax {0};
-    i32    PyMin {0};
-    i32    PyMax {0};
-};
-
-static auto compute_facing_basis(vec3_d camDir, vec3_d right, vec3_i size, vec3_d centerLocal,
-                                 f64 maxExtent, i32 frameSize) -> facing_basis
-{
-    facing_basis fb {.CamDir = camDir, .Right = right, .RayDir = {.X = -camDir.X, .Y = -camDir.Y, .Z = -camDir.Z}};
-
-    f64 uMin {std::numeric_limits<f64>::infinity()};
-    f64 uMax {-std::numeric_limits<f64>::infinity()};
-    f64 vMin {std::numeric_limits<f64>::infinity()};
-    f64 vMax {-std::numeric_limits<f64>::infinity()};
-
-    for (i32 cx {0}; cx <= 1; ++cx) {
-        for (i32 cy {0}; cy <= 1; ++cy) {
-            for (i32 cz {0}; cz <= 1; ++cz) {
-                vec3_d const corner {
-                    .X = (cx ? static_cast<f64>(size.X) : 0.0) - centerLocal.X,
-                    .Y = (cy ? static_cast<f64>(size.Y) : 0.0) - centerLocal.Y,
-                    .Z = (cz ? static_cast<f64>(size.Z) : 0.0),
-                };
-                f64 const u {(corner.X * right.X) + (corner.Y * right.Y) + (corner.Z * right.Z)};
-                f64 const v {corner.Z};
-                uMin = std::min(uMin, u);
-                uMax = std::max(uMax, u);
-                vMin = std::min(vMin, v);
-                vMax = std::max(vMax, v);
-            }
-        }
-    }
-
-    auto const u_to_px {[&](f64 u) { return static_cast<i32>((frameSize * ((u / maxExtent) + 0.5)) - 0.5); }};
-    auto const v_to_py {[&](f64 v) { return static_cast<i32>((frameSize * (1.0 - (v / maxExtent))) - 0.5); }};
-
-    fb.PxMin = std::clamp(u_to_px(uMin) - 1, 0, frameSize - 1);
-    fb.PxMax = std::clamp(u_to_px(uMax) + 1, 0, frameSize - 1);
-    fb.PyMin = std::clamp(v_to_py(vMax) - 1, 0, frameSize - 1);
-    fb.PyMax = std::clamp(v_to_py(vMin) + 1, 0, frameSize - 1);
-
-    return fb;
-}
-
-auto voxel_grid::bake_facings(i32 frameSize, f64 frontFacingDegrees, i32 numFacings, bake_lighting const& lighting) const -> std::vector<u8>
-{
-    static auto light_from_front {[](f64 frontFacingDegrees, f64 azimuthOffsetDeg, f64 elevationDeg) -> vec3_d {
-        f64 const azimuthRad {(frontFacingDegrees + azimuthOffsetDeg) * (TAU / 360.0)};
-        f64 const elevRad {elevationDeg * (TAU / 360.0)};
-        return vec3_d {
-            .X = std::cos(azimuthRad) * std::cos(elevRad),
-            .Y = std::sin(azimuthRad) * std::cos(elevRad),
-            .Z = std::sin(elevRad),
-        }
-            .normalized();
-    }};
-
-    static auto face_normal {[](i32 axis, i32 sign) -> vec3_d {
-        vec3_d    n {};
-        f64 const s {static_cast<f64>(sign)};
-        switch (axis) {
-        case 0:  n.X = s; break;
-        case 1:  n.Y = s; break;
-        default: n.Z = s; break;
-        }
-        return n;
-    }};
-
-    std::vector<u8> retValue {};
-    retValue.resize(static_cast<usize>(numFacings * frameSize * frameSize * TEXTURE_BPP));
-
-    f64 const footprintDiag {std::sqrt(static_cast<f64>((Size.X * Size.X) + (Size.Y * Size.Y)))};
-    f64 const maxExtent {std::max(footprintDiag, static_cast<f64>(Size.Z))};
-    f64 const boundingDiag {std::sqrt(static_cast<f64>((Size.X * Size.X) + (Size.Y * Size.Y) + (Size.Z * Size.Z)))};
-    f64 const cameraDist {boundingDiag + 4.0};
-    f64 const maxT {(cameraDist * 2.0) + boundingDiag};
-
-    vec3_d const centerLocal {.X = Size.X * 0.5, .Y = Size.Y * 0.5, .Z = 0.0};
-
-    vec3_d const keyLight {light_from_front(frontFacingDegrees, lighting.KeyAzimuthOffsetDeg, lighting.KeyElevationDeg)};
-    vec3_d const fillLight {light_from_front(frontFacingDegrees, lighting.FillAzimuthOffsetDeg, lighting.FillElevationDeg)};
-
-    std::vector<facing_basis> bases(static_cast<usize>(numFacings));
-    for (i32 f {0}; f < numFacings; ++f) {
-        f64 const thetaDeg {frontFacingDegrees + (static_cast<f64>(f) * (360.0 / numFacings))};
-        f64 const theta {thetaDeg * (TAU / 360.0)};
-
-        vec3_d const camDir {.X = std::cos(theta), .Y = std::sin(theta), .Z = 0.0};
-        vec3_d const right {.X = -std::sin(theta), .Y = std::cos(theta), .Z = 0.0};
-        bases[static_cast<usize>(f)] = compute_facing_basis(camDir, right, Size, centerLocal, maxExtent, frameSize);
-    }
-
-    for (isize i {0}; i < static_cast<isize>(retValue.size()); i += TEXTURE_BPP) {
-        retValue[static_cast<usize>(i) + 0] = 0x98;
-        retValue[static_cast<usize>(i) + 1] = 0x00;
-        retValue[static_cast<usize>(i) + 2] = 0x88;
-    }
-
-    isize const totalRows {static_cast<isize>(numFacings) * frameSize};
-
-    locate_service<task_manager>().run_parallel(
-        [&](par_task const& ctx) {
-            for (isize row {static_cast<isize>(ctx.Start)}; row < static_cast<isize>(ctx.End); ++row) {
-                i32 const x {static_cast<i32>(row / frameSize)};
-                i32 const y {static_cast<i32>(row % frameSize)};
-
-                auto const& basis {bases[static_cast<usize>(x)]};
-                if (y < basis.PyMin || y > basis.PyMax) { continue; }
-
-                auto* frameBuf {retValue.data() + (static_cast<isize>(x) * frameSize * frameSize * TEXTURE_BPP)};
-
-                f64 const v {(1.0 - ((y + 0.5) / frameSize)) * maxExtent};
-                for (i32 px {basis.PxMin}; px <= basis.PxMax; ++px) {
-                    f64 const u {(((px + 0.5) / frameSize) - 0.5) * maxExtent};
-
-                    vec3_d const rayOrigin {
-                        .X = centerLocal.X + (basis.CamDir.X * cameraDist) + (basis.Right.X * u),
-                        .Y = centerLocal.Y + (basis.CamDir.Y * cameraDist) + (basis.Right.Y * u),
-                        .Z = v,
-                    };
-
-                    auto const hit {raycast(rayOrigin, basis.RayDir, maxT)};
-
-                    i32 const idx {((y * frameSize) + px) * TEXTURE_BPP};
-                    if (!hit.Hit) { continue; }
-
-                    vec3_d const normal {face_normal(hit.FaceAxis, hit.FaceSign)};
-                    f64 const    keyTerm {lighting.KeyDiffuse * std::max(0.0, normal.dot(keyLight))};
-                    f64 const    fillTerm {lighting.FillDiffuse * std::max(0.0, normal.dot(fillLight))};
-                    f64 const    ambientTerm {lighting.AmbientGround + ((lighting.AmbientSky - lighting.AmbientGround) * ((normal.Z * 0.5) + 0.5))};
-                    f64 const    heightFactor {static_cast<f64>(hit.Cell.Z) / static_cast<f64>(std::max(1, Size.Z - 1))};
-                    f64 const    heightMultiplier {1.0 - lighting.HeightBandingStrength + (lighting.HeightBandingStrength * heightFactor)};
-
-                    vec3_i const layer {
-                        .X = hit.Cell.X + (hit.FaceAxis == 0 ? hit.FaceSign : 0),
-                        .Y = hit.Cell.Y + (hit.FaceAxis == 1 ? hit.FaceSign : 0),
-                        .Z = hit.Cell.Z + (hit.FaceAxis == 2 ? hit.FaceSign : 0),
-                    };
-                    i32 const ao00 {corner_ao(layer, hit.FaceAxis, -1, -1)};
-                    i32 const ao10 {corner_ao(layer, hit.FaceAxis, +1, -1)};
-                    i32 const ao01 {corner_ao(layer, hit.FaceAxis, -1, +1)};
-                    i32 const ao11 {corner_ao(layer, hit.FaceAxis, +1, +1)};
-
-                    vec3_d const hitPos {rayOrigin + (basis.RayDir * hit.T)};
-                    f64          fu {}, fv {};
-                    switch (hit.FaceAxis) {
-                    case 0:
-                        fu = hitPos.Y - hit.Cell.Y;
-                        fv = hitPos.Z - hit.Cell.Z;
-                        break;
-                    case 1:
-                        fu = hitPos.X - hit.Cell.X;
-                        fv = hitPos.Z - hit.Cell.Z;
-                        break;
-                    default:
-                        fu = hitPos.X - hit.Cell.X;
-                        fv = hitPos.Y - hit.Cell.Y;
-                        break;
-                    }
-                    fu = std::clamp(fu, 0.0, 1.0);
-                    fv = std::clamp(fv, 0.0, 1.0);
-
-                    f64 const aoInterp {(ao00 * (1.0 - fu) * (1.0 - fv)) + (ao10 * fu * (1.0 - fv)) + (ao01 * (1.0 - fu) * fv) + (ao11 * fu * fv)};
-                    f64 const aoFactor {1.0 - (lighting.AoStrength * (1.0 - (aoInterp / 3.0)))};
-
-                    f64 const shade {std::clamp((ambientTerm + keyTerm + fillTerm) * aoFactor * heightMultiplier, 0.0, 1.0)};
-
-                    frameBuf[idx + 0] = static_cast<u8>(std::min(255.0, hit.Color.R * shade));
-                    frameBuf[idx + 1] = static_cast<u8>(std::min(255.0, hit.Color.G * shade));
-                    frameBuf[idx + 2] = static_cast<u8>(std::min(255.0, hit.Color.B * shade));
-                }
-            }
-        },
-        static_cast<i32>(totalRows));
-
-    return retValue;
 }
 
 ////////////////////////////////////////////////////////////

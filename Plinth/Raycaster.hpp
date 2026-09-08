@@ -23,6 +23,7 @@ private:
     void draw_floor_ceiling_column(wall_hit const& hit, level const& level, player const& player, isize x, point_d rayDir, f64 invFogDistance);
 
     void draw_sprites(level const& level, player const& player, f64 invFogDistance);
+    void draw_voxel_objects(level const& level, player const& player, f64 invFogDistance);
 
     void draw_weapon(player const& player);
     void draw_hud(player const& player);

@@ -6,14 +6,21 @@
 #pragma once
 
 #include "Common.hpp"
+#include "Voxel.hpp"
 #include "Walls.hpp"
 
-struct sprite {
-    point_d  Position;
-    size_d   Size {size_d::One}; // world-unit width/height; {1,1} = one full cell
-    i32      Texture {-1};
-    degree_f Facing {0};
-    bool     Solid {true};
+struct voxel_lighting {
+    f64 KeyAzimuthOffsetDeg {-35.0};
+    f64 KeyElevationDeg {35.0};
+    f64 KeyDiffuse {0.30};
+    f64 FillAzimuthOffsetDeg {150.0};
+    f64 FillElevationDeg {5.0};
+    f64 FillDiffuse {0.10};
+    f64 AmbientSky {0.75};
+    f64 AmbientGround {0.40};
+    f64 AoStrength {0.25};
+    f64 HeightBandingStrength {0.30};
+    f64 SunDirection {0};
 };
 
 struct level_settings {
@@ -24,13 +31,32 @@ struct level_settings {
     i32  FloorTexture {0};
     i32  CeilingTexture {0};
     bool IsSkybox {false};
+
+    voxel_lighting VoxelLighting;
+};
+
+struct sprite {
+    point_d  Position;
+    size_d   Size {size_d::One};
+    i32      Texture {-1};
+    degree_f Facing {0};
+    bool     Solid {true};
+};
+
+struct voxel_object {
+    point_d           Position {};
+    f64               BaseZ {0.0};
+    degree_d          Yaw {0.0};
+    f64               Scale {1.0};
+    voxel_grid const* Grid {nullptr};
 };
 
 class level {
 public:
     explicit level(map_t map);
 
-    std::vector<sprite> Sprites;
+    std::vector<sprite>       Sprites;
+    std::vector<voxel_object> VoxelObjects;
 
     level_settings Settings;
 

@@ -35,17 +35,13 @@ struct voxel {
     color  Color {};
 };
 
-struct bake_lighting {
-    f64 KeyAzimuthOffsetDeg {-35.0};
-    f64 KeyElevationDeg {35.0};
-    f64 KeyDiffuse {0.30};
-    f64 FillAzimuthOffsetDeg {150.0};
-    f64 FillElevationDeg {5.0};
-    f64 FillDiffuse {0.10};
-    f64 AmbientSky {0.75};
-    f64 AmbientGround {0.40};
-    f64 AoStrength {0.25};
-    f64 HeightBandingStrength {0.30};
+struct voxel_ray_hit {
+    bool   Hit {false};
+    f64    T {0.0};
+    color  Color {0, 0, 0};
+    i32    FaceAxis {0};
+    i32    FaceSign {1};
+    vec3_i Cell {};
 };
 
 class voxel_grid {
@@ -55,29 +51,19 @@ public:
     vec3_i Size {};
 
     auto occupied(i32 x, i32 y, i32 z) const -> bool;
-    auto color_at(i32 x, i32 y, i32 z) const -> color; // caller must have already checked occupied()
+    auto color_at(i32 x, i32 y, i32 z) const -> color;
 
-    auto bake_facings(i32 frameSize, f64 frontFacingDegrees, i32 numFacings, bake_lighting const& lighting = {}) const -> std::vector<u8>;
-
-private:
-    struct voxel_ray_hit {
-        bool   Hit {false};
-        f64    T {0.0};
-        color  Color {0, 0, 0};
-        i32    FaceAxis {0};
-        i32    FaceSign {1};
-        vec3_i Cell {};
-    };
-
-    auto raycast(vec3_d const& origin, vec3_d const& dir, f64 maxT) const -> voxel_ray_hit;
     auto corner_ao(vec3_i layer, i32 faceAxis, i32 cu, i32 cv) const -> i32;
 
+    auto raycast(vec3_d const& origin, vec3_d const& dir, f64 maxT) const -> voxel_ray_hit;
+
+private:
     auto flat_index(i32 x, i32 y, i32 z) const -> isize;
 
     std::vector<color> _cells;
-    std::vector<bool>  _occupied; // separate from _cells -- avoids needing a sentinel "empty" color value
+    std::vector<bool>  _occupied;
 };
 
-                                  ////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 
 auto load_vox_file(string const& path) -> std::optional<voxel_grid>;

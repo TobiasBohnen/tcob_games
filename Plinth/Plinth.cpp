@@ -200,11 +200,20 @@ Plinth::Plinth(game& game)
         return point_d {static_cast<f64>(x) + 0.5f, static_cast<f64>(y) + 0.5f};
     }};
 
-    for (i32 i {0}; i < 50; ++i) {
-        f64 scale {rng(0.3, 1.)};
-        _level->Sprites.push_back(sprite {.Position = find_empty(), .Size = {scale, scale}, .Texture = sprite1Texture, .Facing = degree_f {90.f * i}, .Solid = true});
-    }
+    static voxel_grid const testVoxelGrid {*load_vox_file("res/ball1.vox")};
 
+    for (i32 i {0}; i < 50; ++i) {
+        f64       scale {rng(0.3, 1.0)};
+        f64 const maxDim {static_cast<f64>(std::max({testVoxelGrid.Size.X, testVoxelGrid.Size.Y, testVoxelGrid.Size.Z}))};
+
+        _level->VoxelObjects.push_back(voxel_object {
+            .Position = find_empty(),
+            .BaseZ    = 0.0,
+            .Yaw      = degree_d {90.0 * i},
+            .Scale    = scale / maxDim,
+            .Grid     = &testVoxelGrid,
+        });
+    }
     _player.Position = find_empty();
     degree_d const angle {90};
     radian_d const rad {angle - degree_d {90}};

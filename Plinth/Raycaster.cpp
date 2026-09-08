@@ -7,6 +7,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
+#include <tuple>
+#include <utility>
 
 #include "Common.hpp"
 #include "Level.hpp"
@@ -40,12 +43,79 @@ static auto shade_from_side(hit_side side) -> f64
 
 static void set_pixel(u32* dst, i32 dstIdx, u8 const* src, i32 srcIdx, f64 darken)
 {
-    i32 const d {static_cast<i32>(darken * 256.0)};
-    i32 const r {std::min((src[srcIdx + 0] * d) >> 8, 255)};
-    i32 const g {std::min((src[srcIdx + 1] * d) >> 8, 255)};
-    i32 const b {std::min((src[srcIdx + 2] * d) >> 8, 255)};
-    dst[dstIdx] = 0xFF000000u | (static_cast<u32>(b) << 16) | (static_cast<u32>(g) << 8) | static_cast<u32>(r);
+    u8 const r {static_cast<u8>(std::min(src[srcIdx + 0] * darken, 255.0))};
+    u8 const g {static_cast<u8>(std::min(src[srcIdx + 1] * darken, 255.0))};
+    u8 const b {static_cast<u8>(std::min(src[srcIdx + 2] * darken, 255.0))};
+    dst[dstIdx] = (0xFF000000u) | (static_cast<u32>(b) << 16) | (static_cast<u32>(g) << 8) | static_cast<u32>(r);
 }
+
+constexpr f64 EYE_HEIGHT {0.5}; // TODO: pull from player
+
+static auto voxel_light_from_heading(f64 headingDegrees, f64 azimuthOffsetDeg, f64 elevationDeg) -> vec3_d
+{
+    f64 const azimuthRad {(headingDegrees + azimuthOffsetDeg) * (TAU / 360.0)};
+    f64 const elevRad {elevationDeg * (TAU / 360.0)};
+    return vec3_d {
+        .X = std::cos(azimuthRad) * std::cos(elevRad),
+        .Y = std::sin(azimuthRad) * std::cos(elevRad),
+        .Z = std::sin(elevRad),
+    }
+        .normalized();
+}
+
+static auto voxel_face_normal(i32 axis, i32 sign) -> vec3_d
+{
+    vec3_d    n {};
+    f64 const s {static_cast<f64>(sign)};
+    switch (axis) {
+    case 0:  n.X = s; break;
+    case 1:  n.Y = s; break;
+    default: n.Z = s; break;
+    }
+    return n;
+}
+
+static auto world_to_local(voxel_object const& obj, point_d worldXY, f64 worldZ, f64 cosYaw, f64 sinYaw) -> vec3_d
+{
+    point_d const rel {worldXY.X - obj.Position.X, worldXY.Y - obj.Position.Y};
+    f64 const     localX {((rel.X * cosYaw) + (rel.Y * sinYaw)) / obj.Scale};
+    f64 const     localY {((-rel.X * sinYaw) + (rel.Y * cosYaw)) / obj.Scale};
+    return vec3_d {
+        .X = localX + (obj.Grid->Size.X * 0.5),
+        .Y = localY + (obj.Grid->Size.Y * 0.5),
+        .Z = (worldZ - obj.BaseZ) / obj.Scale,
+    };
+}
+
+static auto local_to_world(voxel_object const& obj, vec3_d local, f64 cosYaw, f64 sinYaw) -> std::pair<point_d, f64>
+{
+    f64 const     cx {(local.X - (obj.Grid->Size.X * 0.5)) * obj.Scale};
+    f64 const     cy {(local.Y - (obj.Grid->Size.Y * 0.5)) * obj.Scale};
+    point_d const world {
+        obj.Position.X + (cx * cosYaw) - (cy * sinYaw),
+        obj.Position.Y + (cx * sinYaw) + (cy * cosYaw),
+    };
+    return {world, obj.BaseZ + (local.Z * obj.Scale)};
+}
+
+static auto project(player const& player, i32 screenWidth, i32 screenCenterY, f64 projPlaneDist, point_d worldXY, f64 worldZ) -> std::tuple<f64, f64, f64>
+{
+    f64 const     invDet {1.0 / player.Plane.cross(player.Direction)};
+    point_d const relPos {worldXY.X - player.Position.X, worldXY.Y - player.Position.Y};
+
+    f64 const transformX {invDet * relPos.cross(player.Direction)};
+    f64 const transformY {invDet * player.Plane.cross(relPos)};
+
+    if (transformY <= 1e-6) { return {0.0, 0.0, 0.0}; }
+
+    f64 const screenX {(screenWidth / 2.0) * (1.0 + (transformX / transformY))};
+    f64 const scale {projPlaneDist / transformY};
+    f64 const screenY {screenCenterY - ((worldZ - EYE_HEIGHT) * scale)};
+
+    return {screenX, screenY, transformY};
+}
+
+////////////////////////////////////////////////////////////
 
 raycaster::raycaster(texture_cache& cache, size_i screenSize, f64 projPlaneDist)
     : _cache {cache}
@@ -69,6 +139,7 @@ auto raycaster::draw(level& level, player const& player) -> u32 const*
         _screenSize.Width);
 
     draw_sprites(level, player, invFogDistance);
+    draw_voxel_objects(level, player, invFogDistance);
 
     draw_weapon(player);
     draw_hud(player);
@@ -370,6 +441,173 @@ void raycaster::draw_sprites(level const& level, player const& player, f64 invFo
                 }
             }
         }
+    }
+}
+
+void raycaster::draw_voxel_objects(level const& level, player const& player, f64 invFogDistance)
+{
+    i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
+    u32*      screenBuf {_screen.data()};
+
+    voxel_lighting const& lighting {level.Settings.VoxelLighting};
+    vec3_d const          keyLight {voxel_light_from_heading(lighting.SunDirection, lighting.KeyAzimuthOffsetDeg, lighting.KeyElevationDeg)};
+    vec3_d const          fillLight {voxel_light_from_heading(lighting.SunDirection, lighting.FillAzimuthOffsetDeg, lighting.FillElevationDeg)};
+
+    for (voxel_object const& obj : level.VoxelObjects) {
+        if (!obj.Grid) { continue; }
+
+        f64 const yawRad {obj.Yaw.Value * (TAU / 360.0)};
+        f64 const cosYaw {std::cos(yawRad)};
+        f64 const sinYaw {std::sin(yawRad)};
+
+        f64  bboxMinX {std::numeric_limits<f64>::infinity()}, bboxMaxX {-std::numeric_limits<f64>::infinity()};
+        f64  bboxMinY {std::numeric_limits<f64>::infinity()}, bboxMaxY {-std::numeric_limits<f64>::infinity()};
+        f64  bboxMinDepth {std::numeric_limits<f64>::infinity()};
+        bool anyVisible {false};
+
+        for (i32 cx {0}; cx <= 1; ++cx) {
+            for (i32 cy {0}; cy <= 1; ++cy) {
+                for (i32 cz {0}; cz <= 1; ++cz) {
+                    vec3_d const localCorner {
+                        .X = cx ? static_cast<f64>(obj.Grid->Size.X) : 0.0,
+                        .Y = cy ? static_cast<f64>(obj.Grid->Size.Y) : 0.0,
+                        .Z = cz ? static_cast<f64>(obj.Grid->Size.Z) : 0.0,
+                    };
+                    auto const [worldXY, worldZ] {local_to_world(obj, localCorner, cosYaw, sinYaw)};
+                    auto const [sx, sy, depth] {project(player, _screenSize.Width, screenCenterY, _projPlaneDist, worldXY, worldZ)};
+                    if (depth <= 0.0) { continue; } // TODO: proper near-plane clip instead of dropping the corner
+                    anyVisible   = true;
+                    bboxMinX     = std::min(bboxMinX, sx);
+                    bboxMaxX     = std::max(bboxMaxX, sx);
+                    bboxMinY     = std::min(bboxMinY, sy);
+                    bboxMaxY     = std::max(bboxMaxY, sy);
+                    bboxMinDepth = std::min(bboxMinDepth, depth);
+                }
+            }
+        }
+        if (!anyVisible) { continue; }
+
+        i32 const xStart {std::clamp(static_cast<i32>(bboxMinX), 0, _screenSize.Width)};
+        i32 const xEnd {std::clamp(static_cast<i32>(bboxMaxX) + 1, 0, _screenSize.Width)};
+        i32 const yStart {std::clamp(static_cast<i32>(bboxMinY), 0, _screenSize.Height)};
+        i32 const yEnd {std::clamp(static_cast<i32>(bboxMaxY) + 1, 0, _screenSize.Height)};
+        if (xStart >= xEnd || yStart >= yEnd) { continue; }
+
+        f64 const objWorldDiag {std::sqrt(static_cast<f64>((obj.Grid->Size.X * obj.Grid->Size.X)
+                                                           + (obj.Grid->Size.Y * obj.Grid->Size.Y)
+                                                           + (obj.Grid->Size.Z * obj.Grid->Size.Z)))
+                                * obj.Scale};
+        f64 const maxT {level.Settings.FogDistance + objWorldDiag};
+
+        vec3_d const localOrigin {world_to_local(obj, player.Position, EYE_HEIGHT, cosYaw, sinYaw)};
+
+        f64 maxWallDist {0.0};
+        for (i32 x {xStart}; x < xEnd; ++x) { maxWallDist = std::max(maxWallDist, _zBuffer[x]); }
+        if (bboxMinDepth >= maxWallDist) { continue; }
+
+        constexpr i32 MAX_VOXEL_OBJECT_PIXELS {20000};
+        i32 const     colCount {xEnd - xStart};
+        i32 const     rowCount {yEnd - yStart};
+        i32 const     bboxArea {colCount * rowCount};
+        i32 const     stride {bboxArea > MAX_VOXEL_OBJECT_PIXELS
+                                  ? static_cast<i32>(std::ceil(std::sqrt(static_cast<f64>(bboxArea) / MAX_VOXEL_OBJECT_PIXELS)))
+                                  : 1};
+        i32 const     strideCols {(colCount + stride - 1) / stride};
+
+        locate_service<task_manager>().run_parallel(
+            [&](par_task const& ctx) {
+                for (isize scol {static_cast<isize>(ctx.Start)}; scol < static_cast<isize>(ctx.End); ++scol) {
+                    i32 const x {xStart + (static_cast<i32>(scol) * stride)};
+                    if (x >= xEnd) { continue; }
+
+                    f64 const     cameraX {(2.0 * x / _screenSize.Width) - 1.0};
+                    point_d const rayDir2D {player.Direction + (player.Plane * cameraX)};
+                    i32 const     xBlockEnd {std::min(x + stride, xEnd)};
+
+                    for (i32 y {yStart}; y < yEnd; y += stride) {
+                        f64 const    rayDirZ {(screenCenterY - y) / _projPlaneDist};
+                        vec3_d const rayDir3D {vec3_d {.X = rayDir2D.X, .Y = rayDir2D.Y, .Z = rayDirZ}.normalized()};
+
+                        vec3_d const localDir {
+                            .X = ((rayDir3D.X * cosYaw) + (rayDir3D.Y * sinYaw)) / obj.Scale,
+                            .Y = ((-rayDir3D.X * sinYaw) + (rayDir3D.Y * cosYaw)) / obj.Scale,
+                            .Z = rayDir3D.Z / obj.Scale,
+                        };
+
+                        auto const hit {obj.Grid->raycast(localOrigin, localDir, maxT)};
+                        if (!hit.Hit) { continue; }
+
+                        vec3_d const localHitPos {localOrigin + (localDir * hit.T)};
+                        auto const [worldHitXY, worldHitZ] {local_to_world(obj, localHitPos, cosYaw, sinYaw)};
+                        auto const [sx, sy, depth] {project(player, _screenSize.Width, screenCenterY, _projPlaneDist, worldHitXY, worldHitZ)};
+
+                        if (depth <= 0.0) { continue; }
+
+                        vec3_d const normal {voxel_face_normal(hit.FaceAxis, hit.FaceSign)};
+                        f64 const    keyTerm {lighting.KeyDiffuse * std::max(0.0, normal.dot(keyLight))};
+                        f64 const    fillTerm {lighting.FillDiffuse * std::max(0.0, normal.dot(fillLight))};
+                        f64 const    ambientTerm {lighting.AmbientGround + ((lighting.AmbientSky - lighting.AmbientGround) * ((normal.Z * 0.5) + 0.5))};
+                        f64 const    heightFactor {static_cast<f64>(hit.Cell.Z) / static_cast<f64>(std::max(1, obj.Grid->Size.Z - 1))};
+                        f64 const    heightMultiplier {1.0 - lighting.HeightBandingStrength + (lighting.HeightBandingStrength * heightFactor)};
+
+                        vec3_i const layer {
+                            .X = hit.Cell.X + (hit.FaceAxis == 0 ? hit.FaceSign : 0),
+                            .Y = hit.Cell.Y + (hit.FaceAxis == 1 ? hit.FaceSign : 0),
+                            .Z = hit.Cell.Z + (hit.FaceAxis == 2 ? hit.FaceSign : 0),
+                        };
+                        i32 const ao00 {obj.Grid->corner_ao(layer, hit.FaceAxis, -1, -1)};
+                        i32 const ao10 {obj.Grid->corner_ao(layer, hit.FaceAxis, +1, -1)};
+                        i32 const ao01 {obj.Grid->corner_ao(layer, hit.FaceAxis, -1, +1)};
+                        i32 const ao11 {obj.Grid->corner_ao(layer, hit.FaceAxis, +1, +1)};
+
+                        f64 fu {}, fv {};
+                        switch (hit.FaceAxis) {
+                        case 0:
+                            fu = localHitPos.Y - hit.Cell.Y;
+                            fv = localHitPos.Z - hit.Cell.Z;
+                            break;
+                        case 1:
+                            fu = localHitPos.X - hit.Cell.X;
+                            fv = localHitPos.Z - hit.Cell.Z;
+                            break;
+                        default:
+                            fu = localHitPos.X - hit.Cell.X;
+                            fv = localHitPos.Y - hit.Cell.Y;
+                            break;
+                        }
+                        fu = std::clamp(fu, 0.0, 1.0);
+                        fv = std::clamp(fv, 0.0, 1.0);
+
+                        f64 const aoInterp {(ao00 * (1.0 - fu) * (1.0 - fv)) + (ao10 * fu * (1.0 - fv)) + (ao01 * (1.0 - fu) * fv) + (ao11 * fu * fv)};
+                        f64 const aoFactor {1.0 - (lighting.AoStrength * (1.0 - (aoInterp / 3.0)))};
+
+                        f64 const bakeShade {std::clamp((ambientTerm + keyTerm + fillTerm) * aoFactor * heightMultiplier, 0.0, 1.0)};
+
+                        f64 const fogFactor {std::max(1.0 - (depth * invFogDistance), level.Settings.FogMin)};
+                        f64 const cellLight {get_light(level, point_i {static_cast<i32>(obj.Position.X), static_cast<i32>(obj.Position.Y)})};
+                        f64 const shade {bakeShade * fogFactor * (level.Settings.AmbientLight + cellLight)};
+
+                        u8 const  r {static_cast<u8>(std::min(hit.Color.R * shade, 255.0))};
+                        u8 const  g {static_cast<u8>(std::min(hit.Color.G * shade, 255.0))};
+                        u8 const  b {static_cast<u8>(std::min(hit.Color.B * shade, 255.0))};
+                        u32 const packed {(0xFF000000u) | (static_cast<u32>(b) << 16) | (static_cast<u32>(g) << 8) | static_cast<u32>(r)};
+
+                        i32 const yBlockEnd {std::min(y + stride, yEnd)};
+                        for (i32 by {y}; by < yBlockEnd; ++by) {
+                            for (i32 bx {x}; bx < xBlockEnd; ++bx) {
+                                if (depth >= _zBuffer[bx]) { continue; }                   // occluded by a wall
+
+                                isize const depthIndex {bx + (static_cast<isize>(by) * _screenSize.Width)};
+                                if (depth >= _spriteDepthBuffer[depthIndex]) { continue; } // occluded by a sprite/transparent wall
+
+                                _spriteDepthBuffer[depthIndex]           = depth;
+                                screenBuf[bx + (by * _screenSize.Width)] = packed;
+                            }
+                        }
+                    }
+                }
+            },
+            strideCols);
     }
 }
 

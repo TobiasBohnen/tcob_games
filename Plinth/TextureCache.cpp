@@ -6,69 +6,11 @@
 #include "TextureCache.hpp"
 
 #include "Common.hpp"
-#include "Voxel.hpp"
-
 auto texture_cache::get_entry(i32 idx, i32 variant) const -> texture_entry const&
 {
     auto const& variants {_directory.at(idx)};
     auto const  it {variants.find(variant)};
     return it != variants.end() ? it->second : variants.at(0);
-}
-
-void texture_cache::load_vox(i32 idx, string const& file)
-{
-    usize const HEADER_SIZE {sizeof(u32) + sizeof(i32) + sizeof(i32)};
-
-    u32 const crc {io::file_hasher(file).crc32()};
-
-    string     inFile;
-    auto const checkCache {[&](string const& file) {
-        if (io::is_file(file)) {
-            io::ifstream str {file};
-            u32 const    cCrc {str.read<u32>()};
-            i32 const    cSize {str.read<i32>()};
-            i32 const    cFac {str.read<i32>()};
-
-            bool const retValue {cCrc == crc && cSize == VOXEL_SIZE && cFac == NUM_FACINGS};
-            if (retValue) { inFile = file; }
-            return retValue;
-        }
-        return false;
-    }};
-
-    string const outFile {"cache/" + io::get_filename(file) + ".blob"};
-    // PLACEHOLDER START
-    io::delete_file(outFile);
-    // PLACEHOLDER END
-
-    string const resFile {"res/cache/" + io::get_filename(file) + ".blob"};
-    if (!checkCache(outFile) && !checkCache(resFile)) {
-        io::delete_file(outFile);
-        io::ofstream str {outFile};
-        str.write<u32>(crc);
-        str.write<i32>(VOXEL_SIZE);
-        str.write<i32>(NUM_FACINGS);
-
-        auto const voxels {load_vox_file(file)};
-        auto       facings {voxels->bake_facings(VOXEL_SIZE, -90, NUM_FACINGS)};
-
-        // PLACEHOLDER START
-        std::ignore = gfx::image::Create({VOXEL_SIZE, VOXEL_SIZE * NUM_FACINGS}, gfx::image::format::RGB, facings).save("test.png");
-        // PLACEHOLDER END
-
-        str.write_filtered(std::as_bytes(std::span {facings}), io::zlib_filter {});
-        inFile = outFile;
-    }
-
-    for (i32 i {0}; i < NUM_FACINGS; ++i) {
-        _directory[idx][i].Offset = _textures.size() + (i * VOXEL_SIZE * VOXEL_SIZE * TEXTURE_BPP);
-        _directory[idx][i].Size   = {VOXEL_SIZE, VOXEL_SIZE};
-    }
-
-    io::ifstream str {inFile};
-    str.seek(HEADER_SIZE, io::seek_dir::Begin);
-    auto const bytes {str.read_filtered(str.size_in_bytes() - HEADER_SIZE, io::zlib_filter {})};
-    _textures.append_range(std::span<u8 const> {reinterpret_cast<u8 const*>(bytes.data()), bytes.size()});
 }
 
 void texture_cache::load_image(i32 idx, i32 variant, string const& file)
@@ -115,9 +57,6 @@ void texture_cache::load()
     load_image(15, 0, "res/transparent.png");
     load_image(fontTexture, 0, "res/font.png");
     load_image(handTexture, 0, "res/hand.png");
-
-    // VOXELS
-    load_vox(sprite1Texture, "res/chr_knight.vox");
 
     // PLACEHOLDER END
 }
