@@ -6,6 +6,7 @@
 #include "Raycaster.hpp"
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <limits>
 #include <tuple>
@@ -16,6 +17,8 @@
 #include "Player.hpp"
 #include "TextureCache.hpp"
 #include "Walls.hpp"
+
+constexpr f64 EYE_HEIGHT {0.5}; // TODO: pull from player
 
 static auto get_light(level const& level, point_i const& cell) -> f64
 {
@@ -49,16 +52,13 @@ static void copy_pixel(u32* dst, i32 dstIdx, u8 const* src, i32 srcIdx, f64 dark
     dst[dstIdx] = (0xFF000000u) | (static_cast<u32>(b) << 16) | (static_cast<u32>(g) << 8) | static_cast<u32>(r);
 }
 
-constexpr f64 EYE_HEIGHT {0.5}; // TODO: pull from player
-
-static auto voxel_light_from_heading(f64 headingDegrees, f64 azimuthOffsetDeg, f64 elevationDeg) -> vec3_d
+static auto voxel_light_from_heading(degree_f headingDegrees, degree_f azimuthOffset, degree_f elevation) -> vec3_d
 {
-    f64 const azimuthRad {(headingDegrees + azimuthOffsetDeg) * (TAU / 360.0)};
-    f64 const elevRad {elevationDeg * (TAU / 360.0)};
+    degree_f const azimuth {headingDegrees + azimuthOffset};
     return vec3_d {
-        .X = std::cos(azimuthRad) * std::cos(elevRad),
-        .Y = std::sin(azimuthRad) * std::cos(elevRad),
-        .Z = std::sin(elevRad),
+        .X = azimuth.cos() * elevation.cos(),
+        .Y = azimuth.sin() * elevation.cos(),
+        .Z = elevation.sin(),
     }
         .normalized();
 }
@@ -77,7 +77,7 @@ static auto voxel_face_normal(i32 axis, i32 sign) -> vec3_d
 
 static auto world_to_local(voxel_object const& obj, point_d worldXY, f64 worldZ, f64 cosYaw, f64 sinYaw) -> vec3_d
 {
-    point_d const rel {worldXY.X - obj.Position.X, worldXY.Y - obj.Position.Y};
+    point_d const rel {worldXY - obj.Position};
     f64 const     localX {((rel.X * cosYaw) + (rel.Y * sinYaw)) / obj.Scale};
     f64 const     localY {((-rel.X * sinYaw) + (rel.Y * cosYaw)) / obj.Scale};
     return vec3_d {
@@ -101,7 +101,7 @@ static auto local_to_world(voxel_object const& obj, vec3_d local, f64 cosYaw, f6
 static auto project(player const& player, i32 screenWidth, i32 screenCenterY, f64 projPlaneDist, point_d worldXY, f64 worldZ) -> std::tuple<f64, f64, f64>
 {
     f64 const     invDet {1.0 / player.Plane.cross(player.Direction)};
-    point_d const relPos {worldXY.X - player.Position.X, worldXY.Y - player.Position.Y};
+    point_d const relPos {worldXY - player.Position};
 
     f64 const transformX {invDet * relPos.cross(player.Direction)};
     f64 const transformY {invDet * player.Plane.cross(relPos)};
@@ -155,29 +155,16 @@ void raycaster::draw_columns(level& level, player const& player, f64 invFogDista
         f64 const     cameraX {(2.0 * x / _screenSize.Width) - 1.0};
         point_d const rayDir {player.Direction + (player.Plane * cameraX)};
 
-        point_i map {player.Position};
+        point_i       map {player.Position};
+        point_d const deltaDist {(rayDir.X == 0) ? 1e30 : std::abs(1 / rayDir.X),
+                                 (rayDir.Y == 0) ? 1e30 : std::abs(1 / rayDir.Y)};
 
-        point_d const deltaDist {(rayDir.X == 0) ? 1e30 : std::abs(1 / rayDir.X), (rayDir.Y == 0) ? 1e30 : std::abs(1 / rayDir.Y)};
+        point_i step {rayDir.X < 0 ? -1 : 1, rayDir.Y < 0 ? -1 : 1};
+        point_d sideDist {
+            (rayDir.X < 0) ? (player.Position.X - map.X) * deltaDist.X : (map.X + 1.0 - player.Position.X) * deltaDist.X,
+            (rayDir.Y < 0) ? (player.Position.Y - map.Y) * deltaDist.Y : (map.Y + 1.0 - player.Position.Y) * deltaDist.Y};
 
-        point_i step {};
-        point_d sideDist {};
-        if (rayDir.X < 0) {
-            step.X     = -1;
-            sideDist.X = (player.Position.X - map.X) * deltaDist.X;
-        } else {
-            step.X     = 1;
-            sideDist.X = (map.X + 1.0 - player.Position.X) * deltaDist.X;
-        }
-        if (rayDir.Y < 0) {
-            step.Y     = -1;
-            sideDist.Y = (player.Position.Y - map.Y) * deltaDist.Y;
-        } else {
-            step.Y     = 1;
-            sideDist.Y = (map.Y + 1.0 - player.Position.Y) * deltaDist.Y;
-        }
-
-        wall_hit hitResult {};
-
+        wall_hit                                    hitResult {};
         std::array<wall_hit, MAX_TRANSPARENT_WALLS> transparentHits {};
         i32                                         transparentCount {0};
 
@@ -204,7 +191,7 @@ void raycaster::draw_columns(level& level, player const& player, f64 invFogDista
             bool       side {false};
             auto const intersect {[&](auto&& c) -> wall_hit { return c.intersect({map, player.Position, rayDir, side, !side ? sideDist.X - deltaDist.X : sideDist.Y - deltaDist.Y}); }};
 
-            for (;;) {
+            while (map_t::Size.contains(map)) {
                 if (sideDist.X < sideDist.Y) {
                     sideDist.X += deltaDist.X;
                     map.X += step.X;
@@ -303,32 +290,28 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
     auto const* cellFloorTexPtr {_cache.texture(cellFloorTex, 0)};
     auto const* cellCeilTexPtr {_cache.texture(cellCeilTex, 0)};
 
-    auto const get_cell {[&](auto&& cell) {
+    auto const query_cell {[&](auto&& cell) {
         if constexpr (requires { cell.FloorTexture; }) {
             if (cell.FloorTexture != INVALID_INDEX) { cellFloorTex = cell.FloorTexture; }
         }
         if constexpr (requires { cell.CeilingTexture; }) {
             if (cell.CeilingTexture != INVALID_INDEX) { cellCeilTex = cell.CeilingTexture; }
         }
-        if constexpr (requires { cell.Light; }) {
-            cellLight = cell.Light;
-        }
+        if constexpr (requires { cell.Light; }) { cellLight = cell.Light; }
     }};
 
     u32* screenBuf {_screen.data()};
 
     auto const sample_and_draw {[&](i32 y, bool isFloor) {
-        i32 const effectiveY {isFloor ? y : (2 * screenCenterY) - y};
-        f64 const rowDist {effectiveY == screenCenterY ? std::numeric_limits<f64>::infinity()
-                                                       : _projPlaneDist / ((2.0 * effectiveY) - (2.0 * screenCenterY))};
-        f64 const weight {std::min(rowDist * invPerpWallDist, 1.0)};
-
+        i32 const     effectiveY {isFloor ? y : (2 * screenCenterY) - y};
+        f64 const     rowDist {effectiveY == screenCenterY ? std::numeric_limits<f64>::infinity()
+                                                           : _projPlaneDist / ((2.0 * effectiveY) - (2.0 * screenCenterY))};
+        f64 const     weight {std::min(rowDist * invPerpWallDist, 1.0)};
         point_d const currentFloor {(weight * floorWall.X) + ((1.0 - weight) * player.Position.X),
                                     (weight * floorWall.Y) + ((1.0 - weight) * player.Position.Y)};
+        f64 const     floorDist {(currentFloor - player.Position).length()};
 
-        point_d const delta {currentFloor.X - player.Position.X, currentFloor.Y - player.Position.Y};
-        f64 const     floorDist {std::sqrt((delta.X * delta.X) + (delta.Y * delta.Y))};
-        f64 const     fogFactor {std::max(1.0 - (floorDist * invFogDistance), level.Settings.FogMin)};
+        f64 const fogFactor {std::max(1.0 - (floorDist * invFogDistance), level.Settings.FogMin)};
 
         i32 const texelX {static_cast<i32>(currentFloor.X * WALL_SIZE.Width) & (WALL_SIZE.Width - 1)};
         i32 const texelY {static_cast<i32>(currentFloor.Y * WALL_SIZE.Height) & (WALL_SIZE.Height - 1)};
@@ -341,7 +324,7 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
             cellCeilTex   = level.Settings.CeilingTexture;
             cellLight     = 0.0;
             if (map_t::Size.contains(floorCell)) {
-                std::visit(get_cell, level.get_cell(floorCell));
+                std::visit(query_cell, level.get_cell(floorCell));
             }
             cellFloorTexPtr = _cache.texture(cellFloorTex, 0);
             cellCeilTexPtr  = _cache.texture(cellCeilTex, 0);
@@ -360,13 +343,8 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
         }
     }};
 
-    for (i32 y {floorStart}; y < _screenSize.Height; y++) {
-        sample_and_draw(y, true);
-    }
-
-    for (i32 y {0}; y < ceilingEnd; y++) {
-        sample_and_draw(y, false);
-    }
+    for (i32 y {floorStart}; y < _screenSize.Height; y++) { sample_and_draw(y, true); }
+    for (i32 y {0}; y < ceilingEnd; y++) { sample_and_draw(y, false); }
 }
 
 void raycaster::draw_sprites(level const& level, player const& player, f64 invFogDistance)
@@ -376,13 +354,12 @@ void raycaster::draw_sprites(level const& level, player const& player, f64 invFo
         auto const relativeAngle {(spriteFacing - viewAngle).as_normalized(angle_normalize::PositiveFullTurn)};
 
         constexpr f64 wedge {360.0 / NUM_FACINGS};
-        i32 const     index {static_cast<i32>((relativeAngle.Value + (wedge / 2.0)) / wedge) % NUM_FACINGS};
-
-        return index;
+        return static_cast<i32>((relativeAngle.Value + (wedge / 2.0)) / wedge) % NUM_FACINGS;
     }};
 
-    f64 const invDet {1.0 / player.Plane.cross(player.Direction)};
-    i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
+    f64 const    invDet {1.0 / player.Plane.cross(player.Direction)};
+    i32 const    screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
+    rect_i const screenRect {point_i {0, 0}, _screenSize};
 
     u32* screenBuf {_screen.data()};
     for (sprite const& spr : level.Sprites) {
@@ -397,19 +374,15 @@ void raycaster::draw_sprites(level const& level, player const& player, f64 invFo
         i32 const    fullSpriteHeight {static_cast<i32>(std::abs(scale))};
         size_i const spriteSize {static_cast<size_i>(spr.Size * std::abs(scale))};
 
-        i32 const yMinBound {0};
-        i32 const yMaxBound {_screenSize.Height - 1};
-
         i32 const spriteLeft {spriteScreenX - (spriteSize.Width / 2)};
         i32 const spriteTop {screenCenterY + (fullSpriteHeight / 2) - spriteSize.Height};
 
-        point_i const drawStart {std::max(spriteLeft, 0),
-                                 std::max(spriteTop, yMinBound)};
-        point_i const drawEnd {std::min(spriteLeft + spriteSize.Width, _screenSize.Width),
-                               std::min(spriteTop + spriteSize.Height, yMaxBound + 1)};
+        rect_i const spriteRect {point_i {spriteLeft, spriteTop}, spriteSize};
+        if (!screenRect.intersects(spriteRect, true)) { continue; }
 
-        if (drawStart.X >= drawEnd.X) { continue; }
-        if (drawStart.Y >= drawEnd.Y) { continue; }
+        point_i const drawStart {std::max(spriteLeft, 0), std::max(spriteTop, 0)};
+        point_i const drawEnd {std::min(spriteLeft + spriteSize.Width, _screenSize.Width),
+                               std::min(spriteTop + spriteSize.Height, _screenSize.Height)};
 
         i32 const    facing {sprite_facing_index(spr.Facing, spr.Position, player.Position)};
         auto const*  tex {_cache.texture(spr.Texture, facing)};
@@ -419,15 +392,14 @@ void raycaster::draw_sprites(level const& level, player const& player, f64 invFo
         f64 const texPosYStart {(drawStart.Y - spriteTop) * texStepY};
 
         f64 const spriteLight {get_light(level, point_i {spr.Position})};
-
         f64 const spriteFogFactor {std::max(1.0 - (transformY * invFogDistance), level.Settings.FogMin) * (level.Settings.AmbientLight + spriteLight)};
 
         for (i32 stripe {drawStart.X}; stripe < drawEnd.X; ++stripe) {
-            i32 const texX {std::clamp(((stripe - spriteLeft) * texSize.Width) / spriteSize.Width, 0, texSize.Width - 1)};
-
             if (transformY >= _zBuffer[stripe]) { continue; }
 
-            f64 texPos {texPosYStart};
+            i32 const texX {std::clamp(((stripe - spriteLeft) * texSize.Width) / spriteSize.Width, 0, texSize.Width - 1)};
+            f64       texPos {texPosYStart};
+
             for (i32 y {drawStart.Y}; y < drawEnd.Y; ++y) {
                 i32 const texY {std::clamp(static_cast<i32>(texPos), 0, texSize.Height - 1)};
                 texPos += texStepY;
@@ -447,18 +419,18 @@ void raycaster::draw_sprites(level const& level, player const& player, f64 invFo
 
 void raycaster::draw_voxel_objects(level const& level, player const& player, f64 invFogDistance)
 {
-    i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
-    u32*      screenBuf {_screen.data()};
+    i32 const    screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
+    rect_i const screenRect {point_i {0, 0}, _screenSize};
+    u32*         screenBuf {_screen.data()};
 
-    vec3_d const keyLight {voxel_light_from_heading(level.Settings.SunDirection, level.Settings.KeyAzimuthOffsetDeg, level.Settings.KeyElevationDeg)};
-    vec3_d const fillLight {voxel_light_from_heading(level.Settings.SunDirection, level.Settings.FillAzimuthOffsetDeg, level.Settings.FillElevationDeg)};
+    vec3_d const keyLight {voxel_light_from_heading(level.Settings.SunDirection, level.Settings.KeyAzimuthOffset, level.Settings.KeyElevation)};
+    vec3_d const fillLight {voxel_light_from_heading(level.Settings.SunDirection, level.Settings.FillAzimuthOffset, level.Settings.FillElevation)};
 
     for (voxel_object const& obj : level.VoxelObjects) {
         if (!obj.Grid) { continue; }
 
-        f64 const yawRad {obj.Yaw.Value * (TAU / 360.0)};
-        f64 const cosYaw {std::cos(yawRad)};
-        f64 const sinYaw {std::sin(yawRad)};
+        f64 const cosYaw {obj.Yaw.cos()};
+        f64 const sinYaw {obj.Yaw.sin()};
 
         f64  bboxMinX {std::numeric_limits<f64>::infinity()}, bboxMaxX {-std::numeric_limits<f64>::infinity()};
         f64  bboxMinY {std::numeric_limits<f64>::infinity()}, bboxMaxY {-std::numeric_limits<f64>::infinity()};
@@ -468,11 +440,9 @@ void raycaster::draw_voxel_objects(level const& level, player const& player, f64
         for (i32 cx {0}; cx <= 1; ++cx) {
             for (i32 cy {0}; cy <= 1; ++cy) {
                 for (i32 cz {0}; cz <= 1; ++cz) {
-                    vec3_d const localCorner {
-                        .X = cx ? static_cast<f64>(obj.Grid->Size.X) : 0.0,
-                        .Y = cy ? static_cast<f64>(obj.Grid->Size.Y) : 0.0,
-                        .Z = cz ? static_cast<f64>(obj.Grid->Size.Z) : 0.0,
-                    };
+                    vec3_d const localCorner {.X = cx ? static_cast<f64>(obj.Grid->Size.X) : 0.0,
+                                              .Y = cy ? static_cast<f64>(obj.Grid->Size.Y) : 0.0,
+                                              .Z = cz ? static_cast<f64>(obj.Grid->Size.Z) : 0.0};
                     auto const [worldXY, worldZ] {local_to_world(obj, localCorner, cosYaw, sinYaw)};
                     auto const [sx, sy, depth] {project(player, _screenSize.Width, screenCenterY, _projPlaneDist, worldXY, worldZ)};
                     if (depth <= 0.0) { continue; } // TODO: proper near-plane clip instead of dropping the corner
@@ -487,11 +457,14 @@ void raycaster::draw_voxel_objects(level const& level, player const& player, f64
         }
         if (!anyVisible) { continue; }
 
-        i32 const xStart {std::clamp(static_cast<i32>(bboxMinX), 0, _screenSize.Width)};
-        i32 const xEnd {std::clamp(static_cast<i32>(bboxMaxX) + 1, 0, _screenSize.Width)};
-        i32 const yStart {std::clamp(static_cast<i32>(bboxMinY), 0, _screenSize.Height)};
-        i32 const yEnd {std::clamp(static_cast<i32>(bboxMaxY) + 1, 0, _screenSize.Height)};
-        if (xStart >= xEnd || yStart >= yEnd) { continue; }
+        rect_i const bboxRect {point_i {static_cast<i32>(bboxMinX), static_cast<i32>(bboxMinY)},
+                               size_i {static_cast<i32>(bboxMaxX - bboxMinX) + 1, static_cast<i32>(bboxMaxY - bboxMinY) + 1}};
+        if (!screenRect.intersects(bboxRect, true)) { continue; }
+
+        i32 const xStart {std::clamp(bboxRect.Position.X, 0, _screenSize.Width)};
+        i32 const xEnd {std::clamp(bboxRect.Position.X + bboxRect.Size.Width, 0, _screenSize.Width)};
+        i32 const yStart {std::clamp(bboxRect.Position.Y, 0, _screenSize.Height)};
+        i32 const yEnd {std::clamp(bboxRect.Position.Y + bboxRect.Size.Height, 0, _screenSize.Height)};
 
         f64 const objWorldDiag {std::sqrt(static_cast<f64>((obj.Grid->Size.X * obj.Grid->Size.X)
                                                            + (obj.Grid->Size.Y * obj.Grid->Size.Y)
@@ -529,11 +502,9 @@ void raycaster::draw_voxel_objects(level const& level, player const& player, f64
                         f64 const    rayDirZ {(screenCenterY - y) / _projPlaneDist};
                         vec3_d const rayDir3D {vec3_d {.X = rayDir2D.X, .Y = rayDir2D.Y, .Z = rayDirZ}.normalized()};
 
-                        vec3_d const localDir {
-                            .X = ((rayDir3D.X * cosYaw) + (rayDir3D.Y * sinYaw)) / obj.Scale,
-                            .Y = ((-rayDir3D.X * sinYaw) + (rayDir3D.Y * cosYaw)) / obj.Scale,
-                            .Z = rayDir3D.Z / obj.Scale,
-                        };
+                        vec3_d const localDir {.X = ((rayDir3D.X * cosYaw) + (rayDir3D.Y * sinYaw)) / obj.Scale,
+                                               .Y = ((-rayDir3D.X * sinYaw) + (rayDir3D.Y * cosYaw)) / obj.Scale,
+                                               .Z = rayDir3D.Z / obj.Scale};
 
                         auto const hit {obj.Grid->raycast(localOrigin, localDir, maxT)};
                         if (!hit.Hit) { continue; }
@@ -551,15 +522,13 @@ void raycaster::draw_voxel_objects(level const& level, player const& player, f64
                         f64 const    heightFactor {static_cast<f64>(hit.Cell.Z) / static_cast<f64>(std::max(1, obj.Grid->Size.Z - 1))};
                         f64 const    heightMultiplier {1.0 - level.Settings.HeightBandingStrength + (level.Settings.HeightBandingStrength * heightFactor)};
 
-                        vec3_i const layer {
-                            .X = hit.Cell.X + (hit.FaceAxis == 0 ? hit.FaceSign : 0),
-                            .Y = hit.Cell.Y + (hit.FaceAxis == 1 ? hit.FaceSign : 0),
-                            .Z = hit.Cell.Z + (hit.FaceAxis == 2 ? hit.FaceSign : 0),
-                        };
-                        i32 const ao00 {obj.Grid->corner_ao(layer, hit.FaceAxis, -1, -1)};
-                        i32 const ao10 {obj.Grid->corner_ao(layer, hit.FaceAxis, +1, -1)};
-                        i32 const ao01 {obj.Grid->corner_ao(layer, hit.FaceAxis, -1, +1)};
-                        i32 const ao11 {obj.Grid->corner_ao(layer, hit.FaceAxis, +1, +1)};
+                        vec3_i const layer {.X = hit.Cell.X + (hit.FaceAxis == 0 ? hit.FaceSign : 0),
+                                            .Y = hit.Cell.Y + (hit.FaceAxis == 1 ? hit.FaceSign : 0),
+                                            .Z = hit.Cell.Z + (hit.FaceAxis == 2 ? hit.FaceSign : 0)};
+                        i32 const    ao00 {obj.Grid->corner_ao(layer, hit.FaceAxis, -1, -1)};
+                        i32 const    ao10 {obj.Grid->corner_ao(layer, hit.FaceAxis, +1, -1)};
+                        i32 const    ao01 {obj.Grid->corner_ao(layer, hit.FaceAxis, -1, +1)};
+                        i32 const    ao11 {obj.Grid->corner_ao(layer, hit.FaceAxis, +1, +1)};
 
                         f64 fu {}, fv {};
                         switch (hit.FaceAxis) {
@@ -617,32 +586,29 @@ void raycaster::draw_weapon(player const& player)
     auto const  texSize {_cache.texture_size(handTexture, 0)};
     u32*        screenBuf {_screen.data()};
 
-    f64 const scale {_screenSize.Height / WEAPON_REFERENCE_HEIGHT};
-
-    size_i const drawSize {size_f {texSize} * scale};
-
-    i32 const bobOffsetY {static_cast<i32>(player.BobAmount * WEAPON_BOB_MULTIPLIER)};
-
+    f64 const     scale {_screenSize.Height / WEAPON_REFERENCE_HEIGHT};
+    size_i const  drawSize {size_f {texSize} * scale};
+    i32 const     bobOffsetY {static_cast<i32>(player.BobAmount * WEAPON_BOB_MULTIPLIER)};
     point_i const offset {static_cast<i32>((_screenSize.Width - drawSize.Width) * 0.75),
                           static_cast<i32>(_screenSize.Height - (drawSize.Height * 0.75)) + bobOffsetY};
 
     for (i32 y {0}; y < drawSize.Height; ++y) {
+        i32 const screenY {y + offset.Y};
         i32 const texY {std::min(texSize.Height - 1, static_cast<i32>(y / scale))};
         for (i32 x {0}; x < drawSize.Width; ++x) {
+            i32 const screenX {x + offset.X};
+            if (!_screenSize.contains({screenX, screenY})) { continue; }
+
             i32 const texX {std::min(texSize.Width - 1, static_cast<i32>(x / scale))};
             i32 const texOffset {(texX + (texY * texSize.Width)) * TEXTURE_BPP};
             if (is_magenta(tex, texOffset)) { continue; }
-
-            i32 const screenX {x + offset.X};
-            i32 const screenY {y + offset.Y};
-            if (screenX < 0 || screenX >= _screenSize.Width || screenY < 0 || screenY >= _screenSize.Height) { continue; }
 
             copy_pixel(screenBuf, screenX + (screenY * _screenSize.Width), tex, texOffset, 1.0);
         }
     }
 }
 
-void raycaster::draw_hud(player const& player)
+void raycaster::draw_hud(player const&)
 {
 }
 
@@ -657,30 +623,28 @@ void raycaster::draw_message(level const& level)
     u32*        screenBuf {_screen.data()};
 
     point_i const offset {5, 5};
+    rect_i const  screenRect {point_i {0, 0}, _screenSize};
 
     for (i32 i {0}; i < std::ssize(msg); ++i) {
         char const c {msg[i]};
-        if (c == ' ') { continue; }
+        if (std::isspace(static_cast<unsigned char>(c))) { continue; }
 
         i32 index {0};
-        if (c >= '0' && c <= '9') {
+        if (std::isdigit(static_cast<unsigned char>(c))) {
             index = c - '0';
-        } else if (c >= 'A' && c <= 'Z') {
-            index = 10 + (c - 'A');
-        } else if (c >= 'a' && c <= 'z') {
-            index = 10 + (c - 'a');
+        } else if (std::isalpha(static_cast<unsigned char>(c))) {
+            index = 10 + (std::tolower(static_cast<unsigned char>(c)) - 'a');
         }
 
         for (i32 y {0}; y < charSize; ++y) {
-            i32 const texY {y};
+            i32 const screenY {y + offset.Y};
             for (i32 x {0}; x < charSize; ++x) {
-                i32 const texX {static_cast<i32>(index * charSize) + x};
-                i32 const texOffset {(texX + (texY * texSize.Width)) * TEXTURE_BPP};
-                if (is_magenta(tex, texOffset)) { continue; }
-
                 i32 const screenX {x + offset.X + (i * (charSize + 1))};
-                i32 const screenY {y + offset.Y};
-                if (screenX < 0 || screenX >= _screenSize.Width || screenY < 0 || screenY >= _screenSize.Height) { continue; }
+                if (!screenRect.contains(point_i {screenX, screenY}, false)) { continue; }
+
+                i32 const texX {static_cast<i32>(index * charSize) + x};
+                i32 const texOffset {(texX + (y * texSize.Width)) * TEXTURE_BPP};
+                if (is_magenta(tex, texOffset)) { continue; }
 
                 copy_pixel(screenBuf, screenX + (screenY * _screenSize.Width), tex, texOffset, 1.0);
             }

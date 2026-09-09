@@ -19,17 +19,17 @@ struct level_settings {
     bool IsSkybox {false};
 
     // voxel
-    f64 KeyAzimuthOffsetDeg {-35.0};
-    f64 KeyElevationDeg {35.0};
-    f64 KeyDiffuse {0.30};
-    f64 FillAzimuthOffsetDeg {150.0};
-    f64 FillElevationDeg {5.0};
-    f64 FillDiffuse {0.10};
-    f64 AmbientSky {0.75};
-    f64 AmbientGround {0.40};
-    f64 AmbientOcclusionStrength {0.25};
-    f64 HeightBandingStrength {0.30};
-    f64 SunDirection {0};
+    degree_f KeyAzimuthOffset {-35.0};
+    degree_f KeyElevation {35.0};
+    f64      KeyDiffuse {0.30};
+    degree_f FillAzimuthOffset {150.0};
+    degree_f FillElevation {5.0};
+    f64      FillDiffuse {0.10};
+    f64      AmbientSky {0.75};
+    f64      AmbientGround {0.40};
+    f64      AmbientOcclusionStrength {0.25};
+    f64      HeightBandingStrength {0.30};
+    degree_f SunDirection {0};
 };
 
 struct sprite {
