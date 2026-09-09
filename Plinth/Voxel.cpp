@@ -31,81 +31,6 @@ constexpr std::array<u32, 256> kDefaultPalette {
 
 constexpr std::array<char, 3> SIGNATURE {'V', 'O', 'X'};
 
-auto load_vox_bytes(io::istream& stream) -> std::optional<voxel_grid>
-{
-    struct raw_voxel {
-        u8 X, Y, Z;
-        u8 ColorIndex;
-    };
-    std::vector<raw_voxel> rawVoxels;
-
-    if (stream.size_in_bytes() < 20) { return std::nullopt; }
-    std::array<char, 3> magic {};
-    stream.read_to<char>(magic);
-    if (magic != SIGNATURE) { return std::nullopt; }
-
-    stream.seek(8, io::seek_dir::Begin);
-
-    std::array<u32, 256> palette {kDefaultPalette};
-    bool                 haveSize {false};
-    bool                 haveXyzi {false};
-    vec3_i               size {};
-
-    while (!stream.is_eof()) {
-        string id {stream.read_string(4)};
-
-        u32 const   contentSize {stream.read<u32>()};
-        u32 const   childrenSize {stream.read<u32>()};
-        isize const chunkEnd {stream.tell() + contentSize};
-
-        if (id == "MAIN") {
-            stream.seek(chunkEnd, io::seek_dir::Begin);
-            continue;
-        }
-
-        if (id == "SIZE") {
-            size.X   = stream.read<i32>();
-            size.Y   = stream.read<i32>();
-            size.Z   = stream.read<i32>();
-            haveSize = true;
-        } else if (id == "XYZI" && haveSize && !haveXyzi) {
-            u32 const numVoxels {stream.read<u32>()};
-            rawVoxels.reserve(numVoxels);
-            for (u32 i {0}; i < numVoxels; ++i) {
-                u8 const x {stream.read<u8>()};
-                u8 const y {stream.read<u8>()};
-                u8 const z {stream.read<u8>()};
-                u8 const colorIndex {stream.read<u8>()};
-                if (x >= size.X || y >= size.Y || z >= size.Z) { continue; }
-                rawVoxels.push_back({.X = x, .Y = y, .Z = z, .ColorIndex = colorIndex});
-            }
-            haveXyzi = true;
-        } else if (id == "RGBA") {
-            for (i32 i {0}; i < 255; ++i) {
-                palette[i + 1] = stream.read<u32>();
-            }
-        }
-
-        stream.seek(chunkEnd + childrenSize, io::seek_dir::Begin);
-    }
-
-    if (!haveSize || !haveXyzi) { return std::nullopt; }
-
-    std::vector<voxel> result;
-    result.reserve(rawVoxels.size());
-    for (auto const& rv : rawVoxels) {
-        result.push_back(voxel {.Position = {.X = rv.X, .Y = rv.Y, .Z = rv.Z}, .Color = color::FromABGR(palette[rv.ColorIndex])});
-    }
-
-    return voxel_grid {result};
-}
-
-auto load_vox_file(string const& path) -> std::optional<voxel_grid>
-{
-    io::ifstream file {path};
-    return load_vox_bytes(file);
-}
-
 ////////////////////////////////////////////////////////////
 
 voxel_grid::voxel_grid(std::vector<voxel> const& voxels)
@@ -249,6 +174,76 @@ auto voxel_grid::raycast(vec3_d const& origin, vec3_d const& dir, f64 maxT) cons
     }
 
     return result;
+}
+
+auto voxel_grid::Load(string const& path) -> std::optional<voxel_grid>
+{
+    io::ifstream stream {path};
+    struct raw_voxel {
+        u8 X, Y, Z;
+        u8 ColorIndex;
+    };
+    std::vector<raw_voxel> rawVoxels;
+
+    if (stream.size_in_bytes() < 20) { return std::nullopt; }
+    std::array<char, 3> magic {};
+    stream.read_to<char>(magic);
+    if (magic != SIGNATURE) { return std::nullopt; }
+
+    stream.seek(8, io::seek_dir::Begin);
+
+    std::array<u32, 256> palette {kDefaultPalette};
+    bool                 haveSize {false};
+    bool                 haveXyzi {false};
+    vec3_i               size {};
+
+    while (!stream.is_eof()) {
+        string id {stream.read_string(4)};
+
+        u32 const   contentSize {stream.read<u32>()};
+        u32 const   childrenSize {stream.read<u32>()};
+        isize const chunkEnd {stream.tell() + contentSize};
+
+        if (id == "MAIN") {
+            stream.seek(chunkEnd, io::seek_dir::Begin);
+            continue;
+        }
+
+        if (id == "SIZE") {
+            size.X   = stream.read<i32>();
+            size.Y   = stream.read<i32>();
+            size.Z   = stream.read<i32>();
+            haveSize = true;
+        } else if (id == "XYZI" && haveSize && !haveXyzi) {
+            u32 const numVoxels {stream.read<u32>()};
+            rawVoxels.reserve(numVoxels);
+            for (u32 i {0}; i < numVoxels; ++i) {
+                u8 const x {stream.read<u8>()};
+                u8 const y {stream.read<u8>()};
+                u8 const z {stream.read<u8>()};
+                u8 const colorIndex {stream.read<u8>()};
+                if (x >= size.X || y >= size.Y || z >= size.Z) { continue; }
+                rawVoxels.push_back({.X = x, .Y = y, .Z = z, .ColorIndex = colorIndex});
+            }
+            haveXyzi = true;
+        } else if (id == "RGBA") {
+            for (i32 i {0}; i < 255; ++i) {
+                palette[i + 1] = stream.read<u32>();
+            }
+        }
+
+        stream.seek(chunkEnd + childrenSize, io::seek_dir::Begin);
+    }
+
+    if (!haveSize || !haveXyzi) { return std::nullopt; }
+
+    std::vector<voxel> result;
+    result.reserve(rawVoxels.size());
+    for (auto const& rv : rawVoxels) {
+        result.push_back(voxel {.Position = {.X = rv.X, .Y = rv.Y, .Z = rv.Z}, .Color = color::FromABGR(palette[rv.ColorIndex])});
+    }
+
+    return voxel_grid {result};
 }
 
 auto voxel_grid::corner_ao(vec3_i layer, i32 faceAxis, i32 cu, i32 cv) const -> i32

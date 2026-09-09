@@ -9,20 +9,6 @@
 #include "Voxel.hpp"
 #include "Walls.hpp"
 
-struct voxel_lighting {
-    f64 KeyAzimuthOffsetDeg {-35.0};
-    f64 KeyElevationDeg {35.0};
-    f64 KeyDiffuse {0.30};
-    f64 FillAzimuthOffsetDeg {150.0};
-    f64 FillElevationDeg {5.0};
-    f64 FillDiffuse {0.10};
-    f64 AmbientSky {0.75};
-    f64 AmbientGround {0.40};
-    f64 AoStrength {0.25};
-    f64 HeightBandingStrength {0.30};
-    f64 SunDirection {0};
-};
-
 struct level_settings {
     f64 FogMin {0.0};
     f64 FogDistance {12.0};
@@ -32,7 +18,18 @@ struct level_settings {
     i32  CeilingTexture {0};
     bool IsSkybox {false};
 
-    voxel_lighting VoxelLighting;
+    // voxel
+    f64 KeyAzimuthOffsetDeg {-35.0};
+    f64 KeyElevationDeg {35.0};
+    f64 KeyDiffuse {0.30};
+    f64 FillAzimuthOffsetDeg {150.0};
+    f64 FillElevationDeg {5.0};
+    f64 FillDiffuse {0.10};
+    f64 AmbientSky {0.75};
+    f64 AmbientGround {0.40};
+    f64 AmbientOcclusionStrength {0.25};
+    f64 HeightBandingStrength {0.30};
+    f64 SunDirection {0};
 };
 
 struct sprite {
@@ -63,6 +60,7 @@ public:
     void update(milliseconds deltaSeconds);
 
     auto get_cell(point_i p) const -> cell const&;
+    auto is_clear(point_d pos, f64 radius) const -> bool;
 
     void toggle_wall(point_i p);
 
@@ -74,6 +72,8 @@ public:
     auto get_message() const -> string const&;
 
 private:
+    auto closest_point_on_wall(point_i map, point_d pos) const -> std::optional<point_d>;
+
     map_t _map;
 
     static_grid<bool, MAP_WIDTH, MAP_HEIGHT> _seen;

@@ -9,25 +9,6 @@
 
 #include "Common.hpp"
 
-struct vec3_d {
-    f64 X {0.0};
-    f64 Y {0.0};
-    f64 Z {0.0};
-
-    auto dot(vec3_d const& b) const -> f64;
-    auto normalized() const -> vec3_d;
-
-    friend auto operator+(vec3_d const& a, vec3_d const& b) -> vec3_d { return {a.X + b.X, a.Y + b.Y, a.Z + b.Z}; }
-    friend auto operator-(vec3_d const& a, vec3_d const& b) -> vec3_d { return {a.X - b.X, a.Y - b.Y, a.Z - b.Z}; }
-    friend auto operator*(vec3_d const& a, f64 s) -> vec3_d { return {a.X * s, a.Y * s, a.Z * s}; }
-};
-
-struct vec3_i {
-    i32 X {0};
-    i32 Y {0};
-    i32 Z {0};
-};
-
 ////////////////////////////////////////////////////////////
 
 struct voxel {
@@ -57,13 +38,11 @@ public:
 
     auto raycast(vec3_d const& origin, vec3_d const& dir, f64 maxT) const -> voxel_ray_hit;
 
+    static auto Load(string const& path) -> std::optional<voxel_grid>;
+
 private:
     auto flat_index(i32 x, i32 y, i32 z) const -> isize;
 
     std::vector<color> _cells;
     std::vector<bool>  _occupied;
 };
-
-////////////////////////////////////////////////////////////
-
-auto load_vox_file(string const& path) -> std::optional<voxel_grid>;

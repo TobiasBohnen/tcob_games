@@ -32,9 +32,11 @@ private:
     std::vector<u32> _screen;
 
     std::vector<f64> _zBuffer;
-    std::vector<f64> _spriteDepthBuffer;
+    std::vector<f64> _objectDepthBuffer;
 
     texture_cache& _cache;
     size_i         _screenSize;
     f64            _projPlaneDist;
+
+    task_manager& _taskManager;
 };

@@ -48,4 +48,9 @@ private:
     bool _drawMap {false};
 
     utf8_string _keyCache;
+
+    std::vector<gfx::image_frame> _frames;
+    milliseconds                  _frameTimer {0};
+    bool                          _startRecord {false};
+    std::future<bool>             _clipFtr;
 };

@@ -200,7 +200,7 @@ Plinth::Plinth(game& game)
         return point_d {static_cast<f64>(x) + 0.5f, static_cast<f64>(y) + 0.5f};
     }};
 
-    static voxel_grid const testVoxelGrid {*load_vox_file("res/ball1.vox")};
+    static voxel_grid const testVoxelGrid {*voxel_grid::Load("res/ball1.vox")};
 
     for (i32 i {0}; i < 50; ++i) {
         f64       scale {rng(0.3, 1.0)};
@@ -278,6 +278,29 @@ void Plinth::on_update(milliseconds deltaTime)
     move_player(deltaTime);
     _player.bob(deltaTime);
     _level->update(deltaTime);
+
+    if (_startRecord) {
+        if (_clipFtr.valid()) {
+            if (_clipFtr.wait_for(0ms) == std::future_status::ready) {
+                logger::Info("capture saved");
+                _startRecord = false;
+                _frames.clear();
+                _clipFtr = {};
+            }
+            return;
+        }
+
+        _frameTimer += deltaTime;
+        if (_frameTimer >= 50ms) {
+            auto img {window().copy_to_image()};
+            _frames.push_back({.Image = img, .Duration = _frameTimer});
+            _frameTimer = 0ms;
+        }
+        if (_frames.size() == 200) {
+            logger::Info("capture done. saving...");
+            _clipFtr = gfx::save_animation_async("clip.gif", _frames);
+        }
+    }
 }
 
 void Plinth::move_player(milliseconds deltaTime)
@@ -371,6 +394,9 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
     } break;
     case input::scan_code::TAB: {
         toggle_map();
+    } break;
+    case input::scan_code::F10: {
+        _startRecord = true;
     } break;
     default:
 

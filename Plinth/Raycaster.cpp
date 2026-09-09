@@ -122,17 +122,18 @@ raycaster::raycaster(texture_cache& cache, size_i screenSize, f64 projPlaneDist)
     , _screen(screenSize.area())
     , _screenSize {screenSize}
     , _projPlaneDist {projPlaneDist}
+    , _taskManager {locate_service<task_manager>()}
 {
     _zBuffer.resize(_screenSize.Width);
-    _spriteDepthBuffer.resize(_screenSize.area());
+    _objectDepthBuffer.resize(_screenSize.area());
 }
 
 auto raycaster::draw(level& level, player const& player) -> u32 const*
 {
-    std::ranges::fill(_spriteDepthBuffer, std::numeric_limits<f64>::infinity());
+    std::ranges::fill(_objectDepthBuffer, std::numeric_limits<f64>::infinity());
     f64 const invFogDistance {1.0 / level.Settings.FogDistance};
 
-    locate_service<task_manager>().run_parallel(
+    _taskManager.run_parallel(
         [&](par_task const& ctx) {
             draw_columns(level, player, invFogDistance, static_cast<i32>(ctx.Start), static_cast<i32>(ctx.End));
         },
@@ -270,7 +271,7 @@ void raycaster::draw_wall_column(wall_hit const& hit, level const& level, player
         if (transparent) {
             if (is_magenta(tex, srcIdx)) { continue; }
             isize const depthIndex {x + (static_cast<isize>(y) * _screenSize.Width)};
-            _spriteDepthBuffer[depthIndex] = std::min(_spriteDepthBuffer[depthIndex], hit.Distance);
+            _objectDepthBuffer[depthIndex] = std::min(_objectDepthBuffer[depthIndex], hit.Distance);
         }
         copy_pixel(screenBuf, x + (y * _screenSize.Width), tex, srcIdx, wallDarkenFactor);
     }
@@ -435,8 +436,8 @@ void raycaster::draw_sprites(level const& level, player const& player, f64 invFo
                 if (is_magenta(tex, texOffset)) { continue; }
 
                 isize const depthIndex {stripe + (static_cast<isize>(y) * _screenSize.Width)};
-                if (transformY < _spriteDepthBuffer[depthIndex]) {
-                    _spriteDepthBuffer[depthIndex] = transformY;
+                if (transformY < _objectDepthBuffer[depthIndex]) {
+                    _objectDepthBuffer[depthIndex] = transformY;
                     copy_pixel(screenBuf, stripe + (y * _screenSize.Width), tex, texOffset, spriteFogFactor);
                 }
             }
@@ -449,9 +450,8 @@ void raycaster::draw_voxel_objects(level const& level, player const& player, f64
     i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
     u32*      screenBuf {_screen.data()};
 
-    voxel_lighting const& lighting {level.Settings.VoxelLighting};
-    vec3_d const          keyLight {voxel_light_from_heading(lighting.SunDirection, lighting.KeyAzimuthOffsetDeg, lighting.KeyElevationDeg)};
-    vec3_d const          fillLight {voxel_light_from_heading(lighting.SunDirection, lighting.FillAzimuthOffsetDeg, lighting.FillElevationDeg)};
+    vec3_d const keyLight {voxel_light_from_heading(level.Settings.SunDirection, level.Settings.KeyAzimuthOffsetDeg, level.Settings.KeyElevationDeg)};
+    vec3_d const fillLight {voxel_light_from_heading(level.Settings.SunDirection, level.Settings.FillAzimuthOffsetDeg, level.Settings.FillElevationDeg)};
 
     for (voxel_object const& obj : level.VoxelObjects) {
         if (!obj.Grid) { continue; }
@@ -505,7 +505,7 @@ void raycaster::draw_voxel_objects(level const& level, player const& player, f64
         for (i32 x {xStart}; x < xEnd; ++x) { maxWallDist = std::max(maxWallDist, _zBuffer[x]); }
         if (bboxMinDepth >= maxWallDist) { continue; }
 
-        constexpr i32 MAX_VOXEL_OBJECT_PIXELS {20000};
+        constexpr i32 MAX_VOXEL_OBJECT_PIXELS {10000};
         i32 const     colCount {xEnd - xStart};
         i32 const     rowCount {yEnd - yStart};
         i32 const     bboxArea {colCount * rowCount};
@@ -515,7 +515,7 @@ void raycaster::draw_voxel_objects(level const& level, player const& player, f64
         i32 const     strideCols {(colCount + stride - 1) / stride};
         f64 const     cellLight {get_light(level, point_i {static_cast<i32>(obj.Position.X), static_cast<i32>(obj.Position.Y)})};
 
-        locate_service<task_manager>().run_parallel(
+        _taskManager.run_parallel(
             [&](par_task const& ctx) {
                 for (isize scol {static_cast<isize>(ctx.Start)}; scol < static_cast<isize>(ctx.End); ++scol) {
                     i32 const x {xStart + (static_cast<i32>(scol) * stride)};
@@ -545,11 +545,11 @@ void raycaster::draw_voxel_objects(level const& level, player const& player, f64
                         if (depth <= 0.0) { continue; }
 
                         vec3_d const normal {voxel_face_normal(hit.FaceAxis, hit.FaceSign)};
-                        f64 const    keyTerm {lighting.KeyDiffuse * std::max(0.0, normal.dot(keyLight))};
-                        f64 const    fillTerm {lighting.FillDiffuse * std::max(0.0, normal.dot(fillLight))};
-                        f64 const    ambientTerm {lighting.AmbientGround + ((lighting.AmbientSky - lighting.AmbientGround) * ((normal.Z * 0.5) + 0.5))};
+                        f64 const    keyTerm {level.Settings.KeyDiffuse * std::max(0.0, normal.dot(keyLight))};
+                        f64 const    fillTerm {level.Settings.FillDiffuse * std::max(0.0, normal.dot(fillLight))};
+                        f64 const    ambientTerm {level.Settings.AmbientGround + ((level.Settings.AmbientSky - level.Settings.AmbientGround) * ((normal.Z * 0.5) + 0.5))};
                         f64 const    heightFactor {static_cast<f64>(hit.Cell.Z) / static_cast<f64>(std::max(1, obj.Grid->Size.Z - 1))};
-                        f64 const    heightMultiplier {1.0 - lighting.HeightBandingStrength + (lighting.HeightBandingStrength * heightFactor)};
+                        f64 const    heightMultiplier {1.0 - level.Settings.HeightBandingStrength + (level.Settings.HeightBandingStrength * heightFactor)};
 
                         vec3_i const layer {
                             .X = hit.Cell.X + (hit.FaceAxis == 0 ? hit.FaceSign : 0),
@@ -580,7 +580,7 @@ void raycaster::draw_voxel_objects(level const& level, player const& player, f64
                         fv = std::clamp(fv, 0.0, 1.0);
 
                         f64 const aoInterp {(ao00 * (1.0 - fu) * (1.0 - fv)) + (ao10 * fu * (1.0 - fv)) + (ao01 * (1.0 - fu) * fv) + (ao11 * fu * fv)};
-                        f64 const aoFactor {1.0 - (lighting.AoStrength * (1.0 - (aoInterp / 3.0)))};
+                        f64 const aoFactor {1.0 - (level.Settings.AmbientOcclusionStrength * (1.0 - (aoInterp / 3.0)))};
 
                         f64 const bakeShade {std::clamp((ambientTerm + keyTerm + fillTerm) * aoFactor * heightMultiplier, 0.0, 1.0)};
 
@@ -598,9 +598,9 @@ void raycaster::draw_voxel_objects(level const& level, player const& player, f64
                                 if (depth >= _zBuffer[bx]) { continue; }                   // occluded by a wall
 
                                 isize const depthIndex {bx + (static_cast<isize>(by) * _screenSize.Width)};
-                                if (depth >= _spriteDepthBuffer[depthIndex]) { continue; } // occluded by a sprite/transparent wall
+                                if (depth >= _objectDepthBuffer[depthIndex]) { continue; } // occluded by a sprite/transparent wall
 
-                                _spriteDepthBuffer[depthIndex]           = depth;
+                                _objectDepthBuffer[depthIndex]           = depth;
                                 screenBuf[bx + (by * _screenSize.Width)] = packed;
                             }
                         }
