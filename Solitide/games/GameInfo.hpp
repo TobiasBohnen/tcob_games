@@ -119,7 +119,7 @@ public:
             member<&game_rng::_seed> {"Seed"},
             member_fn<
                 [](auto&& val) { return val._gen.state(); },
-                [](auto&& val, auto&& state) { val._gen = rng {state}; }> {"State"}};
+                [](auto&& val, auto&& state) { val._gen = rng::FromState(state); }> {"State"}};
     }
 
 private:
