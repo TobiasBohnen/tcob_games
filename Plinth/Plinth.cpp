@@ -200,7 +200,7 @@ Plinth::Plinth(game& game)
         return point_d {static_cast<f64>(x) + 0.5f, static_cast<f64>(y) + 0.5f};
     }};
 
-    static voxel_grid const testVoxelGrid {*voxel_grid::Load("res/ball1.vox")};
+    static voxel_grid const testVoxelGrid {*voxel_grid::Load("res/castle.vox")};
 
     for (i32 i {0}; i < 50; ++i) {
         f64       scale {rng(0.3, 1.0)};

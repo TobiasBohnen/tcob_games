@@ -190,10 +190,10 @@ void raycaster::draw_columns(level& level, player const& player, f64 invFogDista
 void raycaster::draw_wall_column(wall_hit const& hit, level const& level, player const& player, isize x, f64 invFogDistance, bool transparent)
 {
     i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
-    i32 const lineHeight {static_cast<i32>(_projPlaneDist / hit.Distance)};
+    f64 const lineHeight {_projPlaneDist / hit.Distance};
 
-    i32 const wallTop {(-lineHeight / 2) + screenCenterY};
-    i32 const wallBottom {(lineHeight / 2) + screenCenterY};
+    i32 const wallTop {static_cast<i32>(std::round(screenCenterY - (lineHeight / 2.0)))};
+    i32 const wallBottom {static_cast<i32>(std::round(screenCenterY + (lineHeight / 2.0)))};
 
     i32 const drawStart {std::max(wallTop, 0)};
     i32 const drawEnd {std::min(wallBottom, _screenSize.Height)};
@@ -201,8 +201,8 @@ void raycaster::draw_wall_column(wall_hit const& hit, level const& level, player
     if (drawStart >= drawEnd) { return; }
 
     auto const* tex {_cache.texture(hit.Texture, 0)};
-    i32 const   texX {static_cast<i32>((1.0 - hit.SegmentT) * static_cast<f64>(WALL_SIZE.Width))};
-    f64 const   texStep {1.0 * WALL_SIZE.Height / lineHeight};
+    f64 const   texX {(1.0 - hit.SegmentT) * static_cast<f64>(WALL_SIZE.Width)};
+    f64 const   texStep {1.0 * WALL_SIZE.Height / (wallBottom - wallTop)};
     f64         texPos {(drawStart - wallTop) * texStep};
 
     f64 const wallFogFactor {std::max(1.0 - (hit.Distance * invFogDistance), level.Settings.FogMin)};
@@ -210,9 +210,9 @@ void raycaster::draw_wall_column(wall_hit const& hit, level const& level, player
 
     u32* screenBuf {_screen.data()};
     for (i32 y {drawStart}; y < drawEnd; y++) {
-        i32 const texY {static_cast<i32>(texPos) & (WALL_SIZE.Height - 1)};
+        i32 const texY {((static_cast<i32>(texPos) % WALL_SIZE.Height) + WALL_SIZE.Height) % WALL_SIZE.Height};
         texPos += texStep;
-        i32 const srcIdx {(texX + (texY * WALL_SIZE.Width)) * TEXTURE_BPP};
+        i32 const srcIdx {static_cast<i32>((texX + (texY * WALL_SIZE.Width))) * TEXTURE_BPP};
 
         if (transparent) {
             if (is_magenta(tex, srcIdx)) { continue; }
@@ -226,10 +226,10 @@ void raycaster::draw_wall_column(wall_hit const& hit, level const& level, player
 void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& level, player const& player, isize x, point_d rayDir, f64 invFogDistance)
 {
     i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
-    i32 const lineHeight {static_cast<i32>(_projPlaneDist / hit.Distance)};
+    f64 const lineHeight {_projPlaneDist / hit.Distance};
 
-    i32 const wallTop {(-lineHeight / 2) + screenCenterY};
-    i32 const wallBottom {(lineHeight / 2) + screenCenterY};
+    i32 const wallTop {static_cast<i32>(std::round(screenCenterY - (lineHeight / 2.0)))};
+    i32 const wallBottom {static_cast<i32>(std::round(screenCenterY + (lineHeight / 2.0)))};
 
     i32 const ceilingEnd {std::clamp(wallTop, 0, _screenSize.Height)};
     i32 const floorStart {std::clamp(wallBottom, 0, _screenSize.Height)};
