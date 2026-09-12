@@ -52,6 +52,13 @@ static void copy_pixel(u32* dst, i32 dstIdx, u8 const* src, i32 srcIdx, f64 dark
     dst[dstIdx] = (0xFF000000u) | (static_cast<u32>(b) << 16) | (static_cast<u32>(g) << 8) | static_cast<u32>(r);
 }
 
+static auto compute_wall_screen_extent(f64 distance, i32 screenCenterY, f64 projPlaneDist) -> std::pair<i32, i32>
+{
+    f64 const lineHeight {projPlaneDist / distance};
+    return {static_cast<i32>(std::round(screenCenterY - (lineHeight / 2.0))),
+            static_cast<i32>(std::round(screenCenterY + (lineHeight / 2.0)))};
+}
+
 static auto voxel_light_from_heading(degree_f headingDegrees, degree_f azimuthOffset, degree_f elevation) -> vec3_d
 {
     degree_f const azimuth {headingDegrees + azimuthOffset};
@@ -190,10 +197,7 @@ void raycaster::draw_columns(level& level, player const& player, f64 invFogDista
 void raycaster::draw_wall_column(wall_hit const& hit, level const& level, player const& player, isize x, f64 invFogDistance, bool transparent)
 {
     i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
-    f64 const lineHeight {_projPlaneDist / hit.Distance};
-
-    i32 const wallTop {static_cast<i32>(std::round(screenCenterY - (lineHeight / 2.0)))};
-    i32 const wallBottom {static_cast<i32>(std::round(screenCenterY + (lineHeight / 2.0)))};
+    auto const [wallTop, wallBottom] {compute_wall_screen_extent(hit.Distance, screenCenterY, _projPlaneDist)};
 
     i32 const drawStart {std::max(wallTop, 0)};
     i32 const drawEnd {std::min(wallBottom, _screenSize.Height)};
@@ -226,10 +230,7 @@ void raycaster::draw_wall_column(wall_hit const& hit, level const& level, player
 void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& level, player const& player, isize x, point_d rayDir, f64 invFogDistance)
 {
     i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
-    f64 const lineHeight {_projPlaneDist / hit.Distance};
-
-    i32 const wallTop {static_cast<i32>(std::round(screenCenterY - (lineHeight / 2.0)))};
-    i32 const wallBottom {static_cast<i32>(std::round(screenCenterY + (lineHeight / 2.0)))};
+    auto const [wallTop, wallBottom] {compute_wall_screen_extent(hit.Distance, screenCenterY, _projPlaneDist)};
 
     i32 const ceilingEnd {std::clamp(wallTop, 0, _screenSize.Height)};
     i32 const floorStart {std::clamp(wallBottom, 0, _screenSize.Height)};
