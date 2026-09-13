@@ -57,6 +57,7 @@ void texture_cache::load()
     load_image(15, 0, "res/transparent.png");
     load_image(fontTexture, 0, "res/font.png");
     load_image(handTexture, 0, "res/hand.png");
+    load_image(hudTexture, 0, "res/hud.png");
 
     // PLACEHOLDER END
 }

@@ -565,7 +565,7 @@ void raycaster::draw_weapon(player const& player)
     auto const  texSize {_cache.texture_size(handTexture, 0)};
     u32*        screenBuf {_screen.data()};
 
-    f64 const     scale {_screenSize.Height / WEAPON_REFERENCE_HEIGHT};
+    f64 const     scale {_screenSize.Height / REFERENCE_HEIGHT};
     size_i const  drawSize {size_f {texSize} * scale};
     i32 const     bobOffsetY {static_cast<i32>(player.BobAmount * WEAPON_BOB_MULTIPLIER)};
     point_i const offset {static_cast<i32>((_screenSize.Width - drawSize.Width) * 0.75),
@@ -589,6 +589,28 @@ void raycaster::draw_weapon(player const& player)
 
 void raycaster::draw_hud(player const&)
 {
+    auto* const tex {_cache.texture(hudTexture, 0)};
+    auto const  texSize {_cache.texture_size(hudTexture, 0)};
+    u32*        screenBuf {_screen.data()};
+
+    f64 const     scale {_screenSize.Height / REFERENCE_HEIGHT};
+    size_i const  drawSize {size_f {texSize} * scale};
+    point_i const offset {0, 0};
+
+    for (i32 y {0}; y < drawSize.Height; ++y) {
+        i32 const screenY {y + offset.Y};
+        i32 const texY {std::min(texSize.Height - 1, static_cast<i32>(y / scale))};
+        for (i32 x {0}; x < drawSize.Width; ++x) {
+            i32 const screenX {x + offset.X};
+            if (!_screenSize.contains({screenX, screenY})) { continue; }
+
+            i32 const texX {std::min(texSize.Width - 1, static_cast<i32>(x / scale))};
+            i32 const texOffset {(texX + (texY * texSize.Width)) * TEXTURE_BPP};
+            if (IsMagneta(tex, texOffset)) { continue; }
+
+            CopyPixel(screenBuf, PixelIndex(_screenSize, screenX, screenY), tex, texOffset, 1.0);
+        }
+    }
 }
 
 void raycaster::draw_message(level const& level)
