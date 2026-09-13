@@ -49,7 +49,7 @@ static auto ShadeFromSide(hit_side side) -> f64
     std::unreachable();
 }
 
-static void CopyPixel(u32* dst, i32 dstIdx, u8 const* src, i32 srcIdx, f64 darken)
+static void CopyPixel(u32* dst, isize dstIdx, u8 const* src, isize srcIdx, f64 darken)
 {
     u8 const r {static_cast<u8>(std::min(src[srcIdx + 0] * darken, 255.0))};
     u8 const g {static_cast<u8>(std::min(src[srcIdx + 1] * darken, 255.0))};
@@ -135,18 +135,12 @@ void raycaster::draw_columns(level& level, player const& player, f64 invFogDista
             (rayDir.X < 0) ? (player.Position.X - map.X) * deltaDist.X : (map.X + 1.0 - player.Position.X) * deltaDist.X,
             (rayDir.Y < 0) ? (player.Position.Y - map.Y) * deltaDist.Y : (map.Y + 1.0 - player.Position.Y) * deltaDist.Y};
 
-        wall_hit                                    hitResult {};
-        std::array<wall_hit, MAX_TRANSPARENT_WALLS> transparentHits {};
-        i32                                         transparentCount {0};
+        wall_hit hitResult {};
 
         auto const process_hit {[&](wall_hit const& wallHit, point_i const& cell) {
             wall_hit h {wallHit};
-            h.Light = GetLight(level, cell);
-            if (h.Transparent) {
-                if (transparentCount < MAX_TRANSPARENT_WALLS) { transparentHits[transparentCount++] = h; }
-            } else {
-                hitResult = h;
-            }
+            h.Light   = GetLight(level, cell);
+            hitResult = h;
         }};
 
         // check player cell
@@ -191,15 +185,11 @@ void raycaster::draw_columns(level& level, player const& player, f64 invFogDista
 
         draw_floor_ceiling_column(hitResult, level, player, x, rayDir, invFogDistance);
 
-        draw_wall_column(hitResult, level, player, x, invFogDistance, false);
-
-        for (i32 i {transparentCount - 1}; i >= 0; --i) {
-            draw_wall_column(transparentHits[i], level, player, x, invFogDistance, true);
-        }
+        draw_wall_column(hitResult, level, player, x, invFogDistance);
     }
 }
 
-void raycaster::draw_wall_column(wall_hit const& hit, level const& level, player const& player, isize x, f64 invFogDistance, bool transparent)
+void raycaster::draw_wall_column(wall_hit const& hit, level const& level, player const& player, isize x, f64 invFogDistance)
 {
     i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
     auto const [wallTop, wallBottom] {ComputeWallScreenExtent(hit.Distance, screenCenterY, _projPlaneDist)};
@@ -223,11 +213,6 @@ void raycaster::draw_wall_column(wall_hit const& hit, level const& level, player
         texPos += texStep;
         i32 const srcIdx {static_cast<i32>((texX + (texY * WALL_SIZE.Width))) * TEXTURE_BPP};
 
-        if (transparent) {
-            if (IsMagneta(tex, srcIdx)) { continue; }
-            isize const depthIndex {PixelIndex(_screenSize, x, y)};
-            _objectDepthBuffer[depthIndex] = std::min(_objectDepthBuffer[depthIndex], hit.Distance);
-        }
         CopyPixel(screenBuf, PixelIndex(_screenSize, x, y), tex, srcIdx, wallDarkenFactor);
     }
 }
@@ -640,7 +625,7 @@ void raycaster::draw_message(level const& level)
                 i32 const texOffset {(texX + (y * texSize.Width)) * TEXTURE_BPP};
                 if (IsMagneta(tex, texOffset)) { continue; }
 
-                CopyPixel(screenBuf, screenX + (screenY * _screenSize.Width), tex, texOffset, 1.0);
+                CopyPixel(screenBuf, PixelIndex(_screenSize, screenX, screenY), tex, texOffset, 1.0);
             }
         }
     }

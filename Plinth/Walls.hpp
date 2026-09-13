@@ -32,7 +32,6 @@ struct wall_hit {
     i32 Texture {0};
 
     bool Hit {false};
-    bool Transparent {false};
 };
 
 struct cell_intersect {
@@ -101,13 +100,16 @@ struct push_wall {
     static constexpr f64 OpenSpeed {1.5};
 };
 
-struct obstacle {
+struct obstacle_shape {
     rect_d LocalBounds {rect_d::Zero};
     bool   IsRound {false};
 
-    bool Transparent {false};
-
     i32 Texture {0};
+};
+
+struct obstacle {
+    std::vector<obstacle_shape> Shapes {};
+
     i32 FloorTexture {INVALID_INDEX};
     i32 CeilingTexture {INVALID_INDEX};
     f64 Light {0.0};
@@ -122,8 +124,6 @@ struct diagonal_wall {
     };
 
     orientation Orientation {orientation::NorthWestToSouthEast};
-
-    bool Transparent {false};
 
     i32 Texture {0};
     i32 FloorTexture {INVALID_INDEX};

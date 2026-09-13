@@ -19,7 +19,7 @@ public:
 private:
     void draw_columns(level& level, player const& player, f64 invFogDistance, i32 columnStart, i32 columnEnd);
 
-    void draw_wall_column(wall_hit const& hit, level const& level, player const& player, isize x, f64 invFogDistance, bool transparent);
+    void draw_wall_column(wall_hit const& hit, level const& level, player const& player, isize x, f64 invFogDistance);
     void draw_floor_ceiling_column(wall_hit const& hit, level const& level, player const& player, isize x, point_d rayDir, f64 invFogDistance);
 
     void draw_sprites(level const& level, player const& player, f64 invFogDistance);

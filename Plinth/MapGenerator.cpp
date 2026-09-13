@@ -100,17 +100,16 @@ static auto parse_ascii_cell(char symbol, i32 x, i32 y, i32 width, i32 height, m
     }
     case 'B': {
         obstacle b {};
-        b.LocalBounds    = {0.2, 0.2, 0.6, 0.6};
-        b.Texture        = prefab.WallTexture;
+        b.Shapes         = {{.LocalBounds = {0.2, 0.2, 0.6, 0.6}, .IsRound = false, .Texture = prefab.WallTexture}};
         b.FloorTexture   = prefab.FloorTexture;
         b.CeilingTexture = prefab.CeilingTexture;
         return {.Cell = b, .IsConnector = false};
     }
     case 'P': {
         obstacle p {};
-        p.LocalBounds    = {0.1, 0.1, 0.4, 0.6};
-        p.IsRound        = true;
-        p.Texture        = prefab.WallTexture;
+        p.Shapes         = {{.LocalBounds = {0.1, 0.1, 0.2, 0.2}, .IsRound = true, .Texture = prefab.WallTexture},
+                            {.LocalBounds = {0.5, 0.5, 0.2, 0.2}, .IsRound = true, .Texture = prefab.WallTexture},
+                            {.LocalBounds = {0.7, 0.3, 0.2, 0.2}, .IsRound = true, .Texture = prefab.WallTexture}};
         p.FloorTexture   = prefab.FloorTexture;
         p.CeilingTexture = prefab.CeilingTexture;
         return {.Cell = p, .IsConnector = false};

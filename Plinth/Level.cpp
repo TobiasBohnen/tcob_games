@@ -5,10 +5,12 @@
 
 #include "Level.hpp"
 
+#include <utility>
+
 #include "Common.hpp"
 
 level::level(map_t map)
-    : _map {map}
+    : _map {std::move(map)}
 {
     // PLACEHOLDER START
     Settings.CeilingTexture = 11;
@@ -53,28 +55,43 @@ auto level::closest_point_on_wall(point_i map, point_d pos) const -> std::option
                             std::clamp(pos.Y, clampRect.top(), clampRect.bottom())};
         },
         [&](obstacle const& w) -> std::optional<point_d> {
-            rect_d r {w.LocalBounds};
-            r.move_by(map);
+            std::optional<point_d> closest {};
+            f64                    minDistSq {std::numeric_limits<f64>::infinity()};
 
-            if (w.IsRound) {
-                point_d const center {(r.left() + r.right()) / 2.0, (r.top() + r.bottom()) / 2.0};
-                f64 const     a {r.width() / 2.0};
-                f64 const     b {r.height() / 2.0};
-                if (a <= 0.0 || b <= 0.0) { return center; }
+            for (auto const& def : w.Shapes) {
+                rect_d r {def.LocalBounds};
+                r.move_by(map);
 
-                // scale into unit-circle space, find closest point there, scale back.
-                // (approximate for a != b, but exact for the common circular case, and
-                // visually indistinguishable from exact for moderate aspect ratios)
-                point_d const uv {(pos.X - center.X) / a, (pos.Y - center.Y) / b};
-                f64 const     len {std::sqrt(uv.dot(uv))};
-                if (len == 0.0) { return center; }
+                point_d candidate {};
 
-                point_d const onUnitCircle {uv.X / len, uv.Y / len};
-                return point_d {center.X + (onUnitCircle.X * a), center.Y + (onUnitCircle.Y * b)};
+                if (def.IsRound) {
+                    point_d const center {r.center()};
+                    auto const [a, b] {r.local_center()};
+                    if (a <= 0.0 || b <= 0.0) {
+                        candidate = center;
+                    } else {
+                        point_d const uv {(pos.X - center.X) / a, (pos.Y - center.Y) / b};
+                        f64 const     len {std::sqrt(uv.dot(uv))};
+                        if (len == 0.0) {
+                            candidate = center;
+                        } else {
+                            point_d const onUnitCircle {uv.X / len, uv.Y / len};
+                            candidate = point_d {center.X + (onUnitCircle.X * a), center.Y + (onUnitCircle.Y * b)};
+                        }
+                    }
+                } else {
+                    candidate = point_d {std::clamp(pos.X, r.left(), r.right()), std::clamp(pos.Y, r.top(), r.bottom())};
+                }
+
+                point_d const diff {pos - candidate};
+                f64 const     distSq {diff.dot(diff)};
+                if (distSq < minDistSq) {
+                    minDistSq = distSq;
+                    closest   = candidate;
+                }
             }
 
-            return point_d {std::clamp(pos.X, r.left(), r.right()),
-                            std::clamp(pos.Y, r.top(), r.bottom())};
+            return closest;
         },
         [&](diagonal_wall const& w) -> std::optional<point_d> {
             f64 const     cX {static_cast<f64>(map.X)};

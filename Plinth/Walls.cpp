@@ -188,79 +188,95 @@ void push_wall::toggle()
 
 auto obstacle::intersect(cell_intersect const& ci) const -> wall_hit
 {
-    f64 const minX {ci.Cell.X + LocalBounds.left()};
-    f64 const minY {ci.Cell.Y + LocalBounds.top()};
-    f64 const maxX {minX + LocalBounds.width()};
-    f64 const maxY {minY + LocalBounds.height()};
+    wall_hit closest {};
+    f64      minT {std::numeric_limits<f64>::infinity()};
 
-    if (IsRound) {
-        point_d const center {(minX + maxX) / 2.0, (minY + maxY) / 2.0};
-        auto const [a, b] {LocalBounds.local_center()};
+    for (auto const& shape : Shapes) {
+        rect_d r {shape.LocalBounds};
+        r.move_by(ci.Cell);
 
-        if (a <= 0.0 || b <= 0.0) { return {}; }
+        wall_hit hit {};
 
-        point_d const oc {(ci.RayOrigin.X - center.X) / a, (ci.RayOrigin.Y - center.Y) / b};
-        point_d const dir {ci.RayDir.X / a, ci.RayDir.Y / b};
+        if (shape.IsRound) {
+            point_d const center {r.center()};
+            auto const [a, b] {r.local_center()};
+            if (a <= 0.0 || b <= 0.0) { continue; }
 
-        f64 const qa {dir.dot(dir)};
-        f64 const qb {2.0 * oc.dot(dir)};
-        f64 const qc {oc.dot(oc) - 1.0};
-        f64 const discriminant {(qb * qb) - (4.0 * qa * qc)};
-        if (discriminant < 0.0) { return {}; }
+            point_d const oc {(ci.RayOrigin.X - center.X) / a, (ci.RayOrigin.Y - center.Y) / b};
+            point_d const dir {ci.RayDir.X / a, ci.RayDir.Y / b};
 
-        f64 const t {(-qb - std::sqrt(discriminant)) / (2.0 * qa)};
-        if (t < 0.0) { return {}; }
+            f64 const qa {dir.dot(dir)};
+            f64 const qb {2.0 * oc.dot(dir)};
+            f64 const qc {oc.dot(oc) - 1.0};
+            f64 const discriminant {(qb * qb) - (4.0 * qa * qc)};
+            if (discriminant < 0.0) { continue; }
 
-        point_d const uv {oc.X + (dir.X * t), oc.Y + (dir.Y * t)};
-        f64 const     angle {std::atan2(uv.Y, uv.X)};
-        f64 const     segmentT {(angle + (TAU / 2)) / TAU};
+            f64 const t {(-qb - std::sqrt(discriminant)) / (2.0 * qa)};
+            if (t < 0.0 || t >= minT) { continue; }
 
-        bool const hitSide {std::abs(uv.Y) > std::abs(uv.X)};
-        return wall_hit {.Distance = t, .SegmentT = segmentT, .Side = hitSide ? hit_side::WestEast : hit_side::NorthSouth, .Texture = Texture, .Hit = true, .Transparent = Transparent};
+            point_d const uv {oc.X + (dir.X * t), oc.Y + (dir.Y * t)};
+            f64 const     angle {std::atan2(uv.Y, uv.X)};
+            f64 const     segmentT {(angle + std::numbers::pi) / (2.0 * std::numbers::pi)};
+            bool const    hitSide {std::abs(uv.Y) > std::abs(uv.X)};
+
+            hit = {.Distance = t, .SegmentT = segmentT, .Side = hitSide ? hit_side::WestEast : hit_side::NorthSouth, .Texture = shape.Texture, .Hit = true};
+        } else {
+            f64 const minX {r.left()};
+            f64 const minY {r.top()};
+            f64 const maxX {r.right()};
+            f64 const maxY {r.bottom()};
+
+            f64 tMinX {0}, tMaxX {0};
+            if (ci.RayDir.X != 0.0) {
+                f64 const t1 {(minX - ci.RayOrigin.X) / ci.RayDir.X};
+                f64 const t2 {(maxX - ci.RayOrigin.X) / ci.RayDir.X};
+                tMinX = std::min(t1, t2);
+                tMaxX = std::max(t1, t2);
+            } else {
+                if (ci.RayOrigin.X < minX || ci.RayOrigin.X > maxX) { continue; }
+                tMinX = -std::numeric_limits<f64>::infinity();
+                tMaxX = std::numeric_limits<f64>::infinity();
+            }
+
+            f64 tMinY {0}, tMaxY {0};
+            if (ci.RayDir.Y != 0.0) {
+                f64 const t1 {(minY - ci.RayOrigin.Y) / ci.RayDir.Y};
+                f64 const t2 {(maxY - ci.RayOrigin.Y) / ci.RayDir.Y};
+                tMinY = std::min(t1, t2);
+                tMaxY = std::max(t1, t2);
+            } else {
+                if (ci.RayOrigin.Y < minY || ci.RayOrigin.Y > maxY) { continue; }
+                tMinY = -std::numeric_limits<f64>::infinity();
+                tMaxY = std::numeric_limits<f64>::infinity();
+            }
+
+            f64 const tEnter {std::max(tMinX, tMinY)};
+            f64 const tExit {std::min(tMaxX, tMaxY)};
+            if (tEnter > tExit || tExit < 0.0) { continue; }
+
+            f64 const t {tEnter >= 0.0 ? tEnter : tExit};
+            if (t >= minT) { continue; }
+
+            f64 segmentT {0};
+            if (tMinX > tMinY) {
+                f64 const hitY {ci.RayOrigin.Y + (ci.RayDir.Y * t)};
+                segmentT = (maxY > minY) ? (hitY - minY) / (maxY - minY) : 0.0;
+            } else {
+                f64 const hitX {ci.RayOrigin.X + (ci.RayDir.X * t)};
+                segmentT = (maxX > minX) ? (hitX - minX) / (maxX - minX) : 0.0;
+            }
+            bool const hitSide {tMinX <= tMinY};
+
+            hit = {.Distance = t, .SegmentT = segmentT, .Side = hitSide ? hit_side::WestEast : hit_side::NorthSouth, .Texture = shape.Texture, .Hit = true};
+        }
+
+        if (hit.Hit && hit.Distance < minT) {
+            minT    = hit.Distance;
+            closest = hit;
+        }
     }
 
-    f64 tMinX {0}, tMaxX {0};
-    if (ci.RayDir.X != 0.0) {
-        f64 const t1 {(minX - ci.RayOrigin.X) / ci.RayDir.X};
-        f64 const t2 {(maxX - ci.RayOrigin.X) / ci.RayDir.X};
-        tMinX = std::min(t1, t2);
-        tMaxX = std::max(t1, t2);
-    } else {
-        if (ci.RayOrigin.X < minX || ci.RayOrigin.X > maxX) { return {}; }
-        tMinX = -std::numeric_limits<f64>::infinity();
-        tMaxX = std::numeric_limits<f64>::infinity();
-    }
-
-    f64 tMinY {0}, tMaxY {0};
-    if (ci.RayDir.Y != 0.0) {
-        f64 const t1 {(minY - ci.RayOrigin.Y) / ci.RayDir.Y};
-        f64 const t2 {(maxY - ci.RayOrigin.Y) / ci.RayDir.Y};
-        tMinY = std::min(t1, t2);
-        tMaxY = std::max(t1, t2);
-    } else {
-        if (ci.RayOrigin.Y < minY || ci.RayOrigin.Y > maxY) { return {}; }
-        tMinY = -std::numeric_limits<f64>::infinity();
-        tMaxY = std::numeric_limits<f64>::infinity();
-    }
-
-    f64 const tEnter {std::max(tMinX, tMinY)};
-    f64 const tExit {std::min(tMaxX, tMaxY)};
-
-    if (tEnter > tExit || tExit < 0.0) { return {}; } // no overlap, or box is entirely behind the ray
-
-    f64 const t {tEnter >= 0.0 ? tEnter : tExit};     // if ray origin is inside the box, use the exit point
-
-    f64 segmentT {0};
-    if (tMinX > tMinY) {
-        f64 const hitY {ci.RayOrigin.Y + (ci.RayDir.Y * t)};
-        segmentT = (maxY > minY) ? (hitY - minY) / (maxY - minY) : 0.0;
-    } else {
-        f64 const hitX {ci.RayOrigin.X + (ci.RayDir.X * t)};
-        segmentT = (maxX > minX) ? (hitX - minX) / (maxX - minX) : 0.0;
-    }
-
-    bool const hitSide {tMinX <= tMinY};
-    return wall_hit {.Distance = t, .SegmentT = segmentT, .Side = hitSide ? hit_side::WestEast : hit_side::NorthSouth, .Texture = Texture, .Hit = true, .Transparent = Transparent};
+    return closest;
 }
 
 auto diagonal_wall::intersect(cell_intersect const& ci) const -> wall_hit
@@ -298,5 +314,5 @@ auto diagonal_wall::intersect(cell_intersect const& ci) const -> wall_hit
         segmentT = 1.0 - (hitX - cX);
     }
 
-    return wall_hit {.Distance = t, .SegmentT = segmentT, .Side = hit_side::Diagonal, .Texture = Texture, .Hit = true, .Transparent = Transparent};
+    return wall_hit {.Distance = t, .SegmentT = segmentT, .Side = hit_side::Diagonal, .Texture = Texture, .Hit = true};
 }
