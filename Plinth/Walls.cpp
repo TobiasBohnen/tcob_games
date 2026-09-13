@@ -186,12 +186,38 @@ void push_wall::toggle()
     }
 }
 
-auto box_wall::intersect(cell_intersect const& ci) const -> wall_hit
+auto obstacle::intersect(cell_intersect const& ci) const -> wall_hit
 {
     f64 const minX {ci.Cell.X + LocalBounds.left()};
     f64 const minY {ci.Cell.Y + LocalBounds.top()};
     f64 const maxX {minX + LocalBounds.width()};
     f64 const maxY {minY + LocalBounds.height()};
+
+    if (IsRound) {
+        point_d const center {(minX + maxX) / 2.0, (minY + maxY) / 2.0};
+        auto const [a, b] {LocalBounds.local_center()};
+
+        if (a <= 0.0 || b <= 0.0) { return {}; }
+
+        point_d const oc {(ci.RayOrigin.X - center.X) / a, (ci.RayOrigin.Y - center.Y) / b};
+        point_d const dir {ci.RayDir.X / a, ci.RayDir.Y / b};
+
+        f64 const qa {dir.dot(dir)};
+        f64 const qb {2.0 * oc.dot(dir)};
+        f64 const qc {oc.dot(oc) - 1.0};
+        f64 const discriminant {(qb * qb) - (4.0 * qa * qc)};
+        if (discriminant < 0.0) { return {}; }
+
+        f64 const t {(-qb - std::sqrt(discriminant)) / (2.0 * qa)};
+        if (t < 0.0) { return {}; }
+
+        point_d const uv {oc.X + (dir.X * t), oc.Y + (dir.Y * t)};
+        f64 const     angle {std::atan2(uv.Y, uv.X)};
+        f64 const     segmentT {(angle + (TAU / 2)) / TAU};
+
+        bool const hitSide {std::abs(uv.Y) > std::abs(uv.X)};
+        return wall_hit {.Distance = t, .SegmentT = segmentT, .Side = hitSide ? hit_side::WestEast : hit_side::NorthSouth, .Texture = Texture, .Hit = true, .Transparent = Transparent};
+    }
 
     f64 tMinX {0}, tMaxX {0};
     if (ci.RayDir.X != 0.0) {
@@ -273,30 +299,4 @@ auto diagonal_wall::intersect(cell_intersect const& ci) const -> wall_hit
     }
 
     return wall_hit {.Distance = t, .SegmentT = segmentT, .Side = hit_side::Diagonal, .Texture = Texture, .Hit = true, .Transparent = Transparent};
-}
-
-auto round_pillar::intersect(cell_intersect const& ci) const -> wall_hit
-{
-    point_d const center {ci.Cell.X + 0.5, ci.Cell.Y + 0.5};
-    point_d const oc {ci.RayOrigin.X - center.X, ci.RayOrigin.Y - center.Y};
-
-    f64 const a {ci.RayDir.dot(ci.RayDir)};
-    f64 const b {2.0 * oc.dot(ci.RayDir)};
-    f64 const c {oc.dot(oc) - (Radius * Radius)};
-    f64 const discriminant {(b * b) - (4.0 * a * c)};
-
-    if (discriminant < 0.0) { return {}; }
-
-    f64 const t {(-b - std::sqrt(discriminant)) / (2.0 * a)};
-    if (t < 0.0) { return {}; }
-
-    point_d const hit {ci.RayOrigin.X + (ci.RayDir.X * t), ci.RayOrigin.Y + (ci.RayDir.Y * t)};
-    f64 const     angle {std::atan2(hit.Y - center.Y, hit.X - center.X)};
-    f64 const     segmentT {(angle + std::numbers::pi) / (2.0 * std::numbers::pi)};
-
-    // side based on which quadrant the hit normal faces
-    point_d const normal {hit.X - center.X, hit.Y - center.Y};
-    bool const    hitSide {std::abs(normal.Y) > std::abs(normal.X)};
-
-    return wall_hit {.Distance = t, .SegmentT = segmentT, .Side = hitSide ? hit_side::WestEast : hit_side::NorthSouth, .Texture = Texture, .Hit = true};
 }

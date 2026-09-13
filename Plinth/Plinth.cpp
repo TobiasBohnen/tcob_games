@@ -215,10 +215,10 @@ Plinth::Plinth(game& game)
         });
     }
 
-    _player.Settings.BobHeight = screenSize.Height / 60;
+    _player.Settings.BobHeight = screenSize.Height / 60.0;
 
     _player.Position = find_empty();
-    degree_d const angle {90};
+    degree_d const angle {180};
     radian_d const rad {angle - degree_d {90}};
     _player.Direction = point_d::FromDirection(angle);
     // PLACEHOLDER END

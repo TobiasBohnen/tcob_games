@@ -33,10 +33,10 @@ static auto is_blocking_neighbor(map_prefab const& prefab, i32 x, i32 y) -> bool
 //   'D'  door_wall, orientation from which edge it sits on; becomes a connector
 //        only if it sits on the prefab's boundary
 //   'S'  push_wall (secret door), PushDirection from which edge it sits on
-//   'B'  box_wall, LocalBounds defaults to the full cell {0,0,1,1}
+//   'B'  obstacle, LocalBounds defaults to the full cell {0,0,1,1}
 //   'X'  diagonal_wall — orientation auto-detected from which of its N/S/E/W neighbors are
 //        solid, so it chamfers whichever corner it's placed in without needing to specify direction
-//   'P'  round_pillar
+//   'P'  obstacle
 //   'o'  connector (open floor cell) — boundary only
 //   any other character -> floor_cell
 //
@@ -99,12 +99,21 @@ static auto parse_ascii_cell(char symbol, i32 x, i32 y, i32 width, i32 height, m
         return {.Cell = s, .IsConnector = false};
     }
     case 'B': {
-        box_wall b {};
-        b.LocalBounds    = {0.0, 0.0, 1.0, 1.0};
+        obstacle b {};
+        b.LocalBounds    = {0.2, 0.2, 0.6, 0.6};
         b.Texture        = prefab.WallTexture;
         b.FloorTexture   = prefab.FloorTexture;
         b.CeilingTexture = prefab.CeilingTexture;
         return {.Cell = b, .IsConnector = false};
+    }
+    case 'P': {
+        obstacle p {};
+        p.LocalBounds    = {0.1, 0.1, 0.4, 0.6};
+        p.IsRound        = true;
+        p.Texture        = prefab.WallTexture;
+        p.FloorTexture   = prefab.FloorTexture;
+        p.CeilingTexture = prefab.CeilingTexture;
+        return {.Cell = p, .IsConnector = false};
     }
     case 'X': {
         bool const north {is_blocking_neighbor(prefab, x, y - 1)};
@@ -123,14 +132,7 @@ static auto parse_ascii_cell(char symbol, i32 x, i32 y, i32 width, i32 height, m
     }
     case 'o':
         return {.Cell = make_floor(), .IsConnector = onEdge}; // (a) same boundary-only rule as doors
-    case 'P': {
-        round_pillar p {};
-        p.Radius         = 0.3;
-        p.Texture        = prefab.WallTexture;
-        p.FloorTexture   = prefab.FloorTexture;
-        p.CeilingTexture = prefab.CeilingTexture;
-        return {.Cell = p, .IsConnector = false};
-    }
+
     case '.':
     default:
         return {.Cell = make_floor(), .IsConnector = false};

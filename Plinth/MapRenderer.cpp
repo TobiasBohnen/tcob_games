@@ -21,9 +21,8 @@ static auto get_color(level const& level, point_i map) -> color
         [](door_wall const&) -> color { return colors::Blue; },
         [](push_wall const&) -> color { return colors::DimGray; },
         [](normal_wall const&) -> color { return colors::DimGray; },
-        [](box_wall const& w) -> color { return colors::DimGray; },
-        [](diagonal_wall const& w) -> color { return colors::DimGray; },
-        [](round_pillar const& w) -> color { return colors::DimGray; });
+        [](obstacle const& w) -> color { return colors::CadetBlue; },
+        [](diagonal_wall const& w) -> color { return colors::DimGray; });
 }
 
 map_renderer::map_renderer(texture_cache& cache, size_i screenSize)

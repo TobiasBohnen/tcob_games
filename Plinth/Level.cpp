@@ -52,9 +52,27 @@ auto level::closest_point_on_wall(point_i map, point_d pos) const -> std::option
             return point_d {std::clamp(pos.X, clampRect.left(), clampRect.right()),
                             std::clamp(pos.Y, clampRect.top(), clampRect.bottom())};
         },
-        [&](box_wall const& w) -> std::optional<point_d> {
+        [&](obstacle const& w) -> std::optional<point_d> {
             rect_d r {w.LocalBounds};
             r.move_by(map);
+
+            if (w.IsRound) {
+                point_d const center {(r.left() + r.right()) / 2.0, (r.top() + r.bottom()) / 2.0};
+                f64 const     a {r.width() / 2.0};
+                f64 const     b {r.height() / 2.0};
+                if (a <= 0.0 || b <= 0.0) { return center; }
+
+                // scale into unit-circle space, find closest point there, scale back.
+                // (approximate for a != b, but exact for the common circular case, and
+                // visually indistinguishable from exact for moderate aspect ratios)
+                point_d const uv {(pos.X - center.X) / a, (pos.Y - center.Y) / b};
+                f64 const     len {std::sqrt(uv.dot(uv))};
+                if (len == 0.0) { return center; }
+
+                point_d const onUnitCircle {uv.X / len, uv.Y / len};
+                return point_d {center.X + (onUnitCircle.X * a), center.Y + (onUnitCircle.Y * b)};
+            }
+
             return point_d {std::clamp(pos.X, r.left(), r.right()),
                             std::clamp(pos.Y, r.top(), r.bottom())};
         },
@@ -67,13 +85,6 @@ auto level::closest_point_on_wall(point_i map, point_d pos) const -> std::option
             point_d const ab {b.X - a.X, b.Y - a.Y};
             f64 const     t {std::clamp(((pos.X - a.X) * ab.X + (pos.Y - a.Y) * ab.Y) / (ab.X * ab.X + ab.Y * ab.Y), 0.0, 1.0)};
             return point_d {a.X + (t * ab.X), a.Y + (t * ab.Y)};
-        },
-        [&](round_pillar const& w) -> std::optional<point_d> {
-            point_d const center {map.X + 0.5, map.Y + 0.5};
-            point_d const d {pos.X - center.X, pos.Y - center.Y};
-            f64 const     len {std::sqrt(d.dot(d))};
-            if (len == 0.0) { return center; }
-            return point_d {center.X + ((d.X / len) * w.Radius), center.Y + ((d.Y / len) * w.Radius)};
         },
         [&](auto const& w) -> std::optional<point_d> {
             if (w.State != wall_state::Open) {

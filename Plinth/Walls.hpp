@@ -101,8 +101,9 @@ struct push_wall {
     static constexpr f64 OpenSpeed {1.5};
 };
 
-struct box_wall {
-    rect_d LocalBounds;
+struct obstacle {
+    rect_d LocalBounds {rect_d::Zero};
+    bool   IsRound {false};
 
     bool Transparent {false};
 
@@ -132,18 +133,7 @@ struct diagonal_wall {
     auto intersect(cell_intersect const& ci) const -> wall_hit;
 };
 
-struct round_pillar {
-    f64 Radius {0};
-
-    i32 Texture {0};
-    i32 FloorTexture {INVALID_INDEX};
-    i32 CeilingTexture {INVALID_INDEX};
-    f64 Light {0.0};
-
-    auto intersect(cell_intersect const& ci) const -> wall_hit;
-};
-
-using cell = std::variant<floor_cell, normal_wall, door_wall, push_wall, box_wall, diagonal_wall, round_pillar>;
+using cell = std::variant<floor_cell, normal_wall, door_wall, push_wall, obstacle, diagonal_wall>;
 
 inline constexpr i32 MAP_WIDTH {64};
 inline constexpr i32 MAP_HEIGHT {64};
