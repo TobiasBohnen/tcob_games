@@ -7,18 +7,24 @@
 
 #include "Common.hpp"
 
+struct player_settings {
+    f64 MoveSpeed {4.0};
+    f64 RotateSpeed {3.0};
+
+    f64 BobHeight {6.0};
+};
+
 class player {
 public:
+    player_settings Settings {};
+
     point_d Position {};
     point_d Direction {};
     point_d Plane {};
 
-    f64 MoveSpeed {4.0};
-    f64 RotateSpeed {3.0};
+    bool Cheater {false};
 
     f64 BobAmount {0.0};
-
-    bool Cheater {false};
 
     void move(level const& level, f64 forwardAmount, f64 strafeAmount, f64 rotateAmount);
     void bob(milliseconds deltaTime);

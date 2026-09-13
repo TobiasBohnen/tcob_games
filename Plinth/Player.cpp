@@ -62,17 +62,16 @@ void player::move(level const& level, f64 forwardAmount, f64 strafeAmount, f64 r
 void player::bob(milliseconds deltaTime)
 {
     constexpr f64 bobSpeed {8.0};
-    constexpr f64 bobHeight {6.0}; // pixels
 
     auto const dt {deltaTime.count() / 1000};
 
     if (_isMoving) {
         _bobPhase += dt * bobSpeed;
-        BobAmount = std::abs(std::sin(_bobPhase)) * bobHeight;
+        BobAmount = std::abs(std::sin(_bobPhase)) * Settings.BobHeight;
         return;
     }
     if (BobAmount != 0.0) {
         _bobPhase = 0.0;
-        BobAmount = std::max(BobAmount - (dt * bobHeight * 4.0), 0.0);
+        BobAmount = std::max(BobAmount - (dt * Settings.BobHeight * 4.0), 0.0);
     }
 }

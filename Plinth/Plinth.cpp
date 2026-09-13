@@ -214,6 +214,9 @@ Plinth::Plinth(game& game)
             .Grid     = &testVoxelGrid,
         });
     }
+
+    _player.Settings.BobHeight = screenSize.Height / 60;
+
     _player.Position = find_empty();
     degree_d const angle {90};
     radian_d const rad {angle - degree_d {90}};
@@ -307,8 +310,8 @@ void Plinth::move_player(milliseconds deltaTime)
 {
     auto const& input {locate_service<input::system>()};
 
-    f64 const moveSpeed {deltaTime.count() / 1000 * _player.MoveSpeed};  // squares/second
-    f64 const rotSpeed {deltaTime.count() / 1000 * _player.RotateSpeed}; // radians/second
+    f64 const moveSpeed {deltaTime.count() / 1000 * _player.Settings.MoveSpeed};  // squares/second
+    f64 const rotSpeed {deltaTime.count() / 1000 * _player.Settings.RotateSpeed}; // radians/second
 
     f64 forwardAmount {0};
     f64 strafeAmount {0};
