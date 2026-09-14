@@ -401,6 +401,11 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
     case input::scan_code::F10: {
         _startRecord = true;
     } break;
+    case input::scan_code::L: {
+        for (auto& vo : _level->VoxelObjects) {
+            vo.Yaw += degree_d {10};
+        }
+    } break;
     default:
 
         break;

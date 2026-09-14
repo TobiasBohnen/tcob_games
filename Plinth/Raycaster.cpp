@@ -20,6 +20,18 @@
 
 constexpr f64 EYE_HEIGHT {0.5}; // TODO: pull from player
 
+                                // voxel
+constexpr degree_f KEY_AZIMUTH {-35.0};
+constexpr degree_f KEY_ELEVATION {35.0};
+constexpr f64      KEY_DIFFUSE {0.30};
+constexpr degree_f FILL_AZIMUTH {150.0};
+constexpr degree_f FILL_ELEVATION {5.0};
+constexpr f64      FILL_DIFFUSE {0.10};
+constexpr f64      AMBIENT_SKY {0.75};
+constexpr f64      AMBIENT_GROUND {0.40};
+constexpr f64      AMBIENT_OCCLUSION_STRENGTH {0.25};
+constexpr f64      HEIGHT_BANDING_STRENGTH {0.30};
+
 static auto PixelIndex(size_i screenSize, isize x, isize y) -> isize
 {
     return x + (y * screenSize.Width);
@@ -64,9 +76,8 @@ static auto ComputeWallScreenExtent(f64 distance, i32 screenCenterY, f64 projPla
             static_cast<i32>(std::round(screenCenterY + (lineHeight / 2.0)))};
 }
 
-static auto VoxelLightFromHeading(degree_f headingDegrees, degree_f azimuthOffset, degree_f elevation) -> vec3_d
+static auto VoxelLightFromHeading(degree_f azimuth, degree_f elevation) -> vec3_d
 {
-    degree_f const azimuth {headingDegrees + azimuthOffset};
     return vec3_d {
         .X = azimuth.cos() * elevation.cos(),
         .Y = azimuth.sin() * elevation.cos(),
@@ -406,8 +417,8 @@ void raycaster::draw_voxel_objects(level const& level, player const& player, f64
     rect_i const screenRect {point_i {0, 0}, _screenSize};
     u32*         screenBuf {_screen.data()};
 
-    vec3_d const keyLight {VoxelLightFromHeading(level.Settings.SunDirection, level.Settings.KeyAzimuthOffset, level.Settings.KeyElevation)};
-    vec3_d const fillLight {VoxelLightFromHeading(level.Settings.SunDirection, level.Settings.FillAzimuthOffset, level.Settings.FillElevation)};
+    vec3_d const keyLight {VoxelLightFromHeading(KEY_AZIMUTH, KEY_ELEVATION)};
+    vec3_d const fillLight {VoxelLightFromHeading(FILL_AZIMUTH, FILL_ELEVATION)};
 
     for (voxel_object const& obj : level.VoxelObjects) {
         if (!obj.Grid) { continue; }
@@ -495,11 +506,11 @@ void raycaster::draw_voxel_objects(level const& level, player const& player, f64
                     if (depth <= 0.0) { continue; }
 
                     vec3_d const normal {VoxelFaceNormal(hit.FaceAxis, hit.FaceSign)};
-                    f64 const    keyTerm {level.Settings.KeyDiffuse * std::max(0.0, normal.dot(keyLight))};
-                    f64 const    fillTerm {level.Settings.FillDiffuse * std::max(0.0, normal.dot(fillLight))};
-                    f64 const    ambientTerm {level.Settings.AmbientGround + ((level.Settings.AmbientSky - level.Settings.AmbientGround) * ((normal.Z * 0.5) + 0.5))};
+                    f64 const    keyTerm {KEY_DIFFUSE * std::max(0.0, normal.dot(keyLight))};
+                    f64 const    fillTerm {FILL_DIFFUSE * std::max(0.0, normal.dot(fillLight))};
+                    f64 const    ambientTerm {AMBIENT_GROUND + ((AMBIENT_SKY - AMBIENT_GROUND) * ((normal.Z * 0.5) + 0.5))};
                     f64 const    heightFactor {static_cast<f64>(hit.Cell.Z) / static_cast<f64>(std::max(1, obj.Grid->Size.Z - 1))};
-                    f64 const    heightMultiplier {1.0 - level.Settings.HeightBandingStrength + (level.Settings.HeightBandingStrength * heightFactor)};
+                    f64 const    heightMultiplier {1.0 - HEIGHT_BANDING_STRENGTH + (HEIGHT_BANDING_STRENGTH * heightFactor)};
 
                     vec3_i const layer {.X = hit.Cell.X + (hit.FaceAxis == 0 ? hit.FaceSign : 0),
                                         .Y = hit.Cell.Y + (hit.FaceAxis == 1 ? hit.FaceSign : 0),
@@ -528,7 +539,7 @@ void raycaster::draw_voxel_objects(level const& level, player const& player, f64
                     fv = std::clamp(fv, 0.0, 1.0);
 
                     f64 const aoInterp {(ao00 * (1.0 - fu) * (1.0 - fv)) + (ao10 * fu * (1.0 - fv)) + (ao01 * (1.0 - fu) * fv) + (ao11 * fu * fv)};
-                    f64 const aoFactor {1.0 - (level.Settings.AmbientOcclusionStrength * (1.0 - (aoInterp / 3.0)))};
+                    f64 const aoFactor {1.0 - (AMBIENT_OCCLUSION_STRENGTH * (1.0 - (aoInterp / 3.0)))};
 
                     f64 const bakeShade {std::clamp((ambientTerm + keyTerm + fillTerm) * aoFactor * heightMultiplier, 0.0, 1.0)};
 
