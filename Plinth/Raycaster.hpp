@@ -24,7 +24,7 @@ private:
 
     void draw_sprites(level const& level, player const& player, f64 invFogDistance);
     void draw_voxel_objects(level const& level, player const& player, f64 invFogDistance);
-
+    void draw_screen_effect(level const& level, player const& player);
     void draw_weapon(player const& player);
     void draw_hud(player const& player);
     void draw_message(level const& level);
