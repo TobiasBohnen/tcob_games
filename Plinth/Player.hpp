@@ -12,6 +12,8 @@ struct player_settings {
     f64 RotateSpeed {3.0};
 
     f64 BobHeight {6.0};
+
+    f64 LightIntensity {2.0};
 };
 
 class player {

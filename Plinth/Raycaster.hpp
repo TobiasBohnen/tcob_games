@@ -17,13 +17,12 @@ public:
     auto draw(level& level, player const& player) -> u32 const*;
 
 private:
-    void draw_columns(level& level, player const& player, f64 invFogDistance, i32 columnStart, i32 columnEnd);
+    void draw_columns(level& level, player const& player, i32 columnStart, i32 columnEnd);
+    void draw_wall_column(wall_hit const& hit, level const& level, player const& player, isize x, point_d rayDir);
+    void draw_floor_ceiling_column(wall_hit const& hit, level const& level, player const& player, isize x, point_d rayDir);
+    void draw_sprites(level const& level, player const& player);
+    void draw_voxel_objects(level const& level, player const& player);
 
-    void draw_wall_column(wall_hit const& hit, level const& level, player const& player, isize x, f64 invFogDistance);
-    void draw_floor_ceiling_column(wall_hit const& hit, level const& level, player const& player, isize x, point_d rayDir, f64 invFogDistance);
-
-    void draw_sprites(level const& level, player const& player, f64 invFogDistance);
-    void draw_voxel_objects(level const& level, player const& player, f64 invFogDistance);
     void draw_screen_effect(level const& level, player const& player);
     void draw_weapon(player const& player);
     void draw_hud(player const& player);

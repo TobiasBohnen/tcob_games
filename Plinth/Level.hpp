@@ -36,12 +36,19 @@ struct voxel_object {
     voxel_grid const* Grid {nullptr};
 };
 
+struct dynamic_light {
+    point_d Position {};
+    color   Color {};
+    f64     Intensity {1.0};
+};
+
 class level {
 public:
     explicit level(map_t map);
 
-    std::vector<sprite>       Sprites;
-    std::vector<voxel_object> VoxelObjects;
+    std::vector<sprite>        Sprites;
+    std::vector<voxel_object>  VoxelObjects;
+    std::vector<dynamic_light> DynamicLights;
 
     level_settings Settings;
 
