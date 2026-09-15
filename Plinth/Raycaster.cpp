@@ -64,7 +64,7 @@ static auto AccumulateLight(player const& player, std::vector<dynamic_light> con
 
     {
         point_d const toLight {player.Position - surfacePos};
-        f64 const     distSq {std::max(toLight.dot(toLight), 1e-6)};
+        f64 const     distSq {std::max(toLight.dot(toLight), 0.25)};
         f64 const     strength {player.Settings.LightIntensity / distSq};
         total.X += strength;
         total.Y += strength;
@@ -73,14 +73,14 @@ static auto AccumulateLight(player const& player, std::vector<dynamic_light> con
 
     for (dynamic_light const& light : lights) {
         point_d const toLight {light.Position - surfacePos};
-        f64 const     distSq {std::max(toLight.dot(toLight), 1e-6)};
+        f64 const     distSq {std::max(toLight.dot(toLight), 0.25)};
         f64 const     strength {light.Intensity / distSq};
         total.X += (light.Color.R / 255.0) * strength;
         total.Y += (light.Color.G / 255.0) * strength;
         total.Z += (light.Color.B / 255.0) * strength;
     }
 
-    return vec3_d {.X = std::min(total.X, 1.5), .Y = std::min(total.Y, 1.5), .Z = std::min(total.Z, 1.5)};
+    return vec3_d {.X = std::min(total.X, 1.1), .Y = std::min(total.Y, 1.1), .Z = std::min(total.Z, 1.1)};
 }
 
 static auto IsWithinPlayerLight(player const& player, point_i const& cell) -> bool
@@ -205,8 +205,6 @@ void raycaster::draw_wall_column(wall_hit const& hit, level const& level, player
     f64 const   texStep {1.0 * WALL_SIZE.Height / (wallBottom - wallTop)};
     f64         texPos {(drawStart - wallTop) * texStep};
 
-    // A wall column is a single flat plane at a single distance, so its lighting
-    // is constant for the whole column — computed once, not per pixel.
     point_d const surfacePos {player.Position + (rayDir * hit.Distance)};
     vec3_d const  tint {AccumulateLight(player, level.DynamicLights, surfacePos)};
 
