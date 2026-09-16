@@ -17,8 +17,12 @@ public:
     auto draw(level& level, player const& player) -> u32 const*;
 
 private:
+    void precompute_light_visibility(level const& level);
+    auto is_light_visible(point_i cell, size_t lightIndex) const -> bool;
+    auto accumulate_light(level const& level, player const& player, point_d const& surfacePos, f64 surfaceZ, point_i const& cell) const -> vec3_d;
+
     void draw_columns(level& level, player const& player, i32 columnStart, i32 columnEnd);
-    void draw_wall_column(wall_hit const& hit, level const& level, player const& player, isize x, point_d rayDir);
+    void draw_wall_column(wall_hit const& hit, level const& level, player const& player, isize x, point_d rayDir, point_i cell);
     void draw_floor_ceiling_column(wall_hit const& hit, level const& level, player const& player, isize x, point_d rayDir);
     void draw_sprites(level const& level, player const& player);
     void draw_voxel_objects(level const& level, player const& player);
@@ -36,6 +40,9 @@ private:
     texture_cache& _cache;
     size_i         _screenSize;
     f64            _projPlaneDist;
+
+    std::vector<u8> _lightVisibility;
+    size_t          _numDynamicLights {0};
 
     task_manager& _taskManager;
 };
