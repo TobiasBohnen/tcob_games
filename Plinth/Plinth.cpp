@@ -282,6 +282,10 @@ void Plinth::on_update(milliseconds deltaTime)
     _player.bob(deltaTime);
     _level->update(deltaTime);
 
+    // _frameTimer += deltaTime;
+    // f64 const flicker {1.0 + (0.06 * std::sin(_frameTimer.count() / 1000.0 * 17.0)) + (0.04 * std::sin((_frameTimer.count() / 1000.0 * 29.3) + 1.7))};
+    // _player.Settings.LightIntensity = 2 * flicker;
+
     if (_startRecord) {
         if (_clipFtr.valid()) {
             if (_clipFtr.wait_for(0ms) == std::future_status::ready) {

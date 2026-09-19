@@ -39,6 +39,7 @@ struct voxel_object {
 struct dynamic_light {
     point_d Position {};
     f64     Height {0.5};
+    f64     Range {8.0};
     color   Color {};
     f64     Intensity {1.0};
 };

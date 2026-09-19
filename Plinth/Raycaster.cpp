@@ -47,6 +47,18 @@ static auto ComputeWallScreenExtent(f64 distance, i32 screenCenterY, f64 projPla
             static_cast<i32>(std::round(screenCenterY + (lineHeight / 2.0)))};
 }
 
+static auto ComputeFalloff(f64 dist, f64 range, f64 intensity) -> f64
+{
+    f64 const distSq {std::max(dist * dist, 0.01)};
+    f64 const windowed {std::pow(std::clamp(1.0 - std::pow(dist / range, 4.0), 0.0, 1.0), 2.0)};
+    return intensity * windowed / distSq;
+}
+
+static auto ToneMap(f64 x) -> f64
+{
+    return x / (1.0 + x);
+}
+
 static auto HasLineOfSight(level const& level, point_d const& from, point_d const& to) -> bool
 {
     point_d const diff {to - from};
@@ -99,8 +111,9 @@ static auto IsWithinPlayerLight(player const& player, point_i const& cell) -> bo
 {
     point_d const cellCenter {cell.X + 0.5, cell.Y + 0.5};
     point_d const toCell {cellCenter - player.Position};
-    f64 const     distSq {std::max(toCell.dot(toCell), 1e-6)};
-    f64 const     strength {player.Settings.LightIntensity / distSq};
+    f64 const     dist {toCell.length()};
+    if (dist >= player.Settings.LightRange) { return false; }
+    f64 const strength {ComputeFalloff(dist, player.Settings.LightRange, player.Settings.LightIntensity)};
     return strength >= SEEN_LIGHT_THRESHOLD;
 }
 
@@ -120,7 +133,7 @@ raycaster::raycaster(texture_cache& cache, size_i screenSize, f64 projPlaneDist)
 void raycaster::precompute_light_visibility(level const& level)
 {
     _numDynamicLights = level.DynamicLights.size();
-    _lightVisibility.assign(static_cast<size_t>(MAP_WIDTH) * MAP_HEIGHT * std::max<size_t>(_numDynamicLights, 1), 0);
+    _lightVisibility.assign(static_cast<size_t>(MAP_WIDTH) * MAP_HEIGHT * _numDynamicLights, 0);
 
     if (_numDynamicLights == 0) { return; }
 
@@ -129,7 +142,15 @@ void raycaster::precompute_light_visibility(level const& level)
             point_d const cellCenter {cx + 0.5, cy + 0.5};
             size_t const  cellIndex {static_cast<size_t>((cy * MAP_WIDTH) + cx)};
             for (size_t li {0}; li < _numDynamicLights; ++li) {
-                bool const visible {HasLineOfSight(level, cellCenter, level.DynamicLights[li].Position)};
+                dynamic_light const& light {level.DynamicLights[li]};
+
+                point_d const toLightXY {light.Position - cellCenter};
+                f64 const     dz {light.Height - WALL_LIGHT_Z};
+                f64 const     dist {std::sqrt(toLightXY.dot(toLightXY) + (dz * dz))};
+                bool          visible {false};
+                if (dist < light.Range * 1.3) {
+                    visible = HasLineOfSight(level, cellCenter, light.Position);
+                }
                 _lightVisibility[(cellIndex * _numDynamicLights) + li] = visible ? 1 : 0;
             }
         }
@@ -150,12 +171,14 @@ auto raycaster::accumulate_light(level const& level, player const& player, point
     {
         point_d const toLightXY {player.Position - surfacePos};
         f64 const     dz {EYE_HEIGHT - surfaceZ};
-        f64 const     distSq {std::max(toLightXY.dot(toLightXY) + (dz * dz), 0.25)};
-        f64 const     strength {player.Settings.LightIntensity / distSq};
-
-        total.X += strength;
-        total.Y += strength;
-        total.Z += strength;
+        f64 const     dist {std::sqrt(toLightXY.dot(toLightXY) + (dz * dz))};
+        f64 const     range {player.Settings.LightRange};
+        if (dist < range) {
+            f64 const strength {ComputeFalloff(dist, range, player.Settings.LightIntensity)};
+            total.X += strength;
+            total.Y += strength;
+            total.Z += strength;
+        }
     }
 
     for (size_t li {0}; li < level.DynamicLights.size(); ++li) {
@@ -164,14 +187,17 @@ auto raycaster::accumulate_light(level const& level, player const& player, point
         dynamic_light const& light {level.DynamicLights[li]};
         point_d const        toLightXY {light.Position - surfacePos};
         f64 const            dz {light.Height - surfaceZ};
-        f64 const            distSq {std::max(toLightXY.dot(toLightXY) + (dz * dz), 0.25)};
-        f64 const            strength {light.Intensity / distSq};
+        f64 const            dist {std::sqrt(toLightXY.dot(toLightXY) + (dz * dz))};
+        f64 const            range {light.Range};
+        if (dist >= range) { continue; }
+
+        f64 const strength {ComputeFalloff(dist, range, light.Intensity)};
         total.X += (light.Color.R / 255.0) * strength;
         total.Y += (light.Color.G / 255.0) * strength;
         total.Z += (light.Color.B / 255.0) * strength;
     }
 
-    return vec3_d {.X = std::min(total.X, 1.1), .Y = std::min(total.Y, 1.1), .Z = std::min(total.Z, 1.1)};
+    return vec3_d {.X = ToneMap(total.X), .Y = ToneMap(total.Y), .Z = ToneMap(total.Z)};
 }
 
 auto raycaster::draw(level& level, player const& player) -> u32 const*
