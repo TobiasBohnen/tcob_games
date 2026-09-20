@@ -413,7 +413,9 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
         }
     } break;
     case input::scan_code::F: {
-        _level->DynamicLights.push_back({.Position = _player.Position, .Height = 0.1, .Range = 1, .Color = colors::Blue, .Intensity = 500});
+        static rng                  Rng;
+        static std::array<color, 4> LightColors {colors::Blue, colors::Red, colors::Green, colors::Yellow};
+        _level->DynamicLights.push_back({.Position = _player.Position, .Height = 0.1, .Range = 1, .Color = LightColors[Rng(0, 3)], .Intensity = 500});
     } break;
     default:
 

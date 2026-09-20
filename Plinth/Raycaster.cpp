@@ -61,6 +61,20 @@ static auto ToneMap(f64 x) -> f64
     return x / (1.0 + x);
 }
 
+static void AddLightContribution(point_d const& lightPos, f64 lightHeight, f64 range, f64 intensity, color lightColor,
+                                 point_d const& surfacePos, f64 surfaceZ, vec3_d& total)
+{
+    point_d const toLightXY {lightPos - surfacePos};
+    f64 const     dz {lightHeight - surfaceZ};
+    f64 const     distSq {toLightXY.dot(toLightXY) + (dz * dz)};
+    f64 const     rangeSq {range * range};
+    if (distSq >= rangeSq) { return; }
+    f64 const strength {ComputeFalloff(distSq, rangeSq, intensity)};
+    total.X += (lightColor.R / 255.0) * strength;
+    total.Y += (lightColor.G / 255.0) * strength;
+    total.Z += (lightColor.B / 255.0) * strength;
+}
+
 static auto HasLineOfSight(level const& level, point_d const& from, point_d const& to) -> bool
 {
     point_d const diff {to - from};
@@ -168,33 +182,13 @@ auto raycaster::accumulate_light(level const& level, player const& player, point
 {
     vec3_d total {};
 
-    {
-        point_d const toLightXY {player.Position - surfacePos};
-        f64 const     dz {EYE_HEIGHT - surfaceZ};
-        f64 const     distSq {toLightXY.dot(toLightXY) + (dz * dz)};
-        f64 const     rangeSq {player.Settings.LightRange * player.Settings.LightRange};
-        if (distSq < rangeSq) {
-            f64 const strength {ComputeFalloff(distSq, rangeSq, player.Settings.LightIntensity)};
-            total.X += strength;
-            total.Y += strength;
-            total.Z += strength;
-        }
-    }
+    AddLightContribution(player.Position, EYE_HEIGHT, player.Settings.LightRange, player.Settings.LightIntensity, color {255, 255, 255}, surfacePos, surfaceZ, total);
 
     if (map_t::Size.contains(cell)) {
         usize const cellIndex {static_cast<usize>((cell.Y * MAP_WIDTH) + cell.X)};
         for (u32 li : _cellLights[cellIndex]) {
             dynamic_light const& light {level.DynamicLights[li]};
-            point_d const        toLightXY {light.Position - surfacePos};
-            f64 const            dz {light.Height - surfaceZ};
-            f64 const            distSq {toLightXY.dot(toLightXY) + (dz * dz)};
-            f64 const            rangeSq {light.Range * light.Range};
-            if (distSq >= rangeSq) { continue; }
-
-            f64 const strength {ComputeFalloff(distSq, rangeSq, light.Intensity)};
-            total.X += (light.Color.R / 255.0) * strength;
-            total.Y += (light.Color.G / 255.0) * strength;
-            total.Z += (light.Color.B / 255.0) * strength;
+            AddLightContribution(light.Position, light.Height, light.Range, light.Intensity, light.Color, surfacePos, surfaceZ, total);
         }
     }
 
@@ -287,26 +281,27 @@ void raycaster::draw_columns(level& level, player const& player, i32 columnStart
 
         _zBuffer[x] = hitResult.Distance;
 
-        draw_floor_ceiling_column(hitResult, level, player, x, rayDir);
+        i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
+        auto const [wallTop, wallBottom] {ComputeWallScreenExtent(hitResult.Distance, screenCenterY, _projPlaneDist)};
+        wall_extent const extent {.Top = wallTop, .Bottom = wallBottom, .ScreenCenterY = screenCenterY};
 
-        draw_wall_column(hitResult, level, player, x, rayDir, hitCell);
+        draw_floor_ceiling_column(hitResult, level, player, x, rayDir, extent);
+
+        draw_wall_column(hitResult, level, player, x, rayDir, hitCell, extent);
     }
 }
 
-void raycaster::draw_wall_column(wall_hit const& hit, level const& level, player const& player, isize x, point_d rayDir, point_i cell)
+void raycaster::draw_wall_column(wall_hit const& hit, level const& level, player const& player, isize x, point_d rayDir, point_i cell, wall_extent const& extent)
 {
-    i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
-    auto const [wallTop, wallBottom] {ComputeWallScreenExtent(hit.Distance, screenCenterY, _projPlaneDist)};
-
-    i32 const drawStart {std::max(wallTop, 0)};
-    i32 const drawEnd {std::min(wallBottom, _screenSize.Height)};
+    i32 const drawStart {std::max(extent.Top, 0)};
+    i32 const drawEnd {std::min(extent.Bottom, _screenSize.Height)};
 
     if (drawStart >= drawEnd) { return; }
 
     auto const* tex {_cache.texture(hit.Texture, 0)};
-    f64 const   texX {(1.0 - hit.SegmentT) * static_cast<f64>(WALL_SIZE.Width)};
-    f64 const   texStep {1.0 * WALL_SIZE.Height / (wallBottom - wallTop)};
-    f64         texPos {(drawStart - wallTop) * texStep};
+    i32 const   texX {std::clamp(static_cast<i32>((1.0 - hit.SegmentT) * static_cast<f64>(WALL_SIZE.Width)), 0, WALL_SIZE.Width - 1)};
+    f64 const   texStep {1.0 * WALL_SIZE.Height / (extent.Bottom - extent.Top)};
+    f64         texPos {(drawStart - extent.Top) * texStep};
 
     point_d const surfacePos {player.Position + (rayDir * hit.Distance)};
     vec3_d const  tint {accumulate_light(level, player, surfacePos, WALL_LIGHT_Z, cell)};
@@ -315,19 +310,16 @@ void raycaster::draw_wall_column(wall_hit const& hit, level const& level, player
     for (i32 y {drawStart}; y < drawEnd; y++) {
         i32 const texY {((static_cast<i32>(texPos) % WALL_SIZE.Height) + WALL_SIZE.Height) % WALL_SIZE.Height};
         texPos += texStep;
-        i32 const srcIdx {static_cast<i32>((texX + (texY * WALL_SIZE.Width))) * TEXTURE_BPP};
+        i32 const srcIdx {(texX + (texY * WALL_SIZE.Width)) * TEXTURE_BPP};
 
         CopyPixel(screenBuf, PixelIndex(_screenSize, x, y), tex, srcIdx, tint);
     }
 }
 
-void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& level, player const& player, isize x, point_d rayDir)
+void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& level, player const& player, isize x, point_d rayDir, wall_extent const& extent)
 {
-    i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
-    auto const [wallTop, wallBottom] {ComputeWallScreenExtent(hit.Distance, screenCenterY, _projPlaneDist)};
-
-    i32 const ceilingEnd {std::clamp(wallTop, 0, _screenSize.Height)};
-    i32 const floorStart {std::clamp(wallBottom, 0, _screenSize.Height)};
+    i32 const ceilingEnd {std::clamp(extent.Top, 0, _screenSize.Height)};
+    i32 const floorStart {std::clamp(extent.Bottom, 0, _screenSize.Height)};
 
     point_d const floorWall {player.Position + (rayDir * hit.Distance)};
     f64 const     invPerpWallDist {1.0 / hit.Distance};
@@ -350,9 +342,9 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
     u32* screenBuf {_screen.data()};
 
     auto const sample_and_draw {[&](i32 y, bool isFloor) {
-        i32 const     effectiveY {isFloor ? y : (2 * screenCenterY) - y};
-        f64 const     rowDist {effectiveY == screenCenterY ? std::numeric_limits<f64>::infinity()
-                                                           : _projPlaneDist / ((2.0 * effectiveY) - (2.0 * screenCenterY))};
+        i32 const     effectiveY {isFloor ? y : (2 * extent.ScreenCenterY) - y};
+        f64 const     rowDist {effectiveY == extent.ScreenCenterY ? std::numeric_limits<f64>::infinity()
+                                                                  : _projPlaneDist / ((2.0 * effectiveY) - (2.0 * extent.ScreenCenterY))};
         f64 const     weight {std::min(rowDist * invPerpWallDist, 1.0)};
         point_d const currentFloor {(weight * floorWall.X) + ((1.0 - weight) * player.Position.X),
                                     (weight * floorWall.Y) + ((1.0 - weight) * player.Position.Y)};

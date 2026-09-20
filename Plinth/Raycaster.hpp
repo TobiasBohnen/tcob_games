@@ -17,13 +17,19 @@ public:
     auto draw(level& level, player const& player) -> u32 const*;
 
 private:
+    struct wall_extent {
+        i32 Top;
+        i32 Bottom;
+        i32 ScreenCenterY;
+    };
+
     void precompute_light_visibility(level const& level);
     auto is_light_visible(point_i cell, usize lightIndex) const -> bool;
     auto accumulate_light(level const& level, player const& player, point_d const& surfacePos, f64 surfaceZ, point_i const& cell) const -> vec3_d;
 
     void draw_columns(level& level, player const& player, i32 columnStart, i32 columnEnd);
-    void draw_wall_column(wall_hit const& hit, level const& level, player const& player, isize x, point_d rayDir, point_i cell);
-    void draw_floor_ceiling_column(wall_hit const& hit, level const& level, player const& player, isize x, point_d rayDir);
+    void draw_wall_column(wall_hit const& hit, level const& level, player const& player, isize x, point_d rayDir, point_i cell, wall_extent const& extent);
+    void draw_floor_ceiling_column(wall_hit const& hit, level const& level, player const& player, isize x, point_d rayDir, wall_extent const& extent);
     void draw_sprites(level const& level, player const& player);
     void draw_voxel_objects(level const& level, player const& player);
 
