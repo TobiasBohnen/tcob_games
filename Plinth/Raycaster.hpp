@@ -18,7 +18,7 @@ public:
 
 private:
     void precompute_light_visibility(level const& level);
-    auto is_light_visible(point_i cell, size_t lightIndex) const -> bool;
+    auto is_light_visible(point_i cell, usize lightIndex) const -> bool;
     auto accumulate_light(level const& level, player const& player, point_d const& surfacePos, f64 surfaceZ, point_i const& cell) const -> vec3_d;
 
     void draw_columns(level& level, player const& player, i32 columnStart, i32 columnEnd);
@@ -41,8 +41,9 @@ private:
     size_i         _screenSize;
     f64            _projPlaneDist;
 
-    std::vector<u8> _lightVisibility;
-    size_t          _numDynamicLights {0};
+    std::vector<u8>               _lightVisibility;
+    usize                         _numDynamicLights {0};
+    std::vector<std::vector<u32>> _cellLights;
 
     task_manager& _taskManager;
 };

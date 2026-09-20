@@ -37,7 +37,7 @@ void texture_cache::load()
 {
     io::create_folder("cache");
 
-    // PLACEHOLDER START
+    // DEBUGCODE START
 
     // SPRITES
     load_image(1, 0, "res/wall0.png");
@@ -59,5 +59,5 @@ void texture_cache::load()
     load_image(handTexture, 0, "res/hand.png");
     load_image(hudTexture, 0, "res/hud.png");
 
-    // PLACEHOLDER END
+    // DEBUGCODE END
 }

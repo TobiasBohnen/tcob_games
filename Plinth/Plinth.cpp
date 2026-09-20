@@ -11,9 +11,9 @@
 #include "MapRenderer.hpp"
 #include "Raycaster.hpp"
 
-constexpr size_i screenSize {640, 360};
+// DEBUGCODE START
 
-// PLACEHOLDER START
+constexpr size_i screenSize {640, 360};
 
 ////////////////////////////////////////////////////////////
 // Example prefab library
@@ -169,7 +169,6 @@ static auto make_example_prefab_library() -> std::vector<map_prefab>
 
     return library;
 }
-// PLACEHOLDER END
 
 Plinth::Plinth(game& game)
     : scene {game}
@@ -182,7 +181,7 @@ Plinth::Plinth(game& game)
 
     _texture->resize(screenSize, 1, gfx::texture::format::RGBA8);
     _texture->Filtering = gfx::texture::filtering::NearestNeighbor;
-    // PLACEHOLDER START
+
     map_generator gen {make_example_prefab_library()};
     auto const    map {gen.generate({})};
     _level = std::make_unique<level>(map);
@@ -221,7 +220,6 @@ Plinth::Plinth(game& game)
     degree_d const angle {180};
     radian_d const rad {angle - degree_d {90}};
     _player.Direction = point_d::FromDirection(angle);
-    // PLACEHOLDER END
 
     f64 const fov {FOV * TAU / 360.0};
     _player.Plane = {-rad.sin() * std::tan(fov / 2.0), rad.cos() * std::tan(fov / 2.0)};
@@ -285,6 +283,10 @@ void Plinth::on_update(milliseconds deltaTime)
     // _frameTimer += deltaTime;
     // f64 const flicker {1.0 + (0.06 * std::sin(_frameTimer.count() / 1000.0 * 17.0)) + (0.04 * std::sin((_frameTimer.count() / 1000.0 * 29.3) + 1.7))};
     // _player.Settings.LightIntensity = 2 * flicker;
+
+    for (auto& dl : _level->DynamicLights) {
+        dl.Position += point_d {3, 0} * deltaTime.count() / 1000;
+    }
 
     if (_startRecord) {
         if (_clipFtr.valid()) {
@@ -410,6 +412,9 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
             vo.Yaw += degree_d {10};
         }
     } break;
+    case input::scan_code::F: {
+        _level->DynamicLights.push_back({.Position = _player.Position, .Height = 0.1, .Range = 1, .Color = colors::Blue, .Intensity = 500});
+    } break;
     default:
 
         break;
@@ -443,3 +448,5 @@ void Plinth::on_text_input(input::keyboard::text_input_event const& ev)
         _player.Cheater = true;
     }
 }
+
+// DEBUGCODE END

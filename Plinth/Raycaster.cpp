@@ -21,6 +21,7 @@
 constexpr f64 EYE_HEIGHT {0.5};            // TODO: pull from player
 constexpr f64 WALL_LIGHT_Z {0.5};          // approximate wall column as a flat plane at mid-height for lighting
 constexpr f64 SEEN_LIGHT_THRESHOLD {0.05}; // minimum player-light strength for a cell to count as "seen"
+constexpr f64 LIGHT_CULL_MARGIN {1.3};
 
 static auto PixelIndex(size_i screenSize, isize x, isize y) -> isize
 {
@@ -47,11 +48,12 @@ static auto ComputeWallScreenExtent(f64 distance, i32 screenCenterY, f64 projPla
             static_cast<i32>(std::round(screenCenterY + (lineHeight / 2.0)))};
 }
 
-static auto ComputeFalloff(f64 dist, f64 range, f64 intensity) -> f64
+static auto ComputeFalloff(f64 distSq, f64 rangeSq, f64 intensity) -> f64
 {
-    f64 const distSq {std::max(dist * dist, 0.01)};
-    f64 const windowed {std::pow(std::clamp(1.0 - std::pow(dist / range, 4.0), 0.0, 1.0), 2.0)};
-    return intensity * windowed / distSq;
+    f64 const d {std::max(distSq, 0.01)};
+    f64 const ratio {distSq / rangeSq};
+    f64 const windowed {std::pow(std::clamp(1.0 - (ratio * ratio), 0.0, 1.0), 2.0)};
+    return intensity * windowed / d;
 }
 
 static auto ToneMap(f64 x) -> f64
@@ -111,9 +113,10 @@ static auto IsWithinPlayerLight(player const& player, point_i const& cell) -> bo
 {
     point_d const cellCenter {cell.X + 0.5, cell.Y + 0.5};
     point_d const toCell {cellCenter - player.Position};
-    f64 const     dist {toCell.length()};
-    if (dist >= player.Settings.LightRange) { return false; }
-    f64 const strength {ComputeFalloff(dist, player.Settings.LightRange, player.Settings.LightIntensity)};
+    f64 const     distSq {toCell.dot(toCell)};
+    f64 const     rangeSq {player.Settings.LightRange * player.Settings.LightRange};
+    if (distSq >= rangeSq) { return false; }
+    f64 const strength {ComputeFalloff(distSq, rangeSq, player.Settings.LightIntensity)};
     return strength >= SEEN_LIGHT_THRESHOLD;
 }
 
@@ -128,40 +131,37 @@ raycaster::raycaster(texture_cache& cache, size_i screenSize, f64 projPlaneDist)
 {
     _zBuffer.resize(_screenSize.Width);
     _objectDepthBuffer.resize(_screenSize.area());
+    _cellLights.resize(static_cast<usize>(MAP_WIDTH) * MAP_HEIGHT);
 }
 
 void raycaster::precompute_light_visibility(level const& level)
 {
-    _numDynamicLights = level.DynamicLights.size();
-    _lightVisibility.assign(static_cast<size_t>(MAP_WIDTH) * MAP_HEIGHT * _numDynamicLights, 0);
+    for (auto& list : _cellLights) { list.clear(); }
 
-    if (_numDynamicLights == 0) { return; }
+    for (u32 li {0}; li < static_cast<u32>(level.DynamicLights.size()); ++li) {
+        dynamic_light const& light {level.DynamicLights[li]};
+        f64 const            sweepRadius {light.Range * LIGHT_CULL_MARGIN};
 
-    for (i32 cy {0}; cy < MAP_HEIGHT; ++cy) {
-        for (i32 cx {0}; cx < MAP_WIDTH; ++cx) {
-            point_d const cellCenter {cx + 0.5, cy + 0.5};
-            size_t const  cellIndex {static_cast<size_t>((cy * MAP_WIDTH) + cx)};
-            for (size_t li {0}; li < _numDynamicLights; ++li) {
-                dynamic_light const& light {level.DynamicLights[li]};
+        i32 const cxMin {std::clamp(static_cast<i32>(light.Position.X - sweepRadius), 0, MAP_WIDTH - 1)};
+        i32 const cxMax {std::clamp(static_cast<i32>(light.Position.X + sweepRadius), 0, MAP_WIDTH - 1)};
+        i32 const cyMin {std::clamp(static_cast<i32>(light.Position.Y - sweepRadius), 0, MAP_HEIGHT - 1)};
+        i32 const cyMax {std::clamp(static_cast<i32>(light.Position.Y + sweepRadius), 0, MAP_HEIGHT - 1)};
 
+        for (i32 cy {cyMin}; cy <= cyMax; ++cy) {
+            for (i32 cx {cxMin}; cx <= cxMax; ++cx) {
+                point_d const cellCenter {cx + 0.5, cy + 0.5};
                 point_d const toLightXY {light.Position - cellCenter};
                 f64 const     dz {light.Height - WALL_LIGHT_Z};
-                f64 const     dist {std::sqrt(toLightXY.dot(toLightXY) + (dz * dz))};
-                bool          visible {false};
-                if (dist < light.Range * 1.3) {
-                    visible = HasLineOfSight(level, cellCenter, light.Position);
+                f64 const     distSq {toLightXY.dot(toLightXY) + (dz * dz)};
+                if (distSq >= sweepRadius * sweepRadius) { continue; }
+
+                if (HasLineOfSight(level, cellCenter, light.Position)) {
+                    usize const cellIndex {static_cast<usize>((cy * MAP_WIDTH) + cx)};
+                    _cellLights[cellIndex].push_back(li);
                 }
-                _lightVisibility[(cellIndex * _numDynamicLights) + li] = visible ? 1 : 0;
             }
         }
     }
-}
-
-auto raycaster::is_light_visible(point_i cell, size_t lightIndex) const -> bool
-{
-    if (!map_t::Size.contains(cell)) { return false; }
-    size_t const cellIndex {static_cast<size_t>((cell.Y * MAP_WIDTH) + cell.X)};
-    return _lightVisibility[(cellIndex * _numDynamicLights) + lightIndex] != 0;
 }
 
 auto raycaster::accumulate_light(level const& level, player const& player, point_d const& surfacePos, f64 surfaceZ, point_i const& cell) const -> vec3_d
@@ -171,30 +171,31 @@ auto raycaster::accumulate_light(level const& level, player const& player, point
     {
         point_d const toLightXY {player.Position - surfacePos};
         f64 const     dz {EYE_HEIGHT - surfaceZ};
-        f64 const     dist {std::sqrt(toLightXY.dot(toLightXY) + (dz * dz))};
-        f64 const     range {player.Settings.LightRange};
-        if (dist < range) {
-            f64 const strength {ComputeFalloff(dist, range, player.Settings.LightIntensity)};
+        f64 const     distSq {toLightXY.dot(toLightXY) + (dz * dz)};
+        f64 const     rangeSq {player.Settings.LightRange * player.Settings.LightRange};
+        if (distSq < rangeSq) {
+            f64 const strength {ComputeFalloff(distSq, rangeSq, player.Settings.LightIntensity)};
             total.X += strength;
             total.Y += strength;
             total.Z += strength;
         }
     }
 
-    for (size_t li {0}; li < level.DynamicLights.size(); ++li) {
-        if (!is_light_visible(cell, li)) { continue; }
+    if (map_t::Size.contains(cell)) {
+        usize const cellIndex {static_cast<usize>((cell.Y * MAP_WIDTH) + cell.X)};
+        for (u32 li : _cellLights[cellIndex]) {
+            dynamic_light const& light {level.DynamicLights[li]};
+            point_d const        toLightXY {light.Position - surfacePos};
+            f64 const            dz {light.Height - surfaceZ};
+            f64 const            distSq {toLightXY.dot(toLightXY) + (dz * dz)};
+            f64 const            rangeSq {light.Range * light.Range};
+            if (distSq >= rangeSq) { continue; }
 
-        dynamic_light const& light {level.DynamicLights[li]};
-        point_d const        toLightXY {light.Position - surfacePos};
-        f64 const            dz {light.Height - surfaceZ};
-        f64 const            dist {std::sqrt(toLightXY.dot(toLightXY) + (dz * dz))};
-        f64 const            range {light.Range};
-        if (dist >= range) { continue; }
-
-        f64 const strength {ComputeFalloff(dist, range, light.Intensity)};
-        total.X += (light.Color.R / 255.0) * strength;
-        total.Y += (light.Color.G / 255.0) * strength;
-        total.Z += (light.Color.B / 255.0) * strength;
+            f64 const strength {ComputeFalloff(distSq, rangeSq, light.Intensity)};
+            total.X += (light.Color.R / 255.0) * strength;
+            total.Y += (light.Color.G / 255.0) * strength;
+            total.Z += (light.Color.B / 255.0) * strength;
+        }
     }
 
     return vec3_d {.X = ToneMap(total.X), .Y = ToneMap(total.Y), .Z = ToneMap(total.Z)};
@@ -551,7 +552,6 @@ void raycaster::draw_voxel_objects(level const& level, player const& player)
         i32 const     stride {bboxArea > MAX_VOXEL_OBJECT_PIXELS ? static_cast<i32>(std::ceil(std::sqrt(static_cast<f64>(bboxArea) / MAX_VOXEL_OBJECT_PIXELS)))
                                                                  : 1};
         i32 const     strideCols {(colCount + stride - 1) / stride};
-        point_i const objCell {obj.Position};
 
         _taskManager.run_parallel([&](par_task const& ctx) {
             for (isize scol {static_cast<isize>(ctx.Start)}; scol < static_cast<isize>(ctx.End); ++scol) {
@@ -579,13 +579,14 @@ void raycaster::draw_voxel_objects(level const& level, player const& player)
 
                     if (depth <= 0.0) { continue; }
 
-                    vec3_i const layer {.X = hit.Cell.X + (hit.FaceAxis == 0 ? hit.FaceSign : 0),
-                                        .Y = hit.Cell.Y + (hit.FaceAxis == 1 ? hit.FaceSign : 0),
-                                        .Z = hit.Cell.Z + (hit.FaceAxis == 2 ? hit.FaceSign : 0)};
-                    i32 const    ao00 {obj.Grid->corner_ao(layer, hit.FaceAxis, -1, -1)};
-                    i32 const    ao10 {obj.Grid->corner_ao(layer, hit.FaceAxis, +1, -1)};
-                    i32 const    ao01 {obj.Grid->corner_ao(layer, hit.FaceAxis, -1, +1)};
-                    i32 const    ao11 {obj.Grid->corner_ao(layer, hit.FaceAxis, +1, +1)};
+                    point_i const hitCellForLight {worldHitXY};
+                    vec3_i const  layer {.X = hit.Cell.X + (hit.FaceAxis == 0 ? hit.FaceSign : 0),
+                                         .Y = hit.Cell.Y + (hit.FaceAxis == 1 ? hit.FaceSign : 0),
+                                         .Z = hit.Cell.Z + (hit.FaceAxis == 2 ? hit.FaceSign : 0)};
+                    i32 const     ao00 {obj.Grid->corner_ao(layer, hit.FaceAxis, -1, -1)};
+                    i32 const     ao10 {obj.Grid->corner_ao(layer, hit.FaceAxis, +1, -1)};
+                    i32 const     ao01 {obj.Grid->corner_ao(layer, hit.FaceAxis, -1, +1)};
+                    i32 const     ao11 {obj.Grid->corner_ao(layer, hit.FaceAxis, +1, +1)};
 
                     f64 fu {}, fv {};
                     switch (hit.FaceAxis) {
@@ -608,7 +609,7 @@ void raycaster::draw_voxel_objects(level const& level, player const& player)
                     f64 const aoInterp {(ao00 * (1.0 - fu) * (1.0 - fv)) + (ao10 * fu * (1.0 - fv)) + (ao01 * (1.0 - fu) * fv) + (ao11 * fu * fv)};
                     f64 const aoFactor {aoInterp / 3.0};
 
-                    vec3_d tint {accumulate_light(level, player, worldHitXY, worldHitZ, objCell)};
+                    vec3_d tint {accumulate_light(level, player, worldHitXY, worldHitZ, hitCellForLight)};
                     tint.X *= aoFactor;
                     tint.Y *= aoFactor;
                     tint.Z *= aoFactor;

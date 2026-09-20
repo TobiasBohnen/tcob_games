@@ -12,11 +12,11 @@
 level::level(map_t map)
     : _map {std::move(map)}
 {
-    // PLACEHOLDER START
+    // DEBUGCODE START
     Settings.CeilingTexture = 11;
     Settings.FloorTexture   = 10;
     Settings.IsSkybox       = false;
-    // PLACEHOLDER END
+    // DEBUGCODE END
 }
 
 void level::update(milliseconds deltaSeconds)
