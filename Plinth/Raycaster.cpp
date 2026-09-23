@@ -18,10 +18,10 @@
 #include "TextureCache.hpp"
 #include "Walls.hpp"
 
-constexpr f64 EYE_HEIGHT {0.5};            // TODO: pull from player
-constexpr f64 WALL_LIGHT_Z {0.5};          // approximate wall column as a flat plane at mid-height for lighting
-constexpr f64 SEEN_LIGHT_THRESHOLD {0.05}; // minimum player-light strength for a cell to count as "seen"
-constexpr f64 LIGHT_CULL_MARGIN {1.3};
+constexpr f64 EYE_HEIGHT {0.5};                             // TODO: pull from player
+constexpr f64 WALL_LIGHT_Z {0.5};                           // approximate wall column as a flat plane at mid-height for lighting
+constexpr f64 SEEN_LIGHT_THRESHOLD {0.05};                  // minimum player-light strength for a cell to count as "seen"
+constexpr f64 CELL_DIAGONAL_HALF {std::numbers::sqrt2 / 2}; // max distance from a cell's center to its farthest corner
 
 static auto PixelIndex(size_i screenSize, isize x, isize y) -> isize
 {
@@ -154,12 +154,12 @@ void raycaster::precompute_light_visibility(level const& level)
 
     for (u32 li {0}; li < static_cast<u32>(level.DynamicLights.size()); ++li) {
         dynamic_light const& light {level.DynamicLights[li]};
-        f64 const            sweepRadius {light.Range * LIGHT_CULL_MARGIN};
+        f64 const            sweepRadius {light.Range + CELL_DIAGONAL_HALF};
 
-        i32 const cxMin {std::clamp(static_cast<i32>(light.Position.X - sweepRadius), 0, MAP_WIDTH - 1)};
-        i32 const cxMax {std::clamp(static_cast<i32>(light.Position.X + sweepRadius), 0, MAP_WIDTH - 1)};
-        i32 const cyMin {std::clamp(static_cast<i32>(light.Position.Y - sweepRadius), 0, MAP_HEIGHT - 1)};
-        i32 const cyMax {std::clamp(static_cast<i32>(light.Position.Y + sweepRadius), 0, MAP_HEIGHT - 1)};
+        i32 const cxMin {std::clamp(static_cast<i32>(std::floor(light.Position.X - sweepRadius)), 0, MAP_WIDTH - 1)};
+        i32 const cxMax {std::clamp(static_cast<i32>(std::floor(light.Position.X + sweepRadius)), 0, MAP_WIDTH - 1)};
+        i32 const cyMin {std::clamp(static_cast<i32>(std::floor(light.Position.Y - sweepRadius)), 0, MAP_HEIGHT - 1)};
+        i32 const cyMax {std::clamp(static_cast<i32>(std::floor(light.Position.Y + sweepRadius)), 0, MAP_HEIGHT - 1)};
 
         for (i32 cy {cyMin}; cy <= cyMax; ++cy) {
             for (i32 cx {cxMin}; cx <= cxMax; ++cx) {
@@ -353,7 +353,7 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
         i32 const texelY {static_cast<i32>(currentFloor.Y * WALL_SIZE.Height) & (WALL_SIZE.Height - 1)};
         i32 const texelOffset {(texelX + (texelY * WALL_SIZE.Width)) * TEXTURE_BPP};
 
-        point_i const floorCell {static_cast<i32>(currentFloor.X), static_cast<i32>(currentFloor.Y)};
+        point_i const floorCell {static_cast<i32>(std::floor(currentFloor.X)), static_cast<i32>(std::floor(currentFloor.Y))};
         if (floorCell != lastFloorCell) {
             lastFloorCell = floorCell;
             cellFloorTex  = level.Settings.FloorTexture;
@@ -422,7 +422,7 @@ void raycaster::draw_sprites(level const& level, player const& player)
         f64 const texStepY {1.0 * texSize.Height / spriteSize.Height};
         f64 const texPosYStart {(drawStart.Y - spriteTop) * texStepY};
 
-        point_i const spriteCell {spr.Position};
+        point_i const spriteCell {static_cast<i32>(std::floor(spr.Position.X)), static_cast<i32>(std::floor(spr.Position.Y))};
         vec3_d const  spriteTint {accumulate_light(level, player, spr.Position, 0.0, spriteCell)};
 
         for (i32 x {drawStart.X}; x < drawEnd.X; ++x) {
@@ -571,7 +571,7 @@ void raycaster::draw_voxel_objects(level const& level, player const& player)
 
                     if (depth <= 0.0) { continue; }
 
-                    point_i const hitCellForLight {worldHitXY};
+                    point_i const hitCellForLight {static_cast<i32>(std::floor(worldHitXY.X)), static_cast<i32>(std::floor(worldHitXY.Y))};
                     vec3_i const  layer {.X = hit.Cell.X + (hit.FaceAxis == 0 ? hit.FaceSign : 0),
                                          .Y = hit.Cell.Y + (hit.FaceAxis == 1 ? hit.FaceSign : 0),
                                          .Z = hit.Cell.Z + (hit.FaceAxis == 2 ? hit.FaceSign : 0)};
