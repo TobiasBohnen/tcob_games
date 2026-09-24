@@ -9,6 +9,7 @@
 #include <cctype>
 #include <cmath>
 #include <limits>
+#include <numbers>
 #include <tuple>
 #include <utility>
 
@@ -48,6 +49,12 @@ static auto ComputeWallScreenExtent(f64 distance, i32 screenCenterY, f64 projPla
             static_cast<i32>(std::round(screenCenterY + (lineHeight / 2.0)))};
 }
 
+static auto ComputeCameraRayDir(isize x, i32 screenWidth, player const& player) -> point_d
+{
+    f64 const cameraX {(2.0 * x / screenWidth) - 1.0};
+    return player.Direction + (player.Plane * cameraX);
+}
+
 static auto ComputeFalloff(f64 distSq, f64 rangeSq, f64 intensity) -> f64
 {
     f64 const d {std::max(distSq, 0.01)};
@@ -73,6 +80,11 @@ static void AddLightContribution(point_d const& lightPos, f64 lightHeight, f64 r
     total.X += (lightColor.R / 255.0) * strength;
     total.Y += (lightColor.G / 255.0) * strength;
     total.Z += (lightColor.B / 255.0) * strength;
+}
+
+static auto WorldToCell(point_d const& p) -> point_i
+{
+    return {static_cast<i32>(std::floor(p.X)), static_cast<i32>(std::floor(p.Y))};
 }
 
 static auto HasLineOfSight(level const& level, point_d const& from, point_d const& to) -> bool
@@ -195,19 +207,29 @@ auto raycaster::accumulate_light(level const& level, player const& player, point
     return vec3_d {.X = ToneMap(total.X), .Y = ToneMap(total.Y), .Z = ToneMap(total.Z)};
 }
 
+void raycaster::shade_and_write(u32* screenBuf, isize dstIdx, u8 const* tex, isize srcIdx,
+                                level const& level, player const& player, point_d const& surfacePos, f64 surfaceZ) const
+{
+    point_i const cell {WorldToCell(surfacePos)};
+    vec3_d const  tint {accumulate_light(level, player, surfacePos, surfaceZ, cell)};
+    CopyPixel(screenBuf, dstIdx, tex, srcIdx, tint);
+}
+
 auto raycaster::draw(level& level, player const& player) -> u32 const*
 {
     std::ranges::fill(_objectDepthBuffer, std::numeric_limits<f64>::infinity());
 
     precompute_light_visibility(level); // must complete before draw_columns' parallel dispatch reads it
 
+    i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
+
     _taskManager.run_parallel([&](par_task const& ctx) {
-        draw_columns(level, player, static_cast<i32>(ctx.Start), static_cast<i32>(ctx.End));
+        draw_columns(level, player, screenCenterY, static_cast<i32>(ctx.Start), static_cast<i32>(ctx.End));
     },
                               _screenSize.Width);
 
-    draw_sprites(level, player);
-    draw_voxel_objects(level, player);
+    draw_sprites(level, player, screenCenterY);
+    draw_voxel_objects(level, player, screenCenterY);
 
     draw_weapon(player);
 
@@ -219,11 +241,10 @@ auto raycaster::draw(level& level, player const& player) -> u32 const*
     return _screen.data();
 }
 
-void raycaster::draw_columns(level& level, player const& player, i32 columnStart, i32 columnEnd)
+void raycaster::draw_columns(level& level, player const& player, i32 screenCenterY, i32 columnStart, i32 columnEnd)
 {
     for (isize x {columnStart}; x < columnEnd; x++) {
-        f64 const     cameraX {(2.0 * x / _screenSize.Width) - 1.0};
-        point_d const rayDir {player.Direction + (player.Plane * cameraX)};
+        point_d const rayDir {ComputeCameraRayDir(x, _screenSize.Width, player)};
 
         point_i       map {player.Position};
         point_d const deltaDist {(rayDir.X == 0) ? 1e30 : std::abs(1 / rayDir.X),
@@ -281,7 +302,6 @@ void raycaster::draw_columns(level& level, player const& player, i32 columnStart
 
         _zBuffer[x] = hitResult.Distance;
 
-        i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
         auto const [wallTop, wallBottom] {ComputeWallScreenExtent(hitResult.Distance, screenCenterY, _projPlaneDist)};
         wall_extent const extent {.Top = wallTop, .Bottom = wallBottom, .ScreenCenterY = screenCenterY};
 
@@ -353,7 +373,7 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
         i32 const texelY {static_cast<i32>(currentFloor.Y * WALL_SIZE.Height) & (WALL_SIZE.Height - 1)};
         i32 const texelOffset {(texelX + (texelY * WALL_SIZE.Width)) * TEXTURE_BPP};
 
-        point_i const floorCell {static_cast<i32>(std::floor(currentFloor.X)), static_cast<i32>(std::floor(currentFloor.Y))};
+        point_i const floorCell {WorldToCell(currentFloor)};
         if (floorCell != lastFloorCell) {
             lastFloorCell = floorCell;
             cellFloorTex  = level.Settings.FloorTexture;
@@ -366,11 +386,9 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
         }
 
         if (isFloor) {
-            vec3_d const tint {accumulate_light(level, player, currentFloor, 0.0, floorCell)};
-            CopyPixel(screenBuf, PixelIndex(_screenSize, x, y), cellFloorTexPtr, texelOffset, tint);
+            shade_and_write(screenBuf, PixelIndex(_screenSize, x, y), cellFloorTexPtr, texelOffset, level, player, currentFloor, 0.0);
         } else {
-            vec3_d const tint {accumulate_light(level, player, currentFloor, 1.0, floorCell)};
-            CopyPixel(screenBuf, PixelIndex(_screenSize, x, y), cellCeilTexPtr, texelOffset, tint);
+            shade_and_write(screenBuf, PixelIndex(_screenSize, x, y), cellCeilTexPtr, texelOffset, level, player, currentFloor, 1.0);
         }
     }};
 
@@ -378,7 +396,7 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
     for (i32 y {0}; y < ceilingEnd; y++) { sample_and_draw(y, false); }
 }
 
-void raycaster::draw_sprites(level const& level, player const& player)
+void raycaster::draw_sprites(level const& level, player const& player, i32 screenCenterY)
 {
     static auto sprite_facing_index {[](degree_d spriteFacing, point_d spritePos, point_d cameraPos) -> i32 {
         auto const viewAngle {spritePos.angle_to(cameraPos)};
@@ -389,7 +407,6 @@ void raycaster::draw_sprites(level const& level, player const& player)
     }};
 
     f64 const    invDet {1.0 / player.Plane.cross(player.Direction)};
-    i32 const    screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
     rect_i const screenRect {point_i {0, 0}, _screenSize};
 
     u32* screenBuf {_screen.data()};
@@ -422,7 +439,7 @@ void raycaster::draw_sprites(level const& level, player const& player)
         f64 const texStepY {1.0 * texSize.Height / spriteSize.Height};
         f64 const texPosYStart {(drawStart.Y - spriteTop) * texStepY};
 
-        point_i const spriteCell {static_cast<i32>(std::floor(spr.Position.X)), static_cast<i32>(std::floor(spr.Position.Y))};
+        point_i const spriteCell {WorldToCell(spr.Position)};
         vec3_d const  spriteTint {accumulate_light(level, player, spr.Position, 0.0, spriteCell)};
 
         for (i32 x {drawStart.X}; x < drawEnd.X; ++x) {
@@ -448,7 +465,7 @@ void raycaster::draw_sprites(level const& level, player const& player)
     }
 }
 
-void raycaster::draw_voxel_objects(level const& level, player const& player)
+void raycaster::draw_voxel_objects(level const& level, player const& player, i32 screenCenterY)
 {
     static auto world_to_local {[](voxel_object const& obj, point_d worldXY, f64 worldZ, f64 cosYaw, f64 sinYaw) -> vec3_d {
         point_d const rel {worldXY - obj.Position};
@@ -483,7 +500,6 @@ void raycaster::draw_voxel_objects(level const& level, player const& player)
         return {screenX, screenY, transformY};
     }};
 
-    i32 const    screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
     rect_i const screenRect {point_i {0, 0}, _screenSize};
     u32*         screenBuf {_screen.data()};
 
@@ -550,8 +566,7 @@ void raycaster::draw_voxel_objects(level const& level, player const& player)
                 i32 const x {xStart + (static_cast<i32>(scol) * stride)};
                 if (x >= xEnd) { continue; }
 
-                f64 const     cameraX {(2.0 * x / _screenSize.Width) - 1.0};
-                point_d const rayDir2D {player.Direction + (player.Plane * cameraX)};
+                point_d const rayDir2D {ComputeCameraRayDir(x, _screenSize.Width, player)};
                 i32 const     xBlockEnd {std::min(x + stride, xEnd)};
 
                 for (i32 y {yStart}; y < yEnd; y += stride) {
@@ -571,7 +586,7 @@ void raycaster::draw_voxel_objects(level const& level, player const& player)
 
                     if (depth <= 0.0) { continue; }
 
-                    point_i const hitCellForLight {static_cast<i32>(std::floor(worldHitXY.X)), static_cast<i32>(std::floor(worldHitXY.Y))};
+                    point_i const hitCellForLight {WorldToCell(worldHitXY)};
                     vec3_i const  layer {.X = hit.Cell.X + (hit.FaceAxis == 0 ? hit.FaceSign : 0),
                                          .Y = hit.Cell.Y + (hit.FaceAxis == 1 ? hit.FaceSign : 0),
                                          .Z = hit.Cell.Z + (hit.FaceAxis == 2 ? hit.FaceSign : 0)};
