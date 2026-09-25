@@ -68,8 +68,7 @@ static auto ToneMap(f64 x) -> f64
     return x / (1.0 + x);
 }
 
-static void AddLightContribution(point_d const& lightPos, f64 lightHeight, f64 range, f64 intensity, color lightColor,
-                                 point_d const& surfacePos, f64 surfaceZ, vec3_d& total)
+static void AddLightContribution(point_d const& lightPos, f64 lightHeight, f64 range, f64 intensity, color lightColor, point_d const& surfacePos, f64 surfaceZ, vec3_d& total)
 {
     point_d const toLightXY {lightPos - surfacePos};
     f64 const     dz {lightHeight - surfaceZ};
@@ -207,8 +206,7 @@ auto raycaster::accumulate_light(level const& level, player const& player, point
     return vec3_d {.X = ToneMap(total.X), .Y = ToneMap(total.Y), .Z = ToneMap(total.Z)};
 }
 
-void raycaster::shade_and_write(u32* screenBuf, isize dstIdx, u8 const* tex, isize srcIdx,
-                                level const& level, player const& player, point_d const& surfacePos, f64 surfaceZ) const
+void raycaster::shade_and_write(u32* screenBuf, isize dstIdx, u8 const* tex, isize srcIdx, level const& level, player const& player, point_d const& surfacePos, f64 surfaceZ) const
 {
     point_i const cell {WorldToCell(surfacePos)};
     vec3_d const  tint {accumulate_light(level, player, surfacePos, surfaceZ, cell)};
@@ -219,7 +217,7 @@ auto raycaster::draw(level& level, player const& player) -> u32 const*
 {
     std::ranges::fill(_objectDepthBuffer, std::numeric_limits<f64>::infinity());
 
-    precompute_light_visibility(level); // must complete before draw_columns' parallel dispatch reads it
+    precompute_light_visibility(level);
 
     i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
 
@@ -324,7 +322,7 @@ void raycaster::draw_wall_column(wall_hit const& hit, level const& level, player
     f64         texPos {(drawStart - extent.Top) * texStep};
 
     point_d const surfacePos {player.Position + (rayDir * hit.Distance)};
-    vec3_d const  tint {accumulate_light(level, player, surfacePos, WALL_LIGHT_Z, cell)};
+    f64 const     wallHeight {static_cast<f64>(extent.Bottom - extent.Top)};
 
     u32* screenBuf {_screen.data()};
     for (i32 y {drawStart}; y < drawEnd; y++) {
@@ -332,7 +330,8 @@ void raycaster::draw_wall_column(wall_hit const& hit, level const& level, player
         texPos += texStep;
         i32 const srcIdx {(texX + (texY * WALL_SIZE.Width)) * TEXTURE_BPP};
 
-        CopyPixel(screenBuf, PixelIndex(_screenSize, x, y), tex, srcIdx, tint);
+        f64 const worldZ {std::clamp((extent.Bottom - y) / wallHeight, 0.0, 1.0)};
+        shade_and_write(screenBuf, PixelIndex(_screenSize, x, y), tex, srcIdx, level, player, surfacePos, worldZ);
     }
 }
 

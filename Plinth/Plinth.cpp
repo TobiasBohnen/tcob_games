@@ -285,7 +285,7 @@ void Plinth::on_update(milliseconds deltaTime)
     // _player.Settings.LightIntensity = 2 * flicker;
 
     for (auto& dl : _level->DynamicLights) {
-        dl.Position += point_d {3, 0} * deltaTime.count() / 1000;
+        dl.Position += point_d {1, 0} * deltaTime.count() / 1000;
     }
 
     if (_startRecord) {
@@ -413,9 +413,17 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
         }
     } break;
     case input::scan_code::F: {
+        _level->DynamicLights.clear();
+
         static rng                  Rng;
-        static std::array<color, 4> LightColors {colors::Blue, colors::Red, colors::Green, colors::Yellow};
-        _level->DynamicLights.push_back({.Position = _player.Position, .Height = 0.1, .Range = 1, .Color = LightColors[Rng(0, 3)], .Intensity = 500});
+        static std::array<color, 4> LightColors {colors::Blue, colors::MediumBlue, colors::DeepSkyBlue, colors::DodgerBlue};
+        for (i32 i {0}; i < 3; ++i) {
+            _level->DynamicLights.push_back({.Position  = _player.Position + point_d {Rng(0.1, 0.8), Rng(0.1, 0.8)},
+                                             .Height    = Rng(0.1, 0.3),
+                                             .Range     = Rng(0.5, 0.9),
+                                             .Color     = LightColors[Rng(usize {0}, LightColors.size() - 1)],
+                                             .Intensity = Rng(0.1, 1.5)});
+        }
     } break;
     default:
 
