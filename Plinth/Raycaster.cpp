@@ -86,52 +86,68 @@ static auto WorldToCell(point_d const& p) -> point_i
     return {static_cast<i32>(std::floor(p.X)), static_cast<i32>(std::floor(p.Y))};
 }
 
-static auto HasLineOfSight(level const& level, point_d const& from, point_d const& to) -> bool
+static auto CellHasAnyLineOfSight(level const& level, point_i const& cell, point_d const& lightPos) -> bool
 {
-    point_d const diff {to - from};
-    f64 const     dist {diff.length()};
-    if (dist < 1e-6) { return true; }
+    std::array<point_d, 5> const samples {{
+        {cell.X + 0.5, cell.Y + 0.5},
+        {cell.X + 0.1, cell.Y + 0.1},
+        {cell.X + 0.9, cell.Y + 0.1},
+        {cell.X + 0.1, cell.Y + 0.9},
+        {cell.X + 0.9, cell.Y + 0.9},
+    }};
 
-    point_d const rayDir {diff.X / dist, diff.Y / dist};
-    point_i       map {static_cast<i32>(from.X), static_cast<i32>(from.Y)};
+    for (point_d const& from : samples) {
+        point_d const diff {lightPos - from};
+        f64 const     dist {diff.length()};
+        if (dist < 1e-6) { return true; }
 
-    point_d const deltaDist {(rayDir.X == 0) ? 1e30 : std::abs(1 / rayDir.X),
-                             (rayDir.Y == 0) ? 1e30 : std::abs(1 / rayDir.Y)};
-    point_i       step {rayDir.X < 0 ? -1 : 1, rayDir.Y < 0 ? -1 : 1};
-    point_d       sideDist {
-        (rayDir.X < 0) ? (from.X - map.X) * deltaDist.X : (map.X + 1.0 - from.X) * deltaDist.X,
-        (rayDir.Y < 0) ? (from.Y - map.Y) * deltaDist.Y : (map.Y + 1.0 - from.Y) * deltaDist.Y};
+        point_d const rayDir {diff.X / dist, diff.Y / dist};
+        point_i       map {static_cast<i32>(from.X), static_cast<i32>(from.Y)};
 
-    while (map_t::Size.contains(map)) {
-        bool const stepX {sideDist.X < sideDist.Y};
-        f64 const  traveled {stepX ? sideDist.X : sideDist.Y};
-        if (traveled >= dist) { return true; } // reached the target cell before hitting anything
+        point_d const deltaDist {(rayDir.X == 0) ? 1e30 : std::abs(1 / rayDir.X),
+                                 (rayDir.Y == 0) ? 1e30 : std::abs(1 / rayDir.Y)};
+        point_i       step {rayDir.X < 0 ? -1 : 1, rayDir.Y < 0 ? -1 : 1};
+        point_d       sideDist {
+            (rayDir.X < 0) ? (from.X - map.X) * deltaDist.X : (map.X + 1.0 - from.X) * deltaDist.X,
+            (rayDir.Y < 0) ? (from.Y - map.Y) * deltaDist.Y : (map.Y + 1.0 - from.Y) * deltaDist.Y};
 
-        if (stepX) {
-            sideDist.X += deltaDist.X;
-            map.X += step.X;
-        } else {
-            sideDist.Y += deltaDist.Y;
-            map.Y += step.Y;
+        bool visible {true};
+        while (map_t::Size.contains(map)) {
+            bool const stepX {sideDist.X < sideDist.Y};
+            f64 const  traveled {stepX ? sideDist.X : sideDist.Y};
+            if (traveled >= dist) { break; } // reached the light before hitting anything
+
+            if (stepX) {
+                sideDist.X += deltaDist.X;
+                map.X += step.X;
+            } else {
+                sideDist.Y += deltaDist.Y;
+                map.Y += step.Y;
+            }
+
+            if (!map_t::Size.contains(map)) { break; }
+
+            bool const blocked {std::visit([](auto&& c) -> bool {
+                using T = std::decay_t<decltype(c)>;
+                if constexpr (std::is_same_v<T, floor_cell>) {
+                    return false;
+                } else if constexpr (requires { c.State; }) {
+                    return c.State != wall_state::Open;
+                } // doors/push walls: open = passable
+                else {
+                    return true;
+                } // normal_wall, obstacle, diagonal_wall: always solid
+            },
+                                           level.get_cell(map))};
+            if (blocked) {
+                visible = false;
+                break;
+            }
         }
 
-        if (!map_t::Size.contains(map)) { break; }
-
-        bool const blocked {std::visit([](auto&& c) -> bool {
-            using T = std::decay_t<decltype(c)>;
-            if constexpr (std::is_same_v<T, floor_cell>) {
-                return false;
-            } else if constexpr (requires { c.State; }) {
-                return c.State != wall_state::Open;
-            } // doors/push walls: open = passable
-            else {
-                return true;
-            } // normal_wall, obstacle, diagonal_wall: always solid
-        },
-                                       level.get_cell(map))};
-        if (blocked) { return false; }
+        if (visible) { return true; }
     }
-    return true;
+    return false;
 }
 
 static auto IsWithinPlayerLight(player const& player, point_i const& cell) -> bool
@@ -143,6 +159,22 @@ static auto IsWithinPlayerLight(player const& player, point_i const& cell) -> bo
     if (distSq >= rangeSq) { return false; }
     f64 const strength {ComputeFalloff(distSq, rangeSq, player.Settings.LightIntensity)};
     return strength >= SEEN_LIGHT_THRESHOLD;
+}
+
+static auto IsCellBlocking(level const& level, point_i const& cell) -> bool
+{
+    if (!map_t::Size.contains(cell)) { return true; }
+    return std::visit([](auto&& c) -> bool {
+        using T = std::decay_t<decltype(c)>;
+        if constexpr (std::is_same_v<T, floor_cell>) {
+            return false;
+        } else if constexpr (requires { c.State; }) {
+            return c.State != wall_state::Open;
+        } else {
+            return true;
+        }
+    },
+                      level.get_cell(cell));
 }
 
 ////////////////////////////////////////////////////////////
@@ -165,7 +197,10 @@ void raycaster::precompute_light_visibility(level const& level)
 
     for (u32 li {0}; li < static_cast<u32>(level.DynamicLights.size()); ++li) {
         dynamic_light const& light {level.DynamicLights[li]};
-        f64 const            sweepRadius {light.Range + CELL_DIAGONAL_HALF};
+
+        if (IsCellBlocking(level, WorldToCell(light.Position))) { continue; }
+
+        f64 const sweepRadius {light.Range + CELL_DIAGONAL_HALF};
 
         i32 const cxMin {std::clamp(static_cast<i32>(std::floor(light.Position.X - sweepRadius)), 0, MAP_WIDTH - 1)};
         i32 const cxMax {std::clamp(static_cast<i32>(std::floor(light.Position.X + sweepRadius)), 0, MAP_WIDTH - 1)};
@@ -180,7 +215,7 @@ void raycaster::precompute_light_visibility(level const& level)
                 f64 const     distSq {toLightXY.dot(toLightXY) + (dz * dz)};
                 if (distSq >= sweepRadius * sweepRadius) { continue; }
 
-                if (HasLineOfSight(level, cellCenter, light.Position)) {
+                if (CellHasAnyLineOfSight(level, point_i {cx, cy}, light.Position)) {
                     usize const cellIndex {static_cast<usize>((cy * MAP_WIDTH) + cx)};
                     _cellLights[cellIndex].push_back(li);
                 }
