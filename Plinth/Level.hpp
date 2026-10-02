@@ -29,11 +29,26 @@ struct sprite {
 };
 
 struct voxel_object {
-    point_d           Position {};
-    f64               BaseZ {0.0};
-    degree_d          Yaw {0.0};
-    f64               Scale {1.0};
+    point_d Position {};
+    f64     Scale {1.0};
+
+    f64 BaseZ {0.0};
+
+    radian_d Yaw {0.0};
+    radian_d Pitch {0.0};
+    radian_d Roll {0.0};
+
     voxel_grid const* Grid {nullptr};
+
+    auto make_rotation() const -> mat3_d
+    {
+        f64 const cy {Yaw.cos()}, sy {Yaw.sin()};
+        f64 const cp {Pitch.cos()}, sp {Pitch.sin()};
+        f64 const cr {Roll.cos()}, sr {Roll.sin()};
+        return {cy * cp, (cy * sp * sr) - (sy * cr), (cy * sp * cr) + (sy * sr),
+                sy * cp, (sy * sp * sr) + (cy * cr), (sy * sp * cr) - (cy * sr),
+                -sp, cp * sr, cp * cr};
+    }
 };
 
 struct dynamic_light {

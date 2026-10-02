@@ -207,9 +207,9 @@ Plinth::Plinth(game& game)
 
         _level->VoxelObjects.push_back(voxel_object {
             .Position = find_empty(),
+            .Scale    = scale / maxDim,
             .BaseZ    = 0.0,
             .Yaw      = degree_d {90.0 * i},
-            .Scale    = scale / maxDim,
             .Grid     = &testVoxelGrid,
         });
     }
@@ -285,7 +285,7 @@ void Plinth::on_update(milliseconds deltaTime)
     // _player.Settings.LightIntensity = 2 * flicker;
 
     for (auto& dl : _level->DynamicLights) {
-        dl.Position += point_d {1, 0} * deltaTime.count() / 1000;
+        dl.Position += _player.Direction * deltaTime.count() / 1000 * 2;
     }
 
     if (_startRecord) {
@@ -409,7 +409,7 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
     } break;
     case input::scan_code::L: {
         for (auto& vo : _level->VoxelObjects) {
-            vo.Yaw += degree_d {10};
+            vo.Pitch += radian_d {degree_d {10}};
         }
     } break;
     case input::scan_code::F: {
