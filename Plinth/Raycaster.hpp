@@ -26,7 +26,7 @@ private:
     void precompute_light_visibility(level const& level);
     auto is_light_visible(point_i cell, usize lightIndex) const -> bool;
     auto accumulate_light(level const& level, player const& player, point_d const& surfacePos, f64 surfaceZ, point_i const& cell) const -> vec3_d;
-    void shade_and_write(u32* screenBuf, isize dstIdx, u8 const* tex, isize srcIdx, level const& level, player const& player, point_d const& surfacePos, f64 surfaceZ) const;
+    void shade_and_write(u32* screenBuf, isize x, isize y, u8 const* tex, isize srcIdx, level const& level, player const& player, point_d const& surfacePos, f64 surfaceZ) const;
 
     void draw_columns(level& level, player const& player, i32 screenCenterY, i32 columnStart, i32 columnEnd);
     void draw_wall_column(wall_hit const& hit, level const& level, player const& player, isize x, point_d rayDir, point_i cell, wall_extent const& extent);

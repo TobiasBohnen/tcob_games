@@ -31,6 +31,15 @@ constexpr f64 CELL_DIAGONAL_HALF {std::numbers::sqrt2 / 2}; // max distance from
 constexpr f64 INFINITE_DIST {1e30};                         // stand-in for "ray never crosses this axis"
 constexpr f64 INV_255 {1.0 / 255.0};
 
+constexpr i32 MAX_VOXEL_OBJECT_PIXELS {20000};
+
+constexpr bool               LIGHT_DITHER {true};
+constexpr i32                LIGHT_BANDS {8}; // brightness steps per channel before dithering
+constexpr std::array<u8, 16> BAYER_4X4 {0, 8, 2, 10,
+                                        12, 4, 14, 6,
+                                        3, 11, 1, 9,
+                                        15, 7, 13, 5};
+
 static_assert(std::has_single_bit(static_cast<u32>(WALL_SIZE.Width)) && std::has_single_bit(static_cast<u32>(WALL_SIZE.Height)),
               "WALL_SIZE must be a power of two");
 
@@ -81,6 +90,15 @@ static auto ComputeFalloff(f64 distSq, f64 rangeSq, f64 intensity) -> f64
 }
 
 static auto WorldToCell(point_d const& p) -> point_i { return {static_cast<i32>(std::floor(p.X)), static_cast<i32>(std::floor(p.Y))}; }
+
+static auto DitherTint(vec3_d tint, isize x, isize y) -> vec3_d
+{
+    if constexpr (!LIGHT_DITHER) { return tint; }
+
+    f64 const  threshold {(BAYER_4X4[static_cast<usize>(((y & 3) << 2) | (x & 3))] + 0.5) / 16.0};
+    auto const quantize {[&](f64 t) { return std::floor((t * LIGHT_BANDS) + threshold) / LIGHT_BANDS; }};
+    return vec3_d {.X = quantize(tint.X), .Y = quantize(tint.Y), .Z = quantize(tint.Z)};
+}
 
 ////////////////////////////////////////////////////////////
 
@@ -250,11 +268,11 @@ auto raycaster::accumulate_light(level const& level, player const& player, point
     return vec3_d {.X = tone_map(total.X), .Y = tone_map(total.Y), .Z = tone_map(total.Z)};
 }
 
-void raycaster::shade_and_write(u32* screenBuf, isize dstIdx, u8 const* tex, isize srcIdx, level const& level, player const& player, point_d const& surfacePos, f64 surfaceZ) const
+void raycaster::shade_and_write(u32* screenBuf, isize x, isize y, u8 const* tex, isize srcIdx, level const& level, player const& player, point_d const& surfacePos, f64 surfaceZ) const
 {
     point_i const cell {WorldToCell(surfacePos)};
     vec3_d const  tint {accumulate_light(level, player, surfacePos, surfaceZ, cell)};
-    CopyPixel(screenBuf, dstIdx, tex, srcIdx, tint);
+    CopyPixel(screenBuf, PixelIndex(_screenSize, x, y), tex, srcIdx, DitherTint(tint, x, y));
 }
 
 auto raycaster::draw(level& level, player const& player) -> u32 const*
@@ -409,7 +427,7 @@ void raycaster::draw_wall_column(wall_hit const& hit, level const& level, player
         i32 const srcIdx {(texX + (texY * WALL_SIZE.Width)) * TEXTURE_BPP};
 
         f64 const worldZ {std::clamp((extent.Bottom - y) / wallHeight, 0.0, 1.0)};
-        shade_and_write(screenBuf, PixelIndex(_screenSize, x, y), tex, srcIdx, level, player, surfacePos, worldZ);
+        shade_and_write(screenBuf, x, y, tex, srcIdx, level, player, surfacePos, worldZ);
     }
 }
 
@@ -463,9 +481,9 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
         }
 
         if (isFloor) {
-            shade_and_write(screenBuf, PixelIndex(_screenSize, x, y), cellFloorTexPtr, texelOffset, level, player, currentFloor, 0.0);
+            shade_and_write(screenBuf, x, y, cellFloorTexPtr, texelOffset, level, player, currentFloor, 0.0);
         } else {
-            shade_and_write(screenBuf, PixelIndex(_screenSize, x, y), cellCeilTexPtr, texelOffset, level, player, currentFloor, 1.0);
+            shade_and_write(screenBuf, x, y, cellCeilTexPtr, texelOffset, level, player, currentFloor, 1.0);
         }
     }};
 
@@ -535,7 +553,7 @@ void raycaster::draw_sprites(level const& level, player const& player, i32 scree
                 isize const depthIndex {PixelIndex(_screenSize, x, y)};
                 if (transformY < _objectDepthBuffer[depthIndex]) {
                     _objectDepthBuffer[depthIndex] = transformY;
-                    CopyPixel(screenBuf, PixelIndex(_screenSize, x, y), tex, texOffset, spriteTint);
+                    CopyPixel(screenBuf, PixelIndex(_screenSize, x, y), tex, texOffset, DitherTint(spriteTint, x, y));
                 }
             }
         }
@@ -644,13 +662,12 @@ void raycaster::draw_voxel_objects(level const& level, player const& player, i32
                                 * obj.Scale};
         f64 const maxT {maxWallDist + objWorldDiag};
 
-        constexpr i32 MAX_VOXEL_OBJECT_PIXELS {20000};
-        i32 const     colCount {xEnd - xStart};
-        i32 const     rowCount {yEnd - yStart};
-        i32 const     bboxArea {colCount * rowCount};
-        i32 const     stride {bboxArea > MAX_VOXEL_OBJECT_PIXELS ? static_cast<i32>(std::ceil(std::sqrt(static_cast<f64>(bboxArea) / MAX_VOXEL_OBJECT_PIXELS)))
-                                                                 : 1};
-        i32 const     strideCols {(colCount + stride - 1) / stride};
+        i32 const colCount {xEnd - xStart};
+        i32 const rowCount {yEnd - yStart};
+        i32 const bboxArea {colCount * rowCount};
+        i32 const stride {bboxArea > MAX_VOXEL_OBJECT_PIXELS ? static_cast<i32>(std::ceil(std::sqrt(static_cast<f64>(bboxArea) / MAX_VOXEL_OBJECT_PIXELS)))
+                                                             : 1};
+        i32 const strideCols {(colCount + stride - 1) / stride};
 
         _taskManager.run_parallel([&](par_task const& ctx) {
             for (isize scol {static_cast<isize>(ctx.Start)}; scol < static_cast<isize>(ctx.End); ++scol) {
@@ -713,8 +730,6 @@ void raycaster::draw_voxel_objects(level const& level, player const& player, i32
                     tint.Y *= aoFactor;
                     tint.Z *= aoFactor;
 
-                    u32 const packed {ApplyTint(hit.Color.R, hit.Color.G, hit.Color.B, tint)};
-
                     i32 const yBlockEnd {std::min(y + stride, yEnd)};
                     for (i32 by {y}; by < yBlockEnd; ++by) {
                         for (i32 bx {x}; bx < xBlockEnd; ++bx) {
@@ -724,7 +739,7 @@ void raycaster::draw_voxel_objects(level const& level, player const& player, i32
                             if (depth >= _objectDepthBuffer[depthIndex]) { continue; }
 
                             _objectDepthBuffer[depthIndex] = depth;
-                            screenBuf[depthIndex]          = packed;
+                            screenBuf[depthIndex]          = ApplyTint(hit.Color.R, hit.Color.G, hit.Color.B, DitherTint(tint, bx, by));
                         }
                     }
                 }
