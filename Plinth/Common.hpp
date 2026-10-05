@@ -30,6 +30,25 @@ class player;
 
 ////////////////////////////////////////////////////////////
 
+enum class quality_level : u8 {
+    Low,
+    Medium,
+    High,
+    Ultra,
+    Custom
+};
+
+struct quality_settings {
+    size_i Resolution;
+    i32    VoxelPixelBudget {};
+    i32    LightLosSamples {};
+    bool   VoxelAo {};
+    bool   LightDither {};
+    i32    LightBands {};
+};
+
+////////////////////////////////////////////////////////////
+
 struct vec3_d {
     f64 X {0.0};
     f64 Y {0.0};

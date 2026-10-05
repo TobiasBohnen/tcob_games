@@ -35,6 +35,8 @@ private:
     void toggle_wall();
     void toggle_map();
 
+    void set_quality(quality_level level);
+
     std::unique_ptr<texture_cache> _cache;
     std::unique_ptr<level>         _level;
     player                         _player;
@@ -53,4 +55,6 @@ private:
     milliseconds                  _frameTimer {0};
     bool                          _startRecord {false};
     std::future<bool>             _clipFtr;
+
+    quality_settings _quality;
 };

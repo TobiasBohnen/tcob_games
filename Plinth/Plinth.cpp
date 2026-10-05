@@ -13,8 +13,6 @@
 
 // DEBUGCODE START
 
-constexpr size_i screenSize {640, 360};
-
 ////////////////////////////////////////////////////////////
 // Example prefab library
 //// A small starter set of hand-authored rooms.
@@ -179,9 +177,6 @@ Plinth::Plinth(game& game)
 
     _material->first_pass().Texture = _texture;
 
-    _texture->resize(screenSize, 1, gfx::texture::format::RGBA8);
-    _texture->Filtering = gfx::texture::filtering::NearestNeighbor;
-
     map_generator gen {make_example_prefab_library()};
     auto const    map {gen.generate({})};
     _level = std::make_unique<level>(map);
@@ -214,18 +209,13 @@ Plinth::Plinth(game& game)
         });
     }
 
-    _player.Settings.BobHeight = screenSize.Height / 60.0;
-
     _player.Position = find_empty();
     degree_d const angle {180};
     radian_d const rad {angle - degree_d {90}};
     _player.Direction = point_d::FromDirection(angle);
+    _player.Plane     = {-rad.sin(), rad.cos()};
 
-    f64 const fov {FOV * TAU / 360.0};
-    _player.Plane = {-rad.sin() * std::tan(fov / 2.0), rad.cos() * std::tan(fov / 2.0)};
-
-    _raycaster   = std::make_unique<raycaster>(*_cache, screenSize, (screenSize.Width / 2.0) / std::tan(fov / 2.0));
-    _mapRenderer = std::make_unique<map_renderer>(*_cache, screenSize);
+    set_quality(quality_level::High);
 }
 
 Plinth::~Plinth() = default;
@@ -245,7 +235,7 @@ void Plinth::on_draw_to(gfx::render_target& target, transform const& xform)
     // aspect ratio correction
     size_i const size {*target.Size};
 
-    f32 const srcAspect {static_cast<f32>(screenSize.Width) / static_cast<f32>(screenSize.Height)};
+    f32 const srcAspect {static_cast<f32>(_quality.Resolution.Width) / static_cast<f32>(_quality.Resolution.Height)};
     f32 const dstAspect {static_cast<f32>(size.Width) / static_cast<f32>(size.Height)};
 
     f32 destWidth {static_cast<f32>(size.Width)};
@@ -378,6 +368,39 @@ void Plinth::toggle_map()
     _drawMap = !_drawMap;
 }
 
+constexpr auto make_quality(quality_level level) -> quality_settings
+{
+    switch (level) {
+    case quality_level::Low:
+        return {.Resolution = {320, 180}, .VoxelPixelBudget = 8000, .LightLosSamples = 1, .VoxelAo = false, .LightDither = false, .LightBands = 8};
+    case quality_level::Medium:
+        return {.Resolution = {480, 270}, .VoxelPixelBudget = 14000, .LightLosSamples = 3, .VoxelAo = true, .LightDither = true, .LightBands = 6};
+    case quality_level::High:
+        return {.Resolution = {640, 360}, .VoxelPixelBudget = 20000, .LightLosSamples = 5, .VoxelAo = true, .LightDither = true, .LightBands = 8};
+    case quality_level::Ultra:
+        return {.Resolution = {960, 540}, .VoxelPixelBudget = 40000, .LightLosSamples = 5, .VoxelAo = true, .LightDither = true, .LightBands = 16};
+    case quality_level::Custom: break;
+    }
+
+    return {};
+}
+
+void Plinth::set_quality(quality_level level)
+{
+    _quality = make_quality(level);
+
+    f64 const fov {FOV * TAU / 360.0};
+    _player.Plane = _player.Plane * (std::tan(fov / 2.0) / _player.Plane.length());
+
+    _texture->resize(_quality.Resolution, 1, gfx::texture::format::RGBA8);
+    _texture->Filtering = gfx::texture::filtering::NearestNeighbor;
+
+    _player.Settings.BobHeight = _quality.Resolution.Height / 60.0;
+
+    _raycaster   = std::make_unique<raycaster>(*_cache, _quality, (_quality.Resolution.Width / 2.0) / std::tan(fov / 2.0));
+    _mapRenderer = std::make_unique<map_renderer>(*_cache, _quality.Resolution);
+}
+
 void Plinth::on_key_down(input::keyboard::event const& ev)
 {
     if (ev.Repeat) { return; }
@@ -411,6 +434,9 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
         for (auto& vo : _level->VoxelObjects) {
             vo.Pitch += radian_d {degree_d {10}};
         }
+    } break;
+    case input::scan_code::Q: {
+        set_quality(quality_level::Low);
     } break;
     case input::scan_code::F: {
         _level->DynamicLights.clear();

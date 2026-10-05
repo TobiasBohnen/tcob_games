@@ -31,10 +31,6 @@ constexpr f64 CELL_DIAGONAL_HALF {std::numbers::sqrt2 / 2}; // max distance from
 constexpr f64 INFINITE_DIST {1e30};                         // stand-in for "ray never crosses this axis"
 constexpr f64 INV_255 {1.0 / 255.0};
 
-constexpr i32 MAX_VOXEL_OBJECT_PIXELS {20000};
-
-constexpr bool               LIGHT_DITHER {true};
-constexpr i32                LIGHT_BANDS {8}; // brightness steps per channel before dithering
 constexpr std::array<u8, 16> BAYER_4X4 {0, 8, 2, 10,
                                         12, 4, 14, 6,
                                         3, 11, 1, 9,
@@ -91,24 +87,31 @@ static auto ComputeFalloff(f64 distSq, f64 rangeSq, f64 intensity) -> f64
 
 static auto WorldToCell(point_d const& p) -> point_i { return {static_cast<i32>(std::floor(p.X)), static_cast<i32>(std::floor(p.Y))}; }
 
-static auto DitherTint(vec3_d tint, isize x, isize y) -> vec3_d
+static auto DitherTint(vec3_d tint, isize x, isize y, quality_settings const& quality) -> vec3_d
 {
-    if constexpr (!LIGHT_DITHER) { return tint; }
+    if (!quality.LightDither) { return tint; }
 
+    f64 const  bands {static_cast<f64>(quality.LightBands)};
+    f64 const  invBands {1.0 / bands};
     f64 const  threshold {(BAYER_4X4[static_cast<usize>(((y & 3) << 2) | (x & 3))] + 0.5) / 16.0};
-    auto const quantize {[&](f64 t) { return std::floor((t * LIGHT_BANDS) + threshold) / LIGHT_BANDS; }};
+    auto const quantize {[&](f64 t) { return std::floor((t * bands) + threshold) * invBands; }};
     return vec3_d {.X = quantize(tint.X), .Y = quantize(tint.Y), .Z = quantize(tint.Z)};
 }
 
 ////////////////////////////////////////////////////////////
 
-raycaster::raycaster(texture_cache& cache, size_i screenSize, f64 projPlaneDist)
+raycaster::raycaster(texture_cache& cache, quality_settings const& quality, f64 projPlaneDist)
     : _cache {cache}
-    , _screen(screenSize.area())
-    , _screenSize {screenSize}
+    , _quality {quality}
+    , _screen(quality.Resolution.area())
+    , _screenSize {quality.Resolution}
     , _projPlaneDist {projPlaneDist}
     , _taskManager {locate_service<task_manager>()}
 {
+    _quality.LightLosSamples  = std::clamp(_quality.LightLosSamples, 1, 5);
+    _quality.VoxelPixelBudget = std::max(_quality.VoxelPixelBudget, 1);
+    _quality.LightBands       = std::max(_quality.LightBands, 1);
+
     _zBuffer.resize(_screenSize.Width);
     _objectDepthBuffer.resize(_screenSize.area());
     _cellLights.resize(static_cast<usize>(MAP_WIDTH) * MAP_HEIGHT);
@@ -119,6 +122,8 @@ void raycaster::precompute_light_visibility(level const& level)
     for (auto& list : _cellLights) { list.clear(); }
 
     if (level.DynamicLights.empty()) { return; }
+
+    usize const losSamples {static_cast<usize>(_quality.LightLosSamples)};
 
     auto const is_cell_blocking {[&level](point_i const& cell) -> bool {
         if (!map_t::Size.contains(cell)) { return true; }
@@ -136,17 +141,19 @@ void raycaster::precompute_light_visibility(level const& level)
     }};
 
     auto const cell_has_any_line_of_sight {[&](point_i const& cell, point_d const& lightPos) -> bool {
+        // ordered so that any prefix is spatially balanced: center first, then both diagonals
         std::array<point_d, 5> const samples {{
             {cell.X + 0.5, cell.Y + 0.5},
             {cell.X + 0.1, cell.Y + 0.1},
+            {cell.X + 0.9, cell.Y + 0.9},
             {cell.X + 0.9, cell.Y + 0.1},
             {cell.X + 0.1, cell.Y + 0.9},
-            {cell.X + 0.9, cell.Y + 0.9},
         }};
 
-        for (point_d const& from : samples) {
-            point_d const diff {lightPos - from};
-            f64 const     dist {diff.length()};
+        for (usize sampleIndex {0}; sampleIndex < losSamples; ++sampleIndex) {
+            point_d const& from {samples[sampleIndex]};
+            point_d const  diff {lightPos - from};
+            f64 const      dist {diff.length()};
             if (dist < 1e-6) { return true; }
 
             point_d const rayDir {diff.X / dist, diff.Y / dist};
@@ -272,7 +279,7 @@ void raycaster::shade_and_write(u32* screenBuf, isize x, isize y, u8 const* tex,
 {
     point_i const cell {WorldToCell(surfacePos)};
     vec3_d const  tint {accumulate_light(level, player, surfacePos, surfaceZ, cell)};
-    CopyPixel(screenBuf, PixelIndex(_screenSize, x, y), tex, srcIdx, DitherTint(tint, x, y));
+    CopyPixel(screenBuf, PixelIndex(_screenSize, x, y), tex, srcIdx, DitherTint(tint, x, y, _quality));
 }
 
 auto raycaster::draw(level& level, player const& player) -> u32 const*
@@ -553,7 +560,7 @@ void raycaster::draw_sprites(level const& level, player const& player, i32 scree
                 isize const depthIndex {PixelIndex(_screenSize, x, y)};
                 if (transformY < _objectDepthBuffer[depthIndex]) {
                     _objectDepthBuffer[depthIndex] = transformY;
-                    CopyPixel(screenBuf, PixelIndex(_screenSize, x, y), tex, texOffset, DitherTint(spriteTint, x, y));
+                    CopyPixel(screenBuf, PixelIndex(_screenSize, x, y), tex, texOffset, DitherTint(spriteTint, x, y, _quality));
                 }
             }
         }
@@ -665,8 +672,8 @@ void raycaster::draw_voxel_objects(level const& level, player const& player, i32
         i32 const colCount {xEnd - xStart};
         i32 const rowCount {yEnd - yStart};
         i32 const bboxArea {colCount * rowCount};
-        i32 const stride {bboxArea > MAX_VOXEL_OBJECT_PIXELS ? static_cast<i32>(std::ceil(std::sqrt(static_cast<f64>(bboxArea) / MAX_VOXEL_OBJECT_PIXELS)))
-                                                             : 1};
+        i32 const stride {bboxArea > _quality.VoxelPixelBudget ? static_cast<i32>(std::ceil(std::sqrt(static_cast<f64>(bboxArea) / _quality.VoxelPixelBudget)))
+                                                               : 1};
         i32 const strideCols {(colCount + stride - 1) / stride};
 
         _taskManager.run_parallel([&](par_task const& ctx) {
@@ -696,34 +703,37 @@ void raycaster::draw_voxel_objects(level const& level, player const& player, i32
                     if (depth <= 0.0) { continue; }
 
                     point_i const hitCellForLight {WorldToCell(worldHitXY)};
-                    vec3_i const  layer {.X = hit.Cell.X + (hit.FaceAxis == 0 ? hit.FaceSign : 0),
-                                         .Y = hit.Cell.Y + (hit.FaceAxis == 1 ? hit.FaceSign : 0),
-                                         .Z = hit.Cell.Z + (hit.FaceAxis == 2 ? hit.FaceSign : 0)};
-                    i32 const     ao00 {obj.Grid->corner_ao(layer, hit.FaceAxis, -1, -1)};
-                    i32 const     ao10 {obj.Grid->corner_ao(layer, hit.FaceAxis, +1, -1)};
-                    i32 const     ao01 {obj.Grid->corner_ao(layer, hit.FaceAxis, -1, +1)};
-                    i32 const     ao11 {obj.Grid->corner_ao(layer, hit.FaceAxis, +1, +1)};
+                    f64           aoFactor {1.0}; // no occlusion
+                    if (_quality.VoxelAo) {
+                        vec3_i const layer {.X = hit.Cell.X + (hit.FaceAxis == 0 ? hit.FaceSign : 0),
+                                            .Y = hit.Cell.Y + (hit.FaceAxis == 1 ? hit.FaceSign : 0),
+                                            .Z = hit.Cell.Z + (hit.FaceAxis == 2 ? hit.FaceSign : 0)};
+                        i32 const    ao00 {obj.Grid->corner_ao(layer, hit.FaceAxis, -1, -1)};
+                        i32 const    ao10 {obj.Grid->corner_ao(layer, hit.FaceAxis, +1, -1)};
+                        i32 const    ao01 {obj.Grid->corner_ao(layer, hit.FaceAxis, -1, +1)};
+                        i32 const    ao11 {obj.Grid->corner_ao(layer, hit.FaceAxis, +1, +1)};
 
-                    f64 fu {}, fv {};
-                    switch (hit.FaceAxis) {
-                    case 0:
-                        fu = localHitPos.Y - hit.Cell.Y;
-                        fv = localHitPos.Z - hit.Cell.Z;
-                        break;
-                    case 1:
-                        fu = localHitPos.X - hit.Cell.X;
-                        fv = localHitPos.Z - hit.Cell.Z;
-                        break;
-                    default:
-                        fu = localHitPos.X - hit.Cell.X;
-                        fv = localHitPos.Y - hit.Cell.Y;
-                        break;
+                        f64 fu {}, fv {};
+                        switch (hit.FaceAxis) {
+                        case 0:
+                            fu = localHitPos.Y - hit.Cell.Y;
+                            fv = localHitPos.Z - hit.Cell.Z;
+                            break;
+                        case 1:
+                            fu = localHitPos.X - hit.Cell.X;
+                            fv = localHitPos.Z - hit.Cell.Z;
+                            break;
+                        default:
+                            fu = localHitPos.X - hit.Cell.X;
+                            fv = localHitPos.Y - hit.Cell.Y;
+                            break;
+                        }
+                        fu = std::clamp(fu, 0.0, 1.0);
+                        fv = std::clamp(fv, 0.0, 1.0);
+
+                        f64 const aoInterp {(ao00 * (1.0 - fu) * (1.0 - fv)) + (ao10 * fu * (1.0 - fv)) + (ao01 * (1.0 - fu) * fv) + (ao11 * fu * fv)};
+                        aoFactor = aoInterp / 3.0;
                     }
-                    fu = std::clamp(fu, 0.0, 1.0);
-                    fv = std::clamp(fv, 0.0, 1.0);
-
-                    f64 const aoInterp {(ao00 * (1.0 - fu) * (1.0 - fv)) + (ao10 * fu * (1.0 - fv)) + (ao01 * (1.0 - fu) * fv) + (ao11 * fu * fv)};
-                    f64 const aoFactor {aoInterp / 3.0};
 
                     vec3_d tint {accumulate_light(level, player, worldHitXY, worldHitZ, hitCellForLight)};
                     tint.X *= aoFactor;
@@ -739,7 +749,7 @@ void raycaster::draw_voxel_objects(level const& level, player const& player, i32
                             if (depth >= _objectDepthBuffer[depthIndex]) { continue; }
 
                             _objectDepthBuffer[depthIndex] = depth;
-                            screenBuf[depthIndex]          = ApplyTint(hit.Color.R, hit.Color.G, hit.Color.B, DitherTint(tint, bx, by));
+                            screenBuf[depthIndex]          = ApplyTint(hit.Color.R, hit.Color.G, hit.Color.B, DitherTint(tint, bx, by, _quality));
                         }
                     }
                 }

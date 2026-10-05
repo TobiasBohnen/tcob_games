@@ -12,7 +12,7 @@
 
 class raycaster {
 public:
-    raycaster(texture_cache& cache, size_i screenSize, f64 projPlaneDist);
+    raycaster(texture_cache& cache, quality_settings const& quality, f64 projPlaneDist);
 
     auto draw(level& level, player const& player) -> u32 const*;
 
@@ -44,9 +44,10 @@ private:
     std::vector<f64> _zBuffer;
     std::vector<f64> _objectDepthBuffer;
 
-    texture_cache& _cache;
-    size_i         _screenSize;
-    f64            _projPlaneDist;
+    texture_cache&   _cache;
+    quality_settings _quality;
+    size_i           _screenSize;
+    f64              _projPlaneDist;
 
     std::vector<u8>               _lightVisibility;
     usize                         _numDynamicLights {0};
