@@ -35,7 +35,7 @@ constexpr std::array<char, 3> SIGNATURE {'V', 'O', 'X'};
 
 voxel_grid::voxel_grid(std::vector<voxel> const& voxels)
 {
-    for (voxel const& v : voxels) {
+    for (auto const& v : voxels) {
         if (v.Position.X < 0 || v.Position.Y < 0 || v.Position.Z < 0) { continue; }
 
         Size.X = std::max(Size.X, v.Position.X + 1);
@@ -47,7 +47,7 @@ voxel_grid::voxel_grid(std::vector<voxel> const& voxels)
     _cells.resize(static_cast<usize>(std::max<isize>(cellCount, 0)));
     _occupied.resize(static_cast<usize>(std::max<isize>(cellCount, 0)), false);
 
-    for (voxel const& v : voxels) {
+    for (auto const& v : voxels) {
         if (v.Position.X < 0 || v.Position.Y < 0 || v.Position.Z < 0) { continue; }
         isize const idx {flat_index(v.Position.X, v.Position.Y, v.Position.Z)};
         _cells[static_cast<usize>(idx)]    = v.Color;
@@ -176,6 +176,75 @@ auto voxel_grid::raycast(vec3_d const& origin, vec3_d const& dir, f64 maxT) cons
     return result;
 }
 
+auto voxel_grid::pivot() const -> vec3_d { return {.X = Size.X * 0.5, .Y = Size.Y * 0.5, .Z = Size.Z * 0.5}; }
+
+auto voxel_grid::diagonal() const -> f64 { return std::sqrt(static_cast<f64>((Size.X * Size.X) + (Size.Y * Size.Y) + (Size.Z * Size.Z))); }
+
+auto voxel_grid::corners() const -> std::array<vec3_d, 8>
+{
+    f64 const sx {static_cast<f64>(Size.X)}, sy {static_cast<f64>(Size.Y)}, sz {static_cast<f64>(Size.Z)};
+    return {{{.X = 0.0, .Y = 0.0, .Z = 0.0}, {.X = sx, .Y = 0.0, .Z = 0.0}, {.X = 0.0, .Y = sy, .Z = 0.0}, {.X = sx, .Y = sy, .Z = 0.0}, {.X = 0.0, .Y = 0.0, .Z = sz}, {.X = sx, .Y = 0.0, .Z = sz}, {.X = 0.0, .Y = sy, .Z = sz}, {.X = sx, .Y = sy, .Z = sz}}};
+}
+
+auto voxel_grid::face_ao(voxel_ray_hit const& hit, vec3_d const& localHitPos) const -> f64
+{
+    vec3_i const layer {.X = hit.Cell.X + (hit.FaceAxis == 0 ? hit.FaceSign : 0),
+                        .Y = hit.Cell.Y + (hit.FaceAxis == 1 ? hit.FaceSign : 0),
+                        .Z = hit.Cell.Z + (hit.FaceAxis == 2 ? hit.FaceSign : 0)};
+    i32 const    ao00 {corner_ao(layer, hit.FaceAxis, -1, -1)};
+    i32 const    ao10 {corner_ao(layer, hit.FaceAxis, +1, -1)};
+    i32 const    ao01 {corner_ao(layer, hit.FaceAxis, -1, +1)};
+    i32 const    ao11 {corner_ao(layer, hit.FaceAxis, +1, +1)};
+
+    f64 fu {}, fv {};
+    switch (hit.FaceAxis) {
+    case 0:
+        fu = localHitPos.Y - hit.Cell.Y;
+        fv = localHitPos.Z - hit.Cell.Z;
+        break;
+    case 1:
+        fu = localHitPos.X - hit.Cell.X;
+        fv = localHitPos.Z - hit.Cell.Z;
+        break;
+    default:
+        fu = localHitPos.X - hit.Cell.X;
+        fv = localHitPos.Y - hit.Cell.Y;
+        break;
+    }
+    fu = std::clamp(fu, 0.0, 1.0);
+    fv = std::clamp(fv, 0.0, 1.0);
+
+    f64 const aoInterp {(ao00 * (1.0 - fu) * (1.0 - fv)) + (ao10 * fu * (1.0 - fv)) + (ao01 * (1.0 - fu) * fv) + (ao11 * fu * fv)};
+    return aoInterp / 3.0;
+}
+
+auto voxel_grid::corner_ao(vec3_i layer, i32 faceAxis, i32 cu, i32 cv) const -> i32
+{
+    bool side1 {false};
+    bool side2 {false};
+    bool corner {false};
+    switch (faceAxis) {
+    case 0:
+        side1  = occupied(layer.X, layer.Y + cu, layer.Z);
+        side2  = occupied(layer.X, layer.Y, layer.Z + cv);
+        corner = occupied(layer.X, layer.Y + cu, layer.Z + cv);
+        break;
+    case 1:
+        side1  = occupied(layer.X + cu, layer.Y, layer.Z);
+        side2  = occupied(layer.X, layer.Y, layer.Z + cv);
+        corner = occupied(layer.X + cu, layer.Y, layer.Z + cv);
+        break;
+    default:
+        side1  = occupied(layer.X + cu, layer.Y, layer.Z);
+        side2  = occupied(layer.X, layer.Y + cv, layer.Z);
+        corner = occupied(layer.X + cu, layer.Y + cv, layer.Z);
+        break;
+    }
+
+    if (side1 && side2) { return 0; }
+    return 3 - (static_cast<i32>(side1) + static_cast<i32>(side2) + static_cast<i32>(corner));
+}
+
 auto voxel_grid::Load(string const& path) -> std::optional<voxel_grid>
 {
     io::ifstream stream {path};
@@ -246,33 +315,6 @@ auto voxel_grid::Load(string const& path) -> std::optional<voxel_grid>
     return voxel_grid {result};
 }
 
-auto voxel_grid::corner_ao(vec3_i layer, i32 faceAxis, i32 cu, i32 cv) const -> i32
-{
-    bool side1 {false};
-    bool side2 {false};
-    bool corner {false};
-    switch (faceAxis) {
-    case 0:
-        side1  = occupied(layer.X, layer.Y + cu, layer.Z);
-        side2  = occupied(layer.X, layer.Y, layer.Z + cv);
-        corner = occupied(layer.X, layer.Y + cu, layer.Z + cv);
-        break;
-    case 1:
-        side1  = occupied(layer.X + cu, layer.Y, layer.Z);
-        side2  = occupied(layer.X, layer.Y, layer.Z + cv);
-        corner = occupied(layer.X + cu, layer.Y, layer.Z + cv);
-        break;
-    default:
-        side1  = occupied(layer.X + cu, layer.Y, layer.Z);
-        side2  = occupied(layer.X, layer.Y + cv, layer.Z);
-        corner = occupied(layer.X + cu, layer.Y + cv, layer.Z);
-        break;
-    }
-
-    if (side1 && side2) { return 0; }
-    return 3 - (static_cast<i32>(side1) + static_cast<i32>(side2) + static_cast<i32>(corner));
-}
-
 ////////////////////////////////////////////////////////////
 
 auto vec3_d::dot(vec3_d const& b) const -> f64 { return (X * b.X) + (Y * b.Y) + (Z * b.Z); }
@@ -282,3 +324,56 @@ auto vec3_d::normalized() const -> vec3_d
     f64 const len {std::sqrt(dot(*this))};
     return len > 1e-12 ? *this * (1.0 / len) : vec3_d {.X = 0.0, .Y = 0.0, .Z = 1.0};
 }
+
+////////////////////////////////////////////////////////////
+
+auto voxel_transform::rotate(vec3_d v) const -> vec3_d
+{
+    return {.X = (Rotation[0] * v.X) + (Rotation[1] * v.Y) + (Rotation[2] * v.Z),
+            .Y = (Rotation[3] * v.X) + (Rotation[4] * v.Y) + (Rotation[5] * v.Z),
+            .Z = (Rotation[6] * v.X) + (Rotation[7] * v.Y) + (Rotation[8] * v.Z)};
+}
+
+auto voxel_transform::rotate_inverse(vec3_d v) const -> vec3_d
+{
+    return {.X = (Rotation[0] * v.X) + (Rotation[3] * v.Y) + (Rotation[6] * v.Z),
+            .Y = (Rotation[1] * v.X) + (Rotation[4] * v.Y) + (Rotation[7] * v.Z),
+            .Z = (Rotation[2] * v.X) + (Rotation[5] * v.Y) + (Rotation[8] * v.Z)};
+}
+
+auto voxel_transform::to_world(vec3_d local) const -> vec3_d // voxel space -> world
+{
+    vec3_d const r {rotate({.X = (local.X - Pivot.X) * Scale, .Y = (local.Y - Pivot.Y) * Scale, .Z = (local.Z - Pivot.Z) * Scale})};
+    return {.X = Position.X + r.X, .Y = Position.Y + r.Y, .Z = BaseZ + (Pivot.Z * Scale) + r.Z};
+}
+
+auto voxel_transform::to_local(vec3_d world) const -> vec3_d
+{
+    vec3_d const r {rotate_inverse({.X = world.X - Position.X, .Y = world.Y - Position.Y, .Z = world.Z - (BaseZ + (Pivot.Z * Scale))})};
+    return {.X = (r.X / Scale) + Pivot.X, .Y = (r.Y / Scale) + Pivot.Y, .Z = (r.Z / Scale) + Pivot.Z};
+}
+
+auto voxel_transform::dir_to_local(vec3_d worldDir) const -> vec3_d // keeps ray parameters in world units
+{
+    vec3_d const r {rotate_inverse(worldDir)};
+    return {.X = r.X / Scale, .Y = r.Y / Scale, .Z = r.Z / Scale};
+}
+
+////////////////////////////////////////////////////////////
+
+auto voxel_object::make_rotation() const -> mat3_d
+{
+    f64 const cy {Yaw.cos()}, sy {Yaw.sin()};
+    f64 const cp {Pitch.cos()}, sp {Pitch.sin()};
+    f64 const cr {Roll.cos()}, sr {Roll.sin()};
+    return {cy * cp, (cy * sp * sr) - (sy * cr), (cy * sp * cr) + (sy * sr),
+            sy * cp, (sy * sp * sr) + (cy * cr), (sy * sp * cr) - (cy * sr),
+            -sp, cp * sr, cp * cr};
+}
+
+auto voxel_object::make_transform() const -> voxel_transform
+{
+    return {.Rotation = make_rotation(), .Position = Position, .Pivot = Grid->pivot(), .BaseZ = BaseZ, .Scale = Scale};
+}
+
+auto voxel_object::world_diagonal() const -> f64 { return Grid->diagonal() * Scale; }

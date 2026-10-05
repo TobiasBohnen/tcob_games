@@ -569,41 +569,9 @@ void raycaster::draw_sprites(level const& level, player const& player, i32 scree
 
 void raycaster::draw_voxel_objects(level const& level, player const& player, i32 screenCenterY)
 {
-    static auto rotate {[](mat3_d const& m, vec3_d v) -> vec3_d {
-        return vec3_d {.X = (m[0] * v.X) + (m[1] * v.Y) + (m[2] * v.Z),
-                       .Y = (m[3] * v.X) + (m[4] * v.Y) + (m[5] * v.Z),
-                       .Z = (m[6] * v.X) + (m[7] * v.Y) + (m[8] * v.Z)};
-    }};
-
-    static auto rotate_inverse {[](mat3_d const& m, vec3_d v) -> vec3_d {
-        return vec3_d {.X = (m[0] * v.X) + (m[3] * v.Y) + (m[6] * v.Z),
-                       .Y = (m[1] * v.X) + (m[4] * v.Y) + (m[7] * v.Z),
-                       .Z = (m[2] * v.X) + (m[5] * v.Y) + (m[8] * v.Z)};
-    }};
-
-    static auto world_to_local {[](voxel_object const& obj, mat3_d const& rot, point_d worldXY, f64 worldZ) -> vec3_d {
-        vec3_d const pivot {.X = obj.Grid->Size.X * 0.5, .Y = obj.Grid->Size.Y * 0.5, .Z = obj.Grid->Size.Z * 0.5};
-        vec3_d const rel {.X = worldXY.X - obj.Position.X,
-                          .Y = worldXY.Y - obj.Position.Y,
-                          .Z = worldZ - (obj.BaseZ + (pivot.Z * obj.Scale))};
-        vec3_d const local {rotate_inverse(rot, rel)};
-        return vec3_d {.X = (local.X / obj.Scale) + pivot.X,
-                       .Y = (local.Y / obj.Scale) + pivot.Y,
-                       .Z = (local.Z / obj.Scale) + pivot.Z};
-    }};
-
-    static auto local_to_world {[](voxel_object const& obj, mat3_d const& rot, vec3_d local) -> std::pair<point_d, f64> {
-        vec3_d const pivot {.X = obj.Grid->Size.X * 0.5, .Y = obj.Grid->Size.Y * 0.5, .Z = obj.Grid->Size.Z * 0.5};
-        vec3_d const offset {.X = (local.X - pivot.X) * obj.Scale,
-                             .Y = (local.Y - pivot.Y) * obj.Scale,
-                             .Z = (local.Z - pivot.Z) * obj.Scale};
-        vec3_d const r {rotate(rot, offset)};
-        return {point_d {obj.Position.X + r.X, obj.Position.Y + r.Y}, obj.BaseZ + (pivot.Z * obj.Scale) + r.Z};
-    }};
-
     f64 const  invDet {1.0 / player.Plane.cross(player.Direction)};
-    auto const project {[&](point_d worldXY, f64 worldZ) -> std::tuple<f64, f64, f64> {
-        point_d const relPos {worldXY - player.Position};
+    auto const project {[&](vec3_d const& world) -> std::tuple<f64, f64, f64> {
+        point_d const relPos {world.X - player.Position.X, world.Y - player.Position.Y};
 
         f64 const transformX {invDet * relPos.cross(player.Direction)};
         f64 const transformY {invDet * player.Plane.cross(relPos)};
@@ -612,7 +580,7 @@ void raycaster::draw_voxel_objects(level const& level, player const& player, i32
 
         f64 const screenX {(_screenSize.Width / 2.0) * (1.0 + (transformX / transformY))};
         f64 const scale {_projPlaneDist / transformY};
-        f64 const screenY {screenCenterY - ((worldZ - EYE_HEIGHT) * scale)};
+        f64 const screenY {screenCenterY - ((world.Z - EYE_HEIGHT) * scale)};
 
         return {screenX, screenY, transformY};
     }};
@@ -623,20 +591,15 @@ void raycaster::draw_voxel_objects(level const& level, player const& player, i32
     for (voxel_object const& obj : level.VoxelObjects) {
         if (!obj.Grid) { continue; }
 
-        mat3_d const rot {obj.make_rotation()};
+        voxel_transform const xf {obj.make_transform()};
 
         f64  bboxMinX {std::numeric_limits<f64>::infinity()}, bboxMaxX {-std::numeric_limits<f64>::infinity()};
         f64  bboxMinY {std::numeric_limits<f64>::infinity()}, bboxMaxY {-std::numeric_limits<f64>::infinity()};
         f64  bboxMinDepth {std::numeric_limits<f64>::infinity()};
         bool anyVisible {false};
 
-        f64 const                   sizeX {static_cast<f64>(obj.Grid->Size.X)};
-        f64 const                   sizeY {static_cast<f64>(obj.Grid->Size.Y)};
-        f64 const                   sizeZ {static_cast<f64>(obj.Grid->Size.Z)};
-        std::array<vec3_d, 8> const localCorners {{{.X = 0.0, .Y = 0.0, .Z = 0.0}, {.X = sizeX, .Y = 0.0, .Z = 0.0}, {.X = 0.0, .Y = sizeY, .Z = 0.0}, {.X = sizeX, .Y = sizeY, .Z = 0.0}, {.X = 0.0, .Y = 0.0, .Z = sizeZ}, {.X = sizeX, .Y = 0.0, .Z = sizeZ}, {.X = 0.0, .Y = sizeY, .Z = sizeZ}, {.X = sizeX, .Y = sizeY, .Z = sizeZ}}};
-        for (vec3_d const& corner : localCorners) {
-            auto const [worldXY, worldZ] {local_to_world(obj, rot, corner)};
-            auto const [sx, sy, depth] {project(worldXY, worldZ)};
+        for (vec3_d const& corner : obj.Grid->corners()) {
+            auto const [sx, sy, depth] {project(xf.to_world(corner))};
             if (depth <= 0.0) { continue; }
 
             anyVisible   = true;
@@ -657,17 +620,13 @@ void raycaster::draw_voxel_objects(level const& level, player const& player, i32
         i32 const yStart {std::clamp(bboxRect.Position.Y, 0, _screenSize.Height)};
         i32 const yEnd {std::clamp(bboxRect.Position.Y + bboxRect.Size.Height, 0, _screenSize.Height)};
 
-        vec3_d const localOrigin {world_to_local(obj, rot, player.Position, EYE_HEIGHT)};
+        vec3_d const localOrigin {xf.to_local(vec3_d {.X = player.Position.X, .Y = player.Position.Y, .Z = EYE_HEIGHT})};
 
         f64 maxWallDist {0.0};
         for (i32 x {xStart}; x < xEnd; ++x) { maxWallDist = std::max(maxWallDist, _zBuffer[x]); }
         if (bboxMinDepth >= maxWallDist) { continue; }
 
-        f64 const objWorldDiag {std::sqrt(static_cast<f64>((obj.Grid->Size.X * obj.Grid->Size.X)
-                                                           + (obj.Grid->Size.Y * obj.Grid->Size.Y)
-                                                           + (obj.Grid->Size.Z * obj.Grid->Size.Z)))
-                                * obj.Scale};
-        f64 const maxT {maxWallDist + objWorldDiag};
+        f64 const maxT {maxWallDist + obj.world_diagonal()};
 
         i32 const colCount {xEnd - xStart};
         i32 const rowCount {yEnd - yStart};
@@ -688,54 +647,22 @@ void raycaster::draw_voxel_objects(level const& level, player const& player, i32
                     f64 const    rayDirZ {(screenCenterY - y) / _projPlaneDist};
                     vec3_d const rayDir3D {vec3_d {.X = rayDir2D.X, .Y = rayDir2D.Y, .Z = rayDirZ}.normalized()};
 
-                    vec3_d const rotatedDir {rotate_inverse(rot, rayDir3D)};
-                    vec3_d const localDir {.X = rotatedDir.X / obj.Scale,
-                                           .Y = rotatedDir.Y / obj.Scale,
-                                           .Z = rotatedDir.Z / obj.Scale};
+                    vec3_d const localDir {xf.dir_to_local(rayDir3D)};
 
                     auto const hit {obj.Grid->raycast(localOrigin, localDir, maxT)};
                     if (!hit.Hit) { continue; }
 
-                    vec3_d const localHitPos {localOrigin + (localDir * hit.T)};
-                    auto const [worldHitXY, worldHitZ] {local_to_world(obj, rot, localHitPos)};
-                    auto const [sx, sy, depth] {project(worldHitXY, worldHitZ)};
+                    vec3_d const  localHitPos {localOrigin + (localDir * hit.T)};
+                    vec3_d const  worldHit {xf.to_world(localHitPos)};
+                    point_d const worldHitXY {worldHit.X, worldHit.Y};
+                    auto const [sx, sy, depth] {project(worldHit)};
 
                     if (depth <= 0.0) { continue; }
 
                     point_i const hitCellForLight {WorldToCell(worldHitXY)};
-                    f64           aoFactor {1.0}; // no occlusion
-                    if (_quality.VoxelAo) {
-                        vec3_i const layer {.X = hit.Cell.X + (hit.FaceAxis == 0 ? hit.FaceSign : 0),
-                                            .Y = hit.Cell.Y + (hit.FaceAxis == 1 ? hit.FaceSign : 0),
-                                            .Z = hit.Cell.Z + (hit.FaceAxis == 2 ? hit.FaceSign : 0)};
-                        i32 const    ao00 {obj.Grid->corner_ao(layer, hit.FaceAxis, -1, -1)};
-                        i32 const    ao10 {obj.Grid->corner_ao(layer, hit.FaceAxis, +1, -1)};
-                        i32 const    ao01 {obj.Grid->corner_ao(layer, hit.FaceAxis, -1, +1)};
-                        i32 const    ao11 {obj.Grid->corner_ao(layer, hit.FaceAxis, +1, +1)};
+                    f64 const     aoFactor {_quality.VoxelAo ? obj.Grid->face_ao(hit, localHitPos) : 1.0};
 
-                        f64 fu {}, fv {};
-                        switch (hit.FaceAxis) {
-                        case 0:
-                            fu = localHitPos.Y - hit.Cell.Y;
-                            fv = localHitPos.Z - hit.Cell.Z;
-                            break;
-                        case 1:
-                            fu = localHitPos.X - hit.Cell.X;
-                            fv = localHitPos.Z - hit.Cell.Z;
-                            break;
-                        default:
-                            fu = localHitPos.X - hit.Cell.X;
-                            fv = localHitPos.Y - hit.Cell.Y;
-                            break;
-                        }
-                        fu = std::clamp(fu, 0.0, 1.0);
-                        fv = std::clamp(fv, 0.0, 1.0);
-
-                        f64 const aoInterp {(ao00 * (1.0 - fu) * (1.0 - fv)) + (ao10 * fu * (1.0 - fv)) + (ao01 * (1.0 - fu) * fv) + (ao11 * fu * fv)};
-                        aoFactor = aoInterp / 3.0;
-                    }
-
-                    vec3_d tint {accumulate_light(level, player, worldHitXY, worldHitZ, hitCellForLight)};
+                    vec3_d tint {accumulate_light(level, player, worldHitXY, worldHit.Z, hitCellForLight)};
                     tint.X *= aoFactor;
                     tint.Y *= aoFactor;
                     tint.Z *= aoFactor;
