@@ -277,6 +277,9 @@ void Plinth::on_update(milliseconds deltaTime)
     for (auto& dl : _level->DynamicLights) {
         dl.Position += _player.Direction * deltaTime.count() / 1000 * 2;
     }
+    for (auto& dl : _level->Sprites) {
+        dl.Position += _player.Direction * deltaTime.count() / 1000 * 2;
+    }
 
     if (_startRecord) {
         if (_clipFtr.valid()) {
@@ -440,15 +443,20 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
     } break;
     case input::scan_code::F: {
         _level->DynamicLights.clear();
-
-        static rng                  Rng;
-        static std::array<color, 4> LightColors {colors::Blue, colors::MediumBlue, colors::DeepSkyBlue, colors::DodgerBlue};
+        _level->Sprites.clear();
+        static rng Rng;
 
         _level->DynamicLights.push_back({.Position  = _player.Position,
                                          .Height    = Rng(0.1, 0.3),
                                          .Range     = Rng(0.5, 0.9),
-                                         .Color     = LightColors[Rng(usize {0}, LightColors.size() - 1)],
-                                         .Intensity = Rng(0.1, 1.5)});
+                                         .Color     = colors::Red,
+                                         .Intensity = Rng(0.1, 1.5),
+                                         .Layers    = LIGHT_LAYER_WORLD | LIGHT_LAYER_SPELL});
+
+        _level->Sprites.push_back({.Position  = _player.Position,
+                                   .Size      = {0.25, 0.25},
+                                   .Texture   = ballTexture,
+                                   .LightMask = LIGHT_LAYER_SPELL});
 
     } break;
     default:

@@ -21,8 +21,11 @@ inline constexpr f64    FOV {90};
 inline constexpr f64    REFERENCE_HEIGHT {360.0};
 inline constexpr f64    WEAPON_BOB_MULTIPLIER {2.0};
 
+constexpr u32 LIGHT_LAYER_WORLD {1u << 0};
+constexpr u32 LIGHT_LAYER_SPELL {1u << 1};
+constexpr u32 LIGHT_LAYERS_ALL {~0u};
+
 inline constexpr i32 NUM_FACINGS {16};
-i32 const            VOXEL_SIZE {256};
 
 class texture_cache;
 class level;

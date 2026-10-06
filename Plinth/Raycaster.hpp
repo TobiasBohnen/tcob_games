@@ -24,7 +24,7 @@ private:
     };
 
     void precompute_light_visibility(level const& level);
-    auto accumulate_light(level const& level, player const& player, point_d const& surfacePos, f64 surfaceZ, point_i const& cell) const -> vec3_d;
+    auto accumulate_light(level const& level, player const& player, point_d const& surfacePos, f64 surfaceZ, point_i const& cell, u32 lightMask = LIGHT_LAYERS_ALL) const -> vec3_d;
     void shade_and_write(u32* screenBuf, isize x, isize y, u8 const* tex, isize srcIdx, level const& level, player const& player, point_d const& surfacePos, f64 surfaceZ) const;
 
     void draw_columns(level& level, player const& player, i32 screenCenterY, i32 columnStart, i32 columnEnd);

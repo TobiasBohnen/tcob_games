@@ -244,7 +244,7 @@ void raycaster::precompute_light_visibility(level const& level)
                               MAP_HEIGHT);
 }
 
-auto raycaster::accumulate_light(level const& level, player const& player, point_d const& surfacePos, f64 surfaceZ, point_i const& cell) const -> vec3_d
+auto raycaster::accumulate_light(level const& level, player const& player, point_d const& surfacePos, f64 surfaceZ, point_i const& cell, u32 lightMask) const -> vec3_d
 {
     static auto tone_map {[](f64 x) -> f64 { return x / (1.0 + x); }};
 
@@ -262,12 +262,15 @@ auto raycaster::accumulate_light(level const& level, player const& player, point
 
     vec3_d total {};
 
-    add_light_contribution(player.Position, EYE_HEIGHT, player.Settings.LightRange, player.Settings.LightIntensity, color {255, 255, 255}, surfacePos, surfaceZ, total);
+    if ((lightMask & LIGHT_LAYER_WORLD) != 0) {
+        add_light_contribution(player.Position, EYE_HEIGHT, player.Settings.LightRange, player.Settings.LightIntensity, color {255, 255, 255}, surfacePos, surfaceZ, total);
+    }
 
     if (map_t::Size.contains(cell)) {
         usize const cellIndex {static_cast<usize>((cell.Y * MAP_WIDTH) + cell.X)};
         for (u32 li : _cellLights[cellIndex]) {
             dynamic_light const& light {level.DynamicLights[li]};
+            if ((light.Layers & lightMask) == 0) { continue; }
             add_light_contribution(light.Position, light.Height, light.Range, light.Intensity, light.Color, surfacePos, surfaceZ, total);
         }
     }
@@ -542,7 +545,7 @@ void raycaster::draw_sprites(level const& level, player const& player, i32 scree
         f64 const texPosYStart {(drawStart.Y - spriteTop) * texStepY};
 
         point_i const spriteCell {WorldToCell(spr.Position)};
-        vec3_d const  spriteTint {accumulate_light(level, player, spr.Position, 0.0, spriteCell)};
+        vec3_d const  spriteTint {accumulate_light(level, player, spr.Position, 0.0, spriteCell, spr.LightMask)};
 
         for (i32 x {drawStart.X}; x < drawEnd.X; ++x) {
             if (transformY >= _zBuffer[x]) { continue; }

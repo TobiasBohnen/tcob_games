@@ -16,6 +16,7 @@ inline constexpr i32 door1FrameTexture {445};
 inline constexpr i32 handTexture {666};
 inline constexpr i32 hudTexture {777};
 inline constexpr i32 fontTexture {815};
+inline constexpr i32 ballTexture {123};
 // DEBUGCODE END
 
 ////////////////////////////////////////////////////////////

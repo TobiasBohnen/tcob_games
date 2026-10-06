@@ -26,6 +26,7 @@ struct sprite {
     i32      Texture {-1};
     degree_f Facing {0};
     bool     Solid {true};
+    u32      LightMask {LIGHT_LAYERS_ALL};
 };
 
 struct dynamic_light {
@@ -34,6 +35,7 @@ struct dynamic_light {
     f64     Range {8.0};
     color   Color {};
     f64     Intensity {1.0};
+    u32     Layers {LIGHT_LAYER_WORLD};
 };
 
 class level {
