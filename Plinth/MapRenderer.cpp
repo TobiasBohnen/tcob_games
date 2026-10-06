@@ -89,7 +89,7 @@ auto map_renderer::draw(level const& level, player const& player) -> u32 const*
     }
 
     // sprites
-    for (auto const& spr : level.Sprites) {
+    for (auto const& spr : level.SpriteObjects) {
         if (!level.is_seen(point_i {spr.Position})) { continue; } // TODO: sprite map visibility and color
 
         point_i const sprPos {spr.Position * cellSize};

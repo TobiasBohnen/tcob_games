@@ -194,7 +194,7 @@ Plinth::Plinth(game& game)
         return point_d {static_cast<f64>(x) + 0.5f, static_cast<f64>(y) + 0.5f};
     }};
 
-    static voxel_grid const testVoxelGrid {*voxel_grid::Load("res/castle.vox")};
+    static voxel_grid const testVoxelGrid {*voxel_grid::Load("res/ball1.vox")};
 
     for (i32 i {0}; i < 50; ++i) {
         f64       scale {rng(0.3, 1.0)};
@@ -275,10 +275,10 @@ void Plinth::on_update(milliseconds deltaTime)
     // _player.Settings.LightIntensity = 2 * flicker;
 
     for (auto& dl : _level->DynamicLights) {
-        dl.Position += _player.Direction * deltaTime.count() / 1000 * 2;
+        dl.Position += _player.Direction * deltaTime.count() / 1000 * 10;
     }
-    for (auto& dl : _level->Sprites) {
-        dl.Position += _player.Direction * deltaTime.count() / 1000 * 2;
+    for (auto& dl : _level->SpriteObjects) {
+        dl.Position += _player.Direction * deltaTime.count() / 1000 * 10;
     }
 
     if (_startRecord) {
@@ -374,14 +374,10 @@ void Plinth::toggle_map()
 constexpr auto make_quality(quality_level level) -> quality_settings
 {
     switch (level) {
-    case quality_level::Low:
-        return {.Resolution = {320, 180}, .VoxelPixelBudget = 8000, .LightLosSamples = 1, .VoxelAo = false, .LightDither = false, .LightBands = 8};
-    case quality_level::Medium:
-        return {.Resolution = {480, 270}, .VoxelPixelBudget = 14000, .LightLosSamples = 3, .VoxelAo = true, .LightDither = true, .LightBands = 6};
-    case quality_level::High:
-        return {.Resolution = {640, 360}, .VoxelPixelBudget = 20000, .LightLosSamples = 5, .VoxelAo = true, .LightDither = true, .LightBands = 8};
-    case quality_level::Ultra:
-        return {.Resolution = {960, 540}, .VoxelPixelBudget = 40000, .LightLosSamples = 5, .VoxelAo = true, .LightDither = true, .LightBands = 16};
+    case quality_level::Low:    return {.Resolution = {320, 180}, .VoxelPixelBudget = 8000, .LightLosSamples = 1, .VoxelAo = false, .LightDither = false, .LightBands = 8};
+    case quality_level::Medium: return {.Resolution = {480, 270}, .VoxelPixelBudget = 14000, .LightLosSamples = 3, .VoxelAo = true, .LightDither = true, .LightBands = 6};
+    case quality_level::High:   return {.Resolution = {640, 360}, .VoxelPixelBudget = 20000, .LightLosSamples = 5, .VoxelAo = true, .LightDither = true, .LightBands = 8};
+    case quality_level::Ultra:  return {.Resolution = {960, 540}, .VoxelPixelBudget = 40000, .LightLosSamples = 5, .VoxelAo = true, .LightDither = true, .LightBands = 16};
     case quality_level::Custom: break;
     }
 
@@ -449,15 +445,15 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
                              .Intensity = 1.5,
                              .Layers    = LIGHT_LAYER_WORLD | LIGHT_LAYER_SPELL};
 
-        sprite sprite {.Position  = _player.Position,
-                       .BaseZ     = 0.25,
-                       .Size      = {0.05, 0.15},
-                       .Texture   = ballTexture,
-                       .LightMask = LIGHT_LAYER_SPELL};
+        sprite_object sprite {.Position  = _player.Position,
+                              .BaseZ     = 0.25,
+                              .Size      = {0.05, 0.15},
+                              .Texture   = ballTexture,
+                              .LightMask = LIGHT_LAYER_SPELL};
         light.Z = sprite.BaseZ + (sprite.Size.Height * 0.5);
 
         _level->DynamicLights.push_back(light);
-        _level->Sprites.push_back(sprite);
+        _level->SpriteObjects.push_back(sprite);
 
     } break;
     default:

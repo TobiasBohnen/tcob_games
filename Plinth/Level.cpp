@@ -130,7 +130,7 @@ auto level::is_clear(point_d pos, f64 radius) const -> bool
         }
     }
 
-    bool const spritesClear {std::ranges::all_of(Sprites, [&](sprite const& spr) {
+    bool const spritesClear {std::ranges::all_of(SpriteObjects, [&](auto const& spr) {
         if (!spr.Solid) { return true; }
         f64 const     combinedRadius {radius + (spr.Size.Width / 2.0)};
         point_d const d {spr.Position - pos};
@@ -139,7 +139,7 @@ auto level::is_clear(point_d pos, f64 radius) const -> bool
 
     if (!spritesClear) { return false; }
 
-    return std::ranges::all_of(VoxelObjects, [&](voxel_object const& obj) {
+    return std::ranges::all_of(VoxelObjects, [&](auto const& obj) {
         if (!obj.Grid) { return true; }
 
         f64 const     objRadius {(std::max(obj.Grid->Size.X, obj.Grid->Size.Y) / 2.0) * obj.Scale};

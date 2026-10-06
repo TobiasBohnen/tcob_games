@@ -503,19 +503,11 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
 
 void raycaster::draw_sprites(level const& level, player const& player, i32 screenCenterY)
 {
-    static auto sprite_facing_index {[](degree_d spriteFacing, point_d spritePos, point_d cameraPos) -> i32 {
-        auto const viewAngle {spritePos.angle_to(cameraPos)};
-        auto const relativeAngle {(spriteFacing - viewAngle).as_normalized(angle_normalize::PositiveFullTurn)};
-
-        constexpr f64 wedge {360.0 / NUM_FACINGS};
-        return static_cast<i32>((relativeAngle.Value + (wedge / 2.0)) / wedge) % NUM_FACINGS;
-    }};
-
     f64 const    invDet {1.0 / player.Plane.cross(player.Direction)};
     rect_i const screenRect {point_i {0, 0}, _screenSize};
 
     u32* screenBuf {_screen.data()};
-    for (sprite const& spr : level.Sprites) {
+    for (auto const& spr : level.SpriteObjects) {
         point_d const relPos {spr.Position - player.Position};
 
         f64 const transformX {invDet * relPos.cross(player.Direction)};
@@ -524,10 +516,10 @@ void raycaster::draw_sprites(level const& level, player const& player, i32 scree
 
         i32 const    spriteScreenX {static_cast<i32>((_screenSize.Width / 2.0) * (1.0 + (transformX / transformY)))};
         f64 const    scale {_projPlaneDist / transformY};
-        size_i const spriteSize {static_cast<size_i>(spr.Size * std::abs(scale))};
+        size_i const spriteSize {spr.screen_size(scale)};
 
         i32 const spriteLeft {spriteScreenX - (spriteSize.Width / 2)};
-        i32 const spriteBottom {screenCenterY + static_cast<i32>((EYE_HEIGHT - spr.BaseZ) * scale)};
+        i32 const spriteBottom {spr.screen_bottom(scale, screenCenterY, EYE_HEIGHT)};
         i32 const spriteTop {spriteBottom - spriteSize.Height};
 
         rect_i const spriteRect {point_i {spriteLeft, spriteTop}, spriteSize};
@@ -537,7 +529,7 @@ void raycaster::draw_sprites(level const& level, player const& player, i32 scree
         point_i const drawEnd {std::min(spriteLeft + spriteSize.Width, _screenSize.Width),
                                std::min(spriteTop + spriteSize.Height, _screenSize.Height)};
 
-        i32 const    facing {sprite_facing_index(spr.Facing, spr.Position, player.Position)};
+        i32 const    facing {spr.facing_index(player.Position)};
         auto const*  tex {_cache.texture(spr.Texture, facing)};
         size_i const texSize {_cache.texture_size(spr.Texture, facing)};
 
