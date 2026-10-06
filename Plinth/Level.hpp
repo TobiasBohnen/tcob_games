@@ -22,6 +22,7 @@ struct level_settings {
 
 struct sprite {
     point_d  Position;
+    f64      BaseZ {0.0};
     size_d   Size {size_d::One};
     i32      Texture {-1};
     degree_f Facing {0};
@@ -31,7 +32,7 @@ struct sprite {
 
 struct dynamic_light {
     point_d Position {};
-    f64     Height {0.5};
+    f64     Z {0.5};
     f64     Range {8.0};
     color   Color {};
     f64     Intensity {1.0};

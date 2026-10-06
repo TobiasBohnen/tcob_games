@@ -225,7 +225,7 @@ void raycaster::precompute_light_visibility(level const& level)
                 if (!sweep.Active || cy < sweep.CyMin || cy > sweep.CyMax) { continue; }
 
                 dynamic_light const& light {level.DynamicLights[li]};
-                f64 const            dz {light.Height - WALL_LIGHT_Z};
+                f64 const            dz {light.Z - WALL_LIGHT_Z};
 
                 for (i32 cx {sweep.CxMin}; cx <= sweep.CxMax; ++cx) {
                     point_d const cellCenter {cx + 0.5, cy + 0.5};
@@ -271,7 +271,7 @@ auto raycaster::accumulate_light(level const& level, player const& player, point
         for (u32 li : _cellLights[cellIndex]) {
             dynamic_light const& light {level.DynamicLights[li]};
             if ((light.Layers & lightMask) == 0) { continue; }
-            add_light_contribution(light.Position, light.Height, light.Range, light.Intensity, light.Color, surfacePos, surfaceZ, total);
+            add_light_contribution(light.Position, light.Z, light.Range, light.Intensity, light.Color, surfacePos, surfaceZ, total);
         }
     }
 
@@ -524,11 +524,11 @@ void raycaster::draw_sprites(level const& level, player const& player, i32 scree
 
         i32 const    spriteScreenX {static_cast<i32>((_screenSize.Width / 2.0) * (1.0 + (transformX / transformY)))};
         f64 const    scale {_projPlaneDist / transformY};
-        i32 const    fullSpriteHeight {static_cast<i32>(std::abs(scale))};
         size_i const spriteSize {static_cast<size_i>(spr.Size * std::abs(scale))};
 
         i32 const spriteLeft {spriteScreenX - (spriteSize.Width / 2)};
-        i32 const spriteTop {screenCenterY + (fullSpriteHeight / 2) - spriteSize.Height};
+        i32 const spriteBottom {screenCenterY + static_cast<i32>((EYE_HEIGHT - spr.BaseZ) * scale)};
+        i32 const spriteTop {spriteBottom - spriteSize.Height};
 
         rect_i const spriteRect {point_i {spriteLeft, spriteTop}, spriteSize};
         if (!screenRect.intersects(spriteRect, true)) { continue; }
@@ -545,7 +545,7 @@ void raycaster::draw_sprites(level const& level, player const& player, i32 scree
         f64 const texPosYStart {(drawStart.Y - spriteTop) * texStepY};
 
         point_i const spriteCell {WorldToCell(spr.Position)};
-        vec3_d const  spriteTint {accumulate_light(level, player, spr.Position, 0.0, spriteCell, spr.LightMask)};
+        vec3_d const  spriteTint {accumulate_light(level, player, spr.Position, spr.BaseZ, spriteCell, spr.LightMask)};
 
         for (i32 x {drawStart.X}; x < drawEnd.X; ++x) {
             if (transformY >= _zBuffer[x]) { continue; }

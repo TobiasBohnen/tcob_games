@@ -446,17 +446,21 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
         _level->Sprites.clear();
         static rng Rng;
 
-        _level->DynamicLights.push_back({.Position  = _player.Position,
-                                         .Height    = Rng(0.1, 0.3),
-                                         .Range     = Rng(0.5, 0.9),
-                                         .Color     = colors::Red,
-                                         .Intensity = Rng(0.1, 1.5),
-                                         .Layers    = LIGHT_LAYER_WORLD | LIGHT_LAYER_SPELL});
+        dynamic_light light {.Position  = _player.Position,
+                             .Range     = Rng(0.5, 0.9),
+                             .Color     = colors::Red,
+                             .Intensity = Rng(0.1, 1.5),
+                             .Layers    = LIGHT_LAYER_WORLD | LIGHT_LAYER_SPELL};
 
-        _level->Sprites.push_back({.Position  = _player.Position,
-                                   .Size      = {0.25, 0.25},
-                                   .Texture   = ballTexture,
-                                   .LightMask = LIGHT_LAYER_SPELL});
+        sprite sprite {.Position  = _player.Position,
+                       .BaseZ     = 0.5 - 0.125,
+                       .Size      = {0.25, 0.25},
+                       .Texture   = ballTexture,
+                       .LightMask = LIGHT_LAYER_SPELL};
+        light.Z = sprite.BaseZ + (sprite.Size.Height * 0.5);
+
+        _level->DynamicLights.push_back(light);
+        _level->Sprites.push_back(sprite);
 
     } break;
     default:
