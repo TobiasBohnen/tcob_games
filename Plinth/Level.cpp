@@ -15,7 +15,6 @@ level::level(map_t map)
     // DEBUGCODE START
     Settings.CeilingTexture = 11;
     Settings.FloorTexture   = 10;
-    Settings.IsSkybox       = false;
     // DEBUGCODE END
 }
 
@@ -167,18 +166,10 @@ auto level::is_seen(point_i cell) const -> bool
     return _seen[cell];
 }
 
-void level::mark_seen(point_i cell, point_d playerPos)
+void level::mark_seen(point_i cell)
 {
     if (!map_t::Size.contains(cell)) { return; }
-
-    point_d const cellCenter {cell.X + 0.5, cell.Y + 0.5};
-    point_d const delta {cellCenter.X - playerPos.X, cellCenter.Y - playerPos.Y};
-    f64 const     dist {std::sqrt((delta.X * delta.X) + (delta.Y * delta.Y))};
-
-    f64 const visibleRange {Settings.FogDistance * (1.0 - Settings.FogMin)};
-    if (dist < visibleRange) {
-        _seen[cell] = true;
-    }
+    _seen[cell] = true;
 }
 
 void level::mark_all_seen()

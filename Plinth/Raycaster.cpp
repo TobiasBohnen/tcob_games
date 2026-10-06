@@ -370,7 +370,7 @@ void raycaster::draw_columns(level& level, player const& player, i32 screenCente
                 hitResult = wallHit;
                 hitCell   = map;
             }
-            if (is_within_player_light(map)) { level.mark_seen(map, player.Position); }
+            if (is_within_player_light(map)) { level.mark_seen(map); }
         }
 
         // DDA
@@ -391,7 +391,7 @@ void raycaster::draw_columns(level& level, player const& player, i32 screenCente
 
                 if (!map_t::Size.contains(map)) { break; }
 
-                if (is_within_player_light(map)) { level.mark_seen(map, player.Position); }
+                if (is_within_player_light(map)) { level.mark_seen(map); }
 
                 auto const wallHit {std::visit(intersect, level.get_cell(map))};
                 if (wallHit.Hit) {

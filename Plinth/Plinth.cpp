@@ -442,19 +442,16 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
         set_quality(quality_level::Low);
     } break;
     case input::scan_code::F: {
-        _level->DynamicLights.clear();
-        _level->Sprites.clear();
-        static rng Rng;
 
         dynamic_light light {.Position  = _player.Position,
-                             .Range     = Rng(0.5, 0.9),
+                             .Range     = 0.5,
                              .Color     = colors::Red,
-                             .Intensity = Rng(0.1, 1.5),
+                             .Intensity = 1.5,
                              .Layers    = LIGHT_LAYER_WORLD | LIGHT_LAYER_SPELL};
 
         sprite sprite {.Position  = _player.Position,
-                       .BaseZ     = 0.5 - 0.125,
-                       .Size      = {0.25, 0.25},
+                       .BaseZ     = 0.25,
+                       .Size      = {0.05, 0.15},
                        .Texture   = ballTexture,
                        .LightMask = LIGHT_LAYER_SPELL};
         light.Z = sprite.BaseZ + (sprite.Size.Height * 0.5);

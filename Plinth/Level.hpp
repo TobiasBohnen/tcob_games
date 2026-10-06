@@ -10,19 +10,14 @@
 #include "Walls.hpp"
 
 struct level_settings {
-    f64 FogMin {0.0};
-    f64 FogDistance {12.0};
-
-    f64 AmbientLight {1.0};
-
-    i32  FloorTexture {0};
-    i32  CeilingTexture {0};
-    bool IsSkybox {false};
+    i32 FloorTexture {0};
+    i32 CeilingTexture {0};
 };
 
 struct sprite {
-    point_d  Position;
-    f64      BaseZ {0.0};
+    point_d Position;
+    f64     BaseZ {0.0};
+
     size_d   Size {size_d::One};
     i32      Texture {-1};
     degree_f Facing {0};
@@ -34,7 +29,7 @@ struct dynamic_light {
     point_d Position {};
     f64     Z {0.5};
     f64     Range {8.0};
-    color   Color {};
+    color   Color {colors::White};
     f64     Intensity {1.0};
     u32     Layers {LIGHT_LAYER_WORLD};
 };
@@ -57,7 +52,7 @@ public:
     void toggle_wall(point_i p);
 
     auto is_seen(point_i cell) const -> bool;
-    void mark_seen(point_i cell, point_d playerPos);
+    void mark_seen(point_i cell);
     void mark_all_seen();
 
     void show_message(string const& msg);
