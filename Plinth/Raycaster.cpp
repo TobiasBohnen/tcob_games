@@ -322,6 +322,11 @@ void raycaster::remove_light(dynamic_light* light)
     helper::erase_first(_dynamicLights, [light](dynamic_light* val) { return val == light; });
 }
 
+void raycaster::clear_lights()
+{
+    _dynamicLights.clear();
+}
+
 void raycaster::draw_columns(level& level, player const& player, i32 screenCenterY, i32 columnStart, i32 columnEnd)
 {
     static auto compute_wall_screen_extent {[](f64 distance, i32 centerY, f64 projDist) -> std::pair<i32, i32> {

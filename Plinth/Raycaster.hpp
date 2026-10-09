@@ -19,6 +19,7 @@ public:
 
     void add_light(dynamic_light* light);
     void remove_light(dynamic_light* light);
+    void clear_lights();
 
 private:
     struct wall_extent {
