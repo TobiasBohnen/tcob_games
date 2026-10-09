@@ -7,6 +7,7 @@
 
 #include "Common.hpp"
 #include "Level.hpp"
+#include "Light.hpp"
 #include "MapGenerator.hpp"
 #include "MapRenderer.hpp"
 #include "Raycaster.hpp"
@@ -274,8 +275,8 @@ void Plinth::on_update(milliseconds deltaTime)
     // f64 const flicker {1.0 + (0.06 * std::sin(_frameTimer.count() / 1000.0 * 17.0)) + (0.04 * std::sin((_frameTimer.count() / 1000.0 * 29.3) + 1.7))};
     // _player.Settings.LightIntensity = 2 * flicker;
 
-    for (auto& dl : _level->DynamicLights) {
-        dl.Position += _player.Direction * deltaTime.count() / 1000 * 10;
+    for (auto& dl : _dynamicLights) {
+        dl->Position += _player.Direction * deltaTime.count() / 1000 * 10;
     }
     for (auto& dl : _level->SpriteObjects) {
         dl.Position += _player.Direction * deltaTime.count() / 1000 * 10;
@@ -439,22 +440,23 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
     } break;
     case input::scan_code::F: {
 
-        dynamic_light light {.Position  = _player.Position,
-                             .Range     = 0.5,
-                             .Color     = colors::Red,
-                             .Intensity = 1.5,
-                             .Layers    = LIGHT_LAYER_WORLD | LIGHT_LAYER_SPELL};
+        auto light {std::make_unique<dynamic_light>(
+            dynamic_light {.Position  = _player.Position,
+                           .Range     = 0.5,
+                           .Color     = colors::Red,
+                           .Intensity = 1.5,
+                           .Layers    = LIGHT_LAYER_WORLD | LIGHT_LAYER_SPELL})};
 
         sprite_object sprite {.Position  = _player.Position,
                               .BaseZ     = 0.25,
                               .Size      = {0.05, 0.15},
                               .Texture   = ballTexture,
                               .LightMask = LIGHT_LAYER_SPELL};
-        light.Z = sprite.BaseZ + (sprite.Size.Height * 0.5);
+        light->Z = sprite.BaseZ + (sprite.Size.Height * 0.5);
+        _raycaster->add_light(light.get());
+        _dynamicLights.push_back(std::move(light));
 
-        _level->DynamicLights.push_back(light);
         _level->SpriteObjects.push_back(sprite);
-
     } break;
     default:
 

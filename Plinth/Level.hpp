@@ -39,22 +39,12 @@ public:
     auto screen_bottom(f64 scale, i32 screenCenterY, f64 eyeHeight) const -> i32 { return screenCenterY + static_cast<i32>((eyeHeight - BaseZ) * scale); }
 };
 
-struct dynamic_light {
-    point_d Position {};
-    f64     Z {0.5};
-    f64     Range {8.0};
-    color   Color {colors::White};
-    f64     Intensity {1.0};
-    u32     Layers {LIGHT_LAYER_WORLD};
-};
-
 class level {
 public:
     explicit level(map_t map);
 
     std::vector<sprite_object> SpriteObjects;
     std::vector<voxel_object>  VoxelObjects;
-    std::vector<dynamic_light> DynamicLights;
 
     level_settings Settings;
 

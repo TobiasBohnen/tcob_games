@@ -20,6 +20,7 @@
 
 #include "Common.hpp"
 #include "Level.hpp"
+#include "Light.hpp"
 #include "Player.hpp"
 #include "TextureCache.hpp"
 #include "Walls.hpp"
@@ -121,7 +122,7 @@ void raycaster::precompute_light_visibility(level const& level)
 {
     for (auto& list : _cellLights) { list.clear(); }
 
-    if (level.DynamicLights.empty()) { return; }
+    if (_dynamicLights.empty()) { return; }
 
     usize const losSamples {static_cast<usize>(_quality.LightLosSamples)};
 
@@ -202,9 +203,9 @@ void raycaster::precompute_light_visibility(level const& level)
         f64  RadiusSq {0.0};
     };
 
-    std::vector<light_sweep> sweeps(level.DynamicLights.size());
-    for (usize li {0}; li < level.DynamicLights.size(); ++li) {
-        dynamic_light const& light {level.DynamicLights[li]};
+    std::vector<light_sweep> sweeps(_dynamicLights.size());
+    for (usize li {0}; li < _dynamicLights.size(); ++li) {
+        dynamic_light const& light {*_dynamicLights[li]};
         if (is_cell_blocking(WorldToCell(light.Position))) { continue; }
 
         f64 const sweepRadius {light.Range + CELL_DIAGONAL_HALF};
@@ -224,7 +225,7 @@ void raycaster::precompute_light_visibility(level const& level)
                 light_sweep const& sweep {sweeps[li]};
                 if (!sweep.Active || cy < sweep.CyMin || cy > sweep.CyMax) { continue; }
 
-                dynamic_light const& light {level.DynamicLights[li]};
+                dynamic_light const& light {*_dynamicLights[li]};
                 f64 const            dz {light.Z - WALL_LIGHT_Z};
 
                 for (i32 cx {sweep.CxMin}; cx <= sweep.CxMax; ++cx) {
@@ -269,7 +270,7 @@ auto raycaster::accumulate_light(level const& level, player const& player, point
     if (map_t::Size.contains(cell)) {
         usize const cellIndex {static_cast<usize>((cell.Y * MAP_WIDTH) + cell.X)};
         for (u32 li : _cellLights[cellIndex]) {
-            dynamic_light const& light {level.DynamicLights[li]};
+            dynamic_light const& light {*_dynamicLights[li]};
             if ((light.Layers & lightMask) == 0) { continue; }
             add_light_contribution(light.Position, light.Z, light.Range, light.Intensity, light.Color, surfacePos, surfaceZ, total);
         }
@@ -309,6 +310,16 @@ auto raycaster::draw(level& level, player const& player) -> u32 const*
     draw_message(level);
 
     return _screen.data();
+}
+
+void raycaster::add_light(dynamic_light* light)
+{
+    _dynamicLights.push_back(light);
+}
+
+void raycaster::remove_light(dynamic_light* light)
+{
+    helper::erase_first(_dynamicLights, [light](dynamic_light* val) { return val == light; });
 }
 
 void raycaster::draw_columns(level& level, player const& player, i32 screenCenterY, i32 columnStart, i32 columnEnd)

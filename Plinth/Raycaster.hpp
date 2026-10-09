@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "Common.hpp"
+#include "Level.hpp"
 #include "Walls.hpp"
 
 class raycaster {
@@ -15,6 +16,9 @@ public:
     raycaster(texture_cache& cache, quality_settings const& quality, f64 projPlaneDist);
 
     auto draw(level& level, player const& player) -> u32 const*;
+
+    void add_light(dynamic_light* light);
+    void remove_light(dynamic_light* light);
 
 private:
     struct wall_extent {
@@ -38,6 +42,9 @@ private:
     void draw_hud(player const& player);
     void draw_message(level const& level);
 
+    std::vector<dynamic_light*>   _dynamicLights;
+    std::vector<std::vector<u32>> _cellLights;
+
     std::vector<u32> _screen;
 
     std::vector<f64> _zBuffer;
@@ -47,10 +54,6 @@ private:
     quality_settings _quality;
     size_i           _screenSize;
     f64              _projPlaneDist;
-
-    std::vector<u8>               _lightVisibility;
-    usize                         _numDynamicLights {0};
-    std::vector<std::vector<u32>> _cellLights;
 
     task_manager& _taskManager;
 };

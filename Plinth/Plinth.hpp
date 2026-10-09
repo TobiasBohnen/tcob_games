@@ -57,4 +57,6 @@ private:
     std::future<bool>             _clipFtr;
 
     quality_settings _quality;
+
+    std::vector<std::unique_ptr<dynamic_light>> _dynamicLights; // TODO: remove me
 };

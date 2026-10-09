@@ -30,6 +30,7 @@ inline constexpr i32 NUM_FACINGS {16};
 class texture_cache;
 class level;
 class player;
+struct dynamic_light;
 
 ////////////////////////////////////////////////////////////
 
