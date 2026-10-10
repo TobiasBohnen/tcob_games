@@ -8,6 +8,7 @@
 #include <memory>
 
 #include "Common.hpp"
+
 #include "MapRenderer.hpp"
 #include "Player.hpp"
 #include "Raycaster.hpp"
@@ -57,6 +58,4 @@ private:
     std::future<bool>             _clipFtr;
 
     quality_settings _quality;
-
-    std::vector<std::unique_ptr<dynamic_light>> _dynamicLights; // TODO: remove me
 };

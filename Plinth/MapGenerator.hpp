@@ -6,6 +6,7 @@
 #pragma once
 
 #include "Common.hpp"
+
 #include "Walls.hpp"
 
 using occupancy_grid = static_grid<bool, MAP_WIDTH, MAP_HEIGHT>;

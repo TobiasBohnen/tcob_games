@@ -88,22 +88,13 @@ auto map_renderer::draw(level const& level, player const& player) -> u32 const*
         }
     }
 
-    // sprites
-    for (auto const& spr : level.SpriteObjects) {
-        if (!level.is_seen(point_i {spr.Position})) { continue; } // TODO: sprite map visibility and color
+    // objects
+    for (auto const& obj : level.objects()) {
+        if (!level.is_seen(point_i {obj.position()})) { continue; } // TODO: sprite map visibility
 
-        point_i const sprPos {spr.Position * cellSize};
+        point_i const sprPos {obj.position() * cellSize};
         i32 const     radius {static_cast<i32>(cellSize / 2)};
-        bresenham_circle(sprPos, radius, [&](point_i const& pt) { plot(pt, colors::Green.to_abgr()); });
-    }
-
-    // voxel objects
-    for (auto const& vo : level.VoxelObjects) {
-        if (!level.is_seen(point_i {vo.Position})) { continue; } // TODO: sprite map visibility and color
-
-        point_i const sprPos {vo.Position * cellSize};
-        i32 const     radius {static_cast<i32>(cellSize / 2)};
-        bresenham_circle(sprPos, radius, [&](point_i const& pt) { plot(pt, colors::Orange.to_abgr()); });
+        bresenham_circle(sprPos, radius, [&](point_i const& pt) { plot(pt, obj.map_marker().to_abgr()); });
     }
 
     return _screen.data();

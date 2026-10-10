@@ -2,13 +2,14 @@ add_executable(Plinth)
 
 target_sources(Plinth PRIVATE
     main.cpp
-    TextureCache.cpp
     Level.cpp
+    LevelObject.cpp
     MapGenerator.cpp
     MapRenderer.cpp
     Player.cpp
     Plinth.cpp
     Raycaster.cpp
+    TextureCache.cpp
     Voxel.cpp
     Walls.cpp
 )

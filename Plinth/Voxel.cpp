@@ -360,20 +360,3 @@ auto voxel_transform::dir_to_local(vec3_d worldDir) const -> vec3_d // keeps ray
 }
 
 ////////////////////////////////////////////////////////////
-
-auto voxel_object::make_rotation() const -> mat3_d
-{
-    f64 const cy {Yaw.cos()}, sy {Yaw.sin()};
-    f64 const cp {Pitch.cos()}, sp {Pitch.sin()};
-    f64 const cr {Roll.cos()}, sr {Roll.sin()};
-    return {cy * cp, (cy * sp * sr) - (sy * cr), (cy * sp * cr) + (sy * sr),
-            sy * cp, (sy * sp * sr) + (cy * cr), (sy * sp * cr) - (cy * sr),
-            -sp, cp * sr, cp * cr};
-}
-
-auto voxel_object::make_transform() const -> voxel_transform
-{
-    return {.Rotation = make_rotation(), .Position = Position, .Pivot = Grid->pivot(), .BaseZ = BaseZ, .Scale = Scale};
-}
-
-auto voxel_object::world_diagonal() const -> f64 { return Grid->diagonal() * Scale; }

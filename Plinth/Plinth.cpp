@@ -13,7 +13,7 @@
 #include "Raycaster.hpp"
 #include "Voxel.hpp"
 
-// DEBUGCODE START
+// PLACEHOLDER START
 
 ////////////////////////////////////////////////////////////
 // Example prefab library
@@ -201,14 +201,14 @@ Plinth::Plinth(game& game)
     for (i32 i {0}; i < 50; ++i) {
         f64       scale {rng(0.3, 1.0)};
         f64 const maxDim {static_cast<f64>(std::max({testVoxelGrid.Size.X, testVoxelGrid.Size.Y, testVoxelGrid.Size.Z}))};
-
-        _level->VoxelObjects.push_back(voxel_object {
-            .Position = find_empty(),
-            .Scale    = scale / maxDim,
-            .BaseZ    = 0.0,
-            .Yaw      = degree_d {90.0 * i},
-            .Grid     = &testVoxelGrid,
-        });
+        _level->spawn({.Position = find_empty(),
+                       .Radius   = (std::max(testVoxelGrid.Size.X, testVoxelGrid.Size.Y) / 2.0) * scale / maxDim,
+                       .Voxel    = voxel_object {
+                           .Scale = scale / maxDim,
+                           .BaseZ = 0.0,
+                           .Yaw   = degree_d {90.0 * i},
+                           .Grid  = &testVoxelGrid,
+                       }});
     }
 
     _player.Position = find_empty();
@@ -277,11 +277,9 @@ void Plinth::on_update(milliseconds deltaTime)
     // f64 const flicker {1.0 + (0.06 * std::sin(_frameTimer.count() / 1000.0 * 17.0)) + (0.04 * std::sin((_frameTimer.count() / 1000.0 * 29.3) + 1.7))};
     // _player.Settings.LightIntensity = 2 * flicker;
 
-    for (auto& dl : _dynamicLights) {
-        dl->Position += _player.Direction * deltaTime.count() / 1000 * 10;
-    }
-    for (auto& dl : _level->SpriteObjects) {
-        dl.Position += _player.Direction * deltaTime.count() / 1000 * 10;
+    for (auto& dl : _level->objects()) {
+        if (!dl.sprite() && !dl.light()) { continue; }
+        dl.set_position(dl.position() + _player.Direction * deltaTime.count() / 1000 * 10);
     }
 
     if (_startRecord) {
@@ -433,8 +431,10 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
         _startRecord = true;
     } break;
     case input::scan_code::L: {
-        for (auto& vo : _level->VoxelObjects) {
-            vo.Pitch += radian_d {degree_d {10}};
+        for (auto& vo : _level->objects()) {
+            if (vo.voxel()) {
+                vo.voxel()->Pitch += radian_d {degree_d {10}};
+            }
         }
     } break;
     case input::scan_code::Q: {
@@ -442,23 +442,20 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
     } break;
     case input::scan_code::F: {
 
-        auto light {std::make_unique<dynamic_light>(
-            dynamic_light {.Position  = _player.Position,
-                           .Range     = 0.5,
-                           .Color     = colors::Red,
-                           .Intensity = 1.5,
-                           .Layers    = LIGHT_LAYER_WORLD | LIGHT_LAYER_SPELL})};
+        sprite_object const sprite {.BaseZ     = 0.25,
+                                    .Size      = {0.05, 0.15},
+                                    .Texture   = ballTexture,
+                                    .LightMask = LIGHT_LAYER_SPELL};
 
-        sprite_object sprite {.Position  = _player.Position,
-                              .BaseZ     = 0.25,
-                              .Size      = {0.05, 0.15},
-                              .Texture   = ballTexture,
-                              .LightMask = LIGHT_LAYER_SPELL};
-        light->Z = sprite.BaseZ + (sprite.Size.Height * 0.5);
-        _raycaster->add_light(light.get());
-        _dynamicLights.push_back(std::move(light));
+        dynamic_light light {.Range     = 0.5,
+                             .Color     = colors::Red,
+                             .Intensity = 1.5,
+                             .Layers    = LIGHT_LAYER_WORLD | LIGHT_LAYER_SPELL};
+        light.Z = sprite.BaseZ + (sprite.Size.Height * 0.5);
 
-        _level->SpriteObjects.push_back(sprite);
+        _level->spawn({.Position = _player.Position,
+                       .Sprite   = sprite,
+                       .Light    = light});
     } break;
     default:
 
@@ -494,4 +491,4 @@ void Plinth::on_text_input(input::keyboard::text_input_event const& ev)
     }
 }
 
-// DEBUGCODE END
+// PLACEHOLDER END

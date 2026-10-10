@@ -2,6 +2,7 @@
 //
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
+
 #pragma once
 
 #include <optional>
@@ -76,24 +77,3 @@ private:
 };
 
 ////////////////////////////////////////////////////////////
-
-class voxel_object {
-public:
-    point_d Position {};
-    f64     Scale {1.0};
-
-    f64 BaseZ {0.0};
-
-    radian_d Yaw {0.0};
-    radian_d Pitch {0.0};
-    radian_d Roll {0.0};
-
-    voxel_grid const* Grid {nullptr};
-
-    auto make_transform() const -> voxel_transform;
-
-    auto world_diagonal() const -> f64;
-
-private:
-    auto make_rotation() const -> mat3_d;
-};

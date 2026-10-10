@@ -7,15 +7,9 @@
 
 #include <utility>
 
-#include "Common.hpp"
-
 level::level(map_t map)
     : _map {std::move(map)}
 {
-    // DEBUGCODE START
-    Settings.CeilingTexture = 11;
-    Settings.FloorTexture   = 10;
-    // DEBUGCODE END
 }
 
 void level::update(milliseconds deltaSeconds)
@@ -35,6 +29,8 @@ void level::update(milliseconds deltaSeconds)
             },
             cell);
     }
+
+    std::erase_if(_objects, [](level_object const& go) { return go.dead(); });
 }
 
 auto level::get_cell(point_i p) const -> cell const&
@@ -130,21 +126,11 @@ auto level::is_clear(point_d pos, f64 radius) const -> bool
         }
     }
 
-    bool const spritesClear {std::ranges::all_of(SpriteObjects, [&](auto const& spr) {
-        if (!spr.Solid) { return true; }
-        f64 const     combinedRadius {radius + (spr.Size.Width / 2.0)};
-        point_d const d {spr.Position - pos};
-        return d.dot(d) >= combinedRadius * combinedRadius;
-    })};
+    return std::ranges::all_of(_objects, [&](level_object const& go) {
+        if (go.radius() <= 0.0) { return true; }
 
-    if (!spritesClear) { return false; }
-
-    return std::ranges::all_of(VoxelObjects, [&](auto const& obj) {
-        if (!obj.Grid) { return true; }
-
-        f64 const     objRadius {(std::max(obj.Grid->Size.X, obj.Grid->Size.Y) / 2.0) * obj.Scale};
-        f64 const     combinedRadius {radius + objRadius};
-        point_d const d {obj.Position - pos};
+        f64 const     combinedRadius {radius + go.radius()};
+        point_d const d {go.position() - pos};
         return d.dot(d) >= combinedRadius * combinedRadius;
     });
 }
@@ -186,4 +172,27 @@ void level::show_message(string const& msg)
 auto level::get_message() const -> string const&
 {
     return _message;
+}
+
+auto level::spawn(level_object_desc desc) -> uid
+{
+    uid const id {_nextId++};
+    _objects.emplace_back(id, desc);
+    return id;
+}
+
+auto level::find(uid id) -> level_object*
+{
+    auto const it {std::ranges::lower_bound(_objects, id, {}, &level_object::id)};
+    return (it != _objects.end() && it->id() == id) ? &*it : nullptr;
+}
+
+auto level::objects() const -> std::span<level_object const>
+{
+    return _objects;
+}
+
+auto level::objects() -> std::span<level_object>
+{
+    return _objects;
 }

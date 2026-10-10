@@ -6,47 +6,13 @@
 #pragma once
 
 #include "Common.hpp"
-#include "Voxel.hpp"
+
+#include "LevelObject.hpp"
 #include "Walls.hpp"
-
-struct level_settings {
-    i32 FloorTexture {0};
-    i32 CeilingTexture {0};
-};
-
-class sprite_object {
-public:
-    point_d Position;
-    f64     BaseZ {0.0};
-
-    size_d   Size {size_d::One};
-    i32      Texture {-1};
-    degree_d Facing {0};
-    bool     Solid {true};
-    u32      LightMask {LIGHT_LAYERS_ALL};
-
-    auto facing_index(point_d cameraPos) const -> i32
-    {
-        auto const viewAngle {Position.angle_to(cameraPos)};
-        auto const relativeAngle {(Facing - viewAngle).as_normalized(angle_normalize::PositiveFullTurn)};
-
-        constexpr f64 wedge {360.0 / NUM_FACINGS};
-        return static_cast<i32>((relativeAngle.Value + (wedge / 2.0)) / wedge) % NUM_FACINGS;
-    }
-
-    auto screen_size(f64 scale) const -> size_i { return static_cast<size_i>(Size * std::abs(scale)); }
-
-    auto screen_bottom(f64 scale, i32 screenCenterY, f64 eyeHeight) const -> i32 { return screenCenterY + static_cast<i32>((eyeHeight - BaseZ) * scale); }
-};
 
 class level {
 public:
     explicit level(map_t map);
-
-    std::vector<sprite_object> SpriteObjects;
-    std::vector<voxel_object>  VoxelObjects;
-
-    level_settings Settings;
 
     void update(milliseconds deltaSeconds);
 
@@ -62,12 +28,31 @@ public:
     void show_message(string const& msg);
     auto get_message() const -> string const&;
 
+    auto spawn(level_object_desc desc) -> uid;
+
+    auto find(uid id) -> level_object*;
+
+    auto objects() const -> std::span<level_object const>;
+    auto objects() -> std::span<level_object>;
+
+    auto default_floor_texture() const -> i32 // TODO: get from map
+    {
+        return 10;
+    }
+
+    auto default_ceiling_texture() const -> i32 // TODO: get from map
+    {
+        return 11;
+    }
+
 private:
     auto closest_point_on_wall(point_i map, point_d pos) const -> std::optional<point_d>;
 
-    map_t _map;
-
+    map_t                                    _map;
     static_grid<bool, MAP_WIDTH, MAP_HEIGHT> _seen;
+
+    std::vector<level_object> _objects;
+    uid                       _nextId {0};
 
     milliseconds _messageTimer {};
     string       _message;

@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "Common.hpp"
+
 #include "Level.hpp"
 #include "Walls.hpp"
 
@@ -18,10 +19,6 @@ public:
     auto draw(level& level, player const& player) -> u32 const*;
 
     void set_quality(quality_settings const& quality, f64 projPlaneDist);
-
-    void add_light(dynamic_light* light);
-    void remove_light(dynamic_light* light);
-    void clear_lights();
 
 private:
     struct wall_extent {
@@ -45,7 +42,7 @@ private:
     void draw_hud(player const& player);
     void draw_message(level const& level);
 
-    std::vector<dynamic_light*>   _dynamicLights;
+    std::vector<dynamic_light>    _dynamicLights;
     std::vector<std::vector<u32>> _cellLights;
 
     std::vector<u32> _screen;
