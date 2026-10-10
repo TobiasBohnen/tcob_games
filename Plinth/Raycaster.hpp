@@ -13,9 +13,11 @@
 
 class raycaster {
 public:
-    raycaster(texture_cache& cache, quality_settings const& quality, f64 projPlaneDist);
+    explicit raycaster(texture_cache& cache);
 
     auto draw(level& level, player const& player) -> u32 const*;
+
+    void set_quality(quality_settings const& quality, f64 projPlaneDist);
 
     void add_light(dynamic_light* light);
     void remove_light(dynamic_light* light);
@@ -54,7 +56,7 @@ private:
     texture_cache&   _cache;
     quality_settings _quality;
     size_i           _screenSize;
-    f64              _projPlaneDist;
+    f64              _projPlaneDist {0};
 
     task_manager& _taskManager;
 };

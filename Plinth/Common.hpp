@@ -31,6 +31,8 @@ class texture_cache;
 class level;
 class player;
 struct dynamic_light;
+class voxel_object;
+class sprite_object;
 
 ////////////////////////////////////////////////////////////
 

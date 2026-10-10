@@ -11,6 +11,7 @@
 #include "MapGenerator.hpp"
 #include "MapRenderer.hpp"
 #include "Raycaster.hpp"
+#include "Voxel.hpp"
 
 // DEBUGCODE START
 
@@ -216,6 +217,7 @@ Plinth::Plinth(game& game)
     _player.Direction = point_d::FromDirection(angle);
     _player.Plane     = {-rad.sin(), rad.cos()};
 
+    _raycaster = std::make_unique<raycaster>(*_cache);
     set_quality(quality_level::High);
 }
 
@@ -397,7 +399,7 @@ void Plinth::set_quality(quality_level level)
 
     _player.Settings.BobHeight = _quality.Resolution.Height / 60.0;
 
-    _raycaster   = std::make_unique<raycaster>(*_cache, _quality, (_quality.Resolution.Width / 2.0) / std::tan(fov / 2.0));
+    _raycaster->set_quality(_quality, (_quality.Resolution.Width / 2.0) / std::tan(fov / 2.0));
     _mapRenderer = std::make_unique<map_renderer>(*_cache, _quality.Resolution);
 }
 

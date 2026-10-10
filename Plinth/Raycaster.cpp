@@ -23,6 +23,7 @@
 #include "Light.hpp"
 #include "Player.hpp"
 #include "TextureCache.hpp"
+#include "Voxel.hpp"
 #include "Walls.hpp"
 
 constexpr f64 EYE_HEIGHT {0.5};                             // TODO: pull from player
@@ -101,21 +102,26 @@ static auto DitherTint(vec3_d tint, isize x, isize y, quality_settings const& qu
 
 ////////////////////////////////////////////////////////////
 
-raycaster::raycaster(texture_cache& cache, quality_settings const& quality, f64 projPlaneDist)
+raycaster::raycaster(texture_cache& cache)
     : _cache {cache}
-    , _quality {quality}
-    , _screen(quality.Resolution.area())
-    , _screenSize {quality.Resolution}
-    , _projPlaneDist {projPlaneDist}
     , _taskManager {locate_service<task_manager>()}
 {
+    _cellLights.resize(static_cast<usize>(MAP_WIDTH) * MAP_HEIGHT);
+}
+
+void raycaster::set_quality(quality_settings const& quality, f64 projPlaneDist)
+{
+    _quality                  = quality;
     _quality.LightLosSamples  = std::clamp(_quality.LightLosSamples, 1, 5);
     _quality.VoxelPixelBudget = std::max(_quality.VoxelPixelBudget, 1);
     _quality.LightBands       = std::max(_quality.LightBands, 1);
 
-    _zBuffer.resize(_screenSize.Width);
-    _objectDepthBuffer.resize(_screenSize.area());
-    _cellLights.resize(static_cast<usize>(MAP_WIDTH) * MAP_HEIGHT);
+    _screenSize    = _quality.Resolution;
+    _projPlaneDist = projPlaneDist;
+
+    _screen.assign(static_cast<usize>(_screenSize.area()), 0);
+    _zBuffer.assign(static_cast<usize>(_screenSize.Width), 0.0);
+    _objectDepthBuffer.assign(static_cast<usize>(_screenSize.area()), 0.0);
 }
 
 void raycaster::precompute_light_visibility(level const& level)
