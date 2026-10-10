@@ -152,6 +152,8 @@ void raycaster::precompute_light_visibility(level const& level)
     }};
 
     auto const cell_has_any_line_of_sight {[&](point_i const& cell, point_d const& lightPos) -> bool {
+        point_i const lightCell {WorldToCell(lightPos)};
+
         // ordered so that any prefix is spatially balanced: center first, then both diagonals
         std::array<point_d, 5> const samples {{
             {cell.X + 0.5, cell.Y + 0.5},
@@ -192,6 +194,7 @@ void raycaster::precompute_light_visibility(level const& level)
                 }
 
                 if (!map_t::Size.contains(map)) { break; }
+                if (map == lightCell) { break; }
 
                 if (is_cell_blocking(map)) {
                     visible = false;
@@ -216,7 +219,7 @@ void raycaster::precompute_light_visibility(level const& level)
     std::vector<light_sweep> sweeps(_dynamicLights.size());
     for (usize li {0}; li < _dynamicLights.size(); ++li) {
         auto const& light {_dynamicLights[li]};
-        if (is_cell_blocking(WorldToCell(light.Position))) { continue; }
+        if (!map_t::Size.contains(WorldToCell(light.Position))) { continue; }
 
         f64 const sweepRadius {light.Range + CELL_DIAGONAL_HALF};
 
@@ -669,6 +672,7 @@ void raycaster::draw_voxel_objects(level const& level, player const& player, i32
                     auto const [sx, sy, depth] {project(worldHit)};
 
                     if (depth <= 0.0) { continue; }
+                    if (depth >= _zBuffer[x]) { continue; }
 
                     point_i const hitCellForLight {WorldToCell(worldHitXY)};
                     f64 const     aoFactor {_quality.VoxelAo ? vo->Grid->face_ao(hit, localHitPos) : 1.0};
