@@ -5,6 +5,8 @@
 
 #include "Plinth.hpp"
 
+#include <numeric>
+
 #include "Common.hpp"
 #include "Level.hpp"
 #include "Light.hpp"
@@ -12,6 +14,67 @@
 #include "MapRenderer.hpp"
 #include "Raycaster.hpp"
 #include "Voxel.hpp"
+
+auto static deathEffect {[](auto& screen) {
+    static std::vector<usize> indices;
+    static usize              currentIndex {0};
+    static bool               active {false};
+
+    if (!active) {
+        indices.resize(screen.size());
+        std::ranges::iota(indices, 0);
+        random::shuffle {}(indices);
+        currentIndex = 0;
+        active       = true;
+    }
+
+    usize const pixelsPerFrame {500};
+    usize const endIndex {std::min(indices.size(), currentIndex + pixelsPerFrame)};
+
+    for (usize i {0}; i < endIndex; ++i) {
+        usize const idx {indices[i]};
+        screen[idx] = 0xFF000000u | (static_cast<u32>(0) << 16) | (static_cast<u32>(0) << 8) | static_cast<u32>(255);
+    }
+
+    currentIndex = endIndex;
+}};
+
+auto static cheaterEffect {[](auto& screen) {
+    for (auto& col : screen) {
+        color c {color::FromABGR(col)};
+        std::swap(c.R, c.B);
+        col = 0xFF000000u | (static_cast<u32>(c.B) << 16) | (static_cast<u32>(c.G) << 8) | static_cast<u32>(c.R);
+    }
+}};
+
+auto static nightVisionEffect {[](auto& screen) {
+    for (auto& col : screen) {
+        color     c {color::FromABGR(col)};
+        u32 const luminance {static_cast<u32>((c.R * 0.3f) + (c.G * 0.59f) + (c.B * 0.11f))};
+        c.R = 0;
+        c.B = 0;
+        c.G = static_cast<u8>(std::min(255u, luminance + 50));
+        col = 0xFF000000u | (static_cast<u32>(c.B) << 16) | (static_cast<u32>(c.G) << 8) | static_cast<u32>(c.R);
+    }
+}};
+
+auto static staticNoiseEffect {[](auto& screen) {
+    rng randomGenerator;
+    for (auto& col : screen) {
+        if (randomGenerator(0, 12) == 0) {
+            u8 const noise {static_cast<u8>(randomGenerator(0, 255))};
+            col = 0xFF000000u | (static_cast<u32>(noise) << 16) | (static_cast<u32>(noise) << 8) | static_cast<u32>(noise);
+        }
+    }
+}};
+
+auto static grayscaleEffect {[](auto& screen) {
+    for (auto& col : screen) {
+        color const c {color::FromABGR(col)};
+        u8 const    gray {static_cast<u8>((c.R * 0.299f) + (c.G * 0.587f) + (c.B * 0.114f))};
+        col = 0xFF000000u | (static_cast<u32>(gray) << 16) | (static_cast<u32>(gray) << 8) | static_cast<u32>(gray);
+    }
+}};
 
 // PLACEHOLDER START
 
@@ -440,6 +503,14 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
     case input::scan_code::Q: {
         set_quality(quality_level::Low);
     } break;
+    case input::scan_code::K: {
+        if (!_raycaster->ScreenEffect) {
+            _raycaster->ScreenEffect = grayscaleEffect;
+        } else {
+            _raycaster->ScreenEffect = nullptr;
+        }
+
+    } break;
     case input::scan_code::F: {
 
         sprite_object const sprite {.BaseZ     = 0.25,
@@ -487,7 +558,8 @@ void Plinth::on_text_input(input::keyboard::text_input_event const& ev)
         _level->mark_all_seen();
         _level->show_message("MAP REVEALED");
         _keyCache.clear();
-        _player.Cheater = true;
+        _player.Cheater          = true;
+        _raycaster->ScreenEffect = cheaterEffect;
     }
 }
 

@@ -16,6 +16,8 @@ class raycaster {
 public:
     explicit raycaster(texture_cache& cache);
 
+    std::function<void(std::vector<u32>&)> ScreenEffect;
+
     auto draw(level& level, player const& player) -> u32 const*;
 
     void set_quality(quality_settings const& quality, f64 projPlaneDist);
@@ -37,7 +39,7 @@ private:
     void draw_sprites(level const& level, player const& player, i32 screenCenterY);
     void draw_voxel_objects(level const& level, player const& player, i32 screenCenterY);
 
-    void draw_screen_effect(level const& level, player const& player);
+    void draw_screen_effect();
     void draw_weapon(player const& player);
     void draw_hud(player const& player);
     void draw_message(level const& level);

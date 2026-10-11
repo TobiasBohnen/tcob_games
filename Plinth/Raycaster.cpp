@@ -317,7 +317,7 @@ auto raycaster::draw(level& level, player const& player) -> u32 const*
 
     draw_weapon(player);
 
-    draw_screen_effect(level, player);
+    draw_screen_effect();
 
     draw_hud(player);
     draw_message(level);
@@ -701,14 +701,10 @@ void raycaster::draw_voxel_objects(level const& level, player const& player, i32
     }
 }
 
-void raycaster::draw_screen_effect(level const& level, player const& player)
+void raycaster::draw_screen_effect()
 {
-    if (player.Cheater) {
-        for (auto& col : _screen) {
-            color c {color::FromABGR(col)};
-            std::swap(c.R, c.B);
-            col = 0xFF000000u | (static_cast<u32>(c.B) << 16) | (static_cast<u32>(c.G) << 8) | static_cast<u32>(c.R);
-        }
+    if (ScreenEffect) {
+        ScreenEffect(_screen);
     }
 }
 
