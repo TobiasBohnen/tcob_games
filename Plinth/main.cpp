@@ -28,6 +28,9 @@ auto main(void) -> int
 #else
 auto main(int /* argc */, char* argv[]) -> int
 {
+    tcob::single_instance inst {"Plinth"};
+    if (!inst) { return 0; };
+
     tcob::game game {{.Name          = "Plinth",
                       .LogFile       = "stdout",
                       .WorkerThreads = 8}};
