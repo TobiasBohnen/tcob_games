@@ -18,10 +18,7 @@ auto sprite_object::screen_size(f64 scale) const -> size_i { return static_cast<
 
 auto sprite_object::screen_bottom(f64 scale, i32 screenCenterY, f64 eyeHeight) const -> i32 { return screenCenterY + static_cast<i32>((eyeHeight - BaseZ) * scale); }
 
-auto voxel_object::make_transform() const -> voxel_transform
-{
-    return {.Rotation = make_rotation(), .Position = Position, .Pivot = Grid->pivot(), .BaseZ = BaseZ, .Scale = Scale};
-}
+auto voxel_object::make_transform() const -> voxel_transform { return {.Rotation = make_rotation(), .Position = Position, .Pivot = Grid->pivot(), .BaseZ = BaseZ, .Scale = Scale}; }
 
 auto voxel_object::world_diagonal() const -> f64 { return Grid->diagonal() * Scale; }
 

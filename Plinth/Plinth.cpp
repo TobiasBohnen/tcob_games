@@ -438,10 +438,10 @@ void Plinth::toggle_map()
 constexpr auto make_quality(quality_level level) -> quality_settings
 {
     switch (level) {
-    case quality_level::Low:    return {.Resolution = {320, 180}, .VoxelPixelBudget = 8000, .LightLosSamples = 1, .VoxelAo = false, .LightDither = false, .LightBands = 8};
-    case quality_level::Medium: return {.Resolution = {480, 270}, .VoxelPixelBudget = 14000, .LightLosSamples = 3, .VoxelAo = true, .LightDither = true, .LightBands = 6};
-    case quality_level::High:   return {.Resolution = {640, 360}, .VoxelPixelBudget = 20000, .LightLosSamples = 5, .VoxelAo = true, .LightDither = true, .LightBands = 8};
-    case quality_level::Ultra:  return {.Resolution = {960, 540}, .VoxelPixelBudget = 40000, .LightLosSamples = 5, .VoxelAo = true, .LightDither = true, .LightBands = 16};
+    case quality_level::Low:    return {.Resolution = {320, 180}, .VoxelPixelBudget = 8000, .LightLosSamples = 1, .VoxelAo = false, .LightBands = 0};
+    case quality_level::Medium: return {.Resolution = {480, 270}, .VoxelPixelBudget = 14000, .LightLosSamples = 3, .VoxelAo = true, .LightBands = 6};
+    case quality_level::High:   return {.Resolution = {640, 360}, .VoxelPixelBudget = 20000, .LightLosSamples = 5, .VoxelAo = true, .LightBands = 8};
+    case quality_level::Ultra:  return {.Resolution = {960, 540}, .VoxelPixelBudget = 40000, .LightLosSamples = 5, .VoxelAo = true, .LightBands = 16};
     case quality_level::Custom: break;
     }
 

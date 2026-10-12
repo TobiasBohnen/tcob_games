@@ -49,7 +49,6 @@ struct quality_settings {
     i32    VoxelPixelBudget {};
     i32    LightLosSamples {};
     bool   VoxelAo {};
-    bool   LightDither {};
     i32    LightBands {};
 };
 

@@ -33,10 +33,10 @@ constexpr f64 CELL_DIAGONAL_HALF {std::numbers::sqrt2 / 2}; // max distance from
 constexpr f64 INFINITE_DIST {1e30};                         // stand-in for "ray never crosses this axis"
 constexpr f64 INV_255 {1.0 / 255.0};
 
-constexpr std::array<u8, 16> BAYER_4X4 {0, 8, 2, 10,
-                                        12, 4, 14, 6,
-                                        3, 11, 1, 9,
-                                        15, 7, 13, 5};
+constexpr std::array<f64, 16> BAYER_4X4 {0.03125, 0.53125, 0.15625, 0.65625,
+                                         0.78125, 0.28125, 0.90625, 0.40625,
+                                         0.21875, 0.71875, 0.09375, 0.59375,
+                                         0.96875, 0.46875, 0.84375, 0.34375};
 
 static_assert(std::has_single_bit(static_cast<u32>(WALL_SIZE.Width)) && std::has_single_bit(static_cast<u32>(WALL_SIZE.Height)),
               "WALL_SIZE must be a power of two");
@@ -91,11 +91,11 @@ static auto WorldToCell(point_d const& p) -> point_i { return {static_cast<i32>(
 
 static auto DitherTint(vec3_d tint, isize x, isize y, quality_settings const& quality) -> vec3_d
 {
-    if (!quality.LightDither) { return tint; }
+    if (quality.LightBands <= 1) { return tint; }
 
     f64 const  bands {static_cast<f64>(quality.LightBands)};
     f64 const  invBands {1.0 / bands};
-    f64 const  threshold {(BAYER_4X4[static_cast<usize>(((y & 3) << 2) | (x & 3))] + 0.5) / 16.0};
+    f64 const  threshold {BAYER_4X4[static_cast<usize>(((y & 3) << 2) | (x & 3))]};
     auto const quantize {[&](f64 t) { return std::floor((t * bands) + threshold) * invBands; }};
     return vec3_d {.X = quantize(tint.X), .Y = quantize(tint.Y), .Z = quantize(tint.Z)};
 }
@@ -111,10 +111,7 @@ raycaster::raycaster(texture_cache& cache)
 
 void raycaster::set_quality(quality_settings const& quality, f64 projPlaneDist)
 {
-    _quality                  = quality;
-    _quality.LightLosSamples  = std::clamp(_quality.LightLosSamples, 1, 5);
-    _quality.VoxelPixelBudget = std::max(_quality.VoxelPixelBudget, 1);
-    _quality.LightBands       = std::max(_quality.LightBands, 1);
+    _quality = quality;
 
     _screenSize    = _quality.Resolution;
     _projPlaneDist = projPlaneDist;
