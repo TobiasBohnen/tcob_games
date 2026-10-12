@@ -266,7 +266,7 @@ Plinth::Plinth(game& game)
         f64 const maxDim {static_cast<f64>(std::max({testVoxelGrid.Size.X, testVoxelGrid.Size.Y, testVoxelGrid.Size.Z}))};
         _level->spawn({.Position = find_empty(),
                        .Radius   = (std::max(testVoxelGrid.Size.X, testVoxelGrid.Size.Y) / 2.0) * scale / maxDim,
-                       .Voxel    = voxel_object {
+                       .Visual   = voxel_object {
                            .Scale = scale / maxDim,
                            .BaseZ = 0.0,
                            .Yaw   = degree_d {90.0 * i},
@@ -525,7 +525,7 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
         light.Z = sprite.BaseZ + (sprite.Size.Height * 0.5);
 
         _level->spawn({.Position = _player.Position,
-                       .Sprite   = sprite,
+                       .Visual   = sprite,
                        .Light    = light});
     } break;
     default:

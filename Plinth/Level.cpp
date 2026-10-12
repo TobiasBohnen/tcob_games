@@ -38,6 +38,33 @@ auto level::get_cell(point_i p) const -> cell const&
     return _map[p];
 }
 
+auto level::is_clear(point_d pos, f64 radius, uid ignore) const -> bool
+{
+    return is_wall_clear(pos, radius) && hit_test(pos, radius, ignore) == nullptr;
+}
+
+auto level::is_wall_clear(point_d pos, f64 radius) const -> bool
+{
+    i32 const minCellX {static_cast<i32>(std::floor(pos.X - radius))};
+    i32 const maxCellX {static_cast<i32>(std::floor(pos.X + radius))};
+    i32 const minCellY {static_cast<i32>(std::floor(pos.Y - radius))};
+    i32 const maxCellY {static_cast<i32>(std::floor(pos.Y + radius))};
+
+    for (i32 ty {minCellY}; ty <= maxCellY; ++ty) {
+        for (i32 tx {minCellX}; tx <= maxCellX; ++tx) {
+            if (tx < 0 || tx >= map_t::Size.Width || ty < 0 || ty >= map_t::Size.Height) { return false; }
+
+            auto const closest {closest_point_on_wall({tx, ty}, pos)};
+            if (!closest) { continue; }
+
+            point_d const d {pos.X - closest->X, pos.Y - closest->Y};
+            if (d.dot(d) < radius * radius) { return false; }
+        }
+    }
+
+    return true;
+}
+
 auto level::closest_point_on_wall(point_i map, point_d pos) const -> std::optional<point_d>
 {
     rect_d const clampRect {static_cast<f64>(map.X), static_cast<f64>(map.Y), 1.0, 1.0};
@@ -105,34 +132,6 @@ auto level::closest_point_on_wall(point_i map, point_d pos) const -> std::option
             }
             return std::nullopt;
         });
-}
-
-auto level::is_clear(point_d pos, f64 radius) const -> bool
-{
-    i32 const minCellX {static_cast<i32>(std::floor(pos.X - radius))};
-    i32 const maxCellX {static_cast<i32>(std::floor(pos.X + radius))};
-    i32 const minCellY {static_cast<i32>(std::floor(pos.Y - radius))};
-    i32 const maxCellY {static_cast<i32>(std::floor(pos.Y + radius))};
-
-    for (i32 ty {minCellY}; ty <= maxCellY; ++ty) {
-        for (i32 tx {minCellX}; tx <= maxCellX; ++tx) {
-            if (tx < 0 || tx >= map_t::Size.Width || ty < 0 || ty >= map_t::Size.Height) { return false; }
-
-            auto const closest {closest_point_on_wall({tx, ty}, pos)};
-            if (!closest) { continue; }
-
-            point_d const d {pos.X - closest->X, pos.Y - closest->Y};
-            if (d.dot(d) < radius * radius) { return false; }
-        }
-    }
-
-    return std::ranges::all_of(_objects, [&](level_object const& go) {
-        if (go.radius() <= 0.0) { return true; }
-
-        f64 const     combinedRadius {radius + go.radius()};
-        point_d const d {go.position() - pos};
-        return d.dot(d) >= combinedRadius * combinedRadius;
-    });
 }
 
 void level::toggle_wall(point_i p)

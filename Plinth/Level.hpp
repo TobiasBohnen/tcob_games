@@ -17,7 +17,11 @@ public:
     void update(milliseconds deltaSeconds);
 
     auto get_cell(point_i p) const -> cell const&;
-    auto is_clear(point_d pos, f64 radius) const -> bool;
+
+    auto is_clear(point_d pos, f64 radius, uid ignore = 0) const -> bool;
+    auto is_wall_clear(point_d pos, f64 radius) const -> bool;
+
+    auto hit_test(this auto&& self, point_d pos, f64 radius, uid ignore = 0);
 
     void toggle_wall(point_i p);
 
@@ -57,3 +61,17 @@ private:
     milliseconds _messageTimer {};
     string       _message;
 };
+
+inline auto level::hit_test(this auto&& self, point_d pos, f64 radius, uid ignore)
+{
+    using object_t = std::conditional_t<std::is_const_v<std::remove_reference_t<decltype(self)>>, level_object const, level_object>;
+
+    object_t* found {nullptr};
+    for (auto& go : self._objects) {
+        if (go.id() != ignore && go.overlaps(pos, radius)) {
+            found = &go;
+            break;
+        }
+    }
+    return found;
+}

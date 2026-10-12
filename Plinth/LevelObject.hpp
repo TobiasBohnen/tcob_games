@@ -52,13 +52,14 @@ private:
 
 ////////////////////////////////////////////////////////////
 
+using object_visual = std::variant<std::monostate, sprite_object, voxel_object>;
+
 struct level_object_desc {
     point_d Position {};
     f64     Radius {0.0};
     color   MapMarker {colors::Green};
 
-    std::optional<sprite_object> Sprite;
-    std::optional<voxel_object>  Voxel;
+    object_visual                Visual;
     std::optional<dynamic_light> Light;
 };
 
@@ -67,30 +68,33 @@ public:
     level_object(uid id, level_object_desc desc);
 
     auto id() const -> uid;
-    auto position() const -> point_d;
     auto radius() const -> f64;
     auto map_marker() const -> color;
-    auto dead() const -> bool;
 
+    auto position() const -> point_d;
     void set_position(point_d p);
 
+    auto dead() const -> bool;
     void kill();
+
+    auto overlaps(point_d pos, f64 radius) const -> bool;
 
     auto sprite() const -> sprite_object const*;
     auto sprite() -> sprite_object*;
+
     auto voxel() const -> voxel_object const*;
     auto voxel() -> voxel_object*;
+
     auto light() const -> dynamic_light const*;
     auto light() -> dynamic_light*;
 
 private:
-    uid     _id;
-    bool    _dead {false};
-    point_d _position;
-    f64     _radius;
+    uid  _id;
+    bool _dead {false};
+    f64  _radius;
 
-    color                        _mapMarker;
-    std::optional<sprite_object> _sprite;
-    std::optional<voxel_object>  _voxel;
+    color _mapMarker;
+
+    object_visual                _visual;
     std::optional<dynamic_light> _light;
 };
