@@ -6,6 +6,7 @@
 #include "TextureCache.hpp"
 
 #include "Common.hpp"
+
 auto texture_cache::get_entry(i32 idx, i32 variant) const -> texture_entry const&
 {
     auto const& variants {_directory.at(idx)};

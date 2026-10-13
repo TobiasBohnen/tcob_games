@@ -39,16 +39,6 @@ public:
     auto objects() const -> std::span<level_object const>;
     auto objects() -> std::span<level_object>;
 
-    auto default_floor_texture() const -> i32 // TODO: get from map
-    {
-        return 10;
-    }
-
-    auto default_ceiling_texture() const -> i32 // TODO: get from map
-    {
-        return 11;
-    }
-
 private:
     auto closest_point_on_wall(point_i map, point_d pos) const -> std::optional<point_d>;
 

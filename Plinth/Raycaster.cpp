@@ -460,11 +460,11 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
     point_d const floorWall {player.Position + (rayDir * hit.Distance)};
     f64 const     invPerpWallDist {1.0 / hit.Distance};
 
-    point_i     lastFloorCell {-1, -1};
-    i32         cellFloorTex {level.default_floor_texture()};
-    i32         cellCeilTex {level.default_ceiling_texture()};
-    auto const* cellFloorTexPtr {_cache.texture(cellFloorTex, 0)};
-    auto const* cellCeilTexPtr {_cache.texture(cellCeilTex, 0)};
+    point_i   lastFloorCell {-1, -1};
+    i32       cellFloorTex {INVALID_INDEX};
+    i32       cellCeilTex {INVALID_INDEX};
+    u8 const* cellFloorTexPtr {nullptr};
+    u8 const* cellCeilTexPtr {nullptr};
 
     auto const query_cell {[&](auto&& cell) {
         if constexpr (requires { cell.FloorTexture; }) {
@@ -492,20 +492,22 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
         point_i const floorCell {WorldToCell(currentFloor)};
         if (floorCell != lastFloorCell) {
             lastFloorCell = floorCell;
-            cellFloorTex  = level.default_floor_texture();
-            cellCeilTex   = level.default_ceiling_texture();
+            cellFloorTex  = INVALID_INDEX;
+            cellCeilTex   = INVALID_INDEX;
             if (map_t::Size.contains(floorCell)) {
                 std::visit(query_cell, level.get_cell(floorCell));
             }
-            cellFloorTexPtr = _cache.texture(cellFloorTex, 0);
-            cellCeilTexPtr  = _cache.texture(cellCeilTex, 0);
+            cellFloorTexPtr = cellFloorTex != INVALID_INDEX ? _cache.texture(cellFloorTex, 0) : nullptr;
+            cellCeilTexPtr  = cellCeilTex != INVALID_INDEX ? _cache.texture(cellCeilTex, 0) : nullptr;
         }
 
-        if (isFloor) {
-            shade_and_write(screenBuf, x, y, cellFloorTexPtr, texelOffset, level, player, currentFloor, 0.0);
-        } else {
-            shade_and_write(screenBuf, x, y, cellCeilTexPtr, texelOffset, level, player, currentFloor, 1.0);
+        u8 const* const tex {isFloor ? cellFloorTexPtr : cellCeilTexPtr};
+        if (tex == nullptr) {
+            screenBuf[PixelIndex(_screenSize, x, y)] = 0xFF000000u;
+            return;
         }
+
+        shade_and_write(screenBuf, x, y, tex, texelOffset, level, player, currentFloor, isFloor ? 0.0 : 1.0);
     }};
 
     for (i32 y {floorStart}; y < _screenSize.Height; y++) { sample_and_draw(y, true); }
