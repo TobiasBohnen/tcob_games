@@ -9,6 +9,7 @@
 
 #include "Common.hpp"
 
+#include "Engine.hpp"
 #include "MapRenderer.hpp"
 #include "Player.hpp"
 #include "Raycaster.hpp"
@@ -58,4 +59,6 @@ private:
     std::future<bool>             _clipFtr;
 
     quality_settings _quality;
+
+    engine _engine;
 };

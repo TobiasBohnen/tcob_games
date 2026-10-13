@@ -10,7 +10,6 @@
 #include "Common.hpp"
 #include "Level.hpp"
 #include "Light.hpp"
-#include "MapGenerator.hpp"
 #include "MapRenderer.hpp"
 #include "Raycaster.hpp"
 #include "Voxel.hpp"
@@ -78,172 +77,16 @@ auto static grayscaleEffect {[](auto& screen) {
 
 // PLACEHOLDER START
 
-////////////////////////////////////////////////////////////
-// Example prefab library
-//// A small starter set of hand-authored rooms.
-static auto make_example_prefab_library() -> std::vector<map_prefab>
-{
-    std::vector<map_prefab> library;
-
-    // --- Plain 7x5 room, one connector centered on each edge ---
-    library.push_back({
-        .Rows {
-            "1..o..1",
-            "1.....1",
-            "o.....o",
-            "1.....1",
-            "1..o..1",
-        },
-        .WallTexture    = 1,
-        .FloorTexture   = 1,
-        .CeilingTexture = 1,
-    });
-
-    // --- 7x7 room with two pillars ---
-    library.push_back({
-        .Rows {
-            "2..o..2",
-            "2.....2",
-            "2..P..2",
-            "o.....o",
-            "2..P..2",
-            "2.....2",
-            "2..o..2",
-        },
-        .WallTexture    = 1,
-        .FloorTexture   = 1,
-        .CeilingTexture = 1,
-    });
-
-    // --- L-shaped room (7x7 bounding box, top-right corner walled off) ---
-    library.push_back({
-        .Rows {
-            "333....",
-            "3.D....",
-            "333....",
-            "o......",
-            "3.....o",
-            "3......",
-            "3..o...",
-        },
-        .WallTexture    = 1,
-        .FloorTexture   = 1,
-        .CeilingTexture = 1,
-    });
-
-    // --- Small room with a real door (guards the only entrance) ---
-    library.push_back({
-        .Rows {
-            "44444",
-            "4...4",
-            "4...4",
-            "4...4",
-            "##D##",
-        },
-        .WallTexture    = 2,
-        .FloorTexture   = 2,
-        .CeilingTexture = 2,
-    });
-
-    // --- Cross-shaped room ---
-    library.push_back({
-        .Rows {
-            "555o555",
-            "555.555",
-            "o.....o",
-            "5.....5",
-            "o.....o",
-            "555.555",
-            "555o555",
-        },
-        .WallTexture    = 1,
-        .FloorTexture   = 1,
-        .CeilingTexture = 1,
-    });
-
-    // --- Long corridor room with pillars ---
-    library.push_back({
-        .Rows {
-            "o..........o",
-            "6.P..P..P..6",
-            "6..........6",
-            "o..........o",
-        },
-        .WallTexture    = 1,
-        .FloorTexture   = 1,
-        .CeilingTexture = 1,
-    });
-
-    // --- Double-door vault (two separate entrances) ---
-    library.push_back({
-        .Rows {
-            "77777D77777",
-            "7.........7",
-            "7....P....7",
-            "7.........7",
-            "77777D77777",
-        },
-        .WallTexture    = 2,
-        .FloorTexture   = 2,
-        .CeilingTexture = 2,
-    });
-
-    // --- Room with a secret push-wall exit (south edge) ---
-    library.push_back({
-        .Rows {
-            "8..o..8",
-            "8.....8",
-            "8.....8",
-            "8.....8",
-            "8..S..8",
-        },
-        .WallTexture    = 1,
-        .FloorTexture   = 1,
-        .CeilingTexture = 1,
-    });
-
-    // --- Room with a freestanding box obstacle (crate) in the middle ---
-    library.push_back({
-        .Rows {
-            "9..o..9",
-            "9.....9",
-            "o..B..o",
-            "9.....9",
-            "9..o..9",
-        },
-        .WallTexture    = 1,
-        .FloorTexture   = 1,
-        .CeilingTexture = 1,
-    });
-
-    // --- Octagon-ish room using diagonal walls to cut the corners ---
-    library.push_back({
-        .Rows {
-            "X..o..1",
-            "2.....3",
-            "o.....o",
-            "4.....5",
-            "6..o..X",
-        },
-        .WallTexture    = 1,
-        .FloorTexture   = 1,
-        .CeilingTexture = 1,
-    });
-
-    return library;
-}
-
 Plinth::Plinth(game& game)
     : scene {game}
     , _cache {std::make_unique<texture_cache>()}
-
 {
     window().SystemCursorEnabled = false;
 
     _material->first_pass().Texture = _texture;
+    _engine.run("res/main.lua");
 
-    map_generator gen {make_example_prefab_library()};
-    auto const    map {gen.generate({})};
+    auto const map {_engine.generate_map(_player)};
     _level = std::make_unique<level>(map);
 
     rng                         rng;

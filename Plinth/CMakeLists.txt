@@ -4,7 +4,6 @@ target_sources(Plinth PRIVATE
     main.cpp
     Level.cpp
     LevelObject.cpp
-    MapGenerator.cpp
     MapRenderer.cpp
     Player.cpp
     Plinth.cpp
@@ -12,6 +11,7 @@ target_sources(Plinth PRIVATE
     TextureCache.cpp
     Voxel.cpp
     Walls.cpp
+    Engine.cpp
 )
 
 set_target_properties(Plinth PROPERTIES
@@ -19,17 +19,15 @@ set_target_properties(Plinth PROPERTIES
     CXX_STANDARD_REQUIRED TRUE
 )
 
-if(EMSCRIPTEN)
-    target_compile_options(Plinth PRIVATE -fexperimental-library -pthread)
-    target_link_options(Plinth PRIVATE -sFULL_ES3 -sASSERTIONS -sPTHREAD_POOL_SIZE=8 -sASYNCIFY -pthread --embed-file plinth.zip)
-endif()
+add_custom_target(PlinthScripts ALL
+    COMMAND ${CMAKE_COMMAND} -E tar "cf" ${CMAKE_BINARY_DIR}/../../x64/plinth-scripts.zip --format=7zip -- "."
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/scripts
+    COMMENT "Creating plinth-scripts.zip..."
+)
+add_dependencies(Plinth PlinthScripts)
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/plinth-assets.zip)
-    if(EMSCRIPTEN)
-        configure_file(plinth-assets.zip ${CMAKE_BINARY_DIR}/plinth-assets.zip COPYONLY)
-    else()
-        configure_file(plinth-assets.zip ${CMAKE_BINARY_DIR}/../../x64/plinth-assets.zip COPYONLY)
-    endif()
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/plinth-assets.zip DESTINATION ${CMAKE_BINARY_DIR}/../../x64/)
 endif()
 
 if(NOT TCOB_BUILD_SHARED)
