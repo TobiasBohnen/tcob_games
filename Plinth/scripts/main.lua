@@ -4,12 +4,14 @@
 -- https://opensource.org/licenses/MIT
 
 local generators = {
-    prefab = require("map/prefab_generator"),
-    bsp    = require("map/bsp_generator"),
+    prefab   = require("map/prefab_generator"),
+    bsp      = require("map/bsp_generator"),
+    city     = require("map/city_generator"),
+    drunkard = require("map/drunkard_generator"),
 }
 
 local DEFAULTS = {
-    generator            = "prefab",
+    generator            = "city",
     width                = MAP_WIDTH,
     height               = MAP_HEIGHT,
     default_wall_texture = 1,
