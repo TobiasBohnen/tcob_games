@@ -12,11 +12,12 @@
 
 class level {
 public:
-    explicit level(map_t map);
+    level();
 
     void update(milliseconds deltaSeconds);
 
     auto get_cell(point_i p) const -> cell const&;
+    void set_cell(point_i p, cell const& cell);
 
     auto is_clear(point_d pos, f64 radius, uid ignore = 0) const -> bool;
     auto is_wall_clear(point_d pos, f64 radius) const -> bool;

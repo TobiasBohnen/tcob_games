@@ -9,3 +9,8 @@
 ---@param x number
 ---@return number
 function math.sign(x) end
+
+---@param source table
+---@param target table
+---@return table
+function table.merge(source, target) end

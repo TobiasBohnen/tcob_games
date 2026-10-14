@@ -196,11 +196,7 @@ function M.generate(params)
         ceiling_texture = 11,
     }
 
-    local merged = {}
-    for _, source in ipairs { defaults, params } do
-        for key, value in pairs(source) do merged[key] = value end
-    end
-    return generate(merged)
+    return generate(table.merge(params, table.merge(defaults, {})))
 end
 
 return M

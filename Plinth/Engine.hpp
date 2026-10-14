@@ -5,8 +5,7 @@
 
 #pragma once
 
-#include "Common.hpp" // IWYU pragma: keep
-#include "Walls.hpp"
+#include "Common.hpp"
 
 ////////////////////////////////////////////////////////////
 
@@ -17,7 +16,7 @@ public:
 
     void run(string const& file);
 
-    auto generate_map(player const& player) -> map_t;
+    void generate_level(level& level, player& player);
 
     auto update(milliseconds deltaTime) -> bool;
 

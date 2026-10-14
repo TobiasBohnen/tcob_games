@@ -86,8 +86,8 @@ Plinth::Plinth(game& game)
     _material->first_pass().Texture = _texture;
     _engine.run("res/main.lua");
 
-    auto const map {_engine.generate_map(_player)};
-    _level = std::make_unique<level>(map);
+    _level = std::make_unique<level>();
+    _engine.generate_level(*_level, _player);
 
     rng                         rng;
     std::unordered_set<point_i> used;
@@ -96,7 +96,7 @@ Plinth::Plinth(game& game)
         for (;;) {
             x = rng(0, MAP_WIDTH - 1);
             y = rng(0, MAP_HEIGHT - 1);
-            if (!used.contains(point_i {x, y}) && map[x, y].index() == 0) { break; }
+            if (!used.contains(point_i {x, y}) && _level->is_wall_clear(point_d {static_cast<f64>(x), static_cast<f64>(y)}, 1)) { break; }
         }
         used.insert(point_i {x, y});
         return point_d {static_cast<f64>(x) + 0.5f, static_cast<f64>(y) + 0.5f};
@@ -117,7 +117,6 @@ Plinth::Plinth(game& game)
                        }});
     }
 
-    _player.Position = find_empty();
     degree_d const angle {180};
     radian_d const rad {angle - degree_d {90}};
     _player.Direction = point_d::FromDirection(angle);

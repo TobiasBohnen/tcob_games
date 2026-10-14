@@ -5,12 +5,7 @@
 
 #include "Level.hpp"
 
-#include <utility>
-
-level::level(map_t map)
-    : _map {std::move(map)}
-{
-}
+level::level() = default;
 
 void level::update(milliseconds deltaSeconds)
 {
@@ -36,6 +31,10 @@ void level::update(milliseconds deltaSeconds)
 auto level::get_cell(point_i p) const -> cell const&
 {
     return _map[p];
+}
+void level::set_cell(point_i p, cell const& cell)
+{
+    _map[p] = cell;
 }
 
 auto level::is_clear(point_d pos, f64 radius, uid ignore) const -> bool
