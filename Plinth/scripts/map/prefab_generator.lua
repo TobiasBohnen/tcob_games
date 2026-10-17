@@ -221,12 +221,13 @@ local cell_factories = {
     P = function(prefab)
         local texture = prefab.wall_texture
         return with_surfaces(prefab, {
-            type   = "obstacle",
-            Shapes = {
+            type              = "obstacle",
+            Shapes            = {
                 shape(0.1, 0.1, 0.2, true, texture),
                 shape(0.5, 0.5, 0.2, true, texture),
                 shape(0.7, 0.3, 0.2, true, texture),
             },
+            FloorReflectivity = 0.24,
         })
     end,
 

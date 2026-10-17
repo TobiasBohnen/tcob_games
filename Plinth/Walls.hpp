@@ -47,7 +47,7 @@ struct cell_intersect {
 struct floor_cell {
     i32 FloorTexture {INVALID_INDEX};
     i32 CeilingTexture {INVALID_INDEX};
-    f64 FloorReflectivity {0.85};
+    f64 FloorReflectivity {0.0};
 
     auto intersect(cell_intersect const& ci) const -> wall_hit;
 };
@@ -73,7 +73,7 @@ struct door_wall {
     i32 FrameTexture {0};
     i32 FloorTexture {INVALID_INDEX};
     i32 CeilingTexture {INVALID_INDEX};
-    f64 FloorReflectivity {0.85};
+    f64 FloorReflectivity {0.0};
 
     auto intersect(cell_intersect const& ci) const -> wall_hit;
     void update(f64 dt);
@@ -91,7 +91,7 @@ struct push_wall {
     i32 Texture {0};
     i32 FloorTexture {INVALID_INDEX};
     i32 CeilingTexture {INVALID_INDEX};
-    f64 FloorReflectivity {0.85};
+    f64 FloorReflectivity {0.0};
 
     auto intersect(cell_intersect const& ci) const -> wall_hit;
     void update(f64 dt);
@@ -112,7 +112,7 @@ struct obstacle {
 
     i32 FloorTexture {INVALID_INDEX};
     i32 CeilingTexture {INVALID_INDEX};
-    f64 FloorReflectivity {0.85};
+    f64 FloorReflectivity {0.0};
 
     auto intersect(cell_intersect const& ci) const -> wall_hit;
 };
@@ -128,7 +128,7 @@ struct diagonal_wall {
     i32 Texture {0};
     i32 FloorTexture {INVALID_INDEX};
     i32 CeilingTexture {INVALID_INDEX};
-    f64 FloorReflectivity {0.85};
+    f64 FloorReflectivity {0.0};
 
     auto intersect(cell_intersect const& ci) const -> wall_hit;
 };
