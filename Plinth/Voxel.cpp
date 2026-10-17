@@ -71,7 +71,7 @@ auto voxel_grid::color_at(i32 x, i32 y, i32 z) const -> color
     return _cells[static_cast<usize>(flat_index(x, y, z))];
 }
 
-auto voxel_grid::raycast(vec3_d const& origin, vec3_d const& dir, f64 maxT) const -> voxel_ray_hit
+auto voxel_grid::raycast(point3_d const& origin, point3_d const& dir, f64 maxT) const -> voxel_ray_hit
 {
     voxel_ray_hit result {};
     if (Size.X <= 0 || Size.Y <= 0 || Size.Z <= 0) { return result; }
@@ -106,8 +106,8 @@ auto voxel_grid::raycast(vec3_d const& origin, vec3_d const& dir, f64 maxT) cons
     if (!clip_axis(origin.Z, dir.Z, 0.0, static_cast<f64>(Size.Z), 2)) { return result; }
     if (tMin > tMax) { return result; }
 
-    f64 const    entryT {std::max(tMin, 0.0)};
-    vec3_d const start {origin + (dir * entryT)};
+    f64 const      entryT {std::max(tMin, 0.0)};
+    point3_d const start {origin + (dir * entryT)};
 
     i32 voxelX {std::clamp(static_cast<i32>(std::floor(start.X)), 0, Size.X - 1)};
     i32 voxelY {std::clamp(static_cast<i32>(std::floor(start.Y)), 0, Size.Y - 1)};
@@ -176,17 +176,17 @@ auto voxel_grid::raycast(vec3_d const& origin, vec3_d const& dir, f64 maxT) cons
     return result;
 }
 
-auto voxel_grid::pivot() const -> vec3_d { return {.X = Size.X * 0.5, .Y = Size.Y * 0.5, .Z = Size.Z * 0.5}; }
+auto voxel_grid::pivot() const -> point3_d { return {.X = Size.X * 0.5, .Y = Size.Y * 0.5, .Z = Size.Z * 0.5}; }
 
 auto voxel_grid::diagonal() const -> f64 { return std::sqrt(static_cast<f64>((Size.X * Size.X) + (Size.Y * Size.Y) + (Size.Z * Size.Z))); }
 
-auto voxel_grid::corners() const -> std::array<vec3_d, 8>
+auto voxel_grid::corners() const -> std::array<point3_d, 8>
 {
     f64 const sx {static_cast<f64>(Size.X)}, sy {static_cast<f64>(Size.Y)}, sz {static_cast<f64>(Size.Z)};
     return {{{.X = 0.0, .Y = 0.0, .Z = 0.0}, {.X = sx, .Y = 0.0, .Z = 0.0}, {.X = 0.0, .Y = sy, .Z = 0.0}, {.X = sx, .Y = sy, .Z = 0.0}, {.X = 0.0, .Y = 0.0, .Z = sz}, {.X = sx, .Y = 0.0, .Z = sz}, {.X = 0.0, .Y = sy, .Z = sz}, {.X = sx, .Y = sy, .Z = sz}}};
 }
 
-auto voxel_grid::face_ao(voxel_ray_hit const& hit, vec3_d const& localHitPos) const -> f64
+auto voxel_grid::face_ao(voxel_ray_hit const& hit, point3_d const& localHitPos) const -> f64
 {
     vec3_i const layer {.X = hit.Cell.X + (hit.FaceAxis == 0 ? hit.FaceSign : 0),
                         .Y = hit.Cell.Y + (hit.FaceAxis == 1 ? hit.FaceSign : 0),
@@ -317,45 +317,35 @@ auto voxel_grid::Load(string const& path) -> std::optional<voxel_grid>
 
 ////////////////////////////////////////////////////////////
 
-auto vec3_d::dot(vec3_d const& b) const -> f64 { return (X * b.X) + (Y * b.Y) + (Z * b.Z); }
-
-auto vec3_d::normalized() const -> vec3_d
-{
-    f64 const len {std::sqrt(dot(*this))};
-    return len > 1e-12 ? *this * (1.0 / len) : vec3_d {.X = 0.0, .Y = 0.0, .Z = 1.0};
-}
-
-////////////////////////////////////////////////////////////
-
-auto voxel_transform::rotate(vec3_d v) const -> vec3_d
+auto voxel_transform::rotate(point3_d v) const -> point3_d
 {
     return {.X = (Rotation[0] * v.X) + (Rotation[1] * v.Y) + (Rotation[2] * v.Z),
             .Y = (Rotation[3] * v.X) + (Rotation[4] * v.Y) + (Rotation[5] * v.Z),
             .Z = (Rotation[6] * v.X) + (Rotation[7] * v.Y) + (Rotation[8] * v.Z)};
 }
 
-auto voxel_transform::rotate_inverse(vec3_d v) const -> vec3_d
+auto voxel_transform::rotate_inverse(point3_d v) const -> point3_d
 {
     return {.X = (Rotation[0] * v.X) + (Rotation[3] * v.Y) + (Rotation[6] * v.Z),
             .Y = (Rotation[1] * v.X) + (Rotation[4] * v.Y) + (Rotation[7] * v.Z),
             .Z = (Rotation[2] * v.X) + (Rotation[5] * v.Y) + (Rotation[8] * v.Z)};
 }
 
-auto voxel_transform::to_world(vec3_d local) const -> vec3_d // voxel space -> world
+auto voxel_transform::to_world(point3_d local) const -> point3_d // voxel space -> world
 {
-    vec3_d const r {rotate({.X = (local.X - Pivot.X) * Scale, .Y = (local.Y - Pivot.Y) * Scale, .Z = (local.Z - Pivot.Z) * Scale})};
+    point3_d const r {rotate({.X = (local.X - Pivot.X) * Scale, .Y = (local.Y - Pivot.Y) * Scale, .Z = (local.Z - Pivot.Z) * Scale})};
     return {.X = Position.X + r.X, .Y = Position.Y + r.Y, .Z = BaseZ + (Pivot.Z * Scale) + r.Z};
 }
 
-auto voxel_transform::to_local(vec3_d world) const -> vec3_d
+auto voxel_transform::to_local(point3_d world) const -> point3_d
 {
-    vec3_d const r {rotate_inverse({.X = world.X - Position.X, .Y = world.Y - Position.Y, .Z = world.Z - (BaseZ + (Pivot.Z * Scale))})};
+    point3_d const r {rotate_inverse({.X = world.X - Position.X, .Y = world.Y - Position.Y, .Z = world.Z - (BaseZ + (Pivot.Z * Scale))})};
     return {.X = (r.X / Scale) + Pivot.X, .Y = (r.Y / Scale) + Pivot.Y, .Z = (r.Z / Scale) + Pivot.Z};
 }
 
-auto voxel_transform::dir_to_local(vec3_d worldDir) const -> vec3_d // keeps ray parameters in world units
+auto voxel_transform::dir_to_local(point3_d worldDir) const -> point3_d // keeps ray parameters in world units
 {
-    vec3_d const r {rotate_inverse(worldDir)};
+    point3_d const r {rotate_inverse(worldDir)};
     return {.X = r.X / Scale, .Y = r.Y / Scale, .Z = r.Z / Scale};
 }
 

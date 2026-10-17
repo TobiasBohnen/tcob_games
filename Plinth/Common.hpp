@@ -54,17 +54,22 @@ struct quality_settings {
 
 ////////////////////////////////////////////////////////////
 
-struct vec3_d {
+struct point3_d {
     f64 X {0.0};
     f64 Y {0.0};
     f64 Z {0.0};
 
-    auto dot(vec3_d const& b) const -> f64;
-    auto normalized() const -> vec3_d;
+    auto dot(point3_d const& b) const -> f64 { return (X * b.X) + (Y * b.Y) + (Z * b.Z); }
 
-    friend auto operator+(vec3_d const& a, vec3_d const& b) -> vec3_d { return {.X = a.X + b.X, .Y = a.Y + b.Y, .Z = a.Z + b.Z}; }
-    friend auto operator-(vec3_d const& a, vec3_d const& b) -> vec3_d { return {.X = a.X - b.X, .Y = a.Y - b.Y, .Z = a.Z - b.Z}; }
-    friend auto operator*(vec3_d const& a, f64 s) -> vec3_d { return {.X = a.X * s, .Y = a.Y * s, .Z = a.Z * s}; }
+    auto normalized() const -> point3_d
+    {
+        f64 const len {std::sqrt(dot(*this))};
+        return len > 1e-12 ? *this * (1.0 / len) : point3_d {.X = 0.0, .Y = 0.0, .Z = 1.0};
+    }
+
+    friend auto operator+(point3_d const& a, point3_d const& b) -> point3_d { return {.X = a.X + b.X, .Y = a.Y + b.Y, .Z = a.Z + b.Z}; }
+    friend auto operator-(point3_d const& a, point3_d const& b) -> point3_d { return {.X = a.X - b.X, .Y = a.Y - b.Y, .Z = a.Z - b.Z}; }
+    friend auto operator*(point3_d const& a, f64 s) -> point3_d { return {.X = a.X * s, .Y = a.Y * s, .Z = a.Z * s}; }
 };
 
 struct vec3_i {
@@ -74,5 +79,11 @@ struct vec3_i {
 };
 
 using mat3_d = std::array<f64, 3 * 3>;
+
+struct color_d {
+    f64 R {0.0};
+    f64 G {0.0};
+    f64 B {0.0};
+};
 
 ////////////////////////////////////////////////////////////

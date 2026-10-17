@@ -30,21 +30,21 @@ struct voxel_ray_hit {
 
 class voxel_transform {
 public:
-    mat3_d  Rotation {};
-    point_d Position {};
-    vec3_d  Pivot {};
-    f64     BaseZ {0.0};
-    f64     Scale {1.0};
+    mat3_d   Rotation {};
+    point_d  Position {};
+    point3_d Pivot {};
+    f64      BaseZ {0.0};
+    f64      Scale {1.0};
 
-    auto rotate(vec3_d v) const -> vec3_d;
+    auto rotate(point3_d v) const -> point3_d;
 
-    auto rotate_inverse(vec3_d v) const -> vec3_d;
+    auto rotate_inverse(point3_d v) const -> point3_d;
 
-    auto to_world(vec3_d local) const -> vec3_d;
+    auto to_world(point3_d local) const -> point3_d;
 
-    auto to_local(vec3_d world) const -> vec3_d;
+    auto to_local(point3_d world) const -> point3_d;
 
-    auto dir_to_local(vec3_d worldDir) const -> vec3_d;
+    auto dir_to_local(point3_d worldDir) const -> point3_d;
 };
 
 ////////////////////////////////////////////////////////////
@@ -55,14 +55,14 @@ public:
 
     vec3_i Size {};
 
-    auto face_ao(voxel_ray_hit const& hit, vec3_d const& localHitPos) const -> f64; // 0..1, 1 = unoccluded
+    auto face_ao(voxel_ray_hit const& hit, point3_d const& localHitPos) const -> f64; // 0..1, 1 = unoccluded
 
     auto corner_ao(vec3_i layer, i32 faceAxis, i32 cu, i32 cv) const -> i32;
 
-    auto raycast(vec3_d const& origin, vec3_d const& dir, f64 maxT) const -> voxel_ray_hit;
+    auto raycast(point3_d const& origin, point3_d const& dir, f64 maxT) const -> voxel_ray_hit;
 
-    auto corners() const -> std::array<vec3_d, 8>;
-    auto pivot() const -> vec3_d;
+    auto corners() const -> std::array<point3_d, 8>;
+    auto pivot() const -> point3_d;
     auto diagonal() const -> f64;
 
     static auto Load(string const& path) -> std::optional<voxel_grid>;
