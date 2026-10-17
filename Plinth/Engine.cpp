@@ -103,7 +103,7 @@ void engine::create_env()
         static auto read_surfaces {[](auto& cellTable, auto& cell) {
             cellTable.try_get(cell.FloorTexture, "FloorTexture");
             cellTable.try_get(cell.CeilingTexture, "CeilingTexture");
-            cellTable.try_get(cell.Light, "Light");
+            cellTable.try_get(cell.FloorReflectivity, "FloorReflectivity");
         }};
 
         if (string type; cellTable.try_get(type, "type")) {
