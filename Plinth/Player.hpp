@@ -9,7 +9,6 @@
 
 struct player_settings {
     f64 MoveSpeed {4.0};
-    f64 RotateSpeed {3.0};
 
     f64 BobHeight {0};
 

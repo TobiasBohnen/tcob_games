@@ -214,10 +214,16 @@ void Plinth::on_update(milliseconds deltaTime)
 
 void Plinth::move_player(milliseconds deltaTime)
 {
+    constexpr f64 keyboardRotateSpeed {3.0};   // radians/second
+    constexpr f64 mouseSensitivity {0.002};    // radians/pixel
+    constexpr f64 controllerRotateSpeed {3.0}; // radians/second
+    constexpr f64 controllerDeadzone {15000.0};
+    constexpr f64 maxAxisValue {32768.0};
+
     auto const& input {locate_service<input::system>()};
 
-    f64 const moveSpeed {deltaTime.count() / 1000 * _player.Settings.MoveSpeed};  // squares/second
-    f64 const rotSpeed {deltaTime.count() / 1000 * _player.Settings.RotateSpeed}; // radians/second
+    f64 const deltaSeconds {deltaTime.count() / 1000.0};
+    f64 const moveSpeed {deltaSeconds * _player.Settings.MoveSpeed};
 
     f64 forwardAmount {0};
     f64 strafeAmount {0};
@@ -232,10 +238,10 @@ void Plinth::move_player(milliseconds deltaTime)
         if (keyboard.is_key_down(input::scan_code::D)) { strafeAmount -= moveSpeed; }
         if (keyboard.is_key_down(input::scan_code::A)) { strafeAmount += moveSpeed; }
 
-        if (keyboard.is_key_down(input::scan_code::LEFT)) { rotateAmount -= rotSpeed; }
-        if (keyboard.is_key_down(input::scan_code::RIGHT)) { rotateAmount += rotSpeed; }
+        if (keyboard.is_key_down(input::scan_code::LEFT)) { rotateAmount -= deltaSeconds * keyboardRotateSpeed; }
+        if (keyboard.is_key_down(input::scan_code::RIGHT)) { rotateAmount += deltaSeconds * keyboardRotateSpeed; }
 
-        rotateAmount += _mouseX * _player.Settings.RotateSpeed * 0.001;
+        rotateAmount += _mouseX * mouseSensitivity;
         _mouseX = 0;
     } else {
         auto const& controller {input.first_controller()}; // TODO: controller select in ui
@@ -246,25 +252,22 @@ void Plinth::move_player(milliseconds deltaTime)
         if (controller.is_button_pressed(input::controller::button::DPadLeft)) { strafeAmount += moveSpeed; }
         if (controller.is_button_pressed(input::controller::button::DPadRight)) { strafeAmount -= moveSpeed; }
 
-        constexpr f64 deadzone {5000.0}; // TODO: controller deadzone in ui
-        constexpr f64 maxAxisValue {32768.0};
-
         auto const leftY {controller.get_axis_value(input::controller::axis::LeftY)};
-        if (std::abs(leftY) > deadzone) {
-            f64 const normalizedY {leftY / maxAxisValue};
+        if (auto const magnitude {std::abs(leftY)}; magnitude > controllerDeadzone) {
+            f64 const normalizedY {std::copysign((magnitude - controllerDeadzone) / (maxAxisValue - controllerDeadzone), leftY)};
             forwardAmount += -normalizedY * moveSpeed;
         }
 
         auto const leftX {controller.get_axis_value(input::controller::axis::LeftX)};
-        if (std::abs(leftX) > deadzone) {
-            f64 const normalizedX {leftX / maxAxisValue};
+        if (auto const magnitude {std::abs(leftX)}; magnitude > controllerDeadzone) {
+            f64 const normalizedX {std::copysign((magnitude - controllerDeadzone) / (maxAxisValue - controllerDeadzone), leftX)};
             strafeAmount += -normalizedX * moveSpeed;
         }
 
         auto const rightX {controller.get_axis_value(input::controller::axis::RightX)};
-        if (std::abs(rightX) > deadzone) {
-            f64 const normalizedRightX {rightX / maxAxisValue};
-            rotateAmount += normalizedRightX * rotSpeed;
+        if (auto const magnitude {std::abs(rightX)}; magnitude > controllerDeadzone) {
+            f64 const normalizedX {std::copysign((magnitude - controllerDeadzone) / (maxAxisValue - controllerDeadzone), rightX)};
+            rotateAmount += normalizedX * deltaSeconds * controllerRotateSpeed;
         }
     }
 
