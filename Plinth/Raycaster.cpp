@@ -32,6 +32,9 @@ constexpr f64 SEEN_LIGHT_THRESHOLD {0.05};                  // minimum player-li
 constexpr f64 CELL_DIAGONAL_HALF {std::numbers::sqrt2 / 2}; // max distance from a cell's center to its farthest corner
 constexpr f64 INFINITE_DIST {1e30};                         // stand-in for "ray never crosses this axis"
 constexpr f64 INV_255 {1.0 / 255.0};
+constexpr f64 CONTACT_SHADOW_WIDTH {0.3};
+constexpr f64 CONTACT_SHADOW_STRENGTH {0.75};
+constexpr f64 DITHERING_LIGHT_BANDS {8};
 
 constexpr std::array<f64, 16> BAYER_4X4 {0.03125, 0.53125, 0.15625, 0.65625,
                                          0.78125, 0.28125, 0.90625, 0.40625,
@@ -60,6 +63,14 @@ static auto BlendPixel(u32 a, u32 b, f64 t) -> u32
     u32 const inv {256 - w};
     u32 const rb {((((a & 0x00FF00FFu) * inv) + ((b & 0x00FF00FFu) * w)) >> 8) & 0x00FF00FFu};
     u32 const g {((((a & 0x0000FF00u) * inv) + ((b & 0x0000FF00u) * w)) >> 8) & 0x0000FF00u};
+    return 0xFF000000u | rb | g;
+}
+
+static auto ScalePixel(u32 px, f64 factor) -> u32
+{
+    u32 const m {static_cast<u32>(std::clamp(factor, 0.0, 1.0) * 256.0)};
+    u32 const rb {(((px & 0x00FF00FFu) * m) >> 8) & 0x00FF00FFu};
+    u32 const g {(((px & 0x0000FF00u) * m) >> 8) & 0x0000FF00u};
     return 0xFF000000u | rb | g;
 }
 
@@ -100,12 +111,11 @@ static auto WorldToCell(point_d const& p) -> point_i { return {static_cast<i32>(
 
 static auto DitherTint(color_d tint, isize x, isize y, quality_settings const& quality) -> color_d
 {
-    if (quality.LightBands <= 1) { return tint; }
+    if (!quality.Dithering) { return tint; }
 
-    f64 const  bands {static_cast<f64>(quality.LightBands)};
-    f64 const  invBands {1.0 / bands};
+    f64 const  invBands {1.0 / DITHERING_LIGHT_BANDS};
     f64 const  threshold {BAYER_4X4[static_cast<usize>(((y & 3) << 2) | (x & 3))]};
-    auto const quantize {[&](f64 t) { return std::floor((t * bands) + threshold) * invBands; }};
+    auto const quantize {[&](f64 t) { return std::floor((t * DITHERING_LIGHT_BANDS) + threshold) * invBands; }};
     return color_d {.R = quantize(tint.R), .G = quantize(tint.G), .B = quantize(tint.B)};
 }
 
@@ -522,6 +532,13 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
         }
 
         shade_and_write(screenBuf, x, y, tex, texelOffset, level, player, currentFloor, isFloor ? 0.0 : 1.0);
+
+        f64 const wallGap {std::max(hit.Distance - rowDist, 0.0)};
+        if (_quality.ContactShadows && std::isfinite(rowDist) && wallGap < CONTACT_SHADOW_WIDTH) {
+            f64 const t {1.0 - (wallGap / CONTACT_SHADOW_WIDTH)};
+            u32&      pixel {screenBuf[PixelIndex(_screenSize, x, y)]};
+            pixel = ScalePixel(pixel, 1.0 - (CONTACT_SHADOW_STRENGTH * t * t));
+        }
 
         if (isFloor && cellReflect > 0.0) {
             f64 const z {std::max(EYE_HEIGHT * ((hit.Distance / rowDist) - 1.0), 0.0)}; // height on the wall that the bounced ray reaches

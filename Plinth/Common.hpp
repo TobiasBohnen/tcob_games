@@ -49,7 +49,8 @@ struct quality_settings {
     i32    VoxelPixelBudget {};
     i32    LightLosSamples {};
     bool   VoxelAo {};
-    i32    LightBands {};
+    bool   Dithering {};
+    bool   ContactShadows {};
 };
 
 ////////////////////////////////////////////////////////////
