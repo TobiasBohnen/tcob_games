@@ -218,26 +218,13 @@ void Plinth::move_player(milliseconds deltaTime)
     constexpr f64 keyboardRotateSpeed {3.0};   // radians/second
     constexpr f64 mouseSensitivity {0.002};    // radians/pixel
     constexpr f64 controllerRotateSpeed {3.0}; // radians/second
-    constexpr f64 controllerDeadzone {15000.0};
+    constexpr f64 controllerDeadzone {5000.0};
     constexpr f64 maxAxisValue {32767.0};
 
     auto const& input {locate_service<input::system>()};
 
     f64 const deltaSeconds {deltaTime.count() / 1000.0};
     f64 const moveSpeed {deltaSeconds * _player.Settings.MoveSpeed};
-
-    static auto const normalizeAxis {[](auto value) -> f64 {
-        constexpr f64 deadzone {5000.0};
-        constexpr f64 maxValue {32767.0};
-
-        f64 const axis {static_cast<f64>(value)};
-        f64 const magnitude {std::abs(axis)};
-
-        if (magnitude <= deadzone) { return 0.0; }
-
-        f64 const normalizedMagnitude {std::clamp((magnitude - deadzone) / (maxValue - deadzone), 0.0, 1.0)};
-        return std::copysign(normalizedMagnitude, axis);
-    }};
 
     f64 forwardAmount {0.0};
     f64 strafeAmount {0.0};
@@ -261,8 +248,17 @@ void Plinth::move_player(milliseconds deltaTime)
         if (isDown(game_action::RotateLeft)) { rotateAmount -= deltaSeconds * keyboardRotateSpeed; }
 
         rotateAmount += static_cast<f64>(_mouseX) * mouseSensitivity;
-        _mouseX = 0.0;
     } else {
+        static auto const normalizeAxis {[](auto value) -> f64 {
+            f64 const axis {static_cast<f64>(value)};
+            f64 const magnitude {std::abs(axis)};
+
+            if (magnitude <= controllerDeadzone) { return 0.0; }
+
+            f64 const normalizedMagnitude {std::clamp((magnitude - controllerDeadzone) / (maxAxisValue - controllerDeadzone), 0.0, 1.0)};
+            return std::copysign(normalizedMagnitude, axis);
+        }};
+
         auto const& controller {input.first_controller()};
 
         if (controller.is_button_pressed(input::controller::button::DPadUp)) { forwardAmount += moveSpeed; }
@@ -283,6 +279,7 @@ void Plinth::move_player(milliseconds deltaTime)
         strafeAmount *= scale;
     }
 
+    _mouseX = 0.0;
     _player.move(*_level, forwardAmount, strafeAmount, rotateAmount);
 }
 
