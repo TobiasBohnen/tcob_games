@@ -378,14 +378,14 @@ void raycaster::draw_columns(level& level, player const& player, i32 screenCente
             (rayDir.X < 0) ? (player.Position.X - map.X) * deltaDist.X : (map.X + 1.0 - player.Position.X) * deltaDist.X,
             (rayDir.Y < 0) ? (player.Position.Y - map.Y) * deltaDist.Y : (map.Y + 1.0 - player.Position.Y) * deltaDist.Y};
 
-        wall_hit hitResult {};
-        point_i  hitCell {};
+        std::optional<wall_hit> hitResult {std::nullopt};
+        point_i                 hitCell {};
 
         // check player cell
         {
             auto const intersect {[&](auto&& c) { return c.intersect({map, player.Position, rayDir, sideDist.X < sideDist.Y, 0.0}); }};
-            auto const wallHit {std::visit(intersect, level.get_cell(map))};
-            if (wallHit.Hit) {
+
+            if (auto const wallHit {std::visit(intersect, level.get_cell(map))}) {
                 hitResult = wallHit;
                 hitCell   = map;
             }
@@ -393,9 +393,9 @@ void raycaster::draw_columns(level& level, player const& player, i32 screenCente
         }
 
         // DDA
-        if (!hitResult.Hit) {
+        if (!hitResult) {
             bool       side {false};
-            auto const intersect {[&](auto&& c) -> wall_hit { return c.intersect({map, player.Position, rayDir, side, !side ? sideDist.X - deltaDist.X : sideDist.Y - deltaDist.Y}); }};
+            auto const intersect {[&](auto&& c) -> std::optional<wall_hit> { return c.intersect({map, player.Position, rayDir, side, !side ? sideDist.X - deltaDist.X : sideDist.Y - deltaDist.Y}); }};
 
             for (;;) {
                 if (sideDist.X < sideDist.Y) {
@@ -413,7 +413,7 @@ void raycaster::draw_columns(level& level, player const& player, i32 screenCente
                 if (is_within_player_light(map)) { level.mark_seen(map); }
 
                 auto const wallHit {std::visit(intersect, level.get_cell(map))};
-                if (wallHit.Hit) {
+                if (wallHit) {
                     hitResult = wallHit;
                     hitCell   = map;
                     break;
@@ -421,16 +421,16 @@ void raycaster::draw_columns(level& level, player const& player, i32 screenCente
             }
         }
 
-        if (!hitResult.Hit) { continue; }
+        if (!hitResult) { continue; }
 
-        _zBuffer[x] = hitResult.Distance;
+        _zBuffer[x] = hitResult->Distance;
 
-        auto const [wallTop, wallBottom] {compute_wall_screen_extent(hitResult.Distance, screenCenterY, _projPlaneDist)};
+        auto const [wallTop, wallBottom] {compute_wall_screen_extent(hitResult->Distance, screenCenterY, _projPlaneDist)};
         wall_extent const extent {.Top = wallTop, .Bottom = wallBottom, .ScreenCenterY = screenCenterY};
 
-        draw_floor_ceiling_column(hitResult, level, player, x, rayDir, extent);
+        draw_floor_ceiling_column(*hitResult, level, player, x, rayDir, extent);
 
-        draw_wall_column(hitResult, level, player, x, rayDir, hitCell, extent);
+        draw_wall_column(*hitResult, level, player, x, rayDir, hitCell, extent);
     }
 }
 

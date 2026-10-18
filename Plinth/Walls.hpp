@@ -26,12 +26,8 @@ struct wall_hit {
     f64 Distance {0.0}; // ray parameter t at the intersection
     f64 SegmentT {0.0}; // 0..1 across the hit surface, for texture X coordinate
 
-    f64      Light {0.0};
     hit_side Side {};
-
-    i32 Texture {0};
-
-    bool Hit {false};
+    i32      Texture {0};
 };
 
 struct cell_intersect {
@@ -49,13 +45,13 @@ struct floor_cell {
     i32 CeilingTexture {INVALID_INDEX};
     f64 FloorReflectivity {0.0};
 
-    auto intersect(cell_intersect const& ci) const -> wall_hit;
+    auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
 };
 
 struct normal_wall {
     i32 Texture {0};
 
-    auto intersect(cell_intersect const& ci) const -> wall_hit;
+    auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
 };
 
 struct door_wall {
@@ -75,7 +71,7 @@ struct door_wall {
     i32 CeilingTexture {INVALID_INDEX};
     f64 FloorReflectivity {0.0};
 
-    auto intersect(cell_intersect const& ci) const -> wall_hit;
+    auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
     void update(f64 dt);
     void toggle();
 
@@ -93,7 +89,7 @@ struct push_wall {
     i32 CeilingTexture {INVALID_INDEX};
     f64 FloorReflectivity {0.0};
 
-    auto intersect(cell_intersect const& ci) const -> wall_hit;
+    auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
     void update(f64 dt);
     void toggle();
 
@@ -114,7 +110,7 @@ struct obstacle {
     i32 CeilingTexture {INVALID_INDEX};
     f64 FloorReflectivity {0.0};
 
-    auto intersect(cell_intersect const& ci) const -> wall_hit;
+    auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
 };
 
 struct diagonal_wall {
@@ -130,7 +126,7 @@ struct diagonal_wall {
     i32 CeilingTexture {INVALID_INDEX};
     f64 FloorReflectivity {0.0};
 
-    auto intersect(cell_intersect const& ci) const -> wall_hit;
+    auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
 };
 
 using cell = std::variant<floor_cell, normal_wall, door_wall, push_wall, obstacle, diagonal_wall>;

@@ -5,12 +5,12 @@
 
 #include "Walls.hpp"
 
-auto floor_cell::intersect(cell_intersect const& ci) const -> wall_hit
+auto floor_cell::intersect(cell_intersect const& ci) const -> std::optional<wall_hit>
 {
-    return {};
+    return std::nullopt;
 }
 
-auto normal_wall::intersect(cell_intersect const& ci) const -> wall_hit
+auto normal_wall::intersect(cell_intersect const& ci) const -> std::optional<wall_hit>
 {
     // wallX: fractional hit position on the wall face
     f64 wallX {!ci.Side
@@ -22,10 +22,10 @@ auto normal_wall::intersect(cell_intersect const& ci) const -> wall_hit
     bool const mirror {(!ci.Side && ci.RayDir.X > 0) || (ci.Side && ci.RayDir.Y < 0)};
     f64 const  segmentT {mirror ? 1.0 - wallX : wallX};
 
-    return {.Distance = ci.Distance, .SegmentT = segmentT, .Side = ci.Side ? hit_side::WestEast : hit_side::NorthSouth, .Texture = Texture, .Hit = true};
+    return wall_hit {.Distance = ci.Distance, .SegmentT = segmentT, .Side = ci.Side ? hit_side::WestEast : hit_side::NorthSouth, .Texture = Texture};
 }
 
-auto door_wall::intersect(cell_intersect const& ci) const -> wall_hit
+auto door_wall::intersect(cell_intersect const& ci) const -> std::optional<wall_hit>
 {
     bool const isNS {Orientation == orientation::BlocksNorthSouth};
 
@@ -37,8 +37,8 @@ auto door_wall::intersect(cell_intersect const& ci) const -> wall_hit
     f64 const roCross {isNS ? ci.RayOrigin.X : ci.RayOrigin.Y};
     f64 const cCross {static_cast<f64>(isNS ? ci.Cell.X : ci.Cell.Y)};
 
-    wall_hit closestHit {};
-    f64      minT {1e30};
+    std::optional<wall_hit> closestHit {std::nullopt};
+    f64                     minT {1e30};
 
     if (rdLeaf != 0.0) {
         f64 const t = (cLeaf + 0.5 - roLeaf) / rdLeaf;
@@ -48,7 +48,7 @@ auto door_wall::intersect(cell_intersect const& ci) const -> wall_hit
             f64 const segEnd {isNS ? cCross + 1.0 : cCross + (1.0 - Timer)};
             if (hitCross >= segStart && hitCross <= segEnd) {
                 f64 const segmentT {isNS ? hitCross - segStart : segEnd - hitCross};
-                closestHit = {.Distance = t, .SegmentT = segmentT, .Side = ci.Side ? hit_side::WestEast : hit_side::NorthSouth, .Texture = Texture, .Hit = true};
+                closestHit = {.Distance = t, .SegmentT = segmentT, .Side = ci.Side ? hit_side::WestEast : hit_side::NorthSouth, .Texture = Texture};
                 minT       = t;
             }
         }
@@ -60,7 +60,7 @@ auto door_wall::intersect(cell_intersect const& ci) const -> wall_hit
             if (t >= 0.0 && t < minT) {
                 f64 const hitLeaf {roLeaf + (rdLeaf * t)};
                 if (hitLeaf >= cLeaf && hitLeaf <= cLeaf + 1.0) {
-                    closestHit = {.Distance = t, .SegmentT = hitLeaf - cLeaf, .Side = ci.Side ? hit_side::NorthSouth : hit_side::WestEast, .Texture = FrameTexture, .Hit = true};
+                    closestHit = {.Distance = t, .SegmentT = hitLeaf - cLeaf, .Side = ci.Side ? hit_side::NorthSouth : hit_side::WestEast, .Texture = FrameTexture};
                     minT       = t;
                 }
             }
@@ -104,53 +104,53 @@ void door_wall::toggle()
     }
 }
 
-auto push_wall::intersect(cell_intersect const& ci) const -> wall_hit
+auto push_wall::intersect(cell_intersect const& ci) const -> std::optional<wall_hit>
 {
-    if (State == wall_state::Open) { return {}; }
+    if (State == wall_state::Open) { return std::nullopt; }
 
     if (PushDirection.X != 0) {
-        if ((ci.RayDir.X > 0 && PushDirection.X < 0) || (ci.RayDir.X < 0 && PushDirection.X > 0)) { return {}; } // backface culling
+        if ((ci.RayDir.X > 0 && PushDirection.X < 0) || (ci.RayDir.X < 0 && PushDirection.X > 0)) { return std::nullopt; } // backface culling
 
         f64 const nearEdgeX {PushDirection.X > 0 ? static_cast<f64>(ci.Cell.X) : static_cast<f64>(ci.Cell.X) + 1.0};
         f64 const faceX {nearEdgeX + (PushDirection.X * Timer)};
 
-        if (ci.RayDir.X == 0.0) { return {}; }
+        if (ci.RayDir.X == 0.0) { return std::nullopt; }
 
         f64 const t {(faceX - ci.RayOrigin.X) / ci.RayDir.X};
-        if (t < 0.0) { return {}; }
+        if (t < 0.0) { return std::nullopt; }
 
         f64 const hitY {ci.RayOrigin.Y + (ci.RayDir.Y * t)};
         f64 const segStart {static_cast<f64>(ci.Cell.Y)};
         f64 const segEnd {static_cast<f64>(ci.Cell.Y) + 1.0};
 
-        if (hitY < segStart || hitY > segEnd) { return {}; }
+        if (hitY < segStart || hitY > segEnd) { return std::nullopt; }
 
         f64 const segmentT {hitY - segStart};
-        return wall_hit {.Distance = t, .SegmentT = segmentT, .Side = ci.Side ? hit_side::WestEast : hit_side::NorthSouth, .Texture = Texture, .Hit = true};
+        return wall_hit {.Distance = t, .SegmentT = segmentT, .Side = ci.Side ? hit_side::WestEast : hit_side::NorthSouth, .Texture = Texture};
     }
 
     if (PushDirection.Y != 0) {
-        if ((ci.RayDir.Y > 0 && PushDirection.Y < 0) || (ci.RayDir.Y < 0 && PushDirection.Y > 0)) { return {}; } // backface culling
+        if ((ci.RayDir.Y > 0 && PushDirection.Y < 0) || (ci.RayDir.Y < 0 && PushDirection.Y > 0)) { return std::nullopt; } // backface culling
 
         f64 const nearEdgeY {PushDirection.Y > 0 ? static_cast<f64>(ci.Cell.Y) : static_cast<f64>(ci.Cell.Y) + 1.0};
         f64 const faceY {nearEdgeY + (PushDirection.Y * Timer)};
 
-        if (ci.RayDir.Y == 0.0) { return {}; }
+        if (ci.RayDir.Y == 0.0) { return std::nullopt; }
 
         f64 const t {(faceY - ci.RayOrigin.Y) / ci.RayDir.Y};
-        if (t < 0.0) { return {}; }
+        if (t < 0.0) { return std::nullopt; }
 
         f64 const hitX {ci.RayOrigin.X + (ci.RayDir.X * t)};
         f64 const segStart {static_cast<f64>(ci.Cell.X)};
         f64 const segEnd {static_cast<f64>(ci.Cell.X) + 1.0};
 
-        if (hitX < segStart || hitX > segEnd) { return {}; }
+        if (hitX < segStart || hitX > segEnd) { return std::nullopt; }
 
         f64 const segmentT {hitX - segStart};
-        return wall_hit {.Distance = t, .SegmentT = segmentT, .Side = ci.Side ? hit_side::WestEast : hit_side::NorthSouth, .Texture = Texture, .Hit = true};
+        return wall_hit {.Distance = t, .SegmentT = segmentT, .Side = ci.Side ? hit_side::WestEast : hit_side::NorthSouth, .Texture = Texture};
     }
 
-    return {};
+    return std::nullopt;
 }
 
 void push_wall::update(f64 dt)
@@ -186,16 +186,16 @@ void push_wall::toggle()
     }
 }
 
-auto obstacle::intersect(cell_intersect const& ci) const -> wall_hit
+auto obstacle::intersect(cell_intersect const& ci) const -> std::optional<wall_hit>
 {
-    wall_hit closest {};
-    f64      minT {std::numeric_limits<f64>::infinity()};
+    std::optional<wall_hit> closest {std::nullopt};
+    f64                     minT {std::numeric_limits<f64>::infinity()};
 
     for (auto const& shape : Shapes) {
         rect_d r {shape.LocalBounds};
         r.move_by(ci.Cell);
 
-        wall_hit hit {};
+        std::optional<wall_hit> hit {std::nullopt};
 
         if (shape.IsRound) {
             point_d const center {r.center()};
@@ -219,7 +219,7 @@ auto obstacle::intersect(cell_intersect const& ci) const -> wall_hit
             f64 const     segmentT {(angle + std::numbers::pi) / (2.0 * std::numbers::pi)};
             bool const    hitSide {std::abs(uv.Y) > std::abs(uv.X)};
 
-            hit = {.Distance = t, .SegmentT = segmentT, .Side = hitSide ? hit_side::WestEast : hit_side::NorthSouth, .Texture = shape.Texture, .Hit = true};
+            hit = {.Distance = t, .SegmentT = segmentT, .Side = hitSide ? hit_side::WestEast : hit_side::NorthSouth, .Texture = shape.Texture};
         } else {
             f64 const minX {r.left()};
             f64 const minY {r.top()};
@@ -267,11 +267,11 @@ auto obstacle::intersect(cell_intersect const& ci) const -> wall_hit
             }
             bool const hitSide {tMinX <= tMinY};
 
-            hit = {.Distance = t, .SegmentT = segmentT, .Side = hitSide ? hit_side::WestEast : hit_side::NorthSouth, .Texture = shape.Texture, .Hit = true};
+            hit = {.Distance = t, .SegmentT = segmentT, .Side = hitSide ? hit_side::WestEast : hit_side::NorthSouth, .Texture = shape.Texture};
         }
 
-        if (hit.Hit && hit.Distance < minT) {
-            minT    = hit.Distance;
+        if (hit && hit->Distance < minT) {
+            minT    = hit->Distance;
             closest = hit;
         }
     }
@@ -279,7 +279,7 @@ auto obstacle::intersect(cell_intersect const& ci) const -> wall_hit
     return closest;
 }
 
-auto diagonal_wall::intersect(cell_intersect const& ci) const -> wall_hit
+auto diagonal_wall::intersect(cell_intersect const& ci) const -> std::optional<wall_hit>
 {
     f64 const cX {static_cast<f64>(ci.Cell.X)};
     f64 const cY {static_cast<f64>(ci.Cell.Y)};
@@ -298,13 +298,13 @@ auto diagonal_wall::intersect(cell_intersect const& ci) const -> wall_hit
         }
     }
 
-    if (t < 0.0) { return {}; }
+    if (t < 0.0) { return std::nullopt; }
 
     f64 const hitX {ci.RayOrigin.X + (ci.RayDir.X * t)};
     f64 const hitY {ci.RayOrigin.Y + (ci.RayDir.Y * t)};
 
     if (hitX < cX || hitX > cX + 1.0 || hitY < cY || hitY > cY + 1.0) {
-        return {};
+        return std::nullopt;
     }
 
     f64 segmentT {0.0};
@@ -314,5 +314,5 @@ auto diagonal_wall::intersect(cell_intersect const& ci) const -> wall_hit
         segmentT = 1.0 - (hitX - cX);
     }
 
-    return wall_hit {.Distance = t, .SegmentT = segmentT, .Side = hit_side::Diagonal, .Texture = Texture, .Hit = true};
+    return wall_hit {.Distance = t, .SegmentT = segmentT, .Side = hit_side::Diagonal, .Texture = Texture};
 }
