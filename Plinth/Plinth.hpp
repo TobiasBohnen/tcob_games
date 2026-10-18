@@ -1,3 +1,4 @@
+
 // Copyright (c) 2026 Tobias Bohnen
 //
 // This software is released under the MIT License.
@@ -15,6 +16,31 @@
 #include "Raycaster.hpp"
 #include "TextureCache.hpp"
 
+enum class game_action : u8 {
+    MoveForward,
+    MoveBackward,
+    StrafeLeft,
+    StrafeRight,
+    RotateLeft,
+    RotateRight,
+    Fire,
+    ToggleWall,
+    ToggleMap
+};
+
+struct input_mapping {
+    std::unordered_map<game_action, input::scan_code> KeyboardBindings {
+        {game_action::MoveForward, input::scan_code::W},
+        {game_action::MoveBackward, input::scan_code::S},
+        {game_action::StrafeLeft, input::scan_code::A},
+        {game_action::StrafeRight, input::scan_code::D},
+        {game_action::RotateLeft, input::scan_code::LEFT},
+        {game_action::RotateRight, input::scan_code::RIGHT},
+        {game_action::Fire, input::scan_code::F},
+        {game_action::ToggleWall, input::scan_code::SPACE},
+        {game_action::ToggleMap, input::scan_code::TAB}};
+};
+
 class Plinth final : public scene {
 public:
     explicit Plinth(game& game);
@@ -27,16 +53,21 @@ public:
     void on_update(milliseconds deltaTime) override;
 
     void on_key_down(input::keyboard::event const& ev) override;
+    void on_controller_axis_motion(input::controller::axis_event const& ev) override;
     void on_controller_button_down(input::controller::button_event const& ev) override;
     void on_mouse_motion(input::mouse::motion_event const& ev) override;
+    void on_mouse_button_down(input::mouse::button_event const& ev) override;
 
-    void on_text_input(input::keyboard::text_input_event const&) override;
+    void on_text_input(input::keyboard::text_input_event const& ev) override;
 
 private:
+    void handle_action(game_action action);
+
     void move_player(milliseconds deltaTime);
 
-    void toggle_wall();
-    void toggle_map();
+    void action_toggle_wall();
+    void action_toggle_map();
+    void action_fire();
 
     void set_quality(quality_level level);
 
@@ -52,6 +83,7 @@ private:
 
     bool _drawMap {false};
     f32  _mouseX {0};
+    bool _controllerFireDown {false};
 
     utf8_string _keyCache;
 
@@ -61,6 +93,6 @@ private:
     std::future<bool>             _clipFtr;
 
     quality_settings _quality;
-
-    engine _engine;
+    input_mapping    _inputMapping {};
+    engine           _engine;
 };

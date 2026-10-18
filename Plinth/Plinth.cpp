@@ -6,6 +6,7 @@
 #include "Plinth.hpp"
 
 #include <numeric>
+#include <unordered_map>
 
 #include "Common.hpp"
 #include "Level.hpp"
@@ -218,33 +219,51 @@ void Plinth::move_player(milliseconds deltaTime)
     constexpr f64 mouseSensitivity {0.002};    // radians/pixel
     constexpr f64 controllerRotateSpeed {3.0}; // radians/second
     constexpr f64 controllerDeadzone {15000.0};
-    constexpr f64 maxAxisValue {32768.0};
+    constexpr f64 maxAxisValue {32767.0};
 
     auto const& input {locate_service<input::system>()};
 
     f64 const deltaSeconds {deltaTime.count() / 1000.0};
     f64 const moveSpeed {deltaSeconds * _player.Settings.MoveSpeed};
 
-    f64 forwardAmount {0};
-    f64 strafeAmount {0};
-    f64 rotateAmount {0};
+    static auto const normalizeAxis {[](auto value) -> f64 {
+        constexpr f64 deadzone {5000.0};
+        constexpr f64 maxValue {32767.0};
+
+        f64 const axis {static_cast<f64>(value)};
+        f64 const magnitude {std::abs(axis)};
+
+        if (magnitude <= deadzone) { return 0.0; }
+
+        f64 const normalizedMagnitude {std::clamp((magnitude - deadzone) / (maxValue - deadzone), 0.0, 1.0)};
+        return std::copysign(normalizedMagnitude, axis);
+    }};
+
+    f64 forwardAmount {0.0};
+    f64 strafeAmount {0.0};
+    f64 rotateAmount {0.0};
 
     if (input.InputMode == input::mode::KeyboardMouse) {
-        auto const& keyboard {input.keyboard()}; // TODO: remap in ui
+        auto const& keyboard {input.keyboard()};
 
-        if (keyboard.is_key_down(input::scan_code::W) || keyboard.is_key_down(input::scan_code::UP)) { forwardAmount += moveSpeed; }
-        if (keyboard.is_key_down(input::scan_code::S) || keyboard.is_key_down(input::scan_code::DOWN)) { forwardAmount -= moveSpeed; }
+        auto const isDown {[&keyboard, this](game_action action) {
+            auto const it {_inputMapping.KeyboardBindings.find(action)};
+            return it != _inputMapping.KeyboardBindings.end() && keyboard.is_key_down(it->second);
+        }};
 
-        if (keyboard.is_key_down(input::scan_code::D)) { strafeAmount -= moveSpeed; }
-        if (keyboard.is_key_down(input::scan_code::A)) { strafeAmount += moveSpeed; }
+        if (isDown(game_action::MoveForward)) { forwardAmount += moveSpeed; }
+        if (isDown(game_action::MoveBackward)) { forwardAmount -= moveSpeed; }
 
-        if (keyboard.is_key_down(input::scan_code::LEFT)) { rotateAmount -= deltaSeconds * keyboardRotateSpeed; }
-        if (keyboard.is_key_down(input::scan_code::RIGHT)) { rotateAmount += deltaSeconds * keyboardRotateSpeed; }
+        if (isDown(game_action::StrafeLeft)) { strafeAmount += moveSpeed; }
+        if (isDown(game_action::StrafeRight)) { strafeAmount -= moveSpeed; }
 
-        rotateAmount += _mouseX * mouseSensitivity;
-        _mouseX = 0;
+        if (isDown(game_action::RotateRight)) { rotateAmount += deltaSeconds * keyboardRotateSpeed; }
+        if (isDown(game_action::RotateLeft)) { rotateAmount -= deltaSeconds * keyboardRotateSpeed; }
+
+        rotateAmount += static_cast<f64>(_mouseX) * mouseSensitivity;
+        _mouseX = 0.0;
     } else {
-        auto const& controller {input.first_controller()}; // TODO: controller select in ui
+        auto const& controller {input.first_controller()};
 
         if (controller.is_button_pressed(input::controller::button::DPadUp)) { forwardAmount += moveSpeed; }
         if (controller.is_button_pressed(input::controller::button::DPadDown)) { forwardAmount -= moveSpeed; }
@@ -252,36 +271,58 @@ void Plinth::move_player(milliseconds deltaTime)
         if (controller.is_button_pressed(input::controller::button::DPadLeft)) { strafeAmount += moveSpeed; }
         if (controller.is_button_pressed(input::controller::button::DPadRight)) { strafeAmount -= moveSpeed; }
 
-        auto const leftY {controller.get_axis_value(input::controller::axis::LeftY)};
-        if (auto const magnitude {std::abs(leftY)}; magnitude > controllerDeadzone) {
-            f64 const normalizedY {std::copysign((magnitude - controllerDeadzone) / (maxAxisValue - controllerDeadzone), leftY)};
-            forwardAmount += -normalizedY * moveSpeed;
-        }
+        forwardAmount -= normalizeAxis(controller.get_axis_value(input::controller::axis::LeftY)) * moveSpeed;
+        strafeAmount -= normalizeAxis(controller.get_axis_value(input::controller::axis::LeftX)) * moveSpeed;
+        rotateAmount += normalizeAxis(controller.get_axis_value(input::controller::axis::RightX)) * deltaSeconds * controllerRotateSpeed;
+    }
 
-        auto const leftX {controller.get_axis_value(input::controller::axis::LeftX)};
-        if (auto const magnitude {std::abs(leftX)}; magnitude > controllerDeadzone) {
-            f64 const normalizedX {std::copysign((magnitude - controllerDeadzone) / (maxAxisValue - controllerDeadzone), leftX)};
-            strafeAmount += -normalizedX * moveSpeed;
-        }
-
-        auto const rightX {controller.get_axis_value(input::controller::axis::RightX)};
-        if (auto const magnitude {std::abs(rightX)}; magnitude > controllerDeadzone) {
-            f64 const normalizedX {std::copysign((magnitude - controllerDeadzone) / (maxAxisValue - controllerDeadzone), rightX)};
-            rotateAmount += normalizedX * deltaSeconds * controllerRotateSpeed;
-        }
+    if (f64 const movementLength {std::hypot(forwardAmount, strafeAmount)};
+        movementLength > moveSpeed && movementLength > 0.0) {
+        f64 const scale {moveSpeed / movementLength};
+        forwardAmount *= scale;
+        strafeAmount *= scale;
     }
 
     _player.move(*_level, forwardAmount, strafeAmount, rotateAmount);
 }
 
-void Plinth::toggle_wall()
+void Plinth::action_toggle_wall()
 {
     _level->toggle_wall(point_i {_player.Position + _player.Direction});
 }
 
-void Plinth::toggle_map()
+void Plinth::action_toggle_map()
 {
     _drawMap = !_drawMap;
+}
+
+void Plinth::action_fire()
+{
+    sprite_object const sprite {.BaseZ     = 0.25,
+                                .Size      = {0.05, 0.15},
+                                .Texture   = ballTexture,
+                                .LightMask = LIGHT_LAYER_SPELL};
+
+    dynamic_light light {.Range     = 0.5,
+                         .Color     = colors::Red,
+                         .Intensity = 1.5,
+                         .Layers    = LIGHT_LAYER_WORLD | LIGHT_LAYER_SPELL};
+    light.Z = sprite.BaseZ + (sprite.Size.Height * 0.5);
+
+    _level->spawn({.Position = _player.Position,
+                   .Visual   = sprite,
+                   .Light    = light});
+}
+
+void Plinth::handle_action(game_action action)
+{
+    switch (action) {
+    case game_action::Fire:       action_fire(); break;
+    case game_action::ToggleWall: action_toggle_wall(); break;
+    case game_action::ToggleMap:  action_toggle_map(); break;
+    default:
+        break;
+    }
 }
 
 constexpr auto make_quality(quality_level level) -> quality_settings
@@ -318,11 +359,9 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
     if (ev.Repeat) { return; }
 
     switch (ev.ScanCode) { // NOLINT
-    case input::scan_code::BACKSPACE:
+#ifdef TCOB_DEBUG
+    case input::scan_code::BACKSPACE: {
         parent().pop_current_scene();
-        break;
-    case input::scan_code::R: {
-        locate_service<gfx::render_system>().statistics().reset();
     } break;
     case input::scan_code::F11: {
         auto const fileName {[]() {
@@ -333,22 +372,9 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
         }()};
         std::ignore = window().copy_to_image().save(fileName);
     } break;
-    case input::scan_code::SPACE: {
-        toggle_wall();
-    } break;
-    case input::scan_code::TAB: {
-        toggle_map();
-    } break;
-    case input::scan_code::F10: {
+    case input::scan_code::F10:
         _startRecord = true;
-    } break;
-    case input::scan_code::L: {
-        for (auto& vo : _level->objects()) {
-            if (vo.voxel()) {
-                vo.voxel()->Pitch += radian_d {degree_d {10}};
-            }
-        }
-    } break;
+        break;
     case input::scan_code::Q: {
         set_quality(quality_level::Low);
     } break;
@@ -360,45 +386,56 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
         }
 
     } break;
-    case input::scan_code::F: {
+#endif
+    default: break;
+    }
 
-        sprite_object const sprite {.BaseZ     = 0.25,
-                                    .Size      = {0.05, 0.15},
-                                    .Texture   = ballTexture,
-                                    .LightMask = LIGHT_LAYER_SPELL};
+    auto const it {std::ranges::find_if(_inputMapping.KeyboardBindings, [&ev](auto const& binding) {
+        return binding.second == ev.ScanCode;
+    })};
 
-        dynamic_light light {.Range     = 0.5,
-                             .Color     = colors::Red,
-                             .Intensity = 1.5,
-                             .Layers    = LIGHT_LAYER_WORLD | LIGHT_LAYER_SPELL};
-        light.Z = sprite.BaseZ + (sprite.Size.Height * 0.5);
+    if (it != _inputMapping.KeyboardBindings.end()) {
+        handle_action(it->first);
+    }
+}
 
-        _level->spawn({.Position = _player.Position,
-                       .Visual   = sprite,
-                       .Light    = light});
-    } break;
-    default:
+void Plinth::on_controller_axis_motion(input::controller::axis_event const& ev)
+{
+    if (ev.Axis != input::controller::axis::RightTrigger) { return; }
 
-        break;
+    constexpr f64 pressThreshold {0.5};
+    constexpr f64 releaseThreshold {0.4};
+
+    f64 const value {static_cast<f64>(ev.Value) / static_cast<f64>(std::numeric_limits<decltype(ev.Value)>::max())};
+
+    if (!_controllerFireDown && value >= pressThreshold) {
+        _controllerFireDown = true;
+        handle_action(game_action::Fire);
+    } else if (_controllerFireDown && value <= releaseThreshold) {
+        _controllerFireDown = false;
     }
 }
 
 void Plinth::on_controller_button_down(input::controller::button_event const& ev)
 {
     switch (ev.Button) {
-    case input::controller::button::A:
-        toggle_wall();
-        break;
-    case input::controller::button::Back:
-        toggle_map();
-        break;
-    default: break;
+    case input::controller::button::A:    handle_action(game_action::Fire); break;
+    case input::controller::button::X:    handle_action(game_action::ToggleWall); break;
+    case input::controller::button::Back: handle_action(game_action::ToggleMap); break;
+    default:                              break;
     }
 }
 
 void Plinth::on_mouse_motion(input::mouse::motion_event const& ev)
 {
     _mouseX += ev.RelativeMotion.X;
+}
+
+void Plinth::on_mouse_button_down(input::mouse::button_event const& ev)
+{
+    if (ev.Button == input::mouse::button::Left) {
+        handle_action(game_action::Fire);
+    }
 }
 
 void Plinth::on_text_input(input::keyboard::text_input_event const& ev)
