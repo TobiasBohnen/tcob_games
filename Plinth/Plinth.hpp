@@ -28,6 +28,7 @@ public:
 
     void on_key_down(input::keyboard::event const& ev) override;
     void on_controller_button_down(input::controller::button_event const& ev) override;
+    void on_mouse_motion(input::mouse::motion_event const& ev) override;
 
     void on_text_input(input::keyboard::text_input_event const&) override;
 
@@ -50,6 +51,7 @@ private:
     gfx::renderer                  _renderer {gfx::buffer_usage_hint::StaticDraw};
 
     bool _drawMap {false};
+    f32  _mouseX {0};
 
     utf8_string _keyCache;
 

@@ -81,7 +81,8 @@ Plinth::Plinth(game& game)
     : scene {game}
     , _cache {std::make_unique<texture_cache>()}
 {
-    window().SystemCursorEnabled = false;
+    // window().SystemCursorEnabled = false;
+    window().RelativeMouseMode = true;
 
     _material->first_pass().Texture = _texture;
     _engine.run("res/main.lua");
@@ -233,6 +234,9 @@ void Plinth::move_player(milliseconds deltaTime)
 
         if (keyboard.is_key_down(input::scan_code::LEFT)) { rotateAmount -= rotSpeed; }
         if (keyboard.is_key_down(input::scan_code::RIGHT)) { rotateAmount += rotSpeed; }
+
+        rotateAmount += _mouseX * _player.Settings.RotateSpeed * 0.001;
+        _mouseX = 0;
     } else {
         auto const& controller {input.first_controller()}; // TODO: controller select in ui
 
@@ -387,6 +391,11 @@ void Plinth::on_controller_button_down(input::controller::button_event const& ev
         break;
     default: break;
     }
+}
+
+void Plinth::on_mouse_motion(input::mouse::motion_event const& ev)
+{
+    _mouseX += ev.RelativeMotion.X;
 }
 
 void Plinth::on_text_input(input::keyboard::text_input_event const& ev)
