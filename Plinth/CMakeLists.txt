@@ -20,14 +20,19 @@ set_target_properties(Plinth PROPERTIES
 )
 
 add_custom_target(PlinthScripts ALL
-    COMMAND ${CMAKE_COMMAND} -E tar "cf" ${CMAKE_BINARY_DIR}/../../x64/plinth-scripts.zip --format=7zip -- "."
+    COMMAND ${CMAKE_COMMAND} -E tar "cf" ${CMAKE_BINARY_DIR}/../../x64/plinth-scripts.zip --format=zip -- "."
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/scripts
     COMMENT "Creating plinth-scripts.zip..."
 )
 add_dependencies(Plinth PlinthScripts)
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/plinth-assets.zip)
-    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/plinth-assets.zip DESTINATION ${CMAKE_BINARY_DIR}/../../x64/)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/assets)
+    add_custom_target(PlinthAssets ALL
+        COMMAND ${CMAKE_COMMAND} -E tar "cf" ${CMAKE_BINARY_DIR}/../../x64/plinth-assets.zip --format=zip -- "."
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/assets
+        COMMENT "Creating plinth-assets.zip..."
+    )
+    add_dependencies(Plinth PlinthAssets)
 endif()
 
 if(NOT TCOB_BUILD_SHARED)
