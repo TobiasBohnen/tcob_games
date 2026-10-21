@@ -82,7 +82,7 @@ private:
     gfx::renderer                  _renderer {gfx::buffer_usage_hint::StaticDraw};
 
     bool _drawMap {false};
-    f32  _mouseX {0};
+    i32  _mouseX {0};
     bool _controllerFireDown {false};
 
     utf8_string _keyCache;

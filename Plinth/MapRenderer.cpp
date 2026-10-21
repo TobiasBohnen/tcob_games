@@ -8,7 +8,6 @@
 #include "Common.hpp"
 #include "Level.hpp"
 #include "Player.hpp"
-#include "TextureCache.hpp"
 #include "Walls.hpp"
 
 static auto get_color(level const& level, point_i map) -> color
@@ -21,13 +20,12 @@ static auto get_color(level const& level, point_i map) -> color
         [](door_wall const&) -> color { return colors::Blue; },
         [](push_wall const&) -> color { return colors::DimGray; },
         [](normal_wall const&) -> color { return colors::DimGray; },
-        [](obstacle const& w) -> color { return colors::CadetBlue; },
-        [](diagonal_wall const& w) -> color { return colors::DimGray; });
+        [](obstacle const&) -> color { return colors::CadetBlue; },
+        [](diagonal_wall const&) -> color { return colors::DimGray; });
 }
 
-map_renderer::map_renderer(texture_cache& cache, size_i screenSize)
-    : _cache {cache}
-    , _screen(screenSize.area())
+map_renderer::map_renderer(size_i screenSize)
+    : _screen(screenSize.area())
     , _screenSize {screenSize}
 {
 }
@@ -39,7 +37,7 @@ auto map_renderer::draw(level const& level, player const& player) -> u32 const*
     f32 const cellSize {_screenSize.Height / static_cast<f32>(MAP_HEIGHT)};
     for (i32 y {0}; y < _screenSize.Height; ++y) {
         for (i32 x {0}; x < _screenSize.Height; ++x) {
-            point_i const mapPos {static_cast<i32>(x / cellSize), static_cast<i32>(y / cellSize)};
+            point_i const mapPos {static_cast<i32>(static_cast<f32>(x) / cellSize), static_cast<i32>(static_cast<f32>(y) / cellSize)};
             i32 const     idx {x + (y * _screenSize.Width)};
             _screen[idx] = get_color(level, mapPos).to_abgr();
         }

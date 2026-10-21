@@ -5,7 +5,7 @@
 
 #include "Walls.hpp"
 
-auto floor_cell::intersect(cell_intersect const& ci) const -> std::optional<wall_hit>
+auto floor_cell::intersect(cell_intersect const& /* ci */) const -> std::optional<wall_hit>
 {
     return std::nullopt;
 }

@@ -30,14 +30,14 @@ private:
     };
 
     void precompute_light_visibility(level const& level);
-    auto accumulate_light(level const& level, player const& player, point_d const& surfacePos, f64 surfaceZ, point_i const& cell, u32 lightMask = LIGHT_LAYERS_ALL) const -> color_d;
-    void shade_and_write(u32* screenBuf, isize x, isize y, u8 const* tex, isize srcIdx, level const& level, player const& player, point_d const& surfacePos, f64 surfaceZ) const;
+    auto accumulate_light(player const& player, point_d const& surfacePos, f64 surfaceZ, point_i const& cell, u32 lightMask = LIGHT_LAYERS_ALL) const -> color_d;
+    void shade_and_write(u32* screenBuf, isize x, isize y, u8 const* tex, isize srcIdx, player const& player, point_d const& surfacePos, f64 surfaceZ) const;
 
     void draw_columns(level& level, player const& player, i32 screenCenterY, i32 columnStart, i32 columnEnd);
-    void draw_wall_column(wall_hit const& hit, level const& level, player const& player, isize x, point_d rayDir, point_i cell, wall_extent const& extent);
+    void draw_wall_column(wall_hit const& hit, player const& player, isize x, point_d rayDir, wall_extent const& extent);
     void draw_floor_ceiling_column(wall_hit const& hit, level const& level, player const& player, isize x, point_d rayDir, wall_extent const& extent);
     void draw_sprites(level const& level, player const& player, i32 screenCenterY);
-    void draw_voxel_objects(level const& level, player const& player, i32 screenCenterY);
+    void draw_voxel_objects(level& level, player const& player, i32 screenCenterY);
 
     void draw_screen_effect();
     void draw_weapon(player const& player);

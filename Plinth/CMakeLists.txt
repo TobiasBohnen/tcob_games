@@ -19,6 +19,16 @@ set_target_properties(Plinth PROPERTIES
     CXX_STANDARD_REQUIRED TRUE
 )
 
+target_compile_options(Plinth PRIVATE
+    $<$<CXX_COMPILER_ID:MSVC>: /W4>
+    $<$<CXX_COMPILER_ID:Clang>: -Wall -Wextra -Wconversion -Wpedantic -Wshadow-all -Wcast-align
+    -Wno-sign-conversion
+    >
+    $<$<CXX_COMPILER_ID:GNU>: -Wall -Wextra -pedantic
+    -Wno-missing-field-initializers
+    >
+)
+
 add_custom_target(PlinthScripts ALL
     COMMAND ${CMAKE_COMMAND} -E tar "cf" ${CMAKE_BINARY_DIR}/../../x64/plinth-scripts.zip --format=zip -- "."
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/scripts

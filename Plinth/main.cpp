@@ -26,7 +26,7 @@ auto main(void) -> int
                       .ConfigDefaults = config,
                       .WorkerThreads  = 8}};
 #else
-auto main(int /* argc */, char* argv[]) -> int
+auto main(int /* argc */, char* /* argv */[]) -> int
 {
     tcob::single_instance inst {"Plinth"};
     if (!inst) { return 0; };

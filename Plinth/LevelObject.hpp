@@ -12,7 +12,7 @@
 
 class sprite_object {
 public:
-    point_d Position;
+    point_d Position {};
     f64     BaseZ {0.0};
 
     size_d   Size {size_d::One};
@@ -40,6 +40,8 @@ public:
     radian_d Pitch {0.0};
     radian_d Roll {0.0};
 
+    bool Seen {false};
+
     voxel_grid const* Grid {nullptr};
 
     auto make_transform() const -> voxel_transform;
@@ -60,7 +62,7 @@ struct level_object_desc {
     color   MapMarker {colors::Green};
 
     object_visual                Visual;
-    std::optional<dynamic_light> Light;
+    std::optional<dynamic_light> Light {};
 };
 
 class level_object {

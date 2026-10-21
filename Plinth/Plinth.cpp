@@ -135,7 +135,7 @@ void Plinth::on_start()
     _cache->load();
 }
 
-void Plinth::on_draw_to(gfx::render_target& target, transform const& xform)
+void Plinth::on_draw_to(gfx::render_target& target, transform const& /* xform */)
 {
     _texture->update_data(_raycaster->draw(*_level, _player), 0);
     if (_drawMap) {
@@ -165,7 +165,7 @@ void Plinth::on_draw_to(gfx::render_target& target, transform const& xform)
     _renderer.render_to_target(target, transform::Identity);
 }
 
-void Plinth::on_fixed_update(milliseconds deltaTime)
+void Plinth::on_fixed_update(milliseconds /* deltaTime */)
 {
     auto const& stats {locate_service<gfx::render_system>().statistics()};
     auto const& mouse {locate_service<input::system>().mouse().get_position()};
@@ -279,7 +279,7 @@ void Plinth::move_player(milliseconds deltaTime)
         strafeAmount *= scale;
     }
 
-    _mouseX = 0.0;
+    _mouseX = 0;
     _player.move(*_level, forwardAmount, strafeAmount, rotateAmount);
 }
 
@@ -348,7 +348,7 @@ void Plinth::set_quality(quality_level level)
     _player.Settings.BobHeight = _quality.Resolution.Height / 60.0;
 
     _raycaster->set_quality(_quality, (_quality.Resolution.Width / 2.0) / std::tan(fov / 2.0));
-    _mapRenderer = std::make_unique<map_renderer>(*_cache, _quality.Resolution);
+    _mapRenderer = std::make_unique<map_renderer>(_quality.Resolution);
 }
 
 void Plinth::on_key_down(input::keyboard::event const& ev)

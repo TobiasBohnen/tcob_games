@@ -57,7 +57,7 @@ void engine::generate_level(level& level, player& player)
     (*_table.get<function<void>>("generate_level"))(&level, &player);
 }
 
-auto engine::update(milliseconds deltaTime) -> bool
+auto engine::update(milliseconds /* deltaTime */) -> bool
 {
 
     return true;
@@ -94,13 +94,13 @@ void engine::create_env()
     auto& playerWrapper {*_script.create_wrapper<player>("player")};
     playerWrapper["position"] = property {
         [](player* player) -> point_d { return player->Position; },
-        [this](player* player, point_d pos) { player->Position = pos; }};
+        [](player* player, point_d pos) { player->Position = pos; }};
 
     auto& levelWrapper {*_script.create_wrapper<level>("level")};
     levelWrapper["set_cell"] = [](level* level, i32 x, i32 y, table const& cellTable) {
         point_i const pos {x, y};
 
-        static auto read_surfaces {[](auto& cellTable, auto& cell) {
+        static auto read_surfaces {[&cellTable](auto& cell) {
             cellTable.try_get(cell.FloorTexture, "FloorTexture");
             cellTable.try_get(cell.CeilingTexture, "CeilingTexture");
             cellTable.try_get(cell.FloorReflectivity, "FloorReflectivity");
@@ -109,7 +109,7 @@ void engine::create_env()
         if (string type; cellTable.try_get(type, "type")) {
             if (type == "floor_cell") {
                 floor_cell f {};
-                read_surfaces(cellTable, f);
+                read_surfaces(f);
                 level->set_cell(pos, f);
             } else if (type == "normal_wall") {
                 normal_wall w {};
@@ -120,19 +120,19 @@ void engine::create_env()
                 cellTable.try_get(d.Texture, "Texture");
                 cellTable.try_get(d.FrameTexture, "FrameTexture");
                 cellTable.try_get(d.Orientation, "Orientation");
-                read_surfaces(cellTable, d);
+                read_surfaces(d);
                 level->set_cell(pos, d);
             } else if (type == "push_wall") {
                 push_wall p {};
                 cellTable.try_get(p.Texture, "Texture");
                 cellTable.try_get(p.PushDirection, "PushDirection");
-                read_surfaces(cellTable, p);
+                read_surfaces(p);
                 level->set_cell(pos, p);
             } else if (type == "obstacle") {
                 obstacle o {};
-                read_surfaces(cellTable, o);
+                read_surfaces(o);
                 if (auto shapes {cellTable.get<table>("Shapes")}) {
-                    for (i32 j {1}; j <= shapes->raw_length(); ++j) {
+                    for (usize j {1}; j <= shapes->raw_length(); ++j) {
                         table shapeTable;
                         if (!shapes->try_get(shapeTable, j)) { continue; }
 
@@ -148,7 +148,7 @@ void engine::create_env()
                 diagonal_wall dg {};
                 cellTable.try_get(dg.Texture, "Texture");
                 cellTable.try_get(dg.Orientation, "Orientation");
-                read_surfaces(cellTable, dg);
+                read_surfaces(dg);
                 level->set_cell(pos, dg);
             }
         }

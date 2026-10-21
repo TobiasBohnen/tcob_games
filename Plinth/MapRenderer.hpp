@@ -11,13 +11,12 @@
 
 class map_renderer {
 public:
-    map_renderer(texture_cache& cache, size_i screenSize);
+    map_renderer(size_i screenSize);
 
     auto draw(level const& level, player const& player) -> u32 const*;
 
 private:
     std::vector<u32> _screen;
 
-    texture_cache& _cache;
-    size_i         _screenSize;
+    size_i _screenSize;
 };
