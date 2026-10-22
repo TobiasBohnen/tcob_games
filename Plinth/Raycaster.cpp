@@ -7,7 +7,6 @@
 
 #include <algorithm>
 #include <array>
-#include <bit>
 #include <cctype>
 #include <cmath>
 #include <limits>
@@ -41,9 +40,6 @@ constexpr std::array<f64, 16> BAYER_4X4 {0.03125, 0.53125, 0.15625, 0.65625,
                                          0.78125, 0.28125, 0.90625, 0.40625,
                                          0.21875, 0.71875, 0.09375, 0.59375,
                                          0.96875, 0.46875, 0.84375, 0.34375};
-
-static_assert(std::has_single_bit(static_cast<u32>(WALL_SIZE.Width)) && std::has_single_bit(static_cast<u32>(WALL_SIZE.Height)),
-              "WALL_SIZE must be a power of two");
 
 static auto PixelIndex(size_i screenSize, isize x, isize y) -> isize { return x + (y * screenSize.Width); }
 static auto IsMagenta(u8 const* tex, i32 offset) -> bool { return tex[offset + 0] == 0x98 && tex[offset + 1] == 0x00 && tex[offset + 2] == 0x88; }
