@@ -35,6 +35,7 @@ constexpr f64 INV_255 {1.0 / 255.0};
 constexpr f64 CONTACT_SHADOW_WIDTH {0.3};
 constexpr f64 CONTACT_SHADOW_STRENGTH {0.75};
 constexpr f64 DITHERING_LIGHT_BANDS {8};
+constexpr f64 NEAR_DEPTH {1e-3};
 
 constexpr std::array<f64, 16> BAYER_4X4 {0.03125, 0.53125, 0.15625, 0.65625,
                                          0.78125, 0.28125, 0.90625, 0.40625,
@@ -653,36 +654,52 @@ void raycaster::draw_voxel_objects(level& level, player const& player, i32 scree
 
         auto const xf {vo->make_transform()};
 
-        f64  bboxMinX {std::numeric_limits<f64>::infinity()}, bboxMaxX {-std::numeric_limits<f64>::infinity()};
-        f64  bboxMinY {std::numeric_limits<f64>::infinity()}, bboxMaxY {-std::numeric_limits<f64>::infinity()};
-        f64  bboxMinDepth {std::numeric_limits<f64>::infinity()};
+        f64 bboxMinX {std::numeric_limits<f64>::infinity()}, bboxMaxX {-std::numeric_limits<f64>::infinity()};
+        f64 bboxMinY {std::numeric_limits<f64>::infinity()}, bboxMaxY {-std::numeric_limits<f64>::infinity()};
+        f64 bboxMinDepth {std::numeric_limits<f64>::infinity()};
+
+        auto const signed_depth {[&](point3_d const& world) -> f64 {
+            point_d const relPos {world.X - player.Position.X, world.Y - player.Position.Y};
+            return invDet * player.Plane.cross(relPos);
+        }};
+
         bool anyVisible {false};
-        bool anyBehind {false};
 
-        for (auto const& corner : vo->Grid->corners()) {
-            auto const [sx, sy, depth] {project(xf.to_world(corner))};
-            if (depth <= 0.0) {
-                anyBehind = true;
-                continue;
-            }
-
+        auto const add_point {[&](point3_d const& world) {
+            auto const p {project(world)};
             anyVisible   = true;
-            bboxMinX     = std::min(bboxMinX, sx);
-            bboxMaxX     = std::max(bboxMaxX, sx);
-            bboxMinY     = std::min(bboxMinY, sy);
-            bboxMaxY     = std::max(bboxMaxY, sy);
-            bboxMinDepth = std::min(bboxMinDepth, depth);
+            bboxMinX     = std::min(bboxMinX, std::get<0>(p));
+            bboxMaxX     = std::max(bboxMaxX, std::get<0>(p));
+            bboxMinY     = std::min(bboxMinY, std::get<1>(p));
+            bboxMaxY     = std::max(bboxMaxY, std::get<1>(p));
+            bboxMinDepth = std::min(bboxMinDepth, std::get<2>(p));
+        }};
+
+        std::array<point3_d, 8> worldCorners {};
+        std::array<f64, 8>      depths {};
+        usize                   cornerCount {0};
+        for (auto const& corner : vo->Grid->corners()) {
+            worldCorners[cornerCount] = xf.to_world(corner);
+            depths[cornerCount]       = signed_depth(worldCorners[cornerCount]);
+            ++cornerCount;
+        }
+
+        for (usize i {0}; i < cornerCount; ++i) {
+            if (depths[i] > NEAR_DEPTH) { add_point(worldCorners[i]); }
+        }
+        for (usize i {0}; i < cornerCount; ++i) {
+            for (usize j {i + 1}; j < cornerCount; ++j) {
+                bool const frontI {depths[i] > NEAR_DEPTH};
+                bool const frontJ {depths[j] > NEAR_DEPTH};
+                if (frontI == frontJ) { continue; }
+
+                f64 const t {(NEAR_DEPTH - depths[i]) / (depths[j] - depths[i])};
+                add_point(point3_d {.X = worldCorners[i].X + ((worldCorners[j].X - worldCorners[i].X) * t),
+                                    .Y = worldCorners[i].Y + ((worldCorners[j].Y - worldCorners[i].Y) * t),
+                                    .Z = worldCorners[i].Z + ((worldCorners[j].Z - worldCorners[i].Z) * t)});
+            }
         }
         if (!anyVisible) { continue; }
-
-        if (anyBehind) {
-            // object crosses the camera plane: corners behind it can't be projected, so use the whole screen
-            bboxMinX     = 0.0;
-            bboxMaxX     = _screenSize.Width;
-            bboxMinY     = 0.0;
-            bboxMaxY     = _screenSize.Height;
-            bboxMinDepth = 0.0;
-        }
 
         rect_i const bboxRect {point_i {static_cast<i32>(bboxMinX), static_cast<i32>(bboxMinY)},
                                size_i {static_cast<i32>(bboxMaxX - bboxMinX) + 1, static_cast<i32>(bboxMaxY - bboxMinY) + 1}};
