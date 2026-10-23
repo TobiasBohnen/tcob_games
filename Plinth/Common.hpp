@@ -87,4 +87,7 @@ struct color_d {
     f64 B {0.0};
 };
 
+constexpr auto IsMagenta(u8 const* tex, i32 offset) -> bool { return tex[offset + 0] == 0x98 && tex[offset + 1] == 0x00 && tex[offset + 2] == 0x88; }
+constexpr auto PixelIndex(size_i screenSize, isize x, isize y) -> isize { return x + (y * screenSize.Width); }
+
 ////////////////////////////////////////////////////////////

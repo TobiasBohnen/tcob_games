@@ -8,6 +8,7 @@ target_sources(Plinth PRIVATE
     Player.cpp
     Plinth.cpp
     Raycaster.cpp
+    ScreenOverlay.cpp
     TextureCache.cpp
     Voxel.cpp
     Walls.cpp

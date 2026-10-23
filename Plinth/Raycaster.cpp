@@ -7,7 +7,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cctype>
 #include <cmath>
 #include <limits>
 #include <numbers>
@@ -40,9 +39,6 @@ constexpr std::array<f64, 16> BAYER_4X4 {0.03125, 0.53125, 0.15625, 0.65625,
                                          0.21875, 0.71875, 0.09375, 0.59375,
                                          0.96875, 0.46875, 0.84375, 0.34375};
 
-static auto PixelIndex(size_i screenSize, isize x, isize y) -> isize { return x + (y * screenSize.Width); }
-static auto IsMagenta(u8 const* tex, i32 offset) -> bool { return tex[offset + 0] == 0x98 && tex[offset + 1] == 0x00 && tex[offset + 2] == 0x88; }
-
 static auto ApplyTint(u8 r, u8 g, u8 b, color_d tint) -> u32
 {
     u8 const tr {static_cast<u8>(std::min(r * tint.R, 255.0))};
@@ -68,29 +64,6 @@ static auto ScalePixel(u32 px, f64 factor) -> u32
     u32 const rb {(((px & 0x00FF00FFu) * m) >> 8) & 0x00FF00FFu};
     u32 const g {(((px & 0x0000FF00u) * m) >> 8) & 0x0000FF00u};
     return 0xFF000000u | rb | g;
-}
-
-static void BlitMasked(u32* dst, size_i screenSize, u8 const* tex, i32 texPitch, point_i srcOrigin, size_i srcSize, size_i drawSize, point_i dstPos, f64 scale)
-{
-    i32 const xStart {std::max(0, -dstPos.X)};
-    i32 const xEnd {std::min(drawSize.Width, screenSize.Width - dstPos.X)};
-    i32 const yStart {std::max(0, -dstPos.Y)};
-    i32 const yEnd {std::min(drawSize.Height, screenSize.Height - dstPos.Y)};
-
-    color_d const white {.R = 1.0, .G = 1.0, .B = 1.0};
-
-    for (i32 y {yStart}; y < yEnd; ++y) {
-        i32 const screenY {y + dstPos.Y};
-        i32 const texY {srcOrigin.Y + std::min(srcSize.Height - 1, static_cast<i32>(y / scale))};
-        for (i32 x {xStart}; x < xEnd; ++x) {
-            i32 const screenX {x + dstPos.X};
-            i32 const texX {srcOrigin.X + std::min(srcSize.Width - 1, static_cast<i32>(x / scale))};
-            i32 const texOffset {(texX + (texY * texPitch)) * TEXTURE_BPP};
-            if (IsMagenta(tex, texOffset)) { continue; }
-
-            CopyPixel(dst, PixelIndex(screenSize, screenX, screenY), tex, texOffset, white);
-        }
-    }
 }
 
 static auto ComputeCameraRayDir(isize x, i32 screenWidth, player const& player) -> point_d { return player.Direction + (player.Plane * ((2.0 * (static_cast<f64>(x) + 0.5) / screenWidth) - 1.0)); }
@@ -310,7 +283,7 @@ void raycaster::shade_and_write(u32* screenBuf, isize x, isize y, u8 const* tex,
     CopyPixel(screenBuf, PixelIndex(_screenSize, x, y), tex, srcIdx, DitherTint(tint, x, y, _quality));
 }
 
-auto raycaster::draw(level& level, player const& player) -> u32 const*
+auto raycaster::draw(level& level, player const& player) -> std::span<u32>
 {
     std::ranges::fill(_objectDepthBuffer, std::numeric_limits<f64>::infinity());
 
@@ -326,14 +299,7 @@ auto raycaster::draw(level& level, player const& player) -> u32 const*
     draw_sprites(level, player, screenCenterY);
     draw_voxel_objects(level, player, screenCenterY);
 
-    draw_weapon(player);
-
-    draw_screen_effect();
-
-    draw_hud(player);
-    draw_message(level);
-
-    return _screen.data();
+    return _screen;
 }
 
 void raycaster::draw_columns(level& level, player const& player, i32 screenCenterY, i32 columnStart, i32 columnEnd)
@@ -742,64 +708,5 @@ void raycaster::draw_voxel_objects(level& level, player const& player, i32 scree
             }
         },
                                   strideCols);
-    }
-}
-
-void raycaster::draw_screen_effect()
-{
-    if (ScreenEffect) {
-        ScreenEffect(_screen);
-    }
-}
-
-void raycaster::draw_weapon(player const& player)
-{
-    auto* const tex {_cache.texture(handTexture, 0)};
-    auto const  texSize {_cache.texture_size(handTexture, 0)};
-
-    f64 const     scale {_screenSize.Height / REFERENCE_HEIGHT};
-    size_i const  drawSize {size_f {texSize} * scale};
-    i32 const     bobOffsetY {static_cast<i32>(player.BobAmount * WEAPON_BOB_MULTIPLIER)};
-    point_i const offset {static_cast<i32>((_screenSize.Width - drawSize.Width) * 0.75),
-                          static_cast<i32>(_screenSize.Height - (drawSize.Height * 0.75)) + bobOffsetY};
-
-    BlitMasked(_screen.data(), _screenSize, tex, texSize.Width, point_i {0, 0}, texSize, drawSize, offset, scale);
-}
-
-void raycaster::draw_hud(player const&)
-{
-    auto* const tex {_cache.texture(hudTexture, 0)};
-    auto const  texSize {_cache.texture_size(hudTexture, 0)};
-
-    f64 const    scale {_screenSize.Height / REFERENCE_HEIGHT};
-    size_i const drawSize {size_f {texSize} * scale};
-
-    BlitMasked(_screen.data(), _screenSize, tex, texSize.Width, point_i {0, 0}, texSize, drawSize, point_i {0, 0}, scale);
-}
-
-void raycaster::draw_message(level const& level)
-{
-    auto const& msg {level.get_message()};
-    if (msg.empty()) { return; }
-
-    auto* const tex {_cache.texture(fontTexture, 0)};
-    auto const  texSize {_cache.texture_size(fontTexture, 0)};
-    auto const  charSize {texSize.Height};
-
-    point_i const offset {5, 5};
-    size_i const  glyphSize {charSize, charSize};
-
-    for (i32 i {0}; i < std::ssize(msg); ++i) {
-        char const c {msg[i]};
-        if (std::isspace(static_cast<unsigned char>(c))) { continue; }
-
-        i32 index {0};
-        if (std::isdigit(static_cast<unsigned char>(c))) {
-            index = c - '0';
-        } else if (std::isalpha(static_cast<unsigned char>(c))) {
-            index = 10 + (std::tolower(static_cast<unsigned char>(c)) - 'a');
-        }
-
-        BlitMasked(_screen.data(), _screenSize, tex, texSize.Width, point_i {index * charSize, 0}, glyphSize, glyphSize, point_i {offset.X + (i * (charSize + 1)), offset.Y}, 1.0);
     }
 }

@@ -16,9 +16,7 @@ class raycaster {
 public:
     explicit raycaster(texture_cache& cache);
 
-    std::function<void(std::vector<u32>&)> ScreenEffect;
-
-    auto draw(level& level, player const& player) -> u32 const*;
+    auto draw(level& level, player const& player) -> std::span<u32>;
 
     void set_quality(quality_settings const& quality, f64 projPlaneDist);
 
@@ -38,11 +36,6 @@ private:
     void draw_floor_ceiling_column(wall_hit const& hit, level const& level, player const& player, isize x, point_d rayDir, wall_extent const& extent);
     void draw_sprites(level const& level, player const& player, i32 screenCenterY);
     void draw_voxel_objects(level& level, player const& player, i32 screenCenterY);
-
-    void draw_screen_effect();
-    void draw_weapon(player const& player);
-    void draw_hud(player const& player);
-    void draw_message(level const& level);
 
     std::vector<dynamic_light>    _dynamicLights;
     std::vector<std::vector<u32>> _cellLights;

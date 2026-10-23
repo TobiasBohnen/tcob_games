@@ -15,7 +15,7 @@
 #include "Raycaster.hpp"
 #include "Voxel.hpp"
 
-auto static deathEffect {[](auto& screen) {
+[[maybe_unused]] auto static deathEffect {[](std::span<u32> screen) {
     static std::vector<usize> indices;
     static usize              currentIndex {0};
     static bool               active {false};
@@ -39,7 +39,7 @@ auto static deathEffect {[](auto& screen) {
     currentIndex = endIndex;
 }};
 
-auto static cheaterEffect {[](auto& screen) {
+[[maybe_unused]] auto static cheaterEffect {[](std::span<u32> screen) {
     for (auto& col : screen) {
         color c {color::FromABGR(col)};
         std::swap(c.R, c.B);
@@ -47,7 +47,7 @@ auto static cheaterEffect {[](auto& screen) {
     }
 }};
 
-auto static nightVisionEffect {[](auto& screen) {
+[[maybe_unused]] auto static nightVisionEffect {[](std::span<u32> screen) {
     for (auto& col : screen) {
         color     c {color::FromABGR(col)};
         u32 const luminance {static_cast<u32>((c.R * 0.3f) + (c.G * 0.59f) + (c.B * 0.11f))};
@@ -58,7 +58,7 @@ auto static nightVisionEffect {[](auto& screen) {
     }
 }};
 
-auto static staticNoiseEffect {[](auto& screen) {
+[[maybe_unused]] auto static staticNoiseEffect {[](std::span<u32> screen) {
     rng randomGenerator;
     for (auto& col : screen) {
         if (randomGenerator(0, 12) == 0) {
@@ -68,7 +68,7 @@ auto static staticNoiseEffect {[](auto& screen) {
     }
 }};
 
-auto static grayscaleEffect {[](auto& screen) {
+[[maybe_unused]] auto static grayscaleEffect {[](std::span<u32> screen) {
     for (auto& col : screen) {
         color const c {color::FromABGR(col)};
         u8 const    gray {static_cast<u8>((c.R * 0.299f) + (c.G * 0.587f) + (c.B * 0.114f))};
@@ -126,6 +126,7 @@ Plinth::Plinth(game& game)
 
     _raycaster = std::make_unique<raycaster>(*_cache);
     set_quality(quality_level::High);
+    _screenOverlay = std::make_unique<screen_overlay>(*_cache);
 }
 
 Plinth::~Plinth() = default;
@@ -137,7 +138,10 @@ void Plinth::on_start()
 
 void Plinth::on_draw_to(gfx::render_target& target, transform const& /* xform */)
 {
-    _texture->update_data(_raycaster->draw(*_level, _player), 0);
+    auto screen {_raycaster->draw(*_level, _player)};
+    _screenOverlay->draw(*_level, _player, screen, _quality.Resolution);
+
+    _texture->update_data(screen.data(), 0);
     if (_drawMap) {
         _texture->update_data(_mapRenderer->draw(*_level, _player), 0);
     }
@@ -376,10 +380,10 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
         set_quality(quality_level::Low);
     } break;
     case input::scan_code::K: {
-        if (!_raycaster->ScreenEffect) {
-            _raycaster->ScreenEffect = grayscaleEffect;
+        if (!_screenOverlay->ScreenEffect) {
+            _screenOverlay->ScreenEffect = grayscaleEffect;
         } else {
-            _raycaster->ScreenEffect = nullptr;
+            _screenOverlay->ScreenEffect = nullptr;
         }
 
     } break;
@@ -446,8 +450,8 @@ void Plinth::on_text_input(input::keyboard::text_input_event const& ev)
         _level->mark_all_seen();
         _level->show_message("MAP REVEALED");
         _keyCache.clear();
-        _player.Cheater          = true;
-        _raycaster->ScreenEffect = cheaterEffect;
+        _player.Cheater              = true;
+        _screenOverlay->ScreenEffect = cheaterEffect;
     }
 }
 
