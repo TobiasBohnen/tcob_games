@@ -417,25 +417,11 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
     point_d const floorWall {player.Position + (rayDir * hit.Distance)};
     f64 const     invPerpWallDist {1.0 / hit.Distance};
 
-    point_i   lastFloorCell {-1, -1};
-    i32       cellFloorTex {INVALID_INDEX};
-    i32       cellCeilTex {INVALID_INDEX};
-    u8 const* cellFloorTexPtr {nullptr};
-    u8 const* cellCeilTexPtr {nullptr};
-    f64       cellReflect {0.0};
-    u8 const* wallTexPtr {nullptr};
-
-    auto const query_cell {[&](auto&& cell) {
-        if constexpr (requires { cell.FloorTexture; }) {
-            if (cell.FloorTexture != INVALID_INDEX) { cellFloorTex = cell.FloorTexture; }
-        }
-        if constexpr (requires { cell.CeilingTexture; }) {
-            if (cell.CeilingTexture != INVALID_INDEX) { cellCeilTex = cell.CeilingTexture; }
-        }
-        if constexpr (requires { cell.FloorReflectivity; }) {
-            cellReflect = cell.FloorReflectivity;
-        }
-    }};
+    point_i      lastFloorCell {-1, -1};
+    cell_surface cellSurface;
+    u8 const*    cellFloorTexPtr {nullptr};
+    u8 const*    cellCeilTexPtr {nullptr};
+    u8 const*    wallTexPtr {nullptr};
 
     u32* screenBuf {_screen.data()};
 
@@ -453,15 +439,10 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
 
         point_i const floorCell {WorldToCell(currentFloor)};
         if (floorCell != lastFloorCell) {
-            lastFloorCell = floorCell;
-            cellFloorTex  = INVALID_INDEX;
-            cellCeilTex   = INVALID_INDEX;
-            cellReflect   = 0.0;
-            if (map_t::Size.contains(floorCell)) {
-                std::visit(query_cell, level.get_cell(floorCell));
-            }
-            cellFloorTexPtr = cellFloorTex != INVALID_INDEX ? _cache.texture(cellFloorTex, 0) : nullptr;
-            cellCeilTexPtr  = cellCeilTex != INVALID_INDEX ? _cache.texture(cellCeilTex, 0) : nullptr;
+            lastFloorCell   = floorCell;
+            cellSurface     = level.surface(floorCell);
+            cellFloorTexPtr = cellSurface.FloorTexture != INVALID_INDEX ? _cache.texture(cellSurface.FloorTexture, 0) : nullptr;
+            cellCeilTexPtr  = cellSurface.CeilingTexture != INVALID_INDEX ? _cache.texture(cellSurface.CeilingTexture, 0) : nullptr;
         }
 
         u8 const* tex {isFloor ? cellFloorTexPtr : cellCeilTexPtr};
@@ -479,7 +460,7 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
             pixel = ScalePixel(pixel, 1.0 - (CONTACT_SHADOW_STRENGTH * t * t));
         }
 
-        if (isFloor && cellReflect > 0.0) {
+        if (isFloor && cellSurface.FloorReflectivity > 0.0) {
             f64 const z {std::max(EYE_HEIGHT * ((hit.Distance / rowDist) - 1.0), 0.0)}; // height on the wall that the bounced ray reaches
             if (z < 1.0) {
                 if (wallTexPtr == nullptr) { wallTexPtr = _cache.texture(hit.Texture, 0); }
@@ -492,7 +473,7 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
                 u32 const  reflected {ApplyTint(wallTexPtr[wallSrc + 0], wallTexPtr[wallSrc + 1], wallTexPtr[wallSrc + 2], DitherTint(wallTint, x, y, _quality))};
 
                 u32& pixel {screenBuf[PixelIndex(_screenSize, x, y)]};
-                pixel = BlendPixel(pixel, reflected, cellReflect * (1.0 - z)); // fades toward the top of the wall
+                pixel = BlendPixel(pixel, reflected, cellSurface.FloorReflectivity * (1.0 - z)); // fades toward the top of the wall
             }
         }
     }};

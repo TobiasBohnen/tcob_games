@@ -10,6 +10,12 @@
 #include "LevelObject.hpp"
 #include "Walls.hpp"
 
+struct cell_surface {
+    i32 FloorTexture {INVALID_INDEX};
+    i32 CeilingTexture {INVALID_INDEX};
+    f64 FloorReflectivity {0.0};
+};
+
 class level {
 public:
     enum class tile_visibility : u8 {
@@ -20,10 +26,11 @@ public:
 
     level();
 
-    void update(milliseconds deltaSeconds);
+    void update(milliseconds deltaTime);
 
     auto get_cell(point_i p) const -> cell const&;
     void set_cell(point_i p, cell const& cell);
+    auto surface(point_i const& cell) const -> cell_surface;
 
     auto is_clear(point_d pos, f64 radius, uid ignore = 0) const -> bool;
     auto is_wall_clear(point_d pos, f64 radius) const -> bool;

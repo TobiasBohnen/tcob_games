@@ -7,14 +7,14 @@
 
 level::level() = default;
 
-void level::update(milliseconds deltaSeconds)
+void level::update(milliseconds deltaTime)
 {
-    _messageTimer -= deltaSeconds;
+    _messageTimer -= deltaTime;
     if (_messageTimer.count() <= 0) {
         _message.clear();
     }
 
-    f64 const dt {deltaSeconds.count() / 1000};
+    f64 const dt {deltaTime.count() / 1000};
     for (auto& cell : _map) {
         std::visit(
             [dt](auto&& w) {
@@ -32,9 +32,24 @@ auto level::get_cell(point_i p) const -> cell const&
 {
     return _map[p];
 }
+
 void level::set_cell(point_i p, cell const& cell)
 {
     _map[p] = cell;
+}
+
+auto level::surface(point_i const& cell) const -> cell_surface
+{
+    if (!map_t::Size.contains(cell)) { return {}; }
+
+    return std::visit([](auto&& c) -> cell_surface {
+        cell_surface s {};
+        if constexpr (requires { c.FloorTexture; }) { s.FloorTexture = c.FloorTexture; }
+        if constexpr (requires { c.CeilingTexture; }) { s.CeilingTexture = c.CeilingTexture; }
+        if constexpr (requires { c.FloorReflectivity; }) { s.FloorReflectivity = c.FloorReflectivity; }
+        return s;
+    },
+                      get_cell(cell));
 }
 
 auto level::is_clear(point_d pos, f64 radius, uid ignore) const -> bool

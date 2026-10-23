@@ -228,8 +228,8 @@ void Plinth::move_player(milliseconds deltaTime)
 
     auto const& input {locate_service<input::system>()};
 
-    f64 const deltaSeconds {deltaTime.count() / 1000.0};
-    f64 const moveSpeed {deltaSeconds * _player.Settings.MoveSpeed};
+    f64 const dt {deltaTime.count() / 1000.0};
+    f64 const moveSpeed {dt * _player.Settings.MoveSpeed};
 
     f64 forwardAmount {0.0};
     f64 strafeAmount {0.0};
@@ -249,8 +249,8 @@ void Plinth::move_player(milliseconds deltaTime)
         if (isDown(game_action::StrafeLeft)) { strafeAmount += moveSpeed; }
         if (isDown(game_action::StrafeRight)) { strafeAmount -= moveSpeed; }
 
-        if (isDown(game_action::RotateRight)) { rotateAmount += deltaSeconds * keyboardRotateSpeed; }
-        if (isDown(game_action::RotateLeft)) { rotateAmount -= deltaSeconds * keyboardRotateSpeed; }
+        if (isDown(game_action::RotateRight)) { rotateAmount += dt * keyboardRotateSpeed; }
+        if (isDown(game_action::RotateLeft)) { rotateAmount -= dt * keyboardRotateSpeed; }
 
         rotateAmount += static_cast<f64>(_mouseX) * mouseSensitivity;
     } else {
@@ -274,7 +274,7 @@ void Plinth::move_player(milliseconds deltaTime)
 
         forwardAmount -= normalizeAxis(controller.get_axis_value(input::controller::axis::LeftY)) * moveSpeed;
         strafeAmount -= normalizeAxis(controller.get_axis_value(input::controller::axis::LeftX)) * moveSpeed;
-        rotateAmount += normalizeAxis(controller.get_axis_value(input::controller::axis::RightX)) * deltaSeconds * controllerRotateSpeed;
+        rotateAmount += normalizeAxis(controller.get_axis_value(input::controller::axis::RightX)) * dt * controllerRotateSpeed;
     }
 
     if (f64 const movementLength {std::hypot(forwardAmount, strafeAmount)};
