@@ -12,16 +12,23 @@
 
 static auto get_color(level const& level, point_i map) -> color
 {
-    if (!level.is_seen(map)) { return colors::Black; };
-
-    return overloaded_visit(
+    auto const state {level.get_visibility(map)};
+    if (state == level::tile_visibility::Hidden) { return colors::Black; }
+    color c {overloaded_visit(
         level.get_cell(map),
         [](floor_cell const&) -> color { return colors::Silver; },
         [](door_wall const&) -> color { return colors::Blue; },
         [](push_wall const&) -> color { return colors::DimGray; },
         [](normal_wall const&) -> color { return colors::DimGray; },
         [](obstacle const&) -> color { return colors::CadetBlue; },
-        [](diagonal_wall const&) -> color { return colors::DimGray; });
+        [](diagonal_wall const&) -> color { return colors::DimGray; })};
+
+    if (state == level::tile_visibility::Visible) { return c; }
+
+    return {
+        static_cast<u8>((c.R * 70) / 100),
+        static_cast<u8>((c.G * 70) / 100),
+        static_cast<u8>((c.B * 70) / 100)};
 }
 
 map_renderer::map_renderer(size_i screenSize)
@@ -88,7 +95,7 @@ auto map_renderer::draw(level const& level, player const& player) -> u32 const*
 
     // objects
     for (auto const& obj : level.objects()) {
-        if (!level.is_seen(point_i {obj.position()})) { continue; } // TODO: sprite map visibility
+        if (!obj.is_seen()) { continue; }
 
         point_i const sprPos {obj.position() * cellSize};
         i32 const     radius {static_cast<i32>(cellSize / 2)};

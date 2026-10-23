@@ -26,7 +26,6 @@
 
 constexpr f64 EYE_HEIGHT {0.5};                             // TODO: pull from player
 constexpr f64 WALL_LIGHT_Z {0.5};                           // approximate wall column as a flat plane at mid-height for lighting
-constexpr f64 SEEN_LIGHT_THRESHOLD {0.05};                  // minimum player-light strength for a cell to count as "seen"
 constexpr f64 CELL_DIAGONAL_HALF {std::numbers::sqrt2 / 2}; // max distance from a cell's center to its farthest corner
 constexpr f64 INFINITE_DIST {1e30};                         // stand-in for "ray never crosses this axis"
 constexpr f64 INV_255 {1.0 / 255.0};
@@ -86,6 +85,36 @@ static auto DitherTint(color_d tint, isize x, isize y, quality_settings const& q
     f64 const  threshold {BAYER_4X4[static_cast<usize>(((y & 3) << 2) | (x & 3))]};
     auto const quantize {[&](f64 t) { return std::floor((t * DITHERING_LIGHT_BANDS) + threshold) * invBands; }};
     return color_d {.R = quantize(tint.R), .G = quantize(tint.G), .B = quantize(tint.B)};
+}
+
+static auto IsWithinPlayerLight(player const& player, point_i const& cell) -> bool
+{
+    // largest squared 2D distance at which the player light still reaches
+    auto const compute_seen_range_sq {[&]() -> f64 {
+        f64 const range {player.Settings.LightRange};
+        f64 const rangeSq {range * range};
+        f64 const intensity {player.Settings.LightIntensity};
+
+        if (ComputeFalloff(0.0, rangeSq, intensity) < 0) { return -1.0; }
+
+        f64 lo {0.0};
+        f64 hi {rangeSq};
+        for (i32 i {0}; i < 40; ++i) {
+            f64 const mid {0.5 * (lo + hi)};
+            if (ComputeFalloff(mid, rangeSq, intensity) >= 0) {
+                lo = mid;
+            } else {
+                hi = mid;
+            }
+        }
+        return lo;
+    }};
+
+    f64 const seenRangeSq {compute_seen_range_sq()};
+
+    point_d const cellCenter {cell.X + 0.5, cell.Y + 0.5};
+    point_d const toCell {cellCenter - player.Position};
+    return toCell.dot(toCell) <= seenRangeSq; // negative seenRangeSq never matches
 }
 
 ////////////////////////////////////////////////////////////
@@ -309,35 +338,6 @@ void raycaster::draw_columns(level& level, player const& player, i32 screenCente
         return {static_cast<i32>(std::round(centerY - (lineHeight / 2.0))), static_cast<i32>(std::round(centerY + (lineHeight / 2.0)))};
     }};
 
-    // largest squared 2D distance at which the player light still reaches SEEN_LIGHT_THRESHOLD
-    auto const compute_seen_range_sq {[&]() -> f64 {
-        f64 const range {player.Settings.LightRange};
-        f64 const rangeSq {range * range};
-        f64 const intensity {player.Settings.LightIntensity};
-
-        if (ComputeFalloff(0.0, rangeSq, intensity) < SEEN_LIGHT_THRESHOLD) { return -1.0; }
-
-        f64 lo {0.0};
-        f64 hi {rangeSq};
-        for (i32 i {0}; i < 40; ++i) {
-            f64 const mid {0.5 * (lo + hi)};
-            if (ComputeFalloff(mid, rangeSq, intensity) >= SEEN_LIGHT_THRESHOLD) {
-                lo = mid;
-            } else {
-                hi = mid;
-            }
-        }
-        return lo;
-    }};
-
-    f64 const seenRangeSq {compute_seen_range_sq()};
-
-    auto const is_within_player_light {[&](point_i const& cell) -> bool {
-        point_d const cellCenter {cell.X + 0.5, cell.Y + 0.5};
-        point_d const toCell {cellCenter - player.Position};
-        return toCell.dot(toCell) <= seenRangeSq; // negative seenRangeSq never matches
-    }};
-
     for (isize x {columnStart}; x < columnEnd; x++) {
         point_d const rayDir {ComputeCameraRayDir(x, _screenSize.Width, player)};
 
@@ -359,7 +359,7 @@ void raycaster::draw_columns(level& level, player const& player, i32 screenCente
             if (auto const wallHit {std::visit(intersect, level.get_cell(map))}) {
                 hitResult = wallHit;
             }
-            if (is_within_player_light(map)) { level.mark_seen(map); }
+            if (IsWithinPlayerLight(player, map)) { level.mark_visible(map); }
         }
 
         // DDA
@@ -380,7 +380,7 @@ void raycaster::draw_columns(level& level, player const& player, i32 screenCente
 
                 if (!map_t::Size.contains(map)) { break; }
 
-                if (is_within_player_light(map)) { level.mark_seen(map); }
+                if (IsWithinPlayerLight(player, map)) { level.mark_visible(map); }
 
                 auto const wallHit {std::visit(intersect, level.get_cell(map))};
                 if (wallHit) {
@@ -520,15 +520,18 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
     for (i32 y {0}; y < ceilingEnd; y++) { sample_and_draw(y, false); }
 }
 
-void raycaster::draw_sprites(level const& level, player const& player, i32 screenCenterY)
+void raycaster::draw_sprites(level& level, player const& player, i32 screenCenterY)
 {
     f64 const    invDet {1.0 / player.Plane.cross(player.Direction)};
     rect_i const screenRect {point_i {0, 0}, _screenSize};
 
     u32* screenBuf {_screen.data()};
-    for (auto const& go : level.objects()) {
-        auto const* spr {go.sprite()};
+    for (auto& go : level.objects()) {
+        auto* spr {go.sprite()};
         if (!spr) { continue; }
+
+        spr->Seen = false;
+        if (!IsWithinPlayerLight(player, WorldToCell(spr->Position))) { continue; }
 
         auto const relPos {spr->Position - player.Position};
 
@@ -563,6 +566,8 @@ void raycaster::draw_sprites(level const& level, player const& player, i32 scree
 
         for (i32 x {drawStart.X}; x < drawEnd.X; ++x) {
             if (transformY >= _zBuffer[x]) { continue; }
+
+            spr->Seen = true;
 
             i32 const texX {std::clamp(((x - spriteLeft) * texSize.Width) / spriteSize.Width, 0, texSize.Width - 1)};
             f64       texPos {texPosYStart};
@@ -611,6 +616,8 @@ void raycaster::draw_voxel_objects(level& level, player const& player, i32 scree
 
         vo->Seen = false;
         if (!vo->Grid) { continue; }
+
+        if (!IsWithinPlayerLight(player, WorldToCell(vo->Position))) { continue; }
 
         auto const xf {vo->make_transform()};
 

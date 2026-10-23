@@ -145,6 +145,7 @@ void Plinth::on_draw_to(gfx::render_target& target, transform const& /* xform */
     if (_drawMap) {
         _texture->update_data(_mapRenderer->draw(*_level, _player), 0);
     }
+    _level->fade_vision();
 
     // aspect ratio correction
     size_i const size {*target.Size};
@@ -447,7 +448,7 @@ void Plinth::on_text_input(input::keyboard::text_input_event const& ev)
     }
 
     if (_keyCache.ends_with("givemap")) {
-        _level->mark_all_seen();
+        _level->reveal_map();
         _level->show_message("MAP REVEALED");
         _keyCache.clear();
         _player.Cheater              = true;

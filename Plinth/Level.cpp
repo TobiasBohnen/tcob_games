@@ -144,21 +144,30 @@ void level::toggle_wall(point_i p)
         _map[p]);
 }
 
-auto level::is_seen(point_i cell) const -> bool
+auto level::get_visibility(point_i cell) const -> tile_visibility
 {
-    if (!map_t::Size.contains(cell)) { return false; }
+    if (!map_t::Size.contains(cell)) { return tile_visibility::Hidden; }
     return _seen[cell];
 }
 
-void level::mark_seen(point_i cell)
+void level::mark_visible(point_i cell)
 {
     if (!map_t::Size.contains(cell)) { return; }
-    _seen[cell] = true;
+    _seen[cell] = tile_visibility::Visible;
 }
 
-void level::mark_all_seen()
+void level::reveal_map()
 {
-    _seen.fill(true);
+    _seen.fill(tile_visibility::Explored);
+}
+
+void level::fade_vision()
+{
+    for (auto& s : _seen) {
+        if (s == tile_visibility::Visible) {
+            s = tile_visibility::Explored;
+        }
+    }
 }
 
 void level::show_message(string const& msg)

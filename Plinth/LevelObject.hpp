@@ -20,6 +20,8 @@ public:
     degree_d Facing {0};
     u32      LightMask {LIGHT_LAYERS_ALL};
 
+    bool Seen {false};
+
     auto facing_index(point_d cameraPos) const -> i32;
 
     auto screen_size(f64 scale) const -> size_i;
@@ -78,6 +80,8 @@ public:
 
     auto dead() const -> bool;
     void kill();
+
+    auto is_seen() const -> bool;
 
     auto overlaps(point_d pos, f64 radius) const -> bool;
 

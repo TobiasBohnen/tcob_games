@@ -49,6 +49,14 @@ auto level_object::map_marker() const -> color { return _mapMarker; }
 auto level_object::dead() const -> bool { return _dead; }
 void level_object::kill() { _dead = true; }
 
+auto level_object::is_seen() const -> bool
+{
+    if (auto const* s {sprite()}) { return s->Seen; }
+    if (auto const* v {voxel()}) { return v->Seen; }
+
+    return false;
+}
+
 auto level_object::position() const -> point_d
 {
     if (auto const* s {sprite()}) { return s->Position; }

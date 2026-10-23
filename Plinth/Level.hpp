@@ -12,6 +12,12 @@
 
 class level {
 public:
+    enum class tile_visibility : u8 {
+        Hidden,  // Never seen
+        Visible, // Seen in the current frame / FOV
+        Explored // Seen before, but currently out of view (memory)
+    };
+
     level();
 
     void update(milliseconds deltaSeconds);
@@ -26,9 +32,10 @@ public:
 
     void toggle_wall(point_i p);
 
-    auto is_seen(point_i cell) const -> bool;
-    void mark_seen(point_i cell);
-    void mark_all_seen();
+    auto get_visibility(point_i cell) const -> tile_visibility;
+    void mark_visible(point_i cell);
+    void reveal_map();
+    void fade_vision();
 
     void show_message(string const& msg);
     auto get_message() const -> string const&;
@@ -43,8 +50,8 @@ public:
 private:
     auto closest_point_on_wall(point_i map, point_d pos) const -> std::optional<point_d>;
 
-    map_t                                    _map;
-    static_grid<bool, MAP_WIDTH, MAP_HEIGHT> _seen;
+    map_t                                               _map;
+    static_grid<tile_visibility, MAP_WIDTH, MAP_HEIGHT> _seen;
 
     std::vector<level_object> _objects;
     uid                       _nextId {0};
