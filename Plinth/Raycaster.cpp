@@ -10,6 +10,7 @@
 #include <cmath>
 #include <limits>
 #include <numbers>
+#include <optional>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -89,32 +90,9 @@ static auto DitherTint(color_d tint, isize x, isize y, quality_settings const& q
 
 static auto IsWithinPlayerLight(player const& player, point_i const& cell) -> bool
 {
-    // largest squared 2D distance at which the player light still reaches
-    auto const compute_seen_range_sq {[&]() -> f64 {
-        f64 const range {player.Settings.LightRange};
-        f64 const rangeSq {range * range};
-        f64 const intensity {player.Settings.LightIntensity};
-
-        if (ComputeFalloff(0.0, rangeSq, intensity) < 0) { return -1.0; }
-
-        f64 lo {0.0};
-        f64 hi {rangeSq};
-        for (i32 i {0}; i < 40; ++i) {
-            f64 const mid {0.5 * (lo + hi)};
-            if (ComputeFalloff(mid, rangeSq, intensity) >= 0) {
-                lo = mid;
-            } else {
-                hi = mid;
-            }
-        }
-        return lo;
-    }};
-
-    f64 const seenRangeSq {compute_seen_range_sq()};
-
-    point_d const cellCenter {cell.X + 0.5, cell.Y + 0.5};
-    point_d const toCell {cellCenter - player.Position};
-    return toCell.dot(toCell) <= seenRangeSq; // negative seenRangeSq never matches
+    f64 const     range {player.Settings.LightRange};
+    point_d const toCell {point_d {cell.X + 0.5, cell.Y + 0.5} - player.Position};
+    return toCell.dot(toCell) <= range * range;
 }
 
 ////////////////////////////////////////////////////////////
@@ -531,7 +509,6 @@ void raycaster::draw_sprites(level& level, player const& player, i32 screenCente
         if (!spr) { continue; }
 
         spr->Seen = false;
-        if (!IsWithinPlayerLight(player, WorldToCell(spr->Position))) { continue; }
 
         auto const relPos {spr->Position - player.Position};
 
@@ -563,11 +540,12 @@ void raycaster::draw_sprites(level& level, player const& player, i32 screenCente
 
         auto const spriteCell {WorldToCell(spr->Position)};
         auto const spriteTint {accumulate_light(player, spr->Position, spr->BaseZ, spriteCell, spr->LightMask)};
+        bool const inLight {IsWithinPlayerLight(player, spriteCell)};
 
         for (i32 x {drawStart.X}; x < drawEnd.X; ++x) {
             if (transformY >= _zBuffer[x]) { continue; }
 
-            spr->Seen = true;
+            if (inLight) { spr->Seen = true; }
 
             i32 const texX {std::clamp(((x - spriteLeft) * texSize.Width) / spriteSize.Width, 0, texSize.Width - 1)};
             f64       texPos {texPosYStart};
@@ -617,8 +595,6 @@ void raycaster::draw_voxel_objects(level& level, player const& player, i32 scree
         vo->Seen = false;
         if (!vo->Grid) { continue; }
 
-        if (!IsWithinPlayerLight(player, WorldToCell(vo->Position))) { continue; }
-
         auto const xf {vo->make_transform()};
 
         f64  bboxMinX {std::numeric_limits<f64>::infinity()}, bboxMaxX {-std::numeric_limits<f64>::infinity()};
@@ -654,7 +630,7 @@ void raycaster::draw_voxel_objects(level& level, player const& player, i32 scree
         for (i32 x {xStart}; x < xEnd; ++x) { maxWallDist = std::max(maxWallDist, _zBuffer[x]); }
         if (bboxMinDepth >= maxWallDist) { continue; }
 
-        vo->Seen = true;
+        if (IsWithinPlayerLight(player, WorldToCell(vo->Position))) { vo->Seen = true; }
 
         f64 const maxT {maxWallDist + vo->world_diagonal()};
 
