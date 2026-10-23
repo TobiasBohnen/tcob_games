@@ -484,10 +484,10 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
             cellCeilTexPtr  = cellCeilTex != INVALID_INDEX ? _cache.texture(cellCeilTex, 0) : nullptr;
         }
 
-        u8 const* const tex {isFloor ? cellFloorTexPtr : cellCeilTexPtr};
+        u8 const* tex {isFloor ? cellFloorTexPtr : cellCeilTexPtr};
         if (tex == nullptr) {
-            screenBuf[PixelIndex(_screenSize, x, y)] = 0xFF000000u; // this cell has no texture for this surface
-            return;
+            if (wallTexPtr == nullptr) { wallTexPtr = _cache.texture(hit.Texture, 0); }
+            tex = wallTexPtr; // no floor/ceiling texture for this cell: use the wall texture instead
         }
 
         shade_and_write(screenBuf, x, y, tex, texelOffset, player, currentFloor, isFloor ? 0.0 : 1.0);
