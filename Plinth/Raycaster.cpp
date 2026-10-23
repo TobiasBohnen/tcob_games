@@ -34,11 +34,6 @@ constexpr f64 CONTACT_SHADOW_WIDTH {0.3};
 constexpr f64 CONTACT_SHADOW_STRENGTH {0.75};
 constexpr f64 DITHERING_LIGHT_BANDS {8};
 
-constexpr std::array<f64, 16> BAYER_4X4 {0.03125, 0.53125, 0.15625, 0.65625,
-                                         0.78125, 0.28125, 0.90625, 0.40625,
-                                         0.21875, 0.71875, 0.09375, 0.59375,
-                                         0.96875, 0.46875, 0.84375, 0.34375};
-
 static auto ApplyTint(u8 r, u8 g, u8 b, color_d tint) -> u32
 {
     u8 const tr {static_cast<u8>(std::min(r * tint.R, 255.0))};
@@ -80,6 +75,11 @@ static auto WorldToCell(point_d const& p) -> point_i { return {static_cast<i32>(
 
 static auto DitherTint(color_d tint, isize x, isize y, quality_settings const& quality) -> color_d
 {
+    constexpr static std::array<f64, 16> BAYER_4X4 {0.03125, 0.53125, 0.15625, 0.65625,
+                                                    0.78125, 0.28125, 0.90625, 0.40625,
+                                                    0.21875, 0.71875, 0.09375, 0.59375,
+                                                    0.96875, 0.46875, 0.84375, 0.34375};
+
     if (!quality.Dithering) { return tint; }
 
     f64 const  invBands {1.0 / DITHERING_LIGHT_BANDS};
