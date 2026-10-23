@@ -15,20 +15,7 @@ public:
 
     std::function<void(std::span<u32>)> ScreenEffect;
 
-    auto draw(level& level, player const& player, std::span<u32> screen, size_i screenSize) -> std::span<u32>
-    {
-        _screen     = screen;
-        _screenSize = screenSize;
-
-        draw_weapon(player);
-
-        draw_screen_effect();
-
-        draw_hud(player);
-        draw_message(level);
-
-        return _screen;
-    }
+    auto draw(level& level, player const& player, std::span<u32> screen, size_i screenSize) -> std::span<u32>;
 
 private:
     void draw_screen_effect();
