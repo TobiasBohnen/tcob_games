@@ -28,19 +28,19 @@ void level::update(milliseconds deltaTime)
     std::erase_if(_objects, [](level_object const& go) { return go.dead(); });
 }
 
-auto level::get_cell(point_i p) const -> cell const&
+auto level::get_cell(point_i idx) const -> cell const&
 {
-    return _map[p];
+    return _map[idx];
 }
 
-void level::set_cell(point_i p, cell const& cell)
+void level::set_cell(point_i idx, cell const& cell)
 {
-    _map[p] = cell;
+    _map[idx] = cell;
 }
 
-auto level::surface(point_i const& cell) const -> cell_surface
+auto level::surface(point_i idx) const -> cell_surface
 {
-    if (!map_t::Size.contains(cell)) { return {}; }
+    if (!map_t::Size.contains(idx)) { return {}; }
 
     return std::visit([](auto&& c) -> cell_surface {
         cell_surface s {};
@@ -49,7 +49,7 @@ auto level::surface(point_i const& cell) const -> cell_surface
         if constexpr (requires { c.FloorReflectivity; }) { s.FloorReflectivity = c.FloorReflectivity; }
         return s;
     },
-                      get_cell(cell));
+                      get_cell(idx));
 }
 
 auto level::is_clear(point_d pos, f64 radius, uid ignore) const -> bool
@@ -77,6 +77,23 @@ auto level::is_wall_clear(point_d pos, f64 radius) const -> bool
     }
 
     return true;
+}
+
+auto level::is_blocking_light(point_i idx) const -> bool
+{
+    if (!map_t::Size.contains(idx)) { return {}; }
+
+    return std::visit([](auto&& c) -> bool {
+        using T = std::decay_t<decltype(c)>;
+        if constexpr (std::is_same_v<T, floor_cell>) {
+            return false;
+        } else if constexpr (requires { c.State; }) {
+            return c.State != wall_state::Open; // doors/push walls: open = passable
+        } else {
+            return true;                        // normal_wall, obstacle, diagonal_wall: always solid
+        }
+    },
+                      get_cell(idx));
 }
 
 auto level::closest_point_on_wall(point_i map, point_d pos) const -> std::optional<point_d>
@@ -148,7 +165,7 @@ auto level::closest_point_on_wall(point_i map, point_d pos) const -> std::option
         });
 }
 
-void level::toggle_wall(point_i p)
+void level::toggle_wall(point_i idx)
 {
     std::visit(
         [](auto&& w) {
@@ -156,19 +173,19 @@ void level::toggle_wall(point_i p)
                 w.toggle();
             }
         },
-        _map[p]);
+        _map[idx]);
 }
 
-auto level::get_visibility(point_i cell) const -> tile_visibility
+auto level::get_visibility(point_i idx) const -> tile_visibility
 {
-    if (!map_t::Size.contains(cell)) { return tile_visibility::Hidden; }
-    return _seen[cell];
+    if (!map_t::Size.contains(idx)) { return tile_visibility::Hidden; }
+    return _seen[idx];
 }
 
-void level::mark_visible(point_i cell)
+void level::mark_visible(point_i idx)
 {
-    if (!map_t::Size.contains(cell)) { return; }
-    _seen[cell] = tile_visibility::Visible;
+    if (!map_t::Size.contains(idx)) { return; }
+    _seen[idx] = tile_visibility::Visible;
 }
 
 void level::reveal_map()

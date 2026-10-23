@@ -28,19 +28,20 @@ public:
 
     void update(milliseconds deltaTime);
 
-    auto get_cell(point_i p) const -> cell const&;
-    void set_cell(point_i p, cell const& cell);
-    auto surface(point_i const& cell) const -> cell_surface;
+    auto get_cell(point_i idx) const -> cell const&;
+    void set_cell(point_i idx, cell const& cell);
+    auto surface(point_i idx) const -> cell_surface;
 
     auto is_clear(point_d pos, f64 radius, uid ignore = 0) const -> bool;
     auto is_wall_clear(point_d pos, f64 radius) const -> bool;
+    auto is_blocking_light(point_i idx) const -> bool;
 
     auto hit_test(this auto&& self, point_d pos, f64 radius, uid ignore = 0);
 
-    void toggle_wall(point_i p);
+    void toggle_wall(point_i idx);
 
-    auto get_visibility(point_i cell) const -> tile_visibility;
-    void mark_visible(point_i cell);
+    auto get_visibility(point_i idx) const -> tile_visibility;
+    void mark_visible(point_i idx);
     void reveal_map();
     void fade_vision();
 

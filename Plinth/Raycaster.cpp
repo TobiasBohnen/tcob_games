@@ -12,7 +12,6 @@
 #include <numbers>
 #include <optional>
 #include <tuple>
-#include <type_traits>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -128,21 +127,6 @@ void raycaster::precompute_light_visibility(level const& level)
 
     usize const losSamples {static_cast<usize>(_quality.LightLosSamples)};
 
-    auto const is_cell_blocking {[&level](point_i const& cell) -> bool {
-        if (!map_t::Size.contains(cell)) { return true; }
-        return std::visit([](auto&& c) -> bool {
-            using T = std::decay_t<decltype(c)>;
-            if constexpr (std::is_same_v<T, floor_cell>) {
-                return false;
-            } else if constexpr (requires { c.State; }) {
-                return c.State != wall_state::Open; // doors/push walls: open = passable
-            } else {
-                return true;                        // normal_wall, obstacle, diagonal_wall: always solid
-            }
-        },
-                          level.get_cell(cell));
-    }};
-
     auto const cell_has_any_line_of_sight {[&](point_i const& cell, point_d const& lightPos) -> bool {
         auto const lightCell {WorldToCell(lightPos)};
 
@@ -187,7 +171,7 @@ void raycaster::precompute_light_visibility(level const& level)
                 if (!map_t::Size.contains(map)) { break; }
                 if (map == lightCell) { break; }
 
-                if (is_cell_blocking(map)) {
+                if (level.is_blocking_light(map)) {
                     visible = false;
                     break;
                 }
