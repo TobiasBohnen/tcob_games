@@ -368,7 +368,10 @@ void raycaster::draw_columns(level& level, player const& player, i32 screenCente
             }
         }
 
-        if (!hitResult) { continue; }
+        if (!hitResult) {
+            _zBuffer[x] = std::numeric_limits<f64>::infinity();
+            continue;
+        }
 
         _zBuffer[x] = hitResult->Distance;
 
