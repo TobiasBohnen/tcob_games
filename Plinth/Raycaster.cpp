@@ -324,19 +324,15 @@ void raycaster::draw_columns(level& level, player const& player, i32 screenCente
                                  (rayDir.Y == 0) ? INFINITE_DIST : std::abs(1 / rayDir.Y)};
 
         point_i step {rayDir.X < 0 ? -1 : 1, rayDir.Y < 0 ? -1 : 1};
-        point_d sideDist {
-            (rayDir.X < 0) ? (player.Position.X - map.X) * deltaDist.X : (map.X + 1.0 - player.Position.X) * deltaDist.X,
-            (rayDir.Y < 0) ? (player.Position.Y - map.Y) * deltaDist.Y : (map.Y + 1.0 - player.Position.Y) * deltaDist.Y};
+        point_d sideDist {(rayDir.X < 0) ? (player.Position.X - map.X) * deltaDist.X : (map.X + 1.0 - player.Position.X) * deltaDist.X,
+                          (rayDir.Y < 0) ? (player.Position.Y - map.Y) * deltaDist.Y : (map.Y + 1.0 - player.Position.Y) * deltaDist.Y};
 
         std::optional<wall_hit> hitResult {std::nullopt};
 
         // check player cell
         {
             auto const intersect {[&](auto&& c) { return c.intersect({map, player.Position, rayDir, sideDist.X < sideDist.Y, 0.0}); }};
-
-            if (auto const wallHit {std::visit(intersect, level.get_cell(map))}) {
-                hitResult = wallHit;
-            }
+            if (auto const wallHit {std::visit(intersect, level.get_cell(map))}) { hitResult = wallHit; }
             if (IsWithinPlayerLight(player, map)) { level.mark_visible(map); }
         }
 
@@ -360,8 +356,7 @@ void raycaster::draw_columns(level& level, player const& player, i32 screenCente
 
                 if (IsWithinPlayerLight(player, map)) { level.mark_visible(map); }
 
-                auto const wallHit {std::visit(intersect, level.get_cell(map))};
-                if (wallHit) {
+                if (auto const wallHit {std::visit(intersect, level.get_cell(map))}) {
                     hitResult = wallHit;
                     break;
                 }
