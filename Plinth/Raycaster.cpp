@@ -612,11 +612,11 @@ void raycaster::draw_voxel_objects(level& level, player const& player, i32 scree
                 i32 const x {xStart + (static_cast<i32>(scol) * stride)};
                 if (x >= xEnd) { continue; }
 
-                auto const rayDir2D {ComputeCameraRayDir(x, _screenSize.Width, player)};
+                auto const rayDir2D {ComputeCameraRayDir(x + ((stride - 1) / 2), _screenSize.Width, player)};
                 i32 const  xBlockEnd {std::min(x + stride, xEnd)};
 
                 for (i32 y {yStart}; y < yEnd; y += stride) {
-                    f64 const  rayDirZ {(screenCenterY - y) / _projPlaneDist};
+                    f64 const  rayDirZ {(screenCenterY - (y + (0.5 * stride))) / _projPlaneDist};
                     auto const rayDir3D {point3_d {.X = rayDir2D.X, .Y = rayDir2D.Y, .Z = rayDirZ}.normalized()};
 
                     auto const localDir {xf.dir_to_local(rayDir3D)};
