@@ -32,6 +32,7 @@ constexpr f64 INV_255 {1.0 / 255.0};
 constexpr f64 CONTACT_SHADOW_WIDTH {0.3};
 constexpr f64 CONTACT_SHADOW_STRENGTH {0.75};
 constexpr f64 DITHERING_LIGHT_BANDS {8};
+constexpr f64 DITHER_MIN_DIST_SQ {0.5}; // closer than this, surfaces are drawn smooth
 
 static auto ApplyTint(u8 r, u8 g, u8 b, color_d tint) -> u32
 {
@@ -267,11 +268,13 @@ auto raycaster::accumulate_light(player const& player, point_d const& surfacePos
     return {.R = tone_map(total.R), .G = tone_map(total.G), .B = tone_map(total.B)};
 }
 
-void raycaster::shade_and_write(isize x, isize y, u8 const* tex, isize srcIdx, player const& player, point_d const& surfacePos, f64 surfaceZ)
+void raycaster::draw_surface_pixel(isize x, isize y, u8 const* tex, isize srcIdx, player const& player, point_d const& surfacePos, f64 surfaceZ)
 {
     point_i const cell {WorldToCell(surfacePos)};
     color_d const tint {accumulate_light(player, surfacePos, surfaceZ, cell)};
-    CopyPixel(_screen.data(), PixelIndex(_screenSize, x, y), tex, srcIdx, DitherTint(tint, x, y, _quality));
+    point_d const toSurface {surfacePos - player.Position};
+    bool const    close {toSurface.dot(toSurface) < DITHER_MIN_DIST_SQ};
+    CopyPixel(_screen.data(), PixelIndex(_screenSize, x, y), tex, srcIdx, close ? tint : DitherTint(tint, x, y, _quality));
 }
 
 auto raycaster::draw(level& level, player const& player) -> std::span<u32>
@@ -384,7 +387,7 @@ void raycaster::draw_wall_column(wall_hit const& hit, player const& player, isiz
         i32 const srcIdx {(texX + (texY * WALL_SIZE.Width)) * TEXTURE_BPP};
 
         f64 const worldZ {std::clamp((extent.Bottom - y) / wallHeight, 0.0, 1.0)};
-        shade_and_write(x, y, tex, srcIdx, player, surfacePos, worldZ);
+        draw_surface_pixel(x, y, tex, srcIdx, player, surfacePos, worldZ);
     }
 }
 
@@ -430,7 +433,7 @@ void raycaster::draw_floor_ceiling_column(wall_hit const& hit, level const& leve
             tex = wallTexPtr; // no floor/ceiling texture for this cell: use the wall texture instead
         }
 
-        shade_and_write(x, y, tex, texelOffset, player, currentFloor, isFloor ? 0.0 : 1.0);
+        draw_surface_pixel(x, y, tex, texelOffset, player, currentFloor, isFloor ? 0.0 : 1.0);
 
         f64 const wallGap {std::max(hit.Distance - rowDist, 0.0)};
         if (_quality.ContactShadows && std::isfinite(rowDist) && wallGap < CONTACT_SHADOW_WIDTH) {

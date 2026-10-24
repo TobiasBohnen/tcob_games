@@ -29,7 +29,7 @@ private:
 
     void precompute_light_visibility(level const& level);
     auto accumulate_light(player const& player, point_d const& surfacePos, f64 surfaceZ, point_i const& cell, u32 lightMask = LIGHT_LAYERS_ALL) const -> color_d;
-    void shade_and_write(isize x, isize y, u8 const* tex, isize srcIdx, player const& player, point_d const& surfacePos, f64 surfaceZ);
+    void draw_surface_pixel(isize x, isize y, u8 const* tex, isize srcIdx, player const& player, point_d const& surfacePos, f64 surfaceZ);
 
     void draw_columns(level& level, player const& player, i32 screenCenterY, i32 columnStart, i32 columnEnd);
     void draw_wall_column(wall_hit const& hit, player const& player, isize x, point_d rayDir, wall_extent const& extent);
