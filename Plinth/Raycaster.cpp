@@ -141,7 +141,6 @@ void raycaster::set_quality(quality_settings const& quality, f64 projPlaneDist)
 
 void raycaster::precompute_light_visibility(level const& level)
 {
-    constexpr static f64 WALL_LIGHT_Z {0.5};                           // approximate wall column as a flat plane at mid-height for lighting
     constexpr static f64 CELL_DIAGONAL_HALF {std::numbers::sqrt2 / 2}; // max distance from a cell's center to its farthest corner
 
     for (auto& list : _cellLights) { list.clear(); }
@@ -240,12 +239,17 @@ void raycaster::precompute_light_visibility(level const& level)
                 if (!sweep.Active || cy < sweep.CyMin || cy > sweep.CyMax) { continue; }
 
                 auto const& light {_dynamicLights[li]};
-                f64 const   dz {light.Z - WALL_LIGHT_Z};
 
                 for (i32 cx {sweep.CxMin}; cx <= sweep.CxMax; ++cx) {
                     point_d const cellCenter {cx + 0.5, cy + 0.5};
                     point_d const toLightXY {light.Position - cellCenter};
-                    f64 const     distSq {toLightXY.dot(toLightXY) + (dz * dz)};
+
+                    slope const slp {get_slope(point_i {cx, cy})};
+                    f64 const   lowZ {std::min({slp.TL, slp.TR, slp.BL, slp.BR})};
+                    f64 const   highZ {std::max({slp.TL, slp.TR, slp.BL, slp.BR}) + 1.0};
+                    f64 const   dz {std::max({lowZ - light.Z, light.Z - highZ, 0.0})};
+
+                    f64 const distSq {toLightXY.dot(toLightXY) + (dz * dz)};
                     if (distSq >= sweep.RadiusSq) { continue; }
 
                     if (cell_has_any_line_of_sight(point_i {cx, cy}, light.Position)) {
@@ -405,7 +409,6 @@ void raycaster::draw_columns(level& level, player const& player, i32 screenCente
         {
             auto const intersect {[&](auto&& c) { return c.intersect({map, player.Position, rayDir, sideDist.X < sideDist.Y, 0.0}); }};
             if (auto const wallHit {std::visit(intersect, level.get_cell(map))}) { hitResult = wallHit; }
-            if (IsWithinPlayerLight(player, map)) { level.mark_visible(map); }
         }
 
         bool const hitInPlayerCell {hitResult.has_value()};
@@ -428,8 +431,6 @@ void raycaster::draw_columns(level& level, player const& player, i32 screenCente
                 if (!map_t::Size.contains(map)) { break; }
 
                 crossed.push_back({.Cell = map, .Dist = !side ? sideDist.X - deltaDist.X : sideDist.Y - deltaDist.Y});
-
-                if (IsWithinPlayerLight(player, map)) { level.mark_visible(map); }
 
                 if (auto const wallHit {std::visit(intersect, level.get_cell(map))}) {
                     hitResult = wallHit;
@@ -469,7 +470,7 @@ void raycaster::draw_columns(level& level, player const& player, i32 screenCente
     }
 }
 
-void raycaster::draw_floor_ceiling_column(column_hit& col, level const& level, player const& player)
+void raycaster::draw_floor_ceiling_column(column_hit& col, level& level, player const& player)
 {
     constexpr static f64 CONTACT_SHADOW_WIDTH {0.3};
     constexpr static f64 CONTACT_SHADOW_STRENGTH {0.75};
@@ -590,9 +591,16 @@ void raycaster::draw_floor_ceiling_column(column_hit& col, level const& level, p
         point_i const      cell {col.Crossed[i].Cell};
         cell_surface const surface {level.surface(cell)};
 
+        i32 const bottomBefore {col.Bottom};
+        i32 const topBefore {col.Top};
+
         draw_flat(true, surface, cell, t0, t1);
         draw_flat(false, surface, cell, t0, t1);
+
+        if ((col.Bottom < bottomBefore || col.Top > topBefore) && IsWithinPlayerLight(player, cell)) { level.mark_visible(cell); }
     }
+
+    if (col.Top < col.Bottom && IsWithinPlayerLight(player, col.Cell)) { level.mark_visible(col.Cell); }
 }
 
 void raycaster::draw_wall_column(column_hit const& col, level const& level, player const& player)
@@ -696,8 +704,6 @@ void raycaster::draw_sprites(level& level, player const& player, i32 screenCente
         for (i32 x {drawStart.X}; x < drawEnd.X; ++x) {
             if (transformY >= _zBuffer[x]) { continue; }
 
-            if (inLight) { spr->Seen = true; }
-
             i32 const texX {std::clamp(((x - spriteLeft) * texSize.Width) / spriteSize.Width, 0, texSize.Width - 1)};
             f64       texPos {texPosYStart};
 
@@ -711,6 +717,7 @@ void raycaster::draw_sprites(level& level, player const& player, i32 screenCente
                 isize const depthIndex {PixelIndex(_screenSize, x, y)};
                 if (transformY < _objectDepthBuffer[depthIndex]) {
                     _objectDepthBuffer[depthIndex] = transformY;
+                    if (inLight) { spr->Seen = true; }
                     CopyPixel(screenBuf, PixelIndex(_screenSize, x, y), tex, texOffset, DitherTint(spriteTint, x, y, _quality));
                 }
             }
@@ -786,8 +793,6 @@ void raycaster::draw_voxel_objects(level& level, player const& player, i32 scree
         for (i32 x {xStart}; x < xEnd; ++x) { maxWallDist = std::max(maxWallDist, _zBuffer[x]); }
         if (bboxMinDepth >= maxWallDist) { continue; }
 
-        if (IsWithinPlayerLight(player, voCell)) { vo->Seen = true; }
-
         f64 const maxT {maxWallDist + vo->world_diagonal()};
 
         i32 const colCount {xEnd - xStart};
@@ -797,7 +802,11 @@ void raycaster::draw_voxel_objects(level& level, player const& player, i32 scree
                                                                : 1};
         i32 const strideCols {(colCount + stride - 1) / stride};
 
+        std::atomic_bool drawn {false};
+
         _taskManager.run_parallel([&](par_task const& ctx) {
+            bool wrote {false};
+
             for (isize scol {static_cast<isize>(ctx.Start)}; scol < static_cast<isize>(ctx.End); ++scol) {
                 i32 const x {xStart + (static_cast<i32>(scol) * stride)};
                 if (x >= xEnd) { continue; }
@@ -841,11 +850,16 @@ void raycaster::draw_voxel_objects(level& level, player const& player, i32 scree
 
                             _objectDepthBuffer[depthIndex] = depth;
                             screenBuf[depthIndex]          = ApplyTint(hit.Color.R, hit.Color.G, hit.Color.B, DitherTint(tint, bx, by, _quality));
+                            wrote                          = true;
                         }
                     }
                 }
             }
+
+            if (wrote) { drawn.store(true, std::memory_order_relaxed); }
         },
                                   strideCols);
+
+        vo->Seen = drawn.load(std::memory_order_relaxed) && IsWithinPlayerLight(player, voCell);
     }
 }

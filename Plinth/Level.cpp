@@ -186,7 +186,7 @@ auto level::get_visibility(point_i idx) const -> tile_visibility
 void level::mark_visible(point_i idx)
 {
     if (!map_t::Size.contains(idx)) { return; }
-    _seen[idx] = tile_visibility::Visible;
+    std::atomic_ref<tile_visibility> {_seen[idx]}.store(tile_visibility::Visible, std::memory_order_relaxed);
 }
 
 void level::reveal_map()

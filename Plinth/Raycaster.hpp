@@ -38,7 +38,7 @@ private:
     void draw_surface_pixel(isize x, isize y, u8 const* tex, isize srcIdx, player const& player, point_d const& surfacePos, f64 surfaceZ, f64 shade);
 
     void draw_columns(level& level, player const& player, i32 screenCenterY, i32 columnStart, i32 columnEnd);
-    void draw_floor_ceiling_column(column_hit& col, level const& level, player const& player);
+    void draw_floor_ceiling_column(column_hit& col, level& level, player const& player);
     void draw_wall_column(column_hit const& col, level const& level, player const& player);
 
     void draw_sprites(level& level, player const& player, i32 screenCenterY);
