@@ -14,6 +14,7 @@ struct cell_surface {
     i32 FloorTexture {INVALID_INDEX};
     i32 CeilingTexture {INVALID_INDEX};
     f64 FloorReflectivity {0.0};
+    f64 FloorZ {0.0};
 };
 
 class level {

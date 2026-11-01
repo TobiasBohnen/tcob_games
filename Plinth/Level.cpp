@@ -47,6 +47,7 @@ auto level::surface(point_i idx) const -> cell_surface
         if constexpr (requires { c.FloorTexture; }) { s.FloorTexture = c.FloorTexture; }
         if constexpr (requires { c.CeilingTexture; }) { s.CeilingTexture = c.CeilingTexture; }
         if constexpr (requires { c.FloorReflectivity; }) { s.FloorReflectivity = c.FloorReflectivity; }
+        if constexpr (requires { c.FloorZ; }) { s.FloorZ = c.FloorZ; }
         return s;
     },
                       get_cell(idx));

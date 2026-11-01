@@ -104,6 +104,7 @@ void engine::create_env()
             cellTable.try_get(cell.FloorTexture, "FloorTexture");
             cellTable.try_get(cell.CeilingTexture, "CeilingTexture");
             cellTable.try_get(cell.FloorReflectivity, "FloorReflectivity");
+            cellTable.try_get(cell.FloorZ, "FloorZ");
         }};
 
         if (string type; cellTable.try_get(type, "type")) {

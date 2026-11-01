@@ -300,7 +300,7 @@ void Plinth::action_toggle_map()
 
 void Plinth::action_fire()
 {
-    sprite_object const sprite {.BaseZ     = 0.25,
+    sprite_object const sprite {.BaseZ     = _player.EyeZ,
                                 .Size      = {0.05, 0.15},
                                 .Texture   = ballTexture,
                                 .LightMask = LIGHT_LAYER_SPELL};

@@ -22,11 +22,11 @@ local PREFABS = {
     { -- 7x7 room with two pillars
         rows = {
             "2..o..2",
-            "2.....2",
-            "2..P..2",
-            "o.....o",
-            "2..P..2",
-            "2.....2",
+            "2..Q..2",
+            "2..Q..2",
+            "o..B..o",
+            "2. B..2",
+            "2..Q..2",
             "2..o..2",
         },
     },
@@ -67,16 +67,16 @@ local PREFABS = {
     { -- long corridor room with pillars
         rows = {
             "o..........o",
-            "6.P..P..P..6",
-            "6..........6",
+            "6.QBBBQ..P..6",
+            "6....QQ....6",
             "o..........o",
         },
     },
     { -- double-door vault (two separate entrances)
         rows            = {
             "77777D77777",
-            "7.........7",
-            "7....P....7",
+            "7.....Q...7",
+            "7..QBBBBQ.7",
             "7.........7",
             "77777D77777",
         },
@@ -97,7 +97,7 @@ local PREFABS = {
         rows = {
             "9..o..9",
             "9.....9",
-            "o..B..o",
+            "o.QB..o",
             "9.....9",
             "9..o..9",
         },
@@ -213,15 +213,21 @@ local cell_factories = {
 
     B = function(prefab)
         return with_surfaces(prefab, {
-            type   = "obstacle",
-            Shapes = { shape(0.2, 0.2, 0.6, false, prefab.wall_texture) },
+            type   = "floor_cell",
+            FloorZ = 0.25,
         })
     end,
-
+    Q = function(prefab)
+        return with_surfaces(prefab, {
+            type   = "floor_cell",
+            FloorZ = -0.2,
+        })
+    end,
     P = function(prefab)
         local texture = prefab.wall_texture
         return with_surfaces(prefab, {
             type              = "obstacle",
+            FloorZ            = -0.15,
             Shapes            = {
                 shape(0.1, 0.1, 0.2, true, texture),
                 shape(0.5, 0.5, 0.2, true, texture),

@@ -11,11 +11,18 @@
 
 #include "Level.hpp"
 
+struct slope {
+    f64 TL {0};
+    f64 TR {0};
+    f64 BL {0};
+    f64 BR {0};
+};
+
 class raycaster {
 public:
     explicit raycaster(texture_cache& cache);
 
-    auto draw(level& level, player const& player) -> std::span<u32>;
+    auto draw(level& level, player& player) -> std::span<u32>;
 
     void set_quality(quality_settings const& quality, f64 projPlaneDist);
 
@@ -24,10 +31,14 @@ private:
 
     void precompute_light_visibility(level const& level);
     auto accumulate_light(player const& player, point_d const& surfacePos, f64 surfaceZ, point_i const& cell, u32 lightMask) const -> color_d;
+
+    void precompute_slopes(level const& level);
+    auto get_slope(point_i const& cell) const -> slope;
+
     void draw_surface_pixel(isize x, isize y, u8 const* tex, isize srcIdx, player const& player, point_d const& surfacePos, f64 surfaceZ, f64 shade);
 
     void draw_columns(level& level, player const& player, i32 screenCenterY, i32 columnStart, i32 columnEnd);
-    void draw_floor_ceiling_column(column_hit const& col, level const& level, player const& player);
+    void draw_floor_ceiling_column(column_hit& col, level const& level, player const& player);
     void draw_wall_column(column_hit const& col, level const& level, player const& player);
 
     void draw_sprites(level& level, player const& player, i32 screenCenterY);
@@ -35,6 +46,7 @@ private:
 
     std::vector<dynamic_light>    _dynamicLights;
     std::vector<std::vector<u32>> _cellLights;
+    std::vector<slope>            _cellSlopes;
 
     std::vector<u32> _screen;
 

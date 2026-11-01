@@ -21,6 +21,7 @@ public:
     player_settings Settings {};
 
     point_d Position {};
+    f64     EyeZ {0.0};
     point_d Direction {};
     point_d Plane {};
 

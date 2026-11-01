@@ -44,6 +44,7 @@ struct floor_cell {
     i32 FloorTexture {INVALID_INDEX};
     i32 CeilingTexture {INVALID_INDEX};
     f64 FloorReflectivity {0.0};
+    f64 FloorZ {0.0};
 
     auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
 };
@@ -70,6 +71,7 @@ struct door_wall {
     i32 FloorTexture {INVALID_INDEX};
     i32 CeilingTexture {INVALID_INDEX};
     f64 FloorReflectivity {0.0};
+    f64 FloorZ {0.0};
 
     auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
     void update(f64 dt);
@@ -88,6 +90,7 @@ struct push_wall {
     i32 FloorTexture {INVALID_INDEX};
     i32 CeilingTexture {INVALID_INDEX};
     f64 FloorReflectivity {0.0};
+    f64 FloorZ {0.0};
 
     auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
     void update(f64 dt);
@@ -109,6 +112,7 @@ struct obstacle {
     i32 FloorTexture {INVALID_INDEX};
     i32 CeilingTexture {INVALID_INDEX};
     f64 FloorReflectivity {0.0};
+    f64 FloorZ {0.0};
 
     auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
 };
@@ -125,6 +129,7 @@ struct diagonal_wall {
     i32 FloorTexture {INVALID_INDEX};
     i32 CeilingTexture {INVALID_INDEX};
     f64 FloorReflectivity {0.0};
+    f64 FloorZ {0.0};
 
     auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
 };
