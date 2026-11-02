@@ -46,11 +46,11 @@ public:
     auto surface(point_i idx) const -> cell_surface;
 
     void precompute_slopes();
-    auto slope_at(point_i const& cell) const -> slope;
+    auto slope_at(point_i idx) const -> slope;
 
     void update_light_visibility(usize losSamples);
     auto lights() const -> std::span<dynamic_light const>;
-    auto lights_at(point_i const& cell) const -> std::span<u32 const>;
+    auto lights_at(point_i idx) const -> std::span<u32 const>;
 
     auto is_clear(point_d pos, f64 radius, uid ignore = 0) const -> bool;
     auto is_wall_clear(point_d pos, f64 radius) const -> bool;
@@ -86,6 +86,8 @@ private:
     std::vector<dynamic_light>    _lights;
     std::vector<std::vector<u32>> _cellLights;
     usize                         _losSamples {0};
+
+    task_manager& _taskManager;
 };
 
 inline auto level::hit_test(this auto&& self, point_d pos, f64 radius, uid ignore)

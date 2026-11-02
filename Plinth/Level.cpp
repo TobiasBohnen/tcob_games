@@ -21,7 +21,10 @@
 #include "Common.hpp"
 #include "Walls.hpp"
 
-level::level() = default;
+level::level()
+    : _taskManager {locate_service<task_manager>()}
+{
+}
 
 void level::update(milliseconds deltaTime)
 {
@@ -89,18 +92,18 @@ void level::precompute_slopes()
     }
 }
 
-auto level::slope_at(point_i const& cell) const -> slope
+auto level::slope_at(point_i idx) const -> slope
 {
-    if (!map_t::Size.contains(cell)) { return {}; }
-    return _cellSlopes[static_cast<usize>((cell.Y * MAP_WIDTH) + cell.X)];
+    if (!map_t::Size.contains(idx)) { return {}; }
+    return _cellSlopes[static_cast<usize>((idx.Y * MAP_WIDTH) + idx.X)];
 }
 
 auto level::lights() const -> std::span<dynamic_light const> { return _lights; }
 
-auto level::lights_at(point_i const& cell) const -> std::span<u32 const>
+auto level::lights_at(point_i idx) const -> std::span<u32 const>
 {
-    if (!map_t::Size.contains(cell) || _cellLights.empty()) { return {}; }
-    return _cellLights[static_cast<usize>((cell.Y * MAP_WIDTH) + cell.X)];
+    if (!map_t::Size.contains(idx) || _cellLights.empty()) { return {}; }
+    return _cellLights[static_cast<usize>((idx.Y * MAP_WIDTH) + idx.X)];
 }
 
 void level::update_light_visibility(usize losSamples)
@@ -216,7 +219,7 @@ void level::update_light_visibility(usize losSamples)
         sweep.CyMax    = std::clamp(static_cast<i32>(std::floor(lt.Position.Y + sweepRadius)), 0, MAP_HEIGHT - 1);
     }
 
-    locate_service<task_manager>().run_parallel([&](par_task const& ctx) {
+    _taskManager.run_parallel([&](par_task const& ctx) {
         for (i32 cy {static_cast<i32>(ctx.Start)}; cy < static_cast<i32>(ctx.End); ++cy) {
             for (usize li {0}; li < sweeps.size(); ++li) {
                 auto const& sweep {sweeps[li]};
@@ -244,7 +247,7 @@ void level::update_light_visibility(usize losSamples)
             }
         }
     },
-                                                MAP_HEIGHT);
+                              MAP_HEIGHT);
 }
 
 auto level::surface(point_i idx) const -> cell_surface
