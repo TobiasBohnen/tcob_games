@@ -38,6 +38,52 @@ void level::set_cell(point_i idx, cell const& cell)
     _map[idx] = cell;
 }
 
+void level::precompute_slopes()
+{
+    _cellSlopes.resize(static_cast<usize>(MAP_WIDTH) * MAP_HEIGHT);
+
+    auto const vertex_height {[&](i32 vx, i32 vy) -> f64 {
+        f64  extremeZ {0.0};
+        bool found {false};
+        for (i32 cy : {vy - 1, vy}) {
+            for (i32 cx : {vx - 1, vx}) {
+                point_i const c {cx, cy};
+                if (map_t::Size.contains(c)) {
+                    f64 const z {surface(c).FloorZ};
+                    if (!found) {
+                        extremeZ = z;
+                        found    = true;
+                    } else {
+                        if (std::abs(z) > std::abs(extremeZ)) {
+                            extremeZ = z;
+                        } else if (std::abs(z) == std::abs(extremeZ)) {
+                            extremeZ = std::max(extremeZ, z);
+                        }
+                    }
+                }
+            }
+        }
+        return found ? extremeZ : 0.0;
+    }};
+
+    for (i32 y {0}; y < MAP_HEIGHT; ++y) {
+        for (i32 x {0}; x < MAP_WIDTH; ++x) {
+            usize const index {static_cast<usize>((y * MAP_WIDTH) + x)};
+            _cellSlopes[index] = slope {
+                .TL = vertex_height(x, y),
+                .TR = vertex_height(x + 1, y),
+                .BL = vertex_height(x, y + 1),
+                .BR = vertex_height(x + 1, y + 1)};
+        }
+    }
+}
+
+auto level::get_slope(point_i const& cell) const -> slope
+{
+    if (!map_t::Size.contains(cell)) { return {}; }
+    return _cellSlopes[static_cast<usize>((cell.Y * MAP_WIDTH) + cell.X)];
+}
+
 auto level::surface(point_i idx) const -> cell_surface
 {
     if (!map_t::Size.contains(idx)) { return {}; }

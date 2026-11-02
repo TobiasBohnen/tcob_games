@@ -17,6 +17,13 @@ struct cell_surface {
     f64 FloorZ {0.0};
 };
 
+struct slope {
+    f64 TL {0};
+    f64 TR {0};
+    f64 BL {0};
+    f64 BR {0};
+};
+
 class level {
 public:
     enum class tile_visibility : u8 {
@@ -32,6 +39,9 @@ public:
     auto get_cell(point_i idx) const -> cell const&;
     void set_cell(point_i idx, cell const& cell);
     auto surface(point_i idx) const -> cell_surface;
+
+    void precompute_slopes();
+    auto get_slope(point_i const& cell) const -> slope;
 
     auto is_clear(point_d pos, f64 radius, uid ignore = 0) const -> bool;
     auto is_wall_clear(point_d pos, f64 radius) const -> bool;
@@ -67,6 +77,8 @@ private:
 
     milliseconds _messageTimer {};
     string       _message;
+
+    std::vector<slope> _cellSlopes;
 };
 
 inline auto level::hit_test(this auto&& self, point_d pos, f64 radius, uid ignore)

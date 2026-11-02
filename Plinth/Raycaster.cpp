@@ -244,7 +244,7 @@ void raycaster::precompute_light_visibility(level const& level)
                     point_d const cellCenter {cx + 0.5, cy + 0.5};
                     point_d const toLightXY {light.Position - cellCenter};
 
-                    slope const slp {get_slope(point_i {cx, cy})};
+                    slope const slp {level.get_slope(point_i {cx, cy})};
                     f64 const   lowZ {std::min({slp.TL, slp.TR, slp.BL, slp.BR})};
                     f64 const   highZ {std::max({slp.TL, slp.TR, slp.BL, slp.BR}) + 1.0};
                     f64 const   dz {std::max({lowZ - light.Z, light.Z - highZ, 0.0})};
@@ -297,52 +297,6 @@ auto raycaster::accumulate_light(player const& player, point_d const& surfacePos
     return {.R = tone_map(total.R), .G = tone_map(total.G), .B = tone_map(total.B)};
 }
 
-void raycaster::precompute_slopes(level const& level)
-{
-    _cellSlopes.resize(static_cast<usize>(MAP_WIDTH) * MAP_HEIGHT);
-
-    auto const vertex_height {[&](i32 vx, i32 vy) -> f64 {
-        f64  extremeZ {0.0};
-        bool found {false};
-        for (i32 cy : {vy - 1, vy}) {
-            for (i32 cx : {vx - 1, vx}) {
-                point_i const c {cx, cy};
-                if (map_t::Size.contains(c)) {
-                    f64 const z {level.surface(c).FloorZ};
-                    if (!found) {
-                        extremeZ = z;
-                        found    = true;
-                    } else {
-                        if (std::abs(z) > std::abs(extremeZ)) {
-                            extremeZ = z;
-                        } else if (std::abs(z) == std::abs(extremeZ)) {
-                            extremeZ = std::max(extremeZ, z);
-                        }
-                    }
-                }
-            }
-        }
-        return found ? extremeZ : 0.0;
-    }};
-
-    for (i32 y {0}; y < MAP_HEIGHT; ++y) {
-        for (i32 x {0}; x < MAP_WIDTH; ++x) {
-            usize const index {static_cast<usize>((y * MAP_WIDTH) + x)};
-            _cellSlopes[index] = slope {
-                .TL = vertex_height(x, y),
-                .TR = vertex_height(x + 1, y),
-                .BL = vertex_height(x, y + 1),
-                .BR = vertex_height(x + 1, y + 1)};
-        }
-    }
-}
-
-auto raycaster::get_slope(point_i const& cell) const -> slope
-{
-    if (!map_t::Size.contains(cell)) { return {}; }
-    return _cellSlopes[static_cast<usize>((cell.Y * MAP_WIDTH) + cell.X)];
-}
-
 void raycaster::draw_surface_pixel(isize x, isize y, u8 const* tex, isize srcIdx, player const& player, point_d const& surfacePos, f64 surfaceZ, f64 shade)
 {
     constexpr static f64 DITHER_MIN_DIST_SQ {0.5}; // closer than this, surfaces are drawn smooth
@@ -365,10 +319,9 @@ auto raycaster::draw(level& level, player& player) -> std::span<u32>
     std::ranges::fill(_objectDepthBuffer, std::numeric_limits<f64>::infinity());
 
     precompute_light_visibility(level);
-    precompute_slopes(level);
 
     point_i const playerCell {WorldToCell(player.Position)};
-    player.EyeZ = FloorHeightAt(get_slope(playerCell), playerCell, player.Position) + EYE_HEIGHT;
+    player.EyeZ = FloorHeightAt(level.get_slope(playerCell), playerCell, player.Position) + EYE_HEIGHT;
 
     i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
 
@@ -415,7 +368,7 @@ void raycaster::draw_columns(level& level, player const& player, i32 screenCente
 
         // DDA
         if (!hitResult) {
-            auto const intersect {[&](auto&& c) -> std::optional<wall_hit> { return c.intersect({map, player.Position, rayDir, side, !side ? sideDist.X - deltaDist.X : sideDist.Y - deltaDist.Y}); }};
+            auto const intersect {[&](auto&& c) { return c.intersect({map, player.Position, rayDir, side, !side ? sideDist.X - deltaDist.X : sideDist.Y - deltaDist.Y}); }};
 
             for (;;) {
                 if (sideDist.X < sideDist.Y) {
@@ -450,7 +403,7 @@ void raycaster::draw_columns(level& level, player const& player, i32 screenCente
         point_i const prevCell {crossed.size() > 1 ? crossed[crossed.size() - 2].Cell : map}; // open cell the ray came from
         bool const    recessed {hitInPlayerCell || hitResult->Distance - entryDist > WALL_RECESS_EPS};
         point_i const baseCell {recessed ? map : prevCell};
-        f64 const     wallBase {FloorHeightAt(get_slope(baseCell), baseCell, player.Position + (rayDir * hitResult->Distance))};
+        f64 const     wallBase {FloorHeightAt(level.get_slope(baseCell), baseCell, player.Position + (rayDir * hitResult->Distance))};
 
         point_i const toOpen {hitInPlayerCell ? point_i {0, 0} : (side ? point_i {0, -step.Y} : point_i {-step.X, 0})};
 
@@ -489,7 +442,7 @@ void raycaster::draw_floor_ceiling_column(column_hit& col, level& level, player 
     }};
 
     auto const draw_flat {[&](bool isFloor, cell_surface const& surface, point_i const& cell, f64 tIn, f64 tOut) {
-        slope const slp {get_slope(cell)};
+        slope const slp {level.get_slope(cell)};
         f64 const   lift {isFloor ? 0.0 : 1.0};
 
         point_d const p {player.Position + (rayDir * tOut)};
@@ -754,7 +707,7 @@ void raycaster::draw_voxel_objects(level& level, player const& player, i32 scree
         if (!vo->Grid) { continue; }
 
         point_i const voCell {WorldToCell(vo->Position)};
-        f64 const     floorZ {FloorHeightAt(get_slope(voCell), voCell, vo->Position)};
+        f64 const     floorZ {FloorHeightAt(level.get_slope(voCell), voCell, vo->Position)};
 
         auto const xf {vo->make_transform()};
 

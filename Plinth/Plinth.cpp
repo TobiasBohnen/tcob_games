@@ -90,6 +90,7 @@ Plinth::Plinth(game& game)
 
     _level = std::make_unique<level>();
     _engine.generate_level(*_level, _player);
+    _level->precompute_slopes();
 
     rng                         rng;
     std::unordered_set<point_i> used;
