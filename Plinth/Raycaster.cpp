@@ -10,7 +10,6 @@
 #include <atomic>
 #include <cmath>
 #include <limits>
-#include <numbers>
 #include <optional>
 #include <span>
 #include <tuple>
@@ -66,8 +65,6 @@ static auto ComputeFalloff(f64 distSq, f64 rangeSq, f64 intensity) -> f64
     f64 const base {std::clamp(1.0 - (ratio * ratio), 0.0, 1.0)};
     return intensity * (base * base) / d;
 }
-
-static auto WorldToCell(point_d const& p) -> point_i { return {static_cast<i32>(std::floor(p.X)), static_cast<i32>(std::floor(p.Y))}; }
 
 static auto FloorHeightAt(slope const& slope, point_i const& cell, point_d const& pos) -> f64
 {
@@ -125,7 +122,6 @@ raycaster::raycaster(texture_cache& cache)
     : _cache {cache}
     , _taskManager {locate_service<task_manager>()}
 {
-    _cellLights.resize(static_cast<usize>(MAP_WIDTH) * MAP_HEIGHT);
 }
 
 void raycaster::set_quality(quality_settings const& quality, f64 projPlaneDist)
@@ -140,132 +136,11 @@ void raycaster::set_quality(quality_settings const& quality, f64 projPlaneDist)
     _objectDepthBuffer.assign(static_cast<usize>(_screenSize.area()), 0.0);
 }
 
-void raycaster::precompute_light_visibility(level const& level)
+auto raycaster::accumulate_light(point_d const& surfacePos, f64 surfaceZ, point_i const& cell, u32 lightMask) const -> color_d
 {
-    constexpr static f64 CELL_DIAGONAL_HALF {std::numbers::sqrt2 / 2}; // max distance from a cell's center to its farthest corner
+    level const&  level {*_level};
+    player const& player {*_player};
 
-    for (auto& list : _cellLights) { list.clear(); }
-
-    _dynamicLights.clear();
-    for (auto const& go : level.objects()) {
-        if (go.light()) { _dynamicLights.push_back(*go.light()); }
-    }
-    if (_dynamicLights.empty()) { return; }
-
-    usize const losSamples {static_cast<usize>(_quality.LightLosSamples)};
-
-    auto const cell_has_any_line_of_sight {[&](point_i const& cell, point_d const& lightPos) -> bool {
-        auto const lightCell {WorldToCell(lightPos)};
-
-        std::array<point_d, 5> const samples {{
-            {cell.X + 0.5, cell.Y + 0.5},
-            {cell.X + 0.1, cell.Y + 0.1},
-            {cell.X + 0.9, cell.Y + 0.9},
-            {cell.X + 0.9, cell.Y + 0.1},
-            {cell.X + 0.1, cell.Y + 0.9},
-        }};
-
-        for (usize sampleIndex {0}; sampleIndex < losSamples; ++sampleIndex) {
-            auto const& from {samples[sampleIndex]};
-            auto const  diff {lightPos - from};
-            f64 const   dist {diff.length()};
-            if (dist < 1e-6) { return true; }
-
-            point_d const rayDir {diff.X / dist, diff.Y / dist};
-            point_i       map {static_cast<i32>(from.X), static_cast<i32>(from.Y)};
-
-            point_d const deltaDist {(rayDir.X == 0) ? INFINITE_DIST : std::abs(1 / rayDir.X),
-                                     (rayDir.Y == 0) ? INFINITE_DIST : std::abs(1 / rayDir.Y)};
-            point_i       step {rayDir.X < 0 ? -1 : 1, rayDir.Y < 0 ? -1 : 1};
-            point_d       sideDist {(rayDir.X < 0) ? (from.X - map.X) * deltaDist.X : (map.X + 1.0 - from.X) * deltaDist.X,
-                                    (rayDir.Y < 0) ? (from.Y - map.Y) * deltaDist.Y : (map.Y + 1.0 - from.Y) * deltaDist.Y};
-
-            bool visible {true};
-            for (;;) {
-                bool const stepX {sideDist.X < sideDist.Y};
-                f64 const  traveled {stepX ? sideDist.X : sideDist.Y};
-                if (traveled >= dist) { break; } // reached the light before hitting anything
-
-                if (stepX) {
-                    sideDist.X += deltaDist.X;
-                    map.X += step.X;
-                } else {
-                    sideDist.Y += deltaDist.Y;
-                    map.Y += step.Y;
-                }
-
-                if (!map_t::Size.contains(map)) { break; }
-                if (map == lightCell) { break; }
-
-                if (level.is_blocking_light(map)) {
-                    visible = false;
-                    break;
-                }
-            }
-
-            if (visible) { return true; }
-        }
-        return false;
-    }};
-
-    struct light_sweep {
-        bool Active {false};
-        i32  CxMin {0};
-        i32  CxMax {-1};
-        i32  CyMin {0};
-        i32  CyMax {-1};
-        f64  RadiusSq {0.0};
-    };
-
-    std::vector<light_sweep> sweeps(_dynamicLights.size());
-    for (usize li {0}; li < _dynamicLights.size(); ++li) {
-        auto const& light {_dynamicLights[li]};
-        if (!map_t::Size.contains(WorldToCell(light.Position))) { continue; }
-
-        f64 const sweepRadius {light.Range + CELL_DIAGONAL_HALF};
-
-        auto& sweep {sweeps[li]};
-        sweep.Active   = true;
-        sweep.RadiusSq = sweepRadius * sweepRadius;
-        sweep.CxMin    = std::clamp(static_cast<i32>(std::floor(light.Position.X - sweepRadius)), 0, MAP_WIDTH - 1);
-        sweep.CxMax    = std::clamp(static_cast<i32>(std::floor(light.Position.X + sweepRadius)), 0, MAP_WIDTH - 1);
-        sweep.CyMin    = std::clamp(static_cast<i32>(std::floor(light.Position.Y - sweepRadius)), 0, MAP_HEIGHT - 1);
-        sweep.CyMax    = std::clamp(static_cast<i32>(std::floor(light.Position.Y + sweepRadius)), 0, MAP_HEIGHT - 1);
-    }
-
-    _taskManager.run_parallel([&](par_task const& ctx) {
-        for (i32 cy {static_cast<i32>(ctx.Start)}; cy < static_cast<i32>(ctx.End); ++cy) {
-            for (usize li {0}; li < sweeps.size(); ++li) {
-                auto const& sweep {sweeps[li]};
-                if (!sweep.Active || cy < sweep.CyMin || cy > sweep.CyMax) { continue; }
-
-                auto const& light {_dynamicLights[li]};
-
-                for (i32 cx {sweep.CxMin}; cx <= sweep.CxMax; ++cx) {
-                    point_d const cellCenter {cx + 0.5, cy + 0.5};
-                    point_d const toLightXY {light.Position - cellCenter};
-
-                    slope const slp {level.get_slope(point_i {cx, cy})};
-                    f64 const   lowZ {std::min({slp.TL, slp.TR, slp.BL, slp.BR})};
-                    f64 const   highZ {std::max({slp.TL, slp.TR, slp.BL, slp.BR}) + 1.0};
-                    f64 const   dz {std::max({lowZ - light.Z, light.Z - highZ, 0.0})};
-
-                    f64 const distSq {toLightXY.dot(toLightXY) + (dz * dz)};
-                    if (distSq >= sweep.RadiusSq) { continue; }
-
-                    if (cell_has_any_line_of_sight(point_i {cx, cy}, light.Position)) {
-                        usize const cellIndex {static_cast<usize>((cy * MAP_WIDTH) + cx)};
-                        _cellLights[cellIndex].push_back(static_cast<u32>(li));
-                    }
-                }
-            }
-        }
-    },
-                              MAP_HEIGHT);
-}
-
-auto raycaster::accumulate_light(player const& player, point_d const& surfacePos, f64 surfaceZ, point_i const& cell, u32 lightMask) const -> color_d
-{
     static auto tone_map {[](f64 x) -> f64 { return x / (1.0 + x); }};
 
     static auto add_light_contribution {[](point_d const& lightPos, f64 lightHeight, f64 range, f64 intensity, color lightColor, point_d const& surPos, f64 surZ, color_d& total) {
@@ -286,24 +161,24 @@ auto raycaster::accumulate_light(player const& player, point_d const& surfacePos
         add_light_contribution(player.Position, player.EyeZ, player.Settings.LightRange, player.Settings.LightIntensity, color {255, 255, 255}, surfacePos, surfaceZ, total);
     }
 
-    if (map_t::Size.contains(cell)) {
-        usize const cellIndex {static_cast<usize>((cell.Y * MAP_WIDTH) + cell.X)};
-        for (u32 li : _cellLights[cellIndex]) {
-            auto const& light {_dynamicLights[li]};
-            if ((light.Layers & lightMask) == 0) { continue; }
-            add_light_contribution(light.Position, light.Z, light.Range, light.Intensity, light.Color, surfacePos, surfaceZ, total);
-        }
+    auto const lights {level.lights()};
+    for (u32 li : level.lights_at(cell)) {
+        auto const& lt {lights[li]};
+        if ((lt.Layers & lightMask) == 0) { continue; }
+        add_light_contribution(lt.Position, lt.Z, lt.Range, lt.Intensity, lt.Color, surfacePos, surfaceZ, total);
     }
 
     return {.R = tone_map(total.R), .G = tone_map(total.G), .B = tone_map(total.B)};
 }
 
-void raycaster::draw_surface_pixel(isize x, isize y, u8 const* tex, isize srcIdx, player const& player, point_d const& surfacePos, f64 surfaceZ, f64 shade)
+void raycaster::draw_surface_pixel(isize x, isize y, u8 const* tex, isize srcIdx, point_d const& surfacePos, f64 surfaceZ, f64 shade)
 {
     constexpr static f64 DITHER_MIN_DIST_SQ {0.5}; // closer than this, surfaces are drawn smooth
 
+    player const& player {*_player};
+
     point_i const cell {WorldToCell(surfacePos)};
-    color_d       tint {accumulate_light(player, surfacePos, surfaceZ, cell, LIGHT_LAYERS_ALL)};
+    color_d       tint {accumulate_light(surfacePos, surfaceZ, cell, LIGHT_LAYERS_ALL)};
     tint.R *= shade;
     tint.G *= shade;
     tint.B *= shade;
@@ -317,28 +192,38 @@ auto raycaster::draw(level& level, player& player) -> std::span<u32>
 {
     constexpr static f64 EYE_HEIGHT {0.5}; // eye height above the floor under the player
 
+    // valid for the duration of this call only
+    _level  = &level;
+    _player = &player;
+
     std::ranges::fill(_objectDepthBuffer, std::numeric_limits<f64>::infinity());
 
-    precompute_light_visibility(level);
+    level.update_light_visibility(static_cast<usize>(_quality.LightLosSamples));
 
     point_i const playerCell {WorldToCell(player.Position)};
-    player.EyeZ = FloorHeightAt(level.get_slope(playerCell), playerCell, player.Position) + EYE_HEIGHT;
+    player.EyeZ = FloorHeightAt(level.slope_at(playerCell), playerCell, player.Position) + EYE_HEIGHT;
 
     i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
 
     _taskManager.run_parallel([&](par_task const& ctx) {
-        draw_columns(level, player, screenCenterY, static_cast<i32>(ctx.Start), static_cast<i32>(ctx.End));
+        draw_columns(screenCenterY, static_cast<i32>(ctx.Start), static_cast<i32>(ctx.End));
     },
                               _screenSize.Width);
 
-    draw_sprites(level, player, screenCenterY);
-    draw_voxel_objects(level, player, screenCenterY);
+    draw_sprites(screenCenterY);
+    draw_voxel_objects(screenCenterY);
+
+    _level  = nullptr;
+    _player = nullptr;
 
     return _screen;
 }
 
-void raycaster::draw_columns(level& level, player const& player, i32 screenCenterY, i32 columnStart, i32 columnEnd)
+void raycaster::draw_columns(i32 screenCenterY, i32 columnStart, i32 columnEnd)
 {
+    level const&  level {*_level};
+    player const& player {*_player};
+
     std::vector<column_hit::entry> crossed;
     crossed.reserve(static_cast<usize>(MAP_WIDTH) + MAP_HEIGHT + 2); // a ray cannot cross more cells than this
 
@@ -404,7 +289,7 @@ void raycaster::draw_columns(level& level, player const& player, i32 screenCente
         point_i const prevCell {crossed.size() > 1 ? crossed[crossed.size() - 2].Cell : map}; // open cell the ray came from
         bool const    recessed {hitInPlayerCell || hitResult->Distance - entryDist > WALL_RECESS_EPS};
         point_i const baseCell {recessed ? map : prevCell};
-        f64 const     wallBase {FloorHeightAt(level.get_slope(baseCell), baseCell, player.Position + (rayDir * hitResult->Distance))};
+        f64 const     wallBase {FloorHeightAt(level.slope_at(baseCell), baseCell, player.Position + (rayDir * hitResult->Distance))};
 
         point_i const toOpen {hitInPlayerCell ? point_i {0, 0} : (side ? point_i {0, -step.Y} : point_i {-step.X, 0})};
 
@@ -419,15 +304,18 @@ void raycaster::draw_columns(level& level, player const& player, i32 screenCente
                         .Bottom   = _screenSize.Height,
                         .Crossed  = crossed};
 
-        draw_floor_ceiling_column(col, level, player);
-        draw_wall_column(col, level, player);
+        draw_floor_ceiling_column(col);
+        draw_wall_column(col);
     }
 }
 
-void raycaster::draw_floor_ceiling_column(column_hit& col, level& level, player const& player)
+void raycaster::draw_floor_ceiling_column(column_hit& col)
 {
     constexpr static f64 CONTACT_SHADOW_WIDTH {0.3};
     constexpr static f64 CONTACT_SHADOW_STRENGTH {0.75};
+
+    level&        level {*_level};
+    player const& player {*_player};
 
     f64 const     proj {_projPlaneDist};
     f64 const     eyeZ {player.EyeZ};
@@ -443,7 +331,7 @@ void raycaster::draw_floor_ceiling_column(column_hit& col, level& level, player 
     }};
 
     auto const draw_flat {[&](bool isFloor, cell_surface const& surface, point_i const& cell, f64 tIn, f64 tOut) {
-        slope const slp {level.get_slope(cell)};
+        slope const slp {level.slope_at(cell)};
         f64 const   lift {isFloor ? 0.0 : 1.0};
 
         point_d const p {player.Position + (rayDir * tOut)};
@@ -495,7 +383,7 @@ void raycaster::draw_floor_ceiling_column(column_hit& col, level& level, player 
             i32 const texelY {static_cast<i32>(pos.Y * WALL_SIZE.Height) & (WALL_SIZE.Height - 1)};
             i32 const texelOffset {(texelX + (texelY * WALL_SIZE.Width)) * TEXTURE_BPP};
 
-            draw_surface_pixel(x, y, tex, texelOffset, player, pos, z, 1.0);
+            draw_surface_pixel(x, y, tex, texelOffset, pos, z, 1.0);
             _objectDepthBuffer[PixelIndex(_screenSize, x, y)] = t;
 
             f64 const wallGap {std::max(hitDist - t, 0.0)};
@@ -516,7 +404,7 @@ void raycaster::draw_floor_ceiling_column(column_hit& col, level& level, player 
                     i32 const wallSrc {(wallTexX + (wallTexY * WALL_SIZE.Width)) * TEXTURE_BPP};
 
                     point_d const wallPoint {player.Position + (rayDir * hitDist)};
-                    auto const    wallTint {accumulate_light(player, wallPoint, col.WallBase + zRel, WorldToCell(wallPoint), LIGHT_LAYERS_ALL)};
+                    auto const    wallTint {accumulate_light(wallPoint, col.WallBase + zRel, WorldToCell(wallPoint), LIGHT_LAYERS_ALL)};
                     u32 const     reflected {ApplyTint(wallTex[wallSrc + 0], wallTex[wallSrc + 1], wallTex[wallSrc + 2], DitherTint(wallTint, x, y, _quality))};
 
                     u32& pixel {screenBuf[PixelIndex(_screenSize, x, y)]};
@@ -557,11 +445,14 @@ void raycaster::draw_floor_ceiling_column(column_hit& col, level& level, player 
     if (col.Top < col.Bottom && IsWithinPlayerLight(player, col.Cell)) { level.mark_visible(col.Cell); }
 }
 
-void raycaster::draw_wall_column(column_hit const& col, level const& level, player const& player)
+void raycaster::draw_wall_column(column_hit const& col)
 {
     constexpr static f64 CORNER_WIDTH {0.25}; // world units from an inside corner
     constexpr static f64 CORNER_STRENGTH {0.6};
     constexpr static f64 LIGHT_BIAS {0.001};  // lights a wall from the open side so the cell lookup never lands inside the wall
+
+    level const&  level {*_level};
+    player const& player {*_player};
 
     wall_hit const& hit {col.Hit};
 
@@ -606,13 +497,16 @@ void raycaster::draw_wall_column(column_hit const& col, level const& level, play
         i32 const srcIdx {(texX + (texY * WALL_SIZE.Width)) * TEXTURE_BPP};
 
         f64 const worldZ {col.WallBase + std::clamp((wallBottomRow - y) / wallHeight, 0.0, 1.0)};
-        draw_surface_pixel(col.X, y, tex, srcIdx, player, surfacePos, worldZ, cornerShade);
+        draw_surface_pixel(col.X, y, tex, srcIdx, surfacePos, worldZ, cornerShade);
         _objectDepthBuffer[PixelIndex(_screenSize, col.X, y)] = hit.Distance;
     }
 }
 
-void raycaster::draw_sprites(level& level, player const& player, i32 screenCenterY)
+void raycaster::draw_sprites(i32 screenCenterY)
 {
+    level&        level {*_level};
+    player const& player {*_player};
+
     f64 const    invDet {1.0 / player.Plane.cross(player.Direction)};
     rect_i const screenRect {point_i {0, 0}, _screenSize};
 
@@ -652,7 +546,7 @@ void raycaster::draw_sprites(level& level, player const& player, i32 screenCente
         f64 const texPosYStart {(drawStart.Y - spriteTop) * texStepY};
 
         auto const spriteCell {WorldToCell(spr->Position)};
-        auto const spriteTint {accumulate_light(player, spr->Position, spr->BaseZ, spriteCell, spr->LightMask)};
+        auto const spriteTint {accumulate_light(spr->Position, spr->BaseZ, spriteCell, spr->LightMask)};
         bool const inLight {IsWithinPlayerLight(player, spriteCell)};
 
         for (i32 x {drawStart.X}; x < drawEnd.X; ++x) {
@@ -679,8 +573,11 @@ void raycaster::draw_sprites(level& level, player const& player, i32 screenCente
     }
 }
 
-void raycaster::draw_voxel_objects(level& level, player const& player, i32 screenCenterY)
+void raycaster::draw_voxel_objects(i32 screenCenterY)
 {
+    level&        level {*_level};
+    player const& player {*_player};
+
     f64 const  invDet {1.0 / player.Plane.cross(player.Direction)};
     auto const project {[&](point3_d const& world) -> std::tuple<f64, f64, f64> {
         point_d const relPos {world.X - player.Position.X, world.Y - player.Position.Y};
@@ -708,7 +605,7 @@ void raycaster::draw_voxel_objects(level& level, player const& player, i32 scree
         if (!vo->Grid) { continue; }
 
         point_i const voCell {WorldToCell(vo->Position)};
-        f64 const     floorZ {FloorHeightAt(level.get_slope(voCell), voCell, vo->Position)};
+        f64 const     floorZ {FloorHeightAt(level.slope_at(voCell), voCell, vo->Position)};
 
         auto const xf {vo->make_transform()};
 
@@ -789,7 +686,7 @@ void raycaster::draw_voxel_objects(level& level, player const& player, i32 scree
                     auto const hitCellForLight {WorldToCell(worldHitXY)};
                     f64 const  aoFactor {_quality.VoxelAo ? vo->Grid->face_ao(hit, localHitPos) : 1.0};
 
-                    auto tint {accumulate_light(player, worldHitXY, adjustedWorldHit.Z, hitCellForLight, LIGHT_LAYERS_ALL)};
+                    auto tint {accumulate_light(worldHitXY, adjustedWorldHit.Z, hitCellForLight, LIGHT_LAYERS_ALL)};
                     tint.R *= aoFactor;
                     tint.G *= aoFactor;
                     tint.B *= aoFactor;

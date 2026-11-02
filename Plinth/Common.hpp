@@ -92,5 +92,6 @@ struct color_d {
 
 constexpr auto IsMagenta(u8 const* tex, i32 offset) -> bool { return tex[offset + 0] == 0x98 && tex[offset + 1] == 0x00 && tex[offset + 2] == 0x88; }
 constexpr auto PixelIndex(size_i screenSize, isize x, isize y) -> isize { return x + (y * screenSize.Width); }
+constexpr auto WorldToCell(point_d const& p) -> point_i { return {static_cast<i32>(std::floor(p.X)), static_cast<i32>(std::floor(p.Y))}; }
 
 ////////////////////////////////////////////////////////////

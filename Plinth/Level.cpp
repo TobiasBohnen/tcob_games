@@ -6,15 +6,18 @@
 #include "Level.hpp"
 
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <chrono>
 #include <cmath>
 #include <cstdlib>
 #include <limits>
+#include <numbers>
 #include <optional>
 #include <span>
 #include <type_traits>
 #include <variant>
+#include <vector>
 
 #include "Common.hpp"
 #include "Walls.hpp"
@@ -92,10 +95,162 @@ void level::precompute_slopes()
     }
 }
 
-auto level::get_slope(point_i const& cell) const -> slope
+auto level::slope_at(point_i const& cell) const -> slope
 {
     if (!map_t::Size.contains(cell)) { return {}; }
     return _cellSlopes[static_cast<usize>((cell.Y * MAP_WIDTH) + cell.X)];
+}
+
+auto level::lights() const -> std::span<dynamic_light const> { return _lights; }
+
+auto level::lights_at(point_i const& cell) const -> std::span<u32 const>
+{
+    if (!map_t::Size.contains(cell) || _cellLights.empty()) { return {}; }
+    return _cellLights[static_cast<usize>((cell.Y * MAP_WIDTH) + cell.X)];
+}
+
+void level::update_light_visibility(usize losSamples)
+{
+    constexpr static f64 INFINITE_DIST {1e30};                         // stand-in for "ray never crosses this axis"
+    constexpr static f64 CELL_DIAGONAL_HALF {std::numbers::sqrt2 / 2}; // max distance from a cell's center to its farthest corner
+
+    usize count {0};
+    for (auto const& go : objects()) {
+        if (go.light()) { ++count; }
+    }
+
+    bool rebuild {losSamples != _losSamples};
+    if (count != _lights.size()) {
+        _lights.resize(count);
+        rebuild = true;
+    }
+
+    usize index {0};
+    for (auto const& go : objects()) {
+        auto const* source {go.light()};
+        if (!source) { continue; }
+
+        auto& cached {_lights[index++]};
+        if (source->Position.X != cached.Position.X || source->Position.Y != cached.Position.Y || source->Z != cached.Z || source->Range != cached.Range) { rebuild = true; }
+        cached = *source;
+    }
+
+    if (!rebuild) { return; }
+
+    _losSamples = losSamples;
+
+    _cellLights.resize(static_cast<usize>(MAP_WIDTH) * MAP_HEIGHT);
+    for (auto& list : _cellLights) { list.clear(); }
+    if (_lights.empty()) { return; }
+
+    auto const cell_has_any_line_of_sight {[&](point_i const& cell, point_d const& lightPos) -> bool {
+        auto const lightCell {WorldToCell(lightPos)};
+
+        std::array<point_d, 5> const samples {{
+            {cell.X + 0.5, cell.Y + 0.5},
+            {cell.X + 0.1, cell.Y + 0.1},
+            {cell.X + 0.9, cell.Y + 0.9},
+            {cell.X + 0.9, cell.Y + 0.1},
+            {cell.X + 0.1, cell.Y + 0.9},
+        }};
+
+        for (usize sampleIndex {0}; sampleIndex < losSamples; ++sampleIndex) {
+            auto const& from {samples[sampleIndex]};
+            auto const  diff {lightPos - from};
+            f64 const   dist {diff.length()};
+            if (dist < 1e-6) { return true; }
+
+            point_d const rayDir {diff.X / dist, diff.Y / dist};
+            point_i       map {static_cast<i32>(from.X), static_cast<i32>(from.Y)};
+
+            point_d const deltaDist {(rayDir.X == 0) ? INFINITE_DIST : std::abs(1 / rayDir.X),
+                                     (rayDir.Y == 0) ? INFINITE_DIST : std::abs(1 / rayDir.Y)};
+            point_i       step {rayDir.X < 0 ? -1 : 1, rayDir.Y < 0 ? -1 : 1};
+            point_d       sideDist {(rayDir.X < 0) ? (from.X - map.X) * deltaDist.X : (map.X + 1.0 - from.X) * deltaDist.X,
+                                    (rayDir.Y < 0) ? (from.Y - map.Y) * deltaDist.Y : (map.Y + 1.0 - from.Y) * deltaDist.Y};
+
+            bool visible {true};
+            for (;;) {
+                bool const stepX {sideDist.X < sideDist.Y};
+                f64 const  traveled {stepX ? sideDist.X : sideDist.Y};
+                if (traveled >= dist) { break; } // reached the light before hitting anything
+
+                if (stepX) {
+                    sideDist.X += deltaDist.X;
+                    map.X += step.X;
+                } else {
+                    sideDist.Y += deltaDist.Y;
+                    map.Y += step.Y;
+                }
+
+                if (!map_t::Size.contains(map)) { break; }
+                if (map == lightCell) { break; }
+
+                if (is_blocking_light(map)) {
+                    visible = false;
+                    break;
+                }
+            }
+
+            if (visible) { return true; }
+        }
+        return false;
+    }};
+
+    struct light_sweep {
+        bool Active {false};
+        i32  CxMin {0};
+        i32  CxMax {-1};
+        i32  CyMin {0};
+        i32  CyMax {-1};
+        f64  RadiusSq {0.0};
+    };
+
+    std::vector<light_sweep> sweeps(_lights.size());
+    for (usize li {0}; li < _lights.size(); ++li) {
+        auto const& lt {_lights[li]};
+        if (!map_t::Size.contains(WorldToCell(lt.Position))) { continue; }
+
+        f64 const sweepRadius {lt.Range + CELL_DIAGONAL_HALF};
+
+        auto& sweep {sweeps[li]};
+        sweep.Active   = true;
+        sweep.RadiusSq = sweepRadius * sweepRadius;
+        sweep.CxMin    = std::clamp(static_cast<i32>(std::floor(lt.Position.X - sweepRadius)), 0, MAP_WIDTH - 1);
+        sweep.CxMax    = std::clamp(static_cast<i32>(std::floor(lt.Position.X + sweepRadius)), 0, MAP_WIDTH - 1);
+        sweep.CyMin    = std::clamp(static_cast<i32>(std::floor(lt.Position.Y - sweepRadius)), 0, MAP_HEIGHT - 1);
+        sweep.CyMax    = std::clamp(static_cast<i32>(std::floor(lt.Position.Y + sweepRadius)), 0, MAP_HEIGHT - 1);
+    }
+
+    locate_service<task_manager>().run_parallel([&](par_task const& ctx) {
+        for (i32 cy {static_cast<i32>(ctx.Start)}; cy < static_cast<i32>(ctx.End); ++cy) {
+            for (usize li {0}; li < sweeps.size(); ++li) {
+                auto const& sweep {sweeps[li]};
+                if (!sweep.Active || cy < sweep.CyMin || cy > sweep.CyMax) { continue; }
+
+                auto const& lt {_lights[li]};
+
+                for (i32 cx {sweep.CxMin}; cx <= sweep.CxMax; ++cx) {
+                    point_d const cellCenter {cx + 0.5, cy + 0.5};
+                    point_d const toLightXY {lt.Position - cellCenter};
+
+                    slope const slp {slope_at(point_i {cx, cy})};
+                    f64 const   lowZ {std::min({slp.TL, slp.TR, slp.BL, slp.BR})};
+                    f64 const   highZ {std::max({slp.TL, slp.TR, slp.BL, slp.BR}) + 1.0};
+                    f64 const   dz {std::max({lowZ - lt.Z, lt.Z - highZ, 0.0})};
+
+                    f64 const distSq {toLightXY.dot(toLightXY) + (dz * dz)};
+                    if (distSq >= sweep.RadiusSq) { continue; }
+
+                    if (cell_has_any_line_of_sight(point_i {cx, cy}, lt.Position)) {
+                        usize const cellIndex {static_cast<usize>((cy * MAP_WIDTH) + cx)};
+                        _cellLights[cellIndex].push_back(static_cast<u32>(li));
+                    }
+                }
+            }
+        }
+    },
+                                                MAP_HEIGHT);
 }
 
 auto level::surface(point_i idx) const -> cell_surface

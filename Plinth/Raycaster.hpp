@@ -23,20 +23,16 @@ public:
 private:
     struct column_hit;
 
-    void precompute_light_visibility(level const& level);
-    auto accumulate_light(player const& player, point_d const& surfacePos, f64 surfaceZ, point_i const& cell, u32 lightMask) const -> color_d;
+    auto accumulate_light(point_d const& surfacePos, f64 surfaceZ, point_i const& cell, u32 lightMask) const -> color_d;
 
-    void draw_surface_pixel(isize x, isize y, u8 const* tex, isize srcIdx, player const& player, point_d const& surfacePos, f64 surfaceZ, f64 shade);
+    void draw_surface_pixel(isize x, isize y, u8 const* tex, isize srcIdx, point_d const& surfacePos, f64 surfaceZ, f64 shade);
 
-    void draw_columns(level& level, player const& player, i32 screenCenterY, i32 columnStart, i32 columnEnd);
-    void draw_floor_ceiling_column(column_hit& col, level& level, player const& player);
-    void draw_wall_column(column_hit const& col, level const& level, player const& player);
+    void draw_columns(i32 screenCenterY, i32 columnStart, i32 columnEnd);
+    void draw_floor_ceiling_column(column_hit& col);
+    void draw_wall_column(column_hit const& col);
 
-    void draw_sprites(level& level, player const& player, i32 screenCenterY);
-    void draw_voxel_objects(level& level, player const& player, i32 screenCenterY);
-
-    std::vector<dynamic_light>    _dynamicLights;
-    std::vector<std::vector<u32>> _cellLights;
+    void draw_sprites(i32 screenCenterY);
+    void draw_voxel_objects(i32 screenCenterY);
 
     std::vector<u32> _screen;
 
@@ -49,4 +45,6 @@ private:
     f64              _projPlaneDist {0};
 
     task_manager& _taskManager;
+    level*        _level {nullptr};
+    player const* _player {nullptr};
 };

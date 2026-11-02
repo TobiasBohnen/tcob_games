@@ -23,8 +23,8 @@ local PREFABS = {
         rows = {
             "2..o..2",
             "2..Q..2",
-            "2..Q..2",
-            "o..B..o",
+            "2.RQR.2",
+            "o.RBR.o",
             "2. B..2",
             "2..Q..2",
             "2..o..2",
@@ -68,7 +68,7 @@ local PREFABS = {
         rows = {
             "o..........o",
             "6.QBBBQ..P..6",
-            "6....QQ....6",
+            "6..RRQQ....6",
             "o..........o",
         },
     },
@@ -77,7 +77,7 @@ local PREFABS = {
             "77777D77777",
             "7.....Q...7",
             "7..QBBBBQ.7",
-            "7.........7",
+            "7......RR.7",
             "77777D77777",
         },
         wall_texture    = 2,
@@ -96,7 +96,7 @@ local PREFABS = {
     { -- room with a freestanding box obstacle (crate) in the middle
         rows = {
             "9..o..9",
-            "9.....9",
+            "9..R..9",
             "o.QB..o",
             "9.....9",
             "9..o..9",
@@ -214,13 +214,19 @@ local cell_factories = {
     B = function(prefab)
         return with_surfaces(prefab, {
             type   = "floor_cell",
-            FloorZ = 1.25,
+            FloorZ = 0.75,
         })
     end,
     Q = function(prefab)
         return with_surfaces(prefab, {
             type   = "floor_cell",
             FloorZ = -0.2,
+        })
+    end,
+    R = function(prefab)
+        return with_surfaces(prefab, {
+            type   = "floor_cell",
+            FloorZ = 0.25,
         })
     end,
     P = function(prefab)
