@@ -10,21 +10,23 @@
 #include <functional>
 #include <span>
 
-#include "Level.hpp"
-
 class screen_overlay {
 public:
     explicit screen_overlay(texture_cache& cache);
 
     std::function<void(std::span<u32>)> ScreenEffect;
 
-    auto draw(level& level, player const& player, std::span<u32> screen, size_i screenSize) -> std::span<u32>;
+    void update(milliseconds deltaTime);
+
+    auto draw(player const& player, std::span<u32> screen, size_i screenSize) -> std::span<u32>;
+
+    void show_message(string const& msg);
 
 private:
     void draw_screen_effect();
     void draw_weapon(player const& player);
     void draw_hud(player const& player);
-    void draw_message(level const& level);
+    void draw_message();
 
     std::span<u32> _screen;
     size_i         _screenSize;
@@ -32,4 +34,7 @@ private:
     texture_cache& _cache;
 
     task_manager& _taskManager;
+
+    milliseconds _messageTimer {};
+    string       _message;
 };

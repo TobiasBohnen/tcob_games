@@ -156,7 +156,7 @@ void Plinth::on_start()
 void Plinth::on_draw_to(gfx::render_target& target, transform const& /* xform */)
 {
     auto screen {_raycaster->draw(*_level, _player)};
-    _screenOverlay->draw(*_level, _player, screen, _quality.Resolution);
+    _screenOverlay->draw(_player, screen, _quality.Resolution);
 
     _texture->update_data(screen.data(), 0);
     if (_drawMap) {
@@ -201,6 +201,7 @@ void Plinth::on_update(milliseconds deltaTime)
     move_player(deltaTime);
     _player.bob(deltaTime);
     _level->update(deltaTime);
+    _screenOverlay->update(deltaTime);
 
     // _frameTimer += deltaTime;
     // f64 const flicker {1.0 + (0.06 * std::sin(_frameTimer.count() / 1000.0 * 17.0)) + (0.04 * std::sin((_frameTimer.count() / 1000.0 * 29.3) + 1.7))};
@@ -466,7 +467,7 @@ void Plinth::on_text_input(input::keyboard::text_input_event const& ev)
 
     if (_keyCache.ends_with("givemap")) {
         _level->reveal_map();
-        _level->show_message("MAP REVEALED");
+        _screenOverlay->show_message("MAP REVEALED");
         _keyCache.clear();
         _player.Cheater              = true;
         _screenOverlay->ScreenEffect = cheaterEffect;

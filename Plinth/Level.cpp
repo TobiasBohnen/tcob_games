@@ -8,7 +8,6 @@
 #include <algorithm>
 #include <array>
 #include <atomic>
-#include <chrono>
 #include <cmath>
 #include <cstdlib>
 #include <limits>
@@ -26,11 +25,6 @@ level::level() = default;
 
 void level::update(milliseconds deltaTime)
 {
-    _messageTimer -= deltaTime;
-    if (_messageTimer.count() <= 0) {
-        _message.clear();
-    }
-
     f64 const dt {deltaTime.count() / 1000};
     for (auto& cell : _map) {
         std::visit(
@@ -416,17 +410,6 @@ void level::fade_vision()
             s = tile_visibility::Explored;
         }
     }
-}
-
-void level::show_message(string const& msg)
-{
-    _messageTimer = 2s;
-    _message      = msg;
-}
-
-auto level::get_message() const -> string const&
-{
-    return _message;
 }
 
 auto level::spawn(level_object_desc desc) -> uid

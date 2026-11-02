@@ -65,9 +65,6 @@ public:
     void reveal_map();
     void fade_vision();
 
-    void show_message(string const& msg);      // TODO: remove
-    auto get_message() const -> string const&; // TODO: remove
-
     auto spawn(level_object_desc desc) -> uid;
 
     auto find(uid id) -> level_object*;
@@ -83,9 +80,6 @@ private:
 
     std::vector<level_object> _objects;
     uid                       _nextId {0};
-
-    milliseconds _messageTimer {};
-    string       _message;
 
     std::vector<slope> _cellSlopes;
 

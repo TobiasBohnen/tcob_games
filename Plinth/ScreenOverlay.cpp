@@ -8,11 +8,11 @@
 #include <algorithm>
 #include <array>
 #include <cctype>
+#include <chrono>
 #include <span>
 #include <vector>
 
 #include "Common.hpp"
-#include "Level.hpp"
 #include "Player.hpp"
 #include "TextureCache.hpp"
 
@@ -45,7 +45,15 @@ screen_overlay::screen_overlay(texture_cache& cache)
 {
 }
 
-auto screen_overlay::draw(level& level, player const& player, std::span<u32> screen, size_i screenSize) -> std::span<u32>
+void screen_overlay::update(milliseconds deltaTime)
+{
+    _messageTimer -= deltaTime;
+    if (_messageTimer.count() <= 0) {
+        _message.clear();
+    }
+}
+
+auto screen_overlay::draw(player const& player, std::span<u32> screen, size_i screenSize) -> std::span<u32>
 {
     _screen     = screen;
     _screenSize = screenSize;
@@ -55,9 +63,15 @@ auto screen_overlay::draw(level& level, player const& player, std::span<u32> scr
     draw_screen_effect();
 
     draw_hud(player);
-    draw_message(level);
+    draw_message();
 
     return _screen;
+}
+
+void screen_overlay::show_message(string const& msg)
+{
+    _messageTimer = 2s;
+    _message      = msg;
 }
 
 void screen_overlay::draw_screen_effect()
@@ -92,10 +106,9 @@ void screen_overlay::draw_hud(player const&)
     BlitMasked(_screen.data(), _screenSize, tex, texSize.Width, point_i {0, 0}, texSize, drawSize, point_i {0, 0}, scale);
 }
 
-void screen_overlay::draw_message(level const& level)
+void screen_overlay::draw_message()
 {
-    auto const& msg {level.get_message()};
-    if (msg.empty()) { return; }
+    if (_message.empty()) { return; }
 
     auto* const tex {_cache.texture(fontTexture, 0)};
     auto const  texSize {_cache.texture_size(fontTexture, 0)};
@@ -104,8 +117,8 @@ void screen_overlay::draw_message(level const& level)
     point_i const offset {5, 5};
     size_i const  glyphSize {charSize, charSize};
 
-    for (i32 i {0}; i < std::ssize(msg); ++i) {
-        char const c {msg[i]};
+    for (i32 i {0}; i < std::ssize(_message); ++i) {
+        char const c {_message[i]};
         if (std::isspace(static_cast<unsigned char>(c))) { continue; }
 
         i32 index {0};
