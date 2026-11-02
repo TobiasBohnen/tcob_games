@@ -5,9 +5,9 @@
 
 #pragma once
 
-#include <vector>
-
 #include "Common.hpp"
+
+#include <vector>
 
 class map_renderer {
 public:

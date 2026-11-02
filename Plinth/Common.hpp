@@ -7,7 +7,10 @@
 
 // IWYU pragma: always_keep
 
-#include <tcob/tcob.hpp>
+#include <array>
+#include <cmath>
+
+#include <tcob/tcob.hpp> // IWYU pragma: export
 
 using namespace tcob;
 using namespace tcob::literals;

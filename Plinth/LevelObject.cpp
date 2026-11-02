@@ -5,6 +5,14 @@
 
 #include "LevelObject.hpp"
 
+#include <cstdlib>
+#include <optional>
+#include <variant>
+
+#include "Common.hpp"
+#include "Light.hpp"
+#include "Voxel.hpp"
+
 auto sprite_object::facing_index(point_d cameraPos) const -> i32
 {
     auto const viewAngle {Position.angle_to(cameraPos)};

@@ -5,6 +5,20 @@
 
 #include "Level.hpp"
 
+#include <algorithm>
+#include <atomic>
+#include <chrono>
+#include <cmath>
+#include <cstdlib>
+#include <limits>
+#include <optional>
+#include <span>
+#include <type_traits>
+#include <variant>
+
+#include "Common.hpp"
+#include "Walls.hpp"
+
 level::level() = default;
 
 void level::update(milliseconds deltaTime)

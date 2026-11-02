@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <tcob/tcob.hpp>
+#include <tcob/tcob.hpp> // IWYU pragma: export
 
 using namespace tcob;
 using namespace tcob::scripting;

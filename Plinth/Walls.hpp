@@ -7,6 +7,10 @@
 
 #include "Common.hpp"
 
+#include <optional>
+#include <variant>
+#include <vector>
+
 ////////////////////////////////////////////////////////////
 
 enum class wall_state : u8 {

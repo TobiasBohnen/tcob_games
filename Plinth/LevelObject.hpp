@@ -5,6 +5,9 @@
 
 #include "Common.hpp"
 
+#include <optional>
+#include <variant>
+
 #include "Light.hpp"
 #include "Voxel.hpp"
 

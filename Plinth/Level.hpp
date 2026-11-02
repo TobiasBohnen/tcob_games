@@ -7,6 +7,11 @@
 
 #include "Common.hpp"
 
+#include <optional>
+#include <span>
+#include <type_traits>
+#include <vector>
+
 #include "LevelObject.hpp"
 #include "Walls.hpp"
 

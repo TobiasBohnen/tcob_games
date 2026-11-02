@@ -5,6 +5,10 @@
 
 #include "MapRenderer.hpp"
 
+#include <algorithm>
+#include <cmath>
+#include <utility>
+
 #include "Common.hpp"
 #include "Level.hpp"
 #include "Player.hpp"

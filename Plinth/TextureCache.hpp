@@ -7,6 +7,9 @@
 
 #include "Common.hpp"
 
+#include <unordered_map>
+#include <vector>
+
 ////////////////////////////////////////////////////////////
 
 // PLACEHOLDER START

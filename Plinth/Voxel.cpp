@@ -6,8 +6,13 @@
 #include "Voxel.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <limits>
+#include <optional>
+#include <vector>
+
+#include "Common.hpp"
 
 ////////////////////////////////////////////////////////////
 

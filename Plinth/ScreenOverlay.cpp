@@ -5,8 +5,10 @@
 
 #include "ScreenOverlay.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cctype>
+#include <span>
 #include <vector>
 
 #include "Common.hpp"

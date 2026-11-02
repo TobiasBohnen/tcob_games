@@ -5,9 +5,10 @@
 
 #pragma once
 
-#include <vector>
-
 #include "Common.hpp"
+
+#include <span>
+#include <vector>
 
 #include "Level.hpp"
 

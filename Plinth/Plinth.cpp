@@ -5,15 +5,31 @@
 
 #include "Plinth.hpp"
 
+#include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <cstdlib>
+#include <format>
+#include <future>
+#include <limits>
+#include <memory>
 #include <numeric>
+#include <span>
+#include <tuple>
 #include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
 #include "Common.hpp"
 #include "Level.hpp"
 #include "Light.hpp"
 #include "MapRenderer.hpp"
 #include "Raycaster.hpp"
+#include "ScreenOverlay.hpp"
+#include "TextureCache.hpp"
 #include "Voxel.hpp"
+#include "Walls.hpp"
 
 [[maybe_unused]] auto static deathEffect {[](std::span<u32> screen) {
     static std::vector<usize> indices;

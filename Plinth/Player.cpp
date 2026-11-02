@@ -5,6 +5,10 @@
 
 #include "Player.hpp"
 
+#include <algorithm>
+#include <cmath>
+#include <cstdlib>
+
 #include "Common.hpp"
 #include "Level.hpp"
 

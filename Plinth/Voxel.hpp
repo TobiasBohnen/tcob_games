@@ -5,10 +5,11 @@
 
 #pragma once
 
+#include "Common.hpp"
+
+#include <array>
 #include <optional>
 #include <vector>
-
-#include "Common.hpp"
 
 ////////////////////////////////////////////////////////////
 

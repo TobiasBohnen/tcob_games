@@ -6,10 +6,12 @@
 
 #pragma once
 
+#include <future>
 #include <memory>
+#include <unordered_map>
+#include <vector>
 
 #include "Common.hpp"
-
 #include "Engine.hpp"
 #include "MapRenderer.hpp"
 #include "Player.hpp"

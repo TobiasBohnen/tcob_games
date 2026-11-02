@@ -7,6 +7,9 @@
 
 #include "Common.hpp"
 
+#include <functional>
+#include <span>
+
 #include "Level.hpp"
 
 class screen_overlay {

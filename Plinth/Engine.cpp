@@ -5,8 +5,15 @@
 
 #include "Engine.hpp"
 
+#include <format>
+#include <functional>
+#include <optional>
+#include <utility>
+
+#include "Common.hpp"
 #include "Level.hpp"
 #include "Player.hpp"
+#include "Walls.hpp"
 
 using namespace scripting;
 

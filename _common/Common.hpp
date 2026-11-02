@@ -7,7 +7,7 @@
 
 // IWYU pragma: always_keep
 
-#include <tcob/tcob.hpp>
+#include <tcob/tcob.hpp> // IWYU pragma: export
 
 using namespace tcob;
 using namespace tcob::ui;
