@@ -66,10 +66,10 @@ local PREFABS = {
     },
     { -- long corridor room with pillars
         rows = {
-            "o..........o",
-            "6.QBBBQ..P..6",
-            "6..RRQQ....6",
-            "o..........o",
+            "o..................o",
+            "6.TTQQQQQQTRRBBBB..6",
+            "6..................6",
+            "o..................o",
         },
     },
     { -- double-door vault (two separate entrances)
@@ -87,10 +87,10 @@ local PREFABS = {
     { -- room with a secret push-wall exit (south edge)
         rows = {
             "8..o..8",
-            "8.....8",
-            "8.....8",
-            "8.....8",
-            "8..S..8",
+            "881...8",
+            "8.S...8",
+            "811...8",
+            "8..o..8",
         },
     },
     { -- room with a freestanding box obstacle (crate) in the middle
@@ -191,30 +191,17 @@ local cell_factories = {
     end,
 
     S = function(prefab, x, y)
-        local width, height = prefab_size(prefab)
-
-        local direction = { x = 0, y = 0 }
-        if y == 1 then
-            direction = { x = 0, y = -1 }
-        elseif y == height then
-            direction = { x = 0, y = 1 }
-        elseif x == 1 then
-            direction = { x = -1, y = 0 }
-        elseif x == width then
-            direction = { x = 1, y = 0 }
-        end
-
         return with_surfaces(prefab, {
             type          = "push_wall",
             Texture       = prefab.wall_texture,
-            PushDirection = direction,
+            PushDirection = { x = -1, y = 0 },
         })
     end,
 
     B = function(prefab)
         return with_surfaces(prefab, {
             type   = "floor_cell",
-            FloorZ = 0.75,
+            FloorZ = 0.25,
         })
     end,
     Q = function(prefab)
@@ -226,9 +213,16 @@ local cell_factories = {
     R = function(prefab)
         return with_surfaces(prefab, {
             type   = "floor_cell",
-            FloorZ = 0.25,
+            FloorZ = 0.45,
         })
     end,
+    T = function(prefab)
+        return with_surfaces(prefab, {
+            type   = "floor_cell",
+            FloorZ = -0.5,
+        })
+    end,
+
     P = function(prefab)
         local texture = prefab.wall_texture
         return with_surfaces(prefab, {

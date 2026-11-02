@@ -126,9 +126,10 @@ Plinth::Plinth(game& game)
     for (i32 i {0}; i < 50; ++i) {
         f64       scale {rng(0.3, 1.0)};
         f64 const maxDim {static_cast<f64>(std::max({testVoxelGrid.Size.X, testVoxelGrid.Size.Y, testVoxelGrid.Size.Z}))};
-        _level->spawn({.Position = find_empty(),
-                       .Radius   = (std::max(testVoxelGrid.Size.X, testVoxelGrid.Size.Y) / 2.0) * scale / maxDim,
-                       .Visual   = voxel_object {
+        _level->spawn({.Position  = find_empty(),
+                       .Direction = {0.1, 0},
+                       .Radius    = (std::max(testVoxelGrid.Size.X, testVoxelGrid.Size.Y) / 2.0) * scale / maxDim,
+                       .Visual    = voxel_object {
                            .Scale = scale / maxDim,
                            .BaseZ = 0.0,
                            .Yaw   = degree_d {90.0 * i},
@@ -206,11 +207,6 @@ void Plinth::on_update(milliseconds deltaTime)
     // _frameTimer += deltaTime;
     // f64 const flicker {1.0 + (0.06 * std::sin(_frameTimer.count() / 1000.0 * 17.0)) + (0.04 * std::sin((_frameTimer.count() / 1000.0 * 29.3) + 1.7))};
     // _player.Settings.LightIntensity = 2 * flicker;
-
-    for (auto& dl : _level->objects()) {
-        if (!dl.sprite() && !dl.light()) { continue; }
-        dl.set_position(dl.position() + _player.Direction * deltaTime.count() / 1000 * 10);
-    }
 
     if (_startRecord) {
         if (_clipFtr.valid()) {
@@ -318,20 +314,31 @@ void Plinth::action_toggle_map()
 
 void Plinth::action_fire()
 {
-    sprite_object const sprite {.BaseZ     = _player.EyeZ,
-                                .Size      = {0.05, 0.15},
+    sprite_object const sprite {.BaseZ     = _player.EyeZ - 0.15,
+                                .Size      = {0.15, 0.15},
                                 .Texture   = ballTexture,
                                 .LightMask = LIGHT_LAYER_SPELL};
 
-    dynamic_light light {.Range     = 0.5,
-                         .Color     = colors::Red,
-                         .Intensity = 1.5,
-                         .Layers    = LIGHT_LAYER_WORLD | LIGHT_LAYER_SPELL};
-    light.Z = sprite.BaseZ + (sprite.Size.Height * 0.5);
+    dynamic_light const light {.Z         = sprite.BaseZ + (sprite.Size.Height * 0.5),
+                               .Range     = 0.5,
+                               .Color     = colors::Red,
+                               .Intensity = 1.5,
+                               .Layers    = LIGHT_LAYER_WORLD | LIGHT_LAYER_SPELL};
 
-    _level->spawn({.Position = _player.Position,
-                   .Visual   = sprite,
-                   .Light    = light});
+    f64 const forwardOffset {0.4};
+    f64 const rightOffset {0.2};
+
+    f64 const fwdX {_player.Direction.X};
+    f64 const fwdY {_player.Direction.Y};
+    f64 const rightX {-fwdY};
+    f64 const rightY {fwdX};
+    f64 const spawnX {_player.Position.X + (forwardOffset * fwdX) + (rightOffset * rightX)};
+    f64 const spawnY {_player.Position.Y + (forwardOffset * fwdY) + (rightOffset * rightY)};
+
+    _level->spawn({.Position  = {spawnX, spawnY},
+                   .Direction = _player.Direction * 10,
+                   .Visual    = sprite,
+                   .Light     = light});
 }
 
 void Plinth::handle_action(game_action action)
@@ -469,8 +476,8 @@ void Plinth::on_text_input(input::keyboard::text_input_event const& ev)
         _level->reveal_map();
         _screenOverlay->show_message("MAP REVEALED");
         _keyCache.clear();
-        _player.Cheater              = true;
-        _screenOverlay->ScreenEffect = cheaterEffect;
+        _player.Cheater = true;
+        //   _screenOverlay->ScreenEffect = cheaterEffect;
     }
 }
 

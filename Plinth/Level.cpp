@@ -39,6 +39,10 @@ void level::update(milliseconds deltaTime)
             cell);
     }
 
+    for (auto& obj : _objects) {
+        obj.set_position(obj.position() + obj.direction() * dt);
+    }
+
     std::erase_if(_objects, [](level_object const& go) { return go.dead(); });
 }
 

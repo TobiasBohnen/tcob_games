@@ -44,6 +44,7 @@ level_object::level_object(uid id, level_object_desc desc)
     : _id {id}
     , _radius {desc.Radius}
     , _mapMarker {desc.MapMarker}
+    , _direction {desc.Direction}
     , _visual {desc.Visual}
     , _light {desc.Light}
 {
@@ -79,6 +80,16 @@ void level_object::set_position(point_d p)
     if (auto* s {sprite()}) { s->Position = p; }
     if (auto* v {voxel()}) { v->Position = p; }
     if (_light) { _light->Position = p; }
+}
+
+auto level_object::direction() const -> point_d
+{
+    return _direction;
+}
+
+void level_object::set_direction(point_d p)
+{
+    _direction = p;
 }
 
 auto level_object::overlaps(point_d pos, f64 radius) const -> bool

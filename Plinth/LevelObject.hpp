@@ -63,6 +63,7 @@ using object_visual = std::variant<std::monostate, sprite_object, voxel_object>;
 
 struct level_object_desc {
     point_d Position {};
+    point_d Direction {};
     f64     Radius {0.0};
     color   MapMarker {colors::Green};
 
@@ -80,6 +81,9 @@ public:
 
     auto position() const -> point_d;
     void set_position(point_d p);
+
+    auto direction() const -> point_d;
+    void set_direction(point_d p);
 
     auto dead() const -> bool;
     void kill();
@@ -102,7 +106,8 @@ private:
     bool _dead {false};
     f64  _radius;
 
-    color _mapMarker;
+    color   _mapMarker;
+    point_d _direction;
 
     object_visual                _visual;
     std::optional<dynamic_light> _light;
