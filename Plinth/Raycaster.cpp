@@ -39,25 +39,12 @@ static auto ApplyTint(u8 r, u8 g, u8 b, color_d tint) -> u32
 
 static void CopyPixel(u32* dst, isize dstIdx, u8 const* src, isize srcIdx, color_d tint) { dst[dstIdx] = ApplyTint(src[srcIdx + 0], src[srcIdx + 1], src[srcIdx + 2], tint); }
 
-static auto BlendPixel(u32 a, u32 b, f64 t) -> u32
-{
-    u32 const w {static_cast<u32>(std::clamp(t, 0.0, 1.0) * 256.0)};
-    u32 const inv {256 - w};
-    u32 const rb {((((a & 0x00FF00FFu) * inv) + ((b & 0x00FF00FFu) * w)) >> 8) & 0x00FF00FFu};
-    u32 const g {((((a & 0x0000FF00u) * inv) + ((b & 0x0000FF00u) * w)) >> 8) & 0x0000FF00u};
-    return 0xFF000000u | rb | g;
-}
-
-static auto ScalePixel(u32 px, f64 factor) -> u32
-{
-    u32 const m {static_cast<u32>(std::clamp(factor, 0.0, 1.0) * 256.0)};
-    u32 const rb {(((px & 0x00FF00FFu) * m) >> 8) & 0x00FF00FFu};
-    u32 const g {(((px & 0x0000FF00u) * m) >> 8) & 0x0000FF00u};
-    return 0xFF000000u | rb | g;
-}
-
+// Computes ray direction vector using the camera plane for screen column x:
+// Dir = player.Direction + player.Plane * ((2 * x / width) - 1)
 static auto ComputeCameraRayDir(isize x, i32 screenWidth, player const& player) -> point_d { return player.Direction + (player.Plane * ((2.0 * (static_cast<f64>(x) + 0.5) / screenWidth) - 1.0)); }
 
+// Calculates light attenuation using inverse-square distance law combined with
+// a smooth quartic falloff envelope: intensity * (1 - (dist^2 / range^2))^2 / dist^2
 static auto ComputeFalloff(f64 distSq, f64 rangeSq, f64 intensity) -> f64
 {
     f64 const d {std::max(distSq, 0.01)};
@@ -66,6 +53,8 @@ static auto ComputeFalloff(f64 distSq, f64 rangeSq, f64 intensity) -> f64
     return intensity * (base * base) / d;
 }
 
+// Performs bilinear interpolation of corner heights (TL, TR, BL, BR)
+// across a unit cell given fractional local coordinates (dx, dy).
 static auto HeightAt(slope const& slope, point_i cell, point_d const& pos) -> f64
 {
     f64 const dx {std::clamp(pos.X - cell.X, 0.0, 1.0)};
@@ -316,6 +305,21 @@ void raycaster::draw_columns(i32 screenCenterY, i32 columnStart, i32 columnEnd)
 
 void raycaster::draw_floor_ceiling_column(column_hit& col)
 {
+    static auto blend_pixel {[](u32 a, u32 b, f64 t) -> u32 {
+        u32 const w {static_cast<u32>(std::clamp(t, 0.0, 1.0) * 256.0)};
+        u32 const inv {256 - w};
+        u32 const rb {((((a & 0x00FF00FFu) * inv) + ((b & 0x00FF00FFu) * w)) >> 8) & 0x00FF00FFu};
+        u32 const g {((((a & 0x0000FF00u) * inv) + ((b & 0x0000FF00u) * w)) >> 8) & 0x0000FF00u};
+        return 0xFF000000u | rb | g;
+    }};
+
+    static auto scale_pixel {[](u32 px, f64 factor) -> u32 {
+        u32 const m {static_cast<u32>(std::clamp(factor, 0.0, 1.0) * 256.0)};
+        u32 const rb {(((px & 0x00FF00FFu) * m) >> 8) & 0x00FF00FFu};
+        u32 const g {(((px & 0x0000FF00u) * m) >> 8) & 0x0000FF00u};
+        return 0xFF000000u | rb | g;
+    }};
+
     constexpr static f64 CONTACT_SHADOW_WIDTH {0.3};
     constexpr static f64 CONTACT_SHADOW_STRENGTH {0.75};
     constexpr static f64 REFLECTION_HEIGHT {1.0}; // floor reflections fade out this far up a wall
@@ -348,6 +352,10 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
 
         auto const dp {player.Position - cell};
         auto const [vx, vy] {rayDir};
+
+        // Plane equation coefficients (A, B, C) for non-flat slopes.
+        // Substituting ray equation P = pos + t * rayDir into the bilinear slope equation
+        // yields a quadratic equation in t: A*t^2 + term*t + (C - eyeZ) = 0.
         f64 const D {slope.BR - slope.BL - slope.TR + slope.TL};
         f64 const A {D * vx * vy};
         f64 const B {((slope.TR - slope.TL) * vx) + ((slope.BL - slope.TL) * vy) + (D * ((dp.X * vy) + (dp.Y * vx)))};
@@ -363,10 +371,12 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
             f64       t {tOut};
 
             if (std::abs(A) < 1e-12) {
+                // Linear case when cross-term coefficient A is near zero: t = (eyeZ - C) / term
                 if (std::abs(term) > 1e-9) {
                     t = std::clamp((eyeZ - C) / term, tIn, tOut);
                 }
             } else {
+                // Quadratic formula root finding: (-term ± sqrt(discriminant)) / (2 * A)
                 f64 const discriminant {(term * term) - (4.0 * A * (C - eyeZ))};
                 if (discriminant >= 0.0) {
                     f64 const sqrtDisc {std::sqrt(discriminant)};
@@ -396,7 +406,7 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
             if (_quality.ContactShadows && wallGap < CONTACT_SHADOW_WIDTH) {
                 f64 const c {1.0 - (wallGap / CONTACT_SHADOW_WIDTH)};
                 u32&      pixel {screenBuf[PixelIndex(_screenSize, x, y)]};
-                pixel = ScalePixel(pixel, 1.0 - (CONTACT_SHADOW_STRENGTH * c * c));
+                pixel = scale_pixel(pixel, 1.0 - (CONTACT_SHADOW_STRENGTH * c * c));
             }
 
             if (isFloor && surface.FloorReflectivity > 0.0) {
@@ -414,7 +424,7 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
                     u32 const     reflected {ApplyTint(wallTex[wallSrc + 0], wallTex[wallSrc + 1], wallTex[wallSrc + 2], DitherTint(wallTint, x, y, _quality))};
 
                     u32& pixel {screenBuf[PixelIndex(_screenSize, x, y)]};
-                    pixel = BlendPixel(pixel, reflected, surface.FloorReflectivity * (1.0 - (height / REFLECTION_HEIGHT)));
+                    pixel = blend_pixel(pixel, reflected, surface.FloorReflectivity * (1.0 - (height / REFLECTION_HEIGHT)));
                 }
             }
         }
@@ -512,6 +522,10 @@ void raycaster::draw_sprites(i32 screenCenterY)
     auto&       level {*_level};
     auto const& player {*_player};
 
+    // Transform sprite position into camera space using the inverse determinant
+    // of the camera matrix [Direction | Plane]:
+    // [transformX]   1/det * [  Direction.Y  -Direction.X ] * [relPos.X]
+    // [transformY] =         [ -Plane.Y       Plane.X     ]   [relPos.Y]
     f64 const    invDet {1.0 / player.Plane.cross(player.Direction)};
     rect_i const screenRect {point_i::Zero, _screenSize};
 

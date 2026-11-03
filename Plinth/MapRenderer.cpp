@@ -88,7 +88,7 @@ auto map_renderer::draw(level const& level, player const& player) -> u32 const*
     if (baseLeft.Y > baseRight.Y) { std::swap(baseLeft, baseRight); }
     if (tip.Y > baseLeft.Y) { std::swap(tip, baseLeft); }
 
-    auto const edgeInterpX {[](point_i a, point_i b, i32 y) -> f64 {
+    auto const edge_interp_x {[](point_i a, point_i b, i32 y) -> f64 {
         if (a.Y == b.Y) { return a.X; }
         f64 const t {static_cast<f64>(y - a.Y) / static_cast<f64>(b.Y - a.Y)};
         return a.X + (t * (b.X - a.X));
@@ -97,8 +97,8 @@ auto map_renderer::draw(level const& level, player const& player) -> u32 const*
     for (i32 y {tip.Y}; y <= baseRight.Y; ++y) {
         bool const secondHalf {y > baseLeft.Y || tip.Y == baseLeft.Y};
 
-        f64 const xa {edgeInterpX(tip, baseRight, y)};
-        f64 const xb {secondHalf ? edgeInterpX(baseLeft, baseRight, y) : edgeInterpX(tip, baseLeft, y)};
+        f64 const xa {edge_interp_x(tip, baseRight, y)};
+        f64 const xb {secondHalf ? edge_interp_x(baseLeft, baseRight, y) : edge_interp_x(tip, baseLeft, y)};
 
         i32 const xStart {static_cast<i32>(std::round(std::min(xa, xb)))};
         i32 const xEnd {static_cast<i32>(std::round(std::max(xa, xb)))};
