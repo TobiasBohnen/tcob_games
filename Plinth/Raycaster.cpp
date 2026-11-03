@@ -204,7 +204,7 @@ auto raycaster::draw(level& level, player& player) -> std::span<u32>
     auto const playerCell {WorldToCell(player.Position)};
     player.EyeZ = HeightAt(level.slopes_at(playerCell).Floor, playerCell, player.Position) + EYE_HEIGHT;
 
-    i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.BobAmount)};
+    i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.bob_amount())};
 
     _taskManager.run_parallel([&](par_task const& ctx) {
         draw_columns(screenCenterY, static_cast<i32>(ctx.Start), static_cast<i32>(ctx.End));

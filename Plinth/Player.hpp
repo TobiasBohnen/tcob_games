@@ -27,14 +27,14 @@ public:
 
     bool Cheater {false};
 
-    f64 BobAmount {0.0};
-
     void move(level const& level, f64 forwardAmount, f64 strafeAmount, f64 rotateAmount);
     void bob(milliseconds deltaTime);
+    auto bob_amount() const -> f64;
 
     static constexpr f64 Radius {0.25};
 
 private:
     bool _isMoving {false};
     f64  _bobPhase {0.0};
+    f64  _bobAmount {0.0};
 };

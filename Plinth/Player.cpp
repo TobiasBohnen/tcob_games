@@ -32,7 +32,7 @@ void player::move(level const& level, f64 forwardAmount, f64 strafeAmount, f64 r
         }
     }
 
-    // Strafe Left/Right (perpendicular to _dir)
+    // Strafe Left/Right (perpendicular to Direction)
     if (strafeAmount != 0) {
         point_d const strafe {-Direction.as_perpendicular()};
         point_d const newPos {Position + (strafe * strafeAmount)};
@@ -71,11 +71,16 @@ void player::bob(milliseconds deltaTime)
 
     if (_isMoving) {
         _bobPhase += dt * bobSpeed;
-        BobAmount = std::abs(std::sin(_bobPhase)) * Settings.BobHeight;
+        _bobAmount = std::abs(std::sin(_bobPhase)) * Settings.BobHeight;
         return;
     }
-    if (BobAmount != 0.0) {
-        _bobPhase = 0.0;
-        BobAmount = std::max(BobAmount - (dt * Settings.BobHeight * 4.0), 0.0);
+    if (_bobAmount != 0.0) {
+        _bobPhase  = 0.0;
+        _bobAmount = std::max(_bobAmount - (dt * Settings.BobHeight * 4.0), 0.0);
     }
+}
+
+auto player::bob_amount() const -> f64
+{
+    return _bobAmount;
 }

@@ -50,8 +50,8 @@ void texture_cache::load()
     load_image(7, 0, "res/wall7.png");
     load_image(8, 0, "res/wall7.png");
     load_image(9, 0, "res/wall7.png");
-    load_image(door1Texture, 0, "res/door.png");
-    load_image(door1FrameTexture, 0, "res/door_frame.png");
+    load_image(66, 0, "res/door.png");
+    load_image(67, 0, "res/door_frame.png");
     load_image(10, 0, "res/floor.png");
     load_image(11, 0, "res/ceiling.png");
     load_image(14, 0, "res/sky.png");
