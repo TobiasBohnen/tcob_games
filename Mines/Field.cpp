@@ -208,7 +208,7 @@ auto field::can_draw() const -> bool
     return true;
 }
 
-void field::clear_fields(point_i const& point)
+void field::clear_fields(point_i point)
 {
     auto& cell {get_cell(point)};
     if (cell.IsCleared) {
@@ -249,7 +249,7 @@ void field::reveal_mines()
     }
 }
 
-void field::move_mine(point_i const& point)
+void field::move_mine(point_i point)
 {
     auto& cell {get_cell(point)};
     cell.IsMine = false;
@@ -291,14 +291,14 @@ void field::move_mine(point_i const& point)
     }
 }
 
-void field::set_tile(gfx::tilemap_layer* layer, point_i const& point, gfx::tile_index_t id)
+void field::set_tile(gfx::tilemap_layer* layer, point_i point, gfx::tile_index_t id)
 {
     layer->Tiles.mutate([&](auto& tiles) {
         tiles[point] = id;
     });
 }
 
-auto field::get_cell(point_i const& point) -> cell&
+auto field::get_cell(point_i point) -> cell&
 {
     return _cells.at(point.X + (point.Y * _gridSize.Width));
 }

@@ -23,7 +23,7 @@ public:
 private:
     struct column_hit;
 
-    auto accumulate_light(point_d const& surfacePos, f64 surfaceZ, point_i const& cell, u32 lightMask) const -> color_d;
+    auto accumulate_light(point_d const& surfacePos, f64 surfaceZ, point_i cell, u32 lightMask) const -> color_d;
 
     void draw_surface_pixel(isize x, isize y, u8 const* tex, isize srcIdx, point_d const& surfacePos, f64 surfaceZ, f64 shade);
 

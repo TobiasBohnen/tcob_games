@@ -57,11 +57,11 @@ private:
     void process_mouse_motion(point_f mouse);
 
     auto get_tile_size() const -> size_f;
-    void clear_fields(point_i const& point);
+    void clear_fields(point_i point);
     void reveal_mines();
-    void move_mine(point_i const& point);
-    void set_tile(gfx::tilemap_layer* layer, point_i const& point, gfx::tile_index_t id);
-    auto get_cell(point_i const& point) -> cell&;
+    void move_mine(point_i point);
+    void set_tile(gfx::tilemap_layer* layer, point_i point, gfx::tile_index_t id);
+    auto get_cell(point_i point) -> cell&;
 
     rng        _rand {};
     game_state _state {game_state::Initial};

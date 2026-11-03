@@ -43,20 +43,31 @@ map_renderer::map_renderer(size_i screenSize)
 
 auto map_renderer::draw(level const& level, player const& player) -> u32 const*
 {
-    // walls
     _screen.clear();
     f32 const cellSize {_screenSize.Height / static_cast<f32>(MAP_HEIGHT)};
-    for (i32 y {0}; y < _screenSize.Height; ++y) {
-        for (i32 x {0}; x < _screenSize.Height; ++x) {
-            point_i const mapPos {static_cast<i32>(static_cast<f32>(x) / cellSize), static_cast<i32>(static_cast<f32>(y) / cellSize)};
-            i32 const     idx {x + (y * _screenSize.Width)};
-            _screen[idx] = get_color(level, mapPos).to_abgr();
+
+    for (i32 mapY {0}; mapY < MAP_HEIGHT; ++mapY) {
+        i32 const yStart {std::clamp(static_cast<i32>(mapY * cellSize), 0, _screenSize.Height)};
+        i32 const yEnd {std::clamp(static_cast<i32>((mapY + 1) * cellSize), 0, _screenSize.Height)};
+        if (yStart >= yEnd) { continue; }
+
+        for (i32 mapX {0}; mapX < MAP_WIDTH; ++mapX) {
+            i32 const xStart {std::clamp(static_cast<i32>(mapX * cellSize), 0, _screenSize.Width)};
+            i32 const xEnd {std::clamp(static_cast<i32>((mapX + 1) * cellSize), 0, _screenSize.Width)};
+            if (xStart >= xEnd) { continue; }
+
+            u32 const color {get_color(level, point_i {mapX, mapY}).to_abgr()};
+
+            for (i32 y {yStart}; y < yEnd; ++y) {
+                u32* rowPtr {&_screen[xStart + (y * _screenSize.Width)]};
+                std::fill_n(rowPtr, xEnd - xStart, color);
+            }
         }
     }
 
-    auto const plot {[&](point_i const& pt, u32 color) {
+    auto const plot {[&](point_i pt, u32 color) {
         if (pt.X >= 0 && pt.X < _screenSize.Width && pt.Y >= 0 && pt.Y < _screenSize.Height) {
-            i32 const idx {static_cast<i32>(pt.X + (pt.Y * _screenSize.Width))};
+            i32 const idx {pt.X + (pt.Y * _screenSize.Width)};
             _screen[idx] = color;
         }
     }};
@@ -77,7 +88,7 @@ auto map_renderer::draw(level const& level, player const& player) -> u32 const*
     if (baseLeft.Y > baseRight.Y) { std::swap(baseLeft, baseRight); }
     if (tip.Y > baseLeft.Y) { std::swap(tip, baseLeft); }
 
-    auto const edgeInterpX {[](point_i const& a, point_i const& b, i32 y) -> f64 {
+    auto const edgeInterpX {[](point_i a, point_i b, i32 y) -> f64 {
         if (a.Y == b.Y) { return a.X; }
         f64 const t {static_cast<f64>(y - a.Y) / static_cast<f64>(b.Y - a.Y)};
         return a.X + (t * (b.X - a.X));
@@ -103,7 +114,7 @@ auto map_renderer::draw(level const& level, player const& player) -> u32 const*
 
         point_i const sprPos {obj.position() * cellSize};
         i32 const     radius {static_cast<i32>(cellSize / 2)};
-        bresenham_circle(sprPos, radius, [&](point_i const& pt) { plot(pt, obj.map_marker().to_abgr()); });
+        bresenham_circle(sprPos, radius, [&](point_i pt) { plot(pt, obj.map_marker().to_abgr()); });
     }
 
     return _screen.data();

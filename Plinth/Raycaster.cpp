@@ -66,7 +66,7 @@ static auto ComputeFalloff(f64 distSq, f64 rangeSq, f64 intensity) -> f64
     return intensity * (base * base) / d;
 }
 
-static auto HeightAt(slope const& slope, point_i const& cell, point_d const& pos) -> f64
+static auto HeightAt(slope const& slope, point_i cell, point_d const& pos) -> f64
 {
     f64 const dx {std::clamp(pos.X - cell.X, 0.0, 1.0)};
     f64 const dy {std::clamp(pos.Y - cell.Y, 0.0, 1.0)};
@@ -90,7 +90,7 @@ static auto DitherTint(color_d tint, isize x, isize y, quality_settings const& q
     return color_d {.R = quantize(tint.R), .G = quantize(tint.G), .B = quantize(tint.B)};
 }
 
-static auto IsWithinPlayerLight(player const& player, point_i const& cell) -> bool
+static auto IsWithinPlayerLight(player const& player, point_i cell) -> bool
 {
     f64 const     range {player.Settings.LightRange};
     point_d const toCell {point_d {cell.X + 0.5, cell.Y + 0.5} - player.Position};
@@ -137,7 +137,7 @@ void raycaster::set_quality(quality_settings const& quality, f64 projPlaneDist)
     _objectDepthBuffer.assign(static_cast<usize>(_screenSize.area()), 0.0);
 }
 
-auto raycaster::accumulate_light(point_d const& surfacePos, f64 surfaceZ, point_i const& cell, u32 lightMask) const -> color_d
+auto raycaster::accumulate_light(point_d const& surfacePos, f64 surfaceZ, point_i cell, u32 lightMask) const -> color_d
 {
     auto const& level {*_level};
     auto const& player {*_player};
@@ -336,7 +336,7 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
         return wallTexPtr;
     }};
 
-    auto const draw_flat {[&](bool isFloor, cell_surface const& surface, point_i const& cell, f64 tIn, f64 tOut) {
+    auto const draw_flat {[&](bool isFloor, cell_surface const& surface, point_i cell, f64 tIn, f64 tOut) {
         auto const  slopes {level.slopes_at(cell)};
         auto const& slope {isFloor ? slopes.Floor : slopes.Ceiling};
 

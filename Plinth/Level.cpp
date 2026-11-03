@@ -141,7 +141,7 @@ void level::update_light_visibility(usize losSamples)
     for (auto& list : _cellLights) { list.clear(); }
     if (_lights.empty()) { return; }
 
-    auto const cell_has_any_line_of_sight {[&](point_i const& cell, point_d const& lightPos) -> bool {
+    auto const cell_has_any_line_of_sight {[&](point_i cell, point_d const& lightPos) -> bool {
         auto const lightCell {WorldToCell(lightPos)};
 
         std::array<point_d, 5> const samples {{
