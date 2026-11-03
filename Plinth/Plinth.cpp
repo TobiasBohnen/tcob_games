@@ -200,7 +200,7 @@ void Plinth::on_fixed_update(milliseconds /* deltaTime */)
 void Plinth::on_update(milliseconds deltaTime)
 {
     move_player(deltaTime);
-    _player.bob(deltaTime);
+    _player.update(deltaTime);
     _level->update(deltaTime);
     _screenOverlay->update(deltaTime);
 

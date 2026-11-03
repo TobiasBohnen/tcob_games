@@ -28,7 +28,8 @@ public:
     bool Cheater {false};
 
     void move(level const& level, f64 forwardAmount, f64 strafeAmount, f64 rotateAmount);
-    void bob(milliseconds deltaTime);
+    void update(milliseconds deltaTime);
+
     auto bob_amount() const -> f64;
 
     static constexpr f64 Radius {0.25};

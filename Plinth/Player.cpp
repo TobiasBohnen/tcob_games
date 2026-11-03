@@ -63,7 +63,7 @@ void player::move(level const& level, f64 forwardAmount, f64 strafeAmount, f64 r
     }
 }
 
-void player::bob(milliseconds deltaTime)
+void player::update(milliseconds deltaTime)
 {
     constexpr f64 bobSpeed {8.0};
 
