@@ -60,14 +60,14 @@ void level::precompute_slopes()
 {
     _cellSlopes.resize(static_cast<usize>(MAP_WIDTH) * MAP_HEIGHT);
 
-    auto const vertex_height {[&](i32 vx, i32 vy) -> f64 {
+    auto const vertex_height {[&](i32 vx, i32 vy, bool isFloor) -> f64 {
         f64  extremeZ {0.0};
         bool found {false};
         for (i32 cy : {vy - 1, vy}) {
             for (i32 cx : {vx - 1, vx}) {
                 point_i const c {cx, cy};
                 if (map_t::Size.contains(c)) {
-                    f64 const z {surface(c).FloorZ};
+                    f64 const z {isFloor ? surface(c).FloorZ : surface(c).CeilingZ};
                     if (!found) {
                         extremeZ = z;
                         found    = true;
@@ -87,16 +87,13 @@ void level::precompute_slopes()
     for (i32 y {0}; y < MAP_HEIGHT; ++y) {
         for (i32 x {0}; x < MAP_WIDTH; ++x) {
             usize const index {static_cast<usize>((y * MAP_WIDTH) + x)};
-            _cellSlopes[index] = slope {
-                .TL = vertex_height(x, y),
-                .TR = vertex_height(x + 1, y),
-                .BL = vertex_height(x, y + 1),
-                .BR = vertex_height(x + 1, y + 1)};
+            _cellSlopes[index] = {.Ceiling = {.TL = vertex_height(x, y, false), .TR = vertex_height(x + 1, y, false), .BL = vertex_height(x, y + 1, false), .BR = vertex_height(x + 1, y + 1, false)},
+                                  .Floor   = {.TL = vertex_height(x, y, true), .TR = vertex_height(x + 1, y, true), .BL = vertex_height(x, y + 1, true), .BR = vertex_height(x + 1, y + 1, true)}};
         }
     }
 }
 
-auto level::slope_at(point_i idx) const -> slope
+auto level::slopes_at(point_i idx) const -> slopes
 {
     if (!map_t::Size.contains(idx)) { return {}; }
     return _cellSlopes[static_cast<usize>((idx.Y * MAP_WIDTH) + idx.X)];
@@ -235,10 +232,10 @@ void level::update_light_visibility(usize losSamples)
                     point_d const cellCenter {cx + 0.5, cy + 0.5};
                     point_d const toLightXY {lt.Position - cellCenter};
 
-                    slope const slp {slope_at(point_i {cx, cy})};
-                    f64 const   lowZ {std::min({slp.TL, slp.TR, slp.BL, slp.BR})};
-                    f64 const   highZ {std::max({slp.TL, slp.TR, slp.BL, slp.BR}) + 1.0};
-                    f64 const   dz {std::max({lowZ - lt.Z, lt.Z - highZ, 0.0})};
+                    auto const slp {slopes_at(point_i {cx, cy})};
+                    f64 const  lowZ {std::min({slp.Floor.TL, slp.Floor.TR, slp.Floor.BL, slp.Floor.BR})};
+                    f64 const  highZ {std::max({slp.Ceiling.TL, slp.Ceiling.TR, slp.Ceiling.BL, slp.Ceiling.BR})};
+                    f64 const  dz {std::max({lowZ - lt.Z, lt.Z - highZ, 0.0})};
 
                     f64 const distSq {toLightXY.dot(toLightXY) + (dz * dz)};
                     if (distSq >= sweep.RadiusSq) { continue; }
@@ -264,6 +261,7 @@ auto level::surface(point_i idx) const -> cell_surface
         if constexpr (requires { c.CeilingTexture; }) { s.CeilingTexture = c.CeilingTexture; }
         if constexpr (requires { c.FloorReflectivity; }) { s.FloorReflectivity = c.FloorReflectivity; }
         if constexpr (requires { c.FloorZ; }) { s.FloorZ = c.FloorZ; }
+        if constexpr (requires { c.CeilingZ; }) { s.CeilingZ = c.CeilingZ; }
         return s;
     },
                       get_cell(idx));

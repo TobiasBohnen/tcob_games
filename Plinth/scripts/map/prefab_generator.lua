@@ -212,8 +212,9 @@ local cell_factories = {
     end,
     R = function(prefab)
         return with_surfaces(prefab, {
-            type   = "floor_cell",
-            FloorZ = 0.45,
+            type     = "floor_cell",
+            FloorZ   = 0.45,
+            CeilingZ = 1.45
         })
     end,
     T = function(prefab)

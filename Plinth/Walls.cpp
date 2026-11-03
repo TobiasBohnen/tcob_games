@@ -22,9 +22,8 @@ auto floor_cell::intersect(cell_intersect const& /* ci */) const -> std::optiona
 auto normal_wall::intersect(cell_intersect const& ci) const -> std::optional<wall_hit>
 {
     // wallX: fractional hit position on the wall face
-    f64 wallX {!ci.Side
-                   ? ci.RayOrigin.Y + (ci.Distance * ci.RayDir.Y)
-                   : ci.RayOrigin.X + (ci.Distance * ci.RayDir.X)};
+    f64 wallX {!ci.Side ? ci.RayOrigin.Y + (ci.Distance * ci.RayDir.Y)
+                        : ci.RayOrigin.X + (ci.Distance * ci.RayDir.X)};
     wallX -= std::floor(wallX);
 
     // mirror texture on specific faces to avoid backwards-looking textures

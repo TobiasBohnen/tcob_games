@@ -20,6 +20,7 @@ struct cell_surface {
     i32 CeilingTexture {INVALID_INDEX};
     f64 FloorReflectivity {0.0};
     f64 FloorZ {0.0};
+    f64 CeilingZ {1.0};
 };
 
 struct slope {
@@ -27,6 +28,10 @@ struct slope {
     f64 TR {0};
     f64 BL {0};
     f64 BR {0};
+};
+struct slopes {
+    slope Ceiling;
+    slope Floor;
 };
 
 class level {
@@ -46,7 +51,7 @@ public:
     auto surface(point_i idx) const -> cell_surface;
 
     void precompute_slopes();
-    auto slope_at(point_i idx) const -> slope;
+    auto slopes_at(point_i idx) const -> slopes;
 
     void update_light_visibility(usize losSamples);
     auto lights() const -> std::span<dynamic_light const>;
@@ -81,7 +86,7 @@ private:
     std::vector<level_object> _objects;
     uid                       _nextId {0};
 
-    std::vector<slope> _cellSlopes;
+    std::vector<slopes> _cellSlopes;
 
     std::vector<dynamic_light>    _lights;
     std::vector<std::vector<u32>> _cellLights;
