@@ -44,7 +44,7 @@ static void CopyPixel(u32* dst, isize dstIdx, u8 const* src, isize srcIdx, color
 static auto ComputeCameraRayDir(isize x, i32 screenWidth, player const& player) -> point_d { return player.Direction + (player.Plane * ((2.0 * (static_cast<f64>(x) + 0.5) / screenWidth) - 1.0)); }
 
 // Calculates light attenuation using inverse-square distance law combined with
-// a smooth quartic falloff envelope: intensity * (1 - (dist^2 / range^2))^2 / dist^2
+// a smooth quartic falloff envelope: intensity * (1 - (dist^4 / range^4))^2 / dist^2
 static auto ComputeFalloff(f64 distSq, f64 rangeSq, f64 intensity) -> f64
 {
     f64 const d {std::max(distSq, 0.01)};
@@ -364,6 +364,7 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
         i32 const texId {isFloor ? surface.FloorTexture : surface.CeilingTexture};
         u8 const* tex {texId != INVALID_INDEX ? _cache.texture(texId, 0) : nullptr};
         if (tex == nullptr) { tex = wall_texture(); }
+        if (tex == nullptr) { return; }
 
         for (i32 y {from}; y < to; ++y) {
             f64 const s {(static_cast<f64>(y) - col.CenterY) / proj};
@@ -412,7 +413,7 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
             if (isFloor && surface.FloorReflectivity > 0.0) {
                 f64 const mirrored {z - col.WallBase + ((eyeZ - z) * ((hitDist / std::max(t, MIN_RAY_DIST)) - 1.0))};
                 f64 const height {std::max(mirrored, 0.0)}; // height above the wall base that the bounced ray reaches
-                if (height < std::min(REFLECTION_HEIGHT, col.WallTop - col.WallBase)) {
+                if (height < std::min(REFLECTION_HEIGHT, col.WallTop - col.WallBase) && wall_texture() != nullptr) {
                     u8 const* wallTex {wall_texture()};
 
                     i32 const wallTexX {std::clamp(static_cast<i32>((1.0 - col.Hit.SegmentT) * static_cast<f64>(WALL_SIZE.Width)), 0, WALL_SIZE.Width - 1)};
@@ -479,9 +480,10 @@ void raycaster::draw_wall_column(column_hit const& col)
     f64 const wallBottomRow {std::round(col.CenterY + ((player.EyeZ - col.WallBase) * rowsPerUnit))};
 
     auto const* tex {_cache.texture(hit.Texture, 0)};
-    i32 const   texX {std::clamp(static_cast<i32>((1.0 - hit.SegmentT) * static_cast<f64>(WALL_SIZE.Width)), 0, WALL_SIZE.Width - 1)};
-    f64 const   texStep {static_cast<f64>(WALL_SIZE.Height) / rowsPerUnit};
-    f64         texPos {static_cast<f64>(WALL_SIZE.Height) + ((static_cast<f64>(col.Top) - wallBottomRow) * texStep)};
+    if (tex == nullptr) { return; }
+    i32 const texX {std::clamp(static_cast<i32>((1.0 - hit.SegmentT) * static_cast<f64>(WALL_SIZE.Width)), 0, WALL_SIZE.Width - 1)};
+    f64 const texStep {static_cast<f64>(WALL_SIZE.Height) / rowsPerUnit};
+    f64       texPos {static_cast<f64>(WALL_SIZE.Height) + ((static_cast<f64>(col.Top) - wallBottomRow) * texStep)};
 
     auto const surfacePos {player.Position + (col.RayDir * std::max(hit.Distance - LIGHT_BIAS, 0.0))};
 
@@ -663,7 +665,13 @@ void raycaster::draw_voxel_objects(i32 screenCenterY)
         for (i32 x {xStart}; x < xEnd; ++x) { maxWallDist = std::max(maxWallDist, _zBuffer[x]); }
         if (bboxMinDepth >= maxWallDist) { continue; }
 
-        f64 const maxT {maxWallDist + vo->world_diagonal()};
+        auto const edge_len_sq {[&](i32 col) {
+            auto const d {ComputeCameraRayDir(col, _screenSize.Width, player)};
+            return d.dot(d);
+        }};
+        f64 const  maxLenSq {std::max(edge_len_sq(xStart), edge_len_sq(xEnd - 1))};
+        f64 const  maxSlope {std::max(std::abs(screenCenterY - yStart), std::abs(yEnd - screenCenterY)) / _projPlaneDist};
+        f64 const  maxT {(maxWallDist * std::sqrt(maxLenSq + (maxSlope * maxSlope))) + vo->world_diagonal()};
 
         i32 const colCount {xEnd - xStart};
         i32 const rowCount {yEnd - yStart};
