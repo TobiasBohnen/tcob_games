@@ -10,6 +10,11 @@
 #include "Sprite.hpp"
 #include "TexProxy.hpp"
 
+#include <array>
+#include <optional>
+#include <unordered_map>
+#include <vector>
+
 ////////////////////////////////////////////////////////////
 
 template <typename T = void>

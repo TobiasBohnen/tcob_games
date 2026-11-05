@@ -13,6 +13,9 @@
 #include "SpriteManager.hpp"
 #include "UI.hpp"
 
+#include <memory>
+#include <vector>
+
 ////////////////////////////////////////////////////////////
 
 class dice_game : public gfx::entity {

@@ -9,6 +9,9 @@
 
 #include "Sprite.hpp"
 
+#include <memory>
+#include <vector>
+
 ////////////////////////////////////////////////////////////
 
 class sprite_manager {

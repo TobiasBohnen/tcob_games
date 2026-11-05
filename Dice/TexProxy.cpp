@@ -5,8 +5,19 @@
 
 #include "TexProxy.hpp"
 
+#include "Common.hpp"
 #include "Fonts.hpp"
 #include "Socket.hpp"
+
+#include <cassert>
+#include <cmath>
+#include <cstdlib>
+#include <iterator>
+#include <optional>
+#include <span>
+#include <string_view>
+#include <unordered_map>
+#include <vector>
 
 void draw_line(point_i start, point_i end, auto&& plot)
 {

@@ -8,6 +8,12 @@
 #include "Common.hpp" // IWYU pragma: keep
 
 #include "Game.hpp"
+#include "UI.hpp"
+
+#include <future>
+#include <map>
+#include <memory>
+#include <vector>
 
 class start_scene : public scene {
 

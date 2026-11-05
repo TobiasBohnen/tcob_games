@@ -7,6 +7,11 @@
 
 #include <tcob/tcob.hpp> // IWYU pragma: export
 
+#include <array>
+#include <tuple>
+#include <unordered_map>
+#include <vector>
+
 using namespace tcob;
 using namespace std::chrono_literals;
 

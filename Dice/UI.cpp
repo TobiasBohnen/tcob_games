@@ -5,6 +5,15 @@
 
 #include "UI.hpp"
 
+#include "Common.hpp"
+
+#include <algorithm>
+#include <cassert>
+#include <chrono>
+#include <format>
+#include <map>
+#include <memory>
+
 using namespace tcob::literals;
 using namespace tcob::gfx;
 using namespace tcob::ui;

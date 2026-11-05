@@ -5,6 +5,8 @@
 
 #include "Die.hpp"
 
+#include "Common.hpp"
+
 ////////////////////////////////////////////////////////////
 
 die::die(gfx::rect_shape* shape, audio::buffer const& buffer, rng& rng, std::span<die_face const> faces, die_face initFace)

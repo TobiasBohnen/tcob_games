@@ -7,6 +7,9 @@
 
 #include "Common.hpp" // IWYU pragma: keep
 
+#include <map>
+#include <memory>
+
 ////////////////////////////////////////////////////////////
 
 class game_form : public ui::form<ui::grid_layout> {

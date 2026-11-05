@@ -7,6 +7,11 @@
 
 #include "Common.hpp" // IWYU pragma: keep
 
+#include <format>
+#include <memory>
+#include <span>
+#include <vector>
+
 ////////////////////////////////////////////////////////////
 
 enum class die_state : u8 {
@@ -23,7 +28,7 @@ struct die_face {
     {
         string suffix;
         switch (state) {
-        case die_state::Normal: break;
+        case die_state::Normal:  break;
         case die_state::Hovered:
         case die_state::Dragged:
             suffix = "-hover";

@@ -5,6 +5,15 @@
 
 #include "SpriteManager.hpp"
 
+#include "Common.hpp"
+
+#include <array>
+#include <cassert>
+#include <chrono>
+#include <memory>
+#include <utility>
+#include <vector>
+
 sprite_manager::sprite_manager(event_bus& events)
     : _background {&_spriteBatch.create_shape<gfx::rect_shape>()}
     , _foreground {&_spriteBatch.create_shape<gfx::rect_shape>()}

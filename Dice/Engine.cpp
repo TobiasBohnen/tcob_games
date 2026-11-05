@@ -5,6 +5,7 @@
 
 #include "Engine.hpp"
 
+#include "Common.hpp"
 #include "Die.hpp"
 #include "Socket.hpp"
 #include "SpriteManager.hpp"

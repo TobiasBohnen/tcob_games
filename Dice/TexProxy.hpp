@@ -7,6 +7,12 @@
 
 #include "Common.hpp" // IWYU pragma: keep
 
+#include <optional>
+#include <span>
+#include <tuple>
+#include <unordered_map>
+#include <vector>
+
 ////////////////////////////////////////////////////////////
 
 struct blit_settings {

@@ -7,6 +7,8 @@
 
 #include <utility>
 
+#include "Common.hpp"
+
 ////////////////////////////////////////////////////////////
 
 sprite::sprite(init init)

@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <utility>
 
+#include "Common.hpp"
 #include "Die.hpp"
 
 ////////////////////////////////////////////////////////////

@@ -7,6 +7,13 @@
 
 #include "Common.hpp" // IWYU pragma: keep
 
+#include <memory>
+#include <optional>
+#include <span>
+#include <tuple>
+#include <unordered_set>
+#include <vector>
+
 ////////////////////////////////////////////////////////////
 
 enum class value_category : u8 {

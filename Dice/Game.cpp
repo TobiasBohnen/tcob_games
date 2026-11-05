@@ -5,7 +5,15 @@
 
 #include "Game.hpp"
 
+#include <algorithm>
+#include <cmath>
+#include <memory>
 #include <utility>
+#include <vector>
+
+#include "Common.hpp"
+#include "Engine.hpp"
+#include "UI.hpp"
 
 using namespace scripting;
 

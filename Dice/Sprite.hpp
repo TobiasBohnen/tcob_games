@@ -7,6 +7,9 @@
 
 #include "Common.hpp" // IWYU pragma: keep
 
+#include <optional>
+#include <tuple>
+
 ////////////////////////////////////////////////////////////
 
 struct texture {

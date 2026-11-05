@@ -5,6 +5,16 @@
 
 #include "StartScene.hpp"
 
+#include "Common.hpp"
+#include "TexProxy.hpp"
+#include "UI.hpp"
+
+#include <chrono>
+#include <format>
+#include <future>
+#include <memory>
+#include <tuple>
+
 start_scene::start_scene(game& game)
     : scene {game}
     , _gameNode(&root_node().create_child())
