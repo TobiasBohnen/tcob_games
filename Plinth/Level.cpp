@@ -417,6 +417,16 @@ void level::fade_vision()
     }
 }
 
+auto level::motes() const -> motes_settings const&
+{
+    return _motes;
+}
+
+void level::set_motes(motes_settings const& motes)
+{
+    _motes = motes;
+}
+
 auto level::spawn(level_object_desc desc) -> uid
 {
     uid const id {_nextId++};

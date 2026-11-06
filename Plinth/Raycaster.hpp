@@ -16,6 +16,8 @@ class raycaster {
 public:
     explicit raycaster(texture_cache& cache);
 
+    void update(milliseconds deltaTime);
+
     auto draw(level& level, player& player) -> std::span<u32>;
 
     void set_quality(quality_settings const& quality, f64 projPlaneDist);
@@ -33,6 +35,7 @@ private:
 
     void draw_sprites(i32 screenCenterY);
     void draw_voxel_objects(i32 screenCenterY);
+    void draw_motes(i32 screenCenterY);
 
     std::vector<u32> _screen;
 
@@ -47,4 +50,6 @@ private:
     task_manager& _taskManager;
     level*        _level {nullptr};
     player const* _player {nullptr};
+
+    milliseconds _time {};
 };

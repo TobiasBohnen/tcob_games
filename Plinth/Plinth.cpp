@@ -92,6 +92,87 @@
     }
 }};
 
+[[maybe_unused]] static motes_settings const MOTES_DUST {
+    .Count       = 3,
+    .FallSpeed   = 0.04,
+    .SpeedJitter = 0.3,
+    .Drift       = 0.25,
+    .DriftSpeed  = 0.3,
+    .Alpha       = 0.35,
+    .Colors      = {{.R = 0.9, .G = 0.85, .B = 0.7}}};
+
+[[maybe_unused]] static motes_settings const MOTES_SNOW {
+    .Count       = 4,
+    .FallSpeed   = 0.12,
+    .SpeedJitter = 0.3,
+    .Drift       = 0.4,
+    .DriftSpeed  = 0.5,
+    .Size        = 0.03,
+    .Alpha       = 0.7,
+    .Emissive    = 0.3,
+    .Colors      = {{.R = 0.9, .G = 0.95, .B = 1.0}, {.R = 0.8, .G = 0.9, .B = 1.0}}};
+
+[[maybe_unused]] static motes_settings const MOTES_RAIN {
+    .Count       = 6,
+    .FallSpeed   = 1.5,
+    .SpeedJitter = 0.2,
+    .Wind        = {0.1, 0.0},
+    .Length      = 0.25,
+    .Alpha       = 0.25,
+    .Emissive    = 0.6,
+    .Colors      = {{.R = 0.6, .G = 0.7, .B = 0.9}, {.R = 0.7, .G = 0.8, .B = 1.0}}};
+
+[[maybe_unused]] static motes_settings const MOTES_EMBERS {
+    .Count        = 3,
+    .FallSpeed    = -0.1,
+    .SpeedJitter  = 0.3,
+    .Drift        = 0.35,
+    .DriftSpeed   = 0.3,
+    .Alpha        = 0.8,
+    .Twinkle      = 0.6,
+    .TwinkleSpeed = 1.5,
+    .Emissive     = 1.0,
+    .Additive     = true,
+    .Colors       = {{.R = 1.0, .G = 0.55, .B = 0.15}, {.R = 1.0, .G = 0.2, .B = 0.05}}};
+
+[[maybe_unused]] static motes_settings const MOTES_ASH {
+    .Count       = 4,
+    .FallSpeed   = 0.06,
+    .SpeedJitter = 0.3,
+    .Wind        = {0.05, 0.02},
+    .Drift       = 0.3,
+    .DriftSpeed  = 0.3,
+    .Size        = 0.02,
+    .Alpha       = 0.5,
+    .Emissive    = 0.1,
+    .Colors      = {{.R = 0.55, .G = 0.55, .B = 0.55}, {.R = 0.3, .G = 0.3, .B = 0.3}}};
+
+[[maybe_unused]] static motes_settings const MOTES_MIST {
+    .Count       = 40,
+    .FallSpeed   = 0.02,
+    .SpeedJitter = 0.3,
+    .Wind        = {0.05, 0.02},
+    .Drift       = 0.25,
+    .DriftSpeed  = 0.3,
+    .MaxHeight   = 0.3,
+    .Size        = 0.05,
+    .Alpha       = 0.15,
+    .Colors      = {{.R = 0.7, .G = 0.8, .B = 0.9}, {.R = 0.8, .G = 0.85, .B = 0.9}}};
+
+[[maybe_unused]] static motes_settings const MOTES_SPORES {
+    .Count        = 4,
+    .FallSpeed    = -0.03,
+    .SpeedJitter  = 0.3,
+    .Drift        = 0.5,
+    .DriftSpeed   = 0.4,
+    .Size         = 0.02,
+    .Alpha        = 0.8,
+    .Twinkle      = 0.7,
+    .TwinkleSpeed = 0.8,
+    .Emissive     = 1.0,
+    .Additive     = true,
+    .Colors       = {{.R = 0.3, .G = 1.0, .B = 0.6}, {.R = 0.6, .G = 0.4, .B = 1.0}}};
+
 // PLACEHOLDER START
 
 Plinth::Plinth(game& game)
@@ -107,6 +188,7 @@ Plinth::Plinth(game& game)
     _level = std::make_unique<level>();
     _engine.generate_level(*_level, _player);
     _level->precompute_slopes();
+    _level->set_motes(MOTES_ASH);
 
     rng                         rng;
     std::unordered_set<point_i> used;
@@ -202,6 +284,7 @@ void Plinth::on_update(milliseconds deltaTime)
     move_player(deltaTime);
     _player.update(deltaTime);
     _level->update(deltaTime);
+    _raycaster->update(deltaTime);
     _screenOverlay->update(deltaTime);
 
     // _frameTimer += deltaTime;

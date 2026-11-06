@@ -178,6 +178,11 @@ void raycaster::draw_surface_pixel(isize x, isize y, u8 const* tex, isize srcIdx
     CopyPixel(_screen.data(), PixelIndex(_screenSize, x, y), tex, srcIdx, close ? tint : DitherTint(tint, x, y, _quality));
 }
 
+void raycaster::update(milliseconds deltaTime)
+{
+    _time += deltaTime;
+}
+
 auto raycaster::draw(level& level, player& player) -> std::span<u32>
 {
     constexpr static f64 EYE_HEIGHT {0.5}; // eye height above the floor under the player
@@ -202,6 +207,7 @@ auto raycaster::draw(level& level, player& player) -> std::span<u32>
 
     draw_sprites(screenCenterY);
     draw_voxel_objects(screenCenterY);
+    draw_motes(screenCenterY);
 
     _level  = nullptr;
     _player = nullptr;
@@ -739,5 +745,127 @@ void raycaster::draw_voxel_objects(i32 screenCenterY)
                                   strideCols);
 
         vo->Seen = drawn.load(std::memory_order_relaxed) && IsWithinPlayerLight(player, voCell);
+    }
+}
+
+void raycaster::draw_motes(i32 screenCenterY)
+{
+    constexpr static f64 MIN_LIGHT {0.04}; // motes in less light than this are skipped
+
+    auto const& level {*_level};
+
+    auto const& motes {level.motes()};
+    if (motes.Count == 0) { return; }
+
+    static auto hash_unit {[](i32 x, i32 y, u32 index, u32 salt) -> f64 {
+        u32 h {(static_cast<u32>(x) * 73856093u) ^ (static_cast<u32>(y) * 19349663u) ^ (index * 83492791u) ^ (salt * 2654435761u)};
+        h ^= h >> 16;
+        h *= 0x7feb352du;
+        h ^= h >> 15;
+        h *= 0x846ca68bu;
+        h ^= h >> 16;
+        return static_cast<f64>(h) / 4294967296.0;
+    }};
+
+    static auto blend_pixel {[](u32 a, u32 b, f64 t) -> u32 {
+        u32 const w {static_cast<u32>(std::clamp(t, 0.0, 1.0) * 256.0)};
+        u32 const inv {256 - w};
+        u32 const rb {((((a & 0x00FF00FFu) * inv) + ((b & 0x00FF00FFu) * w)) >> 8) & 0x00FF00FFu};
+        u32 const g {((((a & 0x0000FF00u) * inv) + ((b & 0x0000FF00u) * w)) >> 8) & 0x0000FF00u};
+        return 0xFF000000u | rb | g;
+    }};
+
+    static auto add_pixel {[](u32 px, u32 add, f64 t) -> u32 {
+        u32 const w {static_cast<u32>(std::clamp(t, 0.0, 1.0) * 256.0)};
+        u32 const r {std::min((px & 0xFFu) + (((add & 0xFFu) * w) >> 8), 255u)};
+        u32 const g {std::min(((px >> 8) & 0xFFu) + ((((add >> 8) & 0xFFu) * w) >> 8), 255u)};
+        u32 const b {std::min(((px >> 16) & 0xFFu) + ((((add >> 16) & 0xFFu) * w) >> 8), 255u)};
+        return 0xFF000000u | (b << 16) | (g << 8) | r;
+    }};
+
+    static auto frac {[](f64 v) -> f64 { return v - std::floor(v); }};
+
+    auto const& player {*_player};
+
+    f64 const t {static_cast<f64>(_time.count()) / 1000.0};
+    f64 const invDet {1.0 / player.Plane.cross(player.Direction)};
+    f64 const lightRange {player.Settings.LightRange};
+
+    i32 const     reach {static_cast<i32>(std::ceil(lightRange))};
+    point_i const center {WorldToCell(player.Position)};
+    u32*          screenBuf {_screen.data()};
+
+    for (i32 cy {center.Y - reach}; cy <= center.Y + reach; ++cy) {
+        for (i32 cx {center.X - reach}; cx <= center.X + reach; ++cx) {
+            point_i const cell {cx, cy};
+            if (!map_t::Size.contains(cell) || std::holds_alternative<normal_wall>(level.get_cell(cell)) || !IsWithinPlayerLight(player, cell)) { continue; }
+
+            auto const slopes {level.slopes_at(cell)};
+
+            for (u32 i {0}; i < motes.Count; ++i) {
+                point_d const pos {cx + frac(hash_unit(cx, cy, i, 3) + (motes.Wind.X * t)) + (motes.Drift * std::sin((t * motes.DriftSpeed) + (hash_unit(cx, cy, i, 5) * TAU))),
+                                   cy + frac(hash_unit(cx, cy, i, 4) + (motes.Wind.Y * t)) + (motes.Drift * std::sin((t * motes.DriftSpeed * 0.8) + (hash_unit(cx, cy, i, 6) * TAU)))};
+
+                // falls (or rises) and wraps inside the height band
+                f64 const fall {hash_unit(cx, cy, i, 7) - (t * motes.FallSpeed * (1.0 + (motes.SpeedJitter * ((2.0 * hash_unit(cx, cy, i, 8)) - 1.0))))};
+                f64 const floorZ {HeightAt(slopes.Floor, cell, pos)};
+                f64 const ceilZ {HeightAt(slopes.Ceiling, cell, pos)};
+                f64 const z {floorZ + ((motes.MinHeight + (frac(fall) * (motes.MaxHeight - motes.MinHeight))) * (ceilZ - floorZ))};
+
+                auto const relPos {pos - player.Position};
+                f64 const  transformX {invDet * relPos.cross(player.Direction)};
+                f64 const  transformY {invDet * player.Plane.cross(relPos)};
+                if (transformY <= 0.05) { continue; }
+
+                f64 const scale {_projPlaneDist / transformY};
+                i32 const sx {static_cast<i32>(std::floor((_screenSize.Width / 2.0) * (1.0 + (transformX / transformY))))};
+                i32 const sy {static_cast<i32>(std::floor(screenCenterY - ((z - player.EyeZ) * scale)))};
+
+                i32 const widthPx {std::max(1, static_cast<i32>(std::round(motes.Size * scale)))};
+                i32 const lengthPx {std::max(widthPx, static_cast<i32>(std::round(motes.Length * scale)))};
+                i32 const left {sx - (widthPx / 2)};
+                if (left >= _screenSize.Width || left + widthPx <= 0 || sy - lengthPx >= _screenSize.Height || sy < 0) { continue; }
+
+                auto tint {accumulate_light(pos, z, cell, LIGHT_LAYERS_ALL)};
+                tint.R += (1.0 - tint.R) * motes.Emissive;
+                tint.G += (1.0 - tint.G) * motes.Emissive;
+                tint.B += (1.0 - tint.B) * motes.Emissive;
+                if (std::max({tint.R, tint.G, tint.B}) < MIN_LIGHT) { continue; }
+
+                f64 twinkle {1.0};
+                if (motes.Twinkle > 0.0) {
+                    f64 const pulse {0.5 + (0.5 * std::sin((t * motes.TwinkleSpeed * TAU * (0.5 + hash_unit(cx, cy, i, 9))) + (hash_unit(cx, cy, i, 10) * TAU)))};
+                    twinkle = 1.0 - (motes.Twinkle * pulse);
+                }
+
+                color_d base {.R = 1.0, .G = 1.0, .B = 1.0};
+                if (!motes.Colors.empty()) {
+                    f64 const   pick {hash_unit(cx, cy, i, 11) * static_cast<f64>(motes.Colors.size() - 1)};
+                    usize const lo {static_cast<usize>(pick)};
+                    usize const hi {std::min(lo + 1, motes.Colors.size() - 1)};
+                    f64 const   mix {pick - static_cast<f64>(lo)};
+                    auto const& c0 {motes.Colors[lo]};
+                    auto const& c1 {motes.Colors[hi]};
+                    base = {.R = c0.R + ((c1.R - c0.R) * mix), .G = c0.G + ((c1.G - c0.G) * mix), .B = c0.B + ((c1.B - c0.B) * mix)};
+                }
+
+                f64 const fade {1.0 - std::min(transformY / lightRange, 1.0)};
+                u32 const moteColor {ApplyTint(255, 255, 255, {.R = base.R * tint.R, .G = base.G * tint.G, .B = base.B * tint.B})};
+
+                for (i32 py {std::max(sy - lengthPx + 1, 0)}; py <= std::min(sy, _screenSize.Height - 1); ++py) {
+                    f64 const trail {lengthPx > widthPx ? 1.0 - (static_cast<f64>(sy - py) / lengthPx) : 1.0};
+                    f64 const alpha {motes.Alpha * fade * twinkle * trail};
+
+                    for (i32 px {std::max(left, 0)}; px < std::min(left + widthPx, _screenSize.Width); ++px) {
+                        if (transformY >= _zBuffer[px]) { continue; }
+
+                        isize const idx {PixelIndex(_screenSize, px, py)};
+                        if (transformY >= _objectDepthBuffer[idx]) { continue; }
+
+                        screenBuf[idx] = motes.Additive ? add_pixel(screenBuf[idx], moteColor, alpha) : blend_pixel(screenBuf[idx], moteColor, alpha);
+                    }
+                }
+            }
+        }
     }
 }

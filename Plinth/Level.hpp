@@ -34,6 +34,25 @@ struct slopes {
     slope Floor;
 };
 
+struct motes_settings {
+    u32                  Count {0};         // motes per cell; 0 disables the pass
+    f64                  FallSpeed {0.0};   // cell heights per second; negative rises
+    f64                  SpeedJitter {0.0}; // per-mote speed variation, 0..1
+    point_d              Wind {0.0, 0.0};   // constant drift in cells per second; motes wrap inside their cell
+    f64                  Drift {0.0};       // wobble radius in world units
+    f64                  DriftSpeed {1.0};  // wobble speed
+    f64                  MinHeight {0.0};   // vertical band as a fraction of the cell height
+    f64                  MaxHeight {1.0};
+    f64                  Size {0.0};        // world units; 0 = single pixel
+    f64                  Length {0.0};      // streak length in world units, trailing upward; 0 = dot
+    f64                  Alpha {1.0};
+    f64                  Twinkle {0.0};     // 0..1 depth of the brightness pulse
+    f64                  TwinkleSpeed {1.0};
+    f64                  Emissive {0.0};    // 0 = fully lit by the level's lights, 1 = self-lit
+    bool                 Additive {false};  // glow instead of alpha blend
+    std::vector<color_d> Colors {};         // each mote picks a random blend along this list; empty = white
+};
+
 class level {
 public:
     enum class tile_visibility : u8 {
@@ -70,6 +89,9 @@ public:
     void reveal_map();
     void fade_vision();
 
+    auto motes() const -> motes_settings const&;
+    void set_motes(motes_settings const& motes);
+
     auto spawn(level_object_desc desc) -> uid;
 
     auto find(uid id) -> level_object*;
@@ -82,6 +104,8 @@ private:
 
     map_t                                               _map;
     static_grid<tile_visibility, MAP_WIDTH, MAP_HEIGHT> _seen;
+
+    motes_settings _motes {};
 
     std::vector<level_object> _objects;
     uid                       _nextId {0};

@@ -47,8 +47,8 @@ screen_overlay::screen_overlay(texture_cache& cache)
 
 void screen_overlay::update(milliseconds deltaTime)
 {
-    _messageTimer -= deltaTime;
-    if (_messageTimer.count() <= 0) {
+    _time -= deltaTime;
+    if (_time.count() <= 0) {
         _message.clear();
     }
 }
@@ -70,8 +70,8 @@ auto screen_overlay::draw(player const& player, std::span<u32> screen, size_i sc
 
 void screen_overlay::show_message(string const& msg)
 {
-    _messageTimer = 2s;
-    _message      = msg;
+    _time    = 2s;
+    _message = msg;
 }
 
 void screen_overlay::draw_screen_effect()
