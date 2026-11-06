@@ -50,6 +50,7 @@ struct floor_cell {
     f64 FloorReflectivity {0.0};
     f64 FloorZ {0.0};
     f64 CeilingZ {1.0};
+    u8  Motes {0};
 
     auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
 };
@@ -78,6 +79,7 @@ struct door_wall {
     f64 FloorReflectivity {0.0};
     f64 FloorZ {0.0};
     f64 CeilingZ {1.0};
+    u8  Motes {0};
 
     auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
     void update(f64 dt);
@@ -98,6 +100,7 @@ struct push_wall {
     f64 FloorReflectivity {0.0};
     f64 FloorZ {0.0};
     f64 CeilingZ {1.0};
+    u8  Motes {0};
 
     auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
     void update(f64 dt);
@@ -121,6 +124,7 @@ struct obstacle {
     f64 FloorReflectivity {0.0};
     f64 FloorZ {0.0};
     f64 CeilingZ {1.0};
+    u8  Motes {0};
 
     auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
 };
@@ -139,6 +143,7 @@ struct diagonal_wall {
     f64 FloorReflectivity {0.0};
     f64 FloorZ {0.0};
     f64 CeilingZ {1.0};
+    u8  Motes {0};
 
     auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
 };

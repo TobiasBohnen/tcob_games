@@ -454,7 +454,7 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
         if (t1 <= t0) { continue; }
 
         auto const cell {col.Crossed[i].Cell};
-        auto const surface {level.surface(cell)};
+        auto const surface {level.surface_at(cell)};
 
         i32 const bottomBefore {col.Bottom};
         i32 const topBefore {col.Top};
@@ -754,9 +754,6 @@ void raycaster::draw_motes(i32 screenCenterY)
 
     auto const& level {*_level};
 
-    auto const& motes {level.motes()};
-    if (motes.Count == 0) { return; }
-
     static auto hash_unit {[](i32 x, i32 y, u32 index, u32 salt) -> f64 {
         u32 h {(static_cast<u32>(x) * 73856093u) ^ (static_cast<u32>(y) * 19349663u) ^ (index * 83492791u) ^ (salt * 2654435761u)};
         h ^= h >> 16;
@@ -801,6 +798,9 @@ void raycaster::draw_motes(i32 screenCenterY)
             if (!map_t::Size.contains(cell) || std::holds_alternative<normal_wall>(level.get_cell(cell)) || !IsWithinPlayerLight(player, cell)) { continue; }
 
             auto const slopes {level.slopes_at(cell)};
+
+            auto const& motes {level.motes_at(cell)};
+            if (motes.Count == 0) { continue; }
 
             for (u32 i {0}; i < motes.Count; ++i) {
                 point_d const pos {cx + frac(hash_unit(cx, cy, i, 3) + (motes.Wind.X * t)) + (motes.Drift * std::sin((t * motes.DriftSpeed) + (hash_unit(cx, cy, i, 5) * TAU))),

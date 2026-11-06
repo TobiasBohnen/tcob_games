@@ -67,7 +67,7 @@ void level::precompute_slopes()
             for (i32 cx : {vx - 1, vx}) {
                 point_i const c {cx, cy};
                 if (map_t::Size.contains(c)) {
-                    f64 const z {isFloor ? surface(c).FloorZ : surface(c).CeilingZ};
+                    f64 const z {isFloor ? surface_at(c).FloorZ : surface_at(c).CeilingZ};
                     if (!found) {
                         extremeZ = z;
                         found    = true;
@@ -251,7 +251,7 @@ void level::update_light_visibility(usize losSamples)
                               MAP_HEIGHT);
 }
 
-auto level::surface(point_i idx) const -> cell_surface
+auto level::surface_at(point_i idx) const -> cell_surface
 {
     if (!map_t::Size.contains(idx)) { return {}; }
 
@@ -262,6 +262,7 @@ auto level::surface(point_i idx) const -> cell_surface
         if constexpr (requires { c.FloorReflectivity; }) { s.FloorReflectivity = c.FloorReflectivity; }
         if constexpr (requires { c.FloorZ; }) { s.FloorZ = c.FloorZ; }
         if constexpr (requires { c.CeilingZ; }) { s.CeilingZ = c.CeilingZ; }
+        if constexpr (requires { c.Motes; }) { s.Motes = c.Motes; }
         return s;
     },
                       get_cell(idx));
@@ -417,14 +418,16 @@ void level::fade_vision()
     }
 }
 
-auto level::motes() const -> motes_settings const&
+auto level::motes_at(point_i idx) const -> motes_settings const&
 {
-    return _motes;
+    u8 const motes {surface_at(idx).Motes};
+    return _motes[motes < _motes.size() ? motes : 0];
 }
 
-void level::set_motes(motes_settings const& motes)
+void level::set_motes(u8 idx, motes_settings const& motes)
 {
-    _motes = motes;
+    if (idx >= _motes.size()) { _motes.resize(static_cast<usize>(idx) + 1); }
+    _motes[idx] = motes;
 }
 
 auto level::spawn(level_object_desc desc) -> uid

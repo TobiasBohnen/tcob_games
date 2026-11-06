@@ -173,6 +173,20 @@
     .Additive     = true,
     .Colors       = {{.R = 0.3, .G = 1.0, .B = 0.6}, {.R = 0.6, .G = 0.4, .B = 1.0}}};
 
+[[maybe_unused]] static motes_settings const MOTES_POISON {
+    .Count        = 40,
+    .FallSpeed    = -0.1,
+    .SpeedJitter  = 0.3,
+    .Drift        = 0.35,
+    .DriftSpeed   = 0.5,
+    .Size         = 0.13,
+    .Alpha        = 0.3,
+    .Twinkle      = 0.6,
+    .TwinkleSpeed = 1.5,
+    .Emissive     = 1.0,
+    .Additive     = true,
+    .Colors       = {{.R = 0.0, .G = 0.55, .B = 0.15}, {.R = 0.0, .G = 0.25, .B = 0.15}, {.R = 0.0, .G = 0.45, .B = 0.15}, {.R = 0.0, .G = 0.2, .B = 0.05}}};
+
 // PLACEHOLDER START
 
 Plinth::Plinth(game& game)
@@ -188,7 +202,8 @@ Plinth::Plinth(game& game)
     _level = std::make_unique<level>();
     _engine.generate_level(*_level, _player);
     _level->precompute_slopes();
-    _level->set_motes(MOTES_ASH);
+    _level->set_motes(0, MOTES_RAIN);
+    _level->set_motes(1, MOTES_POISON);
 
     rng                         rng;
     std::unordered_set<point_i> used;

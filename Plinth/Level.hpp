@@ -21,6 +21,7 @@ struct cell_surface {
     f64 FloorReflectivity {0.0};
     f64 FloorZ {0.0};
     f64 CeilingZ {1.0};
+    u8  Motes {0};
 };
 
 struct slope {
@@ -67,7 +68,7 @@ public:
 
     auto get_cell(point_i idx) const -> cell const&;
     void set_cell(point_i idx, cell const& cell);
-    auto surface(point_i idx) const -> cell_surface;
+    auto surface_at(point_i idx) const -> cell_surface;
 
     void precompute_slopes();
     auto slopes_at(point_i idx) const -> slopes;
@@ -89,8 +90,8 @@ public:
     void reveal_map();
     void fade_vision();
 
-    auto motes() const -> motes_settings const&;
-    void set_motes(motes_settings const& motes);
+    auto motes_at(point_i idx) const -> motes_settings const&;
+    void set_motes(u8 idx, motes_settings const& motes);
 
     auto spawn(level_object_desc desc) -> uid;
 
@@ -105,7 +106,7 @@ private:
     map_t                                               _map;
     static_grid<tile_visibility, MAP_WIDTH, MAP_HEIGHT> _seen;
 
-    motes_settings _motes {};
+    std::vector<motes_settings> _motes;
 
     std::vector<level_object> _objects;
     uid                       _nextId {0};
