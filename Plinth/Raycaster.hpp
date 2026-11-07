@@ -16,8 +16,6 @@ class raycaster {
 public:
     explicit raycaster(texture_cache& cache);
 
-    void update(milliseconds deltaTime);
-
     auto draw(level& level, player& player) -> std::span<u32>;
 
     void set_quality(quality_settings const& quality, f64 projPlaneDist);
@@ -37,6 +35,8 @@ private:
     void draw_voxel_objects(i32 screenCenterY);
     void draw_motes(i32 screenCenterY);
 
+    auto sky_pixel(i32 y, point_d const& rayDir, f64 azimuth) const -> u32;
+
     std::vector<u32> _screen;
 
     std::vector<f64> _zBuffer;
@@ -51,5 +51,5 @@ private:
     level*        _level {nullptr};
     player const* _player {nullptr};
 
-    milliseconds _time {};
+    procgen::value_noise _noise {{16, 16}, 0.05f};
 };

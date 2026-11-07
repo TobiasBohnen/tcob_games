@@ -54,6 +54,85 @@ struct motes_settings {
     std::vector<color_d> Colors {};         // each mote picks a random blend along this list; empty = white
 };
 
+struct sky_body_frame {
+    point3_d Dir;
+    f64      CosR {};
+    f64      SinR {};
+    f64      SunDot {};
+    f64      Ambient {};
+    bool     Lit {};
+    color_d  Color;
+    f64      Noise {};
+    f64      NoiseScale {};
+    f64      NoiseSeed {};
+    color_d  NoiseColor {};
+};
+
+struct sky_frame {
+    point3_d Sun;
+    f64      Day {};
+    f64      Night {};
+    f64      Dusk {};
+    f64      CosSun {};
+    f64      Time {};
+    bool     Stars {};
+    f64      StarDensity {};
+    f64      StarSize {};
+    f64      StarTwinkle {};
+    f64      CloudCoverage {};
+    f64      CloudScale {};
+    f64      CloudSoftness {};
+    point_d  CloudWind {};
+    color_d  CloudColor {};
+    color_d  Zenith;
+    color_d  Horizon;
+    color_d  SunColor;
+    color_d  DuskColor;
+
+    std::vector<sky_body_frame> Bodies;
+};
+
+struct sky_body {
+    radian_d Azimuth {0.0};    // radians at time 0
+    radian_d Elevation {0.5};  // radians
+    radian_d Radius {0.05};    // angular radius in radians
+    radian_d OrbitSpeed {0.0}; // radians per second added to the azimuth
+    f64      Ambient {0.06};   // brightness of the unlit side
+    bool     Lit {true};       // false = emissive, ignores the sun
+    color_d  Color {.R = 0.9, .G = 0.9, .B = 0.85};
+    f64      Noise {0.0};      // 0 = plain disc, otherwise how much NoiseColor shows through
+    f64      NoiseScale {4.0};
+    f64      NoiseSeed {0.0};  // offsets the pattern, so two bodies don't look the same
+    color_d  NoiseColor {.R = 0.7, .G = 0.7, .B = 0.65};
+};
+
+struct sky_settings {
+    f64 TimeOfDay {0.5};             // 0..1, 0 = midnight, 0.5 = noon
+    f64 DayLength {0.0};             // seconds per full day, 0 = frozen
+
+    radian_d SunSize {0.04};         // angular radius in radians
+    f64      SunTilt {0.3};          // sun path leans toward +Y
+
+    f64 StarDensity {0.01};          // chance per star cell, 0 = no stars
+    f64 StarSize {1.0};              // star size in screen pixels; below 1 stays one pixel but fainter
+    f64 StarTwinkle {0.5};
+
+    f64     CloudCoverage {0.0};     // 0 = no clouds, 1 = overcast
+    f64     CloudScale {2.0};        // larger = smaller clouds
+    f64     CloudSoftness {0.12};    // edge softness
+    point_d CloudWind {0.01, 0.005}; // noise units per second
+    color_d CloudColor {.R = 1.0, .G = 1.0, .B = 1.0};
+
+    color_d DayZenith {.R = 0.25, .G = 0.5, .B = 0.95};
+    color_d DayHorizon {.R = 0.65, .G = 0.8, .B = 1.0};
+    color_d NightZenith {.R = 0.01, .G = 0.01, .B = 0.05};
+    color_d NightHorizon {.R = 0.04, .G = 0.04, .B = 0.12};
+    color_d DuskColor {.R = 1.0, .G = 0.45, .B = 0.2};
+    color_d SunColor {.R = 1.0, .G = 0.95, .B = 0.8};
+
+    std::vector<sky_body> Bodies {};
+};
+
 class level {
 public:
     enum class tile_visibility : u8 {
@@ -93,6 +172,9 @@ public:
     auto motes_at(point_i idx) const -> motes_settings const&;
     void set_motes(u8 idx, motes_settings const& motes);
 
+    auto sky() const -> sky_frame const&;
+    void set_sky(sky_settings const& sky);
+
     auto spawn(level_object_desc desc) -> uid;
 
     auto find(uid id) -> level_object*;
@@ -100,13 +182,19 @@ public:
     auto objects() const -> std::span<level_object const>;
     auto objects() -> std::span<level_object>;
 
+    auto time() const -> milliseconds;
+
 private:
     auto closest_point_on_wall(point_i map, point_d pos) const -> std::optional<point_d>;
+
+    void prepare_sky();
 
     map_t                                               _map;
     static_grid<tile_visibility, MAP_WIDTH, MAP_HEIGHT> _seen;
 
     std::vector<motes_settings> _motes;
+    sky_settings                _skySettings;
+    sky_frame                   _sky;
 
     std::vector<level_object> _objects;
     uid                       _nextId {0};
@@ -116,6 +204,8 @@ private:
     std::vector<dynamic_light>    _lights;
     std::vector<std::vector<u32>> _cellLights;
     usize                         _losSamples {0};
+
+    milliseconds _time {};
 
     task_manager& _taskManager;
 };

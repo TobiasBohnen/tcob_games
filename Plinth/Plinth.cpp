@@ -15,7 +15,6 @@
 #include <memory>
 #include <numeric>
 #include <span>
-#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -187,6 +186,38 @@
     .Additive     = true,
     .Colors       = {{.R = 0.0, .G = 0.55, .B = 0.15}, {.R = 0.0, .G = 0.25, .B = 0.15}, {.R = 0.0, .G = 0.45, .B = 0.15}, {.R = 0.0, .G = 0.2, .B = 0.05}}};
 
+[[maybe_unused]] static sky_settings const SKY_DAY {};
+
+[[maybe_unused]] static sky_settings const SKY_NIGHT {
+    .TimeOfDay     = 0.0,
+    .DayLength     = 8.0,
+    .StarDensity   = 0.012,
+    .StarSize      = 0.4,
+    .CloudCoverage = 0.5,
+    .Bodies        = {{.Azimuth    = radian_d {0.6},
+                       .Elevation  = radian_d {0.2},
+                       .Radius     = radian_d {0.06},
+                       .OrbitSpeed = radian_d {0.01},
+                       .Noise      = 0.9,
+                       .NoiseColor = {.R = 1, .G = 0, .B = 0}}}};
+
+[[maybe_unused]] static sky_settings const SKY_MAGIC {
+    .TimeOfDay    = 0.3,
+    .DayLength    = 18.0,
+    .SunSize      = radian_d {0.07},
+    .StarDensity  = 0.02,
+    .StarTwinkle  = 0.8,
+    .DayZenith    = {.R = 0.45, .G = 0.25, .B = 0.85},
+    .DayHorizon   = {.R = 1.0, .G = 0.6, .B = 0.8},
+    .NightZenith  = {.R = 0.02, .G = 0.0, .B = 0.1},
+    .NightHorizon = {.R = 0.15, .G = 0.04, .B = 0.25},
+    .DuskColor    = {.R = 1.0, .G = 0.3, .B = 0.6},
+    .SunColor     = {.R = 1.0, .G = 0.85, .B = 0.95},
+    .Bodies       = {
+        {.Azimuth = radian_d {0.5}, .Elevation = radian_d {0.25}, .Radius = radian_d {0.07}, .OrbitSpeed = radian_d {0.01}},
+        {.Azimuth = radian_d {2.4}, .Elevation = radian_d {0.35}, .Radius = radian_d {0.04}, .OrbitSpeed = radian_d {-0.02}, .Color = {.R = 0.6, .G = 0.9, .B = 1.0}},
+        {.Azimuth = radian_d {4.2}, .Elevation = radian_d {0.1}, .Radius = radian_d {0.12}, .Ambient = 0.1, .Color = {.R = 0.9, .G = 0.55, .B = 0.3}}}};
+
 // PLACEHOLDER START
 
 Plinth::Plinth(game& game)
@@ -203,7 +234,8 @@ Plinth::Plinth(game& game)
     _engine.generate_level(*_level, _player);
     _level->precompute_slopes();
     _level->set_motes(0, MOTES_RAIN);
-    _level->set_motes(1, MOTES_POISON);
+    _level->set_motes(1, MOTES_RAIN);
+    _level->set_sky(SKY_NIGHT);
 
     rng                         rng;
     std::unordered_set<point_i> used;
@@ -299,7 +331,6 @@ void Plinth::on_update(milliseconds deltaTime)
     move_player(deltaTime);
     _player.update(deltaTime);
     _level->update(deltaTime);
-    _raycaster->update(deltaTime);
     _screenOverlay->update(deltaTime);
 
     // _frameTimer += deltaTime;
@@ -483,11 +514,12 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
 {
     if (ev.Repeat) { return; }
 
-    switch (ev.ScanCode) { // NOLINT
-#ifdef TCOB_DEBUG
+    switch (ev.ScanCode) { // NOLINT#
     case input::scan_code::BACKSPACE: {
         parent().pop_current_scene();
     } break;
+#ifdef TCOB_DEBUG
+
     case input::scan_code::F11: {
         auto const fileName {[]() {
             for (i32 i {0};; ++i) {

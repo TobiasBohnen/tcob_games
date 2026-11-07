@@ -24,11 +24,13 @@ inline constexpr f64    FOV {90};
 inline constexpr f64    REFERENCE_HEIGHT {360.0};
 inline constexpr f64    WEAPON_BOB_MULTIPLIER {2.0};
 
-constexpr u32 LIGHT_LAYER_WORLD {1u << 0};
-constexpr u32 LIGHT_LAYER_SPELL {1u << 1};
-constexpr u32 LIGHT_LAYERS_ALL {~0u};
+inline constexpr u32 LIGHT_LAYER_WORLD {1u << 0};
+inline constexpr u32 LIGHT_LAYER_SPELL {1u << 1};
+inline constexpr u32 LIGHT_LAYERS_ALL {~0u};
 
 inline constexpr i32 NUM_FACINGS {16};
+
+inline constexpr i32 SKY_TEXTURE {-2};
 
 class texture_cache;
 class level;
@@ -88,6 +90,8 @@ struct color_d {
     f64 R {0.0};
     f64 G {0.0};
     f64 B {0.0};
+
+    auto lerp(color_d const& other, f64 w) const -> color_d { return {.R = std::lerp(R, other.R, w), .G = std::lerp(G, other.G, w), .B = std::lerp(B, other.B, w)}; }
 };
 
 constexpr auto IsMagenta(u8 const* tex, i32 offset) -> bool { return tex[offset + 0] == 0x98 && tex[offset + 1] == 0x00 && tex[offset + 2] == 0x88; }

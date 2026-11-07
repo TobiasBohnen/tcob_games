@@ -86,6 +86,17 @@ static auto IsWithinPlayerLight(player const& player, point_i cell) -> bool
     return toCell.dot(toCell) <= range * range;
 }
 
+static auto HashUnit(i32 gx, i32 gy, u32 index, u32 salt) -> f64
+{
+    u32 h {(static_cast<u32>(gx) * 73856093u) ^ (static_cast<u32>(gy) * 19349663u) ^ (index * 83492791u) ^ (salt * 2654435761u)};
+    h ^= h >> 16;
+    h *= 0x7feb352du;
+    h ^= h >> 15;
+    h *= 0x846ca68bu;
+    h ^= h >> 16;
+    return static_cast<f64>(h) / 4294967296.0;
+}
+
 ////////////////////////////////////////////////////////////
 
 struct raycaster::column_hit {
@@ -176,11 +187,6 @@ void raycaster::draw_surface_pixel(isize x, isize y, u8 const* tex, isize srcIdx
     auto const toSurface {surfacePos - player.Position};
     bool const close {toSurface.dot(toSurface) < DITHER_MIN_DIST_SQ};
     CopyPixel(_screen.data(), PixelIndex(_screenSize, x, y), tex, srcIdx, close ? tint : DitherTint(tint, x, y, _quality));
-}
-
-void raycaster::update(milliseconds deltaTime)
-{
-    _time += deltaTime;
 }
 
 auto raycaster::draw(level& level, player& player) -> std::span<u32>
@@ -355,6 +361,13 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
         i32 const  from {isFloor ? std::max(rowFar, col.Top) : col.Top};
         i32 const  to {isFloor ? col.Bottom : std::min(rowFar, col.Bottom)};
         if (from >= to) { return; }
+
+        if (!isFloor && surface.CeilingTexture == SKY_TEXTURE) {
+            f64 const azimuth {std::atan2(rayDir.Y, rayDir.X)};
+            for (i32 y {from}; y < to; ++y) { screenBuf[PixelIndex(_screenSize, x, y)] = sky_pixel(y, rayDir, azimuth); }
+            col.Top = std::max(col.Top, to);
+            return;
+        }
 
         auto const dp {player.Position - cell};
         auto const [vx, vy] {rayDir};
@@ -754,16 +767,6 @@ void raycaster::draw_motes(i32 screenCenterY)
 
     auto const& level {*_level};
 
-    static auto hash_unit {[](i32 x, i32 y, u32 index, u32 salt) -> f64 {
-        u32 h {(static_cast<u32>(x) * 73856093u) ^ (static_cast<u32>(y) * 19349663u) ^ (index * 83492791u) ^ (salt * 2654435761u)};
-        h ^= h >> 16;
-        h *= 0x7feb352du;
-        h ^= h >> 15;
-        h *= 0x846ca68bu;
-        h ^= h >> 16;
-        return static_cast<f64>(h) / 4294967296.0;
-    }};
-
     static auto blend_pixel {[](u32 a, u32 b, f64 t) -> u32 {
         u32 const w {static_cast<u32>(std::clamp(t, 0.0, 1.0) * 256.0)};
         u32 const inv {256 - w};
@@ -784,7 +787,7 @@ void raycaster::draw_motes(i32 screenCenterY)
 
     auto const& player {*_player};
 
-    f64 const t {static_cast<f64>(_time.count()) / 1000.0};
+    f64 const t {static_cast<f64>(level.time().count()) / 1000.0};
     f64 const invDet {1.0 / player.Plane.cross(player.Direction)};
     f64 const lightRange {player.Settings.LightRange};
 
@@ -803,14 +806,14 @@ void raycaster::draw_motes(i32 screenCenterY)
             if (motes.Count == 0) { continue; }
 
             for (u32 i {0}; i < motes.Count; ++i) {
-                point_d const pos {cx + frac(hash_unit(cx, cy, i, 3) + (motes.Wind.X * t)) + (motes.Drift * std::sin((t * motes.DriftSpeed) + (hash_unit(cx, cy, i, 5) * TAU))),
-                                   cy + frac(hash_unit(cx, cy, i, 4) + (motes.Wind.Y * t)) + (motes.Drift * std::sin((t * motes.DriftSpeed * 0.8) + (hash_unit(cx, cy, i, 6) * TAU)))};
+                point_d const pos {cx + frac(HashUnit(cx, cy, i, 3) + (motes.Wind.X * t)) + (motes.Drift * std::sin((t * motes.DriftSpeed) + (HashUnit(cx, cy, i, 5) * TAU))),
+                                   cy + frac(HashUnit(cx, cy, i, 4) + (motes.Wind.Y * t)) + (motes.Drift * std::sin((t * motes.DriftSpeed * 0.8) + (HashUnit(cx, cy, i, 6) * TAU)))};
 
                 // falls (or rises) and wraps inside the height band
-                f64 const fall {hash_unit(cx, cy, i, 7) - (t * motes.FallSpeed * (1.0 + (motes.SpeedJitter * ((2.0 * hash_unit(cx, cy, i, 8)) - 1.0))))};
+                f64 const fall {HashUnit(cx, cy, i, 7) - (t * motes.FallSpeed * (1.0 + (motes.SpeedJitter * ((2.0 * HashUnit(cx, cy, i, 8)) - 1.0))))};
                 f64 const floorZ {HeightAt(slopes.Floor, cell, pos)};
                 f64 const ceilZ {HeightAt(slopes.Ceiling, cell, pos)};
-                f64 const z {floorZ + ((motes.MinHeight + (frac(fall) * (motes.MaxHeight - motes.MinHeight))) * (ceilZ - floorZ))};
+                f64 const z {std::min(floorZ + motes.MinHeight + (frac(fall) * (motes.MaxHeight - motes.MinHeight)), ceilZ)};
 
                 auto const relPos {pos - player.Position};
                 f64 const  transformX {invDet * relPos.cross(player.Direction)};
@@ -834,13 +837,13 @@ void raycaster::draw_motes(i32 screenCenterY)
 
                 f64 twinkle {1.0};
                 if (motes.Twinkle > 0.0) {
-                    f64 const pulse {0.5 + (0.5 * std::sin((t * motes.TwinkleSpeed * TAU * (0.5 + hash_unit(cx, cy, i, 9))) + (hash_unit(cx, cy, i, 10) * TAU)))};
+                    f64 const pulse {0.5 + (0.5 * std::sin((t * motes.TwinkleSpeed * TAU * (0.5 + HashUnit(cx, cy, i, 9))) + (HashUnit(cx, cy, i, 10) * TAU)))};
                     twinkle = 1.0 - (motes.Twinkle * pulse);
                 }
 
                 color_d base {.R = 1.0, .G = 1.0, .B = 1.0};
                 if (!motes.Colors.empty()) {
-                    f64 const   pick {hash_unit(cx, cy, i, 11) * static_cast<f64>(motes.Colors.size() - 1)};
+                    f64 const   pick {HashUnit(cx, cy, i, 11) * static_cast<f64>(motes.Colors.size() - 1)};
                     usize const lo {static_cast<usize>(pick)};
                     usize const hi {std::min(lo + 1, motes.Colors.size() - 1)};
                     f64 const   mix {pick - static_cast<f64>(lo)};
@@ -868,4 +871,138 @@ void raycaster::draw_motes(i32 screenCenterY)
             }
         }
     }
+}
+
+auto raycaster::sky_pixel(i32 y, point_d const& rayDir, f64 azimuth) const -> u32
+{
+    static auto dot {[](point3_d const& a, point3_d const& b) { return (a.X * b.X) + (a.Y * b.Y) + (a.Z * b.Z); }};
+
+    static auto smooth {[](f64 e0, f64 e1, f64 x) -> f64 {
+        f64 const u {std::clamp((x - e0) / (e1 - e0), 0.0, 1.0)};
+        return u * u * (3.0 - (2.0 * u));
+    }};
+
+    static auto fbm {[](auto const& noise, f64 nx, f64 ny, i32 octaves) -> f64 {
+        f64 sum {0.0};
+        f64 amp {0.5};
+        f64 norm {0.0};
+        for (i32 o {0}; o < octaves; ++o) {
+            sum += noise({static_cast<f32>(nx), static_cast<f32>(ny)}) * amp;
+            norm += amp;
+            amp *= 0.5;
+            nx = (nx * 2.0) + 7.31;
+            ny = (ny * 2.0) + 3.17;
+        }
+        return sum / norm;
+    }};
+
+    auto const& sky {_level->sky()};
+    if (!sky.Stars) { azimuth = 0; }
+
+    // view direction; the horizon is the unbobbed screen center
+    f64 const      zRow {((_screenSize.Height / 2.0) - y) / _projPlaneDist};
+    f64 const      invNorm {1.0 / std::sqrt(rayDir.dot(rayDir) + (zRow * zRow))};
+    point3_d const dir {.X = rayDir.X * invNorm, .Y = rayDir.Y * invNorm, .Z = zRow * invNorm};
+
+    // gradient
+    f64 const h {std::clamp(dir.Z, 0.0, 1.0)};
+    color_d   color {sky.Horizon.lerp(sky.Zenith, h)};
+
+    // dusk glow, sun halo and sun disc
+    f64 const sunDot {dot(dir, sky.Sun)};
+    f64 const s {std::max(sunDot, 0.0)};
+    f64 const s2 {s * s};
+    f64 const s4 {s2 * s2};
+    f64 const s8 {s4 * s4};
+    f64 const s16 {s8 * s8};
+    f64 const s32 {s16 * s16};
+
+    f64 const duskGlow {sky.Dusk * s8 * (1.0 - (0.7 * h))};
+    f64 const haloGlow {0.35 * s32 * (0.3 + (0.7 * sky.Day))};
+    color.R += (sky.DuskColor.R * duskGlow) + (sky.SunColor.R * haloGlow);
+    color.G += (sky.DuskColor.G * duskGlow) + (sky.SunColor.G * haloGlow);
+    color.B += (sky.DuskColor.B * duskGlow) + (sky.SunColor.B * haloGlow);
+    if (sunDot >= sky.CosSun) { color = sky.SunColor; }
+
+    // stars: cells of StarSize screen pixels in (azimuth, sin elevation)
+    if (sky.Stars) {
+        f64 const cellsPerUnit {_projPlaneDist / std::max(sky.StarSize, 1.0)};
+        f64 const coverage {std::min(sky.StarSize, 1.0) * std::min(sky.StarSize, 1.0)};
+        i32 const gx {static_cast<i32>(std::floor((azimuth + (TAU * 0.5)) * cellsPerUnit))};
+        i32 const gy {static_cast<i32>(std::floor(dir.Z * cellsPerUnit))};
+        if (HashUnit(gx, gy, 0, 21) < sky.StarDensity) {
+            f64 const pulse {0.5 + (0.5 * std::sin((sky.Time * (1.0 + (2.0 * HashUnit(gx, gy, 0, 22)))) + (HashUnit(gx, gy, 0, 23) * TAU)))};
+            f64 const bright {coverage * sky.Night * (1.0 - (sky.StarTwinkle * pulse)) * (0.4 + (0.6 * HashUnit(gx, gy, 0, 24)))};
+            color.R += bright;
+            color.G += bright;
+            color.B += bright;
+        }
+    }
+
+    // moons and planets
+    for (auto const& body : sky.Bodies) {
+        f64 const d {dot(dir, body.Dir)};
+        if (d < body.CosR) { continue; }
+
+        f64 const rho2 {std::max(1.0 - (d * d), 0.0) / (body.SinR * body.SinR)};
+        f64 const nz {std::sqrt(std::max(1.0 - rho2, 0.0))};
+
+        color_d surface {body.Color};
+        if (body.Noise > 0.0) {
+            // disc coordinates, u to the right and v up, from the body direction and world up
+            f64 const c {std::max(std::sqrt(std::max(1.0 - (body.Dir.Z * body.Dir.Z), 0.0)), 1e-6)};
+            f64 const u {((dir.X * body.Dir.Y) - (dir.Y * body.Dir.X)) / (c * body.SinR)};
+            f64 const v {((c * dir.Z) - (body.Dir.Z * ((dir.X * body.Dir.X) + (dir.Y * body.Dir.Y)) / c)) / body.SinR};
+
+            // features compress toward the limb, which makes the disc look round
+            f64 const warp {body.NoiseScale / (0.4 + (0.6 * nz))};
+            f64 const n {fbm(_noise, (u * warp) + body.NoiseSeed, v * warp, 2)};
+            surface = surface.lerp(body.NoiseColor, n * body.Noise);
+        }
+
+        if (body.Lit) {
+            // phase: surface normal against the direction of the sun
+            f64 const nDotL {((sunDot - (d * body.SunDot)) / body.SinR) - (body.SunDot * nz)};
+            f64 const light {(body.Ambient + ((1.0 - body.Ambient) * std::clamp(nDotL, 0.0, 1.0)))};
+            surface.R *= light;
+            surface.G *= light;
+            surface.B *= light;
+            color = surface.lerp(color, sky.Day);
+        } else {
+            color = surface;
+        }
+    }
+
+    // clouds: a flat layer above the viewer, projected along the view direction
+    if (sky.CloudCoverage > 0.0 && dir.Z > 0.03) {
+        f64 const edge {1.0 - sky.CloudCoverage};
+        f64 const lo {edge - sky.CloudSoftness};
+        f64 const hi {edge + sky.CloudSoftness};
+
+        f64 const invZ {1.0 / dir.Z};
+        f64 const cx {(dir.X * invZ * sky.CloudScale) + (sky.CloudWind.X * sky.Time)};
+        f64 const cy {(dir.Y * invZ * sky.CloudScale) + (sky.CloudWind.Y * sky.Time)};
+
+        // the first octave carries the shape; if the second octave at its maximum still stays under the edge, it is clear sky
+        f64 const n0 {_noise({static_cast<f32>(cx), static_cast<f32>(cy)})};
+        if (((0.5 * n0) + 0.25) / 0.75 > lo) {
+            f64 const n1 {_noise({static_cast<f32>((cx * 2.0) + 7.31), static_cast<f32>((cy * 2.0) + 3.17)})};
+            f64 const density {((0.5 * n0) + (0.25 * n1)) / 0.75};
+            f64 const alpha {smooth(lo, hi, density) * smooth(0.03, 0.3, dir.Z)}; // fades out toward the horizon
+            if (alpha > 0.0) {
+                // the side facing the sun is thinner, so a cloud is lit where it is thicker than its sun-side neighbor
+                f64 const toward {_noise({static_cast<f32>(cx + (sky.Sun.X * 0.3)), static_cast<f32>(cy + (sky.Sun.Y * 0.3))})};
+                f64 const lit {std::clamp(0.5 + ((n0 - toward) * 3.0), 0.0, 1.0)};
+
+                f64 const brightness {(0.12 + (0.88 * sky.Day)) * (0.55 + (0.45 * lit))};
+                color_d   cloud {sky.CloudColor.lerp(sky.DuskColor, sky.Dusk * s2)};
+                cloud.R *= brightness;
+                cloud.G *= brightness;
+                cloud.B *= brightness;
+                color = color.lerp(cloud, alpha);
+            }
+        }
+    }
+
+    return ApplyTint(255, 255, 255, color);
 }

@@ -24,10 +24,14 @@
 level::level()
     : _taskManager {locate_service<task_manager>()}
 {
+    _motes.resize(16);
 }
 
 void level::update(milliseconds deltaTime)
 {
+    _time += deltaTime;
+    prepare_sky();
+
     f64 const dt {deltaTime.count() / 1000};
     for (auto& cell : _map) {
         std::visit(
@@ -381,6 +385,66 @@ auto level::closest_point_on_wall(point_i map, point_d pos) const -> std::option
         });
 }
 
+void level::prepare_sky()
+{
+    auto const& sky {_skySettings};
+
+    f64 const t {static_cast<f64>(_time.count()) / 1000.0};
+
+    auto const direction {[](radian_d azimuth, radian_d elevation) -> point3_d {
+        return {.X = elevation.cos() * azimuth.cos(), .Y = elevation.cos() * azimuth.sin(), .Z = elevation.sin()};
+    }};
+
+    auto const dot {[](point3_d const& a, point3_d const& b) { return (a.X * b.X) + (a.Y * b.Y) + (a.Z * b.Z); }};
+
+    f64 const days {sky.TimeOfDay + (sky.DayLength > 0.0 ? t / sky.DayLength : 0.0)};
+    f64 const timeOfDay {days - std::floor(days)};
+
+    // the sun rises at +X, peaks at noon and sets at -X
+    f64 const sunAngle {TAU * (timeOfDay - 0.25)};
+    f64 const sx {std::cos(sunAngle)};
+    f64 const sy {sky.SunTilt * std::sin(sunAngle)};
+    f64 const sz {std::sin(sunAngle)};
+    f64 const sunInv {1.0 / std::sqrt((sx * sx) + (sy * sy) + (sz * sz))};
+    _sky.Sun = {.X = sx * sunInv, .Y = sy * sunInv, .Z = sz * sunInv};
+
+    f64 const u {std::clamp((_sky.Sun.Z + 0.12) / 0.37, 0.0, 1.0)};
+    _sky.Day           = u * u * (3.0 - (2.0 * u));
+    _sky.Night         = 1.0 - _sky.Day;
+    _sky.Dusk          = std::clamp(1.0 - (std::abs(_sky.Sun.Z) / 0.3), 0.0, 1.0);
+    _sky.CosSun        = sky.SunSize.cos();
+    _sky.Time          = t;
+    _sky.Stars         = sky.StarDensity > 0.0 && _sky.Night > 0.02;
+    _sky.StarDensity   = sky.StarDensity;
+    _sky.StarSize      = sky.StarSize;
+    _sky.StarTwinkle   = sky.StarTwinkle;
+    _sky.Zenith        = sky.NightZenith.lerp(sky.DayZenith, _sky.Day);
+    _sky.Horizon       = sky.NightHorizon.lerp(sky.DayHorizon, _sky.Day);
+    _sky.SunColor      = sky.SunColor;
+    _sky.DuskColor     = sky.DuskColor;
+    _sky.CloudCoverage = sky.CloudCoverage;
+    _sky.CloudScale    = sky.CloudScale;
+    _sky.CloudSoftness = sky.CloudSoftness;
+    _sky.CloudWind     = sky.CloudWind;
+    _sky.CloudColor    = sky.CloudColor;
+
+    _sky.Bodies.clear();
+    for (auto const& body : sky.Bodies) {
+        auto const dir {direction(body.Azimuth + (body.OrbitSpeed * t), body.Elevation)};
+        _sky.Bodies.push_back({.Dir        = dir,
+                               .CosR       = body.Radius.cos(),
+                               .SinR       = body.Radius.sin(),
+                               .SunDot     = dot(dir, _sky.Sun),
+                               .Ambient    = body.Ambient,
+                               .Lit        = body.Lit,
+                               .Color      = body.Color,
+                               .Noise      = body.Noise,
+                               .NoiseScale = body.NoiseScale,
+                               .NoiseSeed  = body.NoiseSeed,
+                               .NoiseColor = body.NoiseColor});
+    }
+}
+
 void level::toggle_wall(point_i idx)
 {
     std::visit(
@@ -430,6 +494,16 @@ void level::set_motes(u8 idx, motes_settings const& motes)
     _motes[idx] = motes;
 }
 
+auto level::sky() const -> sky_frame const&
+{
+    return _sky;
+}
+
+void level::set_sky(sky_settings const& sky)
+{
+    _skySettings = sky;
+}
+
 auto level::spawn(level_object_desc desc) -> uid
 {
     uid const id {_nextId++};
@@ -451,4 +525,8 @@ auto level::objects() const -> std::span<level_object const>
 auto level::objects() -> std::span<level_object>
 {
     return _objects;
+}
+auto level::time() const -> milliseconds
+{
+    return _time;
 }
