@@ -35,6 +35,6 @@ private:
 
     task_manager& _taskManager;
 
-    milliseconds _time {};
+    milliseconds _messageTimer {};
     string       _message;
 };
