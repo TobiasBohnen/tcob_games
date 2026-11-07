@@ -35,7 +35,7 @@ public:
     static constexpr f64 Radius {0.25};
 
 private:
-    bool _isMoving {false};
+    bool _doBob {false};
     f64  _bobPhase {0.0};
     f64  _bobAmount {0.0};
 };

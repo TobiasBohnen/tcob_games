@@ -14,21 +14,19 @@
 
 void player::move(level const& level, f64 forwardAmount, f64 strafeAmount, f64 rotateAmount)
 {
-    _isMoving = false;
-
     // Move Forward/Backward
     if (forwardAmount != 0) {
         point_d const newPos {Position + (Direction * forwardAmount)};
 
         if (level.is_clear(newPos, Radius)) {
-            Position  = newPos;
-            _isMoving = true;
+            Position = newPos;
+            _doBob   = true;
         } else if (level.is_clear({Position.X, newPos.Y}, Radius)) {
             Position.Y = newPos.Y;
-            _isMoving  = true;
+            _doBob     = true;
         } else if (level.is_clear({newPos.X, Position.Y}, Radius)) {
             Position.X = newPos.X;
-            _isMoving  = true;
+            _doBob     = true;
         }
     }
 
@@ -38,14 +36,14 @@ void player::move(level const& level, f64 forwardAmount, f64 strafeAmount, f64 r
         point_d const newPos {Position + (strafe * strafeAmount)};
 
         if (level.is_clear(newPos, Radius)) {
-            Position  = newPos;
-            _isMoving = true;
+            Position = newPos;
+            _doBob   = true;
         } else if (level.is_clear({Position.X, newPos.Y}, Radius)) {
             Position.Y = newPos.Y;
-            _isMoving  = true;
+            _doBob     = true;
         } else if (level.is_clear({newPos.X, Position.Y}, Radius)) {
             Position.X = newPos.X;
-            _isMoving  = true;
+            _doBob     = true;
         }
     }
 
@@ -58,8 +56,6 @@ void player::move(level const& level, f64 forwardAmount, f64 strafeAmount, f64 r
         f64 const oldPlaneX {Plane.X};
         Plane.X = (Plane.X * std::cos(rotateAmount)) - (Plane.Y * std::sin(rotateAmount));
         Plane.Y = (oldPlaneX * std::sin(rotateAmount)) + (Plane.Y * std::cos(rotateAmount));
-
-        _isMoving = true;
     }
 }
 
@@ -69,9 +65,10 @@ void player::update(milliseconds deltaTime)
 
     auto const dt {deltaTime.count() / 1000};
 
-    if (_isMoving) {
+    if (_doBob) {
         _bobPhase += dt * bobSpeed;
         _bobAmount = std::abs(std::sin(_bobPhase)) * Settings.BobHeight;
+        _doBob     = false;
         return;
     }
     if (_bobAmount != 0.0) {
