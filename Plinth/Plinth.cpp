@@ -112,10 +112,10 @@
     .Colors      = {{.R = 0.9, .G = 0.95, .B = 1.0}, {.R = 0.8, .G = 0.9, .B = 1.0}}};
 
 [[maybe_unused]] static motes_settings const MOTES_RAIN {
-    .Count       = 6,
+    .Count       = 24,
     .FallSpeed   = 1.5,
     .SpeedJitter = 0.2,
-    .Wind        = {0.1, 0.0},
+    .Wind        = {0.0, 0.0},
     .Length      = 0.25,
     .Alpha       = 0.25,
     .Emissive    = 0.6,

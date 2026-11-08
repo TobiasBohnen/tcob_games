@@ -286,25 +286,20 @@ void raycaster::draw_columns(i32 screenCenterY, i32 columnStart, i32 columnEnd)
 
         _zBuffer[x] = hitResult->Distance;
 
-        f64 const  entryDist {crossed.back().Dist};
         auto const prevCell {crossed.size() > 1 ? crossed[crossed.size() - 2].Cell : map}; // open cell the ray came from
-        bool const recessed {hitInPlayerCell || hitResult->Distance - entryDist > WALL_RECESS_EPS};
+        bool const recessed {hitInPlayerCell || ((hitResult->Distance - crossed.back().Dist) > WALL_RECESS_EPS)};
         auto const baseCell {recessed ? map : prevCell};
         auto const baseSlope {level.slopes_at(baseCell)};
         auto const hitPoint {player.Position + (rayDir * hitResult->Distance)};
-        f64 const  wallBase {HeightAt(baseSlope.Floor, baseCell, hitPoint)};
-        f64 const  wallTop {HeightAt(baseSlope.Ceiling, baseCell, hitPoint)};
-
-        auto const toOpen {hitInPlayerCell ? point_i::Zero : (side ? point_i {0, -step.Y} : point_i {-step.X, 0})};
 
         column_hit col {.X        = x,
                         .RayDir   = rayDir,
                         .Hit      = *hitResult,
                         .Cell     = map,
-                        .ToOpen   = toOpen,
+                        .ToOpen   = hitInPlayerCell ? point_i::Zero : (side ? point_i {0, -step.Y} : point_i {-step.X, 0}),
                         .CenterY  = screenCenterY,
-                        .WallBase = wallBase,
-                        .WallTop  = wallTop,
+                        .WallBase = HeightAt(baseSlope.Floor, baseCell, hitPoint),
+                        .WallTop  = HeightAt(baseSlope.Ceiling, baseCell, hitPoint),
                         .Top      = 0,
                         .Bottom   = _screenSize.Height,
                         .Crossed  = crossed};
@@ -338,13 +333,8 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
     auto&       level {*_level};
     auto const& player {*_player};
 
-    f64 const   proj {_projPlaneDist};
-    f64 const   eyeZ {player.EyeZ};
-    isize const x {col.X};
-    auto const  rayDir {col.RayDir};
-    f64 const   hitDist {col.Hit.Distance};
-    u32*        screenBuf {_screen.data()};
-    u8 const*   wallTexPtr {nullptr};
+    u32*      screenBuf {_screen.data()};
+    u8 const* wallTexPtr {nullptr};
 
     auto const wall_texture {[&]() -> u8 const* {
         if (wallTexPtr == nullptr) { wallTexPtr = _cache.texture(col.Hit.Texture, 0); }
@@ -355,20 +345,20 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
         auto const  slopes {level.slopes_at(cell)};
         auto const& slope {isFloor ? slopes.Floor : slopes.Ceiling};
 
-        auto const p {player.Position + (rayDir * tOut)};
-        i32 const  rowFar {static_cast<i32>(std::clamp(std::round(col.CenterY + ((eyeZ - HeightAt(slope, cell, p)) * proj / std::max(tOut, MIN_RAY_DIST))), -1.0, static_cast<f64>(_screenSize.Height) + 1.0))};
+        auto const p {player.Position + (col.RayDir * tOut)};
+        i32 const  rowFar {static_cast<i32>(std::clamp(std::round(col.CenterY + ((player.EyeZ - HeightAt(slope, cell, p)) * _projPlaneDist / std::max(tOut, MIN_RAY_DIST))), -1.0, static_cast<f64>(_screenSize.Height) + 1.0))};
         i32 const  from {isFloor ? std::max(rowFar, col.Top) : col.Top};
         i32 const  to {isFloor ? col.Bottom : std::min(rowFar, col.Bottom)};
         if (from >= to) { return; }
 
         if (!isFloor && surface.CeilingTexture == SKY_TEXTURE) {
-            for (i32 y {from}; y < to; ++y) { screenBuf[PixelIndex(_screenSize, x, y)] = sky_pixel(y, rayDir); }
+            for (i32 y {from}; y < to; ++y) { screenBuf[PixelIndex(_screenSize, col.X, y)] = sky_pixel(y, col.RayDir); }
             col.Top = std::max(col.Top, to);
             return;
         }
 
         auto const dp {player.Position - cell};
-        auto const [vx, vy] {rayDir};
+        auto const [vx, vy] {col.RayDir};
 
         // Plane equation coefficients (A, B, C) for non-flat slopes.
         // Substituting ray equation P = pos + t * rayDir into the bilinear slope equation
@@ -386,18 +376,18 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
         bool const linear {std::abs(A) < 1e-12};
 
         for (i32 y {from}; y < to; ++y) {
-            f64 const s {(static_cast<f64>(y) - col.CenterY) / proj};
+            f64 const s {(static_cast<f64>(y) - col.CenterY) / _projPlaneDist};
             f64 const term {s + B};
             f64       t {tOut};
 
             if (linear) {
                 // Linear case when cross-term coefficient A is near zero: t = (eyeZ - C) / term
                 if (std::abs(term) > 1e-9) {
-                    t = std::clamp((eyeZ - C) / term, tIn, tOut);
+                    t = std::clamp((player.EyeZ - C) / term, tIn, tOut);
                 }
             } else {
                 // Quadratic formula root finding: (-term ± sqrt(discriminant)) / (2 * A)
-                f64 const discriminant {(term * term) - (4.0 * A * (C - eyeZ))};
+                f64 const discriminant {(term * term) - (4.0 * A * (C - player.EyeZ))};
                 if (discriminant >= 0.0) {
                     f64 const sqrtDisc {std::sqrt(discriminant)};
                     f64 const t1 {(-term - sqrtDisc) / (2.0 * A)};
@@ -409,25 +399,25 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
                 }
             }
 
-            auto const pos {player.Position + (rayDir * t)};
+            auto const pos {player.Position + (col.RayDir * t)};
             f64 const  z {HeightAt(slope, cell, pos)};
 
             i32 const texelX {static_cast<i32>(pos.X * WALL_SIZE.Width) & (WALL_SIZE.Width - 1)};
             i32 const texelY {static_cast<i32>(pos.Y * WALL_SIZE.Height) & (WALL_SIZE.Height - 1)};
             i32 const texelOffset {(texelX + (texelY * WALL_SIZE.Width)) * TEXTURE_BPP};
 
-            draw_surface_pixel(x, y, tex, texelOffset, pos, z, 1.0);
-            _objectDepthBuffer[PixelIndex(_screenSize, x, y)] = t;
+            draw_surface_pixel(col.X, y, tex, texelOffset, pos, z, 1.0);
+            _objectDepthBuffer[PixelIndex(_screenSize, col.X, y)] = t;
 
-            f64 const wallGap {std::max(hitDist - t, 0.0)};
+            f64 const wallGap {std::max(col.Hit.Distance - t, 0.0)};
             if (_quality.ContactShadows && wallGap < CONTACT_SHADOW_WIDTH) {
                 f64 const c {1.0 - (wallGap / CONTACT_SHADOW_WIDTH)};
-                u32&      pixel {screenBuf[PixelIndex(_screenSize, x, y)]};
+                u32&      pixel {screenBuf[PixelIndex(_screenSize, col.X, y)]};
                 pixel = scale_pixel(pixel, 1.0 - (CONTACT_SHADOW_STRENGTH * c * c));
             }
 
             if (isFloor && surface.FloorReflectivity > 0.0) {
-                f64 const mirrored {z - col.WallBase + ((eyeZ - z) * ((hitDist / std::max(t, MIN_RAY_DIST)) - 1.0))};
+                f64 const mirrored {z - col.WallBase + ((player.EyeZ - z) * ((col.Hit.Distance / std::max(t, MIN_RAY_DIST)) - 1.0))};
                 f64 const height {std::max(mirrored, 0.0)}; // height above the wall base that the bounced ray reaches
                 if (height < std::min(REFLECTION_HEIGHT, col.WallTop - col.WallBase) && wall_texture() != nullptr) {
                     u8 const* wallTex {wall_texture()};
@@ -436,11 +426,11 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
                     i32 const wallTexY {std::clamp(static_cast<i32>((1.0 - (height - std::floor(height))) * static_cast<f64>(WALL_SIZE.Height)), 0, WALL_SIZE.Height - 1)};
                     i32 const wallSrc {(wallTexX + (wallTexY * WALL_SIZE.Width)) * TEXTURE_BPP};
 
-                    point_d const wallPoint {player.Position + (rayDir * hitDist)};
+                    point_d const wallPoint {player.Position + (col.RayDir * col.Hit.Distance)};
                     auto const    wallTint {accumulate_light(wallPoint, col.WallBase + height, WorldToCell(wallPoint), LIGHT_LAYERS_ALL)};
-                    u32 const     reflected {ApplyTint(wallTex[wallSrc + 0], wallTex[wallSrc + 1], wallTex[wallSrc + 2], DitherTint(wallTint, x, y, _quality))};
+                    u32 const     reflected {ApplyTint(wallTex[wallSrc + 0], wallTex[wallSrc + 1], wallTex[wallSrc + 2], DitherTint(wallTint, col.X, y, _quality))};
 
-                    u32& pixel {screenBuf[PixelIndex(_screenSize, x, y)]};
+                    u32& pixel {screenBuf[PixelIndex(_screenSize, col.X, y)]};
                     pixel = blend_pixel(pixel, reflected, surface.FloorReflectivity * (1.0 - (height / REFLECTION_HEIGHT)));
                 }
             }
@@ -458,9 +448,9 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
         f64 const  t0 {col.Crossed[i].Dist};
         bool const isLast {i + 1 == count};
 
-        if (isLast && hitDist - t0 <= WALL_RECESS_EPS) { break; } // wall on the cell face: it covers the rest of the column
+        if (isLast && col.Hit.Distance - t0 <= WALL_RECESS_EPS) { break; } // wall on the cell face: it covers the rest of the column
 
-        f64 const t1 {isLast ? hitDist : col.Crossed[i + 1].Dist};
+        f64 const t1 {isLast ? col.Hit.Distance : col.Crossed[i + 1].Dist};
         if (t1 <= t0) { continue; }
 
         auto const cell {col.Crossed[i].Cell};
