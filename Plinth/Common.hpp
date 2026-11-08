@@ -7,6 +7,7 @@
 
 // IWYU pragma: always_keep
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 
@@ -97,5 +98,14 @@ struct color_d {
 constexpr auto IsMagenta(u8 const* tex, i32 offset) -> bool { return tex[offset + 0] == 0x98 && tex[offset + 1] == 0x00 && tex[offset + 2] == 0x88; }
 constexpr auto PixelIndex(size_i screenSize, isize x, isize y) -> isize { return x + (y * screenSize.Width); }
 constexpr auto WorldToCell(point_d const& p) -> point_i { return {static_cast<i32>(std::floor(p.X)), static_cast<i32>(std::floor(p.Y))}; }
+
+// Performs bilinear interpolation of corner heights (TL, TR, BL, BR)
+// across a unit cell given fractional local coordinates (dx, dy).
+inline auto HeightAt(auto const& slope, point_i cell, point_d const& pos) -> f64
+{
+    f64 const dx {std::clamp(pos.X - cell.X, 0.0, 1.0)};
+    f64 const dy {std::clamp(pos.Y - cell.Y, 0.0, 1.0)};
+    return (slope.TL * (1.0 - dx) * (1.0 - dy)) + (slope.TR * dx * (1.0 - dy)) + (slope.BL * (1.0 - dx) * dy) + (slope.BR * dx * dy);
+}
 
 ////////////////////////////////////////////////////////////

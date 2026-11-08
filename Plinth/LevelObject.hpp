@@ -8,7 +8,6 @@
 #include <optional>
 #include <variant>
 
-#include "Light.hpp"
 #include "Voxel.hpp"
 
 ////////////////////////////////////////////////////////////
@@ -59,12 +58,23 @@ private:
 
 ////////////////////////////////////////////////////////////
 
+struct dynamic_light {
+    point_d Position {};
+    f64     Z {0.5};
+    f64     Range {8.0};
+    color   Color {colors::White};
+    f64     Intensity {1.0};
+    u32     Layers {LIGHT_LAYER_WORLD};
+};
+
+////////////////////////////////////////////////////////////
+
 using object_visual = std::variant<std::monostate, sprite_object, voxel_object>;
 
 struct level_object_desc {
     point_d Position {};
     point_d Direction {};
-    f64     Radius {0.0};
+    f64     Radius {0.0}; // 0 = non solid
     color   MapMarker {colors::Green};
 
     object_visual                Visual;
@@ -77,6 +87,7 @@ public:
 
     auto id() const -> uid;
     auto radius() const -> f64;
+    auto is_solid() const -> bool;
     auto map_marker() const -> color;
 
     auto position() const -> point_d;

@@ -9,7 +9,6 @@
 
 #include <optional>
 #include <span>
-#include <type_traits>
 #include <vector>
 
 #include "LevelObject.hpp"
@@ -22,6 +21,7 @@ struct cell_surface {
     f64 FloorZ {0.0};
     f64 CeilingZ {1.0};
     u8  Motes {0};
+    u8  Level {0};
 };
 
 struct slope {
@@ -156,11 +156,7 @@ public:
     auto lights() const -> std::span<dynamic_light const>;
     auto lights_at(point_i idx) const -> std::span<u32 const>;
 
-    auto is_clear(point_d pos, f64 radius, uid ignore = 0) const -> bool;
-    auto is_wall_clear(point_d pos, f64 radius) const -> bool;
-    auto is_blocking_light(point_i idx) const -> bool;
-
-    auto hit_test(this auto&& self, point_d pos, f64 radius, uid ignore = 0);
+    auto can_move_to(point_d from, point_d to, f64 radius, uid ignore = 0) const -> bool;
 
     void toggle_wall(point_i idx);
 
@@ -185,6 +181,10 @@ public:
     auto time() const -> milliseconds;
 
 private:
+    auto is_wall_clear(point_d pos, f64 radius) const -> bool;
+    auto is_blocking_light(point_i idx) const -> bool;
+    auto hit_test(point_d pos, f64 radius, uid ignore = 0) const -> level_object const*;
+
     auto closest_point_on_wall(point_i map, point_d pos) const -> std::optional<point_d>;
 
     void prepare_sky();
@@ -209,17 +209,3 @@ private:
 
     task_manager& _taskManager;
 };
-
-inline auto level::hit_test(this auto&& self, point_d pos, f64 radius, uid ignore)
-{
-    using object_t = std::conditional_t<std::is_const_v<std::remove_reference_t<decltype(self)>>, level_object const, level_object>;
-
-    object_t* found {nullptr};
-    for (auto& go : self._objects) {
-        if (go.id() != ignore && go.overlaps(pos, radius)) {
-            found = &go;
-            break;
-        }
-    }
-    return found;
-}

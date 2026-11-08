@@ -44,7 +44,14 @@ void level::update(milliseconds deltaTime)
     }
 
     for (auto& obj : _objects) {
-        obj.set_position(obj.position() + obj.direction() * dt);
+        auto const newPos {obj.position() + obj.direction() * dt};
+        if (obj.is_solid()) {
+            if (can_move_to(obj.position(), newPos, obj.radius(), obj.id())) {
+                obj.set_position(newPos);
+            }
+        } else {
+            obj.set_position(newPos);
+        }
     }
 
     std::erase_if(_objects, [](level_object const& go) { return go.dead(); });
@@ -64,35 +71,37 @@ void level::precompute_slopes()
 {
     _cellSlopes.resize(static_cast<usize>(MAP_WIDTH) * MAP_HEIGHT);
 
-    auto const vertex_height {[&](i32 vx, i32 vy, bool isFloor) -> f64 {
+    // height of a vertex as seen from cells of one level: the largest absolute value wins, walls and other levels don't count
+    auto const vertex_height {[&](i32 vx, i32 vy, bool isFloor, u8 cellLevel) -> f64 {
         f64  extremeZ {0.0};
         bool found {false};
         for (i32 cy : {vy - 1, vy}) {
             for (i32 cx : {vx - 1, vx}) {
                 point_i const c {cx, cy};
-                if (map_t::Size.contains(c)) {
-                    f64 const z {isFloor ? surface_at(c).FloorZ : surface_at(c).CeilingZ};
-                    if (!found) {
-                        extremeZ = z;
-                        found    = true;
-                    } else {
-                        if (std::abs(z) > std::abs(extremeZ)) {
-                            extremeZ = z;
-                        } else if (std::abs(z) == std::abs(extremeZ)) {
-                            extremeZ = std::max(extremeZ, z);
-                        }
-                    }
+                if (!map_t::Size.contains(c) || std::holds_alternative<normal_wall>(get_cell(c))) { continue; }
+
+                auto const surface {surface_at(c)};
+                if (surface.Level != cellLevel) { continue; }
+
+                f64 const z {isFloor ? surface.FloorZ : surface.CeilingZ};
+                if (!found || std::abs(z) > std::abs(extremeZ) || (std::abs(z) == std::abs(extremeZ) && z > extremeZ)) {
+                    extremeZ = z;
+                    found    = true;
                 }
             }
         }
-        return found ? extremeZ : 0.0;
+        return extremeZ;
     }};
 
     for (i32 y {0}; y < MAP_HEIGHT; ++y) {
         for (i32 x {0}; x < MAP_WIDTH; ++x) {
+            point_i const c {x, y};
+            if (std::holds_alternative<normal_wall>(get_cell(c))) { continue; } // no floor, no ceiling
+
+            u8 const    lvl {surface_at(c).Level};
             usize const index {static_cast<usize>((y * MAP_WIDTH) + x)};
-            _cellSlopes[index] = {.Ceiling = {.TL = vertex_height(x, y, false), .TR = vertex_height(x + 1, y, false), .BL = vertex_height(x, y + 1, false), .BR = vertex_height(x + 1, y + 1, false)},
-                                  .Floor   = {.TL = vertex_height(x, y, true), .TR = vertex_height(x + 1, y, true), .BL = vertex_height(x, y + 1, true), .BR = vertex_height(x + 1, y + 1, true)}};
+            _cellSlopes[index] = {.Ceiling = {.TL = vertex_height(x, y, false, lvl), .TR = vertex_height(x + 1, y, false, lvl), .BL = vertex_height(x, y + 1, false, lvl), .BR = vertex_height(x + 1, y + 1, false, lvl)},
+                                  .Floor   = {.TL = vertex_height(x, y, true, lvl), .TR = vertex_height(x + 1, y, true, lvl), .BL = vertex_height(x, y + 1, true, lvl), .BR = vertex_height(x + 1, y + 1, true, lvl)}};
         }
     }
 }
@@ -266,15 +275,35 @@ auto level::surface_at(point_i idx) const -> cell_surface
         if constexpr (requires { c.FloorReflectivity; }) { s.FloorReflectivity = c.FloorReflectivity; }
         if constexpr (requires { c.FloorZ; }) { s.FloorZ = c.FloorZ; }
         if constexpr (requires { c.CeilingZ; }) { s.CeilingZ = c.CeilingZ; }
+        if constexpr (requires { c.Level; }) { s.Level = c.Level; }
         if constexpr (requires { c.Motes; }) { s.Motes = c.Motes; }
         return s;
     },
                       get_cell(idx));
 }
 
-auto level::is_clear(point_d pos, f64 radius, uid ignore) const -> bool
+auto level::can_move_to(point_d from, point_d to, f64 radius, uid ignore) const -> bool
 {
-    return is_wall_clear(pos, radius) && hit_test(pos, radius, ignore) == nullptr;
+    constexpr static f64 MAX_CLIMB {0.25};
+
+    point_i const fromCell {WorldToCell(from)};
+    f64 const     height {HeightAt(slopes_at(fromCell).Floor, fromCell, from)};
+    f64 const     minHeight {height - MAX_CLIMB};
+    f64 const     maxHeight {height + MAX_CLIMB};
+
+    for (i32 ty {static_cast<i32>(std::floor(to.Y - radius))}; ty <= static_cast<i32>(std::floor(to.Y + radius)); ++ty) {
+        for (i32 tx {static_cast<i32>(std::floor(to.X - radius))}; tx <= static_cast<i32>(std::floor(to.X + radius)); ++tx) {
+            point_i const cell {tx, ty};
+            point_d const closest {std::clamp(to.X, static_cast<f64>(tx), tx + 1.0), std::clamp(to.Y, static_cast<f64>(ty), ty + 1.0)};
+            point_d const d {to - closest};
+            if (d.dot(d) >= radius * radius) { continue; }
+
+            f64 const heightTarget {HeightAt(slopes_at(cell).Floor, cell, closest)};
+            if (heightTarget < minHeight || heightTarget > maxHeight) { return false; }
+        }
+    }
+
+    return is_wall_clear(to, radius) && hit_test(to, radius, ignore) == nullptr;
 }
 
 auto level::is_wall_clear(point_d pos, f64 radius) const -> bool
@@ -314,6 +343,18 @@ auto level::is_blocking_light(point_i idx) const -> bool
         }
     },
                       get_cell(idx));
+}
+
+auto level::hit_test(point_d pos, f64 radius, uid ignore) const -> level_object const*
+{
+    level_object const* found {nullptr};
+    for (auto const& go : _objects) {
+        if (go.id() != ignore && go.overlaps(pos, radius)) {
+            found = &go;
+            break;
+        }
+    }
+    return found;
 }
 
 auto level::closest_point_on_wall(point_i map, point_d pos) const -> std::optional<point_d>

@@ -18,7 +18,6 @@
 
 #include "Common.hpp"
 #include "Level.hpp"
-#include "Light.hpp"
 #include "Player.hpp"
 #include "TextureCache.hpp"
 #include "Voxel.hpp"
@@ -51,15 +50,6 @@ static auto ComputeFalloff(f64 distSq, f64 rangeSq, f64 intensity) -> f64
     f64 const ratio {distSq / rangeSq};
     f64 const base {std::clamp(1.0 - (ratio * ratio), 0.0, 1.0)};
     return intensity * (base * base) / d;
-}
-
-// Performs bilinear interpolation of corner heights (TL, TR, BL, BR)
-// across a unit cell given fractional local coordinates (dx, dy).
-static auto HeightAt(slope const& slope, point_i cell, point_d const& pos) -> f64
-{
-    f64 const dx {std::clamp(pos.X - cell.X, 0.0, 1.0)};
-    f64 const dy {std::clamp(pos.Y - cell.Y, 0.0, 1.0)};
-    return (slope.TL * (1.0 - dx) * (1.0 - dy)) + (slope.TR * dx * (1.0 - dy)) + (slope.BL * (1.0 - dx) * dy) + (slope.BR * dx * dy);
 }
 
 static auto DitherTint(color_d tint, isize x, isize y, quality_settings const& quality) -> color_d
@@ -341,6 +331,54 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
         return wallTexPtr;
     }};
 
+    constexpr static f64 MIN_RISER_HEIGHT {1e-4};
+    constexpr static f64 RISER_LIGHT_BIAS {0.001}; // lights the face from the open side
+
+    // vertical face where a surface does not meet the one of the cell before it
+    auto const draw_riser {[&](bool isFloor, point_i prevCell, point_i cell, cell_surface const& surface, f64 t) {
+        i32 const texId {isFloor ? surface.FloorTexture : surface.CeilingTexture};
+        if (texId == SKY_TEXTURE) { return; }
+
+        auto const edge {player.Position + (col.RayDir * t)};
+        auto const prevSlopes {level.slopes_at(prevCell)};
+        auto const slopes {level.slopes_at(cell)};
+        f64 const  prevZ {HeightAt(isFloor ? prevSlopes.Floor : prevSlopes.Ceiling, prevCell, edge)};
+        f64 const  hereZ {HeightAt(isFloor ? slopes.Floor : slopes.Ceiling, cell, edge)};
+
+        // only faces turned toward the player: a floor that steps up, a ceiling that steps down
+        if ((isFloor ? hereZ - prevZ : prevZ - hereZ) <= MIN_RISER_HEIGHT) { return; }
+
+        f64 const  rowsPerUnit {_projPlaneDist / std::max(t, MIN_RAY_DIST)};
+        auto const row {[&](f64 z) { return static_cast<i32>(std::clamp(std::round(col.CenterY + ((player.EyeZ - z) * rowsPerUnit)), -1.0, static_cast<f64>(_screenSize.Height) + 1.0)); }};
+        i32 const  from {std::max(row(std::max(hereZ, prevZ)), col.Top)};
+        i32 const  to {std::min(row(std::min(hereZ, prevZ)), col.Bottom)};
+        if (from >= to) { return; }
+
+        u8 const* tex {texId != INVALID_INDEX ? _cache.texture(texId, 0) : nullptr};
+        if (tex == nullptr) { tex = wall_texture(); }
+        if (tex == nullptr) { return; }
+
+        // u runs along the edge: if the cells differ in x, the edge runs along y
+        f64 const     along {cell.X != prevCell.X ? edge.Y : edge.X};
+        i32 const     texelX {static_cast<i32>(along * WALL_SIZE.Width) & (WALL_SIZE.Width - 1)};
+        point_d const litPos {player.Position + (col.RayDir * std::max(t - RISER_LIGHT_BIAS, 0.0))};
+
+        for (i32 y {from}; y < to; ++y) {
+            f64 const z {player.EyeZ - (((static_cast<f64>(y) - col.CenterY) / _projPlaneDist) * t)};
+            i32 const texelY {(WALL_SIZE.Height - 1) - (static_cast<i32>(std::floor(z * WALL_SIZE.Height)) & (WALL_SIZE.Height - 1))};
+            i32 const texelOffset {(texelX + (texelY * WALL_SIZE.Width)) * TEXTURE_BPP};
+
+            draw_surface_pixel(col.X, y, tex, texelOffset, litPos, z, 1.0);
+            _objectDepthBuffer[PixelIndex(_screenSize, col.X, y)] = t;
+        }
+
+        if (isFloor) {
+            col.Bottom = std::min(col.Bottom, from);
+        } else {
+            col.Top = std::max(col.Top, to);
+        }
+    }};
+
     auto const draw_flat {[&](bool isFloor, cell_surface const& surface, point_i cell, f64 tIn, f64 tOut) {
         auto const  slopes {level.slopes_at(cell)};
         auto const& slope {isFloor ? slopes.Floor : slopes.Ceiling};
@@ -458,6 +496,11 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
 
         i32 const bottomBefore {col.Bottom};
         i32 const topBefore {col.Top};
+
+        if (i > 0) {
+            draw_riser(true, col.Crossed[i - 1].Cell, cell, surface, t0);
+            draw_riser(false, col.Crossed[i - 1].Cell, cell, surface, t0);
+        }
 
         draw_flat(true, surface, cell, t0, t1);
         draw_flat(false, surface, cell, t0, t1);

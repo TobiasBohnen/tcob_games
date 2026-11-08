@@ -10,7 +10,6 @@
 #include <variant>
 
 #include "Common.hpp"
-#include "Light.hpp"
 #include "Voxel.hpp"
 
 auto sprite_object::facing_index(point_d cameraPos) const -> i32
@@ -53,6 +52,8 @@ level_object::level_object(uid id, level_object_desc desc)
 
 auto level_object::id() const -> uid { return _id; }
 auto level_object::radius() const -> f64 { return _radius; }
+auto level_object::is_solid() const -> bool { return _radius > 0; }
+
 auto level_object::map_marker() const -> color { return _mapMarker; }
 
 auto level_object::dead() const -> bool { return _dead; }
@@ -94,7 +95,7 @@ void level_object::set_direction(point_d p)
 
 auto level_object::overlaps(point_d pos, f64 radius) const -> bool
 {
-    if (_radius <= 0.0) { return false; } // radius 0 = not solid
+    if (!is_solid()) { return false; }
     f64 const     combined {radius + _radius};
     point_d const d {position() - pos};
     return d.dot(d) < combined * combined;

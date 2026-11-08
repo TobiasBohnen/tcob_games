@@ -22,7 +22,6 @@
 
 #include "Common.hpp"
 #include "Level.hpp"
-#include "Light.hpp"
 #include "MapRenderer.hpp"
 #include "Raycaster.hpp"
 #include "ScreenOverlay.hpp"
@@ -244,7 +243,8 @@ Plinth::Plinth(game& game)
         for (;;) {
             x = rng(0, MAP_WIDTH - 1);
             y = rng(0, MAP_HEIGHT - 1);
-            if (!used.contains(point_i {x, y}) && _level->is_wall_clear(point_d {static_cast<f64>(x), static_cast<f64>(y)}, 1)) { break; }
+            point_d const pos {static_cast<f64>(x), static_cast<f64>(y)};
+            if (!used.contains(point_i {x, y}) && _level->can_move_to(pos, pos, 1)) { break; }
         }
         used.insert(point_i {x, y});
         return point_d {static_cast<f64>(x) + 0.5f, static_cast<f64>(y) + 0.5f};

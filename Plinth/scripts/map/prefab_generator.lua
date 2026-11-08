@@ -33,7 +33,7 @@ local PREFABS = {
     { -- L-shaped room (7x7 bounding box, top-right corner walled off)
         rows = {
             "333....",
-            "3.D....",
+            "3.D.BB.",
             "333....",
             "o......",
             "3.....o",
@@ -200,14 +200,17 @@ local cell_factories = {
 
     B = function(prefab)
         return with_surfaces(prefab, {
-            type   = "floor_cell",
-            FloorZ = 0.25
+            type     = "floor_cell",
+            FloorZ   = 0.18,
+            CeilingZ = 1.25,
+            Level    = 1
         })
     end,
     Q = function(prefab)
         return with_surfaces(prefab, {
-            type   = "floor_cell",
-            FloorZ = -0.2,
+            type     = "floor_cell",
+            FloorZ   = -0.18,
+            CeilingZ = 1.45,
         })
     end,
     R = function(prefab)
@@ -215,15 +218,17 @@ local cell_factories = {
             type     = "floor_cell",
             FloorZ   = 0.45,
             CeilingZ = 1.45,
-            Motes    = 1
+            Motes    = 1,
+            Level    = 1
         })
         cell.CeilingTexture = -2
         return cell
     end,
     T = function(prefab)
         return with_surfaces(prefab, {
-            type   = "floor_cell",
-            FloorZ = -0.5,
+            type     = "floor_cell",
+            FloorZ   = -0.5,
+            CeilingZ = 1.45,
         })
     end,
 

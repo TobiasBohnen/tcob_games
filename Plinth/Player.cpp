@@ -14,37 +14,30 @@
 
 void player::move(level const& level, f64 forwardAmount, f64 strafeAmount, f64 rotateAmount)
 {
-    // Move Forward/Backward
-    if (forwardAmount != 0) {
-        point_d const newPos {Position + (Direction * forwardAmount)};
+    // a position is reachable if the step up is climbable and nothing blocks it
+    auto const can_go {[&](point_d const& pos) { return level.can_move_to(Position, pos, Radius) && level.can_move_to(pos, Position, Radius); }};
 
-        if (level.is_clear(newPos, Radius)) {
+    // full move first, then slide along either axis
+    auto const try_move {[&](point_d const& newPos) {
+        if (can_go(newPos)) {
             Position = newPos;
-            _doBob   = true;
-        } else if (level.is_clear({Position.X, newPos.Y}, Radius)) {
+        } else if (can_go({Position.X, newPos.Y})) {
             Position.Y = newPos.Y;
-            _doBob     = true;
-        } else if (level.is_clear({newPos.X, Position.Y}, Radius)) {
+        } else if (can_go({newPos.X, Position.Y})) {
             Position.X = newPos.X;
-            _doBob     = true;
+        } else {
+            return;
         }
-    }
+        _doBob = true;
+    }};
+
+    // Move Forward/Backward
+    if (forwardAmount != 0) { try_move(Position + (Direction * forwardAmount)); }
 
     // Strafe Left/Right (perpendicular to Direction)
     if (strafeAmount != 0) {
         point_d const strafe {-Direction.as_perpendicular()};
-        point_d const newPos {Position + (strafe * strafeAmount)};
-
-        if (level.is_clear(newPos, Radius)) {
-            Position = newPos;
-            _doBob   = true;
-        } else if (level.is_clear({Position.X, newPos.Y}, Radius)) {
-            Position.Y = newPos.Y;
-            _doBob     = true;
-        } else if (level.is_clear({newPos.X, Position.Y}, Radius)) {
-            Position.X = newPos.X;
-            _doBob     = true;
-        }
+        try_move(Position + (strafe * strafeAmount));
     }
 
     // Rotate (both direction and plane vectors must rotate together)
