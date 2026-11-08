@@ -87,6 +87,15 @@ static auto HashUnit(i32 gx, i32 gy, u32 index, u32 salt) -> f64
     return static_cast<f64>(h) / 4294967296.0;
 }
 
+static auto BlendPixel(u32 a, u32 b, f64 t) -> u32
+{
+    u32 const w {static_cast<u32>(std::clamp(t, 0.0, 1.0) * 256.0)};
+    u32 const inv {256 - w};
+    u32 const rb {((((a & 0x00FF00FFu) * inv) + ((b & 0x00FF00FFu) * w)) >> 8) & 0x00FF00FFu};
+    u32 const g {((((a & 0x0000FF00u) * inv) + ((b & 0x0000FF00u) * w)) >> 8) & 0x0000FF00u};
+    return 0xFF000000u | rb | g;
+}
+
 ////////////////////////////////////////////////////////////
 
 struct raycaster::column_hit {
@@ -176,7 +185,8 @@ void raycaster::draw_surface_pixel(isize x, isize y, u8 const* tex, isize srcIdx
 
     auto const toSurface {surfacePos - player.Position};
     bool const close {toSurface.dot(toSurface) < DITHER_MIN_DIST_SQ};
-    CopyPixel(_screen.data(), PixelIndex(_screenSize, x, y), tex, srcIdx, close ? tint : DitherTint(tint, x, y, _quality));
+    u32*       screenBuf {_screen.data()};
+    CopyPixel(screenBuf, PixelIndex(_screenSize, x, y), tex, srcIdx, close ? tint : DitherTint(tint, x, y, _quality));
 }
 
 auto raycaster::draw(level& level, player& player) -> std::span<u32>
@@ -301,14 +311,6 @@ void raycaster::draw_columns(i32 screenCenterY, i32 columnStart, i32 columnEnd)
 
 void raycaster::draw_floor_ceiling_column(column_hit& col)
 {
-    static auto blend_pixel {[](u32 a, u32 b, f64 t) -> u32 {
-        u32 const w {static_cast<u32>(std::clamp(t, 0.0, 1.0) * 256.0)};
-        u32 const inv {256 - w};
-        u32 const rb {((((a & 0x00FF00FFu) * inv) + ((b & 0x00FF00FFu) * w)) >> 8) & 0x00FF00FFu};
-        u32 const g {((((a & 0x0000FF00u) * inv) + ((b & 0x0000FF00u) * w)) >> 8) & 0x0000FF00u};
-        return 0xFF000000u | rb | g;
-    }};
-
     static auto scale_pixel {[](u32 px, f64 factor) -> u32 {
         u32 const m {static_cast<u32>(std::clamp(factor, 0.0, 1.0) * 256.0)};
         u32 const rb {(((px & 0x00FF00FFu) * m) >> 8) & 0x00FF00FFu};
@@ -469,7 +471,7 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
                     u32 const     reflected {ApplyTint(wallTex[wallSrc + 0], wallTex[wallSrc + 1], wallTex[wallSrc + 2], DitherTint(wallTint, col.X, y, _quality))};
 
                     u32& pixel {screenBuf[PixelIndex(_screenSize, col.X, y)]};
-                    pixel = blend_pixel(pixel, reflected, surface.FloorReflectivity * (1.0 - (height / REFLECTION_HEIGHT)));
+                    pixel = BlendPixel(pixel, reflected, surface.FloorReflectivity * (1.0 - (height / REFLECTION_HEIGHT)));
                 }
             }
         }
@@ -797,14 +799,6 @@ void raycaster::draw_motes(i32 screenCenterY)
 
     auto const& level {*_level};
 
-    static auto blend_pixel {[](u32 a, u32 b, f64 t) -> u32 {
-        u32 const w {static_cast<u32>(std::clamp(t, 0.0, 1.0) * 256.0)};
-        u32 const inv {256 - w};
-        u32 const rb {((((a & 0x00FF00FFu) * inv) + ((b & 0x00FF00FFu) * w)) >> 8) & 0x00FF00FFu};
-        u32 const g {((((a & 0x0000FF00u) * inv) + ((b & 0x0000FF00u) * w)) >> 8) & 0x0000FF00u};
-        return 0xFF000000u | rb | g;
-    }};
-
     static auto add_pixel {[](u32 px, u32 add, f64 t) -> u32 {
         u32 const w {static_cast<u32>(std::clamp(t, 0.0, 1.0) * 256.0)};
         u32 const r {std::min((px & 0xFFu) + (((add & 0xFFu) * w) >> 8), 255u)};
@@ -879,7 +873,7 @@ void raycaster::draw_motes(i32 screenCenterY)
                     f64 const   mix {pick - static_cast<f64>(lo)};
                     auto const& c0 {motes.Colors[lo]};
                     auto const& c1 {motes.Colors[hi]};
-                    base = {.R = c0.R + ((c1.R - c0.R) * mix), .G = c0.G + ((c1.G - c0.G) * mix), .B = c0.B + ((c1.B - c0.B) * mix)};
+                    base = c0.lerp(c1, mix);
                 }
 
                 f64 const fade {1.0 - std::min(transformY / lightRange, 1.0)};
@@ -895,7 +889,7 @@ void raycaster::draw_motes(i32 screenCenterY)
                         isize const idx {PixelIndex(_screenSize, px, py)};
                         if (transformY >= _objectDepthBuffer[idx]) { continue; }
 
-                        screenBuf[idx] = motes.Additive ? add_pixel(screenBuf[idx], moteColor, alpha) : blend_pixel(screenBuf[idx], moteColor, alpha);
+                        screenBuf[idx] = motes.Additive ? add_pixel(screenBuf[idx], moteColor, alpha) : BlendPixel(screenBuf[idx], moteColor, alpha);
                     }
                 }
             }
