@@ -286,24 +286,26 @@ auto level::can_move_to(point_d from, point_d to, f64 radius, uid ignore) const 
 {
     constexpr static f64 MAX_CLIMB {0.25};
 
-    point_i const fromCell {WorldToCell(from)};
-    f64 const     height {HeightAt(slopes_at(fromCell).Floor, fromCell, from)};
-    f64 const     minHeight {height - MAX_CLIMB};
-    f64 const     maxHeight {height + MAX_CLIMB};
+    // every floor under the footprint at `pos` has to be within climbing range of the floor at `ref`
+    auto const footprint_reachable {[&](point_d pos, point_d ref) -> bool {
+        point_i const refCell {WorldToCell(ref)};
+        f64 const     height {HeightAt(slopes_at(refCell).Floor, refCell, ref)};
 
-    for (i32 ty {static_cast<i32>(std::floor(to.Y - radius))}; ty <= static_cast<i32>(std::floor(to.Y + radius)); ++ty) {
-        for (i32 tx {static_cast<i32>(std::floor(to.X - radius))}; tx <= static_cast<i32>(std::floor(to.X + radius)); ++tx) {
-            point_i const cell {tx, ty};
-            point_d const closest {std::clamp(to.X, static_cast<f64>(tx), tx + 1.0), std::clamp(to.Y, static_cast<f64>(ty), ty + 1.0)};
-            point_d const d {to - closest};
-            if (d.dot(d) >= radius * radius) { continue; }
+        for (i32 ty {static_cast<i32>(std::floor(pos.Y - radius))}; ty <= static_cast<i32>(std::floor(pos.Y + radius)); ++ty) {
+            for (i32 tx {static_cast<i32>(std::floor(pos.X - radius))}; tx <= static_cast<i32>(std::floor(pos.X + radius)); ++tx) {
+                point_i const cell {tx, ty};
+                point_d const closest {std::clamp(pos.X, static_cast<f64>(tx), tx + 1.0), std::clamp(pos.Y, static_cast<f64>(ty), ty + 1.0)};
+                point_d const d {pos - closest};
+                if (d.dot(d) >= radius * radius) { continue; }
 
-            f64 const heightTarget {HeightAt(slopes_at(cell).Floor, cell, closest)};
-            if (heightTarget < minHeight || heightTarget > maxHeight) { return false; }
+                if (std::abs(HeightAt(slopes_at(cell).Floor, cell, closest) - height) > MAX_CLIMB) { return false; }
+            }
         }
-    }
+        return true;
+    }};
 
-    return is_wall_clear(to, radius) && hit_test(to, radius, ignore) == nullptr;
+    // only allow moves that can be undone, otherwise the player can walk into a spot the same rule won't let them leave
+    return footprint_reachable(to, from) && footprint_reachable(from, to) && is_wall_clear(to, radius) && hit_test(to, radius, ignore) == nullptr;
 }
 
 auto level::is_wall_clear(point_d pos, f64 radius) const -> bool
