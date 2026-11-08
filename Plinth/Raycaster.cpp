@@ -193,7 +193,6 @@ auto raycaster::draw(level& level, player& player) -> std::span<u32>
 {
     constexpr static f64 EYE_HEIGHT {0.5}; // eye height above the floor under the player
 
-    // valid for the duration of this call only
     _level  = &level;
     _player = &player;
 
@@ -363,8 +362,7 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
         if (from >= to) { return; }
 
         if (!isFloor && surface.CeilingTexture == SKY_TEXTURE) {
-            f64 const azimuth {std::atan2(rayDir.Y, rayDir.X)};
-            for (i32 y {from}; y < to; ++y) { screenBuf[PixelIndex(_screenSize, x, y)] = sky_pixel(y, rayDir, azimuth); }
+            for (i32 y {from}; y < to; ++y) { screenBuf[PixelIndex(_screenSize, x, y)] = sky_pixel(y, rayDir); }
             col.Top = std::max(col.Top, to);
             return;
         }
@@ -385,12 +383,14 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
         if (tex == nullptr) { tex = wall_texture(); }
         if (tex == nullptr) { return; }
 
+        bool const linear {std::abs(A) < 1e-12};
+
         for (i32 y {from}; y < to; ++y) {
             f64 const s {(static_cast<f64>(y) - col.CenterY) / proj};
             f64 const term {s + B};
             f64       t {tOut};
 
-            if (std::abs(A) < 1e-12) {
+            if (linear) {
                 // Linear case when cross-term coefficient A is near zero: t = (eyeZ - C) / term
                 if (std::abs(term) > 1e-9) {
                     t = std::clamp((eyeZ - C) / term, tIn, tOut);
@@ -602,11 +602,11 @@ void raycaster::draw_sprites(i32 screenCenterY)
                 i32 const texOffset {(texX + (texY * texSize.Width)) * TEXTURE_BPP};
                 if (IsMagenta(tex, texOffset)) { continue; }
 
-                isize const depthIndex {PixelIndex(_screenSize, x, y)};
-                if (transformY < _objectDepthBuffer[depthIndex]) {
-                    _objectDepthBuffer[depthIndex] = transformY;
+                isize const idx {PixelIndex(_screenSize, x, y)};
+                if (transformY < _objectDepthBuffer[idx]) {
+                    _objectDepthBuffer[idx] = transformY;
                     if (inLight) { spr->Seen = true; }
-                    CopyPixel(screenBuf, PixelIndex(_screenSize, x, y), tex, texOffset, DitherTint(spriteTint, x, y, _quality));
+                    CopyPixel(screenBuf, idx, tex, texOffset, DitherTint(spriteTint, x, y, _quality));
                 }
             }
         }
@@ -800,10 +800,10 @@ void raycaster::draw_motes(i32 screenCenterY)
             point_i const cell {cx, cy};
             if (!map_t::Size.contains(cell) || std::holds_alternative<normal_wall>(level.get_cell(cell)) || !IsWithinPlayerLight(player, cell)) { continue; }
 
-            auto const slopes {level.slopes_at(cell)};
-
             auto const& motes {level.motes_at(cell)};
             if (motes.Count == 0) { continue; }
+
+            auto const slopes {level.slopes_at(cell)};
 
             for (u32 i {0}; i < motes.Count; ++i) {
                 point_d const pos {cx + frac(HashUnit(cx, cy, i, 3) + (motes.Wind.X * t)) + (motes.Drift * std::sin((t * motes.DriftSpeed) + (HashUnit(cx, cy, i, 5) * TAU))),
@@ -873,7 +873,7 @@ void raycaster::draw_motes(i32 screenCenterY)
     }
 }
 
-auto raycaster::sky_pixel(i32 y, point_d const& rayDir, f64 azimuth) const -> u32
+auto raycaster::sky_pixel(i32 y, point_d const& rayDir) const -> u32
 {
     static auto dot {[](point3_d const& a, point3_d const& b) { return (a.X * b.X) + (a.Y * b.Y) + (a.Z * b.Z); }};
 
@@ -897,7 +897,7 @@ auto raycaster::sky_pixel(i32 y, point_d const& rayDir, f64 azimuth) const -> u3
     }};
 
     auto const& sky {_level->sky()};
-    if (!sky.Stars) { azimuth = 0; }
+    f64 const   azimuth {sky.Stars ? std::atan2(rayDir.Y, rayDir.X) : 0.0};
 
     // view direction; the horizon is the unbobbed screen center
     f64 const      zRow {((_screenSize.Height / 2.0) - y) / _projPlaneDist};
@@ -912,10 +912,8 @@ auto raycaster::sky_pixel(i32 y, point_d const& rayDir, f64 azimuth) const -> u3
     f64 const sunDot {dot(dir, sky.Sun)};
     f64 const s {std::max(sunDot, 0.0)};
     f64 const s2 {s * s};
-    f64 const s4 {s2 * s2};
-    f64 const s8 {s4 * s4};
-    f64 const s16 {s8 * s8};
-    f64 const s32 {s16 * s16};
+    f64 const s8 {s2 * s2 * s2 * s2};
+    f64 const s32 {s8 * s8 * s8 * s8};
 
     f64 const duskGlow {sky.Dusk * s8 * (1.0 - (0.7 * h))};
     f64 const haloGlow {0.35 * s32 * (0.3 + (0.7 * sky.Day))};

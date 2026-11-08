@@ -35,7 +35,7 @@ private:
     void draw_voxel_objects(i32 screenCenterY);
     void draw_motes(i32 screenCenterY);
 
-    auto sky_pixel(i32 y, point_d const& rayDir, f64 azimuth) const -> u32;
+    auto sky_pixel(i32 y, point_d const& rayDir) const -> u32;
 
     std::vector<u32> _screen;
 
