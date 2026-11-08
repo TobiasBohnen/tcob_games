@@ -233,7 +233,7 @@ Plinth::Plinth(game& game)
     _level = std::make_unique<level>();
     _engine.generate_level(*_level, _player);
     _level->precompute_slopes();
-    _level->set_motes(0, MOTES_RAIN);
+    _level->set_motes(0, {});
     _level->set_motes(1, MOTES_RAIN);
     _level->set_sky(SKY_NIGHT);
 

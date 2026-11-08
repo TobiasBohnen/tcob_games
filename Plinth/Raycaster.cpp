@@ -402,13 +402,10 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
                     f64 const sqrtDisc {std::sqrt(discriminant)};
                     f64 const t1 {(-term - sqrtDisc) / (2.0 * A)};
                     f64 const t2 {(-term + sqrtDisc) / (2.0 * A)};
-                    if (t1 >= tIn && t1 <= tOut) {
-                        t = t1;
-                    } else if (t2 >= tIn && t2 <= tOut) {
-                        t = t2;
-                    } else {
-                        t = std::clamp(t1, tIn, tOut);
-                    }
+
+                    // take the root closest to this cell's span, a row on the far edge can land just outside it
+                    auto const gap {[&](f64 r) { return std::max({tIn - r, r - tOut, 0.0}); }};
+                    t = std::clamp(gap(t1) <= gap(t2) ? t1 : t2, tIn, tOut);
                 }
             }
 
