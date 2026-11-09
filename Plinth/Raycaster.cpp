@@ -647,6 +647,17 @@ void raycaster::draw_sprites(i32 screenCenterY)
 
 void raycaster::draw_voxel_objects(i32 screenCenterY)
 {
+    struct screen_bounds {
+        i32 XStart {};
+        i32 XEnd {};
+        i32 YStart {};
+        i32 YEnd {};
+        f64 Nearest {};     // nothing of the object is closer than this
+        f64 MaxWallDist {}; // farthest wall behind its columns
+
+        auto area() const -> i32 { return (XEnd - XStart) * (YEnd - YStart); }
+    };
+
     level&        level {*_level};
     player const& player {*_player};
 
@@ -669,28 +680,26 @@ void raycaster::draw_voxel_objects(i32 screenCenterY)
     rect_i const screenRect {point_i::Zero, _screenSize};
     u32*         screenBuf {_screen.data()};
 
-    for (auto& go : level.objects()) {
-        auto* const vo {go.voxel()};
-        if (!vo) { continue; }
-
-        vo->Seen = false;
-        if (!vo->Grid) { continue; }
-
+    // where an object lands on screen, nothing if it is off screen or hidden behind walls
+    auto const measure {[&](auto* vo) -> std::optional<screen_bounds> {
         auto const voCell {WorldToCell(vo->Position)};
         f64 const  floorZ {HeightAt(level.slopes_at(voCell).Floor, voCell, vo->Position)};
-
         auto const xf {vo->make_transform()};
 
         f64  bboxMinX {std::numeric_limits<f64>::infinity()}, bboxMaxX {-std::numeric_limits<f64>::infinity()};
         f64  bboxMinY {std::numeric_limits<f64>::infinity()}, bboxMaxY {-std::numeric_limits<f64>::infinity()};
         f64  bboxMinDepth {std::numeric_limits<f64>::infinity()};
         bool anyVisible {false};
+        bool behindCamera {false};
 
         for (auto const& corner : vo->Grid->corners()) {
             auto const     worldCorner {xf.to_world(corner)};
             point3_d const adjustedCorner {.X = worldCorner.X, .Y = worldCorner.Y, .Z = worldCorner.Z + floorZ};
             auto const [sx, sy, depth] {project(adjustedCorner)};
-            if (depth <= 0.0) { continue; }
+            if (depth <= 0.0) {
+                behindCamera = true;
+                continue;
+            }
 
             anyVisible   = true;
             bboxMinX     = std::min(bboxMinX, sx);
@@ -699,22 +708,64 @@ void raycaster::draw_voxel_objects(i32 screenCenterY)
             bboxMaxY     = std::max(bboxMaxY, sy);
             bboxMinDepth = std::min(bboxMinDepth, depth);
         }
-        if (!anyVisible) { continue; }
+        if (!anyVisible) { return std::nullopt; }
 
         rect_i const bboxRect {point_i {static_cast<i32>(bboxMinX), static_cast<i32>(bboxMinY)},
                                size_i {static_cast<i32>(bboxMaxX - bboxMinX) + 1, static_cast<i32>(bboxMaxY - bboxMinY) + 1}};
-        if (!screenRect.intersects(bboxRect, true)) { continue; }
+        if (!screenRect.intersects(bboxRect, true)) { return std::nullopt; }
 
-        i32 const xStart {std::clamp(bboxRect.Position.X, 0, _screenSize.Width)};
-        i32 const xEnd {std::clamp(bboxRect.Position.X + bboxRect.Size.Width, 0, _screenSize.Width)};
-        i32 const yStart {std::clamp(bboxRect.Position.Y, 0, _screenSize.Height)};
-        i32 const yEnd {std::clamp(bboxRect.Position.Y + bboxRect.Size.Height, 0, _screenSize.Height)};
+        screen_bounds b {.XStart  = std::clamp(bboxRect.Position.X, 0, _screenSize.Width),
+                         .XEnd    = std::clamp(bboxRect.Position.X + bboxRect.Size.Width, 0, _screenSize.Width),
+                         .YStart  = std::clamp(bboxRect.Position.Y, 0, _screenSize.Height),
+                         .YEnd    = std::clamp(bboxRect.Position.Y + bboxRect.Size.Height, 0, _screenSize.Height),
+                         .Nearest = behindCamera ? 0.0 : bboxMinDepth};
+
+        for (i32 x {b.XStart}; x < b.XEnd; ++x) { b.MaxWallDist = std::max(b.MaxWallDist, _zBuffer[x]); }
+        if (b.Nearest >= b.MaxWallDist) { return std::nullopt; }
+
+        return b;
+    }};
+
+    // nearest first, so pixels that are already covered reject the objects behind them
+    _voxelOrder.clear();
+    for (auto& go : level.objects()) {
+        auto* const vo {go.voxel()};
+        if (!vo) { continue; }
+
+        vo->Seen = false;
+        point_d const toObject {vo->Position - player.Position};
+        _voxelOrder.emplace_back(toObject.dot(toObject), &go);
+    }
+    std::ranges::sort(_voxelOrder, [](auto const& a, auto const& b) { return a.first < b.first; });
+
+    // the budget is shared by all objects: the more there are on screen, the coarser they are cast
+    f64 totalArea {0.0};
+    for (auto const& entry : _voxelOrder) {
+        auto* const vo {entry.second->voxel()};
+        if (!vo->Grid) { continue; }
+
+        if (auto const b {measure(vo)}) { totalArea += b->area(); }
+    }
+    i32 const stride {totalArea > _quality.VoxelPixelBudget ? static_cast<i32>(std::ceil(std::sqrt(totalArea / _quality.VoxelPixelBudget))) : 1};
+
+    for (auto const& entry : _voxelOrder) {
+        auto* const vo {entry.second->voxel()};
+        if (!vo->Grid) { continue; }
+
+        auto const bounds {measure(vo)};
+        if (!bounds) { continue; }
+
+        i32 const xStart {bounds->XStart};
+        i32 const xEnd {bounds->XEnd};
+        i32 const yStart {bounds->YStart};
+        i32 const yEnd {bounds->YEnd};
+        f64 const nearest {bounds->Nearest};
+
+        auto const voCell {WorldToCell(vo->Position)};
+        f64 const  floorZ {HeightAt(level.slopes_at(voCell).Floor, voCell, vo->Position)};
+        auto const xf {vo->make_transform()};
 
         auto const localOrigin {xf.to_local(point3_d {.X = player.Position.X, .Y = player.Position.Y, .Z = player.EyeZ - floorZ})};
-
-        f64 maxWallDist {0.0};
-        for (i32 x {xStart}; x < xEnd; ++x) { maxWallDist = std::max(maxWallDist, _zBuffer[x]); }
-        if (bboxMinDepth >= maxWallDist) { continue; }
 
         auto const edge_len_sq {[&](i32 col) {
             auto const d {ComputeCameraRayDir(col, _screenSize.Width, player)};
@@ -722,14 +773,9 @@ void raycaster::draw_voxel_objects(i32 screenCenterY)
         }};
         f64 const  maxLenSq {std::max(edge_len_sq(xStart), edge_len_sq(xEnd - 1))};
         f64 const  maxSlope {std::max(std::abs(screenCenterY - yStart), std::abs(yEnd - screenCenterY)) / _projPlaneDist};
-        f64 const  maxT {(maxWallDist * std::sqrt(maxLenSq + (maxSlope * maxSlope))) + vo->world_diagonal()};
+        f64 const  maxT {(bounds->MaxWallDist * std::sqrt(maxLenSq + (maxSlope * maxSlope))) + vo->world_diagonal()};
 
-        i32 const colCount {xEnd - xStart};
-        i32 const rowCount {yEnd - yStart};
-        i32 const bboxArea {colCount * rowCount};
-        i32 const stride {bboxArea > _quality.VoxelPixelBudget ? static_cast<i32>(std::ceil(std::sqrt(static_cast<f64>(bboxArea) / _quality.VoxelPixelBudget)))
-                                                               : 1};
-        i32 const strideCols {(colCount + stride - 1) / stride};
+        i32 const strideCols {((xEnd - xStart) + stride - 1) / stride};
 
         std::atomic_bool drawn {false};
 
@@ -740,10 +786,19 @@ void raycaster::draw_voxel_objects(i32 screenCenterY)
                 i32 const x {xStart + (static_cast<i32>(scol) * stride)};
                 if (x >= xEnd) { continue; }
 
+                i32 const xBlockEnd {std::min(x + stride, xEnd)};
+
+                // the whole object is behind the walls in these columns
+                f64 blockWall {0.0};
+                for (i32 bx {x}; bx < xBlockEnd; ++bx) { blockWall = std::max(blockWall, _zBuffer[bx]); }
+                if (nearest >= blockWall) { continue; }
+
                 auto const rayDir2D {ComputeCameraRayDir(x + ((stride - 1) / 2), _screenSize.Width, player)};
-                i32 const  xBlockEnd {std::min(x + stride, xEnd)};
 
                 for (i32 y {yStart}; y < yEnd; y += stride) {
+                    // already covered by something nearer than the whole object
+                    if (stride == 1 && nearest >= _objectDepthBuffer[PixelIndex(_screenSize, x, y)]) { continue; }
+
                     f64 const  rayDirZ {(screenCenterY - (y + (0.5 * stride))) / _projPlaneDist};
                     auto const rayDir3D {point3_d {.X = rayDir2D.X, .Y = rayDir2D.Y, .Z = rayDirZ}.normalized()};
 
