@@ -45,6 +45,8 @@ void level::update(milliseconds deltaTime)
 
     for (auto& obj : _objects) {
         auto const newPos {obj.position() + obj.direction() * dt};
+        if (newPos == obj.position()) { continue; }
+
         if (obj.is_solid()) {
             if (can_move_to(obj.position(), newPos, obj.radius(), obj.id())) {
                 obj.set_position(newPos);
