@@ -231,10 +231,10 @@ Plinth::Plinth(game& game)
 
     _level = std::make_unique<level>();
     _engine.generate_level(*_level, _player);
-    _level->precompute_slopes();
     _level->set_motes(0, {});
     _level->set_motes(1, MOTES_RAIN);
     _level->set_sky(SKY_NIGHT);
+    _level->update(0ms);
 
     rng                         rng;
     std::unordered_set<point_i> used;
@@ -250,7 +250,7 @@ Plinth::Plinth(game& game)
         return point_d {static_cast<f64>(x) + 0.5f, static_cast<f64>(y) + 0.5f};
     }};
 
-    static voxel_grid const testVoxelGrid {*voxel_grid::Load("res/ball1.vox")};
+    static voxel_grid const testVoxelGrid {*LoadVoxels("res/ball1.vox")};
 
     for (i32 i {0}; i < 50; ++i) {
         f64       scale {rng(0.3, 1.0)};

@@ -31,6 +31,7 @@ void level::update(milliseconds deltaTime)
 {
     _time += deltaTime;
     prepare_sky();
+    prepare_slopes();
 
     f64 const dt {deltaTime.count() / 1000};
     for (auto& cell : _map) {
@@ -66,11 +67,15 @@ auto level::get_cell(point_i idx) const -> cell const&
 
 void level::set_cell(point_i idx, cell const& cell)
 {
-    _map[idx] = cell;
+    _map[idx]    = cell;
+    _slopesDirty = true;
 }
 
-void level::precompute_slopes()
+void level::prepare_slopes()
 {
+    if (!_slopesDirty) { return; }
+    _slopesDirty = false;
+
     _cellSlopes.resize(static_cast<usize>(MAP_WIDTH) * MAP_HEIGHT);
 
     // height of a vertex as seen from cells of one level: the largest absolute value wins, walls and other levels don't count
@@ -571,6 +576,7 @@ auto level::objects() -> std::span<level_object>
 {
     return _objects;
 }
+
 auto level::time() const -> milliseconds
 {
     return _time;

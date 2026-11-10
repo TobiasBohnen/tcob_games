@@ -149,7 +149,6 @@ public:
     void set_cell(point_i idx, cell const& cell);
     auto surface_at(point_i idx) const -> cell_surface;
 
-    void precompute_slopes();
     auto slopes_at(point_i idx) const -> slopes;
 
     void update_light_visibility(usize losSamples);
@@ -187,6 +186,7 @@ private:
 
     auto closest_point_on_wall(point_i map, point_d pos) const -> std::optional<point_d>;
 
+    void prepare_slopes();
     void prepare_sky();
 
     map_t                                               _map;
@@ -200,6 +200,7 @@ private:
     uid                       _nextId {0};
 
     std::vector<slopes> _cellSlopes;
+    bool                _slopesDirty {false};
 
     std::vector<dynamic_light>    _lights;
     std::vector<std::vector<u32>> _cellLights;
