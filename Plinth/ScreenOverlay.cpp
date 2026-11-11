@@ -9,6 +9,7 @@
 #include <array>
 #include <cctype>
 #include <chrono>
+#include <cmath>
 #include <span>
 #include <vector>
 
@@ -95,15 +96,73 @@ void screen_overlay::draw_weapon(player const& player)
     BlitMasked(_screen.data(), _screenSize, tex, texSize.Width, point_i {0, 0}, texSize, drawSize, offset, scale);
 }
 
-void screen_overlay::draw_hud(player const&)
+void screen_overlay::draw_hud(player const& p)
 {
-    auto* const tex {_cache.texture(hudTexture, 0)};
-    auto const  texSize {_cache.texture_size(hudTexture, 0)};
+    // compass
+    auto const* compassTex {_cache.texture(compassTexture, 0)};
+    if (!compassTex) { return; }
+    auto const compassTexSize {_cache.texture_size(compassTexture, 0)};
 
-    f64 const    scale {_screenSize.Height / REFERENCE_HEIGHT};
-    size_i const drawSize {size_f {texSize} * scale};
+    point_d const worldNorth {0.0, -1.0};
+    f64 const     forwardDot {p.Direction.dot(worldNorth)};
+    f64 const     rightDot {p.Direction.as_perpendicular().dot(worldNorth)};
+    f64 const     relativeAngle {-std::atan2(rightDot, forwardDot)};
 
-    BlitMasked(_screen.data(), _screenSize, tex, texSize.Width, point_i {0, 0}, texSize, drawSize, point_i {0, 0}, scale);
+    f64 const scale {_screenSize.Height / REFERENCE_HEIGHT};
+    f64 const barWidth {300.0 * scale};
+    f64 const barHeight {static_cast<f64>(compassTexSize.Height) * scale};
+
+    f64 const screenX {(_screenSize.Width - barWidth) * 0.5};
+    f64 const screenY {5.0 * scale};
+
+    f64 const textureSpan {static_cast<f64>(compassTexSize.Width)};
+    f64 const northTexPos {0.375 * textureSpan};
+    f64 const centerOffsetTex {(relativeAngle / TAU) * textureSpan};
+
+    f64 srcX {northTexPos + centerOffsetTex - ((barWidth / scale) * 0.5)};
+
+    srcX = std::fmod(srcX, textureSpan);
+    if (srcX < 0.0) { srcX += textureSpan; }
+
+    f64 const visibleTexWidth {barWidth / scale};
+
+    f64 const firstPartTexWidth {std::min(visibleTexWidth, textureSpan - srcX)};
+    f64 const secondPartTexWidth {std::max(0.0, visibleTexWidth - firstPartTexWidth)};
+
+    f64 const firstPartDrawWidth {firstPartTexWidth * scale};
+    f64 const secondPartDrawWidth {secondPartTexWidth * scale};
+
+    BlitMasked(
+        _screen.data(),
+        _screenSize,
+        compassTex,
+        compassTexSize.Width,
+        point_i {static_cast<i32>(srcX), 0},
+        size_i {static_cast<i32>(firstPartTexWidth), compassTexSize.Height},
+        size_i {static_cast<i32>(firstPartDrawWidth), static_cast<i32>(barHeight)},
+        point_i {static_cast<i32>(screenX), static_cast<i32>(screenY)},
+        scale);
+
+    if (secondPartTexWidth > 0.0) {
+        BlitMasked(
+            _screen.data(),
+            _screenSize,
+            compassTex,
+            compassTexSize.Width,
+            point_i {0, 0},
+            size_i {static_cast<i32>(secondPartTexWidth), compassTexSize.Height},
+            size_i {static_cast<i32>(secondPartDrawWidth), static_cast<i32>(barHeight)},
+            point_i {static_cast<i32>(screenX + firstPartDrawWidth), static_cast<i32>(screenY)},
+            scale);
+    }
+
+    i32 const markerX {static_cast<i32>(_screenSize.Width * 0.5)};
+    i32 const markerY {static_cast<i32>(screenY)};
+    i32 const markerHeight {static_cast<i32>(barHeight)};
+
+    for (i32 y {markerY}; y < markerY + markerHeight; ++y) {
+        _screen[PixelIndex(_screenSize, markerX, y)] = 0xFF0000FFu;
+    }
 }
 
 void screen_overlay::draw_message()
