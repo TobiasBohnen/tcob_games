@@ -33,8 +33,6 @@ private:
 
     texture_cache& _cache;
 
-    task_manager& _taskManager;
-
     milliseconds _messageTimer {};
     string       _message;
 };
