@@ -44,9 +44,8 @@ class sprite_object;
 
 enum class quality_level : u8 {
     Low,
-    Medium,
+    Normal,
     High,
-    Ultra,
     Custom
 };
 

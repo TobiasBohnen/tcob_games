@@ -272,7 +272,7 @@ Plinth::Plinth(game& game)
     _player.Plane     = {-rad.sin(), rad.cos()};
 
     _raycaster = std::make_unique<raycaster>(*_cache);
-    set_quality(quality_level::High);
+    set_quality(quality_level::Normal);
     _screenOverlay = std::make_unique<screen_overlay>(*_cache);
 }
 
@@ -485,9 +485,8 @@ constexpr auto make_quality(quality_level level) -> quality_settings
 {
     switch (level) {
     case quality_level::Low:    return {.Resolution = {320, 180}, .VoxelPixelBudget = 8000, .LightLosSamples = 1, .VoxelAo = false, .Dithering = false, .ContactShadows = false};
-    case quality_level::Medium: return {.Resolution = {480, 270}, .VoxelPixelBudget = 14000, .LightLosSamples = 3, .VoxelAo = true, .Dithering = true, .ContactShadows = true};
-    case quality_level::High:   return {.Resolution = {640, 360}, .VoxelPixelBudget = 20000, .LightLosSamples = 5, .VoxelAo = true, .Dithering = true, .ContactShadows = true};
-    case quality_level::Ultra:  return {.Resolution = {960, 540}, .VoxelPixelBudget = 40000, .LightLosSamples = 5, .VoxelAo = true, .Dithering = true, .ContactShadows = true};
+    case quality_level::Normal: return {.Resolution = {640, 360}, .VoxelPixelBudget = 20000, .LightLosSamples = 5, .VoxelAo = true, .Dithering = true, .ContactShadows = true};
+    case quality_level::High:   return {.Resolution = {960, 540}, .VoxelPixelBudget = 40000, .LightLosSamples = 5, .VoxelAo = true, .Dithering = true, .ContactShadows = true};
     case quality_level::Custom: break;
     }
 
