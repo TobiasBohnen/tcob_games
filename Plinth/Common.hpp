@@ -71,6 +71,9 @@ struct point3_d {
         return len > 1e-12 ? *this * (1.0 / len) : point3_d {.X = 0.0, .Y = 0.0, .Z = 1.0};
     }
 
+    auto constexpr xy() const -> point_d { return {X, Y}; }
+    static constexpr auto Lift(point_d const& p, f64 z) -> point3_d { return {.X = p.X, .Y = p.Y, .Z = z}; }
+
     friend auto operator+(point3_d const& a, point3_d const& b) -> point3_d { return {.X = a.X + b.X, .Y = a.Y + b.Y, .Z = a.Z + b.Z}; }
     friend auto operator-(point3_d const& a, point3_d const& b) -> point3_d { return {.X = a.X - b.X, .Y = a.Y - b.Y, .Z = a.Z - b.Z}; }
     friend auto operator*(point3_d const& a, f64 s) -> point3_d { return {.X = a.X * s, .Y = a.Y * s, .Z = a.Z * s}; }
@@ -91,28 +94,15 @@ struct color_d {
 
     auto constexpr lerp(color_d const& other, f64 w) const -> color_d { return {.R = std::lerp(R, other.R, w), .G = std::lerp(G, other.G, w), .B = std::lerp(B, other.B, w)}; }
 
-    auto constexpr operator*(f64 right) const -> color_d
-    {
-        return {.R = R * right, .G = G * right, .B = B * right};
-    }
-    auto constexpr operator*=(f64 right) -> color_d&
-    {
-        R *= right;
-        G *= right;
-        B *= right;
-        return *this;
-    }
-    auto constexpr operator+(f64 right) const -> color_d
-    {
-        return {.R = R + right, .G = G + right, .B = B + right};
-    }
-    auto constexpr operator+=(f64 right) -> color_d&
-    {
-        R += right;
-        G += right;
-        B += right;
-        return *this;
-    }
+    auto constexpr operator*=(f64 right) -> color_d& { return *this = {.R = R * right, .G = G * right, .B = B * right}; }
+    auto constexpr operator*=(color_d const& right) -> color_d& { return *this = {.R = R * right.R, .G = G * right.G, .B = B * right.B}; }
+    auto constexpr operator+=(f64 right) -> color_d& { return *this = {.R = R + right, .G = G + right, .B = B + right}; }
+    auto constexpr operator+=(color_d const& right) -> color_d& { return *this = {.R = R + right.R, .G = G + right.G, .B = B + right.B}; }
+
+    friend auto constexpr operator*(color_d left, f64 right) -> color_d { return left *= right; }
+    friend auto constexpr operator*(color_d left, color_d const& right) -> color_d { return left *= right; }
+    friend auto constexpr operator+(color_d left, f64 right) -> color_d { return left += right; }
+    friend auto constexpr operator+(color_d left, color_d const& right) -> color_d { return left += right; }
 };
 
 constexpr auto IsMagenta(u8 const* tex, i32 offset) -> bool { return tex[offset + 0] == 0x98 && tex[offset + 1] == 0x00 && tex[offset + 2] == 0x88; }

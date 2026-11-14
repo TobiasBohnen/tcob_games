@@ -173,8 +173,15 @@ void screen_overlay::draw_hud(player const& player)
     i32 const markerX {drawX + (drawWidth / 2)};
     i32 const markerY {drawY};
     i32 const markerHeight {drawY + drawHeight};
+    i32 const markerWidth {(markerHeight / 2) | 1};
     for (i32 y {markerY}; y < markerHeight; ++y) {
-        _screen[PixelIndex(_screenSize.Width, markerX, y)] = COMPASS_MARKER_COLOR;
+        if (y == markerY || y == markerHeight - 1) {
+            for (i32 x {0}; x < markerWidth; ++x) {
+                _screen[PixelIndex(_screenSize.Width, markerX + x - (markerWidth / 2), y)] = COMPASS_MARKER_COLOR;
+            }
+        } else {
+            _screen[PixelIndex(_screenSize.Width, markerX, y)] = COMPASS_MARKER_COLOR;
+        }
     }
 }
 

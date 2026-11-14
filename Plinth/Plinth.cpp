@@ -297,8 +297,8 @@ void Plinth::on_draw_to(gfx::render_target& target, transform const& /* xform */
     // aspect ratio correction
     size_i const size {*target.Size};
 
-    f32 const srcAspect {static_cast<f32>(_quality.Resolution.Width) / static_cast<f32>(_quality.Resolution.Height)};
-    f32 const dstAspect {static_cast<f32>(size.Width) / static_cast<f32>(size.Height)};
+    f32 const srcAspect {_quality.Resolution.aspect_ratio()};
+    f32 const dstAspect {size.aspect_ratio()};
 
     f32 destWidth {static_cast<f32>(size.Width)};
     f32 destHeight {static_cast<f32>(size.Height)};
@@ -308,6 +308,11 @@ void Plinth::on_draw_to(gfx::render_target& target, transform const& /* xform */
     } else {
         destHeight = destWidth / srcAspect;
     }
+    /*
+        f32 const heightStep {static_cast<f32>(_quality.Resolution.Height)};
+        destHeight = std::floor(destHeight / heightStep) * heightStep;
+        destWidth  = destHeight * srcAspect;
+    */
 
     gfx::quad q {};
     gfx::geometry::set_color(q, colors::White);
