@@ -583,26 +583,22 @@ void raycaster::draw_sprites(i32 screenCenterY)
         if (p.Depth <= 0) { continue; }
         f64 const depth {p.Depth};
 
-        i32 const  spriteScreenX {static_cast<i32>(p.ScreenX)};
-        auto const spriteSize {spr->screen_size(p.Scale)};
-
-        i32 const spriteLeft {spriteScreenX - (spriteSize.Width / 2)};
-        i32 const spriteBottom {spr->screen_bottom(p.Scale, screenCenterY, player.EyeZ)};
-        i32 const spriteTop {spriteBottom - spriteSize.Height};
-
-        rect_i const spriteRect {point_i {spriteLeft, spriteTop}, spriteSize};
+        i32 const    spriteScreenX {static_cast<i32>(p.ScreenX)};
+        auto const   spriteSize {spr->screen_size(p.Scale)};
+        rect_i const spriteRect {point_i {spriteScreenX - (spriteSize.Width / 2),
+                                          spr->screen_bottom(p.Scale, screenCenterY, player.EyeZ) - spriteSize.Height},
+                                 spriteSize};
         if (!screenRect.intersects(spriteRect, true)) { continue; }
 
-        point_i const drawStart {std::max(spriteLeft, 0), std::max(spriteTop, 0)};
-        point_i const drawEnd {std::min(spriteLeft + spriteSize.Width, _screenSize.Width),
-                               std::min(spriteTop + spriteSize.Height, _screenSize.Height)};
+        point_i const drawStart {std::max(spriteRect.left(), 0), std::max(spriteRect.top(), 0)};
+        point_i const drawEnd {std::min(spriteRect.right(), _screenSize.Width), std::min(spriteRect.bottom(), _screenSize.Height)};
 
         i32 const   facing {spr->facing_index(player.Position)};
         auto const* tex {_cache.texture(spr->Texture, facing)};
         auto const  texSize {_cache.texture_size(spr->Texture, facing)};
 
         f64 const texStepY {static_cast<f64>(texSize.Height) / spriteSize.Height};
-        f64 const texPosYStart {(drawStart.Y - spriteTop) * texStepY};
+        f64 const texPosYStart {(drawStart.Y - spriteRect.top()) * texStepY};
 
         auto const spriteCell {WorldToCell(spr->Position)};
         auto const spriteTint {accumulate_light(spr->Position, spr->BaseZ, spriteCell, spr->LightMask)};
@@ -611,7 +607,7 @@ void raycaster::draw_sprites(i32 screenCenterY)
         for (i32 x {drawStart.X}; x < drawEnd.X; ++x) {
             if (depth >= _wallDepthBuffer[x]) { continue; }
 
-            i32 const texX {std::clamp(((x - spriteLeft) * texSize.Width) / spriteSize.Width, 0, texSize.Width - 1)};
+            i32 const texX {std::clamp(((x - spriteRect.left()) * texSize.Width) / spriteSize.Width, 0, texSize.Width - 1)};
             f64       texPos {texPosYStart};
 
             for (i32 y {drawStart.Y}; y < drawEnd.Y; ++y) {
@@ -734,12 +730,7 @@ void raycaster::draw_voxel_objects(i32 screenCenterY)
         auto const& bounds {measured[oi]};
         if (!bounds) { continue; }
 
-        i32 const xStart {bounds->XStart};
-        i32 const xEnd {bounds->XEnd};
-        i32 const yStart {bounds->YStart};
-        i32 const yEnd {bounds->YEnd};
-        f64 const nearest {bounds->Nearest};
-
+        auto const [xStart, xEnd, yStart, yEnd, nearest, maxWallDist] {*bounds};
         auto const voCell {WorldToCell(vo->Position)};
         f64 const  floorZ {HeightAt(level.slopes_at(voCell).Floor, voCell, vo->Position)};
         auto const xf {vo->make_transform()};
@@ -750,19 +741,19 @@ void raycaster::draw_voxel_objects(i32 screenCenterY)
             auto const d {ComputeCameraRayDir(col, _screenSize.Width, player)};
             return d.dot(d);
         }};
-        f64 const  maxLenSq {std::max(edge_len_sq(xStart), edge_len_sq(xEnd - 1))};
+        f64 const  maxLenSq {std::max(edge_len_sq(bounds->XStart), edge_len_sq(xEnd - 1))};
         f64 const  maxSlope {std::max(std::abs(screenCenterY - yStart), std::abs(yEnd - screenCenterY)) / _projPlaneDist};
-        f64 const  maxT {(bounds->MaxWallDist * std::sqrt(maxLenSq + (maxSlope * maxSlope))) + vo->world_diagonal()};
+        f64 const  maxT {(maxWallDist * std::sqrt(maxLenSq + (maxSlope * maxSlope))) + vo->world_diagonal()};
 
-        i32 const strideCols {((xEnd - xStart) + stride - 1) / stride};
+        i32 const strideCols {((xEnd - bounds->XStart) + stride - 1) / stride};
 
         std::atomic_bool drawn {false};
 
         _taskManager.run_parallel([&](par_task const& ctx) {
             bool wrote {false};
 
-            for (isize scol {static_cast<isize>(ctx.Start)}; scol < static_cast<isize>(ctx.End); ++scol) {
-                i32 const x {xStart + (static_cast<i32>(scol) * stride)};
+            for (isize scol {ctx.Start}; scol < ctx.End; ++scol) {
+                i32 const x {static_cast<i32>(PixelIndex(stride, xStart, scol))};
                 if (x >= xEnd) { continue; }
 
                 i32 const xBlockEnd {std::min(x + stride, xEnd)};
@@ -880,8 +871,8 @@ void raycaster::draw_motes()
                 f64 const z {std::min(floorZ + motes.MinHeight + (frac(fall) * (motes.MaxHeight - motes.MinHeight)), ceilZ)};
 
                 auto const p {_camera.project(pos)};
-                if (p.Depth <= 0.05) { continue; }
-                f64 const depth {p.Depth};
+                f64 const  depth {p.Depth};
+                if (depth <= 0.05) { continue; }
 
                 i32 const sx {static_cast<i32>(std::floor(p.ScreenX))};
                 i32 const sy {static_cast<i32>(std::floor(_camera.screen_y(z, p)))};
