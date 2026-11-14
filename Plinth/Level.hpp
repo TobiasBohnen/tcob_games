@@ -35,7 +35,7 @@ struct slopes {
     slope Floor;
 };
 
-struct motes_settings {
+struct motes {
     u32                  Count {0};         // motes per cell; 0 disables the pass
     f64                  FallSpeed {0.0};   // cell heights per second; negative rises
     f64                  SpeedJitter {0.0}; // per-mote speed variation, 0..1
@@ -145,33 +145,20 @@ public:
 
     void update(milliseconds deltaTime);
 
-    auto get_cell(point_i idx) const -> cell const&;
-    void set_cell(point_i idx, cell const& cell);
-    auto surface_at(point_i idx) const -> cell_surface;
-
-    auto slopes_at(point_i idx) const -> slopes;
-
-    void update_light_visibility(usize losSamples);
-    auto lights() const -> std::span<dynamic_light const>;
-    auto lights_at(point_i idx) const -> std::span<u32 const>;
-
     auto can_move_to(point_d from, point_d to, f64 radius, uid ignore = 0) const -> bool;
 
-    void toggle_wall(point_i idx);
+    void toggle_wall(point_i map);
 
-    auto get_visibility(point_i idx) const -> tile_visibility;
-    void mark_visible(point_i idx);
+    auto get_visibility(point_i map) const -> tile_visibility;
+    void mark_visible(point_i map);
     void reveal_map();
     void fade_vision();
 
-    auto motes_at(point_i idx) const -> motes_settings const&;
-    void set_motes(u8 idx, motes_settings const& motes);
-
-    auto sky() const -> sky_frame const&;
-    void set_sky(sky_settings const& sky);
+    auto get_cell(point_i map) const -> cell const&;
+    void set_cell(point_i map, cell const& c);
+    auto surface_at(point_i map) const -> cell_surface;
 
     auto spawn(level_object_desc desc) -> uid;
-
     auto find(uid id) -> level_object*;
 
     auto objects() const -> std::span<level_object const>;
@@ -179,9 +166,21 @@ public:
 
     auto time() const -> milliseconds;
 
+    auto slopes_at(point_i map) const -> slopes;
+
+    void update_light_visibility(usize losSamples);
+    auto lights() const -> std::span<dynamic_light const>;
+    auto lights_at(point_i map) const -> std::span<u32 const>;
+
+    auto motes_at(point_i map) const -> motes const&;
+    void set_motes(u8 motesIdx, motes const& motes);
+
+    auto sky() const -> sky_frame const&;
+    void set_sky(sky_settings const& sky);
+
 private:
     auto is_wall_clear(point_d pos, f64 radius) const -> bool;
-    auto is_blocking_light(point_i idx) const -> bool;
+    auto is_blocking_light(point_i map) const -> bool;
     auto hit_test(point_d pos, f64 radius, uid ignore = 0) const -> level_object const*;
 
     auto closest_point_on_wall(point_i map, point_d pos) const -> std::optional<point_d>;
@@ -192,9 +191,9 @@ private:
     map_t                                               _map;
     static_grid<tile_visibility, MAP_WIDTH, MAP_HEIGHT> _seen;
 
-    std::vector<motes_settings> _motes;
-    sky_settings                _skySettings;
-    sky_frame                   _sky;
+    std::vector<motes> _motes;
+    sky_settings       _skySettings;
+    sky_frame          _sky;
 
     std::vector<level_object> _objects;
     uid                       _nextId {0};

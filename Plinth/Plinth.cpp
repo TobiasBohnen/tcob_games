@@ -90,7 +90,7 @@
     }
 }};
 
-[[maybe_unused]] static motes_settings const MOTES_DUST {
+[[maybe_unused]] static motes const MOTES_DUST {
     .Count       = 3,
     .FallSpeed   = 0.04,
     .SpeedJitter = 0.3,
@@ -99,7 +99,7 @@
     .Alpha       = 0.35,
     .Colors      = {{.R = 0.9, .G = 0.85, .B = 0.7}}};
 
-[[maybe_unused]] static motes_settings const MOTES_SNOW {
+[[maybe_unused]] static motes const MOTES_SNOW {
     .Count       = 4,
     .FallSpeed   = 0.12,
     .SpeedJitter = 0.3,
@@ -110,7 +110,7 @@
     .Emissive    = 0.3,
     .Colors      = {{.R = 0.9, .G = 0.95, .B = 1.0}, {.R = 0.8, .G = 0.9, .B = 1.0}}};
 
-[[maybe_unused]] static motes_settings const MOTES_RAIN {
+[[maybe_unused]] static motes const MOTES_RAIN {
     .Count       = 24,
     .FallSpeed   = 1.5,
     .SpeedJitter = 0.2,
@@ -120,7 +120,7 @@
     .Emissive    = 0.6,
     .Colors      = {{.R = 0.6, .G = 0.7, .B = 0.9}, {.R = 0.7, .G = 0.8, .B = 1.0}}};
 
-[[maybe_unused]] static motes_settings const MOTES_EMBERS {
+[[maybe_unused]] static motes const MOTES_EMBERS {
     .Count        = 3,
     .FallSpeed    = -0.1,
     .SpeedJitter  = 0.3,
@@ -133,7 +133,7 @@
     .Additive     = true,
     .Colors       = {{.R = 1.0, .G = 0.55, .B = 0.15}, {.R = 1.0, .G = 0.2, .B = 0.05}}};
 
-[[maybe_unused]] static motes_settings const MOTES_ASH {
+[[maybe_unused]] static motes const MOTES_ASH {
     .Count       = 4,
     .FallSpeed   = 0.06,
     .SpeedJitter = 0.3,
@@ -145,7 +145,7 @@
     .Emissive    = 0.1,
     .Colors      = {{.R = 0.55, .G = 0.55, .B = 0.55}, {.R = 0.3, .G = 0.3, .B = 0.3}}};
 
-[[maybe_unused]] static motes_settings const MOTES_MIST {
+[[maybe_unused]] static motes const MOTES_MIST {
     .Count       = 40,
     .FallSpeed   = 0.02,
     .SpeedJitter = 0.3,
@@ -157,7 +157,7 @@
     .Alpha       = 0.15,
     .Colors      = {{.R = 0.7, .G = 0.8, .B = 0.9}, {.R = 0.8, .G = 0.85, .B = 0.9}}};
 
-[[maybe_unused]] static motes_settings const MOTES_SPORES {
+[[maybe_unused]] static motes const MOTES_SPORES {
     .Count        = 4,
     .FallSpeed    = -0.03,
     .SpeedJitter  = 0.3,
@@ -171,7 +171,7 @@
     .Additive     = true,
     .Colors       = {{.R = 0.3, .G = 1.0, .B = 0.6}, {.R = 0.6, .G = 0.4, .B = 1.0}}};
 
-[[maybe_unused]] static motes_settings const MOTES_POISON {
+[[maybe_unused]] static motes const MOTES_POISON {
     .Count        = 40,
     .FallSpeed    = -0.1,
     .SpeedJitter  = 0.3,
@@ -252,7 +252,7 @@ Plinth::Plinth(game& game)
 
     static voxel_grid const testVoxelGrid {*LoadVoxels("res/ball1.vox")};
 
-    for (i32 i {0}; i < 50; ++i) {
+    for (i32 i {0}; i < 0; ++i) {
         f64       scale {rng(0.3, 1.0)};
         f64 const maxDim {static_cast<f64>(std::max({testVoxelGrid.Size.X, testVoxelGrid.Size.Y, testVoxelGrid.Size.Z}))};
         _level->spawn({.Position  = find_empty(),
@@ -469,8 +469,10 @@ void Plinth::action_fire()
     f64 const spawnX {_player.Position.X + (forwardOffset * fwdX) + (rightOffset * rightX)};
     f64 const spawnY {_player.Position.Y + (forwardOffset * fwdY) + (rightOffset * rightY)};
 
-    _level->spawn({.Position  = {spawnX, spawnY},
+    _level->spawn({.Position = {spawnX, spawnY},
+
                    .Direction = _player.Direction * 10,
+                   .Radius    = 0.05,
                    .Visual    = sprite,
                    .Light     = light});
 }

@@ -35,13 +35,12 @@ void level::update(milliseconds deltaTime)
 
     f64 const dt {deltaTime.count() / 1000};
     for (auto& cell : _map) {
-        std::visit(
-            [dt](auto&& w) {
-                if constexpr (requires { w.update(dt); }) {
-                    w.update(dt);
-                }
-            },
-            cell);
+        std::visit([dt](auto&& w) {
+            if constexpr (requires { w.update(dt); }) {
+                w.update(dt);
+            }
+        },
+                   cell);
     }
 
     for (auto& obj : _objects) {
@@ -60,15 +59,130 @@ void level::update(milliseconds deltaTime)
     std::erase_if(_objects, [](level_object const& go) { return go.dead(); });
 }
 
-auto level::get_cell(point_i idx) const -> cell const&
+auto level::can_move_to(point_d from, point_d to, f64 radius, uid ignore) const -> bool
 {
-    return _map[idx];
+    constexpr static f64 MAX_CLIMB {0.25};
+
+    // every floor under the footprint at `pos` has to be within climbing range of the floor at `ref`
+    auto const footprint_reachable {[&](point_d pos, point_d ref) -> bool {
+        point_i const refCell {WorldToCell(ref)};
+        f64 const     height {HeightAt(slopes_at(refCell).Floor, refCell, ref)};
+
+        for (i32 ty {static_cast<i32>(std::floor(pos.Y - radius))}; ty <= static_cast<i32>(std::floor(pos.Y + radius)); ++ty) {
+            for (i32 tx {static_cast<i32>(std::floor(pos.X - radius))}; tx <= static_cast<i32>(std::floor(pos.X + radius)); ++tx) {
+                point_i const cell {tx, ty};
+                point_d const closest {std::clamp(pos.X, static_cast<f64>(tx), tx + 1.0), std::clamp(pos.Y, static_cast<f64>(ty), ty + 1.0)};
+                point_d const d {pos - closest};
+                if (d.length_squared() >= radius * radius) { continue; }
+
+                if (std::abs(HeightAt(slopes_at(cell).Floor, cell, closest) - height) > MAX_CLIMB) { return false; }
+            }
+        }
+        return true;
+    }};
+
+    // only allow moves that can be undone, otherwise the player can walk into a spot the same rule won't let them leave
+    return footprint_reachable(to, from) && footprint_reachable(from, to) && is_wall_clear(to, radius) && hit_test(to, radius, ignore) == nullptr;
 }
 
-void level::set_cell(point_i idx, cell const& cell)
+void level::toggle_wall(point_i map)
 {
-    _map[idx]    = cell;
+    std::visit(
+        [](auto&& w) {
+            if constexpr (requires { w.toggle(); }) {
+                w.toggle();
+            }
+        },
+        _map[map]);
+}
+
+auto level::get_visibility(point_i map) const -> tile_visibility
+{
+    if (!map_t::Size.contains(map)) { return tile_visibility::Hidden; }
+    return _seen[map];
+}
+
+void level::mark_visible(point_i map)
+{
+    if (!map_t::Size.contains(map)) { return; }
+    std::atomic_ref<tile_visibility> {_seen[map]}.store(tile_visibility::Visible, std::memory_order_relaxed);
+}
+
+void level::reveal_map()
+{
+    _seen.fill(tile_visibility::Explored);
+}
+
+void level::fade_vision()
+{
+    for (auto& s : _seen) {
+        if (s == tile_visibility::Visible) {
+            s = tile_visibility::Explored;
+        }
+    }
+}
+
+auto level::get_cell(point_i map) const -> cell const&
+{
+    return _map[map];
+}
+
+void level::set_cell(point_i map, cell const& c)
+{
+    _map[map]    = c;
     _slopesDirty = true;
+}
+
+auto level::surface_at(point_i map) const -> cell_surface
+{
+    if (!map_t::Size.contains(map)) { return {}; }
+
+    return std::visit([](auto&& c) -> cell_surface {
+        cell_surface s {};
+        if constexpr (requires { c.FloorTexture; }) { s.FloorTexture = c.FloorTexture; }
+        if constexpr (requires { c.CeilingTexture; }) { s.CeilingTexture = c.CeilingTexture; }
+        if constexpr (requires { c.FloorReflectivity; }) { s.FloorReflectivity = c.FloorReflectivity; }
+        if constexpr (requires { c.FloorZ; }) { s.FloorZ = c.FloorZ; }
+        if constexpr (requires { c.CeilingZ; }) { s.CeilingZ = c.CeilingZ; }
+        if constexpr (requires { c.Level; }) { s.Level = c.Level; }
+        if constexpr (requires { c.Motes; }) { s.Motes = c.Motes; }
+        return s;
+    },
+                      get_cell(map));
+}
+
+auto level::spawn(level_object_desc desc) -> uid
+{
+    uid const id {_nextId++};
+    _objects.emplace_back(id, desc);
+    return id;
+}
+
+auto level::find(uid id) -> level_object*
+{
+    auto const it {std::ranges::lower_bound(_objects, id, {}, &level_object::id)};
+    return (it != _objects.end() && it->id() == id) ? &*it : nullptr;
+}
+
+auto level::objects() const -> std::span<level_object const>
+{
+    return _objects;
+}
+
+auto level::objects() -> std::span<level_object>
+{
+    return _objects;
+}
+
+auto level::time() const -> milliseconds
+{
+    return _time;
+}
+
+auto level::slopes_at(point_i map) const -> slopes
+{
+    if (!map_t::Size.contains(map)) { return {}; }
+    return _cellSlopes[PixelIndex(MAP_WIDTH, map.X, map.Y)];
 }
 
 void level::prepare_slopes()
@@ -112,18 +226,12 @@ void level::prepare_slopes()
     }
 }
 
-auto level::slopes_at(point_i idx) const -> slopes
-{
-    if (!map_t::Size.contains(idx)) { return {}; }
-    return _cellSlopes[PixelIndex(MAP_WIDTH, idx.X, idx.Y)];
-}
-
 auto level::lights() const -> std::span<dynamic_light const> { return _lights; }
 
-auto level::lights_at(point_i idx) const -> std::span<u32 const>
+auto level::lights_at(point_i map) const -> std::span<u32 const>
 {
-    if (!map_t::Size.contains(idx) || _cellLights.empty()) { return {}; }
-    return _cellLights[PixelIndex(MAP_WIDTH, idx.X, idx.Y)];
+    if (!map_t::Size.contains(map) || _cellLights.empty()) { return {}; }
+    return _cellLights[PixelIndex(MAP_WIDTH, map.X, map.Y)];
 }
 
 void level::update_light_visibility(usize losSamples)
@@ -269,48 +377,86 @@ void level::update_light_visibility(usize losSamples)
                               MAP_HEIGHT);
 }
 
-auto level::surface_at(point_i idx) const -> cell_surface
+auto level::motes_at(point_i map) const -> motes const&
 {
-    if (!map_t::Size.contains(idx)) { return {}; }
-
-    return std::visit([](auto&& c) -> cell_surface {
-        cell_surface s {};
-        if constexpr (requires { c.FloorTexture; }) { s.FloorTexture = c.FloorTexture; }
-        if constexpr (requires { c.CeilingTexture; }) { s.CeilingTexture = c.CeilingTexture; }
-        if constexpr (requires { c.FloorReflectivity; }) { s.FloorReflectivity = c.FloorReflectivity; }
-        if constexpr (requires { c.FloorZ; }) { s.FloorZ = c.FloorZ; }
-        if constexpr (requires { c.CeilingZ; }) { s.CeilingZ = c.CeilingZ; }
-        if constexpr (requires { c.Level; }) { s.Level = c.Level; }
-        if constexpr (requires { c.Motes; }) { s.Motes = c.Motes; }
-        return s;
-    },
-                      get_cell(idx));
+    u8 const motesIdx {surface_at(map).Motes};
+    return _motes[motesIdx < _motes.size() ? motesIdx : 0];
 }
 
-auto level::can_move_to(point_d from, point_d to, f64 radius, uid ignore) const -> bool
+void level::set_motes(u8 motesIdx, motes const& motes)
 {
-    constexpr static f64 MAX_CLIMB {0.25};
+    if (motesIdx >= _motes.size()) { _motes.resize(static_cast<usize>(motesIdx) + 1); }
+    _motes[motesIdx] = motes;
+}
 
-    // every floor under the footprint at `pos` has to be within climbing range of the floor at `ref`
-    auto const footprint_reachable {[&](point_d pos, point_d ref) -> bool {
-        point_i const refCell {WorldToCell(ref)};
-        f64 const     height {HeightAt(slopes_at(refCell).Floor, refCell, ref)};
+auto level::sky() const -> sky_frame const&
+{
+    return _sky;
+}
 
-        for (i32 ty {static_cast<i32>(std::floor(pos.Y - radius))}; ty <= static_cast<i32>(std::floor(pos.Y + radius)); ++ty) {
-            for (i32 tx {static_cast<i32>(std::floor(pos.X - radius))}; tx <= static_cast<i32>(std::floor(pos.X + radius)); ++tx) {
-                point_i const cell {tx, ty};
-                point_d const closest {std::clamp(pos.X, static_cast<f64>(tx), tx + 1.0), std::clamp(pos.Y, static_cast<f64>(ty), ty + 1.0)};
-                point_d const d {pos - closest};
-                if (d.dot(d) >= radius * radius) { continue; }
+void level::set_sky(sky_settings const& sky)
+{
+    _skySettings = sky;
+}
 
-                if (std::abs(HeightAt(slopes_at(cell).Floor, cell, closest) - height) > MAX_CLIMB) { return false; }
-            }
-        }
-        return true;
+void level::prepare_sky()
+{
+    auto const& sky {_skySettings};
+
+    f64 const t {static_cast<f64>(_time.count()) / 1000.0};
+
+    auto const direction {[](radian_d azimuth, radian_d elevation) -> point3_d {
+        return {.X = elevation.cos() * azimuth.cos(), .Y = elevation.cos() * azimuth.sin(), .Z = elevation.sin()};
     }};
 
-    // only allow moves that can be undone, otherwise the player can walk into a spot the same rule won't let them leave
-    return footprint_reachable(to, from) && footprint_reachable(from, to) && is_wall_clear(to, radius) && hit_test(to, radius, ignore) == nullptr;
+    auto const dot {[](point3_d const& a, point3_d const& b) { return (a.X * b.X) + (a.Y * b.Y) + (a.Z * b.Z); }};
+
+    f64 const days {sky.TimeOfDay + (sky.DayLength > 0.0 ? t / sky.DayLength : 0.0)};
+    f64 const timeOfDay {days - std::floor(days)};
+
+    // the sun rises at +X, peaks at noon and sets at -X
+    f64 const sunAngle {TAU * (timeOfDay - 0.25)};
+    f64 const sx {std::cos(sunAngle)};
+    f64 const sy {sky.SunTilt * std::sin(sunAngle)};
+    f64 const sz {std::sin(sunAngle)};
+    f64 const sunInv {1.0 / std::sqrt((sx * sx) + (sy * sy) + (sz * sz))};
+    _sky.Sun = {.X = sx * sunInv, .Y = sy * sunInv, .Z = sz * sunInv};
+
+    f64 const u {std::clamp((_sky.Sun.Z + 0.12) / 0.37, 0.0, 1.0)};
+    _sky.Day           = u * u * (3.0 - (2.0 * u));
+    _sky.Night         = 1.0 - _sky.Day;
+    _sky.Dusk          = std::clamp(1.0 - (std::abs(_sky.Sun.Z) / 0.3), 0.0, 1.0);
+    _sky.CosSun        = sky.SunSize.cos();
+    _sky.Time          = t;
+    _sky.Stars         = sky.StarDensity > 0.0 && _sky.Night > 0.02;
+    _sky.StarDensity   = sky.StarDensity;
+    _sky.StarSize      = sky.StarSize;
+    _sky.StarTwinkle   = sky.StarTwinkle;
+    _sky.Zenith        = sky.NightZenith.lerp(sky.DayZenith, _sky.Day);
+    _sky.Horizon       = sky.NightHorizon.lerp(sky.DayHorizon, _sky.Day);
+    _sky.SunColor      = sky.SunColor;
+    _sky.DuskColor     = sky.DuskColor;
+    _sky.CloudCoverage = sky.CloudCoverage;
+    _sky.CloudScale    = sky.CloudScale;
+    _sky.CloudSoftness = sky.CloudSoftness;
+    _sky.CloudWind     = sky.CloudWind;
+    _sky.CloudColor    = sky.CloudColor;
+
+    _sky.Bodies.clear();
+    for (auto const& body : sky.Bodies) {
+        auto const dir {direction(body.Azimuth + (body.OrbitSpeed * t), body.Elevation)};
+        _sky.Bodies.push_back({.Dir        = dir,
+                               .CosR       = body.Radius.cos(),
+                               .SinR       = body.Radius.sin(),
+                               .SunDot     = dot(dir, _sky.Sun),
+                               .Ambient    = body.Ambient,
+                               .Lit        = body.Lit,
+                               .Color      = body.Color,
+                               .Noise      = body.Noise,
+                               .NoiseScale = body.NoiseScale,
+                               .NoiseSeed  = body.NoiseSeed,
+                               .NoiseColor = body.NoiseColor});
+    }
 }
 
 auto level::is_wall_clear(point_d pos, f64 radius) const -> bool
@@ -335,9 +481,9 @@ auto level::is_wall_clear(point_d pos, f64 radius) const -> bool
     return true;
 }
 
-auto level::is_blocking_light(point_i idx) const -> bool
+auto level::is_blocking_light(point_i map) const -> bool
 {
-    if (!map_t::Size.contains(idx)) { return {}; }
+    if (!map_t::Size.contains(map)) { return {}; }
 
     return std::visit([](auto&& c) -> bool {
         using T = std::decay_t<decltype(c)>;
@@ -349,7 +495,7 @@ auto level::is_blocking_light(point_i idx) const -> bool
             return true;                        // normal_wall, obstacle, diagonal_wall: always solid
         }
     },
-                      get_cell(idx));
+                      get_cell(map));
 }
 
 auto level::hit_test(point_d pos, f64 radius, uid ignore) const -> level_object const*
@@ -431,151 +577,4 @@ auto level::closest_point_on_wall(point_i map, point_d pos) const -> std::option
             }
             return std::nullopt;
         });
-}
-
-void level::prepare_sky()
-{
-    auto const& sky {_skySettings};
-
-    f64 const t {static_cast<f64>(_time.count()) / 1000.0};
-
-    auto const direction {[](radian_d azimuth, radian_d elevation) -> point3_d {
-        return {.X = elevation.cos() * azimuth.cos(), .Y = elevation.cos() * azimuth.sin(), .Z = elevation.sin()};
-    }};
-
-    auto const dot {[](point3_d const& a, point3_d const& b) { return (a.X * b.X) + (a.Y * b.Y) + (a.Z * b.Z); }};
-
-    f64 const days {sky.TimeOfDay + (sky.DayLength > 0.0 ? t / sky.DayLength : 0.0)};
-    f64 const timeOfDay {days - std::floor(days)};
-
-    // the sun rises at +X, peaks at noon and sets at -X
-    f64 const sunAngle {TAU * (timeOfDay - 0.25)};
-    f64 const sx {std::cos(sunAngle)};
-    f64 const sy {sky.SunTilt * std::sin(sunAngle)};
-    f64 const sz {std::sin(sunAngle)};
-    f64 const sunInv {1.0 / std::sqrt((sx * sx) + (sy * sy) + (sz * sz))};
-    _sky.Sun = {.X = sx * sunInv, .Y = sy * sunInv, .Z = sz * sunInv};
-
-    f64 const u {std::clamp((_sky.Sun.Z + 0.12) / 0.37, 0.0, 1.0)};
-    _sky.Day           = u * u * (3.0 - (2.0 * u));
-    _sky.Night         = 1.0 - _sky.Day;
-    _sky.Dusk          = std::clamp(1.0 - (std::abs(_sky.Sun.Z) / 0.3), 0.0, 1.0);
-    _sky.CosSun        = sky.SunSize.cos();
-    _sky.Time          = t;
-    _sky.Stars         = sky.StarDensity > 0.0 && _sky.Night > 0.02;
-    _sky.StarDensity   = sky.StarDensity;
-    _sky.StarSize      = sky.StarSize;
-    _sky.StarTwinkle   = sky.StarTwinkle;
-    _sky.Zenith        = sky.NightZenith.lerp(sky.DayZenith, _sky.Day);
-    _sky.Horizon       = sky.NightHorizon.lerp(sky.DayHorizon, _sky.Day);
-    _sky.SunColor      = sky.SunColor;
-    _sky.DuskColor     = sky.DuskColor;
-    _sky.CloudCoverage = sky.CloudCoverage;
-    _sky.CloudScale    = sky.CloudScale;
-    _sky.CloudSoftness = sky.CloudSoftness;
-    _sky.CloudWind     = sky.CloudWind;
-    _sky.CloudColor    = sky.CloudColor;
-
-    _sky.Bodies.clear();
-    for (auto const& body : sky.Bodies) {
-        auto const dir {direction(body.Azimuth + (body.OrbitSpeed * t), body.Elevation)};
-        _sky.Bodies.push_back({.Dir        = dir,
-                               .CosR       = body.Radius.cos(),
-                               .SinR       = body.Radius.sin(),
-                               .SunDot     = dot(dir, _sky.Sun),
-                               .Ambient    = body.Ambient,
-                               .Lit        = body.Lit,
-                               .Color      = body.Color,
-                               .Noise      = body.Noise,
-                               .NoiseScale = body.NoiseScale,
-                               .NoiseSeed  = body.NoiseSeed,
-                               .NoiseColor = body.NoiseColor});
-    }
-}
-
-void level::toggle_wall(point_i idx)
-{
-    std::visit(
-        [](auto&& w) {
-            if constexpr (requires { w.toggle(); }) {
-                w.toggle();
-            }
-        },
-        _map[idx]);
-}
-
-auto level::get_visibility(point_i idx) const -> tile_visibility
-{
-    if (!map_t::Size.contains(idx)) { return tile_visibility::Hidden; }
-    return _seen[idx];
-}
-
-void level::mark_visible(point_i idx)
-{
-    if (!map_t::Size.contains(idx)) { return; }
-    std::atomic_ref<tile_visibility> {_seen[idx]}.store(tile_visibility::Visible, std::memory_order_relaxed);
-}
-
-void level::reveal_map()
-{
-    _seen.fill(tile_visibility::Explored);
-}
-
-void level::fade_vision()
-{
-    for (auto& s : _seen) {
-        if (s == tile_visibility::Visible) {
-            s = tile_visibility::Explored;
-        }
-    }
-}
-
-auto level::motes_at(point_i idx) const -> motes_settings const&
-{
-    u8 const motes {surface_at(idx).Motes};
-    return _motes[motes < _motes.size() ? motes : 0];
-}
-
-void level::set_motes(u8 idx, motes_settings const& motes)
-{
-    if (idx >= _motes.size()) { _motes.resize(static_cast<usize>(idx) + 1); }
-    _motes[idx] = motes;
-}
-
-auto level::sky() const -> sky_frame const&
-{
-    return _sky;
-}
-
-void level::set_sky(sky_settings const& sky)
-{
-    _skySettings = sky;
-}
-
-auto level::spawn(level_object_desc desc) -> uid
-{
-    uid const id {_nextId++};
-    _objects.emplace_back(id, desc);
-    return id;
-}
-
-auto level::find(uid id) -> level_object*
-{
-    auto const it {std::ranges::lower_bound(_objects, id, {}, &level_object::id)};
-    return (it != _objects.end() && it->id() == id) ? &*it : nullptr;
-}
-
-auto level::objects() const -> std::span<level_object const>
-{
-    return _objects;
-}
-
-auto level::objects() -> std::span<level_object>
-{
-    return _objects;
-}
-
-auto level::time() const -> milliseconds
-{
-    return _time;
 }
