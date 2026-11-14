@@ -29,8 +29,6 @@ level::level()
 
 void level::update(milliseconds deltaTime, i32 lightLosSamples)
 {
-    _lighting.update(*this, static_cast<usize>(lightLosSamples));
-
     _time += deltaTime;
     _sky.update(_time);
     prepare_slopes();
@@ -59,6 +57,8 @@ void level::update(milliseconds deltaTime, i32 lightLosSamples)
     }
 
     std::erase_if(_objects, [](level_object const& go) { return go.dead(); });
+
+    _lighting.update(*this, static_cast<usize>(lightLosSamples));
 }
 
 auto level::can_move_to(point_d from, point_d to, f64 radius, uid ignore) const -> bool
@@ -190,6 +190,9 @@ auto level::slopes_at(point_i map) const -> slopes
 auto level::lighting() -> light_map& { return _lighting; }
 auto level::lighting() const -> light_map const& { return _lighting; }
 
+auto level::sky() -> sky_model& { return _sky; }
+auto level::sky() const -> sky_model const& { return _sky; }
+
 void level::prepare_slopes()
 {
     if (!_slopesDirty) { return; }
@@ -242,8 +245,6 @@ void level::set_motes(u8 motesIdx, motes const& motes)
     if (motesIdx >= _motes.size()) { _motes.resize(static_cast<usize>(motesIdx) + 1); }
     _motes[motesIdx] = motes;
 }
-auto level::sky() -> sky_model& { return _sky; }
-auto level::sky() const -> sky_model const& { return _sky; }
 
 auto level::is_wall_clear(point_d pos, f64 radius) const -> bool
 {
@@ -259,8 +260,8 @@ auto level::is_wall_clear(point_d pos, f64 radius) const -> bool
             auto const closest {closest_point_on_wall({tx, ty}, pos)};
             if (!closest) { continue; }
 
-            point_d const d {pos.X - closest->X, pos.Y - closest->Y};
-            if (d.dot(d) < radius * radius) { return false; }
+            point_d const d {pos - *closest};
+            if (d.length_squared() < radius * radius) { return false; }
         }
     }
 
@@ -324,7 +325,7 @@ auto level::closest_point_on_wall(point_i map, point_d pos) const -> std::option
                         candidate = center;
                     } else {
                         point_d const uv {(pos.X - center.X) / a, (pos.Y - center.Y) / b};
-                        f64 const     len {std::sqrt(uv.dot(uv))};
+                        f64 const     len {uv.length()};
                         if (len == 0.0) {
                             candidate = center;
                         } else {
@@ -337,7 +338,7 @@ auto level::closest_point_on_wall(point_i map, point_d pos) const -> std::option
                 }
 
                 point_d const diff {pos - candidate};
-                f64 const     distSq {diff.dot(diff)};
+                f64 const     distSq {diff.length_squared()};
                 if (distSq < minDistSq) {
                     minDistSq = distSq;
                     closest   = candidate;

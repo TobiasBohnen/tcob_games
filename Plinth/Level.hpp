@@ -91,11 +91,11 @@ public:
 
     auto slopes_at(point_i map) const -> slopes;
 
-    auto lighting() -> light_map&;
-    auto lighting() const -> light_map const&;
-
     auto motes_at(point_i map) const -> motes const&;
     void set_motes(u8 motesIdx, motes const& motes);
+
+    auto lighting() -> light_map&;
+    auto lighting() const -> light_map const&;
 
     auto sky() -> sky_model&;
     auto sky() const -> sky_model const&;

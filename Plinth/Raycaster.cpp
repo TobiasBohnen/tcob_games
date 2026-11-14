@@ -23,9 +23,6 @@
 #include "Voxel.hpp"
 #include "Walls.hpp"
 
-// Stands in for infinity: a distance or depth nothing reaches ("no wall", "nothing drawn here yet").
-// Finite on purpose, so 0 * INFINITE_DIST is 0 and not NaN when a ray starts exactly on a cell edge.
-constexpr f64 INFINITE_DIST {1e30};
 constexpr f64 INV_255 {1.0 / 255.0};
 constexpr f64 WALL_RECESS_EPS {1e-6}; // a wall hit further into its cell than this is recessed (door, diagonal)
 constexpr f64 MIN_RAY_DIST {1e-4};    // keeps row projection finite for surfaces at the player

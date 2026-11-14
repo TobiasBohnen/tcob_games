@@ -29,7 +29,6 @@ auto light_map::lights_at(point_i map) const -> std::span<u32 const>
 
 void light_map::update(level const& lvl, usize losSamples)
 {
-    constexpr static f64 INFINITE_DIST {1e30};                         // stand-in for "ray never crosses this axis"
     constexpr static f64 CELL_DIAGONAL_HALF {std::numbers::sqrt2 / 2}; // max distance from a cell's center to its farthest corner
 
     usize count {0};
