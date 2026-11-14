@@ -105,10 +105,9 @@ void level::prepare_slopes()
             point_i const c {x, y};
             if (std::holds_alternative<normal_wall>(get_cell(c))) { continue; } // no floor, no ceiling
 
-            u8 const    lvl {surface_at(c).Level};
-            usize const index {static_cast<usize>((y * MAP_WIDTH) + x)};
-            _cellSlopes[index] = {.Ceiling = {.TL = vertex_height(x, y, false, lvl), .TR = vertex_height(x + 1, y, false, lvl), .BL = vertex_height(x, y + 1, false, lvl), .BR = vertex_height(x + 1, y + 1, false, lvl)},
-                                  .Floor   = {.TL = vertex_height(x, y, true, lvl), .TR = vertex_height(x + 1, y, true, lvl), .BL = vertex_height(x, y + 1, true, lvl), .BR = vertex_height(x + 1, y + 1, true, lvl)}};
+            u8 const lvl {surface_at(c).Level};
+            _cellSlopes[PixelIndex(MAP_WIDTH, x, y)] = {.Ceiling = {.TL = vertex_height(x, y, false, lvl), .TR = vertex_height(x + 1, y, false, lvl), .BL = vertex_height(x, y + 1, false, lvl), .BR = vertex_height(x + 1, y + 1, false, lvl)},
+                                                        .Floor   = {.TL = vertex_height(x, y, true, lvl), .TR = vertex_height(x + 1, y, true, lvl), .BL = vertex_height(x, y + 1, true, lvl), .BR = vertex_height(x + 1, y + 1, true, lvl)}};
         }
     }
 }
@@ -116,7 +115,7 @@ void level::prepare_slopes()
 auto level::slopes_at(point_i idx) const -> slopes
 {
     if (!map_t::Size.contains(idx)) { return {}; }
-    return _cellSlopes[static_cast<usize>((idx.Y * MAP_WIDTH) + idx.X)];
+    return _cellSlopes[PixelIndex(MAP_WIDTH, idx.X, idx.Y)];
 }
 
 auto level::lights() const -> std::span<dynamic_light const> { return _lights; }
@@ -124,7 +123,7 @@ auto level::lights() const -> std::span<dynamic_light const> { return _lights; }
 auto level::lights_at(point_i idx) const -> std::span<u32 const>
 {
     if (!map_t::Size.contains(idx) || _cellLights.empty()) { return {}; }
-    return _cellLights[static_cast<usize>((idx.Y * MAP_WIDTH) + idx.X)];
+    return _cellLights[PixelIndex(MAP_WIDTH, idx.X, idx.Y)];
 }
 
 void level::update_light_visibility(usize losSamples)
@@ -261,8 +260,7 @@ void level::update_light_visibility(usize losSamples)
                     if (distSq >= sweep.RadiusSq) { continue; }
 
                     if (cell_has_any_line_of_sight(point_i {cx, cy}, lt.Position)) {
-                        usize const cellIndex {static_cast<usize>((cy * MAP_WIDTH) + cx)};
-                        _cellLights[cellIndex].push_back(static_cast<u32>(li));
+                        _cellLights[PixelIndex(MAP_WIDTH, cx, cy)].push_back(static_cast<u32>(li));
                     }
                 }
             }

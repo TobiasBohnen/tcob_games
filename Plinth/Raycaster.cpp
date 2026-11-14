@@ -37,7 +37,7 @@ static auto ApplyTint(u8 r, u8 g, u8 b, color_d tint) -> u32
     return 0xFF000000u | (static_cast<u32>(tb) << 16) | (static_cast<u32>(tg) << 8) | static_cast<u32>(tr);
 }
 
-static void CopyPixel(u32* dst, isize dstIdx, u8 const* src, isize srcIdx, color_d tint) { dst[dstIdx] = ApplyTint(src[srcIdx + 0], src[srcIdx + 1], src[srcIdx + 2], tint); }
+static void CopyPixel(u32* dst, usize dstIdx, u8 const* src, usize srcIdx, color_d tint) { dst[dstIdx] = ApplyTint(src[srcIdx + 0], src[srcIdx + 1], src[srcIdx + 2], tint); }
 
 // Computes ray direction vector using the camera plane for screen column x:
 // Dir = player.Direction + player.Plane * ((2 * x / width) - 1)
@@ -187,7 +187,7 @@ void raycaster::draw_surface_pixel(isize x, isize y, u8 const* tex, isize srcIdx
     auto const toSurface {surfacePos - player.Position};
     bool const close {toSurface.dot(toSurface) < DITHER_MIN_DIST_SQ};
     u32*       screenBuf {_screen.data()};
-    CopyPixel(screenBuf, PixelIndex(_screenSize, x, y), tex, srcIdx, close ? tint : DitherTint(tint, x, y, _quality));
+    CopyPixel(screenBuf, PixelIndex(_screenSize.Width, x, y), tex, srcIdx, close ? tint : DitherTint(tint, x, y, _quality));
 }
 
 auto raycaster::draw(level& level, player& player) -> std::span<u32>
@@ -370,7 +370,7 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
             i32 const texelOffset {(texelX + (texelY * WALL_SIZE.Width)) * TEXTURE_BPP};
 
             draw_surface_pixel(col.X, y, tex, texelOffset, litPos, z, 1.0);
-            _objectDepthBuffer[PixelIndex(_screenSize, col.X, y)] = t;
+            _objectDepthBuffer[PixelIndex(_screenSize.Width, col.X, y)] = t;
         }
 
         if (isFloor) {
@@ -390,7 +390,7 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
         if (from >= to) { return; }
 
         if (!isFloor && surface.CeilingTexture == SKY_TEXTURE) {
-            for (i32 y {from}; y < to; ++y) { screenBuf[PixelIndex(_screenSize, col.X, y)] = sky_pixel(y, col.RayDir); }
+            for (i32 y {from}; y < to; ++y) { screenBuf[PixelIndex(_screenSize.Width, col.X, y)] = sky_pixel(y, col.RayDir); }
             col.Top = std::max(col.Top, to);
             return;
         }
@@ -445,12 +445,12 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
             i32 const texelOffset {(texelX + (texelY * WALL_SIZE.Width)) * TEXTURE_BPP};
 
             draw_surface_pixel(col.X, y, tex, texelOffset, pos, z, 1.0);
-            _objectDepthBuffer[PixelIndex(_screenSize, col.X, y)] = t;
+            _objectDepthBuffer[PixelIndex(_screenSize.Width, col.X, y)] = t;
 
             f64 const wallGap {std::max(col.Hit.Distance - t, 0.0)};
             if (_quality.ContactShadows && wallGap < CONTACT_SHADOW_WIDTH) {
                 f64 const c {1.0 - (wallGap / CONTACT_SHADOW_WIDTH)};
-                u32&      pixel {screenBuf[PixelIndex(_screenSize, col.X, y)]};
+                u32&      pixel {screenBuf[PixelIndex(_screenSize.Width, col.X, y)]};
                 pixel = scale_pixel(pixel, 1.0 - (CONTACT_SHADOW_STRENGTH * c * c));
             }
 
@@ -468,7 +468,7 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
                     auto const    wallTint {accumulate_light(wallPoint, col.WallBase + height, WorldToCell(wallPoint), LIGHT_LAYERS_ALL)};
                     u32 const     reflected {ApplyTint(wallTex[wallSrc + 0], wallTex[wallSrc + 1], wallTex[wallSrc + 2], DitherTint(wallTint, col.X, y, _quality))};
 
-                    u32& pixel {screenBuf[PixelIndex(_screenSize, col.X, y)]};
+                    u32& pixel {screenBuf[PixelIndex(_screenSize.Width, col.X, y)]};
                     pixel = BlendPixel(pixel, reflected, surface.FloorReflectivity * (1.0 - (height / REFLECTION_HEIGHT)));
                 }
             }
@@ -482,12 +482,7 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
     }};
 
     usize const count {col.Crossed.size()};
-    auto        carry {level.slopes_at(col.Crossed[0].Cell)}; // slopes of the cell before the current one
     for (usize i {0}; i < count; ++i) {
-        // fetched first, so the break / continue paths below still advance carry
-        auto const slopes {level.slopes_at(col.Crossed[i].Cell)};
-        auto const prevSlopes {std::exchange(carry, slopes)};
-
         f64 const  t0 {col.Crossed[i].Dist};
         bool const isLast {i + 1 == count};
 
@@ -498,13 +493,16 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
 
         auto const cell {col.Crossed[i].Cell};
         auto const surface {level.surface_at(cell)};
+        auto const slopes {level.slopes_at(cell)};
 
         i32 const bottomBefore {col.Bottom};
         i32 const topBefore {col.Top};
 
         if (i > 0) {
-            draw_riser(true, col.Crossed[i - 1].Cell, cell, prevSlopes, slopes, surface, t0);
-            draw_riser(false, col.Crossed[i - 1].Cell, cell, prevSlopes, slopes, surface, t0);
+            auto const prevCell {col.Crossed[i - 1].Cell};
+            auto const prevSlopes {level.slopes_at(prevCell)};
+            draw_riser(true, prevCell, cell, prevSlopes, slopes, surface, t0);
+            draw_riser(false, prevCell, cell, prevSlopes, slopes, surface, t0);
         }
 
         draw_flat(true, surface, cell, slopes, t0, t1);
@@ -569,7 +567,7 @@ void raycaster::draw_wall_column(column_hit const& col)
 
         f64 const worldZ {std::max(col.WallBase, std::min(col.WallBase + ((wallBottomRow - y) / rowsPerUnit), col.WallTop))};
         draw_surface_pixel(col.X, y, tex, srcIdx, surfacePos, worldZ, cornerShade);
-        _objectDepthBuffer[PixelIndex(_screenSize, col.X, y)] = hit.Distance;
+        _objectDepthBuffer[PixelIndex(_screenSize.Width, col.X, y)] = hit.Distance;
     }
 }
 
@@ -637,7 +635,7 @@ void raycaster::draw_sprites(i32 screenCenterY)
                 i32 const texOffset {(texX + (texY * texSize.Width)) * TEXTURE_BPP};
                 if (IsMagenta(tex, texOffset)) { continue; }
 
-                isize const idx {PixelIndex(_screenSize, x, y)};
+                usize const idx {PixelIndex(_screenSize.Width, x, y)};
                 if (transformY < _objectDepthBuffer[idx]) {
                     _objectDepthBuffer[idx] = transformY;
                     if (inLight) { spr->Seen = true; }
@@ -800,7 +798,7 @@ void raycaster::draw_voxel_objects(i32 screenCenterY)
 
                 for (i32 y {yStart}; y < yEnd; y += stride) {
                     // already covered by something nearer than the whole object
-                    if (stride == 1 && nearest >= _objectDepthBuffer[PixelIndex(_screenSize, x, y)]) { continue; }
+                    if (stride == 1 && nearest >= _objectDepthBuffer[PixelIndex(_screenSize.Width, x, y)]) { continue; }
 
                     f64 const  rayDirZ {(screenCenterY - (y + (0.5 * stride))) / _projPlaneDist};
                     auto const rayDir3D {point3_d {.X = rayDir2D.X, .Y = rayDir2D.Y, .Z = rayDirZ}.normalized()};
@@ -832,7 +830,7 @@ void raycaster::draw_voxel_objects(i32 screenCenterY)
                         for (i32 bx {x}; bx < xBlockEnd; ++bx) {
                             if (depth >= _zBuffer[bx]) { continue; }
 
-                            isize const depthIndex {PixelIndex(_screenSize, bx, by)};
+                            usize const depthIndex {PixelIndex(_screenSize.Width, bx, by)};
                             if (depth >= _objectDepthBuffer[depthIndex]) { continue; }
 
                             _objectDepthBuffer[depthIndex] = depth;
@@ -956,7 +954,7 @@ void raycaster::draw_motes(i32 screenCenterY)
                     for (i32 px {std::max(left, 0)}; px < std::min(left + widthPx, _screenSize.Width); ++px) {
                         if (transformY >= _zBuffer[px]) { continue; }
 
-                        isize const idx {PixelIndex(_screenSize, px, py)};
+                        usize const idx {PixelIndex(_screenSize.Width, px, py)};
                         if (transformY >= _objectDepthBuffer[idx]) { continue; }
 
                         screenBuf[idx] = motes.Additive ? add_pixel(screenBuf[idx], moteColor, alpha) : BlendPixel(screenBuf[idx], moteColor, alpha);

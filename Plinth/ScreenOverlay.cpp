@@ -38,7 +38,7 @@ void BlitMasked(u32* dst, size_i screenSize, blit_params const& p)
 
     for (i32 y {yStart}; y < yEnd; ++y) {
         i32 const  texY {srcOrigin.Y + (y * srcSize.Height / drawSize.Height)};
-        u32* const row {dst + PixelIndex(screenSize, dstPos.X + xStart, y + dstPos.Y)};
+        u32* const row {dst + PixelIndex(screenSize.Width, dstPos.X + xStart, y + dstPos.Y)};
 
         for (i32 x {xStart}; x < xEnd; ++x) {
             i32 const texX {srcOrigin.X + (x * srcSize.Width / drawSize.Width)};
@@ -174,7 +174,7 @@ void screen_overlay::draw_hud(player const& player)
     i32 const markerY {drawY};
     i32 const markerHeight {drawY + drawHeight};
     for (i32 y {markerY}; y < markerHeight; ++y) {
-        _screen[PixelIndex(_screenSize, markerX, y)] = COMPASS_MARKER_COLOR;
+        _screen[PixelIndex(_screenSize.Width, markerX, y)] = COMPASS_MARKER_COLOR;
     }
 }
 
