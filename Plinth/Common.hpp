@@ -89,7 +89,30 @@ struct color_d {
     f64 G {0.0};
     f64 B {0.0};
 
-    auto lerp(color_d const& other, f64 w) const -> color_d { return {.R = std::lerp(R, other.R, w), .G = std::lerp(G, other.G, w), .B = std::lerp(B, other.B, w)}; }
+    auto constexpr lerp(color_d const& other, f64 w) const -> color_d { return {.R = std::lerp(R, other.R, w), .G = std::lerp(G, other.G, w), .B = std::lerp(B, other.B, w)}; }
+
+    auto constexpr operator*(f64 right) const -> color_d
+    {
+        return {.R = R * right, .G = G * right, .B = B * right};
+    }
+    auto constexpr operator*=(f64 right) -> color_d&
+    {
+        R *= right;
+        G *= right;
+        B *= right;
+        return *this;
+    }
+    auto constexpr operator+(f64 right) const -> color_d
+    {
+        return {.R = R + right, .G = G + right, .B = B + right};
+    }
+    auto constexpr operator+=(f64 right) -> color_d&
+    {
+        R += right;
+        G += right;
+        B += right;
+        return *this;
+    }
 };
 
 constexpr auto IsMagenta(u8 const* tex, i32 offset) -> bool { return tex[offset + 0] == 0x98 && tex[offset + 1] == 0x00 && tex[offset + 2] == 0x88; }

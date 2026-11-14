@@ -180,10 +180,7 @@ void raycaster::draw_surface_pixel(isize x, isize y, u8 const* tex, isize srcIdx
     auto const& player {*_player};
 
     auto const cell {WorldToCell(surfacePos)};
-    auto       tint {accumulate_light(surfacePos, surfaceZ, cell, LIGHT_LAYERS_ALL)};
-    tint.R *= shade;
-    tint.G *= shade;
-    tint.B *= shade;
+    auto const tint {accumulate_light(surfacePos, surfaceZ, cell, LIGHT_LAYERS_ALL) * shade};
 
     auto const toSurface {surfacePos - player.Position};
     bool const close {toSurface.dot(toSurface) < DITHER_MIN_DIST_SQ};
@@ -789,10 +786,7 @@ void raycaster::draw_voxel_objects(i32 screenCenterY)
                     auto const hitCellForLight {WorldToCell(worldHitXY)};
                     f64 const  aoFactor {_quality.VoxelAo ? vo->Grid->face_ao(hit, localHitPos) : 1.0};
 
-                    auto tint {accumulate_light(worldHitXY, adjustedWorldHit.Z, hitCellForLight, LIGHT_LAYERS_ALL)};
-                    tint.R *= aoFactor;
-                    tint.G *= aoFactor;
-                    tint.B *= aoFactor;
+                    auto const tint {accumulate_light(worldHitXY, adjustedWorldHit.Z, hitCellForLight, LIGHT_LAYERS_ALL) * aoFactor};
 
                     i32 const yBlockEnd {std::min(y + stride, yEnd)};
                     for (i32 by {y}; by < yBlockEnd; ++by) {
@@ -984,9 +978,7 @@ auto raycaster::sky_pixel(i32 y, point_d const& rayDir) const -> u32
         if (HashUnit(gx, gy, 0, 21) < sky.StarDensity) {
             f64 const pulse {0.5 + (0.5 * std::sin((sky.Time * (1.0 + (2.0 * HashUnit(gx, gy, 0, 22)))) + (HashUnit(gx, gy, 0, 23) * TAU)))};
             f64 const bright {coverage * sky.Night * (1.0 - (sky.StarTwinkle * pulse)) * (0.4 + (0.6 * HashUnit(gx, gy, 0, 24)))};
-            color.R += bright;
-            color.G += bright;
-            color.B += bright;
+            color += bright;
         }
     }
 
@@ -1015,9 +1007,7 @@ auto raycaster::sky_pixel(i32 y, point_d const& rayDir) const -> u32
             // phase: surface normal against the direction of the sun
             f64 const nDotL {((sunDot - (d * body.SunDot)) / body.SinR) - (body.SunDot * nz)};
             f64 const light {(body.Ambient + ((1.0 - body.Ambient) * std::clamp(nDotL, 0.0, 1.0)))};
-            surface.R *= light;
-            surface.G *= light;
-            surface.B *= light;
+            surface *= light;
             color = surface.lerp(color, sky.Day);
         } else {
             color = surface;
@@ -1045,11 +1035,8 @@ auto raycaster::sky_pixel(i32 y, point_d const& rayDir) const -> u32
                 f64 const toward {_noise({static_cast<f32>(cx + (sky.Sun.X * 0.3)), static_cast<f32>(cy + (sky.Sun.Y * 0.3))})};
                 f64 const lit {std::clamp(0.5 + ((n0 - toward) * 3.0), 0.0, 1.0)};
 
-                f64 const brightness {(0.12 + (0.88 * sky.Day)) * (0.55 + (0.45 * lit))};
-                color_d   cloud {sky.CloudColor.lerp(sky.DuskColor, sky.Dusk * s2)};
-                cloud.R *= brightness;
-                cloud.G *= brightness;
-                cloud.B *= brightness;
+                f64 const     brightness {(0.12 + (0.88 * sky.Day)) * (0.55 + (0.45 * lit))};
+                color_d const cloud {sky.CloudColor.lerp(sky.DuskColor, sky.Dusk * s2) * brightness};
                 color = color.lerp(cloud, alpha);
             }
         }
