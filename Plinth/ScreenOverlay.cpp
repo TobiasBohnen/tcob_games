@@ -95,13 +95,16 @@ void screen_overlay::draw_screen_effect()
 
 void screen_overlay::draw_weapon(player const& player)
 {
+    constexpr static f64 REFERENCE_HEIGHT {360};
+    constexpr static f64 BOB_MULTIPLIER {2.0};
+
     auto* const tex {_cache.texture(handTexture, 0)};
     auto const  texSize {_cache.texture_size(handTexture, 0)};
 
     f64 const    scale {static_cast<f64>(_screenSize.Height) / REFERENCE_HEIGHT};
     size_i const drawSize {static_cast<i32>(std::round(texSize.Width * scale)),
                            static_cast<i32>(std::round(texSize.Height * scale))};
-    i32 const    bobOffsetY {static_cast<i32>(player.bob_amount() * WEAPON_BOB_MULTIPLIER)};
+    i32 const    bobOffsetY {static_cast<i32>(player.bob_amount() * BOB_MULTIPLIER)};
     i32 const    drawX {static_cast<i32>((_screenSize.Width - drawSize.Width) * 0.75)};
     i32 const    drawY {static_cast<i32>(_screenSize.Height - (drawSize.Height * 0.75)) + bobOffsetY};
 
@@ -114,6 +117,8 @@ void screen_overlay::draw_weapon(player const& player)
 
 void screen_overlay::draw_hud(player const& player)
 {
+    constexpr static f64 REFERENCE_HEIGHT {180};
+
     constexpr f64 COMPASS_NORTH_POS {0.375};
     constexpr f64 COMPASS_TOP_MARGIN {5.0};
     constexpr u32 COMPASS_MARKER_COLOR {0xFF0000FFu};

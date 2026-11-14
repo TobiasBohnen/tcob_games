@@ -22,8 +22,6 @@ inline constexpr i32    TEXTURE_BPP {3};
 inline constexpr size_i WALL_SIZE {64, 64};
 inline constexpr isize  MAX_TRANSPARENT_WALLS {8};
 inline constexpr f64    FOV {90};
-inline constexpr f64    REFERENCE_HEIGHT {360.0};
-inline constexpr f64    WEAPON_BOB_MULTIPLIER {2.0};
 
 inline constexpr u32 LIGHT_LAYER_WORLD {1u << 0};
 inline constexpr u32 LIGHT_LAYER_SPELL {1u << 1};

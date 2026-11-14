@@ -13,6 +13,7 @@
 #include <optional>
 #include <span>
 #include <tuple>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -337,13 +338,11 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
     constexpr static f64 RISER_LIGHT_BIAS {0.001}; // lights the face from the open side
 
     // vertical face where a surface does not meet the one of the cell before it
-    auto const draw_riser {[&](bool isFloor, point_i prevCell, point_i cell, cell_surface const& surface, f64 t) {
+    auto const draw_riser {[&](bool isFloor, point_i prevCell, point_i cell, auto const& prevSlopes, auto const& slopes, cell_surface const& surface, f64 t) {
         i32 const texId {isFloor ? surface.FloorTexture : surface.CeilingTexture};
         if (texId == SKY_TEXTURE) { return; }
 
         auto const edge {player.Position + (col.RayDir * t)};
-        auto const prevSlopes {level.slopes_at(prevCell)};
-        auto const slopes {level.slopes_at(cell)};
         f64 const  prevZ {HeightAt(isFloor ? prevSlopes.Floor : prevSlopes.Ceiling, prevCell, edge)};
         f64 const  hereZ {HeightAt(isFloor ? slopes.Floor : slopes.Ceiling, cell, edge)};
 
@@ -381,8 +380,7 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
         }
     }};
 
-    auto const draw_flat {[&](bool isFloor, cell_surface const& surface, point_i cell, f64 tIn, f64 tOut) {
-        auto const  slopes {level.slopes_at(cell)};
+    auto const draw_flat {[&](bool isFloor, cell_surface const& surface, point_i cell, auto const& slopes, f64 tIn, f64 tOut) {
         auto const& slope {isFloor ? slopes.Floor : slopes.Ceiling};
 
         auto const p {player.Position + (col.RayDir * tOut)};
@@ -484,7 +482,12 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
     }};
 
     usize const count {col.Crossed.size()};
+    auto        carry {level.slopes_at(col.Crossed[0].Cell)}; // slopes of the cell before the current one
     for (usize i {0}; i < count; ++i) {
+        // fetched first, so the break / continue paths below still advance carry
+        auto const slopes {level.slopes_at(col.Crossed[i].Cell)};
+        auto const prevSlopes {std::exchange(carry, slopes)};
+
         f64 const  t0 {col.Crossed[i].Dist};
         bool const isLast {i + 1 == count};
 
@@ -500,12 +503,12 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
         i32 const topBefore {col.Top};
 
         if (i > 0) {
-            draw_riser(true, col.Crossed[i - 1].Cell, cell, surface, t0);
-            draw_riser(false, col.Crossed[i - 1].Cell, cell, surface, t0);
+            draw_riser(true, col.Crossed[i - 1].Cell, cell, prevSlopes, slopes, surface, t0);
+            draw_riser(false, col.Crossed[i - 1].Cell, cell, prevSlopes, slopes, surface, t0);
         }
 
-        draw_flat(true, surface, cell, t0, t1);
-        draw_flat(false, surface, cell, t0, t1);
+        draw_flat(true, surface, cell, slopes, t0, t1);
+        draw_flat(false, surface, cell, slopes, t0, t1);
 
         if ((col.Bottom < bottomBefore || col.Top > topBefore) && IsWithinPlayerLight(player, cell)) { level.mark_visible(cell); }
     }
@@ -738,21 +741,21 @@ void raycaster::draw_voxel_objects(i32 screenCenterY)
     }
     std::ranges::sort(_voxelOrder, [](auto const& a, auto const& b) { return a.first < b.first; });
 
-    // the budget is shared by all objects: the more there are on screen, the coarser they are cast
+    std::vector<std::optional<screen_bounds>> measured;
+    measured.reserve(_voxelOrder.size());
+
     f64 totalArea {0.0};
     for (auto const& entry : _voxelOrder) {
         auto* const vo {entry.second->voxel()};
-        if (!vo->Grid) { continue; }
-
-        if (auto const b {measure(vo)}) { totalArea += b->area(); }
+        measured.push_back(vo->Grid ? measure(vo) : std::nullopt);
+        if (measured.back()) { totalArea += measured.back()->area(); }
     }
     i32 const stride {totalArea > _quality.VoxelPixelBudget ? static_cast<i32>(std::ceil(std::sqrt(totalArea / _quality.VoxelPixelBudget))) : 1};
 
-    for (auto const& entry : _voxelOrder) {
-        auto* const vo {entry.second->voxel()};
-        if (!vo->Grid) { continue; }
+    for (usize oi {0}; oi < _voxelOrder.size(); ++oi) {
+        auto* const vo {_voxelOrder[oi].second->voxel()};
 
-        auto const bounds {measure(vo)};
+        auto const& bounds {measured[oi]};
         if (!bounds) { continue; }
 
         i32 const xStart {bounds->XStart};
@@ -870,6 +873,9 @@ void raycaster::draw_motes(i32 screenCenterY)
     f64 const invDet {1.0 / player.Plane.cross(player.Direction)};
     f64 const lightRange {player.Settings.LightRange};
 
+    // converts a world-space offset into the camera-space units used below, for the view test on whole cells
+    f64 const viewK {std::abs(invDet) * (std::sqrt(player.Plane.dot(player.Plane)) + std::sqrt(player.Direction.dot(player.Direction)))};
+
     i32 const     reach {static_cast<i32>(std::ceil(lightRange))};
     point_i const center {WorldToCell(player.Position)};
     u32*          screenBuf {_screen.data()};
@@ -881,6 +887,15 @@ void raycaster::draw_motes(i32 screenCenterY)
 
             auto const& motes {level.motes_at(cell)};
             if (motes.Count == 0) { continue; }
+
+            // skip cells that are entirely behind the player or outside the view cone
+            {
+                auto const toCell {point_d {cx + 0.5, cy + 0.5} - player.Position};
+                f64 const  cellY {invDet * player.Plane.cross(toCell)};
+                f64 const  cellX {invDet * toCell.cross(player.Direction)};
+                f64 const  slack {(0.7072 + motes.Drift + motes.Size) * viewK}; // cell half-diagonal, drift and mote size
+                if (cellY < -slack || std::abs(cellX) > cellY + (2.0 * slack)) { continue; }
+            }
 
             auto const slopes {level.slopes_at(cell)};
 
