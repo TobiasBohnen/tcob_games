@@ -9,7 +9,6 @@
 #include <array>
 #include <atomic>
 #include <cmath>
-#include <limits>
 #include <optional>
 #include <span>
 #include <tuple>
@@ -24,7 +23,9 @@
 #include "Voxel.hpp"
 #include "Walls.hpp"
 
-constexpr f64 INFINITE_DIST {1e30};   // stand-in for "ray never crosses this axis"
+// Stands in for infinity: a distance or depth nothing reaches ("no wall", "nothing drawn here yet").
+// Finite on purpose, so 0 * INFINITE_DIST is 0 and not NaN when a ray starts exactly on a cell edge.
+constexpr f64 INFINITE_DIST {1e30};
 constexpr f64 INV_255 {1.0 / 255.0};
 constexpr f64 WALL_RECESS_EPS {1e-6}; // a wall hit further into its cell than this is recessed (door, diagonal)
 constexpr f64 MIN_RAY_DIST {1e-4};    // keeps row projection finite for surfaces at the player
@@ -197,7 +198,7 @@ auto raycaster::draw(level& level, player& player) -> std::span<u32>
     _level  = &level;
     _player = &player;
 
-    std::ranges::fill(_objectDepthBuffer, std::numeric_limits<f64>::infinity());
+    std::ranges::fill(_objectDepthBuffer, INFINITE_DIST);
 
     level.update_light_visibility(static_cast<usize>(_quality.LightLosSamples));
 
@@ -206,6 +207,8 @@ auto raycaster::draw(level& level, player& player) -> std::span<u32>
 
     i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.bob_amount())};
 
+    _camera = {player, _screenSize.Width, _projPlaneDist, screenCenterY};
+
     _taskManager.run_parallel([&](par_task const& ctx) {
         draw_columns(screenCenterY, static_cast<i32>(ctx.Start), static_cast<i32>(ctx.End));
     },
@@ -213,7 +216,7 @@ auto raycaster::draw(level& level, player& player) -> std::span<u32>
 
     draw_sprites(screenCenterY);
     draw_voxel_objects(screenCenterY);
-    draw_motes(screenCenterY);
+    draw_motes();
 
     _level  = nullptr;
     _player = nullptr;
@@ -240,54 +243,45 @@ void raycaster::draw_columns(i32 screenCenterY, i32 columnStart, i32 columnEnd)
         point_d sideDist {(rayDir.X < 0) ? (player.Position.X - map.X) * deltaDist.X : (map.X + 1.0 - player.Position.X) * deltaDist.X,
                           (rayDir.Y < 0) ? (player.Position.Y - map.Y) * deltaDist.Y : (map.Y + 1.0 - player.Position.Y) * deltaDist.Y};
 
-        std::optional<wall_hit> hitResult {std::nullopt};
-        bool                    side {false};
+        // Walk the cells in order. The first one is the player's own: the ray starts inside it, so its
+        // "entry" is distance 0 and the side it is left through. For every other cell it is where the ray came in.
+        bool                    side {sideDist.X < sideDist.Y};
+        f64                     entryDist {0.0};
+        std::optional<wall_hit> hitResult;
+
+        auto const intersect {[&](auto&& c) { return c.intersect({map, player.Position, rayDir, side, entryDist}); }};
 
         crossed.clear();
-        crossed.push_back({.Cell = map, .Dist = 0.0});
+        for (;;) {
+            crossed.push_back({.Cell = map, .Dist = entryDist});
 
-        // check player cell
-        {
-            auto const intersect {[&](auto&& c) { return c.intersect({map, player.Position, rayDir, sideDist.X < sideDist.Y, 0.0}); }};
-            if (auto const wallHit {std::visit(intersect, level.get_cell(map))}) { hitResult = wallHit; }
-        }
+            hitResult = std::visit(intersect, level.get_cell(map));
+            if (hitResult) { break; }
 
-        bool const hitInPlayerCell {hitResult.has_value()};
-
-        // DDA
-        if (!hitResult) {
-            auto const intersect {[&](auto&& c) { return c.intersect({map, player.Position, rayDir, side, !side ? sideDist.X - deltaDist.X : sideDist.Y - deltaDist.Y}); }};
-
-            for (;;) {
-                if (sideDist.X < sideDist.Y) {
-                    sideDist.X += deltaDist.X;
-                    map.X += step.X;
-                    side = false;
-                } else {
-                    sideDist.Y += deltaDist.Y;
-                    map.Y += step.Y;
-                    side = true;
-                }
-
-                if (!map_t::Size.contains(map)) { break; }
-
-                crossed.push_back({.Cell = map, .Dist = !side ? sideDist.X - deltaDist.X : sideDist.Y - deltaDist.Y});
-
-                if (auto const wallHit {std::visit(intersect, level.get_cell(map))}) {
-                    hitResult = wallHit;
-                    break;
-                }
+            if (sideDist.X < sideDist.Y) {
+                sideDist.X += deltaDist.X;
+                map.X += step.X;
+                side = false;
+            } else {
+                sideDist.Y += deltaDist.Y;
+                map.Y += step.Y;
+                side = true;
             }
+
+            if (!map_t::Size.contains(map)) { break; }
+
+            entryDist = !side ? sideDist.X - deltaDist.X : sideDist.Y - deltaDist.Y;
         }
 
         if (!hitResult) {
-            _zBuffer[x] = std::numeric_limits<f64>::infinity();
+            _zBuffer[x] = INFINITE_DIST;
             continue;
         }
 
         _zBuffer[x] = hitResult->Distance;
 
-        auto const prevCell {crossed.size() > 1 ? crossed[crossed.size() - 2].Cell : map}; // open cell the ray came from
+        bool const hitInPlayerCell {crossed.size() == 1};
+        auto const prevCell {hitInPlayerCell ? map : crossed[crossed.size() - 2].Cell}; // open cell the ray came from
         bool const recessed {hitInPlayerCell || ((hitResult->Distance - crossed.back().Dist) > WALL_RECESS_EPS)};
         auto const baseCell {recessed ? map : prevCell};
         auto const baseSlope {level.slopes_at(baseCell)};
@@ -576,11 +570,6 @@ void raycaster::draw_sprites(i32 screenCenterY)
     auto&       level {*_level};
     auto const& player {*_player};
 
-    // Transform sprite position into camera space using the inverse determinant
-    // of the camera matrix [Direction | Plane]:
-    // [transformX]   1/det * [  Direction.Y  -Direction.X ] * [relPos.X]
-    // [transformY] =         [ -Plane.Y       Plane.X     ]   [relPos.Y]
-    f64 const    invDet {1.0 / player.Plane.cross(player.Direction)};
     rect_i const screenRect {point_i::Zero, _screenSize};
 
     u32* screenBuf {_screen.data()};
@@ -590,18 +579,15 @@ void raycaster::draw_sprites(i32 screenCenterY)
 
         spr->Seen = false;
 
-        auto const relPos {spr->Position - player.Position};
+        auto const p {_camera.project(spr->Position)};
+        if (p.Depth <= 0) { continue; }
+        f64 const depth {p.Depth};
 
-        f64 const transformX {invDet * relPos.cross(player.Direction)};
-        f64 const transformY {invDet * player.Plane.cross(relPos)};
-        if (transformY <= 0) { continue; }
-
-        i32 const  spriteScreenX {static_cast<i32>((_screenSize.Width / 2.0) * (1.0 + (transformX / transformY)))};
-        f64 const  scale {_projPlaneDist / transformY};
-        auto const spriteSize {spr->screen_size(scale)};
+        i32 const  spriteScreenX {static_cast<i32>(p.ScreenX)};
+        auto const spriteSize {spr->screen_size(p.Scale)};
 
         i32 const spriteLeft {spriteScreenX - (spriteSize.Width / 2)};
-        i32 const spriteBottom {spr->screen_bottom(scale, screenCenterY, player.EyeZ)};
+        i32 const spriteBottom {spr->screen_bottom(p.Scale, screenCenterY, player.EyeZ)};
         i32 const spriteTop {spriteBottom - spriteSize.Height};
 
         rect_i const spriteRect {point_i {spriteLeft, spriteTop}, spriteSize};
@@ -623,7 +609,7 @@ void raycaster::draw_sprites(i32 screenCenterY)
         bool const inLight {IsWithinPlayerLight(player, spriteCell)};
 
         for (i32 x {drawStart.X}; x < drawEnd.X; ++x) {
-            if (transformY >= _zBuffer[x]) { continue; }
+            if (depth >= _zBuffer[x]) { continue; }
 
             i32 const texX {std::clamp(((x - spriteLeft) * texSize.Width) / spriteSize.Width, 0, texSize.Width - 1)};
             f64       texPos {texPosYStart};
@@ -636,8 +622,8 @@ void raycaster::draw_sprites(i32 screenCenterY)
                 if (IsMagenta(tex, texOffset)) { continue; }
 
                 usize const idx {PixelIndex(_screenSize.Width, x, y)};
-                if (transformY < _objectDepthBuffer[idx]) {
-                    _objectDepthBuffer[idx] = transformY;
+                if (depth < _objectDepthBuffer[idx]) {
+                    _objectDepthBuffer[idx] = depth;
                     if (inLight) { spr->Seen = true; }
                     CopyPixel(screenBuf, idx, tex, texOffset, DitherTint(spriteTint, x, y, _quality));
                 }
@@ -662,20 +648,12 @@ void raycaster::draw_voxel_objects(i32 screenCenterY)
     level&        level {*_level};
     player const& player {*_player};
 
-    f64 const  invDet {1.0 / player.Plane.cross(player.Direction)};
+    // screen x, screen y and depth of a world point; depth is 0 for anything not safely in front of the camera
     auto const project {[&](point3_d const& world) -> std::tuple<f64, f64, f64> {
-        point_d const relPos {world.X - player.Position.X, world.Y - player.Position.Y};
+        auto const p {_camera.project({world.X, world.Y})};
+        if (p.Depth <= 1e-6) { return {0.0, 0.0, 0.0}; }
 
-        f64 const transformX {invDet * relPos.cross(player.Direction)};
-        f64 const transformY {invDet * player.Plane.cross(relPos)};
-
-        if (transformY <= 1e-6) { return {0.0, 0.0, 0.0}; }
-
-        f64 const screenX {(_screenSize.Width / 2.0) * (1.0 + (transformX / transformY))};
-        f64 const scale {_projPlaneDist / transformY};
-        f64 const screenY {screenCenterY - ((world.Z - player.EyeZ) * scale)};
-
-        return {screenX, screenY, transformY};
+        return {p.ScreenX, _camera.screen_y(world.Z, p), p.Depth};
     }};
 
     rect_i const screenRect {point_i::Zero, _screenSize};
@@ -687,9 +665,9 @@ void raycaster::draw_voxel_objects(i32 screenCenterY)
         f64 const  floorZ {HeightAt(level.slopes_at(voCell).Floor, voCell, vo->Position)};
         auto const xf {vo->make_transform()};
 
-        f64  bboxMinX {std::numeric_limits<f64>::infinity()}, bboxMaxX {-std::numeric_limits<f64>::infinity()};
-        f64  bboxMinY {std::numeric_limits<f64>::infinity()}, bboxMaxY {-std::numeric_limits<f64>::infinity()};
-        f64  bboxMinDepth {std::numeric_limits<f64>::infinity()};
+        f64  bboxMinX {INFINITE_DIST}, bboxMaxX {-INFINITE_DIST};
+        f64  bboxMinY {INFINITE_DIST}, bboxMaxY {-INFINITE_DIST};
+        f64  bboxMinDepth {INFINITE_DIST};
         bool anyVisible {false};
         bool behindCamera {false};
 
@@ -849,7 +827,7 @@ void raycaster::draw_voxel_objects(i32 screenCenterY)
     }
 }
 
-void raycaster::draw_motes(i32 screenCenterY)
+void raycaster::draw_motes()
 {
     constexpr static f64 MIN_LIGHT {0.04}; // motes in less light than this are skipped
 
@@ -868,11 +846,7 @@ void raycaster::draw_motes(i32 screenCenterY)
     auto const& player {*_player};
 
     f64 const t {static_cast<f64>(level.time().count()) / 1000.0};
-    f64 const invDet {1.0 / player.Plane.cross(player.Direction)};
     f64 const lightRange {player.Settings.LightRange};
-
-    // converts a world-space offset into the camera-space units used below, for the view test on whole cells
-    f64 const viewK {std::abs(invDet) * (std::sqrt(player.Plane.dot(player.Plane)) + std::sqrt(player.Direction.dot(player.Direction)))};
 
     i32 const     reach {static_cast<i32>(std::ceil(lightRange))};
     point_i const center {WorldToCell(player.Position)};
@@ -888,11 +862,9 @@ void raycaster::draw_motes(i32 screenCenterY)
 
             // skip cells that are entirely behind the player or outside the view cone
             {
-                auto const toCell {point_d {cx + 0.5, cy + 0.5} - player.Position};
-                f64 const  cellY {invDet * player.Plane.cross(toCell)};
-                f64 const  cellX {invDet * toCell.cross(player.Direction)};
-                f64 const  slack {(0.7072 + motes.Drift + motes.Size) * viewK}; // cell half-diagonal, drift and mote size
-                if (cellY < -slack || std::abs(cellX) > cellY + (2.0 * slack)) { continue; }
+                auto const c {_camera.project(point_d {cx + 0.5, cy + 0.5})};
+                f64 const  slack {(0.7072 + motes.Drift + motes.Size) * _camera.max_shift_per_unit()}; // cell half-diagonal, drift and mote size
+                if (c.Depth < -slack || std::abs(c.Lateral) > c.Depth + (2.0 * slack)) { continue; }
             }
 
             auto const slopes {level.slopes_at(cell)};
@@ -907,17 +879,15 @@ void raycaster::draw_motes(i32 screenCenterY)
                 f64 const ceilZ {HeightAt(slopes.Ceiling, cell, pos)};
                 f64 const z {std::min(floorZ + motes.MinHeight + (frac(fall) * (motes.MaxHeight - motes.MinHeight)), ceilZ)};
 
-                auto const relPos {pos - player.Position};
-                f64 const  transformX {invDet * relPos.cross(player.Direction)};
-                f64 const  transformY {invDet * player.Plane.cross(relPos)};
-                if (transformY <= 0.05) { continue; }
+                auto const p {_camera.project(pos)};
+                if (p.Depth <= 0.05) { continue; }
+                f64 const depth {p.Depth};
 
-                f64 const scale {_projPlaneDist / transformY};
-                i32 const sx {static_cast<i32>(std::floor((_screenSize.Width / 2.0) * (1.0 + (transformX / transformY))))};
-                i32 const sy {static_cast<i32>(std::floor(screenCenterY - ((z - player.EyeZ) * scale)))};
+                i32 const sx {static_cast<i32>(std::floor(p.ScreenX))};
+                i32 const sy {static_cast<i32>(std::floor(_camera.screen_y(z, p)))};
 
-                i32 const widthPx {std::max(1, static_cast<i32>(std::round(motes.Size * scale)))};
-                i32 const lengthPx {std::max(widthPx, static_cast<i32>(std::round(motes.Length * scale)))};
+                i32 const widthPx {std::max(1, static_cast<i32>(std::round(motes.Size * p.Scale)))};
+                i32 const lengthPx {std::max(widthPx, static_cast<i32>(std::round(motes.Length * p.Scale)))};
                 i32 const left {sx - (widthPx / 2)};
                 if (left >= _screenSize.Width || left + widthPx <= 0 || sy - lengthPx >= _screenSize.Height || sy < 0) { continue; }
 
@@ -944,7 +914,7 @@ void raycaster::draw_motes(i32 screenCenterY)
                     base = c0.lerp(c1, mix);
                 }
 
-                f64 const fade {1.0 - std::min(transformY / lightRange, 1.0)};
+                f64 const fade {1.0 - std::min(depth / lightRange, 1.0)};
                 u32 const moteColor {ApplyTint(255, 255, 255, {.R = base.R * tint.R, .G = base.G * tint.G, .B = base.B * tint.B})};
 
                 for (i32 py {std::max(sy - lengthPx + 1, 0)}; py <= std::min(sy, _screenSize.Height - 1); ++py) {
@@ -952,10 +922,10 @@ void raycaster::draw_motes(i32 screenCenterY)
                     f64 const alpha {motes.Alpha * fade * twinkle * trail};
 
                     for (i32 px {std::max(left, 0)}; px < std::min(left + widthPx, _screenSize.Width); ++px) {
-                        if (transformY >= _zBuffer[px]) { continue; }
+                        if (depth >= _zBuffer[px]) { continue; }
 
                         usize const idx {PixelIndex(_screenSize.Width, px, py)};
-                        if (transformY >= _objectDepthBuffer[idx]) { continue; }
+                        if (depth >= _objectDepthBuffer[idx]) { continue; }
 
                         screenBuf[idx] = motes.Additive ? add_pixel(screenBuf[idx], moteColor, alpha) : BlendPixel(screenBuf[idx], moteColor, alpha);
                     }

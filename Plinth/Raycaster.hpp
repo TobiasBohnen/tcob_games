@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 
+#include "Camera.hpp"
 #include "Level.hpp"
 
 class raycaster {
@@ -34,7 +35,7 @@ private:
 
     void draw_sprites(i32 screenCenterY);
     void draw_voxel_objects(i32 screenCenterY);
-    void draw_motes(i32 screenCenterY);
+    void draw_motes();
 
     auto sky_pixel(i32 y, point_d const& rayDir) const -> u32;
 
@@ -54,4 +55,5 @@ private:
     player const* _player {nullptr};
 
     procgen::value_noise _noise {{16, 16}, 0.05f};
+    camera               _camera;
 };

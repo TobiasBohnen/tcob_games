@@ -2,6 +2,7 @@ add_executable(Plinth)
 
 target_sources(Plinth PRIVATE
     main.cpp
+    Camera.cpp
     Level.cpp
     LevelObject.cpp
     MapRenderer.cpp
