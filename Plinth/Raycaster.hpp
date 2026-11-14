@@ -41,7 +41,7 @@ private:
 
     std::vector<u32> _screen;
 
-    std::vector<f64>                           _zBuffer;
+    std::vector<f64>                           _wallDepthBuffer;
     std::vector<f64>                           _objectDepthBuffer;
     std::vector<std::pair<f64, level_object*>> _voxelOrder;
 

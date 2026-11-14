@@ -134,7 +134,7 @@ void raycaster::set_quality(quality_settings const& quality, f64 projPlaneDist)
     _projPlaneDist = projPlaneDist;
 
     _screen.assign(static_cast<usize>(_screenSize.area()), 0);
-    _zBuffer.assign(static_cast<usize>(_screenSize.Width), 0.0);
+    _wallDepthBuffer.assign(static_cast<usize>(_screenSize.Width), 0.0);
     _objectDepthBuffer.assign(static_cast<usize>(_screenSize.area()), 0.0);
 }
 
@@ -274,11 +274,11 @@ void raycaster::draw_columns(i32 screenCenterY, i32 columnStart, i32 columnEnd)
         }
 
         if (!hitResult) {
-            _zBuffer[x] = INFINITE_DIST;
+            _wallDepthBuffer[x] = INFINITE_DIST;
             continue;
         }
 
-        _zBuffer[x] = hitResult->Distance;
+        _wallDepthBuffer[x] = hitResult->Distance;
 
         bool const hitInPlayerCell {crossed.size() == 1};
         auto const prevCell {hitInPlayerCell ? map : crossed[crossed.size() - 2].Cell}; // open cell the ray came from
@@ -609,7 +609,7 @@ void raycaster::draw_sprites(i32 screenCenterY)
         bool const inLight {IsWithinPlayerLight(player, spriteCell)};
 
         for (i32 x {drawStart.X}; x < drawEnd.X; ++x) {
-            if (depth >= _zBuffer[x]) { continue; }
+            if (depth >= _wallDepthBuffer[x]) { continue; }
 
             i32 const texX {std::clamp(((x - spriteLeft) * texSize.Width) / spriteSize.Width, 0, texSize.Width - 1)};
             f64       texPos {texPosYStart};
@@ -699,7 +699,7 @@ void raycaster::draw_voxel_objects(i32 screenCenterY)
                          .YEnd    = std::clamp(bboxRect.Position.Y + bboxRect.Size.Height, 0, _screenSize.Height),
                          .Nearest = behindCamera ? 0.0 : bboxMinDepth};
 
-        for (i32 x {b.XStart}; x < b.XEnd; ++x) { b.MaxWallDist = std::max(b.MaxWallDist, _zBuffer[x]); }
+        for (i32 x {b.XStart}; x < b.XEnd; ++x) { b.MaxWallDist = std::max(b.MaxWallDist, _wallDepthBuffer[x]); }
         if (b.Nearest >= b.MaxWallDist) { return std::nullopt; }
 
         return b;
@@ -769,7 +769,7 @@ void raycaster::draw_voxel_objects(i32 screenCenterY)
 
                 // the whole object is behind the walls in these columns
                 f64 blockWall {0.0};
-                for (i32 bx {x}; bx < xBlockEnd; ++bx) { blockWall = std::max(blockWall, _zBuffer[bx]); }
+                for (i32 bx {x}; bx < xBlockEnd; ++bx) { blockWall = std::max(blockWall, _wallDepthBuffer[bx]); }
                 if (nearest >= blockWall) { continue; }
 
                 auto const rayDir2D {ComputeCameraRayDir(x + ((stride - 1) / 2), _screenSize.Width, player)};
@@ -793,7 +793,7 @@ void raycaster::draw_voxel_objects(i32 screenCenterY)
                     auto const [sx, sy, depth] {project(adjustedWorldHit)};
 
                     if (depth <= 0.0) { continue; }
-                    if (depth >= _zBuffer[x]) { continue; }
+                    if (depth >= _wallDepthBuffer[x]) { continue; }
 
                     auto const hitCellForLight {WorldToCell(worldHitXY)};
                     f64 const  aoFactor {_quality.VoxelAo ? vo->Grid->face_ao(hit, localHitPos) : 1.0};
@@ -806,7 +806,7 @@ void raycaster::draw_voxel_objects(i32 screenCenterY)
                     i32 const yBlockEnd {std::min(y + stride, yEnd)};
                     for (i32 by {y}; by < yBlockEnd; ++by) {
                         for (i32 bx {x}; bx < xBlockEnd; ++bx) {
-                            if (depth >= _zBuffer[bx]) { continue; }
+                            if (depth >= _wallDepthBuffer[bx]) { continue; }
 
                             usize const depthIndex {PixelIndex(_screenSize.Width, bx, by)};
                             if (depth >= _objectDepthBuffer[depthIndex]) { continue; }
@@ -922,7 +922,7 @@ void raycaster::draw_motes()
                     f64 const alpha {motes.Alpha * fade * twinkle * trail};
 
                     for (i32 px {std::max(left, 0)}; px < std::min(left + widthPx, _screenSize.Width); ++px) {
-                        if (depth >= _zBuffer[px]) { continue; }
+                        if (depth >= _wallDepthBuffer[px]) { continue; }
 
                         usize const idx {PixelIndex(_screenSize.Width, px, py)};
                         if (depth >= _objectDepthBuffer[idx]) { continue; }
