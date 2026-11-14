@@ -75,7 +75,6 @@ public:
     auto get_visibility(point_i map) const -> tile_visibility;
     void mark_visible(point_i map);
     void reveal_map();
-    void fade_vision();
 
     auto get_cell(point_i map) const -> cell const&;
     void set_cell(point_i map, cell const& c);

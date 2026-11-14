@@ -16,6 +16,7 @@
 #include <variant>
 #include <vector>
 
+#include "CellWalk.hpp"
 #include "Common.hpp"
 #include "Level.hpp"
 #include "Player.hpp"
@@ -230,42 +231,22 @@ void raycaster::draw_columns(i32 screenCenterY, i32 columnStart, i32 columnEnd)
     for (isize x {columnStart}; x < columnEnd; x++) {
         auto const rayDir {ComputeCameraRayDir(x, _screenSize.Width, player)};
 
-        point_i       map {player.Position};
-        point_d const deltaDist {(rayDir.X == 0) ? INFINITE_DIST : std::abs(1 / rayDir.X),
-                                 (rayDir.Y == 0) ? INFINITE_DIST : std::abs(1 / rayDir.Y)};
-
-        point_i step {rayDir.X < 0 ? -1 : 1, rayDir.Y < 0 ? -1 : 1};
-        point_d sideDist {(rayDir.X < 0) ? (player.Position.X - map.X) * deltaDist.X : (map.X + 1.0 - player.Position.X) * deltaDist.X,
-                          (rayDir.Y < 0) ? (player.Position.Y - map.Y) * deltaDist.Y : (map.Y + 1.0 - player.Position.Y) * deltaDist.Y};
-
         // Walk the cells in order. The first one is the player's own: the ray starts inside it, so its
-        // "entry" is distance 0 and the side it is left through. For every other cell it is where the ray came in.
-        bool                    side {sideDist.X < sideDist.Y};
-        f64                     entryDist {0.0};
+        // "entry" is distance 0. For every other cell it is where the ray came in.
+        cell_walk               walk {player.Position, rayDir};
         std::optional<wall_hit> hitResult;
 
-        auto const intersect {[&](auto&& c) { return c.intersect({map, player.Position, rayDir, side, entryDist}); }};
+        auto const intersect {[&](auto&& c) { return c.intersect({walk.cell(), player.Position, rayDir, walk.side(), walk.entry()}); }};
 
         crossed.clear();
         for (;;) {
-            crossed.push_back({.Cell = map, .Dist = entryDist});
+            crossed.push_back({.Cell = walk.cell(), .Dist = walk.entry()});
 
-            hitResult = std::visit(intersect, level.get_cell(map));
+            hitResult = std::visit(intersect, level.get_cell(walk.cell()));
             if (hitResult) { break; }
 
-            if (sideDist.X < sideDist.Y) {
-                sideDist.X += deltaDist.X;
-                map.X += step.X;
-                side = false;
-            } else {
-                sideDist.Y += deltaDist.Y;
-                map.Y += step.Y;
-                side = true;
-            }
-
-            if (!map_t::Size.contains(map)) { break; }
-
-            entryDist = !side ? sideDist.X - deltaDist.X : sideDist.Y - deltaDist.Y;
+            walk.advance();
+            if (!map_t::Size.contains(walk.cell())) { break; }
         }
 
         if (!hitResult) {
@@ -276,9 +257,9 @@ void raycaster::draw_columns(i32 screenCenterY, i32 columnStart, i32 columnEnd)
         _wallDepthBuffer[x] = hitResult->Distance;
 
         bool const hitInPlayerCell {crossed.size() == 1};
-        auto const prevCell {hitInPlayerCell ? map : crossed[crossed.size() - 2].Cell}; // open cell the ray came from
+        auto const prevCell {hitInPlayerCell ? walk.cell() : crossed[crossed.size() - 2].Cell}; // open cell the ray came from
         bool const recessed {hitInPlayerCell || ((hitResult->Distance - crossed.back().Dist) > WALL_RECESS_EPS)};
-        auto const baseCell {recessed ? map : prevCell};
+        auto const baseCell {recessed ? walk.cell() : prevCell};
         auto const baseSlope {level.slopes_at(baseCell)};
         auto const hitPoint {player.Position + (rayDir * hitResult->Distance)};
 
@@ -286,8 +267,8 @@ void raycaster::draw_columns(i32 screenCenterY, i32 columnStart, i32 columnEnd)
                         .Origin   = player.Position,
                         .RayDir   = rayDir,
                         .Hit      = *hitResult,
-                        .Cell     = map,
-                        .ToOpen   = hitInPlayerCell ? point_i::Zero : (side ? point_i {0, -step.Y} : point_i {-step.X, 0}),
+                        .Cell     = walk.cell(),
+                        .ToOpen   = walk.to_previous(),
                         .CenterY  = screenCenterY,
                         .WallBase = HeightAt(baseSlope.Floor, baseCell, hitPoint),
                         .WallTop  = HeightAt(baseSlope.Ceiling, baseCell, hitPoint),

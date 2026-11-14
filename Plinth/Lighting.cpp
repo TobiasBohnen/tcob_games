@@ -9,10 +9,13 @@
 #include <array>
 #include <cmath>
 #include <numbers>
+#include <span>
 #include <vector>
 
+#include "CellWalk.hpp"
 #include "Common.hpp"
 #include "Level.hpp"
+#include "Walls.hpp"
 
 light_map::light_map()
     : _taskManager {locate_service<task_manager>()}
@@ -77,33 +80,16 @@ void light_map::update(level const& lvl, usize losSamples)
             f64 const   dist {diff.length()};
             if (dist < 1e-6) { return true; }
 
-            point_d const rayDir {diff.X / dist, diff.Y / dist};
-            point_i       map {static_cast<i32>(from.X), static_cast<i32>(from.Y)};
-
-            point_d const deltaDist {(rayDir.X == 0) ? INFINITE_DIST : std::abs(1 / rayDir.X),
-                                     (rayDir.Y == 0) ? INFINITE_DIST : std::abs(1 / rayDir.Y)};
-            point_i       step {rayDir.X < 0 ? -1 : 1, rayDir.Y < 0 ? -1 : 1};
-            point_d       sideDist {(rayDir.X < 0) ? (from.X - map.X) * deltaDist.X : (map.X + 1.0 - from.X) * deltaDist.X,
-                                    (rayDir.Y < 0) ? (from.Y - map.Y) * deltaDist.Y : (map.Y + 1.0 - from.Y) * deltaDist.Y};
+            cell_walk walk {from, {diff.X / dist, diff.Y / dist}};
 
             bool visible {true};
             for (;;) {
-                bool const stepX {sideDist.X < sideDist.Y};
-                f64 const  traveled {stepX ? sideDist.X : sideDist.Y};
-                if (traveled >= dist) { break; } // reached the light before hitting anything
+                if (walk.exit() >= dist) { break; } // reached the light before hitting anything
 
-                if (stepX) {
-                    sideDist.X += deltaDist.X;
-                    map.X += step.X;
-                } else {
-                    sideDist.Y += deltaDist.Y;
-                    map.Y += step.Y;
-                }
+                walk.advance();
+                if (!map_t::Size.contains(walk.cell()) || walk.cell() == lightCell) { break; }
 
-                if (!map_t::Size.contains(map)) { break; }
-                if (map == lightCell) { break; }
-
-                if (lvl.is_blocking_light(map)) {
+                if (lvl.is_blocking_light(walk.cell())) {
                     visible = false;
                     break;
                 }

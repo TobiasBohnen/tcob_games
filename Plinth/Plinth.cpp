@@ -293,7 +293,6 @@ void Plinth::on_draw_to(gfx::render_target& target, transform const& /* xform */
     if (_drawMap) {
         _texture->update_data(_mapRenderer->draw(*_level, _player), 0);
     }
-    _level->fade_vision();
 
     // aspect ratio correction
     size_i const size {*target.Size};

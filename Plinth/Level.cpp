@@ -59,6 +59,11 @@ void level::update(milliseconds deltaTime, i32 lightLosSamples)
     std::erase_if(_objects, [](level_object const& go) { return go.dead(); });
 
     _lighting.update(*this, static_cast<usize>(lightLosSamples));
+
+    // fade vision
+    for (auto& s : _seen) {
+        if (s == tile_visibility::Visible) { s = tile_visibility::Explored; }
+    }
 }
 
 auto level::can_move_to(point_d from, point_d to, f64 radius, uid ignore) const -> bool
@@ -113,15 +118,6 @@ void level::mark_visible(point_i map)
 void level::reveal_map()
 {
     _seen.fill(tile_visibility::Explored);
-}
-
-void level::fade_vision()
-{
-    for (auto& s : _seen) {
-        if (s == tile_visibility::Visible) {
-            s = tile_visibility::Explored;
-        }
-    }
 }
 
 auto level::get_cell(point_i map) const -> cell const&
