@@ -164,8 +164,9 @@ auto raycaster::accumulate_light(point_d const& surfacePos, f64 surfaceZ, point_
         add_light_contribution(player.Position, player.EyeZ, player.Settings.LightRange, player.Settings.LightIntensity, color {255, 255, 255}, surfacePos, surfaceZ, total);
     }
 
-    auto const lights {level.lighting().lights()};
-    for (u32 li : level.lighting().lights_at(cell)) {
+    auto const& lighting {level.lighting()};
+    auto const  lights {lighting.lights()};
+    for (u32 li : lighting.lights_at(cell)) {
         auto const& lt {lights[li]};
         if ((lt.Layers & lightMask) == 0) { continue; }
         add_light_contribution(lt.Position, lt.Z, lt.Range, lt.Intensity, lt.Color, surfacePos, surfaceZ, total);
