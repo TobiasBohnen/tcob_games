@@ -166,8 +166,8 @@ auto raycaster::accumulate_light(point_d const& surfacePos, f64 surfaceZ, point_
         add_light_contribution(player.Position, player.EyeZ, player.Settings.LightRange, player.Settings.LightIntensity, color {255, 255, 255}, surfacePos, surfaceZ, total);
     }
 
-    auto const lights {level.lights()};
-    for (u32 li : level.lights_at(cell)) {
+    auto const lights {level.lighting().lights()};
+    for (u32 li : level.lighting().lights_at(cell)) {
         auto const& lt {lights[li]};
         if ((lt.Layers & lightMask) == 0) { continue; }
         add_light_contribution(lt.Position, lt.Z, lt.Range, lt.Intensity, lt.Color, surfacePos, surfaceZ, total);
@@ -199,8 +199,6 @@ auto raycaster::draw(level& level, player& player) -> std::span<u32>
     _player = &player;
 
     std::ranges::fill(_objectDepthBuffer, INFINITE_DIST);
-
-    level.update_light_visibility(static_cast<usize>(_quality.LightLosSamples));
 
     auto const playerCell {WorldToCell(player.Position)};
     player.EyeZ = HeightAt(level.slopes_at(playerCell).Floor, playerCell, player.Position) + EYE_HEIGHT;
@@ -940,7 +938,7 @@ auto raycaster::sky_pixel(i32 y, point_d const& rayDir) const -> u32
         return sum / norm;
     }};
 
-    auto const& sky {_level->sky()};
+    auto const& sky {_level->sky().frame()};
     f64 const   azimuth {sky.Stars ? std::atan2(rayDir.Y, rayDir.X) : 0.0};
 
     // view direction; the horizon is the unbobbed screen center

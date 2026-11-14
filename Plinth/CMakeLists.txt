@@ -3,17 +3,19 @@ add_executable(Plinth)
 target_sources(Plinth PRIVATE
     main.cpp
     Camera.cpp
+    Engine.cpp
     Level.cpp
     LevelObject.cpp
+    Lighting.cpp
     MapRenderer.cpp
     Player.cpp
     Plinth.cpp
     Raycaster.cpp
     ScreenOverlay.cpp
+    Sky.cpp
     TextureCache.cpp
     Voxel.cpp
     Walls.cpp
-    Engine.cpp
 )
 
 set_target_properties(Plinth PROPERTIES

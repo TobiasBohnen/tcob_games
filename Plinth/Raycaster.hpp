@@ -13,6 +13,7 @@
 
 #include "Camera.hpp"
 #include "Level.hpp"
+#include "LevelObject.hpp"
 
 class raycaster {
 public:

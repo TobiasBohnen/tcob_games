@@ -25,6 +25,7 @@
 #include "MapRenderer.hpp"
 #include "Raycaster.hpp"
 #include "ScreenOverlay.hpp"
+#include "Sky.hpp"
 #include "TextureCache.hpp"
 #include "Voxel.hpp"
 #include "Walls.hpp"
@@ -233,8 +234,8 @@ Plinth::Plinth(game& game)
     _engine.generate_level(*_level, _player);
     _level->set_motes(0, {});
     _level->set_motes(1, MOTES_RAIN);
-    _level->set_sky(SKY_NIGHT);
-    _level->update(0ms);
+    _level->sky().set(SKY_NIGHT);
+    _level->update(0ms, 0);
 
     rng                         rng;
     std::unordered_set<point_i> used;
@@ -335,7 +336,8 @@ void Plinth::on_update(milliseconds deltaTime)
 {
     move_player(deltaTime);
     _player.update(deltaTime);
-    _level->update(deltaTime);
+    _level->update(deltaTime, _quality.LightLosSamples);
+
     _screenOverlay->update(deltaTime);
 
     // _frameTimer += deltaTime;
