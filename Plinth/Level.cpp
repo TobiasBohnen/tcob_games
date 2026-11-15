@@ -71,10 +71,10 @@ auto level::can_move_to(point_d from, point_d to, f64 radius, std::optional<f64>
         return true;
     }};
 
-    // no other object overlaps the circle at `pos`; flyers don't stop each other
+    // no other object overlaps the circle at `pos`
     auto const hit_test {[&](point_d pos) -> bool {
         return std::ranges::any_of(_objects, [&](level_object const& go) {
-            if (go.id() == ignore || (flightZ && go.flight_z())) { return false; }
+            if (go.id() == ignore) { return false; }
             return go.overlaps(pos, radius);
         });
     }};

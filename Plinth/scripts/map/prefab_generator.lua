@@ -75,9 +75,9 @@ local PREFABS = {
     { -- double-door vault (two separate entrances)
         rows            = {
             "77777D77777",
-            "7.....Q...7",
+            "7.....P...7",
             "7..QBBBBQ.7",
-            "7......RR.7",
+            "7....RRRR.7",
             "77777D77777",
         },
         wall_texture    = 2,
