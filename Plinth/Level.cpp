@@ -29,18 +29,26 @@ void level::update(milliseconds deltaTime, i32 lightLosSamples)
     f64 const dt {deltaTime.count() / 1000};
     _map.update(dt);
 
+    std::vector<collision_event> collisions;
+
     for (auto& obj : _objects) {
         auto const newPos {obj.position() + obj.direction() * dt};
         if (newPos == obj.position()) { continue; }
 
-        if (obj.is_solid()) {
-            if (can_move_to(obj.position(), newPos, obj.radius(), obj.flight_z(), obj.id())) {
-                obj.set_position(newPos);
-            }
-        } else {
+        auto const hit {obj.is_solid() ? find_blocker(obj.position(), newPos, obj.radius(), obj.flight_z(), obj.id()) : std::nullopt};
+        if (!hit) {
+            obj.set_blocked(false);
             obj.set_position(newPos);
+            continue;
+        }
+
+        if (!obj.blocked()) {
+            obj.set_blocked(true);
+            collisions.push_back({.Id = obj.id(), .By = *hit, .At = obj.position()});
         }
     }
+
+    for (auto& ev : collisions) { emit_signal(Collision, ev); }
 
     std::erase_if(_objects, [](level_object const& go) { return go.dead(); });
 
@@ -48,6 +56,11 @@ void level::update(milliseconds deltaTime, i32 lightLosSamples)
 }
 
 auto level::can_move_to(point_d from, point_d to, f64 radius, std::optional<f64> flightZ, uid ignore) const -> bool
+{
+    return !find_blocker(from, to, radius, flightZ, ignore);
+}
+
+auto level::find_blocker(point_d from, point_d to, f64 radius, std::optional<f64> flightZ, uid ignore) const -> std::optional<blocker>
 {
     constexpr static f64 MAX_CLIMB {0.25};
 
@@ -71,12 +84,10 @@ auto level::can_move_to(point_d from, point_d to, f64 radius, std::optional<f64>
         return true;
     }};
 
-    // no other object overlaps the circle at `pos`
-    auto const hit_test {[&](point_d pos) -> bool {
-        return std::ranges::any_of(_objects, [&](level_object const& go) {
-            if (go.id() == ignore) { return false; }
-            return go.overlaps(pos, radius);
-        });
+    // the first other solid object overlapping the circle at `pos`
+    auto const hit_test {[&](point_d pos) -> level_object const* {
+        auto const it {std::ranges::find_if(_objects, [&](level_object const& go) { return go.id() != ignore && go.overlaps(pos, radius); })};
+        return it != _objects.end() ? &*it : nullptr;
     }};
 
     // true if `pred` holds for every cell the circle at `pos` overlaps; it gets the cell and the point of it nearest to `pos`
@@ -118,10 +129,17 @@ auto level::can_move_to(point_d from, point_d to, f64 radius, std::optional<f64>
         });
     }};
 
+    // walls first: a flyer next to a wall also fails the floor and ceiling test, which would hide what it really hit
+    if (!is_wall_clear(to)) { return blocker {.Kind = block_kind::Wall}; }
+
     // walkers only make moves that can be undone, otherwise the player can walk into a spot the same rule won't let them leave;
-    // flyers are stopped by risers and ceilings in their way, walls and other objects stop everybody
-    bool const level_ok {flightZ ? z_clear(to, *flightZ) : (footprint_reachable(to, from) && footprint_reachable(from, to))};
-    return level_ok && is_wall_clear(to) && !hit_test(to);
+    // flyers are stopped by risers, slopes and ceilings in their way
+    bool const surface_ok {flightZ ? z_clear(to, *flightZ) : (footprint_reachable(to, from) && footprint_reachable(from, to))};
+    if (!surface_ok) { return blocker {.Kind = block_kind::Surface}; }
+
+    if (auto const* other {hit_test(to)}) { return blocker {.Kind = block_kind::Object, .Object = other->id()}; }
+
+    return std::nullopt;
 }
 
 auto level::spawn(level_object_desc desc) -> uid

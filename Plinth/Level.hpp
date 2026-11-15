@@ -17,8 +17,28 @@
 #include "Motes.hpp"
 #include "Sky.hpp"
 
+enum class block_kind : u8 {
+    Wall,    // wall, door, obstacle or the edge of the map
+    Surface, // floor, ceiling or riser in the way
+    Object   // another solid object
+};
+
+struct blocker {
+    block_kind         Kind {block_kind::Wall};
+    std::optional<uid> Object {}; // the object in the way, for block_kind::Object
+};
+
+// an object that ran into something while moving
+struct collision_event {
+    uid     Id {}; // the object that was stopped
+    blocker By {};
+    point_d At {}; // where it stopped
+};
+
 class level {
 public:
+    signal<collision_event, level> Collision;
+
     void update(milliseconds deltaTime, i32 lightLosSamples);
 
     auto can_move_to(point_d from, point_d to, f64 radius, std::optional<f64> flightZ, uid ignore) const -> bool;
@@ -44,6 +64,8 @@ public:
     auto sky() const -> ::sky const&;
 
 private:
+    auto find_blocker(point_d from, point_d to, f64 radius, std::optional<f64> flightZ, uid ignore) const -> std::optional<blocker>;
+
     ::map      _map;
     ::motes    _motes;
     ::sky      _sky;

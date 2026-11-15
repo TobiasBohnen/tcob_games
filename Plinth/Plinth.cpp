@@ -6,6 +6,7 @@
 #include "Plinth.hpp"
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cmath>
 #include <cstdlib>
@@ -16,6 +17,7 @@
 #include <numeric>
 #include <optional>
 #include <span>
+#include <string_view>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -239,6 +241,11 @@ Plinth::Plinth(game& game)
     _level->sky().set(SKY_NIGHT);
     _level->update(0ms, 0);
 
+    _level->Collision.connect([&](collision_event const& ev) {
+        constexpr static std::array<std::string_view, 3> KINDS {"Wall", "Surface", "Object"};
+        _screenOverlay->show_message(std::format("{};{};{:.2f};{:.2f}", ev.Id, KINDS[static_cast<usize>(ev.By.Kind)], ev.At.X, ev.At.Y));
+    });
+
     rng                         rng;
     std::unordered_set<point_i> used;
     auto const                  find_empty {[&]() {
@@ -255,7 +262,7 @@ Plinth::Plinth(game& game)
 
     static voxel_grid const testVoxelGrid {*LoadVoxels("res/ball1.vox")};
 
-    for (i32 i {0}; i < 0; ++i) {
+    for (i32 i {0}; i < 50; ++i) {
         f64       scale {rng(0.3, 1.0)};
         f64 const maxDim {static_cast<f64>(std::max({testVoxelGrid.Size.X, testVoxelGrid.Size.Y, testVoxelGrid.Size.Z}))};
         _level->spawn({.Position  = find_empty(),

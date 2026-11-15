@@ -101,6 +101,9 @@ public:
 
     auto flight_z() const -> std::optional<f64>;
 
+    auto blocked() const -> bool;
+    void set_blocked(bool b);
+
     auto dead() const -> bool;
     void kill();
 
@@ -122,6 +125,7 @@ private:
     bool _dead {false};
     f64  _radius;
     bool _flying {false};
+    bool _blocked {false};
 
     color   _mapMarker;
     point_d _direction;

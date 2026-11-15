@@ -99,6 +99,16 @@ auto level_object::flight_z() const -> std::optional<f64>
     return s->BaseZ + (s->Size.Height * 0.5); // BaseZ is the bottom of the sprite
 }
 
+auto level_object::blocked() const -> bool
+{
+    return _blocked;
+}
+
+void level_object::set_blocked(bool b)
+{
+    _blocked = b;
+}
+
 auto level_object::overlaps(point_d pos, f64 radius) const -> bool
 {
     if (!is_solid()) { return false; }
