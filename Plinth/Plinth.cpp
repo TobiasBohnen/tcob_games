@@ -23,6 +23,7 @@
 #include "Common.hpp"
 #include "Level.hpp"
 #include "MapRenderer.hpp"
+#include "Motes.hpp"
 #include "Raycaster.hpp"
 #include "ScreenOverlay.hpp"
 #include "Sky.hpp"
@@ -91,7 +92,7 @@
     }
 }};
 
-[[maybe_unused]] static motes const MOTES_DUST {
+[[maybe_unused]] static mote_settings const MOTES_DUST {
     .Count       = 3,
     .FallSpeed   = 0.04,
     .SpeedJitter = 0.3,
@@ -100,7 +101,7 @@
     .Alpha       = 0.35,
     .Colors      = {{.R = 0.9, .G = 0.85, .B = 0.7}}};
 
-[[maybe_unused]] static motes const MOTES_SNOW {
+[[maybe_unused]] static mote_settings const MOTES_SNOW {
     .Count       = 4,
     .FallSpeed   = 0.12,
     .SpeedJitter = 0.3,
@@ -111,7 +112,7 @@
     .Emissive    = 0.3,
     .Colors      = {{.R = 0.9, .G = 0.95, .B = 1.0}, {.R = 0.8, .G = 0.9, .B = 1.0}}};
 
-[[maybe_unused]] static motes const MOTES_RAIN {
+[[maybe_unused]] static mote_settings const MOTES_RAIN {
     .Count       = 24,
     .FallSpeed   = 1.5,
     .SpeedJitter = 0.2,
@@ -121,7 +122,7 @@
     .Emissive    = 0.6,
     .Colors      = {{.R = 0.6, .G = 0.7, .B = 0.9}, {.R = 0.7, .G = 0.8, .B = 1.0}}};
 
-[[maybe_unused]] static motes const MOTES_EMBERS {
+[[maybe_unused]] static mote_settings const MOTES_EMBERS {
     .Count        = 3,
     .FallSpeed    = -0.1,
     .SpeedJitter  = 0.3,
@@ -134,7 +135,7 @@
     .Additive     = true,
     .Colors       = {{.R = 1.0, .G = 0.55, .B = 0.15}, {.R = 1.0, .G = 0.2, .B = 0.05}}};
 
-[[maybe_unused]] static motes const MOTES_ASH {
+[[maybe_unused]] static mote_settings const MOTES_ASH {
     .Count       = 4,
     .FallSpeed   = 0.06,
     .SpeedJitter = 0.3,
@@ -146,7 +147,7 @@
     .Emissive    = 0.1,
     .Colors      = {{.R = 0.55, .G = 0.55, .B = 0.55}, {.R = 0.3, .G = 0.3, .B = 0.3}}};
 
-[[maybe_unused]] static motes const MOTES_MIST {
+[[maybe_unused]] static mote_settings const MOTES_MIST {
     .Count       = 40,
     .FallSpeed   = 0.02,
     .SpeedJitter = 0.3,
@@ -158,7 +159,7 @@
     .Alpha       = 0.15,
     .Colors      = {{.R = 0.7, .G = 0.8, .B = 0.9}, {.R = 0.8, .G = 0.85, .B = 0.9}}};
 
-[[maybe_unused]] static motes const MOTES_SPORES {
+[[maybe_unused]] static mote_settings const MOTES_SPORES {
     .Count        = 4,
     .FallSpeed    = -0.03,
     .SpeedJitter  = 0.3,
@@ -172,7 +173,7 @@
     .Additive     = true,
     .Colors       = {{.R = 0.3, .G = 1.0, .B = 0.6}, {.R = 0.6, .G = 0.4, .B = 1.0}}};
 
-[[maybe_unused]] static motes const MOTES_POISON {
+[[maybe_unused]] static mote_settings const MOTES_POISON {
     .Count        = 40,
     .FallSpeed    = -0.1,
     .SpeedJitter  = 0.3,
@@ -232,8 +233,8 @@ Plinth::Plinth(game& game)
 
     _level = std::make_unique<level>();
     _engine.generate_level(*_level, _player);
-    _level->set_motes(0, {});
-    _level->set_motes(1, MOTES_RAIN);
+    _level->motes().set(0, {});
+    _level->motes().set(1, MOTES_RAIN);
     _level->sky().set(SKY_NIGHT);
     _level->update(0ms, 0);
 
@@ -439,7 +440,7 @@ void Plinth::move_player(milliseconds deltaTime)
 
 void Plinth::action_toggle_wall()
 {
-    _level->toggle_wall(point_i {_player.Position + _player.Direction});
+    _level->map().toggle_wall(point_i {_player.Position + _player.Direction});
 }
 
 void Plinth::action_toggle_map()
@@ -610,7 +611,7 @@ void Plinth::on_text_input(input::keyboard::text_input_event const& ev)
     }
 
     if (_keyCache.ends_with("givemap")) {
-        _level->reveal_map();
+        _level->map().reveal_map();
         _screenOverlay->show_message("MAP REVEALED");
         _keyCache.clear();
         _player.Cheater = true;

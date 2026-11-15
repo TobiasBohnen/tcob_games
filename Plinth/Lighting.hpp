@@ -11,9 +11,9 @@
 #include "Common.hpp"
 #include "LevelObject.hpp"
 
-class light_map {
+class lighting {
 public:
-    light_map();
+    lighting();
 
     void update(level const& lvl, usize losSamples);
 

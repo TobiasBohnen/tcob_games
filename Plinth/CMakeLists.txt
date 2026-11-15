@@ -7,6 +7,7 @@ target_sources(Plinth PRIVATE
     Level.cpp
     LevelObject.cpp
     Lighting.cpp
+    Map.cpp
     MapRenderer.cpp
     Player.cpp
     Plinth.cpp

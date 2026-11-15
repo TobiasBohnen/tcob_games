@@ -10,9 +10,9 @@
 
 #include "Common.hpp"
 
-void sky_model::set(sky_settings const& settings) { _settings = settings; }
+void sky::set(sky_settings const& settings) { _settings = settings; }
 
-void sky_model::update(milliseconds time)
+void sky::update(milliseconds time)
 {
     auto const& sky {_settings};
 
@@ -70,4 +70,4 @@ void sky_model::update(milliseconds time)
     }
 }
 
-auto sky_model::frame() const -> sky_frame const& { return _frame; }
+auto sky::frame() const -> sky_frame const& { return _frame; }

@@ -106,8 +106,9 @@ void engine::create_env()
     auto& levelWrapper {*_script.create_wrapper<level>("level")};
     levelWrapper["set_cell"] = [](level* level, i32 x, i32 y, table const& cellTable) {
         point_i const pos {x, y};
+        auto&         map {level->map()};
 
-        static auto read_surfaces {[&cellTable](auto& cell) {
+        auto const read_surfaces {[&cellTable](auto& cell) {
             cellTable.try_get(cell.FloorTexture, "FloorTexture");
             cellTable.try_get(cell.CeilingTexture, "CeilingTexture");
             cellTable.try_get(cell.FloorReflectivity, "FloorReflectivity");
@@ -121,24 +122,24 @@ void engine::create_env()
             if (type == "floor_cell") {
                 floor_cell f {};
                 read_surfaces(f);
-                level->set_cell(pos, f);
+                map.set_cell(pos, f);
             } else if (type == "normal_wall") {
                 normal_wall w {};
                 cellTable.try_get(w.Texture, "Texture");
-                level->set_cell(pos, w);
+                map.set_cell(pos, w);
             } else if (type == "door_wall") {
                 door_wall d {};
                 cellTable.try_get(d.Texture, "Texture");
                 cellTable.try_get(d.FrameTexture, "FrameTexture");
                 cellTable.try_get(d.Orientation, "Orientation");
                 read_surfaces(d);
-                level->set_cell(pos, d);
+                map.set_cell(pos, d);
             } else if (type == "push_wall") {
                 push_wall p {};
                 cellTable.try_get(p.Texture, "Texture");
                 cellTable.try_get(p.PushDirection, "PushDirection");
                 read_surfaces(p);
-                level->set_cell(pos, p);
+                map.set_cell(pos, p);
             } else if (type == "obstacle") {
                 obstacle o {};
                 read_surfaces(o);
@@ -154,13 +155,13 @@ void engine::create_env()
                         o.Shapes.push_back(shape);
                     }
                 }
-                level->set_cell(pos, o);
+                map.set_cell(pos, o);
             } else if (type == "diagonal_wall") {
                 diagonal_wall dg {};
                 cellTable.try_get(dg.Texture, "Texture");
                 cellTable.try_get(dg.Orientation, "Orientation");
                 read_surfaces(dg);
-                level->set_cell(pos, dg);
+                map.set_cell(pos, dg);
             }
         }
     };

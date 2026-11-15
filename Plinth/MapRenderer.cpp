@@ -11,15 +11,16 @@
 
 #include "Common.hpp"
 #include "Level.hpp"
+#include "Map.hpp"
 #include "Player.hpp"
 #include "Walls.hpp"
 
-static auto get_color(level const& level, point_i map) -> color
+static auto get_color(map const& map, point_i cell) -> color
 {
-    auto const state {level.get_visibility(map)};
-    if (state == level::tile_visibility::Hidden) { return colors::Black; }
+    auto const state {map.get_visibility(cell)};
+    if (state == tile_visibility::Hidden) { return colors::Black; }
     color c {overloaded_visit(
-        level.get_cell(map),
+        map.get_cell(cell),
         [](floor_cell const&) -> color { return colors::Silver; },
         [](door_wall const&) -> color { return colors::Blue; },
         [](push_wall const&) -> color { return colors::DimGray; },
@@ -27,7 +28,7 @@ static auto get_color(level const& level, point_i map) -> color
         [](obstacle const&) -> color { return colors::CadetBlue; },
         [](diagonal_wall const&) -> color { return colors::DimGray; })};
 
-    if (state == level::tile_visibility::Visible) { return c; }
+    if (state == tile_visibility::Visible) { return c; }
 
     return {
         static_cast<u8>((c.R * 70) / 100),
@@ -56,7 +57,7 @@ auto map_renderer::draw(level const& level, player const& player) -> u32 const*
             i32 const xEnd {std::clamp(static_cast<i32>((mapX + 1) * cellSize), 0, _screenSize.Width)};
             if (xStart >= xEnd) { continue; }
 
-            u32 const color {get_color(level, point_i {mapX, mapY}).to_abgr()};
+            u32 const color {get_color(level.map(), point_i {mapX, mapY}).to_abgr()};
 
             for (i32 y {yStart}; y < yEnd; ++y) {
                 u32* rowPtr {&_screen[xStart + (y * _screenSize.Width)]};

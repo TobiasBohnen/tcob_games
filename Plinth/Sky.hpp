@@ -89,7 +89,7 @@ struct sky_settings {
 };
 
 // The sky: sun, moons, stars and clouds for the current time of day. `update` turns the settings into the frame the renderer draws.
-class sky_model {
+class sky {
 public:
     void set(sky_settings const& settings);
     void update(milliseconds time);

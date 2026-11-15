@@ -17,20 +17,20 @@
 #include "Level.hpp"
 #include "Walls.hpp"
 
-light_map::light_map()
+lighting::lighting()
     : _taskManager {locate_service<task_manager>()}
 {
 }
 
-auto light_map::lights() const -> std::span<dynamic_light const> { return _lights; }
+auto lighting::lights() const -> std::span<dynamic_light const> { return _lights; }
 
-auto light_map::lights_at(point_i map) const -> std::span<u32 const>
+auto lighting::lights_at(point_i map) const -> std::span<u32 const>
 {
     if (!map_t::Size.contains(map) || _cellLights.empty()) { return {}; }
     return _cellLights[PixelIndex(MAP_WIDTH, map.X, map.Y)];
 }
 
-void light_map::update(level const& lvl, usize losSamples)
+void lighting::update(level const& lvl, usize losSamples)
 {
     constexpr static f64 CELL_DIAGONAL_HALF {std::numbers::sqrt2 / 2}; // max distance from a cell's center to its farthest corner
 
@@ -89,7 +89,7 @@ void light_map::update(level const& lvl, usize losSamples)
                 walk.advance();
                 if (!map_t::Size.contains(walk.cell()) || walk.cell() == lightCell) { break; }
 
-                if (lvl.is_blocking_light(walk.cell())) {
+                if (lvl.map().is_blocking_light(walk.cell())) {
                     visible = false;
                     break;
                 }
@@ -137,7 +137,7 @@ void light_map::update(level const& lvl, usize losSamples)
                     point_d const cellCenter {cx + 0.5, cy + 0.5};
                     point_d const toLightXY {lt.Position - cellCenter};
 
-                    auto const slp {lvl.slopes_at(point_i {cx, cy})};
+                    auto const slp {lvl.map().slopes_at(point_i {cx, cy})};
                     f64 const  lowZ {std::min({slp.Floor.TL, slp.Floor.TR, slp.Floor.BL, slp.Floor.BR})};
                     f64 const  highZ {std::max({slp.Ceiling.TL, slp.Ceiling.TR, slp.Ceiling.BL, slp.Ceiling.BR})};
                     f64 const  dz {std::max({lowZ - lt.Z, lt.Z - highZ, 0.0})};

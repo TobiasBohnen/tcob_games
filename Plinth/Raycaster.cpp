@@ -19,6 +19,7 @@
 #include "CellWalk.hpp"
 #include "Common.hpp"
 #include "Level.hpp"
+#include "Map.hpp"
 #include "Player.hpp"
 #include "TextureCache.hpp"
 #include "Voxel.hpp"
@@ -200,7 +201,7 @@ auto raycaster::draw(level& level, player& player) -> std::span<u32>
     std::ranges::fill(_objectDepthBuffer, INFINITE_DIST);
 
     auto const playerCell {WorldToCell(player.Position)};
-    player.EyeZ = HeightAt(level.slopes_at(playerCell).Floor, playerCell, player.Position) + EYE_HEIGHT;
+    player.EyeZ = HeightAt(level.map().slopes_at(playerCell).Floor, playerCell, player.Position) + EYE_HEIGHT;
 
     i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.bob_amount())};
 
@@ -225,6 +226,7 @@ void raycaster::draw_columns(i32 screenCenterY, i32 columnStart, i32 columnEnd)
 {
     auto const& level {*_level};
     auto const& player {*_player};
+    auto const& map {level.map()};
 
     std::vector<column_hit::entry> crossed;
     crossed.reserve(static_cast<usize>(MAP_WIDTH) + MAP_HEIGHT + 2); // a ray cannot cross more cells than this
@@ -243,7 +245,7 @@ void raycaster::draw_columns(i32 screenCenterY, i32 columnStart, i32 columnEnd)
         for (;;) {
             crossed.push_back({.Cell = walk.cell(), .Dist = walk.entry()});
 
-            hitResult = std::visit(intersect, level.get_cell(walk.cell()));
+            hitResult = std::visit(intersect, map.get_cell(walk.cell()));
             if (hitResult) { break; }
 
             walk.advance();
@@ -261,7 +263,7 @@ void raycaster::draw_columns(i32 screenCenterY, i32 columnStart, i32 columnEnd)
         auto const prevCell {hitInPlayerCell ? walk.cell() : crossed[crossed.size() - 2].Cell}; // open cell the ray came from
         bool const recessed {hitInPlayerCell || ((hitResult->Distance - crossed.back().Dist) > WALL_RECESS_EPS)};
         auto const baseCell {recessed ? walk.cell() : prevCell};
-        auto const baseSlope {level.slopes_at(baseCell)};
+        auto const baseSlope {map.slopes_at(baseCell)};
         auto const hitPoint {player.Position + (rayDir * hitResult->Distance)};
 
         column_hit col {.X        = x,
@@ -454,6 +456,7 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
     }};
 
     usize const count {col.Crossed.size()};
+    auto&       map {level.map()};
     for (usize i {0}; i < count; ++i) {
         f64 const  t0 {col.Crossed[i].Dist};
         bool const isLast {i + 1 == count};
@@ -464,15 +467,15 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
         if (t1 <= t0) { continue; }
 
         auto const cell {col.Crossed[i].Cell};
-        auto const surface {level.surface_at(cell)};
-        auto const slopes {level.slopes_at(cell)};
+        auto const surface {map.surface_at(cell)};
+        auto const slopes {map.slopes_at(cell)};
 
         i32 const bottomBefore {col.Bottom};
         i32 const topBefore {col.Top};
 
         if (i > 0) {
             auto const prevCell {col.Crossed[i - 1].Cell};
-            auto const prevSlopes {level.slopes_at(prevCell)};
+            auto const prevSlopes {map.slopes_at(prevCell)};
             draw_riser(true, prevCell, cell, prevSlopes, slopes, surface, t0);
             draw_riser(false, prevCell, cell, prevSlopes, slopes, surface, t0);
         }
@@ -480,10 +483,10 @@ void raycaster::draw_floor_ceiling_column(column_hit& col)
         draw_flat(true, surface, cell, slopes, t0, t1);
         draw_flat(false, surface, cell, slopes, t0, t1);
 
-        if ((col.Bottom < bottomBefore || col.Top > topBefore) && IsWithinPlayerLight(player, cell)) { level.mark_visible(cell); }
+        if ((col.Bottom < bottomBefore || col.Top > topBefore) && IsWithinPlayerLight(player, cell)) { map.mark_visible(cell); }
     }
 
-    if (col.Top < col.Bottom && IsWithinPlayerLight(player, col.Cell)) { level.mark_visible(col.Cell); }
+    if (col.Top < col.Bottom && IsWithinPlayerLight(player, col.Cell)) { map.mark_visible(col.Cell); }
 }
 
 void raycaster::draw_wall_column(column_hit const& col)
@@ -509,11 +512,12 @@ void raycaster::draw_wall_column(column_hit const& col)
     f64 const texStep {static_cast<f64>(WALL_SIZE.Height) / rowsPerUnit};
     f64       texPos {static_cast<f64>(WALL_SIZE.Height) + ((static_cast<f64>(col.Top) - wallBottomRow) * texStep)};
 
-    auto const surfacePos {col.point_at(std::max(hit.Distance - LIGHT_BIAS, 0.0))};
+    auto const  surfacePos {col.point_at(std::max(hit.Distance - LIGHT_BIAS, 0.0))};
+    auto const& map {level.map()};
 
     // darken near inside corners of normal walls: where the neighbouring cell along the wall is solid
     f64 cornerShade {1.0};
-    if (_quality.ContactShadows && col.ToOpen != point_i::Zero && std::holds_alternative<normal_wall>(level.get_cell(col.Cell))) {
+    if (_quality.ContactShadows && col.ToOpen != point_i::Zero && std::holds_alternative<normal_wall>(map.get_cell(col.Cell))) {
         bool const xFace {col.ToOpen.X != 0};
         auto const hitPoint {col.point_at(hit.Distance)};
         f64 const  frac {std::clamp((xFace ? hitPoint.Y - col.Cell.Y : hitPoint.X - col.Cell.X), 0.0, 1.0)};
@@ -525,7 +529,7 @@ void raycaster::draw_wall_column(column_hit const& col)
             if (edgeDist >= CORNER_WIDTH) { continue; }
 
             auto const neighbor {open + (lowStep * sign)};
-            if (!map_t::Size.contains(neighbor) || !std::holds_alternative<normal_wall>(level.get_cell(neighbor))) { continue; }
+            if (!map_t::Size.contains(neighbor) || !std::holds_alternative<normal_wall>(map.get_cell(neighbor))) { continue; }
 
             f64 const t {1.0 - (edgeDist / CORNER_WIDTH)};
             cornerShade *= 1.0 - (CORNER_STRENGTH * t * t);
@@ -621,6 +625,7 @@ void raycaster::draw_voxel_objects(i32 screenCenterY)
 
     level&        level {*_level};
     player const& player {*_player};
+    auto const&   map {level.map()};
 
     // screen x, screen y and depth of a world point; depth is 0 for anything not safely in front of the camera
     auto const project {[&](point3_d const& world) -> std::tuple<f64, f64, f64> {
@@ -636,7 +641,7 @@ void raycaster::draw_voxel_objects(i32 screenCenterY)
     // where an object lands on screen, nothing if it is off screen or hidden behind walls
     auto const measure {[&](auto* vo) -> std::optional<screen_bounds> {
         auto const voCell {WorldToCell(vo->Position)};
-        f64 const  floorZ {HeightAt(level.slopes_at(voCell).Floor, voCell, vo->Position)};
+        f64 const  floorZ {HeightAt(map.slopes_at(voCell).Floor, voCell, vo->Position)};
         auto const xf {vo->make_transform()};
 
         f64  bboxMinX {INFINITE_DIST}, bboxMaxX {-INFINITE_DIST};
@@ -710,7 +715,7 @@ void raycaster::draw_voxel_objects(i32 screenCenterY)
 
         auto const [xStart, xEnd, yStart, yEnd, nearest, maxWallDist] {*bounds};
         auto const voCell {WorldToCell(vo->Position)};
-        f64 const  floorZ {HeightAt(level.slopes_at(voCell).Floor, voCell, vo->Position)};
+        f64 const  floorZ {HeightAt(map.slopes_at(voCell).Floor, voCell, vo->Position)};
         auto const xf {vo->make_transform()};
 
         auto const localOrigin {xf.to_local(point3_d::Lift(player.Position, player.EyeZ - floorZ))};
@@ -795,6 +800,7 @@ void raycaster::draw_motes()
     constexpr static f64 MIN_LIGHT {0.04}; // motes in less light than this are skipped
 
     auto const& level {*_level};
+    auto const& map {level.map()};
 
     static auto add_pixel {[](u32 px, u32 add, f64 t) -> u32 {
         u32 const w {static_cast<u32>(std::clamp(t, 0.0, 1.0) * 256.0)};
@@ -818,7 +824,7 @@ void raycaster::draw_motes()
     for (i32 cy {center.Y - reach}; cy <= center.Y + reach; ++cy) {
         for (i32 cx {center.X - reach}; cx <= center.X + reach; ++cx) {
             point_i const cell {cx, cy};
-            if (!map_t::Size.contains(cell) || std::holds_alternative<normal_wall>(level.get_cell(cell)) || !IsWithinPlayerLight(player, cell)) { continue; }
+            if (!map_t::Size.contains(cell) || std::holds_alternative<normal_wall>(map.get_cell(cell)) || !IsWithinPlayerLight(player, cell)) { continue; }
 
             auto const& motes {level.motes_at(cell)};
             if (motes.Count == 0) { continue; }
@@ -830,7 +836,7 @@ void raycaster::draw_motes()
                 if (c.Depth < -slack || std::abs(c.Lateral) > c.Depth + (2.0 * slack)) { continue; }
             }
 
-            auto const slopes {level.slopes_at(cell)};
+            auto const slopes {map.slopes_at(cell)};
 
             for (u32 i {0}; i < motes.Count; ++i) {
                 point_d const pos {cx + frac(HashUnit(cx, cy, i, 3) + (motes.Wind.X * t)) + (motes.Drift * std::sin((t * motes.DriftSpeed) + (HashUnit(cx, cy, i, 5) * TAU))),
