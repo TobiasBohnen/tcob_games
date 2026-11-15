@@ -33,12 +33,15 @@ void map::update(f64 dt)
     }
 }
 
-void map::toggle_wall(point_i pos)
+auto map::toggle_wall(point_i pos) -> bool
 {
-    std::visit(
+    return std::visit(
         [](auto&& w) {
             if constexpr (requires { w.toggle(); }) {
                 w.toggle();
+                return true;
+            } else {
+                return false;
             }
         },
         _cells[pos]);

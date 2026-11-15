@@ -23,6 +23,7 @@
 #include <utility>
 #include <vector>
 
+#include "CellWalk.hpp"
 #include "Common.hpp"
 #include "Level.hpp"
 #include "MapRenderer.hpp"
@@ -448,7 +449,14 @@ void Plinth::move_player(milliseconds deltaTime)
 
 void Plinth::action_toggle_wall()
 {
-    _level->map().toggle_wall(point_i {_player.Position + _player.Direction});
+    constexpr f64 USE_REACH {0.5};
+
+    auto&     map {_level->map()};
+    cell_walk walk {_player.Position, _player.Direction};
+    for (; walk.entry() <= USE_REACH && map_t::Size.contains(walk.cell()); walk.advance()) {
+        if (map.toggle_wall(walk.cell())) { break; }       // door or push wall: toggled
+        if (map.is_blocking_light(walk.cell())) { break; } // a wall is in the way
+    }
 }
 
 void Plinth::action_toggle_map()

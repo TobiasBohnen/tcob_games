@@ -130,8 +130,16 @@ void door_wall::toggle()
 
 auto door_wall::closest_point(point_i cellPos, point_d pos) const -> std::optional<point_d>
 {
-    if (State == wall_state::Open) { return std::nullopt; }
-    return ClosestPointInCell(cellPos, pos);
+    if (State == wall_state::Open || Timer >= 1.0) { return std::nullopt; }
+
+    f64 const cX {static_cast<f64>(cellPos.X)};
+    f64 const cY {static_cast<f64>(cellPos.Y)};
+
+    // the leaf is a slab through the middle of the cell, sliding out as Timer goes from 0 to 1
+    if (Orientation == orientation::BlocksNorthSouth) {
+        return point_d {std::clamp(pos.X, cX + Timer, cX + 1.0), cY + 0.5};
+    }
+    return point_d {cX + 0.5, std::clamp(pos.Y, cY, cY + 1.0 - Timer)};
 }
 
 auto push_wall::intersect(cell_intersect const& ci) const -> std::optional<wall_hit>

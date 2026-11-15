@@ -44,7 +44,7 @@ public:
 
     auto get_cell(point_i pos) const -> cell const&;
     void set_cell(point_i pos, cell const& c);
-    void toggle_wall(point_i pos);
+    auto toggle_wall(point_i pos) -> bool;
 
     auto surface_at(point_i pos) const -> cell_surface;
     auto slopes_at(point_i pos) const -> slopes;
