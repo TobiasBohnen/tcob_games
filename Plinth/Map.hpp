@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <optional>
 #include <vector>
 
 #include "Common.hpp"
@@ -48,6 +49,7 @@ public:
     auto surface_at(point_i pos) const -> cell_surface;
     auto slopes_at(point_i pos) const -> slopes;
     auto is_blocking_light(point_i pos) const -> bool;
+    auto closest_point_on_wall(point_i cellPos, point_d pos) const -> std::optional<point_d>;
 
     auto get_visibility(point_i pos) const -> tile_visibility;
     void mark_visible(point_i pos);

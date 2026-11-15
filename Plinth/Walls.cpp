@@ -14,7 +14,18 @@
 
 #include "Common.hpp"
 
+static auto ClosestPointInCell(point_i cellPos, point_d pos) -> point_d
+{
+    rect_d const cellRect {static_cast<f64>(cellPos.X), static_cast<f64>(cellPos.Y), 1.0, 1.0};
+    return {std::clamp(pos.X, cellRect.left(), cellRect.right()), std::clamp(pos.Y, cellRect.top(), cellRect.bottom())};
+}
+
 auto floor_cell::intersect(cell_intersect const& /* ci */) const -> std::optional<wall_hit>
+{
+    return std::nullopt;
+}
+
+auto floor_cell::closest_point(point_i /*cellPos*/, point_d /*pos*/) const -> std::optional<point_d>
 {
     return std::nullopt;
 }
@@ -31,6 +42,11 @@ auto normal_wall::intersect(cell_intersect const& ci) const -> std::optional<wal
     f64 const  segmentT {mirror ? 1.0 - wallX : wallX};
 
     return wall_hit {.Distance = ci.Distance, .SegmentT = segmentT, .Side = ci.Side ? hit_side::WestEast : hit_side::NorthSouth, .Texture = Texture};
+}
+
+auto normal_wall::closest_point(point_i cellPos, point_d pos) const -> std::optional<point_d>
+{
+    return ClosestPointInCell(cellPos, pos);
 }
 
 auto door_wall::intersect(cell_intersect const& ci) const -> std::optional<wall_hit>
@@ -110,6 +126,12 @@ void door_wall::toggle()
         State = wall_state::Closing;
         break;
     }
+}
+
+auto door_wall::closest_point(point_i cellPos, point_d pos) const -> std::optional<point_d>
+{
+    if (State == wall_state::Open) { return std::nullopt; }
+    return ClosestPointInCell(cellPos, pos);
 }
 
 auto push_wall::intersect(cell_intersect const& ci) const -> std::optional<wall_hit>
@@ -192,6 +214,12 @@ void push_wall::toggle()
     case wall_state::Opening:
         break;
     }
+}
+
+auto push_wall::closest_point(point_i cellPos, point_d pos) const -> std::optional<point_d>
+{
+    if (State == wall_state::Open) { return std::nullopt; }
+    return ClosestPointInCell(cellPos, pos);
 }
 
 auto obstacle::intersect(cell_intersect const& ci) const -> std::optional<wall_hit>
@@ -287,6 +315,45 @@ auto obstacle::intersect(cell_intersect const& ci) const -> std::optional<wall_h
     return closest;
 }
 
+auto obstacle::closest_point(point_i cellPos, point_d pos) const -> std::optional<point_d>
+{
+    std::optional<point_d> closest {};
+    f64                    minDistSq {std::numeric_limits<f64>::infinity()};
+
+    for (auto const& shape : Shapes) {
+        rect_d r {shape.LocalBounds};
+        r.move_by(cellPos);
+
+        point_d candidate {};
+        if (shape.IsRound) {
+            point_d const center {r.center()};
+            auto const [a, b] {r.local_center()};
+            if (a <= 0.0 || b <= 0.0) {
+                candidate = center;
+            } else {
+                point_d const uv {(pos.X - center.X) / a, (pos.Y - center.Y) / b};
+                f64 const     len {uv.length()};
+                if (len == 0.0) {
+                    candidate = center;
+                } else {
+                    point_d const onUnitCircle {uv.X / len, uv.Y / len};
+                    candidate = point_d {center.X + (onUnitCircle.X * a), center.Y + (onUnitCircle.Y * b)};
+                }
+            }
+        } else {
+            candidate = point_d {std::clamp(pos.X, r.left(), r.right()), std::clamp(pos.Y, r.top(), r.bottom())};
+        }
+
+        f64 const distSq {(pos - candidate).length_squared()};
+        if (distSq < minDistSq) {
+            minDistSq = distSq;
+            closest   = candidate;
+        }
+    }
+
+    return closest;
+}
+
 auto diagonal_wall::intersect(cell_intersect const& ci) const -> std::optional<wall_hit>
 {
     f64 const cX {static_cast<f64>(ci.Cell.X)};
@@ -323,4 +390,16 @@ auto diagonal_wall::intersect(cell_intersect const& ci) const -> std::optional<w
     }
 
     return wall_hit {.Distance = t, .SegmentT = segmentT, .Side = hit_side::Diagonal, .Texture = Texture};
+}
+
+auto diagonal_wall::closest_point(point_i cellPos, point_d pos) const -> std::optional<point_d>
+{
+    f64 const     cX {static_cast<f64>(cellPos.X)};
+    f64 const     cY {static_cast<f64>(cellPos.Y)};
+    bool const    nwSe {Orientation == orientation::NorthWestToSouthEast};
+    point_d const a {cX, nwSe ? cY : cY + 1.0};
+    point_d const b {cX + 1.0, nwSe ? cY + 1.0 : cY};
+    point_d const ab {b.X - a.X, b.Y - a.Y};
+    f64 const     t {std::clamp(((pos.X - a.X) * ab.X + (pos.Y - a.Y) * ab.Y) / (ab.X * ab.X + ab.Y * ab.Y), 0.0, 1.0)};
+    return point_d {a.X + (t * ab.X), a.Y + (t * ab.Y)};
 }

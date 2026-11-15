@@ -7,6 +7,7 @@
 
 #include "Common.hpp"
 
+#include <optional>
 #include <span>
 #include <vector>
 
@@ -20,7 +21,7 @@ class level {
 public:
     void update(milliseconds deltaTime, i32 lightLosSamples);
 
-    auto can_move_to(point_d from, point_d to, f64 radius, uid ignore = 0) const -> bool;
+    auto can_move_to(point_d from, point_d to, f64 radius, std::optional<f64> flightZ, uid ignore) const -> bool;
 
     auto spawn(level_object_desc desc) -> uid;
     auto find(uid id) -> level_object*;

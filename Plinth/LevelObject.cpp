@@ -1,8 +1,3 @@
-// Copyright (c) 2026 Tobias Bohnen
-//
-// This software is released under the MIT License.
-// https://opensource.org/licenses/MIT
-
 #include "LevelObject.hpp"
 
 #include <cstdlib>
@@ -42,6 +37,7 @@ auto voxel_object::make_rotation() const -> mat3_d
 level_object::level_object(uid id, level_object_desc desc)
     : _id {id}
     , _radius {desc.Radius}
+    , _flying {desc.Flying}
     , _mapMarker {desc.MapMarker}
     , _direction {desc.Direction}
     , _visual {desc.Visual}
@@ -91,6 +87,16 @@ auto level_object::direction() const -> point_d
 void level_object::set_direction(point_d p)
 {
     _direction = p;
+}
+
+auto level_object::flight_z() const -> std::optional<f64>
+{
+    if (!_flying) { return std::nullopt; }
+
+    auto const* s {sprite()};
+    if (!s) { return std::nullopt; }
+
+    return s->BaseZ + (s->Size.Height * 0.5); // BaseZ is the bottom of the sprite
 }
 
 auto level_object::overlaps(point_d pos, f64 radius) const -> bool

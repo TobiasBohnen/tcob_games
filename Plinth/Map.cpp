@@ -7,6 +7,7 @@
 
 #include <atomic>
 #include <cmath>
+#include <optional>
 #include <type_traits>
 #include <variant>
 
@@ -151,4 +152,9 @@ auto map::is_blocking_light(point_i pos) const -> bool
         }
     },
                       get_cell(pos));
+}
+
+auto map::closest_point_on_wall(point_i cellPos, point_d pos) const -> std::optional<point_d>
+{
+    return std::visit([&](auto const& w) { return w.closest_point(cellPos, pos); }, get_cell(cellPos));
 }

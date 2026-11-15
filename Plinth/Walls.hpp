@@ -44,6 +44,9 @@ struct cell_intersect {
 
 ////////////////////////////////////////////////////////////
 
+// Every cell type answers closest_point(): the point of its solid geometry nearest to `pos`, for the cell at `cellPos`.
+// Nothing for cells without any (floors, open doors).
+
 struct floor_cell {
     i32 FloorTexture {INVALID_INDEX};
     i32 CeilingTexture {INVALID_INDEX};
@@ -54,12 +57,14 @@ struct floor_cell {
     u8  Level {0};
 
     auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
+    auto closest_point(point_i cellPos, point_d pos) const -> std::optional<point_d>;
 };
 
 struct normal_wall {
     i32 Texture {0};
 
     auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
+    auto closest_point(point_i cellPos, point_d pos) const -> std::optional<point_d>;
 };
 
 struct door_wall {
@@ -84,6 +89,7 @@ struct door_wall {
     u8  Level {0};
 
     auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
+    auto closest_point(point_i cellPos, point_d pos) const -> std::optional<point_d>;
     void update(f64 dt);
     void toggle();
 
@@ -106,6 +112,7 @@ struct push_wall {
     u8  Level {0};
 
     auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
+    auto closest_point(point_i cellPos, point_d pos) const -> std::optional<point_d>;
     void update(f64 dt);
     void toggle();
 
@@ -131,6 +138,7 @@ struct obstacle {
     u8  Level {0};
 
     auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
+    auto closest_point(point_i cellPos, point_d pos) const -> std::optional<point_d>;
 };
 
 struct diagonal_wall {
@@ -151,6 +159,7 @@ struct diagonal_wall {
     u8  Level {0};
 
     auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
+    auto closest_point(point_i cellPos, point_d pos) const -> std::optional<point_d>;
 };
 
 using cell = std::variant<floor_cell, normal_wall, door_wall, push_wall, obstacle, diagonal_wall>;

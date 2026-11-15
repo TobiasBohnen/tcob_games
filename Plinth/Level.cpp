@@ -6,9 +6,9 @@
 #include "Level.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstdlib>
-#include <limits>
 #include <optional>
 #include <span>
 #include <vector>
@@ -34,7 +34,7 @@ void level::update(milliseconds deltaTime, i32 lightLosSamples)
         if (newPos == obj.position()) { continue; }
 
         if (obj.is_solid()) {
-            if (can_move_to(obj.position(), newPos, obj.radius(), obj.id())) {
+            if (can_move_to(obj.position(), newPos, obj.radius(), obj.flight_z(), obj.id())) {
                 obj.set_position(newPos);
             }
         } else {
@@ -47,77 +47,9 @@ void level::update(milliseconds deltaTime, i32 lightLosSamples)
     _lighting.update(*this, static_cast<usize>(lightLosSamples));
 }
 
-auto level::can_move_to(point_d from, point_d to, f64 radius, uid ignore) const -> bool
+auto level::can_move_to(point_d from, point_d to, f64 radius, std::optional<f64> flightZ, uid ignore) const -> bool
 {
     constexpr static f64 MAX_CLIMB {0.25};
-
-    // nearest solid point of a cell's wall geometry, nullopt if the cell has none
-    auto const closest_point_on_wall {[&](point_i cellPos, point_d pos) -> std::optional<point_d> {
-        rect_d const clampRect {static_cast<f64>(cellPos.X), static_cast<f64>(cellPos.Y), 1.0, 1.0};
-
-        return overloaded_visit(
-            _map.get_cell(cellPos),
-            [](floor_cell const&) -> std::optional<point_d> { return std::nullopt; },
-            [&](normal_wall const&) -> std::optional<point_d> {
-                return point_d {std::clamp(pos.X, clampRect.left(), clampRect.right()),
-                                std::clamp(pos.Y, clampRect.top(), clampRect.bottom())};
-            },
-            [&](obstacle const& w) -> std::optional<point_d> {
-                std::optional<point_d> closest {};
-                f64                    minDistSq {std::numeric_limits<f64>::infinity()};
-
-                for (auto const& def : w.Shapes) {
-                    rect_d r {def.LocalBounds};
-                    r.move_by(cellPos);
-
-                    point_d candidate {};
-
-                    if (def.IsRound) {
-                        point_d const center {r.center()};
-                        auto const [a, b] {r.local_center()};
-                        if (a <= 0.0 || b <= 0.0) {
-                            candidate = center;
-                        } else {
-                            point_d const uv {(pos.X - center.X) / a, (pos.Y - center.Y) / b};
-                            f64 const     len {uv.length()};
-                            if (len == 0.0) {
-                                candidate = center;
-                            } else {
-                                point_d const onUnitCircle {uv.X / len, uv.Y / len};
-                                candidate = point_d {center.X + (onUnitCircle.X * a), center.Y + (onUnitCircle.Y * b)};
-                            }
-                        }
-                    } else {
-                        candidate = point_d {std::clamp(pos.X, r.left(), r.right()), std::clamp(pos.Y, r.top(), r.bottom())};
-                    }
-
-                    f64 const distSq {(pos - candidate).length_squared()};
-                    if (distSq < minDistSq) {
-                        minDistSq = distSq;
-                        closest   = candidate;
-                    }
-                }
-
-                return closest;
-            },
-            [&](diagonal_wall const& w) -> std::optional<point_d> {
-                f64 const     cX {static_cast<f64>(cellPos.X)};
-                f64 const     cY {static_cast<f64>(cellPos.Y)};
-                bool const    nwSe {w.Orientation == diagonal_wall::orientation::NorthWestToSouthEast};
-                point_d const a {cX, nwSe ? cY : cY + 1.0};
-                point_d const b {cX + 1.0, nwSe ? cY + 1.0 : cY};
-                point_d const ab {b.X - a.X, b.Y - a.Y};
-                f64 const     t {std::clamp(((pos.X - a.X) * ab.X + (pos.Y - a.Y) * ab.Y) / (ab.X * ab.X + ab.Y * ab.Y), 0.0, 1.0)};
-                return point_d {a.X + (t * ab.X), a.Y + (t * ab.Y)};
-            },
-            [&](auto const& w) -> std::optional<point_d> {
-                if (w.State != wall_state::Open) {
-                    return point_d {std::clamp(pos.X, clampRect.left(), clampRect.right()),
-                                    std::clamp(pos.Y, clampRect.top(), clampRect.bottom())};
-                }
-                return std::nullopt;
-            });
-    }};
 
     // no wall geometry within `radius` of `pos`, and inside the map
     auto const is_wall_clear {[&](point_d pos) -> bool {
@@ -130,7 +62,7 @@ auto level::can_move_to(point_d from, point_d to, f64 radius, uid ignore) const 
             for (i32 tx {minCellX}; tx <= maxCellX; ++tx) {
                 if (tx < 0 || tx >= map_t::Size.Width || ty < 0 || ty >= map_t::Size.Height) { return false; }
 
-                auto const closest {closest_point_on_wall({tx, ty}, pos)};
+                auto const closest {_map.closest_point_on_wall({tx, ty}, pos)};
                 if (!closest) { continue; }
 
                 if ((pos - *closest).length_squared() < radius * radius) { return false; }
@@ -139,9 +71,26 @@ auto level::can_move_to(point_d from, point_d to, f64 radius, uid ignore) const 
         return true;
     }};
 
-    // no other object overlaps the circle at `pos`
+    // no other object overlaps the circle at `pos`; flyers don't stop each other
     auto const hit_test {[&](point_d pos) -> bool {
-        return std::ranges::any_of(_objects, [&](level_object const& go) { return go.id() != ignore && go.overlaps(pos, radius); });
+        return std::ranges::any_of(_objects, [&](level_object const& go) {
+            if (go.id() == ignore || (flightZ && go.flight_z())) { return false; }
+            return go.overlaps(pos, radius);
+        });
+    }};
+
+    // true if `pred` holds for every cell the circle at `pos` overlaps; it gets the cell and the point of it nearest to `pos`
+    auto const footprint_all {[&](point_d pos, auto&& pred) -> bool {
+        for (i32 ty {static_cast<i32>(std::floor(pos.Y - radius))}; ty <= static_cast<i32>(std::floor(pos.Y + radius)); ++ty) {
+            for (i32 tx {static_cast<i32>(std::floor(pos.X - radius))}; tx <= static_cast<i32>(std::floor(pos.X + radius)); ++tx) {
+                point_i const cell {tx, ty};
+                point_d const closest {std::clamp(pos.X, static_cast<f64>(tx), tx + 1.0), std::clamp(pos.Y, static_cast<f64>(ty), ty + 1.0)};
+                if ((pos - closest).length_squared() >= radius * radius) { continue; }
+
+                if (!pred(cell, closest)) { return false; }
+            }
+        }
+        return true;
     }};
 
     // every floor under the footprint at `pos` has to be within climbing range of the floor at `ref`
@@ -149,20 +98,30 @@ auto level::can_move_to(point_d from, point_d to, f64 radius, uid ignore) const 
         point_i const refCell {WorldToCell(ref)};
         f64 const     height {HeightAt(_map.slopes_at(refCell).Floor, refCell, ref)};
 
-        for (i32 ty {static_cast<i32>(std::floor(pos.Y - radius))}; ty <= static_cast<i32>(std::floor(pos.Y + radius)); ++ty) {
-            for (i32 tx {static_cast<i32>(std::floor(pos.X - radius))}; tx <= static_cast<i32>(std::floor(pos.X + radius)); ++tx) {
-                point_i const cell {tx, ty};
-                point_d const closest {std::clamp(pos.X, static_cast<f64>(tx), tx + 1.0), std::clamp(pos.Y, static_cast<f64>(ty), ty + 1.0)};
-                if ((pos - closest).length_squared() >= radius * radius) { continue; }
-
-                if (std::abs(HeightAt(_map.slopes_at(cell).Floor, cell, closest) - height) > MAX_CLIMB) { return false; }
-            }
-        }
-        return true;
+        return footprint_all(pos, [&](point_i cell, point_d closest) {
+            return std::abs(HeightAt(_map.slopes_at(cell).Floor, cell, closest) - height) <= MAX_CLIMB;
+        });
     }};
 
-    // only allow moves that can be undone, otherwise the player can walk into a spot the same rule won't let them leave
-    return footprint_reachable(to, from) && footprint_reachable(from, to) && is_wall_clear(to) && !hit_test(to);
+    // a flying object is a sphere at height `z`. Its center and eight points on its rim are tested against the floor and ceiling
+    // of the cell they are in: a slope under the rim touches the sphere before the center sees any rise.
+    auto const z_clear {[&](point_d pos, f64 z) -> bool {
+        constexpr static f64 DIAG {0.7071067811865476};
+
+        std::array<point_d, 9> const samples {{{0.0, 0.0}, {1.0, 0.0}, {-1.0, 0.0}, {0.0, 1.0}, {0.0, -1.0}, {DIAG, DIAG}, {DIAG, -DIAG}, {-DIAG, DIAG}, {-DIAG, -DIAG}}};
+
+        return std::ranges::all_of(samples, [&](point_d const& offset) {
+            point_d const p {pos + (offset * radius)};
+            point_i const cell {WorldToCell(p)};
+            auto const    s {_map.slopes_at(cell)};
+            return HeightAt(s.Floor, cell, p) <= z - radius && HeightAt(s.Ceiling, cell, p) >= z + radius;
+        });
+    }};
+
+    // walkers only make moves that can be undone, otherwise the player can walk into a spot the same rule won't let them leave;
+    // flyers are stopped by risers and ceilings in their way, walls and other objects stop everybody
+    bool const level_ok {flightZ ? z_clear(to, *flightZ) : (footprint_reachable(to, from) && footprint_reachable(from, to))};
+    return level_ok && is_wall_clear(to) && !hit_test(to);
 }
 
 auto level::spawn(level_object_desc desc) -> uid

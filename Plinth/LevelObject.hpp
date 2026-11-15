@@ -76,7 +76,8 @@ using object_visual = std::variant<std::monostate, sprite_object, voxel_object>;
 struct level_object_desc {
     point_d Position {};
     point_d Direction {};
-    f64     Radius {0.0}; // 0 = non solid
+    f64     Radius {0.0};   // 0 = non solid
+    bool    Flying {false}; // sprites only: keeps its height, floors and ceilings in its way stop it instead of being climbed
     color   MapMarker {colors::Green};
 
     object_visual                Visual;
@@ -98,6 +99,8 @@ public:
     auto direction() const -> point_d;
     void set_direction(point_d p);
 
+    auto flight_z() const -> std::optional<f64>;
+
     auto dead() const -> bool;
     void kill();
 
@@ -118,6 +121,7 @@ private:
     uid  _id;
     bool _dead {false};
     f64  _radius;
+    bool _flying {false};
 
     color   _mapMarker;
     point_d _direction;

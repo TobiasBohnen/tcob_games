@@ -14,6 +14,7 @@
 #include <limits>
 #include <memory>
 #include <numeric>
+#include <optional>
 #include <span>
 #include <unordered_map>
 #include <unordered_set>
@@ -246,7 +247,7 @@ Plinth::Plinth(game& game)
             x = rng(0, MAP_WIDTH - 1);
             y = rng(0, MAP_HEIGHT - 1);
             point_d const pos {static_cast<f64>(x), static_cast<f64>(y)};
-            if (!used.contains(point_i {x, y}) && _level->can_move_to(pos, pos, 1)) { break; }
+            if (!used.contains(point_i {x, y}) && _level->can_move_to(pos, pos, 1, std::nullopt, 0)) { break; }
         }
         used.insert(point_i {x, y});
         return point_d {static_cast<f64>(x) + 0.5f, static_cast<f64>(y) + 0.5f};
@@ -471,10 +472,10 @@ void Plinth::action_fire()
     f64 const spawnX {_player.Position.X + (forwardOffset * fwdX) + (rightOffset * rightX)};
     f64 const spawnY {_player.Position.Y + (forwardOffset * fwdY) + (rightOffset * rightY)};
 
-    _level->spawn({.Position = {spawnX, spawnY},
-
+    _level->spawn({.Position  = {spawnX, spawnY},
                    .Direction = _player.Direction * 10,
-                   .Radius    = 0.05,
+                   .Radius    = 0.075,
+                   .Flying    = true,
                    .Visual    = sprite,
                    .Light     = light});
 }
