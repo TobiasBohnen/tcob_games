@@ -7,7 +7,6 @@
 
 #include "Common.hpp"
 
-#include <optional>
 #include <span>
 #include <vector>
 
@@ -69,6 +68,7 @@ public:
     void update(milliseconds deltaTime, i32 lightLosSamples);
 
     auto can_move_to(point_d from, point_d to, f64 radius, uid ignore = 0) const -> bool;
+    auto is_blocking_light(point_i map) const -> bool;
 
     void toggle_wall(point_i map);
 
@@ -99,14 +99,7 @@ public:
     auto sky() -> sky_model&;
     auto sky() const -> sky_model const&;
 
-    auto is_blocking_light(point_i map) const -> bool;
-
 private:
-    auto is_wall_clear(point_d pos, f64 radius) const -> bool;
-    auto hit_test(point_d pos, f64 radius, uid ignore = 0) const -> level_object const*;
-
-    auto closest_point_on_wall(point_i map, point_d pos) const -> std::optional<point_d>;
-
     void prepare_slopes();
 
     map_t                                               _map;
