@@ -24,21 +24,28 @@ public:
     void set_quality(quality_settings const& quality, f64 projPlaneDist);
 
 private:
+    struct frame {
+        level&        Level;
+        player const& Player;
+        camera        Camera;
+        i32           CenterY {};
+    };
+
     struct column_hit;
 
-    auto accumulate_light(point_d const& surfacePos, f64 surfaceZ, point_i cell, u32 lightMask) const -> color_d;
+    auto accumulate_light(frame const& frame, point_d const& surfacePos, f64 surfaceZ, point_i cell, u32 lightMask) const -> color_d;
 
-    void draw_surface_pixel(isize x, isize y, u8 const* tex, isize srcIdx, point_d const& surfacePos, f64 surfaceZ, f64 shade);
+    void draw_surface_pixel(frame const& frame, isize x, isize y, u8 const* tex, isize srcIdx, point_d const& surfacePos, f64 surfaceZ, f64 shade);
 
-    void draw_columns(i32 screenCenterY, i32 columnStart, i32 columnEnd);
-    void draw_floor_ceiling_column(column_hit& col);
-    void draw_wall_column(column_hit const& col);
+    void draw_columns(frame const& frame, i32 columnStart, i32 columnEnd);
+    void draw_floor_ceiling_column(frame const& frame, column_hit& col);
+    void draw_wall_column(frame const& frame, column_hit const& col);
 
-    void draw_sprites(i32 screenCenterY);
-    void draw_voxel_objects(i32 screenCenterY);
-    void draw_motes();
+    void draw_sprites(frame const& frame);
+    void draw_voxel_objects(frame const& frame);
+    void draw_motes(frame const& frame);
 
-    auto sky_pixel(i32 y, point_d const& rayDir) const -> u32;
+    auto sky_pixel(frame const& frame, i32 y, point_d const& rayDir) const -> u32;
 
     std::vector<u32> _screen;
 
@@ -52,9 +59,6 @@ private:
     f64              _projPlaneDist {0};
 
     task_manager& _taskManager;
-    level*        _level {nullptr};
-    player const* _player {nullptr};
 
     procgen::value_noise _noise {{16, 16}, 0.05f};
-    camera               _camera;
 };
