@@ -28,18 +28,25 @@ struct blocker {
     std::optional<uid> Object {}; // the object in the way, for block_kind::Object
 };
 
-// an object that ran into something while moving
 struct collision_event {
     uid     Id {}; // the object that was stopped
     blocker By {};
     point_d At {}; // where it stopped
 };
 
+struct occupancy_event {
+    std::optional<uid> Object {}; // empty for the player
+    point_i            Cell {};
+    point_d            Position {};
+};
+
 class level {
 public:
     signal<collision_event, level> Collision;
 
-    void update(milliseconds deltaTime, i32 lightLosSamples);
+    signal<std::vector<occupancy_event>, level> Occupancy;
+
+    void update(milliseconds deltaTime, i32 lightLosSamples, point_d playerPosition);
 
     auto can_move_to(point_d from, point_d to, f64 radius, std::optional<f64> flightZ, uid ignore) const -> bool;
 

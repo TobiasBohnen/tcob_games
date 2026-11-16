@@ -240,7 +240,7 @@ Plinth::Plinth(game& game)
     _level->motes().set(0, {});
     _level->motes().set(1, MOTES_RAIN);
     _level->sky().set(SKY_NIGHT);
-    _level->update(0ms, 0);
+    _level->update(0ms, 0, point_d::Zero);
 
     _level->Collision.connect([&](collision_event const& ev) {
         constexpr static std::array<std::string_view, 3> KINDS {"Wall", "Surface", "Object"};
@@ -345,7 +345,7 @@ void Plinth::on_update(milliseconds deltaTime)
 {
     move_player(deltaTime);
     _player.update(deltaTime);
-    _level->update(deltaTime, _quality.LightLosSamples);
+    _level->update(deltaTime, _quality.LightLosSamples, _player.Position);
 
     _screenOverlay->update(deltaTime);
 

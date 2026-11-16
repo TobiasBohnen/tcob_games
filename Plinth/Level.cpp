@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <optional>
 #include <span>
+#include <variant>
 #include <vector>
 
 #include "Common.hpp"
@@ -21,12 +22,30 @@
 #include "Sky.hpp"
 #include "Walls.hpp"
 
-void level::update(milliseconds deltaTime, i32 lightLosSamples)
+void level::update(milliseconds deltaTime, i32 lightLosSamples, point_d playerPosition)
 {
     _time += deltaTime;
     _sky.update(_time);
 
     f64 const dt {deltaTime.count() / 1000};
+
+    std::vector<occupancy_event> occupancy;
+    occupancy.reserve(_objects.size() + 1);
+    occupancy.push_back({.Cell = WorldToCell(playerPosition), .Position = playerPosition});
+    for (auto const& obj : _objects) {
+        occupancy.push_back({.Object = obj.id(), .Cell = WorldToCell(obj.position()), .Position = obj.position()});
+    }
+
+    // a closing door opens again while someone is in its cell
+    for (auto const& ev : occupancy) {
+        if (!map_t::Size.contains(ev.Cell)) { continue; }
+
+        auto const* door {std::get_if<door_wall>(&_map.get_cell(ev.Cell))};
+        if (door && door->State == wall_state::Closing) { _map.toggle_wall(ev.Cell); }
+    }
+
+    Occupancy(occupancy);
+
     _map.update(dt);
 
     std::vector<collision_event> collisions;
@@ -42,13 +61,15 @@ void level::update(milliseconds deltaTime, i32 lightLosSamples)
             continue;
         }
 
+        // reported once, when the object runs into something; it stays put until it moves again or the game removes it
         if (!obj.blocked()) {
             obj.set_blocked(true);
             collisions.push_back({.Id = obj.id(), .By = *hit, .At = obj.position()});
         }
     }
 
-    for (auto& ev : collisions) { emit_signal(Collision, ev); }
+    // after the loop, so a handler can spawn or kill objects; whatever it kills is removed right below
+    for (auto& ev : collisions) { Collision(ev); }
 
     std::erase_if(_objects, [](level_object const& go) { return go.dead(); });
 
