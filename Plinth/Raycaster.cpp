@@ -631,44 +631,41 @@ void raycaster::draw_voxel_objects(frame const& frame)
         f64 const  floorZ {HeightAt(map.slopes_at(voCell).Floor, voCell, vo->Position)};
         auto const xf {vo->make_transform()};
 
-        f64  bboxMinX {INFINITE_DIST}, bboxMaxX {-INFINITE_DIST};
-        f64  bboxMinY {INFINITE_DIST}, bboxMaxY {-INFINITE_DIST};
-        f64  bboxMinDepth {INFINITE_DIST};
-        bool anyVisible {false};
+        f64  minX {INFINITE_DIST}, maxX {-INFINITE_DIST}, minY {INFINITE_DIST}, maxY {-INFINITE_DIST}, minDepth {INFINITE_DIST};
         bool behindCamera {false};
 
         for (auto const& corner : vo->Grid->corners()) {
-            auto const     worldCorner {xf.to_world(corner)};
-            point3_d const adjustedCorner {.X = worldCorner.X, .Y = worldCorner.Y, .Z = worldCorner.Z + floorZ};
-            auto const [sx, sy, depth] {project(adjustedCorner)};
+            auto const worldCorner {xf.to_world(corner)};
+            auto const [sx, sy, depth] {project(point3_d {.X = worldCorner.X, .Y = worldCorner.Y, .Z = worldCorner.Z + floorZ})};
             if (depth <= 0.0) {
                 behindCamera = true;
                 continue;
             }
 
-            anyVisible   = true;
-            bboxMinX     = std::min(bboxMinX, sx);
-            bboxMaxX     = std::max(bboxMaxX, sx);
-            bboxMinY     = std::min(bboxMinY, sy);
-            bboxMaxY     = std::max(bboxMaxY, sy);
-            bboxMinDepth = std::min(bboxMinDepth, depth);
+            minX     = std::min(minX, sx);
+            maxX     = std::max(maxX, sx);
+            minY     = std::min(minY, sy);
+            maxY     = std::max(maxY, sy);
+            minDepth = std::min(minDepth, depth);
         }
-        if (!anyVisible) { return std::nullopt; }
+        if (minDepth == INFINITE_DIST) { return std::nullopt; } // no corner in front of the camera
 
-        rect_i const bboxRect {point_i {static_cast<i32>(bboxMinX), static_cast<i32>(bboxMinY)},
-                               size_i {static_cast<i32>(bboxMaxX - bboxMinX) + 1, static_cast<i32>(bboxMaxY - bboxMinY) + 1}};
-        if (!screenRect.intersects(bboxRect, true)) { return std::nullopt; }
+        rect_i const bbox {{static_cast<i32>(minX), static_cast<i32>(minY)},
+                           {static_cast<i32>(maxX - minX) + 1, static_cast<i32>(maxY - minY) + 1}};
+        if (!screenRect.intersects(bbox, true)) { return std::nullopt; }
 
-        screen_bounds b {.XStart  = std::clamp(bboxRect.Position.X, 0, _screenSize.Width),
-                         .XEnd    = std::clamp(bboxRect.Position.X + bboxRect.Size.Width, 0, _screenSize.Width),
-                         .YStart  = std::clamp(bboxRect.Position.Y, 0, _screenSize.Height),
-                         .YEnd    = std::clamp(bboxRect.Position.Y + bboxRect.Size.Height, 0, _screenSize.Height),
-                         .Nearest = behindCamera ? 0.0 : bboxMinDepth};
+        auto const clampX {[&](i32 v) { return std::clamp(v, 0, _screenSize.Width); }};
+        auto const clampY {[&](i32 v) { return std::clamp(v, 0, _screenSize.Height); }};
+
+        screen_bounds b {.XStart  = clampX(bbox.Position.X),
+                         .XEnd    = clampX(bbox.Position.X + bbox.Size.Width),
+                         .YStart  = clampY(bbox.Position.Y),
+                         .YEnd    = clampY(bbox.Position.Y + bbox.Size.Height),
+                         .Nearest = behindCamera ? 0.0 : minDepth};
 
         for (i32 x {b.XStart}; x < b.XEnd; ++x) { b.MaxWallDist = std::max(b.MaxWallDist, _wallDepthBuffer[x]); }
-        if (b.Nearest >= b.MaxWallDist) { return std::nullopt; }
 
-        return b;
+        return b.Nearest < b.MaxWallDist ? std::optional {b} : std::nullopt;
     }};
 
     // nearest first, so pixels that are already covered reject the objects behind them
