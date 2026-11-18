@@ -54,6 +54,10 @@ public:
 
     auto world_diagonal() const -> f64;
 
+    auto segment_hits(point_d from, point_d to, f64 z, f64 radius) const -> bool;
+
+    auto filled_at(point_d pos, f64 z) const -> bool;
+
 private:
     auto make_rotation() const -> mat3_d;
 };
@@ -109,7 +113,7 @@ public:
 
     auto is_seen() const -> bool;
 
-    auto overlaps(point_d pos, f64 radius) const -> bool;
+    auto overlaps(point_d from, point_d to, f64 radius, std::optional<f64> z) const -> bool;
 
     auto sprite() const -> sprite_object const*;
     auto sprite() -> sprite_object*;

@@ -1,5 +1,7 @@
 #include "LevelObject.hpp"
 
+#include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <optional>
 #include <variant>
@@ -23,6 +25,35 @@ auto sprite_object::screen_bottom(f64 scale, i32 screenCenterY, f64 eyeHeight) c
 auto voxel_object::make_transform() const -> voxel_transform { return {.Rotation = make_rotation(), .Position = Position, .Pivot = Grid->pivot(), .BaseZ = BaseZ, .Scale = Scale}; }
 
 auto voxel_object::world_diagonal() const -> f64 { return Grid->diagonal() * Scale; }
+
+auto voxel_object::segment_hits(point_d from, point_d to, f64 z, f64 radius) const -> bool
+{
+    auto const t {make_transform()};
+
+    point_d const s {to - from};
+    f64 const     len {std::sqrt(s.length_squared())};
+    point_d const perp {len > 1e-9 ? point_d {-s.Y / len, s.X / len} : point_d {1.0, 0.0}};
+
+    auto const cast {[&](f64 side, f64 up) {
+        f64 const ox {perp.X * side * radius};
+        f64 const oy {perp.Y * side * radius};
+        f64 const oz {up * radius};
+
+        point3_d const a {t.to_local({.X = from.X + ox, .Y = from.Y + oy, .Z = z + oz})};
+        point3_d const b {t.to_local({.X = to.X + ox, .Y = to.Y + oy, .Z = z + oz})};
+        return Grid->raycast(a, b - a, 1.0).Hit;
+    }};
+
+    return cast(0, 0) || cast(1, 0) || cast(-1, 0) || cast(0, 1) || cast(0, -1);
+}
+
+auto voxel_object::filled_at(point_d pos, f64 z) const -> bool
+{
+    auto const l {make_transform().to_local({.X = pos.X, .Y = pos.Y, .Z = z})};
+    return Grid->occupied(static_cast<i32>(std::floor(l.X)),
+                          static_cast<i32>(std::floor(l.Y)),
+                          static_cast<i32>(std::floor(l.Z)));
+}
 
 auto voxel_object::make_rotation() const -> mat3_d
 {
@@ -109,12 +140,22 @@ void level_object::set_blocked(bool b)
     _blocked = b;
 }
 
-auto level_object::overlaps(point_d pos, f64 radius) const -> bool
+auto level_object::overlaps(point_d from, point_d to, f64 radius, std::optional<f64> z) const -> bool
 {
     if (!is_solid()) { return false; }
-    f64 const     combined {radius + _radius};
-    point_d const d {position() - pos};
-    return d.dot(d) < combined * combined;
+
+    // broad phase: closest point of the segment to our centre
+    auto const c {position()};
+    auto const s {to - from};
+    f64 const  len2 {s.length_squared()};
+    f64 const  t {len2 > 0.0 ? std::clamp((c - from).dot(s) / len2, 0.0, 1.0) : 0.0};
+    f64 const  combined {radius + _radius};
+    if ((c - (from + (s * t))).length_squared() >= combined * combined) { return false; }
+
+    if (z) {
+        if (auto const* v {voxel()}) { return v->segment_hits(from, to, *z, radius); }
+    }
+    return true; // sprites, and callers without a height
 }
 
 auto level_object::sprite() const -> sprite_object const* { return std::get_if<sprite_object>(&_visual); }

@@ -487,12 +487,12 @@ void Plinth::action_fire()
     f64 const spawnX {_player.Position.X + (forwardOffset * fwdX) + (rightOffset * rightX)};
     f64 const spawnY {_player.Position.Y + (forwardOffset * fwdY) + (rightOffset * rightY)};
 
-    _level->spawn({.Position  = {spawnX, spawnY},
-                   .Direction = _player.Direction * 10,
-                   .Radius    = 0.075,
-                   .Flying    = true,
-                   .Visual    = sprite,
-                   .Light     = light});
+    _shots.push_back(_level->spawn({.Position  = {spawnX, spawnY},
+                                    .Direction = _player.Direction * 10,
+                                    .Radius    = 0.075,
+                                    .Flying    = true,
+                                    .Visual    = sprite,
+                                    .Light     = light}));
 }
 
 void Plinth::handle_action(game_action action)
@@ -558,6 +558,12 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
         break;
     case input::scan_code::Q: {
         set_quality(quality_level::High);
+    } break;
+    case input::scan_code::X: {
+        for (auto uid : _shots) {
+            _level->find(uid)->kill();
+        }
+        _shots.clear();
     } break;
     case input::scan_code::K: {
         if (!_screenOverlay->ScreenEffect) {

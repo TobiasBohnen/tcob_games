@@ -106,8 +106,8 @@ auto level::find_blocker(point_d from, point_d to, f64 radius, std::optional<f64
     }};
 
     // the first other solid object overlapping the circle at `pos`
-    auto const hit_test {[&](point_d pos) -> level_object const* {
-        auto const it {std::ranges::find_if(_objects, [&](level_object const& go) { return go.id() != ignore && go.overlaps(pos, radius); })};
+    auto const hit_test {[&]() -> level_object const* {
+        auto const it {std::ranges::find_if(_objects, [&](level_object const& go) { return go.id() != ignore && go.overlaps(from, to, radius, flightZ); })};
         return it != _objects.end() ? &*it : nullptr;
     }};
 
@@ -158,7 +158,7 @@ auto level::find_blocker(point_d from, point_d to, f64 radius, std::optional<f64
     bool const surface_ok {flightZ ? z_clear(to, *flightZ) : (footprint_reachable(to, from) && footprint_reachable(from, to))};
     if (!surface_ok) { return blocker {.Kind = block_kind::Surface}; }
 
-    if (auto const* other {hit_test(to)}) { return blocker {.Kind = block_kind::Object, .Object = other->id()}; }
+    if (auto const* other {hit_test()}) { return blocker {.Kind = block_kind::Object, .Object = other->id()}; }
 
     return std::nullopt;
 }
