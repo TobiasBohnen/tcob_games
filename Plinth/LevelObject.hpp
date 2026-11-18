@@ -103,7 +103,8 @@ public:
     auto direction() const -> point_d;
     void set_direction(point_d p);
 
-    auto flight_z() const -> std::optional<f64>;
+    auto flying() const -> bool;
+    auto center_z() const -> f64;
 
     auto blocked() const -> bool;
     void set_blocked(bool b);

@@ -8,7 +8,6 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
-#include <optional>
 
 #include "Common.hpp"
 #include "Level.hpp"
@@ -16,7 +15,7 @@
 void player::move(level const& level, f64 forwardAmount, f64 strafeAmount, f64 rotateAmount)
 {
     // a position is reachable if the step up is climbable and nothing blocks it
-    auto const can_go {[&](point_d const& pos) { return level.can_move_to(Position, pos, Radius, std::nullopt, 0); }};
+    auto const can_go {[&](point_d const& pos) { return level.can_move_to(Position, pos, Radius, 0, false, 0); }};
 
     // full move first, then slide along either axis
     auto const try_move {[&](point_d const& newPos) {

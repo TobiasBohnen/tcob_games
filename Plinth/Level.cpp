@@ -54,7 +54,7 @@ void level::update(milliseconds deltaTime, i32 lightLosSamples, point_d playerPo
         auto const newPos {obj.position() + obj.direction() * dt};
         if (newPos == obj.position()) { continue; }
 
-        auto const hit {obj.is_solid() ? find_blocker(obj.position(), newPos, obj.radius(), obj.flight_z(), obj.id()) : std::nullopt};
+        auto const hit {find_blocker(obj.position(), newPos, obj.radius(), obj.center_z(), obj.flying(), obj.id())};
         if (!hit) {
             obj.set_blocked(false);
             obj.set_position(newPos);
@@ -76,12 +76,12 @@ void level::update(milliseconds deltaTime, i32 lightLosSamples, point_d playerPo
     _lighting.update(*this, static_cast<usize>(lightLosSamples));
 }
 
-auto level::can_move_to(point_d from, point_d to, f64 radius, std::optional<f64> flightZ, uid ignore) const -> bool
+auto level::can_move_to(point_d from, point_d to, f64 radius, f64 z, bool flying, uid ignore) const -> bool
 {
-    return !find_blocker(from, to, radius, flightZ, ignore);
+    return !find_blocker(from, to, radius, z, flying, ignore);
 }
 
-auto level::find_blocker(point_d from, point_d to, f64 radius, std::optional<f64> flightZ, uid ignore) const -> std::optional<blocker>
+auto level::find_blocker(point_d from, point_d to, f64 radius, f64 z, bool flying, uid ignore) const -> std::optional<blocker>
 {
     constexpr static f64 MAX_CLIMB {0.25};
 
@@ -105,9 +105,9 @@ auto level::find_blocker(point_d from, point_d to, f64 radius, std::optional<f64
         return true;
     }};
 
-    // the first other solid object overlapping the circle at `pos`
+    // the first other solid object that the move from -> to runs into; voxel objects are tested against their actual voxels at height z
     auto const hit_test {[&]() -> level_object const* {
-        auto const it {std::ranges::find_if(_objects, [&](level_object const& go) { return go.id() != ignore && go.overlaps(from, to, radius, flightZ); })};
+        auto const it {std::ranges::find_if(_objects, [&](level_object const& go) { return go.id() != ignore && go.overlaps(from, to, radius, z); })};
         return it != _objects.end() ? &*it : nullptr;
     }};
 
@@ -137,7 +137,7 @@ auto level::find_blocker(point_d from, point_d to, f64 radius, std::optional<f64
 
     // a flying object is a sphere at height `z`. Its center and eight points on its rim are tested against the floor and ceiling
     // of the cell they are in: a slope under the rim touches the sphere before the center sees any rise.
-    auto const z_clear {[&](point_d pos, f64 z) -> bool {
+    auto const z_clear {[&](point_d pos, f64 zz) -> bool {
         constexpr static f64 DIAG {0.7071067811865476};
 
         std::array<point_d, 9> const samples {{{0.0, 0.0}, {1.0, 0.0}, {-1.0, 0.0}, {0.0, 1.0}, {0.0, -1.0}, {DIAG, DIAG}, {DIAG, -DIAG}, {-DIAG, DIAG}, {-DIAG, -DIAG}}};
@@ -146,7 +146,7 @@ auto level::find_blocker(point_d from, point_d to, f64 radius, std::optional<f64
             point_d const p {pos + (offset * radius)};
             point_i const cell {WorldToCell(p)};
             auto const    s {_map.slopes_at(cell)};
-            return HeightAt(s.Floor, cell, p) <= z - radius && HeightAt(s.Ceiling, cell, p) >= z + radius;
+            return HeightAt(s.Floor, cell, p) <= zz - radius && HeightAt(s.Ceiling, cell, p) >= zz + radius;
         });
     }};
 
@@ -155,7 +155,7 @@ auto level::find_blocker(point_d from, point_d to, f64 radius, std::optional<f64
 
     // walkers only make moves that can be undone, otherwise the player can walk into a spot the same rule won't let them leave;
     // flyers are stopped by risers, slopes and ceilings in their way
-    bool const surface_ok {flightZ ? z_clear(to, *flightZ) : (footprint_reachable(to, from) && footprint_reachable(from, to))};
+    bool const surface_ok {flying ? z_clear(to, z) : (footprint_reachable(to, from) && footprint_reachable(from, to))};
     if (!surface_ok) { return blocker {.Kind = block_kind::Surface}; }
 
     if (auto const* other {hit_test()}) { return blocker {.Kind = block_kind::Object, .Object = other->id()}; }

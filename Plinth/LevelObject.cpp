@@ -120,14 +120,15 @@ void level_object::set_direction(point_d p)
     _direction = p;
 }
 
-auto level_object::flight_z() const -> std::optional<f64>
+auto level_object::flying() const -> bool { return _flying; }
+
+auto level_object::center_z() const -> f64
 {
-    if (!_flying) { return std::nullopt; }
+    if (auto const* s {sprite()}) { return s->BaseZ + (s->Size.Height * 0.5); }
+    if (auto const* v {voxel()}) { return v->BaseZ + (v->Grid->Size.Z * v->Scale * 0.5); }
+    if (_light) { return _light->Z; }
 
-    auto const* s {sprite()};
-    if (!s) { return std::nullopt; }
-
-    return s->BaseZ + (s->Size.Height * 0.5); // BaseZ is the bottom of the sprite
+    return 0.0;
 }
 
 auto level_object::blocked() const -> bool

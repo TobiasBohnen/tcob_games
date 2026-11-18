@@ -48,7 +48,7 @@ public:
 
     void update(milliseconds deltaTime, i32 lightLosSamples, point_d playerPosition);
 
-    auto can_move_to(point_d from, point_d to, f64 radius, std::optional<f64> flightZ, uid ignore) const -> bool;
+    auto can_move_to(point_d from, point_d to, f64 radius, f64 z, bool flying, uid ignore) const -> bool;
 
     auto spawn(level_object_desc desc) -> uid;
     auto find(uid id) -> level_object*;
@@ -71,7 +71,7 @@ public:
     auto sky() const -> ::sky const&;
 
 private:
-    auto find_blocker(point_d from, point_d to, f64 radius, std::optional<f64> flightZ, uid ignore) const -> std::optional<blocker>;
+    auto find_blocker(point_d from, point_d to, f64 radius, f64 z, bool flying, uid ignore) const -> std::optional<blocker>;
 
     ::map      _map;
     ::motes    _motes;
