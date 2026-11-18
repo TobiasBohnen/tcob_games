@@ -297,13 +297,7 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
     auto&       map {frame.Level.map()};
     auto const& player {frame.Player};
 
-    u32*      screenBuf {_screen.data()};
-    u8 const* wallTexPtr {nullptr};
-
-    auto const wall_texture {[&]() -> u8 const* {
-        if (wallTexPtr == nullptr) { wallTexPtr = _cache.texture(col.Hit.Texture, 0); }
-        return wallTexPtr;
-    }};
+    u32* screenBuf {_screen.data()};
 
     constexpr static f64 MIN_RISER_HEIGHT {1e-4};
     constexpr static f64 RISER_LIGHT_BIAS {0.001}; // lights the face from the open side
@@ -312,6 +306,8 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
     auto const draw_riser {[&](bool isFloor, point_i prevCell, point_i cell, auto const& prevSlopes, auto const& slopes, cell_surface const& surface, f64 t) {
         i32 const texId {isFloor ? surface.FloorTexture : surface.CeilingTexture};
         if (texId == SKY_TEXTURE) { return; }
+        u8 const* tex {_cache.texture(texId, 0)};
+        if (tex == nullptr) { return; }
 
         auto const edge {col.point_at(t)};
         f64 const  prevZ {HeightAt(isFloor ? prevSlopes.Floor : prevSlopes.Ceiling, prevCell, edge)};
@@ -325,10 +321,6 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
         i32 const  from {std::max(row(std::max(hereZ, prevZ)), col.Top)};
         i32 const  to {std::min(row(std::min(hereZ, prevZ)), col.Bottom)};
         if (from >= to) { return; }
-
-        u8 const* tex {texId != INVALID_INDEX ? _cache.texture(texId, 0) : nullptr};
-        if (tex == nullptr) { tex = wall_texture(); }
-        if (tex == nullptr) { return; }
 
         // u runs along the edge: if the cells differ in x, the edge runs along y
         f64 const     along {cell.X != prevCell.X ? edge.Y : edge.X};
@@ -366,6 +358,10 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
             return;
         }
 
+        i32 const texId {isFloor ? surface.FloorTexture : surface.CeilingTexture};
+        u8 const* tex {_cache.texture(texId, 0)};
+        if (tex == nullptr) { return; }
+
         auto const dp {player.Position - cell};
         auto const [vx, vy] {col.RayDir};
 
@@ -376,11 +372,6 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
         f64 const A {D * vx * vy};
         f64 const B {((slope.TR - slope.TL) * vx) + ((slope.BL - slope.TL) * vy) + (D * ((dp.X * vy) + (dp.Y * vx)))};
         f64 const C {slope.TL + ((slope.TR - slope.TL) * dp.X) + ((slope.BL - slope.TL) * dp.Y) + (D * dp.X * dp.Y)};
-
-        i32 const texId {isFloor ? surface.FloorTexture : surface.CeilingTexture};
-        u8 const* tex {texId != INVALID_INDEX ? _cache.texture(texId, 0) : nullptr};
-        if (tex == nullptr) { tex = wall_texture(); }
-        if (tex == nullptr) { return; }
 
         bool const linear {std::abs(A) < 1e-12};
 
@@ -428,16 +419,15 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
             if (isFloor && surface.FloorReflectivity > 0.0) {
                 f64 const mirrored {z - col.WallBase + ((player.EyeZ - z) * ((col.Hit.Distance / std::max(t, MIN_RAY_DIST)) - 1.0))};
                 f64 const height {std::max(mirrored, 0.0)}; // height above the wall base that the bounced ray reaches
-                if (height < std::min(REFLECTION_HEIGHT, col.WallTop - col.WallBase) && wall_texture() != nullptr) {
-                    u8 const* wallTex {wall_texture()};
-
+                u8 const* wallTexPtr {_cache.texture(col.Hit.Texture, 0)};
+                if (height < std::min(REFLECTION_HEIGHT, col.WallTop - col.WallBase) && wallTexPtr != nullptr) {
                     i32 const wallTexX {std::clamp(static_cast<i32>((1.0 - col.Hit.SegmentT) * static_cast<f64>(WALL_SIZE.Width)), 0, WALL_SIZE.Width - 1)};
                     i32 const wallTexY {std::clamp(static_cast<i32>((1.0 - (height - std::floor(height))) * static_cast<f64>(WALL_SIZE.Height)), 0, WALL_SIZE.Height - 1)};
                     i32 const wallSrc {(wallTexX + (wallTexY * WALL_SIZE.Width)) * TEXTURE_BPP};
 
                     point_d const wallPoint {col.point_at(col.Hit.Distance)};
                     auto const    wallTint {accumulate_light(frame, wallPoint, col.WallBase + height, WorldToCell(wallPoint), LIGHT_LAYERS_ALL)};
-                    u32 const     reflected {ApplyTint(wallTex[wallSrc + 0], wallTex[wallSrc + 1], wallTex[wallSrc + 2], DitherTint(wallTint, col.X, y, _quality))};
+                    u32 const     reflected {ApplyTint(wallTexPtr[wallSrc + 0], wallTexPtr[wallSrc + 1], wallTexPtr[wallSrc + 2], DitherTint(wallTint, col.X, y, _quality))};
 
                     u32& pixel {screenBuf[PixelIndex(_screenSize.Width, col.X, y)]};
                     pixel = BlendPixel(pixel, reflected, surface.FloorReflectivity * (1.0 - (height / REFLECTION_HEIGHT)));
@@ -492,10 +482,12 @@ void raycaster::draw_wall_column(frame const& frame, column_hit const& col)
     constexpr static f64 CORNER_STRENGTH {0.6};
     constexpr static f64 LIGHT_BIAS {0.001};  // lights a wall from the open side so the cell lookup never lands inside the wall
 
+    auto const& hit {col.Hit};
+    auto const* tex {_cache.texture(hit.Texture, 0)};
+    if (tex == nullptr) { return; }
+
     auto&       map {frame.Level.map()};
     auto const& player {frame.Player};
-
-    auto const& hit {col.Hit};
 
     if (col.Top >= col.Bottom) { return; }
 
@@ -503,8 +495,6 @@ void raycaster::draw_wall_column(frame const& frame, column_hit const& col)
     f64 const rowsPerUnit {_projPlaneDist / dist};
     f64 const wallBottomRow {std::round(col.CenterY + ((player.EyeZ - col.WallBase) * rowsPerUnit))};
 
-    auto const* tex {_cache.texture(hit.Texture, 0)};
-    if (tex == nullptr) { return; }
     i32 const texX {std::clamp(static_cast<i32>((1.0 - hit.SegmentT) * static_cast<f64>(WALL_SIZE.Width)), 0, WALL_SIZE.Width - 1)};
     f64 const texStep {static_cast<f64>(WALL_SIZE.Height) / rowsPerUnit};
     f64       texPos {static_cast<f64>(WALL_SIZE.Height) + ((static_cast<f64>(col.Top) - wallBottomRow) * texStep)};
@@ -777,7 +767,7 @@ void raycaster::draw_voxel_objects(frame const& frame)
                             if (depth >= _objectDepthBuffer[depthIndex]) { continue; }
 
                             _objectDepthBuffer[depthIndex] = depth;
-                            screenBuf[depthIndex]          = ApplyTint(hit.Color.R, hit.Color.G, hit.Color.B, DitherTint(tint, bx, by, _quality));
+                            screenBuf[depthIndex]          = ApplyTint(hit.Color.R, hit.Color.G, hit.Color.B, tint);
                             wrote                          = true;
                         }
                     }

@@ -187,18 +187,22 @@ void screen_overlay::draw_hud(player const& player)
 
 void screen_overlay::draw_message()
 {
+    constexpr static f64 REFERENCE_HEIGHT {180};
+
     if (_message.empty()) { return; }
 
-    auto* const tex {_cache.texture(fontTexture, 0)};
-    auto const  texSize {_cache.texture_size(fontTexture, 0)};
-    auto const  charSize {texSize.Height};
-
-    point_i const offset {5, 5};
+    auto* const   tex {_cache.texture(fontTexture, 0)};
+    auto const    texSize {_cache.texture_size(fontTexture, 0)};
+    auto const    charHeight {texSize.Height};
+    auto const    charWidth {8};
+    f64 const     scale {static_cast<f64>(_screenSize.Height) / REFERENCE_HEIGHT};
+    i32 const     scaledCharHeight {static_cast<i32>(charHeight * scale)};
+    i32 const     scaledCharWidth {static_cast<i32>(charWidth * scale)};
+    point_i const offset {static_cast<i32>(5 * scale), static_cast<i32>(15 * scale)};
 
     for (i32 i {0}; i < std::ssize(_message); ++i) {
         char const c {_message[i]};
 
-        // Explicit ASCII mapping: locale-independent, and unsupported characters are skipped.
         i32 index {-1};
         if (c >= '0' && c <= '9') {
             index = c - '0';
@@ -212,7 +216,7 @@ void screen_overlay::draw_message()
         BlitMasked(_screen.data(), _screenSize,
                    {.Tex      = tex,
                     .TexPitch = texSize.Width,
-                    .Src      = {index * charSize, 0, charSize, charSize},
-                    .Dst      = {offset.X + (i * (charSize + 1)), offset.Y, charSize, charSize}});
+                    .Src      = {index * charWidth, 0, charWidth, charHeight},
+                    .Dst      = {offset.X + (i * (scaledCharWidth + 1)), offset.Y, scaledCharWidth, scaledCharHeight}});
     }
 }

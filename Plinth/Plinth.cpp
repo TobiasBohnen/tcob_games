@@ -557,7 +557,7 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
         _startRecord = true;
         break;
     case input::scan_code::Q: {
-        set_quality(quality_level::Low);
+        set_quality(quality_level::High);
     } break;
     case input::scan_code::K: {
         if (!_screenOverlay->ScreenEffect) {
