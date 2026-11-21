@@ -15,8 +15,10 @@
 // PLACEHOLDER START
 inline constexpr i32 handTexture {666};
 inline constexpr i32 compassTexture {777};
-inline constexpr i32 fontTexture {815};
 inline constexpr i32 ballTexture {123};
+
+inline constexpr i32 FONT_TEXTURE_NORMAL {815};
+
 // PLACEHOLDER END
 
 ////////////////////////////////////////////////////////////

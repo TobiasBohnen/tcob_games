@@ -23,12 +23,14 @@ public:
     void show_message(string const& msg);
 
 private:
-    void draw_screen_effect();
+    void draw_screen_effect() const;
 
-    void draw_target(level const& level);
-    void draw_weapon(player const& player);
-    void draw_hud(player const& player);
-    void draw_message();
+    void draw_target(level const& level) const;
+    void draw_weapon(player const& player) const;
+    void draw_hud(player const& player) const;
+    void draw_message() const;
+
+    void draw_text(string_view text, point_i pos, bool shadow) const;
 
     std::span<u32> _screen;
     size_i         _screenSize;

@@ -18,14 +18,19 @@
 
 ////////////////////////////////////////////////////////////
 
+static constexpr i32 UI_REFERENCE_HEIGHT {180};
+static constexpr i32 FONT_GLYPH_SIZE {5};
+static constexpr u32 TEXT_SHADOW_COLOR {0xFF000000u};
+
 struct blit_params {
     u8 const* Tex {};
     i32       TexPitch {};
     rect_i    Src;
     rect_i    Dst;
+    u32       Tint {0}; // 0 = use texture color, otherwise draw every opaque texel in this color
 };
 
-void BlitMasked(u32* dst, size_i _screenSize, blit_params const& p)
+static void BlitMasked(u32* dst, size_i _screenSize, blit_params const& p)
 {
     auto const srcOrigin {p.Src.Position};
     auto const srcSize {p.Src.Size};
@@ -47,9 +52,26 @@ void BlitMasked(u32* dst, size_i _screenSize, blit_params const& p)
             i32 const texOffset {(texX + (texY * p.TexPitch)) * TEXTURE_BPP};
             if (IsMagenta(p.Tex, texOffset)) { continue; }
 
-            row[x - xStart] = 0xFF000000u | (static_cast<u32>(p.Tex[texOffset + 2]) << 16) | (static_cast<u32>(p.Tex[texOffset + 1]) << 8) | static_cast<u32>(p.Tex[texOffset + 0]);
+            if (p.Tint != 0) {
+                row[x - xStart] = p.Tint;
+            } else {
+                row[x - xStart] = 0xFF000000u | (static_cast<u32>(p.Tex[texOffset + 2]) << 16) | (static_cast<u32>(p.Tex[texOffset + 1]) << 8) | static_cast<u32>(p.Tex[texOffset + 0]);
+            }
         }
     }
+}
+
+static auto UIScale(size_i screenSize) -> i32
+{
+    return std::max(1, screenSize.Height / UI_REFERENCE_HEIGHT);
+}
+
+static auto GlyphIndex(char c) -> i32
+{
+    if (c >= '0' && c <= '9') { return c - '0'; }
+    if (c >= 'a' && c <= 'z') { return 10 + (c - 'a'); }
+    if (c >= 'A' && c <= 'Z') { return 10 + (c - 'A'); }
+    return -1;
 }
 
 screen_overlay::screen_overlay(texture_cache& cache)
@@ -89,17 +111,19 @@ void screen_overlay::show_message(string const& msg)
     _message      = msg;
 }
 
-void screen_overlay::draw_screen_effect()
+void screen_overlay::draw_screen_effect() const
 {
     if (ScreenEffect) {
         ScreenEffect(_screen);
     }
 }
 
-void screen_overlay::draw_target(level const& level)
+void screen_overlay::draw_target(level const& level) const
 {
     constexpr u32 BOUNDS_COLOR {0xFF878F99u};
     constexpr i32 CORNER_LEN {6};
+
+    i32 const textScale {UIScale(_screenSize)};
 
     for (auto const& obj : level.objects()) {
         if (!obj.is_seen()) { continue; }
@@ -129,10 +153,13 @@ void screen_overlay::draw_target(level const& level)
             _screen[PixelIndex(_screenSize.Width, right - i, bottom)] = BOUNDS_COLOR;
             _screen[PixelIndex(_screenSize.Width, right, bottom - i)] = BOUNDS_COLOR;
         }
+
+        i32 const labelY {std::max(0, top - ((FONT_GLYPH_SIZE + 2) * textScale))};
+        draw_text("MONSTER", {left, labelY}, false);
     }
 }
 
-void screen_overlay::draw_weapon(player const& player)
+void screen_overlay::draw_weapon(player const& player) const
 {
     constexpr static f64 REFERENCE_HEIGHT {360};
     constexpr static f64 BOB_MULTIPLIER {2.0};
@@ -154,10 +181,8 @@ void screen_overlay::draw_weapon(player const& player)
                 .Dst      = {drawX, drawY, drawSize.Width, drawSize.Height}});
 }
 
-void screen_overlay::draw_hud(player const& player)
+void screen_overlay::draw_hud(player const& player) const
 {
-    constexpr static f64 REFERENCE_HEIGHT {180};
-
     constexpr f64 COMPASS_NORTH_POS {0.375};
     constexpr f64 COMPASS_TOP_MARGIN {5.0};
     constexpr u32 COMPASS_MARKER_COLOR {0xFF0000FFu};
@@ -170,7 +195,7 @@ void screen_overlay::draw_hud(player const& player)
     i32 const  texHeight {compassTexSize.Height};
     i32 const  compassVisibleWidth {texWidth / 4 * 3};
 
-    f64 const scale {static_cast<f64>(_screenSize.Height) / REFERENCE_HEIGHT};
+    f64 const scale {static_cast<f64>(_screenSize.Height) / UI_REFERENCE_HEIGHT};
 
     i32 const drawHeight {static_cast<i32>(std::round(texHeight * scale))};
     i32 const drawWidth {static_cast<i32>(std::round(compassVisibleWidth * scale))};
@@ -183,7 +208,6 @@ void screen_overlay::draw_hud(player const& player)
     f64 const     rightDot {player.Direction.as_perpendicular().dot(worldNorth)};
     f64 const     relativeAngle {-std::atan2(rightDot, forwardDot)};
 
-    // Texture pixel that sits at the screen center for the current heading.
     i32 const center {static_cast<i32>(std::lround((COMPASS_NORTH_POS + (relativeAngle / TAU)) * texWidth))};
 
     i32 srcStart {(center - (compassVisibleWidth / 2)) % texWidth};
@@ -224,38 +248,45 @@ void screen_overlay::draw_hud(player const& player)
     }
 }
 
-void screen_overlay::draw_message()
+void screen_overlay::draw_message() const
 {
-    constexpr static f64 REFERENCE_HEIGHT {180};
+    i32 const     scale {UIScale(_screenSize)};
+    point_i const offset {5 * scale, 15 * scale};
+    draw_text(_message, offset, true);
+}
 
-    if (_message.empty()) { return; }
+void screen_overlay::draw_text(string_view text, point_i pos, bool shadow) const
+{
+    if (text.empty()) { return; }
 
-    auto* const   tex {_cache.texture(fontTexture, 0)};
-    auto const    texSize {_cache.texture_size(fontTexture, 0)};
-    auto const    charHeight {texSize.Height};
-    auto const    charWidth {8};
-    f64 const     scale {static_cast<f64>(_screenSize.Height) / REFERENCE_HEIGHT};
-    i32 const     scaledCharHeight {static_cast<i32>(charHeight * scale)};
-    i32 const     scaledCharWidth {static_cast<i32>(charWidth * scale)};
-    point_i const offset {static_cast<i32>(5 * scale), static_cast<i32>(15 * scale)};
+    auto* const tex {_cache.texture(FONT_TEXTURE_NORMAL, 0)};
+    if (!tex) { return; }
+    auto const texSize {_cache.texture_size(FONT_TEXTURE_NORMAL, 0)};
+    assert(texSize.Height == FONT_GLYPH_SIZE);
 
-    for (i32 i {0}; i < std::ssize(_message); ++i) {
-        char const c {_message[i]};
+    i32 const scale {UIScale(_screenSize)};
+    i32 const advance {(FONT_GLYPH_SIZE + 1) * scale};
 
-        i32 index {-1};
-        if (c >= '0' && c <= '9') {
-            index = c - '0';
-        } else if (c >= 'a' && c <= 'z') {
-            index = 10 + (c - 'a');
-        } else if (c >= 'A' && c <= 'Z') {
-            index = 10 + (c - 'A');
+    // pass 0 = shadow, pass 1 = text, so a shadow never covers a neighbouring glyph
+    for (i32 pass {shadow ? 0 : 1}; pass < 2; ++pass) {
+        point_i   cursor {pos};
+        i32 const offset {pass == 0 ? scale : 0};
+
+        for (char const c : text) {
+            if (c == '\n') {
+                cursor = {pos.X, cursor.Y + advance};
+                continue;
+            }
+
+            if (i32 const index {GlyphIndex(c)}; index >= 0) {
+                BlitMasked(_screen.data(), _screenSize,
+                           {.Tex      = tex,
+                            .TexPitch = texSize.Width,
+                            .Src      = {index * FONT_GLYPH_SIZE, 0, FONT_GLYPH_SIZE, FONT_GLYPH_SIZE},
+                            .Dst      = {cursor.X + offset, cursor.Y + offset, FONT_GLYPH_SIZE * scale, FONT_GLYPH_SIZE * scale},
+                            .Tint     = pass == 0 ? TEXT_SHADOW_COLOR : 0u});
+            }
+            cursor.X += advance;
         }
-        if (index < 0) { continue; }
-
-        BlitMasked(_screen.data(), _screenSize,
-                   {.Tex      = tex,
-                    .TexPitch = texSize.Width,
-                    .Src      = {index * charWidth, 0, charWidth, charHeight},
-                    .Dst      = {offset.X + (i * (scaledCharWidth + 1)), offset.Y, scaledCharWidth, scaledCharHeight}});
     }
 }

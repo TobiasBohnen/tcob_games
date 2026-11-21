@@ -55,7 +55,7 @@ void texture_cache::load()
     load_image(10, 0, "res/floor.png");
     load_image(11, 0, "res/ceiling.png");
     load_image(15, 0, "res/transparent.png");
-    load_image(fontTexture, 0, "res/font.png");
+    load_image(FONT_TEXTURE_NORMAL, 0, "res/font.png");
     load_image(handTexture, 0, "res/hand.png");
     load_image(compassTexture, 0, "res/compass.png");
     load_image(ballTexture, 0, "res/ball.png");
