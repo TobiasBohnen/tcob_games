@@ -42,9 +42,8 @@ struct occupancy_event {
 
 class level {
 public:
-    signal<collision_event, level> Collision;
-
-    signal<std::vector<occupancy_event>, level> Occupancy;
+    signal<std::vector<collision_event>, level> Collisions;
+    signal<std::vector<occupancy_event>, level> Occupancies;
 
     void update(milliseconds deltaTime, i32 lightLosSamples, point_d playerPosition);
 

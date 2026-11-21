@@ -242,9 +242,9 @@ Plinth::Plinth(game& game)
     _level->sky().set(SKY_NIGHT);
     _level->update(0ms, 0, point_d::Zero);
 
-    _level->Collision.connect([&](collision_event const& ev) {
+    _level->Collisions.connect([&](auto const& ev) {
         constexpr static std::array<std::string_view, 3> KINDS {"Wall", "Surface", "Object"};
-        _screenOverlay->show_message(std::format("{};{};{:.2f};{:.2f}", ev.Id, KINDS[static_cast<usize>(ev.By.Kind)], ev.At.X, ev.At.Y));
+        _screenOverlay->show_message(std::format("{};{};{:.2f};{:.2f}", ev.back().Id, KINDS[static_cast<usize>(ev.back().By.Kind)], ev.back().At.X, ev.back().At.Y));
     });
 
     rng                         rng;
