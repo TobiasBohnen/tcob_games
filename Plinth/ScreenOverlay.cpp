@@ -6,11 +6,13 @@
 #include "ScreenOverlay.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <chrono>
 #include <cmath>
 #include <span>
 
 #include "Common.hpp"
+#include "Level.hpp"
 #include "Player.hpp"
 #include "TextureCache.hpp"
 
@@ -23,7 +25,7 @@ struct blit_params {
     rect_i    Dst;
 };
 
-void BlitMasked(u32* dst, size_i screenSize, blit_params const& p)
+void BlitMasked(u32* dst, size_i _screenSize, blit_params const& p)
 {
     auto const srcOrigin {p.Src.Position};
     auto const srcSize {p.Src.Size};
@@ -31,14 +33,14 @@ void BlitMasked(u32* dst, size_i screenSize, blit_params const& p)
     auto const drawSize {p.Dst.Size};
 
     i32 const xStart {std::max(0, -dstPos.X)};
-    i32 const xEnd {std::min(drawSize.Width, screenSize.Width - dstPos.X)};
+    i32 const xEnd {std::min(drawSize.Width, _screenSize.Width - dstPos.X)};
     i32 const yStart {std::max(0, -dstPos.Y)};
-    i32 const yEnd {std::min(drawSize.Height, screenSize.Height - dstPos.Y)};
+    i32 const yEnd {std::min(drawSize.Height, _screenSize.Height - dstPos.Y)};
     if (xStart >= xEnd || yStart >= yEnd) { return; }
 
     for (i32 y {yStart}; y < yEnd; ++y) {
         i32 const  texY {srcOrigin.Y + (y * srcSize.Height / drawSize.Height)};
-        u32* const row {dst + PixelIndex(screenSize.Width, dstPos.X + xStart, y + dstPos.Y)};
+        u32* const row {dst + PixelIndex(_screenSize.Width, dstPos.X + xStart, y + dstPos.Y)};
 
         for (i32 x {xStart}; x < xEnd; ++x) {
             i32 const texX {srcOrigin.X + (x * srcSize.Width / drawSize.Width)};
@@ -65,14 +67,15 @@ void screen_overlay::update(milliseconds deltaTime)
     }
 }
 
-auto screen_overlay::draw(player const& player, std::span<u32> screen, size_i screenSize) -> std::span<u32>
+auto screen_overlay::draw(level const& level, player const& player, std::span<u32> screen, size_i screenSize) -> std::span<u32>
 {
     _screen     = screen;
     _screenSize = screenSize;
 
-    draw_weapon(player);
-
     draw_screen_effect();
+
+    draw_target(level);
+    draw_weapon(player);
 
     draw_hud(player);
     draw_message();
@@ -90,6 +93,42 @@ void screen_overlay::draw_screen_effect()
 {
     if (ScreenEffect) {
         ScreenEffect(_screen);
+    }
+}
+
+void screen_overlay::draw_target(level const& level)
+{
+    constexpr u32 BOUNDS_COLOR {0xFF878F99u};
+    constexpr i32 CORNER_LEN {6};
+
+    for (auto const& obj : level.objects()) {
+        if (!obj.is_seen()) { continue; }
+        auto const* vo {obj.voxel()};
+        if (!vo || !vo->ScreenBounds) { continue; }
+
+        auto const bounds {*vo->ScreenBounds};
+
+        i32 const left {bounds.Left};
+        i32 const top {bounds.Top};
+        i32 const right {bounds.Right - 1};
+        i32 const bottom {bounds.Bottom - 1};
+
+        assert(left >= 0 && left < _screenSize.Width && right >= 0 && right < _screenSize.Width && top >= 0 && top < _screenSize.Height && bottom >= 0 && bottom < _screenSize.Height);
+
+        i32 const w {right - left + 1};
+        i32 const h {bottom - top + 1};
+        i32 const len {std::min({CORNER_LEN, w, h})};
+
+        for (i32 i {0}; i < len; ++i) {
+            _screen[PixelIndex(_screenSize.Width, left + i, top)]     = BOUNDS_COLOR;
+            _screen[PixelIndex(_screenSize.Width, left, top + i)]     = BOUNDS_COLOR;
+            _screen[PixelIndex(_screenSize.Width, right - i, top)]    = BOUNDS_COLOR;
+            _screen[PixelIndex(_screenSize.Width, right, top + i)]    = BOUNDS_COLOR;
+            _screen[PixelIndex(_screenSize.Width, left + i, bottom)]  = BOUNDS_COLOR;
+            _screen[PixelIndex(_screenSize.Width, left, bottom - i)]  = BOUNDS_COLOR;
+            _screen[PixelIndex(_screenSize.Width, right - i, bottom)] = BOUNDS_COLOR;
+            _screen[PixelIndex(_screenSize.Width, right, bottom - i)] = BOUNDS_COLOR;
+        }
     }
 }
 

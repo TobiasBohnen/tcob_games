@@ -19,6 +19,7 @@
 #include "CellWalk.hpp"
 #include "Common.hpp"
 #include "Level.hpp"
+#include "LevelObject.hpp"
 #include "Map.hpp"
 #include "Player.hpp"
 #include "TextureCache.hpp"
@@ -28,6 +29,7 @@
 constexpr f64 INV_255 {1.0 / 255.0};
 constexpr f64 WALL_RECESS_EPS {1e-6}; // a wall hit further into its cell than this is recessed (door, diagonal)
 constexpr f64 MIN_RAY_DIST {1e-4};    // keeps row projection finite for surfaces at the player
+constexpr f64 SEEN_MIN_LIGHT {0.02};  // an object lit dimmer than this (brightest channel) does not count as seen
 
 static auto ApplyTint(u8 r, u8 g, u8 b, color_d tint) -> u32
 {
@@ -76,6 +78,8 @@ static auto IsWithinPlayerLight(player const& player, point_i cell) -> bool
     point_d const toCell {point_d {cell.X + 0.5, cell.Y + 0.5} - player.Position};
     return toCell.length_squared() <= range * range;
 }
+
+static auto IsVisiblyLit(color_d tint) -> bool { return std::max({tint.R, tint.G, tint.B}) >= SEEN_MIN_LIGHT; }
 
 static auto HashUnit(i32 gx, i32 gy, u32 index, u32 salt) -> f64
 {
@@ -570,7 +574,7 @@ void raycaster::draw_sprites(frame const& frame)
 
         auto const spriteCell {WorldToCell(spr->Position)};
         auto const spriteTint {accumulate_light(frame, spr->Position, spr->BaseZ, spriteCell, spr->LightMask)};
-        bool const inLight {IsWithinPlayerLight(player, spriteCell)};
+        bool const inLight {IsVisiblyLit(spriteTint)};
 
         for (i32 x {drawStart.X}; x < drawEnd.X; ++x) {
             if (depth >= _wallDepthBuffer[x]) { continue; }
@@ -598,17 +602,6 @@ void raycaster::draw_sprites(frame const& frame)
 
 void raycaster::draw_voxel_objects(frame const& frame)
 {
-    struct screen_bounds {
-        i32 XStart {};
-        i32 XEnd {};
-        i32 YStart {};
-        i32 YEnd {};
-        f64 Nearest {};     // nothing of the object is closer than this
-        f64 MaxWallDist {}; // farthest wall behind its columns
-
-        auto area() const -> i32 { return (XEnd - XStart) * (YEnd - YStart); }
-    };
-
     level&        level {frame.Level};
     player const& player {frame.Player};
     auto const&   map {level.map()};
@@ -626,7 +619,9 @@ void raycaster::draw_voxel_objects(frame const& frame)
     u32*         screenBuf {_screen.data()};
 
     // where an object lands on screen, nothing if it is off screen or hidden behind walls
-    auto const measure {[&](auto* vo) -> std::optional<screen_bounds> {
+    auto const measure {[&](voxel_object const* const vo) -> std::optional<screen_bounds> {
+        if (!vo->Grid) { return std::nullopt; }
+
         auto const voCell {WorldToCell(vo->Position)};
         f64 const  floorZ {HeightAt(map.slopes_at(voCell).Floor, voCell, vo->Position)};
         auto const xf {vo->make_transform()};
@@ -657,13 +652,13 @@ void raycaster::draw_voxel_objects(frame const& frame)
         auto const clampX {[&](i32 v) { return std::clamp(v, 0, _screenSize.Width); }};
         auto const clampY {[&](i32 v) { return std::clamp(v, 0, _screenSize.Height); }};
 
-        screen_bounds b {.XStart  = clampX(bbox.Position.X),
-                         .XEnd    = clampX(bbox.Position.X + bbox.Size.Width),
-                         .YStart  = clampY(bbox.Position.Y),
-                         .YEnd    = clampY(bbox.Position.Y + bbox.Size.Height),
+        screen_bounds b {.Left    = clampX(bbox.Position.X),
+                         .Right   = clampX(bbox.Position.X + bbox.Size.Width),
+                         .Top     = clampY(bbox.Position.Y),
+                         .Bottom  = clampY(bbox.Position.Y + bbox.Size.Height),
                          .Nearest = behindCamera ? 0.0 : minDepth};
 
-        for (i32 x {b.XStart}; x < b.XEnd; ++x) { b.MaxWallDist = std::max(b.MaxWallDist, _wallDepthBuffer[x]); }
+        for (i32 x {b.Left}; x < b.Right; ++x) { b.MaxWallDist = std::max(b.MaxWallDist, _wallDepthBuffer[x]); }
 
         return b.Nearest < b.MaxWallDist ? std::optional {b} : std::nullopt;
     }};
@@ -680,24 +675,21 @@ void raycaster::draw_voxel_objects(frame const& frame)
     }
     std::ranges::sort(_voxelOrder, [](auto const& a, auto const& b) { return a.first < b.first; });
 
-    std::vector<std::optional<screen_bounds>> measured;
-    measured.reserve(_voxelOrder.size());
-
     f64 totalArea {0.0};
     for (auto const& entry : _voxelOrder) {
         auto* const vo {entry.second->voxel()};
-        measured.push_back(vo->Grid ? measure(vo) : std::nullopt);
-        if (measured.back()) { totalArea += measured.back()->area(); }
+        vo->ScreenBounds = measure(vo);
+        if (vo->ScreenBounds) { totalArea += vo->ScreenBounds->area(); }
     }
     i32 const stride {totalArea > _quality.VoxelPixelBudget ? static_cast<i32>(std::ceil(std::sqrt(totalArea / _quality.VoxelPixelBudget))) : 1};
 
     for (usize oi {0}; oi < _voxelOrder.size(); ++oi) {
         auto* const vo {_voxelOrder[oi].second->voxel()};
 
-        auto const& bounds {measured[oi]};
+        auto const& bounds {vo->ScreenBounds};
         if (!bounds) { continue; }
 
-        auto const [xStart, xEnd, yStart, yEnd, nearest, maxWallDist] {*bounds};
+        auto const [left, right, top, bottom, nearest, maxWallDist] {*bounds};
         auto const voCell {WorldToCell(vo->Position)};
         f64 const  floorZ {HeightAt(map.slopes_at(voCell).Floor, voCell, vo->Position)};
         auto const xf {vo->make_transform()};
@@ -705,22 +697,22 @@ void raycaster::draw_voxel_objects(frame const& frame)
         auto const localOrigin {xf.to_local(point3_d::Lift(player.Position, player.EyeZ - floorZ))};
 
         auto const edge_len_sq {[&](i32 col) { return ComputeCameraRayDir(col, _screenSize.Width, player).length_squared(); }};
-        f64 const  maxLenSq {std::max(edge_len_sq(bounds->XStart), edge_len_sq(xEnd - 1))};
-        f64 const  maxSlope {std::max(std::abs(frame.CenterY - yStart), std::abs(yEnd - frame.CenterY)) / _projPlaneDist};
+        f64 const  maxLenSq {std::max(edge_len_sq(bounds->Left), edge_len_sq(right - 1))};
+        f64 const  maxSlope {std::max(std::abs(frame.CenterY - top), std::abs(bottom - frame.CenterY)) / _projPlaneDist};
         f64 const  maxT {(maxWallDist * std::sqrt(maxLenSq + (maxSlope * maxSlope))) + vo->world_diagonal()};
 
-        i32 const strideCols {((xEnd - bounds->XStart) + stride - 1) / stride};
+        i32 const strideCols {((right - bounds->Left) + stride - 1) / stride};
 
-        std::atomic_bool drawn {false};
+        std::atomic_bool drawn {false}; // set when a visibly lit pixel of the object was written
 
         _taskManager.run_parallel([&](par_task const& ctx) {
             bool wrote {false};
 
             for (isize scol {ctx.Start}; scol < ctx.End; ++scol) {
-                i32 const x {static_cast<i32>(PixelIndex(stride, xStart, scol))};
-                if (x >= xEnd) { continue; }
+                i32 const x {static_cast<i32>(PixelIndex(stride, left, scol))};
+                if (x >= right) { continue; }
 
-                i32 const xBlockEnd {std::min(x + stride, xEnd)};
+                i32 const xBlockEnd {std::min(x + stride, right)};
 
                 // the whole object is behind the walls in these columns
                 f64 blockWall {0.0};
@@ -729,7 +721,7 @@ void raycaster::draw_voxel_objects(frame const& frame)
 
                 auto const rayDir2D {ComputeCameraRayDir(x + ((stride - 1) / 2), _screenSize.Width, player)};
 
-                for (i32 y {yStart}; y < yEnd; y += stride) {
+                for (i32 y {top}; y < bottom; y += stride) {
                     // already covered by something nearer than the whole object
                     if (stride == 1 && nearest >= _objectDepthBuffer[PixelIndex(_screenSize.Width, x, y)]) { continue; }
 
@@ -754,8 +746,9 @@ void raycaster::draw_voxel_objects(frame const& frame)
                     f64 const  aoFactor {_quality.VoxelAo ? vo->Grid->face_ao(hit, localHitPos) : 1.0};
 
                     auto const tint {accumulate_light(frame, worldHitXY, adjustedWorldHit.Z, hitCellForLight, LIGHT_LAYERS_ALL) * aoFactor};
+                    bool const lit {IsVisiblyLit(tint)};
 
-                    i32 const yBlockEnd {std::min(y + stride, yEnd)};
+                    i32 const yBlockEnd {std::min(y + stride, bottom)};
                     for (i32 by {y}; by < yBlockEnd; ++by) {
                         for (i32 bx {x}; bx < xBlockEnd; ++bx) {
                             if (depth >= _wallDepthBuffer[bx]) { continue; }
@@ -765,7 +758,7 @@ void raycaster::draw_voxel_objects(frame const& frame)
 
                             _objectDepthBuffer[depthIndex] = depth;
                             screenBuf[depthIndex]          = ApplyTint(hit.Color.R, hit.Color.G, hit.Color.B, tint);
-                            wrote                          = true;
+                            if (lit) { wrote = true; }
                         }
                     }
                 }
@@ -775,7 +768,7 @@ void raycaster::draw_voxel_objects(frame const& frame)
         },
                                   strideCols);
 
-        vo->Seen = drawn.load(std::memory_order_relaxed) && IsWithinPlayerLight(player, voCell);
+        vo->Seen = drawn.load(std::memory_order_relaxed);
     }
 }
 

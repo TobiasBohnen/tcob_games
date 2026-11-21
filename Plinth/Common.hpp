@@ -85,6 +85,17 @@ struct vec3_i {
     i32 Z {0};
 };
 
+struct screen_bounds {
+    i32 Left {};
+    i32 Right {};
+    i32 Top {};
+    i32 Bottom {};
+    f64 Nearest {};     // nothing of the object is closer than this
+    f64 MaxWallDist {}; // farthest wall behind its columns
+
+    auto area() const -> i32 { return (Right - Left) * (Bottom - Top); }
+};
+
 using mat3_d = std::array<f64, 3 * 3>;
 
 struct color_d {

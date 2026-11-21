@@ -48,6 +48,8 @@ public:
 
     bool Seen {false};
 
+    std::optional<screen_bounds> ScreenBounds {};
+
     voxel_grid const* Grid {nullptr};
 
     auto make_transform() const -> voxel_transform;

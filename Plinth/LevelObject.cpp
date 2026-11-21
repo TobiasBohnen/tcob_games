@@ -162,7 +162,6 @@ auto level_object::overlaps(point_d from, point_d to, f64 radius, std::optional<
 {
     if (!is_solid()) { return false; }
 
-    // broad phase: closest point of the segment to our centre
     auto const c {position()};
     auto const s {to - from};
     f64 const  len2 {s.length_squared()};
@@ -173,7 +172,7 @@ auto level_object::overlaps(point_d from, point_d to, f64 radius, std::optional<
     if (z) {
         if (auto const* v {voxel()}) { return v->segment_hits(from, to, *z, radius); }
     }
-    return true; // sprites, and callers without a height
+    return true;
 }
 
 auto level_object::sprite() const -> sprite_object const* { return std::get_if<sprite_object>(&_visual); }

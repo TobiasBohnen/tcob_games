@@ -297,7 +297,7 @@ void Plinth::on_start()
 void Plinth::on_draw_to(gfx::render_target& target, transform const& /* xform */)
 {
     auto screen {_raycaster->draw(*_level, _player)};
-    _screenOverlay->draw(_player, screen, _quality.Resolution);
+    _screenOverlay->draw(*_level, _player, screen, _quality.Resolution);
 
     _texture->update_data(screen.data(), 0);
     if (_drawMap) {
