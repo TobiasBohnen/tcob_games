@@ -65,6 +65,11 @@ struct point3_d {
 
     auto dot(point3_d const& b) const -> f64 { return (X * b.X) + (Y * b.Y) + (Z * b.Z); }
 
+    auto cross(point3_d const& b) const -> point3_d { return {.X = (Y * b.Z) - (Z * b.Y), .Y = (Z * b.X) - (X * b.Z), .Z = (X * b.Y) - (Y * b.X)}; }
+
+    auto length() const -> f64 { return std::sqrt(length_squared()); }
+    auto length_squared() const -> f64 { return dot(*this); }
+
     auto normalized() const -> point3_d
     {
         f64 const len {std::sqrt(dot(*this))};

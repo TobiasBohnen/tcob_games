@@ -9,6 +9,7 @@
 #include <array>
 #include <atomic>
 #include <cmath>
+#include <numbers>
 #include <optional>
 #include <span>
 #include <tuple>
@@ -893,38 +894,28 @@ void raycaster::draw_motes(frame const& frame)
     }
 }
 
-auto raycaster::sky_pixel(frame const& frame, i32 y, point_d const& rayDir) const -> u32
+auto raycaster::sky_pixel(frame const& frame, i32 skyY, point_d const& rayDir) const -> u32
 {
+    static constexpr point3_d WorldUp {.Z = 1.0};
+
     static auto smooth {[](f64 e0, f64 e1, f64 x) -> f64 {
         f64 const u {std::clamp((x - e0) / (e1 - e0), 0.0, 1.0)};
         return u * u * (3.0 - (2.0 * u));
     }};
 
-    static auto fbm {[](auto const& noise, f64 nx, f64 ny, i32 octaves) -> f64 {
-        f64 sum {0.0};
-        f64 amp {0.5};
-        f64 norm {0.0};
-        for (i32 o {0}; o < octaves; ++o) {
-            sum += noise({static_cast<f32>(nx), static_cast<f32>(ny)}) * amp;
-            norm += amp;
-            amp *= 0.5;
-            nx = (nx * 2.0) + 7.31;
-            ny = (ny * 2.0) + 3.17;
-        }
-        return sum / norm;
-    }};
+    // two octaves of noise: the shape octave and a detail octave at twice the frequency
+    auto const noise {[this](f64 x, f64 y) -> f64 { return _noise({static_cast<f32>(x), static_cast<f32>(y)}); }};
+    auto const detail {[&](f64 x, f64 y) -> f64 { return noise((x * 2.0) + 7.31, (y * 2.0) + 3.17); }};
 
     auto const& sky {frame.Level.sky().frame()};
-    f64 const   azimuth {sky.Stars ? std::atan2(rayDir.Y, rayDir.X) : 0.0};
 
     // view direction; the horizon is the unbobbed screen center
-    f64 const  zRow {((_screenSize.Height / 2.0) - y) / _projPlaneDist};
-    f64 const  invNorm {1.0 / std::sqrt(rayDir.length_squared() + (zRow * zRow))};
-    auto const dir {point3_d::Lift(rayDir * invNorm, zRow * invNorm)};
+    f64 const  zRow {((_screenSize.Height / 2.0) - skyY) / _projPlaneDist};
+    auto const dir {point3_d::Lift(rayDir, zRow).normalized()};
 
     // gradient
     f64 const h {std::clamp(dir.Z, 0.0, 1.0)};
-    color_d   color {sky.Horizon.lerp(sky.Zenith, h)};
+    auto      color {sky.Horizon.lerp(sky.Zenith, h)};
 
     // dusk glow, sun halo and sun disc
     f64 const sunDot {dir.dot(sky.Sun)};
@@ -940,14 +931,17 @@ auto raycaster::sky_pixel(frame const& frame, i32 y, point_d const& rayDir) cons
 
     // stars: cells of StarSize screen pixels in (azimuth, sin elevation)
     if (sky.Stars) {
+        f64 const azimuth {std::atan2(rayDir.Y, rayDir.X)};
         f64 const cellsPerUnit {_projPlaneDist / std::max(sky.StarSize, 1.0)};
-        f64 const coverage {std::min(sky.StarSize, 1.0) * std::min(sky.StarSize, 1.0)};
-        i32 const gx {static_cast<i32>(std::floor((azimuth + (TAU * 0.5)) * cellsPerUnit))};
+        f64 const size {std::min(sky.StarSize, 1.0)};
+        i32 const gx {static_cast<i32>(std::floor((azimuth + std::numbers::pi) * cellsPerUnit))};
         i32 const gy {static_cast<i32>(std::floor(dir.Z * cellsPerUnit))};
         if (HashUnit(gx, gy, 0, 21) < sky.StarDensity) {
-            f64 const pulse {0.5 + (0.5 * std::sin((sky.Time * (1.0 + (2.0 * HashUnit(gx, gy, 0, 22)))) + (HashUnit(gx, gy, 0, 23) * TAU)))};
-            f64 const bright {coverage * sky.Night * (1.0 - (sky.StarTwinkle * pulse)) * (0.4 + (0.6 * HashUnit(gx, gy, 0, 24)))};
-            color += bright;
+            f64 const speed {1.0 + (2.0 * HashUnit(gx, gy, 0, 22))};
+            f64 const phase {HashUnit(gx, gy, 0, 23) * TAU};
+            f64 const pulse {0.5 + (0.5 * std::sin((sky.Time * speed) + phase))};
+            f64 const base {0.4 + (0.6 * HashUnit(gx, gy, 0, 24))};
+            color += size * size * sky.Night * (1.0 - (sky.StarTwinkle * pulse)) * base;
         }
     }
 
@@ -962,21 +956,23 @@ auto raycaster::sky_pixel(frame const& frame, i32 y, point_d const& rayDir) cons
         color_d surface {body.Color};
         if (body.Noise > 0.0) {
             // disc coordinates, u to the right and v up, from the body direction and world up
-            f64 const c {std::max(std::sqrt(std::max(1.0 - (body.Dir.Z * body.Dir.Z), 0.0)), 1e-6)};
-            f64 const u {((dir.X * body.Dir.Y) - (dir.Y * body.Dir.X)) / (c * body.SinR)};
-            f64 const v {((c * dir.Z) - (body.Dir.Z * ((dir.X * body.Dir.X) + (dir.Y * body.Dir.Y)) / c)) / body.SinR};
+            auto const right {body.Dir.cross(WorldUp).normalized()};
+            auto const up {right.cross(body.Dir)};
+            f64 const  u {dir.dot(right) / body.SinR};
+            f64 const  v {dir.dot(up) / body.SinR};
 
             // features compress toward the limb, which makes the disc look round
             f64 const warp {body.NoiseScale / (0.4 + (0.6 * nz))};
-            f64 const n {fbm(_noise, (u * warp) + body.NoiseSeed, v * warp, 2)};
+            f64 const x {(u * warp) + body.NoiseSeed};
+            f64 const y {v * warp};
+            f64 const n {((0.5 * noise(x, y)) + (0.25 * detail(x, y))) / 0.75};
             surface = surface.lerp(body.NoiseColor, n * body.Noise);
         }
 
         if (body.Lit) {
             // phase: surface normal against the direction of the sun
             f64 const nDotL {((sunDot - (d * body.SunDot)) / body.SinR) - (body.SunDot * nz)};
-            f64 const light {(body.Ambient + ((1.0 - body.Ambient) * std::clamp(nDotL, 0.0, 1.0)))};
-            surface *= light;
+            surface *= std::lerp(body.Ambient, 1.0, std::clamp(nDotL, 0.0, 1.0));
             color = surface.lerp(color, sky.Day);
         } else {
             color = surface;
@@ -989,23 +985,22 @@ auto raycaster::sky_pixel(frame const& frame, i32 y, point_d const& rayDir) cons
         f64 const lo {edge - sky.CloudSoftness};
         f64 const hi {edge + sky.CloudSoftness};
 
-        f64 const invZ {1.0 / dir.Z};
-        f64 const cx {(dir.X * invZ * sky.CloudScale) + (sky.CloudWind.X * sky.Time)};
-        f64 const cy {(dir.Y * invZ * sky.CloudScale) + (sky.CloudWind.Y * sky.Time)};
+        f64 const k {sky.CloudScale / dir.Z};
+        f64 const cx {(dir.X * k) + (sky.CloudWind.X * sky.Time)};
+        f64 const cy {(dir.Y * k) + (sky.CloudWind.Y * sky.Time)};
 
-        // the first octave carries the shape; if the second octave at its maximum still stays under the edge, it is clear sky
-        f64 const n0 {_noise({static_cast<f32>(cx), static_cast<f32>(cy)})};
+        // the first octave carries the shape; if the detail octave at its maximum still stays under the edge, it is clear sky
+        f64 const n0 {noise(cx, cy)};
         if (((0.5 * n0) + 0.25) / 0.75 > lo) {
-            f64 const n1 {_noise({static_cast<f32>((cx * 2.0) + 7.31), static_cast<f32>((cy * 2.0) + 3.17)})};
-            f64 const density {((0.5 * n0) + (0.25 * n1)) / 0.75};
+            f64 const density {((0.5 * n0) + (0.25 * detail(cx, cy))) / 0.75};
             f64 const alpha {smooth(lo, hi, density) * smooth(0.03, 0.3, dir.Z)}; // fades out toward the horizon
             if (alpha > 0.0) {
                 // the side facing the sun is thinner, so a cloud is lit where it is thicker than its sun-side neighbor
-                f64 const toward {_noise({static_cast<f32>(cx + (sky.Sun.X * 0.3)), static_cast<f32>(cy + (sky.Sun.Y * 0.3))})};
+                f64 const toward {noise(cx + (sky.Sun.X * 0.3), cy + (sky.Sun.Y * 0.3))};
                 f64 const lit {std::clamp(0.5 + ((n0 - toward) * 3.0), 0.0, 1.0)};
 
-                f64 const     brightness {(0.12 + (0.88 * sky.Day)) * (0.55 + (0.45 * lit))};
-                color_d const cloud {sky.CloudColor.lerp(sky.DuskColor, sky.Dusk * s2) * brightness};
+                f64 const  brightness {(0.12 + (0.88 * sky.Day)) * (0.55 + (0.45 * lit))};
+                auto const cloud {sky.CloudColor.lerp(sky.DuskColor, sky.Dusk * s2) * brightness};
                 color = color.lerp(cloud, alpha);
             }
         }
