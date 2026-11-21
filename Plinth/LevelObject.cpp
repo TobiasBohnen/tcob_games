@@ -30,21 +30,38 @@ auto voxel_object::segment_hits(point_d from, point_d to, f64 z, f64 radius) con
 {
     auto const t {make_transform()};
 
-    point_d const s {to - from};
-    f64 const     len {std::sqrt(s.length_squared())};
-    point_d const perp {len > 1e-9 ? point_d {-s.Y / len, s.X / len} : point_d {1.0, 0.0}};
+    f64 const r {radius / Scale};
+    f64 const r2 {r * r};
 
-    auto const cast {[&](f64 side, f64 up) {
-        f64 const ox {perp.X * side * radius};
-        f64 const oy {perp.Y * side * radius};
-        f64 const oz {up * radius};
+    auto const a {t.to_local(point3_d::Lift(from, z))};
+    auto const b {t.to_local(point3_d::Lift(to, z))};
+    auto const d {b - a};
 
-        point3_d const a {t.to_local({.X = from.X + ox, .Y = from.Y + oy, .Z = z + oz})};
-        point3_d const b {t.to_local({.X = to.X + ox, .Y = to.Y + oy, .Z = z + oz})};
-        return Grid->raycast(a, b - a, 1.0).Hit;
+    i32 const steps {std::max(1, static_cast<i32>(std::ceil(std::sqrt(d.dot(d)) / 0.5)))};
+
+    auto const axis_gap {[](f64 c, i32 v) {
+        f64 const g {std::clamp(c, static_cast<f64>(v), v + 1.0) - c};
+        return g * g;
     }};
 
-    return cast(0, 0) || cast(1, 0) || cast(-1, 0) || cast(0, 1) || cast(0, -1);
+    for (i32 i {0}; i <= steps; ++i) {
+        auto const c {a + (d * (static_cast<f64>(i) / steps))};
+
+        i32 const minX {static_cast<i32>(std::floor(c.X - r))}, maxX {static_cast<i32>(std::floor(c.X + r))};
+        i32 const minY {static_cast<i32>(std::floor(c.Y - r))}, maxY {static_cast<i32>(std::floor(c.Y + r))};
+        i32 const minZ {static_cast<i32>(std::floor(c.Z - r))}, maxZ {static_cast<i32>(std::floor(c.Z + r))};
+
+        for (i32 vz {minZ}; vz <= maxZ; ++vz) {
+            for (i32 vy {minY}; vy <= maxY; ++vy) {
+                for (i32 vx {minX}; vx <= maxX; ++vx) {
+                    if (!Grid->occupied(vx, vy, vz)) { continue; }
+
+                    if (axis_gap(c.X, vx) + axis_gap(c.Y, vy) + axis_gap(c.Z, vz) < r2) { return true; }
+                }
+            }
+        }
+    }
+    return false;
 }
 
 auto voxel_object::filled_at(point_d pos, f64 z) const -> bool
