@@ -675,13 +675,26 @@ void raycaster::draw_voxel_objects(frame const& frame)
     }
     std::ranges::sort(_voxelOrder, [](auto const& a, auto const& b) { return a.first < b.first; });
 
-    f64 totalArea {0.0};
-    for (auto const& entry : _voxelOrder) {
-        auto* const vo {entry.second->voxel()};
+    std::vector<usize> measured;
+    for (usize oi {0}; oi < _voxelOrder.size(); ++oi) {
+        auto* const vo {_voxelOrder[oi].second->voxel()};
         vo->ScreenBounds = measure(vo);
-        if (vo->ScreenBounds) { totalArea += vo->ScreenBounds->area(); }
+        if (vo->ScreenBounds) { measured.push_back(oi); }
     }
-    i32 const stride {totalArea > _quality.VoxelPixelBudget ? static_cast<i32>(std::ceil(std::sqrt(totalArea / _quality.VoxelPixelBudget))) : 1};
+
+    auto const area_of {[&](usize oi) { return static_cast<f64>(_voxelOrder[oi].second->voxel()->ScreenBounds->area()); }};
+    std::ranges::sort(measured, [&](usize a, usize b) { return area_of(a) < area_of(b); }); // smallest first
+
+    std::vector<i32> strides(_voxelOrder.size(), 1);
+    f64              remaining {static_cast<f64>(_quality.VoxelPixelBudget)};
+    for (usize i {0}; i < measured.size(); ++i) {
+        f64 const area {area_of(measured[i])};
+        f64 const share {std::max(remaining / static_cast<f64>(measured.size() - i), 1.0)};
+        i32 const s {area > share ? static_cast<i32>(std::ceil(std::sqrt(area / share))) : 1};
+
+        strides[measured[i]] = s;
+        remaining            = std::max(remaining - (area / (static_cast<f64>(s) * static_cast<f64>(s))), 0.0);
+    }
 
     for (usize oi {0}; oi < _voxelOrder.size(); ++oi) {
         auto* const vo {_voxelOrder[oi].second->voxel()};
@@ -701,6 +714,7 @@ void raycaster::draw_voxel_objects(frame const& frame)
         f64 const  maxSlope {std::max(std::abs(frame.CenterY - top), std::abs(bottom - frame.CenterY)) / _projPlaneDist};
         f64 const  maxT {(maxWallDist * std::sqrt(maxLenSq + (maxSlope * maxSlope))) + vo->world_diagonal()};
 
+        i32 const stride {strides[oi]};
         i32 const strideCols {((right - bounds->Left) + stride - 1) / stride};
 
         std::atomic_bool drawn {false}; // set when a visibly lit pixel of the object was written
