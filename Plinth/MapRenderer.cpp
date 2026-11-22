@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <span>
 #include <utility>
 
 #include "Common.hpp"
@@ -18,7 +19,7 @@
 static auto get_color(map const& map, point_i cell) -> color
 {
     auto const state {map.get_visibility(cell)};
-    if (state == tile_visibility::Hidden) { return colors::Black; }
+    if (state == tile_visibility::Hidden) { return colors::Transparent; }
     color c {overloaded_visit(
         map.get_cell(cell),
         [](floor_cell const&) -> color { return colors::Silver; },
@@ -36,45 +37,50 @@ static auto get_color(map const& map, point_i cell) -> color
         static_cast<u8>((c.B * 70) / 100)};
 }
 
-map_renderer::map_renderer(size_i screenSize)
-    : _screen(screenSize.area())
-    , _screenSize {screenSize}
+void map_renderer::draw(level const& level, player const& player, std::span<u32> screen, size_i screenSize) const
 {
-}
+    f32 const cellSize {screenSize.Height / static_cast<f32>(MAP_HEIGHT)};
 
-auto map_renderer::draw(level const& level, player const& player) -> u32 const*
-{
-    _screen.clear();
-    f32 const cellSize {_screenSize.Height / static_cast<f32>(MAP_HEIGHT)};
+    point_i const origin {static_cast<i32>((static_cast<f32>(screenSize.Width) - (cellSize * MAP_WIDTH)) * 0.5f),
+                          static_cast<i32>((static_cast<f32>(screenSize.Height) - (cellSize * MAP_HEIGHT)) * 0.5f)};
 
     for (i32 mapY {0}; mapY < MAP_HEIGHT; ++mapY) {
-        i32 const yStart {std::clamp(static_cast<i32>(mapY * cellSize), 0, _screenSize.Height)};
-        i32 const yEnd {std::clamp(static_cast<i32>((mapY + 1) * cellSize), 0, _screenSize.Height)};
+        i32 const yStart {std::clamp(origin.Y + static_cast<i32>(mapY * cellSize), 0, screenSize.Height)};
+        i32 const yEnd {std::clamp(origin.Y + static_cast<i32>((mapY + 1) * cellSize), 0, screenSize.Height)};
         if (yStart >= yEnd) { continue; }
 
         for (i32 mapX {0}; mapX < MAP_WIDTH; ++mapX) {
-            i32 const xStart {std::clamp(static_cast<i32>(mapX * cellSize), 0, _screenSize.Width)};
-            i32 const xEnd {std::clamp(static_cast<i32>((mapX + 1) * cellSize), 0, _screenSize.Width)};
+            i32 const xStart {std::clamp(origin.X + static_cast<i32>(mapX * cellSize), 0, screenSize.Width)};
+            i32 const xEnd {std::clamp(origin.X + static_cast<i32>((mapX + 1) * cellSize), 0, screenSize.Width)};
             if (xStart >= xEnd) { continue; }
 
-            u32 const color {get_color(level.map(), point_i {mapX, mapY}).to_abgr()};
-
-            for (i32 y {yStart}; y < yEnd; ++y) {
-                u32* rowPtr {&_screen[xStart + (y * _screenSize.Width)]};
-                std::fill_n(rowPtr, xEnd - xStart, color);
+            color const c {get_color(level.map(), point_i {mapX, mapY})};
+            if (c.A > 0) {
+                u32 const color {c.to_abgr()};
+                for (i32 y {yStart}; y < yEnd; ++y) {
+                    u32* rowPtr {&screen[xStart + (y * screenSize.Width)]};
+                    std::fill_n(rowPtr, xEnd - xStart, color);
+                }
+            } else {
+                for (i32 y {yStart}; y < yEnd; ++y) {
+                    for (i32 x {xStart}; x < xEnd; ++x) {
+                        u32& p {screen[x + (y * screenSize.Width)]};
+                        p = 0xFF000000u | ((p >> 1) & 0x007F7F7Fu);
+                    }
+                }
             }
         }
     }
 
     auto const plot {[&](point_i pt, u32 color) {
-        if (pt.X >= 0 && pt.X < _screenSize.Width && pt.Y >= 0 && pt.Y < _screenSize.Height) {
-            i32 const idx {pt.X + (pt.Y * _screenSize.Width)};
-            _screen[idx] = color;
+        if (pt.X >= 0 && pt.X < screenSize.Width && pt.Y >= 0 && pt.Y < screenSize.Height) {
+            i32 const idx {pt.X + (pt.Y * screenSize.Width)};
+            screen[idx] = color;
         }
     }};
 
     // player
-    point_i const playerPos {player.Position * cellSize};
+    point_i const playerPos {origin + point_i {player.Position * cellSize}};
     u32 const     triColor {colors::Red.to_abgr()};
     f64 const     triLength {cellSize};
     f64 const     triWidth {triLength * 0.5};
@@ -113,10 +119,8 @@ auto map_renderer::draw(level const& level, player const& player) -> u32 const*
     for (auto const& obj : level.objects()) {
         if (!obj.is_seen()) { continue; }
 
-        point_i const sprPos {obj.position() * cellSize};
+        point_i const objPos {origin + point_i {obj.position() * cellSize}};
         i32 const     radius {static_cast<i32>(cellSize / 2)};
-        bresenham_circle(sprPos, radius, [&](point_i pt) { plot(pt, obj.map_marker().to_abgr()); });
+        bresenham_circle(objPos, radius, [&](point_i pt) { plot(pt, obj.map_marker().to_abgr()); });
     }
-
-    return _screen.data();
 }

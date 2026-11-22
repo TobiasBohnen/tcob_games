@@ -74,12 +74,13 @@ private:
 
     void set_quality(quality_level level);
 
-    std::unique_ptr<texture_cache>  _cache;
-    std::unique_ptr<level>          _level;
-    player                          _player;
-    std::unique_ptr<raycaster>      _raycaster;
-    std::unique_ptr<screen_overlay> _screenOverlay;
-    std::unique_ptr<map_renderer>   _mapRenderer;
+    std::unique_ptr<texture_cache> _cache;
+    std::unique_ptr<level>         _level;
+    player                         _player;
+
+    raycaster      _raycaster;
+    screen_overlay _screenOverlay;
+    map_renderer   _mapRenderer;
 
     asset_owner_ptr<gfx::material> _material;
     asset_owner_ptr<gfx::texture>  _texture;

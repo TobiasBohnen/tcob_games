@@ -7,16 +7,9 @@
 
 #include "Common.hpp"
 
-#include <vector>
+#include <span>
 
 class map_renderer {
 public:
-    map_renderer(size_i screenSize);
-
-    auto draw(level const& level, player const& player) -> u32 const*;
-
-private:
-    std::vector<u32> _screen;
-
-    size_i _screenSize;
+    void draw(level const& level, player const& player, std::span<u32> screen, size_i screenSize) const;
 };

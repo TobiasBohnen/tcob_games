@@ -228,6 +228,8 @@
 Plinth::Plinth(game& game)
     : scene {game}
     , _cache {std::make_unique<texture_cache>()}
+    , _raycaster {*_cache}
+    , _screenOverlay {*_cache}
 {
     // window().SystemCursorEnabled = false;
     window().RelativeMouseMode = true;
@@ -244,7 +246,7 @@ Plinth::Plinth(game& game)
 
     _level->Collisions.connect([&](auto const& ev) {
         constexpr static std::array<std::string_view, 3> KINDS {"Wall", "Surface", "Object"};
-        _screenOverlay->show_message(std::format("{};{};{:.2f};{:.2f}", ev.back().Id, KINDS[static_cast<usize>(ev.back().By.Kind)], ev.back().At.X, ev.back().At.Y));
+        _screenOverlay.show_message(std::format("{};{};{:.2f};{:.2f}", ev.back().Id, KINDS[static_cast<usize>(ev.back().By.Kind)], ev.back().At.X, ev.back().At.Y));
     });
 
     rng                         rng;
@@ -282,9 +284,7 @@ Plinth::Plinth(game& game)
     _player.Direction = point_d::FromDirection(angle);
     _player.Plane     = {-rad.sin(), rad.cos()};
 
-    _raycaster = std::make_unique<raycaster>(*_cache);
     set_quality(quality_level::Normal);
-    _screenOverlay = std::make_unique<screen_overlay>(*_cache);
 }
 
 Plinth::~Plinth() = default;
@@ -296,13 +296,13 @@ void Plinth::on_start()
 
 void Plinth::on_draw_to(gfx::render_target& target, transform const& /* xform */)
 {
-    auto screen {_raycaster->draw(*_level, _player)};
-    _screenOverlay->draw(*_level, _player, screen, _quality.Resolution);
+    auto screen {_raycaster.draw(*_level, _player)};
+    _screenOverlay.draw(*_level, _player, screen, _quality.Resolution);
 
-    _texture->update_data(screen.data(), 0);
     if (_drawMap) {
-        _texture->update_data(_mapRenderer->draw(*_level, _player), 0);
+        _mapRenderer.draw(*_level, _player, screen, _quality.Resolution);
     }
+    _texture->update_data(screen.data(), 0);
 
     // aspect ratio correction
     size_i const size {*target.Size};
@@ -347,7 +347,7 @@ void Plinth::on_update(milliseconds deltaTime)
     _player.update(deltaTime);
     _level->update(deltaTime, _quality.LightLosSamples, _player.Position);
 
-    _screenOverlay->update(deltaTime);
+    _screenOverlay.update(deltaTime);
 
     // _frameTimer += deltaTime;
     // f64 const flicker {1.0 + (0.06 * std::sin(_frameTimer.count() / 1000.0 * 17.0)) + (0.04 * std::sin((_frameTimer.count() / 1000.0 * 29.3) + 1.7))};
@@ -472,7 +472,7 @@ void Plinth::action_fire()
                                 .LightMask = LIGHT_LAYER_SPELL};
 
     dynamic_light const light {.Z         = sprite.BaseZ + (sprite.Size.Height * 0.5),
-                               .Range     = 0.5,
+                               .Range     = 2.5,
                                .Color     = colors::Red,
                                .Intensity = 1.5,
                                .Layers    = LIGHT_LAYER_WORLD | LIGHT_LAYER_SPELL};
@@ -530,8 +530,7 @@ void Plinth::set_quality(quality_level level)
 
     _player.Settings.BobHeight = _quality.Resolution.Height / 60.0;
 
-    _raycaster->set_quality(_quality, (_quality.Resolution.Width / 2.0) / std::tan(fov / 2.0));
-    _mapRenderer = std::make_unique<map_renderer>(_quality.Resolution);
+    _raycaster.set_quality(_quality, (_quality.Resolution.Width / 2.0) / std::tan(fov / 2.0));
 }
 
 void Plinth::on_key_down(input::keyboard::event const& ev)
@@ -566,10 +565,10 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
         _shots.clear();
     } break;
     case input::scan_code::K: {
-        if (!_screenOverlay->ScreenEffect) {
-            _screenOverlay->ScreenEffect = grayscaleEffect;
+        if (!_screenOverlay.ScreenEffect) {
+            _screenOverlay.ScreenEffect = grayscaleEffect;
         } else {
-            _screenOverlay->ScreenEffect = nullptr;
+            _screenOverlay.ScreenEffect = nullptr;
         }
 
     } break;
@@ -634,7 +633,7 @@ void Plinth::on_text_input(input::keyboard::text_input_event const& ev)
 
     if (_keyCache.ends_with("givemap")) {
         _level->map().reveal_map();
-        _screenOverlay->show_message("MAP REVEALED");
+        _screenOverlay.show_message("MAP REVEALED");
         _keyCache.clear();
         _player.Cheater = true;
         //   _screenOverlay->ScreenEffect = cheaterEffect;
