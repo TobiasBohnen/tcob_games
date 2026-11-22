@@ -570,6 +570,7 @@ void raycaster::draw_wall_column(frame const& frame, column_hit const& col)
 void raycaster::draw_sprites(frame const& frame)
 {
     auto&       level {frame.Level};
+    auto const& map {level.map()};
     auto const& player {frame.Player};
 
     rect_i const screenRect {point_i::Zero, _screenSize};
@@ -587,8 +588,9 @@ void raycaster::draw_sprites(frame const& frame)
 
         i32 const    spriteScreenX {static_cast<i32>(p.ScreenX)};
         auto const   spriteSize {spr->screen_size(p.Scale)};
+        f64 const    lift {go.flying() ? 0.0 : FloorZAt(map, spr->Position)};
         rect_i const spriteRect {point_i {spriteScreenX - (spriteSize.Width / 2),
-                                          spr->screen_bottom(p.Scale, frame.CenterY, player.EyeZ) - spriteSize.Height},
+                                          spr->screen_bottom(p.Scale, frame.CenterY, player.EyeZ - lift) - spriteSize.Height},
                                  spriteSize};
         if (!screenRect.intersects(spriteRect, true)) { continue; }
 
@@ -603,7 +605,7 @@ void raycaster::draw_sprites(frame const& frame)
         f64 const texPosYStart {(drawStart.Y - spriteRect.top()) * texStepY};
 
         auto const spriteCell {WorldToCell(spr->Position)};
-        auto const spriteTint {accumulate_light(frame, spr->Position, spr->BaseZ, spriteCell, spr->LightMask)};
+        auto const spriteTint {accumulate_light(frame, spr->Position, lift + spr->BaseZ, spriteCell, spr->LightMask)};
         bool const inLight {IsVisiblyLit(spriteTint)};
 
         for (i32 x {drawStart.X}; x < drawEnd.X; ++x) {
@@ -645,14 +647,17 @@ void raycaster::draw_voxel_objects(frame const& frame)
         return {p.ScreenX, camera.screen_y(world.Z, p), p.Depth};
     }};
 
+    auto const floor_of {[&](level_object const& go) { return go.flying() ? 0.0 : FloorZAt(map, go.position()); }};
+
     rect_i const screenRect {point_i::Zero, _screenSize};
     u32*         screenBuf {_screen.data()};
 
     // where an object lands on screen, nothing if it is off screen or hidden behind walls
-    auto const measure {[&](voxel_object const* const vo) -> std::optional<screen_bounds> {
+    auto const measure {[&](level_object const& go) -> std::optional<screen_bounds> {
+        auto const* vo {go.voxel()};
         if (!vo->Grid) { return std::nullopt; }
 
-        f64 const  floorZ {FloorZAt(map, vo->Position)};
+        f64 const  floorZ {floor_of(go)};
         auto const xf {vo->make_transform()};
 
         f64  minX {INFINITE_DIST}, maxX {-INFINITE_DIST}, minY {INFINITE_DIST}, maxY {-INFINITE_DIST}, minDepth {INFINITE_DIST};
@@ -707,7 +712,7 @@ void raycaster::draw_voxel_objects(frame const& frame)
     std::vector<usize> measured;
     for (usize oi {0}; oi < _voxelOrder.size(); ++oi) {
         auto* const vo {_voxelOrder[oi].second->voxel()};
-        vo->ScreenBounds = measure(vo);
+        vo->ScreenBounds = measure(*_voxelOrder[oi].second);
         if (vo->ScreenBounds) { measured.push_back(oi); }
     }
 
@@ -728,13 +733,14 @@ void raycaster::draw_voxel_objects(frame const& frame)
     }
 
     for (usize oi {0}; oi < _voxelOrder.size(); ++oi) {
-        auto* const vo {_voxelOrder[oi].second->voxel()};
+        auto& go {*_voxelOrder[oi].second};
+        auto* vo {go.voxel()};
 
         auto const& bounds {vo->ScreenBounds};
         if (!bounds) { continue; }
 
         auto const [left, right, top, bottom, nearest, maxWallDist] {*bounds};
-        f64 const  floorZ {FloorZAt(map, vo->Position)};
+        f64 const  floorZ {floor_of(go)};
         auto const xf {vo->make_transform()};
 
         auto const localOrigin {xf.to_local(point3_d::Lift(player.Position, player.EyeZ - floorZ))};
