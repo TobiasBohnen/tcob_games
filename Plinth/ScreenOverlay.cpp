@@ -62,7 +62,7 @@ static void BlitMasked(u32* dst, size_i _screenSize, blit_params const& p)
     }
 }
 
-static auto FontScale(size_i screenSize) -> i32
+static auto UIScale(size_i screenSize) -> i32
 {
     return std::max(1, screenSize.Height / UI_REFERENCE_HEIGHT);
 }
@@ -141,7 +141,7 @@ void screen_overlay::draw_target(level const& level) const
     constexpr i32 CORNER_LEN {6};
     constexpr i32 TICK_LEN {2};
 
-    i32 const maxScale {FontScale(_screenSize)};
+    i32 const maxScale {UIScale(_screenSize)};
 
     for (auto const& obj : level.objects()) {
         if (!obj.is_seen()) { continue; }
@@ -276,7 +276,7 @@ void screen_overlay::draw_weapon(player const& player) const
 void screen_overlay::draw_hud(player const& player) const
 {
     constexpr f64 COMPASS_NORTH_POS {0.375};
-    constexpr f64 COMPASS_TOP_MARGIN {5.0};
+    constexpr i32 COMPASS_TOP_MARGIN {5};
     constexpr u32 COMPASS_MARKER_COLOR {0xFF0000FFu};
 
     auto const* compassTex {_cache.texture(compassTexture, 0)};
@@ -287,13 +287,13 @@ void screen_overlay::draw_hud(player const& player) const
     i32 const  texHeight {compassTexSize.Height};
     i32 const  compassVisibleWidth {texWidth / 4 * 3};
 
-    f64 const scale {static_cast<f64>(_screenSize.Height) / UI_REFERENCE_HEIGHT};
+    i32 const scale {UIScale(_screenSize)};
 
-    i32 const drawHeight {static_cast<i32>(std::round(texHeight * scale))};
-    i32 const drawWidth {static_cast<i32>(std::round(compassVisibleWidth * scale))};
+    i32 const drawHeight {texHeight * scale};
+    i32 const drawWidth {compassVisibleWidth * scale};
 
     i32 const drawX {(_screenSize.Width - drawWidth) / 2};
-    i32 const drawY {static_cast<i32>(COMPASS_TOP_MARGIN * scale)};
+    i32 const drawY {COMPASS_TOP_MARGIN * scale};
 
     point_d const worldNorth {0.0, -1.0};
     f64 const     forwardDot {player.Direction.dot(worldNorth)};
@@ -308,7 +308,7 @@ void screen_overlay::draw_hud(player const& player) const
     i32 const firstSrcWidth {std::min(compassVisibleWidth, texWidth - srcStart)};
     i32 const secondSrcWidth {compassVisibleWidth - firstSrcWidth};
 
-    i32 const firstDrawWidth {std::min(drawWidth, static_cast<i32>(std::round(firstSrcWidth * scale)))};
+    i32 const firstDrawWidth {firstSrcWidth * scale};
     i32 const secondDrawWidth {drawWidth - firstDrawWidth};
 
     BlitMasked(_screen.data(), _screenSize,
@@ -317,7 +317,7 @@ void screen_overlay::draw_hud(player const& player) const
                 .Src      = {srcStart, 0, firstSrcWidth, texHeight},
                 .Dst      = {drawX, drawY, firstDrawWidth, drawHeight}});
 
-    if (secondSrcWidth > 0 && secondDrawWidth > 0) {
+    if (secondSrcWidth > 0) {
         BlitMasked(_screen.data(), _screenSize,
                    {.Tex      = compassTex,
                     .TexPitch = texWidth,
@@ -342,7 +342,7 @@ void screen_overlay::draw_hud(player const& player) const
 
 void screen_overlay::draw_message() const
 {
-    i32 const     scale {FontScale(_screenSize)};
+    i32 const     scale {UIScale(_screenSize)};
     point_i const offset {5 * scale, 15 * scale};
     draw_text(_message, offset, 0, true);
 }
@@ -357,7 +357,7 @@ void screen_overlay::draw_text(string_view text, point_i pos, i32 textScale, boo
     assert(texSize.Height == FONT_GLYPH_SIZE);
     assert(texSize.Width == (FONT_FALLBACK_GLYPH + 1) * FONT_GLYPH_SIZE);
 
-    i32 const scale {textScale > 0 ? textScale : FontScale(_screenSize)};
+    i32 const scale {textScale > 0 ? textScale : UIScale(_screenSize)};
     i32 const advance {(FONT_GLYPH_SIZE + 1) * scale};
 
     // pass 0 = shadow, pass 1 = text, so a shadow never covers a neighbouring glyph
