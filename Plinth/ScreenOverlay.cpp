@@ -21,6 +21,7 @@
 static constexpr i32 UI_REFERENCE_HEIGHT {180};
 static constexpr i32 FONT_GLYPH_SIZE {5};
 static constexpr u32 TEXT_SHADOW_COLOR {0xFF000000u};
+static constexpr i32 FONT_FALLBACK_GLYPH {47};
 
 struct blit_params {
     u8 const* Tex {};
@@ -61,7 +62,7 @@ static void BlitMasked(u32* dst, size_i _screenSize, blit_params const& p)
     }
 }
 
-static auto UIScale(size_i screenSize) -> i32
+static auto FontScale(size_i screenSize) -> i32
 {
     return std::max(1, screenSize.Height / UI_REFERENCE_HEIGHT);
 }
@@ -71,7 +72,22 @@ static auto GlyphIndex(char c) -> i32
     if (c >= '0' && c <= '9') { return c - '0'; }
     if (c >= 'a' && c <= 'z') { return 10 + (c - 'a'); }
     if (c >= 'A' && c <= 'Z') { return 10 + (c - 'A'); }
-    return -1;
+
+    switch (c) {
+    case '*':  return 36;
+    case '+':  return 37;
+    case '/':  return 38;
+    case '-':  return 39;
+    case '!':  return 40;
+    case '?':  return 41;
+    case ';':  return 42;
+    case ':':  return 43;
+    case '.':  return 44;
+    case ',':  return 45;
+    case ' ':  return -1;
+    case '\t': return -1;
+    default:   return FONT_FALLBACK_GLYPH;
+    }
 }
 
 screen_overlay::screen_overlay(texture_cache& cache)
@@ -120,10 +136,12 @@ void screen_overlay::draw_screen_effect() const
 
 void screen_overlay::draw_target(level const& level) const
 {
-    constexpr u32 BOUNDS_COLOR {0xFF878F99u};
+    constexpr u32 TARGET_COLOR {0xFF878F99u};
+    constexpr u32 TAG_BACK_COLOR {0xFF101010u};
     constexpr i32 CORNER_LEN {6};
+    constexpr i32 TICK_LEN {2};
 
-    i32 const textScale {UIScale(_screenSize)};
+    i32 const maxScale {FontScale(_screenSize)};
 
     for (auto const& obj : level.objects()) {
         if (!obj.is_seen()) { continue; }
@@ -134,28 +152,102 @@ void screen_overlay::draw_target(level const& level) const
 
         i32 const left {bounds.Left};
         i32 const top {bounds.Top};
-        i32 const right {bounds.Right - 1};
-        i32 const bottom {bounds.Bottom - 1};
+        i32 const right {bounds.Right};
+        i32 const bottom {bounds.Bottom};
 
-        assert(left >= 0 && left < _screenSize.Width && right >= 0 && right < _screenSize.Width && top >= 0 && top < _screenSize.Height && bottom >= 0 && bottom < _screenSize.Height);
+        assert(left >= 0 && left < _screenSize.Width && right > 0 && right <= _screenSize.Width && top >= 0 && top < _screenSize.Height && bottom > 0 && bottom <= _screenSize.Height);
 
-        i32 const w {right - left + 1};
-        i32 const h {bottom - top + 1};
-        i32 const len {std::min({CORNER_LEN, w, h})};
+        i32 const w {right - left};
+        i32 const h {bottom - top};
 
-        for (i32 i {0}; i < len; ++i) {
-            _screen[PixelIndex(_screenSize.Width, left + i, top)]     = BOUNDS_COLOR;
-            _screen[PixelIndex(_screenSize.Width, left, top + i)]     = BOUNDS_COLOR;
-            _screen[PixelIndex(_screenSize.Width, right - i, top)]    = BOUNDS_COLOR;
-            _screen[PixelIndex(_screenSize.Width, right, top + i)]    = BOUNDS_COLOR;
-            _screen[PixelIndex(_screenSize.Width, left + i, bottom)]  = BOUNDS_COLOR;
-            _screen[PixelIndex(_screenSize.Width, left, bottom - i)]  = BOUNDS_COLOR;
-            _screen[PixelIndex(_screenSize.Width, right - i, bottom)] = BOUNDS_COLOR;
-            _screen[PixelIndex(_screenSize.Width, right, bottom - i)] = BOUNDS_COLOR;
+        // Bracket thickness shrinks for small (distant) targets.
+        i32 const  s {std::clamp(std::min(w, h) / 16, 1, maxScale)};
+        i32 const  arm {std::min(CORNER_LEN * s, std::min(w, h) / 2)};
+        u32* const px {_screen.data()};
+        i32 const  pitch {_screenSize.Width};
+
+        // The assert above guarantees the box is on screen, so no clamping is needed.
+        auto const set {[&](i32 x, i32 y) { px[PixelIndex(pitch, x, y)] = TARGET_COLOR; }};
+
+        // corner brackets: one pass, 8 pixels per step
+        for (i32 i {0}; i < arm; ++i) {
+            for (i32 t {0}; t < s; ++t) {
+                set(left + i, top + t);
+                set(left + t, top + i);
+                set(right - 1 - i, top + t);
+                set(right - 1 - t, top + i);
+                set(left + i, bottom - 1 - t);
+                set(left + t, bottom - 1 - i);
+                set(right - 1 - i, bottom - 1 - t);
+                set(right - 1 - t, bottom - 1 - i);
+            }
         }
 
-        i32 const labelY {std::max(0, top - ((FONT_GLYPH_SIZE + 2) * textScale))};
-        draw_text("MONSTER", {left, labelY}, false);
+        // mid-edge ticks, only when the box is large enough to not touch the corners
+        if (w >= 16 * s && h >= 16 * s) {
+            i32 const cx {left + (w / 2)};
+            i32 const cy {top + (h / 2)};
+            i32 const tick {TICK_LEN * s};
+            for (i32 i {0}; i < tick; ++i) {
+                for (i32 t {0}; t < s; ++t) {
+                    set(cx + t, top + i);
+                    set(cx + t, bottom - 1 - i);
+                    set(left + i, cy + t);
+                    set(right - 1 - i, cy + t);
+                }
+            }
+        }
+
+        // Label: scale shrinks with the box (min 1x). If the text doesn't fit, it is cut and ends with "...".
+        constexpr u32 TAG_TEXT_COLOR {0xFFFFFFFFu};
+        constexpr i32 CHAR_ADVANCE {FONT_GLYPH_SIZE + 1};
+        constexpr i32 TAG_PADDING {4};    // accent bar + gaps, in texels
+        constexpr i32 ELLIPSIS_WIDTH {5}; // 3 dots with 1 texel gaps
+
+        string_view const label {obj.name()};
+        i32 const         labelLen {static_cast<i32>(label.size())};
+        i32 const         fullTexels {(labelLen * CHAR_ADVANCE) - 1 + TAG_PADDING};
+
+        i32 const ls {std::clamp(w / fullTexels, 1, maxScale)};
+        i32 const fitChars {((w / ls) - (TAG_PADDING - 1)) / CHAR_ADVANCE}; // chars that fit without ellipsis
+
+        bool ellipsis {false};
+        i32  shown {labelLen};
+        if (fitChars < labelLen) {
+            ellipsis = true;
+            shown    = fitChars - 1; // one slot is taken by the dots
+        }
+        if (shown < 1) { continue; }
+
+        i32 const tagTexelsW {(shown * CHAR_ADVANCE) + (ellipsis ? ELLIPSIS_WIDTH : -1) + TAG_PADDING};
+        i32 const tagW {tagTexelsW * ls};
+        i32 const tagH {(FONT_GLYPH_SIZE + 2) * ls};
+        i32 const tagX {std::clamp(left, 0, std::max(0, _screenSize.Width - tagW))};
+        i32 const tagY {std::max(0, top - tagH - ls)};
+
+        // label plate: dark background, first `ls` columns are the accent bar
+        for (i32 y {0}; y < tagH; ++y) {
+            for (i32 x {0}; x < tagW; ++x) {
+                px[PixelIndex(pitch, tagX + x, tagY + y)] = x < ls ? TARGET_COLOR : TAG_BACK_COLOR;
+            }
+        }
+
+        i32 const textX {tagX + (2 * ls)};
+        i32 const textY {tagY + ls};
+        draw_text(label.substr(0, static_cast<usize>(shown)), {textX, textY}, ls, false);
+
+        if (ellipsis) {
+            // three 1-texel dots on the glyph baseline
+            i32 const dotsX {textX + (shown * CHAR_ADVANCE * ls)};
+            i32 const dotsY {textY + ((FONT_GLYPH_SIZE - 1) * ls)};
+            for (i32 d {0}; d < 3; ++d) {
+                for (i32 dy {0}; dy < ls; ++dy) {
+                    for (i32 dx {0}; dx < ls; ++dx) {
+                        px[PixelIndex(pitch, dotsX + (d * 2 * ls) + dx, dotsY + dy)] = TAG_TEXT_COLOR;
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -250,12 +342,12 @@ void screen_overlay::draw_hud(player const& player) const
 
 void screen_overlay::draw_message() const
 {
-    i32 const     scale {UIScale(_screenSize)};
+    i32 const     scale {FontScale(_screenSize)};
     point_i const offset {5 * scale, 15 * scale};
-    draw_text(_message, offset, true);
+    draw_text(_message, offset, 0, true);
 }
 
-void screen_overlay::draw_text(string_view text, point_i pos, bool shadow) const
+void screen_overlay::draw_text(string_view text, point_i pos, i32 textScale, bool shadow) const
 {
     if (text.empty()) { return; }
 
@@ -263,8 +355,9 @@ void screen_overlay::draw_text(string_view text, point_i pos, bool shadow) const
     if (!tex) { return; }
     auto const texSize {_cache.texture_size(FONT_TEXTURE_NORMAL, 0)};
     assert(texSize.Height == FONT_GLYPH_SIZE);
+    assert(texSize.Width == (FONT_FALLBACK_GLYPH + 1) * FONT_GLYPH_SIZE);
 
-    i32 const scale {UIScale(_screenSize)};
+    i32 const scale {textScale > 0 ? textScale : FontScale(_screenSize)};
     i32 const advance {(FONT_GLYPH_SIZE + 1) * scale};
 
     // pass 0 = shadow, pass 1 = text, so a shadow never covers a neighbouring glyph

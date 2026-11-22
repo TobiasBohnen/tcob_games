@@ -30,7 +30,7 @@ private:
     void draw_hud(player const& player) const;
     void draw_message() const;
 
-    void draw_text(string_view text, point_i pos, bool shadow) const;
+    void draw_text(string_view text, point_i pos, i32 textScale, bool shadow) const;
 
     std::span<u32> _screen;
     size_i         _screenSize;

@@ -95,9 +95,14 @@ public:
     level_object(uid id, level_object_desc desc);
 
     auto id() const -> uid;
+    auto map_marker() const -> color;
+    auto name() const -> string_view
+    {
+        return "MONSTER123";
+    }
+
     auto radius() const -> f64;
     auto is_solid() const -> bool;
-    auto map_marker() const -> color;
 
     auto position() const -> point_d;
     void set_position(point_d p);
