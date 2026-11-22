@@ -82,16 +82,29 @@ auto voxel_object::make_rotation() const -> mat3_d
             -sp, cp * sr, cp * cr};
 }
 
-level_object::level_object(uid id, level_object_desc desc)
+level_object::level_object(uid id, level_object_desc const& desc)
     : _id {id}
     , _radius {desc.Radius}
     , _flying {desc.Flying}
     , _mapMarker {desc.MapMarker}
+    , _name {desc.Name}
     , _direction {desc.Direction}
+    , _lifeTime {desc.LifeTime}
     , _visual {desc.Visual}
     , _light {desc.Light}
 {
     set_position(desc.Position);
+}
+
+void level_object::update(milliseconds deltaTime)
+{
+    if (_lifeTime) {
+        *_lifeTime -= deltaTime;
+        if (*_lifeTime <= milliseconds::zero()) {
+            _dead     = true;
+            _lifeTime = std::nullopt;
+        }
+    }
 }
 
 auto level_object::id() const -> uid { return _id; }
@@ -99,6 +112,10 @@ auto level_object::radius() const -> f64 { return _radius; }
 auto level_object::is_solid() const -> bool { return _radius > 0; }
 
 auto level_object::map_marker() const -> color { return _mapMarker; }
+auto level_object::name() const -> string_view
+{
+    return _name;
+}
 
 auto level_object::dead() const -> bool { return _dead; }
 void level_object::kill() { _dead = true; }

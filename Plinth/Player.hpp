@@ -32,6 +32,8 @@ public:
 
     auto bob_amount() const -> f64;
 
+    void fire(level& level) const;
+
     static constexpr f64 Radius {0.25};
 
 private:

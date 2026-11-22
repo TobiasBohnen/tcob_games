@@ -27,7 +27,7 @@ private:
 
     void draw_target(level const& level) const;
     void draw_weapon(player const& player) const;
-    void draw_hud(player const& player) const;
+    void draw_compass(player const& player) const;
     void draw_message() const;
 
     void draw_text(string_view text, point_i pos, i32 textScale, bool shadow) const;

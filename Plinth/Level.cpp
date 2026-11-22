@@ -51,6 +51,9 @@ void level::update(milliseconds deltaTime, i32 lightLosSamples, point_d playerPo
     std::vector<collision_event> collisions;
 
     for (auto& obj : _objects) {
+        obj.update(deltaTime);
+        if (obj.dead()) { continue; }
+
         auto const oldPos {obj.position()};
         auto const newPos {oldPos + obj.direction() * dt};
         if (newPos == oldPos) { continue; }
@@ -164,7 +167,7 @@ auto level::find_blocker(point_d from, point_d to, f64 radius, f64 z, bool flyin
     return std::nullopt;
 }
 
-auto level::spawn(level_object_desc desc) -> uid
+auto level::spawn(level_object_desc const& desc) -> uid
 {
     uid const id {_nextId++};
     _objects.emplace_back(id, desc);

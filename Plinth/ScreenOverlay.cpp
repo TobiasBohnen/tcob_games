@@ -115,7 +115,7 @@ auto screen_overlay::draw(level const& level, player const& player, std::span<u3
     draw_target(level);
     draw_weapon(player);
 
-    draw_hud(player);
+    draw_compass(player);
     draw_message();
 
     return _screen;
@@ -273,7 +273,7 @@ void screen_overlay::draw_weapon(player const& player) const
                 .Dst      = {drawX, drawY, drawSize.Width, drawSize.Height}});
 }
 
-void screen_overlay::draw_hud(player const& player) const
+void screen_overlay::draw_compass(player const& player) const
 {
     constexpr f64 COMPASS_NORTH_POS {0.375};
     constexpr i32 COMPASS_TOP_MARGIN {5};

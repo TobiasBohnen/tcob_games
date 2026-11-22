@@ -6,11 +6,13 @@
 #include "Player.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstdlib>
 
 #include "Common.hpp"
 #include "Level.hpp"
+#include "TextureCache.hpp"
 
 void player::move(level const& level, f64 forwardAmount, f64 strafeAmount, f64 rotateAmount)
 {
@@ -73,4 +75,36 @@ void player::update(milliseconds deltaTime)
 auto player::bob_amount() const -> f64
 {
     return _bobAmount;
+}
+
+void player::fire(level& level) const
+{
+    sprite_object const sprite {.BaseZ     = EyeZ - 0.15,
+                                .Size      = {0.15, 0.15},
+                                .Texture   = ballTexture,
+                                .LightMask = LIGHT_LAYER_SPELL};
+
+    dynamic_light const light {.Z         = sprite.BaseZ + (sprite.Size.Height * 0.5),
+                               .Range     = 2.5,
+                               .Color     = colors::Red,
+                               .Intensity = 1.5,
+                               .Layers    = LIGHT_LAYER_WORLD | LIGHT_LAYER_SPELL};
+
+    f64 const forwardOffset {0.4};
+    f64 const rightOffset {0.2};
+
+    f64 const fwdX {Direction.X};
+    f64 const fwdY {Direction.Y};
+    f64 const rightX {-fwdY};
+    f64 const rightY {fwdX};
+    f64 const spawnX {Position.X + (forwardOffset * fwdX) + (rightOffset * rightX)};
+    f64 const spawnY {Position.Y + (forwardOffset * fwdY) + (rightOffset * rightY)};
+
+    level.spawn({.Position  = {spawnX, spawnY},
+                 .Direction = Direction * 10,
+                 .Radius    = 0.075,
+                 .Flying    = true,
+                 .LifeTime  = 5s,
+                 .Visual    = sprite,
+                 .Light     = light});
 }

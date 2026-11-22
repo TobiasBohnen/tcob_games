@@ -49,7 +49,7 @@ public:
 
     auto can_move_to(point_d from, point_d to, f64 radius, f64 z, bool flying, uid ignore) const -> bool;
 
-    auto spawn(level_object_desc desc) -> uid;
+    auto spawn(level_object_desc const& desc) -> uid;
     auto find(uid id) -> level_object*;
 
     auto objects() const -> std::span<level_object const>;

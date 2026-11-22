@@ -271,6 +271,7 @@ Plinth::Plinth(game& game)
         _level->spawn({.Position  = find_empty(),
                        .Direction = {0.1, 0},
                        .Radius    = (std::max(testVoxelGrid.Size.X, testVoxelGrid.Size.Y) / 2.0) * scale / maxDim,
+                       .Name      = helper::random_string(12),
                        .Visual    = voxel_object {
                            .BaseZ = 0.0,
                            .Scale = scale / maxDim,
@@ -464,41 +465,10 @@ void Plinth::action_toggle_map()
     _drawMap = !_drawMap;
 }
 
-void Plinth::action_fire()
-{
-    sprite_object const sprite {.BaseZ     = _player.EyeZ - 0.15,
-                                .Size      = {0.15, 0.15},
-                                .Texture   = ballTexture,
-                                .LightMask = LIGHT_LAYER_SPELL};
-
-    dynamic_light const light {.Z         = sprite.BaseZ + (sprite.Size.Height * 0.5),
-                               .Range     = 2.5,
-                               .Color     = colors::Red,
-                               .Intensity = 1.5,
-                               .Layers    = LIGHT_LAYER_WORLD | LIGHT_LAYER_SPELL};
-
-    f64 const forwardOffset {0.4};
-    f64 const rightOffset {0.2};
-
-    f64 const fwdX {_player.Direction.X};
-    f64 const fwdY {_player.Direction.Y};
-    f64 const rightX {-fwdY};
-    f64 const rightY {fwdX};
-    f64 const spawnX {_player.Position.X + (forwardOffset * fwdX) + (rightOffset * rightX)};
-    f64 const spawnY {_player.Position.Y + (forwardOffset * fwdY) + (rightOffset * rightY)};
-
-    _shots.push_back(_level->spawn({.Position  = {spawnX, spawnY},
-                                    .Direction = _player.Direction * 10,
-                                    .Radius    = 0.075,
-                                    .Flying    = true,
-                                    .Visual    = sprite,
-                                    .Light     = light}));
-}
-
 void Plinth::handle_action(game_action action)
 {
     switch (action) {
-    case game_action::Fire:       action_fire(); break;
+    case game_action::Fire:       _player.fire(*_level); break;
     case game_action::ToggleWall: action_toggle_wall(); break;
     case game_action::ToggleMap:  action_toggle_map(); break;
     default:
@@ -557,12 +527,6 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
         break;
     case input::scan_code::Q: {
         set_quality(quality_level::Low);
-    } break;
-    case input::scan_code::X: {
-        for (auto uid : _shots) {
-            _level->find(uid)->kill();
-        }
-        _shots.clear();
     } break;
     case input::scan_code::K: {
         if (!_screenOverlay.ScreenEffect) {

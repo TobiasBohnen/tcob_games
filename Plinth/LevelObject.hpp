@@ -71,11 +71,13 @@ private:
 using object_visual = std::variant<std::monostate, sprite_object, voxel_object>;
 
 struct level_object_desc {
-    point_d Position {};
-    point_d Direction {};
-    f64     Radius {0.0};   // 0 = non solid
-    bool    Flying {false}; // sprites only: keeps its height, floors and ceilings in its way stop it instead of being climbed
-    color   MapMarker {colors::Green};
+    point_d                     Position {};
+    point_d                     Direction {};
+    f64                         Radius {0.0};   // 0 = non solid
+    bool                        Flying {false}; // sprites only: keeps its height, floors and ceilings in its way stop it instead of being climbed
+    color                       MapMarker {colors::Green};
+    string                      Name {};
+    std::optional<milliseconds> LifeTime {};
 
     object_visual                Visual;
     std::optional<dynamic_light> Light {};
@@ -83,14 +85,13 @@ struct level_object_desc {
 
 class level_object {
 public:
-    level_object(uid id, level_object_desc desc);
+    level_object(uid id, level_object_desc const& desc);
+
+    void update(milliseconds deltaTime);
 
     auto id() const -> uid;
     auto map_marker() const -> color;
-    auto name() const -> string_view
-    {
-        return "MONSTER123";
-    }
+    auto name() const -> string_view;
 
     auto radius() const -> f64;
     auto is_solid() const -> bool;
@@ -130,8 +131,10 @@ private:
     bool _flying {false};
     bool _blocked {false};
 
-    color   _mapMarker;
-    point_d _direction;
+    color                       _mapMarker;
+    string                      _name;
+    point_d                     _direction;
+    std::optional<milliseconds> _lifeTime {};
 
     object_visual                _visual;
     std::optional<dynamic_light> _light;

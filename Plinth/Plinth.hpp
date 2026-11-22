@@ -70,7 +70,6 @@ private:
 
     void action_toggle_wall();
     void action_toggle_map();
-    void action_fire();
 
     void set_quality(quality_level level);
 
@@ -96,7 +95,6 @@ private:
     milliseconds                  _frameTimer {0};
     bool                          _startRecord {false};
     std::future<bool>             _clipFtr;
-    std::vector<uid>              _shots;
 
     quality_settings _quality;
     input_mapping    _inputMapping {};
