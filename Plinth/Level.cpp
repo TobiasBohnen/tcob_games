@@ -51,10 +51,11 @@ void level::update(milliseconds deltaTime, i32 lightLosSamples, point_d playerPo
     std::vector<collision_event> collisions;
 
     for (auto& obj : _objects) {
-        auto const newPos {obj.position() + obj.direction() * dt};
-        if (newPos == obj.position()) { continue; }
+        auto const oldPos {obj.position()};
+        auto const newPos {oldPos + obj.direction() * dt};
+        if (newPos == oldPos) { continue; }
 
-        auto const hit {find_blocker(obj.position(), newPos, obj.radius(), obj.center_z(), obj.flying(), obj.id())};
+        auto const hit {find_blocker(oldPos, newPos, obj.radius(), obj.center_z(), obj.flying(), obj.id())};
         if (!hit) {
             obj.set_blocked(false);
             obj.set_position(newPos);
@@ -64,7 +65,7 @@ void level::update(milliseconds deltaTime, i32 lightLosSamples, point_d playerPo
         // reported once, when the object runs into something; it stays put until it moves again or the game removes it
         if (!obj.blocked()) {
             obj.set_blocked(true);
-            collisions.push_back({.Id = obj.id(), .By = *hit, .At = obj.position()});
+            collisions.push_back({.Id = obj.id(), .By = *hit, .At = oldPos});
         }
     }
 
