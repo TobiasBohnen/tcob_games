@@ -38,7 +38,7 @@ void level::update(milliseconds deltaTime, i32 lightLosSamples, point_d playerPo
 
     // a closing door opens again while someone is in its cell
     for (auto const& ev : occupancies) {
-        if (!map_t::Size.contains(ev.Cell)) { continue; }
+        if (!map_grid::Size.contains(ev.Cell)) { continue; }
 
         auto const* door {std::get_if<door_wall>(&_map.get_cell(ev.Cell))};
         if (door && door->State == wall_state::Closing) { _map.toggle_wall(ev.Cell); }
@@ -94,7 +94,7 @@ auto level::find_blocker(point_d from, point_d to, f64 radius, f64 z, bool flyin
 
         for (i32 ty {minCellY}; ty <= maxCellY; ++ty) {
             for (i32 tx {minCellX}; tx <= maxCellX; ++tx) {
-                if (tx < 0 || tx >= map_t::Size.Width || ty < 0 || ty >= map_t::Size.Height) { return false; }
+                if (tx < 0 || tx >= map_grid::Size.Width || ty < 0 || ty >= map_grid::Size.Height) { return false; }
 
                 auto const closest {_map.closest_point_on_wall({tx, ty}, pos)};
                 if (!closest) { continue; }

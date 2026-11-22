@@ -26,7 +26,7 @@ auto lighting::lights() const -> std::span<dynamic_light const> { return _lights
 
 auto lighting::lights_at(point_i map) const -> std::span<u32 const>
 {
-    if (!map_t::Size.contains(map) || _cellLights.empty()) { return {}; }
+    if (!map_grid::Size.contains(map) || _cellLights.empty()) { return {}; }
     return _cellLights[PixelIndex(MAP_WIDTH, map.X, map.Y)];
 }
 
@@ -87,7 +87,7 @@ void lighting::update(level const& lvl, usize losSamples)
                 if (walk.exit() >= dist) { break; } // reached the light before hitting anything
 
                 walk.advance();
-                if (!map_t::Size.contains(walk.cell()) || walk.cell() == lightCell) { break; }
+                if (!map_grid::Size.contains(walk.cell()) || walk.cell() == lightCell) { break; }
 
                 if (lvl.map().is_blocking_light(walk.cell())) {
                     visible = false;
@@ -112,7 +112,7 @@ void lighting::update(level const& lvl, usize losSamples)
     std::vector<light_sweep> sweeps(_lights.size());
     for (usize li {0}; li < _lights.size(); ++li) {
         auto const& lt {_lights[li]};
-        if (!map_t::Size.contains(WorldToCell(lt.Position))) { continue; }
+        if (!map_grid::Size.contains(WorldToCell(lt.Position))) { continue; }
 
         f64 const sweepRadius {lt.Range + CELL_DIAGONAL_HALF};
 

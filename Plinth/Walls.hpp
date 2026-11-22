@@ -166,6 +166,6 @@ using cell = std::variant<floor_cell, normal_wall, door_wall, push_wall, obstacl
 
 inline constexpr i32 MAP_WIDTH {64};
 inline constexpr i32 MAP_HEIGHT {64};
-using map_t = static_grid<cell, MAP_WIDTH, MAP_HEIGHT>;
+using map_grid = static_grid<cell, MAP_WIDTH, MAP_HEIGHT>;
 
 ////////////////////////////////////////////////////////////

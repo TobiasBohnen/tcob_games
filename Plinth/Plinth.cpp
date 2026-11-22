@@ -453,7 +453,7 @@ void Plinth::action_toggle_wall()
 
     auto&     map {_level->map()};
     cell_walk walk {_player.Position, _player.Direction};
-    for (; walk.entry() <= USE_REACH && map_t::Size.contains(walk.cell()); walk.advance()) {
+    for (; walk.entry() <= USE_REACH && map_grid::Size.contains(walk.cell()); walk.advance()) {
         if (map.toggle_wall(walk.cell())) { break; }       // door or push wall: toggled
         if (map.is_blocking_light(walk.cell())) { break; } // a wall is in the way
     }

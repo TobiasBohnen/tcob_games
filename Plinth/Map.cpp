@@ -49,13 +49,13 @@ auto map::toggle_wall(point_i pos) -> bool
 
 auto map::get_visibility(point_i pos) const -> tile_visibility
 {
-    if (!map_t::Size.contains(pos)) { return tile_visibility::Hidden; }
+    if (!map_grid::Size.contains(pos)) { return tile_visibility::Hidden; }
     return _seen[pos];
 }
 
 void map::mark_visible(point_i pos)
 {
-    if (!map_t::Size.contains(pos)) { return; }
+    if (!map_grid::Size.contains(pos)) { return; }
     std::atomic_ref<tile_visibility> {_seen[pos]}.store(tile_visibility::Visible, std::memory_order_relaxed);
 }
 
@@ -77,7 +77,7 @@ void map::set_cell(point_i pos, cell const& c)
 
 auto map::surface_at(point_i pos) const -> cell_surface
 {
-    if (!map_t::Size.contains(pos)) { return {}; }
+    if (!map_grid::Size.contains(pos)) { return {}; }
 
     return std::visit([](auto&& c) -> cell_surface {
         cell_surface s {};
@@ -95,7 +95,7 @@ auto map::surface_at(point_i pos) const -> cell_surface
 
 auto map::slopes_at(point_i pos) const -> slopes
 {
-    if (!map_t::Size.contains(pos)) { return {}; }
+    if (!map_grid::Size.contains(pos)) { return {}; }
     return _cellSlopes[PixelIndex(MAP_WIDTH, pos.X, pos.Y)];
 }
 
@@ -113,7 +113,7 @@ void map::prepare_slopes()
         for (i32 cy : {vy - 1, vy}) {
             for (i32 cx : {vx - 1, vx}) {
                 point_i const c {cx, cy};
-                if (!map_t::Size.contains(c) || std::holds_alternative<normal_wall>(get_cell(c))) { continue; }
+                if (!map_grid::Size.contains(c) || std::holds_alternative<normal_wall>(get_cell(c))) { continue; }
 
                 auto const surface {surface_at(c)};
                 if (surface.Level != cellLevel) { continue; }
@@ -142,7 +142,7 @@ void map::prepare_slopes()
 
 auto map::is_blocking_light(point_i pos) const -> bool
 {
-    if (!map_t::Size.contains(pos)) { return {}; }
+    if (!map_grid::Size.contains(pos)) { return {}; }
 
     return std::visit([](auto&& c) -> bool {
         using T = std::decay_t<decltype(c)>;

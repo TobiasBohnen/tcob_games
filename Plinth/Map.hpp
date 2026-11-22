@@ -58,7 +58,7 @@ public:
 private:
     void prepare_slopes();
 
-    map_t                                               _cells;
+    map_grid                                            _cells;
     static_grid<tile_visibility, MAP_WIDTH, MAP_HEIGHT> _seen;
 
     std::vector<slopes> _cellSlopes;
