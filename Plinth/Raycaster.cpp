@@ -294,6 +294,9 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
         u32 const g {(((px & 0x0000FF00u) * m) >> 8) & 0x0000FF00u};
         return 0xFF000000u | rb | g;
     }};
+    auto const  is_lit {[&](point_d const& pos, f64 z) {
+        return IsVisiblyLit(accumulate_light(frame, pos, z, WorldToCell(pos), LIGHT_LAYERS_ALL));
+    }};
 
     constexpr static f64 CONTACT_SHADOW_WIDTH {0.3};
     constexpr static f64 CONTACT_SHADOW_STRENGTH {0.75};
@@ -475,10 +478,17 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
         draw_flat(true, surface, cell, slopes, t0, t1);
         draw_flat(false, surface, cell, slopes, t0, t1);
 
-        if ((col.Bottom < bottomBefore || col.Top > topBefore) && IsWithinPlayerLight(player, cell)) { map.mark_visible(cell); }
+        if (col.Bottom < bottomBefore || col.Top > topBefore) {
+            point_d const center {cell.X + 0.5, cell.Y + 0.5};
+            f64 const     midZ {(HeightAt(slopes.Floor, cell, center) + HeightAt(slopes.Ceiling, cell, center)) * 0.5};
+            if (is_lit(center, midZ)) { map.mark_visible(cell); }
+        }
     }
 
-    if (col.Top < col.Bottom && IsWithinPlayerLight(player, col.Cell)) { map.mark_visible(col.Cell); }
+    if (col.Top < col.Bottom) {
+        point_d const wallPos {col.point_at(std::max(col.Hit.Distance - 0.001, 0.0))};
+        if (is_lit(wallPos, (col.WallBase + col.WallTop) * 0.5)) { map.mark_visible(col.Cell); }
+    }
 }
 
 void raycaster::draw_wall_column(frame const& frame, column_hit const& col)
