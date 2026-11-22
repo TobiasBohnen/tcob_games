@@ -616,15 +616,15 @@ void raycaster::draw_sprites(frame const& frame)
                 i32 const texY {std::clamp(static_cast<i32>(texPos), 0, texSize.Height - 1)};
                 texPos += texStepY;
 
+                usize const idx {PixelIndex(_screenSize.Width, x, y)};
+                if (depth >= _objectDepthBuffer[idx]) { continue; }
+
                 i32 const texOffset {TexelOffset(texX, texY, texSize.Width)};
                 if (IsMagenta(tex, texOffset)) { continue; }
 
-                usize const idx {PixelIndex(_screenSize.Width, x, y)};
-                if (depth < _objectDepthBuffer[idx]) {
-                    _objectDepthBuffer[idx] = depth;
-                    if (inLight) { spr->Seen = true; }
-                    CopyPixel(screenBuf, idx, tex, texOffset, DitherTint(spriteTint, x, y, _quality));
-                }
+                _objectDepthBuffer[idx] = depth;
+                if (inLight) { spr->Seen = true; }
+                CopyPixel(screenBuf, idx, tex, texOffset, spriteTint);
             }
         }
     }
