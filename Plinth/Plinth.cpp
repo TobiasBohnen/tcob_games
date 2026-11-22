@@ -272,8 +272,8 @@ Plinth::Plinth(game& game)
                        .Direction = {0.1, 0},
                        .Radius    = (std::max(testVoxelGrid.Size.X, testVoxelGrid.Size.Y) / 2.0) * scale / maxDim,
                        .Visual    = voxel_object {
-                           .Scale = scale / maxDim,
                            .BaseZ = 0.0,
+                           .Scale = scale / maxDim,
                            .Yaw   = degree_d {90.0 * i},
                            .Grid  = &testVoxelGrid,
                        }});

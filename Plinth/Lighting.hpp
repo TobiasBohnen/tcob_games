@@ -9,7 +9,19 @@
 #include <vector>
 
 #include "Common.hpp"
-#include "LevelObject.hpp"
+
+////////////////////////////////////////////////////////////
+
+struct dynamic_light {
+    point_d Position {};
+    f64     Z {0.5};
+    f64     Range {8.0};
+    color   Color {colors::White};
+    f64     Intensity {1.0};
+    u32     Layers {LIGHT_LAYER_WORLD};
+};
+
+////////////////////////////////////////////////////////////
 
 class lighting {
 public:

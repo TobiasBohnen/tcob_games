@@ -10,6 +10,7 @@
 #include <optional>
 #include <variant>
 
+#include "Lighting.hpp"
 #include "Voxel.hpp"
 
 ////////////////////////////////////////////////////////////
@@ -22,8 +23,8 @@ public:
     size_d   Size {size_d::One};
     i32      Texture {-1};
     degree_d Facing {0};
-    u32      LightMask {LIGHT_LAYERS_ALL};
 
+    u32  LightMask {LIGHT_LAYERS_ALL};
     bool Seen {false};
 
     auto facing_index(point_d cameraPos) const -> i32;
@@ -38,14 +39,15 @@ public:
 class voxel_object {
 public:
     point_d Position {};
-    f64     Scale {1.0};
+    f64     BaseZ {0.0};
 
-    f64 BaseZ {0.0};
+    f64 Scale {1.0};
 
     radian_d Yaw {0.0};
     radian_d Pitch {0.0};
     radian_d Roll {0.0};
 
+    u32  LightMask {LIGHT_LAYERS_ALL};
     bool Seen {false};
 
     std::optional<screen_bounds> ScreenBounds {};
@@ -62,17 +64,6 @@ public:
 
 private:
     auto make_rotation() const -> mat3_d;
-};
-
-////////////////////////////////////////////////////////////
-
-struct dynamic_light {
-    point_d Position {};
-    f64     Z {0.5};
-    f64     Range {8.0};
-    color   Color {colors::White};
-    f64     Intensity {1.0};
-    u32     Layers {LIGHT_LAYER_WORLD};
 };
 
 ////////////////////////////////////////////////////////////

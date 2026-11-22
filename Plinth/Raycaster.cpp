@@ -789,7 +789,7 @@ void raycaster::draw_voxel_objects(frame const& frame)
                     auto const hitCellForLight {WorldToCell(worldHitXY)};
                     f64 const  aoFactor {_quality.VoxelAo ? vo->Grid->face_ao(hit, localHitPos) : 1.0};
 
-                    auto const tint {accumulate_light(frame, worldHitXY, adjustedWorldHit.Z, hitCellForLight, LIGHT_LAYERS_ALL) * aoFactor};
+                    auto const tint {accumulate_light(frame, worldHitXY, adjustedWorldHit.Z, hitCellForLight, vo->LightMask) * aoFactor};
                     bool const lit {IsVisiblyLit(tint)};
 
                     i32 const yBlockEnd {std::min(y + stride, bottom)};
