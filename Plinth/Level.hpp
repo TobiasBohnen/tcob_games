@@ -9,6 +9,7 @@
 
 #include <optional>
 #include <span>
+#include <utility>
 #include <vector>
 
 #include "LevelObject.hpp"
@@ -49,7 +50,14 @@ public:
 
     auto can_move_to(point_d from, point_d to, f64 radius, f64 z, bool flying, uid ignore) const -> bool;
 
-    auto spawn(level_object_desc const& desc) -> uid;
+    template <typename T, typename... Args>
+    auto spawn(object_desc const& desc, Args&&... args) -> uid
+    {
+        uid const id {_nextId++};
+        _objects.emplace_back(std::in_place_type<T>, id, desc, std::forward<Args>(args)...);
+        return id;
+    }
+
     auto find(uid id) -> level_object*;
 
     auto objects() const -> std::span<level_object const>;

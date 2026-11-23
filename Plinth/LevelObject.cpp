@@ -1,17 +1,25 @@
+// Copyright (c) 2026 Tobias Bohnen
+//
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
+
 #include "LevelObject.hpp"
 
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <optional>
+#include <type_traits>
 #include <variant>
 
 #include "Common.hpp"
 #include "Voxel.hpp"
 
-auto sprite_object::facing_index(point_d cameraPos) const -> i32
+////////////////////////////////////////////////////////////
+
+auto sprite_object::facing_index(point_d objPos, point_d cameraPos) const -> i32
 {
-    auto const viewAngle {Position.angle_to(cameraPos)};
+    auto const viewAngle {objPos.angle_to(cameraPos)};
     auto const relativeAngle {(Facing - viewAngle).as_normalized(angle_normalize::PositiveFullTurn)};
 
     constexpr f64 wedge {360.0 / NUM_FACINGS};
@@ -20,15 +28,17 @@ auto sprite_object::facing_index(point_d cameraPos) const -> i32
 
 auto sprite_object::screen_size(f64 scale) const -> size_i { return static_cast<size_i>(Size * std::abs(scale)); }
 
-auto sprite_object::screen_bottom(f64 scale, i32 screenCenterY, f64 eyeHeight) const -> i32 { return screenCenterY + static_cast<i32>((eyeHeight - BaseZ) * scale); }
+auto sprite_object::screen_bottom(f64 scale, i32 screenCenterY, f64 eyeHeight) const -> i32 { return screenCenterY + static_cast<i32>(eyeHeight * scale); }
 
-auto voxel_object::make_transform() const -> voxel_transform { return {.Rotation = make_rotation(), .Position = Position, .Pivot = Grid->pivot(), .BaseZ = BaseZ, .Scale = Scale}; }
+////////////////////////////////////////////////////////////
+
+auto voxel_object::make_transform(point3_d worldPos) const -> voxel_transform { return {.Rotation = make_rotation(), .Position = worldPos.xy(), .Pivot = Grid->pivot(), .BaseZ = worldPos.Z, .Scale = Scale}; }
 
 auto voxel_object::world_diagonal() const -> f64 { return Grid->diagonal() * Scale; }
 
-auto voxel_object::segment_hits(point_d from, point_d to, f64 z, f64 radius) const -> bool
+auto voxel_object::segment_hits(point3_d worldPos, point_d from, point_d to, f64 z, f64 radius) const -> bool
 {
-    auto const t {make_transform()};
+    auto const t {make_transform(worldPos)};
 
     f64 const r {radius / Scale};
     f64 const r2 {r * r};
@@ -64,9 +74,9 @@ auto voxel_object::segment_hits(point_d from, point_d to, f64 z, f64 radius) con
     return false;
 }
 
-auto voxel_object::filled_at(point_d pos, f64 z) const -> bool
+auto voxel_object::filled_at(point3_d worldPos, point_d pos, f64 z) const -> bool
 {
-    auto const l {make_transform().to_local({.X = pos.X, .Y = pos.Y, .Z = z})};
+    auto const l {make_transform(worldPos).to_local({.X = pos.X, .Y = pos.Y, .Z = z})};
     return Grid->occupied(static_cast<i32>(std::floor(l.X)),
                           static_cast<i32>(std::floor(l.Y)),
                           static_cast<i32>(std::floor(l.Z)));
@@ -82,45 +92,43 @@ auto voxel_object::make_rotation() const -> mat3_d
             -sp, cp * sr, cp * cr};
 }
 
-level_object::level_object(uid id, level_object_desc const& desc)
+////////////////////////////////////////////////////////////
+
+object_base::object_base(uid id, object_desc const& desc)
     : _id {id}
-    , _radius {desc.Radius}
-    , _flying {desc.Flying}
-    , _mapMarker {desc.MapMarker}
     , _name {desc.Name}
-    , _direction {desc.Direction}
-    , _lifeTime {desc.LifeTime}
+    , _position {desc.Position}
+    , _mapMarker {desc.MapMarker}
     , _visual {desc.Visual}
-    , _light {desc.Light}
+    , _lifeTime {desc.LifeTime}
 {
-    set_position(desc.Position);
 }
 
-void level_object::update(milliseconds deltaTime)
+auto object_base::id() const -> uid { return _id; }
+auto object_base::name() const -> string const& { return _name; }
+
+auto object_base::position() const -> point_d { return _position.xy(); }
+auto object_base::position3() const -> point3_d { return _position; }
+void object_base::set_position(point_d p) { _position = _position.with_xy(p); }
+auto object_base::z() const -> f64 { return _position.Z; }
+void object_base::set_z(f64 z) { _position.Z = z; }
+
+auto object_base::floor_z() const -> f64 { return _floorZ; }
+void object_base::set_floor_z(f64 floorZ) { _floorZ = floorZ; }
+auto object_base::world_z() const -> f64 { return _floorZ + _position.Z; }
+auto object_base::world_position() const -> point3_d { return _position.with_z(world_z()); }
+
+auto object_base::center_z() const -> f64
 {
-    if (_lifeTime) {
-        *_lifeTime -= deltaTime;
-        if (*_lifeTime <= milliseconds::zero()) {
-            _dead     = true;
-            _lifeTime = std::nullopt;
-        }
-    }
+    if (auto const* s {sprite()}) { return world_z() + (s->Size.Height * 0.5); }
+    if (auto const* v {voxel()}) { return world_z() + (v->Grid->Size.Z * v->Scale * 0.5); }
+
+    return world_z();
 }
 
-auto level_object::id() const -> uid { return _id; }
-auto level_object::radius() const -> f64 { return _radius; }
-auto level_object::is_solid() const -> bool { return _radius > 0; }
+auto object_base::map_marker() const -> color { return _mapMarker; }
 
-auto level_object::map_marker() const -> color { return _mapMarker; }
-auto level_object::name() const -> string_view
-{
-    return _name;
-}
-
-auto level_object::dead() const -> bool { return _dead; }
-void level_object::kill() { _dead = true; }
-
-auto level_object::is_seen() const -> bool
+auto object_base::is_seen() const -> bool
 {
     if (auto const* s {sprite()}) { return s->Seen; }
     if (auto const* v {voxel()}) { return v->Seen; }
@@ -128,74 +136,117 @@ auto level_object::is_seen() const -> bool
     return false;
 }
 
-auto level_object::position() const -> point_d
-{
-    if (auto const* s {sprite()}) { return s->Position; }
-    if (auto const* v {voxel()}) { return v->Position; }
-    if (_light) { return _light->Position; };
+auto object_base::dead() const -> bool { return _dead; }
+void object_base::kill() { _dead = true; }
 
-    return {};
+auto object_base::life_time() const -> std::optional<milliseconds> { return _lifeTime; }
+
+void object_base::age(milliseconds dt)
+{
+    if (!_lifeTime) { return; }
+
+    *_lifeTime -= dt;
+    if (*_lifeTime <= milliseconds::zero()) { kill(); }
 }
 
-void level_object::set_position(point_d p)
+auto object_base::sprite() const -> sprite_object const* { return std::get_if<sprite_object>(&_visual); }
+auto object_base::sprite() -> sprite_object* { return std::get_if<sprite_object>(&_visual); }
+auto object_base::voxel() const -> voxel_object const* { return std::get_if<voxel_object>(&_visual); }
+auto object_base::voxel() -> voxel_object* { return std::get_if<voxel_object>(&_visual); }
+
+////////////////////////////////////////////////////////////
+
+enemy::enemy(uid id, object_desc const& desc, f64 radius, bool flying, i32 health, point_d direction)
+    : object_base {id, desc}
+    , solid {.Radius = radius}
+    , movable {.Direction = direction}
+    , Health {health}
+    , _flying {flying}
 {
-    if (auto* s {sprite()}) { s->Position = p; }
-    if (auto* v {voxel()}) { v->Position = p; }
-    if (_light) { _light->Position = p; }
 }
 
-auto level_object::direction() const -> point_d
+projectile::projectile(uid id, object_desc const& desc, f64 radius, point_d direction, uid owner, std::optional<dynamic_light> light)
+    : object_base {id, desc}
+    , solid {.Radius = radius}
+    , movable {.Direction = direction}
+    , Owner {owner}
 {
-    return _direction;
+    Light = light;
 }
 
-void level_object::set_direction(point_d p)
+pickup::pickup(uid id, object_desc const& desc, f64 radius, i32 item, std::optional<dynamic_light> light)
+    : object_base {id, desc}
+    , solid {.Radius = radius}
+    , Item {item}
 {
-    _direction = p;
+    Light = light;
 }
 
-auto level_object::flying() const -> bool { return _flying; }
-
-auto level_object::center_z() const -> f64
+object::object(uid id, object_desc const& desc, f64 radius, std::optional<dynamic_light> light)
+    : object_base {id, desc}
+    , solid {.Radius = radius}
 {
-    if (auto const* s {sprite()}) { return s->BaseZ + (s->Size.Height * 0.5); }
-    if (auto const* v {voxel()}) { return v->BaseZ + (v->Grid->Size.Z * v->Scale * 0.5); }
-    if (_light) { return _light->Z; }
-
-    return 0.0;
+    Light = light;
 }
 
-auto level_object::blocked() const -> bool
+////////////////////////////////////////////////////////////
+
+auto base_of(level_object& o) -> object_base&
 {
-    return _blocked;
+    return std::visit([](auto& x) -> object_base& { return x; }, o);
 }
 
-void level_object::set_blocked(bool b)
+auto base_of(level_object const& o) -> object_base const&
 {
-    _blocked = b;
+    return std::visit([](auto const& x) -> object_base const& { return x; }, o);
 }
 
-auto level_object::overlaps(point_d from, point_d to, f64 radius, std::optional<f64> z) const -> bool
+auto is_flying(level_object const& o) -> bool
 {
-    if (!is_solid()) { return false; }
+    return std::visit([](auto const& x) { return x.flying(); }, o);
+}
 
-    auto const c {position()};
+auto world_light(level_object const& o) -> std::optional<dynamic_light>
+{
+    return std::visit([](auto const& x) -> std::optional<dynamic_light> {
+        if constexpr (std::derived_from<std::remove_cvref_t<decltype(x)>, emitter>) {
+            if (!x.Light) { return std::nullopt; }
+
+            auto light {*x.Light};
+            light.Position = x.world_position() + light.Position;
+            return light;
+        } else {
+            return std::nullopt;
+        }
+    },
+                      o);
+}
+
+static auto OverlapsSolid(object_base const& self, solid const& body, point_d from, point_d to, f64 radius, std::optional<f64> z) -> bool
+{
+    if (body.Radius <= 0) { return false; }
+
+    auto const c {self.position()};
     auto const s {to - from};
     f64 const  len2 {s.length_squared()};
     f64 const  t {len2 > 0.0 ? std::clamp((c - from).dot(s) / len2, 0.0, 1.0) : 0.0};
-    f64 const  combined {radius + _radius};
+    f64 const  combined {radius + body.Radius};
     if ((c - (from + (s * t))).length_squared() >= combined * combined) { return false; }
 
     if (z) {
-        if (auto const* v {voxel()}) { return v->segment_hits(from, to, *z, radius); }
+        if (auto const* v {self.voxel()}) { return v->segment_hits(self.world_position(), from, to, *z, radius); }
     }
     return true;
 }
 
-auto level_object::sprite() const -> sprite_object const* { return std::get_if<sprite_object>(&_visual); }
-auto level_object::sprite() -> sprite_object* { return std::get_if<sprite_object>(&_visual); }
-auto level_object::voxel() const -> voxel_object const* { return std::get_if<voxel_object>(&_visual); }
-auto level_object::voxel() -> voxel_object* { return std::get_if<voxel_object>(&_visual); }
-
-auto level_object::light() const -> dynamic_light const* { return _light ? &*_light : nullptr; }
-auto level_object::light() -> dynamic_light* { return _light ? &*_light : nullptr; }
+auto overlaps(level_object const& o, point_d from, point_d to, f64 radius, std::optional<f64> z) -> bool
+{
+    return std::visit([&](auto const& x) -> bool {
+        if constexpr (std::derived_from<std::remove_cvref_t<decltype(x)>, solid>) {
+            return OverlapsSolid(x, x, from, to, radius, z);
+        } else {
+            return false;
+        }
+    },
+                      o);
+}

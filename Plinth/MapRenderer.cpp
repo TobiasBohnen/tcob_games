@@ -12,6 +12,7 @@
 
 #include "Common.hpp"
 #include "Level.hpp"
+#include "LevelObject.hpp"
 #include "Map.hpp"
 #include "Player.hpp"
 #include "Walls.hpp"
@@ -116,7 +117,8 @@ void map_renderer::draw(level const& level, player const& player, std::span<u32>
     }
 
     // objects
-    for (auto const& obj : level.objects()) {
+    for (auto const& o : level.objects()) {
+        auto const& obj {base_of(o)};
         if (!obj.is_seen()) { continue; }
 
         point_i const objPos {origin + point_i {obj.position() * cellSize}};

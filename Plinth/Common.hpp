@@ -79,6 +79,10 @@ struct point3_d {
     auto constexpr xy() const -> point_d { return {X, Y}; }
     static constexpr auto Lift(point_d const& p, f64 z) -> point3_d { return {.X = p.X, .Y = p.Y, .Z = z}; }
 
+    constexpr auto with_z(f64 z) const -> point3_d { return {.X = X, .Y = Y, .Z = z}; }
+    constexpr auto with_xy(point_d const& p) const -> point3_d { return {.X = p.X, .Y = p.Y, .Z = Z}; }
+
+    friend auto operator==(point3_d const&, point3_d const&) -> bool = default;
     friend auto operator+(point3_d const& a, point3_d const& b) -> point3_d { return {.X = a.X + b.X, .Y = a.Y + b.Y, .Z = a.Z + b.Z}; }
     friend auto operator-(point3_d const& a, point3_d const& b) -> point3_d { return {.X = a.X - b.X, .Y = a.Y - b.Y, .Z = a.Z - b.Z}; }
     friend auto operator*(point3_d const& a, f64 s) -> point3_d { return {.X = a.X * s, .Y = a.Y * s, .Z = a.Z * s}; }

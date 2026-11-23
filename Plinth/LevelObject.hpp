@@ -7,6 +7,7 @@
 
 #include "Common.hpp"
 
+#include <concepts>
 #include <optional>
 #include <variant>
 
@@ -14,12 +15,10 @@
 #include "Voxel.hpp"
 
 ////////////////////////////////////////////////////////////
+// visuals: how an object is drawn. They hold no position, the object owns it.
 
 class sprite_object {
 public:
-    point_d Position {};
-    f64     BaseZ {0.0};
-
     size_d   Size {size_d::One};
     i32      Texture {-1};
     degree_d Facing {0};
@@ -27,10 +26,9 @@ public:
     u32  LightMask {LIGHT_LAYERS_ALL};
     bool Seen {false};
 
-    auto facing_index(point_d cameraPos) const -> i32;
-
+    auto facing_index(point_d objPos, point_d cameraPos) const -> i32;
     auto screen_size(f64 scale) const -> size_i;
-
+    // eyeHeight is the height of the eye above the bottom of the sprite
     auto screen_bottom(f64 scale, i32 screenCenterY, f64 eyeHeight) const -> i32;
 };
 
@@ -38,9 +36,6 @@ public:
 
 class voxel_object {
 public:
-    point_d Position {};
-    f64     BaseZ {0.0};
-
     f64 Scale {1.0};
 
     radian_d Yaw {0.0};
@@ -54,88 +49,151 @@ public:
 
     voxel_grid const* Grid {nullptr};
 
-    auto make_transform() const -> voxel_transform;
-
+    // worldPos: x/y of the object and the absolute height of the bottom of the grid
+    auto make_transform(point3_d worldPos) const -> voxel_transform;
     auto world_diagonal() const -> f64;
-
-    auto segment_hits(point_d from, point_d to, f64 z, f64 radius) const -> bool;
-
-    auto filled_at(point_d pos, f64 z) const -> bool;
+    auto segment_hits(point3_d worldPos, point_d from, point_d to, f64 z, f64 radius) const -> bool;
+    auto filled_at(point3_d worldPos, point_d pos, f64 z) const -> bool;
 
 private:
     auto make_rotation() const -> mat3_d;
 };
 
-////////////////////////////////////////////////////////////
-
 using object_visual = std::variant<std::monostate, sprite_object, voxel_object>;
 
-struct level_object_desc {
-    point_d                     Position {};
-    point_d                     Direction {};
-    f64                         Radius {0.0};   // 0 = non solid
-    bool                        Flying {false}; // sprites only: keeps its height, floors and ceilings in its way stop it instead of being climbed
-    color                       MapMarker {colors::Green};
-    string                      Name {};
-    std::optional<milliseconds> LifeTime {};
+////////////////////////////////////////////////////////////
 
-    object_visual                Visual;
-    std::optional<dynamic_light> Light {};
+struct object_desc {
+    string        Name {};
+    point3_d      Position {}; // Z: height above the floor, or absolute height for kinds that fly
+    color         MapMarker {};
+    object_visual Visual {};
+
+    std::optional<milliseconds> LifeTime {};
 };
 
-class level_object {
+////////////////////////////////////////////////////////////
+// object_base: only what every kind has
+
+class object_base {
 public:
-    level_object(uid id, level_object_desc const& desc);
-
-    void update(milliseconds deltaTime);
-
     auto id() const -> uid;
+    auto name() const -> string const&;
+
+    auto position() const -> point_d;   // x/y
+    auto position3() const -> point3_d; // x/y and Position.Z (relative or absolute, see the kind)
+    void set_position(point_d p);       // keeps Z
+    auto z() const -> f64;
+    void set_z(f64 z);
+
+    // reported by the renderer each frame: the floor height the object stands on, 0 for flying kinds
+    auto floor_z() const -> f64;
+    void set_floor_z(f64 floorZ);
+    auto world_z() const -> f64;  // actual absolute height of the object's base
+    auto world_position() const -> point3_d;
+    auto center_z() const -> f64; // actual absolute height of the middle of the visual
+
     auto map_marker() const -> color;
-    auto name() const -> string_view;
-
-    auto radius() const -> f64;
-    auto is_solid() const -> bool;
-
-    auto position() const -> point_d;
-    void set_position(point_d p);
-
-    auto direction() const -> point_d;
-    void set_direction(point_d p);
-
-    auto flying() const -> bool;
-    auto center_z() const -> f64;
-
-    auto blocked() const -> bool;
-    void set_blocked(bool b);
+    auto is_seen() const -> bool;
 
     auto dead() const -> bool;
     void kill();
 
-    auto is_seen() const -> bool;
-
-    auto overlaps(point_d from, point_d to, f64 radius, std::optional<f64> z) const -> bool;
+    auto life_time() const -> std::optional<milliseconds>; // what is left, empty if it does not expire
+    void age(milliseconds dt);                             // counts the life time down and kills the object when it runs out
 
     auto sprite() const -> sprite_object const*;
     auto sprite() -> sprite_object*;
-
     auto voxel() const -> voxel_object const*;
     auto voxel() -> voxel_object*;
 
-    auto light() const -> dynamic_light const*;
-    auto light() -> dynamic_light*;
+protected:
+    object_base(uid id, object_desc const& desc);
 
 private:
-    uid  _id;
-    bool _dead {false};
-    f64  _radius;
-    bool _flying {false};
-    bool _blocked {false};
+    uid           _id;
+    string        _name;
+    point3_d      _position;
+    f64           _floorZ {0.0};
+    color         _mapMarker;
+    object_visual _visual;
+    bool          _dead {false};
 
-    color                       _mapMarker;
-    string                      _name;
-    point_d                     _direction;
-    std::optional<milliseconds> _lifeTime {};
-
-    object_visual                _visual;
-    std::optional<dynamic_light> _light;
+    std::optional<milliseconds> _lifeTime;
 };
+
+////////////////////////////////////////////////////////////
+// collides with walls and other objects
+class solid {
+public:
+    f64 Radius {0.0}; // 0: not solid
+};
+
+// moves by itself
+class movable {
+public:
+    point_d Direction {};
+    bool    Blocked {false}; // set when it ran into something, so the collision is reported once
+};
+
+// carries a light; the light's Position is an offset from the owner's world position (see world_light)
+class emitter {
+public:
+    std::optional<dynamic_light> Light;
+};
+
+////////////////////////////////////////////////////////////
+// kinds
+
+class enemy final : public object_base, public solid, public movable {
+public:
+    enemy(uid id, object_desc const& desc, f64 radius, bool flying, i32 health, point_d direction = {});
+
+    i32 Health {1};
+
+    auto flying() const -> bool { return _flying; }
+
+private:
+    bool _flying;
+};
+
+class projectile final : public object_base, public solid, public movable, public emitter {
+public:
+    projectile(uid id, object_desc const& desc, f64 radius, point_d direction, uid owner, std::optional<dynamic_light> light = std::nullopt);
+
+    uid Owner {};
+
+    static constexpr auto flying() -> bool { return true; }
+};
+
+class pickup final : public object_base, public solid, public emitter {
+public:
+    pickup(uid id, object_desc const& desc, f64 radius, i32 item, std::optional<dynamic_light> light = std::nullopt);
+
+    i32 Item {0};
+
+    static constexpr auto flying() -> bool { return false; }
+};
+
+// a plain thing in the world: prop, decoration, torch
+class object final : public object_base, public solid, public emitter {
+public:
+    object(uid id, object_desc const& desc, f64 radius, std::optional<dynamic_light> light = std::nullopt);
+
+    static constexpr auto flying() -> bool { return false; }
+};
+
+////////////////////////////////////////////////////////////
+
+using level_object = std::variant<enemy, pickup, object, projectile>;
+
+auto base_of(level_object& o) -> object_base&;
+auto base_of(level_object const& o) -> object_base const&;
+
+auto is_flying(level_object const& o) -> bool;
+
+// the object's light placed in the world: Position is the owner's world position plus the light's offset; empty for kinds without a light
+auto world_light(level_object const& o) -> std::optional<dynamic_light>;
+
+// whether the move from -> to of a circle with `radius` runs into the object; voxel objects are tested against their voxels at height z
+auto overlaps(level_object const& o, point_d from, point_d to, f64 radius, std::optional<f64> z) -> bool;

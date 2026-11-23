@@ -13,6 +13,7 @@
 
 #include "Common.hpp"
 #include "Level.hpp"
+#include "LevelObject.hpp"
 #include "Player.hpp"
 #include "TextureCache.hpp"
 
@@ -143,7 +144,8 @@ void screen_overlay::draw_target(level const& level) const
 
     i32 const maxScale {UIScale(_screenSize)};
 
-    for (auto const& obj : level.objects()) {
+    for (auto const& o : level.objects()) {
+        auto const& obj {base_of(o)};
         if (!obj.is_seen()) { continue; }
         auto const* vo {obj.voxel()};
         if (!vo || !vo->ScreenBounds) { continue; }

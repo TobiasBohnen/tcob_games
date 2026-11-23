@@ -12,6 +12,7 @@
 
 #include "Common.hpp"
 #include "Level.hpp"
+#include "LevelObject.hpp"
 #include "TextureCache.hpp"
 
 void player::move(level const& level, f64 forwardAmount, f64 strafeAmount, f64 rotateAmount)
@@ -79,12 +80,14 @@ auto player::bob_amount() const -> f64
 
 void player::fire(level& level) const
 {
-    sprite_object const sprite {.BaseZ     = EyeZ - 0.15,
-                                .Size      = {0.15, 0.15},
+    constexpr f64 BALL_SIZE {0.15};
+
+    sprite_object const sprite {.Size      = {BALL_SIZE, BALL_SIZE},
                                 .Texture   = ballTexture,
                                 .LightMask = LIGHT_LAYER_SPELL};
 
-    dynamic_light const light {.Z         = sprite.BaseZ + (sprite.Size.Height * 0.5),
+    // the light sits in the middle of the ball: an offset from the projectile
+    dynamic_light const light {.Position  = {.Z = BALL_SIZE * 0.5},
                                .Range     = 2.5,
                                .Color     = colors::Red,
                                .Intensity = 1.5,
@@ -100,11 +103,9 @@ void player::fire(level& level) const
     f64 const spawnX {Position.X + (forwardOffset * fwdX) + (rightOffset * rightX)};
     f64 const spawnY {Position.Y + (forwardOffset * fwdY) + (rightOffset * rightY)};
 
-    level.spawn({.Position  = {spawnX, spawnY},
-                 .Direction = Direction * 10,
-                 .Radius    = 0.075,
-                 .Flying    = true,
-                 .LifeTime  = 5s,
-                 .Visual    = sprite,
-                 .Light     = light});
+    object_desc const desc {.Position = {.X = spawnX, .Y = spawnY, .Z = EyeZ - 0.15},
+                            .Visual   = sprite,
+                            .LifeTime = 5s};
+
+    level.spawn<projectile>(desc, 0.075, Direction * 10, uid {}, light);
 }

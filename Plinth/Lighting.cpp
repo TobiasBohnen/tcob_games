@@ -15,6 +15,7 @@
 #include "CellWalk.hpp"
 #include "Common.hpp"
 #include "Level.hpp"
+#include "LevelObject.hpp"
 #include "Walls.hpp"
 
 lighting::lighting()
@@ -34,25 +35,28 @@ void lighting::update(level const& lvl, usize losSamples)
 {
     constexpr static f64 CELL_DIAGONAL_HALF {std::numbers::sqrt2 / 2}; // max distance from a cell's center to its farthest corner
 
-    usize count {0};
-    for (auto const& go : lvl.objects()) {
-        if (go.light()) { ++count; }
-    }
-
     bool rebuild {losSamples != _losSamples};
-    if (count != _lights.size()) {
-        _lights.resize(count);
-        rebuild = true;
-    }
 
+    // the lights of the objects, placed in the world; a change in position or range means the cell lists are stale
     usize index {0};
     for (auto const& go : lvl.objects()) {
-        auto const* source {go.light()};
-        if (!source) { continue; }
+        auto const light {world_light(go)};
+        if (!light) { continue; }
 
-        auto& cached {_lights[index++]};
-        if (source->Position.X != cached.Position.X || source->Position.Y != cached.Position.Y || source->Z != cached.Z || source->Range != cached.Range) { rebuild = true; }
-        cached = *source;
+        if (index >= _lights.size()) {
+            _lights.push_back(*light);
+            rebuild = true;
+        } else {
+            auto& cached {_lights[index]};
+            if (light->Position != cached.Position || light->Range != cached.Range) { rebuild = true; }
+            cached = *light;
+        }
+        ++index;
+    }
+
+    if (index != _lights.size()) {
+        _lights.resize(index);
+        rebuild = true;
     }
 
     if (!rebuild) { return; }
@@ -111,18 +115,19 @@ void lighting::update(level const& lvl, usize losSamples)
 
     std::vector<light_sweep> sweeps(_lights.size());
     for (usize li {0}; li < _lights.size(); ++li) {
-        auto const& lt {_lights[li]};
-        if (!map_grid::Size.contains(WorldToCell(lt.Position))) { continue; }
+        auto const&   lt {_lights[li]};
+        point_d const lightXY {lt.Position.xy()};
+        if (!map_grid::Size.contains(WorldToCell(lightXY))) { continue; }
 
         f64 const sweepRadius {lt.Range + CELL_DIAGONAL_HALF};
 
         auto& sweep {sweeps[li]};
         sweep.Active   = true;
         sweep.RadiusSq = sweepRadius * sweepRadius;
-        sweep.CxMin    = std::clamp(static_cast<i32>(std::floor(lt.Position.X - sweepRadius)), 0, MAP_WIDTH - 1);
-        sweep.CxMax    = std::clamp(static_cast<i32>(std::floor(lt.Position.X + sweepRadius)), 0, MAP_WIDTH - 1);
-        sweep.CyMin    = std::clamp(static_cast<i32>(std::floor(lt.Position.Y - sweepRadius)), 0, MAP_HEIGHT - 1);
-        sweep.CyMax    = std::clamp(static_cast<i32>(std::floor(lt.Position.Y + sweepRadius)), 0, MAP_HEIGHT - 1);
+        sweep.CxMin    = std::clamp(static_cast<i32>(std::floor(lightXY.X - sweepRadius)), 0, MAP_WIDTH - 1);
+        sweep.CxMax    = std::clamp(static_cast<i32>(std::floor(lightXY.X + sweepRadius)), 0, MAP_WIDTH - 1);
+        sweep.CyMin    = std::clamp(static_cast<i32>(std::floor(lightXY.Y - sweepRadius)), 0, MAP_HEIGHT - 1);
+        sweep.CyMax    = std::clamp(static_cast<i32>(std::floor(lightXY.Y + sweepRadius)), 0, MAP_HEIGHT - 1);
     }
 
     _taskManager.run_parallel([&](par_task const& ctx) {
@@ -131,21 +136,22 @@ void lighting::update(level const& lvl, usize losSamples)
                 auto const& sweep {sweeps[li]};
                 if (!sweep.Active || cy < sweep.CyMin || cy > sweep.CyMax) { continue; }
 
-                auto const& lt {_lights[li]};
+                auto const&   lt {_lights[li]};
+                point_d const lightXY {lt.Position.xy()};
 
                 for (i32 cx {sweep.CxMin}; cx <= sweep.CxMax; ++cx) {
                     point_d const cellCenter {cx + 0.5, cy + 0.5};
-                    point_d const toLightXY {lt.Position - cellCenter};
+                    point_d const toLightXY {lightXY - cellCenter};
 
                     auto const slp {lvl.map().slopes_at(point_i {cx, cy})};
                     f64 const  lowZ {std::min({slp.Floor.TL, slp.Floor.TR, slp.Floor.BL, slp.Floor.BR})};
                     f64 const  highZ {std::max({slp.Ceiling.TL, slp.Ceiling.TR, slp.Ceiling.BL, slp.Ceiling.BR})};
-                    f64 const  dz {std::max({lowZ - lt.Z, lt.Z - highZ, 0.0})};
+                    f64 const  dz {std::max({lowZ - lt.Position.Z, lt.Position.Z - highZ, 0.0})};
 
                     f64 const distSq {toLightXY.dot(toLightXY) + (dz * dz)};
                     if (distSq >= sweep.RadiusSq) { continue; }
 
-                    if (cell_has_any_line_of_sight(point_i {cx, cy}, lt.Position)) {
+                    if (cell_has_any_line_of_sight(point_i {cx, cy}, lightXY)) {
                         _cellLights[PixelIndex(MAP_WIDTH, cx, cy)].push_back(static_cast<u32>(li));
                     }
                 }

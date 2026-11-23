@@ -8,9 +8,11 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <concepts>
 #include <cstdlib>
 #include <optional>
 #include <span>
+#include <type_traits>
 #include <variant>
 #include <vector>
 
@@ -33,7 +35,8 @@ void level::update(milliseconds deltaTime, i32 lightLosSamples, point_d playerPo
     occupancies.reserve(_objects.size() + 1);
     occupancies.push_back({.Cell = WorldToCell(playerPosition), .Position = playerPosition});
     for (auto const& obj : _objects) {
-        occupancies.push_back({.Object = obj.id(), .Cell = WorldToCell(obj.position()), .Position = obj.position()});
+        auto const& base {base_of(obj)};
+        occupancies.push_back({.Object = base.id(), .Cell = WorldToCell(base.position()), .Position = base.position()});
     }
 
     // a closing door opens again while someone is in its cell
@@ -51,31 +54,38 @@ void level::update(milliseconds deltaTime, i32 lightLosSamples, point_d playerPo
     std::vector<collision_event> collisions;
 
     for (auto& obj : _objects) {
-        obj.update(deltaTime);
-        if (obj.dead()) { continue; }
+        // only what moves by itself and collides is stepped
+        std::visit([&](auto& x) {
+            using kind = std::remove_cvref_t<decltype(x)>;
 
-        auto const oldPos {obj.position()};
-        auto const newPos {oldPos + obj.direction() * dt};
-        if (newPos == oldPos) { continue; }
+            x.age(deltaTime);
+            if (x.dead()) { return; }
 
-        auto const hit {find_blocker(oldPos, newPos, obj.radius(), obj.center_z(), obj.flying(), obj.id())};
-        if (!hit) {
-            obj.set_blocked(false);
-            obj.set_position(newPos);
-            continue;
-        }
+            if constexpr (std::derived_from<kind, movable> && std::derived_from<kind, solid>) {
+                auto const newPos {x.position() + x.Direction * dt};
+                if (newPos == x.position()) { return; }
 
-        // reported once, when the object runs into something; it stays put until it moves again or the game removes it
-        if (!obj.blocked()) {
-            obj.set_blocked(true);
-            collisions.push_back({.Id = obj.id(), .By = *hit, .At = oldPos});
-        }
+                auto const hit {find_blocker(x.position(), newPos, x.Radius, x.center_z(), x.flying(), x.id())};
+                if (!hit) {
+                    x.Blocked = false;
+                    x.set_position(newPos);
+                    return;
+                }
+
+                // reported once, when the object runs into something; it stays put until it moves again or the game removes it
+                if (!x.Blocked) {
+                    x.Blocked = true;
+                    collisions.push_back({.Id = x.id(), .By = *hit, .At = x.position()});
+                }
+            }
+        },
+                   obj);
     }
 
     // after the loop, so a handler can spawn or kill objects; whatever it kills is removed right below
     if (!collisions.empty()) { Collisions(collisions); }
 
-    std::erase_if(_objects, [](level_object const& go) { return go.dead(); });
+    std::erase_if(_objects, [](level_object const& go) { return base_of(go).dead(); });
 
     _lighting.update(*this, static_cast<usize>(lightLosSamples));
 }
@@ -111,7 +121,7 @@ auto level::find_blocker(point_d from, point_d to, f64 radius, f64 z, bool flyin
 
     // the first other solid object that the move from -> to runs into; voxel objects are tested against their actual voxels at height z
     auto const hit_test {[&]() -> level_object const* {
-        auto const it {std::ranges::find_if(_objects, [&](level_object const& go) { return go.id() != ignore && go.overlaps(from, to, radius, z); })};
+        auto const it {std::ranges::find_if(_objects, [&](level_object const& go) { return base_of(go).id() != ignore && overlaps(go, from, to, radius, z); })};
         return it != _objects.end() ? &*it : nullptr;
     }};
 
@@ -162,22 +172,15 @@ auto level::find_blocker(point_d from, point_d to, f64 radius, f64 z, bool flyin
     bool const surface_ok {flying ? z_clear(to, z) : (footprint_reachable(to, from) && footprint_reachable(from, to))};
     if (!surface_ok) { return blocker {.Kind = block_kind::Surface}; }
 
-    if (auto const* other {hit_test()}) { return blocker {.Kind = block_kind::Object, .Object = other->id()}; }
+    if (auto const* other {hit_test()}) { return blocker {.Kind = block_kind::Object, .Object = base_of(*other).id()}; }
 
     return std::nullopt;
 }
 
-auto level::spawn(level_object_desc const& desc) -> uid
-{
-    uid const id {_nextId++};
-    _objects.emplace_back(id, desc);
-    return id;
-}
-
 auto level::find(uid id) -> level_object*
 {
-    auto const it {std::ranges::lower_bound(_objects, id, {}, &level_object::id)};
-    return (it != _objects.end() && it->id() == id) ? &*it : nullptr;
+    auto const it {std::ranges::lower_bound(_objects, id, {}, [](level_object const& o) { return base_of(o).id(); })};
+    return (it != _objects.end() && base_of(*it).id() == id) ? &*it : nullptr;
 }
 
 auto level::objects() const -> std::span<level_object const>

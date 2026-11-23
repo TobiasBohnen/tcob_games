@@ -26,6 +26,7 @@
 #include "CellWalk.hpp"
 #include "Common.hpp"
 #include "Level.hpp"
+#include "LevelObject.hpp"
 #include "MapRenderer.hpp"
 #include "Motes.hpp"
 #include "Raycaster.hpp"
@@ -266,18 +267,20 @@ Plinth::Plinth(game& game)
     static voxel_grid const testVoxelGrid {*LoadVoxels("res/ball1.vox")};
 
     for (i32 i {0}; i < 50; ++i) {
-        f64       scale {rng(0.3, 1.0)};
+        f64 const scale {rng(0.3, 1.0)};
         f64 const maxDim {static_cast<f64>(std::max({testVoxelGrid.Size.X, testVoxelGrid.Size.Y, testVoxelGrid.Size.Z}))};
-        _level->spawn({.Position  = find_empty(),
-                       .Direction = {0.1, 0},
-                       .Radius    = (std::max(testVoxelGrid.Size.X, testVoxelGrid.Size.Y) / 2.0) * scale / maxDim,
-                       .Name      = helper::random_string(12),
-                       .Visual    = voxel_object {
-                           .BaseZ = 0.0,
-                           .Scale = scale / maxDim,
-                           .Yaw   = degree_d {90.0 * i},
-                           .Grid  = &testVoxelGrid,
-                       }});
+
+        object_desc const desc {.Name     = helper::random_string(12),
+                                .Position = point3_d::Lift(find_empty(), 0.0), // Z: height above the floor
+                                .Visual   = voxel_object {
+                                    .Scale = scale / maxDim,
+                                    .Yaw   = degree_d {90.0 * i},
+                                    .Grid  = &testVoxelGrid,
+                                }};
+
+        f64 const radius {(std::max(testVoxelGrid.Size.X, testVoxelGrid.Size.Y) / 2.0) * scale / maxDim};
+
+        _level->spawn<enemy>(desc, radius, false, 1, point_d {0.1, 0});
     }
 
     degree_d const angle {180};

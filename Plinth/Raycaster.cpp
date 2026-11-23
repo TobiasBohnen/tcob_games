@@ -223,7 +223,7 @@ auto raycaster::accumulate_light(frame const& frame, point_d const& surfacePos, 
     for (u32 li : lighting.lights_at(cell)) {
         auto const& lt {lights[li]};
         if ((lt.Layers & lightMask) == 0) { continue; }
-        add_light_contribution(lt.Position, lt.Z, lt.Range, lt.Intensity, lt.Color, surfacePos, surfaceZ, total);
+        add_light_contribution(lt.Position.xy(), lt.Position.Z, lt.Range, lt.Intensity, lt.Color, surfacePos, surfaceZ, total);
     }
 
     return {.R = tone_map(total.R), .G = tone_map(total.G), .B = tone_map(total.B)};
@@ -576,36 +576,38 @@ void raycaster::draw_sprites(frame const& frame)
     rect_i const screenRect {point_i::Zero, _screenSize};
 
     u32* screenBuf {_screen.data()};
-    for (auto& go : level.objects()) {
+    for (auto& o : level.objects()) {
+        auto& go {base_of(o)};
         auto* spr {go.sprite()};
         if (!spr) { continue; }
 
         spr->Seen = false;
 
-        auto const p {frame.Camera.project(spr->Position)};
+        go.set_floor_z(is_flying(o) ? 0.0 : FloorZAt(map, go.position()));
+
+        auto const p {frame.Camera.project(go.position())};
         if (p.Depth <= 0) { continue; }
         f64 const depth {p.Depth};
 
         i32 const    spriteScreenX {static_cast<i32>(p.ScreenX)};
         auto const   spriteSize {spr->screen_size(p.Scale)};
-        f64 const    lift {go.flying() ? 0.0 : FloorZAt(map, spr->Position)};
         rect_i const spriteRect {point_i {spriteScreenX - (spriteSize.Width / 2),
-                                          spr->screen_bottom(p.Scale, frame.CenterY, player.EyeZ - lift) - spriteSize.Height},
+                                          spr->screen_bottom(p.Scale, frame.CenterY, player.EyeZ - go.world_z()) - spriteSize.Height},
                                  spriteSize};
         if (!screenRect.intersects(spriteRect, true)) { continue; }
 
         point_i const drawStart {std::max(spriteRect.left(), 0), std::max(spriteRect.top(), 0)};
         point_i const drawEnd {std::min(spriteRect.right(), _screenSize.Width), std::min(spriteRect.bottom(), _screenSize.Height)};
 
-        i32 const   facing {spr->facing_index(player.Position)};
+        i32 const   facing {spr->facing_index(go.position(), player.Position)};
         auto const* tex {_cache.texture(spr->Texture, facing)};
         auto const  texSize {_cache.texture_size(spr->Texture, facing)};
 
         f64 const texStepY {static_cast<f64>(texSize.Height) / spriteSize.Height};
         f64 const texPosYStart {(drawStart.Y - spriteRect.top()) * texStepY};
 
-        auto const spriteCell {WorldToCell(spr->Position)};
-        auto const spriteTint {accumulate_light(frame, spr->Position, lift + spr->BaseZ, spriteCell, spr->LightMask)};
+        auto const spriteCell {WorldToCell(go.position())};
+        auto const spriteTint {accumulate_light(frame, go.position(), go.world_z(), spriteCell, spr->LightMask)};
         bool const inLight {IsVisiblyLit(spriteTint)};
 
         for (i32 x {drawStart.X}; x < drawEnd.X; ++x) {
@@ -647,25 +649,21 @@ void raycaster::draw_voxel_objects(frame const& frame)
         return {p.ScreenX, camera.screen_y(world.Z, p), p.Depth};
     }};
 
-    auto const floor_of {[&](level_object const& go) { return go.flying() ? 0.0 : FloorZAt(map, go.position()); }};
-
     rect_i const screenRect {point_i::Zero, _screenSize};
     u32*         screenBuf {_screen.data()};
 
     // where an object lands on screen, nothing if it is off screen or hidden behind walls
-    auto const measure {[&](level_object const& go) -> std::optional<screen_bounds> {
+    auto const measure {[&](object_base const& go) -> std::optional<screen_bounds> {
         auto const* vo {go.voxel()};
         if (!vo->Grid) { return std::nullopt; }
 
-        f64 const  floorZ {floor_of(go)};
-        auto const xf {vo->make_transform()};
+        auto const xf {vo->make_transform(go.world_position())};
 
         f64  minX {INFINITE_DIST}, maxX {-INFINITE_DIST}, minY {INFINITE_DIST}, maxY {-INFINITE_DIST}, minDepth {INFINITE_DIST};
         bool behindCamera {false};
 
         for (auto const& corner : vo->Grid->corners()) {
-            auto const worldCorner {xf.to_world(corner)};
-            auto const [sx, sy, depth] {project(point3_d {.X = worldCorner.X, .Y = worldCorner.Y, .Z = worldCorner.Z + floorZ})};
+            auto const [sx, sy, depth] {project(xf.to_world(corner))};
             if (depth <= 0.0) {
                 behindCamera = true;
                 continue;
@@ -699,12 +697,15 @@ void raycaster::draw_voxel_objects(frame const& frame)
 
     // nearest first, so pixels that are already covered reject the objects behind them
     _voxelOrder.clear();
-    for (auto& go : level.objects()) {
+    for (auto& o : level.objects()) {
+        auto&       go {base_of(o)};
         auto* const vo {go.voxel()};
         if (!vo) { continue; }
 
         vo->Seen = false;
-        point_d const toObject {vo->Position - player.Position};
+        go.set_floor_z(is_flying(o) ? 0.0 : FloorZAt(map, go.position()));
+
+        point_d const toObject {go.position() - player.Position};
         _voxelOrder.emplace_back(toObject.length_squared(), &go);
     }
     std::ranges::sort(_voxelOrder, [](auto const& a, auto const& b) { return a.first < b.first; });
@@ -733,17 +734,16 @@ void raycaster::draw_voxel_objects(frame const& frame)
     }
 
     for (usize oi {0}; oi < _voxelOrder.size(); ++oi) {
-        auto& go {*_voxelOrder[oi].second};
-        auto* vo {go.voxel()};
+        auto const& go {*_voxelOrder[oi].second};
+        auto*       vo {_voxelOrder[oi].second->voxel()};
 
         auto const& bounds {vo->ScreenBounds};
         if (!bounds) { continue; }
 
         auto const [left, right, top, bottom, nearest, maxWallDist] {*bounds};
-        f64 const  floorZ {floor_of(go)};
-        auto const xf {vo->make_transform()};
+        auto const xf {vo->make_transform(go.world_position())};
 
-        auto const localOrigin {xf.to_local(point3_d::Lift(player.Position, player.EyeZ - floorZ))};
+        auto const localOrigin {xf.to_local(point3_d::Lift(player.Position, player.EyeZ))};
 
         auto const edge_len_sq {[&](i32 col) { return ComputeCameraRayDir(col, _screenSize.Width, player).length_squared(); }};
         f64 const  maxLenSq {std::max(edge_len_sq(bounds->Left), edge_len_sq(right - 1))};
@@ -783,11 +783,10 @@ void raycaster::draw_voxel_objects(frame const& frame)
                     auto const hit {vo->Grid->raycast(localOrigin, localDir, maxT)};
                     if (!hit.Hit) { continue; }
 
-                    auto const     localHitPos {localOrigin + (localDir * hit.T)};
-                    auto const     worldHit {xf.to_world(localHitPos)};
-                    point3_d const adjustedWorldHit {.X = worldHit.X, .Y = worldHit.Y, .Z = worldHit.Z + floorZ};
-                    auto const     worldHitXY {worldHit.xy()};
-                    auto const [sx, sy, depth] {project(adjustedWorldHit)};
+                    auto const localHitPos {localOrigin + (localDir * hit.T)};
+                    auto const worldHit {xf.to_world(localHitPos)};
+                    auto const worldHitXY {worldHit.xy()};
+                    auto const [sx, sy, depth] {project(worldHit)};
 
                     if (depth <= 0.0) { continue; }
                     if (depth >= _wallDepthBuffer[x]) { continue; }
@@ -795,7 +794,7 @@ void raycaster::draw_voxel_objects(frame const& frame)
                     auto const hitCellForLight {WorldToCell(worldHitXY)};
                     f64 const  aoFactor {_quality.VoxelAo ? vo->Grid->face_ao(hit, localHitPos) : 1.0};
 
-                    auto const tint {accumulate_light(frame, worldHitXY, adjustedWorldHit.Z, hitCellForLight, vo->LightMask) * aoFactor};
+                    auto const tint {accumulate_light(frame, worldHitXY, worldHit.Z, hitCellForLight, vo->LightMask) * aoFactor};
                     bool const lit {IsVisiblyLit(tint)};
 
                     i32 const yBlockEnd {std::min(y + stride, bottom)};

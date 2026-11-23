@@ -49,9 +49,9 @@ private:
 
     std::vector<u32> _screen;
 
-    std::vector<f64>                           _wallDepthBuffer;
-    std::vector<f64>                           _objectDepthBuffer;
-    std::vector<std::pair<f64, level_object*>> _voxelOrder;
+    std::vector<f64>                          _wallDepthBuffer;
+    std::vector<f64>                          _objectDepthBuffer;
+    std::vector<std::pair<f64, object_base*>> _voxelOrder;
 
     texture_cache&   _cache;
     quality_settings _quality;
