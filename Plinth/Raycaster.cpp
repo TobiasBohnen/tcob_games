@@ -12,7 +12,6 @@
 #include <numbers>
 #include <optional>
 #include <span>
-#include <tuple>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -643,11 +642,11 @@ void raycaster::draw_voxel_objects(frame const& frame)
     auto const&   camera {frame.Camera};
 
     // screen x, screen y and depth of a world point; depth is 0 for anything not safely in front of the camera
-    auto const project {[&](point3_d const& world) -> std::tuple<f64, f64, f64> {
+    auto const project {[&](point3_d const& world) -> point3_d {
         auto const p {camera.project(world.xy())};
-        if (p.Depth <= 1e-6) { return {0.0, 0.0, 0.0}; }
+        if (p.Depth <= 1e-6) { return {}; }
 
-        return {p.ScreenX, camera.screen_y(world.Z, p), p.Depth};
+        return {.X = p.ScreenX, .Y = camera.screen_y(world.Z, p), .Z = p.Depth};
     }};
 
     rect_i const screenRect {point_i::Zero, _screenSize};
@@ -664,17 +663,17 @@ void raycaster::draw_voxel_objects(frame const& frame)
         bool behindCamera {false};
 
         for (auto const& corner : vo->Grid->corners()) {
-            auto const [sx, sy, depth] {project(xf.to_world(corner))};
-            if (depth <= 0.0) {
+            auto const s {project(xf.to_world(corner))};
+            if (s.Z <= 0.0) {
                 behindCamera = true;
                 continue;
             }
 
-            minX     = std::min(minX, sx);
-            maxX     = std::max(maxX, sx);
-            minY     = std::min(minY, sy);
-            maxY     = std::max(maxY, sy);
-            minDepth = std::min(minDepth, depth);
+            minX     = std::min(minX, s.X);
+            maxX     = std::max(maxX, s.X);
+            minY     = std::min(minY, s.Y);
+            maxY     = std::max(maxY, s.Y);
+            minDepth = std::min(minDepth, s.Z);
         }
         if (minDepth == INFINITE_DIST) { return std::nullopt; } // no corner in front of the camera
 
@@ -788,7 +787,7 @@ void raycaster::draw_voxel_objects(frame const& frame)
                     auto const localHitPos {localOrigin + (localDir * hit.T)};
                     auto const worldHit {xf.to_world(localHitPos)};
                     auto const worldHitXY {worldHit.xy()};
-                    auto const [sx, sy, depth] {project(worldHit)};
+                    auto const depth {project(worldHit).Z};
 
                     if (depth <= 0.0) { continue; }
                     if (depth >= _wallDepthBuffer[x]) { continue; }
