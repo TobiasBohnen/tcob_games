@@ -121,7 +121,7 @@ void map_renderer::draw(level const& level, player const& player, std::span<u32>
         auto const& obj {base_of(o)};
         if (!obj.is_seen()) { continue; }
 
-        point_i const objPos {origin + point_i {obj.position() * cellSize}};
+        point_i const objPos {origin + point_i {obj.position().xy() * cellSize}};
         i32 const     radius {static_cast<i32>(cellSize / 2)};
         bresenham_circle(objPos, radius, [&](point_i pt) { plot(pt, obj.map_marker().to_abgr()); });
     }

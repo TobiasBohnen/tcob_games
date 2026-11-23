@@ -36,7 +36,7 @@ void level::update(milliseconds deltaTime, i32 lightLosSamples, point_d playerPo
     occupancies.push_back({.Cell = WorldToCell(playerPosition), .Position = playerPosition});
     for (auto const& obj : _objects) {
         auto const& base {base_of(obj)};
-        occupancies.push_back({.Object = base.id(), .Cell = WorldToCell(base.position()), .Position = base.position()});
+        occupancies.push_back({.Object = base.id(), .Cell = WorldToCell(base.position().xy()), .Position = base.position().xy()});
     }
 
     // a closing door opens again while someone is in its cell
@@ -62,20 +62,21 @@ void level::update(milliseconds deltaTime, i32 lightLosSamples, point_d playerPo
             if (x.dead()) { return; }
 
             if constexpr (std::derived_from<kind, movable> && std::derived_from<kind, solid>) {
-                auto const newPos {x.position() + x.Direction * dt};
-                if (newPos == x.position()) { return; }
+                auto const oldPos {x.position().xy()};
+                auto const newPos {oldPos + x.Direction * dt};
+                if (newPos == oldPos) { return; }
 
-                auto const hit {find_blocker(x.position(), newPos, x.Radius, x.center_z(), x.flying(), x.id())};
+                auto const hit {find_blocker(oldPos, newPos, x.Radius, x.center_z(), x.flying(), x.id())};
                 if (!hit) {
                     x.Blocked = false;
-                    x.set_position(newPos);
+                    x.set_xy(newPos);
                     return;
                 }
 
                 // reported once, when the object runs into something; it stays put until it moves again or the game removes it
                 if (!x.Blocked) {
                     x.Blocked = true;
-                    collisions.push_back({.Id = x.id(), .By = *hit, .At = x.position()});
+                    collisions.push_back({.Id = x.id(), .By = *hit, .At = oldPos});
                 }
             }
         },

@@ -15,7 +15,6 @@
 #include "Voxel.hpp"
 
 ////////////////////////////////////////////////////////////
-// visuals: how an object is drawn. They hold no position, the object owns it.
 
 class sprite_object {
 public:
@@ -23,8 +22,7 @@ public:
     i32      Texture {-1};
     degree_d Facing {0};
 
-    u32  LightMask {LIGHT_LAYERS_ALL};
-    bool Seen {false};
+    u32 LightMask {LIGHT_LAYERS_ALL};
 
     auto facing_index(point_d objPos, point_d cameraPos) const -> i32;
     auto screen_size(f64 scale) const -> size_i;
@@ -42,8 +40,7 @@ public:
     radian_d Pitch {0.0};
     radian_d Roll {0.0};
 
-    u32  LightMask {LIGHT_LAYERS_ALL};
-    bool Seen {false};
+    u32 LightMask {LIGHT_LAYERS_ALL};
 
     std::optional<screen_bounds> ScreenBounds {};
 
@@ -73,28 +70,28 @@ struct object_desc {
 };
 
 ////////////////////////////////////////////////////////////
-// object_base: only what every kind has
 
 class object_base {
 public:
+    virtual ~object_base() = default;
+
     auto id() const -> uid;
     auto name() const -> string const&;
 
-    auto position() const -> point_d;   // x/y
-    auto position3() const -> point3_d; // x/y and Position.Z (relative or absolute, see the kind)
-    void set_position(point_d p);       // keeps Z
-    auto z() const -> f64;
-    void set_z(f64 z);
+    auto position() const -> point3_d; // x/y and Position.Z (relative or absolute, see the kind)
+    void set_position(point3_d p);
+    void set_xy(point_d p);
 
-    // reported by the renderer each frame: the floor height the object stands on, 0 for flying kinds
-    auto floor_z() const -> f64;
+    auto floor_z() const -> f64;  // reported by the renderer each frame: the floor height the object stands on, 0 for flying kinds
     void set_floor_z(f64 floorZ);
     auto world_z() const -> f64;  // actual absolute height of the object's base
     auto world_position() const -> point3_d;
     auto center_z() const -> f64; // actual absolute height of the middle of the visual
 
     auto map_marker() const -> color;
+
     auto is_seen() const -> bool;
+    void set_seen(bool b);
 
     auto dead() const -> bool;
     void kill();
@@ -115,9 +112,10 @@ private:
     string        _name;
     point3_d      _position;
     f64           _floorZ {0.0};
-    color         _mapMarker;
     object_visual _visual;
+    color         _mapMarker;
     bool          _dead {false};
+    bool          _seen {false};
 
     std::optional<milliseconds> _lifeTime;
 };

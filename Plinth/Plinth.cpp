@@ -270,9 +270,10 @@ Plinth::Plinth(game& game)
         f64 const scale {rng(0.3, 1.0)};
         f64 const maxDim {static_cast<f64>(std::max({testVoxelGrid.Size.X, testVoxelGrid.Size.Y, testVoxelGrid.Size.Z}))};
 
-        object_desc const desc {.Name     = helper::random_string(12),
-                                .Position = point3_d::Lift(find_empty(), 0.0), // Z: height above the floor
-                                .Visual   = voxel_object {
+        object_desc const desc {.Name      = helper::random_string(12),
+                                .Position  = point3_d::Lift(find_empty(), 0.0), // Z: height above the floor
+                                .MapMarker = colors::Green,
+                                .Visual    = voxel_object {
                                     .Scale = scale / maxDim,
                                     .Yaw   = degree_d {90.0 * i},
                                     .Grid  = &testVoxelGrid,

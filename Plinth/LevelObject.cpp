@@ -98,8 +98,8 @@ object_base::object_base(uid id, object_desc const& desc)
     : _id {id}
     , _name {desc.Name}
     , _position {desc.Position}
-    , _mapMarker {desc.MapMarker}
     , _visual {desc.Visual}
+    , _mapMarker {desc.MapMarker}
     , _lifeTime {desc.LifeTime}
 {
 }
@@ -107,11 +107,9 @@ object_base::object_base(uid id, object_desc const& desc)
 auto object_base::id() const -> uid { return _id; }
 auto object_base::name() const -> string const& { return _name; }
 
-auto object_base::position() const -> point_d { return _position.xy(); }
-auto object_base::position3() const -> point3_d { return _position; }
-void object_base::set_position(point_d p) { _position = _position.with_xy(p); }
-auto object_base::z() const -> f64 { return _position.Z; }
-void object_base::set_z(f64 z) { _position.Z = z; }
+auto object_base::position() const -> point3_d { return _position; }
+void object_base::set_position(point3_d p) { _position = p; }
+void object_base::set_xy(point_d p) { _position = _position.with_xy(p); }
 
 auto object_base::floor_z() const -> f64 { return _floorZ; }
 void object_base::set_floor_z(f64 floorZ) { _floorZ = floorZ; }
@@ -128,13 +126,8 @@ auto object_base::center_z() const -> f64
 
 auto object_base::map_marker() const -> color { return _mapMarker; }
 
-auto object_base::is_seen() const -> bool
-{
-    if (auto const* s {sprite()}) { return s->Seen; }
-    if (auto const* v {voxel()}) { return v->Seen; }
-
-    return false;
-}
+auto object_base::is_seen() const -> bool { return _seen; }
+void object_base::set_seen(bool b) { _seen = b; }
 
 auto object_base::dead() const -> bool { return _dead; }
 void object_base::kill() { _dead = true; }
@@ -226,7 +219,7 @@ static auto OverlapsSolid(object_base const& self, solid const& body, point_d fr
 {
     if (body.Radius <= 0) { return false; }
 
-    auto const c {self.position()};
+    auto const c {self.position().xy()};
     auto const s {to - from};
     f64 const  len2 {s.length_squared()};
     f64 const  t {len2 > 0.0 ? std::clamp((c - from).dot(s) / len2, 0.0, 1.0) : 0.0};

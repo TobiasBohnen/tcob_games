@@ -66,7 +66,7 @@ static auto ComputeFalloff(f64 distSq, f64 rangeSq, f64 intensity) -> f64
     return intensity * (base * base) / d;
 }
 
-static auto DitherTint(color_d tint, isize x, isize y, quality_settings const& quality) -> color_d
+static auto DitherTint(color_d tint, isize x, isize y) -> color_d
 {
     constexpr static f64 DITHERING_LIGHT_BANDS {8};
 
@@ -74,8 +74,6 @@ static auto DitherTint(color_d tint, isize x, isize y, quality_settings const& q
                                                     0.78125, 0.28125, 0.90625, 0.40625,
                                                     0.21875, 0.71875, 0.09375, 0.59375,
                                                     0.96875, 0.46875, 0.84375, 0.34375};
-
-    if (!quality.Dithering) { return tint; }
 
     f64 const  invBands {1.0 / DITHERING_LIGHT_BANDS};
     f64 const  threshold {BAYER_4X4[static_cast<usize>(((y & 3) << 2) | (x & 3))]};
@@ -240,8 +238,10 @@ void raycaster::draw_surface_pixel(frame const& frame, isize x, isize y, u8 cons
 
     auto const toSurface {surfacePos - player.Position};
     bool const close {toSurface.length_squared() < DITHER_MIN_DIST_SQ};
-    u32*       screenBuf {_screen.data()};
-    CopyPixel(screenBuf, PixelIndex(_screenSize.Width, x, y), tex, srcIdx, close ? tint : DitherTint(tint, x, y, _quality));
+    auto const ditheredTint {close || !_quality.Dithering ? tint : DitherTint(tint, x, y)};
+
+    u32* screenBuf {_screen.data()};
+    CopyPixel(screenBuf, PixelIndex(_screenSize.Width, x, y), tex, srcIdx, ditheredTint);
 }
 
 void raycaster::draw_columns(frame const& frame, i32 columnStart, i32 columnEnd)
@@ -462,7 +462,8 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
                     i32 const wallSrc {TexelOffset(wallTexX, wallTexY, WALL_SIZE.Width)};
 
                     auto const wallTint {light_at(col.point_at(col.Hit.Distance), col.WallBase + height)};
-                    u32 const  reflected {ApplyTint(wallTexPtr[wallSrc + 0], wallTexPtr[wallSrc + 1], wallTexPtr[wallSrc + 2], DitherTint(wallTint, col.X, y, _quality))};
+                    auto const ditheredTint {_quality.Dithering ? DitherTint(wallTint, col.X, y) : wallTint};
+                    u32 const  reflected {ApplyTint(wallTexPtr[wallSrc + 0], wallTexPtr[wallSrc + 1], wallTexPtr[wallSrc + 2], ditheredTint)};
 
                     pixel = BlendPixel(pixel, reflected, surface.FloorReflectivity * (1.0 - (height / REFLECTION_HEIGHT)));
                 }
@@ -577,15 +578,15 @@ void raycaster::draw_sprites(frame const& frame)
 
     u32* screenBuf {_screen.data()};
     for (auto& o : level.objects()) {
-        auto& go {base_of(o)};
-        auto* spr {go.sprite()};
+        auto&       go {base_of(o)};
+        auto const* spr {go.sprite()};
         if (!spr) { continue; }
 
-        spr->Seen = false;
+        go.set_seen(false);
+        auto const goXY {go.position().xy()};
+        go.set_floor_z(is_flying(o) ? 0.0 : FloorZAt(map, goXY));
 
-        go.set_floor_z(is_flying(o) ? 0.0 : FloorZAt(map, go.position()));
-
-        auto const p {frame.Camera.project(go.position())};
+        auto const p {frame.Camera.project(goXY)};
         if (p.Depth <= 0) { continue; }
         f64 const depth {p.Depth};
 
@@ -599,15 +600,15 @@ void raycaster::draw_sprites(frame const& frame)
         point_i const drawStart {std::max(spriteRect.left(), 0), std::max(spriteRect.top(), 0)};
         point_i const drawEnd {std::min(spriteRect.right(), _screenSize.Width), std::min(spriteRect.bottom(), _screenSize.Height)};
 
-        i32 const   facing {spr->facing_index(go.position(), player.Position)};
+        i32 const   facing {spr->facing_index(goXY, player.Position)};
         auto const* tex {_cache.texture(spr->Texture, facing)};
         auto const  texSize {_cache.texture_size(spr->Texture, facing)};
 
         f64 const texStepY {static_cast<f64>(texSize.Height) / spriteSize.Height};
         f64 const texPosYStart {(drawStart.Y - spriteRect.top()) * texStepY};
 
-        auto const spriteCell {WorldToCell(go.position())};
-        auto const spriteTint {accumulate_light(frame, go.position(), go.world_z(), spriteCell, spr->LightMask)};
+        auto const spriteCell {WorldToCell(goXY)};
+        auto const spriteTint {accumulate_light(frame, goXY, go.world_z(), spriteCell, spr->LightMask)};
         bool const inLight {IsVisiblyLit(spriteTint)};
 
         for (i32 x {drawStart.X}; x < drawEnd.X; ++x) {
@@ -627,7 +628,7 @@ void raycaster::draw_sprites(frame const& frame)
                 if (IsMagenta(tex, texOffset)) { continue; }
 
                 _objectDepthBuffer[idx] = depth;
-                if (inLight) { spr->Seen = true; }
+                if (inLight) { go.set_seen(true); }
                 CopyPixel(screenBuf, idx, tex, texOffset, spriteTint);
             }
         }
@@ -702,10 +703,11 @@ void raycaster::draw_voxel_objects(frame const& frame)
         auto* const vo {go.voxel()};
         if (!vo) { continue; }
 
-        vo->Seen = false;
-        go.set_floor_z(is_flying(o) ? 0.0 : FloorZAt(map, go.position()));
+        auto const goXY {go.position().xy()};
+        go.set_seen(false);
+        go.set_floor_z(is_flying(o) ? 0.0 : FloorZAt(map, goXY));
 
-        point_d const toObject {go.position() - player.Position};
+        point_d const toObject {goXY - player.Position};
         _voxelOrder.emplace_back(toObject.length_squared(), &go);
     }
     std::ranges::sort(_voxelOrder, [](auto const& a, auto const& b) { return a.first < b.first; });
@@ -734,8 +736,8 @@ void raycaster::draw_voxel_objects(frame const& frame)
     }
 
     for (usize oi {0}; oi < _voxelOrder.size(); ++oi) {
-        auto const& go {*_voxelOrder[oi].second};
-        auto*       vo {_voxelOrder[oi].second->voxel()};
+        auto&       go {*_voxelOrder[oi].second};
+        auto const* vo {go.voxel()};
 
         auto const& bounds {vo->ScreenBounds};
         if (!bounds) { continue; }
@@ -817,7 +819,7 @@ void raycaster::draw_voxel_objects(frame const& frame)
         },
                                   strideCols);
 
-        vo->Seen = drawn.load(std::memory_order_relaxed);
+        go.set_seen(drawn.load(std::memory_order_relaxed));
     }
 }
 
