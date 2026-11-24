@@ -307,8 +307,8 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
         return 0xFF000000u | rb | g;
     }};
 
-    constexpr static f64 CONTACT_SHADOW_WIDTH {0.3};
-    constexpr static f64 CONTACT_SHADOW_STRENGTH {0.75};
+    constexpr static f64 CONTACT_SHADOW_WIDTH {0.2};
+    constexpr static f64 CONTACT_SHADOW_STRENGTH {0.45};
     constexpr static f64 REFLECTION_HEIGHT {1.0}; // floor reflections fade out this far up a wall
     constexpr static f64 MIN_RISER_HEIGHT {1e-4};
 
