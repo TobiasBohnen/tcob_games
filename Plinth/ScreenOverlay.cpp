@@ -111,10 +111,10 @@ auto screen_overlay::draw(level const& level, player const& player, std::span<u3
     _screen     = screen;
     _screenSize = screenSize;
 
-    draw_screen_effect();
-
     draw_target(level);
     draw_weapon(player);
+
+    draw_screen_effect();
 
     draw_compass(player);
     draw_message();

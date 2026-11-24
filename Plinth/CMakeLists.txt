@@ -12,6 +12,7 @@ target_sources(Plinth PRIVATE
     Player.cpp
     Plinth.cpp
     Raycaster.cpp
+    ScreenEffect.cpp
     ScreenOverlay.cpp
     Sky.cpp
     TextureCache.cpp

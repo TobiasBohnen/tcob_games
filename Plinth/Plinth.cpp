@@ -11,10 +11,10 @@
 #include <cmath>
 #include <cstdlib>
 #include <format>
+#include <functional>
 #include <future>
 #include <limits>
 #include <memory>
-#include <numeric>
 #include <optional>
 #include <span>
 #include <string_view>
@@ -30,72 +30,12 @@
 #include "MapRenderer.hpp"
 #include "Motes.hpp"
 #include "Raycaster.hpp"
+#include "ScreenEffect.hpp"
 #include "ScreenOverlay.hpp"
 #include "Sky.hpp"
 #include "TextureCache.hpp"
 #include "Voxel.hpp"
 #include "Walls.hpp"
-
-[[maybe_unused]] auto static deathEffect {[](std::span<u32> screen) {
-    static std::vector<usize> indices;
-    static usize              currentIndex {0};
-    static bool               active {false};
-
-    if (!active) {
-        indices.resize(screen.size());
-        std::ranges::iota(indices, 0);
-        random::shuffle {}(indices);
-        currentIndex = 0;
-        active       = true;
-    }
-
-    usize const pixelsPerFrame {500};
-    usize const endIndex {std::min(indices.size(), currentIndex + pixelsPerFrame)};
-
-    for (usize i {0}; i < endIndex; ++i) {
-        usize const idx {indices[i]};
-        screen[idx] = 0xFF000000u | (static_cast<u32>(0) << 16) | (static_cast<u32>(0) << 8) | static_cast<u32>(255);
-    }
-
-    currentIndex = endIndex;
-}};
-
-[[maybe_unused]] auto static cheaterEffect {[](std::span<u32> screen) {
-    for (auto& col : screen) {
-        color c {color::FromABGR(col)};
-        std::swap(c.R, c.B);
-        col = 0xFF000000u | (static_cast<u32>(c.B) << 16) | (static_cast<u32>(c.G) << 8) | static_cast<u32>(c.R);
-    }
-}};
-
-[[maybe_unused]] auto static nightVisionEffect {[](std::span<u32> screen) {
-    for (auto& col : screen) {
-        color     c {color::FromABGR(col)};
-        u32 const luminance {static_cast<u32>((c.R * 0.3f) + (c.G * 0.59f) + (c.B * 0.11f))};
-        c.R = 0;
-        c.B = 0;
-        c.G = static_cast<u8>(std::min(255u, luminance + 50));
-        col = 0xFF000000u | (static_cast<u32>(c.B) << 16) | (static_cast<u32>(c.G) << 8) | static_cast<u32>(c.R);
-    }
-}};
-
-[[maybe_unused]] auto static staticNoiseEffect {[](std::span<u32> screen) {
-    rng randomGenerator;
-    for (auto& col : screen) {
-        if (randomGenerator(0, 12) == 0) {
-            u8 const noise {static_cast<u8>(randomGenerator(0, 255))};
-            col = 0xFF000000u | (static_cast<u32>(noise) << 16) | (static_cast<u32>(noise) << 8) | static_cast<u32>(noise);
-        }
-    }
-}};
-
-[[maybe_unused]] auto static grayscaleEffect {[](std::span<u32> screen) {
-    for (auto& col : screen) {
-        color const c {color::FromABGR(col)};
-        u8 const    gray {static_cast<u8>((c.R * 0.299f) + (c.G * 0.587f) + (c.B * 0.114f))};
-        col = 0xFF000000u | (static_cast<u32>(gray) << 16) | (static_cast<u32>(gray) << 8) | static_cast<u32>(gray);
-    }
-}};
 
 [[maybe_unused]] static mote_settings const MOTES_DUST {
     .Count       = 3,
@@ -352,6 +292,7 @@ void Plinth::on_update(milliseconds deltaTime)
     _player.update(deltaTime);
     _level->update(deltaTime, _quality.LightLosSamples, _player.Position);
 
+    if (_effect) { _effect->update(deltaTime); }
     _screenOverlay.update(deltaTime);
 
     // _frameTimer += deltaTime;
@@ -534,9 +475,13 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
     } break;
     case input::scan_code::K: {
         if (!_screenOverlay.ScreenEffect) {
-            _screenOverlay.ScreenEffect = grayscaleEffect;
+            if (!_effect) {
+                _effect = MakeDissolveEffect(_quality.Resolution);
+            }
+            _screenOverlay.ScreenEffect = std::ref(*_effect);
         } else {
             _screenOverlay.ScreenEffect = nullptr;
+            _effect                     = nullptr;
         }
 
     } break;

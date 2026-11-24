@@ -16,6 +16,7 @@
 #include "MapRenderer.hpp"
 #include "Player.hpp"
 #include "Raycaster.hpp"
+#include "ScreenEffect.hpp"
 #include "ScreenOverlay.hpp"
 #include "TextureCache.hpp"
 
@@ -99,4 +100,6 @@ private:
     quality_settings _quality;
     input_mapping    _inputMapping {};
     engine           _engine;
+
+    std::shared_ptr<screen_effect> _effect;
 };
