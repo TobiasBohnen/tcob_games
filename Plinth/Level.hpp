@@ -48,13 +48,17 @@ public:
 
     void update(milliseconds deltaTime, i32 lightLosSamples, point_d playerPosition);
 
+    // absolute height of the floor under a position
+    auto floor_z_at(point_d pos) const -> f64;
+
     auto can_move_to(point_d from, point_d to, f64 radius, f64 z, bool flying, uid ignore) const -> bool;
 
     template <typename T, typename... Args>
     auto spawn(object_desc const& desc, Args&&... args) -> uid
     {
         uid const id {_nextId++};
-        _objects.emplace_back(std::in_place_type<T>, id, desc, std::forward<Args>(args)...);
+        auto&     created {_objects.emplace_back(std::in_place_type<T>, id, desc, std::forward<Args>(args)...)};
+        ground(created);
         return id;
     }
 
@@ -78,6 +82,8 @@ public:
     auto sky() const -> ::sky const&;
 
 private:
+    void ground(level_object& o) const;
+
     auto find_blocker(point_d from, point_d to, f64 radius, f64 z, bool flying, uid ignore) const -> std::optional<blocker>;
 
     ::map      _map;

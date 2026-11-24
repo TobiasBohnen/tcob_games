@@ -90,13 +90,6 @@ static auto IsWithinPlayerLight(player const& player, point_i cell) -> bool
 // whether a surface lit with this tint is bright enough to be made out on screen
 static auto IsVisiblyLit(color_d tint, f64 minLight = SEEN_MIN_LIGHT) -> bool { return std::max({tint.R, tint.G, tint.B}) >= minLight; }
 
-// world z of the floor under a position
-static auto FloorZAt(map const& map, point_d pos) -> f64
-{
-    auto const cell {WorldToCell(pos)};
-    return HeightAt(map.slopes_at(cell).Floor, cell, pos);
-}
-
 static auto HashUnit(i32 gx, i32 gy, u32 index, u32 salt) -> f64
 {
     u32 h {(static_cast<u32>(gx) * 73856093u) ^ (static_cast<u32>(gy) * 19349663u) ^ (index * 83492791u) ^ (salt * 2654435761u)};
@@ -157,7 +150,7 @@ auto raycaster::draw(level& level, player& player) -> std::span<u32>
 
     std::ranges::fill(_objectDepthBuffer, INFINITE_DIST);
 
-    player.EyeZ = FloorZAt(level.map(), player.Position) + EYE_HEIGHT;
+    player.EyeZ = level.floor_z_at(player.Position) + EYE_HEIGHT;
 
     i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.bob_amount())};
 
@@ -570,7 +563,6 @@ void raycaster::draw_wall_column(frame const& frame, column_hit const& col)
 void raycaster::draw_sprites(frame const& frame)
 {
     auto&       level {frame.Level};
-    auto const& map {level.map()};
     auto const& player {frame.Player};
 
     rect_i const screenRect {point_i::Zero, _screenSize};
@@ -583,7 +575,6 @@ void raycaster::draw_sprites(frame const& frame)
 
         go.set_seen(false);
         auto const goXY {go.position().xy()};
-        go.set_floor_z(is_flying(o) ? 0.0 : FloorZAt(map, goXY));
 
         auto const p {frame.Camera.project(goXY)};
         if (p.Depth <= 0) { continue; }
@@ -638,7 +629,6 @@ void raycaster::draw_voxel_objects(frame const& frame)
 {
     level&        level {frame.Level};
     player const& player {frame.Player};
-    auto const&   map {level.map()};
     auto const&   camera {frame.Camera};
 
     // screen x, screen y and depth of a world point; depth is 0 for anything not safely in front of the camera
@@ -704,7 +694,6 @@ void raycaster::draw_voxel_objects(frame const& frame)
 
         auto const goXY {go.position().xy()};
         go.set_seen(false);
-        go.set_floor_z(is_flying(o) ? 0.0 : FloorZAt(map, goXY));
 
         point_d const toObject {goXY - player.Position};
         _voxelOrder.emplace_back(toObject.length_squared(), &go);

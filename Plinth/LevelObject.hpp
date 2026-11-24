@@ -73,8 +73,6 @@ struct object_desc {
 
 class object_base {
 public:
-    virtual ~object_base() = default;
-
     auto id() const -> uid;
     auto name() const -> string const&;
 

@@ -58,6 +58,7 @@ void level::update(milliseconds deltaTime, i32 lightLosSamples, point_d playerPo
         std::visit([&](auto& x) {
             using kind = std::remove_cvref_t<decltype(x)>;
 
+            ground(obj);
             x.age(deltaTime);
             if (x.dead()) { return; }
 
@@ -70,6 +71,7 @@ void level::update(milliseconds deltaTime, i32 lightLosSamples, point_d playerPo
                 if (!hit) {
                     x.Blocked = false;
                     x.set_xy(newPos);
+                    ground(obj);
                     return;
                 }
 
@@ -89,6 +91,18 @@ void level::update(milliseconds deltaTime, i32 lightLosSamples, point_d playerPo
     std::erase_if(_objects, [](level_object const& go) { return base_of(go).dead(); });
 
     _lighting.update(*this, static_cast<usize>(lightLosSamples));
+}
+
+auto level::floor_z_at(point_d pos) const -> f64
+{
+    auto const cell {WorldToCell(pos)};
+    return HeightAt(_map.slopes_at(cell).Floor, cell, pos);
+}
+
+void level::ground(level_object& o) const
+{
+    auto& base {base_of(o)};
+    base.set_floor_z(is_flying(o) ? 0.0 : floor_z_at(base.position().xy()));
 }
 
 auto level::can_move_to(point_d from, point_d to, f64 radius, f64 z, bool flying, uid ignore) const -> bool
