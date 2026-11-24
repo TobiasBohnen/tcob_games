@@ -312,6 +312,10 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
     constexpr static f64 REFLECTION_HEIGHT {1.0}; // floor reflections fade out this far up a wall
     constexpr static f64 MIN_RISER_HEIGHT {1e-4};
 
+    // solid neighbours of a cell
+    constexpr static u32 WALL_N {1u << 0}, WALL_S {1u << 1}, WALL_W {1u << 2}, WALL_E {1u << 3};
+    constexpr static u32 WALL_NW {1u << 4}, WALL_NE {1u << 5}, WALL_SW {1u << 6}, WALL_SE {1u << 7};
+
     auto&       map {frame.Level.map()};
     auto const& player {frame.Player};
 
@@ -372,7 +376,7 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
         claim(isFloor, from, to);
     }};
 
-    auto const draw_flat {[&](bool isFloor, cell_surface const& surface, point_i cell, auto const& slopes, f64 tIn, f64 tOut) {
+    auto const draw_flat {[&](bool isFloor, cell_surface const& surface, point_i cell, auto const& slopes, f64 tIn, f64 tOut, u32 walls) {
         auto const& slope {isFloor ? slopes.Floor : slopes.Ceiling};
 
         i32 const rowFar {row_at(HeightAt(slope, cell, col.point_at(tOut)), tOut)};
@@ -438,10 +442,31 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
 
             u32& pixel {screenBuf[pixel_index(y)]};
 
-            f64 const wallGap {std::max(col.Hit.Distance - t, 0.0)};
-            if (_quality.ContactShadows && wallGap < CONTACT_SHADOW_WIDTH) {
-                f64 const c {1.0 - (wallGap / CONTACT_SHADOW_WIDTH)};
-                pixel = scale_pixel(pixel, 1.0 - (CONTACT_SHADOW_STRENGTH * c * c));
+            // distance to the nearest wall: along the ray for the wall that was hit (doors, diagonals), and to the solid
+            // neighbour cells, so the shadow keeps its width at an angle and follows corners
+            if (_quality.ContactShadows && (walls != 0 || col.Hit.Distance - t < CONTACT_SHADOW_WIDTH)) {
+                f64 const fx {pos.X - cell.X};
+                f64 const fy {pos.Y - cell.Y};
+
+                f64 dist {std::max(col.Hit.Distance - t, 0.0)};
+                if ((walls & WALL_W) != 0) { dist = std::min(dist, fx); }
+                if ((walls & WALL_E) != 0) { dist = std::min(dist, 1.0 - fx); }
+                if ((walls & WALL_N) != 0) { dist = std::min(dist, fy); }
+                if ((walls & WALL_S) != 0) { dist = std::min(dist, 1.0 - fy); }
+
+                // a wall that only touches the cell at a corner
+                auto const corner {[&](u32 bit, u32 sideA, u32 sideB, f64 cx, f64 cy) {
+                    if ((walls & bit) != 0 && (walls & (sideA | sideB)) == 0) { dist = std::min(dist, std::hypot(fx - cx, fy - cy)); }
+                }};
+                corner(WALL_NW, WALL_N, WALL_W, 0.0, 0.0);
+                corner(WALL_NE, WALL_N, WALL_E, 1.0, 0.0);
+                corner(WALL_SW, WALL_S, WALL_W, 0.0, 1.0);
+                corner(WALL_SE, WALL_S, WALL_E, 1.0, 1.0);
+
+                if (dist < CONTACT_SHADOW_WIDTH) {
+                    f64 const c {1.0 - (dist / CONTACT_SHADOW_WIDTH)};
+                    pixel = scale_pixel(pixel, 1.0 - (CONTACT_SHADOW_STRENGTH * c * c));
+                }
             }
 
             if (isFloor && surface.FloorReflectivity > 0.0) {
@@ -490,8 +515,25 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
             draw_riser(false, prevCell, cell, prevSlopes, slopes, surface, t0);
         }
 
-        draw_flat(true, surface, cell, slopes, t0, t1);
-        draw_flat(false, surface, cell, slopes, t0, t1);
+        // which of the eight neighbours are solid walls: what can shadow this cell
+        u32 walls {0};
+        if (_quality.ContactShadows) {
+            auto const is_wall {[&](i32 ox, i32 oy) {
+                point_i const near {cell.X + ox, cell.Y + oy};
+                return map_grid::Size.contains(near) && std::holds_alternative<normal_wall>(map.get_cell(near));
+            }};
+            if (is_wall(0, -1)) { walls |= WALL_N; }
+            if (is_wall(0, 1)) { walls |= WALL_S; }
+            if (is_wall(-1, 0)) { walls |= WALL_W; }
+            if (is_wall(1, 0)) { walls |= WALL_E; }
+            if (is_wall(-1, -1)) { walls |= WALL_NW; }
+            if (is_wall(1, -1)) { walls |= WALL_NE; }
+            if (is_wall(-1, 1)) { walls |= WALL_SW; }
+            if (is_wall(1, 1)) { walls |= WALL_SE; }
+        }
+
+        draw_flat(true, surface, cell, slopes, t0, t1, walls);
+        draw_flat(false, surface, cell, slopes, t0, t1, walls);
 
         if (col.Bottom < bottomBefore || col.Top > topBefore) {
             point_d const center {cell.X + 0.5, cell.Y + 0.5};

@@ -435,7 +435,12 @@ constexpr auto make_quality(quality_level level) -> quality_settings
 
 void Plinth::set_quality(quality_level level)
 {
-    _quality = make_quality(level);
+    set_quality(make_quality(level));
+}
+
+void Plinth::set_quality(quality_settings quality)
+{
+    _quality = quality;
 
     f64 const fov {FOV * TAU / 360.0};
     _player.Plane = _player.Plane * (std::tan(fov / 2.0) / _player.Plane.length());
@@ -471,7 +476,8 @@ void Plinth::on_key_down(input::keyboard::event const& ev)
         _startRecord = true;
         break;
     case input::scan_code::Q: {
-        set_quality(quality_level::Low);
+        _quality.ContactShadows = !_quality.ContactShadows;
+        set_quality(_quality);
     } break;
     case input::scan_code::K: {
         if (!_screenOverlay.ScreenEffect) {

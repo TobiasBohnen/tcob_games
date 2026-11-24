@@ -73,6 +73,7 @@ private:
     void action_toggle_map();
 
     void set_quality(quality_level level);
+    void set_quality(quality_settings quality);
 
     std::unique_ptr<texture_cache> _cache;
     std::unique_ptr<level>         _level;
