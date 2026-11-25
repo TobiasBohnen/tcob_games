@@ -32,64 +32,122 @@ auto sprite_object::screen_bottom(f64 scale, i32 screenCenterY, f64 eyeHeight) c
 
 ////////////////////////////////////////////////////////////
 
-auto voxel_object::make_transform(point3_d worldPos) const -> voxel_transform { return {.Rotation = make_rotation(), .Position = worldPos.xy(), .Pivot = Grid->pivot(), .BaseZ = worldPos.Z, .Scale = Scale}; }
+static auto EulerRotation(radian_d yaw, radian_d pitch, radian_d roll) -> mat3_d
+{
+    f64 const cy {yaw.cos()}, sy {yaw.sin()};
+    f64 const cp {pitch.cos()}, sp {pitch.sin()};
+    f64 const cr {roll.cos()}, sr {roll.sin()};
+    return {cy * cp, (cy * sp * sr) - (sy * cr), (cy * sp * cr) + (sy * sr),
+            sy * cp, (sy * sp * sr) + (cy * cr), (sy * sp * cr) - (cy * sr),
+            -sp, cp * sr, cp * cr};
+}
 
-auto voxel_object::world_diagonal() const -> f64 { return Grid->diagonal() * Scale; }
+static auto Multiply(mat3_d const& a, mat3_d const& b) -> mat3_d
+{
+    mat3_d r {};
+    for (usize row {0}; row < 3; ++row) {
+        for (usize col {0}; col < 3; ++col) {
+            r[(row * 3) + col] = (a[row * 3] * b[col]) + (a[(row * 3) + 1] * b[3 + col]) + (a[(row * 3) + 2] * b[6 + col]);
+        }
+    }
+    return r;
+}
+
+static auto Rotate(mat3_d const& m, point3_d v) -> point3_d
+{
+    return {.X = (m[0] * v.X) + (m[1] * v.Y) + (m[2] * v.Z),
+            .Y = (m[3] * v.X) + (m[4] * v.Y) + (m[5] * v.Z),
+            .Z = (m[6] * v.X) + (m[7] * v.Y) + (m[8] * v.Z)};
+}
+
+// A part turns around its own pivot (voxel_transform turns around Pivot), then the whole object turns around the
+// object's Pivot: the part's own orientation is applied first, the object's second.
+auto voxel_object::make_transform(point3_d worldPos, voxel_part const& part) const -> voxel_transform
+{
+    auto const objectRot {EulerRotation(Yaw, Pitch, Roll)};
+    auto const rot {Multiply(objectRot, EulerRotation(part.Yaw, part.Pitch, part.Roll))};
+
+    f64 const      partScale {Scale * part.Scale};
+    point3_d const gridCenter {part.Grid->pivot()};
+    point3_d const pivot {part.Pivot.value_or(gridCenter)};
+
+    // where the part's joint sits in the object's space
+    point3_d const joint {.X = part.Offset.X + ((pivot.X - gridCenter.X) * part.Scale),
+                          .Y = part.Offset.Y + ((pivot.Y - gridCenter.Y) * part.Scale),
+                          .Z = part.Offset.Z + (pivot.Z * part.Scale)};
+
+    auto const world {worldPos + ((Pivot + Rotate(objectRot, joint - Pivot)) * Scale)};
+
+    return {.Rotation = rot,
+            .Position = world.xy(),
+            .Pivot    = pivot,
+            .BaseZ    = world.Z - (pivot.Z * partScale),
+            .Scale    = partScale};
+}
+
+auto voxel_object::world_diagonal(voxel_part const& part) const -> f64 { return part.Grid->diagonal() * Scale * part.Scale; }
+
+auto voxel_object::height() const -> f64
+{
+    f64 top {0.0};
+    for (auto const& part : Parts) {
+        if (part.Grid) { top = std::max(top, part.Offset.Z + (part.Grid->Size.Z * part.Scale)); }
+    }
+    return top * Scale;
+}
 
 auto voxel_object::segment_hits(point3_d worldPos, point_d from, point_d to, f64 z, f64 radius) const -> bool
 {
-    auto const t {make_transform(worldPos)};
+    auto const part_hits {[&](voxel_transform const& t, voxel_grid const& grid, f64 scale) -> bool {
+        f64 const r {radius / scale};
+        f64 const r2 {r * r};
 
-    f64 const r {radius / Scale};
-    f64 const r2 {r * r};
+        auto const a {t.to_local(point3_d::Lift(from, z))};
+        auto const b {t.to_local(point3_d::Lift(to, z))};
+        auto const d {b - a};
 
-    auto const a {t.to_local(point3_d::Lift(from, z))};
-    auto const b {t.to_local(point3_d::Lift(to, z))};
-    auto const d {b - a};
+        i32 const steps {std::max(1, static_cast<i32>(std::ceil(std::sqrt(d.dot(d)) / 0.5)))};
 
-    i32 const steps {std::max(1, static_cast<i32>(std::ceil(std::sqrt(d.dot(d)) / 0.5)))};
+        auto const axis_gap {[](f64 c, i32 v) {
+            f64 const g {std::clamp(c, static_cast<f64>(v), v + 1.0) - c};
+            return g * g;
+        }};
 
-    auto const axis_gap {[](f64 c, i32 v) {
-        f64 const g {std::clamp(c, static_cast<f64>(v), v + 1.0) - c};
-        return g * g;
-    }};
+        for (i32 i {0}; i <= steps; ++i) {
+            auto const c {a + (d * (static_cast<f64>(i) / steps))};
 
-    for (i32 i {0}; i <= steps; ++i) {
-        auto const c {a + (d * (static_cast<f64>(i) / steps))};
+            i32 const minX {static_cast<i32>(std::floor(c.X - r))}, maxX {static_cast<i32>(std::floor(c.X + r))};
+            i32 const minY {static_cast<i32>(std::floor(c.Y - r))}, maxY {static_cast<i32>(std::floor(c.Y + r))};
+            i32 const minZ {static_cast<i32>(std::floor(c.Z - r))}, maxZ {static_cast<i32>(std::floor(c.Z + r))};
 
-        i32 const minX {static_cast<i32>(std::floor(c.X - r))}, maxX {static_cast<i32>(std::floor(c.X + r))};
-        i32 const minY {static_cast<i32>(std::floor(c.Y - r))}, maxY {static_cast<i32>(std::floor(c.Y + r))};
-        i32 const minZ {static_cast<i32>(std::floor(c.Z - r))}, maxZ {static_cast<i32>(std::floor(c.Z + r))};
+            for (i32 vz {minZ}; vz <= maxZ; ++vz) {
+                for (i32 vy {minY}; vy <= maxY; ++vy) {
+                    for (i32 vx {minX}; vx <= maxX; ++vx) {
+                        if (!grid.occupied(vx, vy, vz)) { continue; }
 
-        for (i32 vz {minZ}; vz <= maxZ; ++vz) {
-            for (i32 vy {minY}; vy <= maxY; ++vy) {
-                for (i32 vx {minX}; vx <= maxX; ++vx) {
-                    if (!Grid->occupied(vx, vy, vz)) { continue; }
-
-                    if (axis_gap(c.X, vx) + axis_gap(c.Y, vy) + axis_gap(c.Z, vz) < r2) { return true; }
+                        if (axis_gap(c.X, vx) + axis_gap(c.Y, vy) + axis_gap(c.Z, vz) < r2) { return true; }
+                    }
                 }
             }
         }
-    }
-    return false;
+        return false;
+    }};
+
+    return std::ranges::any_of(Parts, [&](voxel_part const& part) {
+        return part.Grid && part_hits(make_transform(worldPos, part), *part.Grid, Scale * part.Scale);
+    });
 }
 
 auto voxel_object::filled_at(point3_d worldPos, point_d pos, f64 z) const -> bool
 {
-    auto const l {make_transform(worldPos).to_local({.X = pos.X, .Y = pos.Y, .Z = z})};
-    return Grid->occupied(static_cast<i32>(std::floor(l.X)),
-                          static_cast<i32>(std::floor(l.Y)),
-                          static_cast<i32>(std::floor(l.Z)));
-}
+    return std::ranges::any_of(Parts, [&](voxel_part const& part) {
+        if (!part.Grid) { return false; }
 
-auto voxel_object::make_rotation() const -> mat3_d
-{
-    f64 const cy {Yaw.cos()}, sy {Yaw.sin()};
-    f64 const cp {Pitch.cos()}, sp {Pitch.sin()};
-    f64 const cr {Roll.cos()}, sr {Roll.sin()};
-    return {cy * cp, (cy * sp * sr) - (sy * cr), (cy * sp * cr) + (sy * sr),
-            sy * cp, (sy * sp * sr) + (cy * cr), (sy * sp * cr) - (cy * sr),
-            -sp, cp * sr, cp * cr};
+        auto const l {make_transform(worldPos, part).to_local({.X = pos.X, .Y = pos.Y, .Z = z})};
+        return part.Grid->occupied(static_cast<i32>(std::floor(l.X)),
+                                   static_cast<i32>(std::floor(l.Y)),
+                                   static_cast<i32>(std::floor(l.Z)));
+    });
 }
 
 ////////////////////////////////////////////////////////////
@@ -119,7 +177,7 @@ auto object_base::world_position() const -> point3_d { return _position.with_z(w
 auto object_base::center_z() const -> f64
 {
     if (auto const* s {sprite()}) { return world_z() + (s->Size.Height * 0.5); }
-    if (auto const* v {voxel()}) { return world_z() + (v->Grid->Size.Z * v->Scale * 0.5); }
+    if (auto const* v {voxel()}) { return world_z() + (v->height() * 0.5); }
 
     return world_z();
 }

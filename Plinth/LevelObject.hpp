@@ -10,6 +10,7 @@
 #include <concepts>
 #include <optional>
 #include <variant>
+#include <vector>
 
 #include "Lighting.hpp"
 #include "Voxel.hpp"
@@ -32,10 +33,23 @@ public:
 
 ////////////////////////////////////////////////////////////
 
+// one voxel grid of a voxel object, placed and oriented inside the object
+struct voxel_part {
+    voxel_grid const* Grid {nullptr};
+
+    point3_d                Offset {}; // bottom centre of the grid in the object's space, before the object's scale and rotation
+    std::optional<point3_d> Pivot {};  // the joint the part turns around, in voxel coordinates of its grid; empty: the centre
+    radian_d                Yaw {0.0};
+    radian_d                Pitch {0.0};
+    radian_d                Roll {0.0};
+    f64                     Scale {1.0}; // on top of the object's scale
+};
+
 class voxel_object {
 public:
-    f64 Scale {1.0};
+    f64 Scale {1.0};   // the whole object: scale, pivot and orientation apply to every part
 
+    point3_d Pivot {}; // the point in the object's space that Yaw, Pitch and Roll turn the whole object around
     radian_d Yaw {0.0};
     radian_d Pitch {0.0};
     radian_d Roll {0.0};
@@ -44,16 +58,14 @@ public:
 
     std::optional<screen_bounds> ScreenBounds {};
 
-    voxel_grid const* Grid {nullptr};
+    std::vector<voxel_part> Parts;
 
-    // worldPos: x/y of the object and the absolute height of the bottom of the grid
-    auto make_transform(point3_d worldPos) const -> voxel_transform;
-    auto world_diagonal() const -> f64;
+    // worldPos: x/y of the object and the absolute height of its bottom
+    auto make_transform(point3_d worldPos, voxel_part const& part) const -> voxel_transform;
+    auto world_diagonal(voxel_part const& part) const -> f64;
+    auto height() const -> f64; // top of the highest part, ignoring rotation
     auto segment_hits(point3_d worldPos, point_d from, point_d to, f64 z, f64 radius) const -> bool;
     auto filled_at(point3_d worldPos, point_d pos, f64 z) const -> bool;
-
-private:
-    auto make_rotation() const -> mat3_d;
 };
 
 using object_visual = std::variant<std::monostate, sprite_object, voxel_object>;

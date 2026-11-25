@@ -687,25 +687,27 @@ void raycaster::draw_voxel_objects(frame const& frame)
     // where an object lands on screen, nothing if it is off screen or hidden behind walls
     auto const measure {[&](object_base const& go) -> std::optional<screen_bounds> {
         auto const* vo {go.voxel()};
-        if (!vo->Grid) { return std::nullopt; }
-
-        auto const xf {vo->make_transform(go.world_position())};
 
         f64  minX {INFINITE_DIST}, maxX {-INFINITE_DIST}, minY {INFINITE_DIST}, maxY {-INFINITE_DIST}, minDepth {INFINITE_DIST};
         bool behindCamera {false};
 
-        for (auto const& corner : vo->Grid->corners()) {
-            auto const s {project(xf.to_world(corner))};
-            if (s.Z <= 0.0) {
-                behindCamera = true;
-                continue;
-            }
+        for (auto const& part : vo->Parts) {
+            if (!part.Grid) { continue; }
 
-            minX     = std::min(minX, s.X);
-            maxX     = std::max(maxX, s.X);
-            minY     = std::min(minY, s.Y);
-            maxY     = std::max(maxY, s.Y);
-            minDepth = std::min(minDepth, s.Z);
+            auto const xf {vo->make_transform(go.world_position(), part)};
+            for (auto const& corner : part.Grid->corners()) {
+                auto const s {project(xf.to_world(corner))};
+                if (s.Z <= 0.0) {
+                    behindCamera = true;
+                    continue;
+                }
+
+                minX     = std::min(minX, s.X);
+                maxX     = std::max(maxX, s.X);
+                minY     = std::min(minY, s.Y);
+                maxY     = std::max(maxY, s.Y);
+                minDepth = std::min(minDepth, s.Z);
+            }
         }
         if (minDepth == INFINITE_DIST) { return std::nullopt; } // no corner in front of the camera
 
@@ -773,14 +775,26 @@ void raycaster::draw_voxel_objects(frame const& frame)
         if (!bounds) { continue; }
 
         auto const [left, right, top, bottom, nearest, maxWallDist] {*bounds};
-        auto const xf {vo->make_transform(go.world_position())};
-
-        auto const localOrigin {xf.to_local(point3_d::Lift(player.Position, player.EyeZ))};
 
         auto const edge_len_sq {[&](i32 col) { return ComputeCameraRayDir(col, _screenSize.Width, player).length_squared(); }};
         f64 const  maxLenSq {std::max(edge_len_sq(bounds->Left), edge_len_sq(right - 1))};
         f64 const  maxSlope {std::max(std::abs(frame.CenterY - top), std::abs(bottom - frame.CenterY)) / _projPlaneDist};
-        f64 const  maxT {(maxWallDist * std::sqrt(maxLenSq + (maxSlope * maxSlope))) + vo->world_diagonal()};
+        f64 const  maxReach {maxWallDist * std::sqrt(maxLenSq + (maxSlope * maxSlope))};
+
+        // every part is traced in its own space
+        struct part_view {
+            voxel_part const* Part;
+            voxel_transform   Xf;
+            point3_d          LocalOrigin;
+            f64               MaxT;
+        };
+        std::vector<part_view> views;
+        for (auto const& part : vo->Parts) {
+            if (!part.Grid) { continue; }
+
+            auto const xf {vo->make_transform(go.world_position(), part)};
+            views.push_back({.Part = &part, .Xf = xf, .LocalOrigin = xf.to_local(point3_d::Lift(player.Position, player.EyeZ)), .MaxT = maxReach + vo->world_diagonal(part)});
+        }
 
         i32 const stride {strides[oi]};
         i32 const strideCols {((right - bounds->Left) + stride - 1) / stride};
@@ -810,24 +824,33 @@ void raycaster::draw_voxel_objects(frame const& frame)
                     f64 const  rayDirZ {(frame.CenterY - (y + (0.5 * stride))) / _projPlaneDist};
                     auto const rayDir3D {point3_d::Lift(rayDir2D, rayDirZ).normalized()};
 
-                    auto const localDir {xf.dir_to_local(rayDir3D)};
+                    // the nearest hit of any part
+                    f64  depth {INFINITE_DIST};
+                    u32  pixelColor {0};
+                    bool lit {false};
 
-                    auto const hit {vo->Grid->raycast(localOrigin, localDir, maxT)};
-                    if (!hit.Hit) { continue; }
+                    for (auto const& v : views) {
+                        auto const localDir {v.Xf.dir_to_local(rayDir3D)};
 
-                    auto const localHitPos {localOrigin + (localDir * hit.T)};
-                    auto const worldHit {xf.to_world(localHitPos)};
-                    auto const worldHitXY {worldHit.xy()};
-                    auto const depth {project(worldHit).Z};
+                        auto const hit {v.Part->Grid->raycast(v.LocalOrigin, localDir, v.MaxT)};
+                        if (!hit.Hit) { continue; }
 
-                    if (depth <= 0.0) { continue; }
-                    if (depth >= _wallDepthBuffer[x]) { continue; }
+                        auto const localHitPos {v.LocalOrigin + (localDir * hit.T)};
+                        auto const worldHit {v.Xf.to_world(localHitPos)};
+                        auto const partDepth {project(worldHit).Z};
 
-                    auto const hitCellForLight {WorldToCell(worldHitXY)};
-                    f64 const  aoFactor {_quality.VoxelAo ? vo->Grid->face_ao(hit, localHitPos) : 1.0};
+                        if (partDepth <= 0.0 || partDepth >= _wallDepthBuffer[x] || partDepth >= depth) { continue; }
 
-                    auto const tint {accumulate_light(frame, worldHitXY, worldHit.Z, hitCellForLight, vo->LightMask) * aoFactor};
-                    bool const lit {IsVisiblyLit(tint)};
+                        auto const worldHitXY {worldHit.xy()};
+                        f64 const  aoFactor {_quality.VoxelAo ? v.Part->Grid->face_ao(hit, localHitPos) : 1.0};
+
+                        auto const tint {accumulate_light(frame, worldHitXY, worldHit.Z, WorldToCell(worldHitXY), vo->LightMask) * aoFactor};
+
+                        depth      = partDepth;
+                        pixelColor = ApplyTint(hit.Color.R, hit.Color.G, hit.Color.B, tint);
+                        lit        = IsVisiblyLit(tint);
+                    }
+                    if (depth == INFINITE_DIST) { continue; }
 
                     i32 const yBlockEnd {std::min(y + stride, bottom)};
                     for (i32 by {y}; by < yBlockEnd; ++by) {
@@ -838,7 +861,7 @@ void raycaster::draw_voxel_objects(frame const& frame)
                             if (depth >= _objectDepthBuffer[depthIndex]) { continue; }
 
                             _objectDepthBuffer[depthIndex] = depth;
-                            screenBuf[depthIndex]          = ApplyTint(hit.Color.R, hit.Color.G, hit.Color.B, tint);
+                            screenBuf[depthIndex]          = pixelColor;
                             if (lit) { wrote = true; }
                         }
                     }
