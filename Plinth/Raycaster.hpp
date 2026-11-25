@@ -47,7 +47,7 @@ private:
     void draw_motes(frame const& frame);
 
     auto sky_pixel(frame const& frame, i32 y, point_d const& rayDir) const -> u32;
-    auto ground_pixel(frame const& frame, ground_settings const& style, f64 surfaceZ, i32 y, point_d const& rayDir) const -> u32;
+    auto ground_pixel(frame const& frame, ground_settings const& style, point_i cell, f64 t, f64 floorZ, f64 lowestZ, i32 y, point_d const& rayDir) const -> u32;
 
     std::vector<u32> _screen;
 

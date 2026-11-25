@@ -168,56 +168,51 @@
 [[maybe_unused]] static ground_settings const GROUND_WATER {};
 
 [[maybe_unused]] static ground_settings const GROUND_LAVA {
-    .Style = ground_style::Water,
-    .Deep  = {.R = 0.35, .G = 0.05, .B = 0.0},
-    .Light = {.R = 1.0, .G = 0.55, .B = 0.1},
-    .Haze  = {.R = 0.35, .G = 0.1, .B = 0.02},
-    .Scale = 1.6,
-    .Speed = 0.05,
-    .Fade  = 10.0};
+    .Style    = ground_style::Water,
+    .Deep     = {.R = 0.35, .G = 0.05, .B = 0.0},
+    .Light    = {.R = 1.0, .G = 0.55, .B = 0.1},
+    .Haze     = {.R = 0.35, .G = 0.1, .B = 0.02},
+    .Scale    = 1.6,
+    .Speed    = 0.05,
+    .Fade     = 10.0,
+    .Emissive = 1.0};
 
 [[maybe_unused]] static ground_settings const GROUND_ACID {
-    .Style = ground_style::Water,
-    .Deep  = {.R = 0.05, .G = 0.3, .B = 0.05},
-    .Light = {.R = 0.5, .G = 1.0, .B = 0.3},
-    .Haze  = {.R = 0.1, .G = 0.25, .B = 0.1},
-    .Scale = 2.0,
-    .Speed = 0.08,
-    .Fade  = 8.0};
+    .Style    = ground_style::Water,
+    .Deep     = {.R = 0.05, .G = 0.3, .B = 0.05},
+    .Light    = {.R = 0.5, .G = 1.0, .B = 0.3},
+    .Haze     = {.R = 0.1, .G = 0.25, .B = 0.1},
+    .Scale    = 2.0,
+    .Speed    = 0.08,
+    .Fade     = 8.0,
+    .Emissive = 0.6};
 
-[[maybe_unused]] static ground_settings const GROUND_CANYON {
-    .Style = ground_style::Canyon,
-    .Deep  = {.R = 0.25, .G = 0.14, .B = 0.08},
-    .Light = {.R = 0.7, .G = 0.45, .B = 0.25},
-    .Haze  = {.R = 0.55, .G = 0.38, .B = 0.3},
-    .Scale = 2.5,
+[[maybe_unused]] static ground_settings const GROUND_ICE {
+    .Style = ground_style::Ice,
+    .Deep  = {.R = 0.25, .G = 0.45, .B = 0.6},
+    .Light = {.R = 0.85, .G = 0.95, .B = 1.0},
+    .Haze  = {.R = 0.6, .G = 0.75, .B = 0.85},
+    .Scale = 0.7,
     .Speed = 0.0,
-    .Fade  = 25.0,
-    .Depth = 3.0};
+    .Fade  = 20.0};
 
-[[maybe_unused]] static ground_settings const GROUND_CHASM {
-    .Style = ground_style::Canyon,
-    .Deep  = {.R = 0.02, .G = 0.02, .B = 0.04},
-    .Light = {.R = 0.18, .G = 0.18, .B = 0.25},
-    .Haze  = {.R = 0.0, .G = 0.0, .B = 0.02},
-    .Scale = 3.0,
-    .Speed = 0.0,
-    .Fade  = 8.0,
-    .Depth = 4.0};
+[[maybe_unused]] static ground_settings const GROUND_GRID {
+    .Style    = ground_style::Grid,
+    .Deep     = {.R = 0.0, .G = 0.01, .B = 0.03},
+    .Light    = {.R = 0.1, .G = 0.9, .B = 1.0},
+    .Haze     = {.R = 0.0, .G = 0.03, .B = 0.08},
+    .Scale    = 1.0,
+    .Speed    = 0.0,
+    .Fade     = 25.0,
+    .Emissive = 1.0};
 
 [[maybe_unused]] static ground_settings const GROUND_VOID {
-    .Style = ground_style::Void,
-    .Deep  = {.R = 0.0, .G = 0.0, .B = 0.02},
-    .Light = {.R = 0.9, .G = 0.95, .B = 1.0},
-    .Haze  = {.R = 0.04, .G = 0.02, .B = 0.1},
-    .Speed = 0.1};
-
-[[maybe_unused]] static ground_settings const GROUND_VOID_MAGIC {
-    .Style = ground_style::Void,
-    .Deep  = {.R = 0.02, .G = 0.0, .B = 0.08},
-    .Light = {.R = 1.0, .G = 0.6, .B = 0.9},
-    .Haze  = {.R = 0.25, .G = 0.06, .B = 0.4},
-    .Speed = 0.15};
+    .Style    = ground_style::Void,
+    .Deep     = {.R = 0.0, .G = 0.0, .B = 0.02},
+    .Light    = {.R = 0.9, .G = 0.95, .B = 1.0},
+    .Haze     = {.R = 0.04, .G = 0.02, .B = 0.1},
+    .Speed    = 0.1,
+    .Emissive = 1.0};
 
 // PLACEHOLDER START
 
@@ -237,7 +232,7 @@ Plinth::Plinth(game& game)
     _engine.generate_level(*_level, _player);
     _level->motes().set(0, {});
     _level->motes().set(1, MOTES_RAIN);
-    _level->ground().set(1, GROUND_CHASM);
+    _level->ground().set(1, GROUND_ICE);
     _level->sky().set(SKY_NIGHT);
     _level->update(0ms, 0, point_d::Zero);
 

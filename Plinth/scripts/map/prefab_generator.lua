@@ -22,8 +22,8 @@ local PREFABS = {
     { -- 7x7 room with two pillars
         rows = {
             "2..o..2",
-            "2..Q..2",
-            "2.RQR.2",
+            "2.GQG.2",
+            "2.GQG.2",
             "o.RBR.o",
             "2. B..2",
             "2..Q..2",
@@ -36,7 +36,7 @@ local PREFABS = {
             "3.D.BB.",
             "333....",
             "o......",
-            "3.....o",
+            "3G....o",
             "3......",
             "3..o...",
         },
@@ -44,9 +44,9 @@ local PREFABS = {
     { -- small room with a real door (guards the only entrance)
         rows            = {
             "44444",
-            "4...4",
-            "4...4",
-            "4...4",
+            "4GGG4",
+            "4GPG4",
+            "4GGG4",
             "##D##",
         },
         wall_texture    = 2,
@@ -57,7 +57,7 @@ local PREFABS = {
         rows = {
             "555o555",
             "555.555",
-            "o.....o",
+            "oGG...o",
             "5.....5",
             "o.....o",
             "555.555",
@@ -68,14 +68,14 @@ local PREFABS = {
         rows = {
             "o..................o",
             "6.TTQQQQQQTRRBBBB..6",
-            "6..................6",
-            "o..................o",
+            "6.....GGGGGG.......6",
+            "o.......G..........o",
         },
     },
     { -- double-door vault (two separate entrances)
         rows            = {
             "77777D77777",
-            "7.....P...7",
+            "7.....G...7",
             "7..QBBBBQ.7",
             "7.....RRR.7",
             "77777D77777",
@@ -87,7 +87,7 @@ local PREFABS = {
     { -- room with a secret push-wall exit (south edge)
         rows = {
             "8..o..8",
-            "881...8",
+            "881G..8",
             "8.S...8",
             "811...8",
             "8..o..8",
@@ -98,15 +98,15 @@ local PREFABS = {
             "9..o..9",
             "9..R..9",
             "o.QB..o",
-            "9.....9",
+            "9..G..9",
             "9..o..9",
         },
     },
     { -- octagon-ish room using diagonal walls to cut the corners
         rows = {
             "X..o..1",
-            "2.....3",
-            "o.....o",
+            "2G....3",
+            "o..P..o",
             "4.....5",
             "6..o..X",
         },
@@ -122,18 +122,6 @@ end
 ---------------------------------------------------------------------------------------------------
 -- prefab parsing
 ---------------------------------------------------------------------------------------------------
-
--- ASCII legend:
---   '#'      normal_wall (prefab.wall_texture)
---   '1'-'9'  normal_wall with that literal texture index
---   '.'      floor_cell
---   'D'      door_wall, orientation from which edge it sits on; connector only on the boundary
---   'S'      push_wall, push_direction from which edge it sits on
---   'B'      obstacle (box)
---   'P'      obstacle (three round pillars)
---   'X'      diagonal_wall, orientation auto-detected from solid N/S/E/W neighbors
---   'o'      connector (open floor cell), boundary only
---   anything else is a floor_cell
 
 local CONNECTOR_SYMBOLS = { D = true, o = true }
 
@@ -232,6 +220,12 @@ local cell_factories = {
         })
     end,
 
+    G = function(prefab)
+        return with_surfaces(prefab, {
+            type   = "floor_cell",
+            Ground = 1,
+        })
+    end,
     P = function(prefab)
         local texture = prefab.wall_texture
         return with_surfaces(prefab, {

@@ -391,20 +391,6 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
             return;
         }
 
-        if (isFloor && surface.Ground != 0) {
-            auto const&   style {frame.Level.ground_at(cell)};
-            point_d const center {cell.X + 0.5, cell.Y + 0.5};
-            f64 const     surfaceZ {HeightAt(slope, cell, center)};
-
-            for (i32 y {from}; y < to; ++y) { screenBuf[pixel_index(y)] = ground_pixel(frame, style, surfaceZ, y, col.RayDir); }
-            claim(true, from, to);
-            return;
-        }
-
-        i32 const texId {isFloor ? surface.FloorTexture : surface.CeilingTexture};
-        u8 const* tex {_cache.texture(texId, 0)};
-        if (tex == nullptr) { return; }
-
         auto const dp {player.Position - cell};
         auto const [vx, vy] {col.RayDir};
 
@@ -418,7 +404,8 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
 
         bool const linear {std::abs(A) < 1e-12};
 
-        for (i32 y {from}; y < to; ++y) {
+        // ray distance at which screen row y meets the surface, within this cell's span
+        auto const solve_t {[&](i32 y) -> f64 {
             f64 const s {(static_cast<f64>(y) - col.CenterY) / _projPlaneDist};
             f64 const term {s + B};
             f64       t {tOut};
@@ -441,6 +428,27 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
                     t = std::clamp(gap(t1) <= gap(t2) ? t1 : t2, tIn, tOut);
                 }
             }
+            return t;
+        }};
+
+        if (isFloor && surface.Ground != 0) {
+            auto const& style {frame.Level.ground_at(cell)};
+            f64 const   lowestZ {std::min({slope.TL, slope.TR, slope.BL, slope.BR})};
+
+            for (i32 y {from}; y < to; ++y) {
+                f64 const t {solve_t(y)};
+                screenBuf[pixel_index(y)] = ground_pixel(frame, style, cell, t, HeightAt(slope, cell, col.point_at(t)), lowestZ, y, col.RayDir);
+            }
+            claim(true, from, to);
+            return;
+        }
+
+        i32 const texId {isFloor ? surface.FloorTexture : surface.CeilingTexture};
+        u8 const* tex {_cache.texture(texId, 0)};
+        if (tex == nullptr) { return; }
+
+        for (i32 y {from}; y < to; ++y) {
+            f64 const t {solve_t(y)};
 
             auto const pos {col.point_at(t)};
             f64 const  z {HeightAt(slope, cell, pos)};
@@ -1109,10 +1117,11 @@ auto raycaster::sky_pixel(frame const& frame, i32 skyY, point_d const& rayDir) c
     return ApplyTint(255, 255, 255, color);
 }
 
-auto raycaster::ground_pixel(frame const& frame, ground_settings const& style, f64 surfaceZ, i32 y, point_d const& rayDir) const -> u32
+auto raycaster::ground_pixel(frame const& frame, ground_settings const& style, point_i cell, f64 t, f64 floorZ, f64 lowestZ, i32 y, point_d const& rayDir) const -> u32
 {
     constexpr static i32 CANYON_LAYERS {4};
     constexpr static f64 STAR_DENSITY {0.004};
+    constexpr static f64 LINE_PIXELS {1.2}; // width of a crack or a grid line on screen
 
     static auto smooth {[](f64 e0, f64 e1, f64 x) -> f64 {
         f64 const u {std::clamp((x - e0) / (e1 - e0), 0.0, 1.0)};
@@ -1123,6 +1132,9 @@ auto raycaster::ground_pixel(frame const& frame, ground_settings const& style, f
 
     auto const& player {frame.Player};
     f64 const   time {static_cast<f64>(frame.Level.time().count()) / 1000.0};
+
+    // t is the ray distance to the floor of the cell in this row, so the pattern follows slopes
+    point_d const pos {player.Position + (rayDir * t)};
 
     // slope of the ray, positive below the horizon
     f64 const  s {(static_cast<f64>(y) - frame.CenterY) / _projPlaneDist};
@@ -1136,43 +1148,88 @@ auto raycaster::ground_pixel(frame const& frame, ground_settings const& style, f
     }};
 
     // a pattern sampled on a plane, drifting with time
-    auto const pattern {[&](point_d pos, f64 scale, f64 dirX, f64 dirY, f64 offset) -> f64 {
-        return std::clamp(noise((pos.X * scale) + (time * style.Speed * dirX) + offset, (pos.Y * scale) + (time * style.Speed * dirY) + offset), 0.0, 1.0);
+    auto const pattern {[&](point_d at, f64 scale, f64 dirX, f64 dirY, f64 offset) -> f64 {
+        return std::clamp(noise((at.X * scale) + (time * style.Speed * dirX) + offset, (at.Y * scale) + (time * style.Speed * dirY) + offset), 0.0, 1.0);
     }};
 
     // the farther away, the more of the haze
-    auto const fade {[&](color_d const& c, f64 t) { return c.lerp(style.Haze, 1.0 - std::exp(-t / style.Fade)); }};
+    auto const fade {[&](color_d const& c, f64 dist) { return c.lerp(style.Haze, 1.0 - std::exp(-dist / style.Fade)); }};
+
+    // one world unit of ray distance is about this many world units across on screen: lines keep a pixel's width
+    f64 const lineWidth {std::max(0.015, LINE_PIXELS * t / _projPlaneDist)};
 
     color_d color {style.Haze};
 
     switch (style.Style) {
     case ground_style::Water: {
-        if (auto const t {reach(surfaceZ)}) {
-            point_d const pos {player.Position + (rayDir * *t)};
+        // two layers of drifting noise, with bright veins where the layers meet
+        f64 const coarse {pattern(pos, style.Scale, 1.0, 0.7, 0.0)};
+        f64 const fine {pattern(pos, style.Scale * 2.3, -1.3, 1.1, 7.3)};
+        f64 const mixed {(0.6 * coarse) + (0.4 * fine)};
+        f64 const vein {std::pow(1.0 - std::abs((2.0 * mixed) - 1.0), 4.0)};
 
-            // two layers of drifting noise, with bright veins where the layers meet
-            f64 const coarse {pattern(pos, style.Scale, 1.0, 0.7, 0.0)};
-            f64 const fine {pattern(pos, style.Scale * 2.3, -1.3, 1.1, 7.3)};
-            f64 const mixed {(0.6 * coarse) + (0.4 * fine)};
-            f64 const vein {std::pow(1.0 - std::abs((2.0 * mixed) - 1.0), 4.0)};
-
-            color = fade((style.Deep * (0.6 + (0.8 * mixed))) + (style.Light * (vein * 0.5)), *t);
-        }
+        color = fade((style.Deep * (0.6 + (0.8 * mixed))) + (style.Light * (vein * 0.5)), t);
         break;
     }
     case ground_style::Canyon: {
-        // from the deepest layer up: each layer shows what is below it through its gaps
+        // from the deepest layer up: each layer shows what is below it through its gaps. The top layer is the floor
+        // itself, the others are level planes under the lowest point of the cell
         for (i32 i {CANYON_LAYERS - 1}; i >= 0; --i) {
-            auto const t {reach(surfaceZ - (static_cast<f64>(i) * style.Depth))};
-            if (!t) { continue; }
+            std::optional<f64> const layerT {i == 0 ? std::optional {t} : reach(lowestZ - (static_cast<f64>(i) * style.Depth))};
+            if (!layerT) { continue; }
 
-            point_d const pos {player.Position + (rayDir * *t)};
-            f64 const     n {pattern(pos, style.Scale * 0.2, 0.0, 0.0, 11.7 * i)};
+            point_d const at {player.Position + (rayDir * *layerT)};
+            f64 const     n {pattern(at, style.Scale * 0.2, 0.0, 0.0, 11.7 * i)};
             f64 const     shade {1.0 - (0.75 * static_cast<f64>(i) / (CANYON_LAYERS - 1))};
             f64 const     alpha {i == CANYON_LAYERS - 1 ? 1.0 : smooth(0.42, 0.55, n)};
 
-            color = color.lerp(fade(style.Deep.lerp(style.Light, n) * shade, *t), alpha);
+            color = color.lerp(fade(style.Deep.lerp(style.Light, n) * shade, *layerT), alpha);
         }
+        break;
+    }
+    case ground_style::Ice: {
+        constexpr static f64 THICKNESS {0.6}; // how deep the cracks below the surface lie
+
+        // a thin line where the noise crosses its middle value; the noise slope is about 1.5 per feature
+        auto const crack {[&](point_d at, f64 scale, f64 offset, f64 blur) -> f64 {
+            f64 const n {pattern(at, scale, 0.0, 0.0, offset)};
+            return 1.0 - smooth(0.0, lineWidth * blur, std::abs(n - 0.5) / (1.5 * scale));
+        }};
+
+        f64 const cloud {pattern(pos, style.Scale * 0.35, 0.0, 0.0, 3.1)};
+        f64 const frost {smooth(0.55, 0.8, pattern(pos, style.Scale * 0.9, 0.0, 0.0, 9.3))};
+
+        // cracks deeper in the ice: the same pattern where the ray is THICKNESS lower, so they shift against the surface
+        // as the view moves
+        point_d const below {pos + (rayDir * (THICKNESS / std::max(s, 0.05)))};
+        f64 const     deepCracks {std::max(crack(below, style.Scale * 0.5, 5.7, 2.5), 0.6 * crack(below, style.Scale * 1.3, 8.9, 2.5))};
+        f64 const     surfaceCracks {std::max(crack(pos, style.Scale * 0.5, 1.3, 1.0), 0.5 * crack(pos, style.Scale * 1.3, 4.1, 1.0))};
+
+        color = style.Deep.lerp(style.Light, 0.2 * cloud);
+        color = color.lerp(style.Light, 0.45 * deepCracks * (1.0 - frost));
+        color = color.lerp(style.Light, 0.55 * frost);
+        color = color.lerp(style.Light, 0.9 * surfaceCracks);
+        color = fade(color, t);
+        break;
+    }
+    case ground_style::Grid: {
+        f64 const u {(pos.X * style.Scale) + (time * style.Speed)};
+        f64 const v {pos.Y * style.Scale};
+        f64 const ru {std::round(u)};
+        f64 const rv {std::round(v)};
+
+        // world distance to the nearest line; every fourth line is a major one
+        auto const line {[&](f64 delta, f64 rounded) {
+            f64 const  d {std::abs(delta) / style.Scale};
+            bool const major {(static_cast<i32>(rounded) & 3) == 0};
+            f64 const  sharp {1.0 - smooth(0.0, lineWidth * (major ? 1.6 : 1.0), d)};
+            f64 const  glow {0.25 * std::exp(-d / 0.08)};
+            return (sharp + glow) * (major ? 1.0 : 0.45);
+        }};
+
+        f64 const lines {std::min(std::max(line(u - ru, ru), line(v - rv, rv)), 1.0)};
+
+        color = fade(style.Deep.lerp(style.Light, lines), t);
         break;
     }
     case ground_style::Void: {
@@ -1191,5 +1248,11 @@ auto raycaster::ground_pixel(frame const& frame, ground_settings const& style, f
     }
     }
 
-    return ApplyTint(255, 255, 255, color);
+    u32 const pixel {ApplyTint(255, 255, 255, color)};
+    if (style.Emissive >= 1.0) { return pixel; } // glows by itself: lava, a grid, stars
+
+    // what does not glow is shaded by the lights of the level like any floor
+    auto const tint {accumulate_light(frame, pos, floorZ, cell, LIGHT_LAYERS_ALL)};
+    u32 const  shaded {ApplyTint(pixel & 0xFFu, (pixel >> 8) & 0xFFu, (pixel >> 16) & 0xFFu, tint)};
+    return style.Emissive <= 0.0 ? shaded : BlendPixel(shaded, pixel, style.Emissive);
 }

@@ -12,8 +12,10 @@
 ////////////////////////////////////////////////////////////
 
 enum class ground_style : u8 {
-    Water,  // an animated surface at the height of the cell's floor; with other colors: lava, slime, ...
+    Water,  // an animated surface on the cell's floor; with other colors: lava, slime, ...
     Canyon, // layers of rock ledges below the floor, seen through the gaps of the layers above
+    Ice,    // a sheet with cracks
+    Grid,   // glowing lines on a dark floor, every fourth one stronger
     Void    // a starfield
 };
 
@@ -21,14 +23,16 @@ enum class ground_style : u8 {
 struct ground_settings {
     ground_style Style {ground_style::Water};
 
-    color_d Deep {0.05, 0.26, 0.34};  // the depths
-    color_d Light {0.30, 0.55, 0.62}; // veins of light (water), lit ledges (canyon), stars (void)
-    color_d Haze {0.10, 0.20, 0.26};  // what it fades to with distance
+    color_d Deep {.R = 0.05, .G = 0.26, .B = 0.34};  // the depths
+    color_d Light {.R = 0.30, .G = 0.55, .B = 0.62}; // veins of light (water), lit ledges (canyon), cracks (ice), lines (grid), stars (void)
+    color_d Haze {.R = 0.10, .G = 0.20, .B = 0.26};  // what it fades to with distance
 
-    f64 Scale {2.5};                  // pattern features per world unit
-    f64 Speed {0.12};                 // how fast the pattern drifts
-    f64 Fade {14.0};                  // ray distance over which the haze takes over
-    f64 Depth {2.5};                  // canyon: distance between the layers
+    f64 Scale {2.5};                                 // pattern features per world unit (ice: crack spacing, grid: lines)
+    f64 Speed {0.12};                                // how fast the pattern drifts (grid: scrolls, void: twinkle)
+    f64 Fade {14.0};                                 // ray distance over which the haze takes over
+    f64 Depth {2.5};                                 // canyon: distance between the layers
+
+    f64 Emissive {0.0};                              // 0: shaded by the lights of the level like a floor, 1: glows by itself (lava, grid, stars)
 };
 
 ////////////////////////////////////////////////////////////
