@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "Camera.hpp"
+#include "Ground.hpp"
 #include "Level.hpp"
 #include "LevelObject.hpp"
 
@@ -46,6 +47,7 @@ private:
     void draw_motes(frame const& frame);
 
     auto sky_pixel(frame const& frame, i32 y, point_d const& rayDir) const -> u32;
+    auto ground_pixel(frame const& frame, ground_settings const& style, f64 surfaceZ, i32 y, point_d const& rayDir) const -> u32;
 
     std::vector<u32> _screen;
 

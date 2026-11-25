@@ -122,6 +122,7 @@ void engine::create_env()
             if (type == "floor_cell") {
                 floor_cell f {};
                 read_surfaces(f);
+                cellTable.try_get(f.Ground, "Ground");
                 map.set_cell(pos, f);
             } else if (type == "normal_wall") {
                 normal_wall w {};

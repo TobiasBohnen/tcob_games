@@ -86,8 +86,9 @@ auto map::surface_at(point_i pos) const -> cell_surface
         if constexpr (requires { c.FloorReflectivity; }) { s.FloorReflectivity = c.FloorReflectivity; }
         if constexpr (requires { c.FloorZ; }) { s.FloorZ = c.FloorZ; }
         if constexpr (requires { c.CeilingZ; }) { s.CeilingZ = c.CeilingZ; }
-        if constexpr (requires { c.Level; }) { s.Level = c.Level; }
         if constexpr (requires { c.Motes; }) { s.Motes = c.Motes; }
+        if constexpr (requires { c.Ground; }) { s.Ground = c.Ground; }
+        if constexpr (requires { c.Level; }) { s.Level = c.Level; }
         return s;
     },
                       get_cell(pos));

@@ -12,6 +12,7 @@
 #include <utility>
 #include <vector>
 
+#include "Ground.hpp"
 #include "LevelObject.hpp"
 #include "Lighting.hpp"
 #include "Map.hpp"
@@ -53,12 +54,13 @@ public:
 
     auto can_move_to(point_d from, point_d to, f64 radius, f64 z, bool flying, uid ignore) const -> bool;
 
+    // creates an object of kind T; args are the constructor arguments after (id, desc), e.g. spawn<enemy>(desc, 0.3, false, 10)
     template <typename T, typename... Args>
     auto spawn(object_desc const& desc, Args&&... args) -> uid
     {
         uid const id {_nextId++};
         auto&     created {_objects.emplace_back(std::in_place_type<T>, id, desc, std::forward<Args>(args)...)};
-        ground(created);
+        set_floor_height(created);
         return id;
     }
 
@@ -78,16 +80,20 @@ public:
     auto motes_at(point_i pos) const -> mote_settings const&;
     auto motes() -> ::motes&;
 
+    auto ground_at(point_i pos) const -> ground_settings const&;
+    auto ground() -> ::ground&;
+
     auto sky() -> ::sky&;
     auto sky() const -> ::sky const&;
 
 private:
-    void ground(level_object& o) const;
+    void set_floor_height(level_object& o) const;
 
     auto find_blocker(point_d from, point_d to, f64 radius, f64 z, bool flying, uid ignore) const -> std::optional<blocker>;
 
     ::map      _map;
     ::motes    _motes;
+    ::ground   _ground;
     ::sky      _sky;
     ::lighting _lighting;
 

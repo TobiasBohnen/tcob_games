@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "Common.hpp"
+#include "Ground.hpp"
 #include "LevelObject.hpp"
 #include "Lighting.hpp"
 #include "Map.hpp"
@@ -58,7 +59,7 @@ void level::update(milliseconds deltaTime, i32 lightLosSamples, point_d playerPo
         std::visit([&](auto& x) {
             using kind = std::remove_cvref_t<decltype(x)>;
 
-            ground(obj);
+            set_floor_height(obj);
             x.age(deltaTime);
             if (x.dead()) { return; }
 
@@ -71,7 +72,7 @@ void level::update(milliseconds deltaTime, i32 lightLosSamples, point_d playerPo
                 if (!hit) {
                     x.Blocked = false;
                     x.set_xy(newPos);
-                    ground(obj);
+                    set_floor_height(obj);
                     return;
                 }
 
@@ -99,7 +100,7 @@ auto level::floor_z_at(point_d pos) const -> f64
     return HeightAt(_map.slopes_at(cell).Floor, cell, pos);
 }
 
-void level::ground(level_object& o) const
+void level::set_floor_height(level_object& o) const
 {
     auto& base {base_of(o)};
     base.set_floor_z(is_flying(o) ? 0.0 : floor_z_at(base.position().xy()));
@@ -221,6 +222,9 @@ auto level::map() -> ::map& { return _map; }
 
 auto level::motes_at(point_i pos) const -> mote_settings const& { return _motes.at(_map.surface_at(pos).Motes); }
 auto level::motes() -> ::motes& { return _motes; }
+
+auto level::ground_at(point_i pos) const -> ground_settings const& { return _ground.at(_map.surface_at(pos).Ground); }
+auto level::ground() -> ::ground& { return _ground; }
 
 auto level::sky() -> ::sky& { return _sky; }
 auto level::sky() const -> ::sky const& { return _sky; }

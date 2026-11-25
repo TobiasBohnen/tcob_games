@@ -18,6 +18,7 @@
 
 #include "CellWalk.hpp"
 #include "Common.hpp"
+#include "Ground.hpp"
 #include "Level.hpp"
 #include "LevelObject.hpp"
 #include "Map.hpp"
@@ -345,7 +346,7 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
     // vertical face where a surface does not meet the one of the cell before it
     auto const draw_riser {[&](bool isFloor, point_i prevCell, point_i cell, auto const& prevSlopes, auto const& slopes, cell_surface const& surface, f64 t) {
         i32 const texId {isFloor ? surface.FloorTexture : surface.CeilingTexture};
-        if (texId == SKY_TEXTURE) { return; }
+        if (texId == SKY_TEXTURE || (isFloor && surface.Ground != 0)) { return; }
         u8 const* tex {_cache.texture(texId, 0)};
         if (tex == nullptr) { return; }
 
@@ -387,6 +388,16 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
         if (!isFloor && surface.CeilingTexture == SKY_TEXTURE) {
             for (i32 y {from}; y < to; ++y) { screenBuf[pixel_index(y)] = sky_pixel(frame, y, col.RayDir); }
             claim(false, from, to);
+            return;
+        }
+
+        if (isFloor && surface.Ground != 0) {
+            auto const&   style {frame.Level.ground_at(cell)};
+            point_d const center {cell.X + 0.5, cell.Y + 0.5};
+            f64 const     surfaceZ {HeightAt(slope, cell, center)};
+
+            for (i32 y {from}; y < to; ++y) { screenBuf[pixel_index(y)] = ground_pixel(frame, style, surfaceZ, y, col.RayDir); }
+            claim(true, from, to);
             return;
         }
 
@@ -1093,6 +1104,91 @@ auto raycaster::sky_pixel(frame const& frame, i32 skyY, point_d const& rayDir) c
                 color = color.lerp(cloud, alpha);
             }
         }
+    }
+
+    return ApplyTint(255, 255, 255, color);
+}
+
+auto raycaster::ground_pixel(frame const& frame, ground_settings const& style, f64 surfaceZ, i32 y, point_d const& rayDir) const -> u32
+{
+    constexpr static i32 CANYON_LAYERS {4};
+    constexpr static f64 STAR_DENSITY {0.004};
+
+    static auto smooth {[](f64 e0, f64 e1, f64 x) -> f64 {
+        f64 const u {std::clamp((x - e0) / (e1 - e0), 0.0, 1.0)};
+        return u * u * (3.0 - (2.0 * u));
+    }};
+
+    auto const noise {[this](f64 x, f64 z) -> f64 { return _noise({static_cast<f32>(x), static_cast<f32>(z)}); }};
+
+    auto const& player {frame.Player};
+    f64 const   time {static_cast<f64>(frame.Level.time().count()) / 1000.0};
+
+    // slope of the ray, positive below the horizon
+    f64 const  s {(static_cast<f64>(y) - frame.CenterY) / _projPlaneDist};
+    auto const dir {point3_d::Lift(rayDir, -s).normalized()};
+
+    // ray distance to the horizontal plane at height z, empty if the plane is not in front of the eye
+    auto const reach {[&](f64 z) -> std::optional<f64> {
+        f64 const drop {player.EyeZ - z};
+        if (drop <= 0.0 || s <= 1e-6) { return std::nullopt; }
+        return drop / s;
+    }};
+
+    // a pattern sampled on a plane, drifting with time
+    auto const pattern {[&](point_d pos, f64 scale, f64 dirX, f64 dirY, f64 offset) -> f64 {
+        return std::clamp(noise((pos.X * scale) + (time * style.Speed * dirX) + offset, (pos.Y * scale) + (time * style.Speed * dirY) + offset), 0.0, 1.0);
+    }};
+
+    // the farther away, the more of the haze
+    auto const fade {[&](color_d const& c, f64 t) { return c.lerp(style.Haze, 1.0 - std::exp(-t / style.Fade)); }};
+
+    color_d color {style.Haze};
+
+    switch (style.Style) {
+    case ground_style::Water: {
+        if (auto const t {reach(surfaceZ)}) {
+            point_d const pos {player.Position + (rayDir * *t)};
+
+            // two layers of drifting noise, with bright veins where the layers meet
+            f64 const coarse {pattern(pos, style.Scale, 1.0, 0.7, 0.0)};
+            f64 const fine {pattern(pos, style.Scale * 2.3, -1.3, 1.1, 7.3)};
+            f64 const mixed {(0.6 * coarse) + (0.4 * fine)};
+            f64 const vein {std::pow(1.0 - std::abs((2.0 * mixed) - 1.0), 4.0)};
+
+            color = fade((style.Deep * (0.6 + (0.8 * mixed))) + (style.Light * (vein * 0.5)), *t);
+        }
+        break;
+    }
+    case ground_style::Canyon: {
+        // from the deepest layer up: each layer shows what is below it through its gaps
+        for (i32 i {CANYON_LAYERS - 1}; i >= 0; --i) {
+            auto const t {reach(surfaceZ - (static_cast<f64>(i) * style.Depth))};
+            if (!t) { continue; }
+
+            point_d const pos {player.Position + (rayDir * *t)};
+            f64 const     n {pattern(pos, style.Scale * 0.2, 0.0, 0.0, 11.7 * i)};
+            f64 const     shade {1.0 - (0.75 * static_cast<f64>(i) / (CANYON_LAYERS - 1))};
+            f64 const     alpha {i == CANYON_LAYERS - 1 ? 1.0 : smooth(0.42, 0.55, n)};
+
+            color = color.lerp(fade(style.Deep.lerp(style.Light, n) * shade, *t), alpha);
+        }
+        break;
+    }
+    case ground_style::Void: {
+        color = style.Haze.lerp(style.Deep, std::clamp(-dir.Z, 0.0, 1.0));
+
+        // stars: cells of two screen pixels in (azimuth, sin elevation)
+        f64 const cellsPerUnit {_projPlaneDist / 2.0};
+        i32 const gx {static_cast<i32>(std::floor((std::atan2(rayDir.Y, rayDir.X) + std::numbers::pi) * cellsPerUnit))};
+        i32 const gy {static_cast<i32>(std::floor(dir.Z * cellsPerUnit))};
+        if (HashUnit(gx, gy, 0, 41) < STAR_DENSITY) {
+            f64 const phase {HashUnit(gx, gy, 0, 42) * TAU};
+            f64 const pulse {0.5 + (0.5 * std::sin((time * style.Speed * 20.0) + phase))};
+            color += style.Light * ((0.4 + (0.6 * HashUnit(gx, gy, 0, 43))) * (1.0 - (0.5 * pulse)));
+        }
+        break;
+    }
     }
 
     return ApplyTint(255, 255, 255, color);
