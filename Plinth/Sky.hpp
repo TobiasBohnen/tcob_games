@@ -5,9 +5,11 @@
 
 #pragma once
 
+#include "Common.hpp"
+
 #include <vector>
 
-#include "Common.hpp"
+#include "Shading.hpp"
 
 struct sky_body_frame {
     point3_d Dir;
@@ -95,6 +97,7 @@ public:
     void update(milliseconds time);
 
     auto frame() const -> sky_frame const&;
+    auto pixel(shade_view const& view, i32 skyY, point_d const& rayDir) const -> u32;
 
 private:
     sky_settings _settings;

@@ -9,7 +9,6 @@
 #include <array>
 #include <atomic>
 #include <cmath>
-#include <numbers>
 #include <optional>
 #include <span>
 #include <utility>
@@ -23,6 +22,7 @@
 #include "LevelObject.hpp"
 #include "Map.hpp"
 #include "Player.hpp"
+#include "Shading.hpp"
 #include "TextureCache.hpp"
 #include "Voxel.hpp"
 #include "Walls.hpp"
@@ -32,14 +32,6 @@ constexpr f64 WALL_RECESS_EPS {1e-6};     // a wall hit further into its cell th
 constexpr f64 MIN_RAY_DIST {1e-4};        // keeps row projection finite for surfaces at the player
 constexpr f64 SEEN_MIN_LIGHT {0.02};      // a surface lit dimmer than this (brightest channel) does not count as seen
 constexpr f64 SURFACE_LIGHT_BIAS {0.001}; // lights a surface from the open side so the cell lookup never lands inside the wall
-
-static auto ApplyTint(u8 r, u8 g, u8 b, color_d tint) -> u32
-{
-    u8 const tr {static_cast<u8>(std::min(r * tint.R, 255.0))};
-    u8 const tg {static_cast<u8>(std::min(g * tint.G, 255.0))};
-    u8 const tb {static_cast<u8>(std::min(b * tint.B, 255.0))};
-    return 0xFF000000u | (static_cast<u32>(tb) << 16) | (static_cast<u32>(tg) << 8) | static_cast<u32>(tr);
-}
 
 static void CopyPixel(u32* dst, usize dstIdx, u8 const* src, usize srcIdx, color_d tint) { dst[dstIdx] = ApplyTint(src[srcIdx + 0], src[srcIdx + 1], src[srcIdx + 2], tint); }
 
@@ -90,26 +82,6 @@ static auto IsWithinPlayerLight(player const& player, point_i cell) -> bool
 
 // whether a surface lit with this tint is bright enough to be made out on screen
 static auto IsVisiblyLit(color_d tint, f64 minLight = SEEN_MIN_LIGHT) -> bool { return std::max({tint.R, tint.G, tint.B}) >= minLight; }
-
-static auto HashUnit(i32 gx, i32 gy, u32 index, u32 salt) -> f64
-{
-    u32 h {(static_cast<u32>(gx) * 73856093u) ^ (static_cast<u32>(gy) * 19349663u) ^ (index * 83492791u) ^ (salt * 2654435761u)};
-    h ^= h >> 16;
-    h *= 0x7feb352du;
-    h ^= h >> 15;
-    h *= 0x846ca68bu;
-    h ^= h >> 16;
-    return static_cast<f64>(h) / 4294967296.0;
-}
-
-static auto BlendPixel(u32 a, u32 b, f64 t) -> u32
-{
-    u32 const w {static_cast<u32>(std::clamp(t, 0.0, 1.0) * 256.0)};
-    u32 const inv {256 - w};
-    u32 const rb {((((a & 0x00FF00FFu) * inv) + ((b & 0x00FF00FFu) * w)) >> 8) & 0x00FF00FFu};
-    u32 const g {((((a & 0x0000FF00u) * inv) + ((b & 0x0000FF00u) * w)) >> 8) & 0x0000FF00u};
-    return 0xFF000000u | rb | g;
-}
 
 ////////////////////////////////////////////////////////////
 
@@ -207,6 +179,7 @@ auto raycaster::accumulate_light(frame const& frame, point_d const& surfacePos, 
 
     if ((lightMask & LIGHT_LAYER_WORLD) != 0) {
         add_light_contribution(player.Position, player.EyeZ, player.Settings.LightRange, player.Settings.LightIntensity, color {255, 255, 255}, surfacePos, surfaceZ, total);
+        total += level.lighting().glow_at(surfacePos); // emissive ground
     }
 
     auto const& lighting {level.lighting()};
@@ -377,6 +350,14 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
         claim(isFloor, from, to);
     }};
 
+    shade_view const view {.Noise         = &_noise,
+                           .ProjPlaneDist = _projPlaneDist,
+                           .ScreenHeight  = _screenSize.Height,
+                           .CenterY       = static_cast<f64>(col.CenterY),
+                           .Position      = player.Position,
+                           .EyeZ          = player.EyeZ,
+                           .Time          = static_cast<f64>(frame.Level.time().count()) / 1000.0};
+
     auto const draw_flat {[&](bool isFloor, cell_surface const& surface, point_i cell, auto const& slopes, f64 tIn, f64 tOut, u32 walls) {
         auto const& slope {isFloor ? slopes.Floor : slopes.Ceiling};
 
@@ -386,7 +367,7 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
         if (from >= to) { return; }
 
         if (!isFloor && surface.CeilingTexture == SKY_TEXTURE) {
-            for (i32 y {from}; y < to; ++y) { screenBuf[pixel_index(y)] = sky_pixel(frame, y, col.RayDir); }
+            for (i32 y {from}; y < to; ++y) { screenBuf[pixel_index(y)] = frame.Level.sky().pixel(view, y, col.RayDir); }
             claim(false, from, to);
             return;
         }
@@ -432,12 +413,22 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
         }};
 
         if (isFloor && surface.Ground != 0) {
-            auto const& style {frame.Level.ground_at(cell)};
+            auto const& ground {frame.Level.ground()};
+            f64 const   emissive {ground.at(surface.Ground).Emissive};
             f64 const   lowestZ {std::min({slope.TL, slope.TR, slope.BL, slope.BR})};
 
             for (i32 y {from}; y < to; ++y) {
                 f64 const t {solve_t(y)};
-                screenBuf[pixel_index(y)] = ground_pixel(frame, style, cell, t, HeightAt(slope, cell, col.point_at(t)), lowestZ, y, col.RayDir);
+                u32       pixel {ground.pixel(surface.Ground, view, t, lowestZ, y, col.RayDir)};
+
+                // what does not glow is shaded by the lights of the level like any floor
+                if (emissive < 1.0) {
+                    auto const pos {col.point_at(t)};
+                    auto const tint {accumulate_light(frame, pos, HeightAt(slope, cell, pos), cell, LIGHT_LAYERS_ALL)};
+                    u32 const  shaded {ApplyTint(pixel & 0xFFu, (pixel >> 8) & 0xFFu, (pixel >> 16) & 0xFFu, tint)};
+                    pixel = emissive <= 0.0 ? shaded : BlendPixel(shaded, pixel, emissive);
+                }
+                screenBuf[pixel_index(y)] = pixel;
             }
             claim(true, from, to);
             return;
@@ -1000,259 +991,4 @@ void raycaster::draw_motes(frame const& frame)
             }
         }
     }
-}
-
-auto raycaster::sky_pixel(frame const& frame, i32 skyY, point_d const& rayDir) const -> u32
-{
-    static constexpr point3_d WorldUp {.Z = 1.0};
-
-    static auto smooth {[](f64 e0, f64 e1, f64 x) -> f64 {
-        f64 const u {std::clamp((x - e0) / (e1 - e0), 0.0, 1.0)};
-        return u * u * (3.0 - (2.0 * u));
-    }};
-
-    // two octaves of noise: the shape octave and a detail octave at twice the frequency
-    auto const noise {[this](f64 x, f64 y) -> f64 { return _noise({static_cast<f32>(x), static_cast<f32>(y)}); }};
-    auto const detail {[&](f64 x, f64 y) -> f64 { return noise((x * 2.0) + 7.31, (y * 2.0) + 3.17); }};
-
-    auto const& sky {frame.Level.sky().frame()};
-
-    // view direction; the horizon is the unbobbed screen center
-    f64 const  zRow {((_screenSize.Height / 2.0) - skyY) / _projPlaneDist};
-    auto const dir {point3_d::Lift(rayDir, zRow).normalized()};
-
-    // gradient
-    f64 const h {std::clamp(dir.Z, 0.0, 1.0)};
-    auto      color {sky.Horizon.lerp(sky.Zenith, h)};
-
-    // dusk glow, sun halo and sun disc
-    f64 const sunDot {dir.dot(sky.Sun)};
-    f64 const s {std::max(sunDot, 0.0)};
-    f64 const s2 {s * s};
-    f64 const s8 {s2 * s2 * s2 * s2};
-    f64 const s32 {s8 * s8 * s8 * s8};
-
-    f64 const duskGlow {sky.Dusk * s8 * (1.0 - (0.7 * h))};
-    f64 const haloGlow {0.35 * s32 * (0.3 + (0.7 * sky.Day))};
-    color += (sky.DuskColor * duskGlow) + (sky.SunColor * haloGlow);
-    if (sunDot >= sky.CosSun) { color = sky.SunColor; }
-
-    // stars: cells of StarSize screen pixels in (azimuth, sin elevation)
-    if (sky.Stars) {
-        f64 const azimuth {std::atan2(rayDir.Y, rayDir.X)};
-        f64 const cellsPerUnit {_projPlaneDist / std::max(sky.StarSize, 1.0)};
-        f64 const size {std::min(sky.StarSize, 1.0)};
-        i32 const gx {static_cast<i32>(std::floor((azimuth + std::numbers::pi) * cellsPerUnit))};
-        i32 const gy {static_cast<i32>(std::floor(dir.Z * cellsPerUnit))};
-        if (HashUnit(gx, gy, 0, 21) < sky.StarDensity) {
-            f64 const speed {1.0 + (2.0 * HashUnit(gx, gy, 0, 22))};
-            f64 const phase {HashUnit(gx, gy, 0, 23) * TAU};
-            f64 const pulse {0.5 + (0.5 * std::sin((sky.Time * speed) + phase))};
-            f64 const base {0.4 + (0.6 * HashUnit(gx, gy, 0, 24))};
-            color += size * size * sky.Night * (1.0 - (sky.StarTwinkle * pulse)) * base;
-        }
-    }
-
-    // moons and planets
-    for (auto const& body : sky.Bodies) {
-        f64 const d {dir.dot(body.Dir)};
-        if (d < body.CosR) { continue; }
-
-        f64 const rho2 {std::max(1.0 - (d * d), 0.0) / (body.SinR * body.SinR)};
-        f64 const nz {std::sqrt(std::max(1.0 - rho2, 0.0))};
-
-        color_d surface {body.Color};
-        if (body.Noise > 0.0) {
-            // disc coordinates, u to the right and v up, from the body direction and world up
-            auto const right {body.Dir.cross(WorldUp).normalized()};
-            auto const up {right.cross(body.Dir)};
-            f64 const  u {dir.dot(right) / body.SinR};
-            f64 const  v {dir.dot(up) / body.SinR};
-
-            // features compress toward the limb, which makes the disc look round
-            f64 const warp {body.NoiseScale / (0.4 + (0.6 * nz))};
-            f64 const x {(u * warp) + body.NoiseSeed};
-            f64 const y {v * warp};
-            f64 const n {((0.5 * noise(x, y)) + (0.25 * detail(x, y))) / 0.75};
-            surface = surface.lerp(body.NoiseColor, n * body.Noise);
-        }
-
-        if (body.Lit) {
-            // phase: surface normal against the direction of the sun
-            f64 const nDotL {((sunDot - (d * body.SunDot)) / body.SinR) - (body.SunDot * nz)};
-            surface *= std::lerp(body.Ambient, 1.0, std::clamp(nDotL, 0.0, 1.0));
-            color = surface.lerp(color, sky.Day);
-        } else {
-            color = surface;
-        }
-    }
-
-    // clouds: a flat layer above the viewer, projected along the view direction
-    if (sky.CloudCoverage > 0.0 && dir.Z > 0.03) {
-        f64 const edge {1.0 - sky.CloudCoverage};
-        f64 const lo {edge - sky.CloudSoftness};
-        f64 const hi {edge + sky.CloudSoftness};
-
-        f64 const k {sky.CloudScale / dir.Z};
-        f64 const cx {(dir.X * k) + (sky.CloudWind.X * sky.Time)};
-        f64 const cy {(dir.Y * k) + (sky.CloudWind.Y * sky.Time)};
-
-        // the first octave carries the shape; if the detail octave at its maximum still stays under the edge, it is clear sky
-        f64 const n0 {noise(cx, cy)};
-        if (((0.5 * n0) + 0.25) / 0.75 > lo) {
-            f64 const density {((0.5 * n0) + (0.25 * detail(cx, cy))) / 0.75};
-            f64 const alpha {smooth(lo, hi, density) * smooth(0.03, 0.3, dir.Z)}; // fades out toward the horizon
-            if (alpha > 0.0) {
-                // the side facing the sun is thinner, so a cloud is lit where it is thicker than its sun-side neighbor
-                f64 const toward {noise(cx + (sky.Sun.X * 0.3), cy + (sky.Sun.Y * 0.3))};
-                f64 const lit {std::clamp(0.5 + ((n0 - toward) * 3.0), 0.0, 1.0)};
-
-                f64 const  brightness {(0.12 + (0.88 * sky.Day)) * (0.55 + (0.45 * lit))};
-                auto const cloud {sky.CloudColor.lerp(sky.DuskColor, sky.Dusk * s2) * brightness};
-                color = color.lerp(cloud, alpha);
-            }
-        }
-    }
-
-    return ApplyTint(255, 255, 255, color);
-}
-
-auto raycaster::ground_pixel(frame const& frame, ground_settings const& style, point_i cell, f64 t, f64 floorZ, f64 lowestZ, i32 y, point_d const& rayDir) const -> u32
-{
-    constexpr static i32 CANYON_LAYERS {4};
-    constexpr static f64 STAR_DENSITY {0.004};
-    constexpr static f64 LINE_PIXELS {1.2}; // width of a crack or a grid line on screen
-
-    static auto smooth {[](f64 e0, f64 e1, f64 x) -> f64 {
-        f64 const u {std::clamp((x - e0) / (e1 - e0), 0.0, 1.0)};
-        return u * u * (3.0 - (2.0 * u));
-    }};
-
-    auto const noise {[this](f64 x, f64 z) -> f64 { return _noise({static_cast<f32>(x), static_cast<f32>(z)}); }};
-
-    auto const& player {frame.Player};
-    f64 const   time {static_cast<f64>(frame.Level.time().count()) / 1000.0};
-
-    // t is the ray distance to the floor of the cell in this row, so the pattern follows slopes
-    point_d const pos {player.Position + (rayDir * t)};
-
-    // slope of the ray, positive below the horizon
-    f64 const  s {(static_cast<f64>(y) - frame.CenterY) / _projPlaneDist};
-    auto const dir {point3_d::Lift(rayDir, -s).normalized()};
-
-    // ray distance to the horizontal plane at height z, empty if the plane is not in front of the eye
-    auto const reach {[&](f64 z) -> std::optional<f64> {
-        f64 const drop {player.EyeZ - z};
-        if (drop <= 0.0 || s <= 1e-6) { return std::nullopt; }
-        return drop / s;
-    }};
-
-    // a pattern sampled on a plane, drifting with time
-    auto const pattern {[&](point_d at, f64 scale, f64 dirX, f64 dirY, f64 offset) -> f64 {
-        return std::clamp(noise((at.X * scale) + (time * style.Speed * dirX) + offset, (at.Y * scale) + (time * style.Speed * dirY) + offset), 0.0, 1.0);
-    }};
-
-    // the farther away, the more of the haze
-    auto const fade {[&](color_d const& c, f64 dist) { return c.lerp(style.Haze, 1.0 - std::exp(-dist / style.Fade)); }};
-
-    // one world unit of ray distance is about this many world units across on screen: lines keep a pixel's width
-    f64 const lineWidth {std::max(0.015, LINE_PIXELS * t / _projPlaneDist)};
-
-    color_d color {style.Haze};
-
-    switch (style.Style) {
-    case ground_style::Water: {
-        // two layers of drifting noise, with bright veins where the layers meet
-        f64 const coarse {pattern(pos, style.Scale, 1.0, 0.7, 0.0)};
-        f64 const fine {pattern(pos, style.Scale * 2.3, -1.3, 1.1, 7.3)};
-        f64 const mixed {(0.6 * coarse) + (0.4 * fine)};
-        f64 const vein {std::pow(1.0 - std::abs((2.0 * mixed) - 1.0), 4.0)};
-
-        color = fade((style.Deep * (0.6 + (0.8 * mixed))) + (style.Light * (vein * 0.5)), t);
-        break;
-    }
-    case ground_style::Canyon: {
-        // from the deepest layer up: each layer shows what is below it through its gaps. The top layer is the floor
-        // itself, the others are level planes under the lowest point of the cell
-        for (i32 i {CANYON_LAYERS - 1}; i >= 0; --i) {
-            std::optional<f64> const layerT {i == 0 ? std::optional {t} : reach(lowestZ - (static_cast<f64>(i) * style.Depth))};
-            if (!layerT) { continue; }
-
-            point_d const at {player.Position + (rayDir * *layerT)};
-            f64 const     n {pattern(at, style.Scale * 0.2, 0.0, 0.0, 11.7 * i)};
-            f64 const     shade {1.0 - (0.75 * static_cast<f64>(i) / (CANYON_LAYERS - 1))};
-            f64 const     alpha {i == CANYON_LAYERS - 1 ? 1.0 : smooth(0.42, 0.55, n)};
-
-            color = color.lerp(fade(style.Deep.lerp(style.Light, n) * shade, *layerT), alpha);
-        }
-        break;
-    }
-    case ground_style::Ice: {
-        constexpr static f64 THICKNESS {0.6}; // how deep the cracks below the surface lie
-
-        // a thin line where the noise crosses its middle value; the noise slope is about 1.5 per feature
-        auto const crack {[&](point_d at, f64 scale, f64 offset, f64 blur) -> f64 {
-            f64 const n {pattern(at, scale, 0.0, 0.0, offset)};
-            return 1.0 - smooth(0.0, lineWidth * blur, std::abs(n - 0.5) / (1.5 * scale));
-        }};
-
-        f64 const cloud {pattern(pos, style.Scale * 0.35, 0.0, 0.0, 3.1)};
-        f64 const frost {smooth(0.55, 0.8, pattern(pos, style.Scale * 0.9, 0.0, 0.0, 9.3))};
-
-        // cracks deeper in the ice: the same pattern where the ray is THICKNESS lower, so they shift against the surface
-        // as the view moves
-        point_d const below {pos + (rayDir * (THICKNESS / std::max(s, 0.05)))};
-        f64 const     deepCracks {std::max(crack(below, style.Scale * 0.5, 5.7, 2.5), 0.6 * crack(below, style.Scale * 1.3, 8.9, 2.5))};
-        f64 const     surfaceCracks {std::max(crack(pos, style.Scale * 0.5, 1.3, 1.0), 0.5 * crack(pos, style.Scale * 1.3, 4.1, 1.0))};
-
-        color = style.Deep.lerp(style.Light, 0.2 * cloud);
-        color = color.lerp(style.Light, 0.45 * deepCracks * (1.0 - frost));
-        color = color.lerp(style.Light, 0.55 * frost);
-        color = color.lerp(style.Light, 0.9 * surfaceCracks);
-        color = fade(color, t);
-        break;
-    }
-    case ground_style::Grid: {
-        f64 const u {(pos.X * style.Scale) + (time * style.Speed)};
-        f64 const v {pos.Y * style.Scale};
-        f64 const ru {std::round(u)};
-        f64 const rv {std::round(v)};
-
-        // world distance to the nearest line; every fourth line is a major one
-        auto const line {[&](f64 delta, f64 rounded) {
-            f64 const  d {std::abs(delta) / style.Scale};
-            bool const major {(static_cast<i32>(rounded) & 3) == 0};
-            f64 const  sharp {1.0 - smooth(0.0, lineWidth * (major ? 1.6 : 1.0), d)};
-            f64 const  glow {0.25 * std::exp(-d / 0.08)};
-            return (sharp + glow) * (major ? 1.0 : 0.45);
-        }};
-
-        f64 const lines {std::min(std::max(line(u - ru, ru), line(v - rv, rv)), 1.0)};
-
-        color = fade(style.Deep.lerp(style.Light, lines), t);
-        break;
-    }
-    case ground_style::Void: {
-        color = style.Haze.lerp(style.Deep, std::clamp(-dir.Z, 0.0, 1.0));
-
-        // stars: cells of two screen pixels in (azimuth, sin elevation)
-        f64 const cellsPerUnit {_projPlaneDist / 2.0};
-        i32 const gx {static_cast<i32>(std::floor((std::atan2(rayDir.Y, rayDir.X) + std::numbers::pi) * cellsPerUnit))};
-        i32 const gy {static_cast<i32>(std::floor(dir.Z * cellsPerUnit))};
-        if (HashUnit(gx, gy, 0, 41) < STAR_DENSITY) {
-            f64 const phase {HashUnit(gx, gy, 0, 42) * TAU};
-            f64 const pulse {0.5 + (0.5 * std::sin((time * style.Speed * 20.0) + phase))};
-            color += style.Light * ((0.4 + (0.6 * HashUnit(gx, gy, 0, 43))) * (1.0 - (0.5 * pulse)));
-        }
-        break;
-    }
-    }
-
-    u32 const pixel {ApplyTint(255, 255, 255, color)};
-    if (style.Emissive >= 1.0) { return pixel; } // glows by itself: lava, a grid, stars
-
-    // what does not glow is shaded by the lights of the level like any floor
-    auto const tint {accumulate_light(frame, pos, floorZ, cell, LIGHT_LAYERS_ALL)};
-    u32 const  shaded {ApplyTint(pixel & 0xFFu, (pixel >> 8) & 0xFFu, (pixel >> 16) & 0xFFu, tint)};
-    return style.Emissive <= 0.0 ? shaded : BlendPixel(shaded, pixel, style.Emissive);
 }

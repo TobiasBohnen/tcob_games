@@ -31,7 +31,11 @@ public:
     auto lights() const -> std::span<dynamic_light const>;
     auto lights_at(point_i map) const -> std::span<u32 const>; // indices into lights()
 
+    auto glow_at(point_d pos) const -> color_d;
+    void rebuild_glow(level const& lvl);
+
 private:
+    std::vector<color_d>          _glow;
     std::vector<dynamic_light>    _lights;
     std::vector<std::vector<u32>> _cellLights;
     usize                         _losSamples {0};

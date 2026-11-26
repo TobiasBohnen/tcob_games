@@ -168,14 +168,15 @@
 [[maybe_unused]] static ground_settings const GROUND_WATER {};
 
 [[maybe_unused]] static ground_settings const GROUND_LAVA {
-    .Style    = ground_style::Water,
-    .Deep     = {.R = 0.35, .G = 0.05, .B = 0.0},
-    .Light    = {.R = 1.0, .G = 0.55, .B = 0.1},
-    .Haze     = {.R = 0.35, .G = 0.1, .B = 0.02},
-    .Scale    = 1.6,
-    .Speed    = 0.05,
-    .Fade     = 10.0,
-    .Emissive = 1.0};
+    .Style     = ground_style::Water,
+    .Deep      = {.R = 0.35, .G = 0.05, .B = 0.0},
+    .Light     = {.R = 1.0, .G = 0.55, .B = 0.1},
+    .Haze      = {.R = 0.35, .G = 0.1, .B = 0.02},
+    .Scale     = 1.6,
+    .Speed     = 0.05,
+    .Fade      = 10.0,
+    .Emissive  = 1.0,
+    .GlowRange = 4.0};
 
 [[maybe_unused]] static ground_settings const GROUND_ACID {
     .Style    = ground_style::Water,
@@ -232,7 +233,7 @@ Plinth::Plinth(game& game)
     _engine.generate_level(*_level, _player);
     _level->motes().set(0, {});
     _level->motes().set(1, MOTES_RAIN);
-    _level->ground().set(1, GROUND_ICE);
+    _level->ground().set(1, GROUND_LAVA);
     _level->sky().set(SKY_NIGHT);
     _level->update(0ms, 0, point_d::Zero);
 
