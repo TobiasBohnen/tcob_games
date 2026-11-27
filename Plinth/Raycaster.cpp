@@ -48,6 +48,18 @@ static auto WallTexelX(wall_hit const& hit) -> i32 { return std::clamp(static_ca
 // Dir = player.Direction + player.Plane * ((2 * x / width) - 1)
 static auto ComputeCameraRayDir(isize x, i32 screenWidth, player const& player) -> point_d { return player.Direction + (player.Plane * ((2.0 * (static_cast<f64>(x) + 0.5) / screenWidth) - 1.0)); }
 
+// where a surface inside a blocking cell (a door) is seen from: just outside the cell, on the way to the viewer
+static auto ViewerSide(point_d pos, point_d viewer) -> point_d
+{
+    point_d const diff {viewer - pos};
+    f64 const     dist {diff.length()};
+    if (dist < 1e-6) { return pos; }
+
+    point_d const dir {diff / dist};
+    f64 const     t {cell_walk {pos, dir}.exit() + SURFACE_LIGHT_BIAS};
+    return t < dist ? pos + (dir * t) : pos;
+}
+
 // Calculates light attenuation using inverse-square distance law combined with
 // a smooth quartic falloff envelope: intensity * (1 - (dist^4 / range^4))^2 / dist^2
 static auto ComputeFalloff(f64 distSq, f64 rangeSq, f64 intensity) -> f64
@@ -173,16 +185,26 @@ auto raycaster::accumulate_light(frame const& frame, point_d const& surfacePos, 
 
     color_d total {};
 
+    auto const& lighting {level.lighting()};
+
+    // a surface inside a blocking cell (a door) has two sides: what lights it is what the viewer's side sees
+    bool const    inBlocker {lighting.blocks_light(cell)};
+    point_d const visibleFrom {inBlocker ? ViewerSide(surfacePos, player.Position) : surfacePos};
+
     if ((lightMask & LIGHT_LAYER_WORLD) != 0) {
         add_light_contribution(player.Position, player.EyeZ, player.Settings.LightRange, player.Settings.LightIntensity, color {255, 255, 255}, surfacePos, surfaceZ, total);
-        total += level.lighting().glow_at(surfacePos); // emissive ground
+        total += lighting.glow_at(visibleFrom); // emissive ground
     }
 
-    auto const& lighting {level.lighting()};
-    auto const  lights {lighting.lights()};
-    for (u32 li : lighting.lights_at(cell)) {
-        auto const& lt {lights[li]};
+    auto const lights {lighting.lights()};
+    for (auto const& entry : lighting.lights_at(cell)) {
+        auto const& lt {lights[entry.Light]};
         if ((lt.Layers & lightMask) == 0) { continue; }
+
+        // a cell at a shadow edge is lit only where its part sees the light
+        if (!entry.sees(surfacePos)) { continue; }
+
+        if (inBlocker && !level.map().has_line_of_sight(visibleFrom, lt.Position.xy())) { continue; }
         add_light_contribution(lt.Position.xy(), lt.Position.Z, lt.Range, lt.Intensity, lt.Color, surfacePos, surfaceZ, total);
     }
 

@@ -9,10 +9,10 @@
 #include <array>
 #include <cmath>
 #include <numbers>
+#include <optional>
 #include <span>
 #include <vector>
 
-#include "CellWalk.hpp"
 #include "Common.hpp"
 #include "Ground.hpp"
 #include "Level.hpp"
@@ -20,25 +20,13 @@
 #include "Map.hpp"
 #include "Walls.hpp"
 
-// whether the way from one point to another meets no blocking cell; the cell of `to` itself is not tested
-static auto HasLineOfSight(map const& map, point_d from, point_d to) -> bool
+auto cell_light::sees(point_d pos) const -> bool
 {
-    point_d const diff {to - from};
-    f64 const     dist {diff.length()};
-    if (dist < 1e-6) { return true; }
+    if (Seen == 0xFFFF) { return true; }
 
-    auto const toCell {WorldToCell(to)};
-
-    cell_walk walk {from, diff / dist};
-    for (;;) {
-        if (walk.exit() >= dist) { return true; }
-
-        walk.advance();
-        auto const cell {walk.cell()};
-        if (cell == toCell) { return true; }
-        if (!map_grid::Size.contains(cell)) { return true; }
-        if (map.is_blocking_light(cell)) { return false; }
-    }
+    i32 const x {std::clamp(static_cast<i32>((pos.X - std::floor(pos.X)) * 4.0), 0, 3)};
+    i32 const y {std::clamp(static_cast<i32>((pos.Y - std::floor(pos.Y)) * 4.0), 0, 3)};
+    return ((Seen >> ((y * 4) + x)) & 1) != 0;
 }
 
 lighting::lighting()
@@ -48,7 +36,10 @@ lighting::lighting()
 
 void lighting::update(level const& lvl, usize losSamples)
 {
-    if (_dirty) { rebuild_glow(lvl); }
+    if (_dirty) {
+        rebuild_blocking(lvl);
+        rebuild_glow(lvl);
+    }
 
     constexpr static f64 CELL_DIAGONAL_HALF {std::numbers::sqrt2 / 2}; // max distance from a cell's center to its farthest corner
 
@@ -85,7 +76,9 @@ void lighting::update(level const& lvl, usize losSamples)
     for (auto& list : _cellLights) { list.clear(); }
     if (_lights.empty()) { return; }
 
-    auto const cell_has_any_line_of_sight {[&](point_i cell, point_d const& lightPos) -> bool {
+    // which parts of a cell see a light: all of it when its center does, which costs one walk. Otherwise the corners are tried,
+    // and only if one of them sees the light, the parts are told apart, so the cell is lit up to the shadow edge and not beyond
+    auto const seen_parts {[&](point_i cell, point_d const& lightPos) -> std::optional<u16> {
         std::array<point_d, 5> const samples {{
             {cell.X + 0.5, cell.Y + 0.5},
             {cell.X + 0.1, cell.Y + 0.1},
@@ -94,7 +87,20 @@ void lighting::update(level const& lvl, usize losSamples)
             {cell.X + 0.1, cell.Y + 0.9},
         }};
 
-        return std::ranges::any_of(std::span {samples}.first(losSamples), [&](point_d const& from) { return HasLineOfSight(lvl.map(), from, lightPos); });
+        auto const used {std::span {samples}.first(losSamples)};
+        auto const sees {[&](point_d const& from) { return lvl.map().has_line_of_sight(from, lightPos); }};
+
+        if (used.empty()) { return std::nullopt; }
+        if (sees(used.front())) { return u16 {0xFFFF}; }
+        if (!std::ranges::any_of(used.subspan(1), sees)) { return std::nullopt; }
+
+        u16 mask {0};
+        for (i32 y {0}; y < 4; ++y) {
+            for (i32 x {0}; x < 4; ++x) {
+                if (sees({cell.X + ((x + 0.5) / 4.0), cell.Y + ((y + 0.5) / 4.0)})) { mask |= static_cast<u16>(1 << ((y * 4) + x)); }
+            }
+        }
+        return mask != 0 ? std::optional<u16> {mask} : std::nullopt;
     }};
 
     struct light_sweep {
@@ -144,8 +150,8 @@ void lighting::update(level const& lvl, usize losSamples)
                     f64 const distSq {toLightXY.dot(toLightXY) + (dz * dz)};
                     if (distSq >= sweep.RadiusSq) { continue; }
 
-                    if (cell_has_any_line_of_sight(point_i {cx, cy}, lightXY)) {
-                        _cellLights[PixelIndex(MAP_WIDTH, cx, cy)].push_back(static_cast<u32>(li));
+                    if (auto const parts {seen_parts(point_i {cx, cy}, lightXY)}) {
+                        _cellLights[PixelIndex(MAP_WIDTH, cx, cy)].push_back({.Light = static_cast<u32>(li), .Seen = *parts});
                     }
                 }
             }
@@ -156,7 +162,7 @@ void lighting::update(level const& lvl, usize losSamples)
 
 auto lighting::lights() const -> std::span<dynamic_light const> { return _lights; }
 
-auto lighting::lights_at(point_i map) const -> std::span<u32 const>
+auto lighting::lights_at(point_i map) const -> std::span<cell_light const>
 {
     if (!map_grid::Size.contains(map) || _cellLights.empty()) { return {}; }
     return _cellLights[PixelIndex(MAP_WIDTH, map.X, map.Y)];
@@ -176,7 +182,7 @@ auto lighting::glow_at(point_d pos) const -> color_d
     // blends the four nearest cells, but only the open ones: a wall must neither take glow nor pass it on to the other side.
     // The cell diagonal to the one `pos` is in only counts if both cells next to it are open as well, otherwise its glow would
     // come through the corner where the walls meet
-    auto const open {[&](i32 x, i32 y) { return map_grid::Size.contains(point_i {x, y}) && _glow[PixelIndex(MAP_WIDTH, x, y)].Open; }};
+    auto const open {[&](i32 x, i32 y) { return map_grid::Size.contains(point_i {x, y}) && _blocked[PixelIndex(MAP_WIDTH, x, y)] == 0; }};
     i32 const  ownX {fx < 0.5 ? x0 : x0 + 1};
     i32 const  ownY {fy < 0.5 ? y0 : y0 + 1};
 
@@ -186,7 +192,7 @@ auto lighting::glow_at(point_d pos) const -> color_d
         if (!open(x, y)) { return; }
         if (x != ownX && y != ownY && !(open(x, ownY) && open(ownX, y))) { return; }
 
-        sum += _glow[PixelIndex(MAP_WIDTH, x, y)].Color * weight;
+        sum += _glow[PixelIndex(MAP_WIDTH, x, y)] * weight;
         weights += weight;
     }};
     add(x0, y0, (1.0 - fx) * (1.0 - fy));
@@ -197,7 +203,22 @@ auto lighting::glow_at(point_d pos) const -> color_d
     return weights > 1e-6 ? sum * (1.0 / weights) : color_d {};
 }
 
+auto lighting::blocks_light(point_i cell) const -> bool
+{
+    return map_grid::Size.contains(cell) && !_blocked.empty() && _blocked[PixelIndex(MAP_WIDTH, cell.X, cell.Y)] != 0;
+}
+
 void lighting::invalidate() { _dirty = true; }
+
+void lighting::rebuild_blocking(level const& lvl)
+{
+    auto const& map {lvl.map()};
+
+    _blocked.assign(static_cast<usize>(MAP_WIDTH) * MAP_HEIGHT, 0);
+    for (i32 cy {0}; cy < MAP_HEIGHT; ++cy) {
+        for (i32 cx {0}; cx < MAP_WIDTH; ++cx) { _blocked[PixelIndex(MAP_WIDTH, cx, cy)] = map.is_blocking_light(point_i {cx, cy}) ? 1 : 0; }
+    }
+}
 
 // The light of emissive ground: every open cell whose ground has an Emissive and a GlowRange spreads its Light color over
 // the open cells around it, with a smooth falloff and only where it can see them.
@@ -205,10 +226,7 @@ void lighting::rebuild_glow(level const& lvl)
 {
     auto const& map {lvl.map()};
 
-    _glow.assign(static_cast<usize>(MAP_WIDTH) * MAP_HEIGHT, glow_cell {});
-    for (i32 cy {0}; cy < MAP_HEIGHT; ++cy) {
-        for (i32 cx {0}; cx < MAP_WIDTH; ++cx) { _glow[PixelIndex(MAP_WIDTH, cx, cy)].Open = !map.is_blocking_light(point_i {cx, cy}); }
-    }
+    _glow.assign(static_cast<usize>(MAP_WIDTH) * MAP_HEIGHT, color_d {});
 
     auto const spread {[&](point_i source, ground_settings const& ground) {
         color_d const emitted {ground.Light * (ground.Emissive * ground.GlowIntensity)};
@@ -220,15 +238,15 @@ void lighting::rebuild_glow(level const& lvl)
                 point_i const cell {source.X + dx, source.Y + dy};
                 if (!map_grid::Size.contains(cell)) { continue; }
 
-                auto& target {_glow[PixelIndex(MAP_WIDTH, cell.X, cell.Y)]};
-                if (!target.Open) { continue; }
+                auto const index {PixelIndex(MAP_WIDTH, cell.X, cell.Y)};
+                if (_blocked[index] != 0) { continue; }
 
                 f64 const distSq {static_cast<f64>((dx * dx) + (dy * dy))};
                 if (distSq >= rangeSq) { continue; }
-                if (distSq > 0.0 && !HasLineOfSight(map, {source.X + 0.5, source.Y + 0.5}, {cell.X + 0.5, cell.Y + 0.5})) { continue; }
+                if (distSq > 0.0 && !map.has_line_of_sight({source.X + 0.5, source.Y + 0.5}, {cell.X + 0.5, cell.Y + 0.5})) { continue; }
 
                 f64 const falloff {1.0 - (distSq / rangeSq)};
-                target.Color += emitted * (falloff * falloff);
+                _glow[index] += emitted * (falloff * falloff);
             }
         }
     }};
@@ -236,7 +254,7 @@ void lighting::rebuild_glow(level const& lvl)
     for (i32 cy {0}; cy < MAP_HEIGHT; ++cy) {
         for (i32 cx {0}; cx < MAP_WIDTH; ++cx) {
             point_i const cell {cx, cy};
-            if (!_glow[PixelIndex(MAP_WIDTH, cx, cy)].Open) { continue; }
+            if (_blocked[PixelIndex(MAP_WIDTH, cx, cy)] != 0) { continue; }
 
             auto const& ground {lvl.ground_at(cell)};
             if (ground.Emissive > 0.0 && ground.GlowRange > 0.0) { spread(cell, ground); }

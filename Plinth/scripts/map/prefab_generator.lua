@@ -222,8 +222,7 @@ local cell_factories = {
 
     G = function(prefab)
         return with_surfaces(prefab, {
-            type   = "floor_cell",
-            Ground = 1,
+            type = "floor_cell"
         })
     end,
     P = function(prefab)

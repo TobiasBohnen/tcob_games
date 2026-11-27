@@ -22,6 +22,16 @@ struct dynamic_light {
 
 ////////////////////////////////////////////////////////////
 
+// a light that reaches a cell
+struct cell_light {
+    u32 Light {0};                        // index into lights()
+    u16 Seen {0xFFFF};                    // the 4x4 parts of the cell, row by row, that see the light: all, unless something is in the way of some of them
+
+    auto sees(point_d pos) const -> bool; // whether the part of the cell that `pos` is in sees the light
+};
+
+////////////////////////////////////////////////////////////
+
 class lighting {
 public:
     lighting();
@@ -29,24 +39,22 @@ public:
     void update(level const& lvl, usize losSamples);
 
     auto lights() const -> std::span<dynamic_light const>;
-    auto lights_at(point_i map) const -> std::span<u32 const>; // indices into lights()
+    auto lights_at(point_i map) const -> std::span<cell_light const>;
 
-    auto glow_at(point_d pos) const -> color_d;                // the light that emissive ground spreads, see rebuild_glow
+    auto glow_at(point_d pos) const -> color_d;    // the light that emissive ground spreads, see rebuild_glow
+    auto blocks_light(point_i cell) const -> bool; // a flat lookup of what map::is_blocking_light said at the last rebuild
     void invalidate();
 
 private:
-    struct glow_cell {
-        color_d Color {};
-        bool    Open {false};
-    };
-
+    void rebuild_blocking(level const& lvl);
     void rebuild_glow(level const& lvl);
 
-    std::vector<glow_cell>        _glow;
-    std::vector<dynamic_light>    _lights;
-    std::vector<std::vector<u32>> _cellLights;
-    usize                         _losSamples {0};
-    bool                          _dirty {true};
+    std::vector<u8>                      _blocked; // per cell: whether it blocks light, as of the last rebuild
+    std::vector<color_d>                 _glow;    // per cell: the light of the emissive ground around
+    std::vector<dynamic_light>           _lights;
+    std::vector<std::vector<cell_light>> _cellLights;
+    usize                                _losSamples {0};
+    bool                                 _dirty {true};
 
     task_manager& _taskManager;
 };

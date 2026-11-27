@@ -54,6 +54,8 @@ public:
 
     void update(f64 dt);
 
+    auto light_changed() -> bool;
+
     auto get_cell(point_i pos) const -> cell const&;
     void set_cell(point_i pos, cell const& c);
     auto toggle_wall(point_i pos) -> bool;
@@ -61,6 +63,7 @@ public:
     auto surface_at(point_i pos) const -> cell_surface;
     auto slopes_at(point_i pos) const -> slopes;
     auto is_blocking_light(point_i pos) const -> bool;
+    auto has_line_of_sight(point_d from, point_d to) const -> bool; // no blocking cell in between; the cells of both points are not tested
     auto closest_point_on_wall(point_i cellPos, point_d pos) const -> std::optional<point_d>;
 
     auto get_visibility(point_i pos) const -> tile_visibility;
@@ -75,4 +78,5 @@ private:
 
     std::vector<slopes> _cellSlopes;
     bool                _slopesDirty {false};
+    bool                _lightChanged {false};
 };

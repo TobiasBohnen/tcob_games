@@ -55,6 +55,7 @@ void level::update(milliseconds deltaTime, i32 lightLosSamples, player& player)
     if (!occupancies.empty()) { Occupancies(occupancies); }
 
     _map.update(dt);
+    if (_map.light_changed()) { _lighting.invalidate(); }
 
     std::vector<collision_event> collisions;
 

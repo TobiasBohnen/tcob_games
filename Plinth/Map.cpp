@@ -9,10 +9,24 @@
 #include <cmath>
 #include <optional>
 #include <type_traits>
+#include <utility>
 #include <variant>
 
+#include "CellWalk.hpp"
 #include "Common.hpp"
 #include "Walls.hpp"
+
+template <typename T>
+static auto BlocksLight(T const& c) -> bool
+{
+    if constexpr (std::is_same_v<T, floor_cell>) {
+        return false;
+    } else if constexpr (requires { c.State; }) {
+        return c.State != wall_state::Open; // doors/push walls: open = passable
+    } else {
+        return true;                        // normal_wall, obstacle, diagonal_wall: always solid
+    }
+}
 
 map::map()
 {
@@ -29,21 +43,29 @@ void map::update(f64 dt)
     }
 
     for (auto& cell : _cells) {
-        std::visit([dt](auto&& w) {
+        std::visit([&](auto&& w) {
             if constexpr (requires { w.update(dt); }) {
+                bool const blocked {BlocksLight(w)};
                 w.update(dt);
+                if (BlocksLight(w) != blocked) { _lightChanged = true; }
             }
         },
                    cell);
     }
 }
 
+auto map::light_changed() -> bool
+{
+    return std::exchange(_lightChanged, false);
+}
+
 auto map::toggle_wall(point_i pos) -> bool
 {
     return std::visit(
-        [](auto&& w) {
+        [this](auto&& w) {
             if constexpr (requires { w.toggle(); }) {
                 w.toggle();
+                _lightChanged = true;
                 return true;
             } else {
                 return false;
@@ -148,17 +170,27 @@ auto map::is_blocking_light(point_i pos) const -> bool
 {
     if (!map_grid::Size.contains(pos)) { return true; }
 
-    return std::visit([](auto&& c) -> bool {
-        using T = std::decay_t<decltype(c)>;
-        if constexpr (std::is_same_v<T, floor_cell>) {
-            return false;
-        } else if constexpr (requires { c.State; }) {
-            return c.State != wall_state::Open; // doors/push walls: open = passable
-        } else {
-            return true;                        // normal_wall, obstacle, diagonal_wall: always solid
-        }
-    },
-                      get_cell(pos));
+    return std::visit([](auto&& c) -> bool { return BlocksLight(c); }, get_cell(pos));
+}
+
+auto map::has_line_of_sight(point_d from, point_d to) const -> bool
+{
+    point_d const diff {to - from};
+    f64 const     dist {diff.length()};
+    if (dist < 1e-6) { return true; }
+
+    auto const toCell {WorldToCell(to)};
+
+    cell_walk walk {from, diff / dist};
+    for (;;) {
+        if (walk.exit() >= dist) { return true; }
+
+        walk.advance();
+        auto const cell {walk.cell()};
+        if (cell == toCell) { return true; }
+        if (!map_grid::Size.contains(cell)) { return true; }
+        if (is_blocking_light(cell)) { return false; }
+    }
 }
 
 auto map::closest_point_on_wall(point_i cellPos, point_d pos) const -> std::optional<point_d>
