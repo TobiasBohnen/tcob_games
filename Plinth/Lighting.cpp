@@ -171,16 +171,20 @@ auto lighting::glow_at(point_d pos) const -> color_d
     f64 const fx {u - x0};
     f64 const fy {v - y0};
 
-    // blends the four nearest cells, but only the open ones: a wall must neither take glow nor pass it on to the other side
+    // blends the four nearest cells, but only the open ones: a wall must neither take glow nor pass it on to the other side.
+    // The cell diagonal to the one `pos` is in only counts if both cells next to it are open as well, otherwise its glow would
+    // come through the corner where the walls meet
+    auto const open {[&](i32 x, i32 y) { return map_grid::Size.contains(point_i {x, y}) && _glow[PixelIndex(MAP_WIDTH, x, y)].Open; }};
+    i32 const  ownX {fx < 0.5 ? x0 : x0 + 1};
+    i32 const  ownY {fy < 0.5 ? y0 : y0 + 1};
+
     color_d    sum {};
     f64        weights {0.0};
     auto const add {[&](i32 x, i32 y, f64 weight) {
-        if (!map_grid::Size.contains(point_i {x, y})) { return; }
+        if (!open(x, y)) { return; }
+        if (x != ownX && y != ownY && !(open(x, ownY) && open(ownX, y))) { return; }
 
-        auto const& cell {_glow[PixelIndex(MAP_WIDTH, x, y)]};
-        if (!cell.Open) { return; }
-
-        sum += cell.Color * weight;
+        sum += _glow[PixelIndex(MAP_WIDTH, x, y)].Color * weight;
         weights += weight;
     }};
     add(x0, y0, (1.0 - fx) * (1.0 - fy));
