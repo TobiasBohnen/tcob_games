@@ -31,11 +31,20 @@ public:
     auto lights() const -> std::span<dynamic_light const>;
     auto lights_at(point_i map) const -> std::span<u32 const>; // indices into lights()
 
-    auto glow_at(point_d pos) const -> color_d;
-    void rebuild_glow(level const& lvl);
+    auto glow_at(point_d pos) const -> color_d;                // the light that emissive ground spreads, see rebuild_glow
+    void invalidate_glow();
 
 private:
-    std::vector<color_d>          _glow;
+    struct glow_cell {
+        color_d Color {};
+        bool    Open {false};
+    };
+
+    void rebuild_glow(level const& lvl);
+
+    std::vector<glow_cell>        _glow;
+    bool                          _glowDirty {true};
+    std::vector<u8>               _glowOpen;
     std::vector<dynamic_light>    _lights;
     std::vector<std::vector<u32>> _cellLights;
     usize                         _losSamples {0};

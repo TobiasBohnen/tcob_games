@@ -49,20 +49,12 @@ public:
 
     void update(milliseconds deltaTime, i32 lightLosSamples, point_d playerPosition);
 
-    // absolute height of the floor under a position
-    auto floor_z_at(point_d pos) const -> f64;
+    auto floor_z_at(point_d pos) const -> f64; // absolute height of the floor under a position
 
     auto can_move_to(point_d from, point_d to, f64 radius, f64 z, bool flying, uid ignore) const -> bool;
 
-    // creates an object of kind T; args are the constructor arguments after (id, desc), e.g. spawn<enemy>(desc, 0.3, false, 10)
     template <typename T, typename... Args>
-    auto spawn(object_desc const& desc, Args&&... args) -> uid
-    {
-        uid const id {_nextId++};
-        auto&     created {_objects.emplace_back(std::in_place_type<T>, id, desc, std::forward<Args>(args)...)};
-        set_floor_height(created);
-        return id;
-    }
+    auto spawn(object_desc const& desc, Args&&... args) -> uid;
 
     auto find(uid id) -> level_object*;
 
@@ -102,3 +94,12 @@ private:
 
     milliseconds _time {};
 };
+
+template <typename T, typename... Args>
+inline auto level::spawn(object_desc const& desc, Args&&... args) -> uid
+{
+    uid const id {_nextId++};
+    auto&     created {_objects.emplace_back(std::in_place_type<T>, id, desc, std::forward<Args>(args)...)};
+    set_floor_height(created);
+    return id;
+}
