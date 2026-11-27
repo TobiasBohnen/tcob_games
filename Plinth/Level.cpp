@@ -22,11 +22,15 @@
 #include "Lighting.hpp"
 #include "Map.hpp"
 #include "Motes.hpp"
+#include "Player.hpp"
 #include "Sky.hpp"
 #include "Walls.hpp"
 
-void level::update(milliseconds deltaTime, i32 lightLosSamples, point_d playerPosition)
+void level::update(milliseconds deltaTime, i32 lightLosSamples, player& player)
 {
+    constexpr static f64 EYE_HEIGHT {0.5}; // eye height above the floor under the player
+    player.EyeZ = floor_z_at(player.Position) + EYE_HEIGHT;
+
     _time += deltaTime;
     _sky.update(_time);
 
@@ -34,7 +38,7 @@ void level::update(milliseconds deltaTime, i32 lightLosSamples, point_d playerPo
 
     std::vector<occupancy_event> occupancies;
     occupancies.reserve(_objects.size() + 1);
-    occupancies.push_back({.Cell = WorldToCell(playerPosition), .Position = playerPosition});
+    occupancies.push_back({.Cell = WorldToCell(player.Position), .Position = player.Position});
     for (auto const& obj : _objects) {
         auto const& base {base_of(obj)};
         occupancies.push_back({.Object = base.id(), .Cell = WorldToCell(base.position().xy()), .Position = base.position().xy()});
@@ -183,7 +187,7 @@ auto level::find_blocker(point_d from, point_d to, f64 radius, f64 z, bool flyin
     return std::nullopt;
 }
 
-auto level::find(uid id) -> level_object*
+auto level::find_object(uid id) -> level_object*
 {
     auto const it {std::ranges::lower_bound(_objects, id, {}, [](level_object const& o) { return base_of(o).id(); })};
     return (it != _objects.end() && base_of(*it).id() == id) ? &*it : nullptr;

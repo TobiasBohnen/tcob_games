@@ -268,7 +268,7 @@ Plinth::Plinth(game& game)
     _level->motes().set(1, MOTES_RAIN);
     _level->ground().set(1, GROUND_WATER);
     _level->sky().set(SKY_NIGHT);
-    _level->update(0ms, 0, point_d::Zero);
+    _level->update(0ms, 0, _player);
 
     _level->Collisions.connect([&](auto const& ev) {
         constexpr static std::array<std::string_view, 3> KINDS {"Wall", "Surface", "Object"};
@@ -306,7 +306,7 @@ Plinth::Plinth(game& game)
 
         f64 const radius {(std::max(testVoxelGrid.Size.X, testVoxelGrid.Size.Y) / 2.0) * scale / maxDim};
 
-        _level->spawn<enemy>(desc, radius, false, 1, point_d {0.1, 0});
+        _level->spawn_object<enemy>(desc, radius, false, 1, point_d {0.1, 0});
     }
 
     degree_d const angle {180};
@@ -375,7 +375,7 @@ void Plinth::on_update(milliseconds deltaTime)
 {
     move_player(deltaTime);
     _player.update(deltaTime);
-    _level->update(deltaTime, _quality.LightLosSamples, _player.Position);
+    _level->update(deltaTime, _quality.LightLosSamples, _player);
 
     if (_effect) { _effect->update(deltaTime); }
     _screenOverlay.update(deltaTime);

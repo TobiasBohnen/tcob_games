@@ -117,13 +117,9 @@ raycaster::raycaster(texture_cache& cache)
 {
 }
 
-auto raycaster::draw(level& level, player& player) -> std::span<u32>
+auto raycaster::draw(level& level, player const& player) -> std::span<u32>
 {
-    constexpr static f64 EYE_HEIGHT {0.5}; // eye height above the floor under the player
-
     std::ranges::fill(_objectDepthBuffer, INFINITE_DIST);
-
-    player.EyeZ = level.floor_z_at(player.Position) + EYE_HEIGHT;
 
     i32 const screenCenterY {(_screenSize.Height / 2) + static_cast<i32>(player.bob_amount())};
 

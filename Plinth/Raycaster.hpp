@@ -19,7 +19,7 @@ class raycaster {
 public:
     explicit raycaster(texture_cache& cache);
 
-    auto draw(level& level, player& player) -> std::span<u32>;
+    auto draw(level& level, player const& player) -> std::span<u32>;
 
     void set_quality(quality_settings const& quality, f64 projPlaneDist);
 

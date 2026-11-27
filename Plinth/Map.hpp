@@ -50,6 +50,8 @@ enum class tile_visibility : u8 {
 
 class map {
 public:
+    map();
+
     void update(f64 dt);
 
     auto get_cell(point_i pos) const -> cell const&;

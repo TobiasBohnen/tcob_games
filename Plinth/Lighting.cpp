@@ -31,11 +31,13 @@ static auto HasLineOfSight(map const& map, point_d from, point_d to) -> bool
 
     cell_walk walk {from, diff / dist};
     for (;;) {
-        if (walk.exit() >= dist) { return true; } // reached the end before hitting anything
+        if (walk.exit() >= dist) { return true; }
 
         walk.advance();
-        if (!map_grid::Size.contains(walk.cell()) || walk.cell() == toCell) { return true; }
-        if (map.is_blocking_light(walk.cell())) { return false; }
+        auto const cell {walk.cell()};
+        if (cell == toCell) { return true; }
+        if (!map_grid::Size.contains(cell)) { return true; }
+        if (map.is_blocking_light(cell)) { return false; }
     }
 }
 

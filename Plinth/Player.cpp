@@ -107,5 +107,5 @@ void player::fire(level& level) const
                             .Visual   = sprite,
                             .LifeTime = 5s};
 
-    level.spawn<projectile>(desc, 0.075, Direction * 10, uid {}, light);
+    level.spawn_object<projectile>(desc, 0.075, Direction * 10, uid {}, light);
 }

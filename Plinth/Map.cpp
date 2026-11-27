@@ -14,6 +14,11 @@
 #include "Common.hpp"
 #include "Walls.hpp"
 
+map::map()
+{
+    _cellSlopes.resize(static_cast<usize>(MAP_WIDTH) * MAP_HEIGHT);
+}
+
 void map::update(f64 dt)
 {
     prepare_slopes();
@@ -105,8 +110,6 @@ void map::prepare_slopes()
     if (!_slopesDirty) { return; }
     _slopesDirty = false;
 
-    _cellSlopes.resize(static_cast<usize>(MAP_WIDTH) * MAP_HEIGHT);
-
     // height of a vertex as seen from cells of one level: the largest absolute value wins, walls and other levels don't count
     auto const vertex_height {[&](i32 vx, i32 vy, bool isFloor, u8 cellLevel) -> f64 {
         f64  extremeZ {0.0};
@@ -143,7 +146,7 @@ void map::prepare_slopes()
 
 auto map::is_blocking_light(point_i pos) const -> bool
 {
-    if (!map_grid::Size.contains(pos)) { return {}; }
+    if (!map_grid::Size.contains(pos)) { return true; }
 
     return std::visit([](auto&& c) -> bool {
         using T = std::decay_t<decltype(c)>;

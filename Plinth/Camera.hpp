@@ -22,8 +22,6 @@ public:
         f64 ScreenX {};
     };
 
-    camera() = default;
-
     camera(player const& pl, i32 screenWidth, f64 projPlaneDist, i32 screenCenterY);
 
     auto project(point_d const& world) const -> projected;
