@@ -30,9 +30,6 @@ public:
 
     virtual void operator()(std::span<u32> screen) const = 0;
 
-protected:
-    static auto Pack(u8 r, u8 g, u8 b) -> u32;
-
 private:
     std::optional<milliseconds> _duration;
     milliseconds                _elapsed {};

@@ -11,18 +11,12 @@
 
 #include "Shading.hpp"
 
+// what `update` derives from the settings for the current time; `pixel` reads the rest from the settings
 struct sky_body_frame {
     point3_d Dir;
     f64      CosR {};
     f64      SinR {};
     f64      SunDot {};
-    f64      Ambient {};
-    bool     Lit {};
-    color_d  Color;
-    f64      Noise {};
-    f64      NoiseScale {};
-    f64      NoiseSeed {};
-    color_d  NoiseColor {};
 };
 
 struct sky_frame {
@@ -33,20 +27,10 @@ struct sky_frame {
     f64      CosSun {};
     f64      Time {};
     bool     Stars {};
-    f64      StarDensity {};
-    f64      StarSize {};
-    f64      StarTwinkle {};
-    f64      CloudCoverage {};
-    f64      CloudScale {};
-    f64      CloudSoftness {};
-    point_d  CloudWind {};
-    color_d  CloudColor {};
     color_d  Zenith;
     color_d  Horizon;
-    color_d  SunColor;
-    color_d  DuskColor;
 
-    std::vector<sky_body_frame> Bodies;
+    std::vector<sky_body_frame> Bodies; // one per body of the settings
 };
 
 struct sky_body {
@@ -99,8 +83,6 @@ public:
     auto pixel(shade_view const& view, i32 skyY, point_d const& rayDir) const -> u32;
 
 private:
-    auto frame() const -> sky_frame const&;
-
     sky_settings _settings;
     sky_frame    _frame;
 };

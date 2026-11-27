@@ -230,35 +230,21 @@ auto voxel_grid::corner_ao(vec3_i layer, i32 faceAxis, i32 cu, i32 cv) const -> 
 
 ////////////////////////////////////////////////////////////
 
-auto voxel_transform::rotate(point3_d v) const -> point3_d
-{
-    return {.X = (Rotation[0] * v.X) + (Rotation[1] * v.Y) + (Rotation[2] * v.Z),
-            .Y = (Rotation[3] * v.X) + (Rotation[4] * v.Y) + (Rotation[5] * v.Z),
-            .Z = (Rotation[6] * v.X) + (Rotation[7] * v.Y) + (Rotation[8] * v.Z)};
-}
-
-auto voxel_transform::rotate_inverse(point3_d v) const -> point3_d
-{
-    return {.X = (Rotation[0] * v.X) + (Rotation[3] * v.Y) + (Rotation[6] * v.Z),
-            .Y = (Rotation[1] * v.X) + (Rotation[4] * v.Y) + (Rotation[7] * v.Z),
-            .Z = (Rotation[2] * v.X) + (Rotation[5] * v.Y) + (Rotation[8] * v.Z)};
-}
-
 auto voxel_transform::to_world(point3_d local) const -> point3_d // voxel space -> world
 {
-    point3_d const r {rotate({.X = (local.X - Pivot.X) * Scale, .Y = (local.Y - Pivot.Y) * Scale, .Z = (local.Z - Pivot.Z) * Scale})};
+    point3_d const r {Mat3Rotate(Rotation, {.X = (local.X - Pivot.X) * Scale, .Y = (local.Y - Pivot.Y) * Scale, .Z = (local.Z - Pivot.Z) * Scale})};
     return {.X = Position.X + r.X, .Y = Position.Y + r.Y, .Z = BaseZ + (Pivot.Z * Scale) + r.Z};
 }
 
 auto voxel_transform::to_local(point3_d world) const -> point3_d
 {
-    point3_d const r {rotate_inverse({.X = world.X - Position.X, .Y = world.Y - Position.Y, .Z = world.Z - (BaseZ + (Pivot.Z * Scale))})};
+    point3_d const r {Mat3RotateInverse(Rotation, {.X = world.X - Position.X, .Y = world.Y - Position.Y, .Z = world.Z - (BaseZ + (Pivot.Z * Scale))})};
     return {.X = (r.X / Scale) + Pivot.X, .Y = (r.Y / Scale) + Pivot.Y, .Z = (r.Z / Scale) + Pivot.Z};
 }
 
 auto voxel_transform::dir_to_local(point3_d worldDir) const -> point3_d // keeps ray parameters in world units
 {
-    point3_d const r {rotate_inverse(worldDir)};
+    point3_d const r {Mat3RotateInverse(Rotation, worldDir)};
     return {.X = r.X / Scale, .Y = r.Y / Scale, .Z = r.Z / Scale};
 }
 

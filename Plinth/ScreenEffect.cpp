@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "Common.hpp"
+#include "Shading.hpp"
 
 ////////////////////////////////////////////////////////////
 
@@ -38,11 +39,6 @@ auto screen_effect::progress() const -> f64
 {
     if (!_duration || _duration->count() <= 0) { return 0.0; }
     return std::min(static_cast<f64>(_elapsed.count()) / static_cast<f64>(_duration->count()), 1.0);
-}
-
-auto screen_effect::Pack(u8 r, u8 g, u8 b) -> u32
-{
-    return 0xFF000000u | (static_cast<u32>(b) << 16) | (static_cast<u32>(g) << 8) | static_cast<u32>(r);
 }
 
 ////////////////////////////////////////////////////////////
@@ -73,16 +69,6 @@ auto MakeDeathEffect(size_i size, milliseconds duration) -> std::unique_ptr<scre
 
 auto MakeDissolveEffect(size_i size, milliseconds duration, f64 edge) -> std::unique_ptr<screen_effect>
 {
-    auto const hash {[](u32 x, u32 y) -> f64 {
-        u32 h {(x * 73856093u) ^ (y * 19349663u)};
-        h ^= h >> 16;
-        h *= 0x7feb352du;
-        h ^= h >> 15;
-        h *= 0x846ca68bu;
-        h ^= h >> 16;
-        return static_cast<f64>(h) / 4294967296.0;
-    }};
-
     f64 const cx {size.Width * 0.5};
     f64 const cy {size.Height * 0.5};
     f64 const rim {std::sqrt((cx * cx) + (cy * cy)) * edge};
@@ -93,7 +79,7 @@ auto MakeDissolveEffect(size_i size, milliseconds duration, f64 edge) -> std::un
         for (i32 x {0}; x < size.Width; ++x) {
             f64 const dx {x + 0.5 - cx};
             f64 const dy {y + 0.5 - cy};
-            keys[PixelIndex(size.Width, x, y)] = std::sqrt((dx * dx) + (dy * dy)) + (hash(static_cast<u32>(x), static_cast<u32>(y)) * rim);
+            keys[PixelIndex(size.Width, x, y)] = std::sqrt((dx * dx) + (dy * dy)) + (HashUnit(x, y, 0, 0) * rim);
         }
     }
 
@@ -111,7 +97,7 @@ void cheater_effect::operator()(std::span<u32> screen) const
     for (auto& col : screen) {
         color c {color::FromABGR(col)};
         std::swap(c.R, c.B);
-        col = Pack(c.R, c.G, c.B);
+        col = PackABGR(c.R, c.G, c.B);
     }
 }
 
@@ -120,7 +106,7 @@ void night_vision_effect::operator()(std::span<u32> screen) const
     for (auto& col : screen) {
         color const c {color::FromABGR(col)};
         u32 const   luminance {static_cast<u32>((c.R * 0.3f) + (c.G * 0.59f) + (c.B * 0.11f))};
-        col = Pack(0, static_cast<u8>(std::min(255u, luminance + 50)), 0);
+        col = PackABGR(0, static_cast<u8>(std::min(255u, luminance + 50)), 0);
     }
 }
 
@@ -130,7 +116,7 @@ void static_noise_effect::operator()(std::span<u32> screen) const
     for (auto& col : screen) {
         if (randomGenerator(0, 12) == 0) {
             u8 const noise {static_cast<u8>(randomGenerator(0, 255))};
-            col = Pack(noise, noise, noise);
+            col = PackABGR(noise, noise, noise);
         }
     }
 }
@@ -140,6 +126,6 @@ void grayscale_effect::operator()(std::span<u32> screen) const
     for (auto& col : screen) {
         color const c {color::FromABGR(col)};
         u8 const    gray {static_cast<u8>((c.R * 0.299f) + (c.G * 0.587f) + (c.B * 0.114f))};
-        col = Pack(gray, gray, gray);
+        col = PackABGR(gray, gray, gray);
     }
 }

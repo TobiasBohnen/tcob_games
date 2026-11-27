@@ -419,16 +419,15 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
 
             for (i32 y {from}; y < to; ++y) {
                 f64 const t {solve_t(y)};
-                u32       pixel {ground.pixel(surface.Ground, view, t, lowestZ, y, col.RayDir)};
+                auto      color {ground.pixel(surface.Ground, view, t, lowestZ, y, col.RayDir)};
 
                 // what does not glow is shaded by the lights of the level like any floor
                 if (emissive < 1.0) {
                     auto const pos {col.point_at(t)};
                     auto const tint {accumulate_light(frame, pos, HeightAt(slope, cell, pos), cell, LIGHT_LAYERS_ALL)};
-                    u32 const  shaded {ApplyTint(pixel & 0xFFu, (pixel >> 8) & 0xFFu, (pixel >> 16) & 0xFFu, tint)};
-                    pixel = emissive <= 0.0 ? shaded : BlendPixel(shaded, pixel, emissive);
+                    color = (color * tint).lerp(color, emissive);
                 }
-                screenBuf[pixel_index(y)] = pixel;
+                screenBuf[pixel_index(y)] = ApplyTint(255, 255, 255, color);
             }
             claim(true, from, to);
             return;
@@ -900,7 +899,7 @@ void raycaster::draw_motes(frame const& frame)
         u32 const r {std::min((px & 0xFFu) + (((add & 0xFFu) * w) >> 8), 255u)};
         u32 const g {std::min(((px >> 8) & 0xFFu) + ((((add >> 8) & 0xFFu) * w) >> 8), 255u)};
         u32 const b {std::min(((px >> 16) & 0xFFu) + ((((add >> 16) & 0xFFu) * w) >> 8), 255u)};
-        return 0xFF000000u | (b << 16) | (g << 8) | r;
+        return PackABGR(static_cast<u8>(r), static_cast<u8>(g), static_cast<u8>(b));
     }};
 
     static auto frac {[](f64 v) -> f64 { return v - std::floor(v); }};

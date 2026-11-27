@@ -32,40 +32,12 @@ auto sprite_object::screen_bottom(f64 scale, i32 screenCenterY, f64 eyeHeight) c
 
 ////////////////////////////////////////////////////////////
 
-static auto EulerRotation(radian_d yaw, radian_d pitch, radian_d roll) -> mat3_d
-{
-    f64 const cy {yaw.cos()}, sy {yaw.sin()};
-    f64 const cp {pitch.cos()}, sp {pitch.sin()};
-    f64 const cr {roll.cos()}, sr {roll.sin()};
-    return {cy * cp, (cy * sp * sr) - (sy * cr), (cy * sp * cr) + (sy * sr),
-            sy * cp, (sy * sp * sr) + (cy * cr), (sy * sp * cr) - (cy * sr),
-            -sp, cp * sr, cp * cr};
-}
-
-static auto Multiply(mat3_d const& a, mat3_d const& b) -> mat3_d
-{
-    mat3_d r {};
-    for (usize row {0}; row < 3; ++row) {
-        for (usize col {0}; col < 3; ++col) {
-            r[(row * 3) + col] = (a[row * 3] * b[col]) + (a[(row * 3) + 1] * b[3 + col]) + (a[(row * 3) + 2] * b[6 + col]);
-        }
-    }
-    return r;
-}
-
-static auto Rotate(mat3_d const& m, point3_d v) -> point3_d
-{
-    return {.X = (m[0] * v.X) + (m[1] * v.Y) + (m[2] * v.Z),
-            .Y = (m[3] * v.X) + (m[4] * v.Y) + (m[5] * v.Z),
-            .Z = (m[6] * v.X) + (m[7] * v.Y) + (m[8] * v.Z)};
-}
-
 // A part turns around its own pivot (voxel_transform turns around Pivot), then the whole object turns around the
 // object's Pivot: the part's own orientation is applied first, the object's second.
 auto voxel_object::make_transform(point3_d worldPos, voxel_part const& part) const -> voxel_transform
 {
-    auto const objectRot {EulerRotation(Yaw, Pitch, Roll)};
-    auto const rot {Multiply(objectRot, EulerRotation(part.Yaw, part.Pitch, part.Roll))};
+    auto const objectRot {Mat3FromEuler(Yaw, Pitch, Roll)};
+    auto const rot {Mat3Multiply(objectRot, Mat3FromEuler(part.Yaw, part.Pitch, part.Roll))};
 
     f64 const      partScale {Scale * part.Scale};
     point3_d const gridCenter {part.Grid->pivot()};
@@ -76,7 +48,7 @@ auto voxel_object::make_transform(point3_d worldPos, voxel_part const& part) con
                           .Y = part.Offset.Y + ((pivot.Y - gridCenter.Y) * part.Scale),
                           .Z = part.Offset.Z + (pivot.Z * part.Scale)};
 
-    auto const world {worldPos + ((Pivot + Rotate(objectRot, joint - Pivot)) * Scale)};
+    auto const world {worldPos + ((Pivot + Mat3Rotate(objectRot, joint - Pivot)) * Scale)};
 
     return {.Rotation = rot,
             .Position = world.xy(),

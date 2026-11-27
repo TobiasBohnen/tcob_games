@@ -42,11 +42,6 @@ public:
     auto to_local(point3_d world) const -> point3_d;
 
     auto dir_to_local(point3_d worldDir) const -> point3_d;
-
-private:
-    auto rotate(point3_d v) const -> point3_d;
-
-    auto rotate_inverse(point3_d v) const -> point3_d;
 };
 
 ////////////////////////////////////////////////////////////

@@ -57,7 +57,7 @@ static void BlitMasked(u32* dst, size_i _screenSize, blit_params const& p)
             if (p.Tint != 0) {
                 row[x - xStart] = p.Tint;
             } else {
-                row[x - xStart] = 0xFF000000u | (static_cast<u32>(p.Tex[texOffset + 2]) << 16) | (static_cast<u32>(p.Tex[texOffset + 1]) << 8) | static_cast<u32>(p.Tex[texOffset + 0]);
+                row[x - xStart] = PackABGR(p.Tex[texOffset + 0], p.Tex[texOffset + 1], p.Tex[texOffset + 2]);
             }
         }
     }

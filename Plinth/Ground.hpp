@@ -49,7 +49,7 @@ public:
 
     // the color of the ground with this id on screen row y; t is the ray distance to the floor of the cell in that row and
     // lowestZ the lowest point of the cell. Unlit: the caller shades it by the lights unless the ground is emissive
-    auto pixel(usize id, shade_view const& view, f64 t, f64 lowestZ, i32 y, point_d const& rayDir) const -> u32;
+    auto pixel(usize id, shade_view const& view, f64 t, f64 lowestZ, i32 y, point_d const& rayDir) const -> color_d;
 
 private:
     std::vector<ground_settings> _settings;

@@ -19,6 +19,7 @@ using namespace std::chrono_literals;
 
 inline constexpr i32    TEXTURE_BPP {3};
 inline constexpr size_i WALL_SIZE {64, 64};
+inline constexpr isize  MAX_TRANSPARENT_WALLS {8};
 inline constexpr f64    FOV {90};
 
 inline constexpr u32 LIGHT_LAYER_WORLD {1u << 0};
@@ -103,7 +104,45 @@ struct screen_bounds {
     auto area() const -> i32 { return (Right - Left) * (Bottom - Top); }
 };
 
-using mat3_d = std::array<f64, 3 * 3>;
+using mat3_d = std::array<f64, 3 * 3>; // row-major
+
+// R = Rz(yaw) * Ry(pitch) * Rx(roll)
+inline auto Mat3FromEuler(radian_d yaw, radian_d pitch, radian_d roll) -> mat3_d
+{
+    f64 const cy {yaw.cos()}, sy {yaw.sin()};
+    f64 const cp {pitch.cos()}, sp {pitch.sin()};
+    f64 const cr {roll.cos()}, sr {roll.sin()};
+    return {cy * cp, (cy * sp * sr) - (sy * cr), (cy * sp * cr) + (sy * sr),
+            sy * cp, (sy * sp * sr) + (cy * cr), (sy * sp * cr) - (cy * sr),
+            -sp, cp * sr, cp * cr};
+}
+
+// a * b: b is applied first
+inline auto Mat3Multiply(mat3_d const& a, mat3_d const& b) -> mat3_d
+{
+    mat3_d r {};
+    for (usize row {0}; row < 3; ++row) {
+        for (usize col {0}; col < 3; ++col) {
+            r[(row * 3) + col] = (a[row * 3] * b[col]) + (a[(row * 3) + 1] * b[3 + col]) + (a[(row * 3) + 2] * b[6 + col]);
+        }
+    }
+    return r;
+}
+
+inline auto Mat3Rotate(mat3_d const& m, point3_d const& v) -> point3_d
+{
+    return {.X = (m[0] * v.X) + (m[1] * v.Y) + (m[2] * v.Z),
+            .Y = (m[3] * v.X) + (m[4] * v.Y) + (m[5] * v.Z),
+            .Z = (m[6] * v.X) + (m[7] * v.Y) + (m[8] * v.Z)};
+}
+
+// the transpose, which is the inverse of a rotation
+inline auto Mat3RotateInverse(mat3_d const& m, point3_d const& v) -> point3_d
+{
+    return {.X = (m[0] * v.X) + (m[3] * v.Y) + (m[6] * v.Z),
+            .Y = (m[1] * v.X) + (m[4] * v.Y) + (m[7] * v.Z),
+            .Z = (m[2] * v.X) + (m[5] * v.Y) + (m[8] * v.Z)};
+}
 
 struct color_d {
     f64 R {0.0};
@@ -123,6 +162,7 @@ struct color_d {
     friend auto constexpr operator+(color_d left, color_d const& right) -> color_d { return left += right; }
 };
 
+constexpr auto PackABGR(u8 r, u8 g, u8 b) -> u32 { return 0xFF000000u | (static_cast<u32>(b) << 16) | (static_cast<u32>(g) << 8) | static_cast<u32>(r); }
 constexpr auto IsMagenta(u8 const* tex, i32 offset) -> bool { return tex[offset + 0] == 0x98 && tex[offset + 1] == 0x00 && tex[offset + 2] == 0x88; }
 constexpr auto PixelIndex(isize width, isize x, isize y) -> usize { return static_cast<usize>(x + (y * width)); }
 constexpr auto WorldToCell(point_d const& p) -> point_i { return {static_cast<i32>(std::floor(p.X)), static_cast<i32>(std::floor(p.Y))}; }

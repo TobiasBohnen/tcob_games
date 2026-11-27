@@ -30,7 +30,7 @@ inline auto ApplyTint(u8 r, u8 g, u8 b, color_d tint) -> u32
     u8 const tr {static_cast<u8>(std::min(r * tint.R, 255.0))};
     u8 const tg {static_cast<u8>(std::min(g * tint.G, 255.0))};
     u8 const tb {static_cast<u8>(std::min(b * tint.B, 255.0))};
-    return 0xFF000000u | (static_cast<u32>(tb) << 16) | (static_cast<u32>(tg) << 8) | static_cast<u32>(tr);
+    return PackABGR(tr, tg, tb);
 }
 
 inline auto HashUnit(i32 gx, i32 gy, u32 index, u32 salt) -> f64
