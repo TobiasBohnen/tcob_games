@@ -274,13 +274,6 @@ void raycaster::draw_columns(frame const& frame, i32 columnStart, i32 columnEnd)
 
 void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
 {
-    static auto scale_pixel {[](u32 px, f64 factor) -> u32 {
-        u32 const m {static_cast<u32>(std::clamp(factor, 0.0, 1.0) * 256.0)};
-        u32 const rb {(((px & 0x00FF00FFu) * m) >> 8) & 0x00FF00FFu};
-        u32 const g {(((px & 0x0000FF00u) * m) >> 8) & 0x0000FF00u};
-        return 0xFF000000u | rb | g;
-    }};
-
     constexpr static f64 CONTACT_SHADOW_WIDTH {0.2};
     constexpr static f64 CONTACT_SHADOW_STRENGTH {0.45};
     constexpr static f64 REFLECTION_HEIGHT {1.0}; // floor reflections fade out this far up a wall
@@ -474,7 +467,7 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
 
                 if (dist < CONTACT_SHADOW_WIDTH) {
                     f64 const c {1.0 - (dist / CONTACT_SHADOW_WIDTH)};
-                    pixel = scale_pixel(pixel, 1.0 - (CONTACT_SHADOW_STRENGTH * c * c));
+                    pixel = BlendPixel(pixel, 0xFF000000u, CONTACT_SHADOW_STRENGTH * c * c);
                 }
             }
 

@@ -26,15 +26,16 @@ voxel_grid::voxel_grid(std::vector<voxel> const& voxels)
         Size.Z = std::max(Size.Z, v.Position.Z + 1);
     }
 
+    // an empty cell is a transparent one, a voxel is always opaque
     isize const cellCount {static_cast<isize>(Size.X) * Size.Y * Size.Z};
-    _cells.resize(static_cast<usize>(std::max<isize>(cellCount, 0)));
-    _occupied.resize(static_cast<usize>(std::max<isize>(cellCount, 0)), false);
+    _cells.assign(static_cast<usize>(std::max<isize>(cellCount, 0)), colors::Transparent);
 
     for (auto const& v : voxels) {
         if (v.Position.X < 0 || v.Position.Y < 0 || v.Position.Z < 0) { continue; }
-        isize const idx {flat_index(v.Position.X, v.Position.Y, v.Position.Z)};
-        _cells[static_cast<usize>(idx)]    = v.Color;
-        _occupied[static_cast<usize>(idx)] = true;
+
+        color c {v.Color};
+        c.A                                                                              = 255;
+        _cells[static_cast<usize>(flat_index(v.Position.X, v.Position.Y, v.Position.Z))] = c;
     }
 }
 
@@ -46,7 +47,7 @@ auto voxel_grid::flat_index(i32 x, i32 y, i32 z) const -> isize
 auto voxel_grid::occupied(i32 x, i32 y, i32 z) const -> bool
 {
     if (x < 0 || y < 0 || z < 0 || x >= Size.X || y >= Size.Y || z >= Size.Z) { return false; }
-    return _occupied[static_cast<usize>(flat_index(x, y, z))];
+    return _cells[static_cast<usize>(flat_index(x, y, z))].A != 0;
 }
 
 auto voxel_grid::color_at(i32 x, i32 y, i32 z) const -> color
@@ -59,101 +60,86 @@ auto voxel_grid::raycast(point3_d const& origin, point3_d const& dir, f64 maxT) 
     voxel_ray_hit result {};
     if (Size.X <= 0 || Size.Y <= 0 || Size.Z <= 0) { return result; }
 
+    std::array<f64, 3> const o {origin.X, origin.Y, origin.Z};
+    std::array<f64, 3> const d {dir.X, dir.Y, dir.Z};
+    std::array<i32, 3> const size {Size.X, Size.Y, Size.Z};
+
+    // clip the ray to the box; the face it comes in through is the one of the axis that enters last
     f64 tMin {0.0};
     f64 tMax {maxT};
-
     i32 entryAxis {2};
     i32 entrySign {1};
 
-    auto const clip_axis {[&](f64 o, f64 d, f64 lo, f64 hi, i32 axis) -> bool {
-        if (std::abs(d) < 1e-12) { return o >= lo && o <= hi; }
-        f64 t0 {(lo - o) / d};
-        f64 t1 {(hi - o) / d};
-        i32 s0 {-1};
-        i32 s1 {1};
+    for (i32 axis {0}; axis < 3; ++axis) {
+        f64 const hi {static_cast<f64>(size[axis])};
+        if (std::abs(d[axis]) < 1e-12) {
+            if (o[axis] < 0.0 || o[axis] > hi) { return result; }
+            continue;
+        }
+
+        f64 t0 {(0.0 - o[axis]) / d[axis]};
+        f64 t1 {(hi - o[axis]) / d[axis]};
+        i32 sign {-1};
         if (t0 > t1) {
             std::swap(t0, t1);
-            std::swap(s0, s1);
+            sign = 1;
         }
         if (t0 > tMin) {
             tMin      = t0;
             entryAxis = axis;
-            entrySign = s0;
+            entrySign = sign;
         }
         tMax = std::min(tMax, t1);
-        return tMin <= tMax;
-    }};
+        if (tMin > tMax) { return result; }
+    }
 
-    if (!clip_axis(origin.X, dir.X, 0.0, static_cast<f64>(Size.X), 0)) { return result; }
-    if (!clip_axis(origin.Y, dir.Y, 0.0, static_cast<f64>(Size.Y), 1)) { return result; }
-    if (!clip_axis(origin.Z, dir.Z, 0.0, static_cast<f64>(Size.Z), 2)) { return result; }
-    if (tMin > tMax) { return result; }
+    f64 const                entryT {std::max(tMin, 0.0)};
+    point3_d const           start {origin + (dir * entryT)};
+    std::array<f64, 3> const first {start.X, start.Y, start.Z};
 
-    f64 const      entryT {std::max(tMin, 0.0)};
-    point3_d const start {origin + (dir * entryT)};
+    std::array<i32, 3> voxelPos {};
+    std::array<i32, 3> step {};
+    std::array<f64, 3> tNext {};
+    std::array<f64, 3> tDelta {};
+    for (i32 axis {0}; axis < 3; ++axis) {
+        constexpr f64 INF {std::numeric_limits<f64>::infinity()};
 
-    i32 voxelX {std::clamp(static_cast<i32>(std::floor(start.X)), 0, Size.X - 1)};
-    i32 voxelY {std::clamp(static_cast<i32>(std::floor(start.Y)), 0, Size.Y - 1)};
-    i32 voxelZ {std::clamp(static_cast<i32>(std::floor(start.Z)), 0, Size.Z - 1)};
-
-    i32 const stepX {dir.X > 0 ? 1 : (dir.X < 0 ? -1 : 0)};
-    i32 const stepY {dir.Y > 0 ? 1 : (dir.Y < 0 ? -1 : 0)};
-    i32 const stepZ {dir.Z > 0 ? 1 : (dir.Z < 0 ? -1 : 0)};
-
-    auto const next_boundary_t {[&](f64 o, f64 d, i32 voxel, i32 step) -> f64 {
-        if (step == 0) { return std::numeric_limits<f64>::infinity(); }
-        f64 const boundary {step > 0 ? static_cast<f64>(voxel + 1) : static_cast<f64>(voxel)};
-        return (boundary - o) / d;
-    }};
-    auto const t_delta {[&](f64 d) -> f64 {
-        return d == 0.0 ? std::numeric_limits<f64>::infinity() : std::abs(1.0 / d);
-    }};
-
-    f64       tMaxX {next_boundary_t(origin.X, dir.X, voxelX, stepX)};
-    f64       tMaxY {next_boundary_t(origin.Y, dir.Y, voxelY, stepY)};
-    f64       tMaxZ {next_boundary_t(origin.Z, dir.Z, voxelZ, stepZ)};
-    f64 const tDeltaX {t_delta(dir.X)};
-    f64 const tDeltaY {t_delta(dir.Y)};
-    f64 const tDeltaZ {t_delta(dir.Z)};
+        voxelPos[axis] = std::clamp(static_cast<i32>(std::floor(first[axis])), 0, size[axis] - 1);
+        step[axis]     = d[axis] > 0 ? 1 : (d[axis] < 0 ? -1 : 0);
+        tNext[axis]    = step[axis] == 0 ? INF : ((step[axis] > 0 ? voxelPos[axis] + 1 : voxelPos[axis]) - o[axis]) / d[axis];
+        tDelta[axis]   = d[axis] == 0.0 ? INF : std::abs(1.0 / d[axis]);
+    }
 
     f64 currentT {entryT};
     i32 currentAxis {entryAxis};
     i32 currentSign {entrySign};
 
     for (;;) {
-        if (voxelX < 0 || voxelX >= Size.X || voxelY < 0 || voxelY >= Size.Y || voxelZ < 0 || voxelZ >= Size.Z) { break; }
-
-        if (occupied(voxelX, voxelY, voxelZ)) {
+        if (occupied(voxelPos[0], voxelPos[1], voxelPos[2])) {
             result.Hit      = true;
             result.T        = currentT;
-            result.Color    = color_at(voxelX, voxelY, voxelZ);
+            result.Color    = color_at(voxelPos[0], voxelPos[1], voxelPos[2]);
             result.FaceAxis = currentAxis;
             result.FaceSign = currentSign;
-            result.Cell     = vec3_i {.X = voxelX, .Y = voxelY, .Z = voxelZ};
+            result.Cell     = vec3_i {.X = voxelPos[0], .Y = voxelPos[1], .Z = voxelPos[2]};
             return result;
         }
 
-        if (tMaxX < tMaxY && tMaxX < tMaxZ) {
-            voxelX += stepX;
-            currentT = tMaxX;
-            tMaxX += tDeltaX;
-            currentAxis = 0;
-            currentSign = -stepX;
-        } else if (tMaxY < tMaxZ) {
-            voxelY += stepY;
-            currentT = tMaxY;
-            tMaxY += tDeltaY;
-            currentAxis = 1;
-            currentSign = -stepY;
-        } else {
-            voxelZ += stepZ;
-            currentT = tMaxZ;
-            tMaxZ += tDeltaZ;
-            currentAxis = 2;
-            currentSign = -stepZ;
+        // on to the voxel behind the nearest boundary
+        i32 axis {2};
+        if (tNext[0] < tNext[1] && tNext[0] < tNext[2]) {
+            axis = 0;
+        } else if (tNext[1] < tNext[2]) {
+            axis = 1;
         }
 
-        if (currentT > tMax) { break; }
+        voxelPos[axis] += step[axis];
+        currentT = tNext[axis];
+        tNext[axis] += tDelta[axis];
+        currentAxis = axis;
+        currentSign = -step[axis];
+
+        if (currentT > tMax || voxelPos[axis] < 0 || voxelPos[axis] >= size[axis]) { break; }
     }
 
     return result;
@@ -169,60 +155,45 @@ auto voxel_grid::corners() const -> std::array<point3_d, 8>
     return {{{.X = 0.0, .Y = 0.0, .Z = 0.0}, {.X = sx, .Y = 0.0, .Z = 0.0}, {.X = 0.0, .Y = sy, .Z = 0.0}, {.X = sx, .Y = sy, .Z = 0.0}, {.X = 0.0, .Y = 0.0, .Z = sz}, {.X = sx, .Y = 0.0, .Z = sz}, {.X = 0.0, .Y = sy, .Z = sz}, {.X = sx, .Y = sy, .Z = sz}}};
 }
 
+// the two axes that span a face, by the axis of its normal
+constexpr static std::array<std::array<i32, 2>, 3> FACE_AXES {{{1, 2}, {0, 2}, {0, 1}}};
+
 auto voxel_grid::face_ao(voxel_ray_hit const& hit, point3_d const& localHitPos) const -> f64
 {
-    vec3_i const layer {.X = hit.Cell.X + (hit.FaceAxis == 0 ? hit.FaceSign : 0),
-                        .Y = hit.Cell.Y + (hit.FaceAxis == 1 ? hit.FaceSign : 0),
-                        .Z = hit.Cell.Z + (hit.FaceAxis == 2 ? hit.FaceSign : 0)};
-    i32 const    ao00 {corner_ao(layer, hit.FaceAxis, -1, -1)};
-    i32 const    ao10 {corner_ao(layer, hit.FaceAxis, +1, -1)};
-    i32 const    ao01 {corner_ao(layer, hit.FaceAxis, -1, +1)};
-    i32 const    ao11 {corner_ao(layer, hit.FaceAxis, +1, +1)};
+    auto const [ua, va] {FACE_AXES[static_cast<usize>(hit.FaceAxis)]};
 
-    f64 fu {}, fv {};
-    switch (hit.FaceAxis) {
-    case 0:
-        fu = localHitPos.Y - hit.Cell.Y;
-        fv = localHitPos.Z - hit.Cell.Z;
-        break;
-    case 1:
-        fu = localHitPos.X - hit.Cell.X;
-        fv = localHitPos.Z - hit.Cell.Z;
-        break;
-    default:
-        fu = localHitPos.X - hit.Cell.X;
-        fv = localHitPos.Y - hit.Cell.Y;
-        break;
-    }
-    fu = std::clamp(fu, 0.0, 1.0);
-    fv = std::clamp(fv, 0.0, 1.0);
+    std::array<i32, 3> const cell {hit.Cell.X, hit.Cell.Y, hit.Cell.Z};
+    std::array<f64, 3> const local {localHitPos.X, localHitPos.Y, localHitPos.Z};
+    std::array<i32, 3>       layer {cell}; // the layer of voxels in front of the face
+    layer[static_cast<usize>(hit.FaceAxis)] += hit.FaceSign;
+
+    i32 const ao00 {corner_ao(layer, hit.FaceAxis, -1, -1)};
+    i32 const ao10 {corner_ao(layer, hit.FaceAxis, +1, -1)};
+    i32 const ao01 {corner_ao(layer, hit.FaceAxis, -1, +1)};
+    i32 const ao11 {corner_ao(layer, hit.FaceAxis, +1, +1)};
+
+    f64 const fu {std::clamp(local[static_cast<usize>(ua)] - cell[static_cast<usize>(ua)], 0.0, 1.0)};
+    f64 const fv {std::clamp(local[static_cast<usize>(va)] - cell[static_cast<usize>(va)], 0.0, 1.0)};
 
     f64 const aoInterp {(ao00 * (1.0 - fu) * (1.0 - fv)) + (ao10 * fu * (1.0 - fv)) + (ao01 * (1.0 - fu) * fv) + (ao11 * fu * fv)};
     return aoInterp / 3.0;
 }
 
-auto voxel_grid::corner_ao(vec3_i layer, i32 faceAxis, i32 cu, i32 cv) const -> i32
+auto voxel_grid::corner_ao(std::array<i32, 3> const& layer, i32 faceAxis, i32 cu, i32 cv) const -> i32
 {
-    bool side1 {false};
-    bool side2 {false};
-    bool corner {false};
-    switch (faceAxis) {
-    case 0:
-        side1  = occupied(layer.X, layer.Y + cu, layer.Z);
-        side2  = occupied(layer.X, layer.Y, layer.Z + cv);
-        corner = occupied(layer.X, layer.Y + cu, layer.Z + cv);
-        break;
-    case 1:
-        side1  = occupied(layer.X + cu, layer.Y, layer.Z);
-        side2  = occupied(layer.X, layer.Y, layer.Z + cv);
-        corner = occupied(layer.X + cu, layer.Y, layer.Z + cv);
-        break;
-    default:
-        side1  = occupied(layer.X + cu, layer.Y, layer.Z);
-        side2  = occupied(layer.X, layer.Y + cv, layer.Z);
-        corner = occupied(layer.X + cu, layer.Y + cv, layer.Z);
-        break;
-    }
+    auto const [ua, va] {FACE_AXES[static_cast<usize>(faceAxis)]};
+
+    // whether the voxel in front of the face, shifted by du and dv along the face, is filled
+    auto const filled {[&](i32 du, i32 dv) {
+        auto p {layer};
+        p[static_cast<usize>(ua)] += du;
+        p[static_cast<usize>(va)] += dv;
+        return occupied(p[0], p[1], p[2]);
+    }};
+
+    bool const side1 {filled(cu, 0)};
+    bool const side2 {filled(0, cv)};
+    bool const corner {filled(cu, cv)};
 
     if (side1 && side2) { return 0; }
     return 3 - (static_cast<i32>(side1) + static_cast<i32>(side2) + static_cast<i32>(corner));

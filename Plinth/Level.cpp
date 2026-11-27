@@ -117,44 +117,30 @@ auto level::find_blocker(point_d from, point_d to, f64 radius, f64 z, bool flyin
 {
     constexpr static f64 MAX_CLIMB {0.25};
 
-    // no wall geometry within `radius` of `pos`, and inside the map
-    auto const is_wall_clear {[&](point_d pos) -> bool {
-        i32 const minCellX {static_cast<i32>(std::floor(pos.X - radius))};
-        i32 const maxCellX {static_cast<i32>(std::floor(pos.X + radius))};
-        i32 const minCellY {static_cast<i32>(std::floor(pos.Y - radius))};
-        i32 const maxCellY {static_cast<i32>(std::floor(pos.Y + radius))};
-
-        for (i32 ty {minCellY}; ty <= maxCellY; ++ty) {
-            for (i32 tx {minCellX}; tx <= maxCellX; ++tx) {
-                if (tx < 0 || tx >= map_grid::Size.Width || ty < 0 || ty >= map_grid::Size.Height) { return false; }
-
-                auto const closest {_map.closest_point_on_wall({tx, ty}, pos)};
-                if (!closest) { continue; }
-
-                if ((pos - *closest).length_squared() < radius * radius) { return false; }
-            }
-        }
-        return true;
-    }};
-
-    // the first other solid object that the move from -> to runs into; voxel objects are tested against their actual voxels at height z
-    auto const hit_test {[&]() -> level_object const* {
-        auto const it {std::ranges::find_if(_objects, [&](level_object const& go) { return base_of(go).id() != ignore && overlaps(go, from, to, radius, z); })};
-        return it != _objects.end() ? &*it : nullptr;
-    }};
-
-    // true if `pred` holds for every cell the circle at `pos` overlaps; it gets the cell and the point of it nearest to `pos`
-    auto const footprint_all {[&](point_d pos, auto&& pred) -> bool {
+    // true if `pred` holds for every cell in the bounding box of the circle at `pos`; it gets the cell and the point of it nearest to `pos`
+    auto const box_all {[&](point_d pos, auto&& pred) -> bool {
         for (i32 ty {static_cast<i32>(std::floor(pos.Y - radius))}; ty <= static_cast<i32>(std::floor(pos.Y + radius)); ++ty) {
             for (i32 tx {static_cast<i32>(std::floor(pos.X - radius))}; tx <= static_cast<i32>(std::floor(pos.X + radius)); ++tx) {
-                point_i const cell {tx, ty};
                 point_d const closest {std::clamp(pos.X, static_cast<f64>(tx), tx + 1.0), std::clamp(pos.Y, static_cast<f64>(ty), ty + 1.0)};
-                if ((pos - closest).length_squared() >= radius * radius) { continue; }
-
-                if (!pred(cell, closest)) { return false; }
+                if (!pred(point_i {tx, ty}, closest)) { return false; }
             }
         }
         return true;
+    }};
+
+    // the same for the cells that the circle overlaps
+    auto const footprint_all {[&](point_d pos, auto&& pred) -> bool {
+        return box_all(pos, [&](point_i cell, point_d closest) { return (pos - closest).length_squared() >= radius * radius || pred(cell, closest); });
+    }};
+
+    // no wall geometry within `radius` of `pos`, and inside the map
+    auto const is_wall_clear {[&](point_d pos) -> bool {
+        return box_all(pos, [&](point_i cell, point_d /* closest */) {
+            if (!map_grid::Size.contains(cell)) { return false; }
+
+            auto const wall {_map.closest_point_on_wall(cell, pos)};
+            return !wall || (pos - *wall).length_squared() >= radius * radius;
+        });
     }};
 
     // every floor under the footprint at `pos` has to be within climbing range of the floor at `ref`
@@ -190,7 +176,9 @@ auto level::find_blocker(point_d from, point_d to, f64 radius, f64 z, bool flyin
     bool const surface_ok {flying ? z_clear(to, z) : (footprint_reachable(to, from) && footprint_reachable(from, to))};
     if (!surface_ok) { return blocker {.Kind = block_kind::Surface}; }
 
-    if (auto const* other {hit_test()}) { return blocker {.Kind = block_kind::Object, .Object = base_of(*other).id()}; }
+    // the first other solid object that the move runs into; voxel objects are tested against their actual voxels at height z
+    auto const other {std::ranges::find_if(_objects, [&](level_object const& go) { return base_of(go).id() != ignore && overlaps(go, from, to, radius, z); })};
+    if (other != _objects.end()) { return blocker {.Kind = block_kind::Object, .Object = base_of(*other).id()}; }
 
     return std::nullopt;
 }

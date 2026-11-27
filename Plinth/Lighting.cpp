@@ -29,7 +29,7 @@ static auto HasLineOfSight(map const& map, point_d from, point_d to) -> bool
 
     auto const toCell {WorldToCell(to)};
 
-    cell_walk walk {from, {diff.X / dist, diff.Y / dist}};
+    cell_walk walk {from, diff / dist};
     for (;;) {
         if (walk.exit() >= dist) { return true; } // reached the end before hitting anything
 

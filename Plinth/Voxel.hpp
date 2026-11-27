@@ -63,13 +63,12 @@ public:
     auto occupied(i32 x, i32 y, i32 z) const -> bool;
 
 private:
-    auto corner_ao(vec3_i layer, i32 faceAxis, i32 cu, i32 cv) const -> i32;
+    auto corner_ao(std::array<i32, 3> const& layer, i32 faceAxis, i32 cu, i32 cv) const -> i32;
 
     auto color_at(i32 x, i32 y, i32 z) const -> color;
     auto flat_index(i32 x, i32 y, i32 z) const -> isize;
 
     std::vector<color> _cells;
-    std::vector<bool>  _occupied;
 };
 
 auto LoadVoxels(string const& path) -> std::optional<voxel_grid>;
