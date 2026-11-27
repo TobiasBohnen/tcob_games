@@ -12,7 +12,6 @@
 #include <utility>
 #include <vector>
 
-#include "Ground.hpp"
 #include "LevelObject.hpp"
 #include "Lighting.hpp"
 #include "Map.hpp"
@@ -72,9 +71,6 @@ public:
     auto motes_at(point_i pos) const -> mote_settings const&;
     auto motes() -> ::motes&;
 
-    auto ground_at(point_i pos) const -> ground_settings const&;
-    auto ground() -> ::ground&;
-
     auto sky() -> ::sky&;
     auto sky() const -> ::sky const&;
 
@@ -86,7 +82,6 @@ private:
 
     ::map      _map;
     ::motes    _motes;
-    ::ground   _ground;
     ::sky      _sky;
     ::lighting _lighting;
 

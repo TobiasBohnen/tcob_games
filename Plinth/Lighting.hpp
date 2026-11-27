@@ -47,7 +47,6 @@ public:
 
 private:
     void rebuild_blocking(level const& lvl);
-    void rebuild_glow(level const& lvl);
 
     std::vector<u8>                      _blocked; // per cell: whether it blocks light, as of the last rebuild
     std::vector<color_d>                 _glow;    // per cell: the light of the emissive ground around

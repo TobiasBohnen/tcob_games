@@ -17,7 +17,6 @@
 
 #include "CellWalk.hpp"
 #include "Common.hpp"
-#include "Ground.hpp"
 #include "Level.hpp"
 #include "LevelObject.hpp"
 #include "Map.hpp"
@@ -422,27 +421,6 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
             }
             return t;
         }};
-
-        if (isFloor && surface.Ground != 0) {
-            auto const& ground {frame.Level.ground()};
-            f64 const   emissive {ground.at(surface.Ground).Emissive};
-            f64 const   lowestZ {std::min({slope.TL, slope.TR, slope.BL, slope.BR})};
-
-            for (i32 y {from}; y < to; ++y) {
-                f64 const t {solve_t(y)};
-                auto      color {ground.pixel(surface.Ground, view, t, lowestZ, y, col.RayDir)};
-
-                // what does not glow is shaded by the lights of the level like any floor
-                if (emissive < 1.0) {
-                    auto const pos {col.point_at(t)};
-                    auto const tint {accumulate_light(frame, pos, HeightAt(slope, cell, pos), cell, LIGHT_LAYERS_ALL)};
-                    color = (color * tint).lerp(color, emissive);
-                }
-                screenBuf[pixel_index(y)] = ApplyTint(255, 255, 255, color);
-            }
-            claim(true, from, to);
-            return;
-        }
 
         i32 const texId {isFloor ? surface.FloorTexture : surface.CeilingTexture};
         u8 const* tex {_cache.texture(texId, 0)};

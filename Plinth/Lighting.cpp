@@ -14,7 +14,6 @@
 #include <vector>
 
 #include "Common.hpp"
-#include "Ground.hpp"
 #include "Level.hpp"
 #include "LevelObject.hpp"
 #include "Map.hpp"
@@ -38,7 +37,6 @@ void lighting::update(level const& lvl, usize losSamples)
 {
     if (_dirty) {
         rebuild_blocking(lvl);
-        rebuild_glow(lvl);
     }
 
     constexpr static f64 CELL_DIAGONAL_HALF {std::numbers::sqrt2 / 2}; // max distance from a cell's center to its farthest corner
@@ -217,47 +215,5 @@ void lighting::rebuild_blocking(level const& lvl)
     _blocked.assign(static_cast<usize>(MAP_WIDTH) * MAP_HEIGHT, 0);
     for (i32 cy {0}; cy < MAP_HEIGHT; ++cy) {
         for (i32 cx {0}; cx < MAP_WIDTH; ++cx) { _blocked[PixelIndex(MAP_WIDTH, cx, cy)] = map.is_blocking_light(point_i {cx, cy}) ? 1 : 0; }
-    }
-}
-
-// The light of emissive ground: every open cell whose ground has an Emissive and a GlowRange spreads its Light color over
-// the open cells around it, with a smooth falloff and only where it can see them.
-void lighting::rebuild_glow(level const& lvl)
-{
-    auto const& map {lvl.map()};
-
-    _glow.assign(static_cast<usize>(MAP_WIDTH) * MAP_HEIGHT, color_d {});
-
-    auto const spread {[&](point_i source, ground_settings const& ground) {
-        color_d const emitted {ground.Light * (ground.Emissive * ground.GlowIntensity)};
-        f64 const     rangeSq {ground.GlowRange * ground.GlowRange};
-        i32 const     reach {static_cast<i32>(std::ceil(ground.GlowRange))};
-
-        for (i32 dy {-reach}; dy <= reach; ++dy) {
-            for (i32 dx {-reach}; dx <= reach; ++dx) {
-                point_i const cell {source.X + dx, source.Y + dy};
-                if (!map_grid::Size.contains(cell)) { continue; }
-
-                auto const index {PixelIndex(MAP_WIDTH, cell.X, cell.Y)};
-                if (_blocked[index] != 0) { continue; }
-
-                f64 const distSq {static_cast<f64>((dx * dx) + (dy * dy))};
-                if (distSq >= rangeSq) { continue; }
-                if (distSq > 0.0 && !map.has_line_of_sight({source.X + 0.5, source.Y + 0.5}, {cell.X + 0.5, cell.Y + 0.5})) { continue; }
-
-                f64 const falloff {1.0 - (distSq / rangeSq)};
-                _glow[index] += emitted * (falloff * falloff);
-            }
-        }
-    }};
-
-    for (i32 cy {0}; cy < MAP_HEIGHT; ++cy) {
-        for (i32 cx {0}; cx < MAP_WIDTH; ++cx) {
-            point_i const cell {cx, cy};
-            if (_blocked[PixelIndex(MAP_WIDTH, cx, cy)] != 0) { continue; }
-
-            auto const& ground {lvl.ground_at(cell)};
-            if (ground.Emissive > 0.0 && ground.GlowRange > 0.0) { spread(cell, ground); }
-        }
     }
 }

@@ -17,7 +17,6 @@
 #include <vector>
 
 #include "Common.hpp"
-#include "Ground.hpp"
 #include "LevelObject.hpp"
 #include "Lighting.hpp"
 #include "Map.hpp"
@@ -217,9 +216,6 @@ auto level::map() -> ::map& { return _map; }
 
 auto level::motes_at(point_i pos) const -> mote_settings const& { return _motes.at(_map.surface_at(pos).Motes); }
 auto level::motes() -> ::motes& { return _motes; }
-
-auto level::ground_at(point_i pos) const -> ground_settings const& { return _ground.at(_map.surface_at(pos).Ground); }
-auto level::ground() -> ::ground& { return _ground; }
 
 auto level::sky() -> ::sky& { return _sky; }
 auto level::sky() const -> ::sky const& { return _sky; }
