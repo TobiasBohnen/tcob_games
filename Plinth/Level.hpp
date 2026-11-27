@@ -49,6 +49,8 @@ public:
 
     void update(milliseconds deltaTime, i32 lightLosSamples, point_d playerPosition);
 
+    void invalidate();
+
     auto floor_z_at(point_d pos) const -> f64; // absolute height of the floor under a position
 
     auto can_move_to(point_d from, point_d to, f64 radius, f64 z, bool flying, uid ignore) const -> bool;

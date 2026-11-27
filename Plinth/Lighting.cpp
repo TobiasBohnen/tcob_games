@@ -46,14 +46,12 @@ lighting::lighting()
 
 void lighting::update(level const& lvl, usize losSamples)
 {
-    if (_glowDirty) {
-        rebuild_glow(lvl);
-        _glowDirty = false;
-    }
+    if (_dirty) { rebuild_glow(lvl); }
 
     constexpr static f64 CELL_DIAGONAL_HALF {std::numbers::sqrt2 / 2}; // max distance from a cell's center to its farthest corner
 
-    bool rebuild {losSamples != _losSamples};
+    bool rebuild {_dirty || losSamples != _losSamples};
+    _dirty = false;
 
     // the lights of the objects, placed in the world; a change in position or range means the cell lists are stale
     usize index {0};
@@ -193,7 +191,7 @@ auto lighting::glow_at(point_d pos) const -> color_d
     return weights > 1e-6 ? sum * (1.0 / weights) : color_d {};
 }
 
-void lighting::invalidate_glow() { _glowDirty = true; }
+void lighting::invalidate() { _dirty = true; }
 
 // The light of emissive ground: every open cell whose ground has an Emissive and a GlowRange spreads its Light color over
 // the open cells around it, with a smooth falloff and only where it can see them.

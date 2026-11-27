@@ -38,7 +38,7 @@ static auto get_color(map const& map, point_i cell) -> color
         static_cast<u8>((c.B * 70) / 100)};
 }
 
-void map_renderer::draw(level const& level, player const& player, std::span<u32> screen, size_i screenSize) const
+void map_renderer::draw(level const& lvl, player const& player, std::span<u32> screen, size_i screenSize) const
 {
     f32 const cellSize {screenSize.Height / static_cast<f32>(MAP_HEIGHT)};
 
@@ -55,7 +55,7 @@ void map_renderer::draw(level const& level, player const& player, std::span<u32>
             i32 const xEnd {std::clamp(origin.X + static_cast<i32>((mapX + 1) * cellSize), 0, screenSize.Width)};
             if (xStart >= xEnd) { continue; }
 
-            color const c {get_color(level.map(), point_i {mapX, mapY})};
+            color const c {get_color(lvl.map(), point_i {mapX, mapY})};
             if (c.A > 0) {
                 u32 const color {c.to_abgr()};
                 for (i32 y {yStart}; y < yEnd; ++y) {
@@ -117,7 +117,7 @@ void map_renderer::draw(level const& level, player const& player, std::span<u32>
     }
 
     // objects
-    for (auto const& o : level.objects()) {
+    for (auto const& o : lvl.objects()) {
         auto const& obj {base_of(o)};
         if (!obj.is_seen()) { continue; }
 

@@ -15,10 +15,10 @@
 #include "LevelObject.hpp"
 #include "TextureCache.hpp"
 
-void player::move(level const& level, f64 forwardAmount, f64 strafeAmount, f64 rotateAmount)
+void player::move(level const& lvl, f64 forwardAmount, f64 strafeAmount, f64 rotateAmount)
 {
     // a position is reachable if the step up is climbable and nothing blocks it
-    auto const can_go {[&](point_d const& pos) { return level.can_move_to(Position, pos, Radius, EyeZ, false, 0); }};
+    auto const can_go {[&](point_d const& pos) { return lvl.can_move_to(Position, pos, Radius, EyeZ, false, 0); }};
 
     // full move first, then slide along either axis
     auto const try_move {[&](point_d const& newPos) {

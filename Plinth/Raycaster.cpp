@@ -259,7 +259,7 @@ void raycaster::draw_columns(frame const& frame, i32 columnStart, i32 columnEnd)
                         .RayDir   = rayDir,
                         .Hit      = *hitResult,
                         .Cell     = walk.cell(),
-                        .ToOpen   = walk.to_previous(),
+                        .ToOpen   = walk.dir_to_previous(),
                         .CenterY  = frame.CenterY,
                         .WallBase = HeightAt(baseSlope.Floor, baseCell, hitPoint),
                         .WallTop  = HeightAt(baseSlope.Ceiling, baseCell, hitPoint),

@@ -106,12 +106,12 @@ void screen_overlay::update(milliseconds deltaTime)
     }
 }
 
-auto screen_overlay::draw(level const& level, player const& player, std::span<u32> screen, size_i screenSize) -> std::span<u32>
+auto screen_overlay::draw(level const& lvl, player const& player, std::span<u32> screen, size_i screenSize) -> std::span<u32>
 {
     _screen     = screen;
     _screenSize = screenSize;
 
-    draw_target(level);
+    draw_target(lvl);
     draw_weapon(player);
 
     draw_screen_effect();
@@ -135,7 +135,7 @@ void screen_overlay::draw_screen_effect() const
     }
 }
 
-void screen_overlay::draw_target(level const& level) const
+void screen_overlay::draw_target(level const& lvl) const
 {
     constexpr u32 TARGET_COLOR {0xFF878F99u};
     constexpr u32 TAG_BACK_COLOR {0xFF101010u};
@@ -144,7 +144,7 @@ void screen_overlay::draw_target(level const& level) const
 
     i32 const maxScale {UIScale(_screenSize)};
 
-    for (auto const& o : level.objects()) {
+    for (auto const& o : lvl.objects()) {
         auto const& obj {base_of(o)};
         if (!obj.is_seen()) { continue; }
         auto const* vo {obj.voxel()};

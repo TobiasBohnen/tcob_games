@@ -11,5 +11,5 @@
 
 class map_renderer {
 public:
-    void draw(level const& level, player const& player, std::span<u32> screen, size_i screenSize) const;
+    void draw(level const& lvl, player const& player, std::span<u32> screen, size_i screenSize) const;
 };

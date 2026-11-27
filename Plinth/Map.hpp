@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <optional>
 #include <vector>
 
@@ -28,10 +29,18 @@ struct slope {
     f64 BL {0};
     f64 BR {0};
 };
+
 struct slopes {
     slope Ceiling;
     slope Floor;
 };
+
+constexpr auto HeightAt(slope const& slope, point_i cell, point_d const& pos) -> f64
+{
+    f64 const dx {std::clamp(pos.X - cell.X, 0.0, 1.0)};
+    f64 const dy {std::clamp(pos.Y - cell.Y, 0.0, 1.0)};
+    return (slope.TL * (1.0 - dx) * (1.0 - dy)) + (slope.TR * dx * (1.0 - dy)) + (slope.BL * (1.0 - dx) * dy) + (slope.BR * dx * dy);
+}
 
 enum class tile_visibility : u8 {
     Hidden,  // Never seen

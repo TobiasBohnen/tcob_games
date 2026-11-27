@@ -94,6 +94,8 @@ void level::update(milliseconds deltaTime, i32 lightLosSamples, point_d playerPo
     _lighting.update(*this, static_cast<usize>(lightLosSamples));
 }
 
+void level::invalidate() { _lighting.invalidate(); }
+
 auto level::floor_z_at(point_d pos) const -> f64
 {
     auto const cell {WorldToCell(pos)};
@@ -199,10 +201,20 @@ auto level::find(uid id) -> level_object*
     return (it != _objects.end() && base_of(*it).id() == id) ? &*it : nullptr;
 }
 
-auto level::objects() const -> std::span<level_object const> { return _objects; }
-auto level::objects() -> std::span<level_object> { return _objects; }
+auto level::objects() const -> std::span<level_object const>
+{
+    return _objects;
+}
 
-auto level::time() const -> milliseconds { return _time; }
+auto level::objects() -> std::span<level_object>
+{
+    return _objects;
+}
+
+auto level::time() const -> milliseconds
+{
+    return _time;
+}
 
 auto level::lighting() -> ::lighting& { return _lighting; }
 auto level::lighting() const -> ::lighting const& { return _lighting; }

@@ -2,9 +2,10 @@ add_executable(Plinth)
 
 target_sources(Plinth PRIVATE
     main.cpp
-    Ground.cpp
     Camera.cpp
+    CellWalk.cpp
     Engine.cpp
+    Ground.cpp
     Level.cpp
     LevelObject.cpp
     Lighting.cpp

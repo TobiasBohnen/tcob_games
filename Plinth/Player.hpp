@@ -13,7 +13,7 @@ struct player_settings {
     f64 BobHeight {0};
 
     f64 LightRange {8.0};
-    f64 LightIntensity {4.0};
+    f64 LightIntensity {1.0};
 };
 
 class player {
@@ -27,7 +27,7 @@ public:
 
     bool Cheater {false};
 
-    void move(level const& level, f64 forwardAmount, f64 strafeAmount, f64 rotateAmount);
+    void move(level const& lvl, f64 forwardAmount, f64 strafeAmount, f64 rotateAmount);
     void update(milliseconds deltaTime);
 
     auto bob_amount() const -> f64;

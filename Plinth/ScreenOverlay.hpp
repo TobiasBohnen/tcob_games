@@ -18,14 +18,14 @@ public:
 
     void update(milliseconds deltaTime);
 
-    auto draw(level const& level, player const& player, std::span<u32> screen, size_i screenSize) -> std::span<u32>;
+    auto draw(level const& lvl, player const& player, std::span<u32> screen, size_i screenSize) -> std::span<u32>;
 
     void show_message(string const& msg);
 
 private:
     void draw_screen_effect() const;
 
-    void draw_target(level const& level) const;
+    void draw_target(level const& lvl) const;
     void draw_weapon(player const& player) const;
     void draw_compass(player const& player) const;
     void draw_message() const;
