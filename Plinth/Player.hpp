@@ -12,8 +12,8 @@ struct player_settings {
 
     f64 BobHeight {0};
 
-    f64 LightRange {8.0};
-    f64 LightIntensity {1.0};
+    f64 LightRange {6.0};
+    f64 LightIntensity {3.0};
 };
 
 class player {

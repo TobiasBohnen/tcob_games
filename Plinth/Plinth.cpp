@@ -165,7 +165,19 @@
         {.Azimuth = radian_d {2.4}, .Elevation = radian_d {0.35}, .Radius = radian_d {0.04}, .OrbitSpeed = radian_d {-0.02}, .Color = {.R = 0.6, .G = 0.9, .B = 1.0}},
         {.Azimuth = radian_d {4.2}, .Elevation = radian_d {0.1}, .Radius = radian_d {0.12}, .Ambient = 0.1, .Color = {.R = 0.9, .G = 0.55, .B = 0.3}}}};
 
-[[maybe_unused]] static ground_settings const GROUND_WATER {};
+[[maybe_unused]] static ground_settings const GROUND_WATER {
+    .Style         = ground_style::Water,
+    .Deep          = {.R = 0.05, .G = 0.26, .B = 0.34},
+    .Light         = {.R = 0.30, .G = 0.55, .B = 0.62},
+    .Haze          = {.R = 0.10, .G = 0.20, .B = 0.26},
+    .Scale         = 2.5,
+    .Speed         = 0.12,
+    .Fade          = 14.0,
+    .Depth         = 2.5,
+    .Emissive      = 0.0,
+    .GlowRange     = 0.0,
+    .GlowIntensity = 0.6,
+};
 
 [[maybe_unused]] static ground_settings const GROUND_LAVA {
     .Style     = ground_style::Water,
@@ -208,12 +220,33 @@
     .Emissive = 1.0};
 
 [[maybe_unused]] static ground_settings const GROUND_VOID {
-    .Style    = ground_style::Void,
-    .Deep     = {.R = 0.0, .G = 0.0, .B = 0.02},
-    .Light    = {.R = 0.9, .G = 0.95, .B = 1.0},
-    .Haze     = {.R = 0.04, .G = 0.02, .B = 0.1},
-    .Speed    = 0.1,
-    .Emissive = 1.0};
+    .Style     = ground_style::Void,
+    .Deep      = {.R = 0.0, .G = 0.0, .B = 0.02},
+    .Light     = {.R = 0.9, .G = 0.95, .B = 1.0},
+    .Haze      = {.R = 0.04, .G = 0.02, .B = 0.1},
+    .Speed     = 0.1,
+    .Emissive  = 1.0,
+    .GlowRange = 4.0};
+
+[[maybe_unused]] static ground_settings const GROUND_HAZE {
+    .Style = ground_style::Haze,
+    .Deep  = {.R = 0.01, .G = 0.02, .B = 0.04},
+    .Light = {.R = 0.55, .G = 0.65, .B = 0.75},
+    .Haze  = {.R = 0.25, .G = 0.32, .B = 0.4},
+    .Scale = 2.5,
+    .Speed = 0.06,
+    .Fade  = 12.0,
+    .Depth = 2.0};
+
+[[maybe_unused]] static ground_settings const GROUND_CHASM {
+    .Style = ground_style::Haze,
+    .Deep  = {.R = 0.0, .G = 0.0, .B = 0.01},
+    .Light = {.R = 0.22, .G = 0.22, .B = 0.3},
+    .Haze  = {.R = 0.06, .G = 0.06, .B = 0.1},
+    .Scale = 3.0,
+    .Speed = 0.04,
+    .Fade  = 8.0,
+    .Depth = 3.0};
 
 // PLACEHOLDER START
 
@@ -233,7 +266,7 @@ Plinth::Plinth(game& game)
     _engine.generate_level(*_level, _player);
     _level->motes().set(0, {});
     _level->motes().set(1, MOTES_RAIN);
-    _level->ground().set(1, GROUND_LAVA);
+    _level->ground().set(1, GROUND_WATER);
     _level->sky().set(SKY_NIGHT);
     _level->update(0ms, 0, point_d::Zero);
 
@@ -258,7 +291,7 @@ Plinth::Plinth(game& game)
 
     static voxel_grid const testVoxelGrid {*LoadVoxels("res/ball1.vox")};
 
-    for (i32 i {0}; i < 50; ++i) {
+    for (i32 i {0}; i < 0; ++i) {
         f64 const scale {rng(0.3, 1.0)};
         f64 const maxDim {static_cast<f64>(std::max({testVoxelGrid.Size.X, testVoxelGrid.Size.Y, testVoxelGrid.Size.Z}))};
 

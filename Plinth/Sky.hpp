@@ -96,10 +96,11 @@ public:
     void set(sky_settings const& settings);
     void update(milliseconds time);
 
-    auto frame() const -> sky_frame const&;
     auto pixel(shade_view const& view, i32 skyY, point_d const& rayDir) const -> u32;
 
 private:
+    auto frame() const -> sky_frame const&;
+
     sky_settings _settings;
     sky_frame    _frame;
 };

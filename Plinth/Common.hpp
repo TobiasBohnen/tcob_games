@@ -19,7 +19,6 @@ using namespace std::chrono_literals;
 
 inline constexpr i32    TEXTURE_BPP {3};
 inline constexpr size_i WALL_SIZE {64, 64};
-inline constexpr isize  MAX_TRANSPARENT_WALLS {8};
 inline constexpr f64    FOV {90};
 
 inline constexpr u32 LIGHT_LAYER_WORLD {1u << 0};
