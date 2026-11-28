@@ -119,6 +119,7 @@ void engine::create_env()
             cellTable.try_get(cell.Surface.FloorEmissive, "FloorEmissive");
             cellTable.try_get(cell.Surface.FloorGlowRange, "FloorGlowRange");
             cellTable.try_get(cell.Surface.FloorGlowColor, "FloorGlowColor");
+            cellTable.try_get(cell.Surface.FloorSelfGlow, "FloorSelfGlow");
         }};
 
         if (string type; cellTable.try_get(type, "type")) {

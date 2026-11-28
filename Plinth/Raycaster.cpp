@@ -27,10 +27,10 @@
 #include "Voxel.hpp"
 #include "Walls.hpp"
 
-constexpr f64 WALL_RECESS_EPS {1e-6};     // a wall hit further into its cell than this is recessed (door, diagonal)
-constexpr f64 MIN_RAY_DIST {1e-4};        // keeps row projection finite for surfaces at the player
-constexpr f64 SEEN_MIN_LIGHT {0.02};      // a surface lit dimmer than this (brightest channel) does not count as seen
-constexpr f64 SURFACE_LIGHT_BIAS {0.001}; // lights a surface from the open side so the cell lookup never lands inside the wall
+constexpr f64 WALL_RECESS_EPS {1e-6}; // a wall hit further into its cell than this is recessed (door, diagonal)
+constexpr f64 MIN_RAY_DIST {1e-4};    // keeps row projection finite for surfaces at the player
+constexpr f64 SEEN_MIN_LIGHT {0.02};  // a surface lit dimmer than this (brightest channel) does not count as seen
+constexpr i32 LIGHT_ROW_STEP {4};     // the light along a run of pixels is worked out for every 4th one and blended in between
 
 static void CopyPixel(u32* dst, usize dstIdx, u8 const* src, usize srcIdx, color_d tint) { dst[dstIdx] = ApplyTint(src[srcIdx + 0], src[srcIdx + 1], src[srcIdx + 2], tint); }
 
@@ -46,18 +46,6 @@ static auto WallTexelX(wall_hit const& hit) -> i32 { return std::clamp(static_ca
 // Computes ray direction vector using the camera plane for screen column x:
 // Dir = player.Direction + player.Plane * ((2 * x / width) - 1)
 static auto ComputeCameraRayDir(isize x, i32 screenWidth, player const& player) -> point_d { return player.Direction + (player.Plane * ((2.0 * (static_cast<f64>(x) + 0.5) / screenWidth) - 1.0)); }
-
-// where a surface inside a blocking cell (a door) is seen from: just outside the cell, on the way to the viewer
-static auto ViewerSide(point_d pos, point_d viewer) -> point_d
-{
-    point_d const diff {viewer - pos};
-    f64 const     dist {diff.length()};
-    if (dist < 1e-6) { return pos; }
-
-    point_d const dir {diff / dist};
-    f64 const     t {cell_walk {pos, dir}.exit() + SURFACE_LIGHT_BIAS};
-    return t < dist ? pos + (dir * t) : pos;
-}
 
 static auto DitherTint(color_d tint, isize x, isize y) -> color_d
 {
@@ -127,7 +115,8 @@ auto raycaster::draw(level& level, player const& player) -> std::span<u32>
     frame frame {.Level   = level,
                  .Player  = player,
                  .Camera  = {player, _screenSize.Width, _projPlaneDist, screenCenterY},
-                 .CenterY = screenCenterY};
+                 .CenterY = screenCenterY,
+                 .Viewer  = {.Position = player.Position, .Light = MakeLightParams(player.Position, player.EyeZ, player.Settings.LightRange, player.Settings.LightIntensity, color {255, 255, 255})}};
 
     _taskManager.run_parallel([&](par_task const& ctx) {
         draw_columns(frame, static_cast<i32>(ctx.Start), static_cast<i32>(ctx.End));
@@ -155,77 +144,25 @@ void raycaster::set_quality(quality_settings const& quality, f64 projPlaneDist)
 
 auto raycaster::accumulate_light(frame const& frame, point_d const& surfacePos, f64 surfaceZ, point_i cell, u32 lightMask) const -> color_d
 {
-    // Calculates light attenuation using inverse-square distance law combined with
-    // a smooth quartic falloff envelope: (1 - (dist^4 / range^4))^2 / dist^2. Only for distSq < rangeSq, so the envelope stays in 0..1.
-    static auto compute_falloff {[](f64 distSq, f64 invRangeSq) -> f64 {
-        f64 const ratio {distSq * invRangeSq};
-        f64 const base {1.0 - (ratio * ratio)};
-        return (base * base) / (distSq > 0.01 ? distSq : 0.01);
-    }};
-
-    // adds what a light gives a surface to `total`
-    static auto add_light_contribution {[](light_params const& light, point_d const& surPos, f64 surZ, color_d& total) {
-        f64 const dx {light.Position.X - surPos.X};
-        f64 const dy {light.Position.Y - surPos.Y};
-        f64 const dz {light.Z - surZ};
-        f64 const distSq {(dx * dx) + (dy * dy) + (dz * dz)};
-        if (distSq >= light.RangeSq) { return; }
-
-        f64 const strength {compute_falloff(distSq, light.InvRangeSq)};
-        total.R += light.R * strength;
-        total.G += light.G * strength;
-        total.B += light.B * strength;
-    }};
-
-    auto const& level {frame.Level};
-    auto const& player {frame.Player};
-
-    static auto tone_map {[](f64 x) -> f64 { return x / (1.0 + x); }};
-
-    color_d total {};
-
-    auto const& lighting {level.lighting()};
-
-    // a surface inside a blocking cell (a door) has two sides: what lights it is what the viewer's side sees
-    bool const    inBlocker {lighting.blocks_light(cell)};
-    point_d const visibleFrom {inBlocker ? ViewerSide(surfacePos, player.Position) : surfacePos};
-
-    if ((lightMask & LIGHT_LAYER_WORLD) != 0) {
-        add_light_contribution(MakeLightParams(player.Position, player.EyeZ, player.Settings.LightRange, player.Settings.LightIntensity, color {255, 255, 255}), surfacePos, surfaceZ, total);
-        total += lighting.glow_at(visibleFrom); // emissive floors
-    }
-
-    auto const lights {lighting.lights()};
-    for (auto const& entry : lighting.lights_at(cell)) {
-        auto const& lt {lights[entry.Light]};
-        if ((lt.Layers & lightMask) == 0) { continue; }
-
-        // a cell at a shadow edge is lit only where its part sees the light
-        if (!entry.sees(surfacePos)) { continue; }
-
-        if (inBlocker && !level.map().has_line_of_sight(visibleFrom, lt.Position)) { continue; }
-        add_light_contribution(lt, surfacePos, surfaceZ, total);
-    }
-
-    return {.R = tone_map(total.R), .G = tone_map(total.G), .B = tone_map(total.B)};
+    auto const& lighting {frame.Level.lighting()};
+    return lighting.accumulate(lighting.span_in_cell(cell, lightMask), frame.Level.map(), frame.Viewer, surfacePos, surfaceZ);
 }
 
-void raycaster::draw_surface_pixel(frame const& frame, isize x, isize y, u8 const* tex, isize srcIdx, point_d const& surfacePos, f64 surfaceZ, f64 shade, f64 emissive)
+void raycaster::draw_surface_pixel(frame const& frame, surface_pixel const& surfacePixel)
 {
     constexpr static f64 DITHER_MIN_DIST_SQ {0.5}; // closer than this, surfaces are drawn smooth
 
     auto const& player {frame.Player};
 
-    auto const cell {WorldToCell(surfacePos)};
-    auto       tint {accumulate_light(frame, surfacePos, surfaceZ, cell, LIGHT_LAYERS_ALL) * shade};
-    if (emissive > 0.0) { tint = tint.lerp(color_d {.R = 1.0, .G = 1.0, .B = 1.0}, emissive); } // glows by itself, not lit by the level
+    auto tint {surfacePixel.Light * surfacePixel.Shade};
+    if (surfacePixel.Emissive > 0.0) { tint = tint.lerp(surfacePixel.EmissiveColor, surfacePixel.Emissive); } // glows by itself in its own color, not lit by the level
 
-    auto const toSurface {surfacePos - player.Position};
+    auto const toSurface {surfacePixel.SurfacePos - player.Position};
     bool const close {toSurface.length_squared() < DITHER_MIN_DIST_SQ};
-    auto const ditheredTint {close || !_quality.Dithering ? tint : DitherTint(tint, x, y)};
+    auto const ditheredTint {close || !_quality.Dithering ? tint : DitherTint(tint, surfacePixel.X, surfacePixel.Y)};
 
     u32* screenBuf {_screen.data()};
-    CopyPixel(screenBuf, PixelIndex(_screenSize.Width, x, y), tex, srcIdx, ditheredTint);
+    CopyPixel(screenBuf, PixelIndex(_screenSize.Width, surfacePixel.X, surfacePixel.Y), surfacePixel.Tex, surfacePixel.SrcIdx, ditheredTint);
 }
 
 void raycaster::draw_columns(frame const& frame, i32 columnStart, i32 columnEnd)
@@ -347,14 +284,27 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
 
         // u runs along the edge: if the cells differ in x, the edge runs along y
         f64 const     along {cell.X != prevCell.X ? edge.Y : edge.X};
-        i32 const     texelX {WrapTexel(along, WALL_SIZE.Width)};
+        i32 const     texX {WrapTexel(along, WALL_SIZE.Width)};
         point_d const litPos {col.lit_point_at(t)};
 
-        for (i32 y {from}; y < to; ++y) {
-            f64 const z {player.EyeZ - (((static_cast<f64>(y) - col.CenterY) / _projPlaneDist) * t)};
-            i32 const texelY {(WALL_SIZE.Height - 1) - (static_cast<i32>(std::floor(z * WALL_SIZE.Height)) & (WALL_SIZE.Height - 1))};
+        auto const& lighting {frame.Level.lighting()};
+        auto const  lights {lighting.span_at(map, frame.Viewer, litPos, LIGHT_LAYERS_ALL)};
+        auto const  height_at {[&](i32 y) { return player.EyeZ - (((static_cast<f64>(y) - col.CenterY) / _projPlaneDist) * t); }};
 
-            draw_surface_pixel(frame, col.X, y, tex, TexelOffset(texelX, texelY, WALL_SIZE.Width), litPos, z, 1.0);
+        light_ramp ramp {from, to - 1, LIGHT_ROW_STEP};
+        for (i32 y {from}; y < to; ++y) {
+            f64 const z {height_at(y)};
+            i32 const texY {(WALL_SIZE.Height - 1) - (static_cast<i32>(std::floor(z * WALL_SIZE.Height)) & (WALL_SIZE.Height - 1))};
+
+            auto const          light {ramp.at(y, [&](i32 row) { return lighting.accumulate(lights, map, frame.Viewer, litPos, height_at(row)); })};
+            surface_pixel const srfPix {.X          = col.X,
+                                        .Y          = y,
+                                        .Tex        = tex,
+                                        .SrcIdx     = TexelOffset(texX, texY, WALL_SIZE.Width),
+                                        .SurfacePos = litPos,
+                                        .Light      = light,
+                                        .Shade      = 1.0};
+            draw_surface_pixel(frame, srfPix);
             _objectDepthBuffer[pixel_index(y)] = t;
         }
 
@@ -427,16 +377,38 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
         u8 const* tex {_cache.texture(texId, 0)};
         if (tex == nullptr) { return; }
 
+        auto const& lighting {frame.Level.lighting()};
+        auto const  lights {lighting.span_in_cell(cell, LIGHT_LAYERS_ALL)};
+        auto const  light_at_row {[&](i32 y) {
+            auto const pos {col.point_at(solve_t(y))};
+            return lighting.accumulate(lights, map, frame.Viewer, pos, HeightAt(slope, cell, pos));
+        }};
+
+        // a floor can glow by itself, in the color it spreads around
+        f64 const     emissive {isFloor ? surface.FloorEmissive : 0.0};
+        color_d const glowColor {.R = surface.FloorGlowColor.R / 255.0, .G = surface.FloorGlowColor.G / 255.0, .B = surface.FloorGlowColor.B / 255.0};
+
+        light_ramp ramp {from, to - 1, LIGHT_ROW_STEP};
         for (i32 y {from}; y < to; ++y) {
             f64 const t {solve_t(y)};
 
             auto const pos {col.point_at(t)};
             f64 const  z {HeightAt(slope, cell, pos)};
 
-            i32 const texelX {WrapTexel(pos.X, WALL_SIZE.Width)};
-            i32 const texelY {WrapTexel(pos.Y, WALL_SIZE.Height)};
+            i32 const texX {WrapTexel(pos.X, WALL_SIZE.Width)};
+            i32 const texY {WrapTexel(pos.Y, WALL_SIZE.Height)};
 
-            draw_surface_pixel(frame, col.X, y, tex, TexelOffset(texelX, texelY, WALL_SIZE.Width), pos, z, 1.0, isFloor ? surface.FloorEmissive : 0.0);
+            auto const          tint {ramp.at(y, light_at_row)};
+            surface_pixel const srfPix {.X             = col.X,
+                                        .Y             = y,
+                                        .Tex           = tex,
+                                        .SrcIdx        = TexelOffset(texX, texY, WALL_SIZE.Width),
+                                        .SurfacePos    = pos,
+                                        .Light         = tint,
+                                        .Shade         = 1.0,
+                                        .Emissive      = emissive,
+                                        .EmissiveColor = surface.FloorSelfGlow ? glowColor : tint};
+            draw_surface_pixel(frame, srfPix);
             _objectDepthBuffer[pixel_index(y)] = t;
 
             u32& pixel {screenBuf[pixel_index(y)]};
@@ -570,6 +542,10 @@ void raycaster::draw_wall_column(frame const& frame, column_hit const& col)
 
     auto const surfacePos {col.lit_point_at(hit.Distance)};
 
+    auto const& lighting {frame.Level.lighting()};
+    auto const  lights {lighting.span_at(map, frame.Viewer, surfacePos, LIGHT_LAYERS_ALL)};
+    auto const  height_at {[&](i32 y) { return std::max(col.WallBase, std::min(col.WallBase + ((wallBottomRow - y) / rowsPerUnit), col.WallTop)); }};
+
     // darken near inside corners of normal walls: where the neighbouring cell along the wall is solid
     f64 cornerShade {1.0};
     if (_quality.ContactShadows && col.ToOpen != point_i::Zero && std::holds_alternative<normal_wall>(map.get_cell(col.Cell))) {
@@ -591,12 +567,20 @@ void raycaster::draw_wall_column(frame const& frame, column_hit const& col)
         }
     }
 
+    light_ramp ramp {col.Top, col.Bottom - 1, LIGHT_ROW_STEP};
     for (i32 y {col.Top}; y < col.Bottom; y++) {
         i32 const texY {((static_cast<i32>(std::floor(texPos)) % WALL_SIZE.Height) + WALL_SIZE.Height) % WALL_SIZE.Height};
         texPos += texStep;
 
-        f64 const worldZ {std::max(col.WallBase, std::min(col.WallBase + ((wallBottomRow - y) / rowsPerUnit), col.WallTop))};
-        draw_surface_pixel(frame, col.X, y, tex, TexelOffset(texX, texY, WALL_SIZE.Width), surfacePos, worldZ, cornerShade);
+        auto const          light {ramp.at(y, [&](i32 row) { return lighting.accumulate(lights, map, frame.Viewer, surfacePos, height_at(row)); })};
+        surface_pixel const srfPix {.X          = col.X,
+                                    .Y          = y,
+                                    .Tex        = tex,
+                                    .SrcIdx     = TexelOffset(texX, texY, WALL_SIZE.Width),
+                                    .SurfacePos = surfacePos,
+                                    .Light      = light,
+                                    .Shade      = cornerShade};
+        draw_surface_pixel(frame, srfPix);
         _objectDepthBuffer[PixelIndex(_screenSize.Width, col.X, y)] = hit.Distance;
     }
 }

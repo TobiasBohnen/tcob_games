@@ -57,6 +57,7 @@ struct cell_surface {
     f64   FloorEmissive {0.0};  // 0: lit by the lights of the level, 1: glows by itself
     f64   FloorGlowRange {0.0}; // cells: how far an emissive floor lights its surroundings; 0: not at all
     color FloorGlowColor {colors::White};
+    bool  FloorSelfGlow {false};
 };
 
 ////////////////////////////////////////////////////////////
@@ -89,8 +90,8 @@ struct door_wall {
 
     orientation Orientation {orientation::BlocksNorthSouth};
 
-    i32 Texture {0};
-    i32 FrameTexture {0};
+    i32          Texture {0};
+    i32          FrameTexture {0};
     cell_surface Surface {};
 
     auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
@@ -107,7 +108,7 @@ struct push_wall {
 
     point_i PushDirection {0, 0};
 
-    i32 Texture {0};
+    i32          Texture {0};
     cell_surface Surface {};
 
     auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
@@ -142,7 +143,7 @@ struct diagonal_wall {
 
     orientation Orientation {orientation::NorthWestToSouthEast};
 
-    i32 Texture {0};
+    i32          Texture {0};
     cell_surface Surface {};
 
     auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;

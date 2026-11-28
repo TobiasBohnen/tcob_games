@@ -13,6 +13,7 @@
 #include <span>
 #include <vector>
 
+#include "CellWalk.hpp"
 #include "Common.hpp"
 #include "Level.hpp"
 #include "LevelObject.hpp"
@@ -41,6 +42,7 @@ void lighting::update(level const& lvl, usize losSamples)
     }
 
     constexpr static f64 CELL_DIAGONAL_HALF {std::numbers::sqrt2 / 2}; // max distance from a cell's center to its farthest corner
+    constexpr static f64 MIN_CELL_LIGHT {1.0 / 512.0};                 // a light weaker than this, at the nearest point of a cell, is not worth listing for it
 
     bool rebuild {_dirty || losSamples != _losSamples};
     _dirty = false;
@@ -114,7 +116,6 @@ void lighting::update(level const& lvl, usize losSamples)
         i32  CxMax {-1};
         i32  CyMin {0};
         i32  CyMax {-1};
-        f64  RadiusSq {0.0};
     };
 
     std::vector<light_sweep> sweeps(_lights.size());
@@ -126,12 +127,11 @@ void lighting::update(level const& lvl, usize losSamples)
         f64 const sweepRadius {lt.Range + CELL_DIAGONAL_HALF};
 
         auto& sweep {sweeps[li]};
-        sweep.Active   = true;
-        sweep.RadiusSq = sweepRadius * sweepRadius;
-        sweep.CxMin    = std::clamp(static_cast<i32>(std::floor(lightXY.X - sweepRadius)), 0, MAP_WIDTH - 1);
-        sweep.CxMax    = std::clamp(static_cast<i32>(std::floor(lightXY.X + sweepRadius)), 0, MAP_WIDTH - 1);
-        sweep.CyMin    = std::clamp(static_cast<i32>(std::floor(lightXY.Y - sweepRadius)), 0, MAP_HEIGHT - 1);
-        sweep.CyMax    = std::clamp(static_cast<i32>(std::floor(lightXY.Y + sweepRadius)), 0, MAP_HEIGHT - 1);
+        sweep.Active = true;
+        sweep.CxMin  = std::clamp(static_cast<i32>(std::floor(lightXY.X - sweepRadius)), 0, MAP_WIDTH - 1);
+        sweep.CxMax  = std::clamp(static_cast<i32>(std::floor(lightXY.X + sweepRadius)), 0, MAP_WIDTH - 1);
+        sweep.CyMin  = std::clamp(static_cast<i32>(std::floor(lightXY.Y - sweepRadius)), 0, MAP_HEIGHT - 1);
+        sweep.CyMax  = std::clamp(static_cast<i32>(std::floor(lightXY.Y + sweepRadius)), 0, MAP_HEIGHT - 1);
     }
 
     _taskManager.run_parallel([&](par_task const& ctx) {
@@ -146,14 +146,23 @@ void lighting::update(level const& lvl, usize losSamples)
                 for (i32 cx {sweep.CxMin}; cx <= sweep.CxMax; ++cx) {
                     point_d const cellCenter {cx + 0.5, cy + 0.5};
                     point_d const toLightXY {lightXY - cellCenter};
+                    auto const&   params {_params[li]};
 
                     auto const slp {lvl.map().slopes_at(point_i {cx, cy})};
                     f64 const  lowZ {std::min({slp.Floor.TL, slp.Floor.TR, slp.Floor.BL, slp.Floor.BR})};
                     f64 const  highZ {std::max({slp.Ceiling.TL, slp.Ceiling.TR, slp.Ceiling.BL, slp.Ceiling.BR})};
                     f64 const  dz {std::max({lowZ - lt.Position.Z, lt.Position.Z - highZ, 0.0})};
 
-                    f64 const distSq {toLightXY.dot(toLightXY) + (dz * dz)};
-                    if (distSq >= sweep.RadiusSq) { continue; }
+                    // the point of the cell nearest to the light decides: if even there the light is too weak to show, the cell does not list it
+                    f64 const nearX {std::max(std::abs(toLightXY.X) - 0.5, 0.0)};
+                    f64 const nearY {std::max(std::abs(toLightXY.Y) - 0.5, 0.0)};
+                    f64 const nearSq {(nearX * nearX) + (nearY * nearY) + (dz * dz)};
+                    if (nearSq >= params.RangeSq) { continue; }
+
+                    f64 const ratio {nearSq * params.InvRangeSq};
+                    f64 const envelope {1.0 - (ratio * ratio)};
+                    f64 const strength {envelope * envelope / std::max(nearSq, 0.01) * std::max({params.R, params.G, params.B})};
+                    if (strength < MIN_CELL_LIGHT) { continue; }
 
                     if (auto const parts {seen_parts(point_i {cx, cy}, lightXY)}) {
                         _cellLights[PixelIndex(MAP_WIDTH, cx, cy)].push_back({.Light = static_cast<u32>(li), .Seen = *parts});
@@ -174,6 +183,104 @@ auto lighting::lights_at(point_i map) const -> std::span<cell_light const>
 }
 
 static constexpr f64 INV_255 {1.0 / 255.0};
+
+// where a surface inside a blocking cell (a door) is seen from: just outside the cell, on the way to the viewer
+static auto ViewerSide(point_d pos, point_d viewer) -> point_d
+{
+    point_d const diff {viewer - pos};
+    f64 const     dist {diff.length()};
+    if (dist < 1e-6) { return pos; }
+
+    point_d const dir {diff / dist};
+    f64 const     t {cell_walk {pos, dir}.exit() + SURFACE_LIGHT_BIAS};
+    return t < dist ? pos + (dir * t) : pos;
+}
+
+auto lighting::span_in_cell(point_i cell, u32 lightMask) const -> light_span
+{
+    return {.Mask = lightMask, .InBlocker = blocks_light(cell), .Entries = lights_at(cell)};
+}
+
+auto lighting::span_at(map const& map, light_viewer const& viewer, point_d pos, u32 lightMask) const -> light_span
+{
+    auto span {span_in_cell(WorldToCell(pos), lightMask)};
+    span.Resolved = true;
+
+    point_d const visibleFrom {span.InBlocker ? ViewerSide(pos, viewer.Position) : pos};
+    if ((lightMask & LIGHT_LAYER_WORLD) != 0) { span.Glow = glow_at(visibleFrom); }
+
+    for (auto const& entry : span.Entries) {
+        auto const& lt {_params[entry.Light]};
+        if ((lt.Layers & lightMask) == 0) { continue; }
+
+        // too far in the plane: no height brings it into range
+        point_d const toLight {lt.Position - pos};
+        if (toLight.length_squared() >= lt.RangeSq) { continue; }
+
+        // a cell at a shadow edge is lit only where its part sees the light
+        if (!entry.sees(pos)) { continue; }
+
+        if (span.InBlocker && !map.has_line_of_sight(visibleFrom, lt.Position)) { continue; }
+        span.Reaching.push_back(entry.Light);
+    }
+
+    return span;
+}
+
+auto lighting::accumulate(light_span const& span, map const& map, light_viewer const& viewer, point_d pos, f64 z) const -> color_d
+{
+    // Calculates light attenuation using inverse-square distance law combined with
+    // a smooth quartic falloff envelope: (1 - (dist^4 / range^4))^2 / dist^2. Only for distSq < rangeSq, so the envelope stays in 0..1.
+    static auto compute_falloff {[](f64 distSq, f64 invRangeSq) -> f64 {
+        f64 const ratio {distSq * invRangeSq};
+        f64 const base {1.0 - (ratio * ratio)};
+        return (base * base) / (distSq > 0.01 ? distSq : 0.01);
+    }};
+
+    // adds what a light gives a surface to `total`
+    static auto add_light_contribution {[](light_params const& light, point_d const& surPos, f64 surZ, color_d& total) {
+        f64 const dx {light.Position.X - surPos.X};
+        f64 const dy {light.Position.Y - surPos.Y};
+        f64 const dz {light.Z - surZ};
+        f64 const distSq {(dx * dx) + (dy * dy) + (dz * dz)};
+        if (distSq >= light.RangeSq) { return; }
+
+        f64 const strength {compute_falloff(distSq, light.InvRangeSq)};
+        total.R += light.R * strength;
+        total.G += light.G * strength;
+        total.B += light.B * strength;
+    }};
+
+    static auto tone_map {[](f64 x) -> f64 { return x / (1.0 + x); }};
+
+    color_d total {};
+
+    if ((span.Mask & LIGHT_LAYER_WORLD) != 0) { add_light_contribution(viewer.Light, pos, z, total); }
+
+    if (span.Resolved) {
+        total += span.Glow;
+        for (u32 index : span.Reaching) { add_light_contribution(_params[index], pos, z, total); }
+    } else {
+        // a surface inside a blocking cell (a door) has two sides: what lights it is what the viewer's side sees
+        point_d const visibleFrom {span.InBlocker ? ViewerSide(pos, viewer.Position) : pos};
+
+        if ((span.Mask & LIGHT_LAYER_WORLD) != 0) { total += glow_at(visibleFrom); } // emissive floors
+
+        for (auto const& entry : span.Entries) {
+            auto const& lt {_params[entry.Light]};
+            if ((lt.Layers & span.Mask) == 0) { continue; }
+
+            // a cell at a shadow edge is lit only where its part sees the light
+            if (!entry.sees(pos)) { continue; }
+
+            if (span.InBlocker && !map.has_line_of_sight(visibleFrom, lt.Position)) { continue; }
+            add_light_contribution(lt, pos, z, total);
+        }
+    }
+
+    return {.R = tone_map(total.R), .G = tone_map(total.G), .B = tone_map(total.B)};
+}
+
 static constexpr f64 GLOW_INTENSITY {0.6}; // how strongly an emissive floor lights its surroundings, at the floor itself
 
 auto lighting::glow_at(point_d pos) const -> color_d

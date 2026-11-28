@@ -105,9 +105,9 @@ local PREFABS = {
     { -- octagon-ish room using diagonal walls to cut the corners
         rows = {
             "X..o..1",
-            "2G....3",
-            "o..P..o",
-            "4.....5",
+            "2G.MM.3",
+            "o..PP.o",
+            "4..NN.5",
             "6..o..X",
         },
     },
@@ -188,19 +188,16 @@ local cell_factories = {
 
     B = function(prefab)
         return with_surfaces(prefab, {
-            type           = "floor_cell",
-            FloorZ         = 0.18,
-            CeilingZ       = 1.25,
-            Level          = 1,
-            FloorEmissive  = 1,
-            FloorGlowRange = 2,
-            FloorGlowColor = { r = 255, g = 0, b = 0 }
+            type     = "floor_cell",
+            FloorZ   = 0.18,
+            CeilingZ = 1.25,
+            Level    = 1,
         })
     end,
     Q = function(prefab)
         return with_surfaces(prefab, {
-            type     = "floor_cell",
-            FloorZ   = -0.18,
+            type = "floor_cell",
+            FloorZ = -0.18,
             CeilingZ = 1.45,
         })
     end,
@@ -232,7 +229,7 @@ local cell_factories = {
         local texture = prefab.wall_texture
         return with_surfaces(prefab, {
             type              = "obstacle",
-            FloorZ            = -0.15,
+            --  FloorZ            = -0.15,
             Shapes            = {
                 shape(0.1, 0.1, 0.2, true, texture),
                 shape(0.5, 0.5, 0.2, true, texture),
@@ -241,7 +238,24 @@ local cell_factories = {
             FloorReflectivity = 0.24,
         })
     end,
-
+    M = function(prefab)
+        return with_surfaces(prefab, {
+            type           = "floor_cell",
+            FloorEmissive  = 0.5,
+            FloorGlowRange = 2,
+            FloorGlowColor = { r = 0, g = 255, b = 0 },
+            FloorSelfGlow  = true
+        })
+    end,
+    N = function(prefab)
+        return with_surfaces(prefab, {
+            type           = "floor_cell",
+            FloorEmissive  = 0.5,
+            FloorGlowRange = 2,
+            FloorGlowColor = { r = 0, g = 255, b = 0 },
+            FloorSelfGlow  = false
+        })
+    end,
     X = function(prefab, x, y)
         local north, south = is_solid(prefab, x, y - 1), is_solid(prefab, x, y + 1)
         local west, east   = is_solid(prefab, x - 1, y), is_solid(prefab, x + 1, y)

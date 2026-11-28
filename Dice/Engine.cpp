@@ -8,7 +8,18 @@
 #include "Common.hpp"
 #include "Die.hpp"
 #include "Socket.hpp"
+#include "Sprite.hpp"
 #include "SpriteManager.hpp"
+#include "TexProxy.hpp"
+#include <format>
+#include <functional>
+#include <memory>
+#include <optional>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <variant>
+#include <vector>
 
 using namespace scripting;
 

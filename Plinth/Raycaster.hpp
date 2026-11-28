@@ -14,6 +14,7 @@
 #include "Camera.hpp"
 #include "Level.hpp"
 #include "LevelObject.hpp"
+#include "Lighting.hpp"
 
 class raycaster {
 public:
@@ -29,13 +30,27 @@ private:
         player const& Player;
         camera        Camera;
         i32           CenterY {};
+        light_viewer  Viewer;
     };
 
     struct column_hit;
 
     auto accumulate_light(frame const& frame, point_d const& surfacePos, f64 surfaceZ, point_i cell, u32 lightMask) const -> color_d;
 
-    void draw_surface_pixel(frame const& frame, isize x, isize y, u8 const* tex, isize srcIdx, point_d const& surfacePos, f64 surfaceZ, f64 shade, f64 emissive = 0.0);
+    struct surface_pixel {
+        isize     X {};
+        isize     Y {};
+        u8 const* Tex {};
+        isize     SrcIdx {};
+        point_d   SurfacePos;
+        color_d   Light;
+        f64       Shade {};
+
+        f64     Emissive      = 0.0;
+        color_d EmissiveColor = {.R = 1.0, .G = 1.0, .B = 1.0};
+    };
+
+    void draw_surface_pixel(frame const& frame, surface_pixel const& surfacePixel);
 
     void draw_columns(frame const& frame, i32 columnStart, i32 columnEnd);
     void draw_floor_ceiling_column(frame const& frame, column_hit& col);

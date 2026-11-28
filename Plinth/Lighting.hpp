@@ -5,10 +5,16 @@
 
 #pragma once
 
+#include <algorithm>
+#include <concepts>
 #include <span>
 #include <vector>
 
 #include "Common.hpp"
+
+class map;
+
+inline constexpr f64 SURFACE_LIGHT_BIAS {0.001}; // lights a surface from the open side so the cell lookup never lands inside the wall
 
 ////////////////////////////////////////////////////////////
 
@@ -53,6 +59,69 @@ struct cell_light {
 
 ////////////////////////////////////////////////////////////
 
+// who looks: where doors are seen from, and the light the viewer carries
+struct light_viewer {
+    point_d      Position {};
+    light_params Light {};
+};
+
+// the lights of a stretch of surface, looked up once for all its pixels
+struct light_span {
+    u32  Mask {LIGHT_LAYERS_ALL};
+    bool InBlocker {false};              // the cell blocks light: a surface in it has two sides, and what lights it is what the viewer's side sees
+
+    std::span<cell_light const> Entries; // the lights listed for the cell, tested for every pixel
+
+    // a span of one point only (a wall column): which lights reach it and the glow are the same for every pixel
+    bool             Resolved {false};
+    std::vector<u32> Reaching {}; // indices into lighting::lights()
+    color_d          Glow {};
+};
+
+// The light along a run of pixels changes slowly from one pixel to the next: it is worked out for every `step`th one and blended in between.
+// Rows are asked for in ascending order, `sample(row)` gives the exact light of a row.
+class light_ramp {
+public:
+    light_ramp(i32 first, i32 last, i32 step)
+        : _prevRow {first}
+        , _nextRow {first}
+        , _last {last}
+        , _step {step}
+    {
+    }
+
+    template <std::invocable<i32> Func>
+    auto at(i32 row, Func const& sample) -> color_d
+    {
+        if (!_started) {
+            _prev    = sample(_prevRow);
+            _next    = _prev;
+            _started = true;
+        }
+
+        while (row > _nextRow) {
+            _prevRow = _nextRow;
+            _prev    = _next;
+            _nextRow = std::min(_prevRow + _step, _last);
+            _next    = sample(_nextRow);
+        }
+
+        if (_nextRow == _prevRow) { return _prev; }
+        return _prev.lerp(_next, static_cast<f64>(row - _prevRow) / static_cast<f64>(_nextRow - _prevRow));
+    }
+
+private:
+    i32     _prevRow;
+    i32     _nextRow;
+    i32     _last;
+    i32     _step;
+    color_d _prev {};
+    color_d _next {};
+    bool    _started {false};
+};
+
+////////////////////////////////////////////////////////////
+
 class lighting {
 public:
     lighting();
@@ -61,6 +130,13 @@ public:
 
     auto lights() const -> std::span<light_params const>;
     auto lights_at(point_i map) const -> std::span<cell_light const>;
+
+    // the lights of the pixels of a stretch of surface in one cell (floors, ceilings), tested per pixel
+    auto span_in_cell(point_i cell, u32 lightMask) const -> light_span;
+    // the lights of a single point (a wall column), tested once
+    auto span_at(map const& map, light_viewer const& viewer, point_d pos, u32 lightMask) const -> light_span;
+    // the light that reaches a surface point of a span: every light, the viewer's own and the glow of emissive floors
+    auto accumulate(light_span const& span, map const& map, light_viewer const& viewer, point_d pos, f64 z) const -> color_d;
 
     auto glow_at(point_d pos) const -> color_d;    // the light that emissive floors spread, see rebuild_glow
     auto blocks_light(point_i cell) const -> bool; // a flat lookup of what map::is_blocking_light said at the last rebuild

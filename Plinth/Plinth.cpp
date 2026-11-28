@@ -206,7 +206,7 @@ Plinth::Plinth(game& game)
 
     static voxel_grid const testVoxelGrid {*LoadVoxels("res/ball1.vox")};
 
-    for (i32 i {0}; i < 50; ++i) {
+    for (i32 i {0}; i < 0; ++i) {
         f64 const scale {rng(0.3, 1.0)};
         f64 const maxDim {static_cast<f64>(std::max({testVoxelGrid.Size.X, testVoxelGrid.Size.Y, testVoxelGrid.Size.Z}))};
 
