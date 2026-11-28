@@ -37,6 +37,7 @@ void lighting::update(level const& lvl, usize losSamples)
 {
     if (_dirty) {
         rebuild_blocking(lvl);
+        rebuild_glow(lvl);
     }
 
     constexpr static f64 CELL_DIAGONAL_HALF {std::numbers::sqrt2 / 2}; // max distance from a cell's center to its farthest corner
@@ -166,6 +167,9 @@ auto lighting::lights_at(point_i map) const -> std::span<cell_light const>
     return _cellLights[PixelIndex(MAP_WIDTH, map.X, map.Y)];
 }
 
+static constexpr f64 INV_255 {1.0 / 255.0};
+static constexpr f64 GLOW_INTENSITY {0.6}; // how strongly an emissive floor lights its surroundings, at the floor itself
+
 auto lighting::glow_at(point_d pos) const -> color_d
 {
     if (_glow.empty()) { return {}; }
@@ -215,5 +219,47 @@ void lighting::rebuild_blocking(level const& lvl)
     _blocked.assign(static_cast<usize>(MAP_WIDTH) * MAP_HEIGHT, 0);
     for (i32 cy {0}; cy < MAP_HEIGHT; ++cy) {
         for (i32 cx {0}; cx < MAP_WIDTH; ++cx) { _blocked[PixelIndex(MAP_WIDTH, cx, cy)] = map.is_blocking_light(point_i {cx, cy}) ? 1 : 0; }
+    }
+}
+
+// The light of emissive floors: every open cell whose floor has a FloorEmissive and a FloorGlowRange spreads its FloorGlowColor over
+// the open cells around it, with a smooth falloff and only where it can see them.
+void lighting::rebuild_glow(level const& lvl)
+{
+    auto const& map {lvl.map()};
+
+    _glow.assign(static_cast<usize>(MAP_WIDTH) * MAP_HEIGHT, color_d {});
+
+    auto const spread {[&](point_i source, cell_surface const& floor) {
+        color_d const emitted {color_d {.R = floor.FloorGlowColor.R * INV_255, .G = floor.FloorGlowColor.G * INV_255, .B = floor.FloorGlowColor.B * INV_255} * (floor.FloorEmissive * GLOW_INTENSITY)};
+        f64 const     rangeSq {floor.FloorGlowRange * floor.FloorGlowRange};
+        i32 const     reach {static_cast<i32>(std::ceil(floor.FloorGlowRange))};
+
+        for (i32 dy {-reach}; dy <= reach; ++dy) {
+            for (i32 dx {-reach}; dx <= reach; ++dx) {
+                point_i const cell {source.X + dx, source.Y + dy};
+                if (!map_grid::Size.contains(cell)) { continue; }
+
+                auto const index {PixelIndex(MAP_WIDTH, cell.X, cell.Y)};
+                if (_blocked[index] != 0) { continue; }
+
+                f64 const distSq {static_cast<f64>((dx * dx) + (dy * dy))};
+                if (distSq >= rangeSq) { continue; }
+                if (distSq > 0.0 && !map.has_line_of_sight({source.X + 0.5, source.Y + 0.5}, {cell.X + 0.5, cell.Y + 0.5})) { continue; }
+
+                f64 const falloff {1.0 - (distSq / rangeSq)};
+                _glow[index] += emitted * (falloff * falloff);
+            }
+        }
+    }};
+
+    for (i32 cy {0}; cy < MAP_HEIGHT; ++cy) {
+        for (i32 cx {0}; cx < MAP_WIDTH; ++cx) {
+            point_i const cell {cx, cy};
+            if (_blocked[PixelIndex(MAP_WIDTH, cx, cy)] != 0) { continue; }
+
+            auto const floor {map.surface_at(cell)};
+            if (floor.FloorEmissive > 0.0 && floor.FloorGlowRange > 0.0) { spread(cell, floor); }
+        }
     }
 }

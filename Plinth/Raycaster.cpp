@@ -192,7 +192,7 @@ auto raycaster::accumulate_light(frame const& frame, point_d const& surfacePos, 
 
     if ((lightMask & LIGHT_LAYER_WORLD) != 0) {
         add_light_contribution(player.Position, player.EyeZ, player.Settings.LightRange, player.Settings.LightIntensity, color {255, 255, 255}, surfacePos, surfaceZ, total);
-        total += lighting.glow_at(visibleFrom); // emissive ground
+        total += lighting.glow_at(visibleFrom); // emissive floors
     }
 
     auto const lights {lighting.lights()};
@@ -210,14 +210,15 @@ auto raycaster::accumulate_light(frame const& frame, point_d const& surfacePos, 
     return {.R = tone_map(total.R), .G = tone_map(total.G), .B = tone_map(total.B)};
 }
 
-void raycaster::draw_surface_pixel(frame const& frame, isize x, isize y, u8 const* tex, isize srcIdx, point_d const& surfacePos, f64 surfaceZ, f64 shade)
+void raycaster::draw_surface_pixel(frame const& frame, isize x, isize y, u8 const* tex, isize srcIdx, point_d const& surfacePos, f64 surfaceZ, f64 shade, f64 emissive)
 {
     constexpr static f64 DITHER_MIN_DIST_SQ {0.5}; // closer than this, surfaces are drawn smooth
 
     auto const& player {frame.Player};
 
     auto const cell {WorldToCell(surfacePos)};
-    auto const tint {accumulate_light(frame, surfacePos, surfaceZ, cell, LIGHT_LAYERS_ALL) * shade};
+    auto tint {accumulate_light(frame, surfacePos, surfaceZ, cell, LIGHT_LAYERS_ALL) * shade};
+    if (emissive > 0.0) { tint = tint.lerp(color_d {.R = 1.0, .G = 1.0, .B = 1.0}, emissive); } // glows by itself, not lit by the level
 
     auto const toSurface {surfacePos - player.Position};
     bool const close {toSurface.length_squared() < DITHER_MIN_DIST_SQ};
@@ -329,7 +330,7 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
     // vertical face where a surface does not meet the one of the cell before it
     auto const draw_riser {[&](bool isFloor, point_i prevCell, point_i cell, auto const& prevSlopes, auto const& slopes, cell_surface const& surface, f64 t) {
         i32 const texId {isFloor ? surface.FloorTexture : surface.CeilingTexture};
-        if (texId == SKY_TEXTURE || (isFloor && surface.Ground != 0)) { return; }
+        if (texId == SKY_TEXTURE) { return; }
         u8 const* tex {_cache.texture(texId, 0)};
         if (tex == nullptr) { return; }
 
@@ -435,7 +436,7 @@ void raycaster::draw_floor_ceiling_column(frame const& frame, column_hit& col)
             i32 const texelX {WrapTexel(pos.X, WALL_SIZE.Width)};
             i32 const texelY {WrapTexel(pos.Y, WALL_SIZE.Height)};
 
-            draw_surface_pixel(frame, col.X, y, tex, TexelOffset(texelX, texelY, WALL_SIZE.Width), pos, z, 1.0);
+            draw_surface_pixel(frame, col.X, y, tex, TexelOffset(texelX, texelY, WALL_SIZE.Width), pos, z, 1.0, isFloor ? surface.FloorEmissive : 0.0);
             _objectDepthBuffer[pixel_index(y)] = t;
 
             u32& pixel {screenBuf[pixel_index(y)]};

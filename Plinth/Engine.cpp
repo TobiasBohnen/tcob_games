@@ -109,13 +109,16 @@ void engine::create_env()
         auto&         map {level->map()};
 
         auto const read_surfaces {[&cellTable](auto& cell) {
-            cellTable.try_get(cell.FloorTexture, "FloorTexture");
-            cellTable.try_get(cell.CeilingTexture, "CeilingTexture");
-            cellTable.try_get(cell.FloorReflectivity, "FloorReflectivity");
-            cellTable.try_get(cell.FloorZ, "FloorZ");
-            cellTable.try_get(cell.CeilingZ, "CeilingZ");
-            cellTable.try_get(cell.Level, "Level");
-            cellTable.try_get(cell.Motes, "Motes");
+            cellTable.try_get(cell.Surface.FloorTexture, "FloorTexture");
+            cellTable.try_get(cell.Surface.CeilingTexture, "CeilingTexture");
+            cellTable.try_get(cell.Surface.FloorReflectivity, "FloorReflectivity");
+            cellTable.try_get(cell.Surface.FloorZ, "FloorZ");
+            cellTable.try_get(cell.Surface.CeilingZ, "CeilingZ");
+            cellTable.try_get(cell.Surface.Level, "Level");
+            cellTable.try_get(cell.Surface.Motes, "Motes");
+            cellTable.try_get(cell.Surface.FloorEmissive, "FloorEmissive");
+            cellTable.try_get(cell.Surface.FloorGlowRange, "FloorGlowRange");
+            cellTable.try_get(cell.Surface.FloorGlowColor, "FloorGlowColor");
         }};
 
         if (string type; cellTable.try_get(type, "type")) {

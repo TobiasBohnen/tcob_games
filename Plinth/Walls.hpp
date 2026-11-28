@@ -44,10 +44,8 @@ struct cell_intersect {
 
 ////////////////////////////////////////////////////////////
 
-// Every cell type answers closest_point(): the point of its solid geometry nearest to `pos`, for the cell at `cellPos`.
-// Nothing for cells without any (floors, open doors).
-
-struct floor_cell {
+// what a cell shows and does on its floor and ceiling, whatever the cell is
+struct cell_surface {
     i32 FloorTexture {INVALID_INDEX};
     i32 CeilingTexture {INVALID_INDEX};
     f64 FloorReflectivity {0.0};
@@ -55,6 +53,19 @@ struct floor_cell {
     f64 CeilingZ {1.0};
     u8  Motes {0};
     u8  Level {0};
+
+    f64   FloorEmissive {0.0};  // 0: lit by the lights of the level, 1: glows by itself
+    f64   FloorGlowRange {0.0}; // cells: how far an emissive floor lights its surroundings; 0: not at all
+    color FloorGlowColor {colors::White};
+};
+
+////////////////////////////////////////////////////////////
+
+// Every cell type answers closest_point(): the point of its solid geometry nearest to `pos`, for the cell at `cellPos`.
+// Nothing for cells without any (floors, open doors).
+
+struct floor_cell {
+    cell_surface Surface {};
 
     auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
     auto closest_point(point_i cellPos, point_d pos) const -> std::optional<point_d>;
@@ -80,13 +91,7 @@ struct door_wall {
 
     i32 Texture {0};
     i32 FrameTexture {0};
-    i32 FloorTexture {INVALID_INDEX};
-    i32 CeilingTexture {INVALID_INDEX};
-    f64 FloorReflectivity {0.0};
-    f64 FloorZ {0.0};
-    f64 CeilingZ {1.0};
-    u8  Motes {0};
-    u8  Level {0};
+    cell_surface Surface {};
 
     auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
     auto closest_point(point_i cellPos, point_d pos) const -> std::optional<point_d>;
@@ -103,13 +108,7 @@ struct push_wall {
     point_i PushDirection {0, 0};
 
     i32 Texture {0};
-    i32 FloorTexture {INVALID_INDEX};
-    i32 CeilingTexture {INVALID_INDEX};
-    f64 FloorReflectivity {0.0};
-    f64 FloorZ {0.0};
-    f64 CeilingZ {1.0};
-    u8  Motes {0};
-    u8  Level {0};
+    cell_surface Surface {};
 
     auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
     auto closest_point(point_i cellPos, point_d pos) const -> std::optional<point_d>;
@@ -129,13 +128,7 @@ struct obstacle_shape {
 struct obstacle {
     std::vector<obstacle_shape> Shapes {};
 
-    i32 FloorTexture {INVALID_INDEX};
-    i32 CeilingTexture {INVALID_INDEX};
-    f64 FloorReflectivity {0.0};
-    f64 FloorZ {0.0};
-    f64 CeilingZ {1.0};
-    u8  Motes {0};
-    u8  Level {0};
+    cell_surface Surface {};
 
     auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
     auto closest_point(point_i cellPos, point_d pos) const -> std::optional<point_d>;
@@ -150,13 +143,7 @@ struct diagonal_wall {
     orientation Orientation {orientation::NorthWestToSouthEast};
 
     i32 Texture {0};
-    i32 FloorTexture {INVALID_INDEX};
-    i32 CeilingTexture {INVALID_INDEX};
-    f64 FloorReflectivity {0.0};
-    f64 FloorZ {0.0};
-    f64 CeilingZ {1.0};
-    u8  Motes {0};
-    u8  Level {0};
+    cell_surface Surface {};
 
     auto intersect(cell_intersect const& ci) const -> std::optional<wall_hit>;
     auto closest_point(point_i cellPos, point_d pos) const -> std::optional<point_d>;

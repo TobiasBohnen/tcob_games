@@ -12,17 +12,6 @@
 #include "Common.hpp"
 #include "Walls.hpp"
 
-struct cell_surface {
-    i32 FloorTexture {INVALID_INDEX};
-    i32 CeilingTexture {INVALID_INDEX};
-    f64 FloorReflectivity {0.0};
-    f64 FloorZ {0.0};
-    f64 CeilingZ {1.0};
-    u8  Motes {0};
-    u8  Ground {0};
-    u8  Level {0};
-};
-
 struct slope {
     f64 TL {0};
     f64 TR {0};
@@ -54,6 +43,7 @@ public:
 
     void update(f64 dt);
 
+    // whether a cell started or stopped blocking light since the last call: the lighting has to be rebuilt
     auto light_changed() -> bool;
 
     auto get_cell(point_i pos) const -> cell const&;

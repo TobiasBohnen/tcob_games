@@ -188,10 +188,13 @@ local cell_factories = {
 
     B = function(prefab)
         return with_surfaces(prefab, {
-            type     = "floor_cell",
-            FloorZ   = 0.18,
-            CeilingZ = 1.25,
-            Level    = 1
+            type           = "floor_cell",
+            FloorZ         = 0.18,
+            CeilingZ       = 1.25,
+            Level          = 1,
+            FloorEmissive  = 1,
+            FloorGlowRange = 2,
+            FloorGlowColor = { r = 255, g = 0, b = 0 }
         })
     end,
     Q = function(prefab)
