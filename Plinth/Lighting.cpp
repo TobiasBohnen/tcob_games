@@ -67,6 +67,12 @@ void lighting::update(level const& lvl, usize losSamples)
         rebuild = true;
     }
 
+    _params.resize(_lights.size());
+    for (usize i {0}; i < _lights.size(); ++i) {
+        auto const& lt {_lights[i]};
+        _params[i] = MakeLightParams(lt.Position.xy(), lt.Position.Z, lt.Range, lt.Intensity, lt.Color, lt.Layers);
+    }
+
     if (!rebuild) { return; }
 
     _losSamples = losSamples;
@@ -159,7 +165,7 @@ void lighting::update(level const& lvl, usize losSamples)
                               MAP_HEIGHT);
 }
 
-auto lighting::lights() const -> std::span<dynamic_light const> { return _lights; }
+auto lighting::lights() const -> std::span<light_params const> { return _params; }
 
 auto lighting::lights_at(point_i map) const -> std::span<cell_light const>
 {
@@ -229,8 +235,10 @@ void lighting::rebuild_glow(level const& lvl)
     auto const& map {lvl.map()};
 
     _glow.assign(static_cast<usize>(MAP_WIDTH) * MAP_HEIGHT, color_d {});
+    bool any {false};
 
     auto const spread {[&](point_i source, cell_surface const& floor) {
+        any = true;
         color_d const emitted {color_d {.R = floor.FloorGlowColor.R * INV_255, .G = floor.FloorGlowColor.G * INV_255, .B = floor.FloorGlowColor.B * INV_255} * (floor.FloorEmissive * GLOW_INTENSITY)};
         f64 const     rangeSq {floor.FloorGlowRange * floor.FloorGlowRange};
         i32 const     reach {static_cast<i32>(std::ceil(floor.FloorGlowRange))};
@@ -262,4 +270,6 @@ void lighting::rebuild_glow(level const& lvl)
             if (floor.FloorEmissive > 0.0 && floor.FloorGlowRange > 0.0) { spread(cell, floor); }
         }
     }
+
+    if (!any) { _glow.clear(); } // glow_at has nothing to do then
 }

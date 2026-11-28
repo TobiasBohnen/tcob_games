@@ -19,6 +19,7 @@
 #include "Common.hpp"
 #include "Level.hpp"
 #include "LevelObject.hpp"
+#include "Lighting.hpp"
 #include "Map.hpp"
 #include "Player.hpp"
 #include "Shading.hpp"
@@ -26,7 +27,6 @@
 #include "Voxel.hpp"
 #include "Walls.hpp"
 
-constexpr f64 INV_255 {1.0 / 255.0};
 constexpr f64 WALL_RECESS_EPS {1e-6};     // a wall hit further into its cell than this is recessed (door, diagonal)
 constexpr f64 MIN_RAY_DIST {1e-4};        // keeps row projection finite for surfaces at the player
 constexpr f64 SEEN_MIN_LIGHT {0.02};      // a surface lit dimmer than this (brightest channel) does not count as seen
@@ -57,16 +57,6 @@ static auto ViewerSide(point_d pos, point_d viewer) -> point_d
     point_d const dir {diff / dist};
     f64 const     t {cell_walk {pos, dir}.exit() + SURFACE_LIGHT_BIAS};
     return t < dist ? pos + (dir * t) : pos;
-}
-
-// Calculates light attenuation using inverse-square distance law combined with
-// a smooth quartic falloff envelope: intensity * (1 - (dist^4 / range^4))^2 / dist^2
-static auto ComputeFalloff(f64 distSq, f64 rangeSq, f64 intensity) -> f64
-{
-    f64 const d {std::max(distSq, 0.01)};
-    f64 const ratio {distSq / rangeSq};
-    f64 const base {std::clamp(1.0 - (ratio * ratio), 0.0, 1.0)};
-    return intensity * (base * base) / d;
 }
 
 static auto DitherTint(color_d tint, isize x, isize y) -> color_d
@@ -165,22 +155,32 @@ void raycaster::set_quality(quality_settings const& quality, f64 projPlaneDist)
 
 auto raycaster::accumulate_light(frame const& frame, point_d const& surfacePos, f64 surfaceZ, point_i cell, u32 lightMask) const -> color_d
 {
+    // Calculates light attenuation using inverse-square distance law combined with
+    // a smooth quartic falloff envelope: (1 - (dist^4 / range^4))^2 / dist^2. Only for distSq < rangeSq, so the envelope stays in 0..1.
+    static auto compute_falloff {[](f64 distSq, f64 invRangeSq) -> f64 {
+        f64 const ratio {distSq * invRangeSq};
+        f64 const base {1.0 - (ratio * ratio)};
+        return (base * base) / (distSq > 0.01 ? distSq : 0.01);
+    }};
+
+    // adds what a light gives a surface to `total`
+    static auto add_light_contribution {[](light_params const& light, point_d const& surPos, f64 surZ, color_d& total) {
+        f64 const dx {light.Position.X - surPos.X};
+        f64 const dy {light.Position.Y - surPos.Y};
+        f64 const dz {light.Z - surZ};
+        f64 const distSq {(dx * dx) + (dy * dy) + (dz * dz)};
+        if (distSq >= light.RangeSq) { return; }
+
+        f64 const strength {compute_falloff(distSq, light.InvRangeSq)};
+        total.R += light.R * strength;
+        total.G += light.G * strength;
+        total.B += light.B * strength;
+    }};
+
     auto const& level {frame.Level};
     auto const& player {frame.Player};
 
     static auto tone_map {[](f64 x) -> f64 { return x / (1.0 + x); }};
-
-    static auto add_light_contribution {[](point_d const& lightPos, f64 lightHeight, f64 range, f64 intensity, color lightColor, point_d const& surPos, f64 surZ, color_d& total) {
-        auto const toLightXY {lightPos - surPos};
-        f64 const  dz {lightHeight - surZ};
-        f64 const  distSq {toLightXY.length_squared() + (dz * dz)};
-        f64 const  rangeSq {range * range};
-        if (distSq >= rangeSq) { return; }
-        f64 const strength {ComputeFalloff(distSq, rangeSq, intensity)};
-        total.R += lightColor.R * INV_255 * strength;
-        total.G += lightColor.G * INV_255 * strength;
-        total.B += lightColor.B * INV_255 * strength;
-    }};
 
     color_d total {};
 
@@ -191,7 +191,7 @@ auto raycaster::accumulate_light(frame const& frame, point_d const& surfacePos, 
     point_d const visibleFrom {inBlocker ? ViewerSide(surfacePos, player.Position) : surfacePos};
 
     if ((lightMask & LIGHT_LAYER_WORLD) != 0) {
-        add_light_contribution(player.Position, player.EyeZ, player.Settings.LightRange, player.Settings.LightIntensity, color {255, 255, 255}, surfacePos, surfaceZ, total);
+        add_light_contribution(MakeLightParams(player.Position, player.EyeZ, player.Settings.LightRange, player.Settings.LightIntensity, color {255, 255, 255}), surfacePos, surfaceZ, total);
         total += lighting.glow_at(visibleFrom); // emissive floors
     }
 
@@ -203,8 +203,8 @@ auto raycaster::accumulate_light(frame const& frame, point_d const& surfacePos, 
         // a cell at a shadow edge is lit only where its part sees the light
         if (!entry.sees(surfacePos)) { continue; }
 
-        if (inBlocker && !level.map().has_line_of_sight(visibleFrom, lt.Position.xy())) { continue; }
-        add_light_contribution(lt.Position.xy(), lt.Position.Z, lt.Range, lt.Intensity, lt.Color, surfacePos, surfaceZ, total);
+        if (inBlocker && !level.map().has_line_of_sight(visibleFrom, lt.Position)) { continue; }
+        add_light_contribution(lt, surfacePos, surfaceZ, total);
     }
 
     return {.R = tone_map(total.R), .G = tone_map(total.G), .B = tone_map(total.B)};
@@ -217,7 +217,7 @@ void raycaster::draw_surface_pixel(frame const& frame, isize x, isize y, u8 cons
     auto const& player {frame.Player};
 
     auto const cell {WorldToCell(surfacePos)};
-    auto tint {accumulate_light(frame, surfacePos, surfaceZ, cell, LIGHT_LAYERS_ALL) * shade};
+    auto       tint {accumulate_light(frame, surfacePos, surfaceZ, cell, LIGHT_LAYERS_ALL) * shade};
     if (emissive > 0.0) { tint = tint.lerp(color_d {.R = 1.0, .G = 1.0, .B = 1.0}, emissive); } // glows by itself, not lit by the level
 
     auto const toSurface {surfacePos - player.Position};
